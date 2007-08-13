@@ -105,7 +105,7 @@ while (my @line = $resultat->fetchrow)
     $prefiks2boks{$line[1]} = $line[0];
 }
 
-$sql= "SELECT arpid,netboxid,ip,mac FROM arp WHERE end_time='infinity'"; 
+$sql= "SELECT arpid,netboxid,ip,REPLACE(mac::text, ':', '') AS mac FROM arp WHERE end_time='infinity'"; 
 
 $resultat = NAV::select($conn, $sql);
 

@@ -18,31 +18,19 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Morten Vold <morten.vold@ntnu.no>
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
-div.ipinfo {
-	font-size: medium;
-}
 
-.infotable {
-	font-size: small;
-}
-.infotable caption { 
-	font-size: large;
+.infotable caption {
+	font-size: larger;
 	font-weight: bold;
 	text-align: center;
 }
 .infotable tr th {
 	text-align: left;
-	border-right: 1px solid #eeeeee;
+	border-right: 1px solid #eee;
 	padding-right: 0.5em;
-}
-.infotable tr.oddrow {
-	background-color: white;
-}
-.infotable tr.evenrow {
-	background-color: #eeeeee;
 }

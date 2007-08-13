@@ -1,4 +1,5 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
@@ -30,8 +31,11 @@ descriptive URLs like "/browse/machine.domain.com" and
 import sys
 import warnings
 import traceback
-from mod_python import apache
-from mod_python.util import FieldStorage
+try:
+    from mod_python import apache
+    from mod_python.util import FieldStorage
+except:
+    pass
 from nav.errors import *
 
 import forgetHTML as html

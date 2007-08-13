@@ -407,7 +407,7 @@ CREATE TABLE arp (
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET NULL,
   sysname VARCHAR NOT NULL,
   ip INET NOT NULL,
-  mac CHAR(12) NOT NULL,
+  mac MACADDR NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
@@ -424,8 +424,8 @@ CREATE TABLE cam (
   sysname VARCHAR NOT NULL,
   ifindex INT4 NOT NULL,
   module VARCHAR(4),
-  port INT4,
-  mac CHAR(12) NOT NULL,
+  port VARCHAR,
+  mac MACADDR NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity',
   misscnt INT4 DEFAULT '0',
@@ -751,6 +751,7 @@ CREATE TABLE alerthist (
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
+CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
 CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 
 -- Rule to automatically close module related alert states when modules are

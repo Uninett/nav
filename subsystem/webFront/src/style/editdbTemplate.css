@@ -49,21 +49,13 @@ a.info:hover span {
 }
 
 /* Table style */
+/* FIXME: Merge with table.css */
 tr.header {
 	background-color: white;
 	background-image: url('/images/ragen/navbar-fill.gif');
 	background-repeat: repeat-x;
 	height: 26px;
 	padding: 1px 0px 0px 0px;
-	font-size: 13px;
-}
-
-tr.evenrow {
-	font-size: 12px;
-	background-color: #eee;
-}
-tr.oddrow {
-	font-size: 12px;
 }
 
 td.startheader {
@@ -78,16 +70,4 @@ td.endheader {
 	background-position: top right;
 	background-repeat: no-repeat;
 	width: 14px;
-}
-
-/* Status and error style */
-p.error {
-	color: red;
-}
-p.status {
-	color: #0b0;
-}
-p.infotext {
-	width: 80%;
-	font-size: 13px;
 }

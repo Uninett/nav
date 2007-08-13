@@ -18,24 +18,26 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Magnar Sveen <magnars@idi.ntnu.no>
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
+/* Old style table */
 table.horiztable {
 	border: 0;
 	border-collapse: collapse;
 	caption-side: top;
+	margin-bottom: 1em;
 }
 
-/* Table title */
+/* Old style table: Table title */
 table.horiztable caption {
 	background-color: #eee;
 	background-image: url('/images/bar-fill.gif');
 	background-repeat: no-repeat;
 	color: black;
-	font-size: 15px;
+	font-size: 1.1em;
 	font-weight: bold;
 	text-align: center;
 }
@@ -48,7 +50,7 @@ table.horiztable caption span.cornerkludge {
 	height: 35px;
 }
 table.horiztable caption span.subtitle {
-	font-size: 11px;
+	font-size: smaller;
 	font-weight: normal;
 }
 table.horiztable caption span.previous {
@@ -60,7 +62,7 @@ table.horiztable caption span.next {
 	margin-right: 1em;
 }
 
-/* Table column titles */
+/* Old style: table column titles */
 table.horiztable tr.header {
 	background-color: white;
 	background-image: url('/images/ragen/navbar-fill.gif');
@@ -69,7 +71,6 @@ table.horiztable tr.header {
 	height: 26px;
 }
 table.horiztable tr.header th {
-	font-size: 13px;
 	font-weight: normal;
 	text-align: left;
 	vertical-align: top;
@@ -91,22 +92,20 @@ table.horiztable tr.header td.rightkludge {
 	background-position: top right;
 }
 
-/* Table body */
+/* Old style table: Table body */
 table.horiztable tr.evenrow {
 	background-color: #eee;
 	color: black;
-	font-size: 11px;
 }
 table.horiztable tr.oddrow {
 	background-color: white;
 	color: black;
-	font-size: 11px;
 }
 table.horiztable tr.evenrow td, table.horiztable tr.oddrow td {
 	padding-right: 1em;
 }
 
-/* Table footer */
+/* Old style table: Table footer */
 table.horiztable tr.footer {
 	background-image: url('/images/ragen/bottom-fill.gif');
 	background-repeat: repeat-x;
@@ -115,7 +114,6 @@ table.horiztable tr.footer {
 }
 table.horiztable tr.footer th {
 	color: black;
-	font-size: 12px;
 	font-weight: bold;
 	text-align: center;
 	vertical-align: top;
@@ -141,15 +139,17 @@ table.horiztable tr.footer span.next {
 }
 
 
+/* New style details table */
 table.vertitable {
-	border: 1px solid #ccc;
+	border: 1px solid #999;
+	border-collapse: separate;
+	border-spacing: 2px;
 	caption-side: top;
-	font-size: smaller;
 	margin-bottom: 1em;
 	width: 100%;
 }
 table.vertitable caption {
-	font-size: large;
+	font-size: larger;
 	text-align: left;
 	padding-bottom: 0.3em;
 }
@@ -162,20 +162,23 @@ table.vertitable tr th {
 	padding: 0.1em 0.2em;
 	width: 10%; /* Something small */
 }
+table.vertitable tr th a {
+	color: black;
+}
 table.vertitable tr td {
 	background-color: white;
 	padding: 0.1em 0.2em;
 }
 table.vertitable tr td ul {
-	list-style-type: square;
 	margin: 0;
-	padding: 0 0 0 1.5em;
 }
 
+/* New style list table */
 table.vertilist {
-	border: 1px solid #ccc;
+	border: 1px solid #999;
+	border-collapse: separate;
+	border-spacing: 2px;
 	caption-side: top;
-	font-size: smaller;
 	margin-bottom: 1em;
 	width: 100%;
 }
@@ -187,7 +190,10 @@ table.vertilist tr th {
 	background-color: #eee;
 	padding: 0.1em 0.2em;
 }
+table.vertilist tr th a {
+	color: black;
+}
 table.vertilist tr td {
         background-color: white;
         padding: 0.1em 0.2em;
-}       
+}

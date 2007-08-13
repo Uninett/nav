@@ -1,4 +1,5 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
@@ -29,7 +30,10 @@ time), and to be cached for rapid sorting and recurrent display.
 to do to often)
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 import random
 import time
 import forgetHTML as html
@@ -74,7 +78,7 @@ class ServiceTable:
             netboxids = [str(nbox._getID()[0]) for nbox in netboxes]
             netboxids = ','.join(netboxids)
             where.append('netboxid in (%s)' % netboxids)
-            
+
         self.services = manage.Service.getAll(where=where)
         if not self.services:
             raise NoServicesFound
@@ -91,19 +95,19 @@ class ServiceTable:
         self._findDataSources()
         self.createHeader()
         self.createTableBody()
-        self.html['class'] = "serviceNetbox"
+        self.html['class'] = 'vertilist'
         self.html.sortBy=self.sort
         self.html.sort()
-    
+
     def _findDataSources(self):
         serviceIDs = [str(s.serviceid) for s in self.services]
         serviceIDs = ','.join(serviceIDs)
         allDataSourcesSQL = """
-            SELECT rrd_datasourceid, 
-                value AS serviceid, 
+            SELECT rrd_datasourceid,
+                value AS serviceid,
                 name AS ds
             FROM rrd_datasource JOIN rrd_file ON
-                (rrd_file.rrd_fileid=rrd_datasource.rrd_fileid) 
+                (rrd_file.rrd_fileid=rrd_datasource.rrd_fileid)
             WHERE key='serviceid' and value IN (%s)""" % serviceIDs
         connection = db.getConnection('default')
         cursor = connection.cursor()
@@ -118,7 +122,7 @@ class ServiceTable:
             service = manage.Service(serviceid)
             if not hasattr(service, 'datasources'):
                 service.datasources = {}
-            service.datasources[ds] = rrd_datasourceid    
+            service.datasources[ds] = rrd_datasourceid
 
     def defineDatasources(self, ds):
         # expects a dict, but we should check for it...
@@ -126,34 +130,46 @@ class ServiceTable:
     def createHeader(self):
         """Creates the table heading """
         headers = []
-        headers.append('') #this is quite logically
+        headers.append("Status")
         if len(self.netboxes) != 1 :
             # If we only have one netbox, there will be no need
             # to show it's name
             headers.append("Server")
-            headers.append("Org")     
+            headers.append("Organization")
         if len(self.servicenames) != 1:
             # No need to show servicename if we only display
             # one service...
             headers.append("Handler")
-        headers.append("Status")
         if self.includeRrdStatus:
             headers.extend(self.timeframes)
         if self.includeResponsetime:
             headers.extend(self.timeframes)
-            
+        headers.append("Actions")
+
         #self.html = tableview.TableView(*headers, baseurl="all", sortBy=self.sort)
         self.html = tableview.TableView(*headers)
     def createTableBody(self):
         for service in self.services:
             row = []
+
+            status = _getServiceState(service)
             if service.up == 'y':
-                statusLight = ""
+                statusLight = html.Image(src="/images/lys/green.png", alt="Up")
             elif service.up == 'n':
-                statusLight = html.Image(src="/images/lys/red.png", alt="")
+                statusLight = html.Image(src="/images/lys/red.png", alt="Down")
             elif service.up == 's':
-                statusLight = html.Image(src="/images/lys/yellow.png", alt="")
-            row.append(statusLight)
+                statusLight = html.Image(src="/images/lys/yellow.png", alt="Shadow")
+            if service.up != 'y':
+                since = downSince(service)
+                title = 'since %s' % since
+            else:
+                title = ''
+            statusspan = html.Span()
+            statusspan.append(statusLight)
+            statusspan.append(status)
+            status = html.TableCell(statusspan, title=title)
+            row.append(status)
+
             if len(self.netboxes) != 1:
                 netbox = urlbuilder.createLink(service.netbox)
                 row.append(netbox)
@@ -167,12 +183,7 @@ class ServiceTable:
                 handler = urlbuilder.createLink(division="service",
                                                 id=service.handler)
                 row.append(handler)
-            status = _getServiceState(service)
-            if service.up != 'y':
-                since = downSince(service)
-                #status += ' since %s' % since
-                status = html.TableCell(status, title="since %s" % since)
-            row.append(status)
+
             for ds in self.datasources.keys():
                 if not self.includeResponsetime and \
                     ds == 'RESPONSETIME':
@@ -180,32 +191,36 @@ class ServiceTable:
                 for timeframe in self.timeframes:
                     stat = self.getServiceRrds(service, timeframe, ds)
                     row.append(stat)
-            editLink = urlbuilder.createLink(service, subsystem="editdb", content="[edit]")
-            row.append(editLink)
-            row.append(urlbuilder.createLink(service,
-                                             subsystem='maintenance',
-                                             content='[Schedule maintenance]'))
+
+            actionspan = html.Span()
+            editLink = urlbuilder.createLink(service, subsystem="editdb", content="[Edit]")
+            actionspan.append(editLink)
+            maintLink = urlbuilder.createLink(service,
+                                              subsystem='maintenance',
+                                              content='[Schedule maintenance]')
+            actionspan.append(maintLink)
+            row.append(actionspan)
             self.html.add(_class=service.up, *row)
-            
+
     def getServiceRrds(self, service, timeframe, ds):
         # reuse the same presenter
         rrd = self.rrdpresenter
         rrd.removeAllDs()
         timeframe = timeframe.lower()
         rrd.timeLast(timeframe)
-    
+
         try:
             dsID = service.datasources[ds]
         except Exception,e:
             return ""
         rrd.addDs(dsID)
-            
+
         value = rrd.average()
         if not value:
             return ""
         else:
             value = value[0]
-        
+
 
         if ds == "STATUS":
             # convert to availability percent.
@@ -222,5 +237,5 @@ class ServiceTable:
                 id=service.datasources.values(),
                 tf=timeframe, content=result)
         link['title'] = "&sigma;%0.2f" % random.random()
-        return link        
-   
+        return link
+

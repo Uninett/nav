@@ -239,7 +239,7 @@ class HandlerNettinfo
 			}
 
 			// Hent cam
-			rs = Database.query("SELECT cam.netboxid,ifindex,arp.ip,mac AS portname,cam.start_time,cam.end_time,vlan FROM cam JOIN netbox USING(netboxid) JOIN arp USING(mac) JOIN prefix ON(arp.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE cam.end_time='infinity' and arp.end_time='infinity' AND vlan IS NOT NULL");
+			rs = Database.query("SELECT cam.netboxid,ifindex,arp.ip,REPLACE(mac::text, ':', '') AS portname,cam.start_time,cam.end_time,vlan FROM cam JOIN netbox USING(netboxid) JOIN arp USING(mac) JOIN prefix ON(arp.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE cam.end_time='infinity' and arp.end_time='infinity' AND vlan IS NOT NULL");
 			rsmd = rs.getMetaData();
 			while (rs.next()) {
 				String key = "cam"+rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("vlan");

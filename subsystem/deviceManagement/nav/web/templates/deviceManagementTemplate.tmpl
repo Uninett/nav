@@ -30,15 +30,14 @@
 #from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #def additionalCSS
-<link rel="stylesheet" type="text/css" href="/style/deviceManagement.css" />
 $default_form_CSS()
 $default_tabs_CSS()
 $default_table_CSS()
 #end def
 
 #def content
-<div style="border: 1px solid #666; margin:33px 0px; padding: 0px 19px;">
 $makeMenu($page.menu)
+<div class="tabcontent">
 #if $page.searchbox
 $displaySearchBox($page.searchbox)
 #end if
@@ -292,7 +291,7 @@ $renderFormattedList($page.orderList)
             <td>$renderwidget($page.widgets['filter_enddate'])</td>
         </tr>
         <tr>
-            <td>Event type</td>
+            <td>Type</td>
             <td>$renderwidget($page.widgets['filter_eventtype'])</td>
         </tr>
         <tr>
@@ -530,6 +529,35 @@ $item[0]
         #end if
     #end for
     </select>
+#elif $widget.type == 'selectoptgroup'
+    <select name="$widget.controlname" style="$style">
+    #for $type, $id, $option, $typedata in $widget.options['options']
+        #if $type == 'grp'
+            <optgroup label="$option">
+            #for $type, $id, $option, $selected in $typedata
+                #if $value == $id
+                    #set $selected = True
+                #end if
+                #if $selected
+                <option value="$id" selected="selected">$option</option>
+                #else
+                <option value="$id">$option</option>
+                #end if
+            #end for
+            </optgroup>
+        #else
+            #set $selected = $typedata
+            #if $value == $id
+                #set $selected = True
+            #end if
+            #if $selected
+            <option value="$id" selected="selected">$option</option>
+            #else
+            <option value="$id">$option</option>
+            #end if
+        #end if
+    #end for
+    </select>
 #elif $widget.type == 'date'
     #set $i = 0
     #for $options in [$widget.options['days'],$widget.options['months'],$widget.options['years']]
@@ -579,19 +607,14 @@ $item[0]
 #end def
 
 #def makeMenu($menu)
-<div id="tabs" style="margin: -24px -10px;">
+<div class="tabs">
 <ul>
-#set $first = True
 #for $item,$url,$help in $menu
-#if $url
-<li>
-<a title="$help" href="$url">$item</a>
-#else
-<li id="current">
-<a>$item</a>
-#end if
-#set $first = False
-</li>
+    #if $url
+    <li><a title="$help" href="$url">$item</a></li>
+    #else
+    <li class="tabactive"><a>$item</a></li>
+    #end if
 #end for
 </ul>
 </div>

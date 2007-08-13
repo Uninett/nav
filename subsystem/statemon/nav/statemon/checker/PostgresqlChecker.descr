@@ -1,1 +1,2 @@
 description=this checker is currently not working
+optargs=port timeout

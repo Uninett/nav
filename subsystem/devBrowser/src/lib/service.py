@@ -1,4 +1,5 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
@@ -30,7 +31,10 @@ specific type, etc.
 Shows current status, parameters, uptime statistics, etc.
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 import forgetHTML as html
 from nav import db
 from nav.db import manage 

@@ -17,14 +17,15 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
 table.calendar {
-	border: 1px solid #ccc;
+	border: 1px solid #999;
+	border-collapse: separate;
+	border-spacing: 2px;
 	caption-side: top;
-	font-size: smaller;
 	margin-bottom: 1em;
 	width: 100%;
 }
@@ -44,10 +45,10 @@ table.calendar tr th {
 }
 table.calendar tr td {
 	background-color: white;
-	border: 1px solid #ccc;
+	border: 1px solid #999;
 }
 table.calendar tr td div.dayheader {
-	background-color: #ddf;
+	background-color: #eee;
 	padding: 0.1em 0.2em;
 	text-align: right;
 }

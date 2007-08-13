@@ -1,4 +1,5 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
@@ -30,7 +31,10 @@ TODO:
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
-from mod_python import apache, util
+try:
+    from mod_python import apache, util
+except:
+    pass
 import nav.config
 import os
 from nav.web.TreeSelect import TreeSelect, Option, Select, UpdateableSelect
@@ -88,7 +92,7 @@ def process(request):
         try:
             id = query['id']
         except:
-            return html.Division('Dette gikk dårlig')
+            return html.Division('Dette gikk dÃ¥rlig')
             #return showGraphs(session)
         remove(session, id)
         raise RedirectError, urlbuilder.createUrl(division="rrd")

@@ -153,12 +153,24 @@ sub getInfo()
 	    		$this->collecttable($db,"select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}");
 		}
 	}
+	elsif($db eq "subcat") {
+	    $this->collecttable($db, "select s.* from subcat s join netboxcategory n on (s.subcatid=n.category) where n.netboxid=$this->{alertq}->{netboxid}");
+	}
 	else {
 	    $this->{log}->printlog("Alert","getInfo",$Log::warning, "no support for table $db");
 	}
 
     }
-    return $this->{$db}->{$col};
+    if (ref($this->{$db}) eq 'ARRAY') {
+	my @resultcol = ();
+	$this->{log}->printlog("Alert","getInfo",$Log::debugging, "$db has multiple rows, returning column $col");
+	foreach my $row (@{$this->{$db}}) {
+	    push @resultcol, $row->{$col};
+	}
+	return \@resultcol;
+    } else {
+	return $this->{$db}->{$col};
+    }
 }
 
 sub collecttable()
@@ -169,7 +181,19 @@ sub collecttable()
 	
     my $sth=$this->{dbh}->prepare($sql);
     $sth->execute;
-    $this->{$name}=$sth->fetchrow_hashref();
+    if ($sth->rows() > 1)
+    {
+	# If several rows are returned, push a reference to an array containing the rows
+	my @results = ();
+	while (my $rowref = $this->{$name}=$sth->fetchrow_hashref())
+	{
+	    push @results, $rowref;
+	}
+	$this->{$name}=\@results;
+    } else {
+	# If not, just push a reference to the single row hash table
+	$this->{$name} = $sth->fetchrow_hashref();
+    }
 	    
     if($DBI::errstr)
     {

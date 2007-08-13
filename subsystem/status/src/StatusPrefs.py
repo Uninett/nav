@@ -30,7 +30,7 @@ Contains classes for the status preferences page
 ## Imports
 
 import psycopg, cPickle, re, nav.db
-import StatusDefaultPrefs
+import copy
 from StatusSections import *
 
 #################################################
@@ -335,9 +335,10 @@ class HandleStatusPrefs:
                 prefs = cPickle.loads(data)
             else:
                 # No system default prefs found (admin users prefs)
-                # load from StatusDefaultPrefs module
-                data = StatusDefaultPrefs.defaultPrefs
-                prefs = cPickle.loads(data)
+                # load from DEFAULT_STATUSPREFS variable
+                data = DEFAULT_STATUSPREFS
+                prefs = StatusPrefs()
+                prefs.sections = copy.deepcopy(data)
 
             # No prefs stored in the database for this user,
             # load the default prefs from a file
@@ -452,3 +453,29 @@ class StatusPrefs:
 
     def addSection(self,controlBaseName,typeId,title,filterSettings):
         self.sections.append((controlBaseName,typeId,title,filterSettings))    
+
+DEFAULT_STATUSPREFS = \
+[('netbox_0',
+  'netbox',
+  'IP devices down',
+  {'catid': ['all_selected_tkn'],
+   'orgid': ['all_selected_tkn'],
+   'state': ['n']}),
+ ('netbox_1',
+  'netbox',
+  'IP devices in shadow',
+  {'catid': ['all_selected_tkn'],
+   'orgid': ['all_selected_tkn'],
+   'state': ['s']}),
+ ('module_0',
+  'module',
+  'Modules down',
+  {'catid': ['all_selected_tkn'],
+   'orgid': ['all_selected_tkn'],
+   'state': ['all_selected_tkn']}),
+ ('service_0',
+  'service',
+  'Services down',
+  {'handler': ['all_selected_tkn'],
+   'orgid': ['all_selected_tkn'],
+   'state': ['all_selected_tkn']})]

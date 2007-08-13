@@ -214,7 +214,7 @@ sub checkMatch()
     my $info=$alert->getInfo($fm->{valueid});
 
 	unless (defined($fm->{value}) and defined($info) and $info ne '') {
-		$this->{log}->printlog("EquipmentGroups","checkMatch",$Log::debugging, "Checking undefined value not allowed.");
+		$this->{log}->printlog("EquipmentGroups","checkMatch",$Log::debugging, "Checking undefined value ($fm->{valueid}) not allowed.");
 		return 0;
 	}
 
@@ -231,76 +231,79 @@ sub checkMatch()
 	$ret=$this->checkString($fm->{type},$fm->{value},$info);
     }
 
-    $this->{log}->printlog("EquipmentGroups","checkMatch",$Log::debugging, "datatype=$fm->{datatype} type=$fm->{type} value=$fm->{value} info=$info ret=$ret");
+    my $loginfo = (ref($info) ne 'ARRAY') ? "$info" : "@$info"; # Select between single or multi-valued attribute
+    $this->{log}->printlog("EquipmentGroups","checkMatch",$Log::debugging, "datatype=$fm->{datatype} type=$fm->{type} value=$fm->{value} info=$loginfo ret=$ret");
 
     return $ret;
   }
 
 sub checkString()
 {
-    my ($this,$type,$value,$str)=@_;
+    my ($this,$type,$value,$strarray)=@_;
     my $match=0;
     my @strings;
 
-    if($type==$this->{type}{in}) {
-	@strings=split(/\|/,$value);
-	foreach my $s (@strings) {
-	    if($str eq $s) {
-		return 1;
+    if (ref($strarray) ne 'ARRAY') { $strarray = [$strarray]; }
+
+    foreach my $str (@$strarray) {
+	if($type==$this->{type}{in}) {
+	    @strings=split(/\|/,$value);
+	    foreach my $s (@strings) {
+		if($str eq $s) {
+		    return 1;
+		}
+	    }
+	} else {
+	    if($value eq $str) {
+		$match=1;
 	    }
 	}
-	return 0;
-    } else {
-	if($value eq $str) {
-	    $match=1;
-	}
-	
-	if($type==$this->{type}{eq}) {
-	    return $match;
-	} else {
-	    return !$match;
-	}
     }
+    return ($type==$this->{type}{neq}) ? !$match : $match;
 	
 }
 
 sub checkInt()
 {
-    my ($this,$type,$value,$int)=@_;
-    if($type==$this->{type}{eq}) {
-	if($int==$value) {
-	    return 1;
-	}	    
-    }
-    elsif($type==$this->{type}{more}) {
-	if($int>$value) {
-	    return 1;
-	}	    
-    }
-    elsif($type==$this->{type}{moreeq}) {
-	if($int>=$value) {
-	    return 1;
-	}	    
-    }
-    elsif($type==$this->{type}{less}) {
-	if($int<$value) {
-	    return 1;
-	}	    
-    }
-    elsif($type==$this->{type}{lesseq}) {
-	if($int<=$value) {
-	    return 1;
-	}	    
-    }
-    elsif($type==$this->{type}{ne}) {
-	if($int!=$value) {
-	    return 1;
-	}	    
+    my ($this,$type,$value,$intarray)=@_;
+    if (ref($intarray) ne 'ARRAY') { $intarray = [$intarray]; }
+
+    foreach my $int (@$intarray) {
+	if($type==$this->{type}{eq}) {
+	    if($int==$value) {
+		return 1;
+	    }	    
+	}
+	elsif($type==$this->{type}{more}) {
+	    if($int>$value) {
+		return 1;
+	    }	    
+	}
+	elsif($type==$this->{type}{moreeq}) {
+	    if($int>=$value) {
+		return 1;
+	    }	    
+	}
+	elsif($type==$this->{type}{less}) {
+	    if($int<$value) {
+		return 1;
+	    }	    
+	}
+	elsif($type==$this->{type}{lesseq}) {
+	    if($int<=$value) {
+		return 1;
+	    }	    
+	}
+	elsif($type==$this->{type}{neq}) {
+	    if($int!=$value) {
+		return 1;
+	    }	    
+	}
     }
     return 0;	
 }
 
-
+# This doesn't seem to be in use?
 sub checkStringRegExp()
 {
     my ($this,$type,$value,$name)=@_;
@@ -316,7 +319,7 @@ sub checkStringRegExp()
     {
 	return $match;
     }
-    if($type==$this->{type}{nq})
+    if($type==$this->{type}{neq})
     {
 	return !$match;
     }
@@ -329,27 +332,31 @@ sub checkIP()
 # 10.0.0.1,10.0.0.2,10.1.1.0/24 - multiple IP addresses can be
 # specified using , to seperate them.
   {
-    my ($this,$type,$value,$ipaddr)=@_;
+    my ($this,$type,$value,$ipaddrarray)=@_;
+    if (ref($ipaddrarray) ne 'ARRAY') { $ipaddrarray = [$ipaddrarray]; }
 
     my @list=split ",",$value;
 
     my $match=0;
 
     my $ip1;
-    my $ip2=new NetAddr::IP($ipaddr);
-    if(!$ip2) {
-	return 0;
-    }
-
-    foreach my $addr (@list)
-    {
-	$ip1=new NetAddr::IP($addr);
-	if(!$ip1) {
+    ADDRLOOP: foreach my $ipaddr (@$ipaddrarray) {
+	my $ip2=new NetAddr::IP($ipaddr);
+	if(!$ip2) {
 	    return 0;
 	}
-	if($ip1->contains($ip2)) 
+
+	foreach my $addr (@list)
 	{
-	    $match=1;
+	    $ip1=new NetAddr::IP($addr);
+	    if(!$ip1) {
+		next ADDRLOOP;
+	    }
+	    if($ip1->contains($ip2)) 
+	    {
+		$match=1;
+	        last ADDRLOOP;
+	    }
 	}
     }
     
@@ -357,7 +364,7 @@ sub checkIP()
     {
 	return $match;
     }
-    if($type==$this->{type}{nq})
+    if($type==$this->{type}{neq})
     {
 	return !$match;
     }

@@ -1,7 +1,6 @@
-/* Default stylesheet for NAV
+/* Stylesheet for tables in NAV style
  *
- * Copyright 2003-2005 Norwegian University of Science and Technology
- * Copyright 2006 UNINETT AS
+ * Copyright 2007 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -18,70 +17,52 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * Authors: Magnar Sveen <magnars@idi.ntnu.no>
- *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
+ * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
  */
 
-#tabs {
-	float: left;
-	width: 100%;
-	line-height: normal;
-	font-size: smaller;
-}
+/* The following tabs CSS are tested to work with Firefox 2.0.0.6 on Linux,
+ * Opera 9.20 on Linux and Internet Explorer 6.0 on Windows */
 
-#tabs ul {
-	margin: 0;
-	padding: 1px 0px 0;
-	list-style: none;
+.tabs {
+	margin-top: 1em;
 }
-
-#tabs li, #tabs li.admin {
-	float: left;
-	background-image: url("/images/tabs/blue-r.png");
-	background-repeat: no-repeat;
-	background-position: right top;
+.tabs ul {
 	margin: 0;
 	padding: 0;
-	white-space: nowrap;
 }
-
-#tabs a, #tabs .admin a {
-	display: block;
-	background-image: url("/images/tabs/blue-l.png");
-	background-repeat: no-repeat;
-	background-position: left top;
-	padding: 5px 14px 4px;
+.tabs ul li {
+	display: inline;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	padding-right: 0.2em; /* Remove when forgetHTML is dead! */
+}
+.tabs ul li a {
+	background: #dae1e6;
+	border: 1px solid #999;
+	color: #333;
+	margin: 0;
+	padding-left: 1em;
+	padding-right: 1em;
 	text-decoration: none;
-	color: #369;
-	border-bottom: 1px solid black;
-	float: left;
+}
+.tabs ul li a:hover {
+	background: #eee;
+	color: black;
+}
+.tabs ul li.tabactive a, .tabs ul li.tabactive a:hover {
+	background: white;
+	border-bottom: 1px solid white;
+	color: black;
+}
+.tabs ul, .tabs ul li, .tabs ul li a {
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
 }
 
-/* Commented Backslash Hack hides rule from IE5-Mac \*/
-#header a { float: none; }
-/* End IE5-Mac hack */
-
-#tabs a:hover {
-	color: black;
-}
-#tabs #current {
-	background-image: url("/images/tabs/white-r.png");
-}
-#tabs #current a {
-	background-image: url("/images/tabs/white-l.png");
-	color: black;
-	padding-bottom: 5px;
-	border-bottom: none;
-	font-weight: bold;
-}
-#tabs #same, #tabs li.open {
-	background-image: url("/images/tabs/white-r.png");
-}
-#tabs #same a, #tabs li.open a {
-	background-image: url("/images/tabs/white-l.png");
-	color: #663;
-}
-#tabs #same a:hover, #tabs li.open a:hover {
-	color: black;
+.tabcontent {
+	border: 1px solid #999;
+	padding: 1em;
 }

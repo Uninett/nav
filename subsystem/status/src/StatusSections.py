@@ -996,16 +996,27 @@ class NetboxMaintenanceSectionBox(SectionBox):
                 # Downtime
                 row.append(('', None, None, style))
             else:
-                (starttime, downtime) = \
-                    downtimes[(line[SYSNAME], line[IP])]
+                if downtimes.has_key((line[SYSNAME], line[IP])):
+                    (starttime, downtime) = \
+                        downtimes[(line[SYSNAME], line[IP])]
+                else:
+                    (starttime, downtime) = (None, None)
+
                 # Down since
-                row.append((starttime.strftime('%Y-%m-%d %H:%M'),
-                            None, None, style))
+                if starttime:
+                    starttime = starttime.strftime('%Y-%m-%d %H:%M')
+                else:
+                    starttime = 'N/A'
+                row.append((starttime, None, None, style))
+
                 # Downtime
-                downtime = '%s d, %s h, %s m' % (
-                    str(downtime.absvalues()[0]),
-                    downtime.strftime('%H'),
-                    downtime.strftime('%M'))
+                if downtime:
+                    downtime = '%s d, %s h, %s m' % (
+                        str(downtime.absvalues()[0]),
+                        downtime.strftime('%H'),
+                        downtime.strftime('%M'))
+                else:
+                    downtime = 'N/A'
                 row.append((downtime, None, None, style))
 
             # Wrench icon

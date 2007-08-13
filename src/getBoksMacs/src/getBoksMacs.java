@@ -191,7 +191,7 @@ class getBoksMacs
 		//ResultSet rs = Database.query("SELECT mac,boksid,sysName FROM boksmac NATURAL JOIN boks");
 		out("  netboxmac...");
 		dumpBeginTime = System.currentTimeMillis();
-		ResultSet rs = Database.query("SELECT netboxid,mac FROM netboxmac");
+		ResultSet rs = Database.query("SELECT netboxid,REPLACE(mac::text, ':', '') AS mac FROM netboxmac");
 		while (rs.next()) {
 			macBoksId.put(rs.getString("mac"), rs.getString("netboxid"));
 		}
@@ -400,9 +400,9 @@ class getBoksMacs
 
 		QueryBoks.mpMap = new HashMap();
 		Map mpMap = QueryBoks.mpMap;
-		rs = Database.query("SELECT netboxid,ifindex,module,port FROM swport JOIN module USING(moduleid) WHERE port IS NOT NULL");
+		rs = Database.query("SELECT netboxid,ifindex,module,interface FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
 		while (rs.next()) {
-			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module"), rs.getString("port") } );
+			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module"), rs.getString("interface") } );
 		}
 
 
@@ -410,7 +410,7 @@ class getBoksMacs
 		if (DUMP_CAM) {
 			out("  cam...");
 			dumpBeginTime = System.currentTimeMillis();
-			rs = Database.query("SELECT camid,netboxid,ifindex,mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL ORDER BY end_time");
+			rs = Database.query("SELECT camid,netboxid,ifindex,REPLACE(mac::text, ':', '') AS mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL ORDER BY end_time");
 			while (rs.next()) {
 				String key = rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("mac");
 				String[] oldkey;

@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Magnar Sveen <magnars@idi.ntnu.no>
  *          Sigurd Gartmann <sigurd-nav@brogar.org>
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
@@ -26,28 +26,21 @@
 
 th.header {
 	text-align: left;
-	font-size: 13px;
 	font-weight: normal;
 }
-p.title { 
-	font-size: 15px;
+p.title {
+	font-size: larger;
 	font-weight: bold;
 	text-align: center;
 	padding: 0px 0px 0px 0px;
 	margin: 0px;
-} 
-.infobox {
-	background-color: #eeeeee;
-	padding: 0.5em;
-	border: 1px solid #cccccc;
-	-moz-border-radius: 12px;
-} 
-.infobox h2 {
-	font-size: 1.2em;
-	font-weight: bold;
-	margin-top: 0px;
-	margin-bottom: 0px;
 }
-div.errors ul li {
-	color: red;
+div#forms {
+	margin: 1em 0;
+}
+div.infobox {
+	background: #eee;
+	border: 1px solid #ccc;
+	padding: 0.5em;
+	-moz-border-radius: 12px;
 }

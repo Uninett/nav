@@ -248,7 +248,7 @@ public class HP implements DeviceHandler
 				String[] s = (String[])it.next();
 				String module;
 				if (s.length < 4) {
-					System.err.println("Error in HP, module not found!");
+					Log.e("PROCESS_HP", "Missing 4th element from SimpleSnmp response");
 					module = s[0];
 				} else {
 					module = s[3];
@@ -275,10 +275,7 @@ public class HP implements DeviceHandler
 				String module = (s.length >= 3 ? s[2] : "0");
 
 				if (s.length < 3 && "hp2524".equals(nb.getType())) {
-					// Assume type is wrong and will be corrected later, so we just skip
-					//Log.d("PROCESS_HP", "Missing 3rd element from ifSerial on: " + nb + " (" + nb.getType() + ")");
-					System.err.println("PROCESS_HP: Missing 3rd element from ifSerial on: " + nb + " (" + nb.getType() + ")");
-					//return;
+					Log.e("PROCESS_HP", "Missing 3rd element from ifSerial (" + nb.getType() + ")");
 				}
 				
 				if (moduleWithIP.equals(module) && nc.netboxDataFactory(nb).getSerial() == null) {

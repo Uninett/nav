@@ -29,16 +29,13 @@
 #attr $path = [("Home", "/"), ("Maintenance Tasks", "")]
 
 #def $makeMenu($menu, $current = False)
-<div style="border: 1px solid black; margin: 36px 0px 15px 0px; padding: 0px 19px;">
-<div id="tabs" style="margin: -24px -10px;">
+<div class="tabs">
 <ul>
 #for $item in $menu:
     #if $item.link == $current:
-    <li id="current"><a>$item.text</a></li>
-    #elif $item.admin:
-    <li class="admin"><a href="$item.link">$item.text</a></li>
+    <li class="tabactive"><a href="$item.link">$item.text</a></li>
     #else:
-    <li class="open"><a href="$item.link">$item.text</a></li>
+    <li><a href="$item.link">$item.text</a></li>
     #end if
 #end for
 </ul>
@@ -104,6 +101,8 @@
 
 $makeMenu($menu, $current)
 
+<div class="tabcontent">
+
 <h2>$title</h2>
 
 #set $infomsgs = $getVar('infomsgs', [])
@@ -130,7 +129,7 @@ $makeMenu($menu, $current)
 <p>Intentionally left blank.</p>
 #end block tabcontent
 
-</div> <!-- tab area -->
+</div> <!-- tabcontent -->
 
 #end block content
 
