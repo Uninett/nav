@@ -1,13 +1,131 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Arp;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.logger.Log;
+
 
 /**
  * Util class, mainly helper methods for InetAddress and ARPHandler
+ * 
  * @author gogstad
+ * @author janivala
  *
  */
 public class Util {
+	
+	/**
+	 * @return Returns a InetAddress instance of the argument ip.
+	 */
+	public static InetAddress getInetAddress(String ip) {
+		InetAddress returnIp = null;
+
+		if(isIpv6(ip)) {
+			String[] longAddress = Util.ipv6ShortToLong(ip).split(":");
+			ArrayList<String> nybbleArrayBuilder = new ArrayList<String>(32);
+			for(String hexlet: longAddress) {
+				String nybble1 = hexlet.substring(0, 2);
+				String nybble2 = hexlet.substring(2);
+				nybbleArrayBuilder.add(nybble1);
+				nybbleArrayBuilder.add(nybble2);
+			}
+			String[] nybbleArray = nybbleArrayBuilder.toArray(new String[nybbleArrayBuilder.size()]);
+			try {
+				returnIp = InetAddress.getByAddress(Util.convertToUnsignedByte(nybbleArray, 16));
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		else {
+			try {
+				String[] ipArray = ip.split("\\.");
+				returnIp = InetAddress.getByAddress(Util.convertToUnsignedByte(ipArray, 10));
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return returnIp;
+	}
+
+	/**
+	 * Checks whether or not the argument ip is listed in getDeviceData.conf under
+	 * "ignoreprefices".
+	 * 
+	 */
+	public static boolean shouldIgnoreIp(InetAddress ip, ConfigParser cp) {
+		String ignorePreficesString = (String)cp.get("ignoreprefices");
+		Map<InetAddress,Integer> ignorePrefices = new HashMap<InetAddress,Integer>();
+		
+		for(String s: ignorePreficesString.split(",")) {
+			String prefix = s.trim();
+			if(prefix.split("/").length != 2)
+				continue;
+
+			String ipString = prefix.split("/")[0];
+			Integer mask = Integer.parseInt(prefix.split("/")[1]);
+			InetAddress newIp = getInetAddress(ipString);
+			
+			if(newIp == null)
+				return false;
+			
+			ignorePrefices.put(newIp,mask);
+		}
+		
+		for(Map.Entry<InetAddress, Integer> me: ignorePrefices.entrySet()) 
+			if(isSubnet(me.getKey(), me.getValue(), ip))
+				return true;
+
+		return false;
+		
+	}
+	
+	public static boolean isIpv6(String ip) {
+		return ip.indexOf(":") >= 0;
+	}
+	
+	public static boolean getBit(int value, int bit) {
+		return (value & (1 << bit)) != 0;
+	}
+
+	public static int getByteValue(byte value) {
+		int result = 0;
+		result |= value & 0xFF;
+		return result;
+	}
+
+	/**
+	 *  @return Returns true if supernet >> subnet, false if not.
+	 */
+	public static boolean isSubnet(InetAddress supernet, int prefixLength, InetAddress subnet) {
+		byte[] supernetBytes = supernet.getAddress();
+		byte[] subnetBytes = subnet.getAddress();
+		
+		int checkBytes = prefixLength / 8;
+		int checkBits = prefixLength % 8;
+
+		for(int i = 0; i < checkBytes; i++)
+			if(supernetBytes[i] != subnetBytes[i])
+				return false;
+
+		if(checkBits == 0)
+			return true;
+
+		int ipPrefixByteVal = Util.getByteValue(supernetBytes[checkBytes]);
+		int addrByteVal = Util.getByteValue(subnetBytes[checkBytes]);
+
+		for(int i = 7; i > 7 - checkBits; i--)
+			if(getBit(ipPrefixByteVal, i) != getBit(addrByteVal,i))
+				return false;
+
+		return true;
+	}
 	
 	/**
 	 * Converts an int array of unsigned bytes to a byte

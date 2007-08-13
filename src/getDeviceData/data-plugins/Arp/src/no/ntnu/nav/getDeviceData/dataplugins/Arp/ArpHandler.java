@@ -178,36 +178,7 @@ public class ArpHandler implements DataHandler {
 				String mac = rs.getString("mac");
 				Integer version = rs.getInt("version");
 				
-				InetAddress ip = null;
-				
-				if(version == 4) {
-					try {
-						String[] ipArray = ipAddr.split("\\.");
-						ip = InetAddress.getByAddress(Util.convertToUnsignedByte(ipArray, 10));
-					} catch (UnknownHostException e) {
-						Log.e("ARPLogger", "Error while parsing IPv4 address.");
-						e.printStackTrace();
-						continue;
-					}
-				}
-				
-				if(version == 6) {
-					String[] longAddress = Util.ipv6ShortToLong(ipAddr).split(":");
-					ArrayList<String> nybbleArrayBuilder = new ArrayList<String>(32);
-					for(String hexlet: longAddress) {
-						String nybble1 = hexlet.substring(0, 2);
-						String nybble2 = hexlet.substring(2);
-						nybbleArrayBuilder.add(nybble1);
-						nybbleArrayBuilder.add(nybble2);
-					}
-					String[] nybbleArray = nybbleArrayBuilder.toArray(new String[nybbleArrayBuilder.size()]);
-					try {
-						ip = InetAddress.getByAddress(Util.convertToUnsignedByte(nybbleArray, 16));
-					} catch (UnknownHostException e) {
-						Log.e("ARPLogger", "Error while parsing IPv6 address.");
-						e.printStackTrace();
-					}
-				}
+				InetAddress ip = Util.getInetAddress(ipAddr);
 				
 				oldIpMacMap.put(ip, mac);
 				oldMacArpIdMap.put(mac,arpid);
