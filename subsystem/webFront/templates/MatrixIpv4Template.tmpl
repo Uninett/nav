@@ -30,12 +30,12 @@
 #def $matrixlink($nybble,$ip)
 	#set $meta = $MetaIP($ip)
 	<a href="/report/prefix?prefixid=$meta.prefixid">.$nybble/$ip.prefixlen</a>#slurp
-	<a href="/machinetracker/?prefixid=$meta.prefixid">($meta.usage_percent%)</a>#slurp
+	<a href="/machinetracker/?prefixid=$meta.prefixid" title="$meta.active_ip_cnt/$meta.max_ip_cnt">($meta.usage_percent%)</a>#slurp
 #end def
 
 #def $supernetMatrixlink($ip)
 	#set $meta = $MetaIP($ip)
-	<a href="/machinetracker/?prefixid=$meta.prefixid">($meta.usage_percent%)</a>#slurp
+	<a href="/machinetracker/?prefixid=$meta.prefixid" title="$meta.active_ip_cnt/$meta.max_ip_cnt">($meta.usage_percent%)</a>#slurp
 #end def
 
 #def $printNetsInRange($net1,$net2,$depth)
