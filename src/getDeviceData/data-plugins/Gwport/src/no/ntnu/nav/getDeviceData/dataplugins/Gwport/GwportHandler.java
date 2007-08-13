@@ -138,7 +138,7 @@ public class GwportHandler implements DataHandler {
 			try {
 				// Fill gwVlanMap
 				{
-					ResultSet rs = Database.query("SELECT vlanid,vlan,nettype,orgid,usageid,netident,description FROM vlan JOIN prefix USING(vlanid) JOIN gwportprefix USING(prefixid) JOIN gwport USING(gwportid) JOIN module USING(moduleid) WHERE vlan IS NOT NULL AND netboxid='"+nb.getNetboxid()+"'");
+					ResultSet rs = Database.query("SELECT vlanid,vlan,nettype,orgid,usageid,netident,description, prefixid FROM vlan JOIN prefix USING(vlanid) JOIN gwportprefix USING(prefixid) JOIN gwport USING(gwportid) JOIN module USING(moduleid) WHERE vlan IS NOT NULL AND netboxid='"+nb.getNetboxid()+"'");
 					while (rs.next()) {
 						String vlKey = nb.getNetboxid()+":"+rs.getString("vlan");
 						if (gwVlanMap.containsKey(vlKey)) {
