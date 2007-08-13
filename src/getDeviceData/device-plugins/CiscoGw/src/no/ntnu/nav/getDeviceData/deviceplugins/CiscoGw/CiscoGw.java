@@ -1,6 +1,34 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoGw;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
+import no.ntnu.nav.getDeviceData.Netbox;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwModule;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Gwport;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwportContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Prefix;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Vlan;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.HashMultiMap;
+import no.ntnu.nav.util.MultiMap;
+import no.ntnu.nav.util.util;
 
 /**
  * <p>
@@ -23,7 +51,9 @@ public class CiscoGw implements DeviceHandler
 {
 	
 	private static String[] canHandleOids = {
-		"ipAdEntIfIndex"
+		"ipAdEntIfIndex",
+		"cIpAddressIfIndex",
+		"cIpAddressPrefix",
 	};
 
 	private static String[] supportedCatids = {
@@ -34,7 +64,8 @@ public class CiscoGw implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		if (!new HashSet(Arrays.asList(supportedCatids)).contains(nb.getCat())) return NEVER_HANDLE;
+		if (!Arrays.asList(supportedCatids).contains(nb.getCat()))
+			return NEVER_HANDLE;
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("CGW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
@@ -42,6 +73,11 @@ public class CiscoGw implements DeviceHandler
 
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
+		//This is a hack. It seems that kongsvinger-gw.uninett.no and c6500-h-1.hiof.no is passed twice,
+		//the second time nb.getOid returns null on all oids previously supported and thus the code will fail.
+		if(nb.getOid("sysname") == null)
+			return;
+		
 		Log.setDefaultSubsystem("CGW_DEVHANDLER");
 
 		ModuleContainer mc;
@@ -249,12 +285,15 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		// Check for router OID IPv6
 		oidsNotSupported = nb.oidsNotSupported(new String[] {
 			"cIpAddressIfIndex",
+			"cIpAddressPrefix",
 		});
-		
 		
 		if(!oidsNotSupported.isEmpty()) {
 			ciscoIpv6Supported = false;
+			if(nb.isSupportedAllOids(new String[]{"cIpAddressIfIndex"}))
+				System.out.println(nb.getSysname() + ": Support cIpAddressIfIndex but NOT cIpAddressPrefix!");
 		}
+		
 		
 		oidsNotSupported = nb.oidsNotSupported(new String[] {
 			"ipv6AddrPfxLength",
@@ -680,7 +719,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		StringBuilder longAddressBuilder = new StringBuilder(ipv6.length());
 
 		int counter = 0;
-		//convert to hex, group nibbles, zero padding
+		//convert to hex, group nybbles to hexlets, zero padding
 		for(int i = 0; i < address.length; i++) {
 			if(counter % 2 == 0)
 				longAddressBuilder.append(":");
