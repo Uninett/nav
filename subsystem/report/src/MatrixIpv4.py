@@ -7,10 +7,13 @@ from nav.web.templates.MatrixIpv4Template import MatrixIpv4Template
 import nav.path
 import os
 import string
-
+	
 configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 
 class MatrixIpv4(Matrix):
+	"""This class serves as an interface for the prefix matrix.
+
+	Call getTemplateResponse() to get the template response."""
 	
 	def __init__(self,start_net,show_unused_addresses,end_net=None,bits_in_matrix=3):
 		Matrix.__init__(self,start_net,end_net=end_net,bits_in_matrix=bits_in_matrix)
@@ -24,6 +27,7 @@ class MatrixIpv4(Matrix):
 		import IPTree
 		import MetaIP
 		import IPy
+
 		template = MatrixIpv4Template()
 		template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 	

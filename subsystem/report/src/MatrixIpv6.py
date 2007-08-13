@@ -9,6 +9,9 @@ import string
 configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 
 class MatrixIpv6(Matrix):
+	"""This class serves as an interface for the prefix matrix.
+
+	Call getTemplateResponse() to get the template response."""
 
 	def __init__(self,start_net,end_net=None):
 		Matrix.__init__(self,start_net,end_net=end_net,bits_in_matrix=4)

@@ -3,6 +3,8 @@ from nav import db
 
 from Utils import contains
 
+from math import ceil
+
 cursor = db.getConnection('webfront','manage').cursor()
 
 ipv4MetaMap = None
@@ -68,6 +70,9 @@ class MetaIP:
 			self._setupIpv6()
 	
 	def getTreeNet(self):
+		"""This method is used to get the string representation of the IP
+		shown in the tree to left of the prefix matrix."""
+
 		#IPv6: Whole address
 		#IPv4: Not whole address
 		if self.netaddr.version() == 6:
@@ -106,11 +111,19 @@ class MetaIP:
 		if contains(ipv4MetaMap.keys(),self.netaddr):
 			metainfo = ipv4MetaMap[self.netaddr]
 			self.prefixid = metainfo["prefixid"]
-			self.active_ip_cnt = metainfo["active_ip_cnt"]
-			self.max_ip_cnt = metainfo["max_ip_cnt"]
 			self.nettype = metainfo["nettype"]
+			
+			active_ip_cnt = metainfo["active_ip_cnt"]
+			max_ip_cnt = metainfo["max_ip_cnt"]
+
+			if active_ip_cnt is None:
+				self.active_ip_cnt = 0
+			else:
+				self.active_ip_cnt = int(active_ip_cnt)
+
+			self.max_ip_cnt = int(max_ip_cnt)
 
 			if self.active_ip_cnt > 0 and self.max_ip_cnt > 0:
-				self.usage_percent = int(100*float(self.active_ip_cnt)/self.max_ip_cnt+0.5)
+				self.usage_percent = int(ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
 			else:
 				self.usage_percent = 0
