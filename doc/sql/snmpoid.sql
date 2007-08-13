@@ -150,6 +150,18 @@ DELETE FROM snmpoid WHERE oidkey='cHw';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cHw','1.3.6.1.4.1.9.3.6.11.1.5','cgw',NULL,'1',NULL,'0','cardHwVersion','OLD-CISCO-CHASSIS-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='cInetNetToMediaPhysAddress';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cInetNetToMediaPhysAddress','1.3.6.1.4.1.9.10.86.1.1.3.1.3','ARP cache',NULL,'1',NULL,'0','cInetNetToMediaPhysAddress','CISCO-IETF-IP-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='cIpAddressIfIndex';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cIpAddressIfIndex','1.3.6.1.4.1.9.10.86.1.1.2.1.3','cgw',NULL,'1',NULL,'0','cIpAddressIfIndex','CISCO-IETF-IP-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='cIpAddressPrefix';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cIpAddressPrefix','1.3.6.1.4.1.9.10.86.1.1.2.1.5','cgw',NULL,'1',NULL,'0','cIpAddressPrefix','CISCO-IETF-IP-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='cL3FwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cL3FwVer','1.3.6.1.4.1.9.9.92.1.1.1.7','Firmware version','cL3','1',NULL,'0',NULL,'CISCO-ENTITY-ASSET-MIB');
@@ -493,6 +505,14 @@ VALUES ('ipRouteProto','1.3.6.1.2.1.4.21.1.9','The routing mechanism via which t
 DELETE FROM snmpoid WHERE oidkey='ipRouteType';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ipRouteType','1.3.6.1.2.1.4.21.1.8','The type of route, 1=other, 2=invalid, 3=direct, 4=indirect',NULL,'1',NULL,'0','ipRouteType','RFC1213');
+
+DELETE FROM snmpoid WHERE oidkey='ipv6AddrPfxLength';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipv6AddrPfxLength','1.3.6.1.2.1.55.1.8.1.2','Prefices','IPV6-MIB','1',NULL,'0','ipv6AddrPfxLength','IPV6-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='ipv6NetToMediaPhysAddress';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipv6NetToMediaPhysAddress','1.3.6.1.2.1.55.1.12.1.2','ARP cache','IPV6-MIB','1',NULL,'0','ipv6NetToMediaPhysAddress','IPV6-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='macPortEntry';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
