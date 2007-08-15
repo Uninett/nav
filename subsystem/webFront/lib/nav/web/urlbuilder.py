@@ -118,7 +118,7 @@ def createUrl(object=None, id=None, division=None,
                     url += module.netbox.sysname
                     url += '/module%s' % module.module
                     if division == "port":
-                        url += '/port%s' % object.port
+                        url += '/port%s' % object.swportid
                     else:
                         url += '/gwport%s' % object.gwportid
                 elif division=="module":
