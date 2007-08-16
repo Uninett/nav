@@ -384,6 +384,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					if(maskLength == 0)
 						maskLength = 64;
 					
+					//It was decided that prefices with masklength == 128 are uninteresting. Note that
+					//if you're going to remove this restriction you have to remove the if-statement in
+					//ietfIpv6Supported too.
+					if(maskLength == 128)
+						continue;
+					
 					String hexMask = getIpv6Mask(decIp,maskLength);
 					netmaskMap.put(hexIp,hexMask);
 					ipv6NetmaskLengthMap.put(hexIp,new Integer(maskLength));
@@ -402,6 +408,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					//see last method
 					if(maskLength == 0)
 						maskLength = 64;
+					
+					if(maskLength == 128)
+						continue;
 					
 					String hexMask = getIpv6Mask(decIp, maskLength);
 					netmaskMap.put(hexIp, hexMask);
