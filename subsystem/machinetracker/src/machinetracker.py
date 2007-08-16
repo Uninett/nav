@@ -335,6 +335,13 @@ class SwPortSQLQuery(MACSQLQuery):
     def __init__(self, ip, module, port, days=7):
         MACSQLQuery.__init__(self, mac=None, days=days)
 
+        # If ip is an IP address, get hostname. Logic? But of course!
+        try:
+            IPy.IP(ip)
+            ip = hostname(ip)
+        except ValueError:
+            pass
+
         self.order_by = "sysname, module, port, mac, start_time DESC"
         self.where.append("sysname ILIKE '%s%%'" % ip)
         if module and module != "*":

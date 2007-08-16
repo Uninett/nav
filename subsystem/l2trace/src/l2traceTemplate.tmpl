@@ -2,6 +2,7 @@
 ## $Id: MachineTrackerTemplate.tmpl 3106 2005-01-20 10:47:13Z mortenv $
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2006-2007 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -21,10 +22,12 @@
 ##
 ##
 ## Author: Kristian Eide <kreide@gmail.com>
+##         Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
 
 #extends MainTemplate
 
+#attr $title = 'Layer 2 Traceroute'
 #attr $path =  [("Home", "/"), ("Layer 2 Traceroute", "/l2trace/")]
 
 #block content
@@ -33,27 +36,13 @@
 
 <div id="l2trace">
 
-<div id="forms">
-
 <form id="l2traceform" action="" method="get">
-<table style="font-size: 13px;">
- <tr>
-  <td><label>From </label></td>
-  <td><input type=text name=host_from value=$form.host_from></td>
-  <td><label>To </label></td>
-  <td><input type=text name=host_to value=$form.host_to></td>
- </tr>
- <tr>
-  <td></td>
-  <td colspan=2>
-   	<input type=submit name=send value="Trace">
-  </td>
-  <td align="center">(optional)</td>
- </tr>
-</table>
+<label for="host_from">From </label>
+<input type="text" name="host_from" value="$form.host_from" />
+<label for="host_to">To </label>
+<input type="text" name="host_to" value="$form.host_to" /> (optional)
+<input type="submit" name="send" value="Trace" />
 </form>
-
-</div> <!-- forms -->
 
 #def tableTitle($title, $hits, $columnCount)
   #set $columnCount += 1
@@ -80,7 +69,7 @@
 #end def
 
 #def l2traceTable($table)
-  #set $columns = ('#', 'Level', 'Vlan', 'Port In', 'IP', 'Sysname', 'Port Out')
+  #set $columns = ('#', 'Level', 'Vlan', 'Module/Interface In', 'IP', 'Sysname', 'Module/Interface Out')
   #set $columnCount = len($columns)
 
   $tableTitle("L2 Trace results", len($table), $columnCount)
@@ -137,17 +126,12 @@
 <p>Your search did not return any results</p>
   #else
 <div class="infobox">
-<h5>L2 Trace usage</h5>
+<h4>L2 Trace usage</h4>
 <ul>
-  <li>Enter a hostname or IP address and trace up to its router.
-  </li>
-
-  <li>Optionally enter a destination hostname or IP address and trace between the two.
-  </li>
-
-  <li>Press the Trace button to start.
-  </li>
-
+  <li>Enter a hostname or IP address and trace up to its router.</li>
+  <li>Optionally enter a destination hostname or IP address and trace between
+  the two.</li>
+  <li>Press the Trace button to start.</li>
 </ul>
 </div>
 

@@ -435,10 +435,10 @@ class NetboxInfo(manage.Netbox):
         #sw = swList[0]
         for sw in swList:
             swNetbox = sw.module.netbox
-            swPort = sw.port
+            swPort = sw.interface or sw.port
             swModule = sw.module.module
             swLink = urlbuilder.createLink(swNetbox)
-            swLink.append('(Module %s, Port %s)' % (swModule, swPort))
+            swLink.append('(Module %s, Interface %s)' % (swModule, swPort))
             div = html.Division()
             div.append(swLink)
             result.append(div)

@@ -216,8 +216,8 @@ class ModuleInfo(manage.Module):
             active_cache = dict(cursor.fetchall())
             return active_cache
 
-        def sortGwports(ports):
-            """Do natural sort on gwports"""
+        def sortPortsByInterfaceName(ports):
+            """Do natural sort of ports by interface name"""
 
             import nav.natsort
 
@@ -232,8 +232,8 @@ class ModuleInfo(manage.Module):
                 result.append(map[port])
             return result
 
-        def filterGwportNames(name):
-            """Filter gwport names from ifDescr to ifName style"""
+        def filterInterfaceName(name):
+            """Filter interface names from ifDescr to ifName style"""
 
             filters = (
                 ('Vlan', 'Vl'),
@@ -256,15 +256,15 @@ class ModuleInfo(manage.Module):
 
         if perspective.startswith('gw'):
             ports = self.getChildren(manage.Gwport, orderBy=('interface'))
-            ports = sortGwports(ports)
             type = "gw"
         else:
-            ports = self.getChildren(manage.Swport, orderBy=('port'))
+            ports = self.getChildren(manage.Swport, orderBy=('interface'))
             type = "sw"
 
         if not ports:
             return None
 
+        ports = sortPortsByInterfaceName(ports)
         moduleView = html.Division(_class="module")
         if type == "gw":
             moduleView['class'] += ' gw'
@@ -291,16 +291,13 @@ class ModuleInfo(manage.Module):
             count += 1
             if type == 'gw':
                 portNr = port.interface
-                portNr = filterGwportNames(portNr)
             else:
-                # Hmmmmmm what's the difference between these?
-                # portNr = (port.ifindex is not None and port.ifindex) or port.port
-                portNr = port.port
-                if not portNr:
-                    # warnings.warn("Unknown portNr for %s" % port)
-                    continue
+                portNr = port.interface or port.port
+
+            portNr = filterInterfaceName(portNr)
             portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")
             row.append(portView)
+
             portView['title'] = ""
             if perspective == 'active':
                 titles = perspectiveActive(port, portView)

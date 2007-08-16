@@ -69,10 +69,7 @@ def process(request):
                                     urlbuilder.createUrl(netbox)))
     request['templatePath'].append(("Module %s" % module.module, 
                                     urlbuilder.createUrl(module)))
-    if porttype == 'sw':
-        request['templatePath'].append(('Port %s' % port.port, None))
-    elif porttype == 'gw':
-        request['templatePath'].append(('Port %s' % port.interface, None))
+    request['templatePath'].append(('Interface %s' % port.interface, None))
     result = html.Division()
     result.append(showInfo(porttype, port))
     return result
@@ -87,7 +84,7 @@ def findPort(module, portName):
         allPorts = module.getChildren(manage.Swport)
         type = 'sw'
     for p in allPorts:
-        if ((type == 'sw' and portName == str(p.port)) or
+        if ((type == 'sw' and portName == str(p.swportid)) or
             (type == 'gw' and portName == str(p.gwportid))):
             return type, p
     raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
@@ -96,25 +93,23 @@ def showInfo(porttype, port):
     info = html.Division()
     module = port.module
 
+    portname = port.interface
     if porttype == 'sw':
-        portname = port.port
-        portid = port.port
+        portid = port.swportid
     elif porttype == 'gw':
-        portname = port.interface
         portid = port.gwportid
 
-    info.append(html.Header("Device %s, module %s, port %s" %
+    info.append(html.Header("Device %s, module %s, interface %s" %
                 (urlbuilder.createLink(module.netbox),
                 urlbuilder.createLink(module, content=module.module),
                 portname), level=2))
 
     # Actions
+    actions = html.Paragraph()
     if porttype == 'sw':
         machinetracker = '[<a href="/machinetracker/swp?switch=%s&amp;module=%s&amp;port=%s">Track MAC behind port</a>]' \
-            % (module.netbox, module.module, portid)
-        actions = html.Paragraph('%s' % machinetracker)
-    else:
-        actions = html.Paragraph()
+            % (module.netbox, module.module, port.interface)
+        actions.append(machinetracker)
     info.append(actions)
 
     table = html.SimpleTable()
