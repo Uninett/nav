@@ -1,4 +1,5 @@
 from IPy import IP
+import math
 
 class UnknownIpVersionError(Exception): pass
 
@@ -33,7 +34,7 @@ def sort_nets_by_prefixlength(nets):
 
 def netDiff(net1,net2):
 	"""Lists all the nets between net1 and net2.
-	Assumes equal masklength and masklength % 8 == 0 (fix this?).
+	Assumes equal masklength
 	
 	Arguments:
 		``net1'': IPy.IP
@@ -43,13 +44,45 @@ def netDiff(net1,net2):
 	if net1.version() == 4:
 		return _ipv4_net_diff(net1,net2)
 	else:
-		raise UnknownIpVersionError,str(net1.version())
+		return _ipv6_net_diff(net1,net2)
 
 def _ipv4_net_diff(net1,net2):
 	if net1 > net2:
 		(net1,net2) = (net2,net1)
 	octets_to_the_right = (32-net1.prefixlen())/8
+	net_prefix_len = int(float(net1.prefixlen())/8+0.5)*8
 	return [IP("/".join([str(net),str(net1.prefixlen())])) for net in range(net1.int(), net2.int(), 256**octets_to_the_right)]
+
+#this may be slow!
+def _ipv6_net_diff(net1,net2):
+	if net1 > net2:
+		(net1,net2) = (net2,net1)
+	host_hexlets = (128-net1.prefixlen())/16
+	net_prefix_len = int(float(net1.prefixlen())/16+0.5)*16
+	return [IP("/".join([str(net),str(net_prefix_len)])) for net in range(net1.int(), net2.int(), int(math.pow(2,16))**host_hexlets)]
+
+def isIntermediateNets(net1,net2):
+	"""Returns True if there are nets with the same prefixlength between net1
+	and net2. This may be faster than using netDiff."""
+
+	if net1.prefixlen() != net2.prefixlen():
+		return True
+
+	if net1 > net2:
+		(net1,net2) = (net2,net1)
+
+	ip1 = net1.net().strCompressed()[:-2]
+	ip2 = net2.net().strCompressed()[:-2]
+
+	host_quads = (int(float(net1.prefixlen())/16+0.5)*16-net1.prefixlen())/4
+
+	ip1_last_hexlet = ip1[ip1.rfind(':')+1:-host_quads]
+	ip2_last_hexlet = ip2[ip2.rfind(':')+1:-host_quads]
+
+	if int(ip2_last_hexlet,16)-int(ip1_last_hexlet,16) > 1:
+		return True
+	else:
+		return False
 
 def getLastbitsIpMap(ip_list):
 	"""Returns a mapping between the last nybble and

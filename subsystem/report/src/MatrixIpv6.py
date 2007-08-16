@@ -32,6 +32,7 @@ class MatrixIpv6(Matrix):
 		template.getLastbitsIpMap = getattr(IPTools,"getLastbitsIpMap")
 		template.sub = getattr(Utils,"sub")
 		template.stringDotJoin = getattr(string,"join")
+		template.isIntermediateNets = getattr(IPTools,"isIntermediateNets")
 
 		#variables
 		template.start_net = self.start_net

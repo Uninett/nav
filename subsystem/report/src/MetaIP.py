@@ -69,14 +69,14 @@ class MetaIP:
 		else:
 			self._setupIpv6()
 	
-	def getTreeNet(self):
+	def getTreeNet(self,leadingZeros=True):
 		"""This method is used to get the string representation of the IP
 		shown in the tree to left of the prefix matrix."""
 
 		#IPv6: Whole address
 		#IPv4: Not whole address
 		if self.netaddr.version() == 6:
-			return self._getTreeNetIpv6()
+			return self._getTreeNetIpv6(leadingZeros)
 		elif self.netaddr.version() == 4:
 			return self._getTreeNetIpv4()
 	
@@ -85,7 +85,7 @@ class MetaIP:
 		netaddr_string = self.netaddr.net().strNormal()
 		return netaddr_string[:netaddr_string.rfind(".")]
 
-	def _getTreeNetIpv6(self):
+	def _getTreeNetIpv6(self,leadingZeros):
 		"""Compress self.netaddr, remove "::", and padd with ":0"."""
 		netaddr = None
 		hexlets_in_address = int(float(self.netaddr.prefixlen())/16+0.5)
@@ -98,7 +98,14 @@ class MetaIP:
 		while netaddr.count(":") < hexlets_in_address-1:
 			netaddr = ":".join([netaddr,"0"])
 
-		return netaddr ##...don't want leading zero after all
+		if leadingZeros:
+			last_hexlet = netaddr[netaddr.rfind(':')+1:]
+			zeros_to_pad = 4-len(last_hexlet)
+			last_hexlet = zeros_to_pad*'0' + last_hexlet
+
+			netaddr = netaddr[:netaddr.rfind(':')+1] + last_hexlet
+		
+		return netaddr 
 	
 	def _setupIpv6(self):
 		if contains(ipv6MetaMap.keys(),self.netaddr):

@@ -39,9 +39,6 @@ from IPTree import getMaxLeaf
 from IPTree import buildTree
 from IPy import IP
 
-#OLD
-from MatrixIpv4Original import Matrix
-
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
@@ -114,7 +111,7 @@ def handler(req):
 
         if argsdict.has_key("scope") and argsdict["scope"]:
 			scope = IP(argsdict["scope"])
-			show_unused_addresses = False
+			show_unused_addresses = True
 
 			if argsdict.has_key("show_unused_addresses"):
 				boolstring = argsdict["show_unused_addresses"]
