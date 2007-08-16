@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import no.ntnu.nav.ConfigParser.ConfigParser;
-import no.ntnu.nav.logger.Log;
 
 
 /**
@@ -78,7 +77,7 @@ public class Util {
 			ignorePrefices.put(newIp,mask);
 		}
 		
-		for(Map.Entry<InetAddress, Integer> me: ignorePrefices.entrySet()) 
+		for(Map.Entry<InetAddress, Integer> me: ignorePrefices.entrySet())
 			if(isSubnet(me.getKey(), me.getValue(), ip))
 				return true;
 
@@ -101,6 +100,7 @@ public class Util {
 	}
 
 	/**
+	 *  @param prefixLength supernet prefix length
 	 *  @return Returns true if supernet >> subnet, false if not.
 	 */
 	public static boolean isSubnet(InetAddress supernet, int prefixLength, InetAddress subnet) {
@@ -125,6 +125,10 @@ public class Util {
 				return false;
 
 		return true;
+	}
+	
+	public static boolean isSubnet(NavIP supernet, NavIP subnet) {
+		return isSubnet(supernet.getPrefixAddress(),supernet.getPrefixLength(),subnet.getPrefixAddress());
 	}
 	
 	/**

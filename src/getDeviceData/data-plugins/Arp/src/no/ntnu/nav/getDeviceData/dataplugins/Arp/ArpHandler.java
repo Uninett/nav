@@ -1,10 +1,10 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Arp;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,10 +27,16 @@ import no.ntnu.nav.logger.Log;
 
 public class ArpHandler implements DataHandler {
 
+	private static final int PREFIX_CACHE_SYNC_INTERVAL = 600000; //DEFAULT ten minuits
+	
 	private Map<InetAddress,String> oldIpMacMap;
 	private Map<String,Integer> oldMacArpIdMap;
 
 	private Map<InetAddress,String> deviceIpMacMap;
+	
+	private static Map<NavIP,Integer> prefixCache = null;
+	private static long previousCacheSync;
+	private static List<NavIP> sortedPrefixList = null; //sorted on prefixlength
 
 	public DataContainer dataContainerFactory() {
 		return new ArpContainer(this);
@@ -47,6 +53,9 @@ public class ArpHandler implements DataHandler {
 		Log.setDefaultSubsystem("ARPHandler");
 
 		synchronized(this) {
+			if(prefixCache == null)
+				syncPrefixCache();
+			
 			deviceIpMacMap = ac.getIpMacMap();
 			buildOldMaps(nb);
 
@@ -112,13 +121,12 @@ public class ArpHandler implements DataHandler {
 			Log.e("handleData","Terminate dead IPs resultet in SQLException. SQL: " + termSql);
 			e.printStackTrace();
 		}
-		
 	}
 	
-	/*
-	 * FIXME: Make out a smarter way to retrieve the prefixid (i.e. retrieve all ids at once in one SQL and store them in a Map).
-	 */
 	private synchronized void insertIpsIntoArp(Netbox nb, Map<InetAddress,String> ipMacMap) {
+		if(System.currentTimeMillis() - previousCacheSync >= PREFIX_CACHE_SYNC_INTERVAL)
+			syncPrefixCache();
+		
 		try {
 			for(InetAddress ip: ipMacMap.keySet()) {
 				if(ipMacMap.get(ip) == null || ipMacMap.get(ip).equals("")) { //this has been observed on some responses from cInetNetToMediaPhysAddress
@@ -126,23 +134,22 @@ public class ArpHandler implements DataHandler {
 							ip + ". The OIDs used is listed in no.ntnu.nav.getDeviceData.deviceplugins.ARPLogger.ARPLogger.java");
 					continue;
 				}
-				String prefixIdSql = "SELECT prefixid FROM prefix where netaddr >> '" + ip.getHostAddress() + "'";
-				//only interested in the "smallest" supernet
-				ResultSet rs;
-				rs = Database.query(prefixIdSql);
-				int prefixId = -1;
-				while(rs.next()) {
-					prefixId = rs.getInt("prefixid");
-					break;
-				}
 				
-				if(prefixId == -1) {
-					Log.e("ARPHandler", "Can't find any supernet for " + ip.getHostAddress() + ". Entry not saved!");
+				int prefixid = -1;
+				
+				NavIP thisIp = new NavIP(ip,128);
+				
+				for(NavIP nip: sortedPrefixList)
+					if(Util.isSubnet(nip, thisIp))
+						prefixid = prefixCache.get(nip);
+				
+				if(prefixid == -1) {
+					Log.e("ARPHandler", "Can't find prefix for " + thisIp.getPrefixAddress().getHostAddress() + ". Skipping!");
 					continue;
-				}
+				}			
 				
 				String[] fieldValues = {"netboxid",Integer.toString(nb.getNetboxid()),
-										"prefixid",Integer.toString(prefixId),
+										"prefixid",Integer.toString(prefixid),
 										"ip",ip.getHostAddress(),
 										"mac",ipMacMap.get(ip),
 										"sysname",nb.getSysname(),
@@ -188,6 +195,33 @@ public class ArpHandler implements DataHandler {
 			Log.e("ARPLogger", "An error occurred while querying the database: " + sql);
 			e.printStackTrace();
 			return;
+		}
+	}
+	
+	public synchronized static void syncPrefixCache() {
+		if(prefixCache == null)
+			prefixCache = new HashMap<NavIP, Integer>();
+		if(sortedPrefixList == null)
+			sortedPrefixList = new ArrayList<NavIP>();
+		
+		String sql = "SELECT prefixid,host(netaddr) AS ip, masklen(netaddr) AS prefixlength from prefix";
+		prefixCache.clear();
+		
+		try {
+			ResultSet rs = Database.query(sql);
+			while(rs.next()) {
+				int prefixid = rs.getInt("prefixid");
+				String ip = rs.getString("ip");
+				int prefixLength = rs.getInt("prefixlength");
+				NavIP nip = new NavIP(ip,prefixLength);
+				prefixCache.put(nip, prefixid);		
+				sortedPrefixList.add(nip);
+			}
+			Collections.sort(sortedPrefixList);
+			previousCacheSync = System.currentTimeMillis();
+		} catch (SQLException e) {
+			Log.e("ARPLogger", "An error occured while synchronizing the prefix cache");
+			e.printStackTrace();
 		}
 	}
 
