@@ -4,11 +4,14 @@
 
 #def $netlink($ip,$append_term_and_prefix=False)
 	##Returns a link to a site that will list all sub
-	#set $nip = $MetaIP($ip).getTreeNet()
+	#set $nip = $MetaIP($ip).getTreeNet(leadingZeros=True)
+	#set $link = $MetaIP($ip).getTreeNet(leadingZeros=False)[:-1] + "_::"
+	#set $text = $nip[:-1] + 'x'
+
 	#if $append_term_and_prefix
-		<a href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
+		<a class="monosp" href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
 	#else
-		<a href="/report/prefix?host(netaddr)=$nip%&op_host(netaddr)=like">$stringDotJoin([$nip[:-1],"x"],"")</a>
+		<a class="monosp" href="/report/prefix?host(netaddr)=$link&op_host(netaddr)=like">$text</a>
 	#end if
 #end def	
 
@@ -16,12 +19,27 @@
 	<a href="/report/prefix?prefixid=$MetaIP($ip).prefixid">$nybble::/$ip.prefixlen</a>
 #end def
 
+#def $printBlankRow
+	#set $span = $len($column_headings)+1
+	<tr><td class="blank" colspan="$span"></td></tr>
+#end def
+
 #def $writeSubnets($net,$depth)
 	#set $nodes = $sort_nets_by_address($net.keys)
+	#set $lastnet = None
 	#for $subnet in $nodes
+		#if $lastnet is None
+			#set $lastnet = $subnet
+		#end if
+
 		#if $matrix_nets.has_key($subnet)
+			#if $isIntermediateNets($lastnet,$subnet)
+				$printBlankRow
+			#end if
+
+			#set $lastnet = $subnet
 			<tr>
-			<td>$printDepth($depth) $netlink($subnet)</td>
+			<td>$printDepth($depth)$netlink($subnet)</td>
 			#set $host_nybbles_map = $getLastbitsIpMap($matrix_nets[$subnet].keys)
 			#set $next_header_idx = -1
 			#for $i in $column_headings
@@ -44,6 +62,8 @@
 			#end for
 			</tr>
 		#else
+			
+			#set $lastnet = $subnet
 			#set $meta = $MetaIP($subnet)
 			<tr>
 			<td>$printDepth($depth)$netlink($subnet,True)</td>
