@@ -383,13 +383,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					//method, use cIpv6InterfaceIdentifierLength.
 					if(maskLength == 0)
 						maskLength = 64;
-					
-					//It was decided that prefices with masklength == 128 are uninteresting. Note that
-					//if you're going to remove this restriction you have to remove the if-statement in
-					//ietfIpv6Supported too.
-					if(maskLength == 128)
-						continue;
-					
+
 					String hexMask = getIpv6Mask(decIp,maskLength);
 					netmaskMap.put(hexIp,hexMask);
 					ipv6NetmaskLengthMap.put(hexIp,new Integer(maskLength));
@@ -408,9 +402,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					//see last method
 					if(maskLength == 0)
 						maskLength = 64;
-					
-					if(maskLength == 128)
-						continue;
 					
 					String hexMask = getIpv6Mask(decIp, maskLength);
 					netmaskMap.put(hexIp, hexMask);
@@ -683,6 +674,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					else { //gwip == IPv6
 						boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey(gwip);
 						int masklen = ((Integer)ipv6NetmaskLengthMap.get(gwip)).intValue();
+						//it was decided that prefices with masklen==128 is uninteresting for us.
+						if(masklen == 128)
+							continue;
 						Prefix p = gwp.prefixFactory(gwip, hsrp, mask, masklen, vl);
 					}
 				}
