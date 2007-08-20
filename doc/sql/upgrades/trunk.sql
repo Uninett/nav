@@ -115,6 +115,11 @@ UNION DISTINCT
 -- The simpler PostgreSQL 8.x method:   0h04m48s
 
 
+-- Rule to automatically close arp entries related to a given prefix
+CREATE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid;
+
 \c navprofiles
 -- Fix error in sysname matching
 UPDATE matchfield SET valueid='netbox.sysname' WHERE matchfieldid=15;
