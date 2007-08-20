@@ -192,32 +192,13 @@ def find_year(mnd):
         return now[0]
     
 def find_month(textual):
-    textual = textual.lower()
+    months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep",
+              "oct", "nov", "dec"]
+    try:
+        return months.index(textual.lower())+1
+    except ValueError, e:
+        pass
 
-    if textual == "jan":
-        return 1
-    if textual == "feb":
-        return 2
-    if textual == "mar":
-        return 3
-    if textual == "apr":
-        return 4
-    if textual == "may":
-        return 5
-    if textual == "jun":
-        return 6
-    if textual == "jul":
-        return 7
-    if textual == "aug":
-        return 8
-    if textual == "sep":
-        return 9
-    if textual == "oct":
-        return 10
-    if textual == "nov":
-        return 11
-    if textual == "dec":
-        return 12
 
 
 if __name__ == '__main__':
