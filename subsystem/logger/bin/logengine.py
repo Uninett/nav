@@ -33,10 +33,15 @@
 
 import re
 import fcntl
+import sys
 import os
+import os.path
+import atexit
 import nav
 from mx import DateTime
 from nav import db
+from nav import daemon
+from nav.buildconf import localstatedir
 from ConfigParser import ConfigParser
 
 config = ConfigParser()
@@ -216,6 +221,19 @@ def find_month(textual):
 
 
 if __name__ == '__main__':
+    # Create a pidfile and delete it automagically when the process exits.
+    # Although we're not a daemon, we do want to prevent multiple simultaineous
+    # logengine processes.
+    pidfile = os.path.join(localstatedir, 'run', 'logengine.pid')
+
+    try:
+        daemon.justme(pidfile)
+    except daemon.AlreadyRunningError, e:
+        print >> sys.stderr, "logengine is already running (%d)" % e.pid
+        sys.exit(1)
+        
+    daemon.writepidfile(pidfile)
+    atexit.register(daemon.daemonexit, pidfile)
 
     ## initial setup of dictionaries
 
