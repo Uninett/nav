@@ -62,6 +62,14 @@ def _ipv6_net_diff(net1,net2):
 	return [IP("/".join([str(net),str(net_prefix_len)])) for net in range(net1.int(), net2.int(), int(math.pow(2,16))**host_hexlets)]
 
 def isIntermediateNets(net1,net2):
+	if net1.version() != net2.version():
+		raise NotEqualVersionError
+	if net1.version() == 4:
+		raise NotImplementedError
+	else:
+		return isIntermediateNetsIpv6(net1,net2)
+
+def isIntermediateNetsIpv6(net1,net2):
 	"""Returns True if there are nets with the same prefixlength between net1
 	and net2. This may be faster than using netDiff."""
 
@@ -71,18 +79,46 @@ def isIntermediateNets(net1,net2):
 	if net1 > net2:
 		(net1,net2) = (net2,net1)
 
-	ip1 = net1.net().strCompressed()[:-2]
-	ip2 = net2.net().strCompressed()[:-2]
+	ip1 = compress_light(net1)
+	ip2 = compress_light(net2)
+
+	ip1_array = ip1.split(":")
+	ip2_array = ip2.split(":")
+
+	for i in range(0,len(ip1_array)-1):
+		if ip1_array[i] != ip2_array[i]:
+			return True
 
 	host_quads = (int(float(net1.prefixlen())/16+0.5)*16-net1.prefixlen())/4
 
 	ip1_last_hexlet = ip1[ip1.rfind(':')+1:-host_quads]
 	ip2_last_hexlet = ip2[ip2.rfind(':')+1:-host_quads]
 
+	#This occurs when the last hexlet is only one quad long
+	if len(ip1_last_hexlet) is 0:
+		ip1_last_hexlet = ip1[-1]
+	if len(ip2_last_hexlet) is 0:
+		ip2_last_hexlet = ip2[-1]
+	
 	if int(ip2_last_hexlet,16)-int(ip1_last_hexlet,16) > 1:
 		return True
 	else:
 		return False
+
+def compress_light(ip):
+	"""Compress the ip address without removing any hexlets."""
+	netaddr = None
+	hexlets_in_address = int(float(ip.prefixlen())/16+0.5)
+	if ip.prefixlen() < 112:
+		netaddr = ip.net().strCompressed()[:-2]
+	else:
+		netaddr = ip.net().strCompressed()
+
+	#in case .strCompressed() compressed it too much
+	while netaddr.count(":") < hexlets_in_address-1:
+		netaddr = ":".join([netaddr,"0"])
+	
+	return netaddr
 
 def getLastbitsIpMap(ip_list):
 	"""Returns a mapping between the last nybble and
