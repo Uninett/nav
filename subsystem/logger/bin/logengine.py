@@ -2,6 +2,7 @@
 # -*- coding: ISO-8859-1 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -80,10 +81,18 @@ def get_exception_dicts(config):
 
     return (exceptionorigin,exceptiontype,exceptiontypeorigin)
 
-
+# Example of typical log line to match the following regexp:
+# Feb  8 12:58:40 158.38.0.51 316371: Feb  8 12:58:39.873 MET: %SEC-6-IPACCESSLOGDP: list 112 permitted icmp 158.38.60.10 -> 158.38.12.5 (0/0), 1 packet
+typicalmatchRe = re.compile("^(\w+)\s+(\d+)\s+(\d+)\:(\d+):\d+\W+(\S+)"
+                            "\W+(?:(\d{4})|.*)\s+\W*(\w+)\s+(\d+)\s+(\d+):"
+                            "(\d+):(\d+).*%(.*?):\s*(.*)$")
+notsotypicalmatchRe = re.compile("(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\W+"
+                                 "(\S+\.\w+).*\W(\w+\ ??\w*-(\d)-?\w*):"
+                                 "\s*(.*)$")
+typematchRe = re.compile("\w+-\d+-?\S*:")
 def createMessage(line):
 
-    typicalmatch = re.search("^(\w+)\s+(\d+)\s+(\d+)\:(\d+):\d+\W+(\S+)\W+(?:(\d{4})|.*)\s+\W*(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+).*%(.*?):\s*(.*)$",line)
+    typicalmatch = typicalmatchRe.search(line)
 
     if typicalmatch:
         servmonth = find_month(typicalmatch.group(1))
@@ -104,7 +113,7 @@ def createMessage(line):
         servtime = DateTime.DateTime(servyear,servmonth,servday,servhour,servmin)
         oritime = DateTime.DateTime(year,month,day,hour,min)
 
-        #stoler på at denne tiden er rett
+        #trust that this time is correct
         servtime = oritime
 
         return Message(servtime, origin, type, description)
@@ -112,7 +121,7 @@ def createMessage(line):
         #print oritime+DateTime.DateTimeDelta(5)
 
     else:
-        notsotypicalmatch = re.search("(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\W+(\S+\.\w+).*\W(\w+\ ??\w*-(\d)-?\w*):\s*(.*)$", line)
+        notsotypicalmatch = notsotypicalmatchRe.search(line)
         if notsotypicalmatch:
             month = find_month(notsotypicalmatch.group(1))
             year = find_year(month)
@@ -131,9 +140,10 @@ def createMessage(line):
         
         else:
             # if this message shows sign of cisco format, put it in the error log
-            typematch = re.search("\w+-\d+-?\S*:",line)
+            typematch = typematchRe.search(line)
             if typematch:
-                database.execute("insert into errorerror (message) values (%s)" , (line,))
+                database.execute("INSERT INTO errorerror (message) "
+                                 "VALUES (%s)", (line,))
                 connection.commit()
             #raise "this is an undefined message"+line
 
@@ -142,6 +152,8 @@ def createMessage(line):
 
     
 class Message:
+    prioritymatchRe = re.compile("^(.*)-(\d*)-(.*)$")
+    categorymatchRe = re.compile("\W(gw|sw|gsw|fw|ts)\W")
 
     def __init__(self, time, origin, type, description):
         self.time = time
@@ -152,7 +164,7 @@ class Message:
         (self.facility, self.priorityid, self.mnemonic) = self.find_priority(type)
 
     def find_priority(self, type):
-        prioritymatch = re.search("^(.*)-(\d*)-(.*)$",type)
+        prioritymatch = self.prioritymatchRe.search(type)
         if prioritymatch:
             return (prioritymatch.group(1), int(prioritymatch.group(2)), prioritymatch.group(3))
         else:
@@ -160,7 +172,7 @@ class Message:
 
     def find_category(self, origin):
                 
-        categorymatch = re.search("\W(gw|sw|gsw|fw|ts)\W",origin)
+        categorymatch = self.categorymatchRe.search(origin)
         if categorymatch:
             return categorymatch.group(1)
         else:
@@ -228,16 +240,22 @@ if __name__ == '__main__':
             types[r[1]][r[2]] = int(r[0])
 
     ## parse priorityexceptions
-    (exceptionorigin,exceptiontype,exceptiontypeorigin) = get_exception_dicts(config)
+    (exceptionorigin,
+     exceptiontype,
+     exceptiontypeorigin) =  get_exception_dicts(config)
 
     ## delete old records
     ## the limits for what is old is specified in the logger.conf
     ## configuration file
     for priority in range(0,8):
         if config.get("deletepriority",str(priority)):
-            database.execute("delete from message where newpriority=%d and time<'%s'",(priority, DateTime.now()+DateTime.RelativeDateTime(days=-int(config.get("deletepriority",str(priority))))))
+            days = config.getint("deletepriority", str(priority))
+            database.execute("DELETE FROM message WHERE newpriority=%s "
+                             "AND time < now() - interval %s",
+                             (priority, '%d days' % days))
 
-    connection.commit() #get rid of old records before filling up with new (old jungle slogan)
+    #get rid of old records before filling up with new (old jungle proverb)
+    connection.commit()
 
 
     ## add new records
@@ -280,13 +298,17 @@ if __name__ == '__main__':
                 else:
                     ## update category database table
                     if not categories.has_key(message.category):
-                        database.execute("insert into category (category) values ('%s')" % message.category)
+                        database.execute("INSERT INTO category (category) "
+                                         "VALUES (%s)", (message.category,))
                         categories[message.category] = message.category
 
                     ## update origin database table
-                    database.execute("select nextval('origin_origin_seq')")
+                    database.execute("SELECT nextval('origin_origin_seq')")
                     originid = database.fetchone()[0]
-                    database.execute("insert into origin (origin, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
+                    database.execute("INSERT INTO origin (origin, name, "
+                                     "category) VALUES (%d, %s, %s)",
+                                     (originid, message.origin,
+                                      message.category))
                     origins[message.origin] = originid
 
                 ## check type
@@ -295,10 +317,14 @@ if __name__ == '__main__':
 
                 else:
                     ## update type database table
-                    database.execute("select nextval('type_type_seq')")
+                    database.execute("SELECT nextval('type_type_seq')")
                     typeid = int(database.fetchone()[0])
 
-                    database.execute("insert into type (type, facility, mnemonic, priority) values (%d, %s, %s, %d)", (typeid, message.facility, message.mnemonic, message.priorityid))
+                    database.execute("INSERT INTO type (type, facility, "
+                                     "mnemonic, priority) "
+                                     "VALUES (%d, %s, %s, %d)",
+                                     (typeid, message.facility,
+                                      message.mnemonic, message.priorityid))
                     if not types.has_key(message.facility):
                         types[message.facility] = {}
                     types[message.facility][message.mnemonic] = typeid
@@ -323,7 +349,11 @@ if __name__ == '__main__':
                         pass
 
                 ## insert message into database
-                database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, %s)"% (message.time, originid, message.priorityid, typeid, message.description))
+                database.execute("INSERT INTO message (time, origin, "
+                                 "newpriority, type, message) "
+                                 "VALUES (%s, %s, %s, %s, %s)",
+                                 (message.time, originid, message.priorityid,
+                                  typeid, message.description))
 
         connection.commit()
 
