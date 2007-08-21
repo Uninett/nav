@@ -73,7 +73,7 @@ def history(req,deviceorderid=None):
     # Get filter values
     if (form.has_key('startday') and form['startday'].isdigit()
         and form.has_key('startmonth') and form['startmonth'].isdigit()
-        and form.has_key('startyear')) and form['startyear'].isdigit():
+        and form.has_key('startyear') and form['startyear'].isdigit()):
         startyear = int(form['startyear'])
         startmonth = int(form['startmonth'])
         startday = int(form['startday'])
@@ -91,7 +91,7 @@ def history(req,deviceorderid=None):
 
     if (form.has_key('endday') and form['endday'].isdigit()
         and form.has_key('endmonth') and form['endmonth'].isdigit()
-        and form.has_key('endyear')) and form['endyear'].isdigit():
+        and form.has_key('endyear') and form['endyear'].isdigit()):
         endyear = int(form['endyear'])
         endmonth = int(form['endmonth'])
         endday = int(form['endday'])
