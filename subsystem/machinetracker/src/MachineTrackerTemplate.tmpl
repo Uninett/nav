@@ -54,9 +54,8 @@ $default_table_CSS
 #def tableTitle($title, $hits, $columnCount)
   #set $columnCount += 1
 
-<table class="horiztable">
+<table class="listtable">
     <caption>
-        <span class="cornerkludge"></span>
         $title<br />
         <span class="subtitle">$hits hits</span>
     </caption>
@@ -64,13 +63,13 @@ $default_table_CSS
 
 #def tableHeader($rowCount, $columns)
   #set $rowCount = $rowCount + 1
-    <tr class="header">
-        <td class="leftkludge" rowspan="$rowCount"></td>
+    <thead>
+        <tr>
   #for $column in $columns
-        <th>$column</th>
+            <th>$column</th>
   #end for
-        <td class="rightkludge" rowspan="$rowCount"></td>
-    </tr>
+        </tr>
+    </thead>
 #end def
 
 #def arpTable($table)
@@ -81,9 +80,13 @@ $default_table_CSS
   #end if
   #set $columnCount = len($columns)
 
-  $tableTitle("IP Search results", len($table), $columnCount)
-  $tableHeader(len($table), $columns)
+  #set $hits = len($table)
+  $tableTitle("IP Search results", $hits, $columnCount)
 
+  #if $hits
+  $tableHeader($hits, $columns)
+
+    <tbody>
   #for $row in $table
     <tr class="$rowcycler">
     #if $form.dns=="on":
@@ -100,6 +103,14 @@ $default_table_CSS
         <td>$row.end_time</td>
     </tr>
   #end for
+    </tbody>
+  #end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$hits hits</th>
+        </tr>
+    </tbody>
 </table>
 #end def
 
@@ -107,9 +118,13 @@ $default_table_CSS
   #set $columns = ('MAC', 'Switch', 'Module', 'Interface', 'Start time', 'End time')
   #set $columnCount = len($columns)
 
-  $tableTitle("MAC Search results", len($table), $columnCount)
-  $tableHeader(len($table), $columns)
+  #set $hits = len($table)
+  $tableTitle("MAC Search results", $hits, $columnCount)
 
+  #if $hits
+  $tableHeader($hits, $columns)
+
+    <tbody>
   #for $row in $table
     <tr class="$rowcycler">
         <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a></td>
@@ -120,6 +135,14 @@ $default_table_CSS
 	<td>$row.end_time</td>
     </tr>
   #end for
+    </tbody>
+  #end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$hits hits</th>
+        </tr>
+    </tbody>
 </table>
 #end def
 
@@ -280,7 +303,6 @@ $makeMenu($menu, $current)
 #end if
 
 </div> <!-- infobox -->
-<br />
 
     #end if
 #end if
