@@ -95,7 +95,7 @@ class ServiceTable:
         self._findDataSources()
         self.createHeader()
         self.createTableBody()
-        self.html['class'] = 'vertilist'
+        self.html['class'] = 'listtable'
         self.html.sortBy=self.sort
         self.html.sort()
 
