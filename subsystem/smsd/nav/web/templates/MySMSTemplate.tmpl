@@ -55,37 +55,47 @@
 
 <h2>My SMS</h2>
 
-<form id="searchform" action="" method="get"><p>
-	Show messages from the last
-	<input type="text" name="days" size="3" value="$days" />
-	days for the phone numbers: $phones.
-	<input type="submit" value="Search" />
-</p></form>
+<form id="searchform" action="" method="get">
+<p>
+Show messages from the last
+<input type="text" name="days" size="3" value="$days" />
+days for the phone numbers: $phones.
+<button type="submit">Search</button>
+</p>
+</form>
 
 #set $msgcount = len($messages)
-#set $rowcount = len($messages) + 1
 
-<table class="horiztable">
+<table class="listtable">
 	<caption>
-		<span class="cornerkludge"></span>
 		Message list<br />
 		<span class="subtitle">$msgcount messages</span>
 	</caption>
 
-	<tr class="header">
-		<td class="leftkludge" rowspan="$rowcount"></td>
-		<th>Time</th>
-		<th>Time Sent</th>
-		<th>Phone No.</th>
-		<th>Message</th>
-		<th>Severity</th>
-		<th>Status</th>
-		<td class="rightkludge" rowspan="$rowcount"></td>
-	</tr>
+#if $msgcount
+	<thead>
+		<tr>
+			<th>Time</th>
+			<th>Time Sent</th>
+			<th>Phone No.</th>
+			<th>Message</th>
+			<th>Severity</th>
+			<th>Status</th>
+		</tr>
+	</thead>
 
+	<tbody>
 #for $message in $messages
 	$add_message($message)
 #end for
+	</tbody>
+#end if
+
+	<tbody class="footer">
+		<tr>
+			<th colspan="0">$msgcount messages</th>
+		</tr>
+	</tbody>
 </table>
 
 #end block content
