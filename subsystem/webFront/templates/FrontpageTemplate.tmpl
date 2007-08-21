@@ -39,31 +39,25 @@ $default_table_CSS
 #end block
 
 #block content
-<table border="0" cellspacing="0" cellpadding="0">
-    <tr>
-        <td valign="top" width="190">
+<div class="boxes">
+$navlinksbox
+$externallinksbox
+$contactinformationbox
+</div>
 
-$navlinksbox <br />
-$externallinksbox <br />
-$contactinformationbox <br />
-
-        </td>
-        <td style="width: 10px;"></td>
-        <td valign="top">
-
+<div class="welcome">
 $welcome
+</div>
+
 $messages
 $status
 
-        </td>
-    </tr>
-</table>
 #end block
 
 #def navlinksbox
   $sideboxstart('NAV links')
   $navlinks
-  $sideboxend()     
+  $sideboxend()
 #end def
 
 #def navlinks
@@ -91,14 +85,12 @@ $status
 #end def
 
 #def sideboxstart($title)
-  <table border="0" cellspacing="0" cellpadding="3" width="100%" class="sidebox">
+<table>
     <tr>
-      <td class="sideboxtitle">
-        $title
-      </td>
+        <th>$title</th>
     </tr>
     <tr>
-      <td class="sideboxlinks">
+        <td>
 #end def
 
 #def sideboxend
@@ -113,9 +105,8 @@ $status
 #if $msgs
     #set $msgcount = len($msgs)
     #set $rowcount = $msgcount + 1
-<table class="horiztable">
+<table class="listtable" style="width: 50em;">
     <caption>
-        <span class="cornerkludge"></span>
         <a href="/messages/">Messages</a><br />
         #if $msgcount == 1
         <span class="subtitle">$msgcount active message</span>
@@ -124,15 +115,16 @@ $status
         #end if
     </caption>
 
-    <tr class="header">
-        <td class="leftkludge" rowspan="$rowcount"></td>
-        <th>Published</th>
-        <th>Title</th>
-        <th style="white-space: normal;">Description</th>
-        <th>Tasks</th>
-        <td class="rightkludge" rowspan="$rowcount"></td>
-    </tr>
+    <thead>
+        <tr>
+            <th>Published</th>
+            <th>Title</th>
+            <th style="white-space: normal;">Description</th>
+            <th>Tasks</th>
+        </tr>
+    </thead>
 
+    <tbody>
     #for $msg in $msgs
         #if len($msg.description) > 80 
             #set $desc = $msg.description[:80] + '...'
@@ -150,39 +142,39 @@ $status
         <td>$desc.replace('<', '&lt;').replace('>', '&gt;')</td>
         #if $tasks
         <td><a href="/messages/view?id=$msg.messageid">
-            <img src="/images/wrench.gif" width="10" height="10" alt="Tasks">
+            <img src="/images/status/wrench.gif" width="10" height="10" alt="Tasks">
             $tasks</a></td>
         #else
         <td>&nbsp;</td>
         #end if
     </tr>
     #end for
+    </tbody>
 </table>
-<br />
 #end if
 #end def
 
 
 #def status
 #set $rowcount = len($boxesdown) + 1
-<table class="horiztable">
+<table class="listtable" style="width: 50em;">
     <caption>
-        <span class="cornerkludge"></span>
         <a href="/status/">Status Now</a><br />
-        <span class="subtitle">$numboxesdown boxes down,
+        <span class="subtitle">$numboxesdown IP devices down,
         $numboxesshadow in shadow</span>
     </caption>
 
-    <tr class="header">
-        <td class="leftkludge" rowspan="$rowcount"></td>
-        <th>Sysname</th>
-        <th>IP</th>
-        <th>Down since</th>
-        <th>Downtime</th>
-        <td class="rightkludge" rowspan="$rowcount"></td>
-    </tr>
+    <thead>
+        <tr>
+            <th>Sysname</th>
+            <th>IP</th>
+            <th>Down since</th>
+            <th>Downtime</th>
+        </tr>
+    </thead>
 
 #set $numberdown = 0
+    <tbody>
 #for $box in $boxesdown
 #if not $box[4]
   #if $numberdown < $numberOfBoxesShown
@@ -201,18 +193,18 @@ $status
   #set $numberdown = $numberdown + 1
 #end if
 #end for
+    </tbody>
 
 #if len($boxesdown) > $numberOfBoxesShown
-  #set $linktext = "(more)"
+  #set $linktext = "More..."
 #else
-  #set $linktext = "(to status page)"
+  #set $linktext = "Status page"
 #end if
 
-    <tr>
-        <td colspan="6" style="text-align: center; font-size: smaller;">
-            <a href="/status/">$linktext</a>
-        </td>
-    </tr>
+    <tbody class="footer">
+        <tr>
+            <th colspan="6"><a href="/status/">$linktext</a></th>
+        </tr>
+    </tbody>
 </table>
-<br />
 #end def

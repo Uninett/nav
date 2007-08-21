@@ -23,144 +23,37 @@
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
-/* Old style table */
-table.horiztable {
-	border: 0;
-	border-collapse: collapse;
-	caption-side: top;
-	margin-bottom: 1em;
-}
 
-/* Old style table: Table title */
-table.horiztable caption {
-	background-color: #eee;
-	background-image: url('/images/bar-fill.gif');
-	background-repeat: no-repeat;
-	color: black;
-	font-size: 1.1em;
-	font-weight: bold;
-	text-align: center;
-}
-table.horiztable caption span.cornerkludge {
-	background-image: url('/images/ragen/top-end.gif');
-	background-repeat: no-repeat;
-	background-position: top right;
-	float: right;
-	width: 9px;
-	height: 35px;
-}
-table.horiztable caption span.subtitle {
-	font-size: smaller;
-	font-weight: normal;
-}
-table.horiztable caption span.previous {
-	float: left;
-	margin-left: 1em;
-}
-table.horiztable caption span.next {
-	float: right;
-	margin-right: 1em;
-}
-
-/* Old style: table column titles */
-table.horiztable tr.header {
-	background-color: white;
-	background-image: url('/images/ragen/navbar-fill.gif');
-	background-repeat: repeat-x;
-	color: black;
-	height: 26px;
-}
-table.horiztable tr.header th {
-	font-weight: normal;
-	text-align: left;
-	vertical-align: top;
-	white-space: nowrap;
-	padding-right: 1em;
-}
-table.horiztable tr.header td {
-	background-color: white;
-	background-repeat: no-repeat;
-	color: black;
-	width: 14px;
-}
-table.horiztable tr.header td.leftkludge {
-	background-image: url('/images/ragen/navbar-start.gif');
-	background-position: top left;
-}
-table.horiztable tr.header td.rightkludge {
-	background-image: url('/images/ragen/navbar-end.gif');
-	background-position: top right;
-}
-
-/* Old style table: Table body */
-table.horiztable tr.evenrow {
-	background-color: #eee;
-	color: black;
-}
-table.horiztable tr.oddrow {
-	background-color: white;
-	color: black;
-}
-table.horiztable tr.evenrow td, table.horiztable tr.oddrow td {
-	padding-right: 1em;
-}
-
-/* Old style table: Table footer */
-table.horiztable tr.footer {
-	background-image: url('/images/ragen/bottom-fill.gif');
-	background-repeat: repeat-x;
-	background-color: white;
-	height: 21px;
-}
-table.horiztable tr.footer th {
-	color: black;
-	font-weight: bold;
-	text-align: center;
-	vertical-align: top;
-}
-table.horiztable tr.footer td.leftkludge {
-	background-image: url('/images/ragen/bottom-start.gif');
-	background-repeat: no-repeat;
-	background-position: top left;
-	padding: 0px;
-}
-table.horiztable tr.footer td.rightkludge {
-	background-image: url('/images/ragen/bottom-end.gif');
-	background-repeat: no-repeat;
-	background-position: top right;
-}
-table.horiztable tr.footer span.previous {
-	float: left;
-	top: 0px;
-}
-table.horiztable tr.footer span.next {
-	float: right;
-	top: 0px;
-}
-
-
-/* New style details table */
+/* --- Details table --- */
 table.vertitable {
 	border: 1px solid #999;
 	border-collapse: separate;
 	border-spacing: 2px;
 	caption-side: top;
 	margin-bottom: 1em;
-	width: 100%;
 }
+
+/* Table caption */
 table.vertitable caption {
-	font-size: larger;
+	background: #567899;
+	color: white;
+	border-bottom: 2px solid white;
+	font-size: 1.2em;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
 	text-align: left;
-	padding-bottom: 0.3em;
 }
+
+/* Table body */
 table.vertitable tr {
 	text-align: left;
 	vertical-align: top;
 }
 table.vertitable tr th {
 	background-color: #eee;
-	padding: 0.1em 0.2em;
-	width: 10%; /* Something small */
+	color: black;
+	font-weight: bolder;
+	padding: 0.1em 0.5em;
 }
 table.vertitable tr th a {
 	color: black;
@@ -169,31 +62,86 @@ table.vertitable tr td {
 	background-color: white;
 	padding: 0.1em 0.2em;
 }
-table.vertitable tr td ul {
-	margin: 0;
-}
 
-/* New style list table */
-table.vertilist {
+
+/* --- List table --- */
+table.listtable {
 	border: 1px solid #999;
 	border-collapse: separate;
 	border-spacing: 2px;
 	caption-side: top;
 	margin-bottom: 1em;
-	width: 100%;
 }
-table.vertilist tr {
+
+/* Table caption */
+table.listtable caption {
+	background: #567899;
+	color: white;
+	border-bottom: 2px solid white;
+	font-size: 1.2em;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
+	text-align: center;
+}
+table.listtable caption span.subtitle {
+	font-size: 0.9em;
+	font-weight: normal;
+}
+table.listtable caption a {
+	background: transparent;
+	color: white;
+}
+table.listtable caption a:hover {
+	text-decoration: none;
+}
+
+/* Table head */
+table.listtable tr {
 	text-align: left;
 	vertical-align: top;
 }
-table.vertilist tr th {
-	background-color: #eee;
-	padding: 0.1em 0.2em;
+table.listtable tr th {
+	background: #eee;
+	color: black;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
 }
-table.vertilist tr th a {
+table.listtable tr th a {
+	background: transparent;
+	color: black;
+	text-decoration: underline;
+}
+
+/* Table body */
+table.listtable tr.evenrow {
+	background: #f6f6f6;
 	color: black;
 }
-table.vertilist tr td {
-        background-color: white;
-        padding: 0.1em 0.2em;
+table.listtable tr.oddrow {
+	background: white;
+	color: black;
+}
+table.listtable tr td {
+	padding: 0.1em 0.5em;
+}
+
+/* Table footer */
+table.listtable tbody.footer tr th, table.listtable tfoot tr th {
+	text-align: center;
+}
+
+
+/* --- Custom table additions --- */
+
+/* Details table with full width */
+table.vertitablefull {
+	width: 100%;
+}
+table.vertitablefull tr th {
+	width: 12em;
+}
+
+/* Report table (also uses listtable) */
+table.reporttable tr td {
+	font-size: 0.8em;
 }

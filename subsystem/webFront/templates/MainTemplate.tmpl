@@ -24,7 +24,7 @@
 ## Authors: Magnar Sveen <magnars@idi.ntnu.no>
 ##          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
-
+##
 ##
 ## Every other template extends this one. It contains the header-information,
 ## NAV-logo and navigation-bar.
@@ -58,18 +58,18 @@
 ## The template uses images in $imagefolder/main/, where $imagefolder
 ## defaults to "/images".
 ##
-
+##
 #from nav.web import shouldShow, cycler
 #import nav.buildconf
-
+##
 #attr $imagefolder = "/images"
 #attr $bodyOnLoad = ""
 #attr $title = ""
 #attr $path = False
-
+##
 #set global $rowcycler = cycler.cycler('evenrow', 'oddrow')
 #set global $cellcycler = cycler.cycler('evencell', 'oddcell')
-
+##
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -122,65 +122,20 @@ $additionalHead()
 
 <div id="header">
 
-#if not $user.preferences.hidelogo
-<div id="navlogo" onclick="document.location='/';"><h1>NAV</h1></div>
-#end if
+<div id="navlogo">
+<h1><a href="/">
+<img src="$imagefolder/main/navlogo2-141x50.png" width="141" height="50" alt="NAV" />
+Network Administration Visualized</a></h1>
+</div>
 
 <div id="navbar">
 <table>
     <tr>
-#set $separate = False
-#for $link in $user.preferences.navbar
-#if shouldShow($link.uri, $user)
-  #if $separate
-        <td><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
-  #end if
-        <td class="entry"><a class="navbar" href="$link.uri">$link.name</a></td>
-  #set $separate = True
-#end if
-#end for
-#if $user.preferences.qlink1
-        <td><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
-        <td class="list">
-            <select onchange="return jump(this);">
-                <option style="color: #669" selected="selected"> Quicklink #1 </option>
-  #for $link in $user.preferences.qlink1
-  #if shouldShow($link.uri, $user)
-                <option value="$link.uri"> $link.name </option>
-  #end if
-  #end for
-            </select>
-        </td>
-        <td><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
-#end if
-#if $user.preferences.qlink2
-        <td><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
-        <td class="list">
-            <select onchange="return jump(this);">
-                <option style="color: #669" selected="selected"> Quicklink #2 </option>
-  #for $link in $user.preferences.qlink2
-  #if shouldShow($link.uri, $user)
-                <option value="$link.uri"> $link.name </option>
-  #end if
-  #end for
-            </select>
-        </td>
-        <td><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
-#end if
-        <td class="spacer"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
-#if $user.id > 0
-        <td class="entry"><a class="navbar" href="/index/logout">Logout $user.login</a></td>
-#else
-        <td class="entry"><a class="navbar" href="/index/login">Login</a></td>
-#end if          
-    </tr>
-</table>
-</div> <!-- navbar end -->
+        <td>
 
 <div id="navpath">
 #if $path
     #set $separate = False
-    <span>Current path:</span>
     #for $step in $path
         #if $separate
     &gt;
@@ -199,6 +154,48 @@ $additionalHead()
 #end if
 </div> <!-- navpath end -->
 
+        </td>
+        <td class="spacer"></td>
+#set $separate = False
+#for $link in $user.preferences.navbar
+#if shouldShow($link.uri, $user)
+        <td class="entry"><a class="navbar" href="$link.uri">$link.name</a></td>
+  #set $separate = True
+#end if
+#end for
+#if $user.preferences.qlink1
+        <td class="list">
+            <select onchange="return jump(this);">
+                <option style="color: #669" selected="selected"> Quicklink #1 </option>
+  #for $link in $user.preferences.qlink1
+  #if shouldShow($link.uri, $user)
+                <option value="$link.uri"> $link.name </option>
+  #end if
+  #end for
+            </select>
+        </td>
+#end if
+#if $user.preferences.qlink2
+        <td class="list">
+            <select onchange="return jump(this);">
+                <option style="color: #669" selected="selected"> Quicklink #2 </option>
+  #for $link in $user.preferences.qlink2
+  #if shouldShow($link.uri, $user)
+                <option value="$link.uri"> $link.name </option>
+  #end if
+  #end for
+            </select>
+        </td>
+#end if
+#if $user.id > 0
+        <td class="entry"><a class="navbar" href="/index/logout">Logout $user.login</a></td>
+#else
+        <td class="entry"><a class="navbar" href="/index/login">Login</a></td>
+#end if
+    </tr>
+</table>
+</div> <!-- navbar end -->
+
 </div> <!-- header end -->
 
 <div id="navbody">
@@ -210,14 +207,18 @@ $additionalHead()
 $content()
 
 #set $version = $nav.buildconf.VERSION
-<div id="footer"><hr /><p class="copyright">
-<a href="/about/">Network Administration Visualized</a> $version<br />
+<div id="footer">
+<hr />
+<p>
+    <a href="/about/">Network Administration Visualized</a> $version<br />
 #if $user.id == 0
-You are not logged in.
+    You are not logged in
 #else
-You are logged in as <a href="/index/userinfo">$user.name</a>.
+    You are logged in as <a href="/index/userinfo">$user.name</a>
 #end if
-</p></div>
+</p>
+
+</div>
 
 </div> <!-- navbody end -->
 

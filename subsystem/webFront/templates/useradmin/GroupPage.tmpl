@@ -41,7 +41,7 @@
 #if $add
   <a href="/useradmin/link?gid=$group.id&uid=$account.id&source=group">ADD</a>
 #else
-  <a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=group">REMOVE</a>  
+  <a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=group">REMOVE</a>
 #end if
   <br>
 #end def
@@ -52,19 +52,32 @@
   <br>
 #end def
 
-## 
+##
 ## useradmin is the content block for all useradmin pages
 ## it begins here
 ##
 
 #block useradmin
-<form method="POST" action="groupsubmit">
+<form action="groupsubmit" method="post">
 #if not $newGroup
-  <input type="hidden" name="id" value="$group.id">
+<input type="hidden" name="id" value="$group.id">
 #end if
-  <b>Name:</b> $textfield('name', $group.name)<br>
-  <b>Description:</b> $textfield('description', $group.description)<br>
-  <input type="submit" value="Submit changes" />
+
+<table class="vertitable">
+    <tr>
+        <th>Name</th>
+        <td>$textfield('name', $group.name)</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>$textfield('description', $group.description)</td>
+    </tr>
+    <tr>
+        <th></th>
+        <td><button type="submit">Submit changes</button></td>
+    </tr>
+</table>
+
 </form>
 
 #if not $newGroup

@@ -37,48 +37,55 @@
 
 #block content
 
-<h1>User information</h1>
+<h2>User information</h2>
 
 #if $varExists('account')
-<table>
-  <tr>
-    <td class="attr_name">Login:</td>
-    <td class="attr">$account.login</td>
-  </tr>
-  <tr>
-    <td class="attr_name">Name:</td>
-    <td class="attr">$account.name</td>
-  </tr>
-  <tr>
-    <td class="attr_name">Groups:</td>
-    <td class="attr">$grouplist()</td>
-  </tr>
-  <tr>
-    <td class="attr_name">Organizations:</td>
-    <td class="attr">$orglist()</td>
-  </tr>
+<table class="vertitable">
+    <tr>
+        <th>Login</th>
+        <td>$account.login</td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td>$account.name</td>
+    </tr>
+    <tr>
+        <th>Groups</th>
+        <td>$grouplist()</td>
+    </tr>
+    <tr>
+        <th>Organizations</th>
+        <td>$orglist()</td>
+    </tr>
 </table>
 
 #if $changePassword
 
-<h3>Change your password</h3>
+<h3>Change password</h3>
+
 $messages()
-<form action="/index/passwd" method="POST">
-  <table>
+
+<form action="passwd" method="post">
+
+<table class="vertitable">
     <tr>
-      <td class="attr_name">Your old password:</td>
-      <td class="attr"><input type="password" name="oldpasswd" /></td>
+        <th>Old password</th>
+        <td><input type="password" name="oldpasswd" /></td>
     </tr>
     <tr>
-      <td class="attr_name">Choose a new password:</td>
-      <td class="attr"><input type="password" name="newpasswd1" /></td>
+        <th>New password</th>
+        <td><input type="password" name="newpasswd1" /></td>
     </tr>
     <tr>
-      <td class="attr_name">Confirm your new password:</td>
-      <td class="attr"><input type="password" name="newpasswd2" /></td>
+        <th>Confirm password</th>
+        <td><input type="password" name="newpasswd2" /></td>
     </tr>
-  </table>
-  <input type="submit" value="Change password" />
+    <tr>
+        <th></th>
+        <td><button type="submit">Change password</button></td>
+    </tr>
+</table>
+
 </form>
 #else
 $messages()
@@ -98,14 +105,13 @@ $messages()
 
 #block messages
 #if $varExists('errorMessage')
-<p style="color: red">ERROR: $errorMessage</p>
+<p class="error">Error: $errorMessage</p>
 #end if
 #if $varExists('message'):
-<p style="color: green">NOTICE: $message</p>
+<p>Notice: $message</p>
 #end if
 #end block messages
 
 #block additionalCSS
 $default_table_CSS
-<link rel="stylesheet" type="text/css" href="/style/UserInfo.css" />
 #end block additionalCSS

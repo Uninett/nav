@@ -66,27 +66,47 @@ $add_orgtree($tree[$org], $level+1)
 
 
 #block useradmin
-<table border=0>
-<form method="POST" action="accountsubmit">
+<form action="accountsubmit" method="post">
 #if not $newAccount
-  <input type="hidden" name="id" value="$account.id">
+<input type="hidden" name="id" value="$account.id">
 #end if
-  <tr><td><b>Login:</b></td><td>$textfield('login', $account.login)</td></tr>
-  <tr><td><b>Name:</b></td><td>$textfield('name', $account.name, forceEditable=1)</td></tr>
-  <tr><td><b>External:</b></td><td> <i>
-#if $account.ext_sync
-$account.ext_sync
-#else
-[None]
-#end if
-  </i></td></tr>
+
+<table class="vertitable">
+    <tr>
+        <th>Login</th>
+        <td>$textfield('login', $account.login)</td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td>$textfield('name', $account.name, forceEditable=1)</td>
+    </tr>
+    <tr>
+        <th>External</th>
+        <td>
+        #if $account.ext_sync
+            $account.ext_sync
+        #else
+            [None]
+        #end if
+        </td>
+    </tr>
 #unless $account.ext_sync
-  <tr><td><b>Password:</b></td><td>$textfield('password', '', password=True)</td></tr>
-  <tr><td><b>Confirm password:</b></td><td>$textfield('passwordConfirm', '', password=True)</td></tr>
+    <tr>
+        <th>Password</th>
+        <td>$textfield('password', '', password=True)</td>
+    </tr>
+    <tr>
+        <th>Confirm password</th>
+        <td>$textfield('passwordConfirm', '', password=True)</td>
+    </tr>
 #end unless
-  <tr><td colspan="2"><input type="submit" value="Submit changes" /></td></tr>
-</form>
+    <tr>
+        <th></th>
+        <td><button type="submit">Submit changes</button></td>
+    </tr>
 </table>
+
+</form>
 
 #if not $newAccount
 

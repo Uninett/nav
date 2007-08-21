@@ -23,17 +23,28 @@
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
-td {
-	padding: 0.2em;
+div.boxes {
+	float: right;
+	width: 15em;
 }
-
-td.sideboxlinks {
-	border: 1px solid #ccc;
+div.boxes table {
+	border-collapse: separate;
+	width: 100%;
+	margin-bottom: 1em;
 }
-
-td.sideboxtitle {
-	background-color: #ccf;
-	background-image: url('/images/form/fill-active.gif');
-	border: 1px solid black;
+div.boxes table th {
+	background: #567899;
+	border-bottom: 2px solid white;
+	color: white;
+	font-weight: bolder;
+	padding: 0.5em;
 	text-align: center;
+}
+div.boxes table td {
+	border: 1px solid #999;
+	padding: 0.3em 0.5em;
+}
+
+div.welcome {
+	margin-bottom: 1em;
 }
