@@ -20,16 +20,9 @@ $default_table_CSS()
 
 <form action="" method="get">
 
-<table>
+<table class="vertitable">
     <tr>
-        <td>Choose view</td>
-        <td>Timeframe</td>
-        <td>Rows</td>
-        <td>Live</td>
-        <td>&nbsp;</td>
-    </tr>
-    <tr>
-## Drop-down to choose view
+        <th>Choose view</th>
         <td><select name="view">
 #set $sectionslist = $config.sections()
 $sectionslist.sort()
@@ -45,7 +38,10 @@ $sectionslist.sort()
     #end if
 #end for
         </select></td>
-## Drop-down to choose timeframe
+    </tr>
+
+    <tr>
+        <th>Timeframe</th>
         <td><select name="fromtime">
 #for $t in $fromtimes.keys()
     #if $fromtime == $t
@@ -55,39 +51,49 @@ $sectionslist.sort()
     #end if
 #end for
         </select></td>
+    </tr>
+
+    <tr>
+        <th>Rows</th>
         <td><input type="text" name="numrows" value="$numrows" size="3" /></td>
+    </tr>
+
+    <tr>
+        <th>Live</th>
 #if $forcedview == '1'
         <td><input type="checkbox" name="forcedview" value="1" checked="checked" /></td>
 #else
         <td><input type="checkbox" name="forcedview" value="1" /></td>
 #end if
-        <td><input type="submit" name="normalview" value="View" /></td>
+    </tr>
+
+    <tr>
+        <th></th>
+        <td><button type="submit" name="normalview">View</button></td>
     </tr>
 </table>
 
 </form>
 
-<br />
-
 #if $showArr
-<table class="horiztable">
+<table class="listtable">
     <caption>
-        <span class="cornerkludge"></span>
         Ranked Statistics for $config.get($view, 'name')<br />
         <span class="subtitle">$fromtimes[$fromtime]</span>
     </caption>
 
-    <tr class="header">
-        <td class="leftkludge"></td>
-        <th>Rank</th>
-        <th>Target</th>
-        <th>Value</th>
-        <th>Unit</th>
-        <td class="rightkludge"></td>
-    </tr>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Target</th>
+            <th>Value</th>
+            <th>Unit</th>
+        </tr>
+    </thead>
 
 ## Walk the sortedkeys and print the values
 #set $counter = 1
+    <tbody>
 #for $line in $sortedKeys
     ## Find target to use when making link.
     #if $linkview
@@ -97,7 +103,6 @@ $sectionslist.sort()
     #set $output = $re.sub(".*/([^\/]+/[^\/]+)$","\\1", $line)
     #set value = "%.2f" %($showArr[$line])
     <tr class="$rowcycler">
-        <td style="background: white;"></td>
         <td>$counter</td>
         <td>
     ## If we got a linkview from the config-file, add a link
@@ -109,18 +114,24 @@ $sectionslist.sort()
         </td>
         <td align="right">$value</td>
         <td>$units</td>
-        <td style="background: white;"></td>
     </tr>
     #set $counter += 1
     #if $counter > int($numrows)
         #break
     #end if
 #end for
-</table>
-#end if
+    </tbody>
 
 #if $exetime != 0
-<p>Got data in $exetime seconds ($footer).</p>
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">
+                Got data in $exetime seconds ($footer)
+            </th>
+        </tr>
+    </tbody>
+#end if
+</table>
 #end if
 
 #end def
