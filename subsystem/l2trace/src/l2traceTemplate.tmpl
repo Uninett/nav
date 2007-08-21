@@ -41,16 +41,15 @@
 <input type="text" name="host_from" value="$form.host_from" />
 <label for="host_to">To </label>
 <input type="text" name="host_to" value="$form.host_to" /> (optional)
-<input type="submit" name="send" value="Trace" />
+<button type="submit" name="send">Trace</button>
 </form>
 
 #def tableTitle($title, $hits, $columnCount)
   #set $columnCount += 1
 <br />
 
-<table class="horiztable">
+<table class="listtable">
     <caption>
-        <span class="cornerkludge"></span>
         $title<br />
         <span class="subtitle">$hits rows</span>
     </caption>
@@ -59,22 +58,23 @@
 
 #def tableHeader($rowCount, $columns)
   #set $rowCount = $rowCount + 1
-    <tr class="header">
-        <td class="leftkludge" rowspan="$rowCount"></td>
+    <thead>
+        <tr>
   #for $column in $columns
-        <th>$column</th>
+            <th>$column</th>
   #end for
-        <td class="rightkludge" rowspan="$rowCount"></td>
-    </tr>
+        </tr>
+    </thead>
 #end def
 
 #def l2traceTable($table)
   #set $columns = ('#', 'Level', 'Vlan', 'Module/Interface In', 'IP', 'Sysname', 'Module/Interface Out')
   #set $columnCount = len($columns)
 
-  $tableTitle("L2 Trace results", len($table), $columnCount)
+  $tableTitle("Layer 2 Trace Results", len($table), $columnCount)
   $tableHeader(len($table), $columns)
 
+    <tbody>
   #for $row in $table
     <tr class="$rowcycler">
         <td style="text-align: right;">$row.idx</td>
@@ -111,6 +111,7 @@
     #end if
     </tr>
   #end for
+    </tbody>
 </table>
 #end def
 
