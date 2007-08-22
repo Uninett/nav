@@ -135,6 +135,10 @@ def showInfo(porttype, port):
         value = getattr(port, field)
         if value is None:
             continue
+        if field == 'to_netbox':
+            value = manage.Netbox(value)
+        elif field == 'to_swport':
+            value = manage.Swport(value)
         title = field.replace("_", " ").capitalize()
         table.add(title, urlbuilder.createLink(value))
 
