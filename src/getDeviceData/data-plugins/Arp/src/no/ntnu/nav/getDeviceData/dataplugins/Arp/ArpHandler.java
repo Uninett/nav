@@ -112,7 +112,7 @@ public class ArpHandler implements DataHandler {
 			Integer arpid = oldMacArpIdMap.get(mac);
 			stringList.add(arpid.toString());
 		}
-		
+
 		String[] array = stringList.toArray(new String[stringList.size()]);
 		String termSql = "UPDATE arp SET end_time=NOW() WHERE arpid IN (" + Util.stringJoin(array, ",") + ")";
 		try {
@@ -122,45 +122,73 @@ public class ArpHandler implements DataHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private synchronized void insertIpsIntoArp(Netbox nb, Map<InetAddress,String> ipMacMap) {
 		if(System.currentTimeMillis() - previousCacheSync >= PREFIX_CACHE_SYNC_INTERVAL)
 			syncPrefixCache();
-		
-		try {
-			for(InetAddress ip: ipMacMap.keySet()) {
-				if(ipMacMap.get(ip) == null || ipMacMap.get(ip).equals("")) { //this has been observed on some responses from cInetNetToMediaPhysAddress
-					Log.e("ARPHandler", "IP address not bound to any MAC. Box: " + nb.getSysname() + ", IP: " +
-							ip + ". The OIDs used is listed in no.ntnu.nav.getDeviceData.deviceplugins.ARPLogger.ARPLogger.java");
-					continue;
+
+
+		for(InetAddress ip: ipMacMap.keySet()) {
+			if(ipMacMap.get(ip) == null || ipMacMap.get(ip).equals("")) { //this has been observed on some responses from cInetNetToMediaPhysAddress
+				Log.e("ARPHandler", "IP address not bound to any MAC. Box: " + nb.getSysname() + ", IP: " +
+						ip + ". The OIDs used is listed in no.ntnu.nav.getDeviceData.deviceplugins.ARPLogger.ARPLogger.java");
+				continue;
+			}
+
+			int prefixid = -1;
+
+			NavIP thisIp = new NavIP(ip,128);
+
+			for(NavIP nip: sortedPrefixList) {
+				if(Util.isSubnet(nip, thisIp)) {
+					Integer cacheHit = prefixCache.get(nip);
+					prefixid = cacheHit.intValue();
 				}
-				
-				int prefixid = -1;
-				
-				NavIP thisIp = new NavIP(ip,128);
-				
-				for(NavIP nip: sortedPrefixList)
-					if(Util.isSubnet(nip, thisIp))
-						prefixid = prefixCache.get(nip);
-				
-				if(prefixid == -1) {
-					Log.e("ARPHandler", "Can't find prefix for " + thisIp.getPrefixAddress().getHostAddress() + ". Skipping!");
-					continue;
-				}			
-				
+			}
+
+			if(prefixid == -1) {
+				Log.w("ARPHandler", "Can't find prefix for " + thisIp.getPrefixAddress().getHostAddress() + " in cache, trying database.");
+				Integer liveHit = doLivePrefixSearch(thisIp.getPrefixAddress());
+				if(liveHit == null)
+					Log.e("ARPHandler","Can't find prefix for " + thisIp.getPrefixAddress().getHostAddress() + ".");
+				else
+					prefixid = liveHit.intValue();
+			}
+			
+			try {				
 				String[] fieldValues = {"netboxid",Integer.toString(nb.getNetboxid()),
-										"prefixid",Integer.toString(prefixid),
-										"ip",ip.getHostAddress(),
-										"mac",ipMacMap.get(ip),
-										"sysname",nb.getSysname(),
-										"start_time","NOW()"
-										};
+						"prefixid",prefixid == -1 ? "NULL":Integer.toString(prefixid),
+						"ip",ip.getHostAddress(),
+						"mac",ipMacMap.get(ip),
+						"sysname",nb.getSysname(),
+						"start_time","NOW()"
+				};
 				Database.insert("arp",fieldValues);
 
+
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
+		}
+	}
+
+	private Integer doLivePrefixSearch(InetAddress prefixAddress) {
+		String sql = "SELECT prefixid FROM prefix WHERE netaddr >> '" + prefixAddress.getHostAddress() + "'";
+		int closestPrefixId = -1;
+		try {
+			ResultSet rs = Database.query(sql);
+			while(rs.next()) {
+				closestPrefixId = rs.getInt("prefixid");
+				break;				
+			};
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		if(closestPrefixId == -1)
+			return null;
+		else
+			return new Integer(closestPrefixId);
 	}
 
 	public void init(Map persistentStorage, Map changedDeviceids) {
@@ -172,7 +200,7 @@ public class ArpHandler implements DataHandler {
 	}
 	
 	private synchronized void buildOldMaps(Netbox nb) {
-		String sql = "SELECT arpid, host(ip) AS ip, mac, family(ip) AS version FROM arp where end_time='infinity' AND netboxid=" + nb.getNetboxid();
+		String sql = "SELECT arpid, host(ip) AS ip, mac FROM arp where end_time='infinity' AND netboxid=" + nb.getNetboxid();
 		oldIpMacMap = new HashMap<InetAddress, String>();
 		oldMacArpIdMap = new HashMap<String, Integer>();
 		
@@ -183,7 +211,6 @@ public class ArpHandler implements DataHandler {
 				Integer arpid = rs.getInt("arpid");
 				String ipAddr = rs.getString("ip");
 				String mac = rs.getString("mac");
-				Integer version = rs.getInt("version");
 				
 				InetAddress ip = Util.getInetAddress(ipAddr);
 				
@@ -206,6 +233,7 @@ public class ArpHandler implements DataHandler {
 		
 		String sql = "SELECT prefixid,host(netaddr) AS ip, masklen(netaddr) AS prefixlength from prefix";
 		prefixCache.clear();
+		sortedPrefixList.clear();
 		
 		try {
 			ResultSet rs = Database.query(sql);
