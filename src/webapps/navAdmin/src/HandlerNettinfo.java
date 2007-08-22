@@ -147,7 +147,37 @@ class HandlerNettinfo
 			if (domainSuffix == null) domainSuffix = "";
 
 			// Hent gw'ene som danner røttene i treet
-			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlanid) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.ifindex,gwport.interface,vlan.vlan,netaddr,prefix.prefixid,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlanid,gwport.interface");
+			ResultSet rs = Database.query(
+					"SELECT DISTINCT ON (sysname, vlan.vlanid) \n" + 
+					"       mg.netboxid,\n" + 
+					"       sysname,\n" + 
+					"       ip,\n" + 
+					"       catid,\n" + 
+					"       roomid,\n" + 
+					"       sw_ver,\n" + 
+					"       serial,\n" + 
+					"       gwport.ifindex,\n" + 
+					"       gwport.interface,\n" + 
+					"       vlan.vlan,\n" + 
+					"       netaddr,\n" + 
+					"       prefix.prefixid,\n" + 
+					"       nettype,\n" + 
+					"       netident,\n" + 
+					"       gwport.to_netboxid,\n" + 
+					"       gwport.to_swportid,\n" + 
+					"       mg.module AS to_module,\n" + 
+					"       port AS to_port,\n" + 
+					"       swport.interface AS to_interface\n" + 
+					"FROM gwport\n" + 
+					"JOIN module AS mg USING (moduleid)\n" + 
+					"JOIN netbox USING (netboxid)\n" + 
+					"JOIN device ON (netbox.deviceid = device.deviceid)\n" + 
+					"LEFT JOIN gwportprefix USING (gwportid)\n" + 
+					"LEFT JOIN prefix ON (gwportprefix.prefixid = prefix.prefixid)\n" + 
+					"LEFT JOIN vlan USING (vlanid)\n" + 
+					"LEFT JOIN swport ON (gwport.to_swportid = swportid)\n" + 
+					"LEFT JOIN module AS ms ON (ms.moduleid = swport.moduleid)\n" + 
+					"ORDER BY sysname, vlan.vlanid, gwport.interface");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			while (rs.next()) {
 				//HashMap hm = getHashFromResultSet(rs, rsmd, false);
@@ -176,8 +206,10 @@ class HandlerNettinfo
 				hm.put("direction", "n");
 				hm.put("ifindex", rs.getString("ifindex"));
 				hm.put("port", rs.getString("interface"));
+				hm.put("interface", rs.getString("interface"));
 				hm.put("to_module", rs.getString("to_module"));
 				hm.put("to_port", rs.getString("to_port"));
+				hm.put("to_interface", rs.getString("to_interface"));
 				hm.put("to_catid", "gwport");
 				hm.put("netaddr", rs.getString("netaddr"));
 				hm.put("prefixid", rs.getString("prefixid"));
@@ -209,7 +241,42 @@ class HandlerNettinfo
 			}
 
 			// Hent hele swport
-			rs = Database.query("SELECT a.swportid,module.netboxid,netbox.sysname,netbox.ip,netbox.roomid AS room,sw_ver AS software,serial,netbox2.sysname AS to_sysname,module.module,a.port,a.ifindex,vlan.vlan,direction,module.up,a.speed,a.duplex,a.media,module.up,a.trunk,a.portname,a.to_netboxid,module2.module AS to_module,b.port AS to_port FROM swport AS a JOIN module USING (moduleid) JOIN netbox USING (netboxid) JOIN device ON (netbox.deviceid=device.deviceid) JOIN swportvlan USING (swportid) JOIN vlan USING(vlanid) LEFT JOIN swport AS b ON (a.to_swportid = b.swportid) LEFT JOIN module AS module2 ON (b.moduleid = module2.moduleid) LEFT JOIN netbox AS netbox2 ON (a.to_netboxid = netbox2.netboxid)");
+			rs = Database.query(
+					"SELECT a.swportid, \n" + 
+					"       module.netboxid,\n" + 
+					"       netbox.sysname,\n" + 
+					"       netbox.ip,\n" + 
+					"       netbox.roomid AS room,\n" + 
+					"       sw_ver AS software, \n" + 
+					"       serial, \n" + 
+					"       netbox2.sysname AS to_sysname,\n" + 
+					"       module.module,\n" + 
+					"       a.port,\n" + 
+					"       a.interface,\n" + 
+					"       a.ifindex,\n" + 
+					"       vlan.vlan,\n" + 
+					"       direction,\n" + 
+					"       module.up,\n" + 
+					"       a.speed,\n" + 
+					"       a.duplex, \n" + 
+					"       a.media,\n" + 
+					"       module.up,\n" + 
+					"       a.trunk,\n" + 
+					"       a.portname,\n" + 
+					"       a.to_netboxid,\n" + 
+					"       module2.module AS to_module,\n" + 
+					"       b.port AS to_port,\n" + 
+					"       b.interface AS to_interface\n" + 
+					"FROM swport AS a \n" + 
+					"JOIN module USING (moduleid)\n" + 
+					"JOIN netbox USING (netboxid)\n" + 
+					"JOIN device ON (netbox.deviceid = device.deviceid)\n" + 
+					"JOIN swportvlan USING (swportid)\n" + 
+					"JOIN vlan USING (vlanid)\n" + 
+					"LEFT JOIN swport AS b ON (a.to_swportid = b.swportid)\n" + 
+					"LEFT JOIN module AS module2 ON (b.moduleid = module2.moduleid)\n" + 
+					"LEFT JOIN netbox AS netbox2 ON (a.to_netboxid = netbox2.netboxid)");
+			
 			rsmd = rs.getMetaData();
 			while (rs.next()) {
 				String key = rs.getString("netboxid")+":"+rs.getString("vlan");
@@ -224,7 +291,17 @@ class HandlerNettinfo
 			}
 
 			// Hent servicer
-			rs = Database.query("SELECT netboxid,active AS up,handler AS portname,version,vlan FROM service JOIN netbox USING (netboxid) JOIN prefix USING (prefixid) JOIN vlan USING(vlanid)");
+			rs = Database.query(
+					"SELECT netboxid,\n" + 
+					"       active AS up,\n" + 
+					"       handler AS portname,\n" + 
+					"       version,\n" + 
+					"       vlan\n" + 
+					"FROM service\n" + 
+					"JOIN netbox USING (netboxid)\n" + 
+					"JOIN prefix USING (prefixid)\n" + 
+					"JOIN vlan USING(vlanid)\n" + 
+					"");
 			rsmd = rs.getMetaData();
 			while (rs.next()) {
 				String key = rs.getString("netboxid")+":"+rs.getString("vlan");
@@ -239,7 +316,23 @@ class HandlerNettinfo
 			}
 
 			// Hent cam
-			rs = Database.query("SELECT cam.netboxid,ifindex,arp.ip,REPLACE(mac::text, ':', '') AS portname,cam.start_time,cam.end_time,vlan FROM cam JOIN netbox USING(netboxid) JOIN arp USING(mac) JOIN prefix ON(arp.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE cam.end_time='infinity' and arp.end_time='infinity' AND vlan IS NOT NULL");
+			rs = Database.query(
+					"SELECT cam.netboxid,\n" + 
+					"       ifindex,\n" + 
+					"       arp.ip,\n" + 
+					"       REPLACE(mac::text, \':\', \'\') AS portname,\n" + 
+					"       cam.start_time,\n" + 
+					"       cam.end_time,\n" + 
+					"       vlan\n" + 
+					"FROM cam\n" + 
+					"JOIN netbox USING (netboxid)\n" + 
+					"JOIN arp USING (mac)\n" + 
+					"JOIN prefix ON (arp.prefixid = prefix.prefixid)\n" + 
+					"JOIN vlan USING (vlanid)\n" + 
+					"WHERE cam.end_time=\'infinity\'\n" + 
+					"  AND arp.end_time=\'infinity\'\n" + 
+					"  AND vlan IS NOT NULL\n" + 
+					""); 
 			rsmd = rs.getMetaData();
 			while (rs.next()) {
 				String key = "cam"+rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("vlan");
@@ -644,15 +737,15 @@ class HandlerNettinfo
 		String parentVlan = (String)parentrec.get("vlan");
 
 		String modul = (String)swrec.get("module");
-		String port = (String)swrec.get("port");
-		String mp = (modul!=null?modul+"/":"")+port;
+		String port = (String)swrec.get("interface");
+		String mp = (modul!=null?modul+"; ":"")+port;
 		if (depth >= 2) mp = " [<b>"+mp+"</b>]";
 
 		String modulbak = (String)swrec.get("to_module");
-		String portbak = (String)swrec.get("to_port");
+		String portbak = (String)swrec.get("to_interface");
 		String mpBak;
 		if (modulbak == null && portbak == null) mpBak = "";
-		else mpBak = " [<b>"+(modulbak!=null?modulbak:"")+(portbak!=null?"/"+portbak:"")+"</b>]";
+		else mpBak = " [<b>"+(modulbak!=null?modulbak:"")+(portbak!=null?"; "+portbak:"")+"</b>]";
 
 		String vlan = (String)swrec.get("vlan");
 		String retning = (String)swrec.get("direction");
