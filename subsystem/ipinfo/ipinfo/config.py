@@ -40,7 +40,12 @@ class Rule:
         self.output = output
 
     def eval(self, locals={}):
-        "Evaluate the condition"
+        """
+        Evaluate the condition in the context of locals.
+
+        Also adds the IPy.IP class to the global and local namespace, for
+        convenience of IP address space calculations in rules.
+        """
         newlocals = locals.copy()
         newlocals['IP'] = IP
         try:
