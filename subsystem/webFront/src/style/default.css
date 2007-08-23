@@ -141,21 +141,23 @@ div#navlogo h1 a:hover {
 
 /* Menu bar */
 div#navbar {
-	background: #eee;
-	border: 1px solid #999;
-	color: black;
+	background: #567899;
+	color: white;
 	margin: 0.5em 0;
 }
 div#navbar table {
 	width: 100%;
 }
 div#navbar table td {
-	padding: 0.2em 0.5em;
+	padding: 0.1em 0.5em;
 	white-space: nowrap;
 }
 div#navbar table td.spacer {
 	text-align: right;
 	width: 100%;
+}
+div#navbar table td a {
+	color: white;
 }
 
 /* Breadcrumbs path */
