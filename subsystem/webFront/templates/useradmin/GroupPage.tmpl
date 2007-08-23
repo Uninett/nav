@@ -37,19 +37,23 @@
 
 
 #def add_account($account, $add=False)
-  <a href="/useradmin/account?id=$account.id">$account.login</a> - $account.name -
-#if $add
-  <a href="/useradmin/link?gid=$group.id&uid=$account.id&source=group">ADD</a>
-#else
-  <a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=group">REMOVE</a>
-#end if
-  <br>
+<li>
+    <a href="/useradmin/account?id=$account.id">$account.login</a> -
+    $account.name
+    #if $add
+    [<a href="/useradmin/link?gid=$group.id&uid=$account.id&source=group">Add</a>]
+    #else
+    [<a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=group">Remove</a>]
+    #end if
+</li>
 #end def
 
 #def add_privilege($privilege)
-  <b>$privilege.privilegename</b> for <code>$privilege.target</code>
-  (<a href="revoke?gid=$group.id&pid=$privilege.privilegeid&target=$urllib.quote($privilege.target)">Revoke</a>)
-  <br>
+<li>
+    $privilege.privilegename for
+    <code>$privilege.target</code>
+    [<a href="revoke?gid=$group.id&pid=$privilege.privilegeid&target=$urllib.quote($privilege.target)">Revoke</a>]
+</li>
 #end def
 
 ##
@@ -58,6 +62,8 @@
 ##
 
 #block useradmin
+<p>[<a href="groupdel?id=$group.id">Delete group</a>]</p>
+
 <form action="groupsubmit" method="post">
 #if not $newGroup
 <input type="hidden" name="id" value="$group.id">
@@ -82,44 +88,46 @@
 
 #if not $newGroup
 
-<p><a href="groupdel?id=$group.id">DELETE</a> this group</p>
-
 <h3>Privileges</h3>
 
-<p><font size=-1>(See <a
-href="http://www.amk.ca/python/howto/regex/">http://www.amk.ca/python/howto/regex/</a>
-for a HOWTO on the Regular expressions used for matching targets for privileges
-like 'web_access'.)</font></p>
-
+<ul>
 #for $privilege in $group.privileges
 $add_privilege($privilege)
 #end for
+</ul>
 
-  <h4>Grant privileges:</h4>
-  <form name="privileges" action="grant">
-    <p>
-      <input type="hidden" name="gid" value="$group.id" />
-      <select name="pid" size="1">
-#for $privilege in $privileges
+<h4>Grant privileges</h4>
+
+<p>See <a href="http://www.amk.ca/python/howto/regex/">this HOWTO</a> on the
+Regular expressions used for matching targets for privileges like
+'web_access'.</p>
+
+<form name="privileges" action="grant">
+    <input type="hidden" name="gid" value="$group.id" />
+    <select name="pid">
+    #for $privilege in $privileges
         <option value="$privilege.id">$privilege.name</option>
-#end for      
-      </select>
-      <b>Target:</b><input type="text" name="target" value="" size="60" /><br>
-      <input type="submit" value="Grant" />
-    </p>
-  </form>
+    #end for      
+    </select>
+    Target: <input type="text" name="target" value="" size="60" />
+    <button type="submit">Grant</button>
+</form>
 
 <h3>Member list</h3>
 
+<ul>
 #for $account in $group.members
 $add_account($account, False)
 #end for
+</ul>
 
 <h3>Non-member list</h3>
 
+<ul>
 #for $account in $group.nonmembers
 $add_account($account, True)
 #end for
+</ul>
 
 #end if
 

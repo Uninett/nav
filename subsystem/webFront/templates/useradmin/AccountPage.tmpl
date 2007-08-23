@@ -42,13 +42,15 @@
 
 
 #def add_group($group, $add=False)
-  <a href="/useradmin/group?id=$group.id">$group.name</a> - $group.description -
+    <li>
+        <a href="/useradmin/group?id=$group.id">$group.name</a> -
+        $group.description
 #if $add
-  <a href="/useradmin/link?gid=$group.id&uid=$account.id&source=account">ADD</a>
+        [<a href="/useradmin/link?gid=$group.id&uid=$account.id&source=account">Add</a>]
 #else
-  <a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=account">REMOVE</a>  
+        [<a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=account">Remove</a>]
 #end if
-  <br>
+    </li>
 #end def
 
 
@@ -66,6 +68,8 @@ $add_orgtree($tree[$org], $level+1)
 
 
 #block useradmin
+<p>[<a href="accountdel?id=$account.id">Delete account</a>]</p>
+
 <form action="accountsubmit" method="post">
 #if not $newAccount
 <input type="hidden" name="id" value="$account.id">
@@ -110,38 +114,42 @@ $add_orgtree($tree[$org], $level+1)
 
 #if not $newAccount
 
-<p><a href="accountdel?id=$account.id">DELETE</a> this account</p>
-
 <h3>Organizations</h3>
 
-<p>
 #if len($account.organizations) > 0
-#set $organizations = map(lambda s: "<a href=\"orgunlink?uid=%s&orgid=%s\">%s</a>" % ($account.id, s,s), $account.organizations)
-#set $orglist = ", ".join($organizations)
-  Member of the following organizations (click one to remove): <i>$orglist</i>
+<p>Member of the following organizations:</p>
+<ul>
+#for $org in $account.organizations
+    <li>$org [<a href="orgunlink?uid=$account.id&orgid=$org">Remove</a>]</li>
+#end for
+</ul>
 #else
-  Not a member of any organizations.
+<p>Not a member of any organizations.</p>
 #end if
-</p>
+
 <form name="organizations" method="POST" action="orglink">
-  <input type="hidden" name="uid" value="$account.id" />
-  <select name="orgid" size="8" multiple>
-$add_orgtree($orgTree)
-  </select><br>
-  <input type="submit" value="Add to selected organizations" />
+    <input type="hidden" name="uid" value="$account.id" />
+    <select name="orgid">
+    $add_orgtree($orgTree)
+    </select>
+    <button type="submit">Add organization</button>
 </form>
 
 <h3>Group memberships</h3>
 
+<ul>
 #for $group in $account.groups
 $add_group($group)
 #end for
+</ul>
 
 <h3>Group non-memberships</h3>
 
+<ul>
 #for $group in $account.nongroups
 $add_group($group, add=True)
 #end for
+</ul>
 
 #end if
 
