@@ -62,8 +62,6 @@
 ##
 
 #block useradmin
-<p>[<a href="groupdel?id=$group.id">Delete group</a>]</p>
-
 <form action="groupsubmit" method="post">
 #if not $newGroup
 <input type="hidden" name="id" value="$group.id">
@@ -87,6 +85,8 @@
 </form>
 
 #if not $newGroup
+
+<p>[<a href="groupdel?id=$group.id">Delete group</a>]</p>
 
 <h3>Privileges</h3>
 

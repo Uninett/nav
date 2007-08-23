@@ -68,8 +68,6 @@ $add_orgtree($tree[$org], $level+1)
 
 
 #block useradmin
-<p>[<a href="accountdel?id=$account.id">Delete account</a>]</p>
-
 <form action="accountsubmit" method="post">
 #if not $newAccount
 <input type="hidden" name="id" value="$account.id">
@@ -113,6 +111,8 @@ $add_orgtree($tree[$org], $level+1)
 </form>
 
 #if not $newAccount
+
+<p>[<a href="accountdel?id=$account.id">Delete account</a>]</p>
 
 <h3>Organizations</h3>
 
