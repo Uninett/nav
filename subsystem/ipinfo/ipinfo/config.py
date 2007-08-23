@@ -19,7 +19,9 @@
 #
 # $Id$
 #
+
 """Configuration classes for IP Info Center."""
+
 from IPy import IP
 from os.path import join
 import nav.path
@@ -31,7 +33,6 @@ class UnrealDict(dict):
             return None
         else:
             return dict.__getitem__(self, key)
-    
 
 class Rule:
     def __init__(self, condition, output):
@@ -40,10 +41,12 @@ class Rule:
 
     def eval(self, locals={}):
         "Evaluate the condition"
+        newlocals = locals.copy()
+        newlocals['IP'] = IP
         try:
             result = eval(self.condition,
                           {'IP': IP},
-                          UnrealDict(locals))
+                          UnrealDict(newlocals))
         except NameError, err:
             # Ignore NameErrors and return false for this condition
             return False
@@ -57,7 +60,7 @@ class Rule:
     def __repr__(self):
         return '<Rule: On """%s""" output """%s""">' % (self.condition,
                                                         self.output)
-    
+
 class Configuration(list):
     def __init__(self, buffer):
         list.__init__(self)
