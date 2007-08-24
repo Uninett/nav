@@ -141,8 +141,9 @@ div#navlogo h1 a:hover {
 
 /* Menu bar */
 div#navbar {
-	background: #567899;
-	color: white;
+	background: #eee;
+	border: 1px solid #999;
+	color: black;
 	margin: 0.5em 0;
 }
 div#navbar table {
@@ -155,9 +156,6 @@ div#navbar table td {
 div#navbar table td.spacer {
 	text-align: right;
 	width: 100%;
-}
-div#navbar table td a {
-	color: white;
 }
 
 /* Breadcrumbs path */
