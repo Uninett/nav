@@ -7,19 +7,20 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:export-ydpi="90.000000"
-   inkscape:export-xdpi="90.000000"
-   inkscape:export-filename="/home/jimmac/Desktop/wi-fi.png"
+   inkscape:export-ydpi="75"
+   inkscape:export-xdpi="75"
+   inkscape:export-filename="/home/ica/jodal/Desktop/images/toolbox/tools/alertprofiles.png"
    width="48px"
    height="48px"
    id="svg11300"
    sodipodi:version="0.32"
-   inkscape:version="0.43+devel"
-   sodipodi:docbase="/home/tigert/cvs/freedesktop.org/tango-icon-theme/scalable/actions"
-   sodipodi:docname="appointment-new.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:version="0.45"
+   sodipodi:docbase="/home/ica/jodal/Desktop/source"
+   sodipodi:docname="alertprofiles.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   sodipodi:modified="TRUE">
   <defs
      id="defs3">
     <linearGradient
@@ -225,7 +226,7 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="0.25490196"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="11.313708"
      inkscape:cx="27.543713"
@@ -237,8 +238,8 @@
      inkscape:showpageshadow="false"
      inkscape:window-width="833"
      inkscape:window-height="772"
-     inkscape:window-x="305"
-     inkscape:window-y="157" />
+     inkscape:window-x="250"
+     inkscape:window-y="56" />
   <metadata
      id="metadata4">
     <rdf:RDF>

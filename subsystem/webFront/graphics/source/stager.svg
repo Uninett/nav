@@ -17,7 +17,7 @@
    height="48.000000px"
    width="48.000000px"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/ica/jodal/Desktop/tools/stager.png"
+   inkscape:export-filename="/home/ica/jodal/Desktop/images/toolbox/tools/stager.png"
    inkscape:export-xdpi="75"
    inkscape:export-ydpi="75"
    sodipodi:modified="TRUE">
@@ -437,8 +437,8 @@
   </defs>
   <sodipodi:namedview
      inkscape:showpageshadow="false"
-     inkscape:window-y="37"
-     inkscape:window-x="6"
+     inkscape:window-y="33"
+     inkscape:window-x="268"
      inkscape:window-height="722"
      inkscape:window-width="1033"
      inkscape:document-units="px"
@@ -449,7 +449,7 @@
      inkscape:cx="24"
      inkscape:zoom="10.6875"
      inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      borderopacity="1.0"
      bordercolor="#666666"
      pagecolor="#ffffff"

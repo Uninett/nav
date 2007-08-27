@@ -15,9 +15,9 @@
    sodipodi:version="0.32"
    inkscape:version="0.45"
    sodipodi:docbase="/home/ica/jodal/Desktop/source"
-   sodipodi:docname="network-explorer.svg"
+   sodipodi:docname="vlanplot.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/ica/jodal/Desktop/tools/vlanplot.png"
+   inkscape:export-filename="/home/ica/jodal/Desktop/images/toolbox/tools/vlanplot.png"
    inkscape:export-xdpi="75"
    inkscape:export-ydpi="75"
    sodipodi:modified="TRUE">
@@ -204,7 +204,7 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="0.17254902"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="11.1875"
      inkscape:cx="24"
@@ -216,7 +216,7 @@
      inkscape:window-width="1061"
      inkscape:window-height="746"
      inkscape:window-x="0"
-     inkscape:window-y="29"
+     inkscape:window-y="25"
      inkscape:showpageshadow="false" />
   <metadata
      id="metadata4">

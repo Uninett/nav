@@ -17,7 +17,7 @@
    sodipodi:docbase="/home/ica/jodal/Desktop/source"
    sodipodi:docname="stats.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/ica/jodal/Desktop/tools/stats.png"
+   inkscape:export-filename="/home/ica/jodal/Desktop/images/toolbox/tools/stats.png"
    inkscape:export-xdpi="75"
    inkscape:export-ydpi="75"
    sodipodi:modified="TRUE">
@@ -197,7 +197,7 @@
      pagecolor="#ffffff"
      bordercolor="#c8c8c8"
      borderopacity="1"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="14.104167"
      inkscape:cx="24"
