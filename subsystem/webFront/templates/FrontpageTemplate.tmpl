@@ -39,12 +39,6 @@ $default_table_CSS
 #end block
 
 #block content
-<div class="boxes">
-$navlinksbox
-$externallinksbox
-$contactinformationbox
-</div>
-
 <div class="welcome">
 $welcome
 </div>
@@ -52,53 +46,17 @@ $welcome
 $messages
 $status
 
+<h3>Contact information</h3>
+<div class="contactinformation">
+$contactinformation
+</div>
 #end block
-
-#def navlinksbox
-  $sideboxstart('NAV links')
-  $navlinks
-  $sideboxend()
-#end def
-
-#def navlinks
-#end def
-
-#def externallinksbox
-  $sideboxstart('External links')
-  $externallinks
-  $sideboxend()
-#end def
-
-#def externallinks
-#end def
-
-#def contactinformationbox
-  $sideboxstart('Contact information')
-  $contactinformation
-  $sideboxend()
-#end def
 
 #def contactinformation
 #end def
 
 #def welcome
 #end def
-
-#def sideboxstart($title)
-<table>
-    <tr>
-        <th>$title</th>
-    </tr>
-    <tr>
-        <td>
-#end def
-
-#def sideboxend
-      </td>
-    </tr>
-  </table>
-#end def
-
 
 #def messages
 #set $msgs = $getVar('msgs', False)
