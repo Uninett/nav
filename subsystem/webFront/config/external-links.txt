@@ -1,3 +1,0 @@
-<a href="http://www.ntnu.no/">NTNU</a><br />
-<a href="http://www.google.com">Google</a><br />
-<a href="http://slashdot.org">Slashdot</a><br />
