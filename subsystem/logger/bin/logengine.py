@@ -47,6 +47,7 @@ from ConfigParser import ConfigParser
 config = ConfigParser()
 config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
 logfile = config.get("paths","syslog")
+logfile_charset = config.get("paths", "charset", "iso-8859-1")
 
 connection = db.getConnection('logger','logger')
 database = connection.cursor()
@@ -289,7 +290,8 @@ if __name__ == '__main__':
         f.close()
 
         for line in fcon:
-
+            # Make sure the data is encoded as UTF-8 before we begin work on it
+            line = line.decode(logfile_charset).encode("UTF-8")
             message = createMessage(line)
             if message:
 

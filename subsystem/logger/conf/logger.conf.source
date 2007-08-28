@@ -7,6 +7,10 @@ enable: 1
 # the file needs to exist and the navcron user needs write access to the file
 syslog:@localstatedir@/log/cisco.log
 
+# Logengine needs to know charset the above file is encoded with, so that it
+# may properly encode it for storage in the database.
+charset: iso-8859-1
+
 [deletepriority]
 # deletes messages of the given priority older than a limited number of days
 0:730
