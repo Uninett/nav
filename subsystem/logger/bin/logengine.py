@@ -265,8 +265,11 @@ if __name__ == '__main__':
     ## open log
     try:
         f = open(logfile, "r+")
-    except:
-        pass
+    except IOError, e:
+        # If errno==2 (file not found), we ignore it.  We won't needlessly
+        # spam the NAV admin every minute with a file not found error!
+        if e.errno != 2:
+            print >> sys.stderr, "Couldn't open logfile %s: %s" % (logfile, e)
 
     ## if the file exists
     if f:
@@ -351,8 +354,9 @@ if __name__ == '__main__':
                 database.execute("INSERT INTO message (time, origin, "
                                  "newpriority, type, message) "
                                  "VALUES (%s, %s, %s, %s, %s)",
-                                 (message.time, originid, message.priorityid,
-                                  typeid, message.description))
+                                 (str(message.time), originid,
+                                  message.priorityid, typeid,
+                                  message.description))
 
         connection.commit()
 

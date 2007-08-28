@@ -1,10 +1,10 @@
 [start]
 # enable syslog parsing
-# the file needs to exisit and the navcron user need write access to the file
 enable: 1
 
 [paths]
 # path to syslog file
+# the file needs to exist and the navcron user needs write access to the file
 syslog:@localstatedir@/log/cisco.log
 
 [deletepriority]
