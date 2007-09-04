@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-
+"""
+NAV snmptrapd handler plugin to handle LINKUP and LINKDOWN traps from
+network equipment.
+"""
 import logging
 import nav.errors
 import re
@@ -8,13 +11,11 @@ from nav.event import Event
 
 logger = logging.getLogger('nav.snmptrapd.linkupdown')
 
-__copyright__ = "Copyright 2007 UNINETT AS"
+__copyright__ = "Copyright 2007 Norwegian University of Science and " \
+                "Technology\n" \
+                "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
-
-
-global db
-db = getConnection('default')
 
 
 def handleTrap(trap, config=None):
@@ -23,12 +24,14 @@ def handleTrap(trap, config=None):
     trap. Return False to signal trap was discarded, True if trap was
     accepted.
     """
-
+    db = getConnection('default')
     c = db.cursor()
 
-    # Linkstate-traps are generictypes. Check for linkup/down and post events on eventq.
+    # Linkstate-traps are generictypes. Check for linkup/down and post
+    # events on eventq.
     if trap.genericType in ['LINKUP','LINKDOWN']:
-        logger.debug("Module linkupdown got trap %s %s" %(trap.snmpTrapOID, trap.genericType))
+        logger.debug("Module linkupdown got trap %s %s" % (trap.snmpTrapOID,
+                                                           trap.genericType))
 
         # Initialize eventvariables
         source = 'snmptrapd'
@@ -46,17 +49,20 @@ def handleTrap(trap, config=None):
 
         # Find netbox and deviceid for this ip-address.
         try:
-            query = "SELECT * FROM netbox LEFT JOIN type USING (typeid) WHERE ip = '%s'" %(trap.src)
+            query = """SELECT netboxid, vendorid
+                       FROM netbox
+                       LEFT JOIN type USING (typeid)
+                       WHERE ip = %s"""
             logger.debug(query)
-            c.execute(query)
+            c.execute(query, (trap.src,))
             res = c.dictfetchone()
 
             netboxid = res['netboxid']
-            deviceid = res['deviceid']
 
             module = '0'
 
-            # If this is a hp-device we need to create the ifindex according to NAV-standard.
+            # If this is a hp-device we need to create the ifindex
+            # according to NAV-standard.
             if res['vendorid'] == 'hp':
                 community = trap.community
 
@@ -73,8 +79,11 @@ def handleTrap(trap, config=None):
                         return False
                 
                     # Get correct deviceid
-                    deviceq = "SELECT * FROM module WHERE netboxid=%s AND module=%s" %(netboxid, module)
-                    c.execute(deviceq)
+                    deviceq = """SELECT deviceid
+                                 FROM module
+                                 WHERE netboxid=%s
+                                   AND module=%s"""
+                    c.execute(deviceq, (netboxid, module))
                     r = c.dictfetchone()
                     deviceid = r['deviceid']
 
@@ -87,13 +96,23 @@ def handleTrap(trap, config=None):
 
 
         # Find swportid
-        idquery = "SELECT * FROM netbox LEFT JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid) WHERE ip='%s' AND ifindex = %s" %(trap.src, ifindex)
+        idquery = """SELECT swportid, module.deviceid, module.module,
+                            swport.interface
+                     FROM netbox
+                     LEFT JOIN module USING (netboxid)
+                     LEFT JOIN swport USING (moduleid)
+                     WHERE ip=%s AND ifindex = %s""" 
         logger.debug(idquery)
-        c.execute(idquery)
+        c.execute(idquery, (trap.src, ifindex))
         idres = c.dictfetchone()
 
         # Subid is swportid in this case
         subid = idres['swportid']
+        interface = idres['interface']
+        module = idres['module']
+
+        # The deviceid of the module containing the port
+        deviceid = idres['deviceid']
 
         # Todo: Make sure the events are actually forwarded to alertq
         # for alerting.  It seems like the BoxState-handlerplugin of
@@ -105,10 +124,12 @@ def handleTrap(trap, config=None):
             state = 'e'
             ending = 'up'
 
-            e = Event(source=source, target=target, netboxid=netboxid, deviceid=deviceid,
-                      subid=subid, eventtypeid=eventtypeid, state=state)
+            e = Event(source=source, target=target, netboxid=netboxid,
+                      deviceid=deviceid, subid=subid, eventtypeid=eventtypeid,
+                      state=state)
             e['alerttype'] = 'linkUp'
             e['module'] = module
+            e['interface'] = interface
 
             try:
                 e.post()
@@ -126,6 +147,7 @@ def handleTrap(trap, config=None):
 
             e['alerttype'] = 'linkDown'
             e['module'] = module
+            e['interface'] = interface
 
             try:
                 e.post()
@@ -146,7 +168,7 @@ def verifyEventtype ():
     Safe way of verifying that the event- and alarmtypes exist in the
     database. Should be run when module is imported.
     """
-
+    db = getConnection('default')
     c = db.cursor()
 
     sql = """
