@@ -38,6 +38,11 @@ ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE
 
 -- Renamed eventengine source from deviceTracker to deviceManagement
 UPDATE subsystem SET name = 'deviceManagement' WHERE name = 'deviceTracker';
+-- Add snmptrapd subsystem
+INSERT INTO subsystem (SELECT 'snmptrapd' 
+                       WHERE NOT EXISTS (SELECT * 
+                                         FROM subsystem
+                                         WHERE name='snmptrapd'));
 
 -- Create index on alerthist.start_time
 CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
