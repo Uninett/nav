@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 import nav.arnold
@@ -32,7 +33,7 @@ for row in arnoldc.dictfetchall():
 
     # Open port
     try:
-        nav.arnold.openPort(row['identityid'], os.getlogin())
+        nav.arnold.openPort(row['identityid'], os.getlogin(), eventcomment="Opened automatically by autoenable")
         print "Opening %s %s:%s blocking %s" %(swinfo['sysname'], swinfo['module'], swinfo['port'], row['mac'])
     except (nav.arnold.NoDatabaseInformationError, nav.arnold.ChangePortStatusError, nav.arnold.DbError), why:
         print why

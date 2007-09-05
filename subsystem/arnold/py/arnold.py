@@ -46,10 +46,11 @@ logfile = nav.buildconf.localstatedir + "/log/arnold.log"
 
 
 """
-The arnold-script is mainly made for emergencyuse only. It has not all
-the functionality of the webinterface nor is it very userfriendly. We
-strongly recommend using the webinterface for serious arnolding. It is
-however good to use when running cron-jobs for blocking.
+The arnold-script is mainly made for emergencyuse only. It does not
+have all the functionality of the webinterface nor is it very
+userfriendly. We strongly recommend using the webinterface for serious
+arnolding. It is however good to use when running cron-jobs for
+blocking.
 """
 
 
@@ -76,11 +77,12 @@ def main():
 
     # If file is given, assume we are disabling everything in the
     # file. The file may contain a mixture of ip, mac or swportid's
+    # (I admit I could have used more functions to clean up the code)
     if opts.inputfile:
         try:
             # open file, get input
             f = file (opts.inputfile)
-            handleFile(f)
+            handleFile(f, opts)
         except IOError, why:
             logger.error(why)
             sys.exit(1)
@@ -90,8 +92,8 @@ def main():
         try:
             reasons = nav.arnold.getReasons()
             for r in reasons:
-                print "%2s: %s" %(r['blocked_reasonid'], r['text'])
-        except DbError, why:
+                print "%2s: %s - %s" %(r['blocked_reasonid'], r['name'], r['comment'])
+        except nav.arnold.DbError, why:
             print why
             sys.exit(1)
 
@@ -109,7 +111,7 @@ def main():
 
         if c.rowcount > 0:
             rows = c.dictfetchall()
-            format = "%-4s %-15s %-15s %s"
+            format = "%-4s %-15s %-17s %s"
             print format  %('ID','IP','MAC','LASTCHANGED')
             for row in rows:
                 print format %(row['identityid'], row['ip'], row['mac'], row['lastchanged'])
@@ -120,7 +122,7 @@ def main():
     elif opts.state:
 
         if len(args) < 1:
-            parser.error("We need an ip, mac or swportid or databaseid to do something with.")
+            parser.error("We need an ip, mac or databaseid to have something to do.")
 
         if not opts.state in ['enable','disable']:
             parser.error("State must be either enable or disable")
@@ -156,6 +158,10 @@ def main():
                 swportids = []
                 counter = 1
 
+
+                format = "%-2s %-19s %-15s %-17s %s (%s:%s)"
+                print format %('ID','Lastseen','IP','MAC','Switch','module','port')
+
                 # Print all ports the id has been active on
                 for i in res:
                     try:
@@ -166,7 +172,7 @@ def main():
                         
                     swportids.append(swinfo['swportid'])
                     
-                    print "%s [%s] %s (%s): %s (%s:%s)" %(
+                    print format %(
                         counter, i['endtime'], i['ip'], i['mac'], i['sysname'], i['module'], i['port'])
                     counter = counter + 1
 
@@ -197,7 +203,7 @@ def main():
                 # Do snmp-set to block port
                 try:
                     nav.arnold.blockPort(res[answer], swinfo, opts.autoenable, 0, opts.determined, opts.reason, opts.comment, os.getlogin())
-                except (nav.arnold.ChangePortStatusError, nav.arnold.AlreadyBlockedError, nav.arnold.FileError, nav.arnold.InExceptionListError), why:
+                except (nav.arnold.ChangePortStatusError, nav.arnold.AlreadyBlockedError, nav.arnold.FileError, nav.arnold.InExceptionListError, nav.arnold.WrongCatidError), why:
                     print why
 
     else:
@@ -215,8 +221,57 @@ def main():
     # - print status to STDOUT for reading from web
     
 
+def handleFile(file, opts):
+    """
+    Reads a file line by line. Parses the first word (everything that
+    is not a space) of a file and tries to use that as an id in a
+    block. NB: Make sure the first character of a line is not a space.
+    """
 
-    
+    lines = file.readlines()
+
+    for line in lines:
+        # "chomp"
+        if line and line[-1] == '\n':
+            line = line[:-1]
+
+        # Grab first part of line, run it through findIdInformation to
+        # see if it is a valid id
+        if re.match("[^ ]+", line):
+            id = re.match("([^ ]+)", line).groups()[0]
+            print "Trying to block id %s" %id
+            try:
+                info = nav.arnold.findIdInformation(id, 2)
+            except (nav.arnold.UnknownTypeError, nav.arnold.NoDatabaseInformationError), why:
+                print why
+                continue
+
+            if len(info) > 0:
+
+                firstlist = info[0]
+
+                # Check end-time of next list to see if this one is
+                # also active. If both are active, continue as we
+                # don't know what to block
+                if info[1]['endtime'] == 'Still Active':
+                    print "Active on two or more ports, don't know which one to block. Skipping this id."
+                    continue
+
+                swlist = nav.arnold.findSwportinfo(firstlist['netboxid'], firstlist['ifindex'], firstlist['module'], firstlist['port'] )
+
+                autoenable = opts.autoenable
+                autoenablestep = 0
+                determined = opts.determined
+                reason = opts.reason
+                comment = opts.comment
+                username = os.getlogin()
+
+                try:
+                    nav.arnold.blockPort(firstlist, swlist, autoenable, autoenablestep, determined, reason, comment, username)
+                except (nav.arnold.ChangePortStatusError, nav.arnold.InExceptionListError, nav.arnold.WrongCatidError, nav.arnold.DbError, nav.arnold.AlreadyBlockedError), why:
+                    print why
+                
+
 
 if __name__ == '__main__':
     main()
