@@ -26,11 +26,11 @@ WHERE eventtypeid = 'moduleState'
 
 -- New rule to automatically close module related alert states when modules
 -- are deleted.
-CREATE RULE close_alerthist_modules AS ON DELETE TO module
+CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
   DO UPDATE alerthist SET end_time=NOW() 
-     WHERE eventtypeid='moduleState' 
+     WHERE eventtypeid IN ('moduleState', 'linkState')
        AND end_time='infinity'
-       AND subid=OLD.moduleid;
+       AND deviceid=OLD.deviceid;
 
 -- Added constraint to prevent accidental duplicates in the alerttype table.
 ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE

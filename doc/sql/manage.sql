@@ -762,11 +762,11 @@ CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 
 -- Rule to automatically close module related alert states when modules are
 -- deleted.
-CREATE RULE close_alerthist_modules AS ON DELETE TO module
+CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
   DO UPDATE alerthist SET end_time=NOW() 
-     WHERE eventtypeid='moduleState' 
+     WHERE eventtypeid IN ('moduleState', 'linkState')
        AND end_time='infinity'
-       AND subid=OLD.moduleid;
+       AND deviceid=OLD.deviceid;
 
 CREATE TABLE alerthistmsg (
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
