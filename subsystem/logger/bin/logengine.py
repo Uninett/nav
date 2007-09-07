@@ -47,7 +47,10 @@ from ConfigParser import ConfigParser
 config = ConfigParser()
 config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
 logfile = config.get("paths","syslog")
-logfile_charset = config.get("paths", "charset", "iso-8859-1")
+if config.has_option("paths", "charset"):
+    logfile_charset = config.get("paths", "charset")
+else:
+    logfile_charset = "ISO-8859-1"
 
 connection = db.getConnection('logger','logger')
 database = connection.cursor()
