@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2007 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,9 +19,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
-# Credits
-
-__copyright__ = "Copyright 2007 UNINETT AS"
+#
+"""
+NAV daemon to receive and act upon SNMP traps.
+"""
+__copyright__ = "Copyright 2007 Norwegian University of Science and Technology"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
@@ -64,7 +66,7 @@ def main():
 
     # Check if root
     if os.geteuid() != 0:
-        print("Must be root to bind on ports, exiting")
+        print("Must be root to bind to ports, exiting")
         sys.exit(-1)
     
 
@@ -98,7 +100,7 @@ def main():
     server.open()
 
     # We have bound to a port and can safely swith user
-    runninguser = config.get('snmptrapd','runninguser')
+    runninguser = config.get('snmptrapd','user')
     try:
         daemon.switchuser(runninguser)
     except daemon.DaemonError, why:
@@ -134,7 +136,7 @@ def main():
 
 
         try:
-            print "Going into daemonmode..."
+            print "Going into daemon mode..."
             daemon.daemonize(pidfile)
             logger.info("Snmptrapd started")
             listen(server, community)

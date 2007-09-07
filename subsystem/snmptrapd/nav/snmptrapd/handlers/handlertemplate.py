@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import logging
 import nav.errors
 import re
@@ -10,7 +8,7 @@ from nav.event import Event
 # Create logger with modulename here
 logger = logging.getLogger('nav.snmptrapd.template')
 
-#__copyright__ = "Copyright 2007 UNINETT AS"
+#__copyright__ = "Copyright 2007 Norwegian University of Science and Technology"
 #__license__ = "GPL"
 #__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 

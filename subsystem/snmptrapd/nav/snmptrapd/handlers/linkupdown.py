@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 NAV snmptrapd handler plugin to handle LINKUP and LINKDOWN traps from
 network equipment.

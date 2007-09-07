@@ -1,12 +1,14 @@
-#!/usr/bin/env python
-
+"""
+NAV snmptrapd handler plugin to handle AP assocation traps from a Cisco
+Wireless LAN Controller.
+"""
 import logging
 import nav.errors
 logger = logging.getLogger('nav.snmptrapd.airespace')
 import nav.db
 from nav.event import Event
 
-__copyright__ = "Copyright 2007 UNINETT AS"
+__copyright__ = "Copyright 2007 Norwegian University of Science and Technology"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 

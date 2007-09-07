@@ -7,20 +7,26 @@ exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
 sysconfdir = @sysconfdir@
-
+initdir = @initdir@
 pythonlibdir = @pythonlibdir@
 
-libfiles = traphandlers/airespace.py traphandlers/linkupdown.py traphandlers/__init__.py traphandlers/handlertemplate.py
+libfiles = nav/snmptrapd/handlers/airespace.py nav/snmptrapd/handlers/linkupdown.py nav/snmptrapd/handlers/__init__.py nav/snmptrapd/handlers/handlertemplate.py
 binfiles = snmptrapd.py
 conffiles = snmptrapd.conf
+initfiles = snmptrapd
 
-.PHONY: install install-lib install-bin clean distclean
+.PHONY: all install install-lib install-bin clean distclean
+
+all:
 
 install: install-bin install-lib install-conf
 
-install-bin:
+install-bin: $(initfiles)
 	for file in $(binfiles); do \
 	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+	for file in $(initfiles); do \
+	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file || exit 1; \
 	done
 
 install-conf:
@@ -35,7 +41,7 @@ install-conf:
 
 install-lib:
 	for file in $(libfiles); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/snmptrapd/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
 	done
 
 clean:
