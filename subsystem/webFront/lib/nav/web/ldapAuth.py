@@ -56,6 +56,10 @@ elif web.webfrontConfig.get('ldap', 'enabled').lower() not in ('yes', 'true', '1
 def openLDAP():
     """ Returns a fresh LDAP object associated with the configured LDAP server."""
     uri = web.webfrontConfig.get('ldap', 'server')
+    if web.webfrontConfig.has_option('ldap', 'debug') and \
+       web.webfrontConfig.getboolean('ldap', 'debug'):
+        ldap.set_option(ldap.OPT_DEBUG_LEVEL, 255)
+        
     l = ldap.initialize(uri)
     return l
 
@@ -71,6 +75,8 @@ def authenticate(login, password):
         l.simple_bind_s(dn,password)
         return True
     except ldap.SERVER_DOWN, e:
+        infodict = e.args[0]
+        logger.error("%(desc)s: %(info)s" % infodict)
         raise NoAnswerError, uri
     except ldap.INVALID_CREDENTIALS, e:
         logger.warning("Server %s reported invalid credentials for user %s",

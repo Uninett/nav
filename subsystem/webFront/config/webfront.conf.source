@@ -23,3 +23,8 @@ server = ldaps://ldap.example.com
 
 # Which DN (Distinguished Name) we should bind to for user authentication
 binddn= ou=nav,ou=system,dc=ntnu,dc=no
+
+# Whether the underlying LDAP library should output debug information to
+# stderr.  If enabled, you will typically find this output in the Apache error
+# log.
+debug = no
