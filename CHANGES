@@ -1,3 +1,56 @@
+Version 3.3.0-rc1
+(released XX September 2007)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * Plugin-based SNMP trap reception daemon.  Comes ready with plugins
+    for LINKUP/LINKDOWN traps and association traps from Airespace
+    equipment (Cisco WLAN Controllers).
+
+  * Greatly improved browsing and searching of device history in
+    device management web tool.
+
+  * Redesigned web interface to make it more concise.
+
+  * Switch port numbers replaced by interface names as identifiers in
+    all parts of the interface, including the Machine Tracker.
+
+  * IP Device Center now has a tab to display router ports on modules,
+    and also has detail views for router ports.
+
+  * SF#1556369 (Support machine tracker switch searches by IP address).
+
+  * Status page automatically refreshes every 30 seconds.
+
+  * Logengine can now parse syslog files using a user defined
+    character set (whereas it would previously choke on non-ASCII
+    Latin-1 characters being inserted in the database).
+
+ Bugfixes:
+
+  * SF#1733239 (SQL character encoding errors in logengine)
+  * SF#1750311 (Status subsystem crashes under mod_python 3.3.1)
+  * SF#1733356 (Alert profile filters based on subcategory do not work)
+  * SF#1660467 (Status Page crashes when box is down/on maintenance)
+  * SF#1742713 (Messages retains db connections between browser requests)
+  * SF#1739532 (l2trace crashes with traceback when searching by dns name)
+  * SF#1702676 (EditDB assumes all SNMP devices can speak SNMPv1)
+  * SF#1724688 (Missing quotes in arnold.pl)
+
+ Also various other small bugfixes and improvements.
+
 Version 3.2.2
 (released 01 May 2007)
 
