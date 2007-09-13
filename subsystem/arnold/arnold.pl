@@ -69,7 +69,7 @@ my $mailconfigpath = "$etc/mailtemplates";
 my $datapath = $NAV::Path::localstatedir."/arnold";
 
 my $logdir = $NAV::Path::localstatedir."/log/arnold";
-my $nonblockfile = "$etc/nonblock.cfg";
+my $nonblockfile = "$etc/nonblock.conf";
 my @nonblockedip;
 
 

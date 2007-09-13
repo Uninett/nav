@@ -6,7 +6,7 @@ our @EXPORT = qw(&readconfig);
 use NAV::Path;
 
 sub readconfig {
-    my $config = "$NAV::Path::sysconfdir/arnold/arnold.cfg";
+    my $config = "$NAV::Path::sysconfdir/arnold/arnold.conf";
     my %cfg;
 
     open (CFG, $config) or die ("Could not open $config, exiting: $!");
