@@ -1,0 +1,49 @@
+===========================
+ Release notes for NAV 3.3
+===========================
+Please report bugs at http://sourceforge.net/projects/nav
+
+If you are upgrading from versions of NAV older than 3.2.2, please refer to the
+release notes of the in-between versions before reading any further.
+
+SNMP Trap daemon
+================
+
+NAV 3.3 features a new, plugin-based SNMP trap daemon.  The process is called
+snmptrapd, and will start by default along with the rest ov NAV when the "nav
+start" command is issued.
+
+The trap daemon currently comes with two plugins, or traphandlers (sic) as the
+snmptrapd calls them.  One handles LINKUP and LINKDOWN traps from equipment,
+translating these into NAV linkState events.  The resulting linkUp/linkDown
+alerts can be subscribed to through the Alert Profiles subsystem.  The second
+plugin handles access point association/disassociation traps (sent when dumb
+access points associate or disassociate with the controller, not when wireless
+clients associate with access points) from a Cisco WLAN Controller, translating
+these into NAV events which can also be subscribed to.
+
+For further snmptrapd docs, see subsystem/snmptrapd/README .
+
+
+Upgrading from NAV 3.2.2
+========================
+
+Database schema changes
+-----------------------
+NAV 3.3 makes various small changes to the database tables containing
+historical machine tracker data.  Measurements show that updating the schema
+with these changes will run about 33 times slower on PostgreSQL 7.4 than on
+PostgreSQL 8.1.  No, this is not a typo, we literally mean _thirty-three_ times
+slower.  The actual running time will vary with the number of records present
+in the tables.
+
+The provided upgrade script employs a schema change syntax that was first
+introduced in PostgreSQL 8, and will consequently not work on a PostgreSQL 7.4
+installation.  While more complex, 7.4-compatible syntax is provided in the
+script comments, it is highly recommended to upgrade to PostgreSQL 8 before
+upgrading NAV to version 3.3, as this minimizes the amount of downtime.
+
+Although NAV 3.3 will most certainly run fine on PostgreSQL 7.4 after an
+upgrade, it is likely that future NAV releases will use non-backwards
+compatible PostgreSQL 8 syntax.  We therefore recommend upgrading as soon as
+possible.
