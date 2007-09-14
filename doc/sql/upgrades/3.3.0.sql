@@ -1,21 +1,25 @@
 /*
  *
- * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.2 to the current trunk revision.  Please update this with every
- * change you make to the database initialization scripts.  It will eventually
- * become the update script for the next release.
+ * This SQL script is designed to upgrade your NAV database from
+ * version 3.2 to 3.3.  THIS SCRIPT WILL NOT WORK ON POSTGRESQL
+ * VERSIONS PRIOR TO 8.0.
  *
- * Also, if you are keeping your installation in sync with trunk, you should
- * watch this file for changes and run them when updating (check the diffs!)
+ * Run the script as the nav database user like this:
  *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
- * like this:
+ *  psql -f 3.3.0.sql manage nav
  *
- *  psql -f trunk.sql manage <username>
+ * Also make sure to run types.sql and snmpoid.sql to make sure your type and
+ * snmpoid tables are up-to-date:
+ *
+ *  psql -f types.sql manage nav
+ *  psql -f snmpoid.sql manage nav
  *
 */
 
 \c manage
+BEGIN;
+LOCK TABLE arp IN ACCESS EXCLUSIVE MODE;
+LOCK TABLE cam IN ACCESS EXCLUSIVE MODE;
 
 -- Close invalid moduleState states in alerthist.
 UPDATE alerthist SET end_time=now()
@@ -55,8 +59,6 @@ CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
 -- comments below (NOTE however, that using this method on PostgreSQL 7.4 may
 -- take several hours to complete, depending on the size of your cam/arp
 -- tables!)
-LOCK TABLE arp IN ACCESS EXCLUSIVE MODE;
-LOCK TABLE cam IN ACCESS EXCLUSIVE MODE;
 
 -- First, the cam table
 ALTER TABLE cam ALTER COLUMN mac TYPE macaddr USING mac::macaddr;
@@ -125,6 +127,12 @@ CREATE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
      WHERE prefixid=OLD.prefixid;
 
+END;
+
 \c navprofiles
+BEGIN;
+
 -- Fix error in sysname matching
 UPDATE matchfield SET valueid='netbox.sysname' WHERE matchfieldid=15;
+
+END;
