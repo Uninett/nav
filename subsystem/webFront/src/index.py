@@ -39,8 +39,6 @@ webConfDir = os.path.join(nav.path.sysconfdir, "webfront")
 welcomeFileAnonymous = os.path.join(webConfDir, "welcome-anonymous.txt")
 welcomeFileRegistered = os.path.join(webConfDir, "welcome-registered.txt")
 contactInformationFile = os.path.join(webConfDir, "contact-information.txt")
-externalLinksFile = os.path.join(webConfDir, "external-links.txt")
-navLinksFile = os.path.join(webConfDir, "nav-links.conf")
 
 TIMES = [' seconds', ' minutes', ' hours', ' days', ' years']
 
@@ -61,15 +59,7 @@ def index(req):
     else:
         welcomeFile = welcomeFileRegistered
     page.welcome = lambda:file(welcomeFile).read()
-    page.externallinks = lambda:file(externalLinksFile).read()
     page.contactinformation = lambda:file(contactInformationFile).read()
-
-    navlinks = nav.config.readConfig(navLinksFile)
-    navlinkshtml = ""
-    for name, url in navlinks.items():
-        if (nav.web.shouldShow(url, req.session['user'])):
-            navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br />" % (url, name)
-    page.navlinks = lambda:navlinkshtml
 
     import nav.messages
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
