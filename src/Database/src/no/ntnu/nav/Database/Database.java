@@ -197,6 +197,18 @@ public class Database
 			}
 		}
 
+		/**
+		 * <p>Free a given ConnectionDescr instance , by placing it back into 
+		 * the connection queue, thus making it available for other threads to
+		 * use.</p>
+		 * 
+		 * <p>If the given ConnectionDescr object happens to be a transaction
+		 * connection for the current thread, this method does nothing.
+		 * Transaction objects must be explicitly committed or rolled back 
+		 * before they are freed.</p>
+		 * 
+		 * @param cd The ConnectionDescr object to free.
+		 */
 		public void freeConnection(ConnectionDescr cd) {
 			synchronized (activeTransactions) {
 				if (activeTransactions.get(Thread.currentThread()) == cd) {
@@ -232,6 +244,11 @@ public class Database
 		public Statement getUpdateStatement() throws SQLException {
 			ConnectionDescr cd = getConnection();
 			Statement st = cd.getUpdateStatement();
+			/* XXX: The next line seems like a dubious scheme.  The connection 
+			 * is freed and made available to other threads before the update 
+			 * statement we've obtained is even used.  See further comments in 
+			 * ConnectionDescr.getUpdateStatement(), called above. 
+			 */
 			freeConnection(cd);
 			return st;
 		}
@@ -502,9 +519,18 @@ public class Database
 			}
 
 			private void newUpdateStatement() throws SQLException {
-				if (updateStatement != null) {
-					updateStatement.close();
-				}
+				/* XXX: The following if clause has been commented out because 
+				 * it causes a race condition.  The updateStatement instance 
+				 * may still be held by another thread, and so closing it 
+				 * explicitly here may cause that thread to throw an 
+				 * SQLException from using an already closed statement.  
+				 * According to the Java Docs, a Statement object will be 
+				 * closed when garbage collected, which seems to be a better 
+				 * approach in this situation. 
+				 */
+//				if (updateStatement != null) {
+//					updateStatement.close();
+//				}
 				updateStatement = con.createStatement();
 				lastUsed = System.currentTimeMillis();
 			}
