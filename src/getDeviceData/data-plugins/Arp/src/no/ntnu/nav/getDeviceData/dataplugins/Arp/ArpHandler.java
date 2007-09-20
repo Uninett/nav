@@ -157,7 +157,7 @@ public class ArpHandler implements DataHandler {
 			
 			try {				
 				String[] fieldValues = {"netboxid",Integer.toString(nb.getNetboxid()),
-						"prefixid",prefixid == -1 ? "NULL":Integer.toString(prefixid),
+						"prefixid",prefixid == -1 ? "null":Integer.toString(prefixid),
 						"ip",ip.getHostAddress(),
 						"mac",ipMacMap.get(ip),
 						"sysname",nb.getSysname(),
