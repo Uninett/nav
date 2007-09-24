@@ -82,7 +82,8 @@ def main(args):
 
         # Remove the vlans that have disappeared
         if gone_vlans:
-            cursor.execute(delete_sql % (netboxid, ",".join(gone_vlans)))
+            gone_vlan_string = ",".join([str(v) for v in gone_vlans])
+            cursor.execute(delete_sql % (netboxid, gone_vlan_string))
 
         # Insert new vlans
         for vlan in new_vlans:
