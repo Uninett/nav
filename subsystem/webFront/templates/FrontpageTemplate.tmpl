@@ -39,24 +39,62 @@ $default_table_CSS
 #end block
 
 #block content
+<div class="boxes">
+$navlinksbox
+$externallinksbox
+$contactinformationbox
+</div>
+
+#if $varExists('welcome') and $welcome
 <div class="welcome">
 $welcome
 </div>
+#end if
 
 $messages
 $status
 
-<h3>Contact information</h3>
-<div class="contactinformation">
-$contactinformation
-</div>
 #end block
 
-#def contactinformation
+#def navlinksbox
+#if $varExists('navlinks') and $navlinks
+  $sideboxstart('NAV links')
+  $navlinks
+  $sideboxend()
+#endif
 #end def
 
-#def welcome
+#def externallinksbox
+#if $varExists('externallinks') and $externallinks
+  $sideboxstart('External links')
+  $externallinks
+  $sideboxend()
+#end if
 #end def
+
+#def contactinformationbox
+#if $varExists('contactinformation') and $contactinformation
+  $sideboxstart('Contact information')
+  $contactinformation
+  $sideboxend()
+#end if
+#end def
+
+#def sideboxstart($title)
+<table>
+    <tr>
+        <th>$title</th>
+    </tr>
+    <tr>
+        <td>
+#end def
+
+#def sideboxend
+      </td>
+    </tr>
+  </table>
+#end def
+
 
 #def messages
 #set $msgs = $getVar('msgs', False)

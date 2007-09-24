@@ -39,8 +39,20 @@ webConfDir = os.path.join(nav.path.sysconfdir, "webfront")
 welcomeFileAnonymous = os.path.join(webConfDir, "welcome-anonymous.txt")
 welcomeFileRegistered = os.path.join(webConfDir, "welcome-registered.txt")
 contactInformationFile = os.path.join(webConfDir, "contact-information.txt")
+externalLinksFile = os.path.join(webConfDir, "external-links.txt")
+navLinksFile = os.path.join(webConfDir, "nav-links.conf")
 
 TIMES = [' seconds', ' minutes', ' hours', ' days', ' years']
+
+def _quickRead(filename):
+    """
+    Quickly read and return the contents of a file, or None if
+    something went wrong.
+    """
+    try:
+        return file(filename).read().strip()
+    except IOError:
+        return None
 
 def index(req):
     if req.session.has_key('user'):
@@ -58,8 +70,22 @@ def index(req):
         welcomeFile = welcomeFileAnonymous
     else:
         welcomeFile = welcomeFileRegistered
-    page.welcome = lambda:file(welcomeFile).read()
-    page.contactinformation = lambda:file(contactInformationFile).read()
+
+    page.welcome = _quickRead(welcomeFile)
+    page.externallinks = _quickRead(externalLinksFile)
+    page.contactinformation = _quickRead(contactInformationFile)
+
+    try:
+        navlinks = nav.config.readConfig(navLinksFile)
+        navlinkshtml = []
+        for name, url in navlinks.items():
+            if (nav.web.shouldShow(url, req.session['user'])):
+                navlinkshtml.append(
+                    "<a href=\"%s\">%s</a><br />" % (url, name))
+        if len(navlinkshtml) > 0:
+            page.navlinks = "".join(navlinkshtml)
+    except IOError:
+        pass
 
     import nav.messages
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
