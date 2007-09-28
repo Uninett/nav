@@ -65,10 +65,14 @@ def history(req,deviceorderid=None):
 
     # Get year of first entry in alerthist
     date_options = {}
-    sql = 'SELECT min(start_time) FROM alerthist'
+    sql = """
+        SELECT min(start_time) IS NOT NULL AS exists, min(start_time)
+        FROM alerthist
+    """
     db.execute(sql)
-    if db.rowcount:
-        date_options['startyear'] = db.dictfetchall()[0]['min'].year
+    row = db.dictfetchall()[0]
+    if row['exists']:
+        date_options['startyear'] = row['min'].year
 
     # Get filter values
     if (form.has_key('startday') and form['startday'].isdigit()
