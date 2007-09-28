@@ -46,7 +46,7 @@ DELETE_TIME_THRESHOLD = mx.DateTime.TimeDelta(hours=48)
 
 MAIN_MENU = [['Device history',BASEPATH,'Browse and view device history'],
              ['Order devices',BASEPATH + 'order/','Order new devices and register arrivals of devices with serials'],
-             ['Register devices',BASEPATH + 'register/','Register new devices with serials'],
+             ['Register serial numbers',BASEPATH + 'register/','Register new devices with serials'],
              ['Register RMA',BASEPATH + 'rma/','Register a RMA request'],
              ['Register error event',BASEPATH + 'error/','Register an error event with a comment on a location, room, box or module'],
              ['Module delete',BASEPATH + 'delete/','Manually delete any modules that are flagged as down']]
