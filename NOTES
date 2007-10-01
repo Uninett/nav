@@ -47,3 +47,23 @@ Although NAV 3.3 will most certainly run fine on PostgreSQL 7.4 after an
 upgrade, it is likely that future NAV releases will use non-backwards
 compatible PostgreSQL 8 syntax.  We therefore recommend upgrading as soon as
 possible.
+
+
+Changes to suggested initial privileges
+---------------------------------------
+A fresh installation of NAV 3.2.2 would suggest the following web_access
+privilege for all authenticated users::
+
+  ^/(report|status|messages|alertprofiles|machinetracker|browse|preferences|cricket)/?
+
+NAV 3.3 suggests the following instead::
+
+  ^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger)/?
+
+The upgrade does not change this automatically, as it is your duty as NAV site
+administrator to define access privileges in NAV as you see fit. These
+suggested changes make sure every authenticated user has access to the ranked
+statistics tool, the IP Info center, Layer 2 Traceroute tool and syslog
+analyzer tool, in addition to the tools granted access to in previous versions.
+Not everyone wants to permit this much access to any authenticated NAV user,
+though.

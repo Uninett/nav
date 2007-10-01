@@ -1,5 +1,5 @@
-Version 3.3.0-rc1
-(released XX September 2007)
+Version 3.3.0
+(released 01 October 2007)
 
 #####################################################################
 ##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
@@ -48,6 +48,9 @@ Version 3.3.0-rc1
   * SF#1739532 (l2trace crashes with traceback when searching by dns name)
   * SF#1702676 (EditDB assumes all SNMP devices can speak SNMPv1)
   * SF#1724688 (Missing quotes in arnold.pl)
+  * SF#1798698 (PSQLException: This statement has been closed)
+  * SF#1792351 (No traffic map load data with PostgreSQL 8.2.x)
+  * SF#1801886 (getBoksMacs throws SQLExceptions for LLDP-enabled devices)
 
  Also various other small bugfixes and improvements.
 
