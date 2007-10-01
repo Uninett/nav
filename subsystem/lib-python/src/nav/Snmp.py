@@ -88,6 +88,7 @@ class Snmp(object):
         self.reporttype = reporttype
 
         self.handle = role.manager((host,port))
+        self.handle.timeout = float(timeout)
 
 
     def get(self,query = "1.3.6.1.2.1.1.1.0"):
