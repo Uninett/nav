@@ -169,7 +169,7 @@ div#navbody {
 
 /* Footer section */
 div#footer {
-	clear: left;
+	clear: both;
 	font-size: 0.8em;
 	text-align: center;
 }
