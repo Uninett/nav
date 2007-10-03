@@ -151,8 +151,9 @@ class Snmp(object):
         t: TIMETICKS
         a: IPADDRESS
         o: OBJID
-        s: STRING
+        s: OCTETSTRING
         U: COUNTER64 (version 2 and above)
+        x: OCTETSTRING
         value: the value to set. Must ofcourse match type: i = 2, s = 'string'
         
         Heavily influenced by:
@@ -176,6 +177,7 @@ class Snmp(object):
         if type == 'o': type = 'OBJECTID'
         if type == 's': type = 'OCTETSTRING'
         if type == 'U': type = 'COUNTER64'
+        if type == 'x': type = 'OCTETSTRING'
 
         # Make request and responsehandler
         req = snmp.SETREQUEST()
