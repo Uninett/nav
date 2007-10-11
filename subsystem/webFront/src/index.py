@@ -142,9 +142,9 @@ def login(req, login='', password='', origin=''):
             if ldapAuth.available:
                 try:
                     authenticated = ldapAuth.authenticate(login, password)
-                except ldapAuth.NoAnswerError, e:
-                    logger.error("Could not contact the LDAP server")
-                    return _getLoginPage(origin, "Login failed<br />(Unable to make contact with the LDAP server)")
+                except ldapAuth.Error, e:
+                    logger.exception("Error while talking to LDAP server")
+                    return _getLoginPage(origin, "Login failed<br />(%s)" % e)
                 else:
                     if not authenticated:
                         return _getLoginPage(origin, "Login failed")
@@ -178,10 +178,13 @@ def login(req, login='', password='', origin=''):
                         logger.info("Account %s authenticated through LDAP", login)
                         account.setPassword(password)
                         account.save()
-                except ldapAuth.NoAnswerError, e:
-                    req.session['message'] = 'No answer from LDAP server ' + str(e)
+                except ldapAuth.Error, e:
+                    req.session['message'] = 'Error while talking to ' \
+                                             'LDAP: %s' % e
                     # Attempt to authenticate through stored password
                     # when no answer
+                    logger.info("Attempting to authenticate %s locally",
+                                login)
                     authenticated = account.authenticate(password)
             else:
                 # If this account is not to be externally
