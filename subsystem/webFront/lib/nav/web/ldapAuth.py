@@ -103,7 +103,10 @@ def openLDAP():
         except ldap.PROTOCOL_ERROR, e:
             logger.error('LDAP server %s does not support the STARTTLS '
                          'extension.  Aborting.', server)
-            raise Error, e
+            raise NoStartTlsError, server
+        except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR), e:
+            logger.exception("LDAP server is down")
+            raise NoAnswerError, server
     else:
         scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
         uri = '%s://%s:%s' % (scheme, server, port)
@@ -125,9 +128,8 @@ def authenticate(login, password):
     try:
         logger.debug("Attempting authenticated bind to %s", user_dn)
         l.simple_bind_s(user_dn, password)
-    except ldap.SERVER_DOWN, e:
-        infodict = e.args[0]
-        logger.error("%(desc)s: %(info)s" % infodict)
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR), e:
+        logger.exception("LDAP server is down")
         raise NoAnswerError, server
     except ldap.INVALID_CREDENTIALS, e:
         logger.warning("Server %s reported invalid credentials for user %s",
@@ -231,6 +233,9 @@ class NoAnswerError(Error):
 
 class TimeoutError(Error):
     """Timed out waiting for LDAP reply"""
+
+class NoStartTlsError(Error):
+    """The LDAP server does not support the STARTTLS extension"""
 
 def __test():
     """
