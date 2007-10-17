@@ -98,7 +98,12 @@ def main():
             sys.exit(1)
 
     elif opts.listblocked:
-        conn = getConnection('default','arnold')
+        try:
+            dbname = config.get('arnold','database')
+        except Exception, why:
+            print "Could not find databasename in arnold.conf"
+
+        conn = getConnection('default', dbname)
         c = conn.cursor()
 
         q = "SELECT identityid, mac, ip, lastchanged FROM identity WHERE blocked_status = 'disabled' ORDER BY lastchanged"

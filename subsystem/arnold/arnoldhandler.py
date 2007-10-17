@@ -37,19 +37,26 @@ import nav.arnold
 
 import ConfigParser
 
+# Read config from configfile
+configfile = nav.path.sysconfdir + "/arnold/arnold.conf"
+config = ConfigParser.ConfigParser()
+config.read(configfile)
+
+# Connect to the database
+
+dbname = config.get('arnold','database')
+
+
+# Connect to manage-database
+manage = nav.db.getConnection('default')
+# Connect to arnold-database
+conn = db.getConnection('arnold', dbname);
+
+
 ############################################################
 def handler(req):
 
-    # Read config from configfile
-    configfile = nav.path.sysconfdir + "/arnold/arnold.cfg"
-    config = ConfigParser.ConfigParser()
-    config.read(configfile)
-    
-    #config = readConfig(nav.path.sysconfdir + "/arnold/arnold.cfg")
-
-    # Connect to the database
     # getConnection('subsystem','database')
-    conn = db.getConnection('arnold','arnold');
     cur = conn.cursor()
 
     arnoldhome = nav.path.bindir
@@ -191,15 +198,18 @@ def handler(req):
 
         if not blockid:
             newreason = args.get('newreason')
-            nr = re.search("^--", newreason)
+            nr = re.match("--", newreason)
             if not nr:
-                cur.execute("SELECT * FROM blocked_reason WHERE name = '%s'" %newreason)
+                cur.execute("SELECT reasonid FROM blocked_reason WHERE name = %s", (newreason,))
                 if cur.rowcount < 1:
-                    cur.execute("INSERT INTO blocked_reason (name) VALUES ('" + newreason + "')")
-                    conn.commit()
-                    cur.execute("SELECT * FROM blocked_reason WHERE name = '%s'" %newreason)
-                    templist = cur.dictfetchone()
-                    reasonid = templist['blocked_reasonid']
+                    cur.execute("SELECT nextval('public.blocked_reason_blocked_reasonid_seq')")
+                    reasonid = cur.fetchone()[0]
+                    try:
+                        cur.execute("INSERT INTO blocked_reason (blocked_reasonid, name) VALUES (%s, %s)", (reasonid, newreason))
+                    except nav.db.driver.ProgrammingError, why:
+                        conn.rollback()
+                else:
+                    reasonid = cur.fetchone()[0]
 
 
         blocktitle = args.get('blocktitle')
@@ -218,16 +228,34 @@ def handler(req):
             active = 'y'
         else:
             active = 'n'
-        userid = args.get('user')
         if req.session.has_key('user') and req.session['user'].id > 0:
             lasteditedby = req.session['user'].name
 
         if blockid:
-            cur.execute("UPDATE block SET blocktitle='%s', blockdesc='%s', reasonid=%s, mailfile='%s', inputfile='%s', determined='%s', incremental='%s', blocktime=%s, active='%s', userid='%s', lastedited=now(), lastedituser='%s' WHERE blockid=%s" %(blocktitle, blockdesc, reasonid, mailfile, inputfile, determined, incremental, blocktime, active, userid, lasteditedby, blockid))
+            q = """
+            UPDATE block SET blocktitle=%s, blockdesc=%s,
+            reasonid=%s, mailfile=%s, inputfile=%s,
+            determined=%s, incremental=%s, blocktime=%s,
+            active=%s, lastedited=now(), lastedituser=%s
+            WHERE blockid=%s
+            """
+            try:
+                cur.execute(q, (blocktitle, blockdesc, reasonid, mailfile, inputfile, determined, incremental, blocktime, active, lasteditedby, blockid))
+            except nav.db.driver.ProgrammingError, why:
+                conn.rollback()
         else:
-            cur.execute("INSERT INTO block (blocktitle, blockdesc, mailfile, reasonid, determined, incremental, blocktime, userid, active, lastedited, lastedituser, inputfile) VALUES ('%s','%s','%s',%s,'%s','%s',%s,'%s','%s',now(),'%s','%s')" %(blocktitle, blockdesc, mailfile, reasonid, determined, incremental, blocktime, userid, active, lasteditedby, inputfile))
+            q = """
+            INSERT INTO block (blocktitle, blockdesc, mailfile,
+            reasonid, determined, incremental, blocktime, active,
+            lastedited, lastedituser, inputfile)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s)
+            """
+            try:
+                cur.execute(q, (blocktitle, blockdesc, mailfile, reasonid, determined, incremental, blocktime, active, lasteditedby, inputfile))
+            except nav.db.driver.ProgrammingError, why:
+                conn.rollback()
 
-        conn.commit()
+
         if blockid:
             redirect(req,'addBlocktype?blockid=%s' %blockid)
         else:
@@ -265,6 +293,9 @@ def setMenu(page):
 
 ############################################################
 def printHistory(cur, page, sort, section, days):
+    """
+    Get history information based on input.
+    """
 
     page.headersList = ['ip','dns','mac','netbios','orgid','status','reason','lastchanged','details']
     page.headers = { 'ip': 'Ip', 'dns':'Dns', 'mac':'Mac','netbios':'Netbios', 'orgid':'Orgid', 'status':'Status' ,'reason':'Reason', 'lastchanged':'Lastchanged', 'details':'&nbsp;', '':''}
@@ -278,15 +309,22 @@ def printHistory(cur, page, sort, section, days):
     page.sort = 1
 
     try:
-        cur.execute("SELECT DISTINCT identityid, ip, mac, dns, netbios, orgid, name AS reason, multiple, starttime, swsysname AS sysname, swmodule, swport, blocked_status AS status, to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') as lastchanged FROM identity LEFT JOIN blocked_reason USING (blocked_reasonid) WHERE lastchanged > current_date + integer '-" + days + "'  ORDER BY " + sort)
+        query = """
+        SELECT DISTINCT identityid, ip, mac, dns, netbios, orgid,
+        name AS reason, starttime,  blocked_status AS status,
+        to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') as lastchanged, swportid
+        FROM identity LEFT JOIN blocked_reason USING (blocked_reasonid)
+        WHERE lastchanged > current_date - interval '%s'  ORDER BY %s
+        """ %(days, sort)
+        cur.execute(query)
         list = cur.dictfetchall()
-    except psycopg.DatabaseError, e:
+    except nav.db.driver.ProgrammingError, e:
         list = {}
 
     for item in list:
         item['details'] = "<a href='showdetails?id=" + str(item['identityid']) +"'>Details</a>"
 
-    page.hits = cur.rowcount
+    page.hits = len(list)
     page.list = list
     page.section = section
 
@@ -311,9 +349,6 @@ def printBlocked(cur, page, sort, section):
     
     list = cur.dictfetchall()
     
-
-    # Connect to manage-database to fetch switchport-information
-    manage = nav.db.getConnection('default')
     managec = manage.cursor()
 
     for item in list:
@@ -321,7 +356,10 @@ def printBlocked(cur, page, sort, section):
         item['activate'] = "<a href='arnold/doenable?id=" + str(item['identityid']) + "'>Activate port</a>"
         item['details'] = "<a href='showdetails?id=" + str(item['identityid']) +"'>Details</a>"
         
-        managequery = """SELECT sysname, module, port FROM netbox LEFT JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid) WHERE swportid = %s"""
+        managequery = """SELECT sysname, module, port FROM netbox LEFT
+        JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid)
+        WHERE swportid = %s"""
+
         managec.execute(managequery, (item['swportid'], ))
         managelist = managec.dictfetchone()
         
@@ -434,7 +472,6 @@ def showDetails (cur, page, section, id):
 
 
     # Connect to manage-database to fetch switchport-information
-    manage = nav.db.getConnection('default')
     managec = manage.cursor()
     
 
@@ -467,8 +504,15 @@ def showDetails (cur, page, section, id):
     page.section = section
     page.sort = 0
     page.headertext = "Details for " + list[0]['ip']
-        
-    cur.execute("SELECT eventtime, event_comment as comment, blocked_status as action, name, username FROM event LEFT JOIN blocked_reason USING (blocked_reasonid) WHERE identityid=" + id + " ORDER BY eventtime")
+
+    q = """
+    SELECT eventtime, event_comment AS comment,
+    blocked_status AS action, name, username
+    FROM event
+    LEFT JOIN blocked_reason USING (blocked_reasonid)
+    WHERE identityid=%s ORDER BY eventtime
+    """
+    cur.execute(q, (id,))
 
     page.headersList2 = ['eventtime','action','name','comment','username']
     page.headers2 = {'eventtime':'Eventtime', 'action':'Action', 'name':'Reason', 'comment':'Comment', 'username':'User'}
@@ -490,7 +534,7 @@ def printBlockreasons(cur, page,section):
     page.blockreasonheadersList = ['name', 'comment']
     page.blockreasonheaders = {'name':'Reason', 'comment': 'Comment'}
 
-    cur.execute("SELECT blocked_reasonid as id, name, comment FROM blocked_reason");
+    cur.execute("SELECT blocked_reasonid AS id, name, comment FROM blocked_reason");
     page.blockreasons = cur.dictfetchall()
     page.hits = cur.rowcount
     page.sort = 0
@@ -510,7 +554,7 @@ def printManualblock(cur,page,sort,section):
 ############################################################
 def printAddblocktype (cur, page, id):
 
-    cur.execute("SELECT blocked_reasonid as id, name FROM blocked_reason ORDER BY name");
+    cur.execute("SELECT blocked_reasonid AS id, name FROM blocked_reason ORDER BY name");
     page.blockreasons = cur.dictfetchall()
 
     blockinfo = {'blockid':'', 'blocktitle':'', 'blockdesc':'', 'mailfile':'', 'reasonid':0, 'determined':'n', 'incremental':'n', 'blocktime':'', 'userid':'cron', 'active':'n', 'inputfile':''}
@@ -528,26 +572,3 @@ def printAddblocktype (cur, page, id):
 def redirect(req, url):
     req.headers_out.add("Location", url)
     raise apache.SERVER_RETURN, apache.HTTP_MOVED_TEMPORARILY
-
-
-# Deprecated
-def readConfig(path):
-
-    try:
-        file = open (path)
-        lines = file.readlines()
-        file.close()
-    except IOError:
-        return
-    
-    config = {}
-
-    for line in lines:
-        if re.search("(^#|^\s+)", line):
-            continue
-        (var,val) = line.split("=")
-        var = var.strip()
-        val = val.strip()
-        config[var] = val
-
-    return config

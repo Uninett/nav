@@ -1,7 +1,7 @@
+
 """
 Provides helpfunctions for Arnold web and script
 """
-
 import nav.Snmp
 import re, os
 import nav.buildconf
@@ -15,12 +15,12 @@ import email.Message
 import email.Header
 import email.Charset
 
-# Connect to database
-conn = getConnection('default')
-arnolddb = getConnection('default', 'arnold')
-
 class ChangePortStatusError(GeneralException):
     "An error occured when changing portadminstatus"
+    pass
+
+class ChangePortVlanError(GeneralException):
+    "An error occured when changing portvlan"
     pass
 
 class NoDatabaseInformationError(GeneralException):
@@ -69,7 +69,7 @@ configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 config = ConfigParser.ConfigParser()
 config.read(configfile)
 
-allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
+dbname = config.get('arnold','database')
 
 def parseNonblockFile(file):
     """
@@ -123,6 +123,9 @@ def findIdInformation(id, limit):
     mac-address). Returns a list with $limit number of dicts
     containing all info from arp and cam joined on mac.
     """
+
+    # Connect to database
+    conn = getConnection('default')
 
     # Find type of id
     (type,id) = findInputType(id)
@@ -183,6 +186,9 @@ def findSwportinfo(netboxid, ifindex, module, port):
     swport tables related to the id. Also ipaddress, macaddress and
     endtime of id IF AND ONLY IF the id is not an swport.
     """
+
+    # Connect to database
+    conn = getConnection('default')
     c = conn.cursor()
 
     try:
@@ -221,6 +227,8 @@ def findSwportIDinfo(swportid):
     takes other input.
     """
 
+    # Connect to database
+    conn = getConnection('default')
     c = conn.cursor()
 
     # Get switch-information
@@ -271,12 +279,15 @@ def findInputType (input):
 def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username):
     """Block the port and update database"""
 
+    # Connect to database
+    arnolddb = getConnection('default', dbname)
     c = arnolddb.cursor()
 
     # Check if this id is in the nonblocklist
     if checkNonBlock(id['ip']):
         raise InExceptionListError
 
+    allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
 
     if sw['catid'] not in allowtypes:
         raise WrongCatidError, sw['catid']
@@ -349,7 +360,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
         arglist = ['disabled', reason, sw['swportid'], id['ip'], id['mac'], dns, netbios, autoenablestep, "", determined, res['identityid']]
 
-        doQuery('arnold', query, arglist)
+        doQuery(dbname, query, arglist)
 
 
         # Create new event
@@ -360,7 +371,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
         arglist = [res['identityid'], comment, 'disabled' , reason, autoenablestep, username]
 
-        doQuery('arnold', query, arglist)
+        doQuery(dbname, query, arglist)
 
 
     else:
@@ -396,7 +407,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
         print arglist
 
-        doQuery('arnold', query, arglist)
+        doQuery(dbname, query, arglist)
 
 
         # CReate new event-tuple
@@ -407,7 +418,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     
         arglist = [nextval, comment, 'disabled' , reason, autoenablestep, username]
 
-        doQuery('arnold', query, arglist)
+        doQuery(dbname, query, arglist)
 
         
 
@@ -422,6 +433,10 @@ def openPort(id, username, eventcomment=""):
     this normally means that the port is enabled, we enable the port
     in the arnold-database.
     """
+
+    # Connect to database
+    conn = getConnection('default')
+    arnolddb = getConnection('default', dbname)
 
     carnold = arnolddb.cursor()
     cmanage = conn.cursor()
@@ -496,6 +511,8 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
     Use SNMP to disable a interface.
     - Action must be 'enable' or 'disable'.
     - Community must be read/write community
+
+    Todo: Remove vendorid, community, module, port and fetch that from database
     """
 
     # We use ifadminstatus to enable and disable ports
@@ -541,23 +558,94 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
 ###################################################################################################
 # changePortVlan
 #
-def changePortVlan(ip, vendorid, ro, rw, ifindex, vlan):
+def changePortVlan(ip, ifindex, vlan):
     """
     Use SNMP to change switchport access vlan. Returns vlan on port
     before change if successful.
 
-    Reasons for not succesfull change may be:
+    ip: ip of netbox
+    ifindex: ifindex of swport in manage-db
+    vlan: vlanid to change to
+
+    Reasons for not successful change may be:
     - Wrong community, use rw-community
     - rw-community not set on netbox
+    - port is a trunk
     """
+
+    # Connect to database
+    conn = getConnection('default')
+    c = conn.cursor()
+
+    q = """SELECT vendorid, ro, rw
+    FROM netbox
+    LEFT JOIN type USING (typeid)
+    WHERE ip = %s
+    """
+
+    # type is the TYPE in the snmpset-query
+    type = ''
+
+    try:
+        c.execute(q, (ip, ))
+    except nav.db.driver.ProgrammingError, e:
+        raise DbError, e
+
+    vendorid, ro, rw = c.fetchone()
 
     # oid for getting and setting vlan
     # CISCO
     # cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
     if vendorid == 'cisco':
+
         oid = "1.3.6.1.4.1.9.9.68.1.2.2.1.2"
+        type = 'i'
+
+    elif vendorid == 'hp':
+
+        oid = "1.3.6.1.2.1.17.7.1.4.5.1.1"
+        type = 'u'
+
+        # Because we have a very strange way of storing ifindexes for
+        # hp-devices we need to do some magic here.
+
+        # We need the module to give the snmpset query to the correct
+        # module
+        q = """SELECT module FROM netbox
+        LEFT JOIN module USING (netboxid)
+        LEFT JOIN swport USING (moduleid)
+        WHERE ip = %s AND ifindex = %s
+        """
+
+        try:
+            c.execute(q, (ip, ifindex))
+        except nav.db.driver.ProgrammingError, e:
+            raise DbError, e
+
+        module = c.fetchone()[0]
+
+        # Ensure that module is a string
+        if module > 0:
+            module = str(module)
+            rw = rw + "@sw" + module
+            ro = ro + "@sw" + module
+
+            #print "ro set to %s, rw set to %s" %(ro, rw)
+
+
+        # The last two characters of index is the "real" ifindex on
+        # this module. As this string may end up to be for instance
+        # "03", we need to convert it to int. Luckily that's what we
+        # want anyway.
+        
+        ifindex = int(str(ifindex)[-2:])
+
+
     else:
-        # Nothing else supported :p
+
+        # Nothing else supported :p As we use Q-BRIDGE-MIB this is
+        # possibly incorrect, but testing on other vendors is needed.
+
         raise NotSupportedError, vendorid
 
 
@@ -566,27 +654,64 @@ def changePortVlan(ip, vendorid, ro, rw, ifindex, vlan):
         raise ChangePortStatusError, "Wrong format on vlan %s" %vlan
 
 
+    # Make query based on oid and ifindex
     query = oid + '.' + str(ifindex)
 
-
-    # Create snmp-object
+    # Create snmp-objects
     snmpget = nav.Snmp.Snmp(ip,ro)
     snmpset = nav.Snmp.Snmp(ip,rw)
 
-
-    # Regardless of disable or enable, the input-vlan should be the
-    # vlan you want to switch to.
+    # Fetch the vlan currently on the port
     try:
         fromvlan = snmpget.get(query)
-    except nav.Snmp.NoSuchObjectError, why:
-        raise ChangePortStatusError, why
+    except (nav.Snmp.NoSuchObjectError, nav.Snmp.TimeOutException), why:
+        raise ChangePortVlanError, why
 
-    # Set to inputvlan
+
+    # Cisco will not return a fromvlan if the port is a trunk, so it
+    # will be catched above. Hp (or hopefully Q-BRIDGE-MIB) will
+    # return vlan 1 as accessvlan when queried. We must therefore
+    # check if the fromvlan is 1. If it is we raise an error.
+
+    if fromvlan == 1:
+        raise ChangePortVlanError, "This port is (probably) a trunk"
+
+    # Set to inputvlan. This will fail if the vlan does not exist on
+    # the netbox, luckily.
 
     try:
-        snmpset.set(query, 'i', vlan)
+        snmpset.set(query, type, vlan)
     except nav.Snmp.AgentError, why:
-        raise ChangePortStatusError, why
+        raise ChangePortVlanError, why
+
+    # Ok, here comes the tricky part. On HP if we change vlan on a
+    # port using dot1qPvid, the fromvlan will put the vlan in
+    # trunkmode. To remedy this we use dot1qVlanStaticEgressPorts to
+    # fetch and unset the tagged vlans.
+
+    # The good thing about this is that it should work on any netbox
+    # that supports Q-BRIDGE-MIB.
+
+    # TODO: Test on other netbox/vendor types
+    # TODO: We are fscked if the stuff below fails as we have already
+    # changed vlan. Howto fix?
+
+    if vendorid == 'hp':
+        # Fetch dot1qVlanStaticEgressPorts
+        dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + str(fromvlan)
+        try:
+            hexports = snmpget.get(dot1qVlanStaticEgressPorts)
+        except nav.Snmp.NoSuchObjectError, why:
+            raise ChangePortVlanError, why
+
+        # Create new octetstring and set it
+        # TODO: Use bitvector in this function
+        newhexports = computeOctetString(hexports, ifindex, 'disable')
+
+        try:
+            snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
+        except nav.Snmp.NoSuchObjectError, why:
+            raise ChangePortVlanError, why
     
     return fromvlan
 
@@ -604,6 +729,8 @@ def changeSwportStatus(action, swportid):
     if not action in ['enable','disable']:
         raise BlockError, "No such action %s" %action
 
+    # Connect to database
+    conn = getConnection('default')
     c = conn.cursor()
 
     query = """SELECT * FROM netbox
@@ -676,7 +803,7 @@ def addReason(name, comment):
     """Add a reason for blocking to the database"""
 
     query = "INSERT INTO blocked_reason (name, comment) VALUES (%s, %s)"
-    doQuery('arnold', query, (name, comment))
+    doQuery(dbname, query, (name, comment))
 
 
 ###################################################################################################
@@ -686,7 +813,7 @@ def addReason(name, comment):
 def getReasons():
     """Returns a dict with the reasons for blocking currently in the database"""
 
-    conn = nav.db.getConnection('default', 'arnold')
+    conn = nav.db.getConnection('default', dbname)
     c = conn.cursor()
 
     query = "SELECT * FROM blocked_reason"
@@ -750,7 +877,7 @@ def checkNonBlock(ip):
     """
 
     #print nonblockdict
-
+    
     # We have the result of the nonblock.cfg-file in the dict
     # nonblockdict. This dict contains 3 things:
     # 1 - Specific ip-addresses
@@ -768,3 +895,108 @@ def checkNonBlock(ip):
         
     return 0
 
+
+####################################################################################################
+# tobin
+#
+def tobool(n, count=8):
+    """
+    Integer to binary. Count is number of bits.
+
+    We need a function to convert the hexstring returned to binary
+    http://tools.cisco.com/Support/SNMP/do/BrowseOID.do?local=en&translate=Translate&typeName=PortList
+    """
+
+    return [bool((n >> y) & 1) for y in range(count-1, -1, -1)]
+
+
+def tobin(n, count=8):
+    return "".join([str((n >> y) & 1) for y in range(count-1, -1, -1)])
+
+####################################################################################################
+# tohex
+#
+def bitstringtohex(x):
+    """
+    Bitstring to octetstring
+    """
+
+    start = 0
+    hexstring = ""
+    for n in range(0, len(x) / 8):
+        octet = x[start:start + 8]
+        hexstring = hexstring + chr(int(octet,2))
+        start = start + 8
+
+    return hexstring
+
+
+####################################################################################################
+# booltohex
+#
+def booltobitstring(boollist):
+    """
+    Takes as input a list of boolean values and returns the equivalent
+    string of bits.
+    """
+
+    bitstring = ""
+    for b in boollist:
+        bitstring = bitstring + str(b and 1 or 0)
+
+    return bitstring
+    
+
+####################################################################################################
+# hextobit
+#
+def hextobit(hexstring):
+    """
+    Takes as input an octetstring and returns the equivalent string of
+    bits.
+    """
+
+    bitstring = ""
+    for c in hexstring:
+        bitstring = bitstring + tobin(ord(c))
+
+    return bitstring
+
+####################################################################################################
+# hextobool
+#
+def hextobool(hexstring):
+    boollist = []
+    for byte in hexstring:
+        for value in tobool( ord(byte) ):
+            boollist.append(value)
+
+    return boollist
+
+####################################################################################################
+# computeHex
+#
+def computeOctetString(hexstring, port, action='enable'):
+    """
+    hexstring: the returnvalue of the snmpquery
+    port: the number of the port to add
+    """
+
+    # find boolean representation of hexstring
+    l = hextobool(hexstring)
+
+    # Add port to string
+    port = port - 1
+    if action == 'enable':
+        l[port] = True
+    else:
+        l[port] = False
+
+    # Make bitstring of boollist
+    bitstring = booltobitstring(l)
+    print bitstring
+
+    # Make octetstring to use in query out of bitstring
+    octetstring = bitstringtohex(bitstring)
+
+    return octetstring
