@@ -87,7 +87,7 @@ class Snmp(object):
         self.timeout = timeout
         self.reporttype = reporttype
 
-        self.handle = role.manager((host,port))
+        self.handle = role.manager()
         self.handle.timeout = float(timeout)
 
 
@@ -122,7 +122,8 @@ class Snmp(object):
         # Encode SNMP request message and try to send it to SNMP agent and
         # receive a response
         try:
-            (answer, src) = self.handle.send_and_receive(req.encode())
+            (answer, src) = self.handle.send_and_receive(
+                req.encode(), dst=(self.host, self.port))
         except role.NoResponse, e:
             raise TimeOutException(e)
         except role.NetworkError, n:
@@ -241,7 +242,8 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(req.encode())
+                (answer, src) = self.handle.send_and_receive(
+                    req.encode(), dst=(self.host, self.port))
             except role.NoResponse, e:
                 raise TimeOutException(e)
             except role.NetworkError, n:
@@ -347,7 +349,8 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(req.encode())
+                (answer, src) = self.handle.send_and_receive(
+                    req.encode(), dst=(self.host, self.port))
             except role.NoResponse, e:
                 raise TimeOutException(e)
             except role.NetworkError, n:
