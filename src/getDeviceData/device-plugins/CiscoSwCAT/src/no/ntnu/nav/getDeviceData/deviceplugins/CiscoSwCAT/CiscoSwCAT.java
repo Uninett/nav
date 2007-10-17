@@ -134,7 +134,7 @@ public class CiscoSwCAT implements DeviceHandler
 				 * this table, so we verify the existence of the ifindex before
 				 * proceeding:
 				 */
-				if (!ifIndices.containsKey(ifindex)) {
+				if (ifIndices != null && !ifIndices.containsKey(ifindex)) {
 					Log.w("PROCESS_CAT", "Ignoring non-existant ifindex " + ifindex + " from portIfIndex map");
 					continue;
 				}

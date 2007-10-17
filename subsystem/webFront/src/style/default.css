@@ -169,7 +169,7 @@ div#navbody {
 
 /* Footer section */
 div#footer {
-	clear: left;
+	clear: both;
 	font-size: 0.8em;
 	text-align: center;
 }
@@ -199,8 +199,10 @@ div#footer hr {
 div.boxes {
 	float: right;
 	width: 15em;
+	overflow: hidden;
 }
 div.boxes table {
+	background: white;
 	border-collapse: separate;
 	width: 100%;
 	margin-bottom: 1em;

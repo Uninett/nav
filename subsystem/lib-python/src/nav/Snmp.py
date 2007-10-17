@@ -87,7 +87,8 @@ class Snmp(object):
         self.timeout = timeout
         self.reporttype = reporttype
 
-        self.handle = role.manager((host,port))
+        self.handle = role.manager()
+        self.handle.timeout = float(timeout)
 
 
     def get(self,query = "1.3.6.1.2.1.1.1.0"):
@@ -121,7 +122,8 @@ class Snmp(object):
         # Encode SNMP request message and try to send it to SNMP agent and
         # receive a response
         try:
-            (answer, src) = self.handle.send_and_receive(req.encode())
+            (answer, src) = self.handle.send_and_receive(
+                req.encode(), dst=(self.host, self.port))
         except role.NoResponse, e:
             raise TimeOutException(e)
         except role.NetworkError, n:
@@ -194,8 +196,9 @@ class Snmp(object):
         # Try to send query and get response
         try:
             (answer, src) = self.handle.send_and_receive(
-                req.encode(
-                encoded_oids=encoded_oids, encoded_vals=encoded_vals))
+                req.encode(encoded_oids=encoded_oids,
+                           encoded_vals=encoded_vals),
+                dst=(self.host, self.port))
                 
             # Decode response (an octet-string) into an snmp-message
             rsp.decode(answer)
@@ -242,7 +245,8 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(req.encode())
+                (answer, src) = self.handle.send_and_receive(
+                    req.encode(), dst=(self.host, self.port))
             except role.NoResponse, e:
                 raise TimeOutException(e)
             except role.NetworkError, n:
@@ -348,7 +352,8 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(req.encode())
+                (answer, src) = self.handle.send_and_receive(
+                    req.encode(), dst=(self.host, self.port))
             except role.NoResponse, e:
                 raise TimeOutException(e)
             except role.NetworkError, n:
