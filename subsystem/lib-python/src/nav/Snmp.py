@@ -194,8 +194,9 @@ class Snmp(object):
         # Try to send query and get response
         try:
             (answer, src) = self.handle.send_and_receive(
-                req.encode(
-                encoded_oids=encoded_oids, encoded_vals=encoded_vals))
+                req.encode(encoded_oids=encoded_oids,
+                           encoded_vals=encoded_vals),
+                dst=(self.host, self.port))
                 
             # Decode response (an octet-string) into an snmp-message
             rsp.decode(answer)
