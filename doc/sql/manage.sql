@@ -393,7 +393,7 @@ UNIQUE(swportid,cablingid));
 -- Attach a trigger to arp and cam, to make sure records are closed as
 -- netboxes are deleted.
 -- The pl/pgsql scripting language must be installed on this database first.
-CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
+CREATE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
   'BEGIN
      IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
        new.end_time = current_timestamp;
