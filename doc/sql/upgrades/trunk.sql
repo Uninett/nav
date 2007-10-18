@@ -15,3 +15,8 @@
  *
 */
 
+-- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
+-- here for those who started out with clean 3.3.0 installs.
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid;
