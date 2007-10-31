@@ -361,15 +361,15 @@ def getRRDValues(dslist, valuelist, fromtime):
         logger.debug("Got %s, %s from list" %(filename, dsid))
         
         a = pres.addDs(dsid)
+
         filename = filename.replace(".rrd", "")
         #filenames.append((filename,dsid))
         filenames.append(filename)
-                
 
     pres.timeLast(fromtime)
 
     try:
-        value = pres.average()
+        value = pres.fetchAverage()
         logger.debug("Value: %s" %(str(value)))
 
     except ValueError, (errstr):
@@ -384,7 +384,7 @@ def getRRDValues(dslist, valuelist, fromtime):
         # Put value in a list
         #(filename,dsid) = filenames.pop()
         filename = filenames.pop()
-        if v == 'nan' or v == 0:
+        if v == 'nan' or v == 0 or v == '':
             skip += 1
         else:
             valuelist[filename] = v

@@ -185,7 +185,7 @@ class presentation:
                 row = list(raw [1]).index(datasource.name)
                 invalid = 0
                 data = []
-                
+
                 for i in raw[2]:
                     if type(i[row]) == type(None):
                         #                    data.append(self.none)
@@ -236,6 +236,33 @@ class presentation:
         for presentation in self.fetchValid():
             maxList.append(max(presentation['data']))
         return maxList
+
+    def fetchAverage(self):
+        """Returns the average of the valid rrd-data using rrdtool graph"""
+        rrdvalues = []
+        rrdstart = "-s %s" %self.fromTime
+        rrdend = "-e %s" %self.toTime
+
+        for datasource in self.datasources:
+            # The variablename (after def) is not important, it just needs to be the same in the DEF and PRINT. We use datasource.name.
+            rrddef = "DEF:%s=%s:%s:AVERAGE" %(datasource.name, datasource.fullPath(), datasource.name)
+            rrdprint = "PRINT:%s:AVERAGE:%%lf" %(datasource.name)
+
+            try:
+                # rrdtool.graph returns a tuple where the third element is a list of values. We fetch only one value, hence the rrdtuple[2][0]
+                rrdtuple = rrdtool.graph('/dev/null', rrdstart, rrdend, rrddef, rrdprint)
+                rrdvalue = rrdtuple[2][0]
+                # float('nan') != nan, so we store the string 'nan' instead
+                if rrdvalue == 'nan':
+                    rrdvalues.append('nan')
+                else:
+                    rrdvalues.append(float(rrdvalue))
+            except rrdtool.error, e:
+                # It is important to add something to the list to assign a value to this ds even though we failed to fetch one.
+                rrdvalues.append('')
+
+        return rrdvalues
+
 
     def min(self):
         """Returns the local minima of the valid rrd-data"""
