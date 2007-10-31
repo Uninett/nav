@@ -216,20 +216,6 @@ class presentation:
             sumList.append(sum)
         return sumList
     
-    def average(self):
-        """Returns the average of the valid rrd-data"""
-        averages = []
-        dataList = self.fetchValid()        
-        for data in dataList:
-            sum = 0
-            if not data['data']:
-                average=0
-            else:
-                sum = reduce(operator.add, data['data'])
-                average = sum / len(data['data'])
-            averages.append(average)
-        return averages    
-        
     def max(self):
         """Returns the local maxima of the valid rrd-data"""
         maxList = []
@@ -237,29 +223,39 @@ class presentation:
             maxList.append(max(presentation['data']))
         return maxList
 
-    def fetchAverage(self):
-        """Returns the average of the valid rrd-data using rrdtool graph"""
+    def average(self, onErrorReturn=0):
+        """
+        Returns the average of the valid rrd-data using rrdtool graph.
+        onErrorReturn is the value appended to the returnlist if an
+        error occured while fetching the value, default 0 (zero).
+        """
         rrdvalues = []
         rrdstart = "-s %s" %self.fromTime
         rrdend = "-e %s" %self.toTime
 
         for datasource in self.datasources:
-            # The variablename (after def) is not important, it just needs to be the same in the DEF and PRINT. We use datasource.name.
-            rrddef = "DEF:%s=%s:%s:AVERAGE" %(datasource.name, datasource.fullPath(), datasource.name)
+            # The variablename (after def) is not important, it just
+            # needs to be the same in the DEF and PRINT. We use
+            # datasource.name.
+
+            rrddef = "DEF:%s=%s:%s:AVERAGE" %(datasource.name,
+                                              datasource.fullPath(),
+                                              datasource.name)
             rrdprint = "PRINT:%s:AVERAGE:%%lf" %(datasource.name)
 
             try:
-                # rrdtool.graph returns a tuple where the third element is a list of values. We fetch only one value, hence the rrdtuple[2][0]
-                rrdtuple = rrdtool.graph('/dev/null', rrdstart, rrdend, rrddef, rrdprint)
+                # rrdtool.graph returns a tuple where the third
+                # element is a list of values. We fetch only one
+                # value, hence the rrdtuple[2][0]
+                rrdtuple = rrdtool.graph('/dev/null', rrdstart, rrdend,
+                                         rrddef, rrdprint)
                 rrdvalue = rrdtuple[2][0]
-                # float('nan') != nan, so we store the string 'nan' instead
-                if rrdvalue == 'nan':
-                    rrdvalues.append('nan')
-                else:
-                    rrdvalues.append(float(rrdvalue))
+                # This works ok with nan aswell.
+                rrdvalues.append(float(rrdvalue))
             except rrdtool.error, e:
-                # It is important to add something to the list to assign a value to this ds even though we failed to fetch one.
-                rrdvalues.append('')
+                # We failed to fetch a value. Append onErrorReturn to
+                # the list
+                rrdvalues.append(onErrorReturn)
 
         return rrdvalues
 

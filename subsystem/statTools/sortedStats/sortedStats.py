@@ -58,7 +58,8 @@ def handler(req):
 
     # Some variables
     defaultnumrows = 20
-    fromtimes = {'hour': 'Last Hour', 'day': 'Last Day', 'week': 'Last Week', 'month': 'Last Month'}
+    fromtimes = {'hour': 'Last Hour', 'day': 'Last Day', 'week': 'Last Week',
+                 'month': 'Last Month'}
     defaultfromtime = 'day'
 
     reload(SortedStatsTemplate)
@@ -123,11 +124,18 @@ def handler(req):
 
         
         # LOG
-        logger.debug ("forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, view: %s, cachetimeout: %s, modifier: %s\n" %(str(forcedview), config.get(view, 'path'), config.get(view, 'dsdescr'), fromtime, view, cachetimeout, modifier))
+        logger.debug ("forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, "
+                      "view: %s, cachetimeout: %s, modifier: %s\n"
+                      %(str(forcedview), config.get(view, 'path'),
+                        config.get(view, 'dsdescr'), fromtime, view,
+                        cachetimeout, modifier))
 
 
         # Get data
-        values, exetime, units, cachetime, cached = getData(forcedview, config.get(view, 'path'), config.get(view, 'dsdescr'), fromtime, view, cachetimeout, modifier)
+        values, exetime, units, cachetime, cached = \
+                getData(forcedview, config.get(view, 'path'),
+                        config.get(view, 'dsdescr'),
+                        fromtime, view, cachetimeout, modifier)
 
 
         # LOG
@@ -156,10 +164,6 @@ def handler(req):
         else:
             page.footer = "using live data"
 
-        # TODO: Perhaps have an option in the configfile to modify values.
-        # modifier: / 8
-        # Also manually set units which overrides units gotten from db.
-        
     else:
         page.view = ""
         page.showArr = ""
@@ -173,10 +177,8 @@ def handler(req):
 
 def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
     """
-
     Fetches data either from cache or live from rrd-files using the
     Presenter-module.
-
     """
 
     starttime = time.time()
@@ -188,8 +190,10 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
         # Check if we have data cached 
         b, valuelist, units, epoch = checkCache(view, fromtime, cachetimeout)
 
-        exetime = "%.2f" %(time.time() - starttime) # Time we used to fetch data from cache
-        cachetime = time.ctime(float(epoch)) # Time since last write of cache
+        # Time we used to fetch data from cache
+        exetime = "%.2f" %(time.time() - starttime) 
+        # Time since last write of cache
+        cachetime = time.ctime(float(epoch)) 
 
         # If b is true it means we got data from cache, else we fetch
         # live data.
@@ -219,7 +223,12 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
     totalskip = 0
 
     # Query database based on parameters in chosen section
-    finddatasources = "SELECT path, rrd_fileid, filename, rrd_datasourceid, units FROM rrd_file LEFT JOIN rrd_datasource USING (rrd_fileid) WHERE path LIKE '%%%s%%' AND netboxid IS NOT NULL AND descr ~* '%s'" %(path, dsdescr)
+    finddatasources = """
+    SELECT path, rrd_fileid, filename, rrd_datasourceid, units
+    FROM rrd_file
+    LEFT JOIN rrd_datasource USING (rrd_fileid)
+    WHERE path LIKE '%%%s%%'
+    AND netboxid IS NOT NULL AND descr ~* '%s'""" %(path, dsdescr)
     cur.execute(finddatasources)
 
 
@@ -268,7 +277,8 @@ def checkCache (view, fromtime, cachetimeout):
     try:
         f = file(filename, 'r')
 
-        # The two first lines are units and time data was stored, in epoch
+        # The two first lines are units and time data was stored, in
+        # epoch
         units = f.readline()
         epoch = f.readline()
 
@@ -318,7 +328,9 @@ def saveCache (view, fromtime, valuelist, units):
         
 
 def sortbyvalue(d):
-    """ Returns the keys of dictionary d sorted by their values """
+    """
+    Returns the keys of dictionary d sorted by their values
+    """
 
     items = d.items()
     backitems = [ (v[1], v[0]) for v in items ]
@@ -327,7 +339,9 @@ def sortbyvalue(d):
 
 
 def formatTime(seconds):
-    """ Converts seconds to a string with days, hours, minutes, seconds """
+    """
+    Converts seconds to a string with days, hours, minutes, seconds
+    """
 
     seconds = int(float(seconds))
 
@@ -335,7 +349,6 @@ def formatTime(seconds):
     hours,seconds = divmod(seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
 
-    #timestring = "%s days, %s hours, %s minutes, %s seconds" %(days, hours, minutes, seconds)
     timestring = "%s:%s:%s" %(hours, minutes, seconds)
 
     return timestring
@@ -354,7 +367,8 @@ def getRRDValues(dslist, valuelist, fromtime):
     logger.debug("dslist: %s\n" %str(dslist))
 
 
-    # Foreach datasource in the dslist, add it to the presenter list. This way we fetch the values from all datasources at once.
+    # Foreach datasource in the dslist, add it to the presenter
+    # list. This way we fetch the values from all datasources at once.
     for slicepart in dslist:
         (filename, dsid) = slicepart
             
@@ -369,7 +383,7 @@ def getRRDValues(dslist, valuelist, fromtime):
     pres.timeLast(fromtime)
 
     try:
-        value = pres.fetchAverage()
+        value = pres.average()
         logger.debug("Value: %s" %(str(value)))
 
     except ValueError, (errstr):
@@ -377,7 +391,8 @@ def getRRDValues(dslist, valuelist, fromtime):
         return
 
 
-    # Reverse filenames-list so that we can pop the list (in stead of shift)
+    # Reverse filenames-list so that we can pop the list (in stead of
+    # shift)
     filenames.reverse()
     
     for v in value:
