@@ -1,4 +1,5 @@
 
+
 """
 Provides helpfunctions for Arnold web and script
 """
@@ -14,6 +15,7 @@ from nav.errors import GeneralException
 import email.Message
 import email.Header
 import email.Charset
+import nav.bitvector
 
 class ChangePortStatusError(GeneralException):
     "An error occured when changing portadminstatus"
@@ -149,7 +151,7 @@ def findIdInformation(id, limit):
         try:
             c.execute(query, (id, limit))
         except Exception, e:
-            print "Error when executing \"%s\" query %s" %(type, e)
+            raise DbError, e
             return 1
 
         if c.rowcount > 0:
@@ -673,7 +675,7 @@ def changePortVlan(ip, ifindex, vlan):
     # return vlan 1 as accessvlan when queried. We must therefore
     # check if the fromvlan is 1. If it is we raise an error.
 
-    if fromvlan == 1:
+    if fromvlan == 1 and vendorid != 'cisco':
         raise ChangePortVlanError, "This port is (probably) a trunk"
 
     # Set to inputvlan. This will fail if the vlan does not exist on
@@ -705,7 +707,6 @@ def changePortVlan(ip, ifindex, vlan):
             raise ChangePortVlanError, why
 
         # Create new octetstring and set it
-        # TODO: Use bitvector in this function
         newhexports = computeOctetString(hexports, ifindex, 'disable')
 
         try:
@@ -897,106 +898,21 @@ def checkNonBlock(ip):
 
 
 ####################################################################################################
-# tobin
-#
-def tobool(n, count=8):
-    """
-    Integer to binary. Count is number of bits.
-
-    We need a function to convert the hexstring returned to binary
-    http://tools.cisco.com/Support/SNMP/do/BrowseOID.do?local=en&translate=Translate&typeName=PortList
-    """
-
-    return [bool((n >> y) & 1) for y in range(count-1, -1, -1)]
-
-
-def tobin(n, count=8):
-    return "".join([str((n >> y) & 1) for y in range(count-1, -1, -1)])
-
-####################################################################################################
-# tohex
-#
-def bitstringtohex(x):
-    """
-    Bitstring to octetstring
-    """
-
-    start = 0
-    hexstring = ""
-    for n in range(0, len(x) / 8):
-        octet = x[start:start + 8]
-        hexstring = hexstring + chr(int(octet,2))
-        start = start + 8
-
-    return hexstring
-
-
-####################################################################################################
-# booltohex
-#
-def booltobitstring(boollist):
-    """
-    Takes as input a list of boolean values and returns the equivalent
-    string of bits.
-    """
-
-    bitstring = ""
-    for b in boollist:
-        bitstring = bitstring + str(b and 1 or 0)
-
-    return bitstring
-    
-
-####################################################################################################
-# hextobit
-#
-def hextobit(hexstring):
-    """
-    Takes as input an octetstring and returns the equivalent string of
-    bits.
-    """
-
-    bitstring = ""
-    for c in hexstring:
-        bitstring = bitstring + tobin(ord(c))
-
-    return bitstring
-
-####################################################################################################
-# hextobool
-#
-def hextobool(hexstring):
-    boollist = []
-    for byte in hexstring:
-        for value in tobool( ord(byte) ):
-            boollist.append(value)
-
-    return boollist
-
-####################################################################################################
-# computeHex
+# computeOctetString
 #
 def computeOctetString(hexstring, port, action='enable'):
     """
     hexstring: the returnvalue of the snmpquery
     port: the number of the port to add
     """
-
-    # find boolean representation of hexstring
-    l = hextobool(hexstring)
+    
+    bit = nav.bitvector.BitVector(hexstring)
 
     # Add port to string
     port = port - 1
     if action == 'enable':
-        l[port] = True
+        bit[port] = 1
     else:
-        l[port] = False
-
-    # Make bitstring of boollist
-    bitstring = booltobitstring(l)
-    print bitstring
-
-    # Make octetstring to use in query out of bitstring
-    octetstring = bitstringtohex(bitstring)
-
-    return octetstring
+        bit[port] = 0
+        
+    return str(bit)

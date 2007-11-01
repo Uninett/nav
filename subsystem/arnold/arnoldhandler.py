@@ -46,12 +46,13 @@ config.read(configfile)
 
 dbname = config.get('arnold','database')
 
-
+global manage, conn
 # Connect to manage-database
 manage = nav.db.getConnection('default')
 # Connect to arnold-database
 conn = db.getConnection('arnold', dbname);
 
+    
 
 ############################################################
 def handler(req):
@@ -155,7 +156,11 @@ def handler(req):
         ip = args.get('ipadresse')
 
         # Use modulefunction to get info about id
-        info = nav.arnold.findIdInformation(ip, 3)
+        try:
+            info = nav.arnold.findIdInformation(ip, 3)
+        except (nav.arnold.UnknownTypeError, nav.arnold.NoDatabaseInformationError), e:
+            redirect(req, 'manualblock?output=%s' %e)
+
         page.arg = args.args
         page.candidates = info
 
@@ -297,6 +302,8 @@ def printHistory(cur, page, sort, section, days):
     Get history information based on input.
     """
 
+    reconnect()
+
     page.headersList = ['ip','dns','mac','netbios','orgid','status','reason','lastchanged','details']
     page.headers = { 'ip': 'Ip', 'dns':'Dns', 'mac':'Mac','netbios':'Netbios', 'orgid':'Orgid', 'status':'Status' ,'reason':'Reason', 'lastchanged':'Lastchanged', 'details':'&nbsp;', '':''}
 
@@ -331,6 +338,8 @@ def printHistory(cur, page, sort, section, days):
 
 ############################################################
 def printBlocked(cur, page, sort, section):
+
+    #reconnect()
 
     page.headersList = ['ip','dns','netbios','orgid','reason','sysname','lastchanged','activate','details']
     page.headers = { 'ip': 'Ip', 'dns':'Dns', 'netbios':'Netbios', 'orgid':'Orgid','reason':'Reason', 'sysname':'Switch', 'lastchanged':'Lastchanged', 'activate':'&nbsp;', 'details':'&nbsp;'}
@@ -373,6 +382,9 @@ def printBlocked(cur, page, sort, section):
 
 ############################################################
 def printSearch(cur, page, searchfield, searchtext, status, days):
+
+    reconnect()
+    
     searchfields = ['IP','MAC','Netbios','dns','Orgid']
     page.statusfields = ['disabled','enabled','both']
     page.searchfields = searchfields
@@ -444,6 +456,9 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
 
 ############################################################
 def printBlocks(cur, page, sort, section):
+
+    reconnect()
+    
     page.headersList = ['blockid', 'blocktitle', 'blockdesc', 'active', 'edit']
     page.headers = {'blockid': 'ID', 'blocktitle': 'Title', 'blockdesc': 'Description', 'active': 'Active', 'edit':'&nbsp;'}
 
@@ -467,6 +482,9 @@ def printBlocks(cur, page, sort, section):
 
 ############################################################
 def showDetails (cur, page, section, id):
+
+    reconnect()
+    
     page.headersList = ['ip', 'dns', 'netbios', 'mac', 'sysname', 'modport', 'status', 'autoenable', 'mail']
     page.headers = {'ip':'Ip', 'dns':'Dns', 'netbios':'Netbios', 'mac':'Mac', 'sysname':'Switch', 'modport':'Port', 'status':'Status', 'autoenable':'Autoenable', 'mail':'Mail'}
 
@@ -531,6 +549,8 @@ def showDetails (cur, page, section, id):
 ############################################################
 def printBlockreasons(cur, page,section):
 
+    reconnect()
+
     page.blockreasonheadersList = ['name', 'comment']
     page.blockreasonheaders = {'name':'Reason', 'comment': 'Comment'}
 
@@ -546,6 +566,8 @@ def printBlockreasons(cur, page,section):
 ############################################################
 def printManualblock(cur,page,sort,section):
 
+    reconnect()
+
     cur.execute("SELECT blocked_reasonid AS id, name FROM blocked_reason ORDER BY name");
     page.reasons = cur.dictfetchall()
 
@@ -553,6 +575,8 @@ def printManualblock(cur,page,sort,section):
 
 ############################################################
 def printAddblocktype (cur, page, id):
+
+    reconnect()
 
     cur.execute("SELECT blocked_reasonid AS id, name FROM blocked_reason ORDER BY name");
     page.blockreasons = cur.dictfetchall()
@@ -572,3 +596,15 @@ def printAddblocktype (cur, page, id):
 def redirect(req, url):
     req.headers_out.add("Location", url)
     raise apache.SERVER_RETURN, apache.HTTP_MOVED_TEMPORARILY
+
+
+############################################################
+# Connect to both databases
+def reconnect():
+    global manage, conn
+    
+    # Connect to manage-database
+    manage = nav.db.getConnection('default')
+    # Connect to arnold-database
+    conn = db.getConnection('arnold', dbname);
+ 
