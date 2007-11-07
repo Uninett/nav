@@ -62,7 +62,7 @@ class Value(html.Text):
 class TableView(html.SimpleTable):
     def __init__(self, *headers, **kwargs):
         html.SimpleTable.__init__(self, header=None)
-        self['class'] = "tableView"
+        self['class'] = 'listtable'
         self.headers = headers
         self._width = len(headers)
         self.__kwargs = kwargs

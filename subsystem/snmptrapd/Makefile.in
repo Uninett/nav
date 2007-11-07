@@ -10,7 +10,7 @@ sysconfdir = @sysconfdir@
 initdir = @initdir@
 pythonlibdir = @pythonlibdir@
 
-libfiles = nav/snmptrapd/handlers/airespace.py nav/snmptrapd/handlers/linkupdown.py nav/snmptrapd/handlers/__init__.py nav/snmptrapd/handlers/handlertemplate.py
+libfiles = nav/snmptrapd/__init__.py nav/snmptrapd/handlers/airespace.py nav/snmptrapd/handlers/linkupdown.py nav/snmptrapd/handlers/__init__.py nav/snmptrapd/handlers/handlertemplate.py
 binfiles = snmptrapd.py
 conffiles = snmptrapd.conf
 initfiles = snmptrapd

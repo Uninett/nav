@@ -1,3 +1,19 @@
+Version 3.3.1
+(released XX November 2007)
+
+ Bugfixes:
+
+  * SF#1550393 (HW/SW/FW versions flipping back and forth on devices)
+  * SF#1811548 (Wrong results in port activity view in IP Device Center)
+  * SF#1812189 (NAV says no cam table support for many switches)
+  * SF#1815618 (ERROR: relation "arp" does not exist in manage.sql)
+  * SF#1815756 (Service status matrix has become cluttered in NAV 3.3.0)
+  * SF#1822583 (Crazy numbers in ranked statistics)
+  * SF#1822650 (snmptrapd is unable to load any handler modules)
+  * SF#1822651 (snmptrapd loads plugins only when traps are received)
+  * SF#1822731 (snmptrapd fails with a TypeError)
+  * SF#1822760 (Browsing service details fails with PostgreSQL >= 8.2)
+
 Version 3.3.0
 (released 01 October 2007)
 

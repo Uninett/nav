@@ -319,6 +319,9 @@ public class OidTester
 					 */
 					if (!"BRIDGE-MIB".equals(snmpoid.getMib()))
 						break;
+					else if (atVlan.size() > 1) {
+						Log.d("OID_TESTER", "No response from BRIDGE-MIB oid " + snmpoid.getOidkey() + ", will now test up to " + (atVlan.size()-1) + " vlan(s)");
+					}
 				}
 
 				if (!supported) {

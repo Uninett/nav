@@ -431,22 +431,10 @@ public class CiscoModule implements DeviceHandler
 				NetboxData nd = nc.netboxDataFactory(nb);
 				if (nd.getSerial() == null && physSerial != null && physSerial.containsKey(id)) nd.setSerial((String)physSerial.get(id));
 				if (physHwVer != null && physHwVer.containsKey(id)) {
-					nd.setHwVer((String)physHwVer.get(id));
-					Log.d("CMOD_PHYSOID", "Set HwVer for chassis to " + (String)physHwVer.get(id));
-					/* 
-					 * Adjust module hwver if chassis is also a module.  
-					 * A Cisco bug causes different HwVers in OLD-CISCO-CHASSIS-MIB and ENTITY-MIB for the same device.
-					 * A getDeviceData design problem makes it possible to have a netbox instance and a module instance that both
-					 * represent the same physical device, and we don't want to set different HwVers for these, as it causes 
-					 * deviceHwVerChanged alert storms.
-					 */
-					for (Iterator modIt = mc.getModules(); modIt.hasNext();) {
-						Module m = (Module) modIt.next();
-						if (m.getDeviceid() == nd.getDeviceid()) {
-							m.setHwVer((String)physHwVer.get(id));
-							Log.d("CMOD_PHYSOID", "Module " + m.getModule() + " is the chassis, also setting HwVer for this to " + (String)physHwVer.get(id));							
-							break; // there can only be one module=chassis!
-						}
+					String version = (String)physHwVer.get(id);
+					if (version.length() > 0 && !"N/A".equals(version.toUpperCase())) {
+						nd.setHwVer(version);
+						Log.d("CMOD_PHYSOID", "Set HwVer for chassis to " + version);
 					}
 				}
 				if (physFwVer != null && physFwVer.containsKey(id)) nd.setFwVer((String)physFwVer.get(id));
@@ -494,6 +482,28 @@ public class CiscoModule implements DeviceHandler
 			}				
 		}
 
+		/**
+		 * Iterate the list of known modules to find a module that may
+		 * represent the same device as the netbox (chassis) itself.
+		 * If such a module exists, we set its Fw/Hw/Sw versions equal to
+		 * those of the chassis, as many Cisco devices report inconsistent
+		 * version numbers across different MIBs.  We only do this because
+		 * of a gDD design error which enables the coexistance of multiple 
+		 * objects representing the same device in a single gDD process.
+		 */
+		for (Iterator it = mc.getModules(); it.hasNext();) {
+			Module module = (Module) it.next();
+			NetboxData netbox = nc.netboxDataFactory(nb);
+			if (module.getSerial() != null && netbox.getSerial() != null && module.getSerial().equals(netbox.getSerial())) {
+				Log.d("CMOD_CLEANUP", "Module " + module.getModule() + " equals the chassis, setting versions equal to chassis");
+				module.setFwVer(netbox.getFwVer());
+				module.setHwVer(netbox.getHwVer());
+				module.setSwVer(netbox.getSwVer());
+				// No more than one module can equal the chassis, so we get out here
+				break;
+			}
+		}
+		
 		Set moduleSet = mc.getModuleSet();
 		if (!moduleSet.isEmpty()) {
 			for (Iterator it = moduleSet.iterator(); it.hasNext();) {

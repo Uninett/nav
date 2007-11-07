@@ -99,11 +99,6 @@ CREATE TABLE prefix (
 );
 CREATE INDEX prefix_vlanid_btree ON prefix USING btree (vlanid);
 
--- Rule to automatically close arp entries related to a given prefix
-CREATE RULE close_arp_prefices AS ON DELETE TO prefix
-  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
-     WHERE prefixid=OLD.prefixid;
-
 CREATE TABLE vendor (
   vendorid VARCHAR(15) PRIMARY KEY
 );
@@ -422,6 +417,11 @@ CREATE INDEX arp_ip_btree ON arp USING btree (ip);
 CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
 CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
+
+-- Rule to automatically close arp entries related to a given prefix
+CREATE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid;
 
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
