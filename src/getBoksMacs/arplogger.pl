@@ -134,8 +134,14 @@ while (@arguments)
  
    %arptable_new = ();
 
-    $session->map_table ([$OIDS{'ipNetToMediaPhysAddress'}],
-			 \&process_arp_entry);
+    eval {
+	$session->map_table ([$OIDS{'ipNetToMediaPhysAddress'}],
+			     \&process_arp_entry);
+    } or do {
+	# The router did not respond, we move on to the next one
+	$session->close ();
+	next;
+    };
     $session->close ();
 
     # Avslutter records som ikke ble funnet på ruter denne runden.
