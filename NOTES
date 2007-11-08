@@ -25,6 +25,20 @@ these into NAV events which can also be subscribed to.
 For further snmptrapd docs, see subsystem/snmptrapd/README .
 
 
+Upgrading from NAV 3.3.0
+========================
+
+A bug that was fixed in this version (SF#1812189 NAV says no cam table support
+for many switches) caused NAV not to collect machine tracker data for many
+Cisco switches.  getDeviceData needs to recreate the OID profile of all
+switches to make sure they will have their cam tables collected.
+
+To ensure that this happens, please run the snmpoid.sql script, located in
+doc/sql/, again.  Although re-running snmpoid.sql is standard procedure on NAV
+upgrades, we mention it explicitly here because of this serious bug.  See
+doc/sql/README for more info on running SQL scripts.
+
+
 Upgrading from NAV 3.2.2
 ========================
 
