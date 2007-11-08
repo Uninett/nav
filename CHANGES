@@ -13,6 +13,7 @@ Version 3.3.1
   * SF#1822651 (snmptrapd loads plugins only when traps are received)
   * SF#1822731 (snmptrapd fails with a TypeError)
   * SF#1822760 (Browsing service details fails with PostgreSQL >= 8.2)
+  * SF#1828136 (arplogger closes all arp records from non-responsive routers)
 
 Version 3.3.0
 (released 01 October 2007)
