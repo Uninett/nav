@@ -1,12 +1,11 @@
-
-
 """
 Provides helpfunctions for Arnold web and script
 """
 import nav.Snmp
-import re, os
+import re, os, sys
 import nav.buildconf
 import ConfigParser
+import logging
 from IPy import IP
 from socket import gethostbyaddr
 from nav.db import getConnection
@@ -16,6 +15,7 @@ import email.Message
 import email.Header
 import email.Charset
 import nav.bitvector
+
 
 class ChangePortStatusError(GeneralException):
     "An error occured when changing portadminstatus"
@@ -65,13 +65,16 @@ class FileError(GeneralException):
     "Fileerror"
     pass
 
-
 # Config-file
 configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 config = ConfigParser.ConfigParser()
 config.read(configfile)
 
 dbname = config.get('arnold','database')
+
+
+logger = logging.getLogger("nav.arnold")
+    
 
 def parseNonblockFile(file):
     """
@@ -116,7 +119,8 @@ except FileError, why:
     raise FileError
 
 
-###################################################################################################
+
+################################################################################
 # findIdInformation
 #
 def findIdInformation(id, limit):
@@ -139,8 +143,10 @@ def findIdInformation(id, limit):
 
         c = conn.cursor()
 
-        # Based on type, use the correct query to find information in the database about id and the switch
-        query = """SELECT DISTINCT ON (cam.end_time, cam.netboxid, module, port) *, cam.end_time as endtime FROM arp RIGHT JOIN cam USING (mac)
+        # Based on type, use the correct query to find information in
+        # the database about id and the switch
+        query = """SELECT DISTINCT ON (cam.end_time, cam.netboxid, module, port)
+        *, cam.end_time as endtime FROM arp RIGHT JOIN cam USING (mac)
         WHERE %s=%%s
         AND module IS NOT NULL
         AND port IS NOT NULL
@@ -151,8 +157,8 @@ def findIdInformation(id, limit):
         try:
             c.execute(query, (id, limit))
         except Exception, e:
+            logger.error('findIDInformation: Error in query %s' %(query, e))
             raise DbError, e
-            return 1
 
         if c.rowcount > 0:
             result = c.dictfetchall()
@@ -178,7 +184,7 @@ def findIdInformation(id, limit):
     return result
 
 
-###################################################################################################
+################################################################################
 # findSwportinfo
 #
 def findSwportinfo(netboxid, ifindex, module, port):
@@ -205,8 +211,8 @@ def findSwportinfo(netboxid, ifindex, module, port):
 
         c.execute(query, (netboxid, ifindex, module, port))
     except Exception, e:
-        print "Error when executing query \"%s\": %s" %(query, e)
-        return 1
+        logger.error("findSwportinfo: Error in query %s: %s" %(query, e))
+        raise DbError, e
 
     if c.rowcount > 0:
         result = c.dictfetchone()
@@ -219,7 +225,7 @@ def findSwportinfo(netboxid, ifindex, module, port):
     return 1
 
 
-###################################################################################################
+################################################################################
 # findSwportIDinfo
 #
 def findSwportIDinfo(swportid):
@@ -243,6 +249,7 @@ def findSwportIDinfo(swportid):
     try:
         c.execute(swquery, (swportid,))
     except nav.db.driver.ProgrammingError, why:
+        logger.error("findSwportIDinfo: Error in query %s, %s" %(swquery, why))
         raise DbError, why
 
     if c.rowcount > 0:
@@ -254,7 +261,7 @@ def findSwportIDinfo(swportid):
 
 
 
-###################################################################################################
+################################################################################
 # findInputType
 #
 def findInputType (input):
@@ -275,7 +282,7 @@ def findInputType (input):
     return ("UNKNOWN",input)
 
 
-###################################################################################################
+################################################################################
 # blockPort
 #
 def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username):
@@ -285,6 +292,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     arnolddb = getConnection('default', dbname)
     c = arnolddb.cursor()
 
+    logger.info("blockPort: Trying to block %s" %id['ip'])
+
     # Check if this id is in the nonblocklist
     if checkNonBlock(id['ip']):
         raise InExceptionListError
@@ -292,6 +301,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
 
     if sw['catid'] not in allowtypes:
+        logger.info("blockPort: Not allowed to block on %s" %sw['catid'])
         raise WrongCatidError, sw['catid']
         
     
@@ -321,6 +331,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     try:
         c.execute(query, (sw['swportid'], id['mac']))
     except nav.db.driver.ProgrammingError, why:
+        logger.error("blockPort: Error in sql: %s, %s" %(query, why))
         raise DbError, why
 
     res = c.dictfetchone()
@@ -328,6 +339,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
     # if yes and active: do nothing, raise AlreadyBlockedError
     if c.rowcount > 0 and res['blocked_status'] == 'disabled':
+        logger.info("blockPort: This port is already blocked")
         raise AlreadyBlockedError
 
 
@@ -335,11 +347,13 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         ######################################################
         # block port, update identity, create new event
 
-        print "Found existing row, updating."
+        logger.info("blockPort: This port has been blocked before, updating")
 
         try:
-            changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'], sw['module'], sw['port'], sw['ifindex'])
-        except ChangePortStatusError:
+            changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
+                             sw['module'], sw['port'], sw['ifindex'])
+        except ChangePortStatusError, e:
+            logger.error("blockPort: Error when changing portstatus: %s" %e)
             raise ChangePortStatusError
 
 
@@ -360,18 +374,21 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         WHERE identityid = %%s
         """ %autoenable
 
-        arglist = ['disabled', reason, sw['swportid'], id['ip'], id['mac'], dns, netbios, autoenablestep, "", determined, res['identityid']]
+        arglist=['disabled', reason, sw['swportid'], id['ip'], id['mac'], dns, \
+                 netbios, autoenablestep, "", determined, res['identityid']]
 
         doQuery(dbname, query, arglist)
 
 
         # Create new event
         query = """INSERT INTO event
-        (identityid, event_comment, blocked_status, blocked_reasonid, eventtime, autoenablestep, username)
+        (identityid, event_comment, blocked_status, blocked_reasonid,
+        eventtime, autoenablestep, username)
         VALUES (%s, %s, %s, %s, now(), %s, %s)
         """
 
-        arglist = [res['identityid'], comment, 'disabled' , reason, autoenablestep, username]
+        arglist = [res['identityid'], comment, 'disabled' , reason, \
+                   autoenablestep, username]
 
         doQuery(dbname, query, arglist)
 
@@ -380,11 +397,13 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         #########################################################
         # block port, create identity, create first event
 
-        print "No existing row found, inserting"
-
+        logger.info("blockPort: Not blocked before, creating new identity")
+        
         try:
-            changePortStatus('disable', id['ip'], sw['vendorid'], sw['rw'], sw['module'], sw['port'], sw['ifindex'])
+            changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
+                             sw['module'], sw['port'], sw['ifindex'])
         except ChangePortStatusError:
+            logger.error("blockPort: Error when changing portstatus: %s" %e)
             raise ChangePortStatusError
 
 
@@ -401,30 +420,37 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         # Create new identitytuple
         query = """
         INSERT INTO identity
-        (identityid, blocked_status, blocked_reasonid, swportid, ip, mac, dns, netbios, starttime, lastchanged, autoenable, autoenablestep, mail, determined)
-        VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(), %s, %%s, %%s, %%s)
+        (identityid, blocked_status, blocked_reasonid, swportid, ip, mac, dns,
+        netbios, starttime, lastchanged, autoenable, autoenablestep, mail,
+        determined)
+        VALUES
+        (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s,now(),now(), %s, %%s, %%s, %%s)
         """ %autoenable
 
-        arglist = [nextval, 'disabled', reason, sw['swportid'], id['ip'], id['mac'], dns, netbios, autoenablestep, "", determined]
+        arglist = [nextval, 'disabled', reason, sw['swportid'], id['ip'], \
+                   id['mac'], dns, netbios, autoenablestep, "", determined]
 
-        print arglist
 
         doQuery(dbname, query, arglist)
 
 
         # CReate new event-tuple
         query = """INSERT INTO event
-        (identityid, event_comment, blocked_status, blocked_reasonid, eventtime, autoenablestep, username)
+        (identityid, event_comment, blocked_status, blocked_reasonid,
+        eventtime, autoenablestep, username)
         VALUES (%s, %s, %s, %s, now(), %s, %s)
         """
     
-        arglist = [nextval, comment, 'disabled' , reason, autoenablestep, username]
+        arglist = [nextval, comment, 'disabled' , reason, \
+                   autoenablestep, username]
 
         doQuery(dbname, query, arglist)
 
+    logger.info("Successfully blocked %s" %id['ip'])
+
         
 
-###################################################################################################
+################################################################################
 # openPort
 #
 def openPort(id, username, eventcomment=""):
@@ -435,6 +461,8 @@ def openPort(id, username, eventcomment=""):
     this normally means that the port is enabled, we enable the port
     in the arnold-database.
     """
+
+    logger.info("openPort: Trying to open blocked port with id %s" %id)
 
     # Connect to database
     conn = getConnection('default')
@@ -467,12 +495,15 @@ def openPort(id, username, eventcomment=""):
 
         # Enable port based on information gathered
         try:
-            changePortStatus('enable', row['ip'], row['vendorid'], row['rw'], row['module'], row['port'], row['ifindex'])
+            changePortStatus('enable', row['ip'], row['vendorid'], row['rw'],
+                             row['module'], row['port'], row['ifindex'])
         except ChangePortStatusError, why:
+            logger.error("openPort: Error when changing portstatus: %s" %why)
             raise ChangePortStatusError
     else:
         # If port was not found, reflect this in event-comment
-        eventcomment = "Port was not found because switch/module replaced. Port enabled in database only."
+        eventcomment = """Port was not found because switch/module
+        replaced. Port enabled in database only."""
         
 
     # Update identity-table
@@ -503,9 +534,11 @@ def openPort(id, username, eventcomment=""):
     if cmanage.rowcount <= 0:
         raise NoDatabaseInformationError, id
 
+    logger.info("openPort: Port successfully opened")
 
 
-###################################################################################################
+
+################################################################################
 # changePortStatus
 #
 def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
@@ -513,6 +546,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
     Use SNMP to disable a interface.
     - Action must be 'enable' or 'disable'.
     - Community must be read/write community
+    - IP is the ip of the switch to change portstatus on
 
     Todo: Remove vendorid, community, module, port and fetch that from database
     """
@@ -537,7 +571,8 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
 
     query = oid + '.' + str(ifindex)
 
-    #print "vendor: %s, ro: %s, ifindex: %s" %(vendorid, community, ifindex)
+    logger.debug("vendor: %s, ro: %s, ifindex: %s"
+                 %(vendorid, community, ifindex))
 
     # Create snmp-object
     s = nav.Snmp.Snmp(ip,community)
@@ -546,18 +581,21 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
     # Disable or enable based on input
     try:
         if action == 'disable':
+            logger.info("Disabling ifindex %s on %s with %s" %(ifindex, ip, query))
             #s.set(query, 'i', 2)
             pass
         elif action == 'enable':
+            logger.info("Enabling ifindex %s on %s with %s" %(ifindex, ip, query))
             #s.set(query, 'i', 1)
             pass
         
     except nav.Snmp.AgentError, why:
+        logger.error("Error when executing snmpquery: %s" %why)
         raise ChangePortStatusError, why
 
 
 
-###################################################################################################
+################################################################################
 # changePortVlan
 #
 def changePortVlan(ip, ifindex, vlan):
@@ -597,7 +635,8 @@ def changePortVlan(ip, ifindex, vlan):
 
     # oid for getting and setting vlan
     # CISCO
-    # cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
+    # cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.
+    # vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
     if vendorid == 'cisco':
 
         oid = "1.3.6.1.4.1.9.9.68.1.2.2.1.2"
@@ -700,7 +739,8 @@ def changePortVlan(ip, ifindex, vlan):
 
     if vendorid == 'hp':
         # Fetch dot1qVlanStaticEgressPorts
-        dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + str(fromvlan)
+        dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + \
+                                     str(fromvlan)
         try:
             hexports = snmpget.get(dot1qVlanStaticEgressPorts)
         except nav.Snmp.NoSuchObjectError, why:
@@ -718,7 +758,7 @@ def changePortVlan(ip, ifindex, vlan):
 
 
 
-###################################################################################################
+################################################################################
 # toggleSwportStatus
 #
 def changeSwportStatus(action, swportid):
@@ -748,13 +788,14 @@ def changeSwportStatus(action, swportid):
     row = c.dictfetchone()
 
     try:
-        changePortStatus(action, row['ip'], row['vendorid'], row['rw'], row['module'], row['port'])
+        changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
+                         row['module'], row['port'])
     except ChangePortStatusError:
         raise ChangePortStatusError
 
 
 
-###################################################################################################
+################################################################################
 # sendmail
 #
 def sendmail(fromaddr, toaddr, subject, msg):
@@ -794,10 +835,10 @@ def sendmail(fromaddr, toaddr, subject, msg):
 
     exitcode = p.close()
     if exitcode:
-        print "Exit code: %s" % exitcode
+        logger.info("Exit code: %s" % exitcode)
 
 
-###################################################################################################
+################################################################################
 # addReason
 #
 def addReason(name, comment):
@@ -807,12 +848,15 @@ def addReason(name, comment):
     doQuery(dbname, query, (name, comment))
 
 
-###################################################################################################
+################################################################################
 # getReason
 #
 
 def getReasons():
-    """Returns a dict with the reasons for blocking currently in the database"""
+    """
+    Returns a dict with the reasons for blocking currently in the
+    database
+    """
 
     conn = nav.db.getConnection('default', dbname)
     c = conn.cursor()
@@ -826,7 +870,7 @@ def getReasons():
     return c.dictfetchall()
 
 
-###################################################################################################
+################################################################################
 # getHostName
 #
 def getHostName(ip):
@@ -844,7 +888,7 @@ def getHostName(ip):
     return hostname
     
 
-###################################################################################################
+################################################################################
 # doQuery
 #
 def doQuery(database, query, args):
@@ -863,12 +907,13 @@ def doQuery(database, query, args):
         conn.commit()
     except nav.db.driver.ProgrammingError, why:
         conn.rollback()
+        logger.error("doQuery: Error in sql %s: %s" %(query, why))
         raise DbError, why
 
     # Return oid of insert
     return c.lastrowid
 
-###################################################################################################
+################################################################################
 # checkNonBlock
 #
 def checkNonBlock(ip):
@@ -897,7 +942,7 @@ def checkNonBlock(ip):
     return 0
 
 
-####################################################################################################
+################################################################################
 # computeOctetString
 #
 def computeOctetString(hexstring, port, action='enable'):

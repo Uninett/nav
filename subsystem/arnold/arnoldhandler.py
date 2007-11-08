@@ -321,7 +321,7 @@ def printHistory(cur, page, sort, section, days):
         name AS reason, starttime,  blocked_status AS status,
         to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') as lastchanged, swportid
         FROM identity LEFT JOIN blocked_reason USING (blocked_reasonid)
-        WHERE lastchanged > current_date - interval '%s'  ORDER BY %s
+        WHERE lastchanged > current_date - interval '%s days'  ORDER BY %s
         """ %(days, sort)
         cur.execute(query)
         list = cur.dictfetchall()
@@ -339,7 +339,7 @@ def printHistory(cur, page, sort, section, days):
 ############################################################
 def printBlocked(cur, page, sort, section):
 
-    #reconnect()
+    reconnect()
 
     page.headersList = ['ip','dns','netbios','orgid','reason','sysname','lastchanged','activate','details']
     page.headers = { 'ip': 'Ip', 'dns':'Dns', 'netbios':'Netbios', 'orgid':'Orgid','reason':'Reason', 'sysname':'Switch', 'lastchanged':'Lastchanged', 'activate':'&nbsp;', 'details':'&nbsp;'}
@@ -362,7 +362,7 @@ def printBlocked(cur, page, sort, section):
 
     for item in list:
         item['lastchanged'] = item['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
-        item['activate'] = "<a href='arnold/doenable?id=" + str(item['identityid']) + "'>Activate port</a>"
+        item['activate'] = "<a href='doenable?id=" + str(item['identityid']) + "'>Activate port</a>"
         item['details'] = "<a href='showdetails?id=" + str(item['identityid']) +"'>Details</a>"
         
         managequery = """SELECT sysname, module, port FROM netbox LEFT

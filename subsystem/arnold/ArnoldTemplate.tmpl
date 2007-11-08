@@ -162,7 +162,7 @@ $printMenu($buttons, $buttonnames, $action)
             <th>
         #if $sort and $action == 'history'
                 <a href="$section?sort=$entry&days=$days" class="navbar" title="">$headers[$entry]</a>
-        #elif $sort
+        #elif $sort and $entry != 'sysname'
                 <a href="$section?sort=$entry" class="navbar" title="">$headers[$entry]</a>
         #else
                 $headers[$entry]
@@ -431,13 +431,8 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
     </tr>
 
     <tr>
-        <th>Path to mailfile *</th>
+        <th>Path to mailfile</th>
         <td><input type="text" name="mailfile" value="$blockinfo['mailfile']" /></td>
-    </tr>
-
-    <tr>
-        <th>Path to inputfile</th>
-        <td><input type="text" name="inputfile" value="$blockinfo['inputfile']" /></td>
     </tr>
 
     <tr>
