@@ -15,7 +15,7 @@ import email.Message
 import email.Header
 import email.Charset
 import nav.bitvector
-
+import commands
 
 class ChangePortStatusError(GeneralException):
     "An error occured when changing portadminstatus"
@@ -120,7 +120,7 @@ except FileError, why:
 
 
 
-################################################################################
+###############################################################################
 # findIdInformation
 #
 def findIdInformation(id, limit):
@@ -184,7 +184,7 @@ def findIdInformation(id, limit):
     return result
 
 
-################################################################################
+###############################################################################
 # findSwportinfo
 #
 def findSwportinfo(netboxid, ifindex, module, port):
@@ -207,7 +207,7 @@ def findSwportinfo(netboxid, ifindex, module, port):
         WHERE netboxid=%s
         AND ifindex=%s
         AND module=%s
-        AND port=%s"""
+        AND interface=%s"""
 
         c.execute(query, (netboxid, ifindex, module, port))
     except Exception, e:
@@ -225,7 +225,7 @@ def findSwportinfo(netboxid, ifindex, module, port):
     return 1
 
 
-################################################################################
+###############################################################################
 # findSwportIDinfo
 #
 def findSwportIDinfo(swportid):
@@ -261,7 +261,7 @@ def findSwportIDinfo(swportid):
 
 
 
-################################################################################
+###############################################################################
 # findInputType
 #
 def findInputType (input):
@@ -282,7 +282,7 @@ def findInputType (input):
     return ("UNKNOWN",input)
 
 
-################################################################################
+###############################################################################
 # blockPort
 #
 def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username):
@@ -307,7 +307,10 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     
     # Find dns and netbios
     dns = getHostName(id['ip'])
-    netbios = ""
+    # This is so slow...bu!
+    netbios = getNetbios(id['ip'])
+    if netbios == 1:
+        netbios = ""
 
     # autoenablestep
     autoenablestep = 2
@@ -450,7 +453,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
         
 
-################################################################################
+###############################################################################
 # openPort
 #
 def openPort(id, username, eventcomment=""):
@@ -538,7 +541,7 @@ def openPort(id, username, eventcomment=""):
 
 
 
-################################################################################
+###############################################################################
 # changePortStatus
 #
 def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
@@ -595,7 +598,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
 
 
 
-################################################################################
+###############################################################################
 # changePortVlan
 #
 def changePortVlan(ip, ifindex, vlan):
@@ -758,7 +761,7 @@ def changePortVlan(ip, ifindex, vlan):
 
 
 
-################################################################################
+###############################################################################
 # toggleSwportStatus
 #
 def changeSwportStatus(action, swportid):
@@ -795,7 +798,7 @@ def changeSwportStatus(action, swportid):
 
 
 
-################################################################################
+###############################################################################
 # sendmail
 #
 def sendmail(fromaddr, toaddr, subject, msg):
@@ -813,6 +816,8 @@ def sendmail(fromaddr, toaddr, subject, msg):
     except NameError, why:
         raise NoSuchProgramError, mailprogram
 
+
+    toaddr = "john.m.bredal@ntnu.no"
 
     # Define charset and set content-transfer-encoding to
     # quoted-printable
@@ -838,7 +843,7 @@ def sendmail(fromaddr, toaddr, subject, msg):
         logger.info("Exit code: %s" % exitcode)
 
 
-################################################################################
+###############################################################################
 # addReason
 #
 def addReason(name, comment):
@@ -848,7 +853,7 @@ def addReason(name, comment):
     doQuery(dbname, query, (name, comment))
 
 
-################################################################################
+###############################################################################
 # getReason
 #
 
@@ -861,7 +866,7 @@ def getReasons():
     conn = nav.db.getConnection('default', dbname)
     c = conn.cursor()
 
-    query = "SELECT * FROM blocked_reason"
+    query = "SELECT * FROM blocked_reason ORDER BY id"
     try:
         c.execute(query)
     except nav.db.driver.ProgrammingError, why:
@@ -870,7 +875,7 @@ def getReasons():
     return c.dictfetchall()
 
 
-################################################################################
+###############################################################################
 # getHostName
 #
 def getHostName(ip):
@@ -886,9 +891,36 @@ def getHostName(ip):
         pass
 
     return hostname
-    
 
-################################################################################
+
+###############################################################################
+# getNetbios
+#
+def getNetbios(ip):
+    """
+    Get netbiosname of computer with ip
+    """
+
+    # Try to locate nmblookup
+    status, output = commands.getstatusoutput('which nmblookup')
+    if status > 0:
+        return 1
+
+    status, output = commands.getstatusoutput(output + " -A " + ip)
+    if status > 0:
+        return 1
+
+    # For each line in output, try to find name of computer.
+    for line in output.split("\n\t"):
+        if re.search("<00>", line):
+            m = re.search("(\S+)\s+<00>", line)
+            return m.group(1) or 1
+            
+    # If it times out or for some other reason doesn't match...
+    return 1
+
+
+###############################################################################
 # doQuery
 #
 def doQuery(database, query, args):
@@ -913,7 +945,7 @@ def doQuery(database, query, args):
     # Return oid of insert
     return c.lastrowid
 
-################################################################################
+###############################################################################
 # checkNonBlock
 #
 def checkNonBlock(ip):
@@ -942,7 +974,7 @@ def checkNonBlock(ip):
     return 0
 
 
-################################################################################
+###############################################################################
 # computeOctetString
 #
 def computeOctetString(hexstring, port, action='enable'):

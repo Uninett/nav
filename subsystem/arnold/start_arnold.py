@@ -32,6 +32,7 @@ from optparse import OptionParser
 import ConfigParser
 import sys, re, sets, os
 import getpass
+import logging
 
 # NAV-libraries
 from nav.db import getConnection
@@ -47,28 +48,42 @@ NB: This will block the last port the ip was seen if it is not active.
 
 def main():
 
-    # Get user running the script. We don't use os.getlogin as this may fail
-    # when piping in stuff.
-    username = getpass.getuser()
-
-
     # Read config-file
     configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
     config = ConfigParser.ConfigParser()
     config.read(configfile)
+
+
+    # Create logger, start logging
+    logfile = nav.buildconf.localstatedir + "/log/arnold/start_arnold.log"
+
+    filehandler = logging.FileHandler(logfile)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] ' \
+                                  '[%(name)s] L%(lineno)d %(message)s')
+    filehandler.setFormatter(formatter)
+
+    logger = logging.getLogger('start_arnold')
+    logger.addHandler(filehandler)
+    logger.setLevel(logging.DEBUG) #todo: use configfile for loglevel?
+
+    logger.info("Starting start_arnold")
+
 
     # Connect to arnold-database
     dbname = config.get('arnold','database')
     aconn = getConnection('default', dbname)
     acur = aconn.cursor()
 
+
     # Get options from commandline
     usage = """usage: %prog [options] id
 Pipe in id's to block or use the -f option to specify file"""
     parser = OptionParser(usage)
     parser.add_option("-i", dest = "blockid", help = "id of blocktype to use")
-    parser.add_option("-f", dest = "filename", help = "filename with id's to block")
-    parser.add_option("--list", action = "store_true", dest = "listblocktypes", help = "list blocktypes")
+    parser.add_option("-f", dest = "filename",
+                      help = "filename with id's to block")
+    parser.add_option("--list", action = "store_true", dest = "listblocktypes",
+                      help = "list blocktypes")
 
     (opts, args) = parser.parse_args()
 
@@ -81,9 +96,11 @@ Pipe in id's to block or use the -f option to specify file"""
 
         sys.exit()
 
+
     # Make sure we have a blockid to work with
     if not opts.blockid:
         print "Please supply a blockid"
+        logging.debug("Exited due to no blockid")
         sys.exit()
         
 
@@ -95,6 +112,11 @@ Pipe in id's to block or use the -f option to specify file"""
     blockinfo = acur.dictfetchone()
 
 
+    # Get user running the script. We don't use os.getlogin as this may fail
+    # when piping in stuff.
+    username = getpass.getuser()
+    
+
     # If we have a filename, try to read file and handle lines there, if not
     # read from stdin.
     ids = []
@@ -104,6 +126,7 @@ Pipe in id's to block or use the -f option to specify file"""
             f = open(opts.filename, 'r')
         except IOError, e:
             print "Error when opening %s: %s" %(opts.filename, e[1])
+            logger.error(e)
             sys.exit()
                 
         ids = handleLines(f.readlines())
@@ -117,6 +140,7 @@ Pipe in id's to block or use the -f option to specify file"""
 
     # Try to block all id's that we got
     for candidate in ids:
+        logger.debug("Trying to block %s" %candidate)
         print "%s - " %(candidate) ,
         # Find information for each candidate
         try:
@@ -124,6 +148,7 @@ Pipe in id's to block or use the -f option to specify file"""
         except (nav.arnold.NoDatabaseInformationError,
                 nav.arnold.UnknownTypeError), e:
             print e
+            logger.error(e)
             continue
 
         # findIdInformation returns a list of dicts. As we only query for one,
@@ -135,26 +160,32 @@ Pipe in id's to block or use the -f option to specify file"""
                                            id['module'], id['port'])
         except Exception, e:
             print e
+            logger.error(e)
             continue
                 
         try:
             # block port with info from db
             nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
-                                 blockinfo['determined'], blockinfo['reasonid'],
+                                 blockinfo['determined'],
+                                 blockinfo['reasonid'],
                                  'Blocktype %s' %blockinfo['blocktitle'],
                                  username )
         except (nav.arnold.InExceptionListError, nav.arnold.WrongCatidError,
                 nav.arnold.DbError, nav.arnold.AlreadyBlockedError,
                 nav.arnold.ChangePortStatusError), why:
             print "failed: %s" %why
+            logger.error(why)
             continue
 
         print "blocked"
+        logger.info("%s blocked successfully" %candidate)
         blocked.append(id['ip'])
 
 
+    # For all ports that are blocked, group by contactinfo and send mail
     if blockinfo['mailfile'] and len(blocked) > 0:
         print "Sending mail"
+        logger.debug("Grouping contacts and ip-addresses")
         manageconn = getConnection('default')
         managecur = manageconn.cursor()
 
@@ -164,6 +195,12 @@ Pipe in id's to block or use the -f option to specify file"""
 
         # First find and group all email-addresses
         for ip in blocked:
+            dns = nav.arnold.getHostName(ip)
+            netbios = nav.arnold.getNetbios(ip)
+            if netbios == 1:
+                netbios = ""
+            
+            # Find contact address
             getcontact = """SELECT * FROM prefix
             LEFT JOIN vlan USING (vlanid)
             LEFT JOIN org USING (orgid)
@@ -172,8 +209,18 @@ Pipe in id's to block or use the -f option to specify file"""
 
             managecur.execute(getcontact)
 
+            if managecur.rowcount <= 0:
+                print "No contactinfo for %s in database" %ip
+                logger.info("No orginfo in db, can't send mail")
+
+            # For each contact that matches this address, add the ip,
+            # dns and netbios name to the contact.
             for orgdict in managecur.dictfetchall():
                 email = orgdict['contact']
+                if not email:
+                    print "Field contact is empty in database"
+                    logger.info("Field contact is empty in database")
+                    continue
                 # The field may contain several addresses
                 splitaddresses = email.split(',')
                 splitaddresses = [x.strip() for x in splitaddresses]
@@ -181,43 +228,45 @@ Pipe in id's to block or use the -f option to specify file"""
                 # Put the ip on the contactlist
                 for contact in splitaddresses:
                     if contact in contacts:
-                        contacts[contact].append(ip)
+                        contacts[contact].append([ip,dns,netbios])
                     else:
-                        contacts[contact] = [ip]
+                        contacts[contact] = [[ip,dns,netbios]]
 
 
 
         # Open mailfile
         try:
-            mailfile = open(nav.buildconf.sysconfdir + "/arnold/mailtemplates/" + blockinfo['mailfile'])
+            mailfile = open(nav.buildconf.sysconfdir + \
+                            "/arnold/mailtemplates/" + blockinfo['mailfile'])
         except IOError, e:
             print e
+            logger.error(e)
             sys.exit()
 
         textfile = mailfile.read()
 
         # For each contact, send mail with list of blocked ip-adresses on that
         # prefix
-        for (c, iplist) in contacts.items():
-            print "%s: %s" %(c, ", ".join(iplist))
-
-            fromaddr = 'arnold'
-            toaddr = c
+        for (contact, iplist) in contacts.items():
+            logger.info("Sending mail to %s" %contact)
+            
+            fromaddr = 'noreply'
+            toaddr = contact
             reason = blockinfo['name']
             subject = "Computers blocked because of %s" %reason
 
             msg = textfile
             msg = re.sub('\$reason', reason, msg)
             #msg = re.sub('\$comment', comment, msg)
-            msg = re.sub('\$list', "\n".join(iplist), msg)
-
+            msg = re.sub('\$list', "\n".join([" ".join(x) for x in iplist]),
+                         msg)
 
             print msg
             
             try:
-                pass
-                #nav.arnold.sendmail(fromaddr, toaddr, subject, msg)
+                nav.arnold.sendmail(fromaddr, toaddr, subject, msg)
             except Exception, e:
+                logger.error(e)
                 print e
                 continue
             
