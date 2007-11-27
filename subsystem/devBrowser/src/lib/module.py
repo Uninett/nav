@@ -241,13 +241,18 @@ class ModuleInfo(manage.Module):
 
             map = {}
             list = []
+            rest = []
             for port in ports:
-                map[port.interface] = port
-                list.append(port.interface)
+                if port.interface is not None:
+                    map[port.interface] = port
+                    list.append(port.interface)
+                else:
+                    rest.append(port)
             list.sort(nav.natsort.inatcmp)
             result = []
             for port in list:
                 result.append(map[port])
+            result.extend(rest)
             return result
 
         def filterInterfaceName(name):
@@ -269,7 +274,7 @@ class ModuleInfo(manage.Module):
             )
 
             for old, new in filters:
-                name = name.replace(old, new)
+                name = str(name).replace(old, new)
             return name
 
         if perspective.startswith('gw'):
@@ -310,7 +315,7 @@ class ModuleInfo(manage.Module):
             if type == 'gw':
                 portNr = port.interface
             else:
-                portNr = port.interface or port.port
+                portNr = port.interface or port.port or port.ifindex
 
             portNr = filterInterfaceName(portNr)
             portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")
