@@ -484,7 +484,7 @@ class NetboxInfo(manage.Netbox):
         result=html.Division()
         for timerange in TIMERANGES:
             value = self.rrdAverage(statusDS, timerange)
-            if value is None:
+            if value is None or str(value) == 'nan':
                 value = 0 # unknown -> not availabe..?
             else:
                 value = (1-value)*100
