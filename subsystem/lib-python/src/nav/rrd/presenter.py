@@ -223,11 +223,16 @@ class presentation:
             maxList.append(max(presentation['data']))
         return maxList
 
-    def average(self, onErrorReturn=0):
+    def average(self, onErrorReturn=0, onNanReturn=0):
         """
         Returns the average of the valid rrd-data using rrdtool graph.
+
         onErrorReturn is the value appended to the returnlist if an
         error occured while fetching the value, default 0 (zero).
+
+        onNanReturn is the value appended to the return list if a NaN
+        value was the result of the average calculation, default=0
+        (zero).
         """
         rrdvalues = []
         rrdstart = "-s %s" %self.fromTime
@@ -251,7 +256,11 @@ class presentation:
                                          rrddef, rrdprint)
                 rrdvalue = rrdtuple[2][0]
                 # This works ok with nan aswell.
-                rrdvalues.append(float(rrdvalue))
+                realvalue = float(rrdvalue)
+                if str(realvalue) == 'nan':
+                    rrdvalues.append(onNanReturn)
+                else:
+                    rrdvalues.append(realvalue)
             except rrdtool.error, e:
                 # We failed to fetch a value. Append onErrorReturn to
                 # the list
