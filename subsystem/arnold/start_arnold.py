@@ -53,6 +53,15 @@ def main():
     config = ConfigParser.ConfigParser()
     config.read(configfile)
 
+    # Get loglevel from config-file
+    loglevel = config.get('loglevel','start_arnold')
+    if not loglevel.isdigit():
+        loglevel = logging.getLevelName(loglevel)
+
+    try:
+        loglevel = int(loglevel)
+    except ValueError:
+        loglevel = 20 # default to INFO
 
     # Create logger, start logging
     logfile = nav.buildconf.localstatedir + "/log/arnold/start_arnold.log"
@@ -64,10 +73,11 @@ def main():
 
     logger = logging.getLogger('start_arnold')
     logger.addHandler(filehandler)
-    logger.setLevel(logging.DEBUG) #todo: use configfile for loglevel?
+    logger.setLevel(loglevel) 
 
     logger.info("Starting start_arnold")
 
+    logger.info("Loglevel = %s" %loglevel)
 
     # Connect to arnold-database
     dbname = config.get('arnold','database')
