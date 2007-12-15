@@ -59,6 +59,7 @@ class Netbox(models.Model):
         (UP_DOWN, 'down'),
         (UP_SHADOW, 'shadow'),
     )
+
     id = models.IntegerField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
@@ -78,21 +79,30 @@ class Netbox(models.Model):
     up_since = models.DateTimeField(db_column='upsince')
     up_to_date = models.BooleanField(db_column='uptodate')
     discovered = models.DateTimeField()
+
     class Meta:
         db_table = 'netbox'
+
+    def __unicode__(self):
+        return u'%s (%s)' % (self.sysname, self.ip)
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
 
     id = models.IntegerField(db_column='netboxinfoid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid',
+        related_name='info_set')
     key = models.CharField(max_length=-1)
     variable = models.CharField(db_column='var', max_length=-1)
     value = models.TextField(db_column='val')
+
     class Meta:
         db_table = 'netboxinfo'
         unique_together = (('netbox', 'key', 'variable', 'value'),)
+
+    def __unicode__(self):
+        return u'%s="%s"' % (self.variable, self.value)
 
 class Device(models.Model):
     """From MetaNAV: The device table contains all physical devices in the
@@ -110,8 +120,12 @@ class Device(models.Model):
     active = models.BooleanField(default=False)
     device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid')
     discovered = models.DateTimeField(default=datetime.now)
+
     class Meta:
         db_table = 'device'
+
+    def __unicode__(self):
+        return self.serial
 
 class Module(models.Model):
     """From MetaNAV: The module table defines modules. A module is a part of a
@@ -125,6 +139,7 @@ class Module(models.Model):
         (UP_UP, 'up'),
         (UP_DOWN, 'down'),
     )
+
     id = models.IntegerField(db_column='moduleid', primary_key=True)
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
@@ -134,9 +149,13 @@ class Module(models.Model):
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
     community_suffix = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'module'
         unique_together = (('netbox', 'module_number'),)
+
+    def __unicode__(self):
+        return u'%d, at %s' % (self.module_number, self.netbox)
 
 class Memory(models.Model):
     """From MetaNAV: The mem table describes the memory (memory and nvram) of a
@@ -148,9 +167,16 @@ class Memory(models.Model):
     device = models.CharField(max_length=-1)
     size = models.IntegerField()
     used = models.IntegerField()
+
     class Meta:
         db_table = 'mem'
         unique_together = (('netbox', 'type', 'device'),)
+
+    def __unicode__(self):
+        if self.used is not None and self.size is not None and self.size != 0:
+            return u'%s, %d%% used' % (self.type, self.used * 100 // self.size)
+        else:
+            return self.type
 
 class Room(models.Model):
     """From MetaNAV: The room table defines a wiring closes / network room /
@@ -163,8 +189,12 @@ class Room(models.Model):
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
     optional_3 = models.CharField(db_column='opt3', max_length=-1)
     optional_4 = models.CharField(db_column='opt4', max_length=-1)
+
     class Meta:
         db_table = 'room'
+
+    def __unicode__(self):
+        return u'%s, in %s' % (self.description, self.location)
 
 class Location(models.Model):
     """From MetaNAV: The location table defines a group of rooms; i.e. a
@@ -172,9 +202,13 @@ class Location(models.Model):
 
     id = models.CharField(db_column='locationid',
         max_length=30, primary_key=True)
-    descr = models.CharField(max_length=-1)
+    description = models.CharField(db_column='descr', max_length=-1)
+
     class Meta:
         db_table = 'location'
+
+    def __unicode__(self):
+        return self.description
 
 class Organization(models.Model):
     """From MetaNAV: The org table defines an organization which is in charge
@@ -186,8 +220,16 @@ class Organization(models.Model):
     optional_1 = models.CharField(db_column='opt1', max_length=-1)
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
     optional_3 = models.CharField(db_column='opt3', max_length=-1)
+
     class Meta:
         db_table = 'org'
+
+    def __unicode__(self):
+        try:
+            return u'%s, part of %s' % (self.description,
+                self.parent.description)
+        except Organization.DoesNotExist:
+            return self.description
 
 class Category(models.Model):
     """From MetaNAV: The cat table defines the categories of a netbox
@@ -196,8 +238,12 @@ class Category(models.Model):
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
     req_snmp = models.BooleanField()
+
     class Meta:
         db_table = 'cat'
+
+    def __unicode__(self):
+        return self.description
 
 class Subcategory(models.Model):
     """From MetaNAV: The subcat table defines subcategories within a category.
@@ -207,8 +253,15 @@ class Subcategory(models.Model):
     id = models.CharField(db_column='subcatid', max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
+
     class Meta:
         db_table = 'subcat'
+
+    def __unicode__(self):
+        try:
+            return u'%s, sub of %s' % (self.description, self.category)
+        except Category.DoesNotExist:
+            return self.description
 
 class NetboxCategory(models.Model):
     """From MetaNAV: A netbox may be in many subcategories. This relation is
@@ -217,11 +270,16 @@ class NetboxCategory(models.Model):
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
+    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
+
     class Meta:
         db_table = 'netboxcategory'
-        unique_together = (('netbox', 'category'),) # The primary key
+        unique_together = (('netbox', 'category'),) # Primary key
+
+    def __unicode__(self):
+        return u'%s in category %s' % (self.netbox, self.category)
 
 class NetboxType(models.Model):
     """From MetaNAV: The type table defines the type of a netbox, the
@@ -237,10 +295,14 @@ class NetboxType(models.Model):
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
     frequency = models.IntegerField()
-    descr = models.CharField(max_length=-1)
+    description = models.CharField(db_column='descr', max_length=-1)
+
     class Meta:
         db_table = 'type'
         unique_together = (('vendor', 'name'),)
+
+    def __unicode__(self):
+        return u'%s, from %s' % (self.name, self.vendor)
 
 #######################################################################
 ### Device management
@@ -251,8 +313,12 @@ class Vendor(models.Model):
 
     id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
     enterprise_id = models.IntegerField(db_column='enterpriseid')
+
     class Meta:
         db_table = 'vendor'
+
+    def __unicode__(self):
+        return self.id
 
 class Product(models.Model):
     """From MetaNAV: The product table is used be Device Management to register
@@ -262,12 +328,17 @@ class Product(models.Model):
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     product_number = models.CharField(db_column='productno', max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
+
     class Meta:
         db_table = 'product'
         unique_together = (('vendor', 'product_number'),)
 
+    def __unicode__(self):
+        return u'%s (%s), from vendor %s' % (
+            self.description, self.product_number, self.vendor)
+
 class DeviceOrder(models.Model):
-    """From MetaNAV: The devicerorder table is used by Device Management to
+    """From MetaNAV: The deviceorder table is used by Device Management to
     place orders. Not compulsary. An order consists of a set of devices (on or
     more) of a certain product."""
 
@@ -283,8 +354,12 @@ class DeviceOrder(models.Model):
     product = models.ForeignKey('Product', db_column='productid')
     updated_by = models.CharField(db_column='updatedby', max_length=-1)
     last_updated = models.DateField(db_column='lastupdated')
+
     class Meta:
         db_table = 'deviceorder'
+
+    def __unicode__(self):
+        return self.order_number
 
 #######################################################################
 ### Router/topology
@@ -298,6 +373,7 @@ class GwPort(models.Model):
     LINK_DOWN = LINK_DOWN
     LINK_DOWN_ADM = LINK_DOWN_ADM
     LINK_CHOICES = LINK_CHOICES
+
     id = models.IntegerField(db_column='gwportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
@@ -309,9 +385,14 @@ class GwPort(models.Model):
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
     to_swport = models.ForeignKey('SwPort', db_column='to_swportid')
     port_name = models.CharField(db_column='portname', max_length=-1)
+
     class Meta:
         db_table = 'gwport'
         unique_together = (('module', 'ifindex'),)
+
+    def __unicode__(self):
+        name = self.interface or self.ifindex
+        return u'%s, at module %s' % (name, self.module)
 
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
@@ -319,10 +400,14 @@ class GwPortPrefix(models.Model):
 
     gwport = models.ForeignKey('GwPort', db_column='gwportid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
-    gw_ip = models.IPAddressField(db_column='gwip', unique=True)
+    gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
     hsrp = models.BooleanField(default=False)
+
     class Meta:
         db_table = 'gwportprefix'
+
+    def __unicode__(self):
+        return self.gw_ip
 
 class Prefix(models.Model):
     """From MetaNAV: The prefix table stores IP prefixes."""
@@ -331,8 +416,12 @@ class Prefix(models.Model):
     # TODO: Create CIDRField
     net_address = models.TextField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
+
     class Meta:
         db_table = 'prefix'
+
+    def __unicode__(self):
+        return u'%s at vlan %s' % (self.net_address, self.vlan)
 
 class Vlan(models.Model):
     """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
@@ -347,8 +436,17 @@ class Vlan(models.Model):
     usage = models.ForeignKey('Usage', db_column='usageid')
     net_ident = models.CharField(db_column='netident', max_length=-1)
     description = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'vlan'
+
+    def __unicode__(self):
+        vlan = str(self.vlan) or 'unknown'
+        try:
+            return u'%s, type %s, ident %s' % (
+                vlan, self.net_type, self.net_ident)
+        except NetType.DoesNotExist:
+            return u'%s, ident %s' % (vlan, self.net_ident)
 
 class NetType(models.Model):
     """From MetaNAV: The nettype table defines network type;lan, core, link,
@@ -359,8 +457,12 @@ class NetType(models.Model):
         max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
     edit = models.BooleanField(default=False)
+
     class Meta:
         db_table = 'nettype'
+
+    def __unicode__(self):
+        return self.id
 
 class Usage(models.Model):
     """From MetaNAV: The usage table defines the user group (student, staff
@@ -369,8 +471,12 @@ class Usage(models.Model):
     id = models.CharField(db_column='usageid',
         max_length=30, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
+
     class Meta:
         db_table = 'usage'
+
+    def __unicode__(self):
+        return u'%s (%s)' % (self.id, self.description)
 
 class Arp(models.Model):
     """From MetaNAV: The arp table contains (ip, mac, time start, time end)."""
@@ -381,11 +487,15 @@ class Arp(models.Model):
     sysname = models.CharField(max_length=-1)
     ip = models.IPAddressField()
     # TODO: Create MACAddressField
-    mac = models.TextField()
+    mac = models.CharField(max_length=17)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+
     class Meta:
         db_table = 'arp'
+
+    def __unicode__(self):
+        return u'%s to %s' % (self.ip, self.mac)
 
 #######################################################################
 ### Switch/topology
@@ -404,6 +514,7 @@ class SwPort(models.Model):
         (DUPLEX_FULL, 'full duplex'),
         (DUPLEX_HALF, 'half duplex'),
     )
+
     id = models.IntegerField(db_column='swportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
@@ -418,9 +529,14 @@ class SwPort(models.Model):
     portname = models.CharField(max_length=-1)
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
     to_swport = models.ForeignKey('self', db_column='to_swportid')
+
     class Meta:
         db_table = 'swport'
         unique_together = (('module', 'ifindex'),)
+
+    def __unicode__(self):
+        name = self.interface or self.ifindex or self.port
+        return u'%s, at module %s' % (name, self.module)
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
@@ -438,33 +554,46 @@ class SwPortVlan(models.Model):
         (DIRECTION_BOTH, 'both'),
         (DIRECTION_CROSSED, 'crossed'),
     )
+
     id = models.IntegerField(db_column='swportvlanid', primary_key=True)
     swport = models.ForeignKey('SwPort', db_column='swportid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
         default=DIRECTION_CROSSED)
+
     class Meta:
         db_table = 'swportvlan'
         unique_together = (('swport', 'vlan'),)
+
+    def __unicode__(self):
+        return u'%s, on vlan %s' % (self.swport, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
     """From MetaNAV: Stores a hexstring that has “hidden” information about the
     vlans that are allowed to traverse a given trunk."""
 
-    swport = models.ForeignKey('SwPort', db_column='swportid')
+    swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
+
     class Meta:
         db_table = 'swportallowedvlan'
+
+    def __unicode__(self):
+        return u'Allowed vlan for swport %s' % self.swport
 
 class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
     given vlan for a given switch port."""
 
-    swport = models.ForeignKey('SwPort', db_column='swportid')
+    swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
     vlan = models.IntegerField()
+
     class Meta:
         db_table = 'swportblocked'
         unique_together = (('swport', 'vlan'),) # Primary key
+
+    def __unicode__(self):
+        return '%d, at swport %s' % (self.vlan, self.swport)
 
 class SwPortToNetbox(models.Model):
     """From MetaNAV: A help table used in the process of building the physical
@@ -479,9 +608,13 @@ class SwPortToNetbox(models.Model):
     to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
         related_name='candidate_for_next_hop_set')
     miss_count = models.IntegerField(db_column='misscnt', default=0)
+
     class Meta:
         db_table = 'swp_netbox'
         unique_together = (('netbox', 'ifindex', 'to_netbox'),)
+
+    def __unicode__(self):
+        return u'%d, %s' % (self.ifindex, self.netbox)
 
 class NetboxVtpVlan(models.Model):
     """From MetaNAV: A help table that contains the vtp vlan database of a
@@ -490,11 +623,16 @@ class NetboxVtpVlan(models.Model):
     active on a switch. The vtp vlan table is an extra source of
     information."""
 
+    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
+
     class Meta:
         db_table = 'netbox_vtpvlan'
         unique_together = (('netbox', 'vtp_vlan'),)
+
+    def __unicode__(self):
+        return u'%d, at %s' % (self.vtp_vlan, self.netbox)
 
 class Cam(models.Model):
     """From MetaNAV: The cam table defines (swport, mac, time start, time
@@ -509,8 +647,13 @@ class Cam(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
-    mac = models.TextField() # This field type is a guess.
+    # TODO: Create MACAddressField
+    mac = models.CharField(max_length=17)
+
     class Meta:
         db_table = 'cam'
         unique_together = (('netbox', 'sysname', 'module', 'port',
                             'mac', 'start_time'),)
+
+    def __unicode__(self):
+        return u'%s, %s' % (self.mac, self.netbox)

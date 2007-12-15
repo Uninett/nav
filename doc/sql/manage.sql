@@ -218,8 +218,10 @@ CREATE TABLE netboxsnmpoid (
 CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
 
 CREATE TABLE netbox_vtpvlan (
+  id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   vtpvlan INT4,
+  PRIMARY KEY(id),
   UNIQUE(netboxid, vtpvlan)
 );
 
@@ -247,6 +249,7 @@ INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
 );
 
 CREATE TABLE netboxcategory (
+  id SERIAL,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   category VARCHAR NOT NULL REFERENCES subcat ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)

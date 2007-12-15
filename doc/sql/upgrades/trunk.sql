@@ -20,3 +20,7 @@
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
      WHERE prefixid=OLD.prefixid;
+
+-- Django needs a single column it can treat as primary key :-(
+ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
+ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
