@@ -28,17 +28,21 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
+from datetime import datetime
 
 from django.db import models
 
 from nav.models.manage import Device, Netbox
+
+# Choices used in multiple models, "imported" into the models which use them
+STATE_STATELESS = 'x'
+STATE_START = 's'
+STATE_END = 'e'
+STATE_CHOICES = (
+    (STATE_STATELESS, 'stateless'),
+    (STATE_START, 'start'),
+    (STATE_END, 'end'),
+)
 
 class Subsystem(models.Model):
     name = models.CharField(max_length=-1, primary_key=True)
@@ -50,11 +54,10 @@ class Subsystem(models.Model):
 ### Event system
 
 class EventQueue(models.Model):
-    STATE_CHOICES = (
-        ('x', 'stateless'),
-        ('s', 'start'),
-        ('e', 'end'),
-    )
+    STATE_STATELESS = STATE_STATELESS
+    STATE_START = STATE_START
+    STATE_END = STATE_END
+    STATE_CHOICES = STATE_CHOICES
     id = models.IntegerField(db_column='eventqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source',
         related_name='source_of_events')
@@ -63,18 +66,21 @@ class EventQueue(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     subid = models.CharField(max_length=-1)
-    time = models.DateTimeField()
+    time = models.DateTimeField(default=datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
-    state = models.CharField(max_length=1, choices=STATE_CHOICES, default='x')
+    state = models.CharField(max_length=1, choices=STATE_CHOICES,
+        default=STATE_STATELESS)
     value = models.IntegerField(default=100)
     severity = models.IntegerField(default=50)
     class Meta:
         db_table = 'eventq'
 
 class EventType(models.Model):
+    STATEFUL_TRUE = 'y'
+    STATEFUL_FALSE = 'n'
     STATEFUL_CHOICES = (
-        ('y', 'stateful'),
-        ('n', 'stateless'),
+        (STATEFUL_TRUE, 'stateful'),
+        (STATEFUL_FALSE, 'stateless'),
     )
     id = models.CharField(db_column='eventtypeid',
         max_length=32, primary_key=True)
@@ -90,11 +96,16 @@ class EventQueueVar(models.Model):
     value = models.TextField(db_column='val')
     class Meta:
         db_table = 'eventqvar'
+        unique_together = (('event_queue', 'variable'),)
 
 #######################################################################
 ### Alert system
 
 class AlertQueue(models.Model):
+    STATE_STATELESS = STATE_STATELESS
+    STATE_START = STATE_START
+    STATE_END = STATE_END
+    STATE_CHOICES = STATE_CHOICES
     id = models.IntegerField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid')
@@ -103,7 +114,8 @@ class AlertQueue(models.Model):
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid')
-    state = models.CharField(max_length=1) # FIXME: Add choices
+    state = models.CharField(max_length=1, choices=STATE_CHOICES,
+        default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
     class Meta:
@@ -116,6 +128,7 @@ class AlertType(models.Model):
     description= models.CharField(db_column='alerttypedesc', max_length=-1)
     class Meta:
         db_table = 'alerttype'
+        unique_together = (('event_type', 'name'),)
 
 class AlertQueueMessage(models.Model):
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
@@ -125,6 +138,7 @@ class AlertQueueMessage(models.Model):
     message = models.TextField(db_column='msg')
     class Meta:
         db_table = 'alertqmsg'
+        unique_together = (('alert_queue', 'type', 'language'),)
 
 class AlertQueueVariable(models.Model):
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
@@ -133,6 +147,7 @@ class AlertQueueVariable(models.Model):
     value = models.TextField(db_column='val')
     class Meta:
         db_table = 'alertqvar'
+        unique_together = (('alert_queue', 'variable'),)
 
 class AlertHistory(models.Model):
     id = models.IntegerField(db_column='alerthistid', primary_key=True)
@@ -150,18 +165,29 @@ class AlertHistory(models.Model):
         db_table = 'alerthist'
 
 class AlertHistoryMessage(models.Model):
+    STATE_STATELESS = STATE_STATELESS
+    STATE_START = STATE_START
+    STATE_END = STATE_END
+    STATE_CHOICES = STATE_CHOICES
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
         related_name='messages')
-    state = models.CharField(max_length=1) # FIXME: Add choices
+    state = models.CharField(max_length=1, choices=STATE_CHOICES,
+        default=STATE_STATELESS)
     type = models.CharField(db_column='msgtype', max_length=-1)
     language = models.CharField(max_length=-1)
     message = models.TextField(db_column='msg')
     class Meta:
         db_table = 'alerthistmsg'
+        unique_together = (('alert_history', 'state', 'type', 'language'),)
 
 class AlertHistoryVariable(models.Model):
+    STATE_STATELESS = STATE_STATELESS
+    STATE_START = STATE_START
+    STATE_END = STATE_END
+    STATE_CHOICES = STATE_CHOICES
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid')
-    state = models.CharField(max_length=1) # FIXME: Add choices
+    state = models.CharField(max_length=1, choices=STATE_CHOICES,
+        default=STATE_STATELESS)
     variable = models.CharField(db_column='var', max_length=-1)
     value = models.TextField(db_column='val')
     class Meta:

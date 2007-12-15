@@ -28,14 +28,6 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
-
 from django.db import models
 
 from nav.models.manage import Netbox
@@ -48,7 +40,7 @@ class Service(models.Model):
     )
     id = models.IntegerField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
     handler = models.CharField(max_length=-1)
     version = models.CharField(max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default='y')
@@ -61,3 +53,4 @@ class ServiceProperty(models.Model):
     value = models.CharField(max_length=-1)
     class Meta:
         db_table = 'serviceproperty'
+        unique_together = (('serivce', 'property'),) # Primary key

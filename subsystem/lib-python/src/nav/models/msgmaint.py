@@ -28,15 +28,21 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
-
 from django.db import models
+
+class Message(models.Model):
+    id = models.IntegerField(db_column='messageid', primary_key=True)
+    title = models.CharField(max_length=-1)
+    description = models.TextField()
+    tech_description = models.TextField()
+    publish_start = models.DateTimeField()
+    publish_end = models.DateTimeField()
+    author = models.CharField(max_length=-1)
+    last_changed = models.DateTimeField()
+    replaces_message = models.ForeignKey('self', db_column='replaces_message',
+        related_name='replaced_by')
+    class Meta:
+        db_table = 'message'
 
 class MaintenanceTask(models.Model):
     id = models.IntegerField(db_column='maint_taskid', primary_key=True)
@@ -54,20 +60,7 @@ class MaintenanceComponent(models.Model):
     value = models.CharField(max_length=-1)
     class Meta:
         db_table = 'maint_component'
-
-class Message(models.Model):
-    id = models.IntegerField(db_column='messageid', primary_key=True)
-    title = models.CharField(max_length=-1)
-    description = models.TextField()
-    tech_description = models.TextField()
-    publish_start = models.DateTimeField()
-    publish_end = models.DateTimeField()
-    author = models.CharField(max_length=-1)
-    last_changed = models.DateTimeField()
-    replaces_message = models.ForeignKey('self', db_column='replaces_message',
-        related_name='replaced_by')
-    class Meta:
-        db_table = 'message'
+        unique_together = (('maint_task', 'key', 'value'),) # Primary key
 
 class MessageToMaintenanceTask(models.Model):
     message = models.ForeignKey(Message, db_column='messageid',
@@ -76,3 +69,4 @@ class MessageToMaintenanceTask(models.Model):
         db_column='maint_taskid', related_name='messages')
     class Meta:
         db_table = 'message_to_maint_task'
+        unique_together = (('message', 'maintenance_task'),) # Primary key

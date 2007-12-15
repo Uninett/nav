@@ -28,14 +28,6 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
-
 from django.db import models
 
 from nav.models.manage import Room, SwPort
@@ -50,11 +42,13 @@ class Cabling(models.Model):
     category = models.CharField(max_length=-1)
     class Meta:
         db_table = 'cabling'
+        unique_together = (('room', 'jack'),)
 
 class Patch(models.Model):
     id = models.IntegerField(db_column='patchid', primary_key=True)
     swport = models.ForeignKey(SwPort, db_column='swportid')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
-    split = models.CharField(max_length=-1)
+    split = models.CharField(max_length=-1, default='no')
     class Meta:
         db_table = 'patch'
+        unique_together = (('swport', 'cabling'),)

@@ -28,14 +28,6 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
-
 from django.db import models
 
 from nav.models.manage import Netbox
@@ -45,11 +37,12 @@ class SnmpOid(models.Model):
     oid_key = models.CharField(db_column='oidkey', unique=True, max_length=-1)
     snmp_oid = models.CharField(db_column='snmpoid', max_length=-1)
     oid_source = models.CharField(db_column='oidsource', max_length=-1)
-    get_next = models.BooleanField(db_column='getnext')
-    decode_hex = models.BooleanField(db_column='decodehex')
+    get_next = models.BooleanField(db_column='getnext', default=True)
+    decode_hex = models.BooleanField(db_column='decodehex', default=False)
     match_regex = models.CharField(max_length=-1)
-    default_frequency = models.IntegerField(db_column='defaultfreq')
-    up_to_date = models.BooleanField(db_column='uptodate')
+    default_frequency = models.IntegerField(db_column='defaultfreq',
+        default=21600)
+    up_to_date = models.BooleanField(db_column='uptodate', default=False)
     description = models.CharField(db_column='descr', max_length=-1)
     oid_name = models.CharField(db_column='oidname', max_length=-1)
     mib = models.CharField(max_length=-1)
@@ -62,3 +55,4 @@ class NetboxSnmpOid(models.Model):
     frequency = models.IntegerField()
     class Meta:
         db_table = 'netboxsnmpoid'
+        unique_together = (('netbox', 'snmp_oid'),)

@@ -28,29 +28,36 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
+from datetime import datetime
 
 from django.db import models
+
+# Choices used in multiple models, "imported" into the models which use them
+LINK_UP = 'y'
+LINK_DOWN = 'n'
+LINK_DOWN_ADM = 'd'
+LINK_CHOICES = (
+    (LINK_UP, 'up'), # In old devBrowser: 'Active'
+    (LINK_DOWN, 'down (operDown)'), # In old devBrowser: 'Not active'
+    (LINK_DOWN_ADM, 'down (admDown)'), # In old devBrowser: 'Denied'
+)
 
 #######################################################################
 ### Netbox-related models
 
 class Netbox(models.Model):
+    UP_UP = 'y'
+    UP_DOWN = 'n'
+    UP_SHADOW = 's'
     UP_CHOICES = (
-        ('y', 'up'),
-        ('n', 'down'),
-        ('s', 'shadow'),
+        (UP_UP, 'up'),
+        (UP_DOWN, 'down'),
+        (UP_SHADOW, 'shadow'),
     )
     id = models.IntegerField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
-    type = models.ForeignKey('Type', db_column='typeid')
+    type = models.ForeignKey('NetboxType', db_column='typeid')
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = models.CharField(unique=True, max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
@@ -59,7 +66,7 @@ class Netbox(models.Model):
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
-    up = models.CharField(max_length=1, choices=UP_CHOICES, default='y')
+    up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
     snmp_agent = models.CharField(max_length=-1)
     up_since = models.DateTimeField(db_column='upsince')
@@ -72,29 +79,32 @@ class NetboxInfo(models.Model):
     id = models.IntegerField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     key = models.CharField(max_length=-1)
-    var = models.CharField(max_length=-1)
-    val = models.TextField()
+    variable = models.CharField(db_column='var', max_length=-1)
+    value = models.TextField(db_column='val')
     class Meta:
         db_table = 'netboxinfo'
+        unique_together = (('netbox', 'key', 'variable', 'value'),)
 
 class Device(models.Model):
     id = models.IntegerField(db_column='deviceid', primary_key=True)
     product = models.ForeignKey('Product', db_column='productid')
     serial = models.CharField(unique=True, max_length=-1)
-    hw_ver = models.CharField(max_length=-1)
-    fw_ver = models.CharField(max_length=-1)
-    sw_ver = models.CharField(max_length=-1)
-    auto = models.BooleanField()
-    active = models.BooleanField()
+    hardware_version = models.CharField(db_column='hw_ver', max_length=-1)
+    firmware_version = models.CharField(db_column='fw_ver', max_length=-1)
+    software_version = models.CharField(db_column='sw_ver', max_length=-1)
+    auto = models.BooleanField(default=False)
+    active = models.BooleanField(default=False)
     device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid')
-    discovered = models.DateTimeField()
+    discovered = models.DateTimeField(default=datetime.now)
     class Meta:
         db_table = 'device'
 
 class Module(models.Model):
+    UP_UP = 'y'
+    UP_DOWN = 'n'
     UP_CHOICES = (
-        ('y', 'up'),
-        ('n', 'down'),
+        (UP_UP, 'up'),
+        (UP_DOWN, 'down'),
     )
     id = models.IntegerField(db_column='moduleid', primary_key=True)
     device = models.ForeignKey('Device', db_column='deviceid')
@@ -102,11 +112,12 @@ class Module(models.Model):
     module_number = models.IntegerField(db_column='module')
     model = models.CharField(max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
-    up = models.CharField(max_length=1, choices=UP_CHOICES, default='y')
+    up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
     community_suffix = models.CharField(max_length=-1)
     class Meta:
         db_table = 'module'
+        unique_together = (('netbox', 'module_number'),)
 
 class Memory(models.Model):
     id = models.IntegerField(db_column='memid', primary_key=True)
@@ -117,6 +128,7 @@ class Memory(models.Model):
     used = models.IntegerField()
     class Meta:
         db_table = 'mem'
+        unique_together = (('netbox', 'type', 'device'),)
 
 class Room(models.Model):
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
@@ -161,32 +173,37 @@ class Subcategory(models.Model):
         db_table = 'subcat'
 
 class NetboxCategory(models.Model):
+    # TODO: This should be a ManyToMany-field in Netbox, but at this time
+    # Django only supports specifying the name of the M2M-table, and not the
+    # column names.
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
     class Meta:
         db_table = 'netboxcategory'
+        unique_together = (('netbox', 'category'),) # The primary key
 
-class Type(models.Model):
+class NetboxType(models.Model):
     id = models.IntegerField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    typename = models.CharField(max_length=-1)
+    name = models.CharField(db_column='typename', max_length=-1)
     sysobject = models.CharField(db_column='sysobjectid',
         unique=True, max_length=-1)
-    cdp = models.BooleanField()
-    tftp = models.BooleanField()
+    cdp = models.BooleanField(default=False)
+    tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
-    chassis = models.BooleanField()
+    chassis = models.BooleanField(default=True)
     frequency = models.IntegerField()
     descr = models.CharField(max_length=-1)
     class Meta:
         db_table = 'type'
+        unique_together = (('vendor', 'name'),)
 
 #######################################################################
 ### Device management
 
 class Vendor(models.Model):
     id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
-    enterpriseid = models.IntegerField()
+    enterprise_id = models.IntegerField(db_column='enterpriseid')
     class Meta:
         db_table = 'vendor'
 
@@ -197,10 +214,11 @@ class Product(models.Model):
     description = models.CharField(db_column='descr', max_length=-1)
     class Meta:
         db_table = 'product'
+        unique_together = (('vendor', 'product_number'),)
 
 class DeviceOrder(models.Model):
     id = models.IntegerField(db_column='deviceorderid', primary_key=True)
-    registered = models.DateTimeField()
+    registered = models.DateTimeField(default=datetime.now)
     ordered = models.DateField()
     arrived = models.DateTimeField()
     order_number = models.CharField(db_column='ordernumber', max_length=-1)
@@ -218,11 +236,10 @@ class DeviceOrder(models.Model):
 ### Router/topology
 
 class GwPort(models.Model):
-    LINK_CHOICES = (
-        ('y', 'up'), # In old devBrowser: 'Active'
-        ('n', 'down (operDown)'), # In old devBrowser: 'Not active'
-        ('d', 'down (admDown)'), # In old devBrowser: 'Denied'
-    )
+    LINK_UP = LINK_UP
+    LINK_DOWN = LINK_DOWN
+    LINK_DOWN_ADM = LINK_DOWN_ADM
+    LINK_CHOICES = LINK_CHOICES
     id = models.IntegerField(db_column='gwportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
@@ -236,18 +253,20 @@ class GwPort(models.Model):
     port_name = models.CharField(db_column='portname', max_length=-1)
     class Meta:
         db_table = 'gwport'
+        unique_together = (('module', 'ifindex'),)
 
 class GwPortPrefix(models.Model):
     gwport = models.ForeignKey('GwPort', db_column='gwportid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     gw_ip = models.IPAddressField(db_column='gwip', unique=True)
-    hsrp = models.BooleanField()
+    hsrp = models.BooleanField(default=False)
     class Meta:
         db_table = 'gwportprefix'
 
 class Prefix(models.Model):
     id = models.IntegerField(db_column='prefixid', primary_key=True)
-    net_address = models.TextField(db_column='netaddr', unique=True) # FIXME: Create CIDRField
+    # TODO: Create CIDRField
+    net_address = models.TextField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     class Meta:
         db_table = 'prefix'
@@ -267,7 +286,7 @@ class NetType(models.Model):
     id = models.CharField(db_column='nettypeid',
         max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
-    edit = models.BooleanField()
+    edit = models.BooleanField(default=False)
     class Meta:
         db_table = 'nettype'
 
@@ -284,7 +303,8 @@ class Arp(models.Model):
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     sysname = models.CharField(max_length=-1)
     ip = models.IPAddressField()
-    mac = models.TextField() # FIXME: Create MACAddressField
+    # TODO: Create MACAddressField
+    mac = models.TextField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     class Meta:
@@ -294,14 +314,15 @@ class Arp(models.Model):
 ### Switch/topology
 
 class SwPort(models.Model):
-    LINK_CHOICES = (
-        ('y', 'up'), # In old devBrowser: 'Active'
-        ('n', 'down (operDown)'), # In old devBrowser: 'Not active'
-        ('d', 'down (admDown)'), # In old devBrowser: 'Denied'
-    )
+    LINK_UP = LINK_UP
+    LINK_DOWN = LINK_DOWN
+    LINK_DOWN_ADM = LINK_DOWN_ADM
+    LINK_CHOICES = LINK_CHOICES
+    DUPLEX_FULL = 'f'
+    DUPLEX_HALF = 'h'
     DUPLEX_CHOICES = (
-        ('f', 'full duplex'),
-        ('h', 'half duplex'),
+        (DUPLEX_FULL, 'full duplex'),
+        (DUPLEX_HALF, 'half duplex'),
     )
     id = models.IntegerField(db_column='swportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
@@ -319,22 +340,29 @@ class SwPort(models.Model):
     to_swport = models.ForeignKey('self', db_column='to_swportid')
     class Meta:
         db_table = 'swport'
+        unique_together = (('module', 'ifindex'),)
 
 class SwPortVlan(models.Model):
+    DIRECTION_UNDEFINED = 'u'
+    DIRECTION_UP = 'o'
+    DIRECTION_DOWN = 'd'
+    DIRECTION_BOTH = 'b'
+    DIRECTION_CROSSED = 'x'
     DIRECTION_CHOICES = (
-        ('u', 'undefined'),
-        ('o', 'up'),
-        ('d', 'down'),
-        ('b', 'both'),
-        ('x', 'crossed'),
+        (DIRECTION_UNDEFINED, 'undefined'),
+        (DIRECTION_UP, 'up'),
+        (DIRECTION_DOWN, 'down'),
+        (DIRECTION_BOTH, 'both'),
+        (DIRECTION_CROSSED, 'crossed'),
     )
     id = models.IntegerField(db_column='swportvlanid', primary_key=True)
     swport = models.ForeignKey('SwPort', db_column='swportid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
-        default='x')
+        default=DIRECTION_CROSSED)
     class Meta:
         db_table = 'swportvlan'
+        unique_together = (('swport', 'vlan'),)
 
 class SwPortAllowedVlan(models.Model):
     swport = models.ForeignKey('SwPort', db_column='swportid')
@@ -347,6 +375,7 @@ class SwPortBlocked(models.Model):
     vlan = models.IntegerField()
     class Meta:
         db_table = 'swportblocked'
+        unique_together = (('swport', 'vlan'),) # Primary key
 
 class SwPortToNetbox(models.Model):
     id = models.IntegerField(db_column='swp_netboxid', primary_key=True)
@@ -356,16 +385,17 @@ class SwPortToNetbox(models.Model):
         related_name='candidate_for_next_hop_set')
     to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
         related_name='candidate_for_next_hop_set')
-    miss_count = models.IntegerField(db_column='misscnt')
+    miss_count = models.IntegerField(db_column='misscnt', default=0)
     class Meta:
         db_table = 'swp_netbox'
+        unique_together = (('netbox', 'ifindex', 'to_netbox'),)
 
 class NetboxVtpVlan(models.Model):
-    # FIXME: Rename to NetboxToVtpVlan ?
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
     class Meta:
         db_table = 'netbox_vtpvlan'
+        unique_together = (('netbox', 'vtp_vlan'),)
 
 class Cam(models.Model):
     id = models.IntegerField(db_column='camid', primary_key=True)
@@ -376,8 +406,9 @@ class Cam(models.Model):
     port = models.CharField(max_length=-1)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    miss_count = models.IntegerField(db_column='misscnt')
+    miss_count = models.IntegerField(db_column='misscnt', default=0)
     mac = models.TextField() # This field type is a guess.
     class Meta:
         db_table = 'cam'
-
+        unique_together = (('netbox', 'sysname', 'module', 'port',
+                            'mac', 'start_time'),)

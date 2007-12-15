@@ -28,14 +28,6 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-# FIXME:
-#     * Make sure each model has one field with primary_key=True
-#     * Add unique_togheter constraints
-#     * Split the file into smaller ones
-#
-# Also note: You will have to insert the output of 'django-admin.py sqlcustom
-# [appname]' into your database.
-
 from django.db import models
 
 from nav.models.event import Subsystem
@@ -54,19 +46,27 @@ class RrdFile(models.Model):
         db_table = 'rrd_file'
 
 class RrdDataSource(models.Model):
+    TYPE_GAUGE = 'GAUGE'
+    TYPE_DERIVE = 'DERIVE'
+    TYPE_COUNTER = 'COUNTER'
+    TYPE_ABSOLUTE = 'ABSOLUTE'
     TYPE_CHOICES = (
-        ('GAUGE', 'gauge'),
-        ('DERIVE', 'derive'),
-        ('COUNTER', 'counter'),
-        ('ABSOLUTE', 'absolute'),
+        (TYPE_GAUGE, 'gauge'),
+        (TYPE_DERIVE, 'derive'),
+        (TYPE_COUNTER, 'counter'),
+        (TYPE_ABSOLUTE, 'absolute'),
     )
+    DELIMITER_GT = '>'
+    DELIMITER_LT = '<'
     DELIMITER_CHOICES = (
-        ('>', 'greater than'),
-        ('<', 'less than'),
+        (DELIMITER_GT, 'greater than'),
+        (DELIMITER_LT, 'less than'),
     )
+    TRESHOLD_STATE_ACTIVE = 'active'
+    TRESHOLD_STATE_INACTIVE = 'inactive'
     TRESHOLD_STATE_CHOICES = (
-        ('active', 'active'),
-        ('inactive', 'inactive'),
+        (TRESHOLD_STATE_ACTIVE, 'active'),
+        (TRESHOLD_STATE_INACTIVE, 'inactive'),
     )
     id = models.IntegerField(db_column='rrd_datasourceid', primary_key=True)
     rrd_file = models.ForeignKey(RrdFile, db_column='rrd_fileid')
