@@ -210,9 +210,11 @@ CREATE TABLE netbox (
 CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
 
 CREATE TABLE netboxsnmpoid (
+  id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
   frequency INT4,
+  PRIMARY KEY(id),
   UNIQUE(netboxid, snmpoidid)
 );  
 CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
@@ -731,17 +733,21 @@ CREATE TABLE alertq (
 );
 
 CREATE TABLE alertqmsg (
+  id SERIAL,
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
   msgtype VARCHAR NOT NULL,
   language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alertqid, msgtype, language)
 );
 CREATE INDEX alertqmsg_alertqid_btree ON alertqmsg USING btree (alertqid);
 CREATE TABLE alertqvar (
+  id SERIAL,
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alertqid, var) -- only one val per var per event
 );
 CREATE INDEX alertqvar_alertqid_btree ON alertqvar USING btree (alertqid);
@@ -772,20 +778,24 @@ CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
        AND deviceid=OLD.deviceid;
 
 CREATE TABLE alerthistmsg (
+  id SERIAL,
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   msgtype VARCHAR NOT NULL,
   language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alerthistid, state, msgtype, language)
 );
 CREATE INDEX alerthistmsg_alerthistid_btree ON alerthistmsg USING btree (alerthistid);
 
 CREATE TABLE alerthistvar (
+  id SERIAL,
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
 CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
@@ -808,7 +818,8 @@ CREATE RULE rrdfile_deleter AS
         WHERE key='serviceid' AND value=old.serviceid;
 
 CREATE TABLE serviceproperty (
-serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
+  id SERIAL,
+  serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
   property VARCHAR(64) NOT NULL,
   value VARCHAR,
   PRIMARY KEY(serviceid, property)
@@ -904,6 +915,7 @@ CREATE TABLE maint_task (
 );
 
 CREATE TABLE maint_component (
+    id SERIAL,
     maint_taskid INT NOT NULL REFERENCES maint_task ON UPDATE CASCADE ON DELETE CASCADE,
     key VARCHAR NOT NULL,
     value VARCHAR NOT NULL,
@@ -911,6 +923,7 @@ CREATE TABLE maint_component (
 );
 
 CREATE TABLE message_to_maint_task (
+    id SERIAL,
     messageid INT NOT NULL REFERENCES message ON UPDATE CASCADE ON DELETE CASCADE,
     maint_taskid INT NOT NULL REFERENCES maint_task ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (messageid, maint_taskid)

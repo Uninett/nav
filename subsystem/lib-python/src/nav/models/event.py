@@ -49,8 +49,12 @@ class Subsystem(models.Model):
 
     name = models.CharField(max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
+
     class Meta:
         db_table = 'subsystem'
+
+    def __unicode__(self):
+        return self.name
 
 #######################################################################
 ### Event system
@@ -65,6 +69,7 @@ class EventQueue(models.Model):
     STATE_START = STATE_START
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
+
     id = models.IntegerField(db_column='eventqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source',
         related_name='source_of_events')
@@ -79,8 +84,13 @@ class EventQueue(models.Model):
         default=STATE_STATELESS)
     value = models.IntegerField(default=100)
     severity = models.IntegerField(default=50)
+
     class Meta:
         db_table = 'eventq'
+
+    def __unicode__(self):
+        return u'Source %s, target %s, state %s' % (
+            self.source, self.target, self.get_state_display())
 
 class EventType(models.Model):
     """From MetaNAV: Defines event types."""
@@ -91,12 +101,17 @@ class EventType(models.Model):
         (STATEFUL_TRUE, 'stateful'),
         (STATEFUL_FALSE, 'stateless'),
     )
+
     id = models.CharField(db_column='eventtypeid',
         max_length=32, primary_key=True)
     description = models.CharField(db_column='eventtypedesc', max_length=-1)
     stateful = models.CharField(max_length=1, choices=STATEFUL_CHOICES)
+
     class Meta:
         db_table = 'eventtype'
+
+    def __unicode__(self):
+        return self.id
 
 class EventQueueVar(models.Model):
     """From MetaNAV: Defines additional (key,value) tuples that follow
@@ -106,9 +121,13 @@ class EventQueueVar(models.Model):
         related_name='variables')
     variable = models.CharField(db_column='var', max_length=-1)
     value = models.TextField(db_column='val')
+
     class Meta:
         db_table = 'eventqvar'
         unique_together = (('event_queue', 'variable'),)
+
+    def __unicode__(self):
+        return u'%s=%s' % (self.variable, self.value)
 
 #######################################################################
 ### Alert system
@@ -125,6 +144,7 @@ class AlertQueue(models.Model):
     STATE_START = STATE_START
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
+
     id = models.IntegerField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid')
@@ -137,8 +157,13 @@ class AlertQueue(models.Model):
         default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
+
     class Meta:
         db_table = 'alertq'
+
+    def __unicode__(self):
+        return u'Source %s, state %s, severity %d' % (
+            self.source, self.get_state_display(), self.severity)
 
 class AlertType(models.Model):
     """From MetaNAV: Defines the alert types. An event type may have many alert
@@ -146,11 +171,15 @@ class AlertType(models.Model):
 
     id = models.IntegerField(db_column='alerttypeid', primary_key=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
-    name = models.CharField(db_column='alterttype', max_length=-1)
+    name = models.CharField(db_column='alerttype', max_length=-1)
     description= models.CharField(db_column='alerttypedesc', max_length=-1)
+
     class Meta:
         db_table = 'alerttype'
         unique_together = (('event_type', 'name'),)
+
+    def __unicode__(self):
+        return u'%s, of event type %s' % (self.name, self.event_type)
 
 class AlertQueueMessage(models.Model):
     """From MetaNAV: Event engine will, based on alertmsg.conf, preformat the
@@ -158,27 +187,37 @@ class AlertQueueMessage(models.Model):
     one message for each configured language. The data are stored in the
     alertmsg table."""
 
+    id = models.IntegerField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='messages')
     type = models.CharField(db_column='msgtype', max_length=-1)
     language = models.CharField(max_length=-1)
     message = models.TextField(db_column='msg')
+
     class Meta:
         db_table = 'alertqmsg'
         unique_together = (('alert_queue', 'type', 'language'),)
+
+    def __unicode__(self):
+        return u'%s message in language %s' % (self.type, self.language)
 
 class AlertQueueVariable(models.Model):
     """From MetaNAV: Defines additional (key,value) tuples that follow alert.
     Note: the eventqvar tuples are passed along to the alertqvar table so that
     the variables may be used in alert profiles."""
 
+    id = models.IntegerField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='variables')
     variable = models.CharField(db_column='var', max_length=-1)
     value = models.TextField(db_column='val')
+
     class Meta:
         db_table = 'alertqvar'
         unique_together = (('alert_queue', 'variable'),)
+
+    def __unicode__(self):
+        return u'%s=%s' % (self.variable, self.value)
 
 class AlertHistory(models.Model):
     """From MetaNAV: The alert history. Simular to the alert queue with one
@@ -196,8 +235,12 @@ class AlertHistory(models.Model):
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid')
     value = models.IntegerField()
     severity = models.IntegerField()
+
     class Meta:
         db_table = 'alerthist'
+
+    def __unicode__(self):
+        return u'Source %s, severity %d' % (self.source, self.severity)
 
 class AlertHistoryMessage(models.Model):
     """From MetaNAV: To have a history of the formatted messages too, they are
@@ -207,6 +250,8 @@ class AlertHistoryMessage(models.Model):
     STATE_START = STATE_START
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
+
+    id = models.IntegerField(primary_key=True)
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
         related_name='messages')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
@@ -214,9 +259,13 @@ class AlertHistoryMessage(models.Model):
     type = models.CharField(db_column='msgtype', max_length=-1)
     language = models.CharField(max_length=-1)
     message = models.TextField(db_column='msg')
+
     class Meta:
         db_table = 'alerthistmsg'
         unique_together = (('alert_history', 'state', 'type', 'language'),)
+
+    def __unicode__(self):
+        return u'%s message in language %s' % (self.type, self.language)
 
 class AlertHistoryVariable(models.Model):
     """From MetaNAV: Defines additional (key,value) tuples that follow the
@@ -226,18 +275,28 @@ class AlertHistoryVariable(models.Model):
     STATE_START = STATE_START
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
+
+    id = models.IntegerField(primary_key=True)
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)
     variable = models.CharField(db_column='var', max_length=-1)
     value = models.TextField(db_column='val')
+
     class Meta:
         db_table = 'alerthistvar'
         unique_together = (('alert_history', 'state', 'variable'),)
+
+    def __unicode__(self):
+        return u'%s=%s' % (self.variable, self.value)
 
 class AlertEngine(models.Model):
     """From MetaNAV: Used by alert engine to keep track of processed alerts."""
 
     last_alert_queue_id = models.IntegerField(db_column='lastalertqueueid')
+
     class Meta:
         db_table = 'alertengine'
+
+    def __unicode__(self):
+        return u'%d' % self.last_alert_queue_id

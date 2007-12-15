@@ -44,22 +44,32 @@ class Service(models.Model):
         (UP_DOWN, 'down'),
         (UP_SHADOW, 'shadow'),
     )
+
     id = models.IntegerField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     active = models.BooleanField(default=True)
     handler = models.CharField(max_length=-1)
     version = models.CharField(max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
+
     class Meta:
         db_table = 'service'
+
+    def __unicode__(self):
+        return u'%s, at %s' % (self.handler, self.netbox)
 
 class ServiceProperty(models.Model):
     """From MetaNAV: Each service may have an additional set of attributes.
     They are defined here."""
 
+    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
     service = models.ForeignKey(Service, db_column='serviceid')
     property = models.CharField(max_length=64)
     value = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'serviceproperty'
         unique_together = (('service', 'property'),) # Primary key
+
+    def __unicode__(self):
+        return u'%s=%s, for %s' % (self.property, self.value, self.service)

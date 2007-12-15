@@ -49,16 +49,25 @@ class SnmpOid(models.Model):
     description = models.CharField(db_column='descr', max_length=-1)
     oid_name = models.CharField(db_column='oidname', max_length=-1)
     mib = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'snmpoid'
+
+    def __unicode__(self):
+        return u'%s, at OID %s' % (self.oid_key, self.snmp_oid)
 
 class NetboxSnmpOid(models.Model):
     """From MetaNAV: The netboxsnmpoid table defines which netboxes answers to
     which snmpoids."""
 
+    id = models.IntegerField(primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     snmp_oid = models.ForeignKey(SnmpOid, db_column='snmpoidid')
     frequency = models.IntegerField()
+
     class Meta:
         db_table = 'netboxsnmpoid'
         unique_together = (('netbox', 'snmp_oid'),)
+
+    def __unicode__(self):
+        return u'%s, answers to %s' % (self.netbox, self.snmp_oid)

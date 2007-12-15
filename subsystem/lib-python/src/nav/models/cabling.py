@@ -43,9 +43,13 @@ class Cabling(models.Model):
     target_room = models.CharField(db_column='targetroom', max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
     category = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'cabling'
         unique_together = (('room', 'jack'),)
+
+    def __unicode__(self):
+        return u'jack %s, in room %s' % (self.jack, self.room)
 
 class Patch(models.Model):
     """From MetaNAV: The patch table documents the cross connect from switch
@@ -55,6 +59,10 @@ class Patch(models.Model):
     swport = models.ForeignKey(SwPort, db_column='swportid')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
     split = models.CharField(max_length=-1, default='no')
+
     class Meta:
         db_table = 'patch'
         unique_together = (('swport', 'cabling'),)
+
+    def __unicode__(self):
+        return u'%s, patched to %s' % (self.swport, self.cabling)

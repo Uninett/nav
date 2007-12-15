@@ -24,3 +24,11 @@ CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
 -- Django needs a single column it can treat as primary key :-(
 ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
 ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
+ALTER TABLE maint_component ADD COLUMN id SERIAL;
+ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
+ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;

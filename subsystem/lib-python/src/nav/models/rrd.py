@@ -45,8 +45,12 @@ class RrdFile(models.Model):
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     key = models.CharField(max_length=-1)
     value = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'rrd_file'
+
+    def __unicode__(self):
+        return u'%s/%s' % (self.path, self.filename)
 
 class RrdDataSource(models.Model):
     """From MetaNAV: An rrd_file consists of a set of data sources defined in
@@ -75,6 +79,7 @@ class RrdDataSource(models.Model):
         (TRESHOLD_STATE_ACTIVE, 'active'),
         (TRESHOLD_STATE_INACTIVE, 'inactive'),
     )
+
     id = models.IntegerField(db_column='rrd_datasourceid', primary_key=True)
     rrd_file = models.ForeignKey(RrdFile, db_column='rrd_fileid')
     name = models.CharField(max_length=-1)
@@ -87,5 +92,10 @@ class RrdDataSource(models.Model):
     delimiter = models.CharField(max_length=1, choices=DELIMITER_CHOICES)
     threshold_state = models.CharField(db_column='thresholdstate',
         max_length=-1, choices=TRESHOLD_STATE_CHOICES)
+
     class Meta:
         db_table = 'rrd_datasource'
+
+    def __unicode__(self):
+        return u'%s (%s), for RRD file %s' % (
+            self.name, self.description, self.rrd_file)

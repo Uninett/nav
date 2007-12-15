@@ -45,41 +45,61 @@ class Message(models.Model):
     last_changed = models.DateTimeField()
     replaces_message = models.ForeignKey('self', db_column='replaces_message',
         related_name='replaced_by')
+
     class Meta:
         db_table = 'message'
+
+    def __unicode__(self):
+        return u'"%s" by %s' % (self.title, self.author)
 
 class MaintenanceTask(models.Model):
     """From MetaNAV: The maintenance task created in the maintenance task
     tool."""
 
     id = models.IntegerField(db_column='maint_taskid', primary_key=True)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(db_column='maint_start')
+    end_time = models.DateTimeField(db_column='maint_end')
     description = models.TextField()
     author = models.CharField(max_length=-1)
     state = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'maint_task'
+
+    def __unicode__(self):
+        return u'"%s" by %s' % (self.description, self.author)
 
 class MaintenanceComponent(models.Model):
     """From MetaNAV: The components that are put on maintenance in the
     maintenance tool."""
 
-    maint_task = models.ForeignKey(MaintenanceTask, db_column='maint_taskid')
+    id = models.IntegerField(primary_key=True) # Serial for faking primary key
+    maintenance_task = models.ForeignKey(MaintenanceTask,
+        db_column='maint_taskid')
     key = models.CharField(max_length=-1)
     value = models.CharField(max_length=-1)
+
     class Meta:
         db_table = 'maint_component'
         unique_together = (('maint_task', 'key', 'value'),) # Primary key
+
+    def __unicode__(self):
+        return u'%s=%s' % (self.key, self.value)
 
 class MessageToMaintenanceTask(models.Model):
     """From MetaNAV: The connection between messages and related maintenance
     tasks."""
 
+    id = models.IntegerField(primary_key=True) # Serial for faking primary key
     message = models.ForeignKey(Message, db_column='messageid',
         related_name='maintenance_tasks')
     maintenance_task = models.ForeignKey(MaintenanceTask,
         db_column='maint_taskid', related_name='messages')
+
     class Meta:
         db_table = 'message_to_maint_task'
         unique_together = (('message', 'maintenance_task'),) # Primary key
+
+    def __unicode__(self):
+        return u'Message %s, connected to task %s' % (
+            self.message, self.maintenance_task)
