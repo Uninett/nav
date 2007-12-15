@@ -45,6 +45,8 @@ STATE_CHOICES = (
 )
 
 class Subsystem(models.Model):
+    """From MetaNAV: Defines the subsystems that post or receives an event."""
+
     name = models.CharField(max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
     class Meta:
@@ -54,6 +56,11 @@ class Subsystem(models.Model):
 ### Event system
 
 class EventQueue(models.Model):
+    """From MetaNAV: The event queue. Additional data in eventqvar. Different
+    subsystem (specified in source) post events on the event queue. Normally
+    event engine is the target and will take the event off the event queue and
+    process it.  getDeviceData are in some cases the target."""
+
     STATE_STATELESS = STATE_STATELESS
     STATE_START = STATE_START
     STATE_END = STATE_END
@@ -76,6 +83,8 @@ class EventQueue(models.Model):
         db_table = 'eventq'
 
 class EventType(models.Model):
+    """From MetaNAV: Defines event types."""
+
     STATEFUL_TRUE = 'y'
     STATEFUL_FALSE = 'n'
     STATEFUL_CHOICES = (
@@ -90,6 +99,9 @@ class EventType(models.Model):
         db_table = 'eventtype'
 
 class EventQueueVar(models.Model):
+    """From MetaNAV: Defines additional (key,value) tuples that follow
+    events."""
+
     event_queue = models.ForeignKey('EventQueue', db_column='eventqid',
         related_name='variables')
     variable = models.CharField(db_column='var', max_length=-1)
@@ -102,6 +114,13 @@ class EventQueueVar(models.Model):
 ### Alert system
 
 class AlertQueue(models.Model):
+    """From MetaNAV: The alert queue. Additional data in alertqvar and
+    alertmsg. Event engine posts alerts on the alert queue (and in addition on
+    the alerthist table). Alert engine will process the data on the alert queue
+    and send alerts to users based on their alert profiles. When all signed up
+    users have received the alert, alert engine will delete the alert from
+    alertq (but not from alert history)."""
+
     STATE_STATELESS = STATE_STATELESS
     STATE_START = STATE_START
     STATE_END = STATE_END
@@ -122,6 +141,9 @@ class AlertQueue(models.Model):
         db_table = 'alertq'
 
 class AlertType(models.Model):
+    """From MetaNAV: Defines the alert types. An event type may have many alert
+    types."""
+
     id = models.IntegerField(db_column='alerttypeid', primary_key=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     name = models.CharField(db_column='alterttype', max_length=-1)
@@ -131,6 +153,11 @@ class AlertType(models.Model):
         unique_together = (('event_type', 'name'),)
 
 class AlertQueueMessage(models.Model):
+    """From MetaNAV: Event engine will, based on alertmsg.conf, preformat the
+    alarm messages, one message for each configured alert channel (email, sms),
+    one message for each configured language. The data are stored in the
+    alertmsg table."""
+
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='messages')
     type = models.CharField(db_column='msgtype', max_length=-1)
@@ -141,6 +168,10 @@ class AlertQueueMessage(models.Model):
         unique_together = (('alert_queue', 'type', 'language'),)
 
 class AlertQueueVariable(models.Model):
+    """From MetaNAV: Defines additional (key,value) tuples that follow alert.
+    Note: the eventqvar tuples are passed along to the alertqvar table so that
+    the variables may be used in alert profiles."""
+
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='variables')
     variable = models.CharField(db_column='var', max_length=-1)
@@ -150,6 +181,10 @@ class AlertQueueVariable(models.Model):
         unique_together = (('alert_queue', 'variable'),)
 
 class AlertHistory(models.Model):
+    """From MetaNAV: The alert history. Simular to the alert queue with one
+    important distinction; alert history stores statefull events as one row,
+    with the start and end time of the event."""
+
     id = models.IntegerField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid')
@@ -165,6 +200,9 @@ class AlertHistory(models.Model):
         db_table = 'alerthist'
 
 class AlertHistoryMessage(models.Model):
+    """From MetaNAV: To have a history of the formatted messages too, they are
+    stored in alerthistmsg."""
+
     STATE_STATELESS = STATE_STATELESS
     STATE_START = STATE_START
     STATE_END = STATE_END
@@ -181,6 +219,9 @@ class AlertHistoryMessage(models.Model):
         unique_together = (('alert_history', 'state', 'type', 'language'),)
 
 class AlertHistoryVariable(models.Model):
+    """From MetaNAV: Defines additional (key,value) tuples that follow the
+    alerthist record."""
+
     STATE_STATELESS = STATE_STATELESS
     STATE_START = STATE_START
     STATE_END = STATE_END
@@ -195,6 +236,8 @@ class AlertHistoryVariable(models.Model):
         unique_together = (('alert_history', 'state', 'variable'),)
 
 class AlertEngine(models.Model):
+    """From MetaNAV: Used by alert engine to keep track of processed alerts."""
+
     last_alert_queue_id = models.IntegerField(db_column='lastalertqueueid')
     class Meta:
         db_table = 'alertengine'

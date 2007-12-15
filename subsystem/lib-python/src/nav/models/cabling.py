@@ -33,6 +33,9 @@ from django.db import models
 from nav.models.manage import Room, SwPort
 
 class Cabling(models.Model):
+    """From MetaNAV: The cabling table documents the cabling from the wirering
+    closet's jack number to the end user's room number."""
+
     id = models.IntegerField(db_column='cablingid', primary_key=True)
     room = models.ForeignKey(Room, db_column='roomid')
     jack = models.CharField(max_length=-1)
@@ -45,6 +48,9 @@ class Cabling(models.Model):
         unique_together = (('room', 'jack'),)
 
 class Patch(models.Model):
+    """From MetaNAV: The patch table documents the cross connect from switch
+    port to jack."""
+
     id = models.IntegerField(db_column='patchid', primary_key=True)
     swport = models.ForeignKey(SwPort, db_column='swportid')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')

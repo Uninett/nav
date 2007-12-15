@@ -33,24 +33,33 @@ from django.db import models
 from nav.models.manage import Netbox
 
 class Service(models.Model):
+    """From MetaNAV: The service table defines the services on a netbox that
+    serviceMon monitors."""
+
+    UP_UP = 'y'
+    UP_DOWN = 'n'
+    UP_SHADOW = 's'
     UP_CHOICES = (
-        ('y', 'up'),
-        ('n', 'down'),
-        ('s', 'shadow'),
+        (UP_UP, 'up'),
+        (UP_DOWN, 'down'),
+        (UP_SHADOW, 'shadow'),
     )
     id = models.IntegerField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     active = models.BooleanField(default=True)
     handler = models.CharField(max_length=-1)
     version = models.CharField(max_length=-1)
-    up = models.CharField(max_length=1, choices=UP_CHOICES, default='y')
+    up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     class Meta:
         db_table = 'service'
 
 class ServiceProperty(models.Model):
+    """From MetaNAV: Each service may have an additional set of attributes.
+    They are defined here."""
+
     service = models.ForeignKey(Service, db_column='serviceid')
     property = models.CharField(max_length=64)
     value = models.CharField(max_length=-1)
     class Meta:
         db_table = 'serviceproperty'
-        unique_together = (('serivce', 'property'),) # Primary key
+        unique_together = (('service', 'property'),) # Primary key

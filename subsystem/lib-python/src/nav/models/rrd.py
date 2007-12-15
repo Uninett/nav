@@ -34,6 +34,9 @@ from nav.models.event import Subsystem
 from nav.models.manage import Netbox
 
 class RrdFile(models.Model):
+    """From MetaNAV: The rrd_file contains meta information on all RRD files
+    that NAV uses. Each RRD file has statistics for a certain netbox."""
+
     id = models.IntegerField(db_column='rrd_fileid', primary_key=True)
     path = models.CharField(max_length=-1)
     filename = models.CharField(max_length=-1)
@@ -46,6 +49,10 @@ class RrdFile(models.Model):
         db_table = 'rrd_file'
 
 class RrdDataSource(models.Model):
+    """From MetaNAV: An rrd_file consists of a set of data sources defined in
+    this table. A data source is a data set, i.e. outOctets for a given switch
+    port on a given switch."""
+
     TYPE_GAUGE = 'GAUGE'
     TYPE_DERIVE = 'DERIVE'
     TYPE_COUNTER = 'COUNTER'

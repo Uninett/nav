@@ -46,6 +46,11 @@ LINK_CHOICES = (
 ### Netbox-related models
 
 class Netbox(models.Model):
+    """From MetaNAV: The netbox table is the heart of the heart so to speak,
+    the most central table of them all. The netbox tables contains information
+    on all IP devices that NAV manages with adhering information and
+    relations."""
+
     UP_UP = 'y'
     UP_DOWN = 'n'
     UP_SHADOW = 's'
@@ -61,7 +66,8 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = models.CharField(unique=True, max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
-    subcategory = models.CharField(db_column='subcat', max_length=-1)
+    # TODO: Probably deprecated. Check and remove.
+    #subcategory = models.CharField(db_column='subcat', max_length=-1)
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
@@ -76,6 +82,9 @@ class Netbox(models.Model):
         db_table = 'netbox'
 
 class NetboxInfo(models.Model):
+    """From MetaNAV: The netboxinfo table is the place to store additional info
+    on a netbox."""
+
     id = models.IntegerField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     key = models.CharField(max_length=-1)
@@ -86,6 +95,11 @@ class NetboxInfo(models.Model):
         unique_together = (('netbox', 'key', 'variable', 'value'),)
 
 class Device(models.Model):
+    """From MetaNAV: The device table contains all physical devices in the
+    network. As opposed to the netbox table, the device table focuses on the
+    physical box with its serial number. The device may appear as different net
+    boxes or may appear in different modules throughout its lifetime."""
+
     id = models.IntegerField(db_column='deviceid', primary_key=True)
     product = models.ForeignKey('Product', db_column='productid')
     serial = models.CharField(unique=True, max_length=-1)
@@ -100,6 +114,11 @@ class Device(models.Model):
         db_table = 'device'
 
 class Module(models.Model):
+    """From MetaNAV: The module table defines modules. A module is a part of a
+    netbox of category GW, SW and GSW. A module has ports; i.e router ports
+    and/or switch ports. A module is also a physical device with a serial
+    number."""
+
     UP_UP = 'y'
     UP_DOWN = 'n'
     UP_CHOICES = (
@@ -120,6 +139,9 @@ class Module(models.Model):
         unique_together = (('netbox', 'module_number'),)
 
 class Memory(models.Model):
+    """From MetaNAV: The mem table describes the memory (memory and nvram) of a
+    netbox."""
+
     id = models.IntegerField(db_column='memid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     type = models.CharField(db_column='memtype', max_length=-1)
@@ -131,6 +153,9 @@ class Memory(models.Model):
         unique_together = (('netbox', 'type', 'device'),)
 
 class Room(models.Model):
+    """From MetaNAV: The room table defines a wiring closes / network room /
+    server room."""
+
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
     location = models.ForeignKey('Location', db_column='locationid')
     description = models.CharField(db_column='descr', max_length=-1)
@@ -142,6 +167,9 @@ class Room(models.Model):
         db_table = 'room'
 
 class Location(models.Model):
+    """From MetaNAV: The location table defines a group of rooms; i.e. a
+    campus."""
+
     id = models.CharField(db_column='locationid',
         max_length=30, primary_key=True)
     descr = models.CharField(max_length=-1)
@@ -149,6 +177,9 @@ class Location(models.Model):
         db_table = 'location'
 
 class Organization(models.Model):
+    """From MetaNAV: The org table defines an organization which is in charge
+    of a given netbox and is the user of a given prefix."""
+
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
     parent = models.ForeignKey('self', db_column='parent')
     description = models.CharField(db_column='descr', max_length=-1)
@@ -159,6 +190,9 @@ class Organization(models.Model):
         db_table = 'org'
 
 class Category(models.Model):
+    """From MetaNAV: The cat table defines the categories of a netbox
+    (GW,GSW,SW,EDGE,WLAN,SRV,OTHER)."""
+
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
     req_snmp = models.BooleanField()
@@ -166,6 +200,10 @@ class Category(models.Model):
         db_table = 'cat'
 
 class Subcategory(models.Model):
+    """From MetaNAV: The subcat table defines subcategories within a category.
+    A category may have many subcategories. A subcategory belong to one and
+    only one category."""
+
     id = models.CharField(db_column='subcatid', max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
@@ -173,6 +211,9 @@ class Subcategory(models.Model):
         db_table = 'subcat'
 
 class NetboxCategory(models.Model):
+    """From MetaNAV: A netbox may be in many subcategories. This relation is
+    defined here."""
+
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
@@ -183,6 +224,9 @@ class NetboxCategory(models.Model):
         unique_together = (('netbox', 'category'),) # The primary key
 
 class NetboxType(models.Model):
+    """From MetaNAV: The type table defines the type of a netbox, the
+    sysobjectid being the unique identifier."""
+
     id = models.IntegerField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = models.CharField(db_column='typename', max_length=-1)
@@ -202,12 +246,18 @@ class NetboxType(models.Model):
 ### Device management
 
 class Vendor(models.Model):
+    """From MetaNAV: The vendor table defines vendors. A type is of a vendor. A
+    product is of a vendor."""
+
     id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
     enterprise_id = models.IntegerField(db_column='enterpriseid')
     class Meta:
         db_table = 'vendor'
 
 class Product(models.Model):
+    """From MetaNAV: The product table is used be Device Management to register
+    products. A product has a product number and is of a vendor."""
+
     id = models.IntegerField(db_column='productid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     product_number = models.CharField(db_column='productno', max_length=-1)
@@ -217,6 +267,10 @@ class Product(models.Model):
         unique_together = (('vendor', 'product_number'),)
 
 class DeviceOrder(models.Model):
+    """From MetaNAV: The devicerorder table is used by Device Management to
+    place orders. Not compulsary. An order consists of a set of devices (on or
+    more) of a certain product."""
+
     id = models.IntegerField(db_column='deviceorderid', primary_key=True)
     registered = models.DateTimeField(default=datetime.now)
     ordered = models.DateField()
@@ -236,6 +290,10 @@ class DeviceOrder(models.Model):
 ### Router/topology
 
 class GwPort(models.Model):
+    """From MetaNAV: The gwport table defines the router ports connected to a
+    module. Only router ports that are not shutdown are included. Router ports
+    without defined IP addresses are also excluded."""
+
     LINK_UP = LINK_UP
     LINK_DOWN = LINK_DOWN
     LINK_DOWN_ADM = LINK_DOWN_ADM
@@ -256,6 +314,9 @@ class GwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
 class GwPortPrefix(models.Model):
+    """From MetaNAV: The gwportprefix table defines the router port IP
+    addresses, one or more. HSRP is also supported."""
+
     gwport = models.ForeignKey('GwPort', db_column='gwportid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     gw_ip = models.IPAddressField(db_column='gwip', unique=True)
@@ -264,6 +325,8 @@ class GwPortPrefix(models.Model):
         db_table = 'gwportprefix'
 
 class Prefix(models.Model):
+    """From MetaNAV: The prefix table stores IP prefixes."""
+
     id = models.IntegerField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField
     net_address = models.TextField(db_column='netaddr', unique=True)
@@ -272,6 +335,11 @@ class Prefix(models.Model):
         db_table = 'prefix'
 
 class Vlan(models.Model):
+    """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
+    broadcast domain often has a vlan value, it may consist of many IP
+    prefixes, it is of a network type, it is used by an organization (org) and
+    has a user group (usage) within the org."""
+
     id = models.IntegerField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField()
     net_type = models.ForeignKey('NetType', db_column='nettype')
@@ -283,6 +351,10 @@ class Vlan(models.Model):
         db_table = 'vlan'
 
 class NetType(models.Model):
+    """From MetaNAV: The nettype table defines network type;lan, core, link,
+    elink, loopback, closed, static, reserved, scope. The network types are
+    predefined in NAV and may not be altered."""
+
     id = models.CharField(db_column='nettypeid',
         max_length=-1, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
@@ -291,6 +363,9 @@ class NetType(models.Model):
         db_table = 'nettype'
 
 class Usage(models.Model):
+    """From MetaNAV: The usage table defines the user group (student, staff
+    etc). Usage categories are maintained in the edit database tool."""
+
     id = models.CharField(db_column='usageid',
         max_length=30, primary_key=True)
     description = models.CharField(db_column='descr', max_length=-1)
@@ -298,6 +373,8 @@ class Usage(models.Model):
         db_table = 'usage'
 
 class Arp(models.Model):
+    """From MetaNAV: The arp table contains (ip, mac, time start, time end)."""
+
     id = models.IntegerField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
@@ -314,6 +391,9 @@ class Arp(models.Model):
 ### Switch/topology
 
 class SwPort(models.Model):
+    """From MetaNAV: The swport table defines the switchports connected to a
+    module."""
+
     LINK_UP = LINK_UP
     LINK_DOWN = LINK_DOWN
     LINK_DOWN_ADM = LINK_DOWN_ADM
@@ -343,6 +423,9 @@ class SwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
 class SwPortVlan(models.Model):
+    """From MetaNAV: The swportvlan table defines the vlan values on all switch
+    ports. dot1q trunk ports typically have several rows in this table."""
+
     DIRECTION_UNDEFINED = 'u'
     DIRECTION_UP = 'o'
     DIRECTION_DOWN = 'd'
@@ -365,12 +448,18 @@ class SwPortVlan(models.Model):
         unique_together = (('swport', 'vlan'),)
 
 class SwPortAllowedVlan(models.Model):
+    """From MetaNAV: Stores a hexstring that has “hidden” information about the
+    vlans that are allowed to traverse a given trunk."""
+
     swport = models.ForeignKey('SwPort', db_column='swportid')
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
     class Meta:
         db_table = 'swportallowedvlan'
 
 class SwPortBlocked(models.Model):
+    """From MetaNAV: This table defines the spanning tree blocked ports for a
+    given vlan for a given switch port."""
+
     swport = models.ForeignKey('SwPort', db_column='swportid')
     vlan = models.IntegerField()
     class Meta:
@@ -378,6 +467,10 @@ class SwPortBlocked(models.Model):
         unique_together = (('swport', 'vlan'),) # Primary key
 
 class SwPortToNetbox(models.Model):
+    """From MetaNAV: A help table used in the process of building the physical
+    topology of the network. swp_netbox defines the candidates for next hop
+    physical neighborship."""
+
     id = models.IntegerField(db_column='swp_netboxid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     ifindex = models.IntegerField()
@@ -391,6 +484,12 @@ class SwPortToNetbox(models.Model):
         unique_together = (('netbox', 'ifindex', 'to_netbox'),)
 
 class NetboxVtpVlan(models.Model):
+    """From MetaNAV: A help table that contains the vtp vlan database of a
+    switch. For certain cisco switches cam information is gathered using a
+    community@vlan string. It is then necessary to know all vlans that are
+    active on a switch. The vtp vlan table is an extra source of
+    information."""
+
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
     class Meta:
@@ -398,6 +497,9 @@ class NetboxVtpVlan(models.Model):
         unique_together = (('netbox', 'vtp_vlan'),)
 
 class Cam(models.Model):
+    """From MetaNAV: The cam table defines (swport, mac, time start, time
+    end)"""
+
     id = models.IntegerField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     sysname = models.CharField(max_length=-1)

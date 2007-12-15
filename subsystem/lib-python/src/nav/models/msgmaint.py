@@ -31,6 +31,10 @@ __id__ = "$Id$"
 from django.db import models
 
 class Message(models.Model):
+    """From MetaNAV: The table contains the messages registered in the messages
+    tool. Each message has a timeframe for when it is published on the NAV main
+    page."""
+
     id = models.IntegerField(db_column='messageid', primary_key=True)
     title = models.CharField(max_length=-1)
     description = models.TextField()
@@ -45,6 +49,9 @@ class Message(models.Model):
         db_table = 'message'
 
 class MaintenanceTask(models.Model):
+    """From MetaNAV: The maintenance task created in the maintenance task
+    tool."""
+
     id = models.IntegerField(db_column='maint_taskid', primary_key=True)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
@@ -55,6 +62,9 @@ class MaintenanceTask(models.Model):
         db_table = 'maint_task'
 
 class MaintenanceComponent(models.Model):
+    """From MetaNAV: The components that are put on maintenance in the
+    maintenance tool."""
+
     maint_task = models.ForeignKey(MaintenanceTask, db_column='maint_taskid')
     key = models.CharField(max_length=-1)
     value = models.CharField(max_length=-1)
@@ -63,6 +73,9 @@ class MaintenanceComponent(models.Model):
         unique_together = (('maint_task', 'key', 'value'),) # Primary key
 
 class MessageToMaintenanceTask(models.Model):
+    """From MetaNAV: The connection between messages and related maintenance
+    tasks."""
+
     message = models.ForeignKey(Message, db_column='messageid',
         related_name='maintenance_tasks')
     maintenance_task = models.ForeignKey(MaintenanceTask,
