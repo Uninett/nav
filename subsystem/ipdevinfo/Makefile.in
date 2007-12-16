@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
-# ID: $Id:$
+# ID: $Id$
 #
 
 # Programs
@@ -37,6 +37,7 @@ initdir = @initdir@
 localstatedir = @localstatedir@
 tooldir = @tooldir@
 pythonlibdir = @pythonlibdir@
+djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 
 # Names
@@ -50,6 +51,8 @@ CONFFILES =
 TOOLS = ipdevinfo.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
+DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
+DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
@@ -66,6 +69,7 @@ install: all install-lib install-bin install-conf install-web
 
 install-lib: lib $(TEMPLATES)
 	for file in $(LIBS) $(TEMPLATES); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in $(DJANGO_TEMPLATES); do $(INSTALL) -v -D -m 644 templates/$$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
 
 install-bin: bin
 	for file in $(BINS); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; done
@@ -88,8 +92,9 @@ install-web: web
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(LIBS); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in $(DJANGO_TEMPLATES); do rm -rf $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
 	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	rm -rf $(DESTDIR)$(webdir)/$(WEBNAME)/
+	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
 
 clean:
 	find -name *.pyc -print0 | xargs -0 rm -f

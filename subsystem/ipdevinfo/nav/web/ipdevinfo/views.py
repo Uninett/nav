@@ -28,13 +28,11 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.template import RequestContext
 
-from nav.web.templates.MainTemplate import MainTemplate
+from nav.django.shortcuts import render_to_response
+from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 
 def index(request):
-    page = MainTemplate()
-    page.path = [('Home', '/'), ('IP Device Info', False)]
-    page.title = 'IP Device Info'
-    return HttpResponse(page.respond())
+    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/base.html', {},
+        context_instance=RequestContext(request))
