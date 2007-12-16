@@ -21,20 +21,20 @@
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
-"""Django configuration wrapper around the NAV configuration files"""
+"""Django views"""
 
 __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-import nav.config
+from django.http import HttpResponse
+from django.shortcuts import render_to_response
 
-# Database / ORM configuration
-db_config = nav.config.readConfig('db.conf')
-DATABASE_ENGINE = 'postgresql'
-DATABASE_NAME = db_config['db_nav']
-DATABASE_USER = db_config['script_default']
-DATABASE_PASSWORD = db_config['userpw_nav']
-DATABASE_HOST = db_config['dbhost']
-DATABASE_PORT = db_config['dbport']
+from nav.web.templates.MainTemplate import MainTemplate
+
+def index(request):
+    page = MainTemplate()
+    page.path = [('Home', '/'), ('IP Device Info', False)]
+    page.title = 'IP Device Info'
+    return HttpResponse(page.respond())

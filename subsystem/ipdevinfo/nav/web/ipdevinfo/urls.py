@@ -21,12 +21,17 @@
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
-"""Django ORM wrapper for the NAV manage database"""
+"""Django URL configuration"""
 
 __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+from django.conf.urls.defaults import *
+from nav.web.ipdevinfo.views import *
+
+# The patterns are relative to the base URL of the subsystem
+urlpatterns = patterns('',
+    url(r'^$', index, name='index'),
+)

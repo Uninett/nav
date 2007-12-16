@@ -1,0 +1,4 @@
+SetHandler python-program
+PythonHandler django.core.handlers.modpython
+SetEnv DJANGO_SETTINGS_MODULE nav.django.settings
+PythonDebug On
