@@ -12,6 +12,7 @@ libdir = @libdir@
 sysconfdir = @sysconfdir@
 localstatedir=@localstatedir@
 pythonlibdir = @pythonlibdir@
+djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 initdir = @initdir@
 VERSION = @VERSION@
@@ -35,6 +36,7 @@ $(pathmodule): Makefile
 	@echo "localstatedir=\"$(localstatedir)\"" >> $(pathmodule)
 	@echo "webroot=\"$(webroot)\"" >> $(pathmodule)
 	@echo "initdir=\"$(initdir)\"" >> $(pathmodule)
+	@echo "djangotmpldir=\"$(djangotmpldir)\"" >> $(pathmodule)
 	@echo "VERSION=\"$(VERSION)\"" >> $(pathmodule)
 
 install: install-lib install-bin install-conf

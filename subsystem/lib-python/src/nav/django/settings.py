@@ -29,6 +29,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 from nav.config import readConfig
+import nav.path
 
 # Debugging
 # TODO: Should be set to False before release
@@ -51,3 +52,8 @@ DATABASE_PORT = db_config['dbport']
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
+
+# Templates
+TEMPLATE_DIRS = (
+    nav.path.djangotmpldir,
+)
