@@ -37,8 +37,7 @@ def render_to_response(cheetah_template_func, template_name, context,
     """Mixes Django's render_to_response shortcut with a Cheetah template"""
 
     # Render a Django template with the given context
-    rendered = render_to_string(template_name, context,
-        context_instance=None)
+    rendered = render_to_string(template_name, context, context_instance)
 
     # Insert the result into content_string in the given Cheetah template
     cheetah_template = cheetah_template_func()
