@@ -57,13 +57,13 @@
 <a href="$tool.uri">$tool.name</a></h2>
 <p>$tool.description</p>
         </td>
-#if $rowplace == $boxesPerRow
+    #if $rowplace == $boxesPerRow
     </tr>
     #set $rowplace = 0
-#end if
+    #end if
 #end for
 
-#if $rowplace != $boxesPerRow
+#if $rowplace != 0 and $rowplace != $boxesPerRow
     #for i in range($boxesPerRow - $rowplace)
         <td></td>
     #end for
