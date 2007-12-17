@@ -1,3 +1,7 @@
+<form action="{% url ipdevinfo-search %}" method="get"><p>
+{{ search_form.query.label }}: {{ search_form.query }}
+<button type="submit">Search</button>
+</p></form>
+
 {% block content %}
-<p>No content yet, says Django.</p>
 {% endblock %}

@@ -26,18 +26,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from django.conf.urls.defaults import *
+from django import newforms as forms
 
-from nav.web.ipdevinfo.views import *
-
-# The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
-    url(r'^$', search,
-        name='ipdevinfo-search'),
-
-    # IP Device Details
-    url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-name'),
-    url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-addr'),
-)
+class SearchForm(forms.Form):
+    query = forms.CharField(max_length=100, label='IP or hostname')

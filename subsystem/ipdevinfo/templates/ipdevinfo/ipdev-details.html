@@ -1,0 +1,49 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+<table class="vertitable">
+    <caption>Host: {{ host_info.host }}</caption>
+
+    <tr class="oddrow">
+        <th>Addresses</th>
+        <td>
+            {% if host_info.addresses %}
+            <ul>
+            {% for address in host_info.addresses %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
+                    {% if address.name %}
+                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
+                    {% endif %}
+                    {% if address.error %}
+                        ({{ address.error }})
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            None found
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+{% if netbox %}
+<table class="vertitable">
+    <caption>IP Device: {{ netbox.sysname }}</caption>
+
+    <tr class="oddrow">
+        <th>IP</th>
+        <td>{{ netbox.ip }}</td>
+    </tr>
+    <tr class="evenrow">
+        <th>DNS name</th>
+        <td>{{ netbox.sysname }}</td>
+    </tr>
+</table>
+{% else %}
+<p>The host was not found as an IP device in NAV.</p>
+{% endif %}
+
+{% endblock %}

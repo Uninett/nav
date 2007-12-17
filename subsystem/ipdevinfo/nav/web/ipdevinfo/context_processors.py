@@ -26,18 +26,15 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from django.conf.urls.defaults import *
+from django.conf import settings
 
-from nav.web.ipdevinfo.views import *
+from nav.web.ipdevinfo.forms import SearchForm
 
-# The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
-    url(r'^$', search,
-        name='ipdevinfo-search'),
-
-    # IP Device Details
-    url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-name'),
-    url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-addr'),
-)
+def search_form_processor(request):
+    """Add populated search form to context"""
+    context_extras = {}
+    if request.method == 'GET':
+        context_extras['search_form'] = SearchForm(request.GET)
+    elif request.method == 'POST':
+        context_extras['search_form'] = SearchForm(request.POST)
+    return context_extras
