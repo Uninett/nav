@@ -21,43 +21,21 @@
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
-"""Django configuration wrapper around the NAV configuration files"""
-
 __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from nav.config import readConfig
-import nav.path
+from django.conf import settings
 
-# Debugging
-# TODO: Should be set to False before release
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+def debug(request):
+    """Returns context variables helpful for debugging.
 
-# Admins
-ADMINS = (
-    ('NAV Administrator', readConfig('nav.conf')['ADMIN_MAIL']),
-)
-MANAGERS = ADMINS
-
-# Database / ORM configuration
-db_config = readConfig('db.conf')
-DATABASE_ENGINE = 'postgresql'
-DATABASE_NAME = db_config['db_nav']
-DATABASE_USER = db_config['script_default']
-DATABASE_PASSWORD = db_config['userpw_nav']
-DATABASE_HOST = db_config['dbhost']
-DATABASE_PORT = db_config['dbport']
-
-# URLs configuration
-ROOT_URLCONF = 'nav.django.urls'
-
-# Templates
-TEMPLATE_DIRS = (
-    nav.path.djangotmpldir,
-)
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'nav.django.context_processors.debug',
-)
+    Same as django.core.context_processors.debug, just without the check
+    against INTERNAL_IPS."""
+    context_extras = {}
+    if settings.DEBUG:
+        context_extras['debug'] = True
+        from django.db import connection
+        context_extras['sql_queries'] = connection.queries
+    return context_extras
