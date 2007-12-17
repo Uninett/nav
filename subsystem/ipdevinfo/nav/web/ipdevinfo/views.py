@@ -62,10 +62,14 @@ def search(request):
         except ValueError:
             ip_version = None
 
+        # Find matches to query
         if ip_version is not None:
             netboxes = Netbox.objects.filter(ip=query)
             if len(netboxes) == 0:
-                errors.append('Could not find IP device with IP "%s".' % query)
+                # Could not find IP device, redirect to detail view for a host
+                # lookup in DNS at least
+                return HttpResponseRedirect(reverse('ipdevinfo-details-by-addr',
+                        kwargs={'addr': query}))
         elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
             netboxes = Netbox.objects.filter(sysname__icontains=query)
             if len(netboxes) == 0:
@@ -79,6 +83,7 @@ def search(request):
             return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
                     kwargs={'name': netboxes[0].sysname}))
 
+    # Else, show list of results
     return render_to_response(IpDevInfoTemplate, 'ipdevinfo/search.html',
         {
             'errors': errors,
