@@ -27,6 +27,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 import IPy
+import re
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -41,6 +42,7 @@ from nav.web.ipdevinfo.forms import SearchForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 
 def search(request):
+    errors = []
     search_form = None
 
     if request.method == 'GET':
@@ -62,16 +64,21 @@ def search(request):
         if ip_version is not None:
             return HttpResponseRedirect(
                 reverse('ipdevinfo-details-by-addr', kwargs={'addr': query}))
-        else:
+        elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
             return HttpResponseRedirect(
                 reverse('ipdevinfo-details-by-name', kwargs={'name': query}))
+        else:
+            errors.append('The query does not seem to be a valid IP address'
+                + ' (v4 or 6) or a hostname.')
 
-    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/base.html', {},
+    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/base.html',
+        {'errors': errors},
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
 def ipdev_details(request, name=None, addr=None):
     netbox = None
+    errors = []
 
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
@@ -84,8 +91,9 @@ def ipdev_details(request, name=None, addr=None):
         # Use getaddrinfo, as it supports both IPv4 and v6
         try:
             addrinfo = socket.getaddrinfo(host, None)
-        except socket.gaierror, e:
-            pass # FIXME
+        except socket.gaierror, (errno, errstr):
+            addrinfo = []
+            errors.append('DNS lookup of "%s": %s' % (host, errstr))
 
         # Extract all unique addresses
         unique_addresses = []
@@ -124,6 +132,7 @@ def ipdev_details(request, name=None, addr=None):
 
     return render_to_response(IpDevInfoTemplate, 'ipdevinfo/ipdev-details.html',
         {
+            'errors': errors,
             'host_info': get_host_info(name or addr),
             'netbox': netbox,
         },
