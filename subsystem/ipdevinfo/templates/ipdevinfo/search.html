@@ -1,0 +1,32 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+{% if netboxes %}
+<table class="listtable">
+    <caption>{{ netboxes|length }} result{{ netboxes|pluralize:",s" }}
+    for "{{ query }}"</caption>
+
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Sysname</th>
+            <th>IP</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for netbox in netboxes %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a>
+            </td>
+            <td>{{ netbox.ip }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

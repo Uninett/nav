@@ -43,8 +43,10 @@ from nav.web.ipdevinfo.context_processors import search_form_processor
 
 def search(request):
     errors = []
-    search_form = None
+    query = None
+    netboxes = []
 
+    search_form = None
     if request.method == 'GET':
         search_form = SearchForm(request.GET)
     elif request.method == 'POST':
@@ -60,19 +62,29 @@ def search(request):
         except ValueError:
             ip_version = None
 
-        # Redirect to details view
         if ip_version is not None:
-            return HttpResponseRedirect(
-                reverse('ipdevinfo-details-by-addr', kwargs={'addr': query}))
+            netboxes = Netbox.objects.filter(ip=query)
+            if len(netboxes) == 0:
+                errors.append('Could not find IP device with IP "%s".' % query)
         elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
-            return HttpResponseRedirect(
-                reverse('ipdevinfo-details-by-name', kwargs={'name': query}))
+            netboxes = Netbox.objects.filter(sysname__icontains=query)
+            if len(netboxes) == 0:
+                errors.append('Could not find IP device with IP "%s".' % query)
         else:
             errors.append('The query does not seem to be a valid IP address'
-                + ' (v4 or 6) or a hostname.')
+                + ' (v4 or v6) or a hostname.')
 
-    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/base.html',
-        {'errors': errors},
+        # If only one hit, redirect to details view
+        if len(netboxes) == 1:
+            return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
+                    kwargs={'name': netboxes[0].sysname}))
+
+    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/search.html',
+        {
+            'errors': errors,
+            'query': query,
+            'netboxes': netboxes,
+        },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
@@ -93,7 +105,6 @@ def ipdev_details(request, name=None, addr=None):
             addrinfo = socket.getaddrinfo(host, None)
         except socket.gaierror, (errno, errstr):
             addrinfo = []
-            errors.append('DNS lookup of "%s": %s' % (host, errstr))
 
         # Extract all unique addresses
         unique_addresses = []
@@ -117,7 +128,6 @@ def ipdev_details(request, name=None, addr=None):
     # Lookup IP device in NAV
     if name is not None:
         try:
-            # FIXME: Fuzzy match a bit
             netbox = Netbox.objects.get(sysname=name)
         except Netbox.DoesNotExist:
             pass

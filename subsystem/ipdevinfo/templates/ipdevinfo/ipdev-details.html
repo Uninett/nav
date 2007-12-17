@@ -30,9 +30,8 @@
 </table>
 
 <table class="vertitable">
-    <caption>IP Device: {{ netbox.sysname }}</caption>
-
 {% if netbox %}
+    <caption>IP Device: {{ netbox.sysname }}</caption>
     <tr class="oddrow">
         <th>IP</th>
         <td>{{ netbox.ip }}</td>
@@ -42,8 +41,9 @@
         <td>{{ netbox.sysname }}</td>
     </tr>
 {% else %}
+    <caption>IP Device</caption>
     <tr>
-        <td>{{ host_info.host }} was not found in NAV</td>
+        <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
     </tr>
 {% endif %}
 </table>
