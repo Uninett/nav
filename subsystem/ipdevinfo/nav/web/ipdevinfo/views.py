@@ -44,7 +44,7 @@ from nav.web.ipdevinfo.context_processors import search_form_processor
 def search(request):
     errors = []
     query = None
-    netboxes = []
+    netboxes = Netbox.objects.none()
 
     search_form = None
     if request.method == 'GET':
@@ -94,7 +94,7 @@ def search(request):
             processors=[search_form_processor]))
 
 def ipdev_details(request, name=None, addr=None):
-    netbox = None
+    netbox = Netbox.objects.none()
     errors = []
 
     def get_host_info(host):

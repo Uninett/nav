@@ -5,7 +5,7 @@
 <table class="vertitable">
     <caption>Host: {{ host_info.host }}</caption>
 
-    <tr class="oddrow">
+    <tr>
         <th>Addresses</th>
         <td>
             {% if host_info.addresses %}
@@ -32,13 +32,69 @@
 <table class="vertitable">
 {% if netbox %}
     <caption>IP Device: {{ netbox.sysname }}</caption>
-    <tr class="oddrow">
-        <th>IP</th>
+    <tr>
+        <th>Status</th>
+        <td>{{ netbox.get_up_display|title }}</td>
+    </tr>
+    <tr>
+        <th>Availability</th>
+        <td>{{ netbox.availability }} <b>TODO</b>: Add availability method to Netbox model.</td>
+    </tr>
+    <tr>
+        <th>Uptime</th>
+        <td>{{ netbox.up_since|timesince }} <b>FIXME</b>: Should this be displayed if status is down?</td>
+    </tr>
+    <tr>
+        <th>IP address</th>
         <td>{{ netbox.ip }}</td>
     </tr>
-    <tr class="evenrow">
-        <th>DNS name</th>
-        <td>{{ netbox.sysname }}</td>
+    <tr>
+        <th>Subnet</th>
+        <td>{{ netbox.prefix }}</td>
+    </tr>
+    <tr>
+        <th>Uplink</th>
+        <td>{{ netbox.uplnk }} <b>TODO</b>: Add uplink method to Netbox model.</td>
+    </tr>
+    <tr>
+        <th>Category</th>
+        <td>{{ netbox.category }}</td>
+    </tr>
+    <tr>
+        <th>Organization</th>
+        <td>{{ netbox.organization }}</td>
+    </tr>
+    <tr>
+        <th>Room</th>
+        <td>{{ netbox.room }}</td>
+    </tr>
+    <tr>
+        <th>Software</th>
+        <td>{{ netbox.device.software_version }}</td>
+    </tr>
+    <tr>
+        <th>Serial number</th>
+        <td>{{ netbox.device.serial }}</td>
+    </tr>
+    <tr>
+        <th># of modules</th>
+        <td>{{ netbox.module_set.count }}</td>
+    </tr>
+    <tr>
+        <th># of switch ports</th>
+        <td>{{ netbox.swport_set.count }}</td>
+    </tr>
+    <tr>
+        <th># of router ports</th>
+        <td>{{ netbox.gwport_set.count }}</td>
+    </tr>
+    <tr>
+        <th>Last updated</th>
+        <td>{{ netbox.last_updated }}</td>
+    </tr>
+    <tr>
+        <th>First discovered</th>
+        <td>{{ netbox.discovered }}</td>
     </tr>
 {% else %}
     <caption>IP Device</caption>
