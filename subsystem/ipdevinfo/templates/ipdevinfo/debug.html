@@ -1,10 +1,11 @@
 <div id="debug">
 
 <p>Debug: {{ sql_queries|length }} Quer{{ sql_queries|pluralize:"y,ies" }}
-{% ifnotequal sql_queries|length 0 %}
+{% if sql_queries %}
 (<span style="cursor: pointer;" onclick="var s=document.getElementById('query_table').style; s.display=s.display=='none' ? '' : 'none'; this.innerHTML=this.innerHTML=='Show' ? 'Hide' : 'Show';">Show</span>)
-{% endifnotequal %}</p>
+{% endif %}</p>
 
+{% if sql_queries %}
 <table class="listtable reporttable" id="query_table" style="display: none;">
     <thead>
         <tr>
@@ -23,5 +24,6 @@
         {% endfor %}
     </tbody>
 </table>
+{% endif %}
 
 </div>
