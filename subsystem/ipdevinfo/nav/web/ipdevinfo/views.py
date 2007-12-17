@@ -76,6 +76,7 @@ def ipdev_details(request, name=None, addr=None):
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
         import socket
+        from nav import natsort
 
         # Build a dictionary with information about the host
         host_info = {'host': host, 'addresses': []}
@@ -86,22 +87,22 @@ def ipdev_details(request, name=None, addr=None):
         except socket.gaierror, e:
             pass # FIXME
 
-        # For each addr the addr or name resolves to, lookup the reverse and
-        # add it to host_info['addresses']
-        added_addresses = []
+        # Extract all unique addresses
+        unique_addresses = []
         for (family, socktype, proto, canonname, sockaddr) in addrinfo:
             hostaddr = sockaddr[0]
+            if hostaddr not in unique_addresses:
+                unique_addresses.append(hostaddr)
+        unique_addresses.sort(key=natsort.split)
 
-            # Only add each addr once
-            if hostaddr not in added_addresses:
-                added_addresses.append(hostaddr)
-                this_address = {'addr': hostaddr}
+        # Lookup the reverse and add it to host_info['addresses']
+        for addr in unique_addresses:
+                this = {'addr': addr}
                 try:
-                    this_address['name'] = socket.gethostbyaddr(hostaddr)[0]
+                    this['name'] = socket.gethostbyaddr(addr)[0]
                 except socket.herror, (errno, errstr):
-                    this_address['error'] = errstr
-                host_info['addresses'].append(this_address)
-        host_info['addresses'].sort()
+                    this['error'] = errstr
+                host_info['addresses'].append(this)
 
         return host_info
 
