@@ -82,6 +82,7 @@ class Netbox(models.Model):
 
     class Meta:
         db_table = 'netbox'
+        ordering = ['sysname']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.sysname, self.ip)
