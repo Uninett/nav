@@ -29,6 +29,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 from datetime import datetime
+import time
 
 from django.db import models
 
@@ -86,6 +87,16 @@ class Netbox(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.sysname, self.ip)
+
+    def last_updated(self):
+        try:
+            value = self.info_set.get(variable='lastUpdated').value
+            value = int(value) / 1000.0
+            return datetime(*time.gmtime(value)[:6])
+        except NetboxInfo.DoesNotExist:
+            return None
+        except ValueError:
+            return '(Invalid value in DB)'
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
@@ -195,7 +206,7 @@ class Room(models.Model):
         db_table = 'room'
 
     def __unicode__(self):
-        return u'%s, in %s' % (self.description, self.location)
+        return u'%s (%s, %s)' % (self.id, self.description, self.location)
 
 class Location(models.Model):
     """From MetaNAV: The location table defines a group of rooms; i.e. a
@@ -227,10 +238,10 @@ class Organization(models.Model):
 
     def __unicode__(self):
         try:
-            return u'%s, part of %s' % (self.description,
+            return u'%s (%s, part of %s)' % (self.id, self.description,
                 self.parent.description)
         except Organization.DoesNotExist:
-            return self.description
+            return u'%s (%s)' % (self.id, self.description)
 
 class Category(models.Model):
     """From MetaNAV: The cat table defines the categories of a netbox
@@ -244,7 +255,7 @@ class Category(models.Model):
         db_table = 'cat'
 
     def __unicode__(self):
-        return self.description
+        return u'%s (%s)' % (self.id, self.description)
 
 class Subcategory(models.Model):
     """From MetaNAV: The subcat table defines subcategories within a category.
