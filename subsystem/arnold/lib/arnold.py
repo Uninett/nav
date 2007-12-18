@@ -207,7 +207,7 @@ def findSwportinfo(netboxid, ifindex, module, port):
         WHERE netboxid=%s
         AND ifindex=%s
         AND module=%s
-        AND interface=%s"""
+        AND port=%s"""
 
         c.execute(query, (netboxid, ifindex, module, port))
     except Exception, e:
@@ -219,7 +219,7 @@ def findSwportinfo(netboxid, ifindex, module, port):
         
         return result
     else:
-        raise PortNotFoundError, (netboxid, ifindex, module,port)
+        raise PortNotFoundError, (netboxid, ifindex, module, port)
 
 
     return 1
@@ -654,7 +654,7 @@ def changePortVlan(ip, ifindex, vlan):
         # hp-devices we need to do some magic here.
 
         # We need the module to give the snmpset query to the correct
-        # module
+        # community
         q = """SELECT module FROM netbox
         LEFT JOIN module USING (netboxid)
         LEFT JOIN swport USING (moduleid)
@@ -668,21 +668,21 @@ def changePortVlan(ip, ifindex, vlan):
 
         module = c.fetchone()[0]
 
-        # Ensure that module is a string
+        # Set community based on module
         if module > 0:
-            module = str(module)
-            rw = rw + "@sw" + module
-            ro = ro + "@sw" + module
+            rw = rw + "@sw" + str(module)
+            ro = ro + "@sw" + str(module)
 
             #print "ro set to %s, rw set to %s" %(ro, rw)
 
 
-        # The last two characters of index is the "real" ifindex on
-        # this module. As this string may end up to be for instance
-        # "03", we need to convert it to int. Luckily that's what we
-        # want anyway.
-        
-        ifindex = int(str(ifindex)[-2:])
+        # We assume that the module is the first part of the ifindex
+        # and the "real" ifindex the rest.
+
+        if module <= 9:
+            ifindex = int(str(ifindex)[1:])
+        else:
+            ifindex = int(str(ifindex)[2:])
 
 
     else:
