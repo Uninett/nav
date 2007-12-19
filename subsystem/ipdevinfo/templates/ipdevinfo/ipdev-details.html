@@ -42,7 +42,13 @@
     </tr>
     <tr>
         <th>Uptime</th>
-        <td>{{ netbox.up_since|timesince }} <b>FIXME</b>: Should this be displayed if status is down?</td>
+        <td>
+        {% ifequal netbox.up netbox.UP_UP %}
+            {{ netbox.up_since|timesince }}
+        {% else %}
+            None
+        {% endifequal %}
+        </td>
     </tr>
     <tr>
         <th>IP address</th>
@@ -59,6 +65,10 @@
     <tr>
         <th>Category</th>
         <td>{{ netbox.category }}</td>
+    </tr>
+    <tr>
+        <th>Type</th>
+        <td>{{ netbox.type }}</td>
     </tr>
     <tr>
         <th>Organization</th>
@@ -82,11 +92,11 @@
     </tr>
     <tr>
         <th># of switch ports</th>
-        <td>{{ netbox.swport_set.count }}</td>
+        <td>{{ netbox.get_swports.count }}</td>
     </tr>
     <tr>
         <th># of router ports</th>
-        <td>{{ netbox.gwport_set.count }}</td>
+        <td>{{ netbox.get_gwports.count }}</td>
     </tr>
     <tr>
         <th>Last updated</th>
