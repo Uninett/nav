@@ -76,7 +76,7 @@ def main():
 
     # Connect to arnold-database configured in arnold.conf
     try:
-        arnoldconn = nav.db.getConnection('default',arnolddb)
+        arnoldconn = nav.db.getConnection('default', arnolddb)
     except nav.db.driver.ProgrammingError, why:
         logger.error("Could not connect to arnolddatabase: %s" %why)
     
