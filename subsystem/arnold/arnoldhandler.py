@@ -36,6 +36,8 @@ from IPy import IP
 import nav.arnold
 
 import ConfigParser
+import logging
+logger = logging.getLogger('nav.arnoldhandler')
 
 # Read config from configfile
 configfile = nav.path.sysconfdir + "/arnold/arnold.conf"
@@ -51,7 +53,6 @@ global manage, conn
 manage = nav.db.getConnection('default')
 # Connect to arnold-database
 conn = db.getConnection('arnold', dbname);
-
     
 
 ############################################################
@@ -87,11 +88,13 @@ def handler(req):
     page.username = username
     page.name = req.session['user'].name
 
+    page.path = [("Home","/"), ("Arnold", "/arnold")]
+
     if section == 'blocktypes':
         sort = args.get('sort') or 'blocktitle'
         page.head = 'List of current blocktypes'
         printBlocks(cur, page, sort, section)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("Blocktypes", False)]
+        page.path.append(("Blocktypes", False))
 
     elif section == 'history':
         sort = args.get('sort') or 'ip'
@@ -99,14 +102,14 @@ def handler(req):
         # This is printhistory
         page.head = "History"
         printHistory(cur, page, sort, section, days)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("History", False)]
+        page.path.append (("History", False))
 
     elif section == 'blockedports':
         sort = args.get('sort') or 'ip'
         page.output = args.get('output') or ""
         page.head = "List of blocked ports"
         printBlocked(cur,page,sort, section)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("Blocked ports", False)]
+        page.path.append(("Blocked ports", False))
 
     elif section == 'search':
         page.head = "Search"
@@ -115,29 +118,29 @@ def handler(req):
         status = args.get('status')
         days = args.get('days')
         printSearch(cur, page, searchfield, searchtext, status, days)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("Search", False)]
+        page.path.append(("Search", False))
 
     elif section == 'addreason':
         page.head = "Add blockreason"
         printBlockreasons(cur, page, section)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("Add blockreason", False)]
+        page.path.append(("Add blockreason", False))
 
     elif section == 'manualblock':
         sort = args.get('sort') or 'ip'
         page.head = "Manual block"
         page.output = args.get('output') or ""
         printManualblock(cur, page, sort, section)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("Manual block", False)]
+        page.path.append(("Manual block", False))
 
     elif section == 'showdetails':
         page.head = "Details"
         id = args.get('id')
         showDetails(cur, page, section, id)
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("Details", False)]
+        page.path.append(("Details", False))
 
     elif section == 'addBlocktype':
         page.head = ""
-        page.path = [("Home","/"), ("Arnold", "/arnold"), ("AddBlocktype", False)]
+        page.path(("AddBlocktype", False))
         id = args.get('blockid')
         if not id:
             id = 0
@@ -145,10 +148,72 @@ def handler(req):
 
     elif section == 'doenable':
         id = args.get('id')
-        try:
-            nav.arnold.openPort(id, username)
-        except nav.arnold.NoDatabaseInformationError, why:
-            redirect (req, 'blockedports?output=Port not found in database. Switch perhaps replaced. Port enabled in database only.')
+
+        # Find all ports blocked because of this mac, and if there are
+        # more than one load a new page where the user can choose
+        # which ones to open.
+
+        managec = manage.cursor()
+
+        # Find mac-address of this identityid
+        q = "SELECT * FROM identity WHERE identityid = %s"
+        cur.execute(q, (id,))
+        row = cur.dictfetchone()
+
+        # Select all identities where this mac is the cause of block
+        q = """SELECT * FROM identity
+        WHERE mac = %s
+        AND blocked_status = 'disabled'"""
+        cur.execute(q, (row['mac'],))
+
+        if cur.rowcount > 1:
+            # Get switchinformation from database
+            blockedports = cur.dictfetchall()
+            for element in blockedports:
+                q = """
+                SELECT sysname, module, port FROM netbox
+                LEFT JOIN module USING (netboxid)
+                LEFT JOIN swport USING (moduleid)
+                WHERE swportid=%s
+                """
+
+                try:
+                    managec.execute(q, (element['swportid'],))
+                except nav.db.driver.ProgrammingError, e:
+                    # We just fill a dict with info if we get any, no
+                    # need react on error really
+                    continue
+                
+                if managec.rowcount > 0:
+                    element.update(managec.dictfetchone())
+            
+            page.blockedports = blockedports
+            page.head = ""
+            page.path.append(("Enable", False))
+        else:
+            # If only one identity, open it directly and redirect to
+            # blockedports
+            try:
+                nav.arnold.openPort(id, username)
+            except nav.arnold.NoDatabaseInformationError, why:
+                redirect (req, 'blockedports?output=Port not found in database. \
+                Switch perhaps replaced. Port enabled in database only.')
+
+            redirect(req, 'blockedports')
+
+    elif section == 'doenableall':
+        # This section is active when you have selected ports to
+        # enable from section "doenable". As nav.web.URI does not
+        # support multiple get-variables with the same name, we must
+        # be "creative" here.
+
+        for getvar in args.args:
+            if re.match("identityid", getvar):
+                try:
+                    nav.arnold.openPort(args.args[getvar], username)
+                except nav.arnold.NoDatabaseInformationError, why:
+                    logger.error("Error when opening %s: %s" %(args.args[getvar], why))
+                    continue
 
         redirect(req, 'blockedports')
 
@@ -158,7 +223,8 @@ def handler(req):
         # Use modulefunction to get info about id
         try:
             info = nav.arnold.findIdInformation(ip, 3)
-        except (nav.arnold.UnknownTypeError, nav.arnold.NoDatabaseInformationError), e:
+        except (nav.arnold.UnknownTypeError,
+                nav.arnold.NoDatabaseInformationError), e:
             redirect(req, 'manualblock?output=%s' %e)
 
         page.arg = args.args
@@ -172,14 +238,22 @@ def handler(req):
         id['mac'] = args.get('mac')
         id['ip'] = args.get('ip')
 
+        netboxid = int(args.get('netboxid'))
+        ifindex = int(args.get('ifindex'))
+        module = int(args.get('module'))
+        port = int(args.get('port'))
+
         try:
-            sw = nav.arnold.findSwportinfo(args.get('netboxid'), args.get('ifindex'), args.get('module'), args.get('port'))
+            sw = nav.arnold.findSwportinfo(netboxid, ifindex, module, port)
         except nav.arnold.PortNotFoundError, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         # NB: Autoenablestep only set by a blockrun
         try:
-            nav.arnold.blockPort(id, sw, args.get('autoenable'), 0, args.get('determined'), args.get('reasonid'), args.get('comment'), req.session['user'].login)
+            nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
+                                 args.get('determined'), args.get('reasonid'),
+                                 args.get('comment'),
+                                 req.session['user'].login)
         except Exception, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -197,7 +271,9 @@ def handler(req):
         redirect(req, 'addreason')
 
     elif section == 'doaddblock':
-        # blockid, blocktitle, description, reasonid, newreason, mailfile, inputfile, pursuit, eincrease, duration, active, user
+        # blockid, blocktitle, description, reasonid, newreason,
+        # mailfile, inputfile, pursuit, eincrease, duration, active,
+        # user
         reasonid = args.get('reasonid')
         blockid = args.get('blockid')
 

@@ -108,6 +108,9 @@ $printMenu($buttons, $buttonnames, $action)
 #elif $action == 'domanualblock'
   $printConfirmBlock($candidates, $arg)
 
+#elif $action == 'doenable'
+  $printChooseEnablePorts($blockedports)
+
 #end if
 
 </div> ## tabcontent
@@ -499,6 +502,55 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
 #end if
 
 #end def
+
+
+##################################################
+#def printChooseEnablePorts($blockedports)
+##################################################
+
+<form action="doenableall">
+
+<table class="vertitable">
+  <caption>
+    Choose which ports to open
+  </caption>
+
+  <thead>
+    <tr>
+      <th>IP</th>
+      <th>MAC</th>
+      <th>DNS</th>
+      <th>Netbios</th>
+      <th>Switch</th>
+      <th>Interface</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    #for $candidate in $blockedports
+    <tr class="$rowcycler">
+      <td>$candidate['ip']</td>
+      <td>$candidate['mac']</td>
+      <td>$candidate['dns']</td>
+      <td>$candidate['netbios']</td>
+      <td>$candidate['sysname']</td>
+      <td>$candidate['module']:$candidate['port']</td>
+      <td><input type="checkbox" name="identityid$candidate['identityid']" value="$candidate['identityid']" checked>
+    </tr>
+    #end for
+
+    <tr>
+      <td colspan='6' align="right"><input type="submit" value="Enable selected ports"></td>
+    </tr>
+  </tbody>
+
+</table>
+
+</form>
+
+#end def
+## printChooseEnablePorts
+
 
 #def additionalCSS ()
 $default_tabs_CSS()
