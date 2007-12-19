@@ -98,6 +98,12 @@ class Netbox(models.Model):
         except ValueError:
             return '(Invalid value in DB)'
 
+    def get_gwports(self):
+        return GwPort.objects.filter(module__netbox=self)
+
+    def get_swports(self):
+        return SwPort.objects.filter(module__netbox=self)
+
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
@@ -314,7 +320,7 @@ class NetboxType(models.Model):
         unique_together = (('vendor', 'name'),)
 
     def __unicode__(self):
-        return u'%s, from %s' % (self.name, self.vendor)
+        return u'%s (%s, from %s)' % (self.name, self.description, self.vendor)
 
 #######################################################################
 ### Device management
@@ -394,8 +400,10 @@ class GwPort(models.Model):
     interface = models.CharField(max_length=-1)
     speed = models.FloatField()
     metric = models.IntegerField()
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid')
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+        related_name='connected_to_gwport')
+    to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
+        related_name='connected_to_gwport')
     port_name = models.CharField(db_column='portname', max_length=-1)
 
     class Meta:
@@ -539,8 +547,10 @@ class SwPort(models.Model):
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     portname = models.CharField(max_length=-1)
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
-    to_swport = models.ForeignKey('self', db_column='to_swportid')
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+        related_name='connected_to_swport')
+    to_swport = models.ForeignKey('self', db_column='to_swportid',
+        related_name='connected_to_swport')
 
     class Meta:
         db_table = 'swport'
