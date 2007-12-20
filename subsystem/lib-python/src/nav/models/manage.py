@@ -86,7 +86,7 @@ class Netbox(models.Model):
         ordering = ['sysname']
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.sysname, self.ip)
+        return self.sysname
 
     def last_updated(self):
         try:
@@ -414,6 +414,28 @@ class GwPort(models.Model):
         name = self.interface or self.ifindex
         return u'%s, at module %s' % (name, self.module)
 
+    def get_interface_display(self):
+        """Filter interface names from ifDescr to ifName style"""
+        # Please keep this method in sync with SwPort.get_interface_display
+        interface = self.interface
+        filters = (
+            ('Vlan', 'Vl'),
+            ('TenGigabitEthernet', 'Te'),
+            ('GigabitEthernet', 'Gi'),
+            ('FastEthernet', 'Fa'),
+            ('Ethernet', 'Et'),
+            ('Loopback', 'Lo'),
+            ('Tunnel', 'Tun'),
+            ('Serial', 'Se'),
+            ('Dialer', 'Di'),
+            ('-802.1Q vLAN subif', ''),
+            ('-ISL vLAN subif', ''),
+            ('-aal5 layer', ''),
+        )
+        for old, new in filters:
+            interface = interface.replace(old, new)
+        return interface
+
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
@@ -559,6 +581,28 @@ class SwPort(models.Model):
     def __unicode__(self):
         name = self.interface or self.ifindex or self.port
         return u'%s, at module %s' % (name, self.module)
+
+    def get_interface_display(self):
+        """Filter interface names from ifDescr to ifName style"""
+        # Please keep this method in sync with GwPort.get_interface_display
+        interface = self.interface
+        filters = (
+            ('Vlan', 'Vl'),
+            ('TenGigabitEthernet', 'Te'),
+            ('GigabitEthernet', 'Gi'),
+            ('FastEthernet', 'Fa'),
+            ('Ethernet', 'Et'),
+            ('Loopback', 'Lo'),
+            ('Tunnel', 'Tun'),
+            ('Serial', 'Se'),
+            ('Dialer', 'Di'),
+            ('-802.1Q vLAN subif', ''),
+            ('-ISL vLAN subif', ''),
+            ('-aal5 layer', ''),
+        )
+        for old, new in filters:
+            interface = interface.replace(old, new)
+        return interface
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
