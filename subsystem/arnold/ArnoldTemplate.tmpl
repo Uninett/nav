@@ -403,7 +403,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
     <tr>
         <th>Title *</th>
-        <td><input type="text" name="blocktitle" value="$blockinfo['blocktitle']" /></td>
+        <td><input type="text" name="blocktitle" value="$blockinfo['blocktitle']" size="35" /></td>
     </tr>
 
     <tr>
@@ -435,7 +435,7 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
 
     <tr>
         <th>Path to mailfile</th>
-        <td><input type="text" name="mailfile" value="$blockinfo['mailfile']" /></td>
+        <td><input type="text" name="mailfile" value="$blockinfo['mailfile']" size="35" /></td>
     </tr>
 
     <tr>
@@ -465,6 +465,13 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
     <tr>
         <th>Block duration *</th>
         <td><input size="3" type="text" name="duration" value="$blockinfo['blocktime']" /> days</td>
+    </tr>
+
+    <tr>
+    	<th>Active on vlans</th>
+	<td>
+	    <input type="text" name="activeonvlans" value="$blockinfo['activeonvlans']" size="35" />
+       </td>
     </tr>
 
     <tr>

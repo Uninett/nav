@@ -140,7 +140,7 @@ def handler(req):
 
     elif section == 'addBlocktype':
         page.head = ""
-        page.path(("AddBlocktype", False))
+        page.path.append(("AddBlocktype", False))
         id = args.get('blockid')
         if not id:
             id = 0
@@ -299,6 +299,7 @@ def handler(req):
         inputfile = args.get('inputfile')
         determined = args.get('pursuit')
         incremental = args.get('eincrease')
+        activeonvlans = ",".join([x.strip() for x in args.get('activeonvlans').split(",")])
         if incremental == 'on':
             incremental = 'y'
         else:
@@ -313,26 +314,35 @@ def handler(req):
             lasteditedby = req.session['user'].name
 
         if blockid:
-            q = """
-            UPDATE block SET blocktitle=%s, blockdesc=%s,
-            reasonid=%s, mailfile=%s, inputfile=%s,
-            determined=%s, incremental=%s, blocktime=%s,
-            active=%s, lastedited=now(), lastedituser=%s
-            WHERE blockid=%s
-            """
+
+            q = """ UPDATE block
+            SET blocktitle=%s, blockdesc=%s, reasonid=%s, mailfile=%s,
+            inputfile=%s, determined=%s, incremental=%s, blocktime=%s,
+            active=%s, lastedited=now(), lastedituser=%s, activeonvlans=%s
+            WHERE blockid=%s """
+
             try:
-                cur.execute(q, (blocktitle, blockdesc, reasonid, mailfile, inputfile, determined, incremental, blocktime, active, lasteditedby, blockid))
+
+                cur.execute(q, (blocktitle, blockdesc, reasonid,
+                mailfile, inputfile, determined, incremental,
+                blocktime, active, lasteditedby, activeonvlans,
+                blockid))
+
             except nav.db.driver.ProgrammingError, why:
                 conn.rollback()
         else:
             q = """
             INSERT INTO block (blocktitle, blockdesc, mailfile,
             reasonid, determined, incremental, blocktime, active,
-            lastedited, lastedituser, inputfile)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s)
+            lastedited, lastedituser, inputfile, activeonvlans)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s)
             """
             try:
-                cur.execute(q, (blocktitle, blockdesc, mailfile, reasonid, determined, incremental, blocktime, active, lasteditedby, inputfile))
+
+                cur.execute(q, (blocktitle, blockdesc, mailfile,
+                reasonid, determined, incremental, blocktime, active,
+                lasteditedby, inputfile, activeonvlans))
+
             except nav.db.driver.ProgrammingError, why:
                 conn.rollback()
 
@@ -657,7 +667,7 @@ def printAddblocktype (cur, page, id):
     cur.execute("SELECT blocked_reasonid AS id, name FROM blocked_reason ORDER BY name");
     page.blockreasons = cur.dictfetchall()
 
-    blockinfo = {'blockid':'', 'blocktitle':'', 'blockdesc':'', 'mailfile':'', 'reasonid':0, 'determined':'n', 'incremental':'n', 'blocktime':'', 'userid':'cron', 'active':'n', 'inputfile':''}
+    blockinfo = {'blockid':'', 'blocktitle':'', 'blockdesc':'', 'mailfile':'', 'reasonid':0, 'determined':'n', 'incremental':'n', 'blocktime':'', 'userid':'cron', 'active':'n', 'inputfile':'', 'activeonvlans':''}
 
     if id:
         cur.execute("SELECT * FROM block WHERE blockid=%s" %id)

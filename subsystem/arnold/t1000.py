@@ -116,25 +116,37 @@ def main():
 
         logger.info("%s is blocked, checking for activity..." %row['mac'])
 
-        q = """SELECT sysname, module, port
-        FROM cam WHERE mac=%s AND end_time = 'infinity'"""
-        try:
-            managec.execute(q, (row['mac'],))
-        except nav.db.driver.ProgrammingError, why:
-            print why
+        [id] = nav.arnold.findIdInformation(row['mac'], 1)
 
+        logger.debug(id)
 
         # If this mac-address is active behind another port, block it.
-
-        if managec.rowcount > 0:
+        if id['endtime'] == 'Still Active':
 
             logger.info("Found active mac on another port")
 
-            # Fill id-dict with needed variables
-            id = {}
-            id['ip'] = row['ip']
-            id['mac'] = row['mac']
-                
+            # The first thing we do now is to check if this reason is
+            # a part of any Blocktype. If it is we need to fetch the
+            # vlans from that blocktype, and see if the new ip is on
+            # one of those vlans or have to be skipped.
+
+            # Check if part of a blocktype (we assume 1 or nothing)
+            q = """SELECT * FROM block WHERE reasonid=%s"""
+            arnoldc.execute(q, (row['blocked_reasonid'], ))
+            if arnoldc.rowcount > 0:
+                blockrow = arnoldc.dictfetchone()
+
+                # Check if new ip is in the vlan ranges. If not
+                # continue with the next row
+                if blockrow['activeonvlans']:
+                    if not isInsideVlans(id['ip'], blockrow['activeonvlans']):
+                        logger.info("Ip not in activeonvlans")
+                        continue
+                    else:
+                        logger.debug("Ip in activeonvlans")
+                else:
+                    logger.debug("No activeonvlans")
+
 
             try:
                 sw = nav.arnold.findSwportIDinfo(row['swportid'])
@@ -182,6 +194,35 @@ def main():
         else:
             logger.info("Mac not active.")
 
+
+def isInsideVlans(ip, vlans):
+    """Check if ip is inside the vlans
+    vlans: a string with comma-separated vlans.
+    """
+
+    # Connect to database
+    conn = nav.db.getConnection('default','manage')
+    cur = conn.cursor()
+
+    # Tidy the vlans-string a bit and create array of it
+    vlans = [strip(x) for x in vlans.split(',')]
+
+    # For each vlan, check if it is inside the prefix of the vlan.
+    for vlan in vlans:
+        # This query returns a row if the ip is inside the vlan
+        if vlan.isdigit():
+            q = """
+            SELECT * FROM prefix
+            LEFT JOIN vlan USING vlanid
+            WHERE vlan=%s AND %s << netaddr
+            """
+
+            cur.execute(q, (ip,))
+
+            if cur.rowcount > 0:
+                return True
+
+    return False
 
 
 if __name__ == '__main__':

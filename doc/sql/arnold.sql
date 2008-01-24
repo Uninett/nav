@@ -48,6 +48,7 @@ blocktime INT NOT NULL, -- days from block to autoenable
 active CHAR(1) CHECK (active='y' OR active='n'), -- if set to n will not do blocking of this kind
 lastedited TIMESTAMP NOT NULL, -- timestamp of last time this block was edited
 lastedituser VARCHAR NOT NULL, -- username of user who last edited this block
-inputfile VARCHAR -- path to file where list of ip-adresses is, if applicable
+inputfile VARCHAR, -- path to file where list of ip-adresses is, if applicable
+activeonvlans VARCHAR -- a string with comma-separated vlan-numbers
 );
 
