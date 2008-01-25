@@ -1,0 +1,60 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+<table class="vertitable">
+    <caption>Module {{ module.module_number }}
+    at {{ module.netbox.sysname }}</caption>
+    <tr>
+        <th>At IP device</th>
+        <td><a href="{% url ipdevinfo-details-by-name module.netbox.sysname %}">{{ module.netbox.sysname }}</a></td>
+    </tr>
+    <tr>
+        <th>Model</th>
+        <td>{{ module.model }}</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>{{ module.description }}</td>
+    </tr>
+    <tr>
+        <th>Status</th>
+        <td>
+        {% ifequal module.up module.UP_UP %}
+            Up
+        {% else %}
+            Down for {{ down.down_since|timesince }}
+        {% endifequal %}
+        </td>
+    </tr>
+    <tr>
+        <th># of switch ports</th>
+        <td>{{ module.get_swports.count }}</td>
+    </tr>
+    <tr>
+        <th># of router ports</th>
+        <td>{{ module.get_gwports.count }}</td>
+    </tr>
+</table>
+
+{% include "ipdevinfo/legend.html" %}
+
+{% if module.get_swports %}
+<h3>Switch port status</h3>
+
+{% include "ipdevinfo/module-swport-status.html" %}
+
+<h3>Switch port activity</h3>
+
+<p>FIXME</p>
+{% endif %}
+
+{% if module.get_gwports %}
+<h3>Router port status</h3>
+
+<p>FIXME</p>
+{% endif %}
+
+</div>
+
+{% endblock %}

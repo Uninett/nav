@@ -1,0 +1,27 @@
+<div class="module">
+<h3><a href="{{ module.get_absolute_url }}">{{ module.module_number }}</a></h3>
+<table>
+    <tr>
+    {% with module.swport_set.all as swports %}
+    {% for swport in swports %}
+        {% if swports|length_is:12 or swports|length_is:24 or swports|length_is:36 or swports|length_is:48 or swports|length_is:60 %}
+            {% ifequal forloop.counter0 12 %}</tr><tr>{% endifequal %}
+            {% ifequal forloop.counter0 24 %}</tr><tr>{% endifequal %}
+            {% ifequal forloop.counter0 36 %}</tr><tr>{% endifequal %}
+            {% ifequal forloop.counter0 48 %}</tr><tr>{% endifequal %}
+        {% endif %}
+        {% if swports|length_is:8 or swports|length_is:16 or swports|length_is:32 %}
+            {% ifequal forloop.counter0 8 %}</tr><tr>{% endifequal %}
+            {% ifequal forloop.counter0 16 %}</tr><tr>{% endifequal %}
+            {% ifequal forloop.counter0 32 %}</tr><tr>{% endifequal %}
+        {% endif %}
+        <td
+            class="port {% if swport.speed %}Mb{{ swport.speed|floatformat:0 }}{% endif %}{% ifnotequal swport.link 'y' %}{% ifequal swport.link 'd' %} disabled{% else %} passive{% endifequal %}{% endifnotequal %} FIXME"
+            title="{{ swport.interface }}{% if swport.speed %}, {{ swport.speed|floatformat:0 }} Mbit{% endif %}{% if swport.to_netbox %} -> {{ swport.to_netbox.{% endif %}, FIXME">
+            <a href="{{ swport.get_absolute_url }}">{{ swport.get_interface_display }}</a>
+        </td>
+    {% endfor %}
+    {% endwith %}
+    </tr>
+</table>
+</div>
