@@ -31,6 +31,7 @@ __id__ = "$Id$"
 from datetime import datetime
 import time
 
+from django.core.urlresolvers import reverse
 from django.db import models
 
 # Choices used in multiple models, "imported" into the models which use them
@@ -174,6 +175,19 @@ class Module(models.Model):
 
     def __unicode__(self):
         return u'%d, at %s' % (self.module_number, self.netbox)
+
+    def get_absolute_url(self):
+        kwargs={
+            'netbox_sysname': self.netbox.sysname,
+            'module_number': self.module_number,
+        }
+        return reverse('ipdevinfo-module-details', kwargs=kwargs)
+
+    def get_gwports(self):
+        return GwPort.objects.filter(module=self)
+
+    def get_swports(self):
+        return SwPort.objects.filter(module=self)
 
 class Memory(models.Model):
     """From MetaNAV: The mem table describes the memory (memory and nvram) of a
