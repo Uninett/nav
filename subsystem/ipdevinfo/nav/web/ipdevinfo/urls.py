@@ -40,4 +40,11 @@ urlpatterns = patterns('',
         name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
         name='ipdevinfo-details-by-addr'),
+
+    # Module details
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/$',
+        module_details, name='ipdevinfo-module-details'),
+
+    # Port details
+    # TODO
 )

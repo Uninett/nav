@@ -34,7 +34,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Module
 from nav.django.shortcuts import render_to_response
 
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
@@ -42,6 +42,8 @@ from nav.web.ipdevinfo.forms import SearchForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 
 def search(request):
+    """Search for a IP device"""
+
     errors = []
     query = None
     netboxes = Netbox.objects.none()
@@ -94,6 +96,8 @@ def search(request):
             processors=[search_form_processor]))
 
 def ipdev_details(request, name=None, addr=None):
+    """Show detailed view of one IP device"""
+
     netbox = Netbox.objects.none()
     errors = []
 
@@ -145,7 +149,8 @@ def ipdev_details(request, name=None, addr=None):
         # Require name or addr to be set
         HttpResponseRedirect(reverse('ipdevinfo-search'))
 
-    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/ipdev-details.html',
+    return render_to_response(IpDevInfoTemplate,
+        'ipdevinfo/ipdev-details.html',
         {
             'errors': errors,
             'host_info': get_host_info(name or addr),
@@ -154,3 +159,16 @@ def ipdev_details(request, name=None, addr=None):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
+def module_details(request, netbox_sysname, module_number):
+    """Show detailed view of one IP device module"""
+
+    module = get_object_or_404(Module, netbox__sysname=netbox_sysname,
+        module_number=module_number)
+
+    return render_to_response(IpDevInfoTemplate,
+        'ipdevinfo/module-details.html',
+        {
+            'module': module,
+        },
+        context_instance=RequestContext(request,
+            processors=[search_form_processor]))
