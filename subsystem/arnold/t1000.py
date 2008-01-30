@@ -203,21 +203,20 @@ def isInsideVlans(ip, vlans):
     # Connect to database
     conn = nav.db.getConnection('default','manage')
     cur = conn.cursor()
-
+    
     # Tidy the vlans-string a bit and create array of it
-    vlans = [strip(x) for x in vlans.split(',')]
-
+    vlans = [x.strip() for x in vlans.split(',')]
+    
     # For each vlan, check if it is inside the prefix of the vlan.
     for vlan in vlans:
+
         # This query returns a row if the ip is inside the vlan
         if vlan.isdigit():
-            q = """
-            SELECT * FROM prefix
-            LEFT JOIN vlan USING vlanid
-            WHERE vlan=%s AND %s << netaddr
-            """
 
-            cur.execute(q, (ip,))
+            q = """SELECT * FROM prefix LEFT JOIN vlan USING (vlanid)
+            WHERE vlan=%s AND %s << netaddr """
+
+            cur.execute(q, (vlan, ip))
 
             if cur.rowcount > 0:
                 return True

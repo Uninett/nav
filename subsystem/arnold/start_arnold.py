@@ -172,7 +172,19 @@ Pipe in id's to block or use the -f option to specify file"""
             print e
             logger.error(e)
             continue
-                
+
+
+        # We must check if the block has activeonvlans set. If so,
+        # make sure the ipaddress is inside the defined vlans.
+        if blockinfo['activeonvlans']:
+            ipaddress = id['ip']
+            if not isInsideVlans(logger, ipaddress, blockinfo['activeonvlans']):
+                logger.info("%s is not inside defined vlanrange for this block"
+                            %ipaddress)
+                print "is not on the defined vlans for this blocktype."
+                continue
+
+
         try:
             # block port with info from db
             nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
@@ -182,7 +194,8 @@ Pipe in id's to block or use the -f option to specify file"""
                                  username )
         except (nav.arnold.InExceptionListError, nav.arnold.WrongCatidError,
                 nav.arnold.DbError, nav.arnold.AlreadyBlockedError,
-                nav.arnold.ChangePortStatusError), why:
+                nav.arnold.ChangePortStatusError,
+                nav.arnold.BlockonTrunkError), why:
             print "failed: %s" %why
             logger.error(why)
             continue
@@ -309,6 +322,42 @@ def handleLines(lines):
     s = sets.Set(idlist)
     
     return list(s)
+
+
+
+###############################################################################
+# isInsideVlans
+
+def isInsideVlans(logger, ip, vlans):
+    """Check if ip is inside the vlans
+    vlans: a string with comma-separated vlans.
+    """
+
+    # Connect to database
+    conn = nav.db.getConnection('default','manage')
+    cur = conn.cursor()
+    
+    # Tidy the vlans-string a bit and create array of it
+    vlans = [x.strip() for x in vlans.split(',')]
+    
+    # For each vlan, check if it is inside the prefix of the vlan.
+    for vlan in vlans:
+
+        logger.info(vlan)
+        # This query returns a row if the ip is inside the vlan
+        if vlan.isdigit():
+
+            q = """SELECT * FROM prefix LEFT JOIN vlan USING (vlanid)
+            WHERE vlan=%s AND %s << netaddr """
+
+            logger.info(q)
+
+            cur.execute(q, (vlan, ip))
+
+            if cur.rowcount > 0:
+                return True
+
+    return False
 
 
 

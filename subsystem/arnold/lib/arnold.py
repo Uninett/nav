@@ -65,6 +65,10 @@ class FileError(GeneralException):
     "Fileerror"
     pass
 
+class BlockonTrunkError(GeneralException):
+    "Block on trunked interface is not allowed"
+    pass
+
 # Config-file
 configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 config = ConfigParser.ConfigParser()
@@ -304,6 +308,11 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         logger.info("blockPort: Not allowed to block on %s" %sw['catid'])
         raise WrongCatidError, sw['catid']
         
+
+    if sw['trunk']:
+        logger.info("blockPort: This is a trunk, we don't block those.")
+        raise BlockonTrunkError
+
     
     # Find dns and netbios
     dns = getHostName(id['ip'])
