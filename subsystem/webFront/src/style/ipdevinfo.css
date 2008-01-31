@@ -27,6 +27,9 @@
 #ipdevinfosearch {
 	float: right;
 }
+#ipdevinfosearch form {
+	margin: 0;
+}
 #ipdevinfosearch button {
 	width: 100%;
 }
