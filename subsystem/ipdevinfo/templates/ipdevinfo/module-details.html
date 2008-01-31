@@ -37,8 +37,6 @@
     </tr>
 </table>
 
-{% include "ipdevinfo/legend.html" %}
-
 {% if module.get_swports %}
 <h3>Switch port status</h3>
 
@@ -55,6 +53,6 @@
 <p>FIXME</p>
 {% endif %}
 
-</div>
+{% include "ipdevinfo/port-legend.html" %}
 
 {% endblock %}

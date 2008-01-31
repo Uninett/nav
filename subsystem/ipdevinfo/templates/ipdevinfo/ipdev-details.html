@@ -2,6 +2,7 @@
 
 {% block content %}
 
+<div id="hostinfo">
 <table class="vertitable">
     <caption>Host: {{ host_info.host }}</caption>
 
@@ -28,7 +29,9 @@
         </td>
     </tr>
 </table>
+</div>
 
+<div id="ipdevinfo">
 <table class="vertitable">
 {% if netbox %}
     <caption>IP Device: {{ netbox.sysname }}</caption>
@@ -113,8 +116,9 @@
     </tr>
 {% endif %}
 </table>
+</div>
 
-<h3>Port view</h3>
+<h3 id="portviewheader">Port view</h3>
 
 <div class="tabs">
 <ul>
@@ -126,12 +130,12 @@
 
 <div class="tabcontent">
 
-{% include "ipdevinfo/legend.html" %}
-
 {% for module in netbox.module_set.all %}
 {% include "ipdevinfo/module-swport-status.html" %}
 {% endfor %}
 
 </div>
+
+{% include "ipdevinfo/port-legend.html" %}
 
 {% endblock %}

@@ -1,7 +1,19 @@
-<form action="{% url ipdevinfo-search %}" method="get"><p>
-{{ search_form.query.label }}: {{ search_form.query }}
-<button type="submit">Search</button>
-</p></form>
+<div id="ipdevinfosearch">
+<form action="{% url ipdevinfo-search %}" method="get">
+<table class="vertitable">
+    <caption>Search</caption>
+    <tr>
+        <th>{{ search_form.query.label }}</th>
+    </tr>
+    <tr>
+        <td>{{ search_form.query }}</td>
+    </tr>
+    <tr>
+        <td><button type="submit">Search</button></td>
+    </tr>
+</table>
+</form>
+</div>
 
 {% if errors %}
 <ul class="error">
