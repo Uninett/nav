@@ -68,14 +68,15 @@ def search(request):
         if ip_version is not None:
             netboxes = Netbox.objects.filter(ip=query)
             if len(netboxes) == 0:
-                # Could not find IP device, redirect to detail view for a host
-                # lookup in DNS at least
+                # Could not find IP device, redirect to host detail view
                 return HttpResponseRedirect(reverse('ipdevinfo-details-by-addr',
                         kwargs={'addr': query}))
         elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
             netboxes = Netbox.objects.filter(sysname__icontains=query)
             if len(netboxes) == 0:
-                errors.append('Could not find IP device with IP "%s".' % query)
+                # Could not find IP device, redirect to host detail view
+                return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
+                        kwargs={'name': query}))
         else:
             errors.append('The query does not seem to be a valid IP address'
                 + ' (v4 or v6) or a hostname.')
