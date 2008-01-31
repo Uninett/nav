@@ -45,6 +45,30 @@ LINK_CHOICES = (
 )
 
 #######################################################################
+### Model helper functions
+
+def to_ifname_style(interface):
+    """Filter interface names from ifDescr to ifName style"""
+
+    filters = (
+        ('Vlan', 'Vl'),
+        ('TenGigabitEthernet', 'Te'),
+        ('GigabitEthernet', 'Gi'),
+        ('FastEthernet', 'Fa'),
+        ('Ethernet', 'Et'),
+        ('Loopback', 'Lo'),
+        ('Tunnel', 'Tun'),
+        ('Serial', 'Se'),
+        ('Dialer', 'Di'),
+        ('-802.1Q vLAN subif', ''),
+        ('-ISL vLAN subif', ''),
+        ('-aal5 layer', ''),
+    )
+    for old, new in filters:
+        interface = interface.replace(old, new)
+    return interface
+
+#######################################################################
 ### Netbox-related models
 
 class Netbox(models.Model):
@@ -84,7 +108,7 @@ class Netbox(models.Model):
 
     class Meta:
         db_table = 'netbox'
-        ordering = ['sysname']
+        ordering = ('sysname',)
 
     def __unicode__(self):
         return self.sysname
@@ -171,6 +195,7 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
+        ordering = ('netbox', 'module_number')
         unique_together = (('netbox', 'module_number'),)
 
     def __unicode__(self):
@@ -422,6 +447,7 @@ class GwPort(models.Model):
 
     class Meta:
         db_table = 'gwport'
+        ordering = ('module', 'interface')
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
@@ -429,26 +455,7 @@ class GwPort(models.Model):
         return u'%s, at module %s' % (name, self.module)
 
     def get_interface_display(self):
-        """Filter interface names from ifDescr to ifName style"""
-        # Please keep this method in sync with SwPort.get_interface_display
-        interface = self.interface
-        filters = (
-            ('Vlan', 'Vl'),
-            ('TenGigabitEthernet', 'Te'),
-            ('GigabitEthernet', 'Gi'),
-            ('FastEthernet', 'Fa'),
-            ('Ethernet', 'Et'),
-            ('Loopback', 'Lo'),
-            ('Tunnel', 'Tun'),
-            ('Serial', 'Se'),
-            ('Dialer', 'Di'),
-            ('-802.1Q vLAN subif', ''),
-            ('-ISL vLAN subif', ''),
-            ('-aal5 layer', ''),
-        )
-        for old, new in filters:
-            interface = interface.replace(old, new)
-        return interface
+        return to_ifname_style(self.interface)
 
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
@@ -590,6 +597,7 @@ class SwPort(models.Model):
 
     class Meta:
         db_table = 'swport'
+        ordering = ('module', 'interface')
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
@@ -597,26 +605,7 @@ class SwPort(models.Model):
         return u'%s, at module %s' % (name, self.module)
 
     def get_interface_display(self):
-        """Filter interface names from ifDescr to ifName style"""
-        # Please keep this method in sync with GwPort.get_interface_display
-        interface = self.interface
-        filters = (
-            ('Vlan', 'Vl'),
-            ('TenGigabitEthernet', 'Te'),
-            ('GigabitEthernet', 'Gi'),
-            ('FastEthernet', 'Fa'),
-            ('Ethernet', 'Et'),
-            ('Loopback', 'Lo'),
-            ('Tunnel', 'Tun'),
-            ('Serial', 'Se'),
-            ('Dialer', 'Di'),
-            ('-802.1Q vLAN subif', ''),
-            ('-ISL vLAN subif', ''),
-            ('-aal5 layer', ''),
-        )
-        for old, new in filters:
-            interface = interface.replace(old, new)
-        return interface
+        return to_ifname_style(self.interface)
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
