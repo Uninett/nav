@@ -44,11 +44,11 @@
 	display: inline;
 }
 
-/* Port view heder
- * Used for pushing the rest of the content below the host
+/* Used for pushing the rest of the content below the host
  * and IP Device info tables. */
-#portviewheader {
+hr.floatclear {
 	clear: both;
+	visibility: hidden;
 }
 
 .module {

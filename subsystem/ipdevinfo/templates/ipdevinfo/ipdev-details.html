@@ -118,7 +118,11 @@
 </table>
 </div>
 
-<h3 id="portviewheader">Port view</h3>
+<hr class="floatclear" />
+
+{% if netbox and netbox.module_set.count %}
+
+<h3>Port view</h3>
 
 <div class="tabs">
 <ul>
@@ -137,5 +141,7 @@
 </div>
 
 {% include "ipdevinfo/port-legend.html" %}
+
+{% endif %}
 
 {% endblock %}
