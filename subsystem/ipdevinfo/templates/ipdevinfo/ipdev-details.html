@@ -134,9 +134,19 @@
 
 <div class="tabcontent">
 
+<div class="swportstatus">
 {% for module in netbox.module_set.all %}
 {% include "ipdevinfo/module-swport-status.html" %}
 {% endfor %}
+</div>
+
+<div class="swportactive" style="display: none;">
+<p>FIXME</p>
+</div>
+
+<div class="gwportstatus" style="display: none;">
+<p>FIXME</p>
+</div>
 
 </div>
 
