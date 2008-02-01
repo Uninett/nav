@@ -106,6 +106,9 @@ a.navbar:active {
 	color: #47A;
 	text-decoration: none;
 }
+em {
+	font-style: italic;
+}
 
 .error {
 	color: red;
