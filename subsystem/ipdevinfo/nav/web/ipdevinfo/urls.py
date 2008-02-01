@@ -46,5 +46,8 @@ urlpatterns = patterns('',
         module_details, name='ipdevinfo-module-details'),
 
     # Port details
-    # TODO
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/swport(?P<port_id>\d+)/$',
+        port_details, {'port_type': 'swport'}, name='ipdevinfo-swport-details'),
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/gwport(?P<port_id>\d+)/$',
+        port_details, {'port_type': 'gwport'}, name='ipdevinfo-gwport-details'),
 )

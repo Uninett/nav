@@ -34,7 +34,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
-from nav.models.manage import Netbox, Module
+from nav.models.manage import Netbox, Module, SwPort, GwPort
 from nav.django.shortcuts import render_to_response
 
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
@@ -173,3 +173,21 @@ def module_details(request, netbox_sysname, module_number):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+def port_details(request, netbox_sysname, module_number, port_type, port_id):
+    """Show detailed view of one IP device port"""
+
+    if port_type == 'swport':
+        port = get_object_or_404(SwPort, id=port_id)
+    elif port_type == 'gwport':
+        port = get_object_or_404(GwPort, id=port_id)
+
+    return render_to_response(IpDevInfoTemplate,
+        'ipdevinfo/port-details.html',
+        {
+            'port_type': port_type,
+            'port': port,
+        },
+        context_instance=RequestContext(request,
+            processors=[search_form_processor]))
+

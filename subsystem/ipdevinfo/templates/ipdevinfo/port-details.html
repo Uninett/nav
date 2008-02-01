@@ -1,0 +1,76 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+<table class="vertitable">
+    <caption>Interface {{ port.interface }}
+    at {{ port.module.netbox.sysname }}</caption>
+    <tr>
+        <th>At IP device</th>
+        <td><a href="{% url ipdevinfo-details-by-name port.module.netbox.sysname %}">{{ port.module.netbox.sysname }}</a></td>
+    </tr>
+    <tr>
+        <th>At module</th>
+        <td><a href="{% url ipdevinfo-module-details port.module.netbox.sysname,port.module.module_number %}">Module {{ port.module.module_number }}</a></td>
+    </tr>
+    <tr>
+        <th>Interface</th>
+        <td>{{ port.interface }}</td>
+    </tr>
+    <tr>
+        <th>IfIndex</th>
+        <td>{{ port.ifindex }}</td>
+    </tr>
+{% ifequal port_type 'swport' %}
+    <tr>
+        <th>Port</th>
+        <td>{{ port.port }}</td>
+    </tr>
+{% endifequal %}
+    <tr>
+        <th>Port name</th>
+        <td>{{ port.port_name }}</td>
+    </tr>
+    <tr>
+        <th>Link</th>
+        <td>{{ port.get_link_display|capfirst }}</td>
+    </tr>
+    <tr>
+        <th>Speed</th>
+        <td>{{ port.speed }} Mbit</td>
+    </tr>
+{% ifequal port_type 'swport' %}
+    <tr>
+        <th>Trunk</th>
+        <td>{{ port.trunk|yesno|capfirst }}</td>
+    </tr>
+{% endifequal %}
+    <tr>
+        <th>To IP device</th>
+        <td><a href="{% url ipdevinfo-details-by-name port.to_netbox.sysname %}">{{ port.to_netbox }}</a></td>
+    </tr>
+    <tr>
+        <th>To switch port</th>
+        <td>{{ port.to_swport }}</td>
+    </tr>
+</table>
+
+<h3>Statistics</h3>
+
+<p>FIXME: Add statistics.</p>
+
+{% ifequal port_type 'gwport' %}
+<h3>Prefixes</h3>
+
+<ul>
+    {% if port.gwportprefix_set.all %}
+        {% for gwprefix in port.gwportprefix_set.all %}
+    <li>{{ gwprefix.prefix.net_address }} (FIXME: Add link to prefix matrix.)</li>
+        {% endfor %}
+    {% else %}
+    <li>No prefixes found.</li>
+    {% endif %}
+</ul>
+{% endifequal %}
+
+{% endblock %}
