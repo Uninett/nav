@@ -454,6 +454,14 @@ class GwPort(models.Model):
         name = self.interface or self.ifindex
         return u'%s, at module %s' % (name, self.module)
 
+    def get_absolute_url(self):
+        kwargs={
+            'netbox_sysname': self.module.netbox.sysname,
+            'module_number': self.module.module_number,
+            'port_id': self.id,
+        }
+        return reverse('ipdevinfo-gwport-details', kwargs=kwargs)
+
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
@@ -476,7 +484,7 @@ class Prefix(models.Model):
     """From MetaNAV: The prefix table stores IP prefixes."""
 
     id = models.IntegerField(db_column='prefixid', primary_key=True)
-    # TODO: Create CIDRField
+    # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
@@ -549,7 +557,7 @@ class Arp(models.Model):
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     sysname = models.CharField(max_length=-1)
     ip = models.IPAddressField()
-    # TODO: Create MACAddressField
+    # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
@@ -589,7 +597,7 @@ class SwPort(models.Model):
     media = models.CharField(max_length=-1)
     vlan = models.IntegerField()
     trunk = models.BooleanField()
-    portname = models.CharField(max_length=-1)
+    port_name = models.CharField(db_column='portname', max_length=-1)
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
         related_name='connected_to_swport')
     to_swport = models.ForeignKey('self', db_column='to_swportid',
@@ -603,6 +611,14 @@ class SwPort(models.Model):
     def __unicode__(self):
         name = self.interface or self.ifindex or self.port
         return u'%s, at module %s' % (name, self.module)
+
+    def get_absolute_url(self):
+        kwargs={
+            'netbox_sysname': self.module.netbox.sysname,
+            'module_number': self.module.module_number,
+            'port_id': self.id,
+        }
+        return reverse('ipdevinfo-swport-details', kwargs=kwargs)
 
     def get_interface_display(self):
         return to_ifname_style(self.interface)
@@ -774,7 +790,7 @@ class Cam(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
-    # TODO: Create MACAddressField
+    # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
 
     class Meta:
