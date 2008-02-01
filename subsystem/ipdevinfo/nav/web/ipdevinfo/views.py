@@ -138,12 +138,12 @@ def ipdev_details(request, name=None, addr=None):
     # Lookup IP device in NAV
     if name is not None:
         try:
-            netbox = Netbox.objects.get(sysname=name)
+            netbox = Netbox.objects.select_related().get(sysname=name)
         except Netbox.DoesNotExist:
             pass
     elif addr is not None:
         try:
-            netbox = Netbox.objects.get(ip=addr)
+            netbox = Netbox.objects.select_related().get(ip=addr)
         except Netbox.DoesNotExist:
             pass
     else:
