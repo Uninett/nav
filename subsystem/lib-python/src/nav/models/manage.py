@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007 UNINETT AS
+# Copyright 2007-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -23,7 +23,7 @@
 
 """Django ORM wrapper for the NAV manage database"""
 
-__copyright__ = "Copyright 2007 UNINETT AS"
+__copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
@@ -607,6 +607,62 @@ class SwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
+    def get_status_classes(self):
+        """Status classes for IP Device Info port view"""
+
+        classes = ['port']
+        if self.link == self.LINK_UP and self.speed:
+            classes.append('Mb%d' % self.speed)
+        if self.link == self.LINK_DOWN_ADM:
+            classes.append('disabled')
+        elif self.link != self.LINK_UP:
+            classes.append('passive')
+        if self.trunk:
+            classes.append('trunk')
+        if self.duplex:
+            classes.append('%sduplex' % self.duplex)
+        if self.swportblocked_set.count():
+            classes.append('blocked')
+        return ' '.join(classes)
+
+    def get_status_title(self):
+        """Status title for IP Device Info port view"""
+
+        title = []
+        if self.interface:
+            title.append(self.interface)
+        if self.link == self.LINK_UP and self.speed:
+            title.append('%d Mbit' % self.speed)
+        try:
+            title.append('-> %s' % self.to_netbox)
+        except Netbox.DoesNotExist:
+            pass
+        if self.link == self.LINK_DOWN_ADM:
+            title.append('disabled')
+        elif self.link != self.LINK_UP:
+            title.append('not active')
+        if self.trunk:
+            title.append('trunk')
+        if self.duplex:
+            title.append(self.get_duplex_display())
+        if self.media:
+            title.append(self.media)
+
+        # Warning! Lots of extra queries are generated here if not
+        # select_related is used
+        vlans = [str(swpv.vlan.vlan) for swpv in self.swportvlan_set.all()]
+        if vlans:
+            title.append('vlan ' + ','.join(vlans))
+
+        # Warning! Lots of extra queries are generated here if not
+        # select_related is used
+        blocked_vlans = [str(block.vlan)
+            for block in self.swportblocked_set.all()]
+        if blocked_vlans:
+            title.append('blocked ' + ','.join(blocked_vlans))
+
+        return ', '.join(title)
+
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
     ports. dot1q trunk ports typically have several rows in this table."""
@@ -655,6 +711,8 @@ class SwPortBlocked(models.Model):
     given vlan for a given switch port."""
 
     swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
+    # FIXME: 'vlan' is not a foreignkey to the vlan table in the database, but
+    # it should maybe be a foreign key.
     vlan = models.IntegerField()
 
     class Meta:
