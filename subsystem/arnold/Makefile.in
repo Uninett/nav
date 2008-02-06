@@ -11,14 +11,15 @@ sysconfdir = @sysconfdir@
 pythonlibdir = @pythonlibdir@
 perllibdir = @perllibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
+handlerdir = ${pythonlibdir}/nav/web
 webroot = @webroot@
 tooldir = @tooldir@
 
-templates = ArnoldTemplate.py
-libfiles = Arnold.pm
-webfiles = arnoldhandler.py .htaccess
-binfiles = arnold.pl autoenable.pl start_arnold.pl t1000.pl
-conffiles = arnold.conf nonblock.conf mailtemplates/README 
+templates = ArnoldTemplate.py # lib/python/nav/web/templates/
+handlerfiles = arnoldhandler.py # lib/python/nav/web/
+webfiles = .htaccess # webroot/arnold/
+binfiles = arnold.py autoenable.py start_arnold.py t1000.py
+conffiles = arnold.conf nonblock.conf mailtemplates/README
 tool = arnold.tool
 
 .PHONY: all install install-lib install-web install-bin clean distclean
@@ -49,13 +50,14 @@ install-lib: $(templates)
 	for file in $(templates); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(templatedir)/$$file || exit 1; \
 	done
-	for file in $(libfiles); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(perllibdir)/NAV/$$file || exit 1; \
-	done
+	$(MAKE) -C lib $@
 
 install-web:
 	for file in $(webfiles); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/arnold/$$file || exit 1; \
+	done
+	for file in $(handlerfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(handlerdir)/$$file || exit 1; \
 	done
 	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
