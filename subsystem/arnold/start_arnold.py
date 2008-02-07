@@ -167,7 +167,7 @@ Pipe in id's to block or use the -f option to specify file"""
 
         try:
             sw = nav.arnold.findSwportinfo(id['netboxid'], id['ifindex'],
-                                           id['module'], id['port'])
+                                           id['module'])
         except Exception, e:
             print e
             logger.error(e)

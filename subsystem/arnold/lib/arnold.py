@@ -191,7 +191,7 @@ def findIdInformation(id, limit):
 ###############################################################################
 # findSwportinfo
 #
-def findSwportinfo(netboxid, ifindex, module, port):
+def findSwportinfo(netboxid, ifindex, module):
     """
     Find netbox and swportinfo based on input. Return dict with
     info. The dict contains everything from netbox, type, module and
@@ -210,10 +210,9 @@ def findSwportinfo(netboxid, ifindex, module, port):
         LEFT JOIN swport USING (moduleid)
         WHERE netboxid=%s
         AND ifindex=%s
-        AND module=%s
-        AND port=%s"""
+        AND module=%s"""
 
-        c.execute(query, (netboxid, ifindex, module, port))
+        c.execute(query, (netboxid, ifindex, module))
     except Exception, e:
         logger.error("findSwportinfo: Error in query %s: %s" %(query, e))
         raise DbError, e
@@ -223,7 +222,7 @@ def findSwportinfo(netboxid, ifindex, module, port):
         
         return result
     else:
-        raise PortNotFoundError, (netboxid, ifindex, module, port)
+        raise PortNotFoundError, (netboxid, ifindex, module)
 
 
     return 1

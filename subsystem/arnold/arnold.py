@@ -189,8 +189,7 @@ def main():
                     try:
                         swinfo = nav.arnold.findSwportinfo(i['netboxid'],
                                                            i['ifindex'],
-                                                           i['module'],
-                                                           i['port'])
+                                                           i['module'])
                     except (nav.arnold.NoDatabaseInformationError,
                             nav.arnold.UnknownTypeError,
                             nav.arnold.PortNotFoundError), why:
@@ -301,8 +300,7 @@ def handleFile(file, opts):
 
                 swlist = nav.arnold.findSwportinfo(firstlist['netboxid'],
                                                    firstlist['ifindex'],
-                                                   firstlist['module'],
-                                                   firstlist['port'] )
+                                                   firstlist['module'])
 
                 autoenable = opts.autoenable
                 autoenablestep = 0
