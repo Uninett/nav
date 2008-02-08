@@ -42,7 +42,7 @@ from nav.web.ipdevinfo.forms import SearchForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 
 def search(request):
-    """Search for a IP device"""
+    """Search for an IP device"""
 
     errors = []
     query = None
