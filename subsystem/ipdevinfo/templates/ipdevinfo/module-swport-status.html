@@ -1,8 +1,9 @@
+{% with module.swport_set.all as swports %}
+{% if swports.count %}
 <div class="module">
 <h3><a href="{{ module.get_absolute_url }}">{{ module.module_number }}</a></h3>
 <table>
     <tr>
-    {% with module.swport_set.all as swports %}
     {% for swport in swports %}
         <td class="{{ swport.get_status_classes }}" title="{{ swport.get_status_title }}">
             <a href="{{ swport.get_absolute_url }}">{{ swport.get_interface_display }}</a>
@@ -17,7 +18,8 @@
             {% endif %}
         {% endif %}
     {% endfor %}
-    {% endwith %}
     </tr>
 </table>
 </div>
+{% endif %}
+{% endwith %}

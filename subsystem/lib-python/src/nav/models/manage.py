@@ -465,6 +465,30 @@ class GwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
+    def get_status_classes(self):
+        """Status classes for IP Device Info port view"""
+
+        classes = ['port']
+        if self.speed:
+            classes.append('Mb%d' % self.speed)
+        return ' '.join(classes)
+
+    def get_status_title(self):
+        """Status title for IP Device Info port view"""
+
+        title = []
+        if self.interface:
+            title.append(self.interface)
+        if self.speed:
+            title.append('%d Mbit' % self.speed)
+        try:
+            title.append('-> %s' % self.to_netbox)
+        except Netbox.DoesNotExist:
+            pass
+        if self.port_name:
+            title.append(self.port_name)
+        return ', '.join(title)
+
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
