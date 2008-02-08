@@ -44,7 +44,7 @@ MANAGERS = ADMINS
 
 # Database / ORM configuration
 db_config = readConfig('db.conf')
-DATABASE_ENGINE = 'postgresql'
+DATABASE_ENGINE = 'postgresql_psycopg2'
 DATABASE_NAME = db_config['db_nav']
 DATABASE_USER = db_config['script_default']
 DATABASE_PASSWORD = db_config['userpw_nav']
