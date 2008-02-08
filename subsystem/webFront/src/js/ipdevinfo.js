@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Stian Søiland <stain@itea.ntnu.no>
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
@@ -58,7 +58,7 @@ function changeDisplay(elementId, setTo) {
 }
 
 function showPorts(elementId) {
-	known = ['activeports', 'portstatus', 'gwportstatus'];
+	known = ['swportstatus', 'swportactive', 'gwportstatus'];
 	for (i=0;i<known.length;i++) {
 		changeDisplay(known[i], known[i] == elementId ? 'block' : 'none');
 	}

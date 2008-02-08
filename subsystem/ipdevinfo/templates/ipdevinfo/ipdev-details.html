@@ -124,31 +124,61 @@
 
 <h3>Port view</h3>
 
-<div class="tabs">
-<ul>
-    <li class="tabactive"><a>Switch port status</a></li>
-    <li><a href="#" onClick="showPorts('activeports'); return false">Switch port activity</a></li>
-    <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
-</ul>
+{% if netbox.get_swports.count %}
+
+<div id="swportstatus">
+    <div class="tabs">
+    <ul>
+        <li class="tabactive"><a>Switch port status</a></li>
+        <li><a href="#" onClick="showPorts('swportactive'); return false">Switch port activity</a></li>
+        <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
+    </ul>
+    </div>
+
+    <div class="tabcontent">
+    {% for module in netbox.module_set.all %}
+    {% include "ipdevinfo/module-swport-status.html" %}
+    {% endfor %}
+    </div>
 </div>
 
-<div class="tabcontent">
+<div id="swportactive" style="display: none;">
+    <div class="tabs">
+    <ul>
+        <li><a href="#" onClick="showPorts('swportstatus'); return false">Switch port status</a></li>
+        <li class="tabactive"><a>Switch port activity</a></li>
+        <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
+    </ul>
+    </div>
 
-<div class="swportstatus">
-{% for module in netbox.module_set.all %}
-{% include "ipdevinfo/module-swport-status.html" %}
-{% endfor %}
+    <div class="tabcontent">
+    {% for module in netbox.module_set.all %}
+    {% include "ipdevinfo/module-swport-active.html" %}
+    {% endfor %}
+    </div>
 </div>
 
-<div class="swportactive" style="display: none;">
-<p>FIXME</p>
+{% endif %}
+
+{% if netbox.get_gwports.count %}
+
+<div id="gwportstatus" style="display: none;">
+    <div class="tabs">
+    <ul>
+        <li><a href="#" onClick="showPorts('swportstatus'); return false">Switch port status</a></li>
+        <li><a href="#" onClick="showPorts('swportactive'); return false">Switch port activity</a></li>
+        <li class="tabactive"><a>Router port status</a></li>
+    </ul>
+    </div>
+
+    <div class="tabcontent">
+    {% for module in netbox.module_set.all %}
+    {% include "ipdevinfo/module-gwport-status.html" %}
+    {% endfor %}
+    </div>
 </div>
 
-<div class="gwportstatus" style="display: none;">
-<p>FIXME</p>
-</div>
-
-</div>
+{% endif %}
 
 {% include "ipdevinfo/port-legend.html" %}
 
