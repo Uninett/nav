@@ -51,13 +51,15 @@ The following Java librares are required:
 
 The following python modules are required:
 
- * pysnmp2
+ * django
  * egenix-mxdatetime
  * forgethtml
  * forgetsql
  * ipy
  * ldap
  * psycopg
+ * psycopg2
+ * pysnmp2
  * rrd
 
 
