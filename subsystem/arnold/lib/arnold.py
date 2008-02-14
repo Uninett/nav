@@ -34,7 +34,7 @@ class PortNotFoundError(GeneralException):
     pass
 
 class UnknownTypeError(GeneralException):
-    "Unknown type"
+    "Unknown type (not ip or mac)"
     pass
 
 class DbError(GeneralException):
@@ -143,7 +143,7 @@ def findIdInformation(id, limit):
 
     result = []
     # Get data from database based on id
-    if type in ['IP','MAC','SWPORTID']:
+    if type in ['IP','MAC']:
 
         c = conn.cursor()
 
@@ -161,7 +161,7 @@ def findIdInformation(id, limit):
         try:
             c.execute(query, (id, limit))
         except Exception, e:
-            logger.error('findIDInformation: Error in query %s' %(query, e))
+            logger.error('findIDInformation: Error in query %s: %s' %(query, e))
             raise DbError, e
 
         if c.rowcount > 0:
@@ -186,7 +186,6 @@ def findIdInformation(id, limit):
         raise NoDatabaseInformationError, id
 
     return result
-
 
 ###############################################################################
 # findSwportinfo
@@ -870,7 +869,6 @@ def addReason(name, comment):
 ###############################################################################
 # getReason
 #
-
 def getReasons():
     """
     Returns a dict with the reasons for blocking currently in the
@@ -880,7 +878,7 @@ def getReasons():
     conn = nav.db.getConnection('default', dbname)
     c = conn.cursor()
 
-    query = "SELECT * FROM blocked_reason ORDER BY id"
+    query = "SELECT * FROM blocked_reason ORDER BY blocked_reasonid"
     try:
         c.execute(query)
     except nav.db.driver.ProgrammingError, why:

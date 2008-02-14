@@ -70,7 +70,8 @@ def main():
                       help="List reasons for blocking in database.")
     parser.add_option("-l", "--listblocked", action="store_true",
                       dest="listblocked", help="List blocked ports.")
-    parser.add_option("-v", dest="vlan", help="The vlan to change ports to")
+    parser.add_option("-v", dest="vlan", help="The vlan to change ports to \
+(NB: not implemented yet)")
     parser.add_option("-r", dest="reason", help="Reason for this action")
     parser.add_option("-c", dest="comment", help="Comment")
     parser.add_option("--autoenable", dest="autoenable",
@@ -79,6 +80,32 @@ def main():
                       help="Flag for determined blocking")
 
     (opts, args) = parser.parse_args()
+
+
+    # Get loglevel from config-file
+    loglevel = config.get('loglevel','arnold')
+    if not loglevel.isdigit():
+        loglevel = logging.getLevelName(loglevel)
+
+    try:
+        loglevel = int(loglevel)
+    except ValueError:
+        loglevel = 20 # default to INFO
+
+
+    # Create logger, start logging
+    filehandler = logging.FileHandler(logfile)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] ' \
+                                  '[%(name)s] L%(lineno)d %(message)s')
+    filehandler.setFormatter(formatter)
+
+    logger = logging.getLogger('arnold')
+    logger.addHandler(filehandler)
+    logger.setLevel(loglevel)
+
+    logger.info("Starting arnold")
+    logger.info("Loglevel = %s" %loglevel)
+
 
     # If file is given, assume we are disabling everything in the
     # file. The file may contain a mixture of ip, mac or swportid's
@@ -89,6 +116,7 @@ def main():
             f = file (opts.inputfile)
             handleFile(f, opts)
         except IOError, why:
+            logger.error(why)
             print why
             sys.exit(1)
 
@@ -100,6 +128,7 @@ def main():
                 print "%2s: %s - %s" \
                       %(r['blocked_reasonid'], r['name'], r['comment'])
         except nav.arnold.DbError, why:
+            logger.error(why)
             print why
             sys.exit(1)
 
@@ -107,6 +136,7 @@ def main():
         try:
             dbname = config.get('arnold','database')
         except Exception, why:
+            logger.error("Could not find databasename in arnold.conf")
             print "Could not find databasename in arnold.conf"
             sys.exit()
 
@@ -121,9 +151,10 @@ def main():
         try:
             c.execute(q)
         except nav.db.driver.ProgrammingError, why:
+            logger.error(why)
             print why
             sys.exit(1)
-
+            
         if c.rowcount > 0:
             rows = c.dictfetchall()
             format = "%-4s %-15s %-17s %-16s %s"
@@ -138,17 +169,20 @@ def main():
     elif opts.state:
 
         if len(args) < 1:
+            logger.info("User did not specify any arguments")
             parser.error("I need an ip, mac or databaseid to have " \
                          "something to do.")
 
         if not opts.state in ['enable','disable']:
+            logger.info("User did not specify correct state: %s" %opts.state)
             parser.error("State must be either enable or disable")
-
 
         # Enable or disable interface based on input from user
         res = ""
         if opts.state == 'enable':
             for id in args:
+                logger.info("Running openPort (%s, %s)" %(id, os.getlogin()))
+
                 # Open port
                 try:
                     nav.arnold.openPort(id, os.getlogin())
@@ -156,10 +190,14 @@ def main():
                         nav.arnold.DbError,
                         nav.arnold.ChangePortStatusError), why:
                     print why
+                    logger.error(why)
                     continue
-                
 
         elif opts.state == 'disable':
+
+            if not opts.reason:
+                logger.info("User did not define reason for block")
+                parser.error("Please specify a reason for the block")
 
             # Loop through the id's to block
             for id in args:
@@ -170,10 +208,8 @@ def main():
                 except (nav.arnold.NoDatabaseInformationError,
                         nav.arnold.UnknownTypeError,
                         nav.arnold.PortNotFoundError), why:
+                    logger.error(why)
                     print why
-                    continue
-
-                if res == 1:
                     continue
 
                 swportids = []
@@ -184,19 +220,25 @@ def main():
                 print format %('ID','Lastseen','IP','MAC','Switch',
                                'module','port')
 
+
+                # Store information about the switchport
+                swinfo = {}
+
                 # Print all ports the id has been active on
                 for i in res:
                     try:
-                        swinfo = nav.arnold.findSwportinfo(i['netboxid'],
-                                                           i['ifindex'],
-                                                           i['module'])
+                        swinfo[counter] = nav.arnold.findSwportinfo(i['netboxid'],
+                                                                    i['ifindex'],
+                                                                    i['module'])
+                        
                     except (nav.arnold.NoDatabaseInformationError,
                             nav.arnold.UnknownTypeError,
                             nav.arnold.PortNotFoundError), why:
                         print why
+                        logger.error(why)
                         continue
                         
-                    swportids.append(swinfo['swportid'])
+                    swportids.append(swinfo[counter]['swportid'])
                     
                     print format %(counter, i['endtime'], i['ip'], i['mac'],
                                    i['sysname'], i['module'], i['port'])
@@ -207,6 +249,8 @@ def main():
                 if len(swportids) < 1:
                     print "Could not find any port where %s has been active" \
                           %id
+                    logger.info("Could not find any port where %s has \
+                    been active" %id)
                     sys.exit()
                     
                 # If id is not active, ask user if he really wants to
@@ -229,22 +273,28 @@ def main():
                     continue
                 else:
                     answer = int(answer) - 1
+
+                    logger.info("Blocking %s (%s:%s)" %(res[answer]['sysname'],
+                                                        res[answer]['module'],
+                                                        res[answer]['port']))
                     print "Blocking %s (%s:%s)" %(res[answer]['sysname'],
                                                   res[answer]['module'],
                                                   res[answer]['port'])
 
                 # Do snmp-set to block port
                 try:
-                    nav.arnold.blockPort(res[answer], swinfo, opts.autoenable,
-                                         0, opts.determined, opts.reason,
-                                         opts.comment, os.getlogin())
+                    nav.arnold.blockPort(res[answer], swinfo[answer+1],
+                                         opts.autoenable, 0, opts.determined,
+                                         opts.reason, opts.comment,
+                                         os.getlogin())
                 except (nav.arnold.ChangePortStatusError,
                         nav.arnold.AlreadyBlockedError,
                         nav.arnold.FileError,
                         nav.arnold.InExceptionListError,
                         nav.arnold.WrongCatidError), why:
-                    print why
-
+                                print why
+                                logger.error(why)
+                                
     else:
 
         print "You must either choose state or give a file as input."

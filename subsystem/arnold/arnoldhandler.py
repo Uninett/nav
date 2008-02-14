@@ -280,7 +280,7 @@ def handler(req):
             newreason = args.get('newreason')
             nr = re.match("--", newreason)
             if not nr:
-                cur.execute("SELECT reasonid FROM blocked_reason WHERE name = %s", (newreason,))
+                cur.execute("SELECT blocked_reasonid FROM blocked_reason WHERE name = %s", (newreason,))
                 if cur.rowcount < 1:
                     cur.execute("SELECT nextval('public.blocked_reason_blocked_reasonid_seq')")
                     reasonid = cur.fetchone()[0]
