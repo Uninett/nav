@@ -577,13 +577,19 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
         if int(module) > 0:
             community = community + "@sw" + module
 
-        ifindex = str(ifindex)[-2:]
+        # Use the last parts of the ifindex as real ifindex. Check
+        # number of modules to see how many characters to grab.
+        if int(module) <= 9:
+            ifindex = int(str(ifindex)[1:])
+        else:
+            ifindex = int(str(ifindex)[2:])
 
 
-    query = oid + '.' + str(ifindex)
+    ifindex = str(ifindex)
+    query = oid + '.' + ifindex
 
-    logger.debug("vendor: %s, ro: %s, ifindex: %s"
-                 %(vendorid, community, ifindex))
+    logger.debug("vendor: %s, ro: %s, ifindex: %s, module: %s"
+                 %(vendorid, community, ifindex, module))
 
     # Create snmp-object
     s = nav.Snmp.Snmp(ip,community)
