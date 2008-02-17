@@ -28,11 +28,13 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 from django.core.urlresolvers import reverse
 from django.db import models
+
+import nav.util
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -700,6 +702,102 @@ class SwPort(models.Model):
             for block in self.swportblocked_set.all()]
         if blocked_vlans:
             title.append('blocked ' + ','.join(blocked_vlans))
+
+        return ', '.join(title)
+
+    def get_active_time(self, interval=30):
+        """
+        Time since last CAM activity on port, looking at CAM entries
+        for the last ``interval'' (default 30) days.
+
+        Returns None if no activity is found, else number of days since last
+        activity as a datetime.timedelta object.
+        """
+
+        # FIXME: Not done, see next FIXME
+        return None
+
+        min_time = datetime.now() - timedelta(interval)
+        try:
+            # Use .values() to avoid creating additional objects we do not need
+            # FIXME: Does not quite work. Gives some IndexError in
+            # django/db/models/query.py in __getitem__, line 157
+            last_cam_entry = self.module.netbox.cam_set.filter(
+                ifindex=self.ifindex, end_time__gt=min_time
+                ).order_by('-end_time').values('end_time')[0]
+        except Cam.DoesNotExist:
+            # Inactive/not in use
+            return None
+
+        if last_cam_entry['end_time'] == datetime.max:
+            # Active now
+            return timedelta(0)
+        else:
+            # Active some time inside the given interval
+            return datetime.now() - last_cam_entry['end_time']
+
+    def get_active_classes(self, interval=30):
+        """Active classes for IP Device Info port view"""
+
+        classes = ['port']
+
+        active = self.get_active_time(interval)
+        if active is not None:
+            classes.append('active')
+        else:
+            classes.append('inactive')
+
+        if self.link == self.LINK_UP:
+            classes.append('active')
+            classes.append('link')
+
+        return ' '.join(classes)
+
+    def get_active_style(self, interval=30):
+        """Active style for IP Device Info port view"""
+
+        # Color range for port activity tab
+        color_recent = (116, 196, 118)
+        color_longago = (229, 245, 224)
+        # XXX: Is this CPU intensive? Cache result?
+        gradient = nav.util.color_gradient(
+            color_recent, color_longago, interval)
+
+        style = ''
+
+        active = self.get_active_time(interval)
+        if active is not None:
+            style = 'background-color: #%s;' % nav.util.colortohex(
+                gradient[active.days])
+
+        if self.link == self.LINK_UP:
+            style = 'background-color: #%s;' % nav.util.colortohex(
+                gradient[0])
+
+        return style
+
+
+    def get_active_title(self, interval=30):
+        """Active title for IP Device Info port view"""
+
+        title = []
+
+        if self.interface:
+            title.append(self.interface)
+
+        active = self.get_active_time(interval)
+        if active is not None:
+            if active.days > 1:
+                title.append('%d days ago' % active.days)
+            elif active.days == 1:
+                title.append('1 day ago')
+            else:
+                title.append('used today')
+        else:
+            title.append('free')
+
+        if self.link == self.LINK_UP:
+            title.append('active now')
 
         return ', '.join(title)
 
