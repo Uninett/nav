@@ -912,8 +912,20 @@ sub makeinterfaceTargets {
 	    $rrdhash{"$cricketconfigdir/$dir/$sysname"}{$name}{'table'} = $table;
 
 	    $filetext .= "target \"$name\"\n";
-	    if ($interface && $interface =~ m/(.*)\.\d+/) {
-		$filetext .= "\ttarget-type\t=\tsub-interface\n";
+
+	    # Create sub-interface if the interface has a dot in it
+	    # and the vendor is cisco
+
+	    if ($vendor eq 'cisco' && $interface && $interface =~ m/(.*)\.\d+/) {
+
+		# Make sure that also sub-interfaces use 64-bit
+		# counters when snmpv2 is suported
+
+		if ($snmpversion == 2 && $support64bits) {
+		    $filetext .= "\ttarget-type\t=\tsubv2-interface\n";
+		} else {
+		    $filetext .= "\ttarget-type\t=\tsub-interface\n";
+		}
 	    }
 	    $filetext .= "\torder\t=\t$order\n";
 	    $filetext .= "\tinterface-index\t=\t$ifindex\n";
