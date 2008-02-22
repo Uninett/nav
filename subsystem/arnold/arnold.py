@@ -63,15 +63,16 @@ def main():
     # Define options
     usage = "usage: %prog [options] id"
     parser = OptionParser(usage)
-    parser.add_option("-s", dest="state", help="state: enable or disable")
+    parser.add_option("-s", dest="state", help="state: enable, disable or \
+quarantine")
     parser.add_option("-f", "--file", dest="inputfile",
                       help="File with stuff to disable.")
     parser.add_option("--listreasons", action="store_true", dest="listreasons",
                       help="List reasons for blocking in database.")
     parser.add_option("-l", "--listblocked", action="store_true",
                       dest="listblocked", help="List blocked ports.")
-    parser.add_option("-v", dest="vlan", help="The vlan to change ports to \
-(NB: not implemented yet)")
+    parser.add_option("-v", dest="vlan", help="The vlan to change ports to - \
+must be set if state is quarantine")
     parser.add_option("-r", dest="reason", help="Reason for this action")
     parser.add_option("-c", dest="comment", help="Comment")
     parser.add_option("--autoenable", dest="autoenable",
@@ -111,6 +112,16 @@ def main():
     # file. The file may contain a mixture of ip, mac or swportid's
     # (I admit I could have used more functions to clean up the code)
     if opts.inputfile:
+
+        if not opts.reason:
+            logger.info("User did not define reason for block")
+            parser.error("Please specify a reason for the block")
+            
+        if opts.state == 'quarantine' and not opts.vlan:
+            logger.info("User did not define vlan to change to")
+            parser.error("Please specify a vlan to change to")
+
+        
         try:
             # open file, get input
             f = file (opts.inputfile)
@@ -143,9 +154,9 @@ def main():
         conn = getConnection('default', dbname)
         c = conn.cursor()
 
-        q = """SELECT identityid, mac, ip, netbios, lastchanged
+        q = """SELECT identityid, mac, ip, netbios, blocked_status AS status
         FROM identity
-        WHERE blocked_status = 'disabled'
+        WHERE blocked_status IN ('disabled','quarantined')
         ORDER BY lastchanged"""
 
         try:
@@ -158,10 +169,10 @@ def main():
         if c.rowcount > 0:
             rows = c.dictfetchall()
             format = "%-4s %-15s %-17s %-16s %s"
-            print format  %('ID','IP','MAC', 'NETBIOS','LASTCHANGED')
+            print format  %('ID','IP','MAC', 'NETBIOS','STATUS')
             for row in rows:
                 print format %(row['identityid'], row['ip'],
-                               row['mac'], row['netbios'], row['lastchanged'])
+                               row['mac'], row['netbios'], row['status'])
         else:
             print "No blocked ports in arnold"
 
@@ -173,9 +184,9 @@ def main():
             parser.error("I need an ip, mac or databaseid to have " \
                          "something to do.")
 
-        if not opts.state in ['enable','disable']:
+        if not opts.state in ['enable','disable','quarantine']:
             logger.info("User did not specify correct state: %s" %opts.state)
-            parser.error("State must be either enable or disable")
+            parser.error("State must be either enable, disable or quarantine")
 
         # Enable or disable interface based on input from user
         res = ""
@@ -193,11 +204,16 @@ def main():
                     logger.error(why)
                     continue
 
-        elif opts.state == 'disable':
+        elif opts.state in ['disable','quarantine']:
 
             if not opts.reason:
                 logger.info("User did not define reason for block")
                 parser.error("Please specify a reason for the block")
+
+            if opts.state == 'quarantine' and not opts.vlan:
+                logger.info("User did not define vlan to change to")
+                parser.error("Please specify a vlan to change to")
+
 
             # Loop through the id's to block
             for id in args:
@@ -281,19 +297,38 @@ def main():
                                                   res[answer]['module'],
                                                   res[answer]['port'])
 
-                # Do snmp-set to block port
-                try:
-                    nav.arnold.blockPort(res[answer], swinfo[answer+1],
-                                         opts.autoenable, 0, opts.determined,
-                                         opts.reason, opts.comment,
-                                         os.getlogin())
-                except (nav.arnold.ChangePortStatusError,
-                        nav.arnold.AlreadyBlockedError,
-                        nav.arnold.FileError,
-                        nav.arnold.InExceptionListError,
-                        nav.arnold.WrongCatidError), why:
-                                print why
-                                logger.error(why)
+                if opts.state == 'disable':
+                    # Do snmp-set to block port
+                    try:
+                        nav.arnold.blockPort(res[answer], swinfo[answer+1],
+                                             opts.autoenable, 0,
+                                             opts.determined,
+                                             opts.reason, opts.comment,
+                                             os.getlogin(), 'block')
+                    except (nav.arnold.ChangePortStatusError,
+                            nav.arnold.AlreadyBlockedError,
+                            nav.arnold.FileError,
+                            nav.arnold.InExceptionListError,
+                            nav.arnold.WrongCatidError), why:
+                        print why
+                        logger.error(why)
+                            
+                elif opts.state == 'quarantine':
+                    # Set vlan specified
+                    try:
+                        nav.arnold.blockPort(res[answer], swinfo[answer+1],
+                                             opts.autoenable, 0,
+                                             opts.determined,
+                                             opts.reason, opts.comment,
+                                             os.getlogin(), 'quarantine',
+                                             opts.vlan)
+                    except (nav.arnold.ChangePortVlanError,
+                            nav.arnold.AlreadyBlockedError,
+                            nav.arnold.FileError,
+                            nav.arnold.InExceptionListError,
+                            nav.arnold.WrongCatidError), why:
+                        print why
+                        logger.error(why)
                                 
     else:
 
@@ -359,18 +394,34 @@ def handleFile(file, opts):
                 comment = opts.comment
                 username = os.getlogin()
 
-                try:
-                    nav.arnold.blockPort(firstlist, swlist, autoenable,
-                                         autoenablestep, determined, reason,
-                                         comment, username)
-                except (nav.arnold.ChangePortStatusError,
-                        nav.arnold.InExceptionListError,
-                        nav.arnold.WrongCatidError,
-                        nav.arnold.DbError,
-                        nav.arnold.AlreadyBlockedError), why:
-                    print why
-                
+                if opts.state == 'disable':
 
+                    try:
+                        nav.arnold.blockPort(firstlist, swlist, autoenable,
+                                             autoenablestep, determined,
+                                             reason, comment, username,
+                                             'block')
+                    except (nav.arnold.ChangePortStatusError,
+                            nav.arnold.InExceptionListError,
+                            nav.arnold.WrongCatidError,
+                            nav.arnold.DbError,
+                            nav.arnold.AlreadyBlockedError), why:
+                        print why
+
+                elif opts.state == 'quarantine':
+                    
+                    try:
+                        nav.arnold.blockPort(firstlist, swlist, autoenable,
+                                             autoenablestep, determined,
+                                             reason, comment, username,
+                                             'quarantine', opts.vlan)
+                    except (nav.arnold.ChangePortStatusError,
+                            nav.arnold.InExceptionListError,
+                            nav.arnold.WrongCatidError,
+                            nav.arnold.DbError,
+                            nav.arnold.AlreadyBlockedError), why:
+                        print why
+                        
 
 if __name__ == '__main__':
     main()

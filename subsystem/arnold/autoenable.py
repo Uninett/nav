@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA    
 #
 # Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
 # Credits
@@ -39,7 +39,7 @@ import nav.buildconf
 
 """
 autoenable is meant to be run as a cronjob. It checks the configured
-arnold-database for any blocked ports and opens them if they have a
+arnold-database for any detained ports and opens them if they have a
 autoenable-time set and that time has passed.
 """
 
@@ -95,7 +95,8 @@ def main():
     query = """SELECT identityid, swportid, ip, mac
     FROM identity
     WHERE autoenable < now()
-    AND blocked_status = 'disabled'"""
+    AND blocked_status IN ('disabled','quarantined')
+    """
 
     arnoldc.execute(query)
 
@@ -117,7 +118,7 @@ def main():
             nav.arnold.openPort(row['identityid'], os.getlogin(),
                                 eventcomment="Opened automatically by \
                                 autoenable")
-            logger.info("Opening %s %s:%s blocking %s" %(
+            logger.info("Opening %s %s:%s for %s" %(
                 swinfo['sysname'], swinfo['module'],
                 swinfo['port'], row['mac']))
         except (nav.arnold.NoDatabaseInformationError,

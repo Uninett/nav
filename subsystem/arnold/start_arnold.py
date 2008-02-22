@@ -42,8 +42,8 @@ import nav.buildconf
 
 """
 Start Arnold remote via ssh or on the cli via cron. Made for easy use
-of arnold-functionality when doing automatic blocks.
-NB: This will block the last port the ip was seen if it is not active.
+of arnold-functionality when doing automatic detentions.
+NB: This will detain the last port the ip was seen if it is not active.
 """
 
 def main():
@@ -91,7 +91,7 @@ Pipe in id's to block or use the -f option to specify file"""
     parser = OptionParser(usage)
     parser.add_option("-i", dest = "blockid", help = "id of blocktype to use")
     parser.add_option("-f", dest = "filename",
-                      help = "filename with id's to block")
+                      help = "filename with id's to detain")
     parser.add_option("--list", action = "store_true", dest = "listblocktypes",
                       help = "list blocktypes")
 
@@ -115,8 +115,10 @@ Pipe in id's to block or use the -f option to specify file"""
         
 
     # Fetch options for this blocktype from database
-    q = """SELECT * FROM block LEFT JOIN blocked_reason
-    ON (reasonid=blocked_reasonid) WHERE blockid = %s"""
+    q = """SELECT * FROM block
+    LEFT JOIN blocked_reason ON (reasonid=blocked_reasonid)
+    LEFT JOIN quarantine_vlans USING (quarantineid)
+    WHERE blockid = %s"""
     acur.execute(q, (opts.blockid, ))
 
     blockinfo = acur.dictfetchone()
@@ -178,30 +180,52 @@ Pipe in id's to block or use the -f option to specify file"""
         # make sure the ipaddress is inside the defined vlans.
         if blockinfo['activeonvlans']:
             ipaddress = id['ip']
-            if not isInsideVlans(logger, ipaddress, blockinfo['activeonvlans']):
+            if not isInsideVlans(logger,ipaddress, blockinfo['activeonvlans']):
                 logger.info("%s is not inside defined vlanrange for this block"
                             %ipaddress)
                 print "is not on the defined vlans for this blocktype."
                 continue
 
 
-        try:
-            # block port with info from db
-            nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
-                                 blockinfo['determined'],
-                                 blockinfo['reasonid'],
-                                 'Blocktype %s' %blockinfo['blocktitle'],
-                                 username )
-        except (nav.arnold.InExceptionListError, nav.arnold.WrongCatidError,
-                nav.arnold.DbError, nav.arnold.AlreadyBlockedError,
-                nav.arnold.ChangePortStatusError,
-                nav.arnold.BlockonTrunkError), why:
-            print "failed: %s" %why
-            logger.error(why)
-            continue
+        # Block according to detainmenttype
+        if blockinfo['detainmenttype'] == 'disable':
 
-        print "blocked"
-        logger.info("%s blocked successfully" %candidate)
+            try:
+                # block port with info from db
+                nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
+                                     blockinfo['determined'],
+                                     blockinfo['reasonid'],
+                                     'Blocktype %s' %blockinfo['blocktitle'],
+                                     username, 'block' )
+            except (nav.arnold.InExceptionListError,
+                    nav.arnold.WrongCatidError,
+                    nav.arnold.DbError, nav.arnold.AlreadyBlockedError,
+                    nav.arnold.ChangePortStatusError,
+                    nav.arnold.BlockonTrunkError), why:
+                print "failed: %s" %why
+                logger.error(why)
+                continue
+
+        else:
+
+            try:
+                # block port with info from db
+                nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
+                                     blockinfo['determined'],
+                                     blockinfo['reasonid'],
+                                     'Blocktype %s' %blockinfo['blocktitle'],
+                                     username, 'quarantine', blockinfo['vlan'])
+            except (nav.arnold.InExceptionListError,
+                    nav.arnold.WrongCatidError,
+                    nav.arnold.DbError, nav.arnold.AlreadyBlockedError,
+                    nav.arnold.ChangePortStatusError,
+                    nav.arnold.BlockonTrunkError), why:
+                print "failed: %s" %why
+                logger.error(why)
+                continue
+
+        print "detained"
+        logger.info("%s detained successfully" %candidate)
         blocked.append(id['ip'])
 
 

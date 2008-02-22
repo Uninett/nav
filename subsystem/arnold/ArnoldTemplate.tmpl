@@ -28,6 +28,10 @@
 #extends nav.web.templates.MainTemplate.MainTemplate
 
 
+#block additionalJavaScript
+    <script type="text/javascript" src="/js/report.js"></script>
+#end block additionalJavaScript
+
 ##################################################
 ## Start of maincontent
 ##################################################
@@ -79,34 +83,38 @@ $printMenu($buttons, $buttonnames, $action)
   #end if
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
-#elif $action == 'manualblock'
+#elif $action == 'manualdetain'
   #if $output
     <b>$output</b>
   #end if
 
-  $printManualblock($reasons)
+  $printManualDetain($reasons, $quarantines)
 
   <div class='infobox'>
     <h4>Usage</h4>
 
-    <p>Enter IP address to block and choose reason for block. If you want you
-    can add a comment. Autoenable is the number of days until the port will be
-    automatically enabled. If not entered, the port will stay blocked until
-    manually opened.</p>
+    <p>Enter IP address to detain and choose reason for
+    detention. If you want you can add a comment. Autoenable is the
+    number of days until the port will be automatically enabled. If
+    not entered, the port will stay in detention until manually opened.</p>
   </div>
+
 
 #elif $action == 'blocktypes'
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
   <p><a href='addBlocktype'>Add new blocktype</a></p>
 #elif $action == 'addBlocktype'
-  $addBlocktype($blockreasons)
+  $addBlocktype($blockreasons, $quarantines)
+
+#elif $action == 'addquarantinevlan'
+  $addQuarantineVlan($quarantines)
 
 #elif $action == 'printError'
   <p class="error">$error</p>
 
-#elif $action == 'domanualblock'
-  $printConfirmBlock($candidates, $arg)
+#elif $action == 'domanualdetain'
+  $printConfirmBlock($candidates, $arg, $type)
 
 #elif $action == 'doenable'
   $printChooseEnablePorts($blockedports)
@@ -292,15 +300,93 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 #end def
 
+
 ##################################################
-#def printManualblock($reasons)
+#def addQuarantineVlan($quarantines)
 ##################################################
 
-<form action="domanualblock" method="get">
+<table class="listtable">
+  <caption>$headertext</caption>
+
+#if len($quarantines)
+  <thead>
+    <tr>
+      <th>Vlan</th>
+      <th>Description</th>
+      <th>&nbsp;</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    #for $listitem in $quarantines
+    <tr class="$rowcycler">
+      <td class="$cellcycler">$listitem['vlan']</td>
+      <td class="$cellcycler">$listitem['description']</td>
+      <td class="$cellcycler"><a href="addquarantinevlan?quarantineid=$listitem['quarantineid']&vlan=$listitem['vlan']&description=$listitem['description']">Edit</a></td>
+    </tr>
+    #end for
+  </tbody>
+    
+#else
+  <tr><td>No quarantines defined</td></tr>
+#end if
+</table>
+## Ends listtable
+
+  <form action="doaddquarantinevlan" method="get">
+  <input type='hidden' name='quarantineid' value='$quarantineid'>
+  
+  <table class="vertitable">
+    <tr>
+      <th>Vlan:</th>
+      <td><input type="text" name="vlan" size="20" value="$vlan" \></td>
+    </tr>
+
+    <tr>
+      <th>Description:</th>
+      <td><input type="text" name="description" size="20" value="$description" \></td>
+    </tr>
+
+    <tr>
+      <th></th>
+      #if $vlan == ''
+        <td><button type="submit">Add quarantine</button></td>
+      #else
+        <td><button type="submit">Edit quarantine</button></td>
+      #end if
+    </tr>
+  </table>
+
+  </form>
+
+#end def
+
+
+##################################################
+#def printManualDetain($reasons, $quarantines)
+##################################################
+
+#set $blockdetention = 'checked'
+#set $quarantinedetention = ''
+
+#if $defaultdetention == 'quarantine'
+  #set $blockdetention = ''
+  #set $quarantinedetention = 'checked'
+#end if
+
+<form action="domanualdetain">
 
 <table class="vertitable">
     <tr>
-        <th>IP address to block</th>
+      <th>Choose method</th>
+      <td>
+        <input type='radio' name='detainmentgroup' value='block' onclick="changeDisplay('quarantinedropdown', 'none')" $blockdetention>Block
+        <input type='radio' name='detainmentgroup' value='quarantine' onclick="changeDisplay('quarantinedropdown', 'table-row')" $quarantinedetention >Quarantine
+      </td>
+    </tr>
+
+    <tr>
+        <th>IP/MAC to detain</th>
         <td><input type="text" name="ipadresse" /></td>
     </tr>
     <tr>
@@ -311,9 +397,28 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
                 <option value="$reason['id']">$reason['name']</option>
             #end for
             </select>
-            <a href="addreason">Add block reason</a>
+            <a href="addreason">Add detainment reason</a>
         </td>
     </tr>
+
+    ## Set this element to display:none as default, as block is default action
+
+    #if $defaultdetention == 'block'
+    <tr id='quarantinedropdown' style='display: none'>
+    #else
+    <tr id='quarantinedropdown' style='display: table-row'>
+    #end if
+        <th>Quarantine vlan</th>
+        <td>
+            <select name="quarantinevlan">
+            #for $quarantine in $quarantines
+                <option value="$quarantine['vlan']">$quarantine['vlan'] - $quarantine['description']</option>
+            #end for
+            </select>
+            <a href="addquarantinevlan">Add quarantine vlan</a>
+        </td>
+    </tr>
+
     <tr>
         <th>Comment</th>
         <td><input type="text" name="comment" /></td>
@@ -324,17 +429,18 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     </tr>
     <tr>
         <th></th>
-        <td><button type="submit">Block</button></td>
+        <td><button type="submit">Detain</button></td>
     </tr>
 </table>
 
+
 </form>
 
-#end def
+#end def printManualDetain
 
 
 ##################################################
-#def printConfirmBlock($candidates, $arg)
+#def printConfirmBlock($candidates, $arg, $type)
 ##################################################
 
 
@@ -343,7 +449,11 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 <table class="listtable">
 
     <caption>
+	#if $type == 'block'
         Choose which port to block
+        #elif $type == 'quarantine'
+        Choose which port to change vlan on
+        #end if
     </caption>
 
     <thead>
@@ -370,7 +480,14 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
         <td>$candidate['port']</td>
         <td>$candidate['ifindex']</td>
         <td>$candidate['endtime']</td>
+
+	#if $type == 'block'
         <td><a href="doblock?reasonid=$arg['reason']&comment=$arg['comment']&autoenable=$arg['autoenable']&ip=$candidate['ip']&mac=$candidate['mac']&netboxid=$candidate['netboxid']&ifindex=$candidate['ifindex']&module=$candidate['module']&port=$candidate['port']">Block</a></td>
+
+        #elif $type == 'quarantine'
+        <td><a href="doquarantine?reasonid=$arg['reason']&comment=$arg['comment']&autoenable=$arg['autoenable']&quarantinevlan=$arg['quarantinevlan']&ip=$candidate['ip']&mac=$candidate['mac']&netboxid=$candidate['netboxid']&ifindex=$candidate['ifindex']&module=$candidate['module']&port=$candidate['port']">Quarantine</a></td>
+
+        #end if
       </tr>
     </tbody>
   #end for
@@ -384,10 +501,18 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 
 ##################################################
-#def addBlocktype($blockreasons)
+#def addBlocktype($blockreasons, $quarantines)
 ##################################################
 
 <h3>Add blocktype</h3>
+
+#set $blockdetention = 'checked'
+#set $quarantinedetention = ''
+
+#if $defaultdetention == 'quarantine' or $blockinfo['detainmenttype'] == 'quarantine'
+  #set $blockdetention = ''
+  #set $quarantinedetention = 'checked'
+#end if
 
 <form action="doaddblock" method="get">
 
@@ -400,6 +525,14 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
         <td>$blockinfo['blockid']</td>
     </tr>
     #end if
+
+    <tr>
+        <th>Detainmenttype</th>
+        <td>
+            <input type='radio' name='detainmenttype' value='disable' onClick="changeDisplay('quarantinedropdown','none')" $blockdetention>Block
+            <input type='radio' name='detainmenttype' value='quarantine' onClick="changeDisplay('quarantinedropdown','table-row')" $quarantinedetention>Quarantine
+        </td>
+    </tr>
 
     <tr>
         <th>Title *</th>
@@ -421,7 +554,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
     #for $element in $blockreasons
         #if $blockinfo['reasonid'] == $element['id']
-    <option value="$element['id']" selected="selected">$element['name']</option>
+    <option value="$element['id']" selected>$element['name']</option>
         #else
     <option value="$element['id']">$element['name']</option>
         #end if
@@ -431,6 +564,25 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 or <input type="text" name="newreason" value="-- Create new reason --" />
 #end if
         </td>
+    </tr>
+
+    #if $defaultdetention == 'quarantine' or $blockinfo['detainmenttype'] == 'quarantine'
+    <tr id="quarantinedropdown" style="display:table-row">
+    #else
+    <tr id="quarantinedropdown" style="display:none">
+    #end if
+        <th>Quarantinevlan*</th>
+	<td>
+	    <select name="quarantineid">
+            #for $quarantine in $quarantines
+		#if $blockinfo['quarantineid'] == $quarantine['quarantineid']
+                <option value="$quarantine['quarantineid']" selected>$quarantine['vlan'] - $quarantine['description']</option>
+		#else
+                <option value="$quarantine['quarantineid']">$quarantine['vlan'] - $quarantine['description']</option>
+		#end if
+            #end for
+	    </select>
+	</td>
     </tr>
 
     <tr>
@@ -483,11 +635,6 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
             <input type="checkbox" name="active" />
 #end if
         </td>
-    </tr>
-
-    <tr>
-        <th>User</th>
-        <td><input type="text" name="user" value="$blockinfo['userid']" size="10" /></td>
     </tr>
 
     <tr>
@@ -563,3 +710,4 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
 $default_tabs_CSS()
 $default_table_CSS()
 #end def
+

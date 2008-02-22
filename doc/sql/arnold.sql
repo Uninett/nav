@@ -7,7 +7,7 @@ comment VARCHAR
 CREATE TABLE identity (
 identityid SERIAL PRIMARY KEY,
 mac VARCHAR NOT NULL, -- MAC-address of computer
-blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled'),
+blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled' or blocked_status='quarantined'),
 blocked_reasonid INT REFERENCES blocked_reason ON UPDATE CASCADE ON DELETE SET NULL, -- reason of block
 swportid INT NOT NULL, -- FK to swport-table. We find sysname,ip,module and port from this
 ip INET, -- current ip of computer
@@ -20,6 +20,8 @@ autoenablestep INT, -- number of days to wait for autoenable
 mail VARCHAR, -- the mail address the warning was sent to
 orgid VARCHAR,
 determined CHAR(1), -- set to y if this is mac/port combo is blocked with the -d option.
+fromvlan INT, -- original vlan on port before change (only on vlanchange)
+tovlan INT, -- vlan on port after change (only on vlanchange)
 UNIQUE (mac,swportid)
 );
 
@@ -27,7 +29,7 @@ CREATE TABLE event (
 eventid SERIAL PRIMARY KEY,
 identityid INT REFERENCES identity ON UPDATE CASCADE ON DELETE CASCADE,
 event_comment VARCHAR,
-blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled'),
+blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled' OR blocked_status='quarantined'),
 blocked_reasonid INT REFERENCES blocked_reason ON UPDATE CASCADE ON DELETE SET NULL, -- reason of block
 eventtime TIMESTAMP NOT NULL,
 autoenablestep INT,
@@ -49,6 +51,15 @@ active CHAR(1) CHECK (active='y' OR active='n'), -- if set to n will not do bloc
 lastedited TIMESTAMP NOT NULL, -- timestamp of last time this block was edited
 lastedituser VARCHAR NOT NULL, -- username of user who last edited this block
 inputfile VARCHAR, -- path to file where list of ip-adresses is, if applicable
-activeonvlans VARCHAR -- a string with comma-separated vlan-numbers
+activeonvlans VARCHAR, -- a string with comma-separated vlan-numbers
+detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quarantine'), -- type of detainment to try
+quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+-- quarantine_vlans keeps track of the defined quaratine vlans that
+-- the users have defined
+CREATE TABLE quarantine_vlans (
+quarantineid SERIAL PRIMARY KEY,
+vlan INT,
+description VARCHAR
+);

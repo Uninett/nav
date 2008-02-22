@@ -39,8 +39,8 @@ import nav.buildconf
 
 """
 t1000 is to be run as a cronjob. It checks the database for any
-blocked ports. If it finds any, it checks if the mac-address is active
-on some other port and blocks that port.
+detained ports. If it finds any, it checks if the mac-address is
+active on some other port and detains that port.
 """
 
 def main():
@@ -91,13 +91,11 @@ def main():
     managec = manageconn.cursor()
 
 
-    # Fetch all mac-addresses that we have blocked, check if they are
+    # Fetch all mac-addresses that we have detained, check if they are
     # active somewhere else.
 
-    query = """SELECT identityid, ip, mac,
-    blocked_reasonid, swportid, determined
-    FROM identity
-    WHERE blocked_status='disabled'
+    query = """SELECT * FROM identity
+    WHERE blocked_status IN ('disabled','quarantined')
     AND lastchanged < now() + '-1 hour'"""
 
     try:
@@ -107,14 +105,15 @@ def main():
 
 
     if arnoldc.rowcount <= 0:
-        logger.info("No blocked ports in database where lastchanged > 1 hour.")
+        logger.info("No detained ports in database where lastchanged > 1 hour.")
         sys.exit(0)
 
     rows = arnoldc.dictfetchall()
 
     for row in rows:
 
-        logger.info("%s is blocked, checking for activity..." %row['mac'])
+        logger.info("%s is %s, checking for activity..."
+                    %(row['mac'], row['blocked_status']))
 
         [id] = nav.arnold.findIdInformation(row['mac'], 1)
 
@@ -123,7 +122,7 @@ def main():
         # If this mac-address is active behind another port, block it.
         if id['endtime'] == 'Still Active':
 
-            logger.info("Found active mac on another port")
+            logger.info("Found active mac")
 
             # The first thing we do now is to check if this reason is
             # a part of any Blocktype. If it is we need to fetch the
@@ -155,7 +154,7 @@ def main():
                 continue
 
 
-            logger.info("Blocking %s %s:%s"  %(
+            logger.info("Detaining %s %s:%s"  %(
                 sw['sysname'], sw['module'], sw['port']))
 
 
@@ -177,19 +176,34 @@ def main():
             logger.debug("Setting autoenablestep to %s" %autoenablestep)
 
             username = os.getlogin()
-            comment = "Blocked automatically when switching ports"
+            comment = "Detained automatically when switching ports"
 
 
-            # Try to block port using arnold-library
-            try:
-                nav.arnold.blockPort(id, sw, autoenable, autoenablestep,
-                                     row['determined'],
-                                     row['blocked_reasonid'], comment,
-                                     username)
-            except (nav.arnold.AlreadyBlockedError,
-                    nav.arnold.ChangePortStatusError,
-                    nav.arnold.DbError), why:
-                logger.error(why)
+            # Block or quarantine
+            if row['blocked_status'] == 'disabled':
+                logger.debug("Trying to disable %s" %row['mac'])
+                try:
+                    nav.arnold.blockPort(id, sw, autoenable, autoenablestep,
+                                         row['determined'],
+                                         row['blocked_reasonid'], comment,
+                                         username, 'block')
+                except (nav.arnold.AlreadyBlockedError,
+                        nav.arnold.ChangePortStatusError,
+                        nav.arnold.DbError), why:
+                    logger.error(why)
+            elif row['blocked_status'] == 'quarantined':
+                logger.debug("Trying to quarantine %s with vlan %s"
+                             %(row['mac'], row['tovlan']))
+                try:
+                    nav.arnold.blockPort(id, sw, autoenable, autoenablestep,
+                                         row['determined'],
+                                         row['blocked_reasonid'], comment,
+                                         username, 'quarantine', row['tovlan'])
+                except (nav.arnold.AlreadyBlockedError,
+                        nav.arnold.ChangePortStatusError,
+                        nav.arnold.DbError), why:
+                    logger.error(why)
+                        
 
         else:
             logger.info("Mac not active.")

@@ -54,7 +54,7 @@ class WrongCatidError(GeneralException):
     pass
 
 class AlreadyBlockedError(GeneralException):
-    "This port is already blocked."
+    "This port is already blocked or quarantined."
     pass
 
 class InExceptionListError(GeneralException):
@@ -66,8 +66,9 @@ class FileError(GeneralException):
     pass
 
 class BlockonTrunkError(GeneralException):
-    "Block on trunked interface is not allowed"
+    "No action on trunked interface allowed"
     pass
+
 
 # Config-file
 configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
@@ -287,14 +288,39 @@ def findInputType (input):
 ###############################################################################
 # blockPort
 #
-def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username):
-    """Block the port and update database"""
+def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username, type, vlan=False):
+    """
+    Block the port or change vlan on port and update database.
+    type: block or quarantine.
+    vlan: Must be set if this is a quarantine attempt
+    """
+
+    # Type determines if this is an attempt to block the port or
+    # change to a quarantine vlan
+    if type not in ['block','quarantine']:
+        logger.info("Type must be block or quarantine: %s" %type)
+        # At the moment we just return silently as this should be a
+        # programmer-error only. A better solution if we need to be
+        # more verbose is to make an error-class and raise an
+        # exception.
+        return
+
+    if type == 'quarantine' and not vlan:
+        logger.error("Vlan must be set to quarantine a port.")
+        return
+
+    if type == 'block':
+        action = 'disabled'
+    else:
+        action = 'quarantined'
+
 
     # Connect to database
     arnolddb = getConnection('default', dbname)
     c = arnolddb.cursor()
 
-    logger.info("blockPort: Trying to block %s" %id['ip'])
+    logger.info("blockPort: Trying to %s %s" %(type, id['ip']))
+        
 
     # Check if this id is in the nonblocklist
     if checkNonBlock(id['ip']):
@@ -303,12 +329,12 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
 
     if sw['catid'] not in allowtypes:
-        logger.info("blockPort: Not allowed to block on %s" %sw['catid'])
+        logger.info("blockPort: Not allowed to %s on %s" %(type, sw['catid']))
         raise WrongCatidError, sw['catid']
         
 
     if sw['trunk']:
-        logger.info("blockPort: This is a trunk, we don't block those.")
+        logger.info("blockPort: This is a trunk. No action allowed.")
         raise BlockonTrunkError
 
     
@@ -348,8 +374,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
 
     # if yes and active: do nothing, raise AlreadyBlockedError
-    if c.rowcount > 0 and res['blocked_status'] == 'disabled':
-        logger.info("blockPort: This port is already blocked")
+    if c.rowcount > 0 and res['blocked_status'] in ['disabled', 'quarantined']:
+        logger.info("blockPort: This port is already %s" %action)
         raise AlreadyBlockedError
 
 
@@ -357,38 +383,51 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         ######################################################
         # block port, update identity, create new event
 
-        logger.info("blockPort: This port has been blocked before, updating")
+        logger.info("blockPort: This port has been blocked/quarantined \
+        before, updating")
 
-        try:
-            changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                             sw['module'], sw['port'], sw['ifindex'])
-        except ChangePortStatusError, e:
-            logger.error("blockPort: Error when changing portstatus: %s" %e)
-            raise ChangePortStatusError
+        if type == 'block':
 
+            fromvlan = vlan = 0
+            
+            try:
+                changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
+                                 sw['module'], sw['port'], sw['ifindex'])
+            except ChangePortStatusError, e:
+                logger.error("blockPort: Error changing portstatus: %s" %e)
+                raise ChangePortStatusError
+
+        elif type == 'quarantine':
+            
+            try:
+                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan)
+            except (DbError, NotSupportedError, ChangePortStatusError,
+                    ChangePortVlanError), e:
+                logger.error("blockPort: Error changing vlan: %s" %e)
+                raise ChangePortVlanError
+
+
+        else:
+            # Log and return
+            logger.error("Type not recognised: %s" %type)
+            return
 
         # Update existing identity
         query = """UPDATE identity SET
-        blocked_status = %%s,
-        blocked_reasonid = %%s,
-        swportid = %%s,
-        ip = %%s,
-        mac = %%s,
-        dns = %%s,
-        netbios = %%s,
-        lastchanged = now(),
-        autoenable = %s,
-        autoenablestep = %%s,
-        mail = %%s,
-        determined = %%s
+        blocked_status = %%s, blocked_reasonid = %%s, swportid = %%s,
+        ip = %%s, mac = %%s, dns = %%s, netbios = %%s, lastchanged = now(),
+        autoenable = %s, autoenablestep = %%s, mail = %%s,
+        determined = %%s, fromvlan = %%s, tovlan = %%s
         WHERE identityid = %%s
         """ %autoenable
+            
 
-        arglist=['disabled', reason, sw['swportid'], id['ip'], id['mac'], dns, \
-                 netbios, autoenablestep, "", determined, res['identityid']]
+        arglist=[action, reason, sw['swportid'], id['ip'], id['mac'], \
+                 dns, netbios, autoenablestep, "", determined, \
+                 fromvlan, vlan, res['identityid']]
+
 
         doQuery(dbname, query, arglist)
-
 
         # Create new event
         query = """INSERT INTO event
@@ -397,7 +436,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         VALUES (%s, %s, %s, %s, now(), %s, %s)
         """
 
-        arglist = [res['identityid'], comment, 'disabled' , reason, \
+        arglist = [res['identityid'], comment, action , reason, \
                    autoenablestep, username]
 
         doQuery(dbname, query, arglist)
@@ -407,15 +446,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         #########################################################
         # block port, create identity, create first event
 
-        logger.info("blockPort: Not blocked before, creating new identity")
-        
-        try:
-            changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                             sw['module'], sw['port'], sw['ifindex'])
-        except ChangePortStatusError:
-            logger.error("blockPort: Error when changing portstatus: %s" %e)
-            raise ChangePortStatusError
-
+        logger.info("blockPort: Not %s before, creating new identity" %action)
 
         # Get nextvalue of sequence to use in both queries
         nextvalq = "SELECT nextval('public.identity_identityid_seq')"
@@ -426,37 +457,73 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
         nextval = c.fetchone()[0]
 
+        
+        if type == 'block':
+            try:
+                changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
+                                 sw['module'], sw['port'], sw['ifindex'])
+            except ChangePortStatusError:
+                logger.error("blockPort: Error changing portstatus: %s" %e)
+                raise ChangePortStatusError
 
-        # Create new identitytuple
-        query = """
-        INSERT INTO identity
-        (identityid, blocked_status, blocked_reasonid, swportid, ip, mac, dns,
-        netbios, starttime, lastchanged, autoenable, autoenablestep, mail,
-        determined)
-        VALUES
-        (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s,now(),now(), %s, %%s, %%s, %%s)
-        """ %autoenable
+            # Create new identitytuple
+            query = """
+            INSERT INTO identity
+            (identityid, blocked_status, blocked_reasonid, swportid, ip, mac,
+            dns, netbios, starttime, lastchanged, autoenable, autoenablestep,
+            mail, determined) 
+            VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
+            %s, %%s, %%s, %%s)
+            """ %autoenable
+            
+            arglist = [nextval, action, reason, sw['swportid'], id['ip'], \
+                       id['mac'], dns, netbios, autoenablestep, "", determined]
+            
 
-        arglist = [nextval, 'disabled', reason, sw['swportid'], id['ip'], \
-                   id['mac'], dns, netbios, autoenablestep, "", determined]
+        elif type == 'quarantine':
+
+            try:
+                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan)
+            except (DbError, NotSupportedError, ChangePortStatusError,
+                    ChangePortVlanError), e:
+                logger.error("blockPort: Error changing vlan: %s" %e)
+                raise ChangePortVlanError
+
+            # Create new identitytuple
+            query = """
+            INSERT INTO identity
+            (identityid, blocked_status, blocked_reasonid, swportid, ip, mac,
+            dns, netbios, starttime, lastchanged, autoenable, autoenablestep,
+            mail, determined, fromvlan, tovlan) 
+            VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
+            %s, %%s, %%s, %%s, %%s, %%s)
+            """ %autoenable
+            
+            arglist = [nextval, action, reason, sw['swportid'], id['ip'], \
+                       id['mac'], dns, netbios, autoenablestep, "", \
+                       determined, fromvlan, vlan]
+
+        else:
+            logger.error("Type not recognised: %s" %type)
+            return
 
 
         doQuery(dbname, query, arglist)
 
 
-        # CReate new event-tuple
+        # Create new event-tuple
         query = """INSERT INTO event
         (identityid, event_comment, blocked_status, blocked_reasonid,
         eventtime, autoenablestep, username)
         VALUES (%s, %s, %s, %s, now(), %s, %s)
         """
     
-        arglist = [nextval, comment, 'disabled' , reason, \
-                   autoenablestep, username]
+        arglist = [nextval, comment, action , reason, autoenablestep, username]
 
         doQuery(dbname, query, arglist)
 
-    logger.info("Successfully blocked %s" %id['ip'])
+
+    logger.info("Successfully %s %s" %(action, id['ip']))
 
         
 
@@ -466,13 +533,14 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 def openPort(id, username, eventcomment=""):
     """
     Takes as input the identityid of the block and username. Opens the
-    port and updates the database. If port is not found in the
-    database we assume that the switch/module has been replaced. As
-    this normally means that the port is enabled, we enable the port
-    in the arnold-database.
+    port (either enable or change vlan) and updates the database.
+
+    If port is not found in the database we assume that the
+    switch/module has been replaced. As this normally means that the
+    port is enabled, we enable the port in the arnold-database.
     """
 
-    logger.info("openPort: Trying to open blocked port with id %s" %id)
+    logger.info("openPort: Trying to open identity with id %s" %id)
 
     # Connect to database
     conn = getConnection('default')
@@ -502,14 +570,28 @@ def openPort(id, username, eventcomment=""):
     # If port exists, enable it with SNMP
     if cmanage.rowcount > 0:
         row = cmanage.dictfetchone()
+        status = identityrow['blocked_status']
 
-        # Enable port based on information gathered
-        try:
-            changePortStatus('enable', row['ip'], row['vendorid'], row['rw'],
-                             row['module'], row['port'], row['ifindex'])
-        except ChangePortStatusError, why:
-            logger.error("openPort: Error when changing portstatus: %s" %why)
-            raise ChangePortStatusError
+        if status == 'disabled':
+            # Enable port based on information gathered
+            try:
+                changePortStatus('enable', row['ip'], row['vendorid'],
+                                 row['rw'], row['module'], row['port'],
+                                 row['ifindex'])
+            except ChangePortStatusError, why:
+                logger.error("openPort: Error when changing portstatus: %s"
+                             %why)
+                raise ChangePortStatusError
+
+        elif status == 'quarantined':
+            # Change vlan to fromvlan stored in database
+            try:
+                changePortVlan(row['ip'], row['ifindex'],
+                               identityrow['fromvlan'])
+            except (DbError, NotSupportedError, ChangePortVlanError), e:
+                logger.error("openPort: %s", e)
+                raise ChangePortVlanError
+            
     else:
         # If port was not found, reflect this in event-comment
         eventcomment = """Port was not found because switch/module
@@ -519,7 +601,8 @@ def openPort(id, username, eventcomment=""):
     # Update identity-table
     updateq = """UPDATE identity SET
     lastchanged = now(),
-    blocked_status = 'enabled'
+    blocked_status = 'enabled',
+    fromvlan = NULL, tovlan = NULL
     WHERE identityid = %s"""
 
     try:
@@ -629,6 +712,8 @@ def changePortVlan(ip, ifindex, vlan):
     - port is a trunk
     """
 
+    logger.debug("changePortVlan got %s, %s, %s" %(ip, ifindex, vlan))
+
     # Connect to database
     conn = getConnection('default')
     c = conn.cursor()
@@ -708,7 +793,7 @@ def changePortVlan(ip, ifindex, vlan):
 
     # Check vlanformat
     if not re.search('\d+', str(vlan)):
-        raise ChangePortStatusError, "Wrong format on vlan %s" %vlan
+        raise ChangePortVlanError, "Wrong format on vlan %s" %vlan
 
 
     # Make query based on oid and ifindex
@@ -737,7 +822,8 @@ def changePortVlan(ip, ifindex, vlan):
     # the netbox, luckily.
 
     try:
-        snmpset.set(query, type, vlan)
+        #snmpset.set(query, type, vlan)
+        pass
     except nav.Snmp.AgentError, why:
         raise ChangePortVlanError, why
 
@@ -766,7 +852,8 @@ def changePortVlan(ip, ifindex, vlan):
         newhexports = computeOctetString(hexports, ifindex, 'disable')
 
         try:
-            snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
+            #snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
+            pass
         except nav.Snmp.NoSuchObjectError, why:
             raise ChangePortVlanError, why
     

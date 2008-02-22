@@ -60,6 +60,7 @@ install-web:
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(handlerdir)/$$file || exit 1; \
 	done
 	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
+	$(MAKE) -C images $@
 
 clean:
 	rm -f *~
