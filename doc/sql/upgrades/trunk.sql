@@ -17,9 +17,11 @@
 
 -- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
 -- here for those who started out with clean 3.3.0 installs.
+-- NAV 3.3.1 also contained bug SF#1899431 in this rule, which has
+-- been fixed here, and should be applied when upgrading.
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
-     WHERE prefixid=OLD.prefixid;
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
 -- Django needs a single column it can treat as primary key :-(
 ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
