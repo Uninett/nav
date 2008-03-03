@@ -567,8 +567,8 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
 
     reconnect()
     
-    searchfields = ['IP','MAC','Netbios','dns','Orgid']
-    page.statusfields = ['disabled','enabled','both']
+    searchfields = ['IP','MAC','Netbios','dns']
+    page.statusfields = ['disabled','quarantined','enabled','both']
     page.searchfields = searchfields
     page.searchfield = searchfield
     page.searchtext = searchtext
@@ -583,8 +583,12 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
 
     if searchtext:
         
-        page.headersList = ['ip','dns','mac','netbios','orgid','status','reason','lastchanged','history']
-        page.headers = { 'ip': 'Ip', 'dns':'Dns', 'mac':'Mac', 'netbios':'Netbios', 'orgid':'Organization', 'status':'Status' ,'reason':'Reason', 'lastchanged':'Lastchanged', 'history':'&nbsp;'}
+        page.headersList = ['ip', 'dns', 'mac', 'netbios', 'status', 'reason',
+                            'lastchanged','history']
+        page.headers = { 'ip': 'Ip', 'dns':'Dns', 'mac':'Mac',
+                         'netbios':'Netbios', 'status':'Status' ,
+                         'reason':'Reason', 'lastchanged':'Lastchanged',
+                         'history':'&nbsp;'}
 
         whereclause = ''
 
@@ -600,14 +604,19 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
             whereclause += " AND blocked_status = 'disabled' "
         elif status == 'enabled':
             whereclause += " AND blocked_status = 'enabled' "
+        elif status == 'quarantined':
+            whereclause += " AND blocked_status = 'quarantined' "
         else:
             pass
         
 
-        q = """SELECT DISTINCT identityid, ip, mac, dns, netbios, orgid, name AS reason,
-        starttime, blocked_status AS status, to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') AS lastchanged
-        FROM identity LEFT JOIN blocked_reason USING (blocked_reasonid)""" + whereclause + """
-        AND lastchanged > current_date - interval '""" + str(days) + """ days'""" 
+        q = """SELECT DISTINCT identityid, ip, mac, dns, netbios, orgid,
+        name AS reason, starttime, blocked_status AS status,
+        to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') AS lastchanged
+        FROM identity LEFT JOIN blocked_reason
+        USING (blocked_reasonid)""" + whereclause + """
+        AND lastchanged > current_date - interval '""" + str(days) + """
+        days'""" 
         
         try:
             cur.execute(q, (searchtext,))
@@ -615,13 +624,19 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
             numresults = cur.rowcount
             
             if numresults == 0:
-                page.headertext = "Search for " + searchfield + " = \"" + searchtext + "\", status = " + page.status + ", last changed " + str(page.days) + " days ago, did not return anything."
+                page.headertext = "Search for %s = %s, status = %s, last \
+                changed %s days ago, did not return anything." \
+                %(searchfield, searchtext, page.status, str(page.days))
+                
+                #page.headertext = "Search for " + searchfield + " = \"" + searchtext + "\", status = " + page.status + ", last changed " + str(page.days) + " days ago, did not return anything."
                 page.searchresults = {}
             else:
                 for element in searchresults:
-                    element['history'] = "<a href='showdetails?id=" + str(element['identityid']) + "'>History</a>"
+                    element['history'] = "<a href='showdetails?id=%s'>History\
+                    </a>" %str(element['identityid'])
 
-                page.headertext = "Searchresults when searching for " + searchfield + " with value '" + searchtext + "'"
+                page.headertext = "Searchresults when searching for %s with \
+                value '%s'" %(searchfield, searchtext)
                 page.searchresults = searchresults
                 page.hits = cur.rowcount
                 page.hitstext = "result(s) found"
@@ -642,13 +657,16 @@ def printBlocks(cur, page, sort, section):
     reconnect()
     
     page.headersList = ['blockid', 'blocktitle', 'blockdesc', 'active', 'edit']
-    page.headers = {'blockid': 'ID', 'blocktitle': 'Title', 'blockdesc': 'Description', 'active': 'Active', 'edit':'&nbsp;'}
+    page.headers = {'blockid': 'ID', 'blocktitle': 'Title',
+                    'blockdesc': 'Description', 'active': 'Active',
+                    'edit':'&nbsp;'}
 
     cur.execute("SELECT * FROM block ORDER BY " + sort)
     list = cur.dictfetchall()
 
     for element in list:
-        element['edit'] = "<a href='addBlocktype?blockid=%s'>Edit</a>" %element['blockid']
+        element['edit'] = "<a href='addBlocktype?blockid=%s'>Edit</a>" \
+                          %element['blockid']
         if element['active'] == 'y':
             element['active'] = 'Yes'
         else:

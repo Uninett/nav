@@ -30,6 +30,8 @@
 
 #block additionalJavaScript
     <script type="text/javascript" src="/js/report.js"></script>
+    <script type="text/javascript" src="/js/arnold.js"></script>
+
 #end block additionalJavaScript
 
 ##################################################
@@ -514,7 +516,13 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
   #set $quarantinedetention = 'checked'
 #end if
 
-<form action="doaddblock" method="get">
+#set $validate = "onsubmit='return validateForm()'"
+#if $blockinfo['blockid']
+  #set $validate = ""
+#end if
+
+
+<form name="blockform" action="doaddblock" method="get" $validate>
 
 <table class="vertitable">
 

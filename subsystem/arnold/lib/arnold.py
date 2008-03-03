@@ -7,7 +7,7 @@ import nav.buildconf
 import ConfigParser
 import logging
 from IPy import IP
-from socket import gethostbyaddr
+import socket
 from nav.db import getConnection
 from nav.util import isValidIP
 from nav.errors import GeneralException
@@ -641,7 +641,8 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
     - Community must be read/write community
     - IP is the ip of the switch to change portstatus on
 
-    Todo: Remove vendorid, community, module, port and fetch that from database
+    Todo: Remove vendorid, community, module, port and fetch that from
+    database
     """
 
     # We use ifadminstatus to enable and disable ports
@@ -680,11 +681,13 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
     # Disable or enable based on input
     try:
         if action == 'disable':
-            logger.info("Disabling ifindex %s on %s with %s" %(ifindex, ip, query))
+            logger.info("Disabling ifindex %s on %s with %s"
+                        %(ifindex, ip, query))
             #s.set(query, 'i', 2)
             pass
         elif action == 'enable':
-            logger.info("Enabling ifindex %s on %s with %s" %(ifindex, ip, query))
+            logger.info("Enabling ifindex %s on %s with %s"
+                        %(ifindex, ip, query))
             #s.set(query, 'i', 1)
             pass
         
@@ -985,7 +988,7 @@ def getHostName(ip):
     hostname = "N/A"
 
     try:
-        hostname = gethostbyaddr(ip)[0]
+        hostname = socket.gethostbyaddr(ip)[0]
     except socket.herror, why:
         pass
 
