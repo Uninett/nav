@@ -69,7 +69,7 @@ $printMenu($buttons, $buttonnames, $action)
   $printList($headertext2, $hitstext2, $list2, $headersList2, $headers2, $hits2, 1)
 
 #elif $action == 'addreason'
-  $printAddreason($blockreasonheadersList, $blockreasonheaders, $blockreasons, $hits)
+  $printAddreason($blockreasons)
 
 #elif $action == 'history'
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
@@ -102,11 +102,11 @@ $printMenu($buttons, $buttonnames, $action)
   </div>
 
 
-#elif $action == 'blocktypes'
+#elif $action == 'predefined'
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
-  <p><a href='addBlocktype'>Add new blocktype</a></p>
-#elif $action == 'addBlocktype'
+  <p><a href='addPredefined'>Add new predefined detention</a></p>
+#elif $action == 'addPredefined'
   $addBlocktype($blockreasons, $quarantines)
 
 #elif $action == 'addquarantinevlan'
@@ -276,25 +276,57 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 #end def
 
 ##################################################
-#def printAddreason ($blockreasonheadersList, $blockreasonheaders, $blockreasons, $hits)
+#def printAddreason ($blockreasons)
 ##################################################
 
-  $printList($headertext, $hitstext, $blockreasons, $blockreasonheadersList, $blockreasonheaders, $hits, 1)
+<table class="listtable">
+  <caption>$headertext</caption>
+
+  #if len($blockreasons)
+  
+  <thead>
+    <tr>
+      <th>Reason</th>
+      <th>Description</th>
+      <th>&nbsp;</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    #for $listitem in $blockreasons
+    <tr class="$rowcycler">
+      <td class="$cellcycler">$listitem['name']</td>
+      <td class="$cellcycler">$listitem['comment']</td>
+      <td class="$cellcycler"><a href="addreason?reasonid=$listitem['reasonid']&name=$listitem['name']&comment=$listitem['comment']">Edit</a></td>
+    </tr>
+    #end for
+  </tbody>
+    
+  #else
+  <tr><td>No detentionreasons defined</td></tr>
+  #end if
+
+  </table>
 
   <form action="doaddblockreason" method="get">
+  <input type='hidden' name='reasonid' value='$reasonid'>
 
   <table class="vertitable">
     <tr>
       <th>Name:</th>
-      <td><input type="text" name="blockreason" size="30" /></td>
+      <td><input type="text" name="blockreason" size="30" value="$name" /></td>
     </tr>
     <tr>
       <th>Comment:</th>
-      <td><input type="text" name="comment" size="30" /></td>
+      <td><input type="text" name="comment" size="30" value="$comment" /></td>
     </tr>
     <tr>
       <th></th>
+      #if $name == ''
       <td><button type="submit">Add reason</button></td>
+      #else
+      <td><button type="submit">Edit reason</button></td>
+      #end if
     </tr>
   </table>
 
@@ -522,7 +554,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 #end if
 
 
-<form name="blockform" action="doaddblock" method="get" $validate>
+<form name="blockform" action="doaddpredefined" method="get" $validate>
 
 <table class="vertitable">
 

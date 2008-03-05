@@ -176,18 +176,19 @@ Pipe in id's to block or use the -f option to specify file"""
             continue
 
 
-        # We must check if the block has activeonvlans set. If so,
-        # make sure the ipaddress is inside the defined vlans.
+        # We must check if the predefined detention has activeonvlans
+        # set. If so, make sure the ipaddress is inside the defined
+        # vlans.
         if blockinfo['activeonvlans']:
             ipaddress = id['ip']
             if not isInsideVlans(logger,ipaddress, blockinfo['activeonvlans']):
-                logger.info("%s is not inside defined vlanrange for this block"
-                            %ipaddress)
-                print "is not on the defined vlans for this blocktype."
+                logger.info("%s is not inside defined vlanrange for this \
+                predefined detention" %ipaddress)
+                print "is not in the defined vlans for this detention."
                 continue
 
 
-        # Block according to detainmenttype
+        # Detain according to detainmenttype
         if blockinfo['detainmenttype'] == 'disable':
 
             try:
@@ -195,7 +196,7 @@ Pipe in id's to block or use the -f option to specify file"""
                 nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
                                      blockinfo['determined'],
                                      blockinfo['reasonid'],
-                                     'Blocktype %s' %blockinfo['blocktitle'],
+                                     'Detention %s' %blockinfo['blocktitle'],
                                      username, 'block' )
             except (nav.arnold.InExceptionListError,
                     nav.arnold.WrongCatidError,
@@ -209,11 +210,11 @@ Pipe in id's to block or use the -f option to specify file"""
         else:
 
             try:
-                # block port with info from db
+                # quarantine port with info from db
                 nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
                                      blockinfo['determined'],
                                      blockinfo['reasonid'],
-                                     'Blocktype %s' %blockinfo['blocktitle'],
+                                     'Detention %s' %blockinfo['blocktitle'],
                                      username, 'quarantine', blockinfo['vlan'])
             except (nav.arnold.InExceptionListError,
                     nav.arnold.WrongCatidError,
@@ -229,14 +230,14 @@ Pipe in id's to block or use the -f option to specify file"""
         blocked.append(id['ip'])
 
 
-    # For all ports that are blocked, group by contactinfo and send mail
+    # For all ports that are detained, group by contactinfo and send mail
     if blockinfo['mailfile'] and len(blocked) > 0:
         print "Sending mail"
         logger.debug("Grouping contacts and ip-addresses")
         manageconn = getConnection('default')
         managecur = manageconn.cursor()
 
-        # Send mail to contact address for all ip-addresses that were blocked
+        # Send mail to contact address for all ip-addresses that were detained
 
         contacts = {}
 
@@ -324,7 +325,7 @@ Pipe in id's to block or use the -f option to specify file"""
 def handleLines(lines):
     """
     Read all lines and use the first word in the line as an
-    id to block.
+    id to detain.
     """
     idlist = []
     

@@ -949,11 +949,18 @@ def sendmail(fromaddr, toaddr, subject, msg):
 ###############################################################################
 # addReason
 #
-def addReason(name, comment):
+def addReason(name, comment, id=0):
     """Add a reason for blocking to the database"""
 
-    query = "INSERT INTO blocked_reason (name, comment) VALUES (%s, %s)"
-    doQuery(dbname, query, (name, comment))
+    id = int(id)
+
+    if id:
+        query = """UPDATE blocked_reason SET name=%s, comment=%s
+        WHERE blocked_reasonid = %s"""
+        doQuery(dbname, query, (name, comment, id))
+    else:
+        query = "INSERT INTO blocked_reason (name, comment) VALUES (%s, %s)"
+        doQuery(dbname, query, (name, comment))
 
 
 ###############################################################################

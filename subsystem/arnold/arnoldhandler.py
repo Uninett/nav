@@ -90,11 +90,11 @@ def handler(req):
 
     page.path = [("Home","/"), ("Arnold", "/arnold")]
 
-    if section == 'blocktypes':
+    if section == 'predefined':
         sort = args.get('sort') or 'blocktitle'
-        page.head = 'List of current blocktypes'
+        page.head = 'List of current predefined detentions'
         printBlocks(cur, page, sort, section)
-        page.path.append(("Blocktypes", False))
+        page.path.append(("Predefined Detentions", False))
 
     elif section == 'history':
         sort = args.get('sort') or 'ip'
@@ -122,6 +122,9 @@ def handler(req):
 
     elif section == 'addreason':
         page.head = "Add detentionreason"
+        page.reasonid = args.get('reasonid') or 0
+        page.name = args.get('name') or ''
+        page.comment = args.get('comment') or ''
         printDetentionreasons(cur, page, section)
         page.path.append(("Add detentionreason", False))
 
@@ -147,14 +150,14 @@ def handler(req):
         showDetails(cur, page, section, id)
         page.path.append(("Details", False))
 
-    elif section == 'addBlocktype':
+    elif section == 'addPredefined':
         page.head = ""
-        page.path.append(("AddBlocktype", False))
+        page.path.append(("AddPredefined", False))
         page.defaultdetention = config.get('arnoldweb','defaultdetention')
         id = args.get('blockid')
         if not id:
             id = 0
-        printAddblocktype(cur, page, id)
+        printAddpredefined(cur, page, id)
 
     elif section == 'doenable':
         id = args.get('id')
@@ -304,13 +307,15 @@ def handler(req):
 
 
     elif section == 'doaddblockreason':
+        reasonid = args.get('reasonid') or 0
         name = args.get('blockreason')
         comment = args.get('comment')
         if name is not '':
             try:
-                nav.arnold.addReason(name, comment)
+                nav.arnold.addReason(name, comment, reasonid)
             except nav.arnold.DbError, why:
-                pass
+                logger.error(why)
+
         redirect(req, 'addreason')
 
     elif section == 'doaddquarantinevlan':
@@ -348,7 +353,7 @@ def handler(req):
         redirect(req, 'addquarantinevlan')
             
 
-    elif section == 'doaddblock':
+    elif section == 'doaddpredefined':
         # blockid, blocktitle, description, reasonid, newreason,
         # mailfile, inputfile, pursuit, eincrease, duration, active,
         # user
@@ -439,9 +444,9 @@ def handler(req):
 
 
         if blockid:
-            redirect(req,'addBlocktype?blockid=%s' %blockid)
+            redirect(req,'addPredefined?blockid=%s' %blockid)
         else:
-            redirect(req,'blocktypes')
+            redirect(req,'predefined')
         
                 
     else:
@@ -466,8 +471,14 @@ def handler(req):
 
 ############################################################
 def setMenu(page):
-    buttonnames = ['History',"Detained ports","Search","Add detentionreason","Manual detention","Blocktypes","Add Quarantine vlan"]
-    buttons = {'History':'history' ,"Detained ports":'blockedports', "Search":'search', "Add detentionreason":'addreason', "Manual detention":'manualdetain', "Blocktypes":'blocktypes', "Add Quarantine vlan":"addquarantinevlan"}
+    buttonnames = ['History', "Detained ports", "Search",
+                   "Add detentionreason", "Manual detention",
+                   "Predefined Detentions", "Add Quarantine vlan"]
+    buttons = {'History': 'history' ,"Detained ports": 'blockedports',
+               "Search": 'search', "Add detentionreason": 'addreason',
+               "Manual detention": 'manualdetain',
+               "Predefined Detentions": 'predefined',
+               "Add Quarantine vlan": "addquarantinevlan"}
     
     page.buttonnames = buttonnames
     page.buttons = buttons
@@ -481,15 +492,19 @@ def printHistory(cur, page, sort, section, days):
 
     reconnect()
 
-    page.headersList = ['ip','dns','mac','netbios','orgid','status','reason','lastchanged','details']
-    page.headers = { 'ip': 'Ip', 'dns':'Dns', 'mac':'Mac','netbios':'Netbios', 'orgid':'Orgid', 'status':'Status' ,'reason':'Reason', 'lastchanged':'Lastchanged', 'details':'&nbsp;', '':''}
+    page.headersList = ['ip','dns','mac','netbios','orgid','status','reason',
+                        'lastchanged','details']
+    page.headers = {'ip': 'Ip', 'dns':'Dns', 'mac':'Mac','netbios':'Netbios',
+                    'orgid':'Orgid', 'status':'Status' ,'reason':'Reason',
+                    'lastchanged':'Lastchanged', 'details':'&nbsp;', '':''}
 
     if days < '0':
         days = '0'
         
     page.days = days
     page.headertext = "History"
-    page.hitstext = "hits in history based on activity the last " + days + " days"
+    page.hitstext = "hits in history based on activity the last " + days + \
+                    " days"
     page.sort = 1
 
     try:
@@ -506,7 +521,8 @@ def printHistory(cur, page, sort, section, days):
         list = {}
 
     for item in list:
-        item['details'] = "<a href='showdetails?id=" + str(item['identityid']) +"' title='Details'><img src='/images/arnold/details.png'></a>"
+        item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
+                          + "' title='Details'><img src='/images/arnold/details.png'></a>"
 
     page.hits = len(list)
     page.list = list
@@ -518,8 +534,12 @@ def printBlocked(cur, page, sort, section):
 
     reconnect()
 
-    page.headersList = ['ip','dns','netbios','status','reason','sysname','lastchanged','activate','details']
-    page.headers = { 'ip': 'Ip', 'dns':'Dns', 'netbios':'Netbios', 'status':'Status','reason':'Reason', 'sysname':'Switch', 'lastchanged':'Lastchanged', 'activate':'&nbsp;', 'details':'&nbsp;'}
+    page.headersList = ['ip','dns','netbios','status','reason','sysname',
+                        'lastchanged','activate','details']
+    page.headers = {'ip': 'Ip', 'dns':'Dns', 'netbios':'Netbios',
+                    'status':'Status','reason':'Reason', 'sysname':'Switch',
+                    'lastchanged':'Lastchanged', 'activate':'&nbsp;',
+                    'details':'&nbsp;'}
 
     query = """
     SELECT DISTINCT identityid, blocked_status AS status, ip, mac,
@@ -541,8 +561,10 @@ def printBlocked(cur, page, sort, section):
 
     for item in list:
         item['lastchanged'] = item['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
-        item['activate'] = "<a href='doenable?id=" + str(item['identityid']) + "' title='Remove detention'><img src='/images/arnold/enable.png'></a>"
-        item['details'] = "<a href='showdetails?id=" + str(item['identityid']) +"' title='Details'><img src='/images/arnold/details.png'></a>"
+        item['activate'] = "<a href='doenable?id=" + str(item['identityid']) \
+                           + "' title='Remove detention'><img src='/images/arnold/enable.png'></a>"
+        item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
+                          + "' title='Details'><img src='/images/arnold/details.png'></a>"
         
         managequery = """SELECT sysname, module, port FROM netbox LEFT
         JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid)
@@ -665,7 +687,7 @@ def printBlocks(cur, page, sort, section):
     list = cur.dictfetchall()
 
     for element in list:
-        element['edit'] = "<a href='addBlocktype?blockid=%s'>Edit</a>" \
+        element['edit'] = "<a href='addPredefined?blockid=%s'>Edit</a>" \
                           %element['blockid']
         if element['active'] == 'y':
             element['active'] = 'Yes'
@@ -673,8 +695,8 @@ def printBlocks(cur, page, sort, section):
             element['active'] = 'No'
 
     page.hits = cur.rowcount
-    page.headertext = "List of current blocktypes"
-    page.hitstext = "blocktypes registered"
+    page.headertext = "List of current predefined detentions"
+    page.hitstext = "predefined detentions registered"
     page.sort = 1
     page.list = list
     page.section = section
@@ -768,14 +790,11 @@ def printDetentionreasons(cur, page, section):
     page.blockreasonheaders = {'name':'Reason', 'comment': 'Comment'}
 
     q = """
-    SELECT blocked_reasonid AS id, name, comment
-    FROM blocked_reason
+    SELECT blocked_reasonid AS reasonid, name, comment
+    FROM blocked_reason ORDER BY reasonid
     """
     cur.execute(q);
     page.blockreasons = cur.dictfetchall()
-    page.hits = cur.rowcount
-    page.sort = 0
-    page.hitstext = "reasons in the database"
     page.headertext = "Existing reasons for detention"
 
 
@@ -799,7 +818,7 @@ def printManualDetention(cur, page):
 
 
 ############################################################
-def printAddblocktype (cur, page, id):
+def printAddpredefined (cur, page, id):
 
     reconnect()
 
