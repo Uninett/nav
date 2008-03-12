@@ -1,5 +1,5 @@
-{% with module.swport_set.all as swports %}
-{% if swports.count %}
+{% with module.get_swports as swports %}
+{% if swports|length %}
 <div class="module">
 <h3><a href="{{ module.get_absolute_url }}">{{ module.module_number }}</a></h3>
 <table>

@@ -1,5 +1,5 @@
-{% with module.gwport_set.all as gwports %}
-{% if gwports.count %}
+{% with module.get_gwports as gwports %}
+{% if gwports|length %}
 <div class="module">
 <h3><a href="{{ module.get_absolute_url }}">{{ module.module_number }}</a></h3>
 <table>

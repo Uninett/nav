@@ -34,6 +34,7 @@ import time
 from django.core.urlresolvers import reverse
 from django.db import models
 
+import nav.natsort
 import nav.util
 
 # Choices used in multiple models, "imported" into the models which use them
@@ -211,10 +212,25 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
-        return GwPort.objects.filter(module=self)
+        """Returns gwports naturally sorted by interface name"""
+
+        ports = GwPort.objects.filter(module=self)
+        interface_names = [p.interface for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
+
 
     def get_swports(self):
-        return SwPort.objects.filter(module=self)
+        """Returns swports naturally sorted by interface name"""
+
+        ports = SwPort.objects.filter(module=self)
+        interface_names = [p.interface for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
 
 class Memory(models.Model):
     """From MetaNAV: The mem table describes the memory (memory and nvram) of a
