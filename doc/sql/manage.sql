@@ -446,6 +446,7 @@ CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
 
 
 -- VIEWs -----------------------

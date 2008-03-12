@@ -34,3 +34,7 @@ ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
 ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
 ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
 ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
+
+-- Both old IP Device Center and new IP Device Info does lots of selects on cam
+-- with netboxid and ifindex in the where clause
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
