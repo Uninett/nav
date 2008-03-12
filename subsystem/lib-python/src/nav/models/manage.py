@@ -212,20 +212,25 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
+        return GwPort.objects.filter(module=self)
+
+    def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
 
-        ports = GwPort.objects.filter(module=self)
+        ports = self.get_gwports()
         interface_names = [p.interface for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
         return sorted_ports
 
-
     def get_swports(self):
+        return SwPort.objects.filter(module=self)
+
+    def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
 
-        ports = SwPort.objects.filter(module=self)
+        ports = self.get_swports()
         interface_names = [p.interface for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
