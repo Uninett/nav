@@ -61,3 +61,8 @@ TEMPLATE_DIRS = (
 TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
 )
+
+# Date formatting
+DATE_FORMAT = 'Y-m-d'
+TIME_FORMAT = 'H:i:s'
+DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
