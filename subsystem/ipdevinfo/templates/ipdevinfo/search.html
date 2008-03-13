@@ -20,7 +20,7 @@
         <tr>
             <td>{{ forloop.counter }}</td>
             <td>
-                <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a>
+                <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
             </td>
             <td>{{ netbox.ip }}</td>
         </tr>

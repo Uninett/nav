@@ -7,11 +7,11 @@
     at {{ port.module.netbox.sysname }}</caption>
     <tr>
         <th>At IP device</th>
-        <td><a href="{% url ipdevinfo-details-by-name port.module.netbox.sysname %}">{{ port.module.netbox.sysname }}</a></td>
+        <td><a href="{{ port.module.netbox.get_absolute_url }}">{{ port.module.netbox }}</a></td>
     </tr>
     <tr>
         <th>At module</th>
-        <td><a href="{% url ipdevinfo-module-details port.module.netbox.sysname,port.module.module_number %}">Module {{ port.module.module_number }}</a></td>
+        <td><a href="{{ port.module.get_absolute_url }}">Module {{ port.module.module_number }}</a></td>
     </tr>
     <tr>
         <th>Interface</th>
@@ -47,11 +47,25 @@
 {% endifequal %}
     <tr>
         <th>To IP device</th>
-        <td><a href="{% url ipdevinfo-details-by-name port.to_netbox.sysname %}">{{ port.to_netbox }}</a></td>
+        <td>
+            {% if port.to_netbox %}
+                <a href="{{ port.to_netbox.get_absolute_url }}">
+                    {{ port.to_netbox }}</a>
+            {% else %}
+                Unknown
+            {% endif %}
+        </td>
     </tr>
     <tr>
         <th>To switch port</th>
-        <td>{{ port.to_swport }}</td>
+        <td>
+            {% if port.to_swport %}
+                <a href="{{ port.to_swport.get_absolute_url }}">
+                    {{ port.to_swport }}</a>
+            {% else %}
+                Unknown
+            {% endif %}
+        </td>
     </tr>
     <tr>
         <th>Actions</th>
@@ -74,7 +88,8 @@
 <ul>
     {% if port.gwportprefix_set.all %}
         {% for gwprefix in port.gwportprefix_set.all %}
-    <li>{{ gwprefix.prefix.net_address }} (FIXME: Add link to prefix matrix.)</li>
+            <li><a href="#FIXME-link-to-prefix-matrix">
+                {{ gwprefix.prefix.net_address }}</a></li>
         {% endfor %}
     {% else %}
     <li>No prefixes found.</li>

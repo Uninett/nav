@@ -7,7 +7,7 @@
     at {{ module.netbox.sysname }}</caption>
     <tr>
         <th>At IP device</th>
-        <td><a href="{% url ipdevinfo-details-by-name module.netbox.sysname %}">{{ module.netbox.sysname }}</a></td>
+        <td><a href="{{ module.netbox.get_absolute_url }}">{{ module.netbox }}</a></td>
     </tr>
     <tr>
         <th>Model</th>

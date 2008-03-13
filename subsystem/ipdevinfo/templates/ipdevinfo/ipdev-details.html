@@ -77,7 +77,25 @@
     </tr>
     <tr>
         <th>Uplink</th>
-        <td>{{ netbox.uplink }} <b>TODO</b>: Add uplink method to Netbox model.</td>
+        <td>
+            {% with netbox.get_uplinks as uplinks %}
+                {% if uplinks %}
+                    {% if uplinks|length_is:1 %}
+                        <a href="{{ uplinks.0.get_absolute_url }}">
+                            {{ uplinks.0 }}</a>
+                    {% else %}
+                        <ul>
+                        {% for uplink in uplinks %}
+                            <li><a href="{{ uplink.get_absolute_url }}">
+                                {{ uplink }}</a></li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    Unknown
+                {% endif %}
+            {% endwith %}
+        </td>
     </tr>
     <tr>
         <th>Category</th>
@@ -85,7 +103,12 @@
     </tr>
     <tr>
         <th>Type</th>
-        <td><a href="#FIXME-link-to-report">{{ netbox.type }}</a></td>
+        <td>
+            {% if netbox.type %}
+                <a href="#FIXME-link-to-report">{{ netbox.type }}</a></td>
+            {% else %}
+                Unknown
+            {% endif %}
     </tr>
     <tr>
         <th>Organization</th>
@@ -198,8 +221,10 @@
 
 {% endif %}
 
+{% if netbox %}
 <h3>Statistics</h3>
 
 <p>FIXME</p>
+{% endif %}
 
 {% endblock %}
