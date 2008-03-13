@@ -88,6 +88,7 @@ class Netbox(models.Model):
         (UP_DOWN, 'down'),
         (UP_SHADOW, 'shadow'),
     )
+    TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.IntegerField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
@@ -131,6 +132,42 @@ class Netbox(models.Model):
 
     def get_swports(self):
         return SwPort.objects.filter(module__netbox=self)
+
+    def get_availability(self):
+        from nav.models.rrd import RrdDataSource
+
+        def average(rds, time_frame):
+            from nav.rrd import presenter
+            rrd = presenter.presentation()
+            rrd.timeLast(time_frame)
+            rrd.addDs(rds.id)
+            value = rrd.average()
+            if not value:
+                return None
+            else:
+                return value[0]
+
+        try:
+            datasources = RrdDataSource.objects.filter(
+                rrd_file__subsystem='pping', rrd_file__netbox=self)
+            datasource_status = datasources.get(name='STATUS')
+        except RrdDataSource.DoesNotExist:
+            return None
+
+        result = {'datasources': datasources, 'values': {}}
+
+        for time_frame in self.TIME_FRAMES:
+            value = average(datasource_status, time_frame)
+            if value is None:
+                value = 0
+            else:
+                value = 100 - (value * 100)
+            result['values'][time_frame] = value
+
+        return result
+
+    def get_uplink(self):
+        pass # TODO
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
