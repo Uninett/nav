@@ -41,7 +41,21 @@
     </tr>
     <tr>
         <th>Availability</th>
-        <td>{{ netbox.availability }} <b>TODO</b>: Add availability method to Netbox model.</td>
+        <td>
+            {% with netbox.get_availability as availability %}
+                {% if availability %}
+                    <a href="#FIXME-link-to-rrd-view">
+                    {{ availability.values.day|floatformat:2 }}%</a>,
+                    <a href="#FIXME-link-to-rrd-view">
+                    {{ availability.values.week|floatformat:2 }}%</a>,
+                    <a href="#FIXME-link-to-rrd-view">
+                    {{ availability.values.month|floatformat:2 }}%</a>
+                    (day, week, month)
+                {% else %}
+                    Unknown
+                {% endif %}
+            {% endwith %}
+        </td>
     </tr>
     <tr>
         <th>Uptime</th>
@@ -63,23 +77,23 @@
     </tr>
     <tr>
         <th>Uplink</th>
-        <td>{{ netbox.uplnk }} <b>TODO</b>: Add uplink method to Netbox model.</td>
+        <td>{{ netbox.uplink }} <b>TODO</b>: Add uplink method to Netbox model.</td>
     </tr>
     <tr>
         <th>Category</th>
-        <td>{{ netbox.category }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.category }}</a></td>
     </tr>
     <tr>
         <th>Type</th>
-        <td>{{ netbox.type }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.type }}</a></td>
     </tr>
     <tr>
         <th>Organization</th>
-        <td>{{ netbox.organization }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.organization }}</a></td>
     </tr>
     <tr>
         <th>Room</th>
-        <td>{{ netbox.room }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.room }}</a></td>
     </tr>
     <tr>
         <th>Software</th>
@@ -91,23 +105,23 @@
     </tr>
     <tr>
         <th># of modules</th>
-        <td>{{ netbox.module_set.count }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.module_set.count }}</a></td>
     </tr>
     <tr>
         <th># of switch ports</th>
-        <td>{{ netbox.get_swports.count }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.get_swports.count }}</a></td>
     </tr>
     <tr>
         <th># of router ports</th>
-        <td>{{ netbox.get_gwports.count }}</td>
-    </tr>
-    <tr>
-        <th>Last updated</th>
-        <td>{{ netbox.last_updated }}</td>
+        <td><a href="#FIXME-link-to-report">{{ netbox.get_gwports.count }}</a></td>
     </tr>
     <tr>
         <th>First discovered</th>
         <td>{{ netbox.discovered }}</td>
+    </tr>
+    <tr>
+        <th>Last updated</th>
+        <td>{{ netbox.last_updated }}</td>
     </tr>
 {% else %}
     <caption>IP Device</caption>
@@ -183,5 +197,9 @@
 {% include "ipdevinfo/port-legend.html" %}
 
 {% endif %}
+
+<h3>Statistics</h3>
+
+<p>FIXME</p>
 
 {% endblock %}
