@@ -349,7 +349,7 @@ CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlanid INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
-  direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
+  direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, n=down, x=undefined?
   UNIQUE (swportid, vlanid)
 );
 CREATE INDEX swportvlan_swportid_btree ON swportvlan USING btree (swportid);

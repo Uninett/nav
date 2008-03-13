@@ -148,16 +148,16 @@ class Netbox(models.Model):
                 return value[0]
 
         try:
-            datasources = RrdDataSource.objects.filter(
+            data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
-            datasource_status = datasources.get(name='STATUS')
+            data_source_status = data_sources.get(name='STATUS')
         except RrdDataSource.DoesNotExist:
             return None
 
-        result = {'datasources': datasources, 'values': {}}
+        result = {'data_sources': data_sources, 'values': {}}
 
         for time_frame in self.TIME_FRAMES:
-            value = average(datasource_status, time_frame)
+            value = average(data_source_status, time_frame)
             if value is None:
                 value = 0
             else:
@@ -165,9 +165,6 @@ class Netbox(models.Model):
             result['values'][time_frame] = value
 
         return result
-
-    def get_uplink(self):
-        pass # TODO
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
@@ -863,24 +860,20 @@ class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
     ports. dot1q trunk ports typically have several rows in this table."""
 
-    DIRECTION_UNDEFINED = 'u'
+    DIRECTION_UNDEFINED = 'x'
     DIRECTION_UP = 'o'
-    DIRECTION_DOWN = 'd'
-    DIRECTION_BOTH = 'b'
-    DIRECTION_CROSSED = 'x'
+    DIRECTION_DOWN = 'n'
     DIRECTION_CHOICES = (
         (DIRECTION_UNDEFINED, 'undefined'),
         (DIRECTION_UP, 'up'),
         (DIRECTION_DOWN, 'down'),
-        (DIRECTION_BOTH, 'both'),
-        (DIRECTION_CROSSED, 'crossed'),
     )
 
     id = models.IntegerField(db_column='swportvlanid', primary_key=True)
     swport = models.ForeignKey('SwPort', db_column='swportid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
-        default=DIRECTION_CROSSED)
+        default=DIRECTION_UNDEFINED)
 
     class Meta:
         db_table = 'swportvlan'
