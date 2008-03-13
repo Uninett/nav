@@ -117,6 +117,12 @@ class Netbox(models.Model):
     def __unicode__(self):
         return self.sysname
 
+    def get_absolute_url(self):
+        kwargs={
+            'name': self.sysname,
+        }
+        return reverse('ipdevinfo-details-by-name', kwargs=kwargs)
+
     def last_updated(self):
         try:
             value = self.info_set.get(variable='lastUpdated').value
@@ -163,6 +169,19 @@ class Netbox(models.Model):
             else:
                 value = 100 - (value * 100)
             result['values'][time_frame] = value
+
+        return result
+
+    def get_uplinks(self):
+        result = []
+
+        for swport in self.connected_to_swport.all():
+            if swport.swportvlan_set.filter(
+                direction=SwPortVlan.DIRECTION_DOWN).count():
+                result.append(swport)
+
+        for gwport in self.connected_to_gwport.all():
+            result.append(gwport)
 
         return result
 
