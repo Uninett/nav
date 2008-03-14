@@ -23,6 +23,17 @@ CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
      WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
+-- Replace the netboxid_null_upd_end_time trigger, which has been
+-- faulty the last six years.
+CREATE OR REPLACE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
+  'BEGIN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
+       new.end_time = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
+
 -- Django needs a single column it can treat as primary key :-(
 ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
 ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;

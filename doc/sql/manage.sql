@@ -400,7 +400,8 @@ UNIQUE(swportid,cablingid));
 -- The pl/pgsql scripting language must be installed on this database first.
 CREATE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
   'BEGIN
-     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
        new.end_time = current_timestamp;
      END IF;
      RETURN new;
