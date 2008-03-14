@@ -1,3 +1,24 @@
+Version 3.3.3
+(released 14 March 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * SF#1897681 (Wrong traffic counters used on Juniper devices)
+  * SF#1899431 (ARP records munged on router or prefix removal)
+  * SF#1899476 (CAM records munged on netbox removal)
+
 Version 3.3.2
 (released 10 December 2007)
 

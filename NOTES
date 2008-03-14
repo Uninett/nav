@@ -24,6 +24,29 @@ these into NAV events which can also be subscribed to.
 
 For further snmptrapd docs, see subsystem/snmptrapd/README .
 
+Upgrading from NAV 3.3.2 and earlier
+====================================
+
+NAV 3.3.2 and earlier had some serious bugs in database triggers,
+which would munge historic CAM and ARP data when IP devices or
+prefixes were deleted.  To fix these bugs on upgrading to this
+version, you *must* remember to run the SQL script
+doc/sql/upgrade/3.3.0.sql (unless an automated package installer
+already did this for you).  See doc/sql/README for more info on
+running SQL scripts.
+
+A bug in makecricketconfig would cause 32-bit traffic counters to be
+used for some non-Cisco devices, such as Juniper routers and switches.
+This would lead to serious errors in traffic graphs for interfaces
+with traffic over 500Mbit/s on these devices.  The fixed
+makecricketconfig in NAV 3.3.3 also requires you to add the following
+three lines to the Defaults file in your top-level cricket
+configuration directory:
+
+targetType  subv2-interface
+       ds      =       "ifHCInOctets, ifHCOutOctets"
+       view    =       "Octets: ifHCInOctets ifHCOutOctets"
+
 
 Upgrading from NAV 3.3.0
 ========================
