@@ -25,12 +25,11 @@ Subversion repository, although UNINETT also arranges seminars and
 gatherings for its target audience: Norwegian universities and
 university colleges.  To participate:
 
-Go to http://metanav.ntnu.no/ and
+Go to http://metanav.uninett.no/ and
 
-* Join the mailing lists.  The dev mailing list has been open only to
-  project members associated with NTNU and UNINETT, but will open for
-  everyone some time during 2006.  Until then, post your ideas for
-  improvements, patches and general discussion to the users list.
+* Join the mailing lists.  The nav-dev mailing list in particular is
+  for discussing NAV development.  So far, this is a low traffic list.
+  We can only hope this will change ;-)
 
 * Get a copy of the latest development sources from
   https://svn.itea.ntnu.no/repos/nav/navme/trunk/. New development
@@ -44,11 +43,13 @@ Go to http://metanav.ntnu.no/ and
   project documentation is in Norwegian only.  Do not hesitate to ask
   for help on the mailing lists.
 
-Until the dev list opens, to submit code, simply announce it on the
-users mailing list, and someone will tell you where to post the
-patches.  Even better, before you create patches, read this entire
-document and discuss your planned solution with the experts on the
-mailing lists.
+If you wish to contribute code to the project, please tell us about it
+on the nav-dev mailing list.  It is always a good idea to check if
+someone is already working on something similar, and to get some
+helpful tips on how to integrate your code with the rest of the
+project.  If you already went ahead and wrote a patch, announce it on
+nav-dev and provide a link to the patch so it can be studied for
+possible inclusion into NAV.
 
 
 Directory layout
@@ -147,8 +148,8 @@ Database connections
 NOTE: The following is Python-specific, more info should be added for
 the other languages used in NAV.
 
-The NAV database actually consists of three PostgreSQL databases
-(altough there are plans to merge them into a single database using
+The NAV database actually consists of four PostgreSQL databases
+(although there are plans to merge them into a single database using
 PostgreSQL's support for schemas).  The databases are:
 
 * 'manage': The core knowledge database of NAV, containing all sorts
@@ -160,6 +161,8 @@ PostgreSQL's support for schemas).  The databases are:
 
 * 'logger': Contains syslog entries collected by the syslog
   parser/browser system.
+
+* 'arnold': The port detention system Arnold stores it's data here.
 
 To obtain a connection to the NAV database, use the API accordingly,
 e.g.:
