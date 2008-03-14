@@ -395,7 +395,8 @@ UNIQUE(swportid,cablingid));
 -- The pl/pgsql scripting language must be installed on this database first.
 CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
   'BEGIN
-     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
        new.end_time = current_timestamp;
      END IF;
      RETURN new;
@@ -418,10 +419,10 @@ CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
 CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
 
--- Rule to automatically close arp entries related to a given prefix
-CREATE RULE close_arp_prefices AS ON DELETE TO prefix
+-- Rule to automatically close open arp entries related to a given prefix
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
-     WHERE prefixid=OLD.prefixid;
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
