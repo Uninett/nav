@@ -93,23 +93,23 @@ Pipe in id's to block or use the -f option to specify file"""
     parser.add_option("-f", dest = "filename",
                       help = "filename with id's to detain")
     parser.add_option("--list", action = "store_true", dest = "listblocktypes",
-                      help = "list blocktypes")
+                      help = "list predefined detentions")
 
     (opts, args) = parser.parse_args()
 
     if opts.listblocktypes:
-        format = "%3s %s"
-        print format  %("ID", "Title")
-        acur.execute("SELECT * FROM block")
+        format = "%3s %-3s %s"
+        print format  %("ID", "Act", "Title")
+        acur.execute("SELECT * FROM block ORDER BY blockid")
         for row in acur.dictfetchall():
-            print format %(row['blockid'], row['blocktitle'])
+            print format %(row['blockid'], row['active'], row['blocktitle'])
 
         sys.exit()
 
 
     # Make sure we have a blockid to work with
     if not opts.blockid:
-        print "Please supply a blockid"
+        print "Please supply an id of a predefined detention."
         logging.debug("Exited due to no blockid")
         sys.exit()
         
@@ -121,7 +121,22 @@ Pipe in id's to block or use the -f option to specify file"""
     WHERE blockid = %s"""
     acur.execute(q, (opts.blockid, ))
 
+
+    # Exit if this id does not exist
+    if acur.rowcount < 1:
+        print "This predefined detention does not exist: %s" %opts.blockid
+        logger.debug("Exited due to no such id in database: %s" %opts.blockid)
+        sys.exit()
+
     blockinfo = acur.dictfetchone()
+
+
+    # If this predefined detention is not active, print that and exit.
+    if blockinfo['active'] == 'n':
+        print "This predefined detention is set to inactive. Activate it by editing it on the web."
+        logger.debug("Exited due to inactive predefined detention: %s"
+                     %opts.blockid)
+        sys.exit()
 
 
     # Get user running the script. We don't use os.getlogin as this may fail
@@ -301,7 +316,7 @@ Pipe in id's to block or use the -f option to specify file"""
             fromaddr = 'noreply'
             toaddr = contact
             reason = blockinfo['name']
-            subject = "Computers blocked because of %s" %reason
+            subject = "Computers detained because of %s" %reason
 
             msg = textfile
             msg = re.sub('\$reason', reason, msg)

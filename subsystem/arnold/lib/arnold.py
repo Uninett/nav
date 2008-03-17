@@ -150,8 +150,8 @@ def findIdInformation(id, limit):
 
         # Based on type, use the correct query to find information in
         # the database about id and the switch
-        query = """SELECT DISTINCT ON (cam.end_time, cam.netboxid, module, port)
-        *, cam.end_time as endtime FROM arp RIGHT JOIN cam USING (mac)
+        query = """SELECT DISTINCT ON (cam.end_time, cam.netboxid, module,
+        port) *, cam.end_time AS endtime FROM arp RIGHT JOIN cam USING (mac)
         WHERE %s=%%s
         AND module IS NOT NULL
         AND port IS NOT NULL
@@ -162,7 +162,8 @@ def findIdInformation(id, limit):
         try:
             c.execute(query, (id, limit))
         except Exception, e:
-            logger.error('findIDInformation: Error in query %s: %s' %(query, e))
+            logger.error('findIDInformation: Error in query %s: %s'
+                         %(query, e))
             raise DbError, e
 
         if c.rowcount > 0:
