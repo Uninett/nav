@@ -34,3 +34,54 @@ urlpatterns = patterns('',
     # Give the ipdevinfo namespace to the IP Device Info subsystem
     (r'^ipdevinfo/', include('nav.web.ipdevinfo.urls')),
 )
+
+### URL patterns for non-Django subsystems
+# An alternative to nav.web.urlbuilder for linking from Django apps to
+# non-Django parts of NAV in the normal Django way
+
+# Dummy view
+dummy = lambda *args, **kwargs: None
+
+urlpatterns += patterns('',
+    # Subsystem: Device History
+    url(r'devicemanagement/$', dummy, name='devicemanagement'),
+    url(r'devicemanagement/?box=(?P<netbox_id>\d+)&history=1$', dummy,
+        name='devicemanagement-history-netbox'),
+
+    # Subsystem: EditDB
+    url(r'^editdb/$', dummy, name='editdb'),
+    url(r'^editdb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$', dummy,
+        name='editdb-edit-object'),
+
+    # Subsystem: Maintenance
+    url(r'^maintenance/$', dummy, name='maintenance'),
+    url(r'^maintenance/new?netbox=(?P<netbox_id>\d+)$', dummy,
+        name='maintenance-new-netbox'),
+    url(r'^maintenance/new?service=(?P<service_id>\d+)$', dummy,
+        name='maintenance-new-service'),
+
+    # Subsystem: Machine Tracker
+    url(r'machinetracker/$', dummy, name='machinetracker'),
+    url(r'machinetracker/swp?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[\w\d/._-]+)$', dummy,
+        name='machinetracker-swport'),
+
+    # Subsystem: Report
+    url(r'^report/swporttrunk?vlanid=(?P<vlan_id>\d+)$', dummy,
+        name='report-vlan'),
+    url(r'^report/netbox?roomid=(?P<room_id>\d+)$', dummy,
+        name='report-room'),
+    url(r'^report/netbox?catid=(?P<category_id>[\w\d._-]+)$', dummy,
+        name='report-category'),
+    url(r'^report/org?orgid=(?P<organization_id>[\w\d._-]+)$', dummy,
+        name='report-organization'),
+    url(r'^report/type?typeid=(?P<type_id>\d+)$', dummy,
+        name='report-type'),
+    url(r'^report/modules?sysname=(?P<netbox_sysname>[\w\d._-]+)$', dummy,
+        name='report-modules'),
+    url(r'^report/swport?b1.netboxid=(?P<netbox_id>\d+)$', dummy,
+        name='report-swport'),
+    url(r'^report/gwport?b1.netboxid=(?P<netbox_id>\d+)$', dummy,
+        name='report-gwport'),
+    url(r'^report/prefix?prefix.prefixid=(?P<prefix_id>\d+)$', dummy,
+        name='report-prefix'),
+)
