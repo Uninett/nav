@@ -7,11 +7,13 @@
     at {{ port.module.netbox.sysname }}</caption>
     <tr>
         <th>At IP device</th>
-        <td><a href="{{ port.module.netbox.get_absolute_url }}">{{ port.module.netbox }}</a></td>
+        <td><a href="{{ port.module.netbox.get_absolute_url }}">
+            {{ port.module.netbox }}</a></td>
     </tr>
     <tr>
         <th>At module</th>
-        <td><a href="{{ port.module.get_absolute_url }}">Module {{ port.module.module_number }}</a></td>
+        <td><a href="{{ port.module.get_absolute_url }}">
+            Module {{ port.module.module_number }}</a></td>
     </tr>
     <tr>
         <th>Interface</th>
@@ -67,15 +69,17 @@
             {% endif %}
         </td>
     </tr>
+{% ifequal port_type 'swport' %}
     <tr>
         <th>Actions</th>
         <td>
             <ul>
-                <li><a href="#FIXME-link-to-machinetracker">
+                <li><a href="{% url machinetracker-swport port.module.netbox.sysname,port.module.module_number,port.interface %}">
                     Track MAC behind port</a></li>
             </ul>
         </td>
     </tr>
+{% endifequal %}
 </table>
 
 <h3>Statistics</h3>
@@ -88,7 +92,7 @@
 <ul>
     {% if port.gwportprefix_set.all %}
         {% for gwprefix in port.gwportprefix_set.all %}
-            <li><a href="#FIXME-link-to-prefix-matrix">
+            <li><a href="{% url report-prefix gwprefix.prefix.id %}">
                 {{ gwprefix.prefix.net_address }}</a></li>
         {% endfor %}
     {% else %}
