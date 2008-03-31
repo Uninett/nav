@@ -40,6 +40,7 @@ description VARCHAR
 
 -- Changes regarding table blocked_reasons
 ALTER TABLE blocked_reason RENAME text TO name;
+ALTER TABLE blocked_reason ADD comment VARCHAR;
 
 -- Changes regarding table identity
 ALTER TABLE identity DROP CONSTRAINT identity_blocked_status;
