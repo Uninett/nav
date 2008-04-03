@@ -37,6 +37,7 @@ subdirs = src \
 	subsystem/deviceManagement \
 	subsystem/editdb \
 	subsystem/ipinfo \
+	subsystem/ipdevinfo \
 	subsystem/l2trace \
 	subsystem/logger \
 	subsystem/machinetracker \

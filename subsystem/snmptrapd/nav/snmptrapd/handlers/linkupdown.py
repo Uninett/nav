@@ -102,7 +102,33 @@ def handleTrap(trap, config=None):
                      LEFT JOIN swport USING (moduleid)
                      WHERE ip=%s AND ifindex = %s""" 
         logger.debug(idquery)
-        c.execute(idquery, (trap.src, ifindex))
+        try:
+            c.execute(idquery, (trap.src, ifindex))
+        except nav.db.driver.ProgrammingError, why:
+            logger.error(why)
+            return False
+
+        # If no swportid is found, check gwport
+        if c.rowcount < 1:
+            idquery = """SELECT gwportid, module.deviceid, module.module,
+            gwport.interface
+            FROM netbox
+            LEFT JOIN module USING (netboxid)
+            LEFT JOIN gwport USING (moduleid)
+            WHERE ip=%s AND ifindex = %s""" 
+            logger.debug(idquery)
+            try:
+                c.execute(idquery, (trap.src, ifindex))
+            except nav.db.driver.ProgrammingError, why:
+                logger.error(why)
+                return False
+
+        # If no rows returned, exit
+        if c.rowcount < 1:
+            logger.debug('Could not find ifindex %s on %s'
+                         %(ifindex, trap.src))
+            return False
+        
         idres = c.dictfetchone()
 
         # Subid is swportid in this case
@@ -172,15 +198,20 @@ def verifyEventtype ():
 
     sql = """
     INSERT INTO eventtype (
-    SELECT 'linkState','Tells us whether a link is up or down.','y' WHERE NOT EXISTS (
+    SELECT 'linkState','Tells us whether a link is up or down.','y'
+    WHERE NOT EXISTS (
     SELECT * FROM eventtype WHERE eventtypeid = 'linkState'));
 
     INSERT INTO alertType (
-    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkUp', 'Link active' WHERE NOT EXISTS (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkUp',
+    'Link active'
+    WHERE NOT EXISTS (
     SELECT * FROM alerttype WHERE alerttype = 'linkUp'));
 
     INSERT INTO alertType (
-    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkDown', 'Link inactive' WHERE NOT EXISTS (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkDown',
+    'Link inactive'
+    WHERE NOT EXISTS (
     SELECT * FROM alerttype WHERE alerttype = 'linkDown'));
     """
 

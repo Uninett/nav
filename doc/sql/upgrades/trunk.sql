@@ -15,12 +15,48 @@
  *
 */
 
+\connect manage
+
+-- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
+-- here for those who started out with clean 3.3.0 installs.
+-- NAV 3.3.1 also contained bug SF#1899431 in this rule, which has
+-- been fixed here, and should be applied when upgrading.
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
+
+-- Replace the netboxid_null_upd_end_time trigger, which has been
+-- faulty the last six years.
+CREATE OR REPLACE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
+  'BEGIN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
+       new.end_time = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
+
+-- Django needs a single column it can treat as primary key :-(
+ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
+ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
+ALTER TABLE maint_component ADD COLUMN id SERIAL;
+ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
+ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
+
+-- Both old IP Device Center and new IP Device Info does lots of selects on cam
+-- with netboxid and ifindex in the where clause
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+
 
 --
 -- Add field 'contact' to org-table in manage-database
 --
 
-\connect manage
 
 ALTER TABLE org ADD contact VARCHAR;
 

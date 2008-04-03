@@ -100,7 +100,7 @@ class ServiceTable:
         self.html.sort()
 
     def _findDataSources(self):
-        serviceIDs = [str(s.serviceid) for s in self.services]
+        serviceIDs = [db.escape(str(s.serviceid)) for s in self.services]
         serviceIDs = ','.join(serviceIDs)
         allDataSourcesSQL = """
             SELECT rrd_datasourceid,

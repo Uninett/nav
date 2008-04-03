@@ -42,6 +42,7 @@ from pysnmp import role
 # Import NAV libraries
 from nav import daemon
 import nav.buildconf
+from nav.errors import GeneralException
 
 # Paths
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
@@ -49,9 +50,14 @@ traplogfile = nav.buildconf.localstatedir + "/log/snmptraps.log"
 logfile = nav.buildconf.localstatedir + "/log/snmptrapd.log"
 
 
+class ModuleLoadError(GeneralException):
+    """Failed to load module"""
+    pass
+
+
 def main():
 
-    # Verify subsystem
+    # Verify that subsystem exists, if not insert it into database
     verifySubsystem()
 
     # Initialize defaults
@@ -68,9 +74,8 @@ def main():
     if os.geteuid() != 0:
         print("Must be root to bind to ports, exiting")
         sys.exit(-1)
-    
 
-    # Define options
+    # Create parser and define options
     usage = "usage: %prog [options] [iface] [community]"
     
     parser = OptionParser(usage)
@@ -109,14 +114,17 @@ def main():
         sys.exit(-1)
 
 
-    # logger and traplogger logs to two different files. We want a complete log
-    # of received traps in one place, and an activity log somewhere else.
-    # Note: When not running in daemonmode the loggers both log to stdout.
-    global logger, traplogger
+    # logger and traplogger logs to two different files. We want a
+    # complete log of received traps in one place, and an activity log
+    # somewhere else.  Note: When not running in daemonmode the
+    # loggers both log to stdout.
+    global logger, traplogger, handlermodules
 
-    # If we are to demonize, do it here.
+    # Create logger based on if we are to daemonize or just run in
+    # shell
     if opts.d:
 
+        # Fetch loglevel from snmptrapd.conf
         loglevel = config.get('snmptrapd', 'loglevel')
         if not loglevel.isdigit():
             loglevel = logging.getLevelName(loglevel)
@@ -129,22 +137,10 @@ def main():
 
         # Initialize deamonlogger
         if not loginitfile(logfile, traplogfile, loglevel):
-            sys.exit(-1)
+            sys.exit(1)
 
         traplogger = logging.getLogger('nav.snmptrapd.traplog')
         logger = logging.getLogger('nav.snmptrapd')
-
-
-        try:
-            print "Going into daemon mode..."
-            daemon.daemonize(pidfile)
-            logger.info("Snmptrapd started")
-            listen(server, community)
-        except daemon.DaemonError, why:
-            print why
-            server.close()
-            sys.exit(-1)
-          
 
     else:
 
@@ -159,12 +155,35 @@ def main():
         logger.addHandler(handler)
         traplogger.addHandler(handler)
         
+
+    # Load handlermodules
+    try:
+        logger.debug('Trying to load handlermodules')
+        handlermodules = loadHandlerModules()
+    except ModuleLoadError, why:
+        logger.error("Could not load handlermodules %s" %why)
+        sys.exit(1)
+
+
+    if opts.d:
+        # Daemonize and listen for traps        
+        try:
+            logger.debug("Going into daemon mode...")
+            daemon.daemonize(pidfile)
+            logger.info("Snmptrapd started, listening on port %s" %port)
+            listen(server, community)
+        except daemon.DaemonError, why:
+            logger.error("Could not daemonize: " %why)
+            server.close()
+            sys.exit(1)
+
+    else:
         # Start listening and exit cleanly if interrupted.
         try:
             logger.info ("Listening on port %s" %port)
             listen(server, community)
         except KeyboardInterrupt, why:
-            logger.error( "Received keyboardinterrupt, exiting.")
+            logger.error("Received keyboardinterrupt, exiting.")
             server.close()
 
 
@@ -183,7 +202,8 @@ def listen (server, community):
         (req, rest) = v2c.decode(question)
 
         # Decode BER encoded Object IDs.
-        oids = map(lambda x: x[0], map(asn1.OBJECTID().decode, req['encoded_oids']))
+        oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
+                                       req['encoded_oids']))
         
         # Decode BER encoded values associated with Object IDs.
         vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
@@ -227,10 +247,11 @@ def transform(req):
 
     enterprise = str(req['enterprise'])
 
-    # According to RFC2576 "Coexistence between Version 1, Version 2, and Version 3
-    # of the Internet-standard Network Management Framework", we build snmpTrapOID
-    # from the snmp-v1 trap by combining enterprise + 0 + specific trap parameter
-    # IF the generic trap parameter is 6. If not, the traps are defined as
+    # According to RFC2576 "Coexistence between Version 1, Version 2,
+    # and Version 3 of the Internet-standard Network Management
+    # Framework", we build snmpTrapOID from the snmp-v1 trap by
+    # combining enterprise + 0 + specific trap parameter IF the
+    # generic trap parameter is 6. If not, the traps are defined as
     # 1.3.6.1.6.3.1.1.5 + generic trap parameter + 1
     for t in v1.GENERIC_TRAP_TYPES.keys():
         if req['generic_trap'] == v1.GENERIC_TRAP_TYPES[t]:
@@ -274,13 +295,13 @@ def loginitfile(logfile, traplogfile, loglevel):
         return False
 
 
-def trapHandler(trap):
-    """Handle a trap"""
+def loadHandlerModules():
+    """
+    Loads handlermodules configured in snmptrapd.conf
+    """
 
-    traplogger.info(trap.trapText())
-
-    # Get name of modules that want traps from configfile, import each
-    # module and give them the trap + config for handling.
+    # Get name of modules that want traps from configfile and import
+    # each module
     
     handlermodules = []
     modulelist = config.get('snmptrapd','handlermodules').split(',')
@@ -293,14 +314,25 @@ def trapHandler(trap):
             handlermodules.append(mod)
         except Exception, why:
             logger.exception("Module %s did not compile - %s" %(name, why))
+            raise ModuleLoadError, why
+
+    return handlermodules
+
+
+def trapHandler(trap):
+    """Handle a trap"""
+
+    traplogger.info(trap.trapText())
 
     for mod in handlermodules:
+        logger.debug("Giving trap to %s" %str(mod))
         try:
             accepted = mod.handleTrap(trap, config=config)
             if accepted:
                 logger.debug ("Module %s accepted trap" %mod.__name__)
         except Exception, why:
-            logger.exception("Error when handling trap with %s: %s" %(mod.__name__, why))
+            logger.exception("Error when handling trap with %s: %s"
+                             %(mod.__name__, why))
 
 
 def verifySubsystem ():
@@ -308,7 +340,8 @@ def verifySubsystem ():
     db = getConnection('default')
     c = db.cursor()
 
-    sql = "INSERT INTO subsystem (SELECT 'snmptrapd', '' WHERE NOT EXISTS (SELECT * FROM subsystem WHERE name = 'snmptrapd'))"
+    sql = """INSERT INTO subsystem (SELECT 'snmptrapd', '' WHERE
+    NOT EXISTS (SELECT * FROM subsystem WHERE name = 'snmptrapd'))"""
     c.execute(sql)
     db.commit()
     
@@ -338,10 +371,16 @@ class SNMPTrap:
         return text
 
     def trapText(self):
-        """Creates a textual description of the trap suitable for printing to log or stdout."""
+        """
+        Creates a textual description of the trap suitable for
+        printing to log or stdout.
+        """
+
         text = "Got snmp version %s trap\n" %self.version
-        text = text + "Src: %s, Community: %s, Uptime: %s\n" %(self.src, self.community, self.uptime)
-        text = text + "Type %s, snmpTrapOID: %s\n" %(self.genericType, self.snmpTrapOID)
+        text = text + "Src: %s, Community: %s, Uptime: %s\n" \
+               %(self.src, self.community, self.uptime)
+        text = text + "Type %s, snmpTrapOID: %s\n" \
+               %(self.genericType, self.snmpTrapOID)
 
         keys = self.varbinds.keys()
         keys.sort()

@@ -12,9 +12,6 @@ __copyright__ = "Copyright 2007 Norwegian University of Science and Technology"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
-global db
-db = nav.db.getConnection('default')
-
 def handleTrap(trap, config=None):
     """
     handleTrap is run by snmptrapd every time it receives a
@@ -22,6 +19,7 @@ def handleTrap(trap, config=None):
     accepted.
     """
 
+    db = nav.db.getConnection('default')
     c = db.cursor()
 
     # Define oids. Visit
@@ -51,7 +49,6 @@ def handleTrap(trap, config=None):
     source = 'snmptrapd'
     target = 'eventEngine'
     eventtypeid = 'apState'
-
 
     # Find deviceid and netboxid
 
@@ -165,6 +162,7 @@ def verifyEventtype ():
     database. Should be run when module is imported.
     """
     
+    db = nav.db.getConnection('default')
     c = db.cursor()
 
     sql = """
