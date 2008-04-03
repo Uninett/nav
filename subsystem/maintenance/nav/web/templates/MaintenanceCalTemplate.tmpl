@@ -32,7 +32,7 @@
 #set $cal = calendar.monthcalendar(int($year), int($month))
 #set $today = time.strftime('%Y-%m-%d')
 
-<table class="calendar">
+<table class="listtable calendar">
     <caption>
 #set $thismonth = time.strptime('%04d-%02d-01' % ($year, $month), '%Y-%m-%d')
 #set $prevmonth = time.gmtime(time.mktime($thismonth) - 28*24*60*60)
@@ -60,14 +60,14 @@
         <td>&nbsp;</td>
         #else
             #set $date = '%04d-%02d-%02d' % ($year, $month, $day)
-        <td>
             #if $date == $today
                 #set $todays = 'Today - '
-            <div class="dayheader" style="background: #beb;">
+        <td class="today">
             #else
                 #set $todays = ''
-            <div class="dayheader">
+        <td>
             #end if
+            <div class="dayheader">
             #if calendar.weekday($year, $month, $day) == 5
                 <span style="color: gray;">
             #elif calendar.weekday($year, $month, $day) == 6

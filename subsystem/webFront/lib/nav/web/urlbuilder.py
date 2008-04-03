@@ -29,10 +29,10 @@ on different criteria.
 
 import forgetHTML as html
 import forgetSQL
-from nav.db import manage 
+from nav.db import manage
 
 _subsystems = {
-    'devbrowser': '/browse', 
+    'devbrowser': '/browse',
     'report': '/report',
     'rrd': '/browse/rrd',
     'editdb': '/editdb',
@@ -48,8 +48,10 @@ _divisionClasses = {
     'type': manage.Type,
     'location': manage.Location,
     'port': manage.Swport,
+    'gwport': manage.Gwport,
     'module': manage.Module,
     'vlan':  manage.Vlan,
+    'prefix': manage.Prefix,
 }
 
 def _getObjectByDivision(division, id):
@@ -62,27 +64,27 @@ def _getObjectByDivision(division, id):
         object.load()
     except forgetSQL.NotFound, e:
         raise "Unknown id %s" % e
-    return object           
+    return object
 
 def _getDivisionByObject(object):
     for (division, _class) in _divisionClasses.items():
         if isinstance(object, _class):
             return division
-    raise "Unknown division"        
+    raise "Unknown division"
 
-def createUrl(object=None, id=None, division=None, 
+def createUrl(object=None, id=None, division=None,
               subsystem="devbrowser", **kwargs):
     if id and object:
         raise "Ambiguous parameters, id and object cannot both be specified"
 
     if object:
         division = _getDivisionByObject(object)
-    # redirect, these things are done by report, not devbrowser    
-    if subsystem=='devbrowser' and division in 'vlan room cat org type'.split():
+    # redirect, these things are done by report, not devbrowser
+    if subsystem=='devbrowser' and division in 'vlan room cat org type prefix'.split():
         subsystem = 'report'
         if object:
             id = object._getID()[0]
-    
+
     try:
         url = _subsystems[subsystem] + '/'
     except KeyError:
@@ -97,10 +99,9 @@ def createUrl(object=None, id=None, division=None,
             except:
                 raise "Unknown object type"
         if division:
-            if not (subsystem == 'devbrowser' and 
-                division in 'netbox port module'.split()):
+            if not division in 'netbox port gwport module'.split():
                 url += division + '/'
-            if id and subsystem=='devbrowser' and division=='service':
+            if division == 'service' and id:
                url += id + '/'
                return url
             if object:
@@ -112,24 +113,30 @@ def createUrl(object=None, id=None, division=None,
                 if division=="netbox":
                     # nice url
                     url += object.sysname
-                elif division=="port":
+                elif division == "port" or division == "gwport":
                     module = object.module
                     url += module.netbox.sysname
-                    url += '/module%s' % module.module   
-                    url += '/port%s' % object.port
+                    url += '/module%s' % module.module
+                    if division == "port":
+                        url += '/port%s' % object.swportid
+                    else:
+                        url += '/gwport%s' % object.gwportid
                 elif division=="module":
                     url += object.netbox.sysname
-                    url += '/module%s' % object.module   
+                    url += '/module%s' % object.module
                 else:
                     # Turn into strings, possibly join with ,
                     id = [str(x) for x in object._getID()]
                     url += ','.join(id)
-                url += '/' # make sure we have trailing /    
+                url += '/' # make sure we have trailing /
 
     elif subsystem == 'maintenance':
         if object:
             id = object._getID()[0]
-        url += "new?netbox=%s" % id
+        if division == 'netbox':
+            url += "new?netbox=%s" % id
+        elif division == 'service':
+            url += "new?service=%s" % id
     elif subsystem == 'editdb':
         if object:
             id = object._getID()[0]
@@ -141,7 +148,7 @@ def createUrl(object=None, id=None, division=None,
             url += 'swporttrunk?vlanid=%s' % id
         elif division=='room':
             url += 'netbox?roomid=%s' % id
-        elif division=='cat':    
+        elif division=='cat':
             url += 'netbox?catid=%s' % id
         elif division=='org':
             url += 'org?orgid=%s' % id
@@ -149,6 +156,8 @@ def createUrl(object=None, id=None, division=None,
             url += 'type?typeid=%s' % id
         elif division=='swport':
             url += 'swport?b1.netboxid=%s' % id
+        elif division=='prefix':
+            url += 'prefix?prefix.prefixid=%s' % id
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
@@ -162,9 +171,9 @@ def createUrl(object=None, id=None, division=None,
         tf = kwargs.get("tf")
         if tf:
             url += 'tf=%s' % tf
-    return url            
-            
-    
+    return url
+
+
 def createLink(object=None, content=None, id=None, division=None,
                subsystem="devbrowser", **kwargs):
     if content is None:
@@ -172,13 +181,11 @@ def createLink(object=None, content=None, id=None, division=None,
             raise "Ambiguous parameters, id and object cannot both be specified"
         if division == 'service':
             content = id
-        elif id:    
+        elif id:
             object = _getObjectByDivision(division, id)
             id = None
-        if object:    
-            content = str(object)    
+        if object:
+            content = str(object)
     url = createUrl(id=id, division=division, subsystem=subsystem,
                     object=object, **kwargs)
-    return html.Anchor(content, href=url)                
-            
-        
+    return html.Anchor(content, href=url)

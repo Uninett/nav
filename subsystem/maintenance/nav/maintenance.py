@@ -38,9 +38,6 @@ import nav.db
 
 logger = logging.getLogger('nav.maintenance')
 
-dbconn = nav.db.getConnection('webfront', 'manage')
-db = dbconn.cursor()
-
 def getTasks(where = False, order = 'maint_end DESC'):
     """
     Get maintenance tasks
@@ -54,6 +51,9 @@ def getTasks(where = False, order = 'maint_end DESC'):
         If no tasks found, returns false
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     select = """SELECT maint_taskid, maint_start, maint_end,
         maint_end - maint_start AS interval,
@@ -115,6 +115,9 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
 
     """
 
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
+
     if taskid:
         sql = """UPDATE maint_task SET
                 maint_start = %(maint_start)s,
@@ -170,6 +173,9 @@ def getComponents(taskid):
 
     """
 
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
+
     sql = """SELECT key, value
         FROM maint_component
         WHERE maint_taskid = %(maint_taskid)d
@@ -206,6 +212,9 @@ def setComponents(taskid, components):
         If function completes, returns True
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     # Remove old components
     sql = """DELETE FROM maint_component
@@ -246,7 +255,7 @@ def sortComponents(components):
 
     Input:
         components  List of components to be sorted
-    
+
     Returns:
         A sorted list of the components
 
@@ -271,7 +280,7 @@ def sortComponents(components):
             results.append(components[i])
 
     return results
-    
+
 def getComponentInfo(key, value):
     """
     Get information about component
@@ -285,7 +294,7 @@ def getComponentInfo(key, value):
         If no component found, returns false
 
     """
-    
+
     if key == 'location':
         return getLocation(value)
     if key == 'room':
@@ -308,6 +317,9 @@ def getLocation(locationid):
 
     """
 
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
+
     sql = """SELECT l.locationid, l.descr AS locationdescr
         FROM location l
         WHERE locationid = %(locationid)s"""
@@ -319,7 +331,7 @@ def getLocation(locationid):
     if not db.rowcount:
         return False
     result = db.dictfetchall()
-    
+
     return result[0]
 
 def getRoom(roomid):
@@ -334,6 +346,9 @@ def getRoom(roomid):
         If no room found, returns false
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     sql = """SELECT
             r.roomid, r.descr AS roomdescr,
@@ -352,7 +367,6 @@ def getRoom(roomid):
 
     return result[0]
 
-
 def getNetbox(netboxid):
     """
     Get netbox (part of maintenance component)
@@ -365,6 +379,9 @@ def getNetbox(netboxid):
         If no netbox found, returns false
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     sql = """SELECT
             n.netboxid, n.sysname, n.ip,
@@ -397,13 +414,16 @@ def getService(serviceid):
         If no service found, returns false
 
     """
-    
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
+
     sql = """SELECT
             s.serviceid, s.handler,
             n.netboxid, n.sysname, n.ip,
             r.roomid, r.descr AS roomdescr,
             l.locationid, l.descr AS locationdescr
-        FROM service s 
+        FROM service s
             JOIN netbox n ON (s.netboxid = n.netboxid)
             JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
@@ -430,6 +450,9 @@ def cancelTask(taskid):
         Always returns true, unless some error occurs.
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     sql = """UPDATE maint_task SET state = 'canceled'
         WHERE maint_taskid = %(maint_taskid)d"""

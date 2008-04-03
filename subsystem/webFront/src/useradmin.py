@@ -291,6 +291,7 @@ def accountlist(req):
     page.accounts = _getAccounts()
     page.path[-1] = ("Account list", False)
     page.title = "Account list"
+    page.current = "accountlist"
 
     if req.session.has_key('statusMessage'):
         page.statusMessage = req.session['statusMessage']
@@ -304,6 +305,7 @@ def grouplist(req):
     page.groups = _getGroups()
     page.path[-1] = ("Group list", False)
     page.title = "Group list"
+    page.current = "grouplist"
 
     if req.session.has_key('statusMessage'):
         page.statusMessage = req.session['statusMessage']
@@ -346,6 +348,7 @@ def account(req, id=None):
         page.editable = True
         
     page.title = page.information
+    page.current = "account"
     # We've filled out most of the details of the account and its
     # group memberships, now we need to fill out the list of groups it
     # has no membership to so that we may add the account to any of
@@ -394,6 +397,7 @@ def group(req, id=None):
                       'privileges': []}
 
     page.title = page.information
+    page.current = "group"
     # We've filled out most of the details of the group and its
     # members, now we need to fill out the list of non-members so that
     # we may add new members to this group on this form.
@@ -525,6 +529,7 @@ def accountdel(req, id=None, confirm=False):
         page = ConfirmPage()
         page.path[-1] = ("Delete an account", False)
         page.title = "Delete an account"
+        page.current = "account"
         page.confirmation = "You are about to delete the account '%s' (#%s).  Are you sure?" % (name, id)
         page.yestarget = "accountdel?id=%s&confirm=1" % id
         page.notarget = "account?id=%s" % id
@@ -555,6 +560,7 @@ def groupdel(req, id=None, confirm=False):
         page = ConfirmPage()
         page.path[-1] = ("Delete a group", False)
         page.title = "Delete a group"
+        page.current = "group"
         page.confirmation = "You are about to delete the group '%s' (#%s).  Are you sure?" % (name, id)
         page.yestarget = "groupdel?id=%s&confirm=1" % id
         page.notarget = "group?id=%s" % id

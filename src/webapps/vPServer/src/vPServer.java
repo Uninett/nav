@@ -863,8 +863,8 @@ class SqlBoks
 			String sql = "SELECT netboxid,descr,name,path,filename,key,value FROM rrd_file JOIN rrd_datasource USING(rrd_fileid) WHERE subsystem='cricket' AND descr IN ("+concat(descrS,"'")+")";
 			if (netboxidS != null && !netboxidS.isEmpty()) sql += " AND netboxid IN ("+concat(netboxidS)+")";
 			boolean g = gwSet != null && !gwSet.isEmpty();
-			if (g) sql += " AND ((key='gwport' AND value IN ("+concat(gwSet)+"))";
-			if (swSet != null && !swSet.isEmpty()) sql += " " + (g?"OR":"AND") + " (key='swport' AND value IN ("+concat(swSet)+"))";
+			if (g) sql += " AND ((key='gwport' AND value IN ("+concat(gwSet, "'")+"))";
+			if (swSet != null && !swSet.isEmpty()) sql += " " + (g?"OR":"AND") + " (key='swport' AND value IN ("+concat(swSet, "'")+"))";
 			if (g) sql += ")";
 			if (sqlAdd != null) sql += sqlAdd;
 			ResultSet rs = Database.query(sql);

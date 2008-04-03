@@ -39,9 +39,8 @@
         #set $msgcount += 1
         #if $msgcount <= $verbosemsgs
 
-<h3>$msg.title.replace('<', '&lt;').replace('>', '&gt;')</h3>
-
-<table class="vertitable">
+<table class="vertitable vertitablefull">
+    <caption>$msg.title.replace('<', '&lt;').replace('>', '&gt;')</caption>
     <tr>
         <th>Published</th>
         <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
@@ -100,7 +99,7 @@
     <tr>
         <th>Replaces message</th>
         <td>
-            <a href="view?id=$msg.replaces_message">$msg.replaces_message_title</a>
+            <a href="view?id=$msg.replaces_message">$msg.replaces_message_title.replace('<', '&lt;').replace('>', '&gt;')</a>
             from $msg.replaces_message_publish_start.strftime('%Y-%m-%d %H:%M')
             by $msg.replaces_message_author
         </td>
@@ -110,7 +109,7 @@
     <tr>
         <th>Replaced by</th>
         <td>
-            <a href="view?id=$msg.replaced_by">$msg.replaced_by_title</a>
+            <a href="view?id=$msg.replaced_by">$msg.replaced_by_title.replace('<', '&lt;').replace('>', '&gt;')</a>
             from $msg.replaced_by_publish_start.strftime('%Y-%m-%d %H:%M')
             by $msg.replaced_by_author
         </td>
@@ -131,14 +130,17 @@
         #else
 
         #if $msgcount == $verbosemsgs+1
-<h3>Older Messages</h3>
 
-<table class="vertilist">
+<table class="listtable">
+    <caption>Older Messages</caption>
+    <thead>
     <tr>
         <th>Published</th>
         <th>Title</th>
         <th>Description</th>
     </tr>
+    </thead>
+    <tbody>
         #end if
 
         #if len($msg.description) > 80 
@@ -146,7 +148,7 @@
         #else
             #set $desc = $msg.description
         #end if
-    <tr>
+    <tr class="$rowcycler">
         <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
         <td><a href="view?id=$msg.messageid">$msg.title.replace('<', '&lt;').replace('>', '&gt;')</a></td>
         <td>$desc.replace('<', '&lt;').replace('>', '&gt;')</td>
@@ -156,6 +158,7 @@
 
 ## End of 'Older Messages' table
 #if $msgcount > $verbosemsgs
+    </tbody>
 </table>
 #end if
 

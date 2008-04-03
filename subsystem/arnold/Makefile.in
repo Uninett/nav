@@ -18,7 +18,7 @@ templates = ArnoldTemplate.py
 libfiles = Arnold.pm
 webfiles = arnoldhandler.py .htaccess
 binfiles = arnold.pl autoenable.pl start_arnold.pl t1000.pl
-conffiles = arnold.cfg nonblock.cfg mailtemplates/README 
+conffiles = arnold.conf nonblock.conf mailtemplates/README 
 tool = arnold.tool
 
 .PHONY: all install install-lib install-web install-bin clean distclean

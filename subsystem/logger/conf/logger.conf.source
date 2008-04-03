@@ -1,11 +1,15 @@
 [start]
 # enable syslog parsing
-# the file needs to exisit and the navcron user need write access to the file
 enable: 1
 
 [paths]
 # path to syslog file
+# the file needs to exist and the navcron user needs write access to the file
 syslog:@localstatedir@/log/cisco.log
+
+# Logengine needs to know charset the above file is encoded with, so that it
+# may properly encode it for storage in the database.
+charset: iso-8859-1
 
 [deletepriority]
 # deletes messages of the given priority older than a limited number of days

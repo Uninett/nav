@@ -1,5 +1,5 @@
 /*
- * $Id$ 
+ * $Id: DNSCheck.java 3789 2007-01-09 14:24:46Z mortenv $ 
  *
  * Copyright 2004 Norwegian University of Science and Technology
  * Copyright 2007 UNINETT AS
@@ -47,7 +47,7 @@ import no.ntnu.nav.logger.Log;
  * </ul>
  * </p>
  *
- * @version $Id$
+ * @version $Id: DNSCheck.java 3789 2007-01-09 14:24:46Z mortenv $
  * @author Kristian Eide &lt;kreide@gmail.com&gt;,
  *         Morten Brekkevold &lt;morten.brekkevold@uninett.no&gt;
  */

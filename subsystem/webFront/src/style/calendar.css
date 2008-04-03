@@ -1,4 +1,4 @@
-/* Calendar stylesheet for NAV
+/* Calendar style sheet for NAV
  *
  * Copyright 2006 UNINETT AS
  *
@@ -17,37 +17,32 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
 table.calendar {
-	border: 1px solid #ccc;
-	caption-side: top;
-	font-size: smaller;
-	margin-bottom: 1em;
 	width: 100%;
 }
 table.calendar caption {
-	font-size: large;
-	text-align: center;
-	padding-bottom: 0.3em;
 }
 table.calendar tr {
-	text-align: left;
-	vertical-align: top;
 }
 table.calendar tr th {
-	background-color: #eee;
-	padding: 0.1em 0.2em;
 	width: 14%;
 }
 table.calendar tr td {
-	background-color: white;
-	border: 1px solid #ccc;
+	border: 1px solid #999;
+	height: 5em; /* Content will increase height if necessary. */
+}
+table.calendar tr td.today {
+	background: #eee;
+	color: black;
 }
 table.calendar tr td div.dayheader {
-	background-color: #ddf;
-	padding: 0.1em 0.2em;
-	text-align: right;
+	display: inline;
+	float: right;
+	font-weight: bolder;
+	margin: 0.3em 0;
+	padding: 0.3em;
 }

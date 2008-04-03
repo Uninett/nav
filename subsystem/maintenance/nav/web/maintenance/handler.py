@@ -260,7 +260,8 @@ def handler(req):
         # Handle added components
         for field in req.form.list:
             if (req.form.has_key('cn_add_services')
-             and field.name == 'cn_service'):
+             and field.name == 'cn_service'
+             or field.name == 'service'):
                 key = 'service'
                 value = field.value
                 component = {

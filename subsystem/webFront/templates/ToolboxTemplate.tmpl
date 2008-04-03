@@ -34,7 +34,7 @@
 ##   +-- uri                           :: location of the tool
 ##   +-- icon                          :: uri to the tools' icon
 ##   +-- description                   :: explanation of the tools purpose or function
-## 
+##
 ## The template uses images in $imagefolder/toolbox/, where $imagefolder
 ## is inherited from MainTemplate and defaults to "/images".
 ##
@@ -43,71 +43,32 @@
 
 #attr $boxesPerRow = 3
 
-#def add_tool($tool)
-    <table width="300" cellspacing="0" cellpadding="0" border="0">
-      <tr>
-        <td><img src="$imagefolder/toolbox/module-bar-start.gif" alt="" /></td>
-#if $tool.icon
-        <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; width: 50px;"><a href="$tool.uri"><img src="$tool.icon" border="0" alt="" /></a></td>
-#else
-        <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; width: 50px;"><img src="$imagefolder/blank.gif" width="47" height="54" alt="" /></td>
-#end if
-        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px;" nowrap="nowrap"><a class="navbar" href="$tool.uri">$tool.name</a></td>
-        <td><img src="$imagefolder/toolbox/module-bar-end.gif" alt="" /></td>
-      </tr>
-      <tr valign="top" style="height: 5em;">
-        <td style="background-image:url('$imagefolder/toolbox/module-fill-start.gif'); background-repeat: repeat-y; "></td>
-        <td colspan="2" style="background-image:url('$imagefolder/toolbox/module-fill.gif'); background-repeat: repeat; font-size: 13px; padding: 0px 0px 0px 10px">
-          $tool.description
-        </td>
-        <td style="background-image:url('$imagefolder/toolbox/module-fill-end.gif'); background-repeat: repeat-y; "></td>
-      </tr>
-      <tr>
-        <td><img src="$imagefolder/toolbox/module-footer-start.gif" alt="" /></td>
-        <td colspan="2" width="100%" style="background-image:url('$imagefolder/toolbox/module-footer-fill.gif'); background-repeat: repeat-x; "></td>
-        <td><img src="$imagefolder/toolbox/module-footer-end.gif" alt="" /></td>
-      </tr>
-    </table>
-#end def
-
 #block content
-<table cellspacing="0" cellpadding="0" border="0">
+
+<table class="toolbox toolbox3cols">
 #set $rowplace = 0
 #for $tool in $tools
-#set $rowplace = $rowplace + 1
-#if $rowplace == 1
-  <tr>
-#end if
-    <td>
-$add_tool($tool)
-    </td>
-#if $rowplace == $boxesPerRow
-  </tr>
-  #set $rowplace = 0
-#end if
+    #set $rowplace = $rowplace + 1
+    #if $rowplace == 1
+    <tr>
+    #end if
+        <td>
+<h2><a href="$tool.uri"><img src="$tool.icon" alt="$tool.name" /></a>
+<a href="$tool.uri">$tool.name</a></h2>
+<p>$tool.description</p>
+        </td>
+    #if $rowplace == $boxesPerRow
+    </tr>
+    #set $rowplace = 0
+    #end if
 #end for
-#if $rowplace != $boxesPerRow
-  #for i in range($boxesPerRow - $rowplace)
-    <td></td>
-  #end for
-  </tr>
+
+#if $rowplace != 0 and $rowplace != $boxesPerRow
+    #for i in range($boxesPerRow - $rowplace)
+        <td></td>
+    #end for
+    </tr>
 #end if
 </table>
-#end block content
 
-## This function was used to make the toolboxes float on the page to better use the width of the screen.
-## This did not work out so well in all browsers, so it was scrapped. 
-#block content_OLD_FLOAT
-#set $numtools = len($tools)
-#set $i = 0
-#for $tool in $tools
-#set $i = $i + 1
-#if $i == $numtools
-  <div>
-#else
-  <div style="float: left">
-#end if
-$add_tool($tool)
-  </div>
-#end for
 #end block content

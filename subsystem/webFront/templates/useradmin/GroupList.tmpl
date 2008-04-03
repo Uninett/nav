@@ -3,6 +3,7 @@
 ## Builds html for the Group list screen of the useradmin module.
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2007 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -22,6 +23,7 @@
 ##
 ##
 ## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
 
 #extends UserAdmin
@@ -37,28 +39,37 @@
 
 #block useradmin
 
-<table class="horiztable">
-
+<table class="listtable">
 #set $groupcount = len($groups)
+
     <caption>
-        <span class="cornerkludge"></span>
         Group List<br />
-        <span class="subtitle">$groupcount groups :
-        <a href="group">Create new group</a></span>
+        <span class="subtitle">$groupcount groups</span>
     </caption>
 
-#set $rowcount = len($groups) + 1
-    <tr class="header">
-        <td class="leftkludge" rowspan="$rowcount"></td>
-        <th>Name</th>
-        <th>Description</th>
-        <th style="text-align: center;"># of members</th>
-        <td class="rightkludge" rowspan="$rowcount"></td>
-    </tr>
+#if $groupcount
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th># of members</th>
+        </tr>
+    </thead>
 
+    <tbody>
 #for $group in $groups
     $add_group($group)
 #end for
+    </tbody>
+#end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$groupcount groups</th>
+        </tr>
+    </tbody>
 </table>
+
+<p><a href="group">Create new group</a></p>
 
 #end block useradmin

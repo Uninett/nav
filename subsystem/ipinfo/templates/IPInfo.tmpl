@@ -1,6 +1,7 @@
 #encoding UTF-8
 ## $Id$
-## Extends the MainTemplate 
+##
+## Extends the MainTemplate
 ## Defines the IP information page
 ##
 ## Copyright 2005 Norwegian University of Science and Technology
@@ -26,7 +27,9 @@
 ##
 
 #extends nav.web.templates.MainTemplate.MainTemplate
+
 #attr $path = [("Home", "/"), ("IP Info", None)]
+
 ## Don't know how to break lines in Cheetah, so this gets ugly long:
 #attr $sortorder = ('navreg', 'ip', 'dns', 'subnet', 'usage', 'description', 'org', 'opt1', 'opt2', 'opt3', 'arp', 'mac', 'switch', 'module', 'port')
 
@@ -48,43 +51,34 @@ $value #slurp
 #end def
 
 #def infotable($table)
-<table class="infotable">
-#filter WebSafe
-  <caption>Information about <em>$target</em></caption>
-#end filter
+    #set $firstkeys = [key for key in $sortorder if key in $table.keys()]
+    #set $lastkeys = [key for key in $table.keys() if key not in $firstkeys]
+    #silent $lastkeys.sort()
+    #set $keys = $firstkeys + $lastkeys
 
-  #set $firstkeys = [key for key in $sortorder if key in $table.keys()]
-  #set $lastkeys = [key for key in $table.keys() if key not in $firstkeys]
-  #silent $lastkeys.sort()
-  #set $keys = $firstkeys + $lastkeys
-  #set $evenrow = True
-  #set $rowclass = ['oddrow', 'evenrow']
+<table class="vertitable">
+    #filter WebSafe
+    <caption>$target</caption>
+    #end filter
 
-  #for $key in $keys
-    ##if $table[$key]
-      <tr class="$rowclass[$evenrow]">
+    #for $key in $keys
+    <tr class="$rowcycler">
         <th>$info.describe($key)</th>
-        <td>$linked($key, $table[$key])</th>
-      </tr>
-      #set $evenrow = not $evenrow
-    ##end if
-  #end for
+        <td>$linked($key, $table[$key])</td>
+    </tr>
+    #end for
 </table>
 #end def
 
 #block content
 
-<div id="ipinfo">
-<h2>IP Information Center</h2>
+<h2>IP Info</h2>
 
+#set $value = $getVar('target', '')
 <form action="" method="get">
-<label for="ipinput">IP Address / DNS name</label>:<br>
-<input id="ipinput" type="text" name="ip" size="30" 
-#if $varExists('target')
-value="${target, also='"'}" #slurp
-#end if
->
-<input type="submit" value="Show">
+    <label for="ipinput">IP/hostname:</label>
+    <input id="ipinput" type="text" name="ip" size="30" value="$value" />
+    <button type="submit">Search</button>
 </form>
 
 #if $varExists('target') and $target
@@ -115,5 +109,5 @@ value="${target, also='"'}" #slurp
 #end block content
 
 #block additionalCSS
-<link rel="stylesheet" type="text/css" href="/style/ipinfo.css" />
+$default_table_CSS
 #end block additionalCSS

@@ -36,33 +36,27 @@
 
 <h2>Arnold</h2>
 
-<p>
-$printLinks($buttons,$buttonnames)
-</p>
+$printMenu($buttons, $buttonnames, $action)
+
+<div class="tabcontent">
 
 #if $action == 'search'
+  $printSearch()
+
   <div class='infobox'>
-    <h5>Usage:</h5>
+    <h4>Usage</h4>
 
-    <br>
-
-    Search by choosing searchfield and then enter a value. Choose if
-    what you are searching for is enabled, disabled or both. Enter the
-    number of days back in time (0 being today) you want to limit your
-    search to.
+    <p>Search by choosing searchfield and then enter a value. Choose if what
+    you are searching for is enabled, disabled or both. Enter the number of
+    days back in time (0 being today) you want to limit your search to.</p>
 
     <ul>
-      <li>IP-format: Standard inet-values accepted (e.g. 129.241.xxx.xxx, 129.241.xxx.xxx/xx)</li>
-      <li>MAC-format: Hexadecimal values with no padding.</li>
+      <li>IP format: Standard inet-values accepted (e.g. 129.241.xxx.xxx, 129.241.xxx.xxx/xx)</li>
+      <li>MAC format: Hexadecimal values with no padding.</li>
       <li>Netbios, DNS and Orgid accept all characters and words.</li>
     </ul>
 
   </div>
-
-  <br>
-
-  $printSearch()
-
 #elif $action == 'showdetails'
   $printList($headertext, "", $list, $headersList, $headers, 1, 0)
   <h3>History</h3>
@@ -72,10 +66,12 @@ $printLinks($buttons,$buttonnames)
   $printAddreason($blockreasonheadersList, $blockreasonheaders, $blockreasons, $hits)
 
 #elif $action == 'history'
-  <form action='history' method='GET'>
-    <input type='text' name='days' size='3' value='$days'>days of history (based on lastchanged)
-  </form>
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
+
+  <form action="history" method="get">
+    <input type="text" name="days" size="3" value="$days" />days of history (based on lastchanged)
+    <button type="submit">Change</button>
+  </form>
 
 #elif $action == 'blockedports'
   #if $output
@@ -84,39 +80,33 @@ $printLinks($buttons,$buttonnames)
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
 #elif $action == 'manualblock'
+  $printManualblock($reasons)
+
   <div class='infobox'>
-    <h5>Usage:</h5>
+    <h4>Usage</h4>
 
-    <br>
-
-    Enter ip-address to block and choose reason for block. If you want
-    you can add a comment. Autoenable is the number of days until the port
-    will be automatically enabled. If not entered, the port will stay
-    blocked until manually opened.
-
+    <p>Enter IP address to block and choose reason for block. If you want you
+    can add a comment. Autoenable is the number of days until the port will be
+    automatically enabled. If not entered, the port will stay blocked until
+    manually opened.</p>
   </div>
-
-  
 
   #if $output
     <p class='red'>$output</p>
   #end if
-
-  <br>
-
-  $printManualblock($reasons)
-
 #elif $action == 'blocktypes'
-  <p><a href='addBlocktype'>Add new blocktype</a></p>
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
+  <p><a href='addBlocktype'>Add new blocktype</a></p>
 #elif $action == 'addBlocktype'
   $addBlocktype($blockreasons)
 
 #elif $action == 'printError'
-  <p>$error</p>
+  <p class="error">$error</p>
 
 #end if
+
+</div> ## tabcontent
 
 #end block
 
@@ -132,65 +122,74 @@ $printLinks($buttons,$buttonnames)
 
 ## Print the links in the $buttons-array
 ##################################################
-#def printLinks($buttons,$buttonnames)
+#def printMenu($buttons, $buttonnames, $action)
 ##################################################
 
-#set sep  = ''
+<div class="tabs">
+<ul>
 #for $button in $buttonnames
-  $sep <a href="$buttons[$button]">$button</a>
-#set $sep = " | "
+    #if $buttons[$button] == $action
+    <li class="tabactive"><a href="$buttons[$button]">$button</a></li>
+    #else
+    <li><a href="$buttons[$button]">$button</a></li>
+    #end if
 #end for
+</ul>
+</div>
 
 #end def
 
 
 ##################################################
-# Generic function that prints a table based on input
+## Generic function that prints a table based on input
 #def printList($headertext, $hitstext, $list, $headersList, $headers, $hits, $printHits)
 ##################################################
 
 
-#set $rowspan = $hits + 1
-#set $colspan = $len($headersList) + 1
-
-<table class="horiztable">
-
-    <caption>
-        <span class="cornerkludge"></span>
-        $headertext<br />
-#if $printHits
-        <span class="subtitle">$hits $hitstext</span>
-#end if
-    </caption>
+<table class="listtable">
+    <caption>$headertext</caption>
 
 ## HEADERS / ROW DESCRIPTIONS
 
-    <tr class="header">
-        <td class="leftkludge"></td>
+#if len($list)
+    <thead>
+        <tr>
 #for $entry in $headersList
-        <th>
-    #if $sort and $action == 'history'
-            <a href="$section?sort=$entry&days=$days" class="navbar" title="">$headers[$entry]</a>
-    #elif $sort
-            <a href="$section?sort=$entry" class="navbar" title="">$headers[$entry]</a>
-    #else
-            $headers[$entry]
-    #end if
-        </th>
+            <th>
+        #if $sort and $action == 'history'
+                <a href="$section?sort=$entry&days=$days" class="navbar" title="">$headers[$entry]</a>
+        #elif $sort
+                <a href="$section?sort=$entry" class="navbar" title="">$headers[$entry]</a>
+        #else
+                $headers[$entry]
+        #end if
+            </th>
 #end for
-        <td class="rightkludge"></td>
-    </tr>
+        </tr>
+    </thead>
 
 
 ## THE INFORMATION / TABLE
 
+    <tbody>
 #for $listitem in $list
-    <tr class="$rowcycler">
-    #for $entry in $headersList
-        <td class="$cellcycler">$listitem[$entry]</td>
-    #end for
-    </tr>
+        <tr class="$rowcycler">
+#for $entry in $headersList
+            <td class="$cellcycler">$listitem[$entry]</td>
 #end for
+        </tr>
+#end for
+    </tbody>
+
+#end if
+
+#if $printHits
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$hits $hitstext</th>
+        </tr>
+    </tbody>
+#end if
 </table>
 #end def
 
@@ -200,51 +199,56 @@ $printLinks($buttons,$buttonnames)
 ##################################################
 
 
-<form action="search" method="GET">
+<form action="search" method="get">
+<input type="hidden" name="action" value="dosearch" />
 
-<table border=0 cellpadding=0 cellspacing=4>
-  <tr>
-    <td>
-      <select name="searchfield">
-	#for $entry in $searchfields
-	  #if $entry == $searchfield
-          <option value="$entry" selected>$entry</option>
-          #else
-          <option value="$entry">$entry</option>
-          #end if
-	#end for
-      </select>
-      = <input type="text" name="searchtext" value='$searchtext' size="20">
-    </td>
-  </tr>
-
-  <tr>
-    <td>
-      #for $item in $statusfields
-        #if $item == $status
-          <input type='radio' name='status' value='$item' checked>$item
-        #else
-          <input type='radio' name='status' value='$item'>$item
-        #end if
-      #end for
-    </td>
-  </tr>
-
-  <tr>
-    <td>
-      From now and <input type='text' name='days' value='$days' size='4' maxsize='4'> days back
-    </td>
-  </tr>
-
-  <tr>
-    <td colspan='2'>
-      <input type="submit" value="Search">
-    </td>
-  </tr>
-
+<table class="vertitable">
+    <tr>
+        <th>
+<select name="searchfield">
+#for $entry in $searchfields
+    #if $entry == $searchfield
+    <option value="$entry" selected="selected">$entry</option>
+    #else
+    <option value="$entry">$entry</option>
+    #end if
+#end for
+</select>
+        </th>
+        <td>
+<input type="text" name="searchtext" value="$searchtext" size="20" />
+        </td>
+    </tr>
+    <tr>
+        <th>Status</th>
+        <td>
+<select name="status">
+#for $item in $statusfields
+    #if $item == $status
+    <option value="$item" selected="selected">$item</option>
+    #else
+    <option value="$item">$item</option>
+    #end if
+#end for
+</select>
+        </td>
+    </tr>
+    <tr>
+        <th>Date</th>
+        <td>
+<input type="text" name="days" value="$days" size="4" maxsize="4" />
+days back
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+<button type="submit">Search</button>
+        </td>
+    </tr>
 </table>
 
-<input type="hidden" name="action" value="dosearch">
+
 </form>
 
 #if $searchresults
@@ -259,15 +263,12 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 #def printAddreason ($blockreasonheadersList, $blockreasonheaders, $blockreasons, $hits)
 ##################################################
 
-
-  <form action='doaddblockreason' method='GET'>
-    <input type='text' name='blockreason' size='30'>
-    <input type='submit' value='Add reason'>
-  </form>
-
-
   $printList($headertext, $hitstext, $blockreasons, $blockreasonheadersList, $blockreasonheaders, $hits, 1)
 
+  <form action="doaddblockreason" method="get">
+    <input type="text" name="blockreason" size="30" />
+    <button type="submit">Add reason</button>
+  </form>
 
 #end def
 
@@ -275,37 +276,39 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 #def printManualblock($reasons)
 ##################################################
 
-<table>
+<form action="domanualblock" method="get">
 
-<form action='domanualblock' method='GET'>
-
-  <tr>
-    <td>IP-address to block</td>
-    <td>Reason</td>
-    <td>Comment</td>
-    <td>Autoenable</td>
-    <td>&nbsp;</td>
-  </tr>
-
-  <tr>
-    <td><input type='text' name='ipadresse'></td>
-
-    <td>
-      <select name='reason'>
-      #for $reason in $reasons
-        <option value='$reason['id']'>$reason['text']</option>
-      #end for
-      </select>
-    </td>
-
-    <td><input type='text' name='comment'></td>
-    <td><input type='text' name='autoenable' size='3'></td>
-    <td><input type='submit' value='Block'></td>
-  </tr>
+<table class="vertitable">
+    <tr>
+        <th>IP address to block</th>
+        <td><input type="text" name="ipadresse" /></td>
+    </tr>
+    <tr>
+        <th>Reason</th>
+        <td>
+            <select name="reason">
+            #for $reason in $reasons
+                <option value="$reason['id']">$reason['text']</option>
+            #end for
+            </select>
+            <a href="addreason">Add block reason</a>
+        </td>
+    </tr>
+    <tr>
+        <th>Comment</th>
+        <td><input type="text" name="comment" /></td>
+    </tr>
+    <tr>
+        <th>Autoenable in</th>
+        <td><input type="text" name="autoenable" size="3" /> days</td>
+    </tr>
+    <tr>
+        <th></th>
+        <td><button type="submit">Block</button></td>
+    </tr>
+</table>
 
 </form>
-
-</table>
 
 #end def
 
@@ -314,119 +317,120 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 #def addBlocktype($blockreasons)
 ##################################################
 
-<small>(Red fields indicates that a value must be entered)</small>
+<h3>Add blocktype</h3>
 
-<table border='0'>
+<form action="doaddblock" method="get">
 
-<form action='doaddblock' method='GET'>
-  <input type='hidden' name='blockid' value='$blockinfo['blockid']'>
+<table class="vertitable">
 
-  #if $blockinfo['blockid']
-  <tr>
-    <td>ID</td>
-    <td>$blockinfo['blockid']</td>
-  </tr>
-  #end if
-
-  <tr>
-    <td class='red'>Title</td>
-    <td><input class='blocktype' type='text' name='blocktitle' value='$blockinfo['blocktitle']'></td>
-  </tr>
-
-  <tr>
-    <td>Description</td>
-    <td><textarea class='blocktype' name='description'>$blockinfo['blockdesc']</textarea></td>
-  </tr>
-
-  <tr>
-    <td class='red'>Reason</td>
-    <td>
-      <select class='blocktype' name='reasonid'>
-	#if $blockinfo['reasonid'] == 0
-	  <option value='0' selected>--- Select reason ---</option>
-  	#end if
-
-        #for $element in $blockreasons
-	  #if $blockinfo['reasonid'] == $element['id']
-	    <option value='$element['id']' selected>$element['text']</option>
-	  #else
-	    <option value='$element['id']'>$element['text']</option>
-          #end if
-	#end for
-      </select>
-    </td>
-  </tr>
-
-  #if not $blockinfo['blockid']
-  <tr>
-    <td>&nbsp;</td>
-    <td>or <input class='blocktype2' type='text' name='newreason' value='-- Create new blockreason --'></td>
-  </tr>
-  #end if
-
-  <tr>
-    <td class='red'>Path to mailfile</td>
-    <td><input class='blocktype' type='text' name='mailfile' value='$blockinfo['mailfile']'></td>
-  </tr>
-
-  <tr>
-    <td>Path to inputfile</td>
-    <td><input class='blocktype' type='text' name='inputfile' value='$blockinfo['inputfile']'></td>
-  </tr>
-
-  <tr>
-    <td>Block pursuit</td>
-    <td>
-      #if $blockinfo['determined'] == 'y'
-        <input type='radio' name='pursuit' value='n'>Open on move
-        <input type='radio' name='pursuit' value='y' checked>All closed
-      #else
-        <input type='radio' name='pursuit' value='n' checked>Open on move
-        <input type='radio' name='pursuit' value='y'>All closed
-      #end if
-    </td>
-  </tr>
-
-  <tr>
-    <td>Exponential increase</td>
-    #if $blockinfo['incremental'] == 'y'
-      <td><input type='checkbox' name='eincrease' checked></td>
-    #else
-      <td><input type='checkbox' name='eincrease'></td>
+    #if $blockinfo['blockid']
+    <input type="hidden" name="blockid" value="$blockinfo['blockid']" />
+    <tr>
+        <th>ID</th>
+        <td>$blockinfo['blockid']</td>
+    </tr>
     #end if
-  </tr>
 
-  <tr>
-    <td class='red'>Block duration</td>
-    <td><input size='3' type='text' name='duration' value='$blockinfo['blocktime']'> days</td>
-  </tr>
+    <tr>
+        <th>Title *</th>
+        <td><input type="text" name="blocktitle" value="$blockinfo['blocktitle']" /></td>
+    </tr>
 
-  <tr>
-    <td>Active</td>
-    #if $blockinfo['active'] == 'y'
-      <td><input type='checkbox' name='active' checked></td>
-    #else
-      <td><input type='checkbox' name='active'></td>
+    <tr>
+        <th>Description</th>
+        <td><textarea cols="40" name="description">$blockinfo['blockdesc']</textarea></td>
+    </tr>
+
+    <tr>
+        <th>Reason *</th>
+        <td>
+<select name="reasonid">
+    #if $blockinfo['reasonid'] == 0
+    <option value="0" selected="selected">Select reason</option>
     #end if
-  </tr>
 
-  <tr>
-    <td>User</td>
-    <td><input type='text' name='user' value='$blockinfo['userid']' size='10'></td>
-  </tr>
+    #for $element in $blockreasons
+        #if $blockinfo['reasonid'] == $element['id']
+    <option value="$element['id']" selected="selected">$element['text']</option>
+        #else
+    <option value="$element['id']">$element['text']</option>
+        #end if
+    #end for
+</select>
+#if not $blockinfo['blockid']
+or <input type="text" name="newreason" value="-- Create new reason --" />
+#end if
+        </td>
+    </tr>
 
-  <tr>
-  #if $blockinfo['blockid']
-    <td><input type='submit' value='Save changes'></td>
-  #else 
-    <td><input type='submit' value='Make new block'></td>
-  #end if
-    <td>&nbsp;</td>
-  </tr>
+    <tr>
+        <th>Path to mailfile *</th>
+        <td><input type="text" name="mailfile" value="$blockinfo['mailfile']" /></td>
+    </tr>
+
+    <tr>
+        <th>Path to inputfile</th>
+        <td><input type="text" name="inputfile" value="$blockinfo['inputfile']" /></td>
+    </tr>
+
+    <tr>
+        <th>Block pursuit</th>
+        <td>
+#if $blockinfo['determined'] == 'y'
+<input type="radio" name="pursuit" value="n" /> Open on move
+<input type="radio" name="pursuit" value="y" checked="checked" /> All closed
+#else
+<input type="radio" name="pursuit" value="n" checked="checked" /> Open on move
+<input type="radio" name="pursuit" value="y" /> All closed
+#end if
+        </td>
+    </tr>
+
+    <tr>
+        <th>Exponential increase</th>
+        <td>
+#if $blockinfo['incremental'] == 'y'
+<input type="checkbox" name="eincrease" checked="checked" />
+#else
+<input type="checkbox" name="eincrease" />
+#end if
+        </td>
+    </tr>
+
+    <tr>
+        <th>Block duration *</th>
+        <td><input size="3" type="text" name="duration" value="$blockinfo['blocktime']" /> days</td>
+    </tr>
+
+    <tr>
+        <th>Active</th>
+        <td>
+#if $blockinfo['active'] == 'y'
+            <input type="checkbox" name="active" checked="checked" />
+#else
+            <input type="checkbox" name="active" />
+#end if
+        </td>
+    </tr>
+
+    <tr>
+        <th>User</th>
+        <td><input type="text" name="user" value="$blockinfo['userid']" size="10" /></td>
+    </tr>
+
+    <tr>
+        <th></th>
+        <td>
+#if $blockinfo['blockid']
+            <button type="submit">Save changes</button>
+#else
+            <button type="submit">Add blocktype</button>
+#end if
+        </td>
+    </tr>
+</table>
 
 </form>
-
-</table>
 
 #if $blockinfo['blockid']
   <p>Last changed $blockinfo['lastedited'] by $blockinfo['lastedituser']</p>
@@ -434,39 +438,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 #end def
 
-
-##################################################
 #def additionalCSS ()
-##################################################
-
-  $default_table_CSS()
-
-  #set $w = '300px'
-  #set $w2 = '278px'
-
-<style type="text/css">
-  input.blocktype    { width: $w;  }
-  input.blocktype2   { width: $w2; }
-  select.blocktype   { width: $w;  }
-  textarea.blocktype { width: $w;  }
-  td.red             { color:red;  }
-
-  p.red             { color: red; }
-
-  .infobox {
-    width: 800px;
-    font-size: 12px;
-    background-color: #eeeeee;
-    padding: 0.5em;
-    border: 1px solid #cccccc;
-    -moz-border-radius: 12px;
-  }
-
-  .infobox h5 {
-    display: inline;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    border-bottom: 1px solid rgb(51,102,153);
-  }
-</style>
+$default_tabs_CSS()
+$default_table_CSS()
 #end def

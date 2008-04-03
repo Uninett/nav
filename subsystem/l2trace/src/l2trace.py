@@ -1,7 +1,8 @@
-#
+#! /usr/bin/env python
 # $Id: machinetracker.py 3106 2005-01-20 10:47:13Z mortenv $
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,7 +22,9 @@
 #
 #
 # Authors: Kristian Eide <kreide@gmail.com>
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
+
 from __future__ import generators
 # Catch the test case where we import this module outside the
 # mod_python environment
@@ -38,68 +41,69 @@ from nav import db
 from nav.web.URI import URI
 from nav.web.templates.l2traceTemplate import l2traceTemplate
 
-connection = db.getConnection('webfront', 'manage')
-database = connection.cursor()
-
 def isGw(netboxid):
     if netboxid not in gwCache:
         isGw = False
         try:
-            database.execute("SELECT netboxid FROM netbox WHERE netboxid="+`netboxid`+" AND catid IN ('GW','GSW')")
-            d = database.fetchall()
+            database.execute("SELECT netboxid FROM netbox WHERE netboxid=%s AND catid IN ('GW','GSW')", (netboxid,))
+            d = database.dictfetchall()
             isGw = len(d) > 0
-        except:
-            pass
+        except db.driver.ProgrammingError:
+            connection.rollback()
         gwCache[netboxid] = isGw
     return gwCache[netboxid]
 
 def getIpSysname(netboxid):
-    database.execute("SELECT ip, sysname FROM netbox WHERE netboxid="+`netboxid`)
-    d = database.fetchall()
-    return d[0][0], d[0][1]
+    database.execute("SELECT ip, sysname FROM netbox WHERE netboxid=%s", (netboxid,))
+    r = database.dictfetchall()[0]
+    return r['ip'], r['sysname']
 
 def getNetboxidVlan(sysname):
-    database.execute("SELECT netboxid, vlan.vlan, swport.swportid FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) LEFT JOIN module USING(netboxid) LEFT JOIN swport USING(moduleid) LEFT JOIN swportvlan ON (swport.swportid=swportvlan.swportid AND direction='o') WHERE sysname LIKE '%"+sysname+"%' OR ip::varchar LIKE '%"+sysname+"%' ORDER BY length(sysname) LIMIT 1")
-    d = database.fetchall()
+    database.execute("SELECT netboxid, vlan.vlan, swport.swportid FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) LEFT JOIN module USING(netboxid) LEFT JOIN swport USING(moduleid) LEFT JOIN swportvlan ON (swport.swportid=swportvlan.swportid AND direction='o') WHERE sysname LIKE %s OR ip::varchar LIKE %s ORDER BY length(sysname) LIMIT 1", ("%"+sysname+"%",)*2)
+    d = database.dictfetchall()
     if len(d) > 0:
         baseNetboxid = None
         baseVlan = None
         mp = MP()
         # Special case for netboxes without uplink (servers)
-        netboxid = d[0][0]
-        vlan = d[0][1]
-        if not d[0][2]:
-            database.execute("SELECT netboxid, vlan.vlan, ifindex, module, port FROM swport JOIN module USING(moduleid) JOIN netbox USING(netboxid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE to_netboxid='"+str(netboxid)+"' LIMIT 1")
-            d = database.fetchall()
+        r = d[0]
+        netboxid = r['netboxid']
+        vlan = r['vlan']
+        if not r['swportid']:
+            database.execute("SELECT netboxid, vlan.vlan, ifindex, module, port FROM swport JOIN module USING(moduleid) JOIN netbox USING(netboxid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE to_netboxid=%s LIMIT 1", (netboxid,))
+            d = database.dictfetchall()
             if len(d) > 0:
+                r = d[0]
                 baseNetboxid = netboxid
                 baseVlan = vlan
-                netboxid = d[0][0]
-                vlan = d[0][1]
-                mp = MP(d[0][2], d[0][3], d[0][4])                
-            
+                netboxid = r['netboxid']
+                vlan = r['vlan']
+                mp = MP(r['ifindex'], r['module'], r['port'], r['interface'])
+
         return netboxid, vlan, baseNetboxid, baseVlan, mp
 
     # Try to lookup vlan for host
     vlan = ''
     ip = lookupIp(sysname)
     if ip:
-        database.execute("SELECT vlan FROM prefix JOIN vlan USING(vlanid) WHERE '"+ip+"' << netaddr")
-        d = database.fetchall()
+        database.execute("SELECT vlan FROM prefix JOIN vlan USING(vlanid) WHERE %s << netaddr", (ip,))
+        d = database.dictfetchall()
         if len(d) > 0:
-            vlan = d[0][0]
-    
+            vlan = d[0]['vlan']
+
     return None, vlan, None, None, MP()
 
 def getBoxForHost(ip):
     # Find match in arp/cam
     try:
-        database.execute("select cam.netboxid,cam.ifindex,module.module,swport.port,vlan.vlan from arp join cam using(mac) join swport on (moduleid in (select moduleid from module where module.netboxid=cam.netboxid) and swport.ifindex=cam.ifindex) JOIN module USING(moduleid) join swportvlan using(swportid) join vlan using(vlanid) where ip='" + ip + "' and cam.end_time='infinity' and arp.end_time='infinity' LIMIT 1")
-        d = database.fetchall()
+        database.execute("select cam.netboxid,cam.ifindex,module.module,swport.port,swport.interface,vlan.vlan from arp join cam using(mac) join swport on (moduleid in (select moduleid from module where module.netboxid=cam.netboxid) and swport.ifindex=cam.ifindex) JOIN module USING(moduleid) join swportvlan using(swportid) join vlan using(vlanid) where ip=%s and cam.end_time='infinity' and arp.end_time='infinity' LIMIT 1", (ip,))
+        d = database.dictfetchall()
         if len(d) > 0:
-            return d[0][0], MP(d[0][1], d[0][2], d[0][3]), d[0][4]
-    except:
-        pass
+            r = d[0]
+            return r['netboxid'], MP(r['ifindex'], r['module'], r['port'],
+                                     r['interface']), r['vlan']
+    except db.driver.ProgrammingError:
+        connection.rollback()
     return None, None, None
 
 def getPathToGw(netboxid, mpIn, vlan, trunk, gwId, path):
@@ -112,24 +116,26 @@ def getPathToGw(netboxid, mpIn, vlan, trunk, gwId, path):
     if netboxid == gwId:
         path.append([netboxid, vlanS, mpIn, MP(), 2])
         return True
-    
+
     # Fetch uplink
-    database.execute("SELECT a.to_netboxid, a.ifindex, moda.module, a.port, a.trunk, b.ifindex AS to_ifindex, modb.module AS to_module, b.port AS to_port FROM module moda JOIN swport a USING(moduleid) JOIN swportvlan USING (swportid) JOIN vlan USING(vlanid) JOIN swport b ON (a.to_swportid = b.swportid) JOIN module modb ON (b.moduleid=modb.moduleid) WHERE moda.netboxid="+`netboxid`+" AND vlan.vlan="+`vlan`+" AND direction='o' LIMIT 1")
-    d = database.fetchall()
+    database.execute("SELECT a.to_netboxid, a.ifindex, moda.module, a.port, a.interface, a.trunk, b.ifindex AS to_ifindex, modb.module AS to_module, b.port AS to_port, b.interface AS to_interface FROM module moda JOIN swport a USING(moduleid) JOIN swportvlan USING (swportid) JOIN vlan USING(vlanid) JOIN swport b ON (a.to_swportid = b.swportid) JOIN module modb ON (b.moduleid=modb.moduleid) WHERE moda.netboxid=%s AND vlan.vlan=%s AND direction='o' LIMIT 1", (netboxid, vlan))
+    d = database.dictfetchall()
     if len(d) == 0:
         #print "Error, " + getSysname(netboxid) + "("+`netboxid`+") has no uplink on vlan " + `vlan` + ", aborting."
         path.append([netboxid, vlanS, mpIn, MP(), 2])
         return False
-    if d[0][4] == 1:
+    r = d[0]
+    if r['trunk'] == 1:
         trunk = True
     else:
         trunk = False
-        
-    mpOut = MP(d[0][1], d[0][2], d[0][3])
+
+    mpOut = MP(r['ifindex'], r['module'], r['port'], r['interface'])
     path.append([netboxid, vlanS, mpIn, mpOut, 2])
-    
-    mpNextIn = MP(d[0][5], d[0][6], d[0][7])
-    return getPathToGw(d[0][0], mpNextIn, vlan, trunk, gwId, path)
+
+    mpNextIn = MP(r['to_ifindex'], r['to_module'], r['to_port'],
+                  r['to_interface'])
+    return getPathToGw(r['to_netboxid'], mpNextIn, vlan, trunk, gwId, path)
 
 def getPath(host):
     path = []
@@ -148,11 +154,11 @@ def getPath(host):
     foundGw = False
     if id:
         # Find correct netboxid for GW
-        database.execute("SELECT module.netboxid FROM vlan JOIN prefix USING(vlanid) JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) JOIN gwport USING(gwportid) JOIN module USING(moduleid) WHERE vlan=" + str(vlan));
-        d = database.fetchall()
+        database.execute("SELECT module.netboxid FROM vlan JOIN prefix USING(vlanid) JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) JOIN gwport USING(gwportid) JOIN module USING(moduleid) WHERE vlan=%s", (vlan,))
+        d = database.dictfetchall()
         gwId = None
         if len(d) > 0:
-            gwId = d[0][0]
+            gwId = d[0]['netboxid']
         foundGw = getPathToGw(id, mpOut, vlan, False, gwId, path)
 
     if not foundGw:
@@ -160,15 +166,15 @@ def getPath(host):
         # Didn't find GW, look up gw for this vlan
         d = []
         try:
-            database.execute("SELECT netboxid, vlan FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE '"+ip+"' << netaddr ORDER BY gwip")
-            d = database.fetchall()
-        except:
-            pass
+            database.execute("SELECT netboxid, vlan FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE %s << netaddr ORDER BY gwip", (ip,))
+            d = database.dictfetchall()
+        except db.driver.ProgrammingError:
+            connection.rollback()
         if len(d) > 0:
-            path.append([d[0][0], str(d[0][1]), MP(), MP(), 2])
+            path.append([d[0]['netboxid'], str(d[0]['vlan']), MP(), MP(), 2])
         else:
             path.append(['Host not active', 'error'])
-        
+
     return path
 
 def handler(req):
@@ -178,9 +184,14 @@ def handler(req):
     gwCache = {}
     global ipCache
     ipCache = {}
-    
-    args = URI(req.unparsed_uri) 
-    
+
+    global connection
+    connection = db.getConnection('webfront', 'manage')
+    global database
+    database = connection.cursor()
+
+    args = URI(req.unparsed_uri)
+
     page = l2traceTemplate()
     page.l2tracer = None
     page.form = l2traceForm(args.get("host_from"), args.get("host_to"))
@@ -196,10 +207,11 @@ def handler(req):
     return apache.OK
 
 class MP:
-    def __init__(self, ifindex='', module='', port=''):
+    def __init__(self, ifindex='', module='', port='', interface=''):
         self.ifindex = ifindex
         self.module = module
         self.port = port
+        self.interface = interface
 
 class ResultRow:
 
@@ -225,11 +237,11 @@ class ResultRow:
         self.ifindexIn = mpIn.ifindex
         self.ifindexOut = mpOut.ifindex
         self.portIn = str(mpIn.module)
-        if mpIn.port:
-            self.portIn += '/' + str(mpIn.port)
+        if mpIn.interface or mpIn.port:
+            self.portIn += '/' + str(mpIn.interface or mpIn.port)
         self.portOut = str(mpOut.module)
-        if mpOut.port:
-            self.portOut += '/' + str(mpOut.port)
+        if mpOut.interface or mpOut.port:
+            self.portOut += '/' + str(mpIn.interface or mpOut.port)
 
 class l2traceQuery:
     row_idx=0
@@ -253,7 +265,7 @@ class l2traceQuery:
         if self.host_from:
             self.path = getPath(self.host_from)
             if self.host_to:
-                self.path.append(-1)            
+                self.path.append(-1)
 
         to_path = None
         if self.host_to:
@@ -264,9 +276,9 @@ class l2traceQuery:
             ip_from = lookupIp(self.host_from)
             ip_to = lookupIp(self.host_to)
             if ip_from and ip_to:
-                database.execute("SELECT COUNT(prefixid) FROM prefix WHERE '"+ip_from+"' << netaddr OR '"+ip_to+"' << netaddr GROUP BY prefixid")
-                d = database.fetchall()
-                if d[0][0] == 1:
+                database.execute("SELECT COUNT(prefixid) FROM prefix WHERE %s << netaddr OR %s << netaddr GROUP BY prefixid", (ip_from, ip_to))
+                r = database.dictfetchall()[0]
+                if r['count'] == 1:
                     # Same vlan, find first matching box in both lists and remove everything above
                     l1 = []
                     break_outer = False
@@ -289,7 +301,7 @@ class l2traceQuery:
                             l2.append(b2)
                         if break_outer:
                             break
-                    
+
 
         if to_path:
             for x in self.reverse_path_list(to_path):
@@ -306,7 +318,7 @@ class l2traceQuery:
                 netboxid, vlan, mpIn, mpOut, level = row
                 ip, sysname = getIpSysname(netboxid)
                 yield ResultRow(self.row_idx, level, netboxid, ip, sysname, mpIn, mpOut, vlan)
-                
+
     def getTable(self):
         self.trace()
         return [row for row in self.getRows()]

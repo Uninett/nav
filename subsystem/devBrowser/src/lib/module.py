@@ -1,5 +1,7 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,47 +22,70 @@
 #
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland <stain@itea.ntnu.no>
-# 
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+#
 
 """Presentation logic for switchport modules.
 Displays the module as a stack of ports, include simple port information
 (duplex, speed) in CSS style and for mouse hovering.
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 from nav.db import manage
 from nav.web import urlbuilder
 from nav import util
 import forgetHTML as html
 #import warnings
+from sets import Set
+from datetime import datetime, timedelta
 
 # Color range for port activity tab
-color_recent = (0, 175, 0)
-color_longago = (208, 255, 208)
+color_recent = (116, 196, 118)
+color_longago = (229, 245, 224)
 
-# Active result set cache
+# Active result set cache. Will live as long as the Apache child.
 active_cache = {}
 
 def process(request):
-    # PYTHON IMPORTS ZUCZ=RZZZ!!
     import netbox
     netbox = netbox.findNetboxes(request['hostname'])
     if len(netbox) > 1:
         return
     netbox=netbox[0]
     module = findModule(netbox, request['module'])
-    request['templatePath'].append((str(netbox), 
+    request['templatePath'].append((str(netbox),
                                     urlbuilder.createUrl(netbox)))
     request['templatePath'].append(('Module %s' % module.module, None))
     result = html.Division()
-    result.append("Module %s, netbox %s" % 
-                   (module.module,
-                   urlbuilder.createLink(module.netbox)))
-    result.append(showModuleLegend())                
+    header = html.Header("Module %s at %s" %
+                         (module.module,
+                         urlbuilder.createLink(module.netbox)), level=2)
+    result.append(header)
+
+    perspectives = []
+    if netbox.cat.catid in ('GSW', 'SW', 'EDGE'):
+        perspectives.append(('Switch port status', 'standard'))
+        perspectives.append(('Switch port activity', 'active'))
+    if netbox.cat.catid in ('GW', 'GSW'):
+        perspectives.append(('Router port status', 'gwstandard'))
+
+    legends = []
+    for header, perspective in perspectives:
+        legends.append(perspective)
+    result.append(showModuleLegend(legends))
+
     moduleInfo = ModuleInfo(module)
-    result.append(moduleInfo.showModule())               
-    return result               
-    
+    for header, perspective in perspectives:
+        module = moduleInfo.showModule(perspective)
+        if module:
+            result.append(html.Header(header, level=3))
+            result.append(module)
+
+    return result
+
 def findModule(netbox, moduleName):
     moduleName = moduleName.replace("module", "")
     try:
@@ -97,7 +122,7 @@ class ModuleInfo(manage.Module):
                 portView['class'] += ' Mb%d' % port.speed
                 title = '%d Mbit' % port.speed
                 if port.to_netbox:
-                    title +=' -> %s' % port.to_netbox
+                    title += ' -> %s' % port.to_netbox
                 titles.append(title)
             if type == 'sw':
                 if port.link == 'd':
@@ -109,7 +134,8 @@ class ModuleInfo(manage.Module):
                 if port.trunk:
                     portView['class'] += ' trunk'
                     titles.append("trunk")
-                portView['class'] += ' %sduplex' % port.duplex
+                if port.duplex:
+                    portView['class'] += ' %sduplex' % port.duplex
                 if port.duplex == 'h':
                     titles.append("half duplex")
                 elif port.duplex == 'f':
@@ -128,8 +154,8 @@ class ModuleInfo(manage.Module):
                     vlans = [str(block.vlan) for block in blocked]
                     titles.append("blocked " + ','.join(vlans))
             if type == 'gw':
-                for item in port._values.items():
-                    titles.append("%s %s" % item)
+                if port.portname:
+                    titles.append(port.portname)
             return titles
 
         def perspectiveActive(port, portView):
@@ -160,7 +186,6 @@ class ModuleInfo(manage.Module):
                 portView['class'] +=  ' active link'
             if portView['class'].count('active') == 0:
                 titles.append('free')
-                portView['style'] = 'background-color: white;'
                 portView['class'] +=  ' inactive'
             return titles
 
@@ -170,10 +195,24 @@ class ModuleInfo(manage.Module):
             ifindex => days since last CAM entry
             """
 
-            # Cache result set. Reduces page response time by about 75%.
+            # XXX: This is a hack, but caching of this result set reduces page
+            # response time by about 75%
             global active_cache
-            if len(active_cache) > 0:
-                return active_cache
+
+            # Remove expired cache entries
+            # Removing items during iteration causes a RuntimeError, so this
+            # has to be done in two steps.
+            expired = []
+            for key, value in active_cache.iteritems():
+                if value['expires_at'] < datetime.now():
+                    expired.append(key)
+            for key in expired:
+                del active_cache[key]
+
+            # If cached, get result from cache
+            cache_key = (self.netbox.netboxid, interval)
+            if cache_key in active_cache:
+                return active_cache[cache_key]['result']
 
             sql = \
                 """
@@ -189,29 +228,80 @@ class ModuleInfo(manage.Module):
                 ORDER BY ifindex"""
             cursor = self.cursor()
             cursor.execute(sql, (interval, self.netbox.netboxid,))
-            active_cache = dict(cursor.fetchall())
-            return active_cache
+            active_cache[cache_key] = {
+                'result': dict(cursor.fetchall()),
+                'expires_at': datetime.now() + timedelta(seconds=60),
+            }
+            return active_cache[cache_key]['result']
 
-        ports = self.getChildren(manage.Swport, orderBy=('port'))
-        if not ports:
+        def sortPortsByInterfaceName(ports):
+            """Do natural sort of ports by interface name"""
+
+            import nav.natsort
+
+            map = {}
+            list = []
+            rest = []
+            for port in ports:
+                if port.interface is not None:
+                    map[port.interface] = port
+                    list.append(port.interface)
+                else:
+                    rest.append(port)
+            list.sort(nav.natsort.inatcmp)
+            result = []
+            for port in list:
+                result.append(map[port])
+            result.extend(rest)
+            return result
+
+        def filterInterfaceName(name):
+            """Filter interface names from ifDescr to ifName style"""
+
+            filters = (
+                ('Vlan', 'Vl'),
+                ('TenGigabitEthernet', 'Te'),
+                ('GigabitEthernet', 'Gi'),
+                ('FastEthernet', 'Fa'),
+                ('Ethernet', 'Et'),
+                ('Loopback', 'Lo'),
+                ('Tunnel', 'Tun'),
+                ('Serial', 'Se'),
+                ('Dialer', 'Di'),
+                ('-802.1Q vLAN subif', ''),
+                ('-ISL vLAN subif', ''),
+                ('-aal5 layer', ''),
+            )
+
+            for old, new in filters:
+                name = str(name).replace(old, new)
+            return name
+
+        if perspective.startswith('gw'):
+            ports = self.getChildren(manage.Gwport, orderBy=('interface'))
             type = "gw"
         else:
+            ports = self.getChildren(manage.Swport, orderBy=('interface'))
             type = "sw"
-        #ports += self.getChildren(manage.Gwport)
 
         if not ports:
             return None
 
+        ports = sortPortsByInterfaceName(ports)
         moduleView = html.Division(_class="module")
         if type == "gw":
             moduleView['class'] += ' gw'
-        moduleView.append(html.Header(str(self.module), level=3))
+        moduleView.append(html.Header(
+            urlbuilder.createLink(self, content=self.module),
+            level=3))
+
         # calc width
         width = findDisplayWidth(ports)
         count = 0
         portTable = html.Table()
         moduleView.append(portTable)
         row = html.TableRow()
+
         if perspective == 'active':
             active = getActive()
             gradient = util.color_gradient(color_recent, color_longago,
@@ -222,20 +312,15 @@ class ModuleInfo(manage.Module):
                 portTable.append(row)
                 row = html.TableRow()
             count += 1
-            if type=="gw":
-                if port.masterindex:
-                    portNr = "%s-%s" % (port.masterindex, port.ifindex)
-                else:
-                    portNr = port.ifindex
+            if type == 'gw':
+                portNr = port.interface
             else:
-                # Hmmmmmm what's the difference between these?
-                # portNr = (port.ifindex is not None and port.ifindex) or port.port
-                portNr = port.port
-                if not portNr:
-                    # warnings.warn("Unknown portNr for %s" % port)
-                    continue
+                portNr = port.interface or port.port or port.ifindex
+
+            portNr = filterInterfaceName(portNr)
             portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")
             row.append(portView)
+
             portView['title'] = ""
             if perspective == 'active':
                 titles = perspectiveActive(port, portView)
@@ -252,42 +337,72 @@ class ModuleInfo(manage.Module):
         return moduleView
 
 def showModuleLegend(perspective='standard', interval=30):
-    legend = html.Division(_class="legend")
+    result = html.Division(_class="legend")
+    legendtable = html.Table()
+
     def mkLegend(name, descr, style=None):
         port = html.Span("11")
         port['class'] = "port %s" % name
         if style:
             port['style'] = style
-        legend.append(port)
-        legend.append("&nbsp;")
-        legend.append(descr)
-        legend.append("&nbsp;&nbsp;")
-    def legendStandard():
-        legend.append(html.Header("Color legend", level=3))
-        mkLegend("passive", "Not active")
-        mkLegend("disabled", "Disabled")
-        mkLegend("Mb10", "10 Mbit")
-        mkLegend("Mb100", "100 Mbit")
-        mkLegend("Mb1000", "1 Gbit")
-        mkLegend("Mb10000", "10 Gbit")
-        legend.append(html.Header("Frame legend", level=3))
-        mkLegend("hduplex", "Half duplex")
-        mkLegend("fduplex", "Full duplex")
-        mkLegend("trunk", "Trunk")
-        mkLegend("blocked", "Blocked")
+        legenditem = html.TableCell()
+        legenditem.append(port)
+        legenditem.append(descr)
+        return legenditem
+
+    def legendSpeed():
+        legend = html.TableRow()
+        legend.append(html.TableCell(html.Big("Speed legend")))
+        legend.append(mkLegend("passive", "Not active"))
+        legend.append(mkLegend("disabled", "Disabled"))
+        legend.append(mkLegend("Mb10", "10 Mbit"))
+        legend.append(mkLegend("Mb100", "100 Mbit"))
+        legend.append(mkLegend("Mb1000", "1 Gbit"))
+        legend.append(mkLegend("Mb10000", "10 Gbit"))
+        legendtable.append(legend)
+
+    def legendFrame():
+        legend = html.TableRow()
+        legend.append(html.TableCell(html.Big("Frame legend")))
+        legend.append(mkLegend("hduplex", "Half duplex"))
+        legend.append(mkLegend("fduplex", "Full duplex"))
+        legend.append(mkLegend("trunk", "Trunk"))
+        legend.append(mkLegend("blocked", "Blocked"))
+        legend.append(html.TableCell())
+        legend.append(html.TableCell())
+        legendtable.append(legend)
+
     def legendActive():
-        legend.append(html.Header("Legend", level=3))
-        mkLegend("inactive", "Not used in %d days" % interval)
-        mkLegend("active", "Used %d days ago" % interval,
-                 "background-color: #%s" % util.colortohex(color_longago))
-        mkLegend("active", "Used today",
-                 "background-color: #%s" % util.colortohex(color_recent))
-        mkLegend("active link", "Active now",
-                 "background-color: #%s" % util.colortohex(color_recent))
-    if perspective == 'active':
-        legendActive()
-    else:
-        legendStandard()
-    legend.append(html.Break())
-    legend.append(html.Paragraph(html.Emphasis("Hold mouse over port for info, click for details")))
-    return legend
+        legend = html.TableRow()
+        legend.append(html.TableCell(html.Big("Activity legend")))
+        legend.append(mkLegend("inactive", "Not used in %d days" % interval))
+        legend.append(mkLegend("active", "Used last %d days" % interval,
+            "background-color: #%s" % util.colortohex(color_longago)))
+        legend.append(mkLegend("active", "Used today",
+            "background-color: #%s" % util.colortohex(color_recent)))
+        legend.append(mkLegend("active link", "Active now",
+            "background-color: #%s" % util.colortohex(color_recent)))
+        legend.append(html.TableCell())
+        legend.append(html.TableCell())
+        legendtable.append(legend)
+
+    if not type(perspective) is list:
+        perspective = [perspective]
+
+    legends = Set()
+    if 'gwstandard' in perspective:
+        legends.add((1, legendSpeed))
+    if 'standard' in perspective:
+        legends.add((1, legendSpeed))
+        legends.add((2, legendFrame))
+    if 'active' in perspective:
+        legends.add((3, legendActive))
+
+    legends = list(legends)
+    legends.sort()
+    for order, legend in legends:
+        legend()
+
+    result.append(html.Division(legendtable))
+    result.append(html.Paragraph(html.Emphasis("Hold mouse over port for info, click for details")))
+    return result

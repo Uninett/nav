@@ -42,20 +42,17 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-import atexit
 import ConfigParser # parts require Python >= 2.3
-import email
 import getopt
 import logging # require Python >= 2.3
 import logging.handlers # require Python >= 2.3
 import os
 import os.path
 import pwd
-import smtplib
+import signal
 import socket
 import sys
 import time
-import signal
 
 import nav.config
 import nav.daemon
@@ -245,7 +242,10 @@ def main(args):
     # Exit nicely
     sys.exit(0)
 
-def signalhandler(signum, frame):
+
+### HELPER FUNCTIONS
+
+def signalhandler(signum, _):
     """
     Signal handler to close and reopen log file(s) on HUP.
     """
@@ -253,8 +253,6 @@ def signalhandler(signum, frame):
         logger.info("SIGHUP received; reopening log files")
         nav.logs.reopen_log_files()
         logger.info("Log files reopened")
-
-### INIT FUNCTIONS
 
 def getconfig(defaults = None):
     """
@@ -283,11 +281,11 @@ def getconfig(defaults = None):
 
     return configdict
 
-def loginitfile(loglevel, logfile):
+def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""
 
     try:
-        filehandler = logging.FileHandler(logfile, 'a')
+        filehandler = logging.FileHandler(filename, 'a')
         fileformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         fileformatter = logging.Formatter(fileformat)
         filehandler.setFormatter(fileformatter)
@@ -359,6 +357,7 @@ def setdelay(sec):
     else:
         logger.warning("Given delay not a digit. Using default.")
         return False
+
 
 ### BEGIN
 if __name__ == '__main__':

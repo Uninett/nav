@@ -1,7 +1,7 @@
 /*
  *
  * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.2 to the current trunk revision.  Please update this with every
+ * version 3.3 to the current trunk revision.  Please update this with every
  * change you make to the database initialization scripts.  It will eventually
  * become the update script for the next release.
  *
@@ -15,25 +15,37 @@
  *
 */
 
--- Close invalid moduleState states in alerthist.
-UPDATE alerthist SET end_time=now()
-WHERE eventtypeid = 'moduleState' 
-  AND subid IS NOT NULL
-  AND subid NOT IN (SELECT moduleid FROM module) 
-  AND end_time = 'infinity';
+-- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
+-- here for those who started out with clean 3.3.0 installs.
+-- NAV 3.3.1 also contained bug SF#1899431 in this rule, which has
+-- been fixed here, and should be applied when upgrading.
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
--- New rule to automatically close module related alert states when modules
--- are deleted.
-CREATE RULE close_alerthist_modules AS ON DELETE TO module
-  DO UPDATE alerthist SET end_time=NOW() 
-     WHERE eventtypeid='moduleState' 
-       AND end_time='infinity'
-       AND subid=OLD.moduleid;
+-- Replace the netboxid_null_upd_end_time trigger, which has been
+-- faulty the last six years.
+CREATE OR REPLACE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
+  'BEGIN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
+       new.end_time = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
 
--- Added constraint to prevent accidental duplicates in the alerttype table.
-ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE
-(eventtypeid, alerttype);
+-- Django needs a single column it can treat as primary key :-(
+ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
+ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
+ALTER TABLE maint_component ADD COLUMN id SERIAL;
+ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
+ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
 
--- Renamed eventengine source from deviceTracker to deviceManagement
-DELETE FROM subsystem WHERE name = 'deviceTracker';
-INSERT INTO subsystem (name) VALUES ('deviceManagement');
+-- Both old IP Device Center and new IP Device Info does lots of selects on cam
+-- with netboxid and ifindex in the where clause
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);

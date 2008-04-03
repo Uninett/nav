@@ -50,6 +50,11 @@ def _customizeTables():
     del Swp_netbox._sqlFields['to_netboxid']
     del Swport._sqlFields['to_netboxid']
     del Swport._sqlFields['to_swportid']
+    # And for gwport
+    Gwport._sqlFields['to_netbox'] = 'to_netboxid'
+    Gwport._sqlFields['to_swport'] = 'to_swportid'
+    del Gwport._sqlFields['to_netboxid']
+    del Gwport._sqlFields['to_swportid']
 
     # some nice descriptive fields
     Netbox._shortView = ('sysname',)

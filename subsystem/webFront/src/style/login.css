@@ -23,9 +23,9 @@
 
 body {
 	background: white;
-	color: #69c;
+	color: #2d5a86;
 	font-family: Verdana, Gill, Helvetica, Sans-serif;
-	font-size: 0.8em;
+	font-size: 12px;
 	text-align: center;
 }
 
@@ -40,5 +40,5 @@ p.message {
 }
 
 input.intext {
-	border: 1px solid #69c;
+	border: 1px solid #2d5a86;
 }

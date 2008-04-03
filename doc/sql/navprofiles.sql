@@ -834,7 +834,7 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vPServer/servlet/vPServer\\b');
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|messages|alertprofiles|machinetracker|browse|preferences|cricket)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
@@ -887,7 +887,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 14);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 14);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
-(15, 0, 'Sysname', 'netbox.netboxid', null, null, null, false, 
+(15, 0, 'Sysname', 'netbox.sysname', null, null, null, false, 
 'Sysname: Limit your alarms based on sysname.',
 'Sysname examples:<blockquote>
 <b>Starts with:</b> samson.<br>

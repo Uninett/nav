@@ -22,7 +22,9 @@ public class BoxState implements EventHandler, EventCallback
 
 	public String[] handleEventTypes()
 	{
-		return new String[] { "boxState", "moduleState", "linkState", "boxRestart" };
+		// FIXME: Temporarily disabled handling of linkState events, as it is broken
+		// The INFO plugin will dispatch the alerts, but no update of the swport table is done.
+		return new String[] { "boxState", "moduleState", "boxRestart" };
 	}
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)

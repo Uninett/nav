@@ -1,3 +1,27 @@
+Version 3.2.2
+(released 01 May 2007)
+
+ Bugfixes:
+
+  * SF#1550393 (Hardware version flipping back and forth on devices)
+  * SF#1588465 (moduleState quarantine does not work)
+  * SF#1669763 (Port numbers are wrong on CatOS switches)
+  * SF#1669975 (Cisco VLAN interfaces are not properly ignored as swports)
+  * SF#1675508 (getDeviceData produces OutOfMemoryErrors and freaks out)
+  * SF#1680004 (EditDB crashes when adding a room that already exists)
+  * SF#1681256 (t1000.pl refers to non-existant database fields)
+  * SF#1689137 (The OID tester ignores responses with empty strings)
+  * SF#1697527 (NAV daemons don't properly re-open log files on SIGHUP)
+  * SF#1699058 (The SMS daemon dies on temporary dispatcher failures)
+  * SF#1699068 (smsd/gammu doesn't see that SMS was successfully sent)
+  * SF#1702800 (The IP Device Center does not properly flag disabled ports)
+  * SF#1677074 (Router temperature over 300M degrees Celsius in Cricket)
+  * SF#1702860 (EditDB crashes when attempting to add a service)
+  * SF#1661395 (SMSD's BoostDispatcher crashes)
+  * SF#1704164 (Confusing label "Last seen on switch" in IP info center)
+
+ Also various other small improvements.
+
 Version 3.2.1
 (released 16 February 2007)
 

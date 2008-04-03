@@ -62,8 +62,8 @@ td.down {background: #eee}
 td.shadow {background: #f85}
 
 th.sortedBy {background: #8aa}
-th.sortedBy#ascending:after {content: url("/images/pilned.png")}
-th.sortedBy#descending:after {content: url("/images/pilopp.png")}
+th.sortedBy#ascending:after {content: url("/images/status/pilned.png")}
+th.sortedBy#descending:after {content: url("/images/status/pilopp.png")}
 
 tr.title    { vertical-align: baseline; font-size: 15; background-color: #ddddff;}
 </style>
@@ -101,7 +101,7 @@ $default_form_CSS()
 #end if
 #end for
             </select>
-        </p>                   
+        </p>
 ## Preserve the id when it is specified
 #if $bar.selid
         <input type="hidden" name="$bar.idCname" value="$bar.selid">
@@ -125,46 +125,45 @@ $default_form_CSS()
 #def listSectionRows($SectionBox)
 <tr><td>
 
-<table class="horiztable" style="width: 100%;">
+<table class="listtable" style="width: 100%;">
     <caption id="$SectionBox.controlBaseName">
-        <span class="cornerkludge"></span>
         $SectionBox.title
     </caption>
 
-    <tr class="header">
-        <td class="leftkludge"></td>
+    <thead>
+        <tr>
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-        <th><a href="$url.replace('&', '&amp;')">$heading</a></th>
+            <th><a href="$url.replace('&', '&amp;')">$heading</a></th>
 #else
-        <th>$heading</th>
+            <th>$heading</th>
 #end if
 #end for
-        <td class="rightkludge"></td>
-    </tr>
+        </tr>
+    </thead>
 
+    <tbody>
 #for $row in $SectionBox.rows
-    <tr class="$rowcycler">
-        <td style="background: white;"></td>
+        <tr class="$rowcycler">
 ## $row[0] is sort data
 #set $row = row[1]
 #for $data, $url, $image, $style in $row
-        <td class="$style">
+            <td class="$style">
 #if $url
-            <a href="$url.replace('&', '&amp;')">
+                <a href="$url.replace('&', '&amp;')">
 #end if
 #if $image
-            <img border="0" title="$image[1]" src="$image[0]" />
+                <img border="0" title="$image[1]" src="$image[0]" />
 #end if
-            $data
+                $data
 #if $url
-            </a>
+                </a>
 #end if
-        </td>
+            </td>
 #end for
-        <td style="background: white;"></td>
-    </tr>
+        </tr>
 #end for
+    </tbody>
 </table>
 
 </td></tr>
@@ -175,56 +174,61 @@ $default_form_CSS()
 #set $colscount = len($SectionBox.headings)
 <tr><td>
 
-<table id="$SectionBox.controlBaseName" class="horiztable" style="width: 100%;">
+<table id="$SectionBox.controlBaseName" class="listtable" style="width: 100%;">
 
     <caption>
-        <span class="cornerkludge"></span>
         $SectionBox.title
     #for $url, $text in $SectionBox.historyLink
         (<a href="$url.replace('&', '&amp;')">$text</a>)
     #end for
-        <br />
-        <span class="subtitle">$SectionBox.summary</span>
     </caption>
 
-    <tr class="header">
-        <td class="leftkludge"></td>
+#if len($SectionBox.rows)
+    <thead>
+        <tr>
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-        <th><a href="$url.replace('&', '&amp;')">$heading</a></th>
+            <th><a href="$url.replace('&', '&amp;')">$heading</a></th>
 #else
-        <th>$heading</th>
+            <th>$heading</th>
 #end if
 #end for
-        <td class="rightkludge"></td>
-    </tr>
+        </tr>
+    </thead>
 
+    <tbody>
 #for $row in $SectionBox.rows
 ## $row[0] is data for sorting
 #set $row = $row[1]
-    <tr class="$rowcycler">
-        <td style="background: white;"></td>
+        <tr class="$rowcycler">
 #for $col in $row
 #set $data = $col[0]
 #set $url = $col[1]
 #set $image = $col[2]
 #set $style = $col[3]
-        <td class="$style">
+            <td class="$style">
 #if $url
-            <a href="$url.replace('&', '&amp;')">
+                <a href="$url.replace('&', '&amp;')">
 #end if
 #if $image
-            <img title="$image[1]" alt="$image[1]" src="$image[0]" />
+                <img title="$image[1]" alt="$image[1]" src="$image[0]" />
 #end if
-            $data
+                $data
 #if $url
-            </a>
+                </a>
 #end if
-        </td>
+            </td>
 #end for
-        <td style="background: white;"></td>
-    </tr>
+        </tr>
 #end for
+    </tbody>
+#end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$SectionBox.summary</th>
+        </tr>
+    </tbody>
 </table>
 
 </td></tr>
@@ -233,15 +237,13 @@ $default_form_CSS()
 ## This renders the preferences page
 #def displayPrefs($prefsPage)
 ## move this from template to StatusPrefs.py
-<p>
-Add, delete or rearrange sections on your status page.
-</p>
+<p>Add, delete or rearrange sections on your status page.</p>
 
 <form action="$prefsPage.formAction" method="post">
 
 <table class="header-inactive">
 <tr>
-<th style="width: 10px;">&nbsp;</th><th>Name</th><th>Filter</th>
+    <th style="width: 10px;">&nbsp;</th><th>Name</th><th>Filter</th>
 </tr>
 
 #for $editSection in $prefsPage.editSectionBoxes
@@ -250,80 +252,77 @@ $displayEditSectionBox($editSection,$prefsPage.radioButtonName)
 
 ## action bar
 <tr>
-<td colspan="3">
-<input type="submit" name="$prefsPage.actionBarUpName" value="Move selected section up">
-<input type="submit" name="$prefsPage.actionBarDelName" value="Delete selected section">
-</td>
+    <td colspan="3">
+        <input type="submit" name="$prefsPage.actionBarUpName" value="Move selected section up">
+        <input type="submit" name="$prefsPage.actionBarDelName" value="Delete selected section">
+    </td>
 </tr>
 
 </table>
 
 ## addbar
-    <p>
-        <h3>Add new section</h3>
-        <table>
-            <tr>
-                <td>$prefsPage.addBarTitle</td>
-                <td>
-                    <SELECT name="$prefsPage.addBarSelectName">
+<h3>Add new section</h3>
+
+<table>
+    <tr>
+        <td>$prefsPage.addBarTitle</td>
+        <td>
+            <SELECT name="$prefsPage.addBarSelectName">
 #for $value,$text in $prefsPage.addBarSelectOptions
-                    <OPTION value="$value">$text</OPTION>
+            <OPTION value="$value">$text</OPTION>
 #end for
-                    </SELECT>
-                </td>
-                <td><input type="submit" name="$prefsPage.addBarSubmitName" value="Add"></td>
-            </tr>
-            <tr>
-                <td colspan="3">
-                    <input type="submit" name="$prefsPage.addBarSaveName" value="Save">
-                </td>
-            </tr>
-        </table>
-    </p>
+            </SELECT>
+        </td>
+        <td><input type="submit" name="$prefsPage.addBarSubmitName" value="Add"></td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <input type="submit" name="$prefsPage.addBarSaveName" value="Save">
+        </td>
+    </tr>
+</table>
+
 #if $prefsPage.isAdmin
-    <p>
-        <h3>$prefsPage.adminHeader</h3>
-        <p>$prefsPage.adminHelp</p>
-        <p>
-        <input type="submit" name="$prefsPage.addBarSaveDefName" value="$prefsPage.adminButton">
-    </p>
+<h3>$prefsPage.adminHeader</h3>
+
+<p>$prefsPage.adminHelp</p>
+
+<p><input type="submit" name="$prefsPage.addBarSaveDefName" value="$prefsPage.adminButton"></p>
 #end if
+
 </form>
 #end def
 
 #def displayEditSectionBox($editSectionBox,$radioButtonName)
 <tr>
-<td class=header-active><input type="radio" name="$radioButtonName" value="$editSectionBox.controlBaseName"></td>
-<td class=header-active>$editSectionBox.name<br><input type="text" value="$editSectionBox.title" name="$editSectionBox.controlBaseName"></td>
-<td class=header-active>
-<table class=header-active cellpadding=5%>
-<tr>
+    <td class=header-active><input type="radio" name="$radioButtonName" value="$editSectionBox.controlBaseName"></td>
+    <td class=header-active>$editSectionBox.name<br><input type="text" value="$editSectionBox.title" name="$editSectionBox.controlBaseName"></td>
+    <td class=header-active>
+        <table class=header-active cellpadding=5%>
+            <tr>
 #for $heading in $editSectionBox.filterHeadings
-<th>$heading</th>
+                <th>$heading</th>
 #end for
-</tr>
+            </tr>
 
-<tr>
+            <tr>
 #for $select in $editSectionBox.filterSelects
-<td align="center"> 
+                <td align="center">
 #set $control = $select[0]
 #set $selects = $select[1]
-<select size=4 multiple name="$control">
+                    <select size=4 multiple name="$control">
 #for $value,$option,$selected in $selects
-
 #if $selected
-<option value="$value" selected>$option</option>
+                        <option value="$value" selected>$option</option>
 #else
-<option value="$value">$option</option>
+                        <option value="$value">$option</option>
 #end if
-
 #end for
-</select>
-</td>
+                    </select>
+                </td>
 #end for
-</tr>
-
-</table>
-</td>
+            </tr>
+        </table>
+    </td>
 </tr>
 #end def

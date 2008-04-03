@@ -27,30 +27,25 @@ table.header-active {
 	background-color: #ccf;
 	background-image: url('/images/form/fill-active.gif');
 	border: 1px solid #666;
-	font-size: 13px;
 }
 table.header-inactive {
 	background-color: #eee;
 	background-image: url('/images/form/fill-inactive.gif');
 	border: 1px solid #666;
-	font-size: 13px;
 }
 table.header-disabled {
 	background-color: #eee;
 	background-image: url('/images/form/fill-inactive.gif');
 	border: 1px solid #666;
-	font-size: 13px;
 }
 table.header-submit {
 	background-color: #ddf;
 	background-image: url('/images/form/fill-submit.gif');
 	border: 1px solid #666;
-	font-size: 13px;
 }
 table.header-white {
 	background-color: #fff;
 	border: 1px solid #666;
-	font-size: 13px;
 }
 
 td.header-active {

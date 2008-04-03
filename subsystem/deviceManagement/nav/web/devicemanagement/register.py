@@ -99,7 +99,7 @@ def register(req,path):
     page.menu = makeMainMenu(selected=2)
 
     page.name = 'register'
-    page.title = 'Register devices'
+    page.title = 'Register serial numbers'
     page.description = 'Create new devices by entering serialnumbers.'
     page.widgets = {}
     page.action = BASEPATH+'register/'

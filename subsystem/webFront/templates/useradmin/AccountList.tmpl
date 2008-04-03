@@ -3,6 +3,7 @@
 ## Builds html for the Account list screen of the useradmin module.
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2007 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -23,6 +24,7 @@
 ##
 ## Authors: Morten Vold <morten.vold@itea.ntnu.no>
 ##          Magnar Sveen <magnars@idi.ntnu.no>
+##          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
 
 #extends UserAdmin
@@ -39,28 +41,37 @@
 
 #block useradmin
 
-<table class="horiztable">
+<table class="listtable">
 #set $accountcount = len($accounts)
     <caption>
-        <span class="cornerkludge"></span>
         Account List<br />
-        <span class="subtitle">$accountcount accounts :
-        <a href="account">Create new user</a></span>
+        <span class="subtitle">$accountcount accounts</span>
     </caption>
 
-#set $rowcount = len($accounts) + 1
-    <tr class="header">
-        <td class="leftkludge" rowspan="$rowcount"></td>
-        <th>Login</th>
-        <th>Name</th>
-        <th>External</th>
-        <th style="text-align: center;"># of groups</th>
-        <td class="rightkludge" rowspan="$rowcount"></td>
-    </tr>
+#if $accountcount
+    <thead>
+        <tr>
+            <th>Login</th>
+            <th>Name</th>
+            <th>External</th>
+            <th># of groups</th>
+        </tr>
+    </thead>
 
+    <tbody>
 #for $account in $accounts
     $add_account($account)
 #end for
+    </tbody>
+#end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$accountcount accounts</th>
+        </tr>
+    </tbody>
 </table>
+
+<p><a href="account">Create new account</a></p>
 
 #end block useradmin

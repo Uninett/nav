@@ -1,5 +1,5 @@
 /*
- * $Id$ 
+ * $Id: DNSResolver.java 3807 2007-01-19 10:36:00Z mortenv $ 
  *
  * Copyright 2007 UNINETT AS
  * 
@@ -39,7 +39,7 @@ import no.ntnu.nav.logger.Log;
  * A class containing useful DNS resolving methods.
  * Written for getDeviceData's DNSCheck device-plugin.
  * 
- * @version $Id$
+ * @version $Id: DNSResolver.java 3807 2007-01-19 10:36:00Z mortenv $
  * @author Morten Brekkevold &lt;morten.brekkevold@uninett.no&gt;
  *
  */

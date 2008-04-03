@@ -237,6 +237,22 @@ def justme(pidfile):
         # No pidfile, assume we're alone
         return True
 
+def writepidfile(pidfile):
+    """
+    Creates or overwrites pidfile with the current process id.
+    """
+    # Write pidfile
+    pid = os.getpid()
+    try:
+        fd = file(pidfile, 'w+')
+    except IOError, error:
+        logger.debug("Cannot open pidfile %s for writing. Exiting. (%s)",
+         pidfile, error)
+        raise PidFileWriteError(pidfile, error)
+
+    fd.write("%d\n" % pid)
+    fd.close()
+    
 
 def daemonize(pidfile, stdout = '/dev/null', stderr = None,
  stdin = '/dev/null'):
@@ -303,16 +319,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
     pid = os.getpid()
     logger.debug("Daemon started with pid %d.", pid)
 
-    # Write pidfile
-    try:
-        fd = file(pidfile, 'w+')
-    except IOError, error:
-        logger.debug("Cannot open pidfile %s for writing. Exiting. (%s)",
-         pidfile, error)
-        raise PidFileWriteError(pidfile, error)
-
-    fd.write("%d\n" % pid)
-    fd.close()
+    writepidfile(pidfile)
 
     # Set cleanup function to be run at exit so pidfile always is removed
     atexit.register(daemonexit, pidfile)

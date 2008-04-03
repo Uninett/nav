@@ -1,7 +1,7 @@
 #encoding UTF-8
 ## $Id$
 ## Contains a template function for displaying a SearchBox object
-##  
+##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
 ##
 ## This file is part of Network Administration Visualized (NAV)
@@ -26,39 +26,41 @@
 
 #def searchbox($s)
 #if $s.form
-   <form name="$s.formCname" method="$s.method"><p>
+<form name="$s.formCname" method="$s.method"><p>
 #end if
-   <table title="$s.help" style="border: 1px solid #666; background-image:url('/images/form/fill-active.gif');">
-        <tr>
-            <th colspan="3" style="text-align: left;">
-                $s.title
-        </tr>
+<table title="$s.help">
+    <tr>
+        <th>$s.title</th>
+    </tr>
+    <tr>
+        <td>
+
+<p>
+    <select name="$s.typeCname">
+    #for $sid,$options in $s.searches.items()
+        #if $s.selected == $sid
+        <option value="$sid" selected="selected">$options[0]</option>
+        #else
+        <option value="$sid">$options[0]</option>
+        #end if
+    #end for
+    </select>
+    <input size="$s.inputSize" type="text" name="$s.inputCname" />
+    <button type="submit" name="$s.submitCname">$s.submitText</button>
+</p>
+
 #if $s.error
-        <tr>
-            <td colspan="3"><span style="color: #f00;font-size: 10">$s.error</span></td>
-        </tr>
+<p class="error">$s.error</p>
 #end if
+
 #if $s.result
-        <tr>
-            <td colspan="3"><span style="color: #090;font-size: 10">$s.result</span></td>
-        </tr>
+<p>$s.result</p>
 #end if
-        <tr>
-            <td><select name="$s.typeCname">
-#for $sid,$options in $s.searches.items()
-#if $s.selected == $sid
-            <option selected value="$sid">$options[0]</option>
-#else
-            <option value="$sid">$options[0]</option>
-#end if
-#end for
-            </select></td>
-            <td><input size="$s.inputSize" type="text" name="$s.inputCname"></td>
-            <td><input type="submit" name="$s.submitCname" value="$s.submitText"></td>
-        </tr>
-    </table>
-    </p>
+
+        </td>
+    </tr>
+</table>
 #if $s.form
-    </form>
+</form>
 #end if
 #end def

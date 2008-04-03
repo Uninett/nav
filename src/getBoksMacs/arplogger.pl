@@ -105,7 +105,7 @@ while (my @line = $resultat->fetchrow)
     $prefiks2boks{$line[1]} = $line[0];
 }
 
-$sql= "SELECT arpid,netboxid,ip,mac FROM arp WHERE end_time='infinity'"; 
+$sql= "SELECT arpid,netboxid,ip,REPLACE(mac::text, ':', '') AS mac FROM arp WHERE end_time='infinity'"; 
 
 $resultat = NAV::select($conn, $sql);
 
@@ -134,8 +134,14 @@ while (@arguments)
  
    %arptable_new = ();
 
-    $session->map_table ([$OIDS{'ipNetToMediaPhysAddress'}],
-			 \&process_arp_entry);
+    eval {
+	$session->map_table ([$OIDS{'ipNetToMediaPhysAddress'}],
+			     \&process_arp_entry);
+    } or do {
+	# The router did not respond, we move on to the next one
+	$session->close ();
+	next;
+    };
     $session->close ();
 
     # Avslutter records som ikke ble funnet på ruter denne runden.

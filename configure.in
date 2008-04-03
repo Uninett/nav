@@ -34,6 +34,7 @@ AC_SUBST(webroot)
 AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
 AC_SUBST(perllibdir)
+AC_SUBST(djangotmpldir)
 AC_SUBST(initdir)
 AC_SUBST(tooldir)
 AC_SUBST(docdir)
@@ -47,6 +48,7 @@ webroot='${prefix}/apache/webroot'
 pythonlibdir='${libdir}/python'
 javalibdir='${libdir}/java'
 perllibdir='${libdir}/perl'
+djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
 docdir='${prefix}/doc'
@@ -102,13 +104,16 @@ AC_OUTPUT(Makefile
 	subsystem/alertengine/alertengine
 	subsystem/webFront/templates/Makefile
 	subsystem/thresholdMon/Makefile
+	subsystem/smsd/Makefile
 	subsystem/smsd/smsd
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile
+	subsystem/snmptrapd/Makefile
+	subsystem/snmptrapd/snmptrapd
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
-	subsystem/smsd/Makefile)
+	subsystem/ipdevinfo/Makefile)
 
 echo
 echo "Now run 'make' to build NAV"

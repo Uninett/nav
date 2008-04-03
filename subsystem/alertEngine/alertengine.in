@@ -36,11 +36,14 @@ case "$1" in
 	stop)
 		# Stop daemons.
 		echo -n "Shutting down alertengine: "
-		daemon "su - ${user} -c ${bindir}/alertdaemon.pl stop"
-		rc=$?
-		echo
-		exit $rc;
-        	;;
+		if killproc alertengine; then
+		    echo
+		    exit 0
+		else
+		    echo
+		    exit 1
+		fi
+		;;
 	restart)
 		$0 stop
 		$0 start

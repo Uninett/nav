@@ -6,18 +6,20 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="48.000000px"
    height="48.000000px"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.42.2"
-   sodipodi:docbase="C:\Documents and Settings\mortevo\My Documents\Prosjekter\NAV 2005"
-   sodipodi:docname="router.svg"
-   inkscape:export-filename="C:\Documents and Settings\mortevo\My Documents\Prosjekter\NAV 2005\router.png"
-   inkscape:export-xdpi="76.966400"
-   inkscape:export-ydpi="76.966400">
+   inkscape:version="0.45"
+   sodipodi:docbase="/home/ica/jodal/Desktop/source"
+   sodipodi:docname="devman.svg"
+   inkscape:export-filename="/home/ica/jodal/Desktop/images/toolbox/tools/devman.png"
+   inkscape:export-xdpi="75"
+   inkscape:export-ydpi="75"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   sodipodi:modified="TRUE">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -25,17 +27,17 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="11.604167"
-     inkscape:cx="24.000000"
-     inkscape:cy="24.000000"
+     inkscape:cx="24"
+     inkscape:cy="24"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="1024"
      inkscape:window-height="708"
-     inkscape:window-x="-4"
-     inkscape:window-y="-4"
+     inkscape:window-x="290"
+     inkscape:window-y="32"
      showguides="true" />
   <metadata
      id="metadata7">

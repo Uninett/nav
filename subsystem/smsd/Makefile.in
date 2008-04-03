@@ -94,5 +94,5 @@ clean:
 
 distclean: clean
 	find -name \*~ -print0 | xargs -0 rm -f
-	rm -f Makefile
+	rm -f Makefile $(INITFILES)
 
