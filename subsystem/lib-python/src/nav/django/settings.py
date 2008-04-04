@@ -29,11 +29,14 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 from nav.config import readConfig
+import nav.buildconf
 import nav.path
 
 # Debugging
-# TODO: Should be set to False before release
-DEBUG = True
+if nav.buildconf.VERSION == 'trunk_devel':
+    DEBUG = True
+else:
+    DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # Admins
