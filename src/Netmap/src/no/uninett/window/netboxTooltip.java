@@ -27,172 +27,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.*;
+import javax.swing.JPanel;
 
 public class netboxTooltip extends javax.swing.JPanel {
-    
-    /** Creates new form netboxTooltip */
-    public netboxTooltip() {
-        initComponents();
-    }
-    
-    public netboxTooltip(String _sysname, String _category, String _room,
-                         String _type, String _load, String _uptime){
-        initComponents();
-        
-        sysnameValue.setText(_sysname);
-        categoryValue.setText(_category);
-        roomValue.setText(_room);
-        typeValue.setText(_type);
-        loadValue.setText(_load);
-        uptimeValue.setText(_uptime);
 
-    }
-    
-    private void initComponents() {//GEN-BEGIN:initComponents
-        
-        sysnameLabel = new javax.swing.JLabel();
-        catLabel = new javax.swing.JLabel();
-        typeLabel = new javax.swing.JLabel();
-        roomLabel = new javax.swing.JLabel();
-        loadLabel = new javax.swing.JLabel();
-        uptimeLabel = new javax.swing.JLabel();
-        sysnameValue = new javax.swing.JLabel();
-        categoryValue = new javax.swing.JLabel();
-        typeValue = new javax.swing.JLabel();
-        roomValue = new javax.swing.JLabel();
-        loadValue = new javax.swing.JLabel();
-        uptimeValue = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        
-        setBackground(new java.awt.Color(236, 237, 237));
-        setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        
-        sysnameLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        sysnameLabel.setText("Sysname:");
-        
-        catLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        catLabel.setText("Category:");
-        
-        typeLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        typeLabel.setText("Type:");
-        
-        roomLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        roomLabel.setText("Room:");
-        
-        loadLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        loadLabel.setText("CPU Load:");
-        
-        uptimeLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        uptimeLabel.setText("Uptime:");
-        
-        sysnameValue.setText("sysname");
-        
-        categoryValue.setText("category");
-        
-        typeValue.setText("type");
-        
-        roomValue.setText("room");
-        
-        loadValue.setText("load");
-        
-        uptimeValue.setText("uptime");
-        
-        jButton1.setText("View in IP Device Center ");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                .add(jButton1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                .add(layout.createSequentialGroup()
-                .add(sysnameLabel)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                .add(sysnameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 154, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(layout.createSequentialGroup()
-                .add(catLabel)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                .add(categoryValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(layout.createSequentialGroup()
-                .add(typeLabel)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 12, Short.MAX_VALUE)
-                .add(typeValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(layout.createSequentialGroup()
-                .add(roomLabel)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                .add(roomValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(layout.createSequentialGroup()
-                .add(loadLabel)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 12, Short.MAX_VALUE)
-                .add(loadValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(layout.createSequentialGroup()
-                .add(uptimeLabel)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 12, Short.MAX_VALUE)
-                .add(uptimeValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
-                );
-        
-        
-        layout.linkSize(new java.awt.Component[] {categoryValue, loadValue, roomValue, sysnameValue, typeValue, uptimeValue}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-        
-        
-        
-        layout.linkSize(new java.awt.Component[] {catLabel, loadLabel, roomLabel, sysnameLabel, typeLabel, uptimeLabel}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-        
-        layout.setVerticalGroup(
-                layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                .add(sysnameLabel)
-                .add(sysnameValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                .add(catLabel)
-                .add(categoryValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                .add(typeLabel)
-                .add(typeValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                .add(roomLabel)
-                .add(roomValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                .add(loadLabel)
-                .add(loadValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                .add(uptimeLabel)
-                .add(uptimeValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jButton1)
-                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                );
-    }//GEN-END:initComponents
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            AppletContext ac = no.uninett.netmap.Main._getAppletContext();
-            if (ac != null){
-                ac.showDocument(new URL("https://navdev.uninett.no/browse/" + this.sysnameValue.getText()), "_blank");
-            }
-        } catch (MalformedURLException ex) {//GEN-LAST:event_jButton1ActionPerformed
-            Logger.getLogger(netboxTooltip.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel catLabel;
     private javax.swing.JLabel categoryValue;
     private javax.swing.JButton jButton1;
@@ -206,6 +45,112 @@ public class netboxTooltip extends javax.swing.JPanel {
     private javax.swing.JLabel typeValue;
     private javax.swing.JLabel uptimeLabel;
     private javax.swing.JLabel uptimeValue;
-    // End of variables declaration//GEN-END:variables
-    
+
+    public netboxTooltip() {
+    }
+
+    public netboxTooltip(String _sysname, String _category, String _room,
+                         String _type, String _load, String _uptime){
+
+        JPanel pane = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        sysnameLabel = new javax.swing.JLabel();
+        catLabel = new javax.swing.JLabel();
+        typeLabel = new javax.swing.JLabel();
+        roomLabel = new javax.swing.JLabel();
+        loadLabel = new javax.swing.JLabel();
+        uptimeLabel = new javax.swing.JLabel();
+        sysnameValue = new javax.swing.JLabel();
+        categoryValue = new javax.swing.JLabel();
+        typeValue = new javax.swing.JLabel();
+        roomValue = new javax.swing.JLabel();
+        loadValue = new javax.swing.JLabel();
+        uptimeValue = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+
+        setBackground(new java.awt.Color(236, 237, 237));
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+        sysnameLabel.setFont(new java.awt.Font("Dialog", 1, 11));
+        sysnameLabel.setText("Sysname:");
+
+        catLabel.setFont(new java.awt.Font("Dialog", 1, 11));
+        catLabel.setText("Category:");
+
+        typeLabel.setFont(new java.awt.Font("Dialog", 1, 11));
+        typeLabel.setText("Type:");
+
+        roomLabel.setFont(new java.awt.Font("Dialog", 1, 11));
+        roomLabel.setText("Room:");
+
+        loadLabel.setFont(new java.awt.Font("Dialog", 1, 11));
+        loadLabel.setText("CPU Load:");
+
+        uptimeLabel.setFont(new java.awt.Font("Dialog", 1, 11));
+        uptimeLabel.setText("Uptime:");
+
+        sysnameValue.setText("sysname");
+
+        categoryValue.setText("category");
+
+        typeValue.setText("type");
+
+        roomValue.setText("room");
+
+        loadValue.setText("load");
+
+        uptimeValue.setText("uptime");
+
+        jButton1.setText("View in IP Device Center ");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.insets = new Insets(0,0,0,2);
+        pane.add(sysnameLabel, c);
+
+        c.gridx = 1;
+        c.gridy = 0;
+        pane.add(sysnameValue, c);
+
+        pane.add(catLabel);
+        pane.add(typeLabel);
+        pane.add(roomLabel);
+        pane.add(loadLabel);
+        pane.add(uptimeLabel);
+        pane.add(categoryValue);
+        pane.add(typeValue);
+        pane.add(roomValue);
+        pane.add(loadValue);
+        pane.add(uptimeValue);
+        pane.doLayout();
+
+        pane.setEnabled(true);
+        pane.setVisible(true);
+  
+        sysnameValue.setText(_sysname);
+        categoryValue.setText(_category);
+        roomValue.setText(_room);
+        typeValue.setText(_type);
+        loadValue.setText(_load);
+        uptimeValue.setText(_uptime);
+
+    }
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        try {
+            AppletContext ac = no.uninett.netmap.Main._getAppletContext();
+            if (ac != null){
+                ac.showDocument(new URL(no.uninett.netmap.Main.getBaseURL().toString() + "/browse/" + this.sysnameValue.getText()), "_blank");
+            }
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(netboxTooltip.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

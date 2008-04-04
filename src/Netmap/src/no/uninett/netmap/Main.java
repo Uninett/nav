@@ -73,17 +73,7 @@ public class Main extends JPrefuseApplet {
     @Override
     public void init() {
         log.entering("Main", "init");
-        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-        try {
-        for(String[] param : this.getParameterInfo()){
-            for (String s : param){
-                System.out.print(" " + s);
-            }
-            System.out.print("\n");
-        }
-        } catch (Exception e){
-            System.out.println("Unable to fetch param-info");
-        }
+
         sessionID = this.getParameter("sessionid");
         if (sessionID == null || sessionID.equals("")) {
             JOptionPane.showMessageDialog(null, "ERROR: No sessionID found\n");
@@ -138,10 +128,7 @@ public class Main extends JPrefuseApplet {
         freezeMenu = new javax.swing.JMenu();
         freezeCheckbox = new javax.swing.JCheckBoxMenuItem();
 
-
-
         filterMenu.setText("Filters");
-
         categoryMenu.setText("Categories");
 
         /*
@@ -218,7 +205,6 @@ public class Main extends JPrefuseApplet {
         freezeCheckbox.addActionListener(freezeButtonHandler);
         freezeMenu.add(freezeCheckbox);
 
-
         menuBar.add(freezeMenu);
 
         this.setJMenuBar(menuBar);
@@ -227,11 +213,10 @@ public class Main extends JPrefuseApplet {
 
         appletContext = getAppletContext();
 
-
         final JLabel loaderImg;
         try {
-
-            loaderImg = new JLabel(new ImageIcon(new URL(baseURL.toString() + "/netmap/applet/media/loading.gif")));
+            URL loadingImage = new URL(baseURL.toString() + "/netmap/applet/media/loading.gif");
+            loaderImg = new JLabel(new ImageIcon(loadingImage));
             loaderImg.setEnabled(true);
             loaderImg.setSize(100, 100);
 
@@ -276,7 +261,7 @@ public class Main extends JPrefuseApplet {
 
     @Override
     public void start() {
-        
+
         log.setLevel(Level.ALL);
         log.entering("Main", "main");
 
@@ -293,7 +278,6 @@ public class Main extends JPrefuseApplet {
         m_display.addControlListener(new prefuse.controls.PanControl());
         m_display.addControlListener(new prefuse.controls.ZoomControl());
         m_display.addControlListener(new prefuse.controls.ZoomToFitControl());
-
 
         m_display.setSize(this.getSize());
         this.add(m_display);
@@ -343,16 +327,5 @@ public class Main extends JPrefuseApplet {
     }
     public static URL getBaseURL(){
         return baseURL;
-    } 
-
-    class ExceptionHandler implements UncaughtExceptionHandler {
-
-        public void uncaughtException(Thread thread, Throwable ex) {
-            System.out.println("---------------------------------------------");
-            System.out.println("            UNHANDLED EXCEPTION              ");
-            System.out.println(" THREAD: " + thread.toString());
-            ex.printStackTrace();
-            stop();
-        }
     }
 }
