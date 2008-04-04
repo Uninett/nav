@@ -52,7 +52,7 @@ def handler(req):
     """mod_python handler"""
     req.content_type = 'text/html'
     page = IPInfo()
-    page.title = 'IP Information'
+    page.title = 'IP Info'
     page.target = gettarget(req)
     if page.target:
         try:
@@ -60,7 +60,7 @@ def handler(req):
         except TargetError:
             pass
         else:
-            page.title += ' about ' + page.target
+            page.title += ': ' + page.target
             conf = config.theConfig()
             # Evaluate the info table as per. the local config, and
             # put the output directly into the page (look out!!)

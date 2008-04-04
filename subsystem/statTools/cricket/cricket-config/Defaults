@@ -3,8 +3,8 @@
 #
 
 #############################################
-# Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <bredal@itea.ntnu.no>
+# Edited specifically for NAV v3
+# by John Magne Bredal <john.m.bredal@ntnu.no>
 #############################################
 
 Target	--default--
@@ -119,15 +119,19 @@ targetType	--default--
 # Don't change the order of those unless you also change it in the makecricketconfig-script.
 # There really should be no reason to do this...
 targetType  standard-interface
-	ds		=	"ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+	ds	=	"ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
 	view	=	"Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
 
 targetType  sub-interface
-	ds		=	"ifInOctets, ifOutOctets"
+	ds	=	"ifInOctets, ifOutOctets"
 	view	=	"Octets: ifInOctets ifOutOctets"
 
+targetType  subv2-interface
+	ds	=	"ifHCInOctets, ifHCOutOctets"
+	view	=	"Octets: ifHCInOctets ifHCOutOctets"
+
 targetType  snmpv2-interface
-	ds		=	"ifHCInOctets, ifHCOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+	ds	=	"ifHCInOctets, ifHCOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
 	view	=	"Octets: ifHCInOctets ifHCOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
 
 # The HTML dict has bits and pieces of HTML that gets used

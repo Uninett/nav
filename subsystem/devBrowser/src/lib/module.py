@@ -40,12 +40,13 @@ from nav import util
 import forgetHTML as html
 #import warnings
 from sets import Set
+from datetime import datetime, timedelta
 
 # Color range for port activity tab
 color_recent = (116, 196, 118)
 color_longago = (229, 245, 224)
 
-# Active result set cache
+# Active result set cache. Will live as long as the Apache child.
 active_cache = {}
 
 def process(request):
@@ -194,10 +195,24 @@ class ModuleInfo(manage.Module):
             ifindex => days since last CAM entry
             """
 
-            # Cache result set. Reduces page response time by about 75%.
+            # XXX: This is a hack, but caching of this result set reduces page
+            # response time by about 75%
             global active_cache
-            if len(active_cache) > 0:
-                return active_cache
+
+            # Remove expired cache entries
+            # Removing items during iteration causes a RuntimeError, so this
+            # has to be done in two steps.
+            expired = []
+            for key, value in active_cache.iteritems():
+                if value['expires_at'] < datetime.now():
+                    expired.append(key)
+            for key in expired:
+                del active_cache[key]
+
+            # If cached, get result from cache
+            cache_key = (self.netbox.netboxid, interval)
+            if cache_key in active_cache:
+                return active_cache[cache_key]['result']
 
             sql = \
                 """
@@ -213,8 +228,11 @@ class ModuleInfo(manage.Module):
                 ORDER BY ifindex"""
             cursor = self.cursor()
             cursor.execute(sql, (interval, self.netbox.netboxid,))
-            active_cache = dict(cursor.fetchall())
-            return active_cache
+            active_cache[cache_key] = {
+                'result': dict(cursor.fetchall()),
+                'expires_at': datetime.now() + timedelta(seconds=60),
+            }
+            return active_cache[cache_key]['result']
 
         def sortPortsByInterfaceName(ports):
             """Do natural sort of ports by interface name"""
@@ -223,13 +241,18 @@ class ModuleInfo(manage.Module):
 
             map = {}
             list = []
+            rest = []
             for port in ports:
-                map[port.interface] = port
-                list.append(port.interface)
+                if port.interface is not None:
+                    map[port.interface] = port
+                    list.append(port.interface)
+                else:
+                    rest.append(port)
             list.sort(nav.natsort.inatcmp)
             result = []
             for port in list:
                 result.append(map[port])
+            result.extend(rest)
             return result
 
         def filterInterfaceName(name):
@@ -251,7 +274,7 @@ class ModuleInfo(manage.Module):
             )
 
             for old, new in filters:
-                name = name.replace(old, new)
+                name = str(name).replace(old, new)
             return name
 
         if perspective.startswith('gw'):
@@ -292,7 +315,7 @@ class ModuleInfo(manage.Module):
             if type == 'gw':
                 portNr = port.interface
             else:
-                portNr = port.interface or port.port
+                portNr = port.interface or port.port or port.ifindex
 
             portNr = filterInterfaceName(portNr)
             portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")

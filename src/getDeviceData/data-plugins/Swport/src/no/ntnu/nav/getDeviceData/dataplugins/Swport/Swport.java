@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Swport.java 3564 2006-07-20 09:04:01Z mortenv $
  *
  * Copyright 2003-2005 Norwegian University of Science and Technology
  * 

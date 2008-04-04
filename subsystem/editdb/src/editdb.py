@@ -54,7 +54,7 @@ from nav.web.templates.editdbTemplate import editdbTemplate
 BASEPATH = '/editdb/'
 CONFIGFILE = 'editdb.conf'
 
-EDITPATH = [('Home','/'),('Tools','/toolbox'),('Edit database',BASEPATH)]
+EDITPATH = [('Home','/'), ('Edit database',BASEPATH)]
 
 ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
@@ -350,7 +350,6 @@ def index(req,showHelp=False,status=None):
     nameSpace = {'entryList': None, 'editList': None, 'editForm': None, 'body': body}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = [('Home','/'),
-                     ('Tools','/toolbox'),
                      ('Edit database',None)]
     return template.respond()
 

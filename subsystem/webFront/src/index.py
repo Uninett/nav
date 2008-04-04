@@ -44,6 +44,16 @@ navLinksFile = os.path.join(webConfDir, "nav-links.conf")
 
 TIMES = [' seconds', ' minutes', ' hours', ' days', ' years']
 
+def _quickRead(filename):
+    """
+    Quickly read and return the contents of a file, or None if
+    something went wrong.
+    """
+    try:
+        return file(filename).read().strip()
+    except IOError:
+        return None
+
 def index(req):
     if req.session.has_key('user'):
         name = req.session['user'].name
@@ -60,16 +70,22 @@ def index(req):
         welcomeFile = welcomeFileAnonymous
     else:
         welcomeFile = welcomeFileRegistered
-    page.welcome = lambda:file(welcomeFile).read()
-    page.externallinks = lambda:file(externalLinksFile).read()
-    page.contactinformation = lambda:file(contactInformationFile).read()
 
-    navlinks = nav.config.readConfig(navLinksFile)
-    navlinkshtml = ""
-    for name, url in navlinks.items():
-        if (nav.web.shouldShow(url, req.session['user'])):
-            navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br />" % (url, name)
-    page.navlinks = lambda:navlinkshtml
+    page.welcome = _quickRead(welcomeFile)
+    page.externallinks = _quickRead(externalLinksFile)
+    page.contactinformation = _quickRead(contactInformationFile)
+
+    try:
+        navlinks = nav.config.readConfig(navLinksFile)
+        navlinkshtml = []
+        for name, url in navlinks.items():
+            if (nav.web.shouldShow(url, req.session['user'])):
+                navlinkshtml.append(
+                    "<a href=\"%s\">%s</a><br />" % (url, name))
+        if len(navlinkshtml) > 0:
+            page.navlinks = "".join(navlinkshtml)
+    except IOError:
+        pass
 
     import nav.messages
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
@@ -126,9 +142,9 @@ def login(req, login='', password='', origin=''):
             if ldapAuth.available:
                 try:
                     authenticated = ldapAuth.authenticate(login, password)
-                except ldapAuth.NoAnswerError, e:
-                    logger.error("Could not contact the LDAP server")
-                    return _getLoginPage(origin, "Login failed<br />(Unable to make contact with the LDAP server)")
+                except ldapAuth.Error, e:
+                    logger.exception("Error while talking to LDAP server")
+                    return _getLoginPage(origin, "Login failed<br />(%s)" % e)
                 else:
                     if not authenticated:
                         return _getLoginPage(origin, "Login failed")
@@ -162,10 +178,13 @@ def login(req, login='', password='', origin=''):
                         logger.info("Account %s authenticated through LDAP", login)
                         account.setPassword(password)
                         account.save()
-                except ldapAuth.NoAnswerError, e:
-                    req.session['message'] = 'No answer from LDAP server ' + str(e)
+                except ldapAuth.Error, e:
+                    req.session['message'] = 'Error while talking to ' \
+                                             'LDAP: %s' % e
                     # Attempt to authenticate through stored password
                     # when no answer
+                    logger.info("Attempting to authenticate %s locally",
+                                login)
                     authenticated = account.authenticate(password)
             else:
                 # If this account is not to be externally

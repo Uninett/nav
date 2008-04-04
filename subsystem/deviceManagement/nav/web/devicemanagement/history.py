@@ -65,15 +65,19 @@ def history(req,deviceorderid=None):
 
     # Get year of first entry in alerthist
     date_options = {}
-    sql = 'SELECT min(start_time) FROM alerthist'
+    sql = """
+        SELECT min(start_time) IS NOT NULL AS exists, min(start_time)
+        FROM alerthist
+    """
     db.execute(sql)
-    if db.rowcount:
-        date_options['startyear'] = db.dictfetchall()[0]['min'].year
+    row = db.dictfetchall()[0]
+    if row['exists']:
+        date_options['startyear'] = row['min'].year
 
     # Get filter values
     if (form.has_key('startday') and form['startday'].isdigit()
         and form.has_key('startmonth') and form['startmonth'].isdigit()
-        and form.has_key('startyear')) and form['startyear'].isdigit():
+        and form.has_key('startyear') and form['startyear'].isdigit()):
         startyear = int(form['startyear'])
         startmonth = int(form['startmonth'])
         startday = int(form['startday'])
@@ -91,7 +95,7 @@ def history(req,deviceorderid=None):
 
     if (form.has_key('endday') and form['endday'].isdigit()
         and form.has_key('endmonth') and form['endmonth'].isdigit()
-        and form.has_key('endyear')) and form['endyear'].isdigit():
+        and form.has_key('endyear') and form['endyear'].isdigit()):
         endyear = int(form['endyear'])
         endmonth = int(form['endmonth'])
         endday = int(form['endday'])

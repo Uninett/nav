@@ -502,7 +502,7 @@ public class NetboxInfo {
 				"netboxid", netboxid,
 				"key", key,
 				"var", var,
-				"val", val
+				"val", Database.addSlashes(val)
 			};
 			
 			Database.insert("netboxinfo", ins);

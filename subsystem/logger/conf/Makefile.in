@@ -15,20 +15,26 @@ localstatedir = @localstatedir@
 
 top_srcdir = @top_srcdir@
 
-files = logger.conf
+conffiles = logger.conf
 
-.PHONY: all install install-web clean distclean
+export
+.PHONY: all install install-conf clean distclean
 
 all: logger.conf
 
 logger.conf: logger.conf.source
 	$(top_srcdir)/tools/expand.pl logger.conf.source > logger.conf
 
-install: install-web
+install: all install-conf
 
-install-web:
-	for file in $(files); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(sysconfdir)/$$file || exit 1; \
+install-conf:
+	@for file in $(conffiles); do                          \
+	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+	  fi;                                                  \
 	done
 
 clean:

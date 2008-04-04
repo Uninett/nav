@@ -30,6 +30,7 @@ public class Snmpoid
 		this.defaultfreq = defaultfreq;
 		this.matchRegex = matchRegex;
 		this.uptodate = uptodate;
+		this.mib = mib;
 		typeMap = new HashMap();
 	}
 

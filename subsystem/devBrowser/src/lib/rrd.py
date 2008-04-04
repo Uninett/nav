@@ -358,12 +358,31 @@ def parseQuery(query):
     return d
 
 def showGraphs(session):
-    form = html.Form(action='pageAction', method='post')
     result = html.Division()
-    form.append(result)
+
+    result.append(html.Header('IP Device Center', level=2))
+    result.append(html.Header('Statistics', level=3))
+
+    timeframes = html.Paragraph('Time frame: ')
     for tf in ['year', 'month', 'week', 'day', 'hour']:
-        result.append(html.Anchor(tf, href='timeframe?tf=%s' % tf))
-    table = html.SimpleTable(id='rrdgraphs')
+        timeframes.append(html.Anchor(tf, href='timeframe?tf=%s' % tf))
+        if tf != 'hour':
+            timeframes.append(' | ')
+    result.append(timeframes)
+
+    # Display previous link allowing to navigate in time
+    prevnext = html.Paragraph()
+    prevnext.append(html.Anchor('&lt;&lt; Previous', href='timeframe?tf=%s&tfIndex=%s' % (
+            session['rrd'].timeframe, int(session['rrd'].timeframeIndex) + 1)))
+    if int(session['rrd'].timeframeIndex) > 1:
+        prevnext.append(' | ')
+        prevnext.append(html.Anchor('Next &gt;&gt;', href='timeframe?tf=%s&tfIndex=%s' % (
+            session['rrd'].timeframe, int(session['rrd'].timeframeIndex) - 1)))
+    result.append(prevnext)
+
+    form = html.Form(action='pageAction', method='post')
+    result.append(form)
+    table = html.SimpleTable(id='rrdgraphs', border=1)
     selectbox = html.Select(name = 'action', onChange='this.form.submit()')
     selectbox.append(html.Option('- Choose action -', value = 'dummy'))
     selectbox.append(html.Option('Remove selected', value = 'remove'))
@@ -386,18 +405,10 @@ def showGraphs(session):
 
     table.add('', html.TableCell(selectbox, colspan='2', _class="actionselectbottom"))
 
-    # Display previous link allowing to navigate in time
-    result.append(html.Anchor('Previous', href='timeframe?tf=%s&tfIndex=%s' % (
-            session['rrd'].timeframe, int(session['rrd'].timeframeIndex) + 1)))
-    if int(session['rrd'].timeframeIndex) > 1:
-        result.append(html.Anchor('Next', href='timeframe?tf=%s&tfIndex=%s' % (
-            session['rrd'].timeframe, int(session['rrd'].timeframeIndex) - 1)))
-
-    result.append(html.Break())
     result.append(html.Anchor('Add datasource', href='add'))
     #result.append(html.Division("Timeframe: %s, timeframeIndex: %s" % (session['rrd'].timeframe,
     #                                                                   session['rrd'].timeframeIndex)))
-    return form
+    return result
 
 def datasources(query, session):
     page = presenter.page()

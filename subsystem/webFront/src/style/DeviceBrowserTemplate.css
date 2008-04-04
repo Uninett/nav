@@ -173,3 +173,12 @@ table#rrdgraphs td.actionselectbottom {
 	text-align: right;
 	border: 1px solid black;
 }
+/* Service table */
+table.listtable td.n {
+	background: #d7191c;
+	color: white;
+}
+table.listtable td.y {
+	background: #91cf60;
+	color: black;
+}

@@ -95,12 +95,12 @@ class ServiceTable:
         self._findDataSources()
         self.createHeader()
         self.createTableBody()
-        self.html['class'] = 'vertilist'
+        self.html['class'] = 'listtable'
         self.html.sortBy=self.sort
         self.html.sort()
 
     def _findDataSources(self):
-        serviceIDs = [str(s.serviceid) for s in self.services]
+        serviceIDs = [db.escape(str(s.serviceid)) for s in self.services]
         serviceIDs = ','.join(serviceIDs)
         allDataSourcesSQL = """
             SELECT rrd_datasourceid,

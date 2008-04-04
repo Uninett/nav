@@ -21,7 +21,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##
 ##
-## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+## Author: Hans Jï¿½rgen Hoel (hansjorg@orakel.ntnu.no)
 ##         Stein Magnus Jodal (stein.magnus.jodal@uninett.no)
 ##
 
@@ -36,14 +36,15 @@ $default_table_CSS()
 #end def
 
 #def content
+<h2>$page.title</h2>
 $makeMenu($page.menu)
 <div class="tabcontent">
 #if $page.searchbox
 $displaySearchBox($page.searchbox)
 #end if
-<h2>$page.title</h2>
 #if $page.submenu
 $makeSubMenu($page.submenu)
+<div class="tabcontent">
 #end if
 #if $page.name == 'history'
 $history($page)
@@ -58,7 +59,9 @@ $rma($page)
 #elif $page.name == 'register'
 $registerOne($page)
 #end if
-<br />
+#if $page.submenu
+</div>
+#end if
 </div>
 #end def
 
@@ -282,25 +285,25 @@ $renderFormattedList($page.orderList)
     #if len($page.filterform['module'])
     <input type="hidden" name="module" value="$page.filterform['module']" />
     #end if
-    <table>
+    <table class="vertitable">
         <tr>
-            <td>From</td>
+            <th>From</th>
             <td>$renderwidget($page.widgets['filter_startdate'])</td>
         </tr>
-            <td>To</td>
+            <th>To</th>
             <td>$renderwidget($page.widgets['filter_enddate'])</td>
         </tr>
         <tr>
-            <td>Type</td>
+            <th>Type</th>
             <td>$renderwidget($page.widgets['filter_eventtype'])</td>
         </tr>
         <tr>
-            <td></td>
+            <th></th>
             <td>$renderwidget($page.widgets['filter_submit'])</td>
         </tr>
     </table>
 </form>
-<p></p>
+
 #for $box in $page.boxList
 $renderFormattedList($box)
 #end for
@@ -343,31 +346,18 @@ $submitButton($page.submit)
 ## Help functions
 ##
 
-#def $makeSubMenuOld($menu)
-<table style="background-image: url('/images/form/fill-active.gif');border: 1px solid #666;font-size: 11;">
-#for $item in $menu
-    <tr>
-        <td><a href="$item[2]" title="$item[1]">$item[0]</a></td>
-    </tr>
-#end for
-</table>
-#end def
-
 #def makeSubMenu($menu)
-<p>
-#set $first = True
+<div class="tabs">
+<ul>
 #for $item in $menu
-#if not $first
-    |
-#end if
-#if $item[2]
-<a title="$item[1]" href="$item[2]">$item[0]</a>
-#else
-$item[0]
-#end if
-#set $first = False
+    #if $item[2]
+    <li><a title="$item[1]" href="$item[2]">$item[0]</a></li>
+    #else
+    <li><a>$item[0]</a></li>
+    #end if
 #end for
-</p>
+</ul>
+</div>
 #end def
 
 #def $orderDetails($data)
@@ -438,39 +428,47 @@ $item[0]
 
 #def renderFormattedList($flist)
     #set $numrows = len($flist.rows)
-<table class="horiztable">
+<table class="listtable">
     <caption>
-        <span class="cornerkludge"></span>
         $flist.title<br />
         <span class="subtitle">$numrows entries</span>
     </caption>
-    #set $numrows += 1
 
-    <tr class="header">
-        <td class="leftkludge" rowspan="$numrows">
-    #for $h,$url in $flist.headings
-        <th>
-        #if $url
-             <a href="$url">$h</a>&nbsp;
-        #else
-             $h&nbsp;
-        #end if
-        </th>
-    #end for
-        <td class="rightkludge" rowspan="$numrows">
-    </tr>
-
-    #for $row in $flist.rows
-    <tr class="$rowcycler">
-        #for $col in $row
-        <td>
-            #for $part in $col
-            $renderFormatString($part)
-            #end for
-        </td>
+    #if len($flist.rows)
+    <thead>
+        <tr class="header">
+        #for $h,$url in $flist.headings
+            <th>
+            #if $url
+                 <a href="$url">$h</a>&nbsp;
+            #else
+                 $h&nbsp;
+            #end if
+            </th>
         #end for
-    </tr>
-    #end for
+        </tr>
+    </thead>
+
+    <tbody>
+        #for $row in $flist.rows
+        <tr class="$rowcycler">
+            #for $col in $row
+            <td>
+                #for $part in $col
+                $renderFormatString($part)
+                #end for
+            </td>
+            #end for
+        </tr>
+        #end for
+    </tbody>
+    #end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$numrows entries</th>
+        </tr>
+    </tbody>
 </table>
 #end def
 
@@ -623,7 +621,7 @@ $item[0]
 
 #def $displaySearchBox($searchbox)
 #set qs = SearchBoxTemplate()
-<div style="float: right;margin-right: 33px;margin-top:33px;">
+<div class="boxes">
 $qs.searchbox($searchbox)
 </div>
 #end def
@@ -671,70 +669,10 @@ $registerRma($args['rmaDevice'])
 #end if
 #end def
 
-#def orderold()
-<h3>Active orders <a href="$args['update']">(update)</a></h3>
-<table>
-    <tr>
-        <th>Order number</th>
-        <th>Product</th>
-        <th>Amount</th>
-        <th>Ordered</th>
-        <th>Retailer</th>
-        <th>Ordered by</th>
-        <th>Organisation</th>
-        <th>Arrival</th>
-    </tr>
-#for $order in $args['activeOrders']
-    <tr>
-        <td>$order.orderNumber</td>
-        <td>$order.product</td>
-        <td>$order.amount</td>
-        <td>$order.orderTime</td>
-        <td>$order.retailer</td>
-        <td>$order.orderedByPerson</td>
-        <td>$order.orderedByOrg</td>
-        <td><a href="register/$order.orderId">Register arrival</a></td>
-    </tr>
-#end for
-    <tr>
-        <td><a href="add">Add new order</a></td>
-        <td colspan="6"></td>
-    </tr>
-</table>
-<h3>Order history</h3>
-<table>
-    <tr>
-        <th>Order number</th>
-        <th>Product</th>
-        <th>Amount</th>
-        <th>Ordered</th>
-        <th>Arrived</th>
-        <th>Retailer</th>
-        <th>Ordered by</th>
-        <th>Organisation</th>
-    </tr>
-    <tr>
-    </tr>
-#for $order in $args['oldOrders']
-    <tr>
-        <td>$order.orderNumber</td>
-        <td>$order.product</td>
-        <td>$order.amount</td>
-        <td>$order.orderTime</td>
-        <td>$order.arrivedTime</td>
-        <td>$order.retailer</td>
-        <td>$order.orderedByPerson</td>
-        <td>$order.orderedByOrg</td>
-    </tr>
-#end for
- 
-</table>
-#end def
-
 #def addOrder()
 <h2>Add order</h2>
 #if $args['error']
-<p style="color: #f00">$args['error']</p>
+<p class="error">$args['error']</p>
 #end if
 <form action="$args['action']" method="post">
 <table>
@@ -775,7 +713,7 @@ $registerRma($args['rmaDevice'])
 #def registerOrder()
 <h2>Register arrival of order $args['orderid']</h2>
 #if $args['error']
-<p style="color: #f00">$args['error']</p>
+<p class="error">$args['error']</p>
 #end if
 <form action="$args['action']" method="post">
     <table>
@@ -820,7 +758,7 @@ $registerRma($args['rmaDevice'])
 #def register()
 <h2>Register new device</h2>
 #if $args['error']
-<p style="color: #f00">$args['error']</p>
+<p class="error">$args['error']</p>
 #end if
 <form action="$args['action']" method="post">
     <table>
@@ -846,12 +784,6 @@ $registerRma($args['rmaDevice'])
 #end def
 
 
-#def historyOld()
-#if $args['deviceHistList']
-$deviceHistory($args['deviceHistList'])
-#end if
-#end def
-
 #def deviceHistory($deviceHistList)
 #for $device in $deviceHistList
 #if $device.netboxId
@@ -862,7 +794,7 @@ $deviceHistory($args['deviceHistList'])
 <h3>Device history for device $device.deviceId</h3>
 #end if
 #if $device.error
-<p style="color: #f00">$device.error</p>
+<p class="error">$device.error</p>
 #else
 <table>
     <tr>
@@ -957,7 +889,7 @@ $registerRma($args['rmaDevice'])
 #def registerRma($device)
 <h3>Register RMA</h3>
 #if $args['error']
-<p style="color: #f00">$args['error']</p>
+<p class="error">$args['error']</p>
 #end if
 <form action="$args['action']" method="post">
     <table>
@@ -981,35 +913,6 @@ $registerRma($args['rmaDevice'])
     <table>
         <tr>
             <td><input type="submit" name="cn_submit" value="Register"></td>
-        </tr>
-    </table>
-</form>
-#end def
-
-
-#def deleteOld()
-<h3>Modules that have been down more than $args['threshold'] hours</h3>
-<form method="post" action="$args['action']">
-    <table>
-        <tr>
-            <th>Select</th>
-            <th>Module</th>
-            <th>Sysname</th>
-            <th>Down since</th>
-        </tr>
-#for moduleid,module,sysname,downsince in $args['deleteList']
-        <tr>
-            <td><input type="radio" name="cn_moduleid" value="$moduleid"></td>
-            <td>$module</td>
-            <td>$sysname</td>
-            <td>$downsince</td>
-        </tr>
-#end for
-    </table>
-    <table>
-        <tr>
-            <td><input type="submit" name="cn_delete" value="Delete"></td>
-            <td><input type="submit" name="cn_rma" value="Register RMA"></td>
         </tr>
     </table>
 </form>

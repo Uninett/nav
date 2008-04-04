@@ -41,7 +41,7 @@ import commands
 def handler(req):
 
     # Read config from configfile
-    config = readConfig(nav.path.sysconfdir + "/arnold/arnold.cfg")
+    config = readConfig(nav.path.sysconfdir + "/arnold/arnold.conf")
 
     # Connect to the database
     # getConnection('subsystem','database')

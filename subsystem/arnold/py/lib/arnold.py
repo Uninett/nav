@@ -40,6 +40,10 @@ class NotSupportedError(GeneralException):
     "This vendor does not support snmp set of vlan"
     pass
 
+class WrongCatidError(GeneralException):
+    "Arnold is not permitted to block ports on equipment of this category"
+    pass
+
 class AlreadyBlockedError(GeneralException):
     "This port is already blocked."
     pass
@@ -58,7 +62,7 @@ configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 config = ConfigParser.ConfigParser()
 config.read(configfile)
 
-
+allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
 
 def parseNonblockFile(file):
     """
@@ -140,6 +144,16 @@ def findIdInformation(id, limit):
 
         if c.rowcount > 0:
             result = c.dictfetchall()
+
+            # Walk through result replacing DateTime(infinity) with
+            # string "Still Active". Else the date showing will be
+            # 999999-12-31 00:00:00.00. This of course also removes
+            # the datetime-object.
+            for row in result:
+                if row['endtime'].year == 999999:
+                    row['endtime'] = 'Still Active'
+                else:
+                    row['endtime'] = row['endtime'].strftime('%Y-%m-%d %H:%M:%S')
         else:
             result = 1
         
@@ -255,6 +269,10 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     # Check if this id is in the nonblocklist
     if checkNonBlock(id['ip']):
         raise InExceptionListError
+
+
+    if sw['catid'] not in allowtypes:
+        raise WrongCatidError, sw['catid']
         
     
     # Find dns and netbios
@@ -389,10 +407,13 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 ###################################################################################################
 # openPort
 #
-def openPort(id, username):
+def openPort(id, username, eventcomment=""):
     """
-    Takes as input the identityid of the block and opens the port
-    and updates the database
+    Takes as input the identityid of the block and username. Opens the
+    port and updates the database. If port is not found in the
+    database we assume that the switch/module has been replaced. As
+    this normally means that the port is enabled, we enable the port
+    in the arnold-database.
     """
 
     carnold = arnolddb.cursor()
@@ -416,17 +437,19 @@ def openPort(id, username):
 
     cmanage.execute(swportidquery, (identityrow['swportid'], ))
 
-    if cmanage.rowcount <= 0:
-        raise NoDatabaseInformationError, id
+    # If port exists, enable it with SNMP
+    if cmanage.rowcount > 0:
+        row = cmanage.dictfetchone()
 
-    row = cmanage.dictfetchone()
-
-    # Enable port based on information gathered
-    try:
-        changePortStatus('enable', row['ip'], row['vendorid'], row['rw'], row['module'], row['port'], row['ifindex'])
-    except ChangePortStatusError, why:
-        raise ChangePortStatusError
-    
+        # Enable port based on information gathered
+        try:
+            changePortStatus('enable', row['ip'], row['vendorid'], row['rw'], row['module'], row['port'], row['ifindex'])
+        except ChangePortStatusError, why:
+            raise ChangePortStatusError
+    else:
+        # If port was not found, reflect this in event-comment
+        eventcomment = "Port was not found because switch/module replaced. Port enabled in database only."
+        
 
     # Update identity-table
     updateq = """UPDATE identity SET
@@ -442,16 +465,21 @@ def openPort(id, username):
 
     # Update event-table
     eventq = """INSERT INTO event
-    (identityid, blocked_status, eventtime, username) VALUES
-    (%s, 'enabled', now(), %s)"""
+    (identityid, blocked_status, eventtime, username, event_comment) VALUES
+    (%s, 'enabled', now(), %s, %s)"""
 
     try:
-        carnold.execute(eventq, (id, username))
+        carnold.execute(eventq, (id, username, eventcomment))
         arnolddb.commit()
     except nav.db.driver.ProgrammingError, why:
         arnolddb.rollback()
         raise DbError, why
-        
+
+    # Raise exception to catch for notifying user of lack of swport
+    if cmanage.rowcount <= 0:
+        raise NoDatabaseInformationError, id
+
+
 
 ###################################################################################################
 # changePortStatus
@@ -483,7 +511,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
 
     query = oid + '.' + str(ifindex)
 
-    print "vendor: %s, ro: %s, ifindex: %s" %(vendorid, community, ifindex)
+    #print "vendor: %s, ro: %s, ifindex: %s" %(vendorid, community, ifindex)
 
     # Create snmp-object
     s = nav.Snmp.Snmp(ip,community)
@@ -682,7 +710,7 @@ def checkNonBlock(ip):
     else returns 0.
     """
 
-    print nonblockdict
+    #print nonblockdict
 
     # We have the result of the nonblock.cfg-file in the dict
     # nonblockdict. This dict contains 3 things:

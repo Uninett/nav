@@ -69,7 +69,7 @@ my $mailconfigpath = "$etc/mailtemplates";
 my $datapath = $NAV::Path::localstatedir."/arnold";
 
 my $logdir = $NAV::Path::localstatedir."/log/arnold";
-my $nonblockfile = "$etc/nonblock.cfg";
+my $nonblockfile = "$etc/nonblock.conf";
 my @nonblockedip;
 
 
@@ -897,7 +897,25 @@ sub setHP {
     # Fix for wrong ifindex in database. HP has lokal ifindexes even when stacked, but
     # NAV doesn't support that. So NAV pads the ifindexes to make them unique.
     # We get the two last characters and pray it's the ifindex. 
-    $ifindex =~ s/.*(..)$/$1/;
+
+    # Update 29.11.2007: Getting the last two characters fails in some
+    # instances as the ifindex may be larger than two digits. We
+    # therefore query for the number of modules. If that number is 9
+    # or less we grab all but the first character for ifindex, else do
+    # as before. This means that if the switch has more than 9 modules
+    # and an ifindex with more than 3 digits, wrong port will be
+    # blocked.
+
+    my $q = "SELECT count(*) FROM netbox LEFT JOIN module USING (netboxid) WHERE ip = '$ip'";
+    my $r = $dbh_manage->exec($q);
+    my $modules = $r->ntuples;
+
+    if ($modules <= 9) {
+	$ifindex =~ s/^.(.+)$/$1/;
+    } else {
+	$ifindex =~ s/.*(..)$/$1/;
+    }
+
     
     # Make it a number (because 101 -> 01 which is not usable as an ifindex)
     $ifindex += 0;

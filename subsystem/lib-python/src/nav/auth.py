@@ -27,6 +27,9 @@ Provides simple authorization API for NAV.
 """
 from nav.db import navprofiles
 import re
+import logging
+
+logger = logging.getLogger('nav.auth')
 
 ADMINGROUP = 1
 ANONYMOUSGROUP = 2
@@ -80,6 +83,10 @@ def _matchRegexpTarget(target, regexpList):
         regexp = re.compile(r)
         if regexp.search(target):
             return True
+        else:
+            logger.debug("_matchRegexpTarget: %s did not match %s" % \
+                         (repr(target), repr(r)))
+
     return False
 
 def cachePrivileges(account):

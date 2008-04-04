@@ -1,0 +1,88 @@
+--- grapher.bak	2007-10-10 13:38:20.000000000 +0200
++++ grapher.cgi	2007-10-10 13:46:26.000000000 +0200
+@@ -551,6 +551,14 @@
+ 
+                     my($cache) = $gQ->param('cache');
+ 
++                    ##################################################
++                    # Edited by John Magne Bredal <john.m.bredal@ntnu.no
++                    # for NAV-v3 NTNU 2007
++                    ##################################################
++                    my $yokohoma = $gQ->param('yokohoma');
++                    # End of edit
++                    ##################################################
++
+                     # create the mini-graph URL
+                     $gQ->delete_all();
+                     $gQ->param('type', $format);
+@@ -569,6 +577,44 @@
+                     # of trying to cache it inappropriately
+                     $gQ->param('rand', int(rand(1000)));
+ 
++                    ####################################################
++                    # Edited by John Magne Bredal <john.m.bredal@ntnu.no
++                    # for NAV-v3 NTNU 2007
++                    ####################################################
++
++                    $gQ->param('yokohoma',$yokohoma);
++
++                    print $gQ->start_form(-method => 'GET');
++                    print "Enter maxvalue (m/k/M/% - blank revert to autoscale):\n";
++                    foreach my $key ($gQ->url_param()) {
++                        next if $key eq 'yokohoma';
++                        print $gQ->hidden(-name => $key,
++                                          -default => $gQ->url_param($key));
++                    }
++                    print $gQ->textfield(-name => 'yokohoma',
++                                         -size => 10,
++                                         -maxlength => 10);
++                    print $gQ->end_form;
++
++                    my %lettervalues;
++                    $lettervalues{'m'} = 0.001;
++                    $lettervalues{'k'} = 1000;
++                    $lettervalues{'M'} = 1000000;
++
++                    if (defined($gQ->param('yokohoma'))) {
++                        my $yokohoma = $gQ->param('yokohoma');
++                        if ($yokohoma =~ /(\d+\.?\d*)([a-zA-Z])/) {
++                            $yokohoma = $1;
++                            my $lettervalue = $2;
++                            $yokohoma = $yokohoma*$lettervalues{$lettervalue};
++                        }
++
++                        $gQ->param('yokohoma', $yokohoma);
++                    }
++
++                    # End of edit
++                    ##################################################
++
+                     # pass thru the value of the cache param, if given
+                     $gQ->param('cache', $cache) if (defined($cache));
+ 
+@@ -1390,8 +1436,23 @@
+         @interlaced = ( '-i' );
+     }
+ 
+-    my($ymax) = graphParam($gRefDef, 'y-max', undef);
+-    my($ymin) = graphParam($gRefDef, 'y-min', undef);
++    ##################################################
++    # Edited by John Magne Bredal <john.m.bredal@ntnu.no
++    # for NAV-v3 NTNU 2007
++    ##################################################
++
++    my $ymax;
++    my $ymin;
++    if (defined($gQ->param('yokohoma'))) {
++        $ymax = $gQ->param('yokohoma');
++        $ymin = 0;
++    } else {
++        $ymax = graphParam($gRefDef, 'y-max', undef);
++        $ymin = graphParam($gRefDef, 'y-min', undef);
++    }
++
++    # End of edit
++    ##################################################
+ 
+     my ($ymaxlck) = 0;
+     my ($yminlck) = 0;

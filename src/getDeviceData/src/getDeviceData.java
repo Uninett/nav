@@ -1,9 +1,9 @@
 /*
  * getDeviceData
  * 
- * $LastChangedRevision$
+ * $LastChangedRevision: 3500 $
  *
- * $LastChangedDate$
+ * $LastChangedDate: 2006-07-05 14:23:14 +0200 (ons, 05 jul 2006) $
  *
  * Copyright 2002-2004 Norwegian University of Science and Technology
  * 
@@ -41,7 +41,7 @@ import no.ntnu.nav.logger.Log;
 /**
  * getDeviceData is the central SNMP data collection daemon in NAV.
  *
- * @version $LastChangedRevision$ $LastChangedDate$
+ * @version $LastChangedRevision: 3500 $ $LastChangedDate: 2006-07-05 14:23:14 +0200 (ons, 05 jul 2006) $
  * @author Kristian Eide &lt;kreide@online.no&gt;
  */
 

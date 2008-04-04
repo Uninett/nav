@@ -39,41 +39,45 @@ class Widget:
               'August','September','October','November','December']
 
     # Widget 'struct' for the template
-    def __init__(self,controlname,type,name=None,value=None,options=None,
-                 required=False):
+    def __init__(self, controlname, type,
+                 name=None, value=None, options=None, required=False):
         self.controlname = controlname
         self.type = type
         self.name = name
-        if options is None: options = {}
-        self.options = options
+        if options is None:
+            options = {}
+        self.options = options.copy()
         self.required = required
         self.value = value
 
         if type == 'date':
             # date widget
-            self.valueY = self.value[0]
-            self.valueM = self.value[1]
-            self.valueD = self.value[2]
+            self.valueY = int(self.value[0])
+            self.valueM = int(self.value[1])
+            self.valueD = int(self.value[2])
             now = mx.DateTime.now()
+
             if options.has_key('startyear'):
                 startYear = options['startyear']
             else:
                 startYear = now.year - 5
+
             if options.has_key('endyear'):
                 endYear = options['endyear']
             else:
                 endYear = now.year
+
             if options.has_key('setdate'):
                 setdate = options['setdate']
             else:
-                setdate = mx.DateTime.now()
+                setdate = now
 
             monthOptions = []
             for i, month in enumerate(self.MONTHS):
                 i += 1
                 thisMonth = False
                 if self.valueM:
-                    if self.valueM == str(i):
+                    if int(self.valueM) == i:
                         thisMonth = True
                 else:
                    if setdate.month == i:
@@ -84,7 +88,7 @@ class Widget:
             for d in range(1,32):
                 thisDay = False
                 if self.valueD:
-                    if self.valueD == str(d):
+                    if self.valueD == d:
                         thisDay = True
                 else:
                     if d == setdate.day:
@@ -92,10 +96,10 @@ class Widget:
                 dayOptions.append((str(d),str(d),thisDay))
 
             yearOptions = []
-            for y in range(startYear,endYear+1):
+            for y in range(startYear, endYear+1):
                 thisYear = False
                 if self.valueY:
-                    if self.valueY == str(y):
+                    if self.valueY == y:
                         thisYear = True
                 else:
                     if y == setdate.year:

@@ -722,7 +722,7 @@ sub makeTargets {
 	# Storing info that we need later when we are going to 
 	# fill the rrd-db.
 	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'netboxid'} = $netboxid;
-	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'ds'} = $targetoidhash{$sysname};
+	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'ds'} = $rtargetoidhash{$sysname};
 
 	push @changes, $sysname;
 
@@ -912,8 +912,20 @@ sub makeinterfaceTargets {
 	    $rrdhash{"$cricketconfigdir/$dir/$sysname"}{$name}{'table'} = $table;
 
 	    $filetext .= "target \"$name\"\n";
-	    if ($interface && $interface =~ m/(.*)\.\d+/) {
-		$filetext .= "\ttarget-type\t=\tsub-interface\n";
+
+	    # Create sub-interface if the interface has a dot in it
+	    # and the vendor is cisco
+
+	    if ($vendor eq 'cisco' && $interface && $interface =~ m/(.*)\.\d+/) {
+
+		# Make sure that also sub-interfaces use 64-bit
+		# counters when snmpv2 is suported
+
+		if ($snmpversion == 2 && $support64bits) {
+		    $filetext .= "\ttarget-type\t=\tsubv2-interface\n";
+		} else {
+		    $filetext .= "\ttarget-type\t=\tsub-interface\n";
+		}
 	    }
 	    $filetext .= "\torder\t=\t$order\n";
 	    $filetext .= "\tinterface-index\t=\t$ifindex\n";
@@ -1290,8 +1302,8 @@ sub fillRRDdatabase {
 
 		# Gotta love perl and references...
 		for my $i (0 .. $#{ $rrdhash{$path}{$filename}{'ds'} } ) {
-		    
-		    my $datasource = $oidhash{ @{ $rrdhash{$path}{$filename}{'ds'} }[$i] };
+		    my @datasourcedescriptions = sort @{ $rrdhash{$path}{$filename}{'ds'} };
+		    my $datasource = $datasourcedescriptions[$i];
 		    if ($path =~ /server/) {
 			$datasource = @{ $rrdhash{$path}{$filename}{'ds'} }[$i];
 			printf "\tPath matches server, using alternate value (%s)\n", $datasource  if $ll >= 3;

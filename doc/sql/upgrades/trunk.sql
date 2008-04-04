@@ -1,7 +1,7 @@
 /*
  *
  * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.2 to the current trunk revision.  Please update this with every
+ * version 3.3 to the current trunk revision.  Please update this with every
  * change you make to the database initialization scripts.  It will eventually
  * become the update script for the next release.
  *
@@ -15,106 +15,37 @@
  *
 */
 
-\c manage
+-- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
+-- here for those who started out with clean 3.3.0 installs.
+-- NAV 3.3.1 also contained bug SF#1899431 in this rule, which has
+-- been fixed here, and should be applied when upgrading.
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
--- Close invalid moduleState states in alerthist.
-UPDATE alerthist SET end_time=now()
-WHERE eventtypeid = 'moduleState' 
-  AND subid IS NOT NULL
-  AND subid NOT IN (SELECT moduleid FROM module) 
-  AND end_time = 'infinity';
+-- Replace the netboxid_null_upd_end_time trigger, which has been
+-- faulty the last six years.
+CREATE OR REPLACE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
+  'BEGIN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
+       new.end_time = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
 
--- New rule to automatically close module related alert states when modules
--- are deleted.
-CREATE RULE close_alerthist_modules AS ON DELETE TO module
-  DO UPDATE alerthist SET end_time=NOW() 
-     WHERE eventtypeid='moduleState' 
-       AND end_time='infinity'
-       AND subid=OLD.moduleid;
+-- Django needs a single column it can treat as primary key :-(
+ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
+ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
+ALTER TABLE maint_component ADD COLUMN id SERIAL;
+ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
+ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
 
--- Added constraint to prevent accidental duplicates in the alerttype table.
-ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE
-(eventtypeid, alerttype);
-
--- Renamed eventengine source from deviceTracker to deviceManagement
-UPDATE subsystem SET name = 'deviceManagement' WHERE name = 'deviceTracker';
-
--- Create index on alerthist.start_time
-CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
-
-
--- Now, change the datatype of cam.mac and arp.mac from CHAR(12) to MACADDR.
--- Also change the datatype of cam.port from INT to VARCHAR.
--- This operation will only work on PostgreSQL 8 and newer.  An alternative
--- way to convert the tables, suitable for PostgreSQL 7.4, can be found in the
--- comments below (NOTE however, that using this method on PostgreSQL 7.4 may
--- take several hours to complete, depending on the size of your cam/arp
--- tables!)
-LOCK TABLE arp IN ACCESS EXCLUSIVE MODE;
-LOCK TABLE cam IN ACCESS EXCLUSIVE MODE;
-
--- First, the cam table
-ALTER TABLE cam ALTER COLUMN mac TYPE macaddr USING mac::macaddr;
-ALTER TABLE cam ALTER COLUMN port TYPE varchar;
-
--- -- Alternative method for PostgreSQL 7.4:
--- BEGIN;
--- LOCK TABLE cam IN ACCESS EXCLUSIVE MODE;
--- ALTER TABLE cam ADD COLUMN mac2 macaddr;
--- ALTER TABLE cam ADD COLUMN port2 VARCHAR;
--- UPDATE cam SET mac2 = mac::text::macaddr, port2 = port::VARCHAR;
--- ALTER TABLE cam DROP COLUMN mac;
--- ALTER TABLE cam DROP COLUMN port;
--- ALTER TABLE cam RENAME COLUMN mac2 TO mac;
--- ALTER TABLE cam RENAME COLUMN port2 TO port;
--- ALTER TABLE cam ALTER COLUMN mac SET NOT NULL;
--- CREATE INDEX cam_mac_btree ON cam USING btree (mac);
--- ALTER TABLE cam ADD CONSTRAINT cam_unique UNIQUE (netboxid,sysname,module,port,mac,start_time);
--- END;
-
--- Alter the port value for all open cam entries, set it to be the interface name.
-UPDATE cam SET port=interface FROM swport JOIN module USING (moduleid) WHERE cam.netboxid=module.netboxid AND swport.ifindex=cam.ifindex AND end_time='infinity';
-
--- Then the arp table, but we need to drop the netboxmac view first, since it
--- depends on the mac column
-DROP VIEW netboxmac;
-ALTER TABLE arp ALTER COLUMN mac TYPE macaddr USING mac::macaddr;
-
-
--- -- Alternative method for PostgreSQL 7.4 (still need to drop netboxmac first!)
--- BEGIN;
--- LOCK TABLE arp IN ACCESS EXCLUSIVE MODE;
--- ALTER TABLE arp ADD COLUMN mac2 macaddr;
--- UPDATE arp SET mac2 = mac::text::macaddr;
--- ALTER TABLE arp DROP COLUMN mac;
--- ALTER TABLE arp RENAME COLUMN mac2 TO mac;
--- ALTER TABLE arp ALTER COLUMN mac SET NOT NULL;
--- CREATE INDEX arp_mac_btree ON arp USING btree (mac);
--- END;
-
--- Recreate the netboxmac view.
-CREATE VIEW netboxmac AS  
-(SELECT DISTINCT ON (mac) netbox.netboxid, arp.mac
- FROM netbox
- JOIN arp ON (arp.arpid = (SELECT arp.arpid FROM arp WHERE arp.ip=netbox.ip AND end_time='infinity' LIMIT 1)))
-UNION DISTINCT
-(SELECT DISTINCT ON (mac) module.netboxid,mac
- FROM arp
- JOIN gwportprefix gwp ON
-  (arp.ip=gwp.gwip AND (hsrp=true OR (SELECT COUNT(*) FROM gwportprefix WHERE gwp.prefixid=gwportprefix.prefixid AND hsrp=true) = 0))
- JOIN gwport USING(gwportid)
- JOIN module USING (moduleid)
- WHERE arp.end_time='infinity');
-
--- Performed the following unscientific timings on a AMD Athlon 64 X2 Dual
--- Core Processor 3800+ with 1GB RAM and a single SATA disk, converting
--- arp.mac and cam.mac from char(12) to macaddr data type.  The cam table
--- contained 1,432,162 rows, the arp table 753,499 rows:
---
--- The acrobatic PostgreSQL 7.4 method: 2h39m16s
--- The simpler PostgreSQL 8.x method:   0h04m48s
-
-
-\c navprofiles
--- Fix error in sysname matching
-UPDATE matchfield SET valueid='netbox.sysname' WHERE matchfieldid=15;
+-- Both old IP Device Center and new IP Device Info does lots of selects on cam
+-- with netboxid and ifindex in the where clause
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);

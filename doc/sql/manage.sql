@@ -210,16 +210,20 @@ CREATE TABLE netbox (
 CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
 
 CREATE TABLE netboxsnmpoid (
+  id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
   frequency INT4,
+  PRIMARY KEY(id),
   UNIQUE(netboxid, snmpoidid)
 );  
 CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
 
 CREATE TABLE netbox_vtpvlan (
+  id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   vtpvlan INT4,
+  PRIMARY KEY(id),
   UNIQUE(netboxid, vtpvlan)
 );
 
@@ -247,6 +251,7 @@ INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
 );
 
 CREATE TABLE netboxcategory (
+  id SERIAL,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   category VARCHAR NOT NULL REFERENCES subcat ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)
@@ -344,7 +349,7 @@ CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlanid INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
-  direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
+  direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, n=down, x=undefined?
   UNIQUE (swportid, vlanid)
 );
 CREATE INDEX swportvlan_swportid_btree ON swportvlan USING btree (swportid);
@@ -393,9 +398,10 @@ UNIQUE(swportid,cablingid));
 -- Attach a trigger to arp and cam, to make sure records are closed as
 -- netboxes are deleted.
 -- The pl/pgsql scripting language must be installed on this database first.
-CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
+CREATE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
   'BEGIN
-     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
        new.end_time = current_timestamp;
      END IF;
      RETURN new;
@@ -418,6 +424,11 @@ CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
 CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
 
+-- Rule to automatically close open arp entries related to a given prefix
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
+
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
@@ -436,6 +447,7 @@ CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
 
 
 -- VIEWs -----------------------
@@ -547,6 +559,7 @@ INSERT INTO subsystem (name) VALUES ('deviceManagement');
 INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
+INSERT INTO subsystem (name) VALUES ('snmptrapd');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
@@ -722,17 +735,21 @@ CREATE TABLE alertq (
 );
 
 CREATE TABLE alertqmsg (
+  id SERIAL,
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
   msgtype VARCHAR NOT NULL,
   language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alertqid, msgtype, language)
 );
 CREATE INDEX alertqmsg_alertqid_btree ON alertqmsg USING btree (alertqid);
 CREATE TABLE alertqvar (
+  id SERIAL,
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alertqid, var) -- only one val per var per event
 );
 CREATE INDEX alertqvar_alertqid_btree ON alertqvar USING btree (alertqid);
@@ -756,27 +773,31 @@ CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 
 -- Rule to automatically close module related alert states when modules are
 -- deleted.
-CREATE RULE close_alerthist_modules AS ON DELETE TO module
+CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
   DO UPDATE alerthist SET end_time=NOW() 
-     WHERE eventtypeid='moduleState' 
+     WHERE eventtypeid IN ('moduleState', 'linkState')
        AND end_time='infinity'
-       AND subid=OLD.moduleid;
+       AND deviceid=OLD.deviceid;
 
 CREATE TABLE alerthistmsg (
+  id SERIAL,
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   msgtype VARCHAR NOT NULL,
   language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alerthistid, state, msgtype, language)
 );
 CREATE INDEX alerthistmsg_alerthistid_btree ON alerthistmsg USING btree (alerthistid);
 
 CREATE TABLE alerthistvar (
+  id SERIAL,
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
+  PRIMARY KEY(id),
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
 CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
@@ -799,7 +820,8 @@ CREATE RULE rrdfile_deleter AS
         WHERE key='serviceid' AND value=old.serviceid;
 
 CREATE TABLE serviceproperty (
-serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
+  id SERIAL,
+  serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
   property VARCHAR(64) NOT NULL,
   value VARCHAR,
   PRIMARY KEY(serviceid, property)
@@ -895,6 +917,7 @@ CREATE TABLE maint_task (
 );
 
 CREATE TABLE maint_component (
+    id SERIAL,
     maint_taskid INT NOT NULL REFERENCES maint_task ON UPDATE CASCADE ON DELETE CASCADE,
     key VARCHAR NOT NULL,
     value VARCHAR NOT NULL,
@@ -902,6 +925,7 @@ CREATE TABLE maint_component (
 );
 
 CREATE TABLE message_to_maint_task (
+    id SERIAL,
     messageid INT NOT NULL REFERENCES message ON UPDATE CASCADE ON DELETE CASCADE,
     maint_taskid INT NOT NULL REFERENCES maint_task ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (messageid, maint_taskid)

@@ -525,7 +525,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
             # Wrench icon
             row.append((None,
                         '/maintenance/view?id=%s' % line[MAINTID],
-                        ('/images/wrench.gif',
+                        ('/images/status/wrench.gif',
                         'Maintenance details'),
                         None))
 
@@ -1022,7 +1022,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
             # Wrench icon
             row.append((None,
                         '/maintenance/view?id=%s' % line[MAINTID],
-                        ('/images/wrench.gif',
+                        ('/images/status/wrench.gif',
                         'Maintenance details'),
                         None))
 

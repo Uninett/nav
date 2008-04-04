@@ -99,11 +99,12 @@
 
 #block content
 
+<h2>$title</h2>
+
 $makeMenu($menu, $current)
 
 <div class="tabcontent">
 
-<h2>$title</h2>
 
 #set $infomsgs = $getVar('infomsgs', [])
 #if len($infomsgs)

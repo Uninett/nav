@@ -27,8 +27,9 @@
 #from nav.web.templates.selectTreeTemplate import selectTreeTemplate
 
 #def additionalCSS
+$default_form_CSS
+$default_table_CSS
 <link rel="stylesheet" type="text/css" href="/style/editdbTemplate.css" />
-$default_form_CSS()
 #end def
 
 #block additionalJavaScript
@@ -95,45 +96,36 @@ $showBody($body)
 #end for
         </p>
 #end if
-        <table border="0" cellspacing="0" cellpadding="0">
+        <table class="listtable reporttable">
 ## Show headings
-            <tr class="header">
-                <td class="startheader"></td>
-#for $cell in $selectList.headings
-                <td valign="top">
-#if $cell.url
-                    <a href="$cell.url">$cell.text</a>&nbsp;
-#else
-                    $cell.text&nbsp;
-#end if
-#if $cell.tooltip
+            <thead>
+            <tr>
+            #for $cell in $selectList.headings
+                <th>
+                #if $cell.url
+                    <a href="$cell.url">$cell.text</a>
+                #else
+                    $cell.text
+                #end if
+                #if $cell.tooltip
                     <span>
-#for $line in $cell.tooltip
+                    #for $line in $cell.tooltip
                         $line<br />
-#end for
+                    #end for
                     </span>
-#end if
-                </td>
-#end for
-                <td class="endheader"></td>
+                #end if
+                </th>
+            #end for
             </tr>
+            </thead>
 ## Rows
-#set $oddRow = True
+            <tbody>
 #for $fullrow in $selectList.rows
 ## $fullrow[0] is sortKey
 #set $id = $fullrow[1][0]
 #set $row = $fullrow[1][1]
-## Set rowstyle
-#if $oddRow
-#set $rowstyle = 'oddrow'
-#set $oddRow = False
-#else
-#set $rowstyle = 'evenrow'
-#set $oddRow = True
-#end if
-            <tr class="$rowstyle">
+            <tr class="$rowcycler">
 ## Cells in a row
-                <td>&nbsp;</td>
 #for $cell in $row
                 <td>
 #if $cell.url
@@ -179,9 +171,9 @@ $showBody($body)
                     &nbsp;&nbsp;
                 </td>
 #end for
-                <td>&nbsp;</td>
             </tr>
 #end for
+        </tbody>
         </table>
 ## Bottom buttons
 #if $selectList.buttonsBottom

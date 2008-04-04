@@ -2,6 +2,7 @@
 ## $Id: MatrixTemplate.tmpl 2674 2004-04-28 13:03:41Z mortenv $
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2007 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -21,35 +22,42 @@
 ##
 ##
 ## Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+##          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
 #extends nav.web.templates.MainTemplate
 
+#block additionalCSS
+$default_table_CSS
+#end block
+
 #block content
 <h2>Syslog Analyzer</h2>
-<div id="wrapper">
+
 $logform($priority,$type,$category,$origin,$tfrom,$tto)
 
 #if $mode == "statistics"
-$statistics($typelist, $originlist, $total, $typedict, $origindict, $type, $origin, $priority, $category, $link)
+    $statistics($typelist, $originlist, $total, $typedict, $origindict, $type, $origin, $priority, $category, $link)
 #elif $mode == "log"
-$viewlog($log, $total, $type, $origin, $priority, $category)
+    $viewlog($log, $total, $type, $origin, $priority, $category)
 #elif $mode == "error"
-$errorlist($errors, $total)
+    $errorlist($errors, $total)
 #elif $mode == "exception"
-$exceptionlist($exceptions)
+    $exceptionlist($exceptions)
 #else
-$prioritylist($priorities, $priorityresult, $link)
+    $prioritylist($priorities, $priorityresult, $link)
 #end if
-</div>
 #end block
 
 
 #def logform($priority,$type,$category,$origin,$tfrom,$tto)
+[<a href="/logger/?error">parsing errors</a>] [<a href="/logger/?exception">priority exceptions</a>]
 
-<div id="logform">
 <form action="" method="get">
 
-<label for="priority">Priority</label>
+<table class="vertitable">
+    <tr>
+        <th><label for="priority">Priority</label></th>
+        <td>
 <select id="priority" name="priority">
 #for $p in $priorities
 #if str($p[0]) == str($priority)
@@ -59,7 +67,12 @@ $prioritylist($priorities, $priorityresult, $link)
 #end if
 #end for
 </select>
-<label for="type"><a href="http://www.cisco.com/univercd/cc/td/doc/product/software/ios120/12supdoc/12sems/emover.htm#5002">Message type</a></label>
+        </td>
+    </tr>
+
+    <tr>
+        <th><label for="type"><a href="http://www.cisco.com/univercd/cc/td/doc/product/software/ios120/12supdoc/12sems/emover.htm#5002">Message type</a></label></th>
+        <td>
 <select id="type" name="type">
 #for $t in $types
 #if $t[1] == $type
@@ -69,10 +82,12 @@ $prioritylist($priorities, $priorityresult, $link)
 #end if
 #end for
 </select>
+        </td>
+    </tr>
 
-<br />
-
-<label for="category">Category</label>
+    <tr>
+        <th><label for="category">Category</label></th>
+        <td>
 <select id="category" name="category">
 #for $c in $categories
 #if $c[0] == $category
@@ -82,7 +97,12 @@ $prioritylist($priorities, $priorityresult, $link)
 #end if
 #end for
 </select>
-<label for="origin">Origin</label>
+        </td>
+    </tr>
+
+    <tr>
+        <th><label for="origin">Origin</label></th>
+        <td>
 <select id="origin" nameid="origin">
 #for $o in $origins
 #if $o[1] == $origin
@@ -92,143 +112,241 @@ $prioritylist($priorities, $priorityresult, $link)
 #end if
 #end for
 </select>
+        </td>
+    </tr>
 
-<br />
+    <tr>
+        <th><label for="tfrom" title="yyyy-mm-dd HH:MM:SS">From</label></th>
+        <td><input type="text" name="tfrom" value="$tfrom" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" /></td>
+    </tr>
 
-<label for="tfrom" title="yyyy-mm-dd HH:MM:SS">From</label>
-<input type="text" name="tfrom" value="$tfrom" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" />
+    <tr>
+        <th><label for="tto" title="yyyy-mm-dd HH:MM:SS">To</label></th>
+        <td><input type="text" name="tto" value="$tto" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" /></td>
+    </tr>
 
-<label for="tto" title="yyyy-mm-dd HH:MM:SS">To</label>
-<input type="text" name="tto" value="$tto" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" />
+    <tr>
+        <th></th>
+        <td><button type="submit" name="send">Filter</button></td>
+    </tr>
+</table>
 
-<br />
-
-<input type="submit" name="send" value="Send" />
-<input type="button" name="reset" value="Reset" onclick="window.location.href='/logger/'"/>
- - <a href="/logger/?error">parsing errors</a> - <a href="/logger/?exception">priority exceptions</a> -
 </form>
-
-</div>
-
 #end def
 
 
 #def $prioritylist($pritorities, $priorityresult, $link)
-#if len($priorityresult)
-<table>
-#for $row in $priorities
-#if $priorityresult.has_key($row[0])
-<tr><td><a href="/logger/?$link&amp;priority=$row[0]" title="$row[2]">Priority $row[1]</a></td><td>$priorityresult[$row[0]]</td></tr>
-#elif not $row[0] == "-"
-<tr><td><span title="$row[2]">Priority $row[1]</span></td><td>0</td></tr>
-#end if
-#end for
+#set $total = len($priorityresult)
+#if $total
+<table class="listtable">
+    <caption>Priorites</caption>
+    <thead>
+        <tr>
+            <th>Priority</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+    #for $row in $priorities
+        <tr class="$rowcycler">
+        #if $priorityresult.has_key($row[0])
+            <td><a href="/logger/?$link&amp;priority=$row[0]" title="$row[2]">Priority $row[1]</a></td>
+            <td>$priorityresult[$row[0]]</td>
+        #elif not $row[0] == "-"
+            <td><span title="$row[2]">Priority $row[1]</span></td>
+            <td>0</td>
+        #end if
+        </tr>
+    #end for
+    </tbody>
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">Total $total matches</th>
+        </tr>
+    </tbody>
 </table>
 #else
 <p>Your search did not return any results.</p>
 #end if
 #end def
 
+
 #def $statistics($typelist, $originlist, $total, $typedict, $origindict, $typeid, $originid, $priorityid, $categoryid, $link)
-<div style="text-align:center;width:100%">
 
-<p style="text-align:center;">Total $total matches
-#if $typeid
-of type $typeid
-#elif $priorityid
-of priority $priorityid
-#end if
-#if $originid
-from origin $originid
-#elif $categoryid
-of category $categoryid
-#end if
-</p>
-
-<div style="float:left;text-align:left;">
 #if len($originlist)
-<table>
-#for $o in $originlist
-#if $originid == $origindict[$o[0]]
-<tr><td>$origindict[$o[0]]</td><td><a href="/logger/?$link&amp;log=1">$o[1]</a></td></tr>
-#else
-<tr><td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]">$origindict[$o[0]]</a></td><td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]&amp;log=1">$o[1]</a></td></tr>
+    <table class="listtable">
+    <caption>Origins</caption>
+    <thead>
+        <tr>
+            <th>Origin</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+    #for $o in $originlist
+        <tr class="$rowcycler">
+        #if $originid == $origindict[$o[0]]
+            <td>$origindict[$o[0]]</td>
+            <td><a href="/logger/?$link&amp;log=1">$o[1]</a></td>
+        #else
+            <td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]">$origindict[$o[0]]</a></td>
+            <td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]&amp;log=1">$o[1]</a></td>
+        #end if
+        </tr>
+    #end for
+    </tbody>
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">
+                Total $total matches
+                #if $typeid
+                    of type $typeid
+                #elif $priorityid
+                    of priority $priorityid
+                #end if
+                #if $originid
+                    from origin $originid
+                #elif $categoryid
+                    of category $categoryid
+                #end if
+            </th>
+        </tr>
+    </tbody>
+    </table>
 #end if
-#end for
-</table>
-#end if
-</div>
-<div style="float:left;text-align:left;">
+
 #if len($typelist)
-<table>
-#for $t in $typelist
-#if $typeid == $typedict[$t[0]]
-<tr><td>$typedict[$t[0]]</td><td><a href="/logger/?$link&amp;log=1">$t[1]</a></td></tr>
-#else
-<tr><td><a href="/logger/?$link&amp;type=$typedict[$t[0]]">$typedict[$t[0]]</a></td><td><a href="/logger/?$link&amp;type=$typedict[$t[0]]&amp;log=1">$t[1]</a></td></tr>
-#end if
-#end for
+<table class="listtable">
+    <caption>Message types</caption>
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+    #for $t in $typelist
+        <tr class="$rowcycler">
+        #if $typeid == $typedict[$t[0]]
+            <td>$typedict[$t[0]]</td>
+            <td><a href="/logger/?$link&amp;log=1">$t[1]</a></td>
+        #else
+            <td><a href="/logger/?$link&amp;type=$typedict[$t[0]]">$typedict[$t[0]]</a></td>
+            <td><a href="/logger/?$link&amp;type=$typedict[$t[0]]&amp;log=1">$t[1]</a></td>
+        #end if
+        </tr>
+    #end for
+    </tbody>
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">
+                Total $total matches
+                #if $typeid
+                    of type $typeid
+                #elif $priorityid
+                    of priority $priorityid
+                #end if
+                #if $originid
+                    from origin $originid
+                #elif $categoryid
+                    of category $categoryid
+                #end if
+            </th>
+        </tr>
+    </tbody>
 </table>
 #end if
-</div>
-</div>
+
 #end def
 
 
 #def $viewlog($log, $total, $typeid, $originid, $priorityid, $categoryid)
-<p style="text-align:center;">Total $total matches
-#if $typeid
-of type $typeid
-#elif $priorityid
-of priority $priorityid
-#end if
-#if $originid
-from origin $originid
-#elif $categoryid
-of category $categoryid
-#end if
-</p>
-
-#if len($log)
-<table>
-#for $l in $log
-<tr><td>$l.time</td><td>$l.origin</td><td>$l.type</td><td>$l.message</td></tr>
-#end for
+<table class="listtable">
+    <caption>Log</caption>
+    <thead>
+        <tr>
+            <th>Time</th>
+            <th>Origin</th>
+            <th>Message type</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    #if len($log)
+    <tbody>
+        #for $l in $log
+        <tr class="$rowcycler">
+            <td>$l.time</td>
+            <td>$l.origin</td>
+            <td>$l.type</td>
+            <td>$l.message</td>
+        </tr>
+        #end for
+    </tbody>
+    #end if
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">
+                Total $total matches
+                #if $typeid
+                    of type $typeid
+                #elif $priorityid
+                    of priority $priorityid
+                #end if
+                #if $originid
+                    from origin $originid
+                #elif $categoryid
+                    of category $categoryid
+                #end if
+            </th>
+        </tr>
+    </tbody>
 </table>
-#end if
-
 #end def
 
 
 #def $errorlist($errors, $total)
-
-#if len($errors)
-<p style="text-align:center;">Total $total error conditions</p>
-<table>
-#for $e in $errors
-<tr><td>$e[0]</td></tr>
-#end for
+#if $total
+<table class="listtable">
+    <caption>Parsing errors</caption>
+    <tbody>
+        #for $e in $errors
+        <tr class="$rowcycler">
+            <td>$e[0]</td>
+        </tr>
+        #end for
+    </tbody>
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">Total $total error conditions</th>
+        </tr>
+    </tbody>
 </table>
 #else
-<p>There is not saved any error conditions from the parsing of the syslog
-files. This probably means all the log messages have been parsed
-successfully.</p>
+<p>No error conditions from the parsing of the syslog files has been saved.
+This probably means all the log messages have been parsed successfully.</p>
 #end if
-
 #end def
 
 
 #def $exceptionlist($exceptions)
-
 #if len($exceptions)
-<p>Lists your defined priority exceptions based on the logger.conf configuration file</p>
-<table>
-#for $e in $exceptions
-<tr><td>$e[0]</td><td>$e[1]</td></tr>
-#end for
+<table class="listtable">
+    <caption>Defined priority exceptions based on
+    <code>logger.conf</code></caption>
+    <thead>
+        <!-- FIXME: What is the header of these two columns? -->
+    </thead>
+    <tbody>
+        #for $e in $exceptions
+        <tr class="$rowcycler">
+            <td>$e[0]</td>
+            <td>$e[1]</td>
+        </tr>
+        #end for
+    </tbody>
 </table>
 #else
-<p>You have not defined any priority exceptions in the logger.conf configuration file</p>
+<p>You have not defined any priority exceptions in the <code>logger.conf</code>
+configuration file.</p>
 #end if
-
 #end def
