@@ -1,0 +1,13 @@
+# use glob syntax.
+syntax: glob
+
+*.pyc
+*~
+autom4te.cache
+*.class
+*.jar
+*.war
+subsystem/maintenance/nav/web/templates/*.py
+subsystem/messages/nav/web/templates/*.py
+subsystem/webFront/templates/*.py
+subsystem/webFront/templates/*/*.py
