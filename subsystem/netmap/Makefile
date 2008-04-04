@@ -24,21 +24,21 @@
 #
 
 # Programs
-INSTALL = @INSTALL@
-CHEETAH = @CHEETAH@
+INSTALL = /usr/bin/install -c
+CHEETAH = /usr/bin/cheetah
 
 # Paths
-prefix = @prefix@
-bindir = @bindir@
-libdir = @libdir@
-exec_prefix = @exec_prefix@
-sysconfdir = @sysconfdir@
-initdir = @initdir@
-localstatedir = @localstatedir@
-tooldir = @tooldir@
-crondir = @crondir@
-pythonlibdir = @pythonlibdir@
-webroot = @webroot@
+prefix = /usr/local/nav
+bindir = ${exec_prefix}/bin
+libdir = ${exec_prefix}/lib
+exec_prefix = ${prefix}
+sysconfdir = ${prefix}/etc
+initdir = ${sysconfdir}/init.d
+localstatedir = ${prefix}/var
+tooldir = ${prefix}/apache/tools
+crondir = ${sysconfdir}/cron.d
+pythonlibdir = ${libdir}/python
+webroot = ${prefix}/apache/webroot
 
 # Names
 WEBNAME = netmap
