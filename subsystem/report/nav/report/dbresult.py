@@ -1,5 +1,5 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
+# -*- coding: utf-8 -*-
+# $Id: DatabaseResult.py 3425 2006-06-08 13:07:54Z mortenv $
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #

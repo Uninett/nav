@@ -1,7 +1,8 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
+# -*- coding: utf-8 -*-
+# $Id: Generator.py 3839 2007-01-29 15:53:21Z mortenv $
 #
 # Copyright 2003-2005 Norwegian University of Science and Technology
+# Copyright 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,14 +22,17 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
 import re,string
 from urlparse import urlsplit
 from urllib import unquote_plus
-from DatabaseResult import DatabaseResult
-from Report import Report
+from nav.report.dbresult import DatabaseResult
+from nav.report.report import Report
 import nav.db
+
+# TODO: remove "hei" from code. It's, as far as I can see, not in any use.
 
 class Generator:
     """

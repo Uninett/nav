@@ -1,5 +1,5 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
+# -*- coding: utf-8 -*-
+# $Id: Matrix.py 3865 2007-02-01 08:14:21Z mortenv $
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #

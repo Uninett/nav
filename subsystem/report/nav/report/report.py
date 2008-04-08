@@ -1,5 +1,5 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
+# -*- coding: utf-8 -*-
+# $Id: Report.py 3836 2007-01-29 14:33:20Z mortenv $
 #
 # Copyright 2003-2005 Norwegian University of Science and Technology
 #
@@ -48,7 +48,7 @@ class Report:
 
         - configuration : a ReportConfig object containing all the configuration
         - database      : a DatabaseResult object that will be modified according
-        to the configuration
+                          to the configuration
         - path          : the address of the requested page
         """
 
