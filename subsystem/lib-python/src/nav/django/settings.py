@@ -33,7 +33,7 @@ import nav.buildconf
 import nav.path
 
 # Debugging
-if nav.buildconf.VERSION == 'trunk_devel':
+if 'devel' in nav.buildconf.VERSION:
     DEBUG = True
 else:
     DEBUG = False
