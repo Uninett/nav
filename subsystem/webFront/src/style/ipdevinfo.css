@@ -207,11 +207,15 @@ table#rrdgraphs td.actionselectbottom {
 }
 
 /* Service table */
-table.listtable td.n {
-	background: #d7191c;
+.status_up {
+	background: #8ae234;
+	color: black;
+}
+.status_down {
+	background: #ef2929;
 	color: white;
 }
-table.listtable td.y {
-	background: #91cf60;
+.status_shadow {
+	background: #fce94f;
 	color: black;
 }
