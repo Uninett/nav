@@ -177,6 +177,57 @@
 
 <hr class="floatclear" />
 
+{% if netbox and netbox.service_set.count %}
+
+<div id="services">
+<table class="listtable">
+    <caption>Services: {{ netbox.sysname }}</caption>
+    <tr>
+        <th rowspan="2">Status</th>
+        <th rowspan="2">Handler</th>
+        <th colspan="3">Availability</th>
+        <th colspan="3">Response time</th>
+        <th rowspan="2">Actions</th>
+    </tr>
+    <tr>
+        <th>Day</th>
+        <th>Week</th>
+        <th>Month</th>
+        <th>Day</th>
+        <th>Week</th>
+        <th>Month</th>
+    </tr>
+    {% for service in netbox.service_set.all %}
+    <tr class="{% cycle oddrow,evenrow %}">
+        <td class="status_{{ service.get_up_display }}">
+            {{ service.get_up_display|capfirst }}</td>
+        <td>{{ service.handler }}</td>
+        {% with service.get_statistics as stats %}
+        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+            {{ stats.availability.day|floatformat:2 }}%</a></td>
+        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+            {{ stats.availability.week|floatformat:2 }}%</a></td>
+        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+            {{ stats.availability.month|floatformat:2 }}%</a></td>
+        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+            {{ stats.response_time.day|floatformat:2 }} ms</a></td>
+        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+            {{ stats.response_time.week|floatformat:2 }} ms</a></td>
+        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+            {{ stats.response_time.month|floatformat:2 }} ms</a></td>
+        {% endwith %}
+        <td>
+            <a href="{% url editdb-edit-object "service",service.id %}">
+                Edit</a>,
+            <a href="{% url maintenance-new-service service.id %}">
+                schedule maintenance</a>
+        </td>
+    {% endfor %}
+</table>
+</div>
+
+{% endif %}
+
 {% if netbox and netbox.module_set.count %}
 
 <h3>Port view</h3>
