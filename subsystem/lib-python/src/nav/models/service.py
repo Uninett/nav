@@ -54,6 +54,7 @@ class Service(models.Model):
 
     class Meta:
         db_table = 'service'
+        ordering = ('handler',)
 
     def __unicode__(self):
         return u'%s, at %s' % (self.handler, self.netbox)
