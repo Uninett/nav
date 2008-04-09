@@ -44,6 +44,7 @@ class Service(models.Model):
         (UP_DOWN, 'down'),
         (UP_SHADOW, 'shadow'),
     )
+    TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.IntegerField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
@@ -58,6 +59,47 @@ class Service(models.Model):
 
     def __unicode__(self):
         return u'%s, at %s' % (self.handler, self.netbox)
+
+    def get_statistics(self):
+        from nav.models.rrd import RrdDataSource
+
+        def average(rds, time_frame):
+            from nav.rrd import presenter
+            rrd = presenter.presentation()
+            rrd.timeLast(time_frame)
+            rrd.addDs(rds.id)
+            value = rrd.average()
+            if not value:
+                return None
+            else:
+                return value[0]
+
+        try:
+            data_sources = RrdDataSource.objects.filter(
+                rrd_file__key='serviceid', rrd_file__value=self.id)
+            data_source_status = data_sources.get(name='STATUS')
+            data_source_response_time = data_sources.get(name='RESPONSETIME')
+        except RrdDataSource.DoesNotExist:
+            return None
+
+        result = {
+            'data_sources': data_sources,
+            'availability': {},
+            'response_time': {},
+        }
+
+        for time_frame in self.TIME_FRAMES:
+            # Availability
+            value = average(data_source_status, time_frame)
+            if value is not None:
+                value = 100 - (value * 100)
+            result['availability'][time_frame] = value
+
+            # Response time
+            value = average(data_source_response_time, time_frame)
+            result['response_time'][time_frame] = value
+
+        return result
 
 class ServiceProperty(models.Model):
     """From MetaNAV: Each service may have an additional set of attributes.
