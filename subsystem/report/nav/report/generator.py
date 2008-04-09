@@ -22,7 +22,7 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
-#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
+#          JÃ¸rgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
 import re,string
@@ -443,12 +443,12 @@ class ReportConfig:
     def makeTotalSQL(self):
         #select = self.sql_select_orig[0]
 
-        #skulle gjerne begrenset dette søket, så det ikke tok sånn tid, ved å bruke select deklarert rett over i selectstring().
+        #skulle gjerne begrenset dette sÃ¸ket, sÃ¥ det ikke tok sÃ¥nn tid, ved Ã¥ bruke select deklarert rett over i selectstring().
         sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring()
         return sql
 
     def makeSumSQL(self):
-        ## jukser her! count != sum --> ikke nå lenger
+        ## jukser her! count != sum --> ikke nÃ¥ lenger
         
         sum = []
         for s in self.sum:
