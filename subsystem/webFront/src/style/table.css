@@ -105,6 +105,7 @@ table.listtable tr th {
 	color: black;
 	font-weight: bolder;
 	padding: 0.3em 0.5em;
+	vertical-align: middle;
 }
 table.listtable tr th a {
 	background: transparent;
