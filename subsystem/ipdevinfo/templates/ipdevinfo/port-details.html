@@ -92,7 +92,7 @@
 <ul>
     {% if port.gwportprefix_set.all %}
         {% for gwprefix in port.gwportprefix_set.all %}
-            <li><a href="{% url report-prefix gwprefix.prefix.id %}">
+            <li><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
                 {{ gwprefix.prefix.net_address }}</a></li>
         {% endfor %}
     {% else %}

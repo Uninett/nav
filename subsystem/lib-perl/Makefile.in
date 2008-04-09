@@ -16,6 +16,7 @@ top_srcdir = @top_srcdir@
 perllibdir = @perllibdir@
 pathmodule = src/NAV/Path.pm
 
+export
 .PHONY: all install install-lib clean distclean
 
 all: $(pathmodule)
