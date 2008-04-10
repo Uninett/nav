@@ -29,13 +29,13 @@ import os
 import string
 import nav.path
 from nav.report.matrix import Matrix
-from nav.report.colorconfig import ColorConfiguration
+from nav.report.colorconfig import ColorConfig
 from nav.web.templates.MatrixIpv6Template import MatrixIpv6Template
 
 configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 
 
-class MatrixIpv6(Matrix):
+class MatrixIPv6(Matrix):
     """This class serves as an interface for the prefix matrix.
 
     Call getTemplateResponse() to get the template response."""
