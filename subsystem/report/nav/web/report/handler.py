@@ -71,7 +71,7 @@ def handler(req):
     reportName = r.group(1)
 
     if reportName == "report" or reportName == "index":
-        
+
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
@@ -134,12 +134,12 @@ def handler(req):
 				else:
 					max_leaf = getMaxLeaf(tree)
 					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-					
+
 					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
 			else:
 				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())
-            
+
         else:
 
             from nav import db
@@ -175,7 +175,7 @@ def handler(req):
         page.contents = contents
         page.operator = operator
         page.neg = neg
-        
+
         namename = ""
         if report:
             namename = report.header
@@ -195,12 +195,12 @@ def handler(req):
         page.operators = None
         page.operatorlist = None
         page.descriptions = None
-        
+
         if adv:
             page.search = True
         else:
             page.search = False
-        
+
         if report:
 
             if old_uri.find("?")>0:

@@ -36,11 +36,11 @@ class Matrix:
         """This class is "abstract" and should not be instansiated directly.
 
         Superclass with usefull methods for IP matrices.
-        
+
         Direct known subclasses:
                 nav.report.matrixIPv6
                 nav.report.matrixIPv4
-        """ 
+        """
 
         if end_net is None:
             end_net = getLastSubnet(start_net)
@@ -53,7 +53,7 @@ class Matrix:
 
     def getTemplateResponse(self):
         abstract()
-    
+
     def has_too_small_nets(self,net):
         """Returns true if argument ``net'' has too many small subnets for the matrix."""
         for net in getSubtree(self.tree,net):
@@ -66,7 +66,7 @@ class Matrix:
         return extractSubtreesWithPrefixLength(self.tree,self.end_net.prefixlen()-self.bits_in_matrix)
 
     def extractTreeNets(self):
-        """These should be listed vertically in the leftmost column.""" 
+        """These should be listed vertically in the leftmost column."""
         return removeSubnetsWithPrefixLength(self.tree,self.end_net.prefixlen()-self.bits_in_matrix+1)
 
 #because I'm a Java guy

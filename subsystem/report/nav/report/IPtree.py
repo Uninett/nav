@@ -1,13 +1,34 @@
-from copy import deepcopy
+# -*- coding: utf-8 -*-
+# $Id:$
+#
+# Copyright 2007-2008 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# Authors: Jostein Gogstad <jostein.gogstad@idi.ntnu.no>
+#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
+#
 
-from nav import db
 from IPy import IP
-
-from Utils import contains
-
-from IPTools import getMask
-from IPTools import sort_nets_by_prefixlength
-from IPTools import andIpMask
+from copy import deepcopy
+from nav import db
+from nav.report.utils import contains
+from nav.report.IPtools import getMask,sort_nets_by_prefixlength,andIpMask
 
 db_cursor = db.getConnection('webfront','manage').cursor()
 
@@ -31,9 +52,9 @@ def buildTree(start_net, end_net=None, bits_in_matrix=0, add_missing_nets=False,
 			length == (end_net - bits_in_matrix) such a parent will be added
 			in between the leaf and the original parent. The extra parent
 			will serve as a 'foreign key' later on when the prefix matrix
-			splits the tree on all nodes with prefix length = 
+			splits the tree on all nodes with prefix length =
 			end_net.prefixlen() - bits_in_matrix.
-			
+
 			defaults to False
 	"""
 
@@ -144,7 +165,7 @@ def getMaxLeaf(tree,maximum_prefix_length=128):
 				if result.prefixlen() > max.prefixlen() and result.prefixlen() <= maximum_prefix_length:
 					max = result
 		return max
-	
+
 	root = tree.keys()[0]
 	return dfs(tree,root)
 
