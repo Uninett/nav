@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Stian Søiland <stain@itea.ntnu.no>
+# Authors: Stian Sï¿½iland <stain@itea.ntnu.no>
 #
 """
 Generate URLs to different parts of NAV based
@@ -159,7 +159,7 @@ def createUrl(object=None, id=None, division=None,
         elif division=='prefix':
             url += 'prefix?prefix.prefixid=%s' % id
     elif subsystem == 'rrd':
-        # MØKKAKODEDRITFAEN!
+        # Mï¿½KKAKODEDRITFAEN!
         url += division
         url += "?"
         if type(id) != list:

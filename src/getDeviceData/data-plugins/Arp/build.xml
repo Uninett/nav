@@ -1,13 +1,13 @@
-<project name="CiscoGw plugin" default="copy" basedir=".">
+<project name="Arp plugin" default="copy" basedir=".">
     <description>
-        build file CiscoGw plugin
+		Build file arp
     </description>
   <!-- set global properties for this build -->
-  <property name="jar" value="CiscoGw.jar"/>
+  <property name="jar" value="Arp.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-  <property name="classpath" value="../../data-plugins/Arp/build:../../build:../../data-plugins/Device/build:../../data-plugins/Module/build:../../data-plugins/Gwport/build:../../data-plugins/Swport/build"/>
+  <property name="classpath" value="../../build"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -20,7 +20,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" source="1.4" target="1.4" classpath="${classpath}" debug="yes"/>
+    <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" source="1.5" target="1.5" classpath="${classpath}" debug="yes"/>
   </target>
 
   <target name="dist" depends="compile"

@@ -1,5 +1,8 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoGw;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +19,7 @@ import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
 import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Arp.Util;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwModule;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Gwport;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwportContainer;
@@ -26,6 +30,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
 import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
 import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.HashMultiMap;
 import no.ntnu.nav.util.MultiMap;
 import no.ntnu.nav.util.util;
 
@@ -48,8 +53,11 @@ import no.ntnu.nav.util.util;
 
 public class CiscoGw implements DeviceHandler
 {
+	
 	private static String[] canHandleOids = {
-		"ipAdEntIfIndex"
+		"ipAdEntIfIndex",
+		"cIpAddressIfIndex",
+		"cIpAddressPrefix",
 	};
 
 	private static String[] supportedCatids = {
@@ -60,7 +68,8 @@ public class CiscoGw implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		if (!new HashSet(Arrays.asList(supportedCatids)).contains(nb.getCat())) return NEVER_HANDLE;
+		if (!Arrays.asList(supportedCatids).contains(nb.getCat()))
+			return NEVER_HANDLE;
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("CGW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
@@ -68,6 +77,11 @@ public class CiscoGw implements DeviceHandler
 
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
+		//This is a hack. It seems that kongsvinger-gw.uninett.no and c6500-h-1.hiof.no is passed twice,
+		//the second time nb.getOid returns null on all oids previously supported and thus the code will fail.
+		if(nb.getOid("sysname") == null)
+			return;
+		
 		Log.setDefaultSubsystem("CGW_DEVHANDLER");
 
 		ModuleContainer mc;
@@ -121,7 +135,7 @@ public class CiscoGw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, mc, gwc, sc);
+		boolean fetch = processCiscoGw(nb, cp, netboxid, ip, cs_ro, type, mc, gwc, sc);
 			
 		// Commit data
 		if (fetch) {
@@ -134,7 +148,7 @@ public class CiscoGw implements DeviceHandler
 	 * CiscoGw
 	 *
 	 */
-	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
+	private boolean processCiscoGw(Netbox nb, ConfigParser cp, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
 
 		/*
 
@@ -237,6 +251,13 @@ A) For hver ruter (kat=GW eller kat=GSW)
      - gwport.prefiksid knytter seg til aktuelle prefiks
        (som skal være opprettet)
 		*/
+		
+		
+		boolean ipv4Supported = true;
+		boolean ciscoIpv6Supported = true;
+		boolean ietfIpv6Supported = true;
+		boolean ipv6Supported;
+		
 		// Check for standard OID support
 		Set oidsNotSupported = nb.oidsNotSupported(new String[] {
 			"ifSpeed",
@@ -252,7 +273,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			return false;
 		}
 
-		// Check for router OID
+		// Check for router OID IPv4
 		oidsNotSupported = nb.oidsNotSupported(new String[] {
 			"ipAdEntIfIndex",
 			"ipAdEntIfNetMask",
@@ -260,20 +281,134 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 		if (!oidsNotSupported.isEmpty()) {
 			if (nb.getCat().equals("GW") || nb.getCat().equals("GSW")) {
-				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
+				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required for IPv4, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch IPv4 data!");
 			}
+			ipv4Supported = false;
+		}
+		
+		// Check for router OID IPv6
+		oidsNotSupported = nb.oidsNotSupported(new String[] {
+			"cIpAddressIfIndex",
+			"cIpAddressPrefix",
+		});
+		
+		if(!oidsNotSupported.isEmpty()) {
+			ciscoIpv6Supported = false;
+			if(nb.isSupportedAllOids(new String[]{"cIpAddressIfIndex"}))
+				System.out.println(nb.getSysname() + ": Support cIpAddressIfIndex but NOT cIpAddressPrefix!");
+		}
+		
+		
+		oidsNotSupported = nb.oidsNotSupported(new String[] {
+			"ipv6AddrPfxLength",
+		});
+		
+		if(!oidsNotSupported.isEmpty()) {
+			ietfIpv6Supported = false;
+		}
+		
+		ipv6Supported = ciscoIpv6Supported || ietfIpv6Supported;
+		
+		if(!ipv6Supported) {
+			if (nb.getCat().equals("GW") || nb.getCat().equals("GSW"))
+				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + ", cIpAddressPrefix, are required for IPv6, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch IPv6 data!");
+		}
+		
+		if(!ipv4Supported && !ipv6Supported) {		
+			Log.w("PROCESS_CGW","Neither IPv4 nor IPv6 OIDs supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
 			return false;
 		}
-
+	
 		// Fetch HSRP
-		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
+		MultiMap hsrpIpMap = null;
+		if(ipv4Supported)
+			hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
+			//TODO: Need HSRP MIB for IPv6! NB: an if sentence at the end of the for loop from hell
+			//		 assumes that IPv6 will be on short format as returned by ipv6Formatter in hsrpIpMap.
+			//		26/6/07: MIB not released yet
 
 		// Prefices and mapping to ifindex
-		Map ipMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfIndex"));
-		MultiMap prefixMap = util.reverse(ipMap);
+		Map ipMap = null;
+		MultiMap prefixMap = null;
+		if(ipv4Supported)
+			ipMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfIndex"));
+		
+		if(ipMap != null)
+			prefixMap = util.reverse(ipMap);
+		
+		if(ciscoIpv6Supported) {
+			ipMap = sSnmp.getAllMap(nb.getOid("cIpAddressIfIndex") + ".2.16");
+			MultiMap ipv6TemporaryPrefixMap = util.reverse(ipMap);
+			
+			if(prefixMap == null)
+				prefixMap = new HashMultiMap();
+			
+			for(Iterator it = ipv6TemporaryPrefixMap.keySet().iterator(); it.hasNext();) {
+				String key = (String)it.next();
+				Set values = ipv6TemporaryPrefixMap.get(key);
+				
+				for(Iterator jt = values.iterator(); jt.hasNext();)
+					prefixMap.put(key, ipv6Formatter((String)jt.next()));
+			}
+		}
+		
+		if(ietfIpv6Supported) {
+			ipMap = sSnmp.getAllMap(nb.getOid("ipv6AddrPfxLength"));
+			for(Iterator it = ipMap.keySet().iterator(); it.hasNext();) {
+				String key = (String)it.next();
+				String idx = key.substring(0,key.indexOf("."));
+				String decIp = key.substring(key.indexOf(".")+1);
+				prefixMap.put(idx, ipv6Formatter(decIp));
+			}
+		}
+			
 		boolean addedGwport = false;
 		if (prefixMap != null) {
-			Map netmaskMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfNetMask"));
+			Map netmaskMap = null;
+			Map ipv6NetmaskLengthMap = new HashMap();
+			
+			if(ipv4Supported)
+				netmaskMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfNetMask"));
+			
+			if(ciscoIpv6Supported) {
+				Map netmaskIpv6TemporaryMap = sSnmp.getAllMap(nb.getOid("cIpAddressPrefix") + ".2.16");
+				for(Iterator it = netmaskIpv6TemporaryMap.keySet().iterator(); it.hasNext();) {
+					String decIp = (String)it.next(); //ex 32.1.7.0.0.0.255.244.0.0.0.0.0.0.0.1
+					String decMask = (String)netmaskIpv6TemporaryMap.get(decIp); //ex 1.3.6.1.4.1.9.10.86.1.1.1.1.5.14.2.16.32.1.7.0.0.0.255.244.0.0.0.0.0.0.0.0.64
+					
+					String hexIp = ipv6Formatter(decIp);
+					int maskLength = Integer.parseInt(decMask.substring(decMask.lastIndexOf('.')+1));
+					
+					//link local addresses returns a subnetmask with length 0, for a 'proper'
+					//method, use cIpv6InterfaceIdentifierLength.
+					if(maskLength == 0)
+						maskLength = 64;
+
+					String hexMask = getIpv6Mask(decIp,maskLength);
+					netmaskMap.put(hexIp,hexMask);
+					ipv6NetmaskLengthMap.put(hexIp,new Integer(maskLength));
+				}
+			}
+			
+			if(ietfIpv6Supported) {
+				Map ipPfxLengthMap = sSnmp.getAllMap(nb.getOid("ipv6AddrPfxLength"));
+				for(Iterator it = ipPfxLengthMap.keySet().iterator(); it.hasNext();) {
+					String key = (String)it.next();
+					String decIp = key.substring(key.indexOf(".")+1);
+					
+					String hexIp = ipv6Formatter(decIp);
+					int maskLength = Integer.parseInt((String)ipPfxLengthMap.get(key));
+					
+					//see last method
+					if(maskLength == 0)
+						maskLength = 64;
+					
+					String hexMask = getIpv6Mask(decIp, maskLength);
+					netmaskMap.put(hexIp, hexMask);
+					ipv6NetmaskLengthMap.put(hexIp,new Integer(maskLength));
+				}
+			}
+
 
 			// Collect ospf
 			Map ospfMap = new HashMap();
@@ -281,12 +416,20 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			if (ospfOid != null) {
 				for (Iterator it = prefixMap.keySet().iterator(); it.hasNext();) {
 					String ifidx = (String)it.next();
-					String ifip = (String)prefixMap.get(ifidx).iterator().next();
-					List l = sSnmp.getAll(ospfOid+"."+ifip+".0.0", false, false);
-					if (l != null && !l.isEmpty()) ospfMap.put(ifidx, ((String[])l.get(0))[1]);
+					for(Iterator pIt = prefixMap.get(ifidx).iterator(); pIt.hasNext();) {
+						String ifip = (String)pIt.next();
+						if(ifip.indexOf(":") < 0) { //only IPv4 addresses
+							List l = sSnmp.getAll(ospfOid+"."+ifip+".0.0", false, false);
+							//TODO: Denne må fungere med IPv6, molde-gw.uninett.no svarer på
+							//både IPv6 og ospf. Finner ikke OSPFV3-MIB
+							if (l != null && !l.isEmpty()) {
+								ospfMap.put(ifidx, ((String[])l.get(0))[1]);
+						}
+						}
+					}
 				}
 			}
-			
+
 			// From Mib-II
 			Map speedMap = sSnmp.getAllMap(nb.getOid("ifSpeed"));
 			Map highSpeedMap = sSnmp.getAllMap(nb.getOid("ifHighSpeed"));
@@ -318,6 +461,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			MultiMap ifInterfMM = util.reverse(ifDescrMap);
 
 			// Find all masterinterfaces
+			//IPv6 OK
 			for (Iterator it = ifDescrMap.entrySet().iterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
 				String ifindex = (String)me.getKey();
@@ -520,14 +664,136 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				for (Iterator prefixIt = prefixMap.get(ifindex).iterator(); prefixIt.hasNext();) {
 					String gwip = (String)prefixIt.next();
 					String mask = (String)netmaskMap.get(gwip);
-
-					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey( Prefix.ipToHex(gwip) );
-					Prefix p = gwp.prefixFactory(gwip, hsrp, mask, vl);
+					if(Util.shouldIgnoreIp(Util.getInetAddress(gwip), cp))
+						continue;
+					
+					if(gwip.indexOf(":") < 0) { //gwip == IPv4
+						boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey( Prefix.ipToHex(gwip) );
+						Prefix p = gwp.prefixFactory(gwip, hsrp, mask, vl);
+					}
+					else { //gwip == IPv6
+						boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey(gwip);
+						int masklen = ((Integer)ipv6NetmaskLengthMap.get(gwip)).intValue();
+						//it was decided that prefices with masklen==128 is uninteresting for us.
+						if(masklen == 128)
+							continue;
+						Prefix p = gwp.prefixFactory(gwip, hsrp, mask, masklen, vl);
+					}
 				}
 				
 			}
 		}
 		return addedGwport;
+	}
+	
+	/**
+	 * @param ipv6 ipv6 address in decimal, dot separated, long notation.
+	 * @param maskLength length of the netmask.
+	 * 
+	 * @return ipv6 netmask in hex, colon separated, short notation.
+	 */
+	private static String getIpv6Mask(String ipv6, int maskLength) {
+		StringBuilder ipMaskBuilder = new StringBuilder();
+		String[] decIp = ipv6.split("\\.");
+		int maskBlocks = maskLength/8;
+		int remainingBits = maskLength % 8;
+		int lastMaskValue = 0;
+		for(int i = 0; i < remainingBits; i++)
+			lastMaskValue += (int)Math.pow(2.0, 7.0-i);
+		
+		for(int i = 0; i < decIp.length; i++) {
+			if(i < maskBlocks)
+				ipMaskBuilder.append(decIp[i] + ".");
+			else if(i == maskBlocks && lastMaskValue > 0)
+				ipMaskBuilder.append((lastMaskValue & Integer.parseInt(decIp[i])) + ".");
+			else
+				ipMaskBuilder.append("0.");
+		}
+		ipMaskBuilder.deleteCharAt(ipMaskBuilder.length()-1);
+		
+		return ipv6Formatter(ipMaskBuilder.toString());
+	}
+
+	/* 
+	 * Converts an Ipv6 in decimal, dot separated, long notation to
+	 * hex, colon separated, short notation.
+	 * 
+	 * Does not verify if the input IPv6 address is valid!
+	 * 
+	 * example input: 254.128.0.0.0.0.0.0.0.0.0.0.158.39.0.66
+	 * 	       output: fe80::9e27:42
+	 */	
+	private static String ipv6Formatter(String ipv6) {
+		String[] address = ipv6.split("\\.");
+		StringBuilder longAddressBuilder = new StringBuilder(ipv6.length());
+
+		int counter = 0;
+		//convert to hex, group nybbles to hexlets, zero padding
+		for(int i = 0; i < address.length; i++) {
+			if(counter % 2 == 0)
+				longAddressBuilder.append(":");
+			int number = Integer.parseInt(address[i]);
+			String hex = Integer.toHexString(number);
+			if(hex.length() == 1)
+				longAddressBuilder.append("0");
+			longAddressBuilder.append(hex);
+			counter ++;
+		}
+		longAddressBuilder.deleteCharAt(0);
+		
+		//longaddress is now on the format 2001:0700:0000:fff7:0000:0000:0000:0001
+		
+		//remove leading zeros, find the largest group of consecutive zero-groups and
+		//replace the group with "::".
+		String[] longAddress = longAddressBuilder.toString().split(":");
+		int[] longestConsecutiveZeroes = new int[8];
+		int maxIndex = -1;
+		int max = -1;
+
+		for(int j = 0; j < longestConsecutiveZeroes.length; j++) {
+			for(int i = j; i < longAddress.length; i++) {
+				if(longAddress[i].equals("0000"))
+					longestConsecutiveZeroes[j]++;
+				else {
+					j = i;
+					break;
+				}	
+			}
+		}
+		
+		for(int i = 0; i < longestConsecutiveZeroes.length; i++)
+			if(longestConsecutiveZeroes[i] > 0 && longestConsecutiveZeroes[i] >= max) {
+				max = longestConsecutiveZeroes[i];
+				maxIndex = i;
+			}
+
+		StringBuilder shortAddressBuilder = new StringBuilder();
+		for(int i = 0; i < longAddress.length; i++) {
+			if(i == maxIndex)
+				shortAddressBuilder.append(":");
+			if(maxIndex >= 0 && i >= maxIndex && i < maxIndex + longestConsecutiveZeroes[maxIndex]) //note < and not <=
+				continue;
+
+			int leadingZeros = 0;
+			for(int j = 0; j < longAddress[i].length()-1; j++) //-1 in case all zeros
+				if(longAddress[i].charAt(j) == '0')
+					leadingZeros++;
+				else
+					break;
+
+			for(int k = 0; k < longAddress[i].length(); k++) {
+				if(leadingZeros > 0 && k < leadingZeros)
+					continue;
+				shortAddressBuilder.append(longAddress[i].charAt(k));
+			}
+			shortAddressBuilder.append(":");	
+
+		}
+		shortAddressBuilder.deleteCharAt(shortAddressBuilder.length()-1);
+		if(shortAddressBuilder.charAt(shortAddressBuilder.length()-1) == ':') //if the last nibble is 0 (indicating netmask)
+			shortAddressBuilder.append(":");
+		
+		return shortAddressBuilder.toString();
 	}
 
 	private static boolean isNumber(String s) {
