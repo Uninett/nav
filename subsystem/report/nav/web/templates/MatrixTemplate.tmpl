@@ -1,0 +1,139 @@
+#encoding UTF-8
+## $Id$
+##
+## Copyright 2003-2005 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+##
+#extends nav.web.templates.MainTemplate
+
+#block content
+<h1>Graphic view of $network</h1>
+<p>This table shows how the subnets are utilized.</p>
+
+<table style="border: 1px solid black; font-size: 0.8em;">
+<tr>
+<td>&nbsp;</td>
+#for $number in $numbers
+<th>$number</th>
+#end for
+</tr>
+
+#set $ignore = {}
+#for $x in range($start,$end)
+#if $unntak.has_key($x)
+<tr>
+<td>$netlink($bnet,$x)</td>
+<td colspan="8" style="text-align:center;background-color:$load(0,'large')">Many small subnets</td>
+</tr>
+#elif $ignore.has_key($x)
+#pass
+
+#elif $big_net_rowspan.has_key($x)
+#set $y = $numbers[0]
+<tr>
+<td>$netlink($bnet,$x)</td>
+<td rowspan="$big_net_rowspan[$x]" colspan="8" #slurp
+#if $subnet.has_key($x) and $subnet[$x].has_key($y)
+style="text-align:center;background-color:$load($subnet[$x][$y].percent,$subnet[$x][$y].nettype)">$netinfo($subnet[$x][$y])</td>
+#end if
+</tr>
+#set $rowspan = $big_net_rowspan[$x]
+
+#for $i in range(1,$rowspan)
+#set $x = $x + 1
+#set $ignore[$x] = 1
+<tr>
+<td>$bnet.$x</td>
+</tr>
+#end for
+
+### ordinary line
+#else
+
+<tr>
+<td>$netlink($bnet,$x)</td>
+###set $i = 0
+#set $local_colspan = 0
+
+#for $i in range(0, len($numbers))
+#set $y = $numbers[$i]
+
+#if $subnet.has_key($x) and $subnet[$x].has_key($y) and $subnet[$x][$y]
+<td colspan="$colspan[$subnet[$x][$y].bits]" style="background-color:$load($subnet[$x][$y].percent,$subnet[$x][$y].nettype);text-align:center;">
+$netinfo($subnet[$x][$y])
+
+#set $local_colspan = $colspan[$subnet[$x][$y].bits] - 1
+</td>
+
+## do not make empty cols where there is a another cell spanning this col
+#else
+
+#if $local_colspan > 0
+#set $local_colspan = $local_colspan - 1
+#else
+<td>&nbsp;</td>
+#end if
+
+#end if
+#end for ###numbers
+</tr>
+#end if
+#end for ###hele x
+
+</table>
+#end block
+
+#def $netlink($input1,$input2)
+<a href="/report/prefix?host(netaddr)=${input1}.${input2}.%&op_host(netaddr)=like">${input1}.${input2}</a>
+#end def
+
+#def $netinfo($subnetelement)
+<a href="/report/prefix?prefixid=$subnetelement.prefixid">.$subnetelement.suffix/$subnetelement.bits</a> (<a href="/machinetracker/?prefixid=$subnetelement.prefixid" title="$subnetelement.machines/$subnetelement.max">$subnetelement.percent%</a>)
+#end def
+
+
+#def $load($percent,$nettype)
+#if $nettype=="static" or $nettype=="scope" or $nettype=="reserved"
+#if $configuration.extras.has_key("other")
+$configuration.extras["other"]#slurp
+#end if
+#elif $nettype=="large"
+#if $configuration.extras.has_key("large")
+$configuration.extras["large"]#slurp
+#end if
+#else
+#set $lims = $configuration.limits
+#set $limkeys = $configuration.limits.keys
+$limkeys.sort()#slurp
+$limkeys.reverse()#slurp
+#for $limit in $limkeys
+#if int($percent)>=int($limit)
+$lims[$limit]#slurp
+#break
+#end if
+#end for
+#end if
+#end def
+
+
+#block additionalCSS
+<link rel="stylesheet" type="text/css" href="/style/MatrixTemplate.css" />
+#end block
