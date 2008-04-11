@@ -208,14 +208,14 @@ table#rrdgraphs td.actionselectbottom {
 
 /* Service table */
 .status_up {
-	background: #8ae234;
+	background: #91cf60;
 	color: black;
 }
 .status_down {
-	background: #ef2929;
-	color: white;
+	background: #fc8d59;
+	color: black;
 }
 .status_shadow {
-	background: #fce94f;
+	background: #fee090;
 	color: black;
 }
