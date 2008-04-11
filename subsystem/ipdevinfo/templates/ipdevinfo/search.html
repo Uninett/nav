@@ -2,6 +2,14 @@
 
 {% block content %}
 
+<form action="{% url ipdevinfo-search %}" method="get">
+<p>
+    {{ search_form.query.label }}:
+    {{ search_form.query }}
+    <button type="submit">Search</button>
+</p>
+</form>
+
 {% if netboxes %}
 <table class="listtable">
     <caption>{{ netboxes|length }} result{{ netboxes|pluralize:",s" }}
@@ -27,17 +35,6 @@
         {% endfor %}
     </tbody>
 </table>
-
-{% else %}
-
-<form action="{% url ipdevinfo-search %}" method="get">
-<p>
-    {{ search_form.query.label }}:
-    {{ search_form.query }}
-    <button type="submit">Search</button>
-</p>
-</form>
-
 {% endif %}
 
 {% endblock %}
