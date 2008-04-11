@@ -35,6 +35,12 @@ urlpatterns = patterns('',
     url(r'^$', search,
         name='ipdevinfo-search'),
 
+    # Service list
+    url(r'^service/$', service_list,
+        name='ipdevinfo-service-list-all'),
+    url(r'^service/handler=(?P<handler>\w+)/$', service_list,
+        name='ipdevinfo-service-list-handler'),
+
     # IP Device Details
     url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
@@ -51,3 +57,4 @@ urlpatterns = patterns('',
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/gwport(?P<port_id>\d+)/$',
         port_details, {'port_type': 'gwport'}, name='ipdevinfo-gwport-details'),
 )
+

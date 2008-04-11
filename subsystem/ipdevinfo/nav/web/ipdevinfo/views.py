@@ -36,7 +36,7 @@ from django.template import RequestContext
 
 from nav.models.manage import Netbox, Module, SwPort, GwPort
 from nav.models.service import Service
-from nav.django.shortcuts import render_to_response
+from nav.django.shortcuts import render_to_response, object_list
 
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 from nav.web.ipdevinfo.forms import SearchForm
@@ -192,3 +192,31 @@ def port_details(request, netbox_sysname, module_number, port_type, port_id):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
+def service_list(request, handler=None):
+    """List services with given handler or any handler"""
+
+    page = request.GET.get('page', '1')
+
+    if handler:
+        services = Service.objects.filter(handler=handler)
+    else:
+        services = Service.objects.all()
+
+    handler_list = Service.objects.values('handler').distinct()
+
+    # Pass on to generic view
+    response = object_list(IpDevInfoTemplate,
+        request,
+        services,
+        paginate_by=100,
+        page=page,
+        template_name='ipdevinfo/service-list.html',
+        extra_context={
+            'show_ipdev_info': True,
+            'handler_list': handler_list,
+            'handler': handler,
+        },
+        allow_empty=True,
+        context_processors=[search_form_processor],
+        template_object_name='service')
+    return response
