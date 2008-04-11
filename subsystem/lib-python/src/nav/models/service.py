@@ -83,20 +83,29 @@ class Service(models.Model):
             return None
 
         result = {
-            'data_sources': data_sources,
-            'availability': {},
-            'response_time': {},
+            'availability': {
+                'data_source': data_source_status,
+            },
+            'response_time': {
+                'data_source': data_source_response_time,
+            },
         }
 
         for time_frame in self.TIME_FRAMES:
             # Availability
             value = average(data_source_status, time_frame)
-            if value is not None:
+            if value is None or value == 0:
+                # average() returns 0 if RRD returns NaN or Error
+                value = None
+            else:
                 value = 100 - (value * 100)
             result['availability'][time_frame] = value
 
             # Response time
             value = average(data_source_response_time, time_frame)
+            if value == 0:
+                # average() returns 0 if RRD returns NaN or Error
+                value = None
             result['response_time'][time_frame] = value
 
         return result

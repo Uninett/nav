@@ -37,26 +37,65 @@
     <caption>IP Device: {{ netbox.sysname }}</caption>
     <tr>
         <th>Status</th>
-        <td>{{ netbox.get_up_display|title }}</td>
+        <td>{{ netbox.get_up_display|capfirst }}</td>
     </tr>
+{% with netbox.get_availability as stats %}
     <tr>
         <th>Availability</th>
         <td>
-            {% with netbox.get_availability as availability %}
-                {% if availability %}
-                    <a href="#FIXME-link-to-rrd-view">
-                    {{ availability.values.day|floatformat:2 }}%</a>,
-                    <a href="#FIXME-link-to-rrd-view">
-                    {{ availability.values.week|floatformat:2 }}%</a>,
-                    <a href="#FIXME-link-to-rrd-view">
-                    {{ availability.values.month|floatformat:2 }}%</a>
-                    (day, week, month)
+            {% with stats.availability as a %}
+            <a href="#FIXME-link-to-rrd-view">
+                {% if a.day %}
+                    {{ stats.availability.day|floatformat:2 }}%
                 {% else %}
-                    Unknown
+                    (unknown)
                 {% endif %}
+                last day</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if a.week %}
+                    {{ stats.availability.week|floatformat:2 }}%
+                {% else %}
+                    (unknown)
+                {% endif %}
+                last week</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if a.month %}
+                    {{ stats.availability.month|floatformat:2 }}%
+                {% else %}
+                    (unknown)
+                {% endif %}
+                last month</a>
             {% endwith %}
         </td>
     </tr>
+    <tr>
+        <th>Response time</th>
+        <td>
+            {% with stats.response_time as rt %}
+            <a href="#FIXME-link-to-rrd-view">
+                {% if rt.day %}
+                    {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+                {% else %}
+                    (unknown)
+                {% endif %}
+                last day</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if rt.week %}
+                    {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+                {% else %}
+                    (unknown)
+                {% endif %}
+                last week</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if rt.month %}
+                    {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+                {% else %}
+                    (unknown)
+                {% endif %}
+                last month</a>
+            {% endwith %}
+        </td>
+{% endwith %}
     <tr>
         <th>Uptime</th>
         <td>
@@ -181,7 +220,7 @@
 
 <div id="services">
 <table class="listtable">
-    <caption>Services: {{ netbox.sysname }}</caption>
+    <caption>Services at {{ netbox.sysname }}</caption>
     <tr>
         <th rowspan="2">Status</th>
         <th rowspan="2">Handler</th>
@@ -190,12 +229,12 @@
         <th rowspan="2">Actions</th>
     </tr>
     <tr>
-        <th>Day</th>
-        <th>Week</th>
-        <th>Month</th>
-        <th>Day</th>
-        <th>Week</th>
-        <th>Month</th>
+        <th>Last day</th>
+        <th>Last week</th>
+        <th>Last month</th>
+        <th>Last day</th>
+        <th>Last week</th>
+        <th>Last month</th>
     </tr>
     {% for service in netbox.service_set.all %}
     <tr class="{% cycle oddrow,evenrow %}">
@@ -203,18 +242,52 @@
             {{ service.get_up_display|capfirst }}</td>
         <td>{{ service.handler }}</td>
         {% with service.get_statistics as stats %}
+        {% with stats.availability as a %}
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
-            {{ stats.availability.day|floatformat:2 }}%</a></td>
+            {% if a.day %}
+                {{ a.day|floatformat:2 }}%
+            {% else %}
+                Unknown
+            {% endif %}
+            </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
-            {{ stats.availability.week|floatformat:2 }}%</a></td>
+            {% if a.week %}
+                {{ a.week|floatformat:2 }}%
+            {% else %}
+                Unknown
+            {% endif %}
+            </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
-            {{ stats.availability.month|floatformat:2 }}%</a></td>
+            {% if a.month %}
+                {{ a.month|floatformat:2 }}%
+            {% else %}
+                Unknown
+            {% endif %}
+            </a></td>
+        {% endwith %}
+        {% with stats.response_time as rt %}
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
-            {{ stats.response_time.day|floatformat:2 }} ms</a></td>
+            {% if rt.day %}
+                {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+            {% else %}
+                Unknown
+            {% endif %}
+            </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
-            {{ stats.response_time.week|floatformat:2 }} ms</a></td>
+            {% if rt.week %}
+                {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+            {% else %}
+                Unknown
+            {% endif %}
+            </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
-            {{ stats.response_time.month|floatformat:2 }} ms</a></td>
+            {% if rt.month %}
+                 {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+            {% else %}
+                Unknown
+            {% endif %}
+            </a></td>
+        {% endwith %}
         {% endwith %}
         <td>
             <a href="{% url editdb-edit-object "service",service.id %}">
