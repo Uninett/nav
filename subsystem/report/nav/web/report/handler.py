@@ -125,17 +125,17 @@ def handler(req):
 
 			if scope.version() == 6:
 				end_net = getMaxLeaf(tree)
-				matrix = MatrixIpv6(scope,end_net=end_net)
+				matrix = MatrixIPv6(scope,end_net=end_net)
 			elif scope.version() == 4:
 				end_net = None
 				if scope.prefixlen() < 24:
 					end_net = IP("/".join([scope.net().strNormal(),"27"]))
-					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=end_net)
+					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
 				else:
 					max_leaf = getMaxLeaf(tree)
 					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
 
-					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
 			else:
 				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())

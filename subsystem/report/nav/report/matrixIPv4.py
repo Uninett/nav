@@ -27,9 +27,12 @@
 
 import os
 import string
+import IPy
 from IPy import IP
+
 import nav.path
 from nav.web.templates.MatrixIpv4Template import MatrixIpv4Template
+from nav.report import utils, IPtools, IPtree, metaIP
 from nav.report.IPtools import netDiff
 from nav.report.matrix import Matrix
 from nav.report.colorconfig import ColorConfig
@@ -48,27 +51,20 @@ class MatrixIPv4(Matrix):
         self.show_unused_addresses = show_unused_addresses
 
     def getTemplateResponse(self):
-        import nav.report.matrix
-        import nav.report.utils
-        import nav.report.IPtools
-        import nav.report.IPtree
-        import nav.report.metaIP
-        import IPy
-
         template = MatrixIpv4Template()
         template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 
         #functions and classes
-        template.MetaIP = getattr(MetaIP,"MetaIP")
+        template.MetaIP = getattr(metaIP,"MetaIP")
         template.IP = getattr(IPy,"IP")
-        template.getLastbitsIpMap = getattr(IPTools,"getLastbitsIpMap")
-        template.sort_nets_by_address = getattr(IPTools,"sort_nets_by_address")
-        template.sub = getattr(Utils,"sub")
-        template.netDiff = getattr(IPTools,"netDiff")
+        template.getLastbitsIpMap = getattr(IPtools,"getLastbitsIpMap")
+        template.sort_nets_by_address = getattr(IPtools,"sort_nets_by_address")
+        template.sub = getattr(utils,"sub")
+        template.netDiff = getattr(IPtools,"netDiff")
         template.has_too_small_nets = getattr(self,"has_too_small_nets")
-        template.getSubtree = getattr(IPTree,"getSubtree")
+        template.getSubtree = getattr(IPtree,"getSubtree")
         template.generateMatrixNets = getattr(self,"generateMatrixNets")
-        template.search = getattr(IPTree,"search")
+        template.search = getattr(IPtree,"search")
 
         #variables
         template.start_net = self.start_net
@@ -78,7 +74,7 @@ class MatrixIPv4(Matrix):
         template.tree = self.tree
         template.column_headings = self.column_headings
         template.bits_in_matrix = self.bits_in_matrix
-        template.color_configuration = ColorConfiguration(configfile)
+        template.color_configuration = ColorConfig(configfile)
         template.show_unused_addresses = self.show_unused_addresses
         return template.respond()
 

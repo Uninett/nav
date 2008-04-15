@@ -28,6 +28,7 @@
 import os
 import string
 import nav.path
+from nav.report import utils, IPtools, metaIP
 from nav.report.matrix import Matrix
 from nav.report.colorconfig import ColorConfig
 from nav.web.templates.MatrixIpv6Template import MatrixIpv6Template
@@ -45,21 +46,16 @@ class MatrixIPv6(Matrix):
         self.column_headings = ["%X" % i for i in range(0,16)]
 
     def getTemplateResponse(self):
-        import nav.report.matrix
-        import nav.report.utils
-        import nav.report.IPtools
-        import nav.report.metaIP
-
         template = MatrixIpv6Template()
         template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 
         #functions and classes
-        template.sort_nets_by_address = getattr(IPTools,"sort_nets_by_address")
-        template.MetaIP = getattr(MetaIP,"MetaIP")
-        template.getLastbitsIpMap = getattr(IPTools,"getLastbitsIpMap")
-        template.sub = getattr(Utils,"sub")
+        template.sort_nets_by_address = getattr(IPtools,"sort_nets_by_address")
+        template.MetaIP = getattr(metaIP,"MetaIP")
+        template.getLastbitsIpMap = getattr(IPtools,"getLastbitsIpMap")
+        template.sub = getattr(utils,"sub")
         template.stringDotJoin = getattr(string,"join")
-        template.isIntermediateNets = getattr(IPTools,"isIntermediateNets")
+        template.isIntermediateNets = getattr(IPtools,"isIntermediateNets")
 
         #variables
         template.start_net = self.start_net
@@ -68,5 +64,5 @@ class MatrixIPv6(Matrix):
         template.matrix_nets = self.matrix_nets
         template.column_headings = self.column_headings
         template.bits_in_matrix = self.bits_in_matrix
-        template.color_configuration = ColorConfiguration(configfile)
+        template.color_configuration = ColorConfig(configfile)
         return template.respond()
