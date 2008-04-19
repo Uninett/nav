@@ -376,11 +376,7 @@ class Organization(models.Model):
         db_table = 'org'
 
     def __unicode__(self):
-        if self.parent is not None:
-            return u'%s (%s, part of %s)' % (self.id, self.description,
-                self.parent.description)
-        else:
-            return u'%s (%s)' % (self.id, self.description)
+        return u'%s (%s)' % (self.id, self.description)
 
 class Category(models.Model):
     """From MetaNAV: The cat table defines the categories of a netbox
