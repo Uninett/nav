@@ -803,6 +803,9 @@ class SwPort(models.Model):
         activity as a datetime.timedelta object.
         """
 
+        if hasattr(self, 'time_since_activity'):
+            return self.time_since_activity
+
         min_time = datetime.now() - timedelta(interval)
         try:
             # XXX: This causes a DB query per port
@@ -816,10 +819,12 @@ class SwPort(models.Model):
 
         if last_cam_entry_end_time == datetime.max:
             # Active now
-            return timedelta(0)
+            self.time_since_activity = timedelta(0)
         else:
             # Active some time inside the given interval
-            return datetime.now() - last_cam_entry_end_time
+            self.time_since_activity = datetime.now() - last_cam_entry_end_time
+
+        return self.time_since_activity
 
     def get_active_classes(self, interval=30):
         """Active classes for IP Device Info port view"""
