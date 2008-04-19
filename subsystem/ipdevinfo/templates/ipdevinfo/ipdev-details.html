@@ -2,35 +2,6 @@
 
 {% block content %}
 
-<div id="hostinfo">
-<table class="vertitable">
-    <caption>Host: {{ host_info.host }}</caption>
-
-    <tr>
-        <th>Addresses</th>
-        <td>
-            {% if host_info.addresses %}
-            <ul>
-            {% for address in host_info.addresses %}
-                <li>
-                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
-                    {% if address.name %}
-                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
-                    {% endif %}
-                    {% if address.error %}
-                        ({{ address.error }})
-                    {% endif %}
-                </li>
-            {% endfor %}
-            </ul>
-            {% else %}
-            None found
-            {% endif %}
-        </td>
-    </tr>
-</table>
-</div>
-
 <div id="ipdevinfo">
 <table class="vertitable">
 {% if netbox %}
@@ -211,6 +182,35 @@
         <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
     </tr>
 {% endif %}
+</table>
+</div>
+
+<div id="hostinfo">
+<table class="vertitable">
+    <caption>Host: {{ host_info.host }}</caption>
+
+    <tr>
+        <th>Addresses</th>
+        <td>
+            {% if host_info.addresses %}
+            <ul>
+            {% for address in host_info.addresses %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
+                    {% if address.name %}
+                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
+                    {% endif %}
+                    {% if address.error %}
+                        ({{ address.error }})
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            None found
+            {% endif %}
+        </td>
+    </tr>
 </table>
 </div>
 

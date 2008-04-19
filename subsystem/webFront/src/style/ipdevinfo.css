@@ -44,6 +44,7 @@
 /* IP Device info table */
 #ipdevinfo {
 	float: left;
+	margin-right: 1em;
 	display: inline;
 }
 
