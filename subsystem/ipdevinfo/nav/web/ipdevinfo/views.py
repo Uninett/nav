@@ -205,7 +205,7 @@ def service_list(request, handler=None):
     handler_list = Service.objects.values('handler').distinct()
 
     # Pass on to generic view
-    response = object_list(IpDevInfoTemplate,
+    return object_list(IpDevInfoTemplate,
         request,
         services,
         paginate_by=100,
@@ -219,4 +219,32 @@ def service_list(request, handler=None):
         allow_empty=True,
         context_processors=[search_form_processor],
         template_object_name='service')
-    return response
+
+def service_matrix(request):
+    """Show service status in a matrix with one IP Device per row and one
+    service handler per column"""
+
+    handler_list = [h['handler']
+        for h in Service.objects.values('handler').distinct()]
+
+    matrix_dict = {}
+    for service in Service.objects.select_related(depth=1):
+        if service.netbox.id not in matrix_dict:
+            matrix_dict[service.netbox.id] = {
+                'sysname': service.netbox.sysname,
+                'netbox': service.netbox,
+                'services': [None for handler in handler_list],
+            }
+        index = handler_list.index(service.handler)
+        matrix_dict[service.netbox.id]['services'][index] = service
+
+    matrix = matrix_dict.values()
+
+    return render_to_response(IpDevInfoTemplate,
+        'ipdevinfo/service-matrix.html',
+        {
+            'handler_list': handler_list,
+            'matrix': matrix,
+        },
+        context_instance=RequestContext(request,
+            processors=[search_form_processor]))

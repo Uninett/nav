@@ -32,6 +32,7 @@ from nav.web.ipdevinfo.views import *
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
+    # Search
     url(r'^$', search,
         name='ipdevinfo-search'),
 
@@ -41,7 +42,11 @@ urlpatterns = patterns('',
     url(r'^service/handler=(?P<handler>\w+)/$', service_list,
         name='ipdevinfo-service-list-handler'),
 
-    # IP Device Details
+    # Service matrix
+    url(r'^service/matrix/$', service_matrix,
+        name='ipdevinfo-service-matrix'),
+
+    # IP Device details
     url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
