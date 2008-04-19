@@ -55,21 +55,21 @@
             {% if a.day %}
                 {{ a.day|floatformat:2 }}%
             {% else %}
-                Unknown
+                N/A
             {% endif %}
             </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
             {% if a.week %}
                 {{ a.week|floatformat:2 }}%
             {% else %}
-                Unknown
+                N/A
             {% endif %}
             </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
             {% if a.month %}
                 {{ a.month|floatformat:2 }}%
             {% else %}
-                Unknown
+                N/A
             {% endif %}
             </a></td>
         {% endwith %}
@@ -78,21 +78,21 @@
             {% if rt.day %}
                 {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
-                Unknown
+                N/A
             {% endif %}
             </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
             {% if rt.week %}
                 {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
-                Unknown
+                N/A
             {% endif %}
             </a></td>
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
             {% if rt.month %}
                  {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
-                Unknown
+                N/A
             {% endif %}
             </a></td>
         {% endwith %}

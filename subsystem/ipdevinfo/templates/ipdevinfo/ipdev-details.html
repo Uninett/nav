@@ -48,21 +48,21 @@
                 {% if a.day %}
                     {{ stats.availability.day|floatformat:2 }}%
                 {% else %}
-                    (unknown)
+                    (N/A)
                 {% endif %}
                 last day</a>,
             <a href="#FIXME-link-to-rrd-view">
                 {% if a.week %}
                     {{ stats.availability.week|floatformat:2 }}%
                 {% else %}
-                    (unknown)
+                    (N/A)
                 {% endif %}
                 last week</a>,
             <a href="#FIXME-link-to-rrd-view">
                 {% if a.month %}
                     {{ stats.availability.month|floatformat:2 }}%
                 {% else %}
-                    (unknown)
+                    (N/A)
                 {% endif %}
                 last month</a>
             {% endwith %}
@@ -76,21 +76,21 @@
                 {% if rt.day %}
                     {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
                 {% else %}
-                    (unknown)
+                    (N/A)
                 {% endif %}
                 last day</a>,
             <a href="#FIXME-link-to-rrd-view">
                 {% if rt.week %}
                     {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
                 {% else %}
-                    (unknown)
+                    (N/A)
                 {% endif %}
                 last week</a>,
             <a href="#FIXME-link-to-rrd-view">
                 {% if rt.month %}
                     {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
                 {% else %}
-                    (unknown)
+                    (N/A)
                 {% endif %}
                 last month</a>
             {% endwith %}
@@ -131,7 +131,7 @@
                         </ul>
                     {% endif %}
                 {% else %}
-                    Unknown
+                    N/A
                 {% endif %}
             {% endwith %}
         </td>
@@ -148,7 +148,7 @@
                 <a href="{% url report-type-type netbox.type.id %}">
                     {{ netbox.type }}</a></td>
             {% else %}
-                Unknown
+                N/A
             {% endif %}
     </tr>
     <tr>
