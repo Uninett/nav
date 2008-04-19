@@ -227,14 +227,15 @@ class Device(models.Model):
     boxes or may appear in different modules throughout its lifetime."""
 
     id = models.IntegerField(db_column='deviceid', primary_key=True)
-    product = models.ForeignKey('Product', db_column='productid')
+    product = models.ForeignKey('Product', db_column='productid', null=True)
     serial = models.CharField(unique=True, max_length=-1)
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1)
     software_version = models.CharField(db_column='sw_ver', max_length=-1)
     auto = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
-    device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid')
+    device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid',
+        null=True)
     discovered = models.DateTimeField(default=datetime.now)
 
     class Meta:
@@ -365,7 +366,7 @@ class Organization(models.Model):
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent')
+    parent = models.ForeignKey('self', db_column='parent', null=True)
     description = models.CharField(db_column='descr', max_length=-1)
     optional_1 = models.CharField(db_column='opt1', max_length=-1)
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
@@ -532,9 +533,9 @@ class GwPort(models.Model):
     interface = models.CharField(max_length=-1)
     speed = models.FloatField()
     metric = models.IntegerField()
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
         related_name='connected_to_gwport')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
+    to_swport = models.ForeignKey('SwPort', db_column='to_swportid', null=True,
         related_name='connected_to_gwport')
     port_name = models.CharField(db_column='portname', max_length=-1)
 
@@ -603,7 +604,7 @@ class Prefix(models.Model):
     id = models.IntegerField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', db_column='vlanid')
+    vlan = models.ForeignKey('Vlan', db_column='vlanid', null=True)
 
     class Meta:
         db_table = 'prefix'
@@ -620,8 +621,9 @@ class Vlan(models.Model):
     id = models.IntegerField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField()
     net_type = models.ForeignKey('NetType', db_column='nettype')
-    organization = models.ForeignKey('Organization', db_column='orgid')
-    usage = models.ForeignKey('Usage', db_column='usageid')
+    organization = models.ForeignKey('Organization', db_column='orgid',
+        null=True)
+    usage = models.ForeignKey('Usage', db_column='usageid', null=True)
     net_ident = models.CharField(db_column='netident', max_length=-1)
     description = models.CharField(max_length=-1)
 
@@ -671,7 +673,7 @@ class Arp(models.Model):
 
     id = models.IntegerField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    prefix = models.ForeignKey('Prefix', db_column='prefixid')
+    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = models.CharField(max_length=-1)
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
@@ -715,9 +717,9 @@ class SwPort(models.Model):
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     port_name = models.CharField(db_column='portname', max_length=-1)
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
         related_name='connected_to_swport')
-    to_swport = models.ForeignKey('self', db_column='to_swportid',
+    to_swport = models.ForeignKey('self', db_column='to_swportid', null=True,
         related_name='connected_to_swport')
 
     class Meta:
@@ -957,7 +959,7 @@ class SwPortToNetbox(models.Model):
     ifindex = models.IntegerField()
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
         related_name='candidate_for_next_hop_set')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
+    to_swport = models.ForeignKey('SwPort', db_column='to_swportid', null=True,
         related_name='candidate_for_next_hop_set')
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
@@ -991,7 +993,7 @@ class Cam(models.Model):
     end)"""
 
     id = models.IntegerField(db_column='camid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     sysname = models.CharField(max_length=-1)
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)

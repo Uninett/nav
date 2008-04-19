@@ -44,7 +44,7 @@ class Message(models.Model):
     author = models.CharField(max_length=-1)
     last_changed = models.DateTimeField()
     replaces_message = models.ForeignKey('self', db_column='replaces_message',
-        related_name='replaced_by')
+        related_name='replaced_by', null=True)
 
     class Meta:
         db_table = 'message'
