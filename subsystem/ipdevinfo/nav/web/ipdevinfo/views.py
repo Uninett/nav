@@ -205,10 +205,9 @@ def service_list(request, handler=None):
 
     page = request.GET.get('page', '1')
 
+    services = Service.objects.select_related(depth=1)
     if handler:
-        services = Service.objects.filter(handler=handler)
-    else:
-        services = Service.objects.all()
+        services = services.filter(handler=handler)
 
     handler_list = Service.objects.values('handler').distinct()
 
