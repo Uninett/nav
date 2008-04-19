@@ -752,6 +752,7 @@ class SwPort(models.Model):
             classes.append('trunk')
         if self.duplex:
             classes.append('%sduplex' % self.duplex)
+        # XXX: This causes a DB query per port
         if self.swportblocked_set.count():
             classes.append('blocked')
         return ' '.join(classes)
@@ -779,11 +780,13 @@ class SwPort(models.Model):
         if self.media:
             title.append(self.media)
 
+        # XXX: This causes a DB query per port
         vlans = [str(swpv.vlan.vlan)
             for swpv in self.swportvlan_set.select_related(depth=1)]
         if vlans:
             title.append('vlan ' + ','.join(vlans))
 
+        # XXX: This causes a DB query per port
         blocked_vlans = [str(block.vlan)
             for block in self.swportblocked_set.select_related(depth=1)]
         if blocked_vlans:
