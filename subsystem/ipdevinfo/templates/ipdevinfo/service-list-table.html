@@ -22,7 +22,9 @@
 <tfoot>
     <tr>
         <th colspan="0">
-            {{ hits }} service{{ hits|pluralize }} found
+            {% with service_list.count as hits %}
+                {{ hits }} service{{ hits|pluralize }} found
+            {% endwith %}
             {% if is_paginated %}
                 | Pages:
                 {% for p in page_range %}
