@@ -803,42 +803,38 @@ class SwPort(models.Model):
         activity as a datetime.timedelta object.
         """
 
-        # FIXME: Not done, see next FIXME
-        return None
-
         min_time = datetime.now() - timedelta(interval)
         try:
+            # XXX: This causes a DB query per port
             # Use .values() to avoid creating additional objects we do not need
-            # FIXME: Does not quite work. Gives some IndexError in
-            # django/db/models/query.py in __getitem__, line 157
-            last_cam_entry = self.module.netbox.cam_set.filter(
-                ifindex=self.ifindex, end_time__gt=min_time
-                ).order_by('-end_time').values('end_time')[0]
-        except Cam.DoesNotExist:
+            last_cam_entry_end_time = self.module.netbox.cam_set.filter(
+                ifindex=self.ifindex, end_time__gt=min_time).order_by(
+                'end_time').values('end_time')[0]['end_time']
+        except (Cam.DoesNotExist, IndexError):
             # Inactive/not in use
             return None
 
-        if last_cam_entry['end_time'] == datetime.max:
+        if last_cam_entry_end_time == datetime.max:
             # Active now
             return timedelta(0)
         else:
             # Active some time inside the given interval
-            return datetime.now() - last_cam_entry['end_time']
+            return datetime.now() - last_cam_entry_end_time
 
     def get_active_classes(self, interval=30):
         """Active classes for IP Device Info port view"""
 
         classes = ['port']
 
-        active = self.get_active_time(interval)
-        if active is not None:
-            classes.append('active')
-        else:
-            classes.append('inactive')
-
         if self.link == self.LINK_UP:
             classes.append('active')
             classes.append('link')
+        else:
+            active = self.get_active_time(interval)
+            if active is not None:
+                classes.append('active')
+            else:
+                classes.append('inactive')
 
         return ' '.join(classes)
 
@@ -854,17 +850,16 @@ class SwPort(models.Model):
 
         style = ''
 
-        active = self.get_active_time(interval)
-        if active is not None:
-            style = 'background-color: #%s;' % nav.util.colortohex(
-                gradient[active.days])
-
         if self.link == self.LINK_UP:
             style = 'background-color: #%s;' % nav.util.colortohex(
                 gradient[0])
+        else:
+            active = self.get_active_time(interval)
+            if active is not None:
+                style = 'background-color: #%s;' % nav.util.colortohex(
+                    gradient[active.days])
 
         return style
-
 
     def get_active_title(self, interval=30):
         """Active title for IP Device Info port view"""
@@ -874,19 +869,19 @@ class SwPort(models.Model):
         if self.interface:
             title.append(self.interface)
 
-        active = self.get_active_time(interval)
-        if active is not None:
-            if active.days > 1:
-                title.append('%d days ago' % active.days)
-            elif active.days == 1:
-                title.append('1 day ago')
-            else:
-                title.append('used today')
-        else:
-            title.append('free')
-
         if self.link == self.LINK_UP:
             title.append('active now')
+        else:
+            active = self.get_active_time(interval)
+            if active is not None:
+                if active.days > 1:
+                    title.append('%d days ago' % active.days)
+                elif active.days == 1:
+                    title.append('1 day ago')
+                else:
+                    title.append('used today')
+            else:
+                title.append('free')
 
         return ', '.join(title)
 
@@ -934,7 +929,7 @@ class SwPortBlocked(models.Model):
     given vlan for a given switch port."""
 
     swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
-    # FIXME: 'vlan' is not a foreignkey to the vlan table in the database, but
+    # XXX: 'vlan' is not a foreignkey to the vlan table in the database, but
     # it should maybe be a foreign key.
     vlan = models.IntegerField()
 
