@@ -376,10 +376,10 @@ class Organization(models.Model):
         db_table = 'org'
 
     def __unicode__(self):
-        try:
+        if self.parent is not None:
             return u'%s (%s, part of %s)' % (self.id, self.description,
                 self.parent.description)
-        except Organization.DoesNotExist:
+        else:
             return u'%s (%s)' % (self.id, self.description)
 
 class Category(models.Model):
