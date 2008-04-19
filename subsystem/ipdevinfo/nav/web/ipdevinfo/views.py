@@ -100,9 +100,6 @@ def search(request):
 def ipdev_details(request, name=None, addr=None):
     """Show detailed view of one IP device"""
 
-    netbox = Netbox.objects.none()
-    errors = []
-
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
         import socket
@@ -136,6 +133,10 @@ def ipdev_details(request, name=None, addr=None):
 
         return host_info
 
+    errors = []
+    host_info = get_host_info(name or addr)
+    netbox = Netbox.objects.none()
+
     # Lookup IP device in NAV
     if name is not None:
         try:
@@ -146,7 +147,14 @@ def ipdev_details(request, name=None, addr=None):
         try:
             netbox = Netbox.objects.get(ip=addr)
         except Netbox.DoesNotExist:
-            pass
+            # Check if any reverse addresses from DNS matches a netbox
+            for address in host_info['addresses']:
+                if 'name' in address:
+                    try:
+                        netbox = Netbox.objects.get(sysname=address['name'])
+                        break # Exit loop at first match
+                    except Netbox.DoesNotExist:
+                        pass
     else:
         # Require name or addr to be set
         HttpResponseRedirect(reverse('ipdevinfo-search'))
@@ -155,7 +163,7 @@ def ipdev_details(request, name=None, addr=None):
         'ipdevinfo/ipdev-details.html',
         {
             'errors': errors,
-            'host_info': get_host_info(name or addr),
+            'host_info': host_info,
             'netbox': netbox,
         },
         context_instance=RequestContext(request,
