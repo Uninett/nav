@@ -77,8 +77,13 @@ class Service(models.Model):
         try:
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__key='serviceid', rrd_file__value=self.id)
-            data_source_status = data_sources.get(name='STATUS')
-            data_source_response_time = data_sources.get(name='RESPONSETIME')
+            data_source_status = None
+            data_source_response_time = None
+            for ds in data_sources:
+                if ds.name == 'STATUS':
+                    data_source_status = ds
+                if ds.name == 'RESPONSETIME':
+                    data_source_response_time = ds
         except RrdDataSource.DoesNotExist:
             return None
 
