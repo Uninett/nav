@@ -283,7 +283,7 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
-        return GwPort.objects.filter(module=self)
+        return GwPort.objects.select_related(depth=2).filter(module=self)
 
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
@@ -296,7 +296,7 @@ class Module(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return SwPort.objects.filter(module=self)
+        return SwPort.objects.select_related(depth=2).filter(module=self)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -779,16 +779,13 @@ class SwPort(models.Model):
         if self.media:
             title.append(self.media)
 
-        # Warning! Lots of extra queries are generated here if not
-        # select_related is used
-        vlans = [str(swpv.vlan.vlan) for swpv in self.swportvlan_set.all()]
+        vlans = [str(swpv.vlan.vlan)
+            for swpv in self.swportvlan_set.select_related(depth=1)]
         if vlans:
             title.append('vlan ' + ','.join(vlans))
 
-        # Warning! Lots of extra queries are generated here if not
-        # select_related is used
         blocked_vlans = [str(block.vlan)
-            for block in self.swportblocked_set.all()]
+            for block in self.swportblocked_set.select_related(depth=1)]
         if blocked_vlans:
             title.append('blocked ' + ','.join(blocked_vlans))
 

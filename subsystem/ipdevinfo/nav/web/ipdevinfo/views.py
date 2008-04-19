@@ -140,18 +140,19 @@ def ipdev_details(request, name=None, addr=None):
     # Lookup IP device in NAV
     if name is not None:
         try:
-            netbox = Netbox.objects.get(sysname=name)
+            netbox = Netbox.objects.select_related(depth=2).get(sysname=name)
         except Netbox.DoesNotExist:
             pass
     elif addr is not None:
         try:
-            netbox = Netbox.objects.get(ip=addr)
+            netbox = Netbox.objects.select_related(depth=2).get(ip=addr)
         except Netbox.DoesNotExist:
             # Check if any reverse addresses from DNS matches a netbox
             for address in host_info['addresses']:
                 if 'name' in address:
                     try:
-                        netbox = Netbox.objects.get(sysname=address['name'])
+                        netbox = Netbox.objects.select_related(depth=2).get(
+                            sysname=address['name'])
                         break # Exit loop at first match
                     except Netbox.DoesNotExist:
                         pass
