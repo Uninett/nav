@@ -245,7 +245,7 @@
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.all %}
+    {% for module in netbox.module_set.select_related %}
     {% include "ipdevinfo/module-swport-status.html" %}
     {% endfor %}
     </div>
@@ -261,7 +261,7 @@
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.all %}
+    {% for module in netbox.module_set.select_related %}
     {% include "ipdevinfo/module-swport-active.html" %}
     {% endfor %}
     </div>
@@ -281,7 +281,7 @@
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.all %}
+    {% for module in netbox.module_set.select_related %}
     {% include "ipdevinfo/module-gwport-status.html" %}
     {% endfor %}
     </div>
