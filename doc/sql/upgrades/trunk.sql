@@ -48,4 +48,4 @@ ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
 
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
-CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
