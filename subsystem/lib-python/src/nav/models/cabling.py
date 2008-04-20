@@ -49,7 +49,7 @@ class Cabling(models.Model):
         unique_together = (('room', 'jack'),)
 
     def __unicode__(self):
-        return u'jack %s, in room %s' % (self.jack, self.room)
+        return u'jack %s, in room %s' % (self.jack, self.room.id)
 
 class Patch(models.Model):
     """From MetaNAV: The patch table documents the cross connect from switch
