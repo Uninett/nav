@@ -1,7 +1,7 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -27,7 +27,7 @@
 mod_python handler for Maintenance subsystem.
 """
 
-__copyright__ = "Copyright 2006 UNINETT AS"
+__copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id:$"
