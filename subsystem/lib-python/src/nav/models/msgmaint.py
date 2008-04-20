@@ -35,7 +35,7 @@ class Message(models.Model):
     tool. Each message has a timeframe for when it is published on the NAV main
     page."""
 
-    id = models.IntegerField(db_column='messageid', primary_key=True)
+    id = models.AutoField(db_column='messageid', primary_key=True)
     title = models.CharField(max_length=-1)
     description = models.TextField()
     tech_description = models.TextField()
@@ -56,7 +56,7 @@ class MaintenanceTask(models.Model):
     """From MetaNAV: The maintenance task created in the maintenance task
     tool."""
 
-    id = models.IntegerField(db_column='maint_taskid', primary_key=True)
+    id = models.AutoField(db_column='maint_taskid', primary_key=True)
     start_time = models.DateTimeField(db_column='maint_start')
     end_time = models.DateTimeField(db_column='maint_end')
     description = models.TextField()
@@ -73,7 +73,7 @@ class MaintenanceComponent(models.Model):
     """From MetaNAV: The components that are put on maintenance in the
     maintenance tool."""
 
-    id = models.IntegerField(primary_key=True) # Serial for faking primary key
+    id = models.AutoField(primary_key=True) # Serial for faking primary key
     maintenance_task = models.ForeignKey(MaintenanceTask,
         db_column='maint_taskid')
     key = models.CharField(max_length=-1)
@@ -90,7 +90,7 @@ class MessageToMaintenanceTask(models.Model):
     """From MetaNAV: The connection between messages and related maintenance
     tasks."""
 
-    id = models.IntegerField(primary_key=True) # Serial for faking primary key
+    id = models.AutoField(primary_key=True) # Serial for faking primary key
     message = models.ForeignKey(Message, db_column='messageid',
         related_name='maintenance_tasks')
     maintenance_task = models.ForeignKey(MaintenanceTask,

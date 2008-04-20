@@ -46,7 +46,7 @@ class Service(models.Model):
     )
     TIME_FRAMES = ('day', 'week', 'month')
 
-    id = models.IntegerField(db_column='serviceid', primary_key=True)
+    id = models.AutoField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     active = models.BooleanField(default=True)
     handler = models.CharField(max_length=-1)
@@ -119,7 +119,7 @@ class ServiceProperty(models.Model):
     """From MetaNAV: Each service may have an additional set of attributes.
     They are defined here."""
 
-    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
     service = models.ForeignKey(Service, db_column='serviceid')
     property = models.CharField(max_length=64)
     value = models.CharField(max_length=-1)

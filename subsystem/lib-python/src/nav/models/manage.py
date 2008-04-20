@@ -90,7 +90,7 @@ class Netbox(models.Model):
     )
     TIME_FRAMES = ('day', 'week', 'month')
 
-    id = models.IntegerField(db_column='netboxid', primary_key=True)
+    id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid', null=True)
@@ -206,7 +206,7 @@ class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
 
-    id = models.IntegerField(db_column='netboxinfoid', primary_key=True)
+    id = models.AutoField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
         related_name='info_set')
     key = models.CharField(max_length=-1)
@@ -226,7 +226,7 @@ class Device(models.Model):
     physical box with its serial number. The device may appear as different net
     boxes or may appear in different modules throughout its lifetime."""
 
-    id = models.IntegerField(db_column='deviceid', primary_key=True)
+    id = models.AutoField(db_column='deviceid', primary_key=True)
     product = models.ForeignKey('Product', db_column='productid', null=True)
     serial = models.CharField(unique=True, max_length=-1)
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1)
@@ -257,7 +257,7 @@ class Module(models.Model):
         (UP_DOWN, 'down'),
     )
 
-    id = models.IntegerField(db_column='moduleid', primary_key=True)
+    id = models.AutoField(db_column='moduleid', primary_key=True)
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
@@ -312,7 +312,7 @@ class Memory(models.Model):
     """From MetaNAV: The mem table describes the memory (memory and nvram) of a
     netbox."""
 
-    id = models.IntegerField(db_column='memid', primary_key=True)
+    id = models.AutoField(db_column='memid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     type = models.CharField(db_column='memtype', max_length=-1)
     device = models.CharField(max_length=-1)
@@ -417,7 +417,7 @@ class NetboxCategory(models.Model):
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
-    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
 
@@ -432,7 +432,7 @@ class NetboxType(models.Model):
     """From MetaNAV: The type table defines the type of a netbox, the
     sysobjectid being the unique identifier."""
 
-    id = models.IntegerField(db_column='typeid', primary_key=True)
+    id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = models.CharField(db_column='typename', max_length=-1)
     sysobject = models.CharField(db_column='sysobjectid',
@@ -471,7 +471,7 @@ class Product(models.Model):
     """From MetaNAV: The product table is used be Device Management to register
     products. A product has a product number and is of a vendor."""
 
-    id = models.IntegerField(db_column='productid', primary_key=True)
+    id = models.AutoField(db_column='productid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     product_number = models.CharField(db_column='productno', max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
@@ -489,7 +489,7 @@ class DeviceOrder(models.Model):
     place orders. Not compulsary. An order consists of a set of devices (on or
     more) of a certain product."""
 
-    id = models.IntegerField(db_column='deviceorderid', primary_key=True)
+    id = models.AutoField(db_column='deviceorderid', primary_key=True)
     registered = models.DateTimeField(default=datetime.now)
     ordered = models.DateField()
     arrived = models.DateTimeField()
@@ -521,7 +521,7 @@ class GwPort(models.Model):
     LINK_DOWN_ADM = LINK_DOWN_ADM
     LINK_CHOICES = LINK_CHOICES
 
-    id = models.IntegerField(db_column='gwportid', primary_key=True)
+    id = models.AutoField(db_column='gwportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
     link = models.CharField(max_length=1, choices=LINK_CHOICES)
@@ -597,7 +597,7 @@ class GwPortPrefix(models.Model):
 class Prefix(models.Model):
     """From MetaNAV: The prefix table stores IP prefixes."""
 
-    id = models.IntegerField(db_column='prefixid', primary_key=True)
+    id = models.AutoField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid', null=True)
@@ -614,7 +614,7 @@ class Vlan(models.Model):
     prefixes, it is of a network type, it is used by an organization (org) and
     has a user group (usage) within the org."""
 
-    id = models.IntegerField(db_column='vlanid', primary_key=True)
+    id = models.AutoField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField()
     net_type = models.ForeignKey('NetType', db_column='nettype')
     organization = models.ForeignKey('Organization', db_column='orgid',
@@ -667,7 +667,7 @@ class Usage(models.Model):
 class Arp(models.Model):
     """From MetaNAV: The arp table contains (ip, mac, time start, time end)."""
 
-    id = models.IntegerField(db_column='arpid', primary_key=True)
+    id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = models.CharField(max_length=-1)
@@ -701,7 +701,7 @@ class SwPort(models.Model):
         (DUPLEX_HALF, 'half duplex'),
     )
 
-    id = models.IntegerField(db_column='swportid', primary_key=True)
+    id = models.AutoField(db_column='swportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
     port = models.IntegerField()
@@ -903,7 +903,7 @@ class SwPortVlan(models.Model):
         (DIRECTION_DOWN, 'down'),
     )
 
-    id = models.IntegerField(db_column='swportvlanid', primary_key=True)
+    id = models.AutoField(db_column='swportvlanid', primary_key=True)
     swport = models.ForeignKey('SwPort', db_column='swportid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
@@ -950,7 +950,7 @@ class SwPortToNetbox(models.Model):
     topology of the network. swp_netbox defines the candidates for next hop
     physical neighborship."""
 
-    id = models.IntegerField(db_column='swp_netboxid', primary_key=True)
+    id = models.AutoField(db_column='swp_netboxid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     ifindex = models.IntegerField()
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
@@ -973,7 +973,7 @@ class NetboxVtpVlan(models.Model):
     active on a switch. The vtp vlan table is an extra source of
     information."""
 
-    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
@@ -988,7 +988,7 @@ class Cam(models.Model):
     """From MetaNAV: The cam table defines (swport, mac, time start, time
     end)"""
 
-    id = models.IntegerField(db_column='camid', primary_key=True)
+    id = models.AutoField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     sysname = models.CharField(max_length=-1)
     ifindex = models.IntegerField()
