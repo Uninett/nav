@@ -53,13 +53,21 @@ urlpatterns = patterns('',
         name='ipdevinfo-details-by-addr'),
 
     # Module details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/$',
         module_details, name='ipdevinfo-module-details'),
 
-    # Port details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/swport(?P<port_id>\d+)/$',
+    # Switch port details
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/swport=(?P<port_id>\d+)/$',
         port_details, {'port_type': 'swport'}, name='ipdevinfo-swport-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/gwport(?P<port_id>\d+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/swport=(?P<port_name>[\w\d\/]+)/$',
+        port_details, {'port_type': 'swport'},
+        name='ipdevinfo-swport-details-by-interface'),
+
+    # Router port details
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_id>\d+)/$',
         port_details, {'port_type': 'gwport'}, name='ipdevinfo-gwport-details'),
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_name>[\w\d\/]+)/$',
+        port_details, {'port_type': 'gwport'},
+        name='ipdevinfo-gwport-details-by-interface'),
 )
 

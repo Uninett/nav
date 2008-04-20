@@ -30,7 +30,7 @@ import IPy
 import re
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
@@ -185,15 +185,23 @@ def module_details(request, netbox_sysname, module_number):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def port_details(request, netbox_sysname, module_number, port_type, port_id):
+def port_details(request, netbox_sysname, module_number, port_type,
+    port_id=None, port_name=None):
     """Show detailed view of one IP device port"""
 
+    if not (port_id or port_name):
+        return Http404
+
     if port_type == 'swport':
-        port = get_object_or_404(SwPort.objects.select_related(depth=2),
-            id=port_id)
+        ports = SwPort.objects.select_related(depth=2)
     elif port_type == 'gwport':
-        port = get_object_or_404(GwPort.objects.select_related(depth=2),
-            id=port_id)
+        ports = GwPort.objects.select_related(depth=2)
+
+    if port_id is not None:
+        port = get_object_or_404(ports, id=port_id)
+    elif port_name is not None:
+        port = get_object_or_404(ports, module__netbox__sysname=netbox_sysname,
+            module__module_number=module_number, interface=port_name)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/port-details.html',
