@@ -875,16 +875,16 @@ class SwPort(models.Model):
             title.append(self.interface)
 
         if self.link == self.LINK_UP:
-            title.append('active now')
+            title.append('link now')
         else:
             active = self.get_active_time(interval)
             if active is not None:
                 if active.days > 1:
-                    title.append('%d days ago' % active.days)
+                    title.append('MAC seen %d days ago' % active.days)
                 elif active.days == 1:
-                    title.append('1 day ago')
+                    title.append('MAC seen 1 day ago')
                 else:
-                    title.append('used today')
+                    title.append('MAC seen today')
             else:
                 title.append('free')
 
