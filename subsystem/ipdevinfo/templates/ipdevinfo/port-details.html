@@ -71,6 +71,22 @@
     </tr>
 {% ifequal port_type 'swport' %}
     <tr>
+        <th>Patched to</th>
+        <td>
+            {% if port.patch_set.count %}
+                <ul>
+                {% for patch in port.patch_set.all %}
+                    <li>Jack {{ patch.cabling.jack }}, in room
+                        <a href="{% url report-netbox-room patch.cabling.room.id %}">
+                        {{ patch.cabling.room.id }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
         <th>Actions</th>
         <td>
             <ul>

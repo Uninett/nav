@@ -35,6 +35,7 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
 from nav.models.manage import Netbox, Module, SwPort, GwPort
+from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service
 from nav.django.shortcuts import render_to_response, object_list
 
