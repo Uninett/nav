@@ -173,8 +173,8 @@ def ipdev_details(request, name=None, addr=None):
 def module_details(request, netbox_sysname, module_number):
     """Show detailed view of one IP device module"""
 
-    module = get_object_or_404(Module, netbox__sysname=netbox_sysname,
-        module_number=module_number)
+    module = get_object_or_404(Module.objects.select_related(depth=1),
+        netbox__sysname=netbox_sysname, module_number=module_number)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/module-details.html',
@@ -188,9 +188,11 @@ def port_details(request, netbox_sysname, module_number, port_type, port_id):
     """Show detailed view of one IP device port"""
 
     if port_type == 'swport':
-        port = get_object_or_404(SwPort, id=port_id)
+        port = get_object_or_404(SwPort.objects.select_related(depth=2),
+            id=port_id)
     elif port_type == 'gwport':
-        port = get_object_or_404(GwPort, id=port_id)
+        port = get_object_or_404(GwPort.objects.select_related(depth=2),
+            id=port_id)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/port-details.html',
