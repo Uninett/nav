@@ -33,7 +33,7 @@ from django.db import models
 from nav.models.manage import Room, SwPort
 
 class Cabling(models.Model):
-    """From MetaNAV: The cabling table documents the cabling from the wirering
+    """From MetaNAV: The cabling table documents the cabling from the wiring
     closet's jack number to the end user's room number."""
 
     id = models.IntegerField(db_column='cablingid', primary_key=True)
