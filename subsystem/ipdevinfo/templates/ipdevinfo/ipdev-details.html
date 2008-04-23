@@ -2,61 +2,71 @@
 
 {% block content %}
 
-<div id="hostinfo">
-<table class="vertitable">
-    <caption>Host: {{ host_info.host }}</caption>
-
-    <tr>
-        <th>Addresses</th>
-        <td>
-            {% if host_info.addresses %}
-            <ul>
-            {% for address in host_info.addresses %}
-                <li>
-                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
-                    {% if address.name %}
-                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
-                    {% endif %}
-                    {% if address.error %}
-                        ({{ address.error }})
-                    {% endif %}
-                </li>
-            {% endfor %}
-            </ul>
-            {% else %}
-            None found
-            {% endif %}
-        </td>
-    </tr>
-</table>
-</div>
-
 <div id="ipdevinfo">
 <table class="vertitable">
 {% if netbox %}
     <caption>IP Device: {{ netbox.sysname }}</caption>
     <tr>
         <th>Status</th>
-        <td>{{ netbox.get_up_display|title }}</td>
+        <td>{{ netbox.get_up_display|capfirst }}</td>
     </tr>
+{% with netbox.get_availability as stats %}
     <tr>
         <th>Availability</th>
         <td>
-            {% with netbox.get_availability as availability %}
-                {% if availability %}
-                    <a href="#FIXME-link-to-rrd-view">
-                    {{ availability.values.day|floatformat:2 }}%</a>,
-                    <a href="#FIXME-link-to-rrd-view">
-                    {{ availability.values.week|floatformat:2 }}%</a>,
-                    <a href="#FIXME-link-to-rrd-view">
-                    {{ availability.values.month|floatformat:2 }}%</a>
-                    (day, week, month)
+            {% with stats.availability as a %}
+            <a href="#FIXME-link-to-rrd-view">
+                {% if a.day %}
+                    {{ stats.availability.day|floatformat:2 }}%
                 {% else %}
-                    Unknown
+                    (N/A)
                 {% endif %}
+                last day</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if a.week %}
+                    {{ stats.availability.week|floatformat:2 }}%
+                {% else %}
+                    (N/A)
+                {% endif %}
+                last week</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if a.month %}
+                    {{ stats.availability.month|floatformat:2 }}%
+                {% else %}
+                    (N/A)
+                {% endif %}
+                last month</a>
             {% endwith %}
         </td>
     </tr>
+    <tr>
+        <th>Response time</th>
+        <td>
+            {% with stats.response_time as rt %}
+            <a href="#FIXME-link-to-rrd-view">
+                {% if rt.day %}
+                    {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+                {% else %}
+                    (N/A)
+                {% endif %}
+                last day</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if rt.week %}
+                    {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+                {% else %}
+                    (N/A)
+                {% endif %}
+                last week</a>,
+            <a href="#FIXME-link-to-rrd-view">
+                {% if rt.month %}
+                    {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+                {% else %}
+                    (N/A)
+                {% endif %}
+                last month</a>
+            {% endwith %}
+        </td>
+{% endwith %}
     <tr>
         <th>Uptime</th>
         <td>
@@ -92,7 +102,7 @@
                         </ul>
                     {% endif %}
                 {% else %}
-                    Unknown
+                    N/A
                 {% endif %}
             {% endwith %}
         </td>
@@ -109,7 +119,7 @@
                 <a href="{% url report-type-type netbox.type.id %}">
                     {{ netbox.type }}</a></td>
             {% else %}
-                Unknown
+                N/A
             {% endif %}
     </tr>
     <tr>
@@ -175,7 +185,49 @@
 </table>
 </div>
 
+<div id="hostinfo">
+<table class="vertitable">
+    <caption>Host: {{ host_info.host }}</caption>
+
+    <tr>
+        <th>Addresses</th>
+        <td>
+            {% if host_info.addresses %}
+            <ul>
+            {% for address in host_info.addresses %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
+                    {% if address.name %}
+                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
+                    {% endif %}
+                    {% if address.error %}
+                        ({{ address.error }})
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            None found
+            {% endif %}
+        </td>
+    </tr>
+</table>
+</div>
+
 <hr class="floatclear" />
+
+{% if netbox and netbox.service_set.count %}
+
+<div id="services">
+<table class="listtable">
+    <caption>Services at {{ netbox.sysname }}</caption>
+    {% with netbox.service_set.all as service_list %}
+    {% include "ipdevinfo/service-list-table.html" %}
+    {% endwith %}
+</table>
+</div>
+
+{% endif %}
 
 {% if netbox and netbox.module_set.count %}
 
@@ -193,7 +245,7 @@
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.all %}
+    {% for module in netbox.module_set.select_related %}
     {% include "ipdevinfo/module-swport-status.html" %}
     {% endfor %}
     </div>
@@ -209,7 +261,7 @@
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.all %}
+    {% for module in netbox.module_set.select_related %}
     {% include "ipdevinfo/module-swport-active.html" %}
     {% endfor %}
     </div>
@@ -229,7 +281,7 @@
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.all %}
+    {% for module in netbox.module_set.select_related %}
     {% include "ipdevinfo/module-gwport-status.html" %}
     {% endfor %}
     </div>
