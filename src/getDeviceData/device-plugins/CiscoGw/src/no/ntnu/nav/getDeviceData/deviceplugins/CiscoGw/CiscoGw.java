@@ -337,6 +337,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			prefixMap = util.reverse(ipMap);
 		
 		if(ciscoIpv6Supported) {
+			/* Entries in the cIpAddressTable are indexed by IP address type
+			 * and IP address.  IP address type 2 = IPv6.  16 sub ids 
+			 * (bytes) are needed to represent an IPv6 address.  Thus, we
+			 * append .2.16 to cIpAddressIfIndex to retrieve only IPv6 
+			 * addresses (and to conveniently strip the unneeded prefix).
+			 */
 			ipMap = sSnmp.getAllMap(nb.getOid("cIpAddressIfIndex") + ".2.16");
 			MultiMap ipv6TemporaryPrefixMap = util.reverse(ipMap);
 			
@@ -344,11 +350,11 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				prefixMap = new HashMultiMap();
 			
 			for(Iterator it = ipv6TemporaryPrefixMap.keySet().iterator(); it.hasNext();) {
-				String key = (String)it.next();
-				Set values = ipv6TemporaryPrefixMap.get(key);
+				String ifIndex = (String)it.next();
+				Set values = ipv6TemporaryPrefixMap.get(ifIndex);
 				
 				for(Iterator jt = values.iterator(); jt.hasNext();)
-					prefixMap.put(key, ipv6Formatter((String)jt.next()));
+					prefixMap.put(ifIndex, ipv6Formatter((String)jt.next()));
 			}
 		}
 		
