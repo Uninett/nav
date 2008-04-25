@@ -44,7 +44,7 @@
 {% ifequal port_type 'swport' %}
     <tr>
         <th>Trunk</th>
-        <td>{{ port.trunk|yesno|capfirst }}</td>
+        <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
     </tr>
 {% endifequal %}
     <tr>
