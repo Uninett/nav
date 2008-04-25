@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler reporthandler
-DirectoryIndex reporthandler.py/index

@@ -1,7 +1,8 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 # $Id$
 #
 # Copyright 2003-2005 Norwegian University of Science and Technology
+# Copyright 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,23 +21,24 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors:	Sigurd Gartmann <sigurd-nav@brogar.org>
-#			Jostein Gogstad <jostein.gogstad@idi.ntnu.no>
+# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Jostein Gogstad <jostein.gogstad@idi.ntnu.no>
+#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
+
 from mod_python import apache,util
 
-import re,string,copy,pprint,urllib
+import re,string,copy,urllib
 import os.path, nav.path
 from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.URI import URI
 from nav.web import redirect
-
-from Generator import Generator,ReportList
-from MatrixIpv4 import MatrixIpv4
-from MatrixIpv6 import MatrixIpv6
-from IPTree import getMaxLeaf
-from IPTree import buildTree
+#from nav.report.matrix import Matrix
+from nav.report.generator import Generator,ReportList
+from nav.report.matrixIPv4 import MatrixIPv4
+from nav.report.matrixIPv6 import MatrixIPv6
+from nav.report.IPtree import getMaxLeaf,buildTree
 from IPy import IP
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
@@ -69,15 +71,13 @@ def handler(req):
     reportName = r.group(1)
 
     if reportName == "report" or reportName == "index":
-        
+
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
-        #list = ReportList(configFile).getReportList()
         list = []
         page.path = [("Home", "/"), ("Report", False)]
         page.title = "Report - Index"
-        #req.write(pprint.pformat(req.args))
         if req.args and req.args.find("sort=alnum")>-1:
             sortby = "<a href=\"index\">Logical order</a> | Alphabetical order"
             list.sort()
@@ -125,21 +125,21 @@ def handler(req):
 
 			if scope.version() == 6:
 				end_net = getMaxLeaf(tree)
-				matrix = MatrixIpv6(scope,end_net=end_net)
+				matrix = MatrixIPv6(scope,end_net=end_net)
 			elif scope.version() == 4:
 				end_net = None
 				if scope.prefixlen() < 24:
 					end_net = IP("/".join([scope.net().strNormal(),"27"]))
-					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=end_net)
+					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
 				else:
 					max_leaf = getMaxLeaf(tree)
 					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-					
-					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+
+					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
 			else:
 				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())
-            
+
         else:
 
             from nav import db
@@ -170,12 +170,12 @@ def handler(req):
         req.send_http_header()
         gen = Generator()
         (report,contents,neg,operator,adv) = gen.makeReport(reportName,configFile,uri)
-        #req.write(pprint.pformat(neg))
+
         page.report = report
         page.contents = contents
         page.operator = operator
         page.neg = neg
-        
+
         namename = ""
         if report:
             namename = report.header
@@ -195,12 +195,12 @@ def handler(req):
         page.operators = None
         page.operatorlist = None
         page.descriptions = None
-        
+
         if adv:
             page.search = True
         else:
             page.search = False
-        
+
         if report:
 
             if old_uri.find("?")>0:
@@ -209,10 +209,9 @@ def handler(req):
                 old_uri += "?"
             page.old_uri = old_uri
 
-            if adv:
-                page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
-                page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
-                page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
+            page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
+            page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
+            page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
 
         req.write(page.respond())
 
