@@ -106,4 +106,4 @@ clean:
 distclean: clean
 	find -name \*~ -print0 | xargs -0 rm -f
 	rm -f Makefile $(INITFILES)
-	$(MAKE) -C $(TEMPLATES) $@
+	rm -f $(TEMPLATES)
