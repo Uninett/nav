@@ -1,7 +1,7 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -27,7 +27,7 @@
 mod_python handler for the Messages subsystem.
 """
 
-__copyright__ = "Copyright 2006 UNINETT AS"
+__copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id:$"
@@ -41,6 +41,7 @@ import nav.messages
 import nav.maintenance
 from nav.web.URI import URI
 from nav.web.templates.MessagesListTemplate import MessagesListTemplate
+from nav.web.templates.MessagesDetailsTemplate import MessagesDetailsTemplate
 from nav.web.templates.MessagesNewTemplate import MessagesNewTemplate
 from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
 
@@ -110,7 +111,7 @@ def handler(req):
 
     # View a message
     elif section == 'view' and args.get('id'):
-        page = MessagesListTemplate()
+        page = MessagesDetailsTemplate()
         page.title = 'Message'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         msgid = int(args.get('id'))
@@ -118,7 +119,7 @@ def handler(req):
 
     # Expire a message
     elif section == 'expire' and args.get('id'):
-        page = MessagesListTemplate()
+        page = MessagesDetailsTemplate()
         page.title = 'Expire message'
         menu.append({'link': 'expire', 'text': 'Expire', 'admin': True})
         page.infomsgs = []
