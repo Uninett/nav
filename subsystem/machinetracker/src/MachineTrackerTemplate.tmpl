@@ -129,7 +129,8 @@ $default_table_CSS
     <tr class="$rowcycler">
 	<td><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a></td>
 	<td style="text-align: center;">$row.module</td>
-        <td style="text-align: center;"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a></td>
+        <td style="text-align: center;"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a>
+            (<a href="/ipdevinfo/$row.switch/module=$row.module/swport=$row.port/">details</a>)</td>
 	<td>$row.start_time</td>
 	<td>$row.end_time</td>
         <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a></td>
@@ -144,6 +145,15 @@ $default_table_CSS
         </tr>
     </tbody>
 </table>
+
+<div class="infobox">
+<h4>Interface details</h4>
+
+<p>Please note that the MAC search results are <em>historic</em> data, while
+the information found at the interface details link is the <em>current</em>
+data on the interface. They may have no other connection than being related to
+the same interface at different points in time.</p>
+</div>
 #end def
 
 #block content

@@ -1,7 +1,7 @@
 /* Stylesheet for tables in NAV style
  *
  * Copyright 2003-2005 Norwegian University of Science and Technology
- * Copyright 2006 UNINETT AS
+ * Copyright 2006-2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -23,6 +23,32 @@
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
+/* --- Common --- */
+
+/* Table caption */
+table.vertitable caption,
+table.listtable caption {
+	background: #567899;
+	color: white;
+	border-bottom: 2px solid white;
+	font-size: 1.2em;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
+}
+table.vertitable caption span.subtitle,
+table.listtable caption span.subtitle {
+	font-size: 0.9em;
+	font-weight: normal;
+}
+table.vertitable caption a,
+table.listtable caption a {
+	background: transparent;
+	color: white;
+}
+table.vertitable caption a:hover,
+table.listtable caption a:hover {
+	text-decoration: none;
+}
 
 /* --- Details table --- */
 table.vertitable {
@@ -35,12 +61,6 @@ table.vertitable {
 
 /* Table caption */
 table.vertitable caption {
-	background: #567899;
-	color: white;
-	border-bottom: 2px solid white;
-	font-size: 1.2em;
-	font-weight: bolder;
-	padding: 0.3em 0.5em;
 	text-align: left;
 }
 
@@ -75,24 +95,7 @@ table.listtable {
 
 /* Table caption */
 table.listtable caption {
-	background: #567899;
-	color: white;
-	border-bottom: 2px solid white;
-	font-size: 1.2em;
-	font-weight: bolder;
-	padding: 0.3em 0.5em;
 	text-align: center;
-}
-table.listtable caption span.subtitle {
-	font-size: 0.9em;
-	font-weight: normal;
-}
-table.listtable caption a {
-	background: transparent;
-	color: white;
-}
-table.listtable caption a:hover {
-	text-decoration: none;
 }
 
 /* Table head */

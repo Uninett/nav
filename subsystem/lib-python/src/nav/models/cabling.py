@@ -33,10 +33,10 @@ from django.db import models
 from nav.models.manage import Room, SwPort
 
 class Cabling(models.Model):
-    """From MetaNAV: The cabling table documents the cabling from the wirering
+    """From MetaNAV: The cabling table documents the cabling from the wiring
     closet's jack number to the end user's room number."""
 
-    id = models.IntegerField(db_column='cablingid', primary_key=True)
+    id = models.AutoField(db_column='cablingid', primary_key=True)
     room = models.ForeignKey(Room, db_column='roomid')
     jack = models.CharField(max_length=-1)
     building = models.CharField(max_length=-1)
@@ -49,13 +49,13 @@ class Cabling(models.Model):
         unique_together = (('room', 'jack'),)
 
     def __unicode__(self):
-        return u'jack %s, in room %s' % (self.jack, self.room)
+        return u'jack %s, in room %s' % (self.jack, self.room.id)
 
 class Patch(models.Model):
     """From MetaNAV: The patch table documents the cross connect from switch
     port to jack."""
 
-    id = models.IntegerField(db_column='patchid', primary_key=True)
+    id = models.AutoField(db_column='patchid', primary_key=True)
     swport = models.ForeignKey(SwPort, db_column='swportid')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
     split = models.CharField(max_length=-1, default='no')
