@@ -40,9 +40,12 @@ def handler(req):
     connection = nav.db.getConnection('netmapserver', 'manage')
     db = connection.cursor()
 
-    if req.is_https():
-        baseURL = "https://" + req.hostname + req.uri
-    else:
+    try:
+        if req.is_https():
+            baseURL = "https://" + req.hostname + req.uri
+        else:
+            baseURL = "http://" + req.hostname + req.uri
+    except:
         baseURL = "http://" + req.hostname + req.uri
 
     if path == '/server':
