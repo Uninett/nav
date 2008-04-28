@@ -26,8 +26,7 @@ package no.uninett.display.controllers;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import javax.swing.JPopupMenu;
-import no.uninett.window.linkTooltip;
-import no.uninett.window.netboxTooltip;
+import no.uninett.window.*;
 import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
 import prefuse.data.tuple.TupleSet;
@@ -53,46 +52,42 @@ public class NetmapControl extends ControlAdapter {
 
     @Override
     public void itemClicked(VisualItem item, java.awt.event.MouseEvent e) {
-        Visualization cur_vis = no.uninett.netmap.Main.getVis();
-        item.setFixed(true);
-        JPopupMenu t = new JPopupMenu();
-        // TODO: Add proper data. need to update backend first.
-        if (item.isInGroup("graph.nodes")){
-        t.add(new netboxTooltip(
-                item.getString("sysname"),
-                item.getString("category"),
-                item.getString("ip"),
-                item.getString("location"),
-                item.getString("cpuload"),
-                item.getString("up")
-                ));
-        } else if (item.isInGroup("graph.edges")){
-        t.add(new linkTooltip(
-                item.getString("from_sysname") + " -> " + item.getString("to_sysname"),
-                item.getString("link_capacity"),
-                item.getString("link_load_in"),
-                item.getString("link_load_out"),
-                "", //TODO: Add type in backend
-                item.getString("to_interface"),
-                item.getString("from_interface")
-                ));
-        }
-        
-        t.pack();
-        t.show(e.getComponent(), e.getX(), e.getY());
+	    Visualization cur_vis = no.uninett.netmap.Main.getVis();
+	    item.setFixed(true);
+	    JPopupMenu t = new JPopupMenu();
+	    if (item.isInGroup("graph.nodes")){
+		    t.add(new netboxTooltip(
+					    item.getString("sysname"),
+					    item.getString("category"),
+					    item.getString("type"),
+					    item.getString("room"),
+					    item.getString("cpuload")
+					   ));
+	    } else if (item.isInGroup("graph.edges")){
+		    t.add(new linkTooltip(
+					    item.getString("from_sysname") + " -> " + item.getString("to_sysname"),
+					    item.getString("to_interface") + " -> " + item.getString("from_interface"),
+					    "",
+					    item.getString("link_capacity"),
+					    "In: " + item.getString("link_load_in") + " Out: " + item.getString("link_load_out")
+					 ));
+	    }
+
+	    t.pack();
+	    t.show(e.getComponent(), e.getX(), e.getY());
 
     }
 
     public void findAndSetNeighborHighlight(VisualItem item, boolean state) {
-        if (item != null) {
-            NodeItem ni = (NodeItem) item;
-            Iterator iter = ni.edges();
+	    if (item != null) {
+		    NodeItem ni = (NodeItem) item;
+		    Iterator iter = ni.edges();
 
-            while (iter.hasNext()) {
-                EdgeItem ei = (EdgeItem) iter.next();
-                ei.getAdjacentItem(ni).setHighlighted(state);
-                ei.setHighlighted(state);
-            }
-        }
+		    while (iter.hasNext()) {
+			    EdgeItem ei = (EdgeItem) iter.next();
+			    ei.getAdjacentItem(ni).setHighlighted(state);
+			    ei.setHighlighted(state);
+		    }
+	    }
     }
 }

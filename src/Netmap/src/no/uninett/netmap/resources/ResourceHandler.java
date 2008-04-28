@@ -54,7 +54,7 @@ public class ResourceHandler extends Thread {
         URL url = null;
         HttpURLConnection conn;
 
-        url = new URL(no.uninett.netmap.Main.getBaseURL().toString() + "/netmap/catids");
+        url = new URL(no.uninett.netmap.Main.getBaseURL().toString() + "/catids");
         conn = (HttpURLConnection) url.openConnection();
 
         conn.setRequestProperty("Cookie", no.uninett.netmap.Main.getSessionID());
@@ -83,7 +83,6 @@ public class ResourceHandler extends Thread {
             throw new DataIOException(ex.fillInStackTrace());
         }
         conn.setRequestProperty("Cookie", no.uninett.netmap.Main.getSessionID());
-
         prefuse.data.Graph ret = null;
 
         try {

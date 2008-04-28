@@ -75,6 +75,7 @@ public class Main extends JPrefuseApplet {
         log.entering("Main", "init");
 
         sessionID = this.getParameter("sessionid");
+           JOptionPane.showMessageDialog(null, sessionID);
         if (sessionID == null || sessionID.equals("")) {
             JOptionPane.showMessageDialog(null, "ERROR: No sessionID found\n");
             return;
@@ -215,7 +216,7 @@ public class Main extends JPrefuseApplet {
 
         final JLabel loaderImg;
         try {
-            URL loadingImage = new URL(baseURL.toString() + "/netmap/applet/media/loading.gif");
+            URL loadingImage = new URL(baseURL.toString() + "/applet/media/loading.gif");
             loaderImg = new JLabel(new ImageIcon(loadingImage));
             loaderImg.setEnabled(true);
             loaderImg.setSize(100, 100);
@@ -246,7 +247,7 @@ public class Main extends JPrefuseApplet {
         // Load graph
         URL graphURL = null;
         try {
-            graphURL = new URL(baseURL.toString() + "/netmap/server");
+            graphURL = new URL(baseURL.toString() + "/server");
         } catch (MalformedURLException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }

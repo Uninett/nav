@@ -57,12 +57,11 @@ public class MainView {
         no.uninett.netmap.Main.getVis().reset();
         no.uninett.netmap.Main.getVis().addGraph("graph", Main.getGraph());
 
-        
-        prefuse.render.LabelRenderer nodeRenderer = new prefuse.render.LabelRenderer("sysname",
-                no.uninett.netmap.Main.getBaseURL().toString() + "image");
+
+        prefuse.render.LabelRenderer nodeRenderer = new prefuse.render.LabelRenderer("sysname", "image");
         nodeRenderer.setRenderType(prefuse.render.AbstractShapeRenderer.RENDER_TYPE_DRAW);
         nodeRenderer.setImagePosition(prefuse.Constants.TOP);
-
+	nodeRenderer.setMaxImageDimensions(300,300);
 
         prefuse.render.DefaultRendererFactory factory = new prefuse.render.DefaultRendererFactory(nodeRenderer);
         prefuse.render.EdgeRenderer er = new no.uninett.display.views.layouts.NetmapEdgeRender();
@@ -74,7 +73,7 @@ public class MainView {
         prefuse.action.ItemAction textColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.TEXTCOLOR, prefuse.util.ColorLib.rgb(0, 0, 0));
 
         prefuse.action.assignment.FontAction fontAction = new prefuse.action.assignment.FontAction();
-        fontAction.setDefaultFont(new java.awt.Font("Serif", 1, 60));
+        fontAction.setDefaultFont(new java.awt.Font("Serif", 1, 80));
 
         // create an action list containing all color assignments
         prefuse.action.ActionList color = new prefuse.action.ActionList();
@@ -85,8 +84,8 @@ public class MainView {
         prefuse.action.ActionList layout = new prefuse.action.ActionList(prefuse.activity.Activity.INFINITY);
 
         no.uninett.display.views.layouts.RouterLayout fdl = new no.uninett.display.views.layouts.RouterLayout();
-        
-        // Allow some extra time for calculation between renders
+
+	// Allow some extra time for calculation between renders
         fdl.setMaxTimeStep(100);
 
         // Set up some basic forces. Seems to work well with the NTNU-routers at least.
