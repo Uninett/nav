@@ -126,14 +126,17 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
     results = db_cursor.dictfetchall()
 
     for res in results:
-        if res['rrdfile']:
-            data = [a for a in rrdtool.fetch(res['rrdfile'], 'AVERAGE', '-r','350','-s','-10m')[2] if not None in a][0]
-            if res['reversed'] == 'y':
-                res['load'] = ((data[1]/8)/1024.0, (data[0]/8)/1024.0)
+        try:
+            if res['rrdfile']:
+                data = [a for a in rrdtool.fetch(res['rrdfile'], 'AVERAGE', '-r','350','-s','-10m')[2] if not None in a][0]
+                if res['reversed'] == 'y':
+                    res['load'] = ((data[1]/8)/1024.0, (data[0]/8)/1024.0)
+                else:
+                    res['load'] = ((data[0]/8)/1024.0, (data[1]/8)/1024.0)
             else:
-                res['load'] = ((data[0]/8)/1024.0, (data[1]/8)/1024.0)
-        else:
-            #TODO: Find rrd-data for the other interface - hard to do in the sql-query
+                #TODO: Find rrd-data for the other interface - hard to do in the sql-query
+                res['load'] = (-1,-1)
+        except:
             res['load'] = (-1,-1)
 
     query = """SELECT DISTINCT ON (netboxid) * FROM netbox
