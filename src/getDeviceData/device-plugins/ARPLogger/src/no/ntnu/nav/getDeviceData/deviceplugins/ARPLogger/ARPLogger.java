@@ -65,13 +65,20 @@ public class ARPLogger implements DeviceHandler {
 		//supportedOidsMap<OID,bytes prepended to the IP address, usually is 1 or 3 depending on
 		//whether the OID include the type of the ip or not.
 		
-		if(nb.isSupportedAllOids(new String[] {requiredIPv4OID}))
+		// The OIDs are only added to the map if the gDD
+		// engine says they are ready to be fetched according
+		// to the OID schedule (see the Netbox.canGetOid((
+		// call)
+		if(nb.isSupportedAllOids(new String[] {requiredIPv4OID}) &&
+		   nb.canGetOid(requiredIPv4OID))
 			supportedOidsMap.put(requiredIPv4OID,1);
 
-		if(nb.isSupportedAllOids(new String[] {requiredCiscoIPv6OID}))
+		if(nb.isSupportedAllOids(new String[] {requiredCiscoIPv6OID}) &&
+		   nb.canGetOid(requiredCiscoIPv6OID))
 			supportedOidsMap.put(requiredCiscoIPv6OID,3);
 
-		if(nb.isSupportedAllOids(new String[] {requiredIetfIPv6OID}))
+		if(nb.isSupportedAllOids(new String[] {requiredIetfIPv6OID}) &&
+		   nb.canGetOid(requiredIetfIPv6OID))
 			supportedOidsMap.put(requiredIetfIPv6OID,1);
 		
 		return supportedOidsMap;
@@ -79,13 +86,6 @@ public class ARPLogger implements DeviceHandler {
 	
 	public synchronized void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException {
 		Log.setDefaultSubsystem("ARPLogger");
-		
-		//This is a hack. It seems that kongsvinger-gw.uninett.no and c6500-h-1.hiof.no is passed twice,
-		//the second time nb.getOid returns null on all oids previously supported and thus the code will fail. 
-		if(nb.getOid("sysname") == null) {
-			Log.w("ARPLogger", "Netbox object (id:" + nb.getNetboxid() + ") for " + nb.getSysname() + " does not respond to .getOid");
-			return;
-		}
 		
 		Map<String,Integer> supportedOidsMap = buildSupportedOidsMap(nb);
 		
