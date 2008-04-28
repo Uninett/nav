@@ -49,10 +49,6 @@
 
     <mkdir dir="${DESTDIR}${instdir}"/>
     <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
-    <copy file="arplogger.pl" todir="${DESTDIR}${bindir}"/>
-    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
-      <arg line="755 arplogger.pl" />
-    </exec>
 
     <mkdir dir="${DESTDIR}${sysconfdir}"/>
     <copy file="getBoksMacs.conf" todir="${DESTDIR}${sysconfdir}"/>

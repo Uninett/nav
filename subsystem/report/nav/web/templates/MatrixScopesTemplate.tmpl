@@ -1,5 +1,5 @@
 #encoding UTF-8
-## $Id$
+## $Id: MatrixTemplate.tmpl 2674 2004-04-28 13:03:41Z mortenv $
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
 ##
@@ -20,26 +20,38 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##
 ##
-## Author: Stian S�iland <stain@itea.ntnu.no>
+## Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
 ##
-
-#extends MainTemplate
-
-#block additionalCSS
-$default_tabs_CSS
-$default_table_CSS
-<link rel="stylesheet" type="text/css" href="/style/DeviceBrowserTemplate.css" />
-#end block additionalCSS
-
-#block additionalJavaScript
-<script type="text/javascript" src="/js/DeviceBrowserTemplate.js"></script>
-#end block additionalJavaScript
+#extends nav.web.templates.MainTemplate
 
 #block content
-#if $myContent:
-  $myContent
+
+#if len($scopes)
+<h1>Graphic view</h1>
+
+<form action="/report/matrix" method="get">
+<p>There are more than one network address scope. Please select one of them</p>
+<select name="scope" onchange="this.form.submit()">
+#for $n in $scopes
+<option value="$n">$n</option>
+#end for
+</select>
+<input type="submit" value="View" />
+
+</form>
+
+#else
+
+<h1>Graphic view</h1>
+
+<p>The NAV-database does not contain any network scopes. <a href="/editdb">Edit the database</a> and return to this page to see some action.</p>
+
+
 #end if
-#if $treeselect:
-  $treeselect
-#end if
-#end block content
+
+
+#end block
+
+#block additionalCSS
+<link rel="stylesheet" type="text/css" href="/style/MatrixScopesTemplate.css" />
+#end block
