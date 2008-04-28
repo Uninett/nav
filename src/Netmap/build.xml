@@ -17,23 +17,21 @@
 	</target>
 
 	<target name="compile" depends="init" description="compile the source " >
+		<ant dir="lib/prefuse-beta" target="prefuse"/>
 		<javac encoding="UTF-8" srcdir="${src}" destdir="${build}" source="1.5" target="1.5" debug="${debug}">
 			<classpath>
 				<pathelement path="${classpath}"/>
 				<fileset dir="lib">
 					<include name="**/*.jar"/>
+					<include name="lib/prefuse-beta/build/*.jar"/>
 				</fileset>
 			</classpath>
 		</javac>
-		<copy todir="${dist}">
-			<fileset dir="lib">
-				<include name="**/*.jar"/>
-			</fileset>
-		</copy>
 	</target>
 
 	<target name="dist" depends="compile" description="generate the distribution" >
 		<mkdir dir="${dist}"/>
+		<copy file="lib/prefuse-beta/build/prefuse.jar" todir="${dist}" />
 		<jar jarfile="${dist}/Netmap.jar" basedir="${build}"/>
 	</target>
 
@@ -52,6 +50,7 @@
 			<fileset dir="media"/>
 		</copy>
     		<mkdir dir="${tooldir}"/>
+		<copy file="htaccess" tofile="${instdir}/.htaccess"/>
 		<copy file="Netmap.tool" todir="${tooldir}"/>
 	</target>
 
