@@ -1,156 +1,113 @@
-/**
- * Copyright 2007 UNINETT AS
- *
- * This file is part of Network Administration Visualized (NAV)
- *
- * NAV is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * NAV is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with NAV; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Authors: Kristian Klette <klette@samfundet.no>
- *
- */
 package no.uninett.window;
 
-import java.applet.AppletContext;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.awt.*;
-import javax.swing.JPanel;
+import javax.swing.*;
+import javax.swing.border.*;
 
-public class netboxTooltip extends javax.swing.JPanel {
+public class netboxTooltip extends JPanel {
 
-    private javax.swing.JLabel catLabel;
-    private javax.swing.JLabel categoryValue;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel loadLabel;
-    private javax.swing.JLabel loadValue;
-    private javax.swing.JLabel roomLabel;
-    private javax.swing.JLabel roomValue;
-    private javax.swing.JLabel sysnameLabel;
-    private javax.swing.JLabel sysnameValue;
-    private javax.swing.JLabel typeLabel;
-    private javax.swing.JLabel typeValue;
-    private javax.swing.JLabel uptimeLabel;
-    private javax.swing.JLabel uptimeValue;
+	private JLabel sysnameLabel;
+	private JLabel sysnameValue;
+	private JLabel categoryLabel;
+	private JLabel categoryValue;
+	private JLabel typeLabel;
+	private JLabel typeValue;
+	private JLabel roomLabel;
+	private JLabel roomValue;
+	private JLabel cpuLabel;
+	private JLabel cpuValue;
 
-    public netboxTooltip() {
-    }
+	public netboxTooltip() {
+		initComponents();
+	}
 
-    public netboxTooltip(String _sysname, String _category, String _room,
-                         String _type, String _load, String _uptime){
+	public netboxTooltip(String sysname, String category, String type, String room, String cpuload){
+		initComponents();
+		this.sysnameValue.setText(sysname);
+		this.categoryValue.setText(category);
+		this.typeValue.setText(type);
+		this.roomValue.setText(room);
+		this.cpuValue.setText(cpuload);
+	}
 
-        JPanel pane = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+	public JLabel getSysnameValue() {
+		return sysnameValue;
+	}
 
-        sysnameLabel = new javax.swing.JLabel();
-        catLabel = new javax.swing.JLabel();
-        typeLabel = new javax.swing.JLabel();
-        roomLabel = new javax.swing.JLabel();
-        loadLabel = new javax.swing.JLabel();
-        uptimeLabel = new javax.swing.JLabel();
-        sysnameValue = new javax.swing.JLabel();
-        categoryValue = new javax.swing.JLabel();
-        typeValue = new javax.swing.JLabel();
-        roomValue = new javax.swing.JLabel();
-        loadValue = new javax.swing.JLabel();
-        uptimeValue = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+	private void initComponents() {
+		sysnameLabel = new JLabel();
+		sysnameValue = new JLabel();
+		categoryLabel = new JLabel();
+		categoryValue = new JLabel();
+		typeLabel = new JLabel();
+		typeValue = new JLabel();
+		roomLabel = new JLabel();
+		roomValue = new JLabel();
+		cpuLabel = new JLabel();
+		cpuValue = new JLabel();
 
-        setBackground(new java.awt.Color(236, 237, 237));
-        setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+		setBorder(new LineBorder(new Color(33, 33, 33), 1, true));
 
-        sysnameLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        sysnameLabel.setText("Sysname:");
+		setLayout(new GridBagLayout());
+		((GridBagLayout)getLayout()).columnWidths = new int[] {0, 0, 0};
+		((GridBagLayout)getLayout()).rowHeights = new int[] {0, 0, 0, 0, 0, 0};
+		((GridBagLayout)getLayout()).columnWeights = new double[] {0.0, 1.0, 1.0E-4};
+		((GridBagLayout)getLayout()).rowWeights = new double[] {0.0, 0.0, 0.0, 0.0, 0.0, 1.0E-4};
 
-        catLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        catLabel.setText("Category:");
+		sysnameLabel.setText("Sysname:");
+		sysnameLabel.setFont(sysnameLabel.getFont().deriveFont(Font.BOLD));
+		add(sysnameLabel, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 5), 0, 0));
 
-        typeLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        typeLabel.setText("Type:");
+		sysnameValue.setText("");
+		sysnameValue.setHorizontalAlignment(SwingConstants.LEFT);
+		add(sysnameValue, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 10), 0, 0));
 
-        roomLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        roomLabel.setText("Room:");
+		categoryLabel.setText("Category:");
+		categoryLabel.setFont(categoryLabel.getFont().deriveFont(Font.BOLD));
+		add(categoryLabel, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 5), 0, 0));
 
-        loadLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        loadLabel.setText("CPU Load:");
+		categoryValue.setText("");
+		add(categoryValue, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 10), 0, 0));
 
-        uptimeLabel.setFont(new java.awt.Font("Dialog", 1, 11));
-        uptimeLabel.setText("Uptime:");
+		typeLabel.setText("Type:");
+		typeLabel.setFont(typeLabel.getFont().deriveFont(Font.BOLD));
+		add(typeLabel, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 5), 0, 0));
 
-        sysnameValue.setText("sysname");
+		typeValue.setText("");
+		add(typeValue, new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 10), 0, 0));
 
-        categoryValue.setText("category");
+		roomLabel.setText("Room:");
+		roomLabel.setFont(roomLabel.getFont().deriveFont(Font.BOLD));
+		add(roomLabel, new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 5), 0, 0));
 
-        typeValue.setText("type");
+		roomValue.setText("");
+		add(roomValue, new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 5, 10), 0, 0));
 
-        roomValue.setText("room");
+		cpuLabel.setText("CPU Load:");
+		cpuLabel.setFont(cpuLabel.getFont().deriveFont(Font.BOLD));
+		add(cpuLabel, new GridBagConstraints(0, 4, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 0, 5), 0, 0));
 
-        loadValue.setText("load");
-
-        uptimeValue.setText("uptime");
-
-        jButton1.setText("View in IP Device Center ");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy = 0;
-        c.insets = new Insets(0,0,0,2);
-        pane.add(sysnameLabel, c);
-
-        c.gridx = 1;
-        c.gridy = 0;
-        pane.add(sysnameValue, c);
-
-        pane.add(catLabel);
-        pane.add(typeLabel);
-        pane.add(roomLabel);
-        pane.add(loadLabel);
-        pane.add(uptimeLabel);
-        pane.add(categoryValue);
-        pane.add(typeValue);
-        pane.add(roomValue);
-        pane.add(loadValue);
-        pane.add(uptimeValue);
-        pane.doLayout();
-
-        pane.setEnabled(true);
-        pane.setVisible(true);
-  
-        sysnameValue.setText(_sysname);
-        categoryValue.setText(_category);
-        roomValue.setText(_room);
-        typeValue.setText(_type);
-        loadValue.setText(_load);
-        uptimeValue.setText(_uptime);
-
-    }
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        try {
-            AppletContext ac = no.uninett.netmap.Main._getAppletContext();
-            if (ac != null){
-                ac.showDocument(new URL(no.uninett.netmap.Main.getBaseURL().toString() + "/browse/" + this.sysnameValue.getText()), "_blank");
-            }
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(netboxTooltip.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+		cpuValue.setText("");
+		add(cpuValue, new GridBagConstraints(1, 4, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 0, 10), 0, 0));
+	}
 }
