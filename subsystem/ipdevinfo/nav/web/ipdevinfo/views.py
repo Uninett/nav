@@ -30,12 +30,14 @@ import IPy
 import re
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
 from nav.models.manage import Netbox, Module, SwPort, GwPort
-from nav.django.shortcuts import render_to_response
+from nav.models.cabling import Cabling, Patch
+from nav.models.service import Service
+from nav.django.shortcuts import render_to_response, object_list
 
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 from nav.web.ipdevinfo.forms import SearchForm
@@ -99,9 +101,6 @@ def search(request):
 def ipdev_details(request, name=None, addr=None):
     """Show detailed view of one IP device"""
 
-    netbox = Netbox.objects.none()
-    errors = []
-
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
         import socket
@@ -135,17 +134,29 @@ def ipdev_details(request, name=None, addr=None):
 
         return host_info
 
+    errors = []
+    host_info = get_host_info(name or addr)
+    netbox = Netbox.objects.none()
+
     # Lookup IP device in NAV
     if name is not None:
         try:
-            netbox = Netbox.objects.get(sysname=name)
+            netbox = Netbox.objects.select_related(depth=2).get(sysname=name)
         except Netbox.DoesNotExist:
             pass
     elif addr is not None:
         try:
-            netbox = Netbox.objects.get(ip=addr)
+            netbox = Netbox.objects.select_related(depth=2).get(ip=addr)
         except Netbox.DoesNotExist:
-            pass
+            # Check if any reverse addresses from DNS matches a netbox
+            for address in host_info['addresses']:
+                if 'name' in address:
+                    try:
+                        netbox = Netbox.objects.select_related(depth=2).get(
+                            sysname=address['name'])
+                        break # Exit loop at first match
+                    except Netbox.DoesNotExist:
+                        pass
     else:
         # Require name or addr to be set
         HttpResponseRedirect(reverse('ipdevinfo-search'))
@@ -154,7 +165,7 @@ def ipdev_details(request, name=None, addr=None):
         'ipdevinfo/ipdev-details.html',
         {
             'errors': errors,
-            'host_info': get_host_info(name or addr),
+            'host_info': host_info,
             'netbox': netbox,
         },
         context_instance=RequestContext(request,
@@ -163,8 +174,8 @@ def ipdev_details(request, name=None, addr=None):
 def module_details(request, netbox_sysname, module_number):
     """Show detailed view of one IP device module"""
 
-    module = get_object_or_404(Module, netbox__sysname=netbox_sysname,
-        module_number=module_number)
+    module = get_object_or_404(Module.objects.select_related(depth=1),
+        netbox__sysname=netbox_sysname, module_number=module_number)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/module-details.html',
@@ -174,13 +185,23 @@ def module_details(request, netbox_sysname, module_number):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def port_details(request, netbox_sysname, module_number, port_type, port_id):
+def port_details(request, netbox_sysname, module_number, port_type,
+    port_id=None, port_name=None):
     """Show detailed view of one IP device port"""
 
+    if not (port_id or port_name):
+        return Http404
+
     if port_type == 'swport':
-        port = get_object_or_404(SwPort, id=port_id)
+        ports = SwPort.objects.select_related(depth=2)
     elif port_type == 'gwport':
-        port = get_object_or_404(GwPort, id=port_id)
+        ports = GwPort.objects.select_related(depth=2)
+
+    if port_id is not None:
+        port = get_object_or_404(ports, id=port_id)
+    elif port_name is not None:
+        port = get_object_or_404(ports, module__netbox__sysname=netbox_sysname,
+            module__module_number=module_number, interface=port_name)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/port-details.html',
@@ -191,3 +212,58 @@ def port_details(request, netbox_sysname, module_number, port_type, port_id):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
+def service_list(request, handler=None):
+    """List services with given handler or any handler"""
+
+    page = request.GET.get('page', '1')
+
+    services = Service.objects.select_related(depth=1)
+    if handler:
+        services = services.filter(handler=handler)
+
+    handler_list = Service.objects.values('handler').distinct()
+
+    # Pass on to generic view
+    return object_list(IpDevInfoTemplate,
+        request,
+        services,
+        paginate_by=100,
+        page=page,
+        template_name='ipdevinfo/service-list.html',
+        extra_context={
+            'show_ipdev_info': True,
+            'handler_list': handler_list,
+            'handler': handler,
+        },
+        allow_empty=True,
+        context_processors=[search_form_processor],
+        template_object_name='service')
+
+def service_matrix(request):
+    """Show service status in a matrix with one IP Device per row and one
+    service handler per column"""
+
+    handler_list = [h['handler']
+        for h in Service.objects.values('handler').distinct()]
+
+    matrix_dict = {}
+    for service in Service.objects.select_related(depth=1):
+        if service.netbox.id not in matrix_dict:
+            matrix_dict[service.netbox.id] = {
+                'sysname': service.netbox.sysname,
+                'netbox': service.netbox,
+                'services': [None for handler in handler_list],
+            }
+        index = handler_list.index(service.handler)
+        matrix_dict[service.netbox.id]['services'][index] = service
+
+    matrix = matrix_dict.values()
+
+    return render_to_response(IpDevInfoTemplate,
+        'ipdevinfo/service-matrix.html',
+        {
+            'handler_list': handler_list,
+            'matrix': matrix,
+        },
+        context_instance=RequestContext(request,
+            processors=[search_form_processor]))

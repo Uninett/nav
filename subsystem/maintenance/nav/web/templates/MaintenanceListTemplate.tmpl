@@ -1,7 +1,7 @@
 #encoding UTF-8
 ## $Id:$
 ##
-## Copyright 2006 UNINETT AS
+## Copyright 2006-2008 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -26,76 +26,26 @@
 #extends MaintenanceTemplate
 #import mx.DateTime
 
-## $verbosetasks may be adjusted to according to preference
-#attr $verbosetasks = 5
-
 #block tabcontent
 
 #if not $tasks
 <p>No maintenance tasks found.</p>
 #else
-    #set $taskcount = 0
-    #for $task in $tasks
-        #set $taskcount += 1
-        #if $taskcount <= $verbosetasks
-
-<table class="vertitable vertitablefull">
-    <caption>$task.description[:50].replace('<', '&lt;').replace('>', '&gt;')</caption>
-    <tr>
-        <th>Start</th>
-        <td>$task.maint_start.strftime('%Y-%m-%d %H:%M')</td>
-    </tr>
-    <tr>
-        <th>End</th>
-        <td>$task.maint_end.strftime('%Y-%m-%d %H:%M')</td>
-    </tr>
-    <tr>
-        <th>Description</th>
-        <td>$task.description.replace('<', '&lt;').replace('>', '&gt;')</td>
-    </tr>
-    <tr>
-        <th>Components</th>
-        <td>$listComponents($task.components)</td>
-    </tr>
-    <tr>
-        <th>Author</th>
-        <td>$task.author</td>
-    </tr>
-#if $authorized
-    <tr>
-        <th>State</th>
-        <td>$task.state.capitalize()</td>
-    </tr>
-    <tr>
-        <th>Actions</th>
-        <td><a href="edit?id=$task.maint_taskid">Edit</a>
-    #if not $task.state == 'cancelled'
-            | <a href="cancel?id=$task.maint_taskid">Cancel now</a>
-    #end if
-        </td>
-    </tr>
-#end if
-</table>
-
-        #else
-
-        #if $taskcount == $verbosetasks+1
-
 <table class="listtable">
-    <caption>Older Maintenance Tasks</caption>
+    <caption>Maintenance Tasks</caption>
     <thead>
-    <tr>
-        <th>Start</th>
-        <th>End</th>
-        <th>Description</th>
-        <th>Components</th>
-        <th>Author</th>
-        <th>State</th>
-    </tr>
+        <tr>
+            <th>Start</th>
+            <th>End</th>
+            <th>Description</th>
+            <th>Components</th>
+            <th>Author</th>
+            <th>State</th>
+        </tr>
     </thead>
     <tbody>
-        #end if
 
+    #for $task in $tasks
         #if len($task.description) > 50
             #set $desc = $task.description[:50].replace('<', '&lt;').replace('>', '&gt;') + '...'
         #else
@@ -106,22 +56,18 @@
         #else
             #set $comp = 0
         #end if
-    <tr class="$rowcycler">
-        <td>$task.maint_start.strftime('%Y-%m-%d %H:%M')</td>
-        <td>$task.maint_end.strftime('%Y-%m-%d %H:%M')</td>
-        <td><a href="view?id=$task.maint_taskid">$desc</a></td>
-        <td><a href="view?id=$task.maint_taskid">$comp</a></td>
-        <td>$task.author</td>
-        <td>$task.state</td>
-    </tr>
-        #end if
+        <tr class="$rowcycler">
+            <td>$task.maint_start.strftime('%Y-%m-%d %H:%M')</td>
+            <td>$task.maint_end.strftime('%Y-%m-%d %H:%M')</td>
+            <td><a href="view?id=$task.maint_taskid">$desc</a></td>
+            <td><a href="view?id=$task.maint_taskid">$comp</a></td>
+            <td>$task.author</td>
+            <td>$task.state</td>
+        </tr>
     #end for
 
-## End of 'Older Maintenace Tasks' table
-#if $taskcount > $verbosetasks
     </tbody>
 </table>
-#end if
 
 #end if
 

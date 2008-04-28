@@ -12,27 +12,17 @@ sysconfdir = @sysconfdir@
 localstatedir = @localstatedir@
 initdir = @initdir@
 
+top_srcdir = @top_srcdir@
 perllibdir = @perllibdir@
 pathmodule = src/NAV/Path.pm
 
+export
 .PHONY: all install install-lib clean distclean
 
 all: $(pathmodule)
 
-$(pathmodule): Makefile
-	@echo "Generating $(pathmodule) ..."
-	@echo "#!/usr/bin/env perl" > $(pathmodule)
-	@echo "# This file was generated during NAV build" >> $(pathmodule)
-	@echo "package NAV::Path;" >> $(pathmodule)
-	@echo "\$$prefix=\"$(prefix)\";" >> $(pathmodule)
-	@echo "\$$exec_prefix=\"$(exec_prefix)\";" >> $(pathmodule)
-	@echo "\$$bindir=\"$(bindir)\";" >> $(pathmodule)
-	@echo "\$$libdir=\"$(libdir)\";" >> $(pathmodule)
-	@echo "\$$perllibdir=\"$(perllibdir)\";" >> $(pathmodule)
-	@echo "\$$sysconfdir=\"$(sysconfdir)\";" >> $(pathmodule)
-	@echo "\$$initdir=\"$(initdir)\";" >> $(pathmodule)
-	@echo "\$$localstatedir=\"$(localstatedir)\";" >> $(pathmodule)
-	@echo "1;" >> $(pathmodule)
+$(pathmodule): $(pathmodule).source
+	$(top_srcdir)/tools/expand.pl $(pathmodule).source > $(pathmodule)
 
 install: install-lib
 

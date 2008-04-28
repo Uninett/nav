@@ -32,22 +32,42 @@ from nav.web.ipdevinfo.views import *
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
+    # Search
     url(r'^$', search,
         name='ipdevinfo-search'),
 
-    # IP Device Details
+    # Service list
+    url(r'^service/$', service_list,
+        name='ipdevinfo-service-list-all'),
+    url(r'^service/handler=(?P<handler>\w+)/$', service_list,
+        name='ipdevinfo-service-list-handler'),
+
+    # Service matrix
+    url(r'^service/matrix/$', service_matrix,
+        name='ipdevinfo-service-matrix'),
+
+    # IP Device details
     url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
         name='ipdevinfo-details-by-addr'),
 
     # Module details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/$',
         module_details, name='ipdevinfo-module-details'),
 
-    # Port details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/swport(?P<port_id>\d+)/$',
+    # Switch port details
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/swport=(?P<port_id>\d+)/$',
         port_details, {'port_type': 'swport'}, name='ipdevinfo-swport-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module(?P<module_number>\d+)/gwport(?P<port_id>\d+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/swport=(?P<port_name>[\w\d\/]+)/$',
+        port_details, {'port_type': 'swport'},
+        name='ipdevinfo-swport-details-by-interface'),
+
+    # Router port details
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_id>\d+)/$',
         port_details, {'port_type': 'gwport'}, name='ipdevinfo-gwport-details'),
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_name>[\w\d\/]+)/$',
+        port_details, {'port_type': 'gwport'},
+        name='ipdevinfo-gwport-details-by-interface'),
 )
+

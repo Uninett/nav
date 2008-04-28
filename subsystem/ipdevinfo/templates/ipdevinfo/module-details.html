@@ -7,7 +7,8 @@
     at {{ module.netbox.sysname }}</caption>
     <tr>
         <th>At IP device</th>
-        <td><a href="{{ module.netbox.get_absolute_url }}">{{ module.netbox }}</a></td>
+        <td><a href="{{ module.netbox.get_absolute_url }}">
+            {{ module.netbox }}</a></td>
     </tr>
     <tr>
         <th>Model</th>
@@ -29,11 +30,13 @@
     </tr>
     <tr>
         <th># of switch ports</th>
-        <td><a href="#FIXME-link-to-report">{{ module.get_swports.count }}</a></td>
+        <td><a href="{% url report-swport-module module.netbox.id,module.module_number %}">
+            {{ module.get_swports.count }}</a></td>
     </tr>
     <tr>
         <th># of router ports</th>
-        <td><a href="#FIXME-link-to-report">{{ module.get_gwports.count }}</a></td>
+        <td><a href="{% url report-gwport-module module.netbox.id,module.module_number %}">
+            {{ module.get_gwports.count }}</a></td>
     </tr>
 </table>
 

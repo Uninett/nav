@@ -27,7 +27,7 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.statemon.Socket import Socket
 import smtplib
-import sre as re
+import re
 
 class SMTP(smtplib.SMTP):
 	def __init__(self,timeout, host = '',port = 25):

@@ -44,6 +44,7 @@
 /* IP Device info table */
 #ipdevinfo {
 	float: left;
+	margin-right: 1em;
 	display: inline;
 }
 
@@ -207,11 +208,15 @@ table#rrdgraphs td.actionselectbottom {
 }
 
 /* Service table */
-table.listtable td.n {
-	background: #d7191c;
-	color: white;
-}
-table.listtable td.y {
+.status_up {
 	background: #91cf60;
+	color: black;
+}
+.status_down {
+	background: #fc8d59;
+	color: black;
+}
+.status_shadow {
+	background: #fee090;
 	color: black;
 }

@@ -280,7 +280,7 @@ class EventImpl implements Event, Alert
 
 	public String toString()
 	{
-		String s = "e="+eventqid+" d="+deviceid+" n="+netboxid+" t="+eventtypeid+" s="+getStateSql();
+		String s = "e="+eventqid+" d="+deviceid+" n="+netboxid+" sub=" + subid + " t="+eventtypeid+" s="+getStateSql();
 		boolean first=true;
 		for (Iterator i = varMap.entrySet().iterator(); i.hasNext();) {
 			Map.Entry me = (Map.Entry)i.next();

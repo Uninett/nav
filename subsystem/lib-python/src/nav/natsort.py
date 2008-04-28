@@ -19,7 +19,7 @@ This will pre-generate the list of sorting keys.  If you do not have Python 2.4
 or higher, you should use the decorate-sort-undecorate pattern to achieve
 maximum efficiency.
 """
-import sre as re
+import re
 
 __author__ = 'Morten Brekkevold <morten.brekkevold@uninett.no>'
 __license__ = 'GPLv2'

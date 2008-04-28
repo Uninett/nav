@@ -267,9 +267,11 @@ class ServiceSectionBox(SectionBox):
                         None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                       line[DOWNTIME].strftime('%H') + ' h, ' + \
-                       line[DOWNTIME].strftime('%M') + ' m'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
             row.append((downTime,None,None,style))
 
             # History link
@@ -516,10 +518,11 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 row.append((starttime.strftime('%Y-%m-%d %H:%M'),
                             None, None, style))
                 # Downtime
-                downtime = '%s d, %s h, %s m' % (
-                    str(downtime.absvalues()[0]),
-                    downtime.strftime('%H'),
-                    downtime.strftime('%M'))
+                downtime = '%dd, %dh, %dmin' % (
+                    downtime.absvalues()[0],
+                    int(downtime.strftime('%H')),
+                    int(downtime.strftime('%M')),
+                )
                 row.append((downtime, None, None, style))
 
             # Wrench icon
@@ -776,9 +779,11 @@ class NetboxSectionBox(SectionBox):
                         None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                       line[DOWNTIME].strftime('%H') + ' h, ' + \
-                       line[DOWNTIME].strftime('%M') + ' m'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
 
             row.append((downTime,None,None,style))
 
@@ -1011,10 +1016,11 @@ class NetboxMaintenanceSectionBox(SectionBox):
 
                 # Downtime
                 if downtime:
-                    downtime = '%s d, %s h, %s m' % (
-                        str(downtime.absvalues()[0]),
-                        downtime.strftime('%H'),
-                        downtime.strftime('%M'))
+                    downtime = '%dd %dh %dmin' % (
+                        downtime.absvalues()[0],
+                        int(downtime.strftime('%H')),
+                        int(downtime.strftime('%M')),
+                    )
                 else:
                     downtime = 'N/A'
                 row.append((downtime, None, None, style))
@@ -1229,9 +1235,11 @@ class ModuleSectionBox(SectionBox):
                         None,None,style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                       line[DOWNTIME].strftime('%H') + ' h, ' + \
-                       line[DOWNTIME].strftime('%M') + ' m'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
 
             row.append((downTime,None,None,style))
 
@@ -1434,9 +1442,11 @@ class ThresholdSectionBox(SectionBox):
                         None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                       line[DOWNTIME].strftime('%H') + ' h, ' + \
-                       line[DOWNTIME].strftime('%M') + ' m'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
             row.append((downTime,None,None,style))
 
             # History link
@@ -1603,9 +1613,11 @@ class NetboxHistoryBox(SectionBox):
                            None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                           line[DOWNTIME].strftime('%H') + ' h, ' +\
-                           line[DOWNTIME].strftime('%M') + ' min'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
             row.append((downTime,None,None,style))
 
             # boxState
@@ -1723,9 +1735,11 @@ class ServiceHistoryBox(SectionBox):
                            None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                           line[DOWNTIME].strftime('%H') + ' h, ' +\
-                           line[DOWNTIME].strftime('%M') + ' min'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
             row.append((downTime,None,None,style))
 
             # History
@@ -1843,9 +1857,11 @@ class ModuleHistoryBox(SectionBox):
                            None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                           line[DOWNTIME].strftime('%H') + ' h, ' +\
-                           line[DOWNTIME].strftime('%M') + ' min'
+            downTime = '%dd %dh %dmin' % (
+                line[DOWNTIME].absvalues()[0],
+                int(line[DOWNTIME].strftime('%H')),
+                int(line[DOWNTIME].strftime('%M')),
+            )
             row.append((downTime,None,None,style))
 
             # History

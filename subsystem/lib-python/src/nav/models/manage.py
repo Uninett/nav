@@ -90,10 +90,10 @@ class Netbox(models.Model):
     )
     TIME_FRAMES = ('day', 'week', 'month')
 
-    id = models.IntegerField(db_column='netboxid', primary_key=True)
+    id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
-    type = models.ForeignKey('NetboxType', db_column='typeid')
+    type = models.ForeignKey('NetboxType', db_column='typeid', null=True)
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = models.CharField(unique=True, max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
@@ -102,7 +102,7 @@ class Netbox(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid')
+    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
     snmp_agent = models.CharField(max_length=-1)
@@ -157,18 +157,35 @@ class Netbox(models.Model):
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
             data_source_status = data_sources.get(name='STATUS')
+            data_source_response_time = data_sources.get(name='RESPONSETIME')
         except RrdDataSource.DoesNotExist:
             return None
 
-        result = {'data_sources': data_sources, 'values': {}}
+        result = {
+            'availability': {
+                'data_source': data_source_status,
+            },
+            'response_time': {
+                'data_source': data_source_response_time,
+            },
+        }
 
         for time_frame in self.TIME_FRAMES:
+            # Availability
             value = average(data_source_status, time_frame)
-            if value is None:
-                value = 0
+            if value is None or value == 0:
+                # average() returns 0 if RRD returns NaN or Error
+                value = None
             else:
                 value = 100 - (value * 100)
-            result['values'][time_frame] = value
+            result['availability'][time_frame] = value
+
+            # Response time
+            value = average(data_source_response_time, time_frame)
+            if value == 0:
+                # average() returns 0 if RRD returns NaN or Error
+                value = None
+            result['response_time'][time_frame] = value
 
         return result
 
@@ -189,7 +206,7 @@ class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
 
-    id = models.IntegerField(db_column='netboxinfoid', primary_key=True)
+    id = models.AutoField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
         related_name='info_set')
     key = models.CharField(max_length=-1)
@@ -209,15 +226,16 @@ class Device(models.Model):
     physical box with its serial number. The device may appear as different net
     boxes or may appear in different modules throughout its lifetime."""
 
-    id = models.IntegerField(db_column='deviceid', primary_key=True)
-    product = models.ForeignKey('Product', db_column='productid')
+    id = models.AutoField(db_column='deviceid', primary_key=True)
+    product = models.ForeignKey('Product', db_column='productid', null=True)
     serial = models.CharField(unique=True, max_length=-1)
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1)
     software_version = models.CharField(db_column='sw_ver', max_length=-1)
     auto = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
-    device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid')
+    device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid',
+        null=True)
     discovered = models.DateTimeField(default=datetime.now)
 
     class Meta:
@@ -239,7 +257,7 @@ class Module(models.Model):
         (UP_DOWN, 'down'),
     )
 
-    id = models.IntegerField(db_column='moduleid', primary_key=True)
+    id = models.AutoField(db_column='moduleid', primary_key=True)
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
@@ -265,7 +283,7 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
-        return GwPort.objects.filter(module=self)
+        return GwPort.objects.select_related(depth=2).filter(module=self)
 
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
@@ -278,7 +296,7 @@ class Module(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return SwPort.objects.filter(module=self)
+        return SwPort.objects.select_related(depth=2).filter(module=self)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -294,7 +312,7 @@ class Memory(models.Model):
     """From MetaNAV: The mem table describes the memory (memory and nvram) of a
     netbox."""
 
-    id = models.IntegerField(db_column='memid', primary_key=True)
+    id = models.AutoField(db_column='memid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     type = models.CharField(db_column='memtype', max_length=-1)
     device = models.CharField(max_length=-1)
@@ -348,7 +366,7 @@ class Organization(models.Model):
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent')
+    parent = models.ForeignKey('self', db_column='parent', null=True)
     description = models.CharField(db_column='descr', max_length=-1)
     optional_1 = models.CharField(db_column='opt1', max_length=-1)
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
@@ -358,11 +376,7 @@ class Organization(models.Model):
         db_table = 'org'
 
     def __unicode__(self):
-        try:
-            return u'%s (%s, part of %s)' % (self.id, self.description,
-                self.parent.description)
-        except Organization.DoesNotExist:
-            return u'%s (%s)' % (self.id, self.description)
+        return u'%s (%s)' % (self.id, self.description)
 
 class Category(models.Model):
     """From MetaNAV: The cat table defines the categories of a netbox
@@ -403,7 +417,7 @@ class NetboxCategory(models.Model):
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
-    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
 
@@ -418,7 +432,7 @@ class NetboxType(models.Model):
     """From MetaNAV: The type table defines the type of a netbox, the
     sysobjectid being the unique identifier."""
 
-    id = models.IntegerField(db_column='typeid', primary_key=True)
+    id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = models.CharField(db_column='typename', max_length=-1)
     sysobject = models.CharField(db_column='sysobjectid',
@@ -457,7 +471,7 @@ class Product(models.Model):
     """From MetaNAV: The product table is used be Device Management to register
     products. A product has a product number and is of a vendor."""
 
-    id = models.IntegerField(db_column='productid', primary_key=True)
+    id = models.AutoField(db_column='productid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     product_number = models.CharField(db_column='productno', max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
@@ -475,7 +489,7 @@ class DeviceOrder(models.Model):
     place orders. Not compulsary. An order consists of a set of devices (on or
     more) of a certain product."""
 
-    id = models.IntegerField(db_column='deviceorderid', primary_key=True)
+    id = models.AutoField(db_column='deviceorderid', primary_key=True)
     registered = models.DateTimeField(default=datetime.now)
     ordered = models.DateField()
     arrived = models.DateTimeField()
@@ -507,7 +521,7 @@ class GwPort(models.Model):
     LINK_DOWN_ADM = LINK_DOWN_ADM
     LINK_CHOICES = LINK_CHOICES
 
-    id = models.IntegerField(db_column='gwportid', primary_key=True)
+    id = models.AutoField(db_column='gwportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
     link = models.CharField(max_length=1, choices=LINK_CHOICES)
@@ -515,9 +529,9 @@ class GwPort(models.Model):
     interface = models.CharField(max_length=-1)
     speed = models.FloatField()
     metric = models.IntegerField()
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
         related_name='connected_to_gwport')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
+    to_swport = models.ForeignKey('SwPort', db_column='to_swportid', null=True,
         related_name='connected_to_gwport')
     port_name = models.CharField(db_column='portname', max_length=-1)
 
@@ -583,10 +597,10 @@ class GwPortPrefix(models.Model):
 class Prefix(models.Model):
     """From MetaNAV: The prefix table stores IP prefixes."""
 
-    id = models.IntegerField(db_column='prefixid', primary_key=True)
+    id = models.AutoField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', db_column='vlanid')
+    vlan = models.ForeignKey('Vlan', db_column='vlanid', null=True)
 
     class Meta:
         db_table = 'prefix'
@@ -600,11 +614,12 @@ class Vlan(models.Model):
     prefixes, it is of a network type, it is used by an organization (org) and
     has a user group (usage) within the org."""
 
-    id = models.IntegerField(db_column='vlanid', primary_key=True)
+    id = models.AutoField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField()
     net_type = models.ForeignKey('NetType', db_column='nettype')
-    organization = models.ForeignKey('Organization', db_column='orgid')
-    usage = models.ForeignKey('Usage', db_column='usageid')
+    organization = models.ForeignKey('Organization', db_column='orgid',
+        null=True)
+    usage = models.ForeignKey('Usage', db_column='usageid', null=True)
     net_ident = models.CharField(db_column='netident', max_length=-1)
     description = models.CharField(max_length=-1)
 
@@ -652,9 +667,9 @@ class Usage(models.Model):
 class Arp(models.Model):
     """From MetaNAV: The arp table contains (ip, mac, time start, time end)."""
 
-    id = models.IntegerField(db_column='arpid', primary_key=True)
+    id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    prefix = models.ForeignKey('Prefix', db_column='prefixid')
+    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = models.CharField(max_length=-1)
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
@@ -686,7 +701,7 @@ class SwPort(models.Model):
         (DUPLEX_HALF, 'half duplex'),
     )
 
-    id = models.IntegerField(db_column='swportid', primary_key=True)
+    id = models.AutoField(db_column='swportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
     ifindex = models.IntegerField()
     port = models.IntegerField()
@@ -698,9 +713,9 @@ class SwPort(models.Model):
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     port_name = models.CharField(db_column='portname', max_length=-1)
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
         related_name='connected_to_swport')
-    to_swport = models.ForeignKey('self', db_column='to_swportid',
+    to_swport = models.ForeignKey('self', db_column='to_swportid', null=True,
         related_name='connected_to_swport')
 
     class Meta:
@@ -737,6 +752,7 @@ class SwPort(models.Model):
             classes.append('trunk')
         if self.duplex:
             classes.append('%sduplex' % self.duplex)
+        # XXX: This causes a DB query per port
         if self.swportblocked_set.count():
             classes.append('blocked')
         return ' '.join(classes)
@@ -764,16 +780,15 @@ class SwPort(models.Model):
         if self.media:
             title.append(self.media)
 
-        # Warning! Lots of extra queries are generated here if not
-        # select_related is used
-        vlans = [str(swpv.vlan.vlan) for swpv in self.swportvlan_set.all()]
+        # XXX: This causes a DB query per port
+        vlans = [str(swpv.vlan.vlan)
+            for swpv in self.swportvlan_set.select_related(depth=1)]
         if vlans:
             title.append('vlan ' + ','.join(vlans))
 
-        # Warning! Lots of extra queries are generated here if not
-        # select_related is used
+        # XXX: This causes a DB query per port
         blocked_vlans = [str(block.vlan)
-            for block in self.swportblocked_set.all()]
+            for block in self.swportblocked_set.select_related(depth=1)]
         if blocked_vlans:
             title.append('blocked ' + ','.join(blocked_vlans))
 
@@ -788,42 +803,43 @@ class SwPort(models.Model):
         activity as a datetime.timedelta object.
         """
 
-        # FIXME: Not done, see next FIXME
-        return None
+        if hasattr(self, 'time_since_activity'):
+            return self.time_since_activity
 
         min_time = datetime.now() - timedelta(interval)
         try:
+            # XXX: This causes a DB query per port
             # Use .values() to avoid creating additional objects we do not need
-            # FIXME: Does not quite work. Gives some IndexError in
-            # django/db/models/query.py in __getitem__, line 157
-            last_cam_entry = self.module.netbox.cam_set.filter(
-                ifindex=self.ifindex, end_time__gt=min_time
-                ).order_by('-end_time').values('end_time')[0]
-        except Cam.DoesNotExist:
+            last_cam_entry_end_time = self.module.netbox.cam_set.filter(
+                ifindex=self.ifindex, end_time__gt=min_time).order_by(
+                'end_time').values('end_time')[0]['end_time']
+        except (Cam.DoesNotExist, IndexError):
             # Inactive/not in use
             return None
 
-        if last_cam_entry['end_time'] == datetime.max:
+        if last_cam_entry_end_time == datetime.max:
             # Active now
-            return timedelta(0)
+            self.time_since_activity = timedelta(0)
         else:
             # Active some time inside the given interval
-            return datetime.now() - last_cam_entry['end_time']
+            self.time_since_activity = datetime.now() - last_cam_entry_end_time
+
+        return self.time_since_activity
 
     def get_active_classes(self, interval=30):
         """Active classes for IP Device Info port view"""
 
         classes = ['port']
 
-        active = self.get_active_time(interval)
-        if active is not None:
-            classes.append('active')
-        else:
-            classes.append('inactive')
-
         if self.link == self.LINK_UP:
             classes.append('active')
             classes.append('link')
+        else:
+            active = self.get_active_time(interval)
+            if active is not None:
+                classes.append('active')
+            else:
+                classes.append('inactive')
 
         return ' '.join(classes)
 
@@ -839,17 +855,16 @@ class SwPort(models.Model):
 
         style = ''
 
-        active = self.get_active_time(interval)
-        if active is not None:
-            style = 'background-color: #%s;' % nav.util.colortohex(
-                gradient[active.days])
-
         if self.link == self.LINK_UP:
             style = 'background-color: #%s;' % nav.util.colortohex(
                 gradient[0])
+        else:
+            active = self.get_active_time(interval)
+            if active is not None:
+                style = 'background-color: #%s;' % nav.util.colortohex(
+                    gradient[active.days])
 
         return style
-
 
     def get_active_title(self, interval=30):
         """Active title for IP Device Info port view"""
@@ -859,19 +874,19 @@ class SwPort(models.Model):
         if self.interface:
             title.append(self.interface)
 
-        active = self.get_active_time(interval)
-        if active is not None:
-            if active.days > 1:
-                title.append('%d days ago' % active.days)
-            elif active.days == 1:
-                title.append('1 day ago')
-            else:
-                title.append('used today')
-        else:
-            title.append('free')
-
         if self.link == self.LINK_UP:
-            title.append('active now')
+            title.append('link now')
+        else:
+            active = self.get_active_time(interval)
+            if active is not None:
+                if active.days > 1:
+                    title.append('MAC seen %d days ago' % active.days)
+                elif active.days == 1:
+                    title.append('MAC seen 1 day ago')
+                else:
+                    title.append('MAC seen today')
+            else:
+                title.append('free')
 
         return ', '.join(title)
 
@@ -888,7 +903,7 @@ class SwPortVlan(models.Model):
         (DIRECTION_DOWN, 'down'),
     )
 
-    id = models.IntegerField(db_column='swportvlanid', primary_key=True)
+    id = models.AutoField(db_column='swportvlanid', primary_key=True)
     swport = models.ForeignKey('SwPort', db_column='swportid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
@@ -919,7 +934,7 @@ class SwPortBlocked(models.Model):
     given vlan for a given switch port."""
 
     swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
-    # FIXME: 'vlan' is not a foreignkey to the vlan table in the database, but
+    # XXX: 'vlan' is not a foreignkey to the vlan table in the database, but
     # it should maybe be a foreign key.
     vlan = models.IntegerField()
 
@@ -935,12 +950,12 @@ class SwPortToNetbox(models.Model):
     topology of the network. swp_netbox defines the candidates for next hop
     physical neighborship."""
 
-    id = models.IntegerField(db_column='swp_netboxid', primary_key=True)
+    id = models.AutoField(db_column='swp_netboxid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     ifindex = models.IntegerField()
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
         related_name='candidate_for_next_hop_set')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid',
+    to_swport = models.ForeignKey('SwPort', db_column='to_swportid', null=True,
         related_name='candidate_for_next_hop_set')
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
@@ -958,7 +973,7 @@ class NetboxVtpVlan(models.Model):
     active on a switch. The vtp vlan table is an extra source of
     information."""
 
-    id = models.IntegerField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
@@ -973,8 +988,8 @@ class Cam(models.Model):
     """From MetaNAV: The cam table defines (swport, mac, time start, time
     end)"""
 
-    id = models.IntegerField(db_column='camid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    id = models.AutoField(db_column='camid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     sysname = models.CharField(max_length=-1)
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
