@@ -31,6 +31,7 @@ from nav.web.netmap.datacollector import *
 from mod_python import apache, util, Cookie
 
 from nav.web.templates.GraphML import GraphML
+from nav.web.templates.Netmap import Netmap
 
 def handler(req):
 
@@ -39,11 +40,17 @@ def handler(req):
     connection = nav.db.getConnection('netmapserver', 'manage')
     db = connection.cursor()
 
+    if req.is_https():
+        baseURL = "https://" + req.hostname + req.uri
+    else:
+        baseURL = "http://" + req.hostname + req.uri
+
     if path == '/server':
         page = GraphML()
         data = getData(db)
         page.netboxes = data[0]
         page.connections = data[1]
+        page.baseURL = baseURL[:baseURL.rfind('/')]
 
         req.content_type="text/xml"
         req.send_http_header()
@@ -68,38 +75,14 @@ def handler(req):
         if not cookies['nav_sessid']:
             return apache.HTTP_UNAUTHORIZED
 
-        out = """
-<html>
-<body>
-
- <!--[if !IE]>-->
-      <object classid="java:no.uninett.netmap.Main" type="application/x-java-applet;version=1.5.0" archive="applet/Netmap_0.2.jar" width="800" height="600">
-        <param name="archive" value="applet/Netmap_0.2.jar" />
-        <param name="sessionid" value="%s">
-        <param name="baseurl" value="https://navdev.uninett.no">
-      <!--<![endif]-->
-      <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" codebase="http://java.sun.com/getjava/index.jsp" width="800" height="600">
-
-        <param name="code" value="no.uninett.netmap.Main">
-        <param name="archive" value="applet/Netmap_0.2.jar">
-        <param name="sessionid" value="%s">
-        <param name="baseurl" value="https://navdev.uninett.no">
-        <strong>
-        No Java Plug-in found.<br />
-          <a href="http://java.sun.com/getjava/index.jsp">Please download and install one.</a>
-        </strong>
-      </object>
-      <!--[if !IE]>-->
-
-      </object>
-      <!--<![endif]-->
-
-</body>
-            """ % (cookies['nav_sessid'], cookies['nav_sessid'])
+        page = Netmap()
+        page.sessionID = cookies['nav_sessid']
+        page.baseURL = baseURL[:-1]
+        (cookies['nav_sessid'], cookies['nav_sessid'])
         req.content_type="text/html"
         req.send_http_header()
 
-        req.write(out)
+        req.write(page.respond())
 
         return apache.OK
 

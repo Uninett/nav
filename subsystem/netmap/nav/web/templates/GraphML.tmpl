@@ -34,6 +34,7 @@
 <key id="ip" for="node" attr.name="ip" attr.type="string"/>
 <key id="image" for="node" attr.name="image" attr.type="string"/>
 <key id="category" for="node" attr.name="category" attr.type="string"/>
+<key id="type" for="node" attr.name="type" attr.type="string"/>
 <key id="cpuload" for="node" attr.name="cpuload" attr.type="string"/>
 <key id="room" for="node" attr.name="room" attr.type="string"/>
 <key id="location" for="node" attr.name="location" attr.type="string"/>
@@ -53,11 +54,12 @@
 		<data key="sysname">$box.sysname</data>
 		<data key="ip">$box.ip</data>
 		<data key="category">$box.catid</data>
+		<data key="type">$box.descr</data>
 		<data key="room">$box.roomid</data>
 		<data key="up">$box.up</data>
 		<data key="location">$box.descr</data>
 		<data key="cpuload">-1.0</data>
-        <data key="image">/netmap/applet/${box.catid}.png</data>
+        <data key="image">$baseURL/applet/media/${box.catid}.png</data>
     </node>
 	#end for
     #set $a = 0

@@ -136,7 +136,10 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
             #TODO: Find rrd-data for the other interface - hard to do in the sql-query
             res['load'] = (-1,-1)
 
-    query = "SELECT DISTINCT ON (netboxid) * from netbox join room using (roomid) join location using (locationid)"
+    query = """SELECT DISTINCT ON (netboxid) * FROM netbox
+                JOIN room using (roomid)
+                JOIN location USING (locationid)
+                JOIN type USING (typeid)"""
     db_cursor.execute(query)
     netboxes = db_cursor.dictfetchall()
 
