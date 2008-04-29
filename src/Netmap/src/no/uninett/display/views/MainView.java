@@ -106,9 +106,8 @@ public class MainView {
         fdl.getForceSimulator().addForce(df);
 
         layout.add(fdl);
-        
-       
-        VisibilityAnimator visibilityAnimator = new VisibilityAnimator();
+
+	VisibilityAnimator visibilityAnimator = new VisibilityAnimator();
         visibilityAnimator.setEnabled(true);
         visibilityAnimator.setDuration(10000);
         layout.add(visibilityAnimator);
@@ -181,5 +180,10 @@ public class MainView {
     }
     public boolean isPrepared(){
         return this.prepared;
+    }
+    public void setFont(java.awt.Font font){
+	    no.uninett.netmap.Main.getVis().cancelAction("font");
+	    no.uninett.netmap.Main.getVis().getAction("font").setDefaultFont(font);
+	    no.uninett.netmap.Main.getVis().runAction("font");
     }
 }
