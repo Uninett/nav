@@ -182,8 +182,8 @@ public class MainView {
         return this.prepared;
     }
     public void setFont(java.awt.Font font){
-	    no.uninett.netmap.Main.getVis().cancelAction("font");
-	    no.uninett.netmap.Main.getVis().getAction("font").setDefaultFont(font);
-	    no.uninett.netmap.Main.getVis().runAction("font");
+	    no.uninett.netmap.Main.getVis().cancel("font");
+	    ((prefuse.action.assignment.FontAction)no.uninett.netmap.Main.getVis().getAction("font")).setDefaultFont(font);
+	    no.uninett.netmap.Main.getVis().run("font");
     }
 }
