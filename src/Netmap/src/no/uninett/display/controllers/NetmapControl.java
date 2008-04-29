@@ -27,6 +27,7 @@ import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import javax.swing.JPopupMenu;
 import no.uninett.window.*;
+import no.uninett.netmap.Main;
 import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
 import prefuse.data.tuple.TupleSet;
@@ -69,7 +70,7 @@ public class NetmapControl extends ControlAdapter {
 					    item.getString("to_interface") + " -> " + item.getString("from_interface"),
 					    "",
 					    item.getString("link_capacity"),
-					    "In: " + item.getString("link_load_in") + " Out: " + item.getString("link_load_out")
+					    "In: " + Main.bwToString(item.getString("link_load_in")) + " Out: " + Main.bwToString(item.getString("link_load_out"))
 					 ));
 	    }
 

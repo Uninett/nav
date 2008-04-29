@@ -75,7 +75,6 @@ public class Main extends JPrefuseApplet {
         log.entering("Main", "init");
 
         sessionID = this.getParameter("sessionid");
-           JOptionPane.showMessageDialog(null, sessionID);
         if (sessionID == null || sessionID.equals("")) {
             JOptionPane.showMessageDialog(null, "ERROR: No sessionID found\n");
             return;
@@ -171,9 +170,6 @@ public class Main extends JPrefuseApplet {
             JCheckBox tmp = new JCheckBox();
             tmp.setText(cat);
             tmp.addActionListener(catFilter);
-            if (cat.equals("GW") || cat.equals("GSW")) {
-                tmp.setSelected(true);
-            }
             categoryMenu.add(tmp);
         }
 
@@ -216,7 +212,7 @@ public class Main extends JPrefuseApplet {
 
         final JLabel loaderImg;
         try {
-            URL loadingImage = new URL(baseURL.toString() + "/applet/media/loading.gif");
+            URL loadingImage = new URL(baseURL.toString() + "/media/loading.gif");
             loaderImg = new JLabel(new ImageIcon(loadingImage));
             loaderImg.setEnabled(true);
             loaderImg.setSize(100, 100);
@@ -273,6 +269,8 @@ public class Main extends JPrefuseApplet {
         m_view.prepare();
         m_view.runActions();
 
+	m_view.filterNodes(new ArrayList<String>());
+
         m_display.addControlListener(new prefuse.controls.FocusControl());
         m_display.addControlListener(new no.uninett.display.controllers.NetmapControl());
         m_display.addControlListener(new prefuse.controls.DragControl());
@@ -328,5 +326,20 @@ public class Main extends JPrefuseApplet {
     }
     public static URL getBaseURL(){
         return baseURL;
+    }
+    static public String bwToString(String bandwidth){
+	    try {
+		    Double bw = Double.parseDouble(bandwidth);
+		    if (bw < 1024){
+			    return String.format("%.2f", bw) + "Kbit/s";
+		    }
+		    if (bw > 1048576){
+			    return String.format("%.3f", (bw/(1024*1024))) + "Gbit/s";
+		    }
+		    return String.format("%.2f", (bw/1024)) + "Mbit/s";
+
+	    } catch(Exception e){
+		    return "unknown";
+	    }
     }
 }

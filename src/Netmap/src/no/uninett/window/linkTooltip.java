@@ -25,6 +25,7 @@ public class linkTooltip extends JPanel {
 	public linkTooltip(String link, String interfaces, String netident,
 		String capacity, String load){
 		initComponents();
+
 		this.linkValue.setText(link);
 		this.interfacesValue.setText(interfaces);
 		this.netidentValue.setText(netident);
@@ -107,5 +108,6 @@ public class linkTooltip extends JPanel {
 			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
 			new Insets(0, 10, 0, 10), 0, 0));
 	}
+
 
 }
