@@ -576,6 +576,9 @@ CREATE TABLE rrd_file (
   value     VARCHAR
 );
 
+-- Values are used a lot in Netmap
+CREATE INDEX rrd_file_value ON rrd_file(value);
+
 -- Each datasource for each rrdfile is registered here. We need the name and
 -- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and
 -- to understand what that is for humans we need the descr.
