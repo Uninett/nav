@@ -46,7 +46,7 @@ SELECT DISTINCT ON (swport.swportid, to_swport)
         connection.netboxid AS to_netboxid,
         netbox.sysname AS from_sysname,
         connection.to_sysname,
-        CASE WHEN swport.speed < connection.to_speed
+        CASE WHEN swport.speed > connection.to_speed
           THEN swport.speed
           ELSE connection.to_speed
         END AS speed,
@@ -86,7 +86,7 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
         connection.netboxid AS to_netboxid,
         netbox.sysname AS from_sysname,
         connection.sysname AS to_sysname,
-        CASE WHEN gwport.speed < connection.to_speed
+        CASE WHEN gwport.speed > connection.to_speed
           THEN gwport.speed
           ELSE connection.to_speed
         END AS speed,
@@ -128,11 +128,11 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
     for res in results:
         try:
             if res['rrdfile']:
-                data = [a for a in rrdtool.fetch(res['rrdfile'], 'AVERAGE', '-r','350','-s','-10m')[2] if not None in a][0]
+                data = rrdtool.fetch(res['rrdfile'], 'AVERAGE', '-r 5m','-s -10m')[2][0]
                 if res['reversed'] == 'y':
-                    res['load'] = ((data[1]/8)/1024.0, (data[0]/8)/1024.0)
+                    res['load'] = ((data[1])/1024.0, (data[0])/1024.0)
                 else:
-                    res['load'] = ((data[0]/8)/1024.0, (data[1]/8)/1024.0)
+                    res['load'] = ((data[0])/1024.0, (data[1])/1024.0)
             else:
                 #TODO: Find rrd-data for the other interface - hard to do in the sql-query
                 res['load'] = (-1,-1)

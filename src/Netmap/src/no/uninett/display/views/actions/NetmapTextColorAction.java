@@ -1,5 +1,5 @@
 /**
- * Copyright 2006 UNINETT AS
+ * Copyright 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -17,7 +17,7 @@
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Kristian Klette <klette@samfundet.no>
+ * Authors: Kristian Klette <kristian.klette@uninett.no>
  *
  */
 
