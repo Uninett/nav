@@ -899,6 +899,7 @@ sub makeinterfaceTargets {
 	    my $lengthoftmp = @descrarr;
 	    if ($lengthoftmp > 0) {
 		$descr = join (", ", @descrarr);
+		$descr =~ s/\"/\\\"/g;
 		$descr = "\"$descr\"";
 	    }
 
