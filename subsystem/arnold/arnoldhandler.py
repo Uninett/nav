@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright 2003-2005 Norwegian University of Science and Technology
+# Copyright 2006-2008 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -22,6 +22,11 @@
 #
 # Authors: John Magne Bredal <john.m.bredal@ntnu.no>
 #
+
+__copyright__ = """Copyright 2006-2008 Norwegian University of Science and
+Technology"""
+__license__ = "GPL"
+__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
 from mod_python import apache
 import re

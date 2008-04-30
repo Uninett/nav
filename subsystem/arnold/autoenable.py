@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2007 Uninett AS
+# Copyright 2008 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,10 +19,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA    
 #
 # Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
-# Credits
 #
 
-__copyright__ = "Copyright 2007 NTNU"
+__copyright__ = "Copyright 2008 Norwegian University of Science and Technology"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
