@@ -114,10 +114,10 @@ public class MainView {
         layout.add(new no.uninett.nav.display.views.actions.NetmapNodeSizeAction());
         layout.add(new prefuse.action.RepaintAction());
 
-        no.uninett.nav.etmap.Main.getVis().putAction("repaint", new prefuse.action.RepaintAction());
-        no.uninett.nav.etmap.Main.getVis().putAction("color", color);
-        no.uninett.nav.etmap.Main.getVis().putAction("font", fontAction);
-        no.uninett.nav.etmap.Main.getVis().putAction("layout", layout);
+        no.uninett.nav.netmap.Main.getVis().putAction("repaint", new prefuse.action.RepaintAction());
+        no.uninett.nav.netmap.Main.getVis().putAction("color", color);
+        no.uninett.nav.netmap.Main.getVis().putAction("font", fontAction);
+        no.uninett.nav.netmap.Main.getVis().putAction("layout", layout);
 
     }
 

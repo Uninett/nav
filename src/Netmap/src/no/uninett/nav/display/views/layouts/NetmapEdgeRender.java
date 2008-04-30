@@ -6,11 +6,12 @@ import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
 import no.uninett.nav.netmap.Main;
 import prefuse.Constants;
+import prefuse.render.EdgeRenderer;
 import prefuse.util.ColorLib;
 import prefuse.visual.EdgeItem;
 import prefuse.visual.VisualItem;
 
-public class NetmapEdgeRender extends SmoothCurvedLinesEdgeRenderer {
+public class NetmapEdgeRender extends EdgeRenderer {
 
 	private double net_load_in = -1;
 	private double net_load_out = -1;

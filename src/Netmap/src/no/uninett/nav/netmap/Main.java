@@ -154,9 +154,9 @@ public class Main extends JPrefuseApplet {
 
             public void actionPerformed(ActionEvent arg0) {
                 if (freezeCheckbox.isSelected()) {
-                    no.uninett.nav.etmap.Main.getVis().cancel("layout");
+                    no.uninett.nav.netmap.Main.getVis().cancel("layout");
                 } else {
-                    no.uninett.nav.etmap.Main.getVis().run("layout");
+                    no.uninett.nav.netmap.Main.getVis().run("layout");
                 }
             }
         };
@@ -249,7 +249,7 @@ public class Main extends JPrefuseApplet {
         }
         try {
 
-            m_graph = no.uninett.nav.etmap.Main.getResourceHandler().getGraphFromURL(graphURL);
+            m_graph = no.uninett.nav.netmap.Main.getResourceHandler().getGraphFromURL(graphURL);
         } catch (DataIOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -272,7 +272,7 @@ public class Main extends JPrefuseApplet {
 	m_view.filterNodes(new ArrayList<String>());
 
         m_display.addControlListener(new prefuse.controls.FocusControl());
-        m_display.addControlListener(new no.uninett.nav.isplay.controllers.NetmapControl());
+        m_display.addControlListener(new no.uninett.nav.display.controllers.NetmapControl());
         m_display.addControlListener(new prefuse.controls.DragControl());
         m_display.addControlListener(new prefuse.controls.PanControl());
         m_display.addControlListener(new prefuse.controls.ZoomControl());
