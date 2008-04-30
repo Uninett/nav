@@ -69,6 +69,7 @@ public class NetmapControl extends ControlAdapter {
 					    item.getString("from_sysname") + " -> " + item.getString("to_sysname"),
 					    item.getString("to_interface") + " -> " + item.getString("from_interface"),
 					    item.getString("netident"),
+					    item.getString("nettype"),
 					    item.getString("link_capacity"),
 					    "In: " + Main.bwToString(item.getString("link_load_in")) + " Out: " + Main.bwToString(item.getString("link_load_out"))
 					 ));
