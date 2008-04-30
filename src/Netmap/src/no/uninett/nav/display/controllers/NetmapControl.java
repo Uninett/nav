@@ -68,7 +68,7 @@ public class NetmapControl extends ControlAdapter {
 		    t.add(new linkTooltip(
 					    item.getString("from_sysname") + " -> " + item.getString("to_sysname"),
 					    item.getString("to_interface") + " -> " + item.getString("from_interface"),
-					    "",
+					    item.getString("netident"),
 					    item.getString("link_capacity"),
 					    "In: " + Main.bwToString(item.getString("link_load_in")) + " Out: " + Main.bwToString(item.getString("link_load_out"))
 					 ));
