@@ -96,6 +96,7 @@ if (! $gCT->init()) {
 use strict;
 use NAV;
 use NAV::Path;
+use Encode;
 
 my $usage = "USAGE: $0 [-h] [-l loglevel] [-c pathtocricket]
 This script makes the config-tree for Cricket
@@ -719,6 +720,10 @@ sub makeTargets {
 	$descr =~ s/\"/\\\"/g;
 	$descr = "\"$descr\"";
 
+	# Decode utf-8 string from database
+	$descr = decode("utf-8", $descr);
+
+
 	# Storing info that we need later when we are going to 
 	# fill the rrd-db.
 	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'netboxid'} = $netboxid;
@@ -897,9 +902,13 @@ sub makeinterfaceTargets {
 		$descr = "\"$descr\"";
 	    }
 
+	    # Decode utf-8 string from database
+	    $descr = decode("utf-8", $descr);
+
 	    # Set name = ifindex if no name set and so on
 	    $name = $ifindex unless $name;
 	    $descr = "\"No description available\"" unless $descr;
+
 	    # create interface-targets
 	    # format:
 	    # target $name
