@@ -36,6 +36,7 @@ CREATE TABLE org (
   orgid VARCHAR(30) PRIMARY KEY,
   parent VARCHAR(30) REFERENCES org (orgid),
   descr VARCHAR,
+  contact VARCHAR,
   opt1 VARCHAR,
   opt2 VARCHAR,
   opt3 VARCHAR
