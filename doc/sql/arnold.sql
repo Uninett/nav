@@ -36,6 +36,14 @@ autoenablestep INT,
 username VARCHAR NOT NULL
 );
 
+-- quarantine_vlans keeps track of the defined quaratine vlans that
+-- the users have defined
+CREATE TABLE quarantine_vlans (
+quarantineid SERIAL PRIMARY KEY,
+vlan INT,
+description VARCHAR
+);
+
 -- A block, of lack of better name, is a run where we do automatic blocking 
 -- of computers based on input ip-list.
 CREATE TABLE block (
@@ -56,10 +64,3 @@ detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quaran
 quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- quarantine_vlans keeps track of the defined quaratine vlans that
--- the users have defined
-CREATE TABLE quarantine_vlans (
-quarantineid SERIAL PRIMARY KEY,
-vlan INT,
-description VARCHAR
-);
