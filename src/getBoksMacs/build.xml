@@ -60,13 +60,11 @@
     </exec>
 
     <mkdir dir="${DESTDIR}${crondir}"/>
-    <copy file="iptrace" todir="${DESTDIR}${crondir}"/>
     <copy file="mactrace" todir="${DESTDIR}${crondir}"/>
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>
     <delete file="${DESTDIR}${bindir}/getBoksMacs.sh"/>
-    <delete file="${DESTDIR}${crondir}/iptrace"/>
     <delete file="${DESTDIR}${crondir}/mactrace"/>
   </target>
 
