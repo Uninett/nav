@@ -159,11 +159,14 @@ public class MainView {
 	    }
 
 
-		// Filter out links first
+	    // Filter out links first
 	    String pred_string = "";
 
 	    for (String ntype : link_type) {
 		    pred_string += (" nettype = \'" + ntype + "\' OR");
+			if (ntype.equals("unknown")){
+				pred_string += " nettype =\'\' OR";
+			}
 	    }
 	    pred_string += " false";
 
@@ -176,16 +179,16 @@ public class MainView {
 	    }
 
 
-		// Filter out netboxes
+	    // Filter out netboxes
 	    pred_string = "";
 	    for (String ncat : def_types) {
-		    pred_string += (" category = \'" + ncat + "\' OR");
+		 	pred_string += (" category = \'" + ncat + "\' OR");
 	    }
 	    if (!show_strays) {
 		    pred_string += " DEGREE() = 0";
 	    } else {
-			pred_string += " false";
-		 }
+		    pred_string += " false";
+	    }
 	    Logger.global.log(java.util.logging.Level.FINEST, "Netbox filter: " + pred_string);
 	    it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes",
 			    prefuse.data.expression.parser.ExpressionParser.predicate(pred_string));
@@ -199,23 +202,23 @@ public class MainView {
 		    }
 	    }
 
-		 it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes", prefuse.data.expression.parser.ExpressionParser.predicate("DEGREE() != 0"));
-		 while(it.hasNext()){
-					NodeItem item = (NodeItem) it.next();
-					boolean hasEdges = false;
-					for (Iterator ei = item.edges(); ei.hasNext();){
-							  VisualItem e = (TableEdgeItem) ei.next();
-							  if (e.isVisible()){
-										 hasEdges = true;
-							  }
-					}
-					if (!hasEdges){
-							  item.setVisible(false);
-					}
+	    it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes", prefuse.data.expression.parser.ExpressionParser.predicate("DEGREE() != 0"));
+	    while(it.hasNext()){
+		    NodeItem item = (NodeItem) it.next();
+		    boolean hasEdges = false;
+		    for (Iterator ei = item.edges(); ei.hasNext();){
+			    VisualItem e = (TableEdgeItem) ei.next();
+			    if (e.isVisible()){
+				    hasEdges = true;
+			    }
+		    }
+		    if (!hasEdges){
+			    item.setVisible(false);
+		    }
 
-		 }
-		
-		 this.runActions();
+	    }
+
+	    this.runActions();
 	    this.prepared = true;
     }
     public boolean isPrepared(){
