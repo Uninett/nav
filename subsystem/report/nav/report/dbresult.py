@@ -1,5 +1,5 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
+# -*- coding: utf-8 -*-
+# $Id: DatabaseResult.py 3425 2006-06-08 13:07:54Z mortenv $
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -35,9 +35,9 @@ class DatabaseResult:
         """
         Does everything in the constructor. queries and returnes the values from the database, according to the configuration
 
-        - reportConfig : the configuration to use when 
+        - reportConfig : the configuration to use when
         """
-        
+
         self.sql = ""
         self.originalSQL = ""
         self.result = []

@@ -30,7 +30,7 @@ links to information about the IP address.
 __author__ = "Morten Vold <morten.vold@ntnu.no>"
 
 import sys
-import sre as re
+import re
 import socket
 from UserDict import UserDict
 from IPy import IP

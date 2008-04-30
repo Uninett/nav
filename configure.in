@@ -97,7 +97,6 @@ AC_OUTPUT(Makefile
 	subsystem/deviceManagement/Makefile
 	subsystem/machinetracker/src/Makefile
 	subsystem/machinetracker/Makefile
-	subsystem/report/src/Makefile
 	subsystem/report/Makefile
 	subsystem/alertprofiles/Makefile
 	subsystem/alertEngine/Makefile

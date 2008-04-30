@@ -133,7 +133,7 @@ public class Gwport implements Comparable
 		return p;
 	}
 
-	Prefix prefixFactory(String gwip, boolean hsrp, String netaddr, int masklen, Vlan vlan) {
+	public Prefix prefixFactory(String gwip, boolean hsrp, String netaddr, int masklen, Vlan vlan) {
 		Prefix p = new Prefix(netaddr, masklen, vlan);
 		Gwportprefix gp = new Gwportprefix(gwip, hsrp, p);
 		gwportprefixMap.put(gwip, gp);

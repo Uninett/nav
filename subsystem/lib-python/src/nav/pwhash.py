@@ -28,7 +28,7 @@ import random
 import sha
 import md5
 import base64
-import sre as re
+import re
 import nav.errors
 
 known_methods = {

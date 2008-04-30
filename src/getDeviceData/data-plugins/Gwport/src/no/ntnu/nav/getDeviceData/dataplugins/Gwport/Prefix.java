@@ -66,7 +66,7 @@ public class Prefix implements Comparable
 		if (hexIp == null || hexIp.indexOf(oldsep) < 0) return hexIp;
 		String ip = "";
 		String escape = oldsep == '.' ? "\\" : "";
-    String[] s = hexIp.split(escape+oldsep);
+		String[] s = hexIp.split(escape+oldsep);
 		for (int i=0; i < s.length; i++) {
 			String t = Integer.toString(Integer.parseInt(s[i],fromBase),toBase);
 			if (minDigits > 0) while (t.length() < minDigits) t = "0" + t;
