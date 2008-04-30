@@ -62,7 +62,10 @@ SELECT DISTINCT ON (swport.swportid, to_swport)
           ELSE 'y'
         END AS reversed,
         netident,
-        nettype
+        nettype,
+        0 AS is_gwport,
+        swport.swportid AS from_portid,
+        connection.to_swport AS to_portid
 FROM netbox
   JOIN module USING (netboxid)
   JOIN swport USING (moduleid)
@@ -106,7 +109,10 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
                 ELSE 'y'
         END AS reversed,
         netident,
-        nettype
+        nettype,
+        1 AS is_gwport,
+        gwport.gwportid AS from_portid,
+        connection.to_gwport AS to_portid
   FROM gwportprefix
    JOIN gwport USING (gwportid)
    JOIN module USING (moduleid)
@@ -134,18 +140,27 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
     results = db_cursor.dictfetchall()
 
     for res in results:
-        try:
-            if res['rrdfile']:
-                data = rrdtool.fetch(res['rrdfile'], 'AVERAGE', '-r 5m','-s -10m')[2][0]
-                if res['reversed'] == 'y':
-                    res['load'] = ((data[1])/1024.0, (data[0])/1024.0)
+        data = get_rrd_link_load(res['rrdfile'])
+        if data[0] == -1:
+            if res['reversed'] == 'y':
+                if res['is_gwport'] == 1:
+                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'gwport' AND value = %s""" % res['from_portid'])
                 else:
-                    res['load'] = ((data[0])/1024.0, (data[1])/1024.0)
+                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'swport' AND value = %s""" % res['from_portid'])
+                res['reversed'] = 'n'
             else:
-                #TODO: Find rrd-data for the other interface - hard to do in the sql-query
-                res['load'] = (-1,-1)
-        except:
-            res['load'] = (-1,-1)
+                if res['is_gwport'] == 1:
+                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'gwport' AND value = %s""" % res['to_portid'])
+                else:
+                    db_cursor.execute("""SELECT path || '/' || filename AS file FROM rrd_file WHERE key = 'swport' AND value = %s""" % res['to_portid'])
+            new_rrd = db_cursor.fetchone()
+            if new_rrd:
+                data = get_rrd_link_load(new_rrd[0])
+        if res['reversed'] == 'y':
+            res['load'] = (data[1],data[0])
+        else:
+            res['load'] = (data[0],data[1])
+
 
     query = """SELECT DISTINCT ON (netboxid) * FROM netbox
                 JOIN room using (roomid)
@@ -155,3 +170,14 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
     netboxes = db_cursor.dictfetchall()
 
     return (netboxes, results)
+
+def get_rrd_link_load(rrdfile):
+    """ Returns the ds1 and ds2 fields of an rrd-file (ifInOctets, ifOutOctets)"""
+    if not rrdfile:
+        return (-1,-1)
+    try:
+        data = rrdtool.fetch(rrdfile, 'AVERAGE', '-r 5m','-s -10m')[2][0]
+        return ((data[1])/1024.0, (data[0])/1024.0)
+    except:
+        return (-1,-1)
+
