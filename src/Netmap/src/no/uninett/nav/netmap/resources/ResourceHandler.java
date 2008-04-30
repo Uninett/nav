@@ -68,6 +68,27 @@ public class ResourceHandler extends Thread {
         }
         return ret;
     }
+    
+    public ArrayList<String> getAvailableLinkTypes() throws Exception {
+        ArrayList<String> ret = new ArrayList<String>();
+
+        URL url = null;
+        HttpURLConnection conn;
+
+        url = new URL(no.uninett.nav.netmap.Main.getBaseURL().toString() + "/linktypes");
+        conn = (HttpURLConnection) url.openConnection();
+
+        conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
+
+        DataInputStream dis = new DataInputStream(conn.getInputStream());
+        String types = dis.readLine();
+        for (String type : types.split(",")) {
+            if (type != null && !type.equals("")) {
+                ret.add(type);
+            }
+        }
+        return ret;
+    }
 
     public prefuse.data.Graph getGraphFromURL(URL url) throws DataIOException {
 

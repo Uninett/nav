@@ -46,29 +46,30 @@ import prefuse.util.ui.JPrefuseApplet;
 
 public class Main extends JPrefuseApplet {
 
-    private static ResourceHandler m_resourceHandler;
-    private static prefuse.Display m_display;
-    private static Visualization m_vis;
-    private static MainView m_view;
+    private static AppletContext appletContext;
+    private static ArrayList<JCheckBox> categoryCheckboxes;
+    private static ArrayList<String> availableCategories;
+    private static ArrayList<String> availableLinkTypes;
     private static Graph m_graph;
     private static Logger log = Logger.getAnonymousLogger();
+    private static MainView m_view;
+    private static ResourceHandler m_resourceHandler;
     private static String sessionID;
-    private static AppletContext appletContext;
-    private static ArrayList<String> availableCategories;
-    private static ArrayList<JCheckBox> categoryCheckboxes;
     private static URL baseURL;
+    private static Visualization m_vis;
+    private static prefuse.Display m_display;
     private boolean prepared = false;
-    //  UI-components
-    private javax.swing.JMenuBar menuBar;
-    private javax.swing.JMenu filterMenu;
-    private javax.swing.JMenu categoryMenu;
-    private javax.swing.JMenu linkMenu;
+
     private javax.swing.JCheckBoxMenuItem allLinktypes;
-    private javax.swing.JMenu visMenu;
-    private javax.swing.JMenu freezeMenu;
     private javax.swing.JCheckBoxMenuItem freezeCheckbox;
-    private static JCheckBoxMenuItem useRelativeSpeeds;
+    private javax.swing.JMenu categoryMenu;
+    private javax.swing.JMenu filterMenu;
+    private javax.swing.JMenu freezeMenu;
+    private javax.swing.JMenu linkMenu;
+    private javax.swing.JMenu visMenu;
+    private javax.swing.JMenuBar menuBar;
     private static JCheckBoxMenuItem hideOrphanNetboxes;
+    private static JCheckBoxMenuItem useRelativeSpeeds;
 
     @Override
     public void init() {
@@ -110,6 +111,7 @@ public class Main extends JPrefuseApplet {
         m_resourceHandler = new ResourceHandler();
         try {
             availableCategories = m_resourceHandler.getAvailableCategories();
+            availableLinkTypes = m_resourceHandler.getAvailableLinkTypes();
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -139,13 +141,20 @@ public class Main extends JPrefuseApplet {
 
             public void actionPerformed(ActionEvent arg0) {
                 ArrayList<String> wantedCategories = new ArrayList<String>();
+                ArrayList<String> wantedLinkTypes = new ArrayList<String>();
+
                 for (Component c : categoryMenu.getMenuComponents()) {
                     if (((JCheckBox) c).isSelected()) {
                         wantedCategories.add(((JCheckBox) c).getText());
                     }
                 }
+                for (Component c : linkMenu.getMenuComponents()) {
+                    if (((JCheckBox) c).isSelected()) {
+                        wantedLinkTypes.add(((JCheckBox) c).getText());
+                    }
+                }
                 if (m_view != null) {
-                    m_view.filterNodes(wantedCategories);
+                    m_view.filterNodes(wantedCategories, wantedLinkTypes, hideOrphanNetboxes.isSelected());
                 }
             }
         };
@@ -177,17 +186,22 @@ public class Main extends JPrefuseApplet {
 
         linkMenu.setText("Linktypes");
 
-        allLinktypes.setSelected(true);
-        allLinktypes.setText("All");
-        linkMenu.add(allLinktypes);
+	linkMenu.removeAll();
+        for (String type : availableLinkTypes) {
+            JCheckBox tmp = new JCheckBox();
+            tmp.setText(type);
+            tmp.addActionListener(catFilter);
+            linkMenu.add(tmp);
+        }
 
         filterMenu.add(linkMenu);
 
         menuBar.add(filterMenu);
 
         visMenu.setText("Visualisation");
-        hideOrphanNetboxes.setText("Hide single instances");
-        hideOrphanNetboxes.setToolTipText("Hides netboxes not connected to any other boxes");
+        hideOrphanNetboxes.setText("Show single instances");
+        hideOrphanNetboxes.setToolTipText("Hides netboxes not connected to any other netboxes (in the db, not by filtering)");
+        hideOrphanNetboxes.addActionListener(catFilter);
         visMenu.add(hideOrphanNetboxes);
         visMenu.add(new javax.swing.JSeparator());
         useRelativeSpeeds.setText("Show load based on relative usage");
@@ -269,7 +283,7 @@ public class Main extends JPrefuseApplet {
         m_view.prepare();
         m_view.runActions();
 
-	m_view.filterNodes(new ArrayList<String>());
+	m_view.filterNodes(new ArrayList<String>(), new ArrayList<String>(), false);
 
         m_display.addControlListener(new prefuse.controls.FocusControl());
         m_display.addControlListener(new no.uninett.nav.display.controllers.NetmapControl());
@@ -315,6 +329,9 @@ public class Main extends JPrefuseApplet {
 
     public static ArrayList<String> getAvailableCategories() {
         return availableCategories;
+    }
+    public static ArrayList<String> getAvailableLinkTypes() {
+        return availableLinkTypes;
     }
 
     public static Graph getGraph() {

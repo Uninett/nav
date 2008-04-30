@@ -31,6 +31,7 @@ import no.uninett.nav.netmap.Main;
 import prefuse.action.animate.VisibilityAnimator;
 import prefuse.data.Node;
 import prefuse.visual.NodeItem;
+import prefuse.visual.EdgeItem;
 import prefuse.visual.VisualItem;
 import prefuse.visual.tuple.TableEdgeItem;
 
@@ -40,7 +41,6 @@ public class MainView {
     private Logger log = Logger.getLogger("netmap");
     private Node largest = null;
     private NetmapGrouping ng;
-    private boolean show_strays = false; // Render nodes without edges
 
     @SuppressWarnings(value = "unchecked")
     public void prepare() {
@@ -138,45 +138,85 @@ public class MainView {
         this.prepared = true;
     }
 
-    public void filterNodes(ArrayList<String> categories) {
-        this.cancelActions();
+    public void filterNodes(ArrayList<String> categories, ArrayList<String> linktypes, boolean show_strays) {
+	    this.cancelActions();
 
-        ArrayList<String> def_types = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableCategories());
+	    ArrayList<String> def_types = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableCategories());
+	    ArrayList<String> link_type = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableLinkTypes());
+	    if (categories != null) {
+		    for (String cat : categories) {
+			    if (def_types.contains(cat)) def_types.remove(cat);
+		    }
+	    }
+	    if (linktypes != null){
+		    for (String type : linktypes){
+			    if (link_type.contains(type)) link_type.remove(type);
+		    }
+	    }
 
-        for (Iterator i = no.uninett.nav.netmap.Main.getVis().items("graph"); i.hasNext();) {
-            ((VisualItem) i.next()).setVisible(true);
-        }
-        String pred_string = "ISNODE() AND (";
-        if (categories != null) {
-            for (String cat : categories) {
-                if (def_types.contains(cat)) {
-                    def_types.remove(cat);
-                }
-            }
-        }
-        for (String ncat : def_types) {
-            pred_string += (" category = \'" + ncat + "\' OR");
-        }
-        if (!show_strays) {
-            pred_string += " DEGREE() = 0 OR";
-        }
+	    for (Iterator i = no.uninett.nav.netmap.Main.getVis().items("graph"); i.hasNext();) {
+		    ((VisualItem) i.next()).setVisible(true);
+	    }
 
-        pred_string += " ISEDGE())";
 
-        Logger.global.log(java.util.logging.Level.FINEST, "Filter: " + pred_string);
-        java.util.Iterator it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes",
-                prefuse.data.expression.parser.ExpressionParser.predicate(pred_string));
-        while (it.hasNext()) {
-            NodeItem item = (NodeItem) it.next();
-            item.setVisible(false);
+		// Filter out links first
+	    String pred_string = "";
 
-            for (Iterator ei = item.edges(); ei.hasNext();) {
-                VisualItem e = (TableEdgeItem) ei.next();
-                e.setVisible(false);
-            }
-        }
-        this.runActions();
-        this.prepared = true;
+	    for (String ntype : link_type) {
+		    pred_string += (" nettype = \'" + ntype + "\' OR");
+	    }
+	    pred_string += " false";
+
+	    Logger.global.log(java.util.logging.Level.FINEST, "EdgeFilter: " + pred_string);
+	    java.util.Iterator it = no.uninett.nav.netmap.Main.getVis().items("graph.edges",
+			    prefuse.data.expression.parser.ExpressionParser.predicate(pred_string));
+	    while (it.hasNext()) {
+		    EdgeItem item = (EdgeItem) it.next();
+		    item.setVisible(false);
+	    }
+
+
+		// Filter out netboxes
+	    pred_string = "";
+	    for (String ncat : def_types) {
+		    pred_string += (" category = \'" + ncat + "\' OR");
+	    }
+	    if (!show_strays) {
+		    pred_string += " DEGREE() = 0";
+	    } else {
+			pred_string += " false";
+		 }
+	    Logger.global.log(java.util.logging.Level.FINEST, "Netbox filter: " + pred_string);
+	    it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes",
+			    prefuse.data.expression.parser.ExpressionParser.predicate(pred_string));
+	    while (it.hasNext()) {
+		    NodeItem item = (NodeItem) it.next();
+		    item.setVisible(false);
+
+		    for (Iterator ei = item.edges(); ei.hasNext();) {
+			    VisualItem e = (TableEdgeItem) ei.next();
+			    e.setVisible(false);
+		    }
+	    }
+
+		 it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes", prefuse.data.expression.parser.ExpressionParser.predicate("DEGREE() != 0"));
+		 while(it.hasNext()){
+					NodeItem item = (NodeItem) it.next();
+					boolean hasEdges = false;
+					for (Iterator ei = item.edges(); ei.hasNext();){
+							  VisualItem e = (TableEdgeItem) ei.next();
+							  if (e.isVisible()){
+										 hasEdges = true;
+							  }
+					}
+					if (!hasEdges){
+							  item.setVisible(false);
+					}
+
+		 }
+		
+		 this.runActions();
+	    this.prepared = true;
     }
     public boolean isPrepared(){
         return this.prepared;
