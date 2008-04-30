@@ -1,8 +1,13 @@
 This is NAV - Network Administration Visualized
 http://sourceforge.net/projects/nav
 
-Mostly Copyright 1999-2006 Norwegian University of Science and Technology
-Part Copyright 2002-2008 UNINETT AS
+Copyright belongs to various parties for different parts of NAV:
+Part copyright 1999-2008 Norwegian University of Science and Technology
+Part copyright 2002-2008 UNINETT AS
+
+See individual source files for more detailed copyright notices.  All files
+that were written explicitly as part of NAV are licensed under GPLv2.  Other
+files may have other copyrights, under GPL compatible licenses.
 
 Some of the graphics icons come altered and/or unaltered from the Tango Icon
 Library (http://tango.freedesktop.org/) or other public domain collections.
