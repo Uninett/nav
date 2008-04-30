@@ -47,6 +47,8 @@
 <key id="to_interface" for="edge" attr.name="to_interface" attr.type="string"/>
 <key id="from_sysname" for="edge" attr.name="from_sysname" attr.type="string"/>
 <key id="to_sysname" for="edge" attr.name="to_sysname" attr.type="string"/>
+<key id="nettype" for="edge" attr.name="nettype" attr.type="string"/>
+<key id="netident" for="edge" attr.name="netident" attr.type="string"/>
 
 <graph id="main" edgedefault="directed">
 	#for $box in $netboxes
@@ -77,6 +79,8 @@
      <data key="to_interface">$conn.to_interface</data>
      <data key="from_sysname">$conn.from_sysname</data>
      <data key="to_sysname">$conn.to_sysname</data>
+     <data key="nettype">$conn.nettype</data>
+     <data key="netident">$conn.netident</data>
     </edge>
     #set $a = $a +1
     #end for

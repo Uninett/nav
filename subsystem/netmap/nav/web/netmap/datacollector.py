@@ -60,7 +60,9 @@ SELECT DISTINCT ON (swport.swportid, to_swport)
         CASE
           WHEN rrd.value = swport.swportid THEN 'n'
           ELSE 'y'
-        END AS reversed
+        END AS reversed,
+        netident,
+        nettype
 FROM netbox
   JOIN module USING (netboxid)
   JOIN swport USING (moduleid)
@@ -77,6 +79,8 @@ FROM netbox
           JOIN netbox USING (netboxid)
         ) AS connection
     ON (connection.to_swport = to_swportid)
+    LEFT JOIN swportvlan USING(swportid)
+    LEFT JOIN vlan USING (vlanid)
   LEFT JOIN (SELECT path, filename, value FROM rrd_file) AS rrd ON (rrd.value = swport.swportid OR rrd.value = connection.to_swport)
 
   UNION
@@ -100,7 +104,9 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
         CASE
                 WHEN rrd.value = gwport.gwportid THEN 'n'
                 ELSE 'y'
-        END AS reversed
+        END AS reversed,
+        netident,
+        nettype
   FROM gwportprefix
    JOIN gwport USING (gwportid)
    JOIN module USING (moduleid)
@@ -119,8 +125,10 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
            JOIN netbox USING (netboxid)
           ) AS connection
     ON (gwportprefix.prefixid = connection.prefixid AND connection.sysname != netbox.sysname)
+    LEFT JOIN prefix ON (prefix.prefixid = gwportprefix.prefixid)
+    LEFT JOIN vlan USING (vlanid)
    LEFT JOIN (SELECT path, filename, value FROM rrd_file) AS rrd ON (rrd.value = gwport.gwportid OR rrd.value = connection.to_gwport)
-    """
+"""
 
     db_cursor.execute(query)
     results = db_cursor.dictfetchall()
