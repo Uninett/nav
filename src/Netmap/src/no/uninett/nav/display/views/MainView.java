@@ -1,5 +1,5 @@
 /**
- * Copyright 2007 UNINETT AS
+ * Copyright 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -17,17 +17,17 @@
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Kristian Klette <klette@samfundet.no>
+ * Authors: Kristian Klette <kristian.klette@uninett.no>
  *
  */
-package no.uninett.display.views;
+package no.uninett.nav.display.views;
 
-import no.uninett.display.views.actions.NetmapTextColorAction;
-import no.uninett.display.views.layouts.NetmapGrouping;
+import no.uninett.nav.display.views.actions.NetmapTextColorAction;
+import no.uninett.nav.display.views.layouts.NetmapGrouping;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
-import no.uninett.netmap.Main;
+import no.uninett.nav.netmap.Main;
 import prefuse.action.animate.VisibilityAnimator;
 import prefuse.data.Node;
 import prefuse.visual.NodeItem;
@@ -54,8 +54,8 @@ public class MainView {
             System.out.println("Could not index one or more tables");
         }
         // Attach graph to visualization
-        no.uninett.netmap.Main.getVis().reset();
-        no.uninett.netmap.Main.getVis().addGraph("graph", Main.getGraph());
+        no.uninett.nav.netmap.Main.getVis().reset();
+        no.uninett.nav.netmap.Main.getVis().addGraph("graph", Main.getGraph());
 
 
         prefuse.render.LabelRenderer nodeRenderer = new prefuse.render.LabelRenderer("sysname", "image");
@@ -64,10 +64,10 @@ public class MainView {
 	nodeRenderer.setMaxImageDimensions(300,300);
 
         prefuse.render.DefaultRendererFactory factory = new prefuse.render.DefaultRendererFactory(nodeRenderer);
-        prefuse.render.EdgeRenderer er = new no.uninett.display.views.layouts.NetmapEdgeRender();
+        prefuse.render.EdgeRenderer er = new no.uninett.nav.display.views.layouts.NetmapEdgeRender();
         factory.setDefaultEdgeRenderer(er);
 
-        no.uninett.netmap.Main.getVis().setRendererFactory(factory);
+        no.uninett.nav.netmap.Main.getVis().setRendererFactory(factory);
 
         prefuse.action.ItemAction nodeColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.FILLCOLOR, prefuse.util.ColorLib.rgb(255, 0, 0));
         prefuse.action.ItemAction textColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.TEXTCOLOR, prefuse.util.ColorLib.rgb(0, 0, 0));
@@ -83,7 +83,7 @@ public class MainView {
 
         prefuse.action.ActionList layout = new prefuse.action.ActionList(prefuse.activity.Activity.INFINITY);
 
-        no.uninett.display.views.layouts.RouterLayout fdl = new no.uninett.display.views.layouts.RouterLayout();
+        no.uninett.nav.display.views.layouts.RouterLayout fdl = new no.uninett.nav.display.views.layouts.RouterLayout();
 
 	// Allow some extra time for calculation between renders
         fdl.setMaxTimeStep(100);
@@ -111,39 +111,39 @@ public class MainView {
         visibilityAnimator.setEnabled(true);
         visibilityAnimator.setDuration(10000);
         layout.add(visibilityAnimator);
-        layout.add(new no.uninett.display.views.actions.NetmapNodeSizeAction());
+        layout.add(new no.uninett.nav.display.views.actions.NetmapNodeSizeAction());
         layout.add(new prefuse.action.RepaintAction());
 
-        no.uninett.netmap.Main.getVis().putAction("repaint", new prefuse.action.RepaintAction());
-        no.uninett.netmap.Main.getVis().putAction("color", color);
-        no.uninett.netmap.Main.getVis().putAction("font", fontAction);
-        no.uninett.netmap.Main.getVis().putAction("layout", layout);
+        no.uninett.nav.etmap.Main.getVis().putAction("repaint", new prefuse.action.RepaintAction());
+        no.uninett.nav.etmap.Main.getVis().putAction("color", color);
+        no.uninett.nav.etmap.Main.getVis().putAction("font", fontAction);
+        no.uninett.nav.etmap.Main.getVis().putAction("layout", layout);
 
     }
 
     public void cancelActions() {
-        no.uninett.netmap.Main.getVis().cancel("color");
-        no.uninett.netmap.Main.getVis().cancel("font");
-        no.uninett.netmap.Main.getVis().cancel("layout");
-        no.uninett.netmap.Main.getVis().cancel("zoomAction");
-        no.uninett.netmap.Main.getVis().cancel("repaint");
+        no.uninett.nav.netmap.Main.getVis().cancel("color");
+        no.uninett.nav.netmap.Main.getVis().cancel("font");
+        no.uninett.nav.netmap.Main.getVis().cancel("layout");
+        no.uninett.nav.netmap.Main.getVis().cancel("zoomAction");
+        no.uninett.nav.netmap.Main.getVis().cancel("repaint");
     }
 
     public void runActions() {
-        no.uninett.netmap.Main.getVis().runAfter("color", 10);
-        no.uninett.netmap.Main.getVis().runAfter("font", 10);
-        no.uninett.netmap.Main.getVis().run("layout");
-        no.uninett.netmap.Main.getVis().run("zoomAction");
-        no.uninett.netmap.Main.getVis().run("repaint");
+        no.uninett.nav.netmap.Main.getVis().runAfter("color", 10);
+        no.uninett.nav.netmap.Main.getVis().runAfter("font", 10);
+        no.uninett.nav.netmap.Main.getVis().run("layout");
+        no.uninett.nav.netmap.Main.getVis().run("zoomAction");
+        no.uninett.nav.netmap.Main.getVis().run("repaint");
         this.prepared = true;
     }
 
     public void filterNodes(ArrayList<String> categories) {
         this.cancelActions();
 
-        ArrayList<String> def_types = new ArrayList<String>(no.uninett.netmap.Main.getAvailableCategories());
+        ArrayList<String> def_types = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableCategories());
 
-        for (Iterator i = no.uninett.netmap.Main.getVis().items("graph"); i.hasNext();) {
+        for (Iterator i = no.uninett.nav.netmap.Main.getVis().items("graph"); i.hasNext();) {
             ((VisualItem) i.next()).setVisible(true);
         }
         String pred_string = "ISNODE() AND (";
@@ -164,7 +164,7 @@ public class MainView {
         pred_string += " ISEDGE())";
 
         Logger.global.log(java.util.logging.Level.FINEST, "Filter: " + pred_string);
-        java.util.Iterator it = no.uninett.netmap.Main.getVis().items("graph.nodes",
+        java.util.Iterator it = no.uninett.nav.netmap.Main.getVis().items("graph.nodes",
                 prefuse.data.expression.parser.ExpressionParser.predicate(pred_string));
         while (it.hasNext()) {
             NodeItem item = (NodeItem) it.next();
@@ -182,8 +182,8 @@ public class MainView {
         return this.prepared;
     }
     public void setFont(java.awt.Font font){
-	    no.uninett.netmap.Main.getVis().cancel("font");
-	    ((prefuse.action.assignment.FontAction)no.uninett.netmap.Main.getVis().getAction("font")).setDefaultFont(font);
-	    no.uninett.netmap.Main.getVis().run("font");
+	    no.uninett.nav.netmap.Main.getVis().cancel("font");
+	    ((prefuse.action.assignment.FontAction)no.uninett.nav.netmap.Main.getVis().getAction("font")).setDefaultFont(font);
+	    no.uninett.nav.netmap.Main.getVis().run("font");
     }
 }

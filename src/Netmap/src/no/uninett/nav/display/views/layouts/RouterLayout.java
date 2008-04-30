@@ -1,9 +1,4 @@
-/*
- * The RouterView class - Displays the router on a network
- * 
- */
-
-package no.uninett.display.views.layouts;
+package no.uninett.nav.display.views.layouts;
 
 import prefuse.action.layout.graph.ForceDirectedLayout;
 import prefuse.data.Node;

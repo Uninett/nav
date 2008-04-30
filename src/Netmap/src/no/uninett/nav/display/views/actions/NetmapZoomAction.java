@@ -1,7 +1,5 @@
-package no.uninett.display.views.actions;
-
 /**
- * Copyright 2006 UNINETT AS
+ * Copyright 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -19,9 +17,11 @@ package no.uninett.display.views.actions;
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Kristian Klette <klette@samfundet.no>
+ * Authors: Kristian Klette <kristian.klette@uninett.no>
  *
  */
+
+package no.uninett.nav.display.views.actions;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
@@ -41,20 +41,20 @@ public class NetmapZoomAction extends GroupAction {
         double x_max = 0;
         double y_min = 0;
         double y_max = 0;
-        Display display = no.uninett.netmap.Main.getDisplay();
+        Display display = no.uninett.nav.netmap.Main.getDisplay();
         
         if (!display.isTranformInProgress()) {
-            TupleSet s_group = no.uninett.netmap.Main.getVis().getGroup(Visualization.SEARCH_ITEMS);
+            TupleSet s_group = no.uninett.nav.netmap.Main.getVis().getGroup(Visualization.SEARCH_ITEMS);
             Rectangle2D.Double r = new Rectangle2D.Double();
             if (s_group.getTupleCount() > 0) {
                 Iterator s_group_iter = s_group.tuples();
                 if (s_group_iter.hasNext()) {
-                    VisualItem item = no.uninett.netmap.Main.getVis().
+                    VisualItem item = no.uninett.nav.netmap.Main.getVis().
                             getVisualItem("graph.nodes", (TableTuple) s_group_iter.next());
                     r.setRect(item.getBounds());
                 }
                 while (s_group_iter.hasNext()) {
-                    VisualItem item = no.uninett.netmap.Main.getVis().getVisualItem("graph.nodes", (TableTuple) s_group_iter.next());
+                    VisualItem item = no.uninett.nav.netmap.Main.getVis().getVisualItem("graph.nodes", (TableTuple) s_group_iter.next());
                     Rectangle2D.union(item.getBounds(), r, r);
                 }
 

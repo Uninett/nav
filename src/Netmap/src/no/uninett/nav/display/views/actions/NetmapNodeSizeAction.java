@@ -1,13 +1,4 @@
-/*
- * NetmapNodeSizeAction.java
- * 
- * Created on Aug 16, 2007, 2:18:55 PM
- * 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-package no.uninett.display.views.actions;
+package no.uninett.nav.display.views.actions;
 
 import prefuse.action.assignment.SizeAction;
 import prefuse.data.Node;

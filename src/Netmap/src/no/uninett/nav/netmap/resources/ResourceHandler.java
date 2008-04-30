@@ -1,4 +1,4 @@
-package no.uninett.netmap.resources;
+package no.uninett.nav.netmap.resources;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -54,10 +54,10 @@ public class ResourceHandler extends Thread {
         URL url = null;
         HttpURLConnection conn;
 
-        url = new URL(no.uninett.netmap.Main.getBaseURL().toString() + "/catids");
+        url = new URL(no.uninett.nav.netmap.Main.getBaseURL().toString() + "/catids");
         conn = (HttpURLConnection) url.openConnection();
 
-        conn.setRequestProperty("Cookie", no.uninett.netmap.Main.getSessionID());
+        conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
 
         DataInputStream dis = new DataInputStream(conn.getInputStream());
         String cats = dis.readLine();
@@ -82,7 +82,7 @@ public class ResourceHandler extends Thread {
         } catch (IOException ex) {
             throw new DataIOException(ex.fillInStackTrace());
         }
-        conn.setRequestProperty("Cookie", no.uninett.netmap.Main.getSessionID());
+        conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
         prefuse.data.Graph ret = null;
 
         try {

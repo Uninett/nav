@@ -1,5 +1,5 @@
 /**
- * Copyright 2007 UNINETT AS
+ * Copyright 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -17,17 +17,17 @@
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Kristian Klette <klette@samfundet.no>
+ * Authors: Kristian Klette <kristian.klette@uninett.no>
  *
  */
 
-package no.uninett.display.controllers;
+package no.uninett.nav.display.controllers;
 
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import javax.swing.JPopupMenu;
-import no.uninett.window.*;
-import no.uninett.netmap.Main;
+import no.uninett.nav.indow.*;
+import no.uninett.nav.etmap.Main;
 import prefuse.Visualization;
 import prefuse.controls.ControlAdapter;
 import prefuse.data.tuple.TupleSet;
@@ -53,7 +53,7 @@ public class NetmapControl extends ControlAdapter {
 
     @Override
     public void itemClicked(VisualItem item, java.awt.event.MouseEvent e) {
-	    Visualization cur_vis = no.uninett.netmap.Main.getVis();
+	    Visualization cur_vis = no.uninett.nav.netmap.Main.getVis();
 	    item.setFixed(true);
 	    JPopupMenu t = new JPopupMenu();
 	    if (item.isInGroup("graph.nodes")){

@@ -21,7 +21,7 @@
  *
  */
 
-package no.uninett.display.views.actions;
+package no.uninett.nav.display.views.actions;
 
 import java.awt.Color;
 import prefuse.Visualization;

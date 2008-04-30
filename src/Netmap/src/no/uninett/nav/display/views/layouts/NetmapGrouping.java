@@ -1,13 +1,4 @@
-/*
- * NetmapGrouping.java
- * 
- * Created on Aug 16, 2007, 8:30:37 PM
- * 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-package no.uninett.display.views.layouts;
+package no.uninett.nav.display.views.layouts;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
@@ -17,10 +8,6 @@ import prefuse.visual.AggregateItem;
 import prefuse.visual.AggregateTable;
 import prefuse.visual.VisualItem;
 
-/**
- *
- * @author klette
- */
 public class NetmapGrouping extends Layout {
     
     private int m_margin = 5; // convex hull pixel margin

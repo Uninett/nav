@@ -1,5 +1,5 @@
 /**
- * Copyright 2007 UNINETT AS
+ * Copyright 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -17,10 +17,10 @@
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Kristian Klette <klette@samfundet.no>
+ * Authors: Kristian Klette <kristian.klette@uninett.no>
  *
  */
-package no.uninett.netmap;
+package no.uninett.nav.netmap;
 
 import java.applet.AppletContext;
 import java.awt.Component;
@@ -33,16 +33,16 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import no.uninett.display.views.MainView;
-import no.uninett.netmap.resources.ResourceHandler;
+import no.uninett.nav.display.views.MainView;
+import no.uninett.nav.netmap.resources.ResourceHandler;
 import prefuse.Visualization;
+import prefuse.data.Graph;
 import prefuse.data.io.DataIOException;
 import prefuse.util.ui.JPrefuseApplet;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import prefuse.data.Graph;
 
 public class Main extends JPrefuseApplet {
 
@@ -154,9 +154,9 @@ public class Main extends JPrefuseApplet {
 
             public void actionPerformed(ActionEvent arg0) {
                 if (freezeCheckbox.isSelected()) {
-                    no.uninett.netmap.Main.getVis().cancel("layout");
+                    no.uninett.nav.etmap.Main.getVis().cancel("layout");
                 } else {
-                    no.uninett.netmap.Main.getVis().run("layout");
+                    no.uninett.nav.etmap.Main.getVis().run("layout");
                 }
             }
         };
@@ -249,7 +249,7 @@ public class Main extends JPrefuseApplet {
         }
         try {
 
-            m_graph = no.uninett.netmap.Main.getResourceHandler().getGraphFromURL(graphURL);
+            m_graph = no.uninett.nav.etmap.Main.getResourceHandler().getGraphFromURL(graphURL);
         } catch (DataIOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -272,7 +272,7 @@ public class Main extends JPrefuseApplet {
 	m_view.filterNodes(new ArrayList<String>());
 
         m_display.addControlListener(new prefuse.controls.FocusControl());
-        m_display.addControlListener(new no.uninett.display.controllers.NetmapControl());
+        m_display.addControlListener(new no.uninett.nav.isplay.controllers.NetmapControl());
         m_display.addControlListener(new prefuse.controls.DragControl());
         m_display.addControlListener(new prefuse.controls.PanControl());
         m_display.addControlListener(new prefuse.controls.ZoomControl());

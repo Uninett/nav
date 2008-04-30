@@ -1,10 +1,10 @@
-package no.uninett.display.views.layouts;
+package no.uninett.nav.display.views.layouts;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
-import no.uninett.netmap.Main;
+import no.uninett.nav.netmap.Main;
 import prefuse.Constants;
 import prefuse.util.ColorLib;
 import prefuse.visual.EdgeItem;

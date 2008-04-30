@@ -1,4 +1,4 @@
-package no.uninett.window;
+package no.uninett.nav.window;
 
 import java.awt.*;
 import javax.swing.*;
