@@ -162,15 +162,16 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
             res['load'] = (data[0],data[1])
 
 
-    query = """SELECT DISTINCT ON (netboxid) *, path || '/' || filename AS rrd
-                FROM netbox
-                JOIN room using (roomid)
-                JOIN location USING (locationid)
-                JOIN type USING (typeid)
-                LEFT JOIN rrd_file USING (netboxid)
-                LEFT JOIN rrd_datasource USING (rrd_fileid)
-                WHERE rrd_datasource.descr = 'cpu5min'
-                OR rrd_datasource.descr IS NULL"""
+    query = """
+        SELECT DISTINCT ON (netboxid) *,  path || '/' || filename AS rrd
+        FROM netbox
+        JOIN room using (roomid)
+        JOIN location USING (locationid)
+        JOIN type USING (typeid)
+        LEFT JOIN rrd_file USING (netboxid)
+        LEFT JOIN rrd_datasource ON (rrd_datasource.rrd_fileid = rrd_file.rrd_fileid AND rrd_datasource.descr = 'cpu5min')
+        WHERE rrd_file.key IS NULL"""
+
     db_cursor.execute(query)
     netboxes = db_cursor.dictfetchall()
     for netbox in netboxes:
