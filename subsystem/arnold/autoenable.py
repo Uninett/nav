@@ -50,7 +50,6 @@ def main():
     config.read(configfile)
 
     # Set variables based on configfile
-    arnolddb = config.get('arnold','database')
 
     loglevel = config.get('loglevel','autoenable')
     if not loglevel.isdigit():
@@ -75,7 +74,7 @@ def main():
 
     # Connect to arnold-database configured in arnold.conf
     try:
-        arnoldconn = nav.db.getConnection('default', arnolddb)
+        arnoldconn = nav.db.getConnection('default', 'arnold')
     except nav.db.driver.ProgrammingError, why:
         logger.error("Could not connect to arnolddatabase: %s" %why)
     

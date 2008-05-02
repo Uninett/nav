@@ -144,14 +144,7 @@ must be set if state is quarantine")
             sys.exit(1)
 
     elif opts.listblocked:
-        try:
-            dbname = config.get('arnold','database')
-        except Exception, why:
-            logger.error("Could not find databasename in arnold.conf")
-            print "Could not find databasename in arnold.conf"
-            sys.exit()
-
-        conn = getConnection('default', dbname)
+        conn = getConnection('default', 'arnold')
         c = conn.cursor()
 
         q = """SELECT identityid, mac, ip, netbios, blocked_status AS status

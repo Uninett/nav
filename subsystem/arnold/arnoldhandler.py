@@ -51,13 +51,11 @@ config.read(configfile)
 
 # Connect to the database
 
-dbname = config.get('arnold','database')
-
 global manage, conn
 # Connect to manage-database
 manage = nav.db.getConnection('default')
 # Connect to arnold-database
-conn = db.getConnection('arnold', dbname);
+conn = db.getConnection('arnold', 'arnold');
     
 
 ############################################################
@@ -891,5 +889,5 @@ def reconnect():
     # Connect to manage-database
     manage = nav.db.getConnection('default')
     # Connect to arnold-database
-    conn = db.getConnection('arnold', dbname);
+    conn = db.getConnection('arnold', 'arnold');
  

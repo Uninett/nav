@@ -105,9 +105,6 @@ configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 config = ConfigParser.ConfigParser()
 config.read(configfile)
 
-dbname = config.get('arnold','database')
-
-
 logger = logging.getLogger("nav.arnold")
     
 
@@ -347,7 +344,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
 
     # Connect to database
-    arnolddb = getConnection('default', dbname)
+    arnolddb = getConnection('default', 'arnold')
     c = arnolddb.cursor()
 
     logger.info("blockPort: Trying to %s %s" %(type, id['ip']))
@@ -458,7 +455,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
                  fromvlan, vlan, res['identityid']]
 
 
-        doQuery(dbname, query, arglist)
+        doQuery('arnold', query, arglist)
 
         # Create new event
         query = """INSERT INTO event
@@ -470,7 +467,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         arglist = [res['identityid'], comment, action , reason, \
                    autoenablestep, username]
 
-        doQuery(dbname, query, arglist)
+        doQuery('arnold', query, arglist)
 
 
     else:
@@ -539,7 +536,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             return
 
 
-        doQuery(dbname, query, arglist)
+        doQuery('arnold', query, arglist)
 
 
         # Create new event-tuple
@@ -551,7 +548,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     
         arglist = [nextval, comment, action , reason, autoenablestep, username]
 
-        doQuery(dbname, query, arglist)
+        doQuery('arnold', query, arglist)
 
 
     logger.info("Successfully %s %s" %(action, id['ip']))
@@ -575,7 +572,7 @@ def openPort(id, username, eventcomment=""):
 
     # Connect to database
     conn = getConnection('default')
-    arnolddb = getConnection('default', dbname)
+    arnolddb = getConnection('default', 'arnold')
 
     carnold = arnolddb.cursor()
     cmanage = conn.cursor()
@@ -988,10 +985,10 @@ def addReason(name, comment, id=0):
     if id:
         query = """UPDATE blocked_reason SET name=%s, comment=%s
         WHERE blocked_reasonid = %s"""
-        doQuery(dbname, query, (name, comment, id))
+        doQuery('arnold', query, (name, comment, id))
     else:
         query = "INSERT INTO blocked_reason (name, comment) VALUES (%s, %s)"
-        doQuery(dbname, query, (name, comment))
+        doQuery('arnold', query, (name, comment))
 
 
 ###############################################################################
@@ -1003,7 +1000,7 @@ def getReasons():
     database
     """
 
-    conn = nav.db.getConnection('default', dbname)
+    conn = nav.db.getConnection('default', 'arnold')
     c = conn.cursor()
 
     query = "SELECT * FROM blocked_reason ORDER BY blocked_reasonid"

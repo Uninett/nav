@@ -80,8 +80,7 @@ def main():
     logger.info("Loglevel = %s" %loglevel)
 
     # Connect to arnold-database
-    dbname = config.get('arnold','database')
-    aconn = getConnection('default', dbname)
+    aconn = getConnection('default', 'arnold')
     acur = aconn.cursor()
 
 

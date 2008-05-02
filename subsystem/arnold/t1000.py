@@ -51,8 +51,6 @@ def main():
     config.read(configfile)
 
     # Set variables based on configfile
-    arnolddb = config.get('arnold','database')
-
     loglevel = config.get('loglevel','t1000')
     if not loglevel.isdigit():
         loglevel = logging.getLevelName(loglevel)
@@ -76,7 +74,7 @@ def main():
 
     # Connect to arnold-database, make cursor
     try:
-        arnoldconn = nav.db.getConnection('default', arnolddb)
+        arnoldconn = nav.db.getConnection('default', 'arnold')
     except nav.db.driver.ProgrammingError, why:
         logger.error("Error connecting to db: %s" %why)
 
