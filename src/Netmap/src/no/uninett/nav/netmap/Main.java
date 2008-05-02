@@ -26,6 +26,8 @@ import java.applet.AppletContext;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -142,7 +144,6 @@ public class Main extends JPrefuseApplet {
         /*
          * Create actionListeners
          */
-
         ActionListener catFilter = new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
@@ -161,6 +162,7 @@ public class Main extends JPrefuseApplet {
                 }
                 if (m_view != null) {
                     m_view.filterNodes(wantedCategories, wantedLinkTypes, hideOrphanNetboxes.isSelected());
+		    freezeCheckbox.setSelected(false);
                 }
             }
         };
@@ -185,7 +187,8 @@ public class Main extends JPrefuseApplet {
             JCheckBox tmp = new JCheckBox();
             tmp.setText(cat);
             tmp.addActionListener(catFilter);
-            categoryMenu.add(tmp);
+            tmp.setEnabled(true);
+	    categoryMenu.add(tmp);
         }
 
         filterMenu.add(categoryMenu);
@@ -197,6 +200,7 @@ public class Main extends JPrefuseApplet {
             JCheckBox tmp = new JCheckBox();
             tmp.setText(type);
             tmp.addActionListener(catFilter);
+            tmp.setEnabled(true);
             linkMenu.add(tmp);
         }
 
