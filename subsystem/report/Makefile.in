@@ -42,7 +42,7 @@ webroot = @webroot@
 
 # Names
 WEBNAME = report
-#NAME = report
+NAME = report
 
 # Files
 INITFILES =
