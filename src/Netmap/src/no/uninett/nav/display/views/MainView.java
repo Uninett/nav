@@ -118,6 +118,7 @@ public class MainView {
         no.uninett.nav.netmap.Main.getVis().putAction("color", color);
         no.uninett.nav.netmap.Main.getVis().putAction("font", fontAction);
         no.uninett.nav.netmap.Main.getVis().putAction("layout", layout);
+	no.uninett.nav.netmap.Main.getVis().putAction("zoomAction", new no.uninett.nav.display.views.actions.NetmapZoomAction());
 
     }
 

@@ -40,9 +40,15 @@ import javax.swing.JOptionPane;
 import no.uninett.nav.display.views.MainView;
 import no.uninett.nav.netmap.resources.ResourceHandler;
 import prefuse.Visualization;
+import prefuse.data.event.TupleSetListener;
+import prefuse.data.tuple.TupleSet;
+import prefuse.data.Tuple;
 import prefuse.data.Graph;
 import prefuse.data.io.DataIOException;
+import prefuse.data.search.PrefixSearchTupleSet;
+import prefuse.data.search.SearchTupleSet;
 import prefuse.util.ui.JPrefuseApplet;
+import prefuse.util.ui.JSearchPanel;
 
 public class Main extends JPrefuseApplet {
 
@@ -296,6 +302,20 @@ public class Main extends JPrefuseApplet {
         this.add(m_display);
         m_display.setEnabled(true);
         m_display.setVisible(true);
+
+	SearchTupleSet search = new PrefixSearchTupleSet();
+	m_vis.addFocusGroup(Visualization.SEARCH_ITEMS, search);
+	search.addTupleSetListener(new TupleSetListener(){
+		public void tupleSetChanged(TupleSet tset, Tuple[] added, Tuple[] removed){
+			m_vis.getAction("zoomAction").setEnabled(true);
+			m_vis.getAction("zoomAction").run();
+		}
+	});
+
+	JSearchPanel jsp = new JSearchPanel(m_vis, "graph.nodes", Visualization.SEARCH_ITEMS, new String[]{"sysname","ip","room"}, true, true);
+	jsp.setLabelText("  Search: ");
+	jsp.setEnabled(true);
+	this.menuBar.add(jsp);
 
     }
 
