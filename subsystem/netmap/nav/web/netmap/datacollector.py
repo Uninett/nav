@@ -168,10 +168,7 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
         JOIN room using (roomid)
         JOIN location USING (locationid)
         JOIN type USING (typeid)
-        LEFT JOIN rrd_file USING (netboxid)
-        LEFT JOIN rrd_datasource ON (rrd_datasource.rrd_fileid = rrd_file.rrd_fileid AND rrd_datasource.descr = 'cpu5min')
-        WHERE rrd_file.key IS NULL"""
-
+        LEFT JOIN (SELECT netboxid,path,filename FROM rrd_file NATURAL JOIN rrd_datasource WHERE descr = 'cpu5min') AS rrd USING (netboxid)"""
     db_cursor.execute(query)
     netboxes = db_cursor.dictfetchall()
     for netbox in netboxes:
