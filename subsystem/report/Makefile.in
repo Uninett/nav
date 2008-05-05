@@ -42,7 +42,7 @@ webroot = @webroot@
 
 # Names
 WEBNAME = report
-#NAME = report
+NAME = report
 
 # Files
 INITFILES =
@@ -51,7 +51,7 @@ LIBS = $(wildcard nav/*.py nav/report/*.py nav/web/report/*.py)
 CONFFILES = $(wildcard etc/*.conf etc/front.html)
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
-#TOOLS =
+TOOLS = report.tool
 #BINS =
 
 
@@ -106,4 +106,4 @@ clean:
 distclean: clean
 	find -name \*~ -print0 | xargs -0 rm -f
 	rm -f Makefile $(INITFILES)
-	$(MAKE) -C $(TEMPLATES) $@
+	rm -f $(TEMPLATES)

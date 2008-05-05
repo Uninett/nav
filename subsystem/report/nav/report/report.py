@@ -40,8 +40,8 @@ class Report:
     """
     A nice formatted Report object, ready for presentation
     """
-    
-    
+
+
     def __init__(self,configuration,database,path):
         """
         The constructor of the Report class
@@ -59,7 +59,7 @@ class Report:
         self.limit = self.setLimit(configuration.limit)
         self.offset = self.setOffset(configuration.offset)
 
-        self.address = self.stripPath(path) 
+        self.address = self.stripPath(path)
 
         self.header = configuration.header
         self.hide = configuration.hidden
@@ -68,7 +68,7 @@ class Report:
         self.name = configuration.name
         self.explain = configuration.explain
         self.uri = configuration.uri
-        
+
         self.fields = configuration.sql_select + self.extra
         self.sql_fields = configuration.sql_select_orig
         self.fieldNum,self.fieldName = self.fieldNum(self.fields)
@@ -98,11 +98,11 @@ class Report:
 
         returns the limit of the configuration or 1000
         """
-        
+
         if config:
-            
+
             return config
-        
+
         else:
 
             return 1000
@@ -115,11 +115,11 @@ class Report:
 
         returns the offset of the configuration or 0
         """
-        
+
         if config:
-            
+
             return config
-        
+
         else:
 
             return 0
@@ -147,7 +147,7 @@ class Report:
 
         returns the hash with fieldname=>fieldnumber pairs
         """
-        
+
         fieldNum = {}
         fieldName = {}
 
@@ -158,7 +158,7 @@ class Report:
             fieldName[number] = field
 
         return fieldNum,fieldName
-    
+
 
     def remakeURI(self,uri):
         """
@@ -168,7 +168,7 @@ class Report:
 
         returns a hash of fieldnumbers and their uris
         """
-        
+
         uri_hash = uri
         uri_new = {}
 
@@ -194,7 +194,7 @@ class Report:
 
         returns a list of cells that later will represent the headers of the table
         """
-        
+
         name_hash = name
         explain_hash = explain
 
@@ -217,7 +217,7 @@ class Report:
             else:
                 uri.setArguments(['sort','order_by'],title)
             uri = uri.make()
-            
+
             ## change if the name exist in the overrider hash
             if name_hash.has_key(title):
                 title = name_hash[title]
@@ -230,7 +230,7 @@ class Report:
 
         return headers
 
-    
+
     def makeTableFooters(self,sum):
         """
         makes the table footers. ie. the sum of the columns if specified
@@ -239,14 +239,14 @@ class Report:
 
         returns a list of cells that later will represent the footers of the table
         """
-        
+
         footers = Footers()
 
         ## for each of the cols that will be displayed
         for footer in self.shown:
             ## get the name of it
             title = self.fields[footer]
-            
+
             thisSum = Cell()
 
             ## change if the name exist in the overrider hash
@@ -264,7 +264,7 @@ class Report:
 
         returns the list of fields that will be displayed in the report
         """
-        
+
         #print self.fields
 
         shown = []
@@ -297,10 +297,10 @@ class Report:
                 ## the number of fields shown may be larger than the size
                 ## of the tuple returned from the database
                 try:
-                    
+
                     if self.extra.count(self.fieldName[field]):
                         text = self.fields[field]
-                    else:                    
+                    else:
                         #if not field >= len(self.shown) - len(self.extra)+2:
                         text = line[field]
                     #else:
@@ -310,7 +310,7 @@ class Report:
                     text = "feil"
 
                 newfield.setText(text)
-                
+
                 if self.uri.has_key(field):
 
                     uri = self.uri[field]
@@ -329,7 +329,7 @@ class Report:
                             except TypeError:
                                 uri = uri + to
                     newfield.setUri(uri)
-                
+
                 newline.append(newfield)
 
             newtable.append(newline)
@@ -340,7 +340,7 @@ class Report:
     def makeForm(self,name):
 
         form = []
-        
+
         for no,field in self.fieldName.items():
             f = None
             ## does not use aggregate function elements
@@ -351,7 +351,7 @@ class Report:
                     f.title = name[field]
                 else:
                     f.title = field
-                
+
                 form.append(f)
 
         return form
@@ -361,7 +361,7 @@ class Navigator:
     """
     An object that represents the next-previous-status (navigation) parts of the page displayed
     """
-    
+
     def __init__(self):
 
         self.view = ""
@@ -385,9 +385,9 @@ class Navigator:
         - offset : the number of the first result displayed on the page
         - address : the uri used when making the next an previous buttons
         - number : total number of restults returned from the query
-        
+
         """
-        
+
         number_int = int(number)
         number = str(number)
         offset_int = int(offset)
@@ -402,7 +402,7 @@ class Navigator:
         view_from = str(offset_int+1)
         view_to_int = offset_int + limit_int
         view_to = str(view_to_int)
-        
+
         if offset_int:
 
             uri = URI(address)
@@ -433,7 +433,7 @@ class Table:
     """
     A table that will contain the results of the report
     """
-    
+
     def __init__(self):
 
         self.rows = []
@@ -447,7 +447,7 @@ class Table:
         - row : the row to be appended to the table
 
         """
-        
+
         self.rows.append(row)
 
     def extend(self,listOfRows):
@@ -457,7 +457,7 @@ class Table:
         - listOfRows : the list of rows to append to the table
 
         """
-        
+
         self.rows.extend(listOfRows)
 
     def setHeaders(self,header):
@@ -467,7 +467,7 @@ class Table:
         - header : the list of cells that represents the header
 
         """
-        
+
         self.header = header
 
     def setFooters(self,footer):
@@ -477,7 +477,7 @@ class Table:
         - footer : the list of cells that represents the footer (the bottom line)
 
         """
-        
+
         self.footer = footer
 
     def setContents(self,contents):
@@ -487,9 +487,9 @@ class Table:
         - contents : the new contents of the table
 
         """
-        
+
         self.rows = contents
-    
+
 
 class Row:
     """
@@ -507,7 +507,7 @@ class Row:
         - cell : the cell to be appended
 
         """
-        
+
         self.cells.append(cell)
 
 class Cell:
@@ -527,9 +527,9 @@ class Cell:
         Sets the contents of the cell to the text specified
 
         - text : the text to be used
-        
+
         """
-        
+
         self.text = text
 
 
@@ -540,7 +540,7 @@ class Cell:
         - uri : the text to be used as the uri
 
         """
-        
+
         self.uri = uri
 
 
@@ -551,7 +551,7 @@ class Cell:
         - explanation : the text to be used as the explanation
 
         """
-        
+
         self.explanation = explanation
 
     def setSum(self,sum):
@@ -561,7 +561,7 @@ class Cell:
         - sum : the text to be used as the sum of the column
 
         """
-        
+
         self.sum = sum
 
 
@@ -569,7 +569,7 @@ class Headers:
     """
     The top row of the report table. Where the titles and descriptions etc, is displayed
     """
-    
+
     def __init__(self):
 
         self.cells = []
@@ -581,7 +581,7 @@ class Headers:
         - cell : the cell to be appended
 
         """
-        
+
         self.cells.append(cell)
 
 class Footers:
@@ -600,6 +600,5 @@ class Footers:
         - cell : the cell to be appended
 
         """
-        
-        self.cells.append(cell)
 
+        self.cells.append(cell)

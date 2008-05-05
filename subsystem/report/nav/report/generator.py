@@ -45,7 +45,7 @@ class Generator:
         self.answer = None
         self.sql = ""
         self.hei = ""
-    
+
     def makeReport(self,reportName,configFile,uri):
         """
         Makes a report
@@ -56,10 +56,10 @@ class Generator:
 
         returns a formatted report object instance or 0
         """
-        
+
         parsed_uri = urlsplit(uri)
         args = parsed_uri[3]
-            
+
         configParser = ConfigParser(configFile)
         config = configParser.configuration
         parseOK = configParser.parseReport(reportName)
@@ -80,7 +80,7 @@ class Generator:
 
             formatted = Report(config,answer,uri)
             formatted.titlebar = reportName + " - report - NAV"
-        
+
             return (formatted,contents,neg,operator,adv)
 
         else:
@@ -100,11 +100,11 @@ class ReportList:
         list = reportRe.findall(fileContents)
 
         configParser = ConfigParser(configurationFile)
-        
+
         for rep in list:
             configtext = rep[1]
             rep = rep[0]
-            
+
             #configParser.parseReport(rep)
             configParser.parseConfiguration(configtext)
             report = configParser.configuration
@@ -149,8 +149,8 @@ class ConfigParser:
         self.configFile = configFile
         self.config = None
         self.configuration = ReportConfig()
-        
-        
+
+
     def parseReport(self,reportName):
         """
         Parses the configuration file and returns a Report object
@@ -167,7 +167,7 @@ class ConfigParser:
             self.config = file(self.configFile).read()
         reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$",re.M|re.S|re.I)
         reResult = reportRe.search(self.config)
-        
+
         if reResult:
             self.parseConfiguration(reResult.group(1))
             return 1
@@ -240,7 +240,7 @@ class ArgumentParser:
         - query : a hash representing the argument-part of the uri
 
         """
-        
+
         ## config is the configuration obtained from the configuration file
         config = self.configuration
         fields = {}
@@ -290,7 +290,7 @@ class ArgumentParser:
                 if not reResult:
                     if value and not key == "r4g3n53nd":
                         fields[unquote_plus(key)] = unquote_plus(value)
-                
+
         for key,value in fields.items():
 
             if not operator.has_key(key):
@@ -330,7 +330,7 @@ class ArgumentParser:
                         else:
                             operat = ">"
                         value = self.intstr(value)
-                            
+
                     elif operator[key] == "geq":
                         if neg:
                             operat = "<"
@@ -373,7 +373,7 @@ class ArgumentParser:
             config.where.append(key+" "+neg+operat+" "+value)
 
         return (fields,nott,operator)
-         
+
     def parseArguments(self,args):
         """
         Parses the argument part of the uri and makes a hash representation of it
@@ -382,7 +382,7 @@ class ArgumentParser:
 
         returns a hash representing the arguments in the uri
         """
-        
+
         queryString = {}
 
         if args:
@@ -394,7 +394,7 @@ class ArgumentParser:
                     queryString[key] = val
 
         return queryString
-    
+
 
     def intstr(self,arg):
         return nav.db.escape(arg)
@@ -423,7 +423,7 @@ class ReportConfig:
         self.sql_limit = []
         self.sql_offset = []
         self.sql_select_orig = []
-        
+
 
     def setQuery(self,sql):
         self.orig_sql = sql
@@ -435,7 +435,7 @@ class ReportConfig:
         self.sql_order = self.parse_order(sql)
         self.sql_limit = self.parse_limit(sql)
         self.sql_offset = self.parse_offset(sql)
-        
+
     def makeSQL(self):
         sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring() + self.orderstring() + self.limitoffsetstring()
         return sql
@@ -449,7 +449,7 @@ class ReportConfig:
 
     def makeSumSQL(self):
         ## jukser her! count != sum --> ikke nå lenger
-        
+
         sum = []
         for s in self.sum:
             s = "sum("+s+")"
@@ -460,7 +460,7 @@ class ReportConfig:
 
     def fromstring(self):
         return " FROM " + self.sql_from
-        
+
     def selectstring(self,selectFields = []):
         if not selectFields:
             selectFields = self.sql_select_orig
@@ -503,7 +503,7 @@ class ReportConfig:
             offset = sql_offset
         else:
             offset = "0"
-        
+
         if self.limit:
             limit = self.limit
         elif self.sql_limit:
@@ -511,8 +511,8 @@ class ReportConfig:
         else:
             limit = "1000"
         return " LIMIT " + limit + " OFFSET " + offset
-       
- 
+
+
     def rstrip(self,string):
         """Returns the last \w-portion of the string"""
         last = re.search("(\w+)\W*?$",string)

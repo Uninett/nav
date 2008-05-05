@@ -177,10 +177,12 @@ $default_form_CSS()
 <table id="$SectionBox.controlBaseName" class="listtable" style="width: 100%;">
 
     <caption>
-        $SectionBox.title
+        $SectionBox.title<br />
+        <span class="subtitle">
     #for $url, $text in $SectionBox.historyLink
         (<a href="$url.replace('&', '&amp;')">$text</a>)
     #end for
+        </span>
     </caption>
 
 #if len($SectionBox.rows)

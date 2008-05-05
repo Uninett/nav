@@ -35,9 +35,9 @@ class DatabaseResult:
         """
         Does everything in the constructor. queries and returnes the values from the database, according to the configuration
 
-        - reportConfig : the configuration to use when 
+        - reportConfig : the configuration to use when
         """
-        
+
         self.sql = ""
         self.originalSQL = ""
         self.result = []

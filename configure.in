@@ -108,6 +108,8 @@ AC_OUTPUT(Makefile
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile
+	subsystem/arnold/lib/Makefile
+	subsystem/arnold/images/Makefile
 	subsystem/snmptrapd/Makefile
 	subsystem/snmptrapd/snmptrapd
 	subsystem/statTools/Makefile

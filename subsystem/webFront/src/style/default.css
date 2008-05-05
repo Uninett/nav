@@ -189,6 +189,9 @@ div#footer hr {
 .evenrow {
 	background-color: white;
 }
+.numeric {
+	text-align: right;
+}
 
 /* Infobox */
 .infobox {

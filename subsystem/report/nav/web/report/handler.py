@@ -22,6 +22,7 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Jostein Gogstad <jostein.gogstad@idi.ntnu.no>
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
@@ -33,8 +34,12 @@ from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.URI import URI
 from nav.web import redirect
+#from nav.report.matrix import Matrix
 from nav.report.generator import Generator,ReportList
-from nav.report.matrix import Matrix
+from nav.report.matrixIPv4 import MatrixIPv4
+from nav.report.matrixIPv6 import MatrixIPv6
+from nav.report.IPtree import getMaxLeaf,buildTree
+from IPy import IP
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
@@ -66,7 +71,7 @@ def handler(req):
     reportName = r.group(1)
 
     if reportName == "report" or reportName == "index":
-        
+
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
@@ -105,10 +110,36 @@ def handler(req):
                     argsdict[c] = d
 
         if argsdict.has_key("scope") and argsdict["scope"]:
-            matrix = Matrix(argsdict["scope"])
-            req.write(matrix.makeMatrix())
-            
-            
+			scope = IP(argsdict["scope"])
+			show_unused_addresses = True
+
+			if argsdict.has_key("show_unused_addresses"):
+				boolstring = argsdict["show_unused_addresses"]
+				if boolstring == "True":
+					show_unused_addresses = True
+				elif boolstring == "False":
+					show_unused_addresses = False
+
+			matrix = None
+			tree = buildTree(scope)
+
+			if scope.version() == 6:
+				end_net = getMaxLeaf(tree)
+				matrix = MatrixIPv6(scope,end_net=end_net)
+			elif scope.version() == 4:
+				end_net = None
+				if scope.prefixlen() < 24:
+					end_net = IP("/".join([scope.net().strNormal(),"27"]))
+					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+				else:
+					max_leaf = getMaxLeaf(tree)
+					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
+
+					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+			else:
+				raise UnknownNetworkTypeException, "version: " + str(scope.version())
+			req.write(matrix.getTemplateResponse())
+
         else:
 
             from nav import db
@@ -144,7 +175,7 @@ def handler(req):
         page.contents = contents
         page.operator = operator
         page.neg = neg
-        
+
         namename = ""
         if report:
             namename = report.header
@@ -164,12 +195,12 @@ def handler(req):
         page.operators = None
         page.operatorlist = None
         page.descriptions = None
-        
+
         if adv:
             page.search = True
         else:
             page.search = False
-        
+
         if report:
 
             if old_uri.find("?")>0:
@@ -199,3 +230,5 @@ def selectoptiondraw(name,elementlist,elementdict,selectedvalue="",descriptiondi
         ret += '<option value="%s"%s%s>%s</option>'%(element,description,selected,elementdict[element])
     ret+= '</selected>'
     return ret
+
+class UnknownNetworkTypeException(Exception): pass

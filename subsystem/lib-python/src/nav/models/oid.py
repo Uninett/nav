@@ -36,7 +36,7 @@ class SnmpOid(models.Model):
     """From MetaNAV: The snmpoid table defines all OIDs used during snmp data
     gathering and/or Cricket data collection."""
 
-    id = models.IntegerField(db_column='snmpoidid', primary_key=True)
+    id = models.AutoField(db_column='snmpoidid', primary_key=True)
     oid_key = models.CharField(db_column='oidkey', unique=True, max_length=-1)
     snmp_oid = models.CharField(db_column='snmpoid', max_length=-1)
     oid_source = models.CharField(db_column='oidsource', max_length=-1)
@@ -60,7 +60,7 @@ class NetboxSnmpOid(models.Model):
     """From MetaNAV: The netboxsnmpoid table defines which netboxes answers to
     which snmpoids."""
 
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     snmp_oid = models.ForeignKey(SnmpOid, db_column='snmpoidid')
     frequency = models.IntegerField()

@@ -70,13 +70,13 @@ class EventQueue(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.IntegerField(db_column='eventqid', primary_key=True)
+    id = models.AutoField(db_column='eventqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source',
         related_name='source_of_events')
     target = models.ForeignKey('Subsystem', db_column='target',
         related_name='target_of_events')
-    device = models.ForeignKey('Device', db_column='deviceid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    device = models.ForeignKey('Device', db_column='deviceid', null=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     subid = models.CharField(max_length=-1)
     time = models.DateTimeField(default=datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
@@ -145,14 +145,15 @@ class AlertQueue(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.IntegerField(db_column='alertqid', primary_key=True)
+    id = models.AutoField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
-    device = models.ForeignKey('Device', db_column='deviceid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    device = models.ForeignKey('Device', db_column='deviceid', null=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     subid = models.CharField(max_length=-1)
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
-    alert_type = models.ForeignKey('AlertType', db_column='alerttypeid')
+    alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
+        null=True)
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)
     value = models.IntegerField()
@@ -169,7 +170,7 @@ class AlertType(models.Model):
     """From MetaNAV: Defines the alert types. An event type may have many alert
     types."""
 
-    id = models.IntegerField(db_column='alerttypeid', primary_key=True)
+    id = models.AutoField(db_column='alerttypeid', primary_key=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     name = models.CharField(db_column='alerttype', max_length=-1)
     description= models.CharField(db_column='alerttypedesc', max_length=-1)
@@ -187,7 +188,7 @@ class AlertQueueMessage(models.Model):
     one message for each configured language. The data are stored in the
     alertmsg table."""
 
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='messages')
     type = models.CharField(db_column='msgtype', max_length=-1)
@@ -206,7 +207,7 @@ class AlertQueueVariable(models.Model):
     Note: the eventqvar tuples are passed along to the alertqvar table so that
     the variables may be used in alert profiles."""
 
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='variables')
     variable = models.CharField(db_column='var', max_length=-1)
@@ -224,7 +225,7 @@ class AlertHistory(models.Model):
     important distinction; alert history stores statefull events as one row,
     with the start and end time of the event."""
 
-    id = models.IntegerField(db_column='alerthistid', primary_key=True)
+    id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
@@ -232,7 +233,8 @@ class AlertHistory(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
-    alert_type = models.ForeignKey('AlertType', db_column='alerttypeid')
+    alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
+        null=True)
     value = models.IntegerField()
     severity = models.IntegerField()
 
@@ -251,7 +253,7 @@ class AlertHistoryMessage(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
         related_name='messages')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
@@ -276,7 +278,7 @@ class AlertHistoryVariable(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)

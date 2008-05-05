@@ -37,7 +37,7 @@ class RrdFile(models.Model):
     """From MetaNAV: The rrd_file contains meta information on all RRD files
     that NAV uses. Each RRD file has statistics for a certain netbox."""
 
-    id = models.IntegerField(db_column='rrd_fileid', primary_key=True)
+    id = models.AutoField(db_column='rrd_fileid', primary_key=True)
     path = models.CharField(max_length=-1)
     filename = models.CharField(max_length=-1)
     step = models.IntegerField()
@@ -80,7 +80,7 @@ class RrdDataSource(models.Model):
         (TRESHOLD_STATE_INACTIVE, 'inactive'),
     )
 
-    id = models.IntegerField(db_column='rrd_datasourceid', primary_key=True)
+    id = models.AutoField(db_column='rrd_datasourceid', primary_key=True)
     rrd_file = models.ForeignKey(RrdFile, db_column='rrd_fileid')
     name = models.CharField(max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
