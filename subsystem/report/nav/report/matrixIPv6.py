@@ -31,7 +31,7 @@ import nav.path
 from nav.report import utils, IPtools, metaIP
 from nav.report.matrix import Matrix
 from nav.report.colorconfig import ColorConfig
-from nav.web.templates.MatrixIpv6Template import MatrixIpv6Template
+from nav.web.templates.MatrixIPv6Template import MatrixIPv6Template
 
 configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 

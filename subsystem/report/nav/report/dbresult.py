@@ -33,7 +33,8 @@ class DatabaseResult:
 
     def __init__(self,reportConfig):
         """
-        Does everything in the constructor. queries and returnes the values from the database, according to the configuration
+        Does everything in the constructor. queries and returnes the values
+        from the database, according to the configuration
 
         - reportConfig : the configuration to use when
         """

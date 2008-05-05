@@ -31,7 +31,7 @@ import IPy
 from IPy import IP
 
 import nav.path
-from nav.web.templates.MatrixIpv4Template import MatrixIpv4Template
+from nav.web.templates.MatrixIPv4Template import MatrixIPv4Template
 from nav.report import utils, IPtools, IPtree, metaIP
 from nav.report.IPtools import netDiff
 from nav.report.matrix import Matrix
