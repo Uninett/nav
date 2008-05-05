@@ -1,2 +1,0 @@
-## info: Collects arp data from routers
-0,30 * * * * $BINDIR/arplogger.pl

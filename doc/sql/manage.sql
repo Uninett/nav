@@ -36,6 +36,7 @@ CREATE TABLE org (
   orgid VARCHAR(30) PRIMARY KEY,
   parent VARCHAR(30) REFERENCES org (orgid),
   descr VARCHAR,
+  contact VARCHAR,
   opt1 VARCHAR,
   opt2 VARCHAR,
   opt3 VARCHAR
@@ -447,7 +448,7 @@ CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
-CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
 
 
 -- VIEWs -----------------------

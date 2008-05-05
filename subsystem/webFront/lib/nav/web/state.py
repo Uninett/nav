@@ -39,7 +39,7 @@ import fcntl
 import nav.errors
 import nav.web
 import logging
-import sre as re
+import re
 try:
     from mod_python import apache
 except:
