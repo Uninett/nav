@@ -1,17 +1,17 @@
 /*
  *
- * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.3 to the current trunk revision.  Please update this with every
- * change you make to the database initialization scripts.  It will eventually
- * become the update script for the next release.
+ * This SQL script is designed to upgrade your NAV database from
+ * version 3.3 to 3.4.
  *
- * Also, if you are keeping your installation in sync with trunk, you should
- * watch this file for changes and run them when updating (check the diffs!)
+ * Run the script as the nav database user like this:
  *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
- * like this:
+ *  psql -f 3.4.0.sql manage nav
  *
- *  psql -f trunk.sql manage <username>
+ * Also make sure to run types.sql and snmpoid.sql to make sure your type and
+ * snmpoid tables are up-to-date:
+ *
+ *  psql -f types.sql manage nav
+ *  psql -f snmpoid.sql manage nav
  *
 */
 
