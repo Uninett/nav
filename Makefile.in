@@ -52,6 +52,7 @@ subdirs = src \
 	subsystem/statTools \
 	subsystem/status \
 	subsystem/thresholdMon \
+	subsystem/netmap \
 	subsystem/webFront
 
 # Make sure we export make variables to the environment

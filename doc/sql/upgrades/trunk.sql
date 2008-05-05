@@ -52,6 +52,8 @@ ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
 
+-- RRD file values are used a lot in Netmap
+CREATE INDEX rrd_file_value ON rrd_file(value);
 
 --
 -- Add field 'contact' to org-table in manage-database
