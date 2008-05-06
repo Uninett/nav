@@ -81,8 +81,8 @@ ALTER TABLE blocked_reason RENAME text TO name;
 ALTER TABLE blocked_reason ADD comment VARCHAR;
 
 -- Changes regarding table identity
-ALTER TABLE identity DROP CONSTRAINT identity_blocked_status;
-ALTER TABLE identity ADD CONSTRAINT identity_blocked_status CHECK (blocked_status='disabled' OR blocked_status='enabled' OR blocked_status='quarantined');
+ALTER TABLE identity DROP CONSTRAINT identity_blocked_status_check;
+ALTER TABLE identity ADD CONSTRAINT identity_blocked_status_check CHECK (blocked_status='disabled' OR blocked_status='enabled' OR blocked_status='quarantined');
 
 ALTER TABLE identity DROP COLUMN swsysname;
 ALTER TABLE identity DROP COLUMN swvendor;
@@ -97,6 +97,10 @@ ALTER TABLE identity DROP COLUMN userlock;
 
 ALTER TABLE identity ADD fromvlan INT;
 ALTER TABLE identity ADD tovlan INT;
+
+-- Changes to event table
+ALTER TABLE event DROP CONSTRAINT event_blocked_status_check;
+ALTER TABLE event ADD CONSTRAINT event_blocked_status_check CHECK (blocked_status='disabled' OR blocked_status='enabled' OR blocked_status='quarantined');
 
 -- Changes regarding table block
 ALTER TABLE block DROP COLUMN private;
