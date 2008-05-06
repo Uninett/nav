@@ -38,3 +38,11 @@ names; if you've set up a cron job running t1000.pl or other jobs
 calling the old Perl scripts, these will need to be updated.  You
 should also check the new config files if you have made local changes
 to the old ones.
+
+If you have been using NAV's LDAP authentication ability, please
+update your webfront.conf file.  The config has changed slightly, now
+allowing for TLS connections, attribute configuration and required
+group memberships; i.e. you can now require LDAP users to be members
+of a specific LDAP group to be allowed to log in to NAV at all.  This
+removes the requirement to have a separate sub-tree of NAV user
+objects in your official LDAP directory.
