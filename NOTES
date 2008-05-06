@@ -27,10 +27,22 @@ scratch as a new subsystem called IP Device Info, with radically
 improved response times over the old IP Device Center.  A preview of
 this new tool is included in NAV 3.4, in parallel with the old tools.
 
+To try out this new tool, you will need to install an SVN version of
+Django, a Python web framework.  The minimum required version is SVN
+revision 7189 of Django.  You can get the latest trunk revision using
+svn thus:
+
+  svn co http://code.djangoproject.com/svn/django/trunk/
+
+For more information about Django in general, please refer to
+http://www.djangoproject.com/ .
+
 
 Upgrading from NAV 3.3
 ======================
 
+Arnold
+------
 Arnold, the port blocking system, has been reimplemented in Python,
 and now has support for changing vlans on switch ports, in addition to
 the usual port blocking.  It's config files and scripts have changed
@@ -39,6 +51,8 @@ calling the old Perl scripts, these will need to be updated.  You
 should also check the new config files if you have made local changes
 to the old ones.
 
+LDAP
+----
 If you have been using NAV's LDAP authentication ability, please
 update your webfront.conf file.  The config has changed slightly, now
 allowing for TLS connections, attribute configuration and required
@@ -46,3 +60,9 @@ group memberships; i.e. you can now require LDAP users to be members
 of a specific LDAP group to be allowed to log in to NAV at all.  This
 removes the requirement to have a separate sub-tree of NAV user
 objects in your official LDAP directory.
+
+Dependency changes
+------------------
+Please note that NAV now requires Java 1.5 to compile.  Also note the
+Django requirement if you wish to test the new IP Device Info preview
+mentioned earlier in these release notes.
