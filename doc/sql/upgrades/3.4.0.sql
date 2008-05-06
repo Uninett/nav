@@ -16,6 +16,7 @@
 */
 
 \connect manage
+BEGIN;
 
 -- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
 -- here for those who started out with clean 3.3.0 installs.
@@ -63,11 +64,13 @@ CREATE INDEX rrd_file_value ON rrd_file(value);
 ALTER TABLE org ADD contact VARCHAR;
 
 
+END;
 --
 -- The following changes to the arnold-database are necessary to migrate to new version of Arnold.
 --
 
 \connect arnold
+BEGIN;
 
 -- Create new table for storing of quarantine vlans.
 CREATE TABLE quarantine_vlans (
@@ -109,3 +112,5 @@ ALTER TABLE block DROP COLUMN userid;
 ALTER TABLE block ADD activeonvlans VARCHAR;
 ALTER TABLE block ADD detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quarantine');
 ALTER TABLE block ADD quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE;
+
+END;
