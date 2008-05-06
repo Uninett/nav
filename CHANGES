@@ -35,7 +35,8 @@ Version 3.4.0_rc1
     the entire report page (requires Javascript-enabled browser)
 
   * More flexible configuration of LDAP authentication allows more
-    ways to organize objects in LDAP servers.
+    ways to organize objects in LDAP servers.  Now also allows TLS
+    encryption of LDAP connections.
 
   * Machine tracker now links to IP Device Info for individual ports
     found in searches.
