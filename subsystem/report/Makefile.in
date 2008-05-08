@@ -38,8 +38,6 @@ tooldir = @tooldir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
-#tool = report.tool
-
 # Names
 WEBNAME = report
 NAME = report
