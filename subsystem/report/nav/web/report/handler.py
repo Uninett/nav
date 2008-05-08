@@ -26,25 +26,22 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
-# TODO: remember to remove pprint (module used for debugging) and all related usage
-
+from IPy import IP
 from mod_python import apache,util
-
-import re,string,copy,urllib
-import os.path, nav.path
-from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
-from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
-from nav.web.URI import URI
-from nav.web import redirect
-#from nav.report.matrix import Matrix # Deprecated?
+from nav import db
+from nav.report.IPtree import getMaxLeaf,buildTree
 from nav.report.generator import Generator,ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
-from nav.report.IPtree import getMaxLeaf,buildTree
-from IPy import IP
+from nav.web import redirect
+from nav.web.URI import URI
+from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
+from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
+import os.path, nav.path
+import psycopg
+import re,string,copy,urllib
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
-configFile = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
@@ -78,11 +75,9 @@ def handler(req):
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
-        #list = ReportList(configFile).getReportList()
         list = []
         page.path = [("Home", "/"), ("Report", False)]
         page.title = "Report - Index"
-        #req.write(pprint.pformat(req.args))
         if req.args and req.args.find("sort=alnum")>-1:
             sortby = "<a href=\"index\">Logical order</a> | Alphabetical order"
             list.sort()
@@ -94,9 +89,7 @@ def handler(req):
             w += "<li><a href="+key+">"+description+"</a></li>"
         w += "</ul>"
 
-        #req.write(w+sortby)
         page.content = lambda:file(frontFile).read()
-        #lambda:w+sortby
         req.write(page.respond())
         return apache.OK
 
@@ -115,7 +108,6 @@ def handler(req):
                     argsdict[c] = d
 
         if argsdict.has_key("scope") and argsdict["scope"]:
-
             scope = IP(argsdict["scope"])
             show_unused_addresses = True
 
@@ -126,30 +118,28 @@ def handler(req):
                 elif boolstring == "False":
                     show_unused_addresses = False
 
-            matrix = None
-            tree = buildTree(scope)
+                matrix = None
+                tree = buildTree(scope)
 
-            if scope.version() == 6:
-                end_net = getMaxLeaf(tree)
-                matrix = MatrixIPv6(scope,end_net=end_net)
-            elif scope.version() == 4:
-                end_net = None
-                if scope.prefixlen() < 24:
-                    end_net = IP("/".join([scope.net().strNormal(),"27"]))
-                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+                if scope.version() == 6:
+                    end_net = getMaxLeaf(tree)
+                    matrix = MatrixIPv6(scope,end_net=end_net)
+                elif scope.version() == 4:
+                    end_net = None
+                    if scope.prefixlen() < 24:
+                        end_net = IP("/".join([scope.net().strNormal(),"27"]))
+                        matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+                    else:
+                        max_leaf = getMaxLeaf(tree)
+                        bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
+
+                        matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
                 else:
-                    max_leaf = getMaxLeaf(tree)
-                    bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-
-                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
-            else:
-                raise UnknownNetworkTypeException, "version: " + str(scope.version())
-            req.write(matrix.getTemplateResponse())
+                    raise UnknownNetworkTypeException, "version: " + str(scope.version())
+                req.write(matrix.getTemplateResponse())
 
         else:
 
-            from nav import db
-            import psycopg
             connection = db.getConnection('webfront','manage')
             database = connection.cursor()
             database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
@@ -176,20 +166,6 @@ def handler(req):
         req.send_http_header()
         gen = Generator()
         (report,contents,neg,operator,adv) = gen.makeReport(reportName,configFile,uri)
-        #(report,contents,neg,operator,adv) = gen.makeReport(reportName,localConfigFile,uri)
-
-        #req.write(pprint.pformat(neg))
-        #jaja = "buhu"
-        #pp = pprint.PrettyPrinter(indent=4)
-
-        #req.write(pprint.pformat(uri))
-        #req.write(pprint.pformat(" kake "))
-        #req.write(pprint.pformat(report.table.rows[0].))
-        #req.write(pprint.pformat(contents))
-        #req.write(pprint.pformat(neg))
-        #req.write(pprint.pformat(operator))
-        #req.write(pprint.pformat(adv))
-
 
         page.report = report
         page.contents = contents
