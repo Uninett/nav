@@ -76,9 +76,6 @@
 .passive {
 	background: #ccc;
 }
-.disabled {
-	background: #c99;
-}
 .Mb10 {
 	background: #deebf7;
 }
@@ -90,6 +87,9 @@
 }
 .Mb10000 {
 	background: #8baed6;
+}
+.disabled {
+	background: #c99 !important;
 }
 
 /* Frame legend */
