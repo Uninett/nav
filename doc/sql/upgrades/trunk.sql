@@ -25,16 +25,20 @@ CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
      WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
--- Replace the netboxid_null_upd_end_time trigger, which has been
--- faulty the last six years.
-CREATE OR REPLACE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
-  'BEGIN
-     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
-        AND new.end_time = ''infinity'' THEN
-       new.end_time = current_timestamp;
-     END IF;
-     RETURN new;
-   end' LANGUAGE plpgsql;
+-- Remove the netboxid_null_upd_end_time trigger, which runs on every
+-- single update to arp and cam.  Replace it with two delete rules to
+-- the netbox table instead.
+DROP TRIGGER update_arp ON arp;
+DROP TRIGGER update_cam ON cam;
+DROP FUNCTION netboxid_null_upd_end_time();
+
+CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
+  DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
+  DO UPDATE cam SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
 -- Django needs a single column it can treat as primary key :-(
 ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
