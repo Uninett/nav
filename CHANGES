@@ -47,6 +47,7 @@ Version 3.4.0_rc1
  Bugfixes:
 
   * SF#1707993 (Character encoding problems in Cricket configuration)
+  * SF#1716297 ("PSQLException: The column name prefixid not found" in gDD)
   * SF#1949567 (eventEngine posts duplicate alert for duplicate start event)
   * SF#1954786 (makecricketconfig.pl does not escape descriptions)
 
