@@ -127,16 +127,3 @@ distclean: clean
 	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
 
-dist: distclean
-	@echo Creating source tarball...
-	@SRCDIR=`pwd`;                                  \
-	TARBALL=$(PACKAGE).tar.gz;                      \
-	rm -f $(PACKAGE) $$TARBALL;                     \
-	ln -s . $(PACKAGE);                             \
-        tar -czf $$TARBALL                              \
-	    --exclude .svn                              \
-	    --exclude '*~'                              \
-	    --exclude $(PACKAGE)/$(PACKAGE)             \
-	    $(PACKAGE)/*;                               \
-	rm -f $(PACKAGE);                               \
-	echo Created $$TARBALL
