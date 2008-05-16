@@ -34,6 +34,12 @@ svn thus:
 
   svn co http://code.djangoproject.com/svn/django/trunk/
 
+You will also need python-psycopg2 in addition to python-psycopg
+(version 1).  If you need to install from source, it can be found
+here:
+
+  http://www.initd.org/pub/software/psycopg/
+
 For more information about Django in general, please refer to
 http://www.djangoproject.com/ .
 
@@ -63,6 +69,7 @@ objects in your official LDAP directory.
 
 Dependency changes
 ------------------
-Please note that NAV now requires Java 1.5 to compile.  Also note the
-Django requirement if you wish to test the new IP Device Info preview
-mentioned earlier in these release notes.
+Please note that NAV now requires Java 1.5 to compile.  Also note that
+if you wish to test the new IP Device Info preview, you will need to
+install Django and psycopg2, as mentioned earlier in the release
+notes.
