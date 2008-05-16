@@ -113,3 +113,8 @@ ALTER TABLE block DROP COLUMN userid;
 ALTER TABLE block ADD activeonvlans VARCHAR;
 ALTER TABLE block ADD detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quarantine');
 ALTER TABLE block ADD quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE;
+
+\c navprofiles
+
+-- Increase the maximum length of user organization IDs, to fix SF#1680011
+ALTER TABLE AccountOrg ALTER COLUMN orgid TYPE VARCHAR(30);
