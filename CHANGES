@@ -1,5 +1,5 @@
-Version 3.4.0_rc1
-(released 06 May 2008)
+Version 3.4.0
+(released 16 May 2008)
 
 #####################################################################
 ##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
@@ -46,11 +46,13 @@ Version 3.4.0_rc1
 
  Bugfixes:
 
+  * SF#1680011 (User admin panel crashes with orgid > 10 chars)
+  * SF#1702800 (The IP Device Center does not properly flag disabled ports)
+    This was a regression fix.
   * SF#1707993 (Character encoding problems in Cricket configuration)
   * SF#1716297 ("PSQLException: The column name prefixid not found" in gDD)
   * SF#1949567 (eventEngine posts duplicate alert for duplicate start event)
   * SF#1954786 (makecricketconfig.pl does not escape descriptions)
-
 
 
 Version 3.3.3
