@@ -1,21 +1,22 @@
 /*
  *
- * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.3 to the current trunk revision.  Please update this with every
- * change you make to the database initialization scripts.  It will eventually
- * become the update script for the next release.
+ * This SQL script is designed to upgrade your NAV database from
+ * version 3.3 to 3.4.
  *
- * Also, if you are keeping your installation in sync with trunk, you should
- * watch this file for changes and run them when updating (check the diffs!)
+ * Run the script as the nav database user like this:
  *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
- * like this:
+ *  psql -f 3.4.0.sql manage nav
  *
- *  psql -f trunk.sql manage <username>
+ * Also make sure to run types.sql and snmpoid.sql to make sure your type and
+ * snmpoid tables are up-to-date:
+ *
+ *  psql -f types.sql manage nav
+ *  psql -f snmpoid.sql manage nav
  *
 */
 
 \connect manage
+BEGIN;
 
 -- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
 -- here for those who started out with clean 3.3.0 installs.
@@ -67,11 +68,13 @@ CREATE INDEX rrd_file_value ON rrd_file(value);
 ALTER TABLE org ADD contact VARCHAR;
 
 
+END;
 --
 -- The following changes to the arnold-database are necessary to migrate to new version of Arnold.
 --
 
 \connect arnold
+BEGIN;
 
 -- Create new table for storing of quarantine vlans.
 CREATE TABLE quarantine_vlans (
@@ -114,7 +117,11 @@ ALTER TABLE block ADD activeonvlans VARCHAR;
 ALTER TABLE block ADD detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quarantine');
 ALTER TABLE block ADD quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE;
 
+END;
+
 \c navprofiles
 
+BEGIN;
 -- Increase the maximum length of user organization IDs, to fix SF#1680011
 ALTER TABLE AccountOrg ALTER COLUMN orgid TYPE VARCHAR(30);
+END;
