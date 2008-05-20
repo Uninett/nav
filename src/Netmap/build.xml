@@ -40,22 +40,22 @@
 			<os family="unix" />
 		</condition>
 
-		<mkdir dir="${instdir}"/>
-		<copy todir="${instdir}">
+		<mkdir dir="${DESTDIR}${instdir}"/>
+		<copy todir="${DESTDIR}${instdir}">
 			<fileset dir="${dist}" includes="*.jar" />
 		</copy>
 
-		<mkdir dir="${instdir}/media"/>
-		<copy todir="${instdir}/media">
+		<mkdir dir="${DESTDIR}${instdir}/media"/>
+		<copy todir="${DESTDIR}${instdir}/media">
 			<fileset dir="media"/>
 		</copy>
-    		<mkdir dir="${tooldir}"/>
-		<copy file="htaccess" tofile="${instdir}/.htaccess"/>
-		<copy file="Netmap.tool" todir="${tooldir}"/>
+    		<mkdir dir="${DESTDIR}${tooldir}"/>
+		<copy file="htaccess" tofile="${DESTDIR}${instdir}/.htaccess"/>
+		<copy file="Netmap.tool" todir="${DESTDIR}${tooldir}"/>
 	</target>
 
 	<target name="uninstall">
-		<delete dir="${instdir}"/>
+		<delete dir="${DESTDIR}${instdir}"/>
 	</target>
 
 	<target name="clean" description="clean up" >
