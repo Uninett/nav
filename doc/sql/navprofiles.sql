@@ -689,7 +689,7 @@ server.
 */
 CREATE TABLE AccountOrg (
        accountid integer NOT NULL,
-       orgid varchar(10) NOT NULL,
+       orgid varchar(30) NOT NULL,
 
        CONSTRAINT accountorg_pk
                   PRIMARY KEY (accountid, orgid),

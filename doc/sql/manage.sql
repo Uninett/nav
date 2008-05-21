@@ -207,6 +207,15 @@ CREATE TABLE netbox (
   UNIQUE(deviceid)
 );
 
+-- Rules to automatically close open cam and arp entries related to a given netbox
+CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
+  DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
+  DO UPDATE cam SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
@@ -387,18 +396,6 @@ UNIQUE(swportid,cablingid));
 ------------------------------------------------------------------
 
 
--- Attach a trigger to arp and cam, to make sure records are closed as
--- netboxes are deleted.
--- The pl/pgsql scripting language must be installed on this database first.
-CREATE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
-  'BEGIN
-     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
-        AND new.end_time = ''infinity'' THEN
-       new.end_time = current_timestamp;
-     END IF;
-     RETURN new;
-   end' LANGUAGE plpgsql;
-
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
@@ -409,7 +406,6 @@ CREATE TABLE arp (
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
-CREATE TRIGGER update_arp BEFORE UPDATE ON arp FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 
 -- Rule to automatically close open arp entries related to a given prefix
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
@@ -429,7 +425,6 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
-CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 
 
 -- VIEWs -----------------------
