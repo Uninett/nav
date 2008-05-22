@@ -1,0 +1,8 @@
+SetHandler python-program
+PythonHandler radius
+DirectoryIndex radius.py
+PythonInterpPerDirectory On
+PythonDebug On
+
+
+PythonPath "sys.path+['/usr/local/nav/apache/webroot/radius']"

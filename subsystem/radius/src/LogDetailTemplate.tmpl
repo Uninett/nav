@@ -1,0 +1,59 @@
+## LogDetailTemplate.tmpl
+##
+## Outputs detailed information about a session.
+##
+## Author: Roger Kristiansen <roger.kristiansen@gmail.com>
+## Date:   Aug. 2, 2005
+##
+
+#extends nav.web.templates.MainTemplate
+#from radius_config import LOG_FIELDDESCRIPTIONS
+
+## Path displayed at the top of the page
+#attr $path =  [("Home", "/"), ("Radius", "/radius/")]
+
+
+
+#block content
+
+<div id="radius" style="font-size: 13px;">
+<br>
+$menu
+<br>
+
+#set $row = $detailQuery.table
+
+## Print out all details
+<div id="results" style="font-size: 13px;">
+<br>
+    <table class="sessioninfo">
+        #for $field in $dbfields 
+        <tr>
+            <th class="col0">
+               $LOG_FIELDDESCRIPTIONS[$field] 
+            </th>
+            <td class="col1">
+                $row[$field]
+            </td>
+        </tr>
+        #end for
+     </table>
+</div>
+
+</div> <!-- end radius -->
+
+#end block content
+
+
+
+#block additionalCSS
+$default_table_CSS
+$default_tabs_CSS
+
+<style>
+th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
+td.col1 { padding-left: 5px; }
+table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }
+</style>
+
+#end block

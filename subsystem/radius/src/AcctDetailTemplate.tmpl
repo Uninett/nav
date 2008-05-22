@@ -1,0 +1,99 @@
+## RadiusDetailTemplate.tmpl
+##
+## Outputs detailed information about a session. 
+## See radius.py for more information
+##
+## Author: Roger Kristiansen <roger.kristiansen@gmail.com>
+## Date:   Aug. 2, 2005
+##
+
+#extends nav.web.templates.MainTemplate
+#from radiuslib import HostCache
+#from radiuslib import makeTimeHumanReadable, makeBytesHumanReadable, showStopTime
+#from radius_config import ACCT_DBFIELDSDESCRIPTIONS
+
+## Path displayed at the top of the page
+#attr $path =  [("Home", "/"), ("Radius", "/radius/")]
+
+
+
+#block content
+
+<div id="radius" style="font-size: 13px;">
+<br>
+$menu
+<br>
+
+#set $row = $detailQuery.table
+
+## Print out all details
+<div id="results" style="font-size: 13px;">
+<br>
+    <table class="sessioninfo">
+        #for $field in $dbfields 
+        <tr>
+            <th class="col0">
+               $ACCT_DBFIELDSDESCRIPTIONS[$field]
+            </th>
+            <td class="col1">
+                $editInfo($row, $field)
+            </td>
+        </tr>
+        #end for
+     </table>
+</div>
+
+</div> <!-- end radius -->
+
+#end block content
+
+
+#block helperFunctions
+
+## editInfo()
+##
+## If we need to add or change some information in one of the fields
+## we wish to display, do it here.
+##
+## Argument keywords:
+## $key - the fieldname in the database
+##
+
+#def editInfo($row, $currentField)
+    #set $data = $row[$currentField];
+
+    ## Do DNS lookup on ip-addresses
+    #if $currentField == "nasipaddress" or $currentField == "framedipaddress" and $data
+        #set $data = "%s (%s)" % ($data, $HostCache().lookupIPAddress($data))
+    #end if
+
+    #if $currentField == "acctstoptime"
+        #set data = $showStopTime($row["acctstarttime"], $data, $row["acctsessiontime"])
+    #end if 
+
+    ## Translate sessiontime into days, hours, minutes
+    #if $currentField == "acctsessiontime" and $data
+        #set $data = $makeTimeHumanReadable($data)        
+    #end if
+
+    ## Translate transferred octets into TB/GB/MB/KB
+    #if ($currentField == "acctoutputoctets" or $currentField == "acctinputoctets")
+        #set $data = $makeBytesHumanReadable($data)
+    #end if
+
+    #return $data
+#end def
+
+#end block helperFunctions
+
+
+
+
+
+#block additionalCSS
+$default_table_CSS
+$default_tabs_CSS
+    th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
+    td.col1 { padding-left: 5px; }
+    table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }
+#end block additionalCSS
