@@ -477,7 +477,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         logger.info("blockPort: Not %s before, creating new identity" %action)
 
         # Get nextvalue of sequence to use in both queries
-        nextvalq = "SELECT nextval('public.identity_identityid_seq')"
+        nextvalq = "SELECT nextval('identity_identityid_seq')"
         try:
             c.execute(nextvalq)
         except nav.db.driver.ProgrammingError, why:
