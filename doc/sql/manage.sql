@@ -556,6 +556,7 @@ INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
 INSERT INTO subsystem (name) VALUES ('snmptrapd');
+INSERT INTO subsystem (name) VALUES ('macwatch');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
@@ -717,6 +718,8 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceSwUpgrade','Software upgrade on device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceHwUpgrade','Hardware upgrade on device.');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('info','macWarning','Mac appeared on port');
 
 
 CREATE TABLE alertq (
@@ -932,4 +935,19 @@ CREATE TABLE message_to_maint_task (
 
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
+
+------------------------------------------------------------------------------
+-- mac watch table for storing watched mac addresses
+------------------------------------------------------------------------------
+
+CREATE TABLE macwatch (
+  id SERIAL PRIMARY KEY,
+  camid int REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
+  mac macaddr NOT NULL,
+  posted timestamp,
+  userid int REFERENCES account(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  login varchar,
+  description varchar,
+  created timestamp default now()
+);
 

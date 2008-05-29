@@ -39,6 +39,13 @@ else:
     DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+# Set correct timezone
+TIME_ZONE = 'Europe/Oslo'
+
+# Configure session engine
+SESSION_ENGINE = "django.contrib.sessions.backends.file" # Should default to /tmp
+SESSION_COOKIE_NAME = "nav_django_session"
+
 # Admins
 ADMINS = (
     ('NAV Administrator', readConfig('nav.conf')['ADMIN_MAIL']),
@@ -63,6 +70,12 @@ TEMPLATE_DIRS = (
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
+)
+
+# Installed apps
+INSTALLED_APPS = (
+        'django.contrib.sessions',
+        'nav.web.macwatch'
 )
 
 # Date formatting
