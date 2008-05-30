@@ -58,7 +58,7 @@ TOOLS = report.tool
 all: lib bin conf web
 lib: $(TEMPLATES)
 bin:
-conf:
+conf: $(CONFFILES)
 web:
 
 $(TEMPLATES): %.py: %.tmpl
@@ -95,6 +95,8 @@ uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(LIBS); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
+	for file in $(TEMPLATES); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in $(CONFFILES); do rm -f $(DESTDIR)$(sysconfdir)/$(NAME)/`basename $$file` || exit 1; done
 	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
 
 clean:
