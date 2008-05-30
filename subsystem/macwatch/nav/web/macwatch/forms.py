@@ -39,7 +39,7 @@ class MacWatchForm(forms.Form):
         """ Validate macaddress """
         macaddress = self.cleaned_data.get('macaddress','')
 
-        # Filter : and . which are common separators for mac addresses
+        # Filter : which is a common separator for mac addresses
         filteredmacaddress = re.sub(":", "", macaddress)
 
         if not re.match("[a-fA-F0-9]{12}$", filteredmacaddress):

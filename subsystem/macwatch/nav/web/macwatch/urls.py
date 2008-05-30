@@ -32,7 +32,7 @@ from nav.web.macwatch.views import *
 urlpatterns = patterns('',
     # Default view
     url(r'^$', list_watch, name='listwatch'),
-    url(r'^add/$', addMacWatch),
-    url(r'^delete/(\d+)/$', deleteMacWatch),
-    url(r'^edit/(\d+)/$', editMacWatch),
+    url(r'^add/$', add_macwatch),
+    url(r'^delete/(\d+)/$', delete_macwatch),
+    url(r'^edit/(\d+)/$', edit_macwatch),
 )

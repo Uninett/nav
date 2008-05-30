@@ -46,7 +46,7 @@ def list_watch(request):
     return render_to_response(MacWatchTemplate, 'macwatch/list_watches.html',
                               {'macwatches': macwatches, 'messages': messages})
 
-def addMacWatch(request):
+def add_macwatch(request):
     """ Display form for adding of mac address to watch. """
 
     request.session['messages'] = []
@@ -80,7 +80,7 @@ def addMacWatch(request):
     return render_to_response(MacWatchTemplate, 'macwatch/addmacwatch.html',
                               {'form': macwatchform },)
 
-def deleteMacWatch(request, macwatchid):
+def delete_macwatch(request, macwatchid):
     """ Delete tuple for mac address watch """
 
     request.session['messages'] = []
@@ -100,7 +100,7 @@ def deleteMacWatch(request, macwatchid):
 
     return HttpResponseRedirect("/macwatch/")
             
-def editMacWatch(request, macwatchid):
+def edit_macwatch(request, macwatchid):
     """ Edit description on a macwatch - currently not in use """
 
     if request.method == 'POST':
