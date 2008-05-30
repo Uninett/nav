@@ -1,6 +1,11 @@
+{% extends "macwatch/base.html" %}
+
 {% block content %}
 
-ID: {{ id }}
-Error: {{ error }}
+Really remove {{ macwatch.mac }} from watch?
+<form action="." method="post">
+<input type="submit" name="submit" value="Yes">
+<input type="submit" name="submit" value="No">
+</form>
 
 {% endblock %}

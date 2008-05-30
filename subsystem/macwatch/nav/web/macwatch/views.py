@@ -89,16 +89,31 @@ def delete_macwatch(request, macwatchid):
     if macwatchid:
         # Captured args are always strings. Make it int.
         macwatchid = int(macwatchid)
+
         try:
             m = MacWatch.objects.get(id=macwatchid)
-            m.delete()
-
-            request.session['messages'].append("%s deleted from watch." %m.mac)
         except Exception, e:
-            # Todo: Perhaps give some feedback to user.
             request.session['messages'].append(e)
+            return HttpResponseRedirect("/macwatch/")
 
+        if request.method == 'POST':
+            if request.POST['submit'] == 'Yes':
+                try:
+                    m.delete()
+                    request.session['messages'].append("%s deleted from watch."
+                                                       %m.mac)
+                except Exception, e:
+                    request.session['messages'].append(e)
+            else:
+                return HttpResponseRedirect("/macwatch/")
+                
+        else:
+            return render_to_response(MacWatchTemplate,
+                                      'macwatch/deletemacwatch.html',
+                                      {'macwatch': m})
+            
     return HttpResponseRedirect("/macwatch/")
+
             
 def edit_macwatch(request, macwatchid):
     """ Edit description on a macwatch - currently not in use """
