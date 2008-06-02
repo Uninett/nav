@@ -25,14 +25,14 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
-import re,string
-from urlparse import urlsplit
-from urllib import unquote_plus
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
+from urllib import unquote_plus
+from urlparse import urlsplit
 import nav.db
+import re,string
 
-# TODO: remove "hei" from code. It's, as far as I can see, not in any use.
+# TODO: remove "hei" from code. It's, as far as I can see, not in any use. No, seriously, do it.
 
 class Generator:
     """
@@ -109,8 +109,8 @@ class ReportList:
             configParser.parseConfiguration(configtext)
             report = configParser.configuration
             #raise KeyError, report.header
-            if report.header:
-                r = ReportListElement(rep,report.header)
+            if report.header and report.description:
+                r = ReportListElement(rep,report.header,report.description)
                 self.reports.append(r.getReportListElement())
             else:
                 r = ReportListElement(rep)
@@ -122,18 +122,19 @@ class ReportList:
 
 class ReportListElement:
 
-    def __init__(self,key,title=""):
+    def __init__(self,key,description,title=""):
 
         self.key = key
         self.title = title
+        self.description = description
 
     def getReportListElement(self):
 
-        if self.title:
-            return (self.title,self.key)
+        if self.title and self.description:
+            return (self.title,self.key,self.description)
 
         else:
-            return (self.key,self.key)
+            return (self.key,self.key,self.key)
 
 
 class ConfigParser:
@@ -205,6 +206,8 @@ class ConfigParser:
                 config.extra.extend(string.split(value,","))
             elif key == "sum" or key == "total":
                 config.sum.extend(string.split(value,","))
+            elif key == "description":
+                config.description = value
             else:
                 reObject = re.compile("^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
                 reResult = reObject.search(key)
@@ -406,6 +409,7 @@ class ReportConfig:
         self.orig_sql = ""
         self.sql = None
         self.header = ""
+        self.description = ""
         self.orderBy = []
         self.hidden = []
         self.extra = []
