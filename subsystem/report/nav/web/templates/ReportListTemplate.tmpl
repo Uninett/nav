@@ -34,4 +34,13 @@
 
 <h2>Report List</h2>
 
+<ul>
+#for $x in $report_list
+    <li>
+        $x[2]
+        <p>$x[0]</p>
+    </li>
+#end for
+</ul>
+
 #end block content
