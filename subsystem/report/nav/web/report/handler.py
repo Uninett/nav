@@ -26,6 +26,11 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
+# TODO: remember to remove pprint (module used for debugging) and all related usage
+
+
+#from nav.report.matrix import Matrix
+#from nav.web.templates.MainTemplate import MainTemplate
 from IPy import IP
 from mod_python import apache,util
 from nav import db
@@ -36,12 +41,14 @@ from nav.report.matrixIPv6 import MatrixIPv6
 from nav.web import redirect
 from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
-from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
+from nav.web.templates.ReportListTemplate import ReportListTemplate
+from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
 import os.path, nav.path
 import psycopg
-import re,string,copy,urllib
+import re,string, copy, urllib
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
+#configFile = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
@@ -159,6 +166,23 @@ def handler(req):
                     page.scopes.append(scope[0])
 
                 req.write(page.respond())
+
+    elif reportName == "reportlist":
+        page = ReportListTemplate()
+        req.content_type = "text/html"
+        req.send_http_header()
+        gen = Generator()
+        report_list = ReportList(configFile).getReportList()
+        report_list.sort()
+
+        name = "Report List"
+        name_link = "reportlist"
+
+        page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)] # Perhaps I should fetch these values and not hardcode them.
+        page.title = "Report - " + name
+        page.report_list = report_list
+
+        req.write(page.respond())
 
     else:
         page = ReportTemplate()
