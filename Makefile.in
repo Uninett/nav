@@ -53,6 +53,7 @@ subdirs = src \
 	subsystem/status \
 	subsystem/thresholdMon \
 	subsystem/netmap \
+	subsystem/networkexplorer \
 	subsystem/webFront
 
 # Make sure we export make variables to the environment

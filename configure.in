@@ -115,7 +115,8 @@ AC_OUTPUT(Makefile
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/ipdevinfo/Makefile
-	subsystem/netmap/Makefile)
+	subsystem/netmap/Makefile
+	subsystem/networkexplorer/Makefile)
 
 echo
 echo "Now run 'make' to build NAV"

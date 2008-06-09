@@ -131,3 +131,30 @@ def expand_swport(request):
             'services': to_netbox.service_set.all(),
         })
 
+def expand_search(request):
+    """
+    """
+    router_matches = []
+    gwport_matches = []
+    swport_matches = []
+
+    # Sysname-search
+    if request.REQUEST['sysname']:
+        routers = Netbox.objects.all().filter(sysname__icontains=request.REQUEST['sysname'])
+        for router in routers:
+            router_matches.append(router.id)
+
+        gwports = GwPort.objects.get(
+            Q(to_netbox__sysname__icontains=request.REQUEST['sysname']) |
+            Q(to_swport__module__netbox__sysname_icontains=request.REQUEST['sysname']))
+        for gwport in gwports:
+            if gwport.module.netbox.id not in router_matches:
+                router_matches.append(gwport.module.netbox.id)
+            gwport_matches.append(gwport.id)
+
+        swports = SwPort.objects.get(
+            Q(to_netbox__sysname__icontains=request.REQUEST['sysname']) |
+            Q(to_swport__module__netbox__sysname_icontains=request.REQUEST['sysname']))
+        for swport in swports:
+            swport_matches.append(swport.id)
+
