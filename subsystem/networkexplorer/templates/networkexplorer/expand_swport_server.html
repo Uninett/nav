@@ -1,0 +1,5 @@
+<ul>
+    {% for service in services %}
+    <li>{{ service.handler }} - Status: {{ service.get_up_display }}</li>
+    {% endfor %}
+</ul>

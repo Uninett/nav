@@ -1,0 +1,19 @@
+<ul>
+{% for vlan in vlans %}
+<li id="swport-{{ vlan.swport.id }}">
+{% if vlan.swport.has_children %}
+   <img src="https://navdev.uninett.no/navAdmin/gfx/boxclosed_both.gif" onclick="openNode(this);" />
+{% else %}
+   <img src="https://navdev.uninett.no/navAdmin/gfx/strek_bottom.gif">
+{% endif %}
+{{ vlan.swport.interface }}
+{% if vlan.swport.to_netbox %}
+    {% if vlan.swport.trunk %} ⇉ {% else %} → {% endif %}{{ vlan.swport.to_netbox }}
+{% else %}
+    {% if vlan.swport.to_swport %}
+        {% if vlan.swport.trunk %} ⇉ {% else %} → {% endif %}{{ vlan.swport.to_swport.module.netbox }}
+    {% endif %}
+{% endif %}
+</li>
+{% endfor %}
+</ul>

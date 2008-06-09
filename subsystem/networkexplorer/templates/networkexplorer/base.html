@@ -1,0 +1,87 @@
+{% if errors %}
+<ul class="error">
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}
+<script type="text/javascript">
+
+function openNode(img){
+    var expand_type = $(img).parent().attr('id').substr(0,6);
+    var expand_id   = $(img).parent().attr('id').substr(7);
+
+    // We dont want to double-load data and such,
+    // so we set/check a state for that tree-node
+    if ($(img).parent('li').data('working') == "true"){
+        console.log("Node allready working. Returning");
+        return false;
+    } else {
+        $(img).parent('li').data('working', 'true');
+    }
+
+    console.log("Node " + $(img).parent('li').select("ul").attr('id') + " clicked");
+
+    if ($(img).parent('li').data("loaded") == "true"){
+        $(img).parent('li').children().select("ul").not("img").toggle();
+        console.log("  Node had loaded data; toggling " + $(img).parent('li').select("ul").attr('id'));
+        $(img).parent('li').data('working', 'false');
+        return false;
+    }
+
+    // We want to show/hide nodes when we actually have any data to show/hide
+    $(img).parent('li').ajaxSuccess(
+        function(){
+            console.log(" Got data for node " + $(this).children().select("ul").attr('id'));
+            $(img).parent('li').data('working', "false");
+        });
+ 
+    if (expand_type == "router"){
+        $.get('/networkexplorer/expand/router',
+            { 'netboxid': expand_id },
+            function(data){
+                console.log(" Appending data to" + $(img).parent('li').attr('id'));
+                $(img).parent('li').append(data);
+                $(img).parent('li').data("loaded", "true");
+            });
+    }
+    if (expand_type == "gwport"){
+        $.get('/networkexplorer/expand/gwport',
+            { 'gwportid': expand_id },
+            function(data){
+                console.log(" Appending data to" + $(img).parent('li').attr('id'));
+                $(img).parent('li').append(data);
+                $(img).parent('li').data("loaded", "true");
+            });
+    }
+    if (expand_type == "swport"){
+        $.get('/networkexplorer/expand/swport',
+            { 'swportid': expand_id },
+            function(data){
+                console.log(" Appending data to" + $(img).parent('li').attr('id'));
+                $(img).parent('li').append(data);
+                $(img).parent('li').data("loaded", "true");
+            });
+    }
+};
+
+</script>
+<div id="networkexplorer">
+<ul id="tree" style="list-style: none;">
+    {% for router in routers %}
+    <li id="router-{{ router.id }}">
+    {% if router.has_children %}
+        <img src="https://navdev.uninett.no/navAdmin/gfx/boxclosed_both.gif" onclick="openNode(this);" />
+    {% else %}
+        <img src="https://navdev.uninett.no/navAdmin/gfx/strek_bottom.gif" />
+    {% endif %}
+        {{router}}
+    </li>
+    {% endfor %}
+</ul>
+</div>
+{% endblock %}
+
+{% include "networkexplorer/debug.html" %}

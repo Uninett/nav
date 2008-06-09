@@ -1,0 +1,27 @@
+<ul>
+{% for gwport in ports %}
+    {% if gwport.1.0 %}
+        {% for set in gwport.1 %}
+    <li id="gwport-{{ gwport.0.id }}">
+        {% if gwport.0.has_children %}
+        <img src="https://navdev.uninett.no/navAdmin/gfx/boxclosed_both.gif" onclick="openNode(this);" />
+        {% else %}
+        <img src="https://navdev.uninett.no/navAdmin/gfx/strek_bottom.gif" />
+        {% endif %}
+        {{ set.0.gwport.interface }} ({{ set.0.prefix.net_address }})
+        {% if set.1.trunk %} ⇉ {% else %} → {% endif %}
+         {{ set.1.module.netbox.sysname }} [{{ set.1.interface }}]
+    </li>
+        {% endfor %}
+    {% else %}
+    <li id="gwport-{{ gwport.0.id }}">
+        {% if gwport.0.has_children %}
+        <img src="https://navdev.uninett.no/navAdmin/gfx/boxclosed_both.gif" onclick="openNode(this);" />
+        {% else %}
+        <img src="https://navdev.uninett.no/navAdmin/gfx/strek_bottom.gif" />
+        {% endif %}
+        {{ gwport.0.interface }}
+    </li>
+    {% endif %}
+{% endfor %}
+</ul>
