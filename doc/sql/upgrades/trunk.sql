@@ -46,6 +46,40 @@ ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
 ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
 ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
 
+ALTER TABLE accountproperty ADD COLUMN id SERIAL;
+
+ALTER TABLE brukerrettighet DROP CONSTRAINT brukerrettighet_pk;
+ALTER TABLE brukerrettighet ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE brukerrettighet ADD UNIQUE(accountid, utstyrgruppeid);
+
+ALTER TABLE defaultfilter DROP CONSTRAINT defaultfilter_pk;
+ALTER TABLE defaultfilter ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE defaultfilter ADD UNIQUE(accountgroupid, utstyrfilterid);
+
+ALTER TABLE defaultutstyr DROP CONSTRAINT defaultutstyr_pk;
+ALTER TABLE defaultutstyr ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE defaultutstyr ADD UNIQUE(accountgroupid, utstyrgruppeid);
+
+ALTER TABLE grouptilfilter DROP CONSTRAINT gruppetilfilter_pk;
+ALTER TABLE grouptilfilter ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE grouptilfilter ADD UNIQUE(utstyrfilterid, utstyrgruppeid);
+
+ALTER TABLE operator DROP CONSTRAINT operator_pk;
+ALTER TABLE operator id SERIAL PRIMARY KEY;
+ALTER TABLE operator ADD UNIQUE(operatorid, matchfieldid);
+
+ALTER TABLE rettighet DROP CONSTRAINT rettighet_pk;
+ALTER TABLE rettighet ADD COLUMN id PRIMARY KEY;
+ALTER TABLE rettighet ADD UNIQUE(accountgroupid,, utstyrgruppeid)
+
+ALTER TABLE brukerrettighet DROP CONSTRAINT brukerrettighet_pk;
+ALTER TABLE brukerrettighet ADD COLUMN id PRIMARY KEY;
+ALTER TABLE brukerrettighet ADD UNIQUE(accountid, utstyrgruppeid)
+
+ALTER TABLE varsle DROP CONSTRAINT varsleadresse_pk;
+ALTER TABLE varsle ADD COLUMN id PRIMARY KEY;
+ALTER TABLE varsle ADD UNIQUE(alarmadresseid, tidsperiodeid, utstyrgruppeid);
+
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
