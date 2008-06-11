@@ -141,7 +141,10 @@ def main(args):
     while True:
         logger.debug('Starting loop.')
 
-        # FIXME: Do work
+        # FIXME refactor contents of this loop
+
+        for account in Account.objects.all():
+            account.check_alerts()
 
         # Sleep a bit before the next run
         logger.debug('Sleeping for %d seconds.', delay)

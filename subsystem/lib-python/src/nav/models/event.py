@@ -134,7 +134,7 @@ class EventQueueVar(models.Model):
 
 class AlertQueueManager(models.Manager):
     def new_alerts(self):
-        return self.extra(where=['alertq.alertqid > (SELECT lastalertqid FROM alertengine LIMIT 1)'])
+        return self.extra(where=['alertq.alertqid > (SELECT lastalertqid FROM alertengine LIMIT 1)']).order_by('id')
 
 class AlertQueue(models.Model):
     """From MetaNAV: The alert queue. Additional data in alertqvar and

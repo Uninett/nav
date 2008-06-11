@@ -31,6 +31,9 @@ __id__ = "$Id$"
 from datetime import datetime
 
 from django.db import models
+from django.db.models import Q
+
+from nav.models.event import AlertQueue
 
 _ = lambda a: a
 
@@ -63,6 +66,9 @@ class AccountGroup(models.Model):
     class Meta:
         db_table = u'accountgroup'
 
+    def __unicode__(self):
+        return self.name
+
 class AccountProperty(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
     property = models.CharField(max_length=-1)
@@ -71,12 +77,18 @@ class AccountProperty(models.Model):
     class Meta:
         db_table = u'accountproperty'
 
+    def __unicode__(self):
+        return '%s=%s' % (self.property, self.value)
+
 class AccountOrg(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
     orgid = models.CharField(max_length=30)
 
     class Meta:
         db_table = u'accountorg'
+
+    def __unicode__(self):
+        return self.orgid
 
 class AlarmAddress(models.Model):
     SMS = 2
@@ -94,6 +106,9 @@ class AlarmAddress(models.Model):
     class Meta:
         db_table = u'alarmadresse'
 
+    def __unicode__(self):
+        return '%s %s' % (self.get_type_display(), self.address)
+
 class AccountPreference(models.Model):
     account = models.OneToOneField('Account', primary_key=True,  db_column='accountid')
     queuelength = models.TextField() # This is realy an PG interval FIXME?
@@ -103,6 +118,9 @@ class AccountPreference(models.Model):
 
     class Meta:
         db_table = u'preference'
+
+    def __unicode__(self):
+        return 'preferences for %s' % self.account
 
 class Log(models.Model):
     EMERGENCY = 0
@@ -132,6 +150,9 @@ class Log(models.Model):
 
     class Meta:
         db_table = u'logg'
+
+    def __unicode__(self):
+        return '%s %s - %s' % (self.time, self.type, self.description)
 
 
 #######################################################################
@@ -189,9 +210,9 @@ class TimePeriod(models.Model):
         db_table = u'tidsperiode'
 
     def __unicode__(self):
-        return u'From %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
+        return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
-class Alert(models.Model):
+class AlertSubscription(models.Model): # FIXME this needs a better name
     NOW = 0
     DAILY = 1
     WEEKLY = 2
@@ -199,20 +220,23 @@ class Alert(models.Model):
     # FIXME according to profiles 3="Queue [Until profile changes]" ie next
     # time peroid, engine thinks that 3="NOW()-q.time>=p.queuelength AS max" ie
     # queu until alert has been in queue a certain number of days
-    TYPES = (
+    SUBSCRIPTION_TYPES = (
         (NOW, _('send immediately')),
         (DAILY, _('send daily at predefined time')),
         (WEEKLY, _('send weekly at predefined time')),
         (MAX, _('send at end of timeperiod')),
     )
 
-    alarmadresse = models.ForeignKey('AlarmAddress', db_column='alarmadresseid')
+    alarm_address = models.ForeignKey('AlarmAddress', db_column='alarmadresseid')
     time_period = models.ForeignKey('TimePeriod', db_column='tidsperiodeid')
     equipment_group = models.ForeignKey('EquipmentGroup', db_column='utstyrgruppeid')
-    alert_type = models.IntegerField(db_column='vent')
+    subscription_type = models.IntegerField(db_column='vent', choices=SUBSCRIPTION_TYPES)
 
     class Meta:
         db_table = u'varsle'
+
+    def __unicode__(self):
+        return 'alerts received %s should be %s to %s' % (self.time_period, self.get_subscription_type_display(), self.alarm_address, self.time_period)
 
 #######################################################################
 ### Equipment models
@@ -228,17 +252,83 @@ class GroupFilter(models.Model):
     class Meta:
         db_table = u'gruppetilfilter'
 
+    def __unicode__(self):
+        if self.include:
+            type = 'inclusive'
+        else:
+            type = 'exclusive'
+
+        if not self.positive:
+            type = 'inverted %s'  % type
+
+        return '%s filter on %s' % (type, self.equipment_filter)
+
+class Operator(models.Model):
+    EQUALS = 0
+    GREATER = 1
+    GREATER_EQ = 2
+    LESS = 3
+    LESS_EQ = 4
+    NOT_EQUAL = 5
+    STARTSWITH = 6
+    ENDSWITH = 7
+    CONTAINS = 8
+    REGEXP = 9
+    WILDCARD = 10
+    IN = 11
+
+    # FIXME implment all of these in alertengine or disable those that don't
+    # get implemeted.
+    OPERATOR_TYPES = (
+        (EQUALS, _('equals')),
+        (GREATER, _('is greater')),
+        (GREATER_EQ, _('is greater or equal')),
+        (LESS, _('is less')),
+        (LESS_EQ, _('is less or equal')),
+        (NOT_EQUAL, _('not equals')),
+        (STARTSWITH, _('starts with')),
+        (ENDSWITH, _('ends with')),
+        (CONTAINS, _('contains')),
+        (REGEXP, _('regexp')),
+        (WILDCARD, _('wildcard (? og *)')),
+        (IN, _('in')),
+    )
+    OPERATOR_MAPPING = {
+        EQUALS: '__exact',
+        GREATER: '__gt',
+        GREATER_EQ: '__gte',
+        LESS: '__lt',
+        LESS_EQ: '__lte',
+#        NOT_EQUAL: '', # FIXME
+        STARTSWITH: '__startswith',
+        ENDSWITH: '__endswith',
+        CONTAINS: '__contains',
+        REGEXP: '__regex',
+#        WILDCARD: '', #FIXME
+        IN: '__in',
+    }
+    type = models.IntegerField(db_column='operatorid', choices=OPERATOR_TYPES)
+    match_field = models.ForeignKey('MatchField', db_column='matchfieldid')
+
+    class Meta:
+        db_table = u'operator'
+        unique_together = (('operator', 'match_field'),)
+
+    def __unicode__(self):
+        return u'%s match on %s' % (self.get_operator_display(), self.match_field)
+
+
 class FilterMatch(models.Model):
     equipment_filter = models.ForeignKey('EquipmentFilter', db_column='utstyrfilterid')
     match_field = models.ForeignKey('MatchField', db_column='matchfelt')
-    match_type = models.IntegerField(db_column='matchtype')
+    match_type = models.IntegerField(db_column='matchtype', choices=Operator.OPERATOR_TYPES)
     value = models.CharField(max_length=-1, db_column='verdi')
-
-    # FIXME override init and save so that we limit to choices to available
-    # choices for the matchfield we are using.
 
     class Meta:
         db_table = u'filtermatch'
+
+    def __unicode__(self):
+        return '%s match on %s against %s' % (self.get_match_type_display(), self.match_field, self.value)
 
 class EquipmentFilter(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -247,6 +337,9 @@ class EquipmentFilter(models.Model):
 
     class Meta:
         db_table = u'utstyrfilter'
+
+    def __unicode__(self):
+        return self.name
 
 class EquipmentGroup(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -281,48 +374,6 @@ class MatchField(models.Model):
 
     def __unicode__(self):
         return self.name
-
-class Operator(models.Model):
-    EQUALS = 0
-    GREATER = 1
-    GREATER_EQ = 2
-    LESS = 3
-    LESS_EQ = 4
-    NOT_EQUAL = 5
-    STARTSWITH = 6
-    ENDSWITH = 7
-    CONTAINS = 8
-    REGEXP = 9
-    WILDCARD = 10
-    IN = 11
-
-    # FIXME implment all of these in alertengine or disable those that don't
-    # get implemeted.
-    OPERATOR_TYPES = (
-        (EQUALS, _('equals')),
-        (GREATER, _('is greater')),
-        (GREATER_EQ, _('is greater or equal')),
-        (LESS, _('is less')),
-        (LESS_EQ, _('is less or equal')),
-        (NOT_EQUAL, _('not equals')),
-        (STARTSWITH, _('starts with')),
-        (ENDSWITH, _('ends with')),
-        (CONTAINS, _('contains')),
-        (REGEXP, _('regexp')),
-        (WILDCARD, _('wildcard (? og *)')),
-        (IN, _('in')),
-    )
-
-    type = models.IntegerField(db_column='operatorid', choices=OPERATOR_TYPES)
-    match_field = models.ForeignKey('MatchField', db_column='matchfieldid')
-
-    class Meta:
-        db_table = u'operator'
-        unique_together = (('operator', 'match_field'),)
-
-    def __unicode__(self):
-        return u'%s match on %s' % (self.get_operator_display(), self.match_field)
-
 
 #######################################################################
 ### AlertEngine models
