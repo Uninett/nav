@@ -36,11 +36,11 @@ _ = lambda a: a
 ### Account models
 
 class Account(models.Model):
-    id = models.IntegerField(primary_key=True)
     login = models.CharField(max_length=-1)
     name = models.CharField(max_length=-1)
     password = models.CharField(max_length=-1)
     ext_sync = models.CharField(max_length=-1)
+    equipment_permisions = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was brukerettighet
 
     class Meta:
         db_table = u'account'
@@ -49,10 +49,12 @@ class Account(models.Model):
         return self.login
 
 class AccountGroup(models.Model):
-    id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
-    accounts = models.ManyToManyField('Account')
+    accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
+    default_equipment = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was defaultutstyr
+    default_filters = models.ManyToManyField('EquipmentFilter') # FIXME this uses view hack, was defaultfilter
+    equipment_permisions = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was rettighet
 
     class Meta:
         db_table = u'accountgroup'
@@ -67,21 +69,28 @@ class AccountProperty(models.Model):
 
 class AccountOrg(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
-    orgid = models.CharField(max_length=30) # XXX integer? foreign key?
+    orgid = models.CharField(max_length=30)
 
     class Meta:
         db_table = u'accountorg'
 
 class AlarmAddress(models.Model):
-    id = models.IntegerField(primary_key=True)
+    SMS = 2
+    EMAIL = 1
+
+    ALARM_TYPE = (
+        (EMAIL, _('email')),
+        (SMS, _('SMS')),
+    )
+
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField()
+    type = models.IntegerField(choices=ALARM_TYPE)
     address = models.CharField(max_length=-1, db_column='adresse')
 
     class Meta:
         db_table = u'alarmadresse'
 
-class Preference(models.Model):
+class AccountPreference(models.Model):
     account = models.ForeignKey('Account', primary_key=True,  db_column='accountid')
     queuelength = models.TextField() # This is realy an PG interval FIXME?
     active_profile = models.ForeignKey('AccountProfile', db_column='activeprofile')
@@ -92,20 +101,39 @@ class Preference(models.Model):
         db_table = u'preference'
 
 class Log(models.Model):
-    id = models.IntegerField(primary_key=True)
+    EMERGENCY = 0
+    ALERT = 1
+    CRITICAL = 2
+    ERROR = 3
+    WARNING = 4
+    NOTIFIACTION = 5
+    INFORMATION = 6
+    DEBUGGING = 7
+
+    LOG_TYPES = (
+        (EMERGENCY, _('emergency')),
+        (ALERT, _('alert')),
+        (CRITICAL, _('critical')),
+        (ERROR, _('error')),
+        (WARNING, _('warning')),
+        (NOTIFIACTION, _('notification')),
+        (INFORMATION, _('information')),
+        (DEBUGGING, _('debugging')),
+    )
+
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField()
+    type = models.IntegerField(choices=LOG_TYPES)
     time = models.DateTimeField(db_column='tid')
     description = models.CharField(max_length=-1, db_column='descr')
 
     class Meta:
         db_table = u'logg'
 
+
 #######################################################################
 ### Profile models
 
-class Profile(models.Model):
-    id = models.IntegerField(primary_key=True)
+class AlertProfile(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField(max_length=-1, db_column='navn')
     time = models.TimeField(db_column='tid')
@@ -132,7 +160,19 @@ class TimePeriod(models.Model):
         return u'From %s for %s%s' % (self.start, self.profile, weekend)
 
 class Alert(models.Model):
-    # FIXME add choices
+    NOW = 0
+    DAILY = 1
+    WEEKLY = 2
+    MAX = 3
+    # FIXME according to profiles 3="Queue [Until profile changes]" ie next
+    # time peroid, engine thinks that 3="NOW()-q.time>=p.queuelength AS max" ie
+    # queu until alert has been in queue a certain number of days
+    TYPES = (
+        (NOW, _('send immediately')),
+        (DAILY, _('send daily at predefined time')),
+        (WEEKLY, _('send weekly at predefined time')),
+        (MAX, _('send at end of timeperiod')),
+    )
 
     alarmadresse = models.ForeignKey('AlarmAddress', db_column='alarmadresseid')
     time_period = models.ForeignKey('TimePeriod', db_column='tidsperiodeid')
@@ -145,14 +185,8 @@ class Alert(models.Model):
 #######################################################################
 ### Equipment models
 
-class DefaultEquipment(models.Model):
-    account_group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
-    equipment_group = models.ForeignKey('EquipmentGroup', db_column='utstyrgruppeid')
-
-    class Meta:
-        db_table = u'defaultutstyr'
-
 class GroupFilter(models.Model):
+    # FIXME name!
     include = models.BooleanField(db_column='inkluder')
     positive = models.BooleanField(db_column='positiv')
     priority = models.IntegerField(db_column='prioritet')
@@ -168,6 +202,9 @@ class FilterMatch(models.Model):
     match_type = models.IntegerField(db_column='matchtype')
     value = models.CharField(max_length=-1, db_column='verdi')
 
+    # FIXME override init and save so that we limit to choices to available
+    # choices for the matchfield we are using.
+
     class Meta:
         db_table = u'filtermatch'
 
@@ -181,7 +218,7 @@ class EquipmentFilter(models.Model):
 
 class EquipmentGroup(models.Model):
     id = models.IntegerField(primary_key=True)
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True) # XXX what is this link for?
     name = models.CharField(max_length=-1, db_column='navn')
     description = models.CharField(max_length=-1, db_column='descr')
 
@@ -189,7 +226,8 @@ class EquipmentGroup(models.Model):
         db_table = u'utstyrgruppe'
 
 class MatchField(models.Model):
-    # FIXME choices all over...
+    # FIXME choices all over... might need magic init and save methods that
+    # set choices
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
@@ -223,7 +261,9 @@ class Operator(models.Model):
     WILDCARD = 10
     IN = 11
 
-    OPERATORS = (
+    # FIXME implment all of these in alertengine or disable those that don't
+    # get implemeted.
+    OPERATOR_TYPES = (
         (EQUALS, _('equals')),
         (GREATER, _('is greater')),
         (GREATER_EQ, _('is greater or equal')),
@@ -238,7 +278,7 @@ class Operator(models.Model):
         (IN, _('in')),
     )
 
-    operator = models.IntegerField(db_column='operatorid', choices=OPERATORS)
+    type = models.IntegerField(db_column='operatorid', choices=OPERATOR_TYPES)
     match_field = models.ForeignKey('MatchField', db_column='matchfieldid')
 
     class Meta:
@@ -258,10 +298,11 @@ class SMSQueue(models.Model):
     time = models.DateTimeField()
     phone = models.CharField(max_length=15)
     msg = models.CharField(max_length=145)
-    sent = models.TextField() # This field type is a guess.
+    sent = models.CharField(max_length=1, default='N') #FIXME change to boolean?
     smsid = models.IntegerField()
     time_sent = models.DateTimeField(db_column='timesent')
     severity = models.IntegerField()
+
     class Meta:
         db_table = u'smsq'
 
@@ -270,20 +311,14 @@ class Queue(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
     addrress = models.ForeignKey('AlarmAddress', db_column='addrid')
     alertid = models.IntegerField()
-    time = models.DateTimeField()
+    insertion_time = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         db_table = u'queue'
 
 
 #######################################################################
 ### XXX models
-
-class DefaultFilter(models.Model):
-    account_group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
-    equipment_filter = models.ForeignKey('EquipmentFilter', db_column='utstyrfilterid')
-
-    class Meta:
-        db_table = u'defaultfilter'
 
 class AccountNavBar(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
@@ -300,13 +335,6 @@ class AccountGroupPrivilege(models.Model):
 
     class Meta:
         db_table = u'accountgroupprivilege'
-
-class Brukerrettighet(models.Model): # FIXME norwegian name
-    account = models.ForeignKey('Account', db_column='accountid')
-    equipment_group = models.ForeignKey('EquipmentGroup', db_column='utstyrgruppeid')
-
-    class Meta:
-        db_table = u'brukerrettighet'
 
 class NavBarLink(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -331,9 +359,3 @@ class AlertPrivilege(models.Model):
 
     class Meta:
         db_table = u'privilege'
-
-class GroupAlertPrivilege(models.Model):
-    account_group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
-    equipment_group = models.ForeignKey('EquipmentGroup', db_column='utstyrgruppeid')
-    class Meta:
-        db_table = u'rettighet'
