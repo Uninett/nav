@@ -28,6 +28,8 @@ __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no"
 __id__ = "$Id$"
 
+from datetime import datetime
+
 from django.db import models
 
 _ = lambda a: a
@@ -36,11 +38,10 @@ _ = lambda a: a
 ### Account models
 
 class Account(models.Model):
-    login = models.CharField(max_length=-1)
+    login = models.CharField(max_length=-1, unique=True)
     name = models.CharField(max_length=-1)
     password = models.CharField(max_length=-1)
     ext_sync = models.CharField(max_length=-1)
-    equipment_permisions = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was brukerettighet
 
     class Meta:
         db_table = u'account'
@@ -48,13 +49,16 @@ class Account(models.Model):
     def __unicode__(self):
         return self.login
 
+    def get_active_profile(self):
+        return self.accountpreference.active_profile
+
 class AccountGroup(models.Model):
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
+
     default_equipment = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was defaultutstyr
     default_filters = models.ManyToManyField('EquipmentFilter') # FIXME this uses view hack, was defaultfilter
-    equipment_permisions = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was rettighet
 
     class Meta:
         db_table = u'accountgroup'
@@ -91,9 +95,9 @@ class AlarmAddress(models.Model):
         db_table = u'alarmadresse'
 
 class AccountPreference(models.Model):
-    account = models.ForeignKey('Account', primary_key=True,  db_column='accountid')
+    account = models.OneToOneField('Account', primary_key=True,  db_column='accountid')
     queuelength = models.TextField() # This is realy an PG interval FIXME?
-    active_profile = models.ForeignKey('AccountProfile', db_column='activeprofile')
+    active_profile = models.OneToOneField('AlertProfile', db_column='activeprofile', null=True)
     last_sent_day = models.DateTimeField(db_column='lastsentday')
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
 
@@ -143,21 +147,49 @@ class AlertProfile(models.Model):
     class Meta:
         db_table = u'brukerprofil'
 
+    def get_active_timeperiod(self):
+        now = datetime.now()
+
+        # Limit our query to the correct type of time periods
+        if now.isoweekday() in [6,7]:
+            valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKENDS]
+        else:
+            valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKDAYS]
+
+        # The following code should get the currently active timeperiod.
+        # If we don't find a timeperiod we use tp which will we the last
+        # possilbe timeperiod (which wraps around to covering the first part of
+        # the day.
+        activve_timeperiod = None
+        for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
+            if not activve_timeperiod or (tp.start <= now.time()):
+                activve_timeperiod = tp
+
+        return activve_timeperiod or tp
+
+    def __unicode__(self):
+        return self.name
+
 class TimePeriod(models.Model):
-    id = models.IntegerField(primary_key=True)
-    profile = models.ForeignKey('AccountProfile', db_column='brukerprofilid')
+    ALL_WEEK = 1
+    WEEKDAYS = 2
+    WEEKENDS = 3
+
+    VALID_DURING_CHOICES = (
+        (ALL_WEEK, _('all days')),
+        (WEEKDAYS, _('weekdays')),
+        (WEEKENDS, _('weekends')),
+    )
+
+    profile = models.ForeignKey('AlertProfile', db_column='brukerprofilid')
     start = models.TimeField(db_column='starttid')
-    weekend = models.IntegerField(db_column='helg')
+    valid_during = models.IntegerField(db_column='helg', choices=VALID_DURING_CHOICES)
 
     class Meta:
         db_table = u'tidsperiode'
 
     def __unicode__(self):
-        if self.weekend:
-            weekend = ' during the weekend'
-        else:
-            weekend = ''
-        return u'From %s for %s%s' % (self.start, self.profile, weekend)
+        return u'From %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
 class Alert(models.Model):
     NOW = 0
@@ -221,6 +253,9 @@ class EquipmentGroup(models.Model):
     account = models.ForeignKey('Account', db_column='accountid', null=True) # XXX what is this link for?
     name = models.CharField(max_length=-1, db_column='navn')
     description = models.CharField(max_length=-1, db_column='descr')
+
+    account_permisions = models.ManyToManyField('Account') # FIXME this uses view hack, was brukerettighet
+    group_permisions = models.ManyToManyField('AccountGroup') # FIXME this uses view hack, was rettighet
 
     class Meta:
         db_table = u'utstyrgruppe'
