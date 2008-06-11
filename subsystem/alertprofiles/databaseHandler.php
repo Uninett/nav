@@ -1953,21 +1953,18 @@ class DBH {
 	// opprette ny tidsperiode
 	function nyTidsperiode($helg, $tid, $profilid) {
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Tidsperiode (id, helg, starttid, brukerprofilid) VALUES (" . 
-			"nextval('tidsperiode_id_seq'), " . addslashes($helg) . ", '" . 
-			addslashes($tid) ."', " . addslashes($profilid) . ")";
+		$querystring = 'INSERT INTO tidsperiode (helg, starttid, brukerprofilid)
+			VALUES ($1, $2, $3)';
+		$queryparams = array($helg, $tid, $profilid);
 
-		//print '<p>Nytidsperiode:' . $querystring;
+		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
 
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+			$lastid_querystring = 'SELECT
+				currval(\'tidsperiode_id_seq\') as lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystring);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Tidsperiode WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
 		} else {
 			// fikk ikke til e legge i databasen
 			return 0;
@@ -2022,29 +2019,26 @@ class DBH {
 	}
 
 
-
-
 	// opprette ny profil
 	function nyProfil($navn, $brukerid, $ukedag, $uketidh, $uketidm, $tidh, $tidm) {
 
-		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Brukerprofil (id, accountid, navn, ukedag, uketid, tid) VALUES (" . 
-			"nextval('brukerprofil_id_seq'), " . $brukerid . ", '" . 
-			addslashes($navn) ."', " . addslashes($ukedag) . ", '" . 
-			addslashes($uketidh) . ":" . addslashes($uketidm) . "', '" .
-			addslashes($tidh) . ":" . addslashes($tidm) . "' " .
-			" )";
+		// Spørring som legger inn i databasen
+		$querystring = 'INSERT INTO brukerprofil (accountid, navn, ukedag, uketid, tid) VALUES ($1, $2, $3, $4, $5)';
+		$queryparams = array(
+				$brukerid,
+				$navn,
+				$ukedag,
+				$uketidh.":".$uketidm,
+				$tidh.":".$tidm
+			);
 
-		//echo "<p>query: $querystring";
-		if ($query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
 
 			// Henter ut object id`n til raden.
-			$oid = pg_last_oid($query);
+			$id_query = pg_query($this->connection, 'SELECT currval(\'brukerprofil_id_seq\') AS last_id');
+			$last_id = pg_fetch_result($id_query, 'last_id');
+			return $last_id;
 
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Brukerprofil WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
 		} else {
 			// fikk ikke til e legge i databasen
 			return 0;
