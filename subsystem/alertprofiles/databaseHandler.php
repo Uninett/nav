@@ -28,6 +28,8 @@
  *
  */
 
+require_once('php4support.php');
+
 function checkDBError($connection, $query, $parameters, $file, $line) {
 	// Send query.
 	pg_send_query_params($connection, $query, $parameters);
@@ -171,7 +173,7 @@ class DBH {
 					);
 			}
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -245,7 +247,7 @@ class DBH {
 					);
 			}
 		} else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 		}
 
 		return $logg;
@@ -274,7 +276,7 @@ class DBH {
 					);
 			}
 		} else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 		}
 
 		return $fm;
@@ -328,7 +330,7 @@ class DBH {
 					);
 			}
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -566,7 +568,7 @@ class DBH {
 					);
 			}
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -969,7 +971,7 @@ class DBH {
 					);
 			}
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -1489,7 +1491,7 @@ class DBH {
 					);
 			}
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -2111,7 +2113,7 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'account_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 
 			// Spxrring som legger inn i databasen
@@ -2147,7 +2149,7 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'accountgroup_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 		} else {
@@ -2174,7 +2176,7 @@ class DBH {
 				currval(\'tidsperiode_id_seq\') as lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystring);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 
@@ -2200,7 +2202,7 @@ class DBH {
 					'SELECT currval(\'alarmadresse_id_seq\') AS lastid'
 				);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 		} else {
@@ -2250,7 +2252,7 @@ class DBH {
 			$id_querystr = 'SELECT currval(\'brukerprofil_id_seq\') AS lastid';
 			$id_query = pg_query($this->connection, $id_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$last_id = pg_fetch_result($id_query, 'lastid');
 			return $last_id;
 		} else {
@@ -2275,9 +2277,8 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'utstyrfilter_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
-			echo $lastid;
 			return $lastid;
 		} else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
@@ -2300,7 +2301,7 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'utstyrfilter_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 			// fikk ikke til e legge i databasen
@@ -2337,7 +2338,7 @@ class DBH {
 			)
 			VALUES (
 				$1, $2, $3, $4, $5,
-				$6, $7, $8, $9, 410
+				$6, $7, $8, $9, $10
 			)";
 
 		$querypar = array(
@@ -2346,10 +2347,10 @@ class DBH {
 			);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			$lastid_querystr = 'SELECT currval() AS lastid';
+			$lastid_querystr = 'SELECT currval(\'matchfield_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 		} else {
@@ -2369,7 +2370,7 @@ class DBH {
 
 		// Spxrring som legger inn i databasen
 		$querystr = "INSERT INTO GruppeTilFilter (
-				tstyrgruppeid, utstyrfilterid, inkluder, positiv, prioritet
+				utstyrgruppeid, utstyrfilterid, inkluder, positiv, prioritet
 			)
 			SELECT  $1, $2, $3, $4, 1 + max(prioritet)
 			FROM (
@@ -2382,10 +2383,10 @@ class DBH {
 		$querypar = array($gid, $fid, $inkl, $neg);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			$lastid_querystr = 'SELECT currval() AS lastid';
+			$lastid_querystr = 'SELECT currval(\'gruppetilfilter_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 		} else {
@@ -2407,7 +2408,7 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'filtermatch_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 		} else {
@@ -2429,7 +2430,7 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'utstyrgruppe_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$nyutstgrpid = pg_fetch_result($lastid_query, 'lastid');
 		} else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
@@ -2555,7 +2556,7 @@ class DBH {
 			$lastid_querystr = 'SELECT currval(\'utstyrgruppe_id_seq\') AS lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
-				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 		} else {
@@ -2811,8 +2812,6 @@ class DBHK {
 			"FROM $vtabell " .
 			"ORDER BY $vsort LIMIT " . pg_escape_string($limit);
 
-		//echo "<p>query: " . $querystr;
-
 		if ($query = pg_query($this->connection, $querystr)) {
 			while ($data = pg_fetch_assoc($query)) {
 				$scat = 0;
@@ -2832,7 +2831,7 @@ class DBHK {
 			}
 
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -2858,7 +2857,7 @@ class DBHK {
 			}
 
 		}  else {
-			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
