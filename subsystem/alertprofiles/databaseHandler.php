@@ -28,6 +28,21 @@
  *
  */
 
+function checkDBError($connection, $query, $parameters, $file, $line) {
+	// Send query.
+	pg_send_query_params($connection, $query, $parameters);
+	$result = pg_get_result($connection);
+	$error = pg_result_error($result);
+
+	if ($error) {
+		echo "<p>Error in query in
+			<strong>$file</strong>
+			near line <strong>$line</strong></p>";
+		echo "<pre>$error</pre>";
+		die();
+	}
+}
+
 class DBH {
 
 	// Må ha inn en ferdig oppkoblet databasekobling til postgres
@@ -41,47 +56,70 @@ class DBH {
 
 
 	function permissionAddress($uid, $aid) {
-		$querystring = "
-			SELECT * FROM alarmadresse 
-			WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($aid) . ")";
-		//echo "<pre>" . $querystring . "</pre>";
-		if ( $query = @pg_exec($this->connection, $querystring) ) { 
-			if (pg_numrows($query) > 0 ) return true;
+		$querystr = 'SELECT COUNT(*) AS count FROM alarmadresse WHERE
+			accountid = $1 AND
+			id = $2';
+		$querypar = array($uid, $aid);
+
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$num_rows = pg_fetch_result($query, 'count');
+			if ($num_rows > 0)
+				return true;
+		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
 		return false;
 	}
 
 	function permissionProfile($uid, $pid) {
-		$querystring = "
-			SELECT * FROM brukerprofil 
-			WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($pid) . ")";
-		//echo "<pre>" . $querystring . "</pre>";
-		if ( $query = @pg_exec($this->connection, $querystring) ) { 
-			if (pg_numrows($query) > 0 ) return true;
+		$querystr = 'SELECT COUNT(*) AS count FROM brukerprofil WHERE
+			accountid = $1 AND
+			id = $2';
+		$querypar = array($uid, $pid);
+
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$num_rows = pg_fetch_result($query, 'count');
+			if ($num_rows > 0)
+				return true;
+		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
+
 		return false;
 	}
 
 	function permissionEquipmentGroup($uid, $id) {
-		$querystring = "
-			SELECT * FROM utstyrgruppe 
-			WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($id) . ")";
-		//echo "<pre>" . $querystring . "</pre>";
-		if ( $query = @pg_exec($this->connection, $querystring) ) { 
-			if (pg_numrows($query) > 0 ) return true;
+		$querystr = 'SELECT COUNT(*) AS count FROM utstyrgruppe WHERE
+			accountid = $1 AND
+			id = $2';
+		$querypar = array($uid, $id);
+
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$num_rows = pg_fetch_result($query, 'count');
+			if ($num_rows > 0)
+				return true;
+		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
+
 		return false;
 	}
 
 
 	function permissionEquipmentFilter($uid, $id) {
-		$querystring = "
-			SELECT * FROM utstyrfilter 
-			WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($id) . ")";
-		//echo "<pre>" . $querystring . "</pre>";
-		if ( $query = @pg_exec($this->connection, $querystring) ) { 
-			if (pg_numrows($query) > 0 ) return true;
+		$querystr = 'SELECT COUNT(*) AS count FROM utstyrfilter WHERE
+			accountid = $1 AND
+			id = $2';
+		$querypar = array($uid, $id);
+
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$num_rows = pg_fetch_result($query, 'count');
+			if ($num_rows > 0)
+				return true;
+		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
+
 		return false;
 	}
 
@@ -98,33 +136,42 @@ class DBH {
 				'pa, name',
 				'aa, name');
 
-		$querystring = "SELECT Account.id, Account.login, Account.name, null as admin, null as sms, Preference.queuelength, " .
-			"profiler.pa, adresser.aa FROM Preference, Account LEFT OUTER JOIN " .
-			"(SELECT count(Brukerprofil.id) AS pa, Brukerprofil.accountid AS uid " . 
-			"FROM Brukerprofil GROUP BY (Brukerprofil.accountid)) AS profiler ON (Account.id = profiler.uid) " .
-			"LEFT OUTER JOIN " .
-			"(SELECT count(Alarmadresse.id) AS aa, Alarmadresse.accountid AS uid " .
-			"FROM Alarmadresse GROUP BY (Alarmadresse.accountid)) AS adresser ON (Account.id = adresser.uid) " .
-			"WHERE (Preference.accountid = Account.id) " .
-			"ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT account.id, account.login, account.name,
+					null as admin, null as sms, preference.queuelength,
+					profiler.pa, adresser.aa
+			FROM Preference, Account
+			LEFT OUTER JOIN (
+				SELECT
+					count(brukerprofil.id) AS pa,
+					brukerprofil.accountid AS uid
+				FROM brukerprofil
+				GROUP BY (Brukerprofil.accountid)
+			) AS profiler ON (Account.id = profiler.uid)
+			LEFT OUTER JOIN (
+				SELECT
+					count(alarmadresse.id) AS aa,
+					alarmadresse.accountid AS uid
+				FROM alarmadresse
+				GROUP BY (alarmadresse.accountid)
+			) AS adresser ON (account.id = adresser.uid)
+			WHERE (preference.accountid = account.id)
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
-		//echo "<p>Query: " . $querystring;
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$brukere[$row][0] = $data["id"];
-				$brukere[$row][1] = $data["login"];
-				$brukere[$row][2] = $data["name"];
-				$brukere[$row][3] = $data["admin"];
-				$brukere[$row][4] = $data["sms"];
-				$brukere[$row][5] = $data["pa"];
-				$brukere[$row][6] = $data["aa"];
-				$brukere[$row][7] = $data["queuelength"];
-				$row++;
-			} 
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$brukere[] = array(
+						$data["id"],
+						$data["login"],
+						$data["name"],
+						$data["admin"],
+						$data["sms"],
+						$data["pa"],
+						$data["aa"],
+						$data["queuelength"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -142,39 +189,34 @@ class DBH {
 				'name',
 				'name, login');
 
-		$querystring = "SELECT id, login, name, (Medlem.groupid > 0) AS medlem 
-			FROM Account LEFT OUTER JOIN ( 
-					SELECT groupid, accountid 
-					FROM AccountInGroup 
-					WHERE (groupid = " . addslashes($gid) . ") 
-					) AS Medlem 
-			ON (Account.id = Medlem.accountid) 
-			ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT id, login, name, (medlem.groupid > 0) AS medlem
+			FROM Account
+			LEFT OUTER JOIN (
+					SELECT groupid, accountid
+					FROM AccountInGroup
+					WHERE groupid = $1
+				) AS Medlem ON (account.id = medlem.accountid)
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($gid);
 
-		//echo "<p>Query: " . $querystring;
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$brukere[$row][0] = $data["id"];
-				$brukere[$row][1] = $data["login"];
-				$brukere[$row][2] = $data["name"];
-				$brukere[$row][3] = $data["medlem"];
-				$row++;
-			} 
+			while ($data = pg_fetch_assoc($query)) {
+				$brukere[] = array(
+						$data["id"],
+						$data["login"],
+						$data["name"],
+						$data["medlem"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
 		return $brukere;
 	}
-
-
-
-
 
 
 	function listLogg($sort) {
@@ -186,25 +228,25 @@ class DBH {
 				'tid DESC',
 				'Logg.descr, tid DESC');
 
-		$querystring = "SELECT Logg.type, Logg.descr, date_part('epoch', Logg.tid) AS tid, Account.name 
-			FROM Account, Logg 
-			WHERE (	Account.id = Logg.accountid ) 
-			ORDER BY " . $sorts[$sort] . " LIMIT 100";
+		$querystr = 'SELECT logg.type, logg.descr,
+				date_part(\'epoch\', logg.tid) AS tid, account.name
+			FROM account, logg
+			WHERE account.id = logg.accountid
+			ORDER BY '.pg_escape_string($sorts[$sort]).'
+			LIMIT 100';
 
-		//print "<pre>" . $querystring . "</pre>";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$logg[$row][0] = $data["type"];
-				$logg[$row][1] = $data["descr"];
-				$logg[$row][2] = $data["tid"];
-				$logg[$row][3] = $data["name"];
-				$row++;
-			} 
-		} 
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$logg[] = array(
+						$data["type"],
+						$data["descr"],
+						$data["tid"],
+						$data["name"]
+					);
+			}
+		} else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+		}
 
 		return $logg;
 	}
@@ -212,7 +254,6 @@ class DBH {
 
 	// Liste over filtermatch som er tilgjengelige for valg
 	function listFilterMatchAdm($sort) {
-
 		$fm = NULL;
 
 		$sorts = array (
@@ -220,32 +261,27 @@ class DBH {
 				'name',
 				'valueid');
 
-		$querystring = "SELECT matchfieldid, name, valueid 
-			FROM MatchField 
-			ORDER BY " . $sorts[$sort];
+		$querystr = "SELECT matchfieldid, name, valueid
+			FROM MatchField
+			ORDER BY ".pg_escape_string($sorts[$sort]);
 
-		//print "<pre>" . $querystring . "</pre>";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$fm[$row][0] = $data["matchfieldid"];
-				$fm[$row][1] = $data["name"];
-				$fm[$row][2] = $data["valueid"];
-				$row++;
-			} 
-		} 
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$fm[] = array(
+						$data["matchfieldid"],
+						$data["name"],
+						$data["valueid"]
+					);
+			}
+		} else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
+		}
 
 		return $fm;
 	}
 
 
-
-
 	function listBrukerGrupper($sort) {
-
 		$brukere = NULL;
 
 		$sorts = array ('name',
@@ -254,51 +290,45 @@ class DBH {
 				'ad, name',
 				'adf, name');
 
-		$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad, DFCount.adf  
-			FROM Accountgroup 
+		$querystr = 'SELECT id, name, descr, BCount.ab, Rcount.ar,
+					Dcount.ad, DFCount.adf
+			FROM Accountgroup
 			LEFT OUTER JOIN (
 					SELECT count(accountid) AS ab, groupid
 					FROM AccountInGroup
 					GROUP BY groupid
-					) AS BCount 
-			ON (id = BCount.groupid)
+				) AS BCount ON (id = BCount.groupid)
 			LEFT OUTER JOIN (
-					SELECT count(utstyrgruppeid) AS ar, accountgroupid 
-					FROM Rettighet 
-					GROUP BY accountgroupid 
-					) AS RCount 
-			ON (id = RCount.accountgroupid) 
+					SELECT count(utstyrgruppeid) AS ar, accountgroupid
+					FROM Rettighet
+					GROUP BY accountgroupid
+				) AS RCount ON (id = RCount.accountgroupid)
 			LEFT OUTER JOIN (
 					SELECT count(utstyrgruppeid) AS ad, accountgroupid
-					FROM DefaultUtstyr 
-					GROUP BY accountgroupid 
-					) AS DCount 
-			ON (id = DCount.accountgroupid) 
+					FROM DefaultUtstyr
+					GROUP BY accountgroupid
+				) AS DCount ON (id = DCount.accountgroupid)
 			LEFT OUTER JOIN (
 					SELECT count(utstyrfilterid) AS adf, accountgroupid
-					FROM DefaultFilter 
-					GROUP BY accountgroupid 	
-					) AS DFCount 
-			ON (id = DFCount.accountgroupid)    
-			ORDER BY " . $sorts[$sort];
+					FROM DefaultFilter
+					GROUP BY accountgroupid
+				) AS DFCount ON (id = DFCount.accountgroupid)
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
-		//print "<pre>" . $querystring . "</pre>";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$brukere[$row][0] = $data["id"];
-				$brukere[$row][1] = $data["name"];
-				$brukere[$row][2] = $data["descr"];
-				$brukere[$row][3] = $data["ab"];
-				$brukere[$row][4] = $data["ar"];
-				$brukere[$row][5] = $data["ad"];
-				$brukere[$row][6] = $data["adf"];		
-				$row++;
-			} 
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$brukere[] = array(
+						$data["id"],
+						$data["name"],
+						$data["descr"],
+						$data["ab"],
+						$data["ar"],
+						$data["ad"],
+						$data["adf"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -309,7 +339,6 @@ class DBH {
 
 	// list alle gruppene en Account er medlem av.
 	function listBrukersGrupper($uid, $sort) {
-
 		$bruker = NULL;
 
 		$sorts = array ('name',
@@ -319,27 +348,27 @@ class DBH {
 				'pa, name',
 				'aa, name');
 
-		$querystring = "SELECT id, name, descr 
-			FROM AccountGroup, AccountInGroup 
-			WHERE (AccountInGroup.groupid = Accountgroup.id) AND 
-			(AccountInGroup.accountid = " . $uid . ") 
-			ORDER BY name ";
+		$querystr = 'SELECT id, name, descr
+			FROM AccountGroup, AccountInGroup
+			WHERE
+				AccountInGroup.groupid = Accountgroup.id AND
+				AccountInGroup.accountid = $1
+			ORDER BY name';
+		$querypar = array($uid);
 
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$grupper[$row][0] = $data["id"];
-				$grupper[$row][1] = $data["name"];
-				$grupper[$row][2] = $data["descr"];
-				$row++;
-			}	 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$grupper[] = array(
+						$data["id"],
+						$data["name"],
+						$data["descr"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $grupper;
 	}
 
@@ -354,133 +383,120 @@ class DBH {
 				'ar, name',
 				'ad, name');
 
-		$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad, (Medlem.groupid > 0) AS medl 
-			FROM AccountGroup 
+		$querystr = 'SELECT id, name, descr, BCount.ab, Rcount.ar,
+				Dcount.ad, (Medlem.groupid > 0) AS medl
+			FROM AccountGroup
 			LEFT OUTER JOIN (
 					SELECT count(accountid) AS ab, groupid
 					FROM AccountInGroup
 					GROUP BY groupid
-					) AS BCount 
-			ON (id = BCount.groupid)
+				) AS BCount ON (id = BCount.groupid)
 			LEFT OUTER JOIN (
-					SELECT count(utstyrgruppeid) AS ar, accountgroupid 
-					FROM Rettighet 
-					GROUP BY accountgroupid 
-					) AS RCount 
-			ON (id = RCount.accountgroupid) 
+					SELECT count(utstyrgruppeid) AS ar, accountgroupid
+					FROM Rettighet
+					GROUP BY accountgroupid
+				) AS RCount ON (id = RCount.accountgroupid)
 			LEFT OUTER JOIN (
 					SELECT count(utstyrgruppeid) AS ad, accountgroupid
-					FROM DefaultUtstyr 
-					GROUP BY accountgroupid 
-					) AS DCount 
-			ON (id = DCount.accountgroupid) 
+					FROM DefaultUtstyr
+					GROUP BY accountgroupid
+				) AS DCount ON (id = DCount.accountgroupid)
 			LEFT OUTER JOIN (
-					SELECT accountid, groupid FROM AccountInGroup 
-					WHERE (accountid = " . addslashes($uid) . ") 
-					) AS Medlem 
-			ON (id = Medlem.groupid) 
-			ORDER BY " . $sorts[$sort];
+					SELECT accountid, groupid FROM AccountInGroup
+					WHERE accountid = $1
+				) AS Medlem ON (id = Medlem.groupid)
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid);
 
-		//print "<pre>" . $querystring . "</pre>";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$brukere[$row][0] = $data["id"];
-				$brukere[$row][1] = $data["name"];
-				$brukere[$row][2] = $data["descr"];
-				$brukere[$row][3] = $data["ab"];
-				$brukere[$row][4] = $data["ar"];
-				$brukere[$row][5] = $data["ad"];
-				$brukere[$row][6] = $data["medl"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$brukere[] = array(
+						$data["id"],
+						$data["name"],
+						$data["descr"],
+						$data["ab"],
+						$data["ar"],
+						$data["ad"],
+						$data["medl"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $brukere;
 	}
 
 
 	function listAdresser($uid, $sort) {
-
 		$adr = NULL;
 
 		$sorts = array ('type, adresse', 'adresse');
 
-		$querystring = "SELECT id, adresse, type " .
-			"FROM Alarmadresse " .
-			"WHERE (accountid = " . addslashes($uid) . ") " .
-			"ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT id, adresse, type
+			FROM Alarmadresse
+			WHERE accountid = $1
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid);
 
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$adr[$row][0] = $data["id"];
-				$adr[$row][1] = $data["adresse"];
-				$adr[$row][2] = $data["type"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$adr[] = array(
+						$data["id"],
+						$data["adresse"],
+						$data["type"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $adr;
 	}
 
 
-
-
 	// Lister opp alle adresser knyttet til tidsprofiler, og henter ut køvariabel
 	function listAlleVarsleAdresser($uid, $tid, $sort) {
-
-		//    print "<p>UID: $uid  - TID: $tid  - GID: $gid   - SORT: $sort";
 		$adr = NULL;
 
 		$sorts = array (
-				'min, gnavn', 
+				'min, gnavn',
 				'type',
 				'adresse, gnavn',
 				'vent, adresse'
 			       );
 
-		$querystring = '
-			SELECT alarmadresse.id AS adrid, adresse, type, vent, utstyrgruppe.id AS gid, utstyrgruppe.navn AS gnavn, 
-			       (Utstyrgruppe.accountid = ' . addslashes($uid). ') AS min 
-				       FROM Utstyrgruppe, Varsle, Alarmadresse 
-				       WHERE (utstyrgruppe.id = varsle.utstyrgruppeid) AND
-				       (alarmadresse.id = varsle.alarmadresseid) AND 
-				       (varsle.tidsperiodeid = ' . addslashes($tid) . ') 
-				       ORDER BY ' . $sorts[$sort];
+		$querystr = 'SELECT alarmadresse.id AS adrid, adresse, type,
+					vent, utstyrgruppe.id AS gid,
+					utstyrgruppe.navn AS gnavn,
+					(Utstyrgruppe.accountid = $1) AS min
+			FROM Utstyrgruppe, Varsle, Alarmadresse
+			WHERE
+				utstyrgruppe.id = varsle.utstyrgruppeid AND
+				alarmadresse.id = varsle.alarmadresseid AND
+				varsle.tidsperiodeid = $2
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid, $tid);
 
-		//echo '<p>' . $querystring . '<p>';
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$adr[$row][0] = $data["adrid"];
-				$adr[$row][1] = $data["adresse"];
-				$adr[$row][2] = $data["type"];
-				$adr[$row][3] = $data["vent"];
-				$adr[$row][4] = $data["gid"];
-				$adr[$row][5] = $data["gnavn"];
-				$adr[$row][6] = $data["min"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$adr[] = array(
+						$data["adrid"],
+						$data["adresse"],
+						$data["type"],
+						$data["vent"],
+						$data["gid"],
+						$data["gnavn"],
+						$data["min"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $adr;
 	}
 
@@ -489,47 +505,41 @@ class DBH {
 	// og henter ut køvariabel
 	function listVarsleAdresser($uid, $tid, $gid, $sort) {
 
-		//    print "<p>UID: $uid  - TID: $tid  - GID: $gid   - SORT: $sort";
 		$adr = NULL;
 
 		$sorts = array ('type, adresse', 'adresse');
 
-		$querystring = "SELECT id, adresse, type, vent 
+		$querystr = 'SELECT id, adresse, type, vent
 			FROM (
-					SELECT adresse, id, type 
+					SELECT adresse, id, type
 					FROM Alarmadresse
-					WHERE (accountid = " . addslashes($uid) . ")
-			     ) AS adr LEFT OUTER JOIN (
-				     SELECT vent, alarmadresseid 
-				     FROM Varsle
-				     WHERE (tidsperiodeid = " . addslashes($tid) . ")
-				     AND (utstyrgruppeid = " . addslashes($gid) . ") 
-				     ) AS periode
-			     ON (adr.id = periode.alarmadresseid)
-			     ORDER BY " . $sorts[$sort];
+					WHERE accountid = $1
+				) AS adr
+			LEFT OUTER JOIN (
+					SELECT vent, alarmadresseid
+					FROM Varsle
+					WHERE tidsperiodeid = $2
+					AND utstyrgruppeid = $3
+				) AS periode ON (adr.id = periode.alarmadresseid)
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid, $tid, $gid);
 
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$adr[$row][0] = $data["id"];
-				$adr[$row][1] = $data["adresse"];
-				$adr[$row][2] = $data["type"];
-				$adr[$row][3] = $data["vent"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$adr[] = array(
+						$data["id"],
+						$data["adresse"],
+						$data["type"],
+						$data["vent"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $adr;
 	}
-
-
-
-
 
 
 	// Lister ut alle mulige filtermatch felter.
@@ -542,28 +552,24 @@ class DBH {
 				'matchfieldid'
 			       );
 
-		$querystring = "SELECT matchfieldid, name, descr, valuehelp " .
-			"FROM MatchField " .
-			"ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT matchfieldid, name, descr, valuehelp 
+			FROM MatchField
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$matcher[$row][0] = $data["matchfieldid"];
-				$matcher[$row][1] = $data["name"];
-				$matcher[$row][2] = $data["descr"];
-				$matcher[$row][3] = $data["valuehelp"];
-				$row++;
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$matcher[] = array(
+						$data["matchfieldid"],
+						$data["name"],
+						$data["descr"],
+						$data["valuehelp"]
+					);
 			}
-
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
-
 		return $matcher;
 	}
 
@@ -572,13 +578,16 @@ class DBH {
 	function matchFieldInfo($mid) {
 		$mf = NULL;
 
-		$querystring = "SELECT name, descr, valuehelp, valueid, valuename, 
-			valuecategory, valuesort, listlimit, showlist 
-			FROM MatchField 
-			WHERE matchfieldid = " . addslashes($mid) ;
+		$querystr = 'SELECT name, descr, valuehelp, valueid, valuename,
+					valuecategory, valuesort, listlimit, showlist
+			FROM MatchField
+			WHERE matchfieldid = $1';
+		$querypar = array($mid);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query, 0);
 			$mf[0] = $data["name"];
 			$mf[1] = $data["descr"];
 			$mf[2] = $data["valuehelp"];
@@ -589,37 +598,33 @@ class DBH {
 			$mf[7] = $data["listlimit"];
 			$mf[8] = $data["showlist"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
-		$querystring = "SELECT operatorid " .
-			"FROM Operator " .
-			"WHERE matchfieldid = " . addslashes($mid) . " " .
-			"ORDER BY operatorid ";
+		$querystr = 'SELECT operatorid
+			FROM Operator
+			WHERE matchfieldid = $1
+			ORDER BY operatorid';
+		$querypar = array($mid);
 
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
 				$operators[] = $data["operatorid"];
-				$row++;
 			}
 
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 
-		}    
+		}
 
 		$mf[9] = $operators;
 
 		return $mf;
 	}
-
-
-
 
 
 	// Liste alle profilene til en bruker
@@ -628,155 +633,164 @@ class DBH {
 		$profiler = NULL;
 
 		$sorts = array (
-				'aktiv DESC, Brukerprofil.navn', 
-				'Brukerprofil.navn', 
+				'aktiv DESC, Brukerprofil.navn',
+				'Brukerprofil.navn',
 				'Q.antall, aktiv DESC, Brukerprofil.navn');
 
-		$querystring = "
-			SELECT (Preference.activeprofile = Brukerprofil.id) AS aktiv,
-			       Brukerprofil.id, Brukerprofil.navn, Q.antall
-				       FROM Preference, Account, Brukerprofil LEFT OUTER JOIN 
-				       (SELECT pid, count(tid) AS antall FROM 
-					(SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid FROM Tidsperiode, Brukerprofil 
-					 WHERE (Brukerprofil.accountid = " . addslashes($uid) . "
-					       ) AND (Brukerprofil.id = Tidsperiode.brukerprofilid) ) AS Perioder 
-					GROUP BY Perioder.pid ) AS Q 
-				       ON (Brukerprofil.id = Q.pid) 
-				       WHERE (Brukerprofil.accountid = " . addslashes($uid) . ") AND (Account.id = Brukerprofil.accountid) AND
-				       (Account.id = Preference.accountid) 
-				       ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT (Preference.activeprofile = Brukerprofil.id) AS aktiv,
+					Brukerprofil.id, Brukerprofil.navn, Q.antall
+			FROM Preference, Account, Brukerprofil
+			LEFT OUTER JOIN (
+				SELECT pid, count(tid) AS antall
+				FROM (
+					SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid
+					FROM Tidsperiode, Brukerprofil
+					WHERE
+						Brukerprofil.accountid = $1 AND
+						Brukerprofil.id = Tidsperiode.brukerprofilid
+				) AS Perioder
+				GROUP BY Perioder.pid
+			) AS Q ON (Brukerprofil.id = Q.pid)
+			WHERE
+				Brukerprofil.accountid = $1 AND
+				Account.id = Brukerprofil.accountid AND
+				Account.id = Preference.accountid
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid);
 
-		//print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$profiler[$row][0] = $data["id"]; 
-				$profiler[$row][1] = $data["navn"];
-				$profiler[$row][2] = $data["antall"];
-				$profiler[$row][3] = $data["aktiv"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$profiler[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["antall"],
+						$data["aktiv"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $profiler;
 	}
-
 
 
 	// Liste alle tidsperiodene til en profil
 	function listPerioder($pid, $sort) {
 		$perioder = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+//		$sorts = array (
+//				'time, minutt',
+//				'aa, time, minutt',
+//				'au, time, minutt',
+//				'time, minutt'
+//			);
 
-		$querystring = "SELECT Tidsper.id, Tidsper.helg, 
-			date_part('hour', Tidsper.starttid) AS time, date_part('minute', Tidsper.starttid) AS minutt, 
-			adresser.aa, grupper.au 
-				FROM (
-						SELECT id, helg, starttid 
-						FROM Tidsperiode 
-						WHERE (Tidsperiode.brukerprofilid = " . addslashes($pid) . ") 
-				     ) AS Tidsper LEFT OUTER JOIN ( 
-					     SELECT count(aid) AS aa, tid 
-					     FROM ( 
-						     SELECT DISTINCT Varsle.alarmadresseid AS aid, Varsle.tidsperiodeid AS tid 
-						     FROM Varsle, Tidsperiode 
-						     WHERE (Tidsperiode.brukerprofilid = " . addslashes($pid) . ") AND (Tidsperiode.id = Varsle.tidsperiodeid) 
-						  ) AS Acount 
-					     GROUP BY tid 
-					     ) AS adresser 
-				     ON (Tidsper.id = adresser.tid) 
-				     LEFT OUTER JOIN ( 
-						     SELECT count(gid) AS au, tid 
-						     FROM ( 
-							     SELECT DISTINCT Varsle.utstyrgruppeid AS gid, Varsle.tidsperiodeid AS tid 
-							     FROM Varsle, Tidsperiode 
-							     WHERE (Tidsperiode.brukerprofilid = " . addslashes($pid) . ") AND (Tidsperiode.id = Varsle.tidsperiodeid) 
-							  ) AS Gcount 
-						     GROUP BY tid 
-						     ) AS grupper 
-				     ON (Tidsper.id = grupper.tid) 
+		$querystr = 'SELECT Tidsper.id, Tidsper.helg,
+				date_part(\'hour\', Tidsper.starttid) AS time,
+				date_part(\'minute\', Tidsper.starttid) AS minutt,
+				adresser.aa, grupper.au
+			FROM (
+					SELECT id, helg, starttid
+					FROM Tidsperiode
+					WHERE Tidsperiode.brukerprofilid = $1
+				) AS Tidsper
+			LEFT OUTER JOIN (
+					SELECT count(aid) AS aa, tid
+					FROM (
+							SELECT DISTINCT Varsle.alarmadresseid AS aid,
+									Varsle.tidsperiodeid AS tid
+							FROM Varsle, Tidsperiode
+							WHERE
+								Tidsperiode.brukerprofilid = $1 AND
+								Tidsperiode.id = Varsle.tidsperiodeid
+						) AS Acount
+					GROUP BY tid
+				) AS adresser ON (Tidsper.id = adresser.tid)
+			LEFT OUTER JOIN (
+					SELECT count(gid) AS au, tid
+				 	FROM (
+							SELECT DISTINCT Varsle.utstyrgruppeid AS gid,
+									Varsle.tidsperiodeid AS tid
+							FROM Varsle, Tidsperiode
+							WHERE
+								Tidsperiode.brukerprofilid = $1 AND
+								Tidsperiode.id = Varsle.tidsperiodeid
+						) AS Gcount
+					GROUP BY tid
+				) AS grupper ON (Tidsper.id = grupper.tid)
+			ORDER BY time, minutt';
+		$querypar = array($pid);
 
-				     ORDER BY time, minutt";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$perioder[$row][0] = $data["id"]; 
-				$perioder[$row][1] = $data["helg"];
-				$perioder[$row][2] = $data["time"];
-				$perioder[$row][3] = $data["minutt"];
-				$perioder[$row][4] = $data["aa"];
-				$perioder[$row][5] = $data["au"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$perioder[] = array(
+						$data["id"],
+						$data["helg"],
+						$data["time"],
+						$data["minutt"],
+						$data["aa"],
+						$data["au"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $perioder;
 	}
 
 
 
-	// Denne funksjonen returnerer en liste over alle tidsperioder som kræsjer, altså har samme tid.        
+	// Denne funksjonen returnerer en liste over alle tidsperioder som
+	// kræsjer, altså har samme tid.
 	function listPeriodekonflikter($pid) {
 		$konf = NULL;
 
-		$querystring =  "
-			SELECT antall, dag, starttid FROM (
-					SELECT count(id) AS antall, dag, starttid FROM (
-						SELECT id, 'hverdag' AS dag, starttid 
-						FROM Tidsperiode 
-						WHERE brukerprofilid = " . addslashes($pid) . " AND ((helg = 2) OR (helg = 1) )
-						UNION
-						SELECT id, 'helg' AS dag, starttid  
-						FROM Tidsperiode 
-						WHERE brukerprofilid = " . addslashes($pid) . " AND ((helg = 3) OR (helg = 1) )
+		$querystr =  'SELECT antall, dag, starttid
+			FROM (
+					SELECT count(id) AS antall, dag, starttid
+					FROM (
+							SELECT id, \'hverdag\' AS dag, starttid
+							FROM Tidsperiode
+							WHERE
+								brukerprofilid = $1 AND
+								((helg = 2) OR (helg = 1))
+							UNION
+							SELECT id, \'helg\' AS dag, starttid
+							FROM Tidsperiode
+							WHERE
+								brukerprofilid = $1 AND
+								((helg = 3) OR (helg = 1))
 						) AS subs
 					GROUP BY dag, starttid
-					) AS subss 
-			WHERE antall > 1
-			";     
-			//print "<pre>" . $querystring . "</pre>";
+				) AS subss
+			WHERE antall > 1';
+		$querypar = array($pid);
 
 
-			if ( $query = pg_exec($this->connection, $querystring) ) {
-				$tot = pg_numrows($query); $row = 0;
-
-				while ( $row < $tot) {
-					$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-					$konf[$row][0] = $data["antall"];		
-					$konf[$row][1] = $data["dag"];
-					$konf[$row][2] = $data["starttid"];
-
-					$row++;
-				} 
-			}  else {
-				$error = new Error(2);
-				$bruker{'errmsg'}= "Feil med datbasespørring.";
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$konf[] = array(
+					$data["antall"],
+					$data["dag"],
+					$data["starttid"]
+				);
 			}
-
+		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+			$error = new Error(2);
+			$bruker{'errmsg'}= "Feil med datbasespørring.";
+		}
 		return $konf;
-
 	}
 
 
-
-
-
-
-	// Denne funksjonen returnerer alle utstyrgrupper som en Account har tilgang til, 
-	// enten man har laget den selv eller den er arvet gjennom DefaultUtstyr.
+	// Denne funksjonen returnerer alle utstyrgrupper som en Account har
+	// tilgang til, enten man har laget den selv eller den er arvet gjennom
+	// DefaultUtstyr.
 	function listUtstyr($uid, $sort) {
 		$utst = NULL;
 
@@ -786,347 +800,374 @@ class DBH {
 				'ap,navn',
 				'af,navn');
 
-		$querystring = "SELECT * FROM (SELECT DISTINCT ON (id) id, navn, descr, min, Pcount.ap, FCount.af 
-			FROM (SELECT id, navn, descr, true AS min
+		$querystr = 'SELECT *
+			FROM (
+				SELECT DISTINCT ON (id) id, navn, descr, min, Pcount.ap, FCount.af
+				FROM (
+					SELECT id, navn, descr, true AS min
 					FROM Utstyrgruppe
-					WHERE (accountid = " . addslashes($uid) . ")
+					WHERE accountid = $1
 					UNION
-					SELECT Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr, (Utstyrgruppe.accountid = " . addslashes($uid). ") AS min
-					FROM Utstyrgruppe, DefaultUtstyr, AccountGroup, AccountInGroup
-					WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
-					AND (AccountInGroup.groupid = AccountGroup.id)
-					AND (AccountGroup.id = DefaultUtstyr.accountgroupid)
-					AND (DefaultUtstyr.utstyrgruppeid = Utstyrgruppe.id)
-			     ) AS Tilgjengelig LEFT OUTER JOIN
-			(    SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
-			     FROM (
-				     SELECT DISTINCT ON (utstyrgruppeid,tidsperiodeid) tidsperiodeid, utstyrgruppeid
-				     FROM (
-					     SELECT Varsle.utstyrgruppeid, Varsle.tidsperiodeid FROM Varsle, Tidsperiode, Brukerprofil 
-					     WHERE (Varsle.tidsperiodeid = Tidsperiode.id) AND
-					     (Tidsperiode.brukerprofilid = Brukerprofil.id) AND
-					     (Brukerprofil.accountid = " . addslashes($uid) . ")
-					  ) AS MinVarsle, Utstyrgruppe
-				     WHERE (Utstyrgruppe.id = MinVarsle.utstyrgruppeid)
-				  ) AS X
-			     GROUP BY utstyrgruppeid
-			) AS PCount
-			ON (id = PCount.utstyrgruppeid)
-			LEFT OUTER JOIN (
+					SELECT
+						Utstyrgruppe.id, Utstyrgruppe.navn,
+						Utstyrgruppe.descr,
+						(Utstyrgruppe.accountid = $1) AS min
+					FROM
+						Utstyrgruppe, DefaultUtstyr,
+						AccountGroup, AccountInGroup
+					WHERE
+						AccountInGroup.accountid = $1 AND
+						AccountInGroup.groupid = AccountGroup.id AND
+						AccountGroup.id = DefaultUtstyr.accountgroupid AND
+						DefaultUtstyr.utstyrgruppeid = Utstyrgruppe.id
+				) AS Tilgjengelig
+				LEFT OUTER JOIN (
+					SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
+					FROM (
+						SELECT DISTINCT ON (utstyrgruppeid,tidsperiodeid)
+							tidsperiodeid, utstyrgruppeid
+						FROM (
+							SELECT Varsle.utstyrgruppeid, Varsle.tidsperiodeid
+							FROM Varsle, Tidsperiode, Brukerprofil
+							WHERE
+								Varsle.tidsperiodeid = Tidsperiode.id AND
+								Tidsperiode.brukerprofilid = Brukerprofil.id AND
+								Brukerprofil.accountid = $1
+						) AS MinVarsle, Utstyrgruppe
+						WHERE (Utstyrgruppe.id = MinVarsle.utstyrgruppeid)
+					) AS X
+					GROUP BY utstyrgruppeid
+				) AS PCount ON (id = PCount.utstyrgruppeid)
+				LEFT OUTER JOIN (
 					SELECT count(utstyrfilterid) AS af, utstyrgruppeid
 					FROM (
 						SELECT utstyrfilterid, utstyrgruppeid
 						FROM GruppeTilFilter, Utstyrgruppe
-						WHERE ((Utstyrgruppe.accountid = " . addslashes($uid) . ") OR (Utstyrgruppe.accountid is null) )
-						AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
-					     ) AS Y
+						WHERE (
+								Utstyrgruppe.accountid = $1 OR
+								Utstyrgruppe.accountid is null
+							) AND
+							Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid
+					) AS Y
 					GROUP BY utstyrgruppeid
-					) AS FCount
-			ON (id = FCount.utstyrgruppeid) ) jalla ORDER BY " . $sorts[$sort];
+				) AS FCount ON (id = FCount.utstyrgruppeid)
+			) jalla
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid);
 
-		//print "<pre>" . $querystring . "</pre>";
+		//print "<pre>" . $querystr . "</pre>";
 
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"];		
-				$utst[$row][1] = $data["navn"];
-				$utst[$row][2] = $data["ap"];
-				$utst[$row][3] = $data["af"];
-				$utst[$row][4] = $data["min"];
-				$utst[$row][5] = $data["descr"];		
-
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["ap"],
+						$data["af"],
+						$data["min"],
+						$data["descr"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
 
 	}
 
 
-	// Denne funksjonen returnerer alle utstyrgrupper som en Account har rettighet til, 
+	// Denne funksjonen returnerer alle utstyrgrupper som en Account har
+	// rettighet til,
 	function listUtstyrRettighet($uid, $sort) {
 		$utst = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+//		$sorts = array (
+//				'time, minutt',
+//				'aa, time, minutt',
+//				'au, time, minutt',
+//				'time, minutt'
+//			);
 
-		$querystring = "SELECT DISTINCT ON (id) utstyrgruppe.id, navn, descr 
-			FROM accountingroup, Rettighet, Utstyrgruppe 
-			WHERE (AccountInGroup.accountid = " . addslashes($uid) . ") AND 
-			(AccountInGroup.groupid = Rettighet.accountgroupid) AND 
-			(Rettighet.utstyrgruppeid = Utstyrgruppe.id)";
+		$querystr = 'SELECT DISTINCT ON (id) utstyrgruppe.id, navn, descr
+			FROM accountingroup, Rettighet, Utstyrgruppe
+			WHERE
+				AccountInGroup.accountid = $1 AND
+				AccountInGroup.groupid = Rettighet.accountgroupid AND
+				Rettighet.utstyrgruppeid = Utstyrgruppe.id';
+		$querypar = array($uid);
 
-		//print "<p>$querystring";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"]; 
-				$utst[$row][1] = $data["navn"];			
-				$utst[$row][2] = $data["descr"];	
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["descr"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
 	}
 
 
-	// Denne funksjonen returnerer alle utstyrgrupper som administrator har rettigheter til 
+	// Denne funksjonen returnerer alle utstyrgrupper som administrator har
+	// rettigheter til
 	function listUtstyrAdm($sort) {
 		$utst = NULL;
 
-		$sorts = array (
+		$sorts = array(
 				'navn,id',
 				'ap,navn',
-				'af,navn');
+				'af,navn'
+			);
 
-		$querystring = "SELECT * FROM (SELECT DISTINCT ON (id) id, navn, descr, min, Pcount.ap, FCount.af
-			FROM (SELECT id, navn, descr, true AS min
-					FROM Utstyrgruppe
-					WHERE (accountid is null)
-			     ) AS Tilgjengelig LEFT OUTER JOIN
-			(    SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
-			     FROM (
-				     SELECT DISTINCT ON (utstyrgruppeid,tidsperiodeid) tidsperiodeid, utstyrgruppeid
-				     FROM Varsle, Utstyrgruppe
-				     WHERE (Utstyrgruppe.accountid is null)
-				     AND (Utstyrgruppe.id = Varsle.utstyrgruppeid)
-				  ) AS X
-			     GROUP BY utstyrgruppeid
-			) AS PCount
-			ON (id = PCount.utstyrgruppeid)
+		$querystr = 'SELECT * FROM (
+			SELECT DISTINCT ON (id) id, navn, descr, min, Pcount.ap, FCount.af
+			FROM (
+				SELECT id, navn, descr, true AS min
+				FROM Utstyrgruppe
+				WHERE (accountid is null)
+			) AS Tilgjengelig
 			LEFT OUTER JOIN (
-					SELECT count(utstyrfilterid) AS af, utstyrgruppeid
-					FROM (
-						SELECT utstyrfilterid, utstyrgruppeid
-						FROM GruppeTilFilter, Utstyrgruppe
-						WHERE (Utstyrgruppe.accountid is null)
-						AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
-					     ) AS Y
-					GROUP BY utstyrgruppeid
-					) AS FCount
-			ON (id = FCount.utstyrgruppeid)) jalla ORDER BY " . $sorts[$sort];
+				SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
+				FROM (
+					SELECT DISTINCT ON (utstyrgruppeid,tidsperiodeid)
+						tidsperiodeid, utstyrgruppeid
+					FROM Varsle, Utstyrgruppe
+					WHERE
+						(Utstyrgruppe.accountid is null) AND
+						(Utstyrgruppe.id = Varsle.utstyrgruppeid)
+				) AS X
+				GROUP BY utstyrgruppeid
+			) AS PCount ON (id = PCount.utstyrgruppeid)
+			LEFT OUTER JOIN (
+				SELECT count(utstyrfilterid) AS af, utstyrgruppeid
+				FROM (
+					SELECT utstyrfilterid, utstyrgruppeid
+					FROM GruppeTilFilter, Utstyrgruppe
+					WHERE (Utstyrgruppe.accountid is null)
+					AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
+				) AS Y
+				GROUP BY utstyrgruppeid
+			) AS FCount ON (id = FCount.utstyrgruppeid)) jalla
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"];		
-				$utst[$row][1] = $data["navn"];
-				$utst[$row][2] = $data["ap"];
-				$utst[$row][3] = $data["af"];
-				$utst[$row][4] = $data["min"];
-				$utst[$row][5] = $data["descr"];		
-
-				$row++;
-			} 
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["ap"],
+						$data["af"],
+						$data["min"],
+						$data["descr"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
 	}
 
 
-
-
-
-	// Denne funksjonen returnerer alle utstyrgrupper knyttet til en bestemt periode i en profil
+	// Denne funksjonen returnerer alle utstyrgrupper knyttet til en
+	// bestemt periode i en profil
 	function listUtstyrPeriode($uid, $pid, $sort) {
 		$uts = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+//		$sorts = array(
+//				'time, minutt',
+//				'aa, time, minutt',
+//				'au, time, minutt',
+//				'time, minutt'
+//			);
 
-		$querystring = "SELECT DISTINCT ON (id) id, navn, min, Pcount.ap, FCount.af 
-			FROM ( SELECT id, navn, descr, true AS min 
-					FROM Utstyrgruppe
-					WHERE (accountid = " . addslashes($uid) . ")
-					UNION 
-					SELECT Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr, (Utstyrgruppe.accountid = " . addslashes($uid) . ") AS min 
-					FROM Utstyrgruppe, DefaultUtstyr, AccountGroup, AccountInGroup
-					WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
-					AND (AccountInGroup.groupid = AccountGroup.id)
-					AND (AccountGroup.id = DefaultUtstyr.accountgroupid)
-					AND (DefaultUtstyr.utstyrgruppeid = Utstyrgruppe.id) 
-			     ) AS Tilgjengelig LEFT OUTER JOIN ( 
-				     SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
-				     FROM (
-					     SELECT DISTINCT tidsperiodeid, utstyrgruppeid
-					     FROM Varsle, Tidsperiode, Brukerprofil 
-					     WHERE (Varsle.tidsperiodeid = Tidsperiode.id) 
-					     AND (Tidsperiode.brukerprofilid = Brukerprofil.id) 
-					     AND (Brukerprofil.accountid = " . addslashes($uid) . ") 
-					  ) AS X
-				     GROUP BY utstyrgruppeid
-				     ) AS PCount
-			     ON (id = PCount.utstyrgruppeid)
-			     LEFT OUTER JOIN (
-					     SELECT count(utstyrfilterid) AS af, utstyrgruppeid
-					     FROM (
-						     SELECT utstyrfilterid, utstyrgruppeid
-						     FROM GruppeTilFilter, Utstyrgruppe
-						     WHERE (Utstyrgruppe.accountid = " . addslashes($uid) . ")
-						     AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
-						  ) AS Y
-					     GROUP BY utstyrgruppeid
-					     ) AS FCount
-			     ON (id = FCount.utstyrgruppeid)";
+		$querystr = 'SELECT DISTINCT ON (id) id, navn, min, Pcount.ap, FCount.af
+			FROM (
+				SELECT id, navn, descr, true AS min
+				FROM Utstyrgruppe
+				WHERE (accountid = $1)
+				UNION
+				SELECT
+					Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr,
+					(Utstyrgruppe.accountid = $1) AS min
+				FROM Utstyrgruppe, DefaultUtstyr, AccountGroup, AccountInGroup
+				WHERE
+					(AccountInGroup.accountid = $1) AND
+					(AccountInGroup.groupid = AccountGroup.id) AND
+					(AccountGroup.id = DefaultUtstyr.accountgroupid) AND
+					(DefaultUtstyr.utstyrgruppeid = Utstyrgruppe.id)
+			) AS Tilgjengelig
+			LEFT OUTER JOIN (
+				SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
+				FROM (
+					SELECT DISTINCT tidsperiodeid, utstyrgruppeid
+					FROM Varsle, Tidsperiode, Brukerprofil
+					WHERE
+						(Varsle.tidsperiodeid = Tidsperiode.id) AND
+						(Tidsperiode.brukerprofilid = Brukerprofil.id) AND
+						(Brukerprofil.accountid = $1)
+				) AS X
+				GROUP BY utstyrgruppeid
+			) AS PCount ON (id = PCount.utstyrgruppeid)
+			LEFT OUTER JOIN (
+				SELECT count(utstyrfilterid) AS af, utstyrgruppeid
+				FROM (
+					SELECT utstyrfilterid, utstyrgruppeid
+					FROM GruppeTilFilter, Utstyrgruppe
+					WHERE
+						(Utstyrgruppe.accountid = $1) AND
+						(Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
+				) AS Y
+				GROUP BY utstyrgruppeid
+			) AS FCount ON (id = FCount.utstyrgruppeid)';
+		$querypar = array($uid);
 
 
-		//print "<p>$querystring";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"]; 
-				$utst[$row][1] = $data["navn"];
-				$utst[$row][2] = $data["ap"];
-				$utst[$row][3] = $data["af"];
-				$utst[$row][4] = $data["min"];				
-				//$utst[$row][5] = $data["ermed"];	
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["ap"],
+						$data["af"],
+						$data["min"]
+						//$data["ermed"]
+				);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
 	}
 
 
-
-
-	// Denne funksjonen returenrer alle felles filtere samt default utrstyr knyttet til
-	// brukergruppene.
+	// Denne funksjonen returenrer alle felles filtere samt default utrstyr
+	// knyttet til brukergruppene.
 	function listGrFilter($uid, $gid, $sort) {
 		$utst = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+//		$sorts = array(
+//				'time, minutt',
+//				'aa, time, minutt',
+//				'au, time, minutt',
+//				'time, minutt'
+//			);
 
-		$querystring = "SELECT id, navn,  
-			(def.utstyrfilterid > 0 ) AS default 
+		$querystr = 'SELECT id, navn, (def.utstyrfilterid > 0 ) AS default
 			FROM (
-					SELECT id, navn  
-					FROM Utstyrfilter 
-					WHERE accountid is null 
-			     ) AS filter 
+					SELECT id, navn
+					FROM Utstyrfilter
+					WHERE accountid is null
+				) AS filter
 			LEFT OUTER JOIN (
-					SELECT utstyrfilterid   
-					FROM DefaultFilter  
-					WHERE accountgroupid = " . addslashes($gid) . "
-					) AS def 
-			ON (filter.id = def.utstyrfilterid) 
-			ORDER BY navn";
+					SELECT utstyrfilterid
+					FROM DefaultFilter
+					WHERE accountgroupid = $1
+				) AS def ON (filter.id = def.utstyrfilterid)
+			ORDER BY navn';
+		$querypar = array($gid);
 
-		//print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"]; 
-				$utst[$row][1] = $data["navn"];			
-				$utst[$row][2] = $data["default"];
-				$row++;
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["default"]
+					);
 			} 
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
 	}
 
 
-
-
-	// Denne funksjonen returenrer alle utstyrsgruppene samt rettigheter og default utrstyr knyttet til
-	// brukergruppene.
+	// Denne funksjonen returenrer alle utstyrsgruppene samt rettigheter og
+	// default utrstyr knyttet til brukergruppene.
 	function listGrUtstyr($uid, $gid, $sort) {
 		$uts = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+//		$sorts = array(
+//				'time, minutt',
+//				'aa, time, minutt',
+//				'au, time, minutt',
+//				'time, minutt'
+//			);
 
-		$querystring = "SELECT id, navn, descr, 
-			(rett.utstyrgruppeid > 0 ) AS rettighet, 
-			(def.utstyrgruppeid > 0 ) AS default 
-				FROM (
-						SELECT id, navn, descr 
-						FROM Utstyrgruppe 
-						WHERE accountid is null 
-				     ) AS grupper 
-				LEFT OUTER JOIN (
-						SELECT utstyrgruppeid 
-						FROM Rettighet 
-						WHERE accountgroupid = " . addslashes($gid) . "
-						) AS rett 
-				ON (grupper.id = rett.utstyrgruppeid) 
-				LEFT OUTER JOIN (
-						SELECT utstyrgruppeid 
-						FROM DefaultUtstyr 
-						WHERE accountgroupid = " . addslashes($gid) . "
-						) AS def 
-				ON (grupper.id = def.utstyrgruppeid) 
-				ORDER BY navn";
+		$querystr = 'SELECT id, navn, descr,
+				(rett.utstyrgruppeid > 0 ) AS rettighet,
+				(def.utstyrgruppeid > 0 ) AS default
+			FROM (
+					SELECT id, navn, descr
+					FROM Utstyrgruppe
+					WHERE accountid is null
+				) AS grupper
+			LEFT OUTER JOIN (
+					SELECT utstyrgruppeid
+					FROM Rettighet
+					WHERE accountgroupid = $1
+				) AS rett ON (grupper.id = rett.utstyrgruppeid)
+			LEFT OUTER JOIN (
+					SELECT utstyrgruppeid
+					FROM DefaultUtstyr
+					WHERE accountgroupid = $1
+				) AS def ON (grupper.id = def.utstyrgruppeid)
+			ORDER BY navn';
+		$querypar = array($gid);
 
-		//  print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"]; 
-				$utst[$row][1] = $data["navn"];			
-				$utst[$row][2] = $data["descr"];
-				$utst[$row][3] = $data["rettighet"];
-				$utst[$row][4] = $data["default"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["descr"],
+						$data["rettighet"],
+						$data["default"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
 	}
-
 
 
 	// Hent ut info om en brukerid
 	function brukerInfo($uid) {
 		$br = NULL;
 
-		$querystring = "SELECT login, name, null as admin, null as sms, activeprofile  
-			FROM Account, Preference  
-			WHERE id = " . addslashes($uid) . " AND account.id = preference.accountid";
+		$querystr = 'SELECT login, name, null as admin, null as sms, activeprofile
+			FROM Account, Preference
+			WHERE
+				id = $1 AND
+				account.id = preference.accountid';
+		$querypar = array($uid);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query, 0);
 			$br[0] = $data["login"];
 			$br[1] = $data["name"];
 			$br[2] = $data["admin"];
 			$br[3] = $data["sms"];
 			$br[4] = $data["activeprofile"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
@@ -1138,15 +1179,18 @@ class DBH {
 	function brukergruppeInfo($gid) {
 		$gr = NULL;
 
-		$querystring = "SELECT name, descr 
-			FROM AccountGroup 
-			WHERE id = " . addslashes($gid) ;
+		$querystr = 'SELECT name, descr
+			FROM AccountGroup
+			WHERE id = $1';
+		$querypar = array($gid);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-			$gr[0] = $data["name"]; 
-			$gr[1] = $data["descr"];		
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query, 0);
+			$gr[0] = $data["name"];
+			$gr[1] = $data["descr"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
@@ -1157,17 +1201,19 @@ class DBH {
 	function utstyrgruppeInfo($gid) {
 		$gr = NULL;
 
-		$querystring = "SELECT navn, descr 
-			FROM Utstyrgruppe 
-			WHERE id = " . addslashes($gid) ;
+		$querystr = 'SELECT navn, descr
+			FROM Utstyrgruppe
+			WHERE id = $1';
+		$querypar = array($gid);
 
-		//	print "<p>" . $querystring;
+		$query = pg_query_params($this->connection, $querystr, $querypar);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-			$gr[0] = $data["navn"]; 
-			$gr[1] = $data["descr"];		
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query, 0);
+			$gr[0] = $data["navn"];
+			$gr[1] = $data["descr"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
@@ -1178,40 +1224,43 @@ class DBH {
 	function utstyrfilterInfo($fid) {
 		$gr = NULL;
 
-		$querystring = "SELECT navn 
-			FROM Utstyrfilter 
-			WHERE id = " . addslashes($fid) ;
+		$querystr = 'SELECT navn
+			FROM Utstyrfilter
+			WHERE id = $1';
+		$querypar = array($fid);
 
-		//	print "<p>" . $querystring;
+		$query = pg_query_params($this->connection, $querystr, $querypar);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-			$gr[0] = $data["navn"]; 
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query, 0);
+			$gr[0] = $data["navn"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
 		return $gr;
 	}
-
-
 
 
 	// Hent ut info om en utstyrsgruppeid
 	function utstyrgruppeInfoAdv($gid, $uid) {
 		$gr = NULL;
 
-		$querystring = "SELECT navn, descr, (accountid = " . $uid . ") AS min 
-			FROM Utstyrgruppe WHERE id = " . addslashes($gid) ;
+		$querystr = 'SELECT navn, descr, (accountid = $1) AS min
+			FROM Utstyrgruppe
+			WHERE id = $2';
+		$querypar = array($uid, $gid);
 
-		//	print "<p>" . $querystring;
+		$query = pg_query_params($this->connection, $querystr, $querypar);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-			$gr[0] = $data["navn"]; 
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query);
+			$gr[0] = $data["navn"];
 			$gr[1] = $data["descr"];
-			$gr[2] = $data["min"];		
+			$gr[2] = $data["min"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
@@ -1219,30 +1268,31 @@ class DBH {
 	}
 
 
-
-
-
-
 	// Hent ut info om en brukerprofil
 	function brukerprofilInfo($pid) {
 		$p = NULL;
 
-		$querystring = "SELECT navn, ukedag, extract(HOUR FROM uketid) AS uketidh, extract(MINUTE FROM uketid) AS uketidm, 
-			extract(HOUR FROM tid) AS tidh, extract(MINUTE FROM tid) AS tidm 
-			FROM Brukerprofil 
-			WHERE id = " . addslashes($pid) ;
+		$querystr = 'SELECT
+				navn, ukedag, extract(HOUR FROM uketid) AS uketidh,
+				extract(MINUTE FROM uketid) AS uketidm,
+				extract(HOUR FROM tid) AS tidh,
+				extract(MINUTE FROM tid) AS tidm
+			FROM Brukerprofil
+			WHERE id = $1';
+		$querypar = array($pid);
 
-		//	print "<p>" . $querystring;
+		$query = pg_query_params($this->connection, $querystr, $querypar);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-			$p[0] = $data["navn"]; 
-			$p[1] = $data["ukedag"];		
-			$p[2] = $data["uketidh"];		
-			$p[3] = $data["uketidm"];		
-			$p[4] = $data["tidh"];		
-			$p[5] = $data["tidm"];										
+		if ($query and pg_num_rows($query) == 1) {
+			$data = pg_fetch_assoc($query, 0);
+			$p[0] = $data["navn"];
+			$p[1] = $data["ukedag"];
+			$p[2] = $data["uketidh"];
+			$p[3] = $data["uketidm"];
+			$p[4] = $data["tidh"];
+			$p[5] = $data["tidm"];
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
@@ -1250,10 +1300,9 @@ class DBH {
 	}
 
 
-
-
-	// Denne funksjonen returnerer alle filtrene som en Account har tilgang til, 
-	// enten man har laget den selv eller den er arvet gjennom DefaultFilter.
+	// Denne funksjonen returnerer alle filtrene som en Account har tilgang
+	// til, enten man har laget den selv eller den er arvet gjennom
+	// DefaultFilter.
 	function listFiltre($uid, $sort) {
 		$utst = NULL;
 
@@ -1261,298 +1310,313 @@ class DBH {
 				'navn,id',
 				'min,navn',
 				'am,navn',
-				'ag,navn');
+				'ag,navn'
+			);
 
-		$querystring = "
-			SELECT * FROM (
-					SELECT DISTINCT ON (id) id, navn, min, am, ag 
-					FROM (
-						SELECT id, navn, true AS min
-						FROM Utstyrfilter
-						WHERE (accountid = " . addslashes($uid) . ")
-						UNION
-						SELECT Utstyrfilter.id, Utstyrfilter.navn, (Utstyrfilter.accountid = " . addslashes($uid). ") AS min 
-						FROM Utstyrfilter, DefaultFilter, AccountGroup, AccountInGroup
-						WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
-						AND (AccountInGroup.groupid = AccountGroup.id)
-						AND (AccountGroup.id = DefaultFilter.accountgroupid)
-						AND (DefaultFilter.utstyrfilterid = Utstyrfilter.id)
-					     ) AS MineFilter 
-					LEFT OUTER JOIN (
-						SELECT count(mid) AS am,  uid
-						FROM (
-							SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
-							FROM Utstyrfilter, FilterMatch
-							WHERE (Utstyrfilter.id = FilterMatch.utstyrfilterid)
-						     ) AS Mcount 
-						GROUP BY uid 
-						) AS match ON (MineFilter.id = match.uid) 
-					LEFT OUTER JOIN (
-							SELECT count(gid) AS ag, uid
-							FROM (
-								SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
-								FROM Utstyrfilter, GruppeTilFilter
-								WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
-							     ) AS Gcount 
-							GROUP BY uid 
-							) AS grupper ON (MineFilter.id = grupper.uid)
-					) AS jalla ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT * FROM (
+			SELECT DISTINCT ON (id) id, navn, min, am, ag
+			FROM (
+				SELECT id, navn, true AS min
+				FROM Utstyrfilter
+				WHERE (accountid = $1)
+				UNION
+				SELECT
+					Utstyrfilter.id, Utstyrfilter.navn,
+					(Utstyrfilter.accountid = $1) AS min
+				FROM Utstyrfilter, DefaultFilter, AccountGroup, AccountInGroup
+				WHERE
+					(AccountInGroup.accountid = $1) AND
+					(AccountInGroup.groupid = AccountGroup.id) AND
+					(AccountGroup.id = DefaultFilter.accountgroupid) AND
+					(DefaultFilter.utstyrfilterid = Utstyrfilter.id)
+			) AS MineFilter
+			LEFT OUTER JOIN (
+				SELECT count(mid) AS am,  uid
+				FROM (
+					SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
+					FROM Utstyrfilter, FilterMatch
+					WHERE (Utstyrfilter.id = FilterMatch.utstyrfilterid)
+				) AS Mcount
+				GROUP BY uid
+			) AS match ON (MineFilter.id = match.uid)
+			LEFT OUTER JOIN (
+				SELECT count(gid) AS ag, uid
+				FROM (
+					SELECT
+						GruppeTilFilter.utstyrgruppeid AS gid,
+						Utstyrfilter.id AS uid
+					FROM Utstyrfilter, GruppeTilFilter
+					WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+				) AS Gcount
+				GROUP BY uid
+			) AS grupper ON (MineFilter.id = grupper.uid)
+		) AS jalla ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($uid);
 
-		// print "<pre>" . $querystring . "</pre>";
-
-		if ( $query = pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$utst[$row][0] = $data["id"];		
-				$utst[$row][1] = $data["navn"];
-				$utst[$row][2] = $data["am"];
-				$utst[$row][3] = $data["ag"];
-				$utst[$row][4] = $data["min"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$utst[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["am"],
+						$data["ag"],
+						$data["min"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $utst;
-
 	}
 
 
-
-
-
-
-
-	// Denne funksjonen returnerer alle filtrene som hører til en bestemt Account.
+	// Denne funksjonen returnerer alle filtrene som hører til en bestemt
+	// Account.
 	function listFiltre_depr($uid, $sort) {
 		$filtre = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+		$sorts = array(
+				'time, minutt',
+				'aa, time, minutt',
+				'au, time, minutt',
+				'time, minutt'
+			);
 
-		$querystring = "SELECT MineFilter.id, MineFilter.navn, match.am, grupper.ag
+		$querystr = "SELECT MineFilter.id, MineFilter.navn, match.am, grupper.ag
 			FROM (
-					SELECT id, navn
-					FROM Utstyrfilter 
-					WHERE (Utstyrfilter.accountid = " . addslashes($uid) . ") 
-			     ) AS MineFilter LEFT OUTER JOIN (
-				     SELECT count(mid) AS am,  uid
-				     FROM (
-					     SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
-					     FROM Utstyrfilter, FilterMatch
-					     WHERE (Utstyrfilter.accountid = " . addslashes($uid) . ") AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
-					  ) AS Mcount 
-				     GROUP BY uid 
-				     ) AS match 
-			     ON (MineFilter.id = match.uid) 
-			     LEFT OUTER JOIN (
-					     SELECT count(gid) AS ag, uid
-					     FROM (
-						     SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
-						     FROM Utstyrfilter, GruppeTilFilter
-						     WHERE (Utstyrfilter.accountid = " . addslashes($uid) . ") AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
-						  ) AS Gcount 
-					     GROUP BY uid 
-					     ) AS grupper 
-			     ON (MineFilter.id = grupper.uid) 
-			     ORDER BY navn";
+				SELECT id, navn
+				FROM Utstyrfilter
+				WHERE (Utstyrfilter.accountid = $1)
+			) AS MineFilter
+			LEFT OUTER JOIN (
+				SELECT count(mid) AS am,  uid
+				FROM (
+					SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
+					FROM Utstyrfilter, FilterMatch
+					WHERE
+						(Utstyrfilter.accountid = $1) AND
+						(Utstyrfilter.id = FilterMatch.utstyrfilterid)
+				) AS Mcount
+				GROUP BY uid
+			) AS match ON (MineFilter.id = match.uid)
+			LEFT OUTER JOIN (
+				SELECT count(gid) AS ag, uid
+				FROM (
+					SELECT
+						GruppeTilFilter.utstyrgruppeid AS gid,
+						Utstyrfilter.id AS uid
+					FROM Utstyrfilter, GruppeTilFilter
+					WHERE
+						(Utstyrfilter.accountid = $1) AND
+						(Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+				) AS Gcount
+				GROUP BY uid
+			) AS grupper ON (MineFilter.id = grupper.uid)
+			ORDER BY navn";
+		$querypar = array($uid);
 
-
-		//  print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$filtre[$row][0] = $data["id"]; 
-				$filtre[$row][1] = $data["navn"];
-				$filtre[$row][2] = $data["am"];
-				$filtre[$row][3] = $data["ag"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$filtre[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["am"],
+						$data["ag"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $filtre;
 	}
 
-
-
-	// Denne funksjonen returnerer alle filtrene som hører til administratorene.
+	// Denne funksjonen returnerer alle filtrene som hører til
+	// administratorene.
 	function listFiltreAdm($sort) {
 		$filtre = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+		$sorts = array(
+				'time, minutt',
+				'aa, time, minutt',
+				'au, time, minutt',
+				'time, minutt'
+			);
 
-		$querystring = "SELECT MineFilter.id, MineFilter.navn, match.am, grupper.ag
+		$querystr = 'SELECT MineFilter.id, MineFilter.navn, match.am, grupper.ag
 			FROM (
-					SELECT id, navn
-					FROM Utstyrfilter 
-					WHERE (Utstyrfilter.accountid is null) 
-			     ) AS MineFilter LEFT OUTER JOIN (
-				     SELECT count(mid) AS am,  uid
-				     FROM (
-					     SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
-					     FROM Utstyrfilter, FilterMatch
-					     WHERE (Utstyrfilter.accountid is null) AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
-					  ) AS Mcount 
-				     GROUP BY uid 
-				     ) AS match 
-			     ON (MineFilter.id = match.uid) 
-			     LEFT OUTER JOIN (
-					     SELECT count(gid) AS ag, uid
-					     FROM (
-						     SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
-						     FROM Utstyrfilter, GruppeTilFilter
-						     WHERE (Utstyrfilter.accountid is null) AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
-						  ) AS Gcount 
-					     GROUP BY uid 
-					     ) AS grupper 
-			     ON (MineFilter.id = grupper.uid) 
-			     ORDER BY navn";
+				SELECT id, navn
+				FROM Utstyrfilter
+				WHERE (Utstyrfilter.accountid is null)
+			) AS MineFilter
+			LEFT OUTER JOIN (
+				SELECT count(mid) AS am,  uid
+				FROM (
+					SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
+					FROM Utstyrfilter, FilterMatch
+					WHERE
+						(Utstyrfilter.accountid is null) AND
+					  	(Utstyrfilter.id = FilterMatch.utstyrfilterid)
+				) AS Mcount
+				GROUP BY uid
+			) AS match ON (MineFilter.id = match.uid)
+			LEFT OUTER JOIN (
+				SELECT count(gid) AS ag, uid
+				FROM (
+					SELECT
+					 	GruppeTilFilter.utstyrgruppeid AS gid,
+						Utstyrfilter.id AS uid
+					FROM Utstyrfilter, GruppeTilFilter
+					WHERE
+						(Utstyrfilter.accountid is null) AND
+						(Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+				) AS Gcount
+				GROUP BY uid
+			) AS grupper
+			ON (MineFilter.id = grupper.uid)
+			ORDER BY navn';
 
-
-		//  print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$filtre[$row][0] = $data["id"]; 
-				$filtre[$row][1] = $data["navn"];
-				$filtre[$row][2] = $data["am"];
-				$filtre[$row][3] = $data["ag"];
-				$row++;
-			} 
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$filtre[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["am"],
+						$data["ag"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $filtre;
 	}
 
 
-
-
-	// Denne funksjonen returnerer alle filtrene som hører til en bestemt Account uten unødig krimskrams. untatt de som allerede er valgt.
+	// Denne funksjonen returnerer alle filtrene som hører til en bestemt
+	// Account uten unødig krimskrams. untatt de som allerede er valgt.
 	function listFiltreFast($uid, $gid, $sort) {
 		$filtre = NULL;
 
-		$querystring = "
-			SELECT * FROM (
-					SELECT DISTINCT ON (id) id, navn, min 
-					FROM (
-						SELECT id, navn, true AS min
-						FROM Utstyrfilter
-						WHERE (accountid = " . addslashes($uid) . ")
-						UNION
-						SELECT Utstyrfilter.id, Utstyrfilter.navn, (Utstyrfilter.accountid = " . addslashes($uid). ") AS min 
-						FROM Utstyrfilter, DefaultFilter, AccountGroup, AccountInGroup
-						WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
-						AND (AccountInGroup.groupid = AccountGroup.id)
-						AND (AccountGroup.id = DefaultFilter.accountgroupid)
-						AND (DefaultFilter.utstyrfilterid = Utstyrfilter.id)
-					     ) AS MineFilter 
-				      ) AS jalla ORDER BY min,navn ";
+		$querystr = 'SELECT * FROM (
+				SELECT DISTINCT ON (id) id, navn, min
+				FROM (
+					SELECT id, navn, true AS min
+					FROM Utstyrfilter
+					WHERE (accountid = $1)
+					UNION
+					SELECT
+						Utstyrfilter.id, Utstyrfilter.navn,
+						(Utstyrfilter.accountid = $1) AS min
+					FROM
+						Utstyrfilter, DefaultFilter,
+						AccountGroup, AccountInGroup
+					WHERE
+						(AccountInGroup.accountid = $1) AND
+						(AccountInGroup.groupid = AccountGroup.id) AND
+						(AccountGroup.id = DefaultFilter.accountgroupid) AND
+						(DefaultFilter.utstyrfilterid = Utstyrfilter.id)
+				) AS MineFilter
+			) AS jalla ORDER BY min,navn';
+		$querypar = array($uid);
 
-		//  print "<p>Spørring fast: $querystring";
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$filtre[$row][0] = $data["id"];
-				if ($data["min"] == 't' ) {
-					$filtre[$row][1] = $data["navn"];
-				} else {
-					$filtre[$row][1] = '(Public) ' . $data["navn"];
-				}
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				if ($data["min"] == 't' )
+					$name = $data["navn"];
+				else
+					$name = '(Public) ' . $data["navn"];
+
+				$filtre[] = array(
+						$data['id'],
+						$name
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $filtre;
 	}
 
 
-
-	// Denne funksjonen returnerer alle filtrene som hører til admin Account 
-	// uten unødig krimskrams. untatt de som allerede er valgt.
+	// Denne funksjonen returnerer alle filtrene som hører til admin
+	// Account uten unødig krimskrams. untatt de som allerede er valgt.
 	function listFiltreFastAdm($gid, $sort) {
 		$filtre = NULL;
 
-		$querystring = "SELECT Utstyrfilter.id, Utstyrfilter.navn 
-			FROM Utstyrfilter 
-			WHERE accountid is null 
-			EXCEPT SELECT Utstyrfilter.id, Utstyrfilter.navn 
-			FROM Utstyrfilter, GruppeTilFilter 
-			WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) 
-			AND (GruppeTilFilter.utstyrgruppeid = " . $gid . ")
-			ORDER BY navn";
+		$querystr = 'SELECT Utstyrfilter.id, Utstyrfilter.navn
+			FROM Utstyrfilter
+			WHERE accountid is null
+			EXCEPT
+			SELECT Utstyrfilter.id, Utstyrfilter.navn
+			FROM Utstyrfilter, GruppeTilFilter
+			WHERE
+				(Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) AND
+				(GruppeTilFilter.utstyrgruppeid = $1)
+			ORDER BY navn';
+		$querypar = array($gid);
 
-		//  print "<p>Spørring fast: $querystring";
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$filtre[$row][0] = $data["id"]; 
-				$filtre[$row][1] = $data["navn"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$filtre[] = array(
+						$data["id"],
+						$data["navn"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $filtre;
 	}
 
 
-
-	// Denne funksjonen returnerer alle filtrene som hører til en bestemt utstyrsgruppe.
+	// Denne funksjonen returnerer alle filtrene som hører til en bestemt
+	// utstyrsgruppe.
 	function listFiltreGruppe($gid, $sort) {
 		$filtre = NULL;
 
-#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+//		$sorts = array(
+//				'time, minutt',
+//				'aa, time, minutt',
+//				'au, time, minutt',
+//				'time, minutt'
+//			);
 
-		$querystring = "SELECT Utstyrfilter.id, Utstyrfilter.navn, GruppeTilFilter.prioritet, GruppeTilFilter.inkluder, GruppeTilFilter.positiv 
-			FROM Utstyrfilter, GruppeTilFilter 
-			WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
-			AND (GruppeTilFilter.utstyrgruppeid = " . addslashes($gid) . ") 
-			ORDER BY prioritet";
+		$querystr = 'SELECT Utstyrfilter.id, Utstyrfilter.navn,
+					GruppeTilFilter.prioritet, GruppeTilFilter.inkluder,
+					GruppeTilFilter.positiv
+			FROM Utstyrfilter, GruppeTilFilter
+			WHERE
+				(Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) AND
+				(GruppeTilFilter.utstyrgruppeid = $1)
+			ORDER BY prioritet';
+		$querypar = array($gid);
 
-		//print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$filtre[$row][0] = $data["id"]; 
-				$filtre[$row][1] = $data["navn"];
-				$filtre[$row][2] = $data["prioritet"];
-				$filtre[$row][3] = $data["inkluder"];
-				$filtre[$row][4] = $data["positiv"];
-				$row++;
-			} 
-
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$filtre[] = array(
+						$data["id"],
+						$data["navn"],
+						$data["prioritet"],
+						$data["inkluder"],
+						$data["positiv"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $filtre;
 	}
-
 
 
 	// Denne funksjonen returnerer alle filtermatchene for et filter.
@@ -1560,34 +1624,33 @@ class DBH {
 		$match = NULL;
 
 		$sorts = array (
-				'matchfelt', 
-				'matchtype', 
-				'verdi');
+				'matchfelt',
+				'matchtype',
+				'verdi'
+			);
 
-		$querystring = "SELECT id, MatchField.name, matchtype, verdi 
-			FROM FilterMatch, MatchField 
-			WHERE utstyrfilterid = " . addslashes($fid) . 
-			" AND FilterMatch.matchfelt = MatchField.matchfieldid" .
-			" ORDER BY " . $sorts[$sort];
+		$querystr = 'SELECT id, MatchField.name, matchtype, verdi
+			FROM FilterMatch, MatchField
+			WHERE
+				utstyrfilterid = $1 AND
+				FilterMatch.matchfelt = MatchField.matchfieldid
+			ORDER BY '.pg_escape_string($sorts[$sort]);
+		$querypar = array($fid);
 
-		//print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-				$match[$row][0] = $data["id"]; 
-				$match[$row][1] = $data["name"];
-				$match[$row][2] = $data["matchtype"];
-				$match[$row][3] = $data["verdi"];
-				$row++;
-			} 
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$match[] = array(
+						$data["id"],
+						$data["name"],
+						$data["matchtype"],
+						$data["verdi"]
+					);
+			}
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-
 		return $match;
 	}
 
@@ -1595,253 +1658,392 @@ class DBH {
 	// Henter ut informasjon om en periode..
 	function periodeInfo($tid) {
 
-		$querystring = "SELECT helg, date_part('hour', Tidsperiode.starttid) AS time , date_part('minute', Tidsperiode.starttid) AS minutt " .
-			"FROM Tidsperiode WHERE (id = " . addslashes($tid) . ")"; 
+		$querystr = 'SELECT helg,
+					date_part(\'hour\', Tidsperiode.starttid) AS time ,
+					date_part(\'minute\', Tidsperiode.starttid) AS minutt
+			FROM Tidsperiode WHERE (id = $1)';
+		$querypar = array($tid);
 
-		//    print "<p>$querystring";
-
-		if ( $query = @pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-			$perioder[0] = $data["helg"];
-			$perioder[1] = $data["time"];
-			$perioder[2] = $data["minutt"];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$data = pg_fetch_assoc($query, 0);
+			$perioder[] = array(
+					$data["helg"],
+					$data["time"],
+					$data["minutt"]
+				);
 		}  else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasesp&oslash;rring. Fant ikke periode.";
 		}
-
 		return $perioder;
 	}
+
 
 	// Henter ut informasjon om en periode..
 	function hentwapkey($uid) {
 
-		$querystring = "SELECT value FROM AccountProperty 
-			WHERE (accountid = " . addslashes($uid) . ") AND (property = 'wapkey')"; 
+		$querystr = 'SELECT value
+			FROM AccountProperty
+			WHERE
+				(accountid = $1) AND
+				(property = \'wapkey\')';
+		$querypar = array($uid);
 
-			//    print "<p>$querystring";
-
-			if ( $query = @pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1) {
-				$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-				$key[0] = $data["value"];
-			} else {
-				$key = null;
-			}
-
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$data = pg_fetch_assoc($query);
+			$key[0] = $data["value"];
+		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+			$key = null;
+		}
 		return $key;
 	}
 
 	function settwapkey($uid, $key) {
 		$oldkey = $this->hentwapkey($uid);
-		//	$oldkey = "null";
-		if ($oldkey == null) {
-			// Spxrring som legger inn i databasen
-			$querystring = "INSERT INTO AccountProperty (accountid, property, value) VALUES (" . addslashes($uid) . ", 'wapkey', '" . addslashes($key) . "')";    
-			$query = pg_exec( $this->connection, $querystring);
 
+		if ($oldkey == null) {
+			$querystr = 'INSERT INTO AccountProperty (accountid, property, value)
+				VALUES ($1, \'wapkey\', $2)';
+			$querypar = array($uid, $key);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		} else {
-			$querystr = "UPDATE AccountProperty SET value = '" . addslashes($key) . "' WHERE accountid = " . addslashes($uid) . " AND property = 'wapkey' ";
-			@pg_exec($this->connection, $querystr);
+			$querystr = 'UPDATE AccountProperty
+				SET value = $1
+				WHERE
+					accountid = $2 AND
+					property = \'wapkey\'';
+			$querypar = array($key, $uid);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
 
 	}
+
 
 	function slettwapkey($uid) {
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM AccountProperty WHERE ( accountid = " . addslashes($uid) . " AND property = 'wapkey')";
-#    print "<p>QUERY:$querystring:";
+		$querystr = 'DELETE FROM AccountProperty
+			WHERE
+				accountid = $1 AND
+				property = \'wapkey\'';
+		$querypar = array($uid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
-
 	}
+
 
 	function slettMatchField($mfid) {
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM MatchField WHERE ( matchfieldid = " . addslashes($mfid) . " )";
-#    print "<p>QUERY:$querystring:";
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		$querystr = 'DELETE FROM MatchField
+			WHERE (matchfieldid = $1)';
+		$querypar = array($mfid);
+
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
-
 	}
 
 
 	// Endre navn på profil
 	function endreProfil($pid, $navn, $ukedag, $uketidh, $uketidm, $tidh, $tidm) {
-		$querystr = "UPDATE Brukerprofil SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($pid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Brukerprofil
+			SET navn = $1
+			WHERE id = $2';
+		$querypar = array($navn, $pid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "UPDATE Brukerprofil SET ukedag = " . addslashes($ukedag) . " WHERE id = " . addslashes($pid);	
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Brukerprofil
+			SET ukedag = $1
+			WHERE id = $2';
+		$querypar = array($ukedag, $pid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "UPDATE Brukerprofil SET uketid = '" . 
-			addslashes($uketidh) . ":" . addslashes($uketidm) .
-			"' WHERE id = " . addslashes($pid);		
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Brukerprofil
+			SET uketid = $1
+			WHERE id = $2';
+		$querypar = array($uketidh.':'.$uketidm, $pid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "UPDATE Brukerprofil SET tid = '" . 
-			addslashes($tidh) . ":" . addslashes($tidm) .
-			"' WHERE id = " . addslashes($pid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Brukerprofil
+			SET tid = $1
+			WHERE id = $2';
+		$querypar = array($tidh.':'.$tidm, $pid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 	// Endre detaljer om en filter
 	function endreFilter($fid, $navn) {
-		$querystr = "UPDATE Utstyrfilter SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($fid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Utstyrfilter
+			SET navn = $1
+			WHERE id = $2';
+		$querypar = array($navn, $fid);
+
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
 	}
 
 	// Endre detaljer om en tidsperiode
 	function endrePeriodeinfo($tid, $helg, $time, $minutt) {
-		$querystr = "UPDATE Tidsperiode SET helg = " . addslashes($helg) . " WHERE id = " . addslashes($tid);
-		@pg_exec($this->connection, $querystr);
-		$querystr = "UPDATE Tidsperiode SET starttid = '" . addslashes($time) . ":" . addslashes($minutt) . "' WHERE id = " . addslashes($tid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Tidsperiode
+			SET helg = $1
+			WHERE id = $2';
+		$querypar = array($helg, $tid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+
+		$querystr = 'UPDATE Tidsperiode
+			SET starttid = $1
+			WHERE id = $2';
+		$querypar = array($time.':'.$minutt, $tid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 	// Endre detaljer om et utstyrgruppe
 	function endreUtstyrgruppe($gid, $navn, $descr) {
-		$querystr = "UPDATE Utstyrgruppe SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($gid);
-		//print "<p>" . $querystr;
-		@pg_exec($this->connection, $querystr);
-		$querystr = "UPDATE Utstyrgruppe SET descr = '" . addslashes($descr) . "' WHERE id = " . addslashes($gid);
-		//print "<p>" . $querystr;	
-		@pg_exec($this->connection, $querystr);
+		$querystr = 'UPDATE Utstyrgruppe
+			SET navn = $1
+			WHERE id = $2';
+		$querypar = array($navn, $gid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+
+		$querystr = 'UPDATE Utstyrgruppe
+			SET descr = $1
+			WHERE id = $2';
+		$querypar = array($descr, $gid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 
 	// Endre detaljer om en brukergruppe
 	function endreBrukergruppe($gid, $navn, $descr) {
-		$querystr = "UPDATE AccountGroup SET name = '" . addslashes($navn) . "' WHERE id = " . addslashes($gid);
-		@pg_exec($this->connection, $querystr);
-		$querystr = "UPDATE AccountGroup SET descr = '" . addslashes($descr) . "' WHERE id = " . addslashes($gid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = "UPDATE AccountGroup
+			SET name = $1
+			WHERE id = $2";
+		$querypar = array($navn, $gid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+
+		$querystr = "UPDATE AccountGroup
+			SET descr = $1
+			WHERE id = $2";
+		$querypar = array($descr, $gid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 	// Endre detaljer om en adresse
 	function endreAdresse($aid, $type, $adr) {
-		$querystr = "UPDATE Alarmadresse SET type = '" . addslashes($type) . "' WHERE id = " . addslashes($aid);
-		@pg_exec($this->connection, $querystr);
-		$querystr = "UPDATE Alarmadresse SET adresse = '" . addslashes($adr) . "' WHERE id = " . addslashes($aid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = "UPDATE Alarmadresse
+			SET type = $1
+			WHERE id = $2";
+		$querypar = array($type, $aid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+
+		$querystr = "UPDATE Alarmadresse
+			SET adresse = $1
+			WHERE id = $2";
+		$querypar = array($adr, $aid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 
 	// Endre brukerinfo
 	function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde) {
-		$querystr = "UPDATE Account SET login = '" . addslashes($brukernavn) . "' WHERE id = " . addslashes($uid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = "UPDATE Account
+			SET login = $1
+			WHERE id = $2";
+		$querypar = array($brukernavn, $uid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "UPDATE Account SET name = '" . addslashes($navn) . "' WHERE id = " . addslashes($uid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = "UPDATE Account
+			SET name = $1
+			WHERE id = $2";
+		$querypar = array($navn, $uid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "UPDATE Account SET password = '" . addslashes($passord) . "' WHERE id = " . addslashes($uid);
+		$querystr = "UPDATE Account
+			SET password = $1
+			WHERE id = $2";
+		$querypar = array($passord, $uid);
+
 		if ($passord != undef && strlen($passord) > 0) {
-			@pg_exec($this->connection, $querystr);
-		}	
-		/*	
-			if ($sms == 1) $s = "true"; else $s = "false";
-			$querystr = "UPDATE Preference SET sms = " . addslashes($s) . " WHERE accountid = " . addslashes($uid);
-			@pg_exec($this->connection, $querystr);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+		}
 
-			$querystr = "UPDATE Preference SET admin = " . addslashes($admin) . " WHERE accountid = " . addslashes($uid);
-			@pg_exec($this->connection, $querystr);	
-		 */
-		$querystr = "UPDATE Preference SET queuelength = '" . addslashes($kolengde) . " days' WHERE accountid = " . addslashes($uid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = "UPDATE Preference
+			SET queuelength = $1
+			WHERE accountid = $2";
+		$querypar = array($kolengde, $uid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
 	}
 
 	// Endre passord
 	function endrepassord($brukernavn, $passwd) {
-		$querystr = "UPDATE Account SET password = '" . addslashes($passwd) . 
-			"' WHERE login = '" . addslashes($brukernavn) . "'";
-		@pg_exec($this->connection, $querystr);
-
-
+		$querystr = "UPDATE Account
+			SET password = $1
+			WHERE login = $2";
+		$querypar = array($passwd, $brukernavn);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 
 	// Endre språk
 	function setlang($brukerid, $lang) {
-		$querystr = "DELETE FROM AccountProperty WHERE property = 'language' AND accountid = '" . addslashes($brukerid) . "'";
-		@pg_exec($this->connection, $querystr);
+		$querystr = "DELETE FROM AccountProperty
+			WHERE
+				property = 'language' AND
+				accountid = $1";
+		$querypar = array($brukerid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "INSERT INTO AccountProperty (accountid, property, value) VALUES (" . 
-			addslashes($brukerid) . ", 'language', '" . addslashes($lang) . "')";
-		@pg_exec($this->connection, $querystr);
-
+		$querystr = "INSERT INTO AccountProperty (accountid, property, value)
+			VALUES ($1, 'language', $2)";
+		$querypar = array($brukerid, $lang);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 
 	// Legge til eller endre en varslingsadresse for en periode
 	function endreVarsleadresse($tid, $adresseid, $utstyrgruppeid, $type) {
 
-		$querystr = "DELETE FROM Varsle WHERE tidsperiodeid = " . addslashes($tid) . " AND alarmadresseid = " . addslashes($adresseid) .
-			" AND utstyrgruppeid = " . addslashes($utstyrgruppeid);
+		$querystr = "DELETE FROM Varsle
+			WHERE
+				tidsperiodeid = $1 AND
+				alarmadresseid = $2 AND
+				utstyrgruppeid = $3";
+		$querypar = array($tid, $adresseid, $utstyrgruppeid);
 
-		pg_exec($this->connection, $querystr);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		if ( $type < 4 ) {
-			$querystr = "INSERT INTO Varsle (tidsperiodeid, alarmadresseid, utstyrgruppeid, vent) VALUES (" . 
-				addslashes($tid) . ", " . addslashes($adresseid) . ", " . $utstyrgruppeid . ", " . $type . ")";
-			pg_exec($this->connection, $querystr);
+		if ($type < 4) {
+			$querystr = "INSERT INTO Varsle
+				(tidsperiodeid, alarmadresseid, utstyrgruppeid, vent)
+				VALUES ($1, $2, $3, $4)";
+			$querypar = array($tid, $adresseid, $utstyrgruppeid, $type);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+			}
 		}
 
-	}
 
-
-	// Legge til eller endre en brukertilgruppe
+		// Legge til eller endre en brukertilgruppe
 	function endreBrukerTilGruppe($uid, $gid, $type) {
 
-		$querystr = "DELETE FROM AccountInGroup WHERE accountid = " . addslashes($uid) . " AND groupid = " . addslashes($gid);
-		@pg_exec($this->connection, $querystr);
+		$querystr = "DELETE FROM AccountInGroup
+			WHERE
+				accountid = $1 AND
+				groupid = $2";;
+		$querypar = array($uid, $gid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		//	print "<p>Query: $querystr";
-		if ( $type ) {
-			$querystr = "INSERT INTO AccountInGroup (accountid, groupid) VALUES (" . addslashes($uid) . ", " . addslashes($gid) . ") ";
-			//	print "<p>Query: $querystr<p>&npsp;$gid ---";		
-			@pg_exec($this->connection, $querystr);
+		if ($type) {
+			$querystr = "INSERT INTO AccountInGroup (accountid, groupid)
+				VALUES ($1, $2)";
+			$querypar = array($uid, $gid);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
-
 	}
 
-	// Legge til eller endre en rettighet
+		// Legge til eller endre en rettighet
 	function endreRettighet($gid, $ugid, $type) {
 
+		$querystr = "DELETE FROM Rettighet
+			WHERE
+				accountgroupid = $1 AND
+				utstyrgruppeid = $2";
+		$querypar = array($gid, $ugid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "DELETE FROM Rettighet WHERE accountgroupid = " . addslashes($gid) . " AND utstyrgruppeid = " . addslashes($ugid);
-		@pg_exec($this->connection, $querystr);
-		//	print "<p>Query: $querystr";	
-		if ( $type ) {
-			$querystr = "INSERT INTO Rettighet (accountgroupid, utstyrgruppeid) VALUES (" . addslashes($gid) . ", " . addslashes($ugid) . " )";		
-			@pg_exec($this->connection, $querystr);
+		if ($type) {
+			$querystr = "INSERT INTO Rettighet (accountgroupid, utstyrgruppeid)
+				VALUES ($1, $2)";
+			$querypar = array($gid, $ugid);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
-
 	}
 
 	// Legge til eller endre en defaultustyr
 	function endreDefault($gid, $ugid, $type) {
 
+		$querystr = "DELETE FROM DefaultUtstyr WHERE
+			accountgroupid = $1 AND
+			utstyrgruppeid = $2";
+		$quyerypar = array($gid, $ugid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "DELETE FROM DefaultUtstyr WHERE accountgroupid = " . addslashes($gid) . " AND utstyrgruppeid = " . addslashes($ugid);
-		@pg_exec($this->connection, $querystr);
-		//	print "<p>Query: $querystr";	
-		if ( $type ) {
-			$querystr = "INSERT INTO DefaultUtstyr (accountgroupid, utstyrgruppeid) VALUES (" . addslashes($gid) . ", " . addslashes($ugid) . " )";
-			//	print "<p>Query: $querystr";			
-			@pg_exec($this->connection, $querystr);
+		if ($type) {
+			$querystr = "INSERT INTO DefaultUtstyr (accountgroupid, utstyrgruppeid)
+				VALUES ($1, $2)";
+			$querypar = array($gid, $ugid);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
 
 	}
@@ -1849,14 +2051,21 @@ class DBH {
 	// Legge til eller endre en default filter
 	function endreDefaultFilter($gid, $fid, $type) {
 
+		$querystr = "DELETE FROM DefaultFilter WHERE
+			accountgroupid = $1 AND
+			utstyrfilterid = $2";;
+		$querypar = array($gid, $fid);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		$querystr = "DELETE FROM DefaultFilter WHERE accountgroupid = " . addslashes($gid) . " AND utstyrfilterid = " . addslashes($fid);
-		@pg_exec($this->connection, $querystr);
-		/* 	print "<p>Query: $querystr";	 */
-		if ( $type ) {
-			$querystr = "INSERT INTO DefaultFilter (accountgroupid, utstyrfilterid) VALUES (" . addslashes($gid) . ", " . addslashes($fid) . " )";
-			/* 	print "<p>Query: $querystr";			 */
-			@pg_exec($this->connection, $querystr);
+		if ($type) {
+			$querystr = "INSERT INTO DefaultFilter (accountgroupid, utstyrfilterid)
+				VALUES ($1, $2)";
+			$querypar = array($gid, $fid);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
 
 	}
@@ -1868,77 +2077,81 @@ class DBH {
 	// Bytte rekkefølgen på to prioriteter for filtre i en utstyrsgruppe
 	function swapFilter($gid, $a, $b, $ap, $bp) {
 
-		$querystr = "UPDATE GruppeTilFilter SET prioritet = " . addslashes($bp) . 
-			" WHERE (utstyrgruppeid = " . $gid . ") AND (utstyrfilterid = " . $a . ") ";
-		pg_exec($this->connection, $querystr);
+		$querystr = "UPDATE GruppeTilFilter SET
+			prioritet = $1
+			WHERE
+				(utstyrgruppeid = $2) AND
+				(utstyrfilterid = $3";
+		$querypar = array($bp, $gid, $a);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-		//	print "<p>Query: $querystr";
-
-		$querystr = "UPDATE GruppeTilFilter SET prioritet = " . addslashes($ap) . 
-			" WHERE (utstyrgruppeid = " . $gid . ") AND (utstyrfilterid = " . $b . ") ";
-		pg_exec($this->connection, $querystr);
-
-		//	print "<p>Query: $querystr";
-
+		$querystr = "UPDATE GruppeTilFilter SET
+			prioritet = $1
+			WHERE
+				(utstyrgruppeid = $2) AND
+				(utstyrfilterid = $3)";
+		$querypar = array($ap, $gid, $b);
+		$query = pg_query_params($this->connection, $querystr, $querypar);
+		if (!$query)
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 	}
 
 
 	// opprette ny bruker
-	function nyBruker( $navn, $brukernavn, $passord, $admin, $sms, $kolengde, $error ) {
-
-		//if ( $sms   == 1 ) { $sms = 'true'; } else { $sms = 'false'; }
+	function nyBruker($navn, $brukernavn, $passord, $admin, $sms, $kolengde, $error) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Account (name, login, password) VALUES ('" . 
-			addslashes($navn) . "', '" . addslashes($brukernavn) . "', '" .
-			addslashes($passord) . "') ";
+		$querystr = "INSERT INTO Account (name, login, password)
+			VALUES ($1, $2, $3)";
+		$querypar = array($navn, $brukernavn, $passord);
 
-#    print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Account WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval(\'account_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
 
 			// Spxrring som legger inn i databasen
-			$querystring = "INSERT INTO Preference (accountid, queuelength) VALUES (" . 
-				$idrow[0] . ", '" . addslashes($kolengde) . " days') ";
+			$querystr = "INSERT INTO Preference (accountid, queuelength)
+				VALUES ($1, $2) ";
+			$querypar = array($lastid, "$kolengde days");
 
-			pg_exec( $this->connection, $querystring);
+			$query = pg_query_params($this->connection, $querystr, $querypar);
+			if (!$query)
+				checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 
-			return $idrow[0];
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			$error = new Error(2);
-			$error->SetMessage("Brukernavn allerede i bruk. Forsøk på nytt med et annet brukernavn.");
+			$error->SetMessage("Brukernavn allerede i bruk. Forsøk
+				på nytt med et annet brukernavn.");
 			return 0;
 		}
-
 	}
 
 
-
 	// opprette ny brukergruppe
-	function nyBrukerGruppe( $navn, $descr ) {
+	function nyBrukerGruppe($navn, $descr) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO AccountGroup (name, descr) VALUES ('" . 
-			addslashes($navn) . "', '" . addslashes($descr) . "') ";
+		$querystr = "INSERT INTO AccountGroup (name, descr)
+			VALUES ($1, $2)";
+		$querypar = array($navn, $descr);
 
-#    print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM AccountGroup WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval(\'accountgroup_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			$error = new Error(2);
 			$error->SetMessage("feil med databaseinnlegging av brukergruppe.");
@@ -1948,24 +2161,25 @@ class DBH {
 	}
 
 
-
-
 	// opprette ny tidsperiode
 	function nyTidsperiode($helg, $tid, $profilid) {
 		// Spxrring som legger inn i databasen
-		$querystring = 'INSERT INTO tidsperiode (helg, starttid, brukerprofilid)
+		$querystr = 'INSERT INTO tidsperiode (helg, starttid, brukerprofilid)
 			VALUES ($1, $2, $3)';
-		$queryparams = array($helg, $tid, $profilid);
+		$querypar = array($helg, $tid, $profilid);
 
-		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 
 			$lastid_querystring = 'SELECT
 				currval(\'tidsperiode_id_seq\') as lastid';
 			$lastid_query = pg_query($this->connection, $lastid_querystring);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
 			$lastid = pg_fetch_result($lastid_query, 'lastid');
 			return $lastid;
 
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
@@ -1975,22 +2189,22 @@ class DBH {
 	// opprette ny adresse
 	function nyAdresse($adresse, $adressetype, $brukerid) {
 
-		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Alarmadresse (id, accountid, adresse, type) VALUES (" . 
-			"nextval('alarmadresse_id_seq'), " . addslashes($brukerid) . ", '" . 
-			addslashes($adresse) ."', " . addslashes($adressetype) . " )";
+		// Spørring som legger inn i databasen
+		$querystr = 'INSERT INTO alarmadresse (accountid, adresse, type)
+			VALUES ($1, $2, $3)';
+		$querypar = array($brukerid, $adresse, $adressetype);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Alarmadresse WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_query = pg_query(
+					$this->connection,
+					'SELECT currval(\'alarmadresse_id_seq\') AS lastid'
+				);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2003,16 +2217,14 @@ class DBH {
 	function nyLogghendelse($brukerid, $type, $descr) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Logg (accountid, type, descr, tid) VALUES (" . 
-			addslashes($brukerid) . ", " . addslashes($type) .", '" . 
-			addslashes($descr) . "', current_timestamp )";
+		$querystr = "INSERT INTO Logg (accountid, type, descr, tid)
+			VALUES ($1, $2, $3, current_timestamp)";
+		$querypar = array($brukerid, $type, $descr);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
-			// fikk ikke til å legge i databasen
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			return 0;
 		}
 
@@ -2023,8 +2235,9 @@ class DBH {
 	function nyProfil($navn, $brukerid, $ukedag, $uketidh, $uketidm, $tidh, $tidm) {
 
 		// Spørring som legger inn i databasen
-		$querystring = 'INSERT INTO brukerprofil (accountid, navn, ukedag, uketid, tid) VALUES ($1, $2, $3, $4, $5)';
-		$queryparams = array(
+		$querystr = 'INSERT INTO brukerprofil (accountid, navn, ukedag, uketid, tid)
+			VALUES ($1, $2, $3, $4, $5)';
+		$querypar = array(
 				$brukerid,
 				$navn,
 				$ukedag,
@@ -2032,14 +2245,16 @@ class DBH {
 				$tidh.":".$tidm
 			);
 
-		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
-
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			// Henter ut object id`n til raden.
-			$id_query = pg_query($this->connection, 'SELECT currval(\'brukerprofil_id_seq\') AS last_id');
-			$last_id = pg_fetch_result($id_query, 'last_id');
+			$id_querystr = 'SELECT currval(\'brukerprofil_id_seq\') AS lastid';
+			$id_query = pg_query($this->connection, $id_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$last_id = pg_fetch_result($id_query, 'lastid');
 			return $last_id;
-
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
@@ -2052,25 +2267,23 @@ class DBH {
 	function nyttFilter($navn, $brukerid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Utstyrfilter (id, accountid, navn) VALUES (" . 
-			"nextval('utstyrfilter_id_seq'), " . addslashes($brukerid) . ", '" . 
-			addslashes($navn) ."' )";
+		$querystr = "INSERT INTO Utstyrfilter (accountid, navn)
+			VALUES ($1, $2)";
+		$querypar = array($brukerid, $navn);
 
-#    print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Utstyrfilter WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval(\'utstyrfilter_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			echo $lastid;
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
-
 	}
 
 
@@ -2078,25 +2291,23 @@ class DBH {
 	function nyttFilterAdm($navn) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Utstyrfilter (id, accountid, navn) VALUES (" . 
-			"nextval('utstyrfilter_id_seq'), null, '" . 
-			addslashes($navn) ."' )";
+		$querystr = "INSERT INTO Utstyrfilter (accountid, navn)
+			VALUES (null, $1)";
+		$querypar = array($navn);
 
-#    print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Utstyrfilter WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
-		} else {
+			$lastid_querystr = 'SELECT currval(\'utstyrfilter_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 			// fikk ikke til e legge i databasen
 			return 0;
+		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 		}
-
 	}
 
 
@@ -2104,39 +2315,45 @@ class DBH {
 		if ($value == "." || $value == 'undef') {
 			return "null";
 		} else {
-			return "'" . addslashes($value) . "'";
+			return $value;
 		}
 	}
 
 	// opprette nytt matchfelt
 	function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qvaluecategory, $qvaluesort, $listlimit, $showlist, $datatype) {
 
-		$ivalueid 		= $this->extrval($qvalueid);
+		$ivalueid 	= $this->extrval($qvalueid);
 		$ivaluename 	= $this->extrval($qvaluename);
-		$ivaluecategory 	= $this->extrval($qvaluecategory);
+		$ivaluecategory	= $this->extrval($qvaluecategory);
 		$ivaluesort 	= $this->extrval($qvaluesort);
-		$ivaluehelp		= $this->extrval($qvaluehelp);
+		$ivaluehelp	= $this->extrval($qvaluehelp);
 		$idescr		= $this->extrval($descr);
 		$iname		= $this->extrval($name);
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO MatchField (name, descr, valuehelp, valueid, valuename, valuecategory, valuesort, listlimit, showlist, datatype) VALUES (" .
-			$iname . ", " . $idescr . ", " . $ivaluehelp . ", " . $ivalueid . ", " . 
-			$ivaluename . ", " . $ivaluecategory . ", " . $ivaluesort . ", " .
-			addslashes($listlimit) . ", " . $showlist . ", " . addslashes($datatype) . " )";
+		$querystr = "INSERT INTO MatchField (
+				name, descr, valuehelp, valueid, valuename,
+				valuecategory, valuesort, listlimit, showlist, datatype
+			)
+			VALUES (
+				$1, $2, $3, $4, $5,
+				$6, $7, $8, $9, 410
+			)";
 
-		// print "<p>query: $querystring";
+		$querypar = array(
+				$iname, $idescr, $ivaluehelp, $ivalueid, $ivaluename,
+				$ivaluecategory, $ivaluesort, $listlimit, $showlist, $datatype
+			);
 
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT matchfieldid FROM MatchField WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval() AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
@@ -2147,126 +2364,123 @@ class DBH {
 
 	// legge til eksisterende filter til utstyrsgruppe
 	function nyttGrpFilter($gid, $fid, $inkluder, $positiv) {
-
-
 		if ($inkluder == 1) { $inkl = "true"; } else { $inkl = "false"; }
 		if ($positiv == 1) { $neg = "true"; } else { $neg = "false"; }	
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO GruppeTilFilter (utstyrgruppeid, utstyrfilterid, inkluder, positiv, prioritet) 
-			SELECT " . addslashes($gid) . ", " . addslashes($fid) . ", " . $inkl . ", " . $neg . 
-			" ,1 + max(prioritet) 
-			FROM ( SELECT prioritet FROM GruppeTilFilter WHERE (utstyrgruppeid = " . addslashes($gid) . ")
-					UNION SELECT 0 AS prioritet) AS x";
+		$querystr = "INSERT INTO GruppeTilFilter (
+				tstyrgruppeid, utstyrfilterid, inkluder, positiv, prioritet
+			)
+			SELECT  $1, $2, $3, $4, 1 + max(prioritet)
+			FROM (
+				SELECT prioritet
+				FROM GruppeTilFilter
+				WHERE (utstyrgruppeid = $1)
+				UNION
+				SELECT 0 AS prioritet
+			) AS x";
+		$querypar = array($gid, $fid, $inkl, $neg);
 
-#print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT utstyrfilterid FROM GruppeTilFilter WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval() AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
-
 	}
-
 
 
 	// opprette ny match
 	function nyMatch($matchfelt, $matchtype, $verdi, $fid) {
-		/* 	addslashes($verdi); */
-		/* 	$v = preg_replace('/\\{2}/', '-', $verdi); */
-		/* 	print "<pre>før:$verdi \n slashed:" . $verdi . "\n stripped: $v \n</pre>"; */
-		/* 	print "Magic" .  get_magic_quotes_gpc() ; */
-		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO FilterMatch (id, matchfelt, matchtype, utstyrfilterid, verdi) VALUES (" . 
-			"nextval('filtermatch_id_seq'), " . addslashes($matchfelt) . ", " . 
-			addslashes($matchtype) .", " . addslashes($fid) . ", '" . 
-			$verdi . "' )";
+		$querystr = "INSERT INTO FilterMatch
+				(matchfelt, matchtype, utstyrfilterid, verdi)
+			VALUES ($1, $2, $3, $4)";
+		$querypar = array($matchfelt, $matchtype, $fid, $verdi);
 
-		// echo "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM FilterMatch WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval(\'filtermatch_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
-
 	}
 
 
 	// opprette ny utstyrsgruppe
 	function nyUtstyrgruppe($uid, $navn, $descr, $basertpaa) {
-
-
 		// Legg inn ny utstyrsgruppe i databasen
+		$querystr = "INSERT INTO Utstyrgruppe (accountid, navn, descr)
+			VALUES ($1, $2, $3)";
+		$querypar = array($uid, $navn, $descr);
 
-		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Utstyrgruppe (id, accountid, navn, descr) VALUES (" . 
-			"nextval('filtermatch_id_seq'), " . addslashes($uid) . ", '" . 
-			addslashes($navn) ."', '" . addslashes($descr) . "' )";
-
-		// print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Utstyrgruppe WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-
-			$nyutstgrpid = $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval(\'utstyrgruppe_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$nyutstgrpid = pg_fetch_result($lastid_query, 'lastid');
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
 
-
 		// Legge inn utstyrsfiltre hvis utstyrsgruppen skal være basert på en annen.
-		if ($basertpaa > 0 ) {
+		if ($basertpaa > 0) {
 			$utstgrinfo = $this->utstyrgruppeInfoAdv($basertpaa, $uid);
 
 			// Hvis utstyrfiltergruppa som den skal baseres på er min egen :
-			if ($utstgrinfo[2] ) {
-				$querystring = "INSERT INTO 
-					GruppeTilFilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) 
-					SELECT inkluder, positiv, prioritet, utstyrfilterid, " . $nyutstgrpid . "  
-					FROM GruppeTilFilter WHERE (utstyrgruppeid = " . addslashes($basertpaa) . ")";
-
-				//echo "<pre>" . $querystring . "</pre>";
-				if ( $query = pg_exec( $this->connection, $querystring)) { 
-					//echo "<p>funka fint dette (12)...";
-					return 1;
+			if ($utstgrinfo[2]) {
+				$querystr = "INSERT INTO GruppeTilFilter (
+						inkluder, positiv, prioritet,
+						utstyrfilterid, utstyrgruppeid
+					)
+					SELECT
+						inkluder, positiv, prioritet,
+						utstyrfilterid, ".pg_escape_string($nyutstgrpid)."
+					FROM GruppeTilFilter
+					WHERE (utstyrgruppeid = $1)";
+				$querypar = array($basertpaa);
+				$query = pg_query_params(
+						$this->connection,
+						$querystr,
+						$querypar
+					);
+				if (!$query) {
+					checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
+					return 0;
 				}
+				return 1;
 			} else {
-				// Hvis ikke utstyrsfiltergruppa som det skal baseres på er egen,
-				// må filtermatchene også klones.
+				// Hvis ikke utstyrsfiltergruppa som det skal
+				// baseres på er egen, må filtermatchene også
+				// klones.
 
 				// Legger inn alle utstyrsgrupper som må arves
 				$arvefilter = $this->listFiltreGruppe($basertpaa, 0);
 				foreach ($arvefilter AS $arvfilterelement) {
-					//echo "<p>Kloner utstyrsfilter " . $arvfilterelement[0];
-
-					// utstyrfilterid inneholder utstyrfilterid for både den orginale og 
-					// den klonede utstyrsfilteret.
+					// utstyrfilterid inneholder
+					// utstyrfilterid for både den orginale
+					// og den klonede utstyrsfilteret.
 					$utstyrfilteridlist[] = array(
-							$this->nyttFilter($arvfilterelement[1], $uid) ,
+							$this->nyttFilter(
+									$arvfilterelement[1],
+									$uid
+								),
 							$arvfilterelement[0]
-							);
+						);
 
 				}
 				/* Variabler:
@@ -2276,93 +2490,94 @@ class DBH {
 				 *  $nyutstgrpid         utstyrgruppeid ny/klonet utstyrgruppe
 				 */
 
-				// Legger inn referanser fra den nye utstyrsgruppen til de nye klonede filtrene.
+				// Legger inn referanser fra den nye
+				// utstyrsgruppen til de nye klonede filtrene.
 				foreach ($utstyrfilteridlist AS $utstyrfilterid) {
-					/*
-					   echo "<p>DEBUG<br>Lager referanse til utstyrsfilter<br>" . 
-					   "gammel: " . $utstyrfilterid[1] . 
-					   "<br>ny: " . $utstyrfilterid[0] . 
-					   "<br>utstyrgruppe gammel : " .  $basertpaa .
-					   "<br>utstyrgruppe ny : " . $nyutstgrpid;
-					 */
-					$querystring = "INSERT INTO 
-						GruppeTilFilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) 
-						SELECT inkluder, positiv, prioritet, " . $utstyrfilterid[0] . ", " . $nyutstgrpid . "  
-						FROM GruppeTilFilter WHERE (utstyrgruppeid = " . addslashes($basertpaa) . ") AND 
-						(utstyrfilterid = " . $utstyrfilterid[1] . ")";
-					//echo "<p>Query:<br><PRE>" . $querystring . "</PRE>";
-					if ( $query = pg_exec( $this->connection, $querystring)) { 
-						// echo "<p>funka fint dette (13)...";
-					}
-
+					$querystr = "INSERT INTO GruppeTilFilter (
+							inkluder, positiv, prioritet,
+							utstyrfilterid, utstyrgruppeid
+						)
+						SELECT
+							inkluder, positiv, prioritet,
+							".pg_escape_string($utstyrfilterid[0]).",
+							".pg_escape_string($nyutstgrpid)."
+						FROM GruppeTilFilter
+						WHERE
+							(utstyrgruppeid = $1) AND
+							(utstyrfilterid = $2)";
+					 $querypar = array(
+							$basertpaa,
+							$utstyrfilterid[1]
+						);
+					$query = pg_query_params(
+							$this->connection,
+							$querystr,
+							$querypar
+						);
+					if (!$query)
+						checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 				}
 
-				// Traversere utstyrsfiltre som skal arves for å finne filtermatcher som skal arves
+				// Traversere utstyrsfiltre som skal arves for
+				// å finne filtermatcher som skal arves
 				foreach ($utstyrfilteridlist AS $utstyrfilterid) {
-					//echo "<p>Henter inn match fra utstyrfilter:" . $utstyrfilterid[1];
-					//$arvematcher = $this->listMatch($utstyrfilterid[1],0);
-					//foreach ($arvematcher AS $arvematch) {
-					//echo "<p>Kloner matcher... ";
-					$querystring = "INSERT INTO 
-						FilterMatch (matchfelt, matchtype, verdi, utstyrfilterid) 
-						SELECT matchfelt, matchtype, verdi, " . $utstyrfilterid[0] . " 
-						FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
-					//echo "<p> Query:<br><PRE>" . $querystring . "</PRE>";
-					if ( $query = pg_exec( $this->connection, $querystring)) { 
-						//    echo "<p>funka fint dette (14)...";
-					}                    
-					//}
+					$querystr = "INSERT INTO FilterMatch (
+							matchfelt, matchtype,
+							verdi, utstyrfilterid
+						)
+						SELECT matchfelt, matchtype, verdi, $1
+						FROM FilterMatch
+						WHERE (utstyrfilterid = $2)";
+					$querypar = array($utstyrfilterid[0], $utstyrfilterid[1]);
+					$query = pg_query_params(
+							$this->connection,
+							$querystr,
+							$querypar
+						);
+					if (!$query)
+						checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 				}
-
-				// 
-
 			}
-
-
 		} else {
 			return $nyutstgrpid;
 		}
-
 	}
 
 	// opprette ny utstyrsgruppe administrator
 	function nyUtstyrgruppeAdm($navn, $descr) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Utstyrgruppe (id, accountid, navn, descr) VALUES (" . 
-			"nextval('filtermatch_id_seq'), null, '" . 
-			addslashes($navn) ."', '" . addslashes($descr) . "' )";
+		$querystr = "INSERT INTO Utstyrgruppe (accountid, navn, descr)
+			VALUES (null, $1, $2)";
+		$querypar = array($navn, $descr);
 
-		//    print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
-
-			// Henter ut object id`n til raden.
-			$oid = pg_getlastoid($query);
-
-			// Henter ut id`n til raden og returnerer den.
-			$idres = pg_exec( $this->connection, "SELECT id FROM Utstyrgruppe WHERE oid = $oid");
-			$idrow = pg_fetch_row($idres, 0);
-			return $idrow[0];
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+			$lastid_querystr = 'SELECT currval(\'utstyrgruppe_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
+			if (!$lastid_query)
+				checkDBError($this->connection, $lastid_querystr, null, __FILE__, __LINE__);
+			$lastid = pg_fetch_result($lastid_query, 'lastid');
+			return $lastid;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til e legge i databasen
 			return 0;
 		}
 
 	}
 
-
-
-
 	// slette en adresse
 	function slettAdresse($aid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM Alarmadresse WHERE ( id = " . addslashes($aid) . " )";
+		$querystr = "DELETE FROM Alarmadresse
+			WHERE (id = $1)";
+		$querypar = array($aid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2373,12 +2588,14 @@ class DBH {
 	function slettProfil($pid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM Brukerprofil WHERE ( id = " . addslashes($pid) . " )";
+		$querystr = "DELETE FROM Brukerprofil
+			WHERE (id = $1)";
+		$querypar = array($pid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2390,29 +2607,33 @@ class DBH {
 	function slettBruker($uid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM Account WHERE ( id = " . addslashes($uid) . " )";
+		$querystr = "DELETE FROM Account
+			WHERE (id = $1)";
+		$querypar = array($uid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
 
-	}  
+	}
 
 
 	// slette en brukergruppe
 	function slettBrukergruppe($gid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM AccountGroup WHERE ( id = " . addslashes($gid) . " )";
+		$querystr = "DELETE FROM AccountGroup
+			WHERE (id = $1)";
+		$querypar = array($gid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2423,12 +2644,14 @@ class DBH {
 	function slettUtstyrgruppe($gid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM Utstyrgruppe WHERE ( id = " . addslashes($gid) . " )";
+		$querystr = "DELETE FROM Utstyrgruppe
+			WHERE (id = $1)";
+		$querypar = array($gid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2439,13 +2662,14 @@ class DBH {
 	function slettPeriode($pid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM Tidsperiode WHERE ( id = " . addslashes($pid) . " )";
-#    print "<p>QUERY:$querystring:";
+		$querystr = "DELETE FROM Tidsperiode
+			WHERE (id = $1)";
+		$querypar = array($pid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2456,18 +2680,19 @@ class DBH {
 	function slettGrpFilter($gid, $fid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM gruppetilfilter WHERE ( utstyrgruppeid = " . addslashes($gid) . 
-			"AND  utstyrfilterid = " . $fid . ")";
-#    print "<p>QUERY:$querystring:";
+		$querystr = "DELETE FROM gruppetilfilter
+			WHERE
+				utstyrgruppeid = $1 AND
+				utstyrfilterid = $2";
+		$querypar = array($gid, $fid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
-
 	}
 
 
@@ -2475,14 +2700,16 @@ class DBH {
 	function slettFiltermatch($fid, $mid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM FilterMatch WHERE ( id = " . addslashes($mid) . 
-			"AND  utstyrfilterid = " . $fid . ")";
-#    print "<p>QUERY:$querystring:";
+		$querystr = "DELETE FROM FilterMatch
+			WHERE
+				id = $1 AND
+				utstyrfilterid = $2";
+		$querypar = array($mid, $fid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2493,13 +2720,14 @@ class DBH {
 	function slettFilter($fid) {
 
 		// Spxrring som legger inn i databasen
-		$querystring = "DELETE FROM Utstyrfilter WHERE ( id = " . addslashes($fid) . " )";
-#    print "<p>QUERY:$querystring:";
+		$querystr = "DELETE FROM Utstyrfilter
+			WHERE (id = $1)";
+		$querypar = array($fid);
 
-#print "<p>query: $querystring\n brukerid: $brukerid";
-		if ( $query = pg_exec( $this->connection, $querystring)) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
@@ -2511,20 +2739,19 @@ class DBH {
 
 		if ($profilid == 0) { $profilid = "null"; }
 		// Spxrring som legger inn i databasen
-		$querystring = "UPDATE Preference SET activeprofile = " . addslashes($profilid) . " WHERE " .
-			"accountid = " . addslashes($brukerid) . "  ";
+		$querystr = "UPDATE Preference
+			SET activeprofile = $1
+			WHERE accountid = $2";
+		$querypar = array($profilid, $brukerid);
 
-#print "<p>query: $querystring";
-		if ( $query = pg_exec( $this->connection, $querystring) ) {
+		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			return 1;
 		} else {
+			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			// fikk ikke til å legge i databasen
 			return 0;
 		}
-
 	}
-
-
 }
 
 /*
@@ -2580,19 +2807,17 @@ class DBHK {
 			$vc = "";
 			//$vsort = $this->get_field($vcat) . ', ' . $vsort;
 		}
-		$querystring = "SELECT $vid, $vname $vc " . 
+		$querystr = "SELECT $vid, $vname $vc " . 
 			"FROM $vtabell " .
-			"ORDER BY $vsort LIMIT " . addslashes($limit);
+			"ORDER BY $vsort LIMIT " . pg_escape_string($limit);
 
-		//echo "<p>query: " . $querystring;
+		//echo "<p>query: " . $querystr;
 
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-
-				$scat = (isset($vcat) && $vcat && isset($data[$vcat])) ? $data[$vcat] : 0;
+		if ($query = pg_query($this->connection, $querystr)) {
+			while ($data = pg_fetch_assoc($query)) {
+				$scat = 0;
+				if (isset($vcat) && $vcat && isset($data[$vcat]))
+					$cat = $data[$vcat];
 
 				$namestring = $vntemplate;
 				$namestring = preg_replace('/(\[NAME\])/', $data[$vname], $namestring);
@@ -2600,21 +2825,19 @@ class DBHK {
 				$namestring = preg_replace('/(\[GROUP\])/', $scat, $namestring);
 
 
-				if (!isset($verdier[$scat] )) { $verdier[$scat] = null; }
-				$verdier[$scat][$row] = array($data[$vid], $namestring);
-				$row++;
+				if (!isset($verdier[$scat] )) {
+					$verdier[$scat] = null;
+				}
+				$verdier[$scat][] = array($data[$vid], $namestring);
 			}
 
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
-		/* 	echo '<pre>'; */
-		/*     print_r($verdier); */
-		/*    echo '</pre>'; */
 
-		return $verdier;  
-
+		return $verdier;
 	}
 
 
@@ -2622,25 +2845,20 @@ class DBHK {
 
 		$felter = null;
 
-		$querystring = "SELECT c.relname, a.attname, t.typname 
+		$querystr = "SELECT c.relname, a.attname, t.typname 
 			FROM pg_class c, pg_attribute a, pg_type t, pg_tables tb 
 			WHERE a.attnum > 0 AND a.attrelid = c.oid AND a.atttypid = t.oid AND 
 			c.relname = tb.tablename AND tablename not like 'pg_%' 
 			ORDER BY c.relname, a.attname;";
 
-		//echo "<p>query: " . $querystring;
-
-		if ( $query = @pg_exec($this->connection, $querystring) ) {
-			$tot = pg_numrows($query); $row = 0;
-
-			while ( $row < $tot) {
-				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		if ($query = pg_query($this->connection, $querystr)) {
+			for ($row = 0; $data = pg_fetch_assoc($query); $row++) {
 				$felter[$data['relname']][$row][0] = $data['attname'];
 				$felter[$data['relname']][$row][1] = $data['typname'];
-				$row++;
 			}
 
 		}  else {
+			checkDBError($this->connection, $querystr, null, __FILE__, __LINE__);
 			$error = new Error(2);
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
