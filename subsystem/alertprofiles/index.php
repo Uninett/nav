@@ -163,6 +163,7 @@ $old_error_handler = set_error_handler("myErrorHandler");
 
 
 require("config.php");
+require("php4support");
 require("databaseHandler.php");
 require("session.php");
 
