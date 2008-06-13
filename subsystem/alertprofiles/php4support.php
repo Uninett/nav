@@ -40,4 +40,23 @@ if (!function_exists('pg_num_rows')) {
 	}
 }
 
+// pg_escape_string() was introduced in PHP 4.2, use addslashes if
+// pg_escape_string() is not available
+if (!function_exists('pg_escape_string')) {
+	function pg_escape_string($db, $string) {
+		return addslashes($string);
+	}
+}
+
+// pg_fetch_result() was once called pg_result()
+if (!function_exists('pg_fetch_result')) {
+	function pg_fetch_result($result, $row, $field) {
+		if (!isset($field)) {
+			$field = $row;
+			$row = 0;
+		}
+		return pg_result($result, $row, $field);
+	}
+}
+
 ?>
