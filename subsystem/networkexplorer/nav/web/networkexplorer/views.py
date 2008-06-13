@@ -26,19 +26,22 @@ __license__ = "GPL"
 __author__ = "Kristian Klette (kristian.klette@uninett.no)"
 __id__ = "$Id$"
 
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponseBadRequest, Http404
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.template import RequestContext
 from django.core import serializers
-from django.template import Context, Template
+from django.core import serializers
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, Http404
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response as render_to_response_orig
+from django.template import Context, Template
+from django.template import RequestContext
+from django.utils import simplejson
+from django.db.models import Q
 
-from nav.models.manage import Netbox, Module, SwPort, GwPort
-from nav.models.cabling import Cabling, Patch
-from nav.models.service import Service
 from nav.django.shortcuts import render_to_response, object_list
+from nav.models.cabling import Cabling, Patch
+from nav.models.manage import Netbox, Module, SwPort, GwPort
+from nav.models.service import Service
 
 from nav.web.templates.NetworkExplorerTemplate import NetworkExplorerTemplate
 
@@ -61,7 +64,6 @@ def expand_router(request):
     Returns children of an router according to spec
     """
     router = get_object_or_404(Netbox, id=request.REQUEST['netboxid'])
-    ports = []
     gwports = router.get_gwports()
     interface_names = [p.interface for p in gwports]
     unsorted = dict(zip(interface_names, gwports))
@@ -69,27 +71,29 @@ def expand_router(request):
     sorted_ports = [unsorted[i] for i in interface_names]
 
     for gwport in sorted_ports:
-        gwport_set = []
-        for gwprefix in gwport.gwportprefix_set.all().distinct():
-            connected = [p for p in gwprefix.prefix.gwportprefix_set.all() if p != gwprefix]
-            for c_gwprefix in connected:
-                if c_gwprefix.prefix.vlan and c_gwprefix.prefix.vlan.net_type.id == u'static':
-                    continue
-                if c_gwprefix.gwport == gwprefix.gwport:
-                    continue
-                gwport_set.append((gwprefix, c_gwprefix.gwport))
-
-        # Check if we have any children
+        # Check if the port is expandable
         for prefix in gwport.gwportprefix_set.all():
             if prefix.prefix.vlan.swportvlan_set.all().count() > 0:
                 gwport.has_children = True
-
-        ports.append((gwport, gwport_set))
+                break
+        if gwport.to_netbox:
+            continue
+        if gwport.to_swport and gwport.to_swport.module.netbox:
+            gwport.to_netbox = gwport.to_swport.module.netbox
+            continue
+        # Find connection trough prefixes
+        try:
+            for gwprefix in gwport.gwportprefix_set.all():
+                for prefix in prefix.gwportprefix_set.all().exclude(gwport=gwport):
+                    gwport.to_netbox = prefix.gwport.module.netbox
+                    raise StopIteration # Ugly hack since python doesnt support labeled breaks
+        except:
+            continue
 
     return render_to_response_orig('networkexplorer/expand_router.html',
         {
             'sysname': router.sysname,
-            'ports': ports,
+            'ports': sorted_ports,
         })
 
 def expand_gwport(request):
@@ -131,30 +135,55 @@ def expand_swport(request):
             'services': to_netbox.service_set.all(),
         })
 
-def expand_search(request):
+def search(request):
     """
     """
+    # Raise 404 if no parameters are given
+    if 'lookup_field' not in request.REQUEST:
+        raise Http404
+
     router_matches = []
     gwport_matches = []
     swport_matches = []
 
+
     # Sysname-search
-    if request.REQUEST['sysname']:
-        routers = Netbox.objects.all().filter(sysname__icontains=request.REQUEST['sysname'])
+    if request.REQUEST['lookup_field'] == 'sysname':
+        routers = Netbox.objects.all().filter(sysname__icontains=request.REQUEST['lookup_field'], category__in=['GW','GSW'])
+        netboxes = Netbox.objects.all().filter(sysname__icontains=request.REQUEST['lookup_field'])
+
         for router in routers:
             router_matches.append(router.id)
 
-        gwports = GwPort.objects.get(
-            Q(to_netbox__sysname__icontains=request.REQUEST['sysname']) |
-            Q(to_swport__module__netbox__sysname_icontains=request.REQUEST['sysname']))
-        for gwport in gwports:
-            if gwport.module.netbox.id not in router_matches:
-                router_matches.append(gwport.module.netbox.id)
+        for gwport in GwPort.objects.all().filter(module__netbox__in=netboxes):
             gwport_matches.append(gwport.id)
 
-        swports = SwPort.objects.get(
-            Q(to_netbox__sysname__icontains=request.REQUEST['sysname']) |
-            Q(to_swport__module__netbox__sysname_icontains=request.REQUEST['sysname']))
-        for swport in swports:
+        local_swports = SwPort.objects.all().filter(module__netbox__in=netboxes)
+        for swport in local_swports:
             swport_matches.append(swport.id)
 
+        gwports = GwPort.objects.all().filter(
+            Q(to_netbox__in=netboxes) |
+            Q(to_swport__module__netbox__in=routers))
+        for gwport in gwports:
+            router_matches.append(gwport.module.netbox.id)
+            gwport_matches.append(gwport.id)
+
+        swports = SwPort.objects.all().filter(
+            Q(to_netbox__in=netboxes) |
+            Q(to_swport__in=local_swports))
+        for swport in swports:
+            router_matches.append(swport.module.netbox.id)
+            swport_matches.append(swport.id)
+            # Find path from swport to gwport (and the router)
+            for swportvlan in swport.swportvlan_set.all():
+                for prefix in swportvlan.vlan.prefix_set.all():
+                    for gwportprefix in prefix.gwportprefix_set.all():
+                        gwport_matches.append(gwportprefix.gwport.id)
+                        router_matches.append(gwportprefix.gwport.module.netbox.id)
+
+    # A bit ugly hack to remove duplicates, but simplejson doesnt seem to support sets
+    router_matches = list(set(router_matches))
+    gwport_matches = list(set(gwport_matches))
+    swport_matches = list(set(swport_matches))
+    return HttpResponse(simplejson.dumps({'routers': router_matches, 'gwports': gwport_matches, 'swports': swport_matches}))

@@ -26,7 +26,7 @@ __license__ = "GPL"
 __author__ = "Kristian Klette (kristian.klette@uninett.no)"
 __id__ = "$Id$"
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import url, patterns
 
 from nav.web.networkexplorer.views import *
 
@@ -40,5 +40,7 @@ urlpatterns = patterns('',
         name="networkexplorer-expand-gwport"),
     url(r'^expand/swport', expand_swport,
         name="networkexplorer-expand-swport"),
+    url(r'^search', search ,
+        name="networkexplorer-search"),
 )
 

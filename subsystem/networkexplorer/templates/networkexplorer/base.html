@@ -8,6 +8,67 @@
 
 {% block content %}
 <script type="text/javascript">
+$(function(){
+    $('#searchForm').submit(function(){
+        var parameters = {};
+        $(':input', this).each(function(){
+            parameters[this.name] = escape($(this).val());
+        });
+        console.log(parameters);
+        $.getJSON('/networkexplorer/search', parameters,
+        function(data){
+
+            var num_routers = data.routers.length;
+            var num_gwports = data.gwports.length;
+            var num_swports = data.swports.length;
+            $.each(data.routers, function(i, router){
+                $.get('/networkexplorer/expand/router',
+                    { 'netboxid': router },
+                    function(data){
+                        $('#router-'+ router).css('background-color', '#FCE94F');
+                        $($('#router-'+ router).children().select('img')).parent('li').append(data);
+                        $($('#router-'+ router).children().select('img')).parent('li').data("loaded", "true");
+                        $($('#router-'+ router).children().select('img')).parent('li').children().select("ul").not("img").show();
+                        num_routers -= 1;
+                        if (num_routers < 1){
+                            gwports();
+                        }
+                    });
+            });
+            function gwports(){
+            $.each(data.gwports, function(i, gwport){
+                $.get('/networkexplorer/expand/gwport',
+                    { 'gwportid': gwport },
+                    function(data){
+                        $('#gwport-'+ gwport).css('background-color','#FCAF3E');
+                        $($('#gwport-'+ gwport).children().select('img')).parent('li').append(data);
+                        $($('#gwport-'+ gwport).children().select('img')).parent('li').data("loaded", "true");
+                        $($('#gwport-'+ gwport).children().select('img')).parent('li').children().select("ul").not("img").show();
+                        num_gwports =- 1;
+                        if (num_gwports < 1){
+                            swports();
+                        }
+                    });
+            });};
+            function swports(){
+            $.each(data.swports, function(i, swport){
+                $.get('/networkexplorer/expand/swport',
+                    { 'swportid': swport },
+                    function(data){
+                        $('#swport-'+ swport).css('background-color','#73D216');
+                        $('#swport-'+ swport).children().css('background-color','#73D216');
+                        $($('#swport-'+ swport).children().select('img')).parent('li').append(data);
+                        $($('#swport-'+ swport).children().select('img')).parent('li').data("loaded", "true");
+                        $($('#swport-'+ swport).children().select('img')).parent('li').children().select("ul").not("img").show();
+                    });
+            });
+            };
+            console.log("Got search result: " + data);
+        });
+
+        return false;
+    });
+});
 
 function openNode(img){
     var expand_type = $(img).parent().attr('id').substr(0,6);
@@ -69,6 +130,10 @@ function openNode(img){
 
 </script>
 <div id="networkexplorer">
+<form action="" method="post" id="searchForm">
+<label for="search">Search:</label><input type="text" name="sysname" id="search" />
+<input type="submit" value="search" />
+</form>
 <ul id="tree" style="list-style: none;">
     {% for router in routers %}
     <li id="router-{{ router.id }}">
