@@ -28,8 +28,6 @@
  *
  */
 
-require_once('php4support.php');
-
 function checkDBError($connection, $query, $parameters, $file, $line) {
 	// Send query.
 	pg_send_query_params($connection, $query, $parameters);
