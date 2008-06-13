@@ -1746,7 +1746,10 @@ class DBH {
 				(property = \'wapkey\')';
 		$querypar = array($uid);
 
-		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+		if (
+			$query = pg_query_params($this->connection, $querystr, $querypar) and
+			pg_num_rows($query) > 0
+		) {
 			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$key[0] = $data["value"];
 		} else {
