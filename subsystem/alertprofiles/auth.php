@@ -77,16 +77,18 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 		(Account.id = ap.accountid) 
 		WHERE (Account.login = '$username') AND 
 		(Account.id = Preference.accountid) ";
+	$queryparams = array($username);
 
 
 
-	if (! $query = pg_exec($dbh->connection, $querystring)  ) {
+	if (! $query = pg_query_params($dbh->connection, $querystring, $queryparams)  ) {
+		checkDBError($this->connection, $querystring, $queryparams, __FILE__, __LINE__);
 		$nerror = new Error(2);
 		$nerror->message = gettext("Error occured with database query.");
 		$error[] = $nerror;
 	} else {
-		if (pg_numrows($query) == 1) {
-			if ( $data = pg_fetch_array($query, 0) ) {
+		if (pg_num_rows($query) == 1) {
+			if ( $data = pg_fetch_array($query, 0, PGSQL_ASSOC) ) {
 				// INNLOGGING OK!!
 				$foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
 				$dbh->nyLogghendelse($data["aid"], 1, gettext("Logged in from ") . $foo);
