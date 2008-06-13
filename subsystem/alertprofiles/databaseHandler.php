@@ -157,10 +157,12 @@ class DBH {
 				GROUP BY (alarmadresse.accountid)
 			) AS adresser ON (account.id = adresser.uid)
 			WHERE (preference.accountid = account.id)
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$brukere[] = array(
 						$data["id"],
 						$data["login"],
@@ -198,12 +200,14 @@ class DBH {
 					FROM AccountInGroup
 					WHERE groupid = $1
 				) AS Medlem ON (account.id = medlem.accountid)
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$brukere[] = array(
 						$data["id"],
 						$data["login"],
@@ -234,11 +238,13 @@ class DBH {
 				date_part(\'epoch\', logg.tid) AS tid, account.name
 			FROM account, logg
 			WHERE account.id = logg.accountid
-			ORDER BY '.pg_escape_string($sorts[$sort]).'
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]).'
 			LIMIT 100';
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$logg[] = array(
 						$data["type"],
 						$data["descr"],
@@ -265,10 +271,12 @@ class DBH {
 
 		$querystr = "SELECT matchfieldid, name, valueid
 			FROM MatchField
-			ORDER BY ".pg_escape_string($sorts[$sort]);
+			ORDER BY ".pg_escape_string($this->connection, $sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$fm[] = array(
 						$data["matchfieldid"],
 						$data["name"],
@@ -315,10 +323,12 @@ class DBH {
 					FROM DefaultFilter
 					GROUP BY accountgroupid
 				) AS DFCount ON (id = DFCount.accountgroupid)
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$brukere[] = array(
 						$data["id"],
 						$data["name"],
@@ -359,7 +369,9 @@ class DBH {
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$grupper[] = array(
 						$data["id"],
 						$data["name"],
@@ -407,11 +419,13 @@ class DBH {
 					SELECT accountid, groupid FROM AccountInGroup
 					WHERE accountid = $1
 				) AS Medlem ON (id = Medlem.groupid)
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$brukere[] = array(
 						$data["id"],
 						$data["name"],
@@ -439,11 +453,13 @@ class DBH {
 		$querystr = 'SELECT id, adresse, type
 			FROM Alarmadresse
 			WHERE accountid = $1
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$adr[] = array(
 						$data["id"],
 						$data["adresse"],
@@ -479,11 +495,13 @@ class DBH {
 				utstyrgruppe.id = varsle.utstyrgruppeid AND
 				alarmadresse.id = varsle.alarmadresseid AND
 				varsle.tidsperiodeid = $2
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid, $tid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$adr[] = array(
 						$data["adrid"],
 						$data["adresse"],
@@ -523,11 +541,13 @@ class DBH {
 					WHERE tidsperiodeid = $2
 					AND utstyrgruppeid = $3
 				) AS periode ON (adr.id = periode.alarmadresseid)
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid, $tid, $gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$adr[] = array(
 						$data["id"],
 						$data["adresse"],
@@ -556,10 +576,12 @@ class DBH {
 
 		$querystr = 'SELECT matchfieldid, name, descr, valuehelp 
 			FROM MatchField
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$matcher[] = array(
 						$data["matchfieldid"],
 						$data["name"],
@@ -589,7 +611,7 @@ class DBH {
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$mf[0] = $data["name"];
 			$mf[1] = $data["descr"];
 			$mf[2] = $data["valuehelp"];
@@ -612,7 +634,9 @@ class DBH {
 		$querypar = array($mid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$operators[] = $data["operatorid"];
 			}
 
@@ -657,11 +681,13 @@ class DBH {
 				Brukerprofil.accountid = $1 AND
 				Account.id = Brukerprofil.accountid AND
 				Account.id = Preference.accountid
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$profiler[] = array(
 						$data["id"],
 						$data["navn"],
@@ -726,7 +752,9 @@ class DBH {
 		$querypar = array($pid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$perioder[] = array(
 						$data["id"],
 						$data["helg"],
@@ -774,7 +802,9 @@ class DBH {
 
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$konf[] = array(
 					$data["antall"],
 					$data["dag"],
@@ -854,13 +884,15 @@ class DBH {
 					GROUP BY utstyrgruppeid
 				) AS FCount ON (id = FCount.utstyrgruppeid)
 			) jalla
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid);
 
 		//print "<pre>" . $querystr . "</pre>";
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -901,7 +933,9 @@ class DBH {
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -957,10 +991,12 @@ class DBH {
 				) AS Y
 				GROUP BY utstyrgruppeid
 			) AS FCount ON (id = FCount.utstyrgruppeid)) jalla
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1034,7 +1070,9 @@ class DBH {
 
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1080,7 +1118,9 @@ class DBH {
 		$querypar = array($gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1130,7 +1170,9 @@ class DBH {
 		$querypar = array($gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1162,7 +1204,7 @@ class DBH {
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$br[0] = $data["login"];
 			$br[1] = $data["name"];
 			$br[2] = $data["admin"];
@@ -1188,7 +1230,7 @@ class DBH {
 
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$gr[0] = $data["name"];
 			$gr[1] = $data["descr"];
 		}  else {
@@ -1211,7 +1253,7 @@ class DBH {
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$gr[0] = $data["navn"];
 			$gr[1] = $data["descr"];
 		}  else {
@@ -1234,7 +1276,7 @@ class DBH {
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$gr[0] = $data["navn"];
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
@@ -1286,7 +1328,7 @@ class DBH {
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$p[0] = $data["navn"];
 			$p[1] = $data["ukedag"];
 			$p[2] = $data["uketidh"];
@@ -1352,11 +1394,13 @@ class DBH {
 				) AS Gcount
 				GROUP BY uid
 			) AS grupper ON (MineFilter.id = grupper.uid)
-		) AS jalla ORDER BY '.pg_escape_string($sorts[$sort]);
+		) AS jalla ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$utst[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1420,7 +1464,9 @@ class DBH {
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$filtre[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1482,7 +1528,9 @@ class DBH {
 			ORDER BY navn';
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$filtre[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1527,7 +1575,9 @@ class DBH {
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				if ($data["min"] == 't' )
 					$name = $data["navn"];
 				else
@@ -1565,7 +1615,9 @@ class DBH {
 		$querypar = array($gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$filtre[] = array(
 						$data["id"],
 						$data["navn"]
@@ -1603,7 +1655,9 @@ class DBH {
 		$querypar = array($gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$filtre[] = array(
 						$data["id"],
 						$data["navn"],
@@ -1636,11 +1690,13 @@ class DBH {
 			WHERE
 				utstyrfilterid = $1 AND
 				FilterMatch.matchfelt = MatchField.matchfieldid
-			ORDER BY '.pg_escape_string($sorts[$sort]);
+			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
 		$querypar = array($fid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$match[] = array(
 						$data["id"],
 						$data["name"],
@@ -1667,7 +1723,7 @@ class DBH {
 		$querypar = array($tid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			$data = pg_fetch_assoc($query, 0);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$perioder[] = array(
 					$data["helg"],
 					$data["time"],
@@ -1693,7 +1749,7 @@ class DBH {
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			$data = pg_fetch_assoc($query);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$key[0] = $data["value"];
 		} else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
@@ -2450,10 +2506,10 @@ class DBH {
 					)
 					SELECT
 						inkluder, positiv, prioritet,
-						utstyrfilterid, ".pg_escape_string($nyutstgrpid)."
+						utstyrfilterid, $1
 					FROM GruppeTilFilter
-					WHERE (utstyrgruppeid = $1)";
-				$querypar = array($basertpaa);
+					WHERE (utstyrgruppeid = $2)";
+				$querypar = array($nyutstgrpid, $basertpaa);
 				$query = pg_query_params(
 						$this->connection,
 						$querystr,
@@ -2500,13 +2556,14 @@ class DBH {
 						)
 						SELECT
 							inkluder, positiv, prioritet,
-							".pg_escape_string($utstyrfilterid[0]).",
-							".pg_escape_string($nyutstgrpid)."
+							$1, $2
 						FROM GruppeTilFilter
 						WHERE
-							(utstyrgruppeid = $1) AND
-							(utstyrfilterid = $2)";
+							(utstyrgruppeid = $3) AND
+							(utstyrfilterid = $4)";
 					 $querypar = array(
+							$utstyrfilterid[0],
+							$nyutstgrpid,
 							$basertpaa,
 							$utstyrfilterid[1]
 						);
@@ -2810,10 +2867,12 @@ class DBHK {
 		}
 		$querystr = "SELECT $vid, $vname $vc " . 
 			"FROM $vtabell " .
-			"ORDER BY $vsort LIMIT " . pg_escape_string($limit);
+			"ORDER BY $vsort LIMIT " . pg_escape_string($this->connection, $limit);
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			while ($data = pg_fetch_assoc($query)) {
+		$numrows = pg_num_rows($query);
+		for ($i = 0; $i < $numrows; $i++) {
+			$data = pg_fetch_array($query, $i, PGSQL_ASSOC);
 				$scat = 0;
 				if (isset($vcat) && $vcat && isset($data[$vcat]))
 					$cat = $data[$vcat];
@@ -2851,7 +2910,9 @@ class DBHK {
 			ORDER BY c.relname, a.attname;";
 
 		if ($query = pg_query($this->connection, $querystr)) {
-			for ($row = 0; $data = pg_fetch_assoc($query); $row++) {
+			$numrows = pg_num_rows($query);
+			for ($row = 0; $row < $numrows; $row++) {
+				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 				$felter[$data['relname']][$row][0] = $data['attname'];
 				$felter[$data['relname']][$row][1] = $data['typname'];
 			}
