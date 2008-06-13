@@ -37,112 +37,127 @@ class WDBH {
 	function WDBH($connection) {
 		$this->connection = $connection;
 	}
-  
+
 	// Henter ut informasjon om en periode..
 	function sjekkwapkey($wapkey) {
-    
-            $uid = 0;
-            $querystring = "
-SELECT Account.login as al, Account.id as aid, Accountproperty.value, account.name as aname, preference.activeprofile as ap  
-FROM AccountProperty, Account, Preference  
-WHERE (property = 'wapkey') AND 
-	(value = '" . addslashes($wapkey) . "') AND 
-	(account.id = accountproperty.accountid) AND
-	(account.id = preference.accountid) ";
 
-		#print "<p> " . $querystring . "</p>";
+		$uid = 0;
+		$querystring = "
+			SELECT
+				Account.login as al, Account.id as aid, Accountproperty.value,
+				account.name as aname, preference.activeprofile as ap
+			FROM AccountProperty, Account, Preference
+			WHERE
+				(property = 'wapkey') AND
+				(value = $1) AND
+				(account.id = accountproperty.accountid) AND
+				(account.id = preference.accountid)";
+		$queryparams = array($wapkey);
 
-		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1) {
-			$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		if (
+			$query = pg_query_params($this->connection, $querystring) AND
+			pg_num_rows($query) == 1
+		) {
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$uid = $data["aid"];
 			$brukernavn = $data["al"];
 			$navn = $data["aname"];
 			$aktivprofil = $data["ap"];
+		} else {
+			checkDBError($this->connection, $querystring, $queryparams, __FILE__, __LINE__);
 		}
-    
-	 	return array($uid, $brukernavn, $navn, $aktivprofil);
+
+		return array($uid, $brukernavn, $navn, $aktivprofil);
 	}
 
 
 
-  // Liste alle profilene til en bruker
-  function listProfiler($uid) {
-    
-    $profiler = NULL;
-    	
-   	$sorts = array (
-   		'aktiv DESC, Brukerprofil.navn', 
-   		'Brukerprofil.navn', 
-   		'Q.antall, aktiv DESC, Brukerprofil.navn');
+	// Liste alle profilene til en bruker
+	function listProfiler($uid) {
 
-  	$querystring = "
-SELECT (Preference.activeProfile = Brukerprofil.id) AS aktiv, 
-    Brukerprofil.id, Brukerprofil.navn, Q.antall 
-FROM Account, Preference, Brukerprofil LEFT OUTER JOIN 
-(SELECT pid, count(tid) AS antall FROM 
-    (SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid FROM Tidsperiode, Brukerprofil 
-        WHERE (Brukerprofil.accountid = " . addslashes($uid) . "
-        ) AND (Brukerprofil.id = Tidsperiode.brukerprofilid) ) AS Perioder 
-    GROUP BY Perioder.pid ) AS Q 
-    ON (Brukerprofil.id = Q.pid) 
-WHERE (Brukerprofil.accountid = " . addslashes($uid) . ") AND 
-(Account.id = Brukerprofil.accountid) AND 
-(Account.id = Preference.accountid) 
-ORDER BY aktiv DESC, Brukerprofil.navn" ;
+		$profiler = NULL;
 
-    //print "<p>$querystring";
+		$sorts = array (
+				'aktiv DESC, Brukerprofil.navn',
+				'Brukerprofil.navn',
+				'Q.antall, aktiv DESC, Brukerprofil.navn');
 
-	if ( $query = @pg_exec($this->connection, $querystring) ) {
-		$tot = pg_numrows($query); $row = 0;
-	
-		while ( $row < $tot) {
-			$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-			$profiler[$row][0] = $data["id"]; 
-			$profiler[$row][1] = $data["navn"];
-			$profiler[$row][2] = $data["antall"];
-			$profiler[$row][3] = $data["aktiv"];
-			$row++;
-		} 
+		$querystring = "SELECT
+				(Preference.activeProfile = Brukerprofil.id) AS aktiv,
+				Brukerprofil.id, Brukerprofil.navn, Q.antall
+			FROM Account, Preference, Brukerprofil
+			LEFT OUTER JOIN (
+					SELECT pid, count(tid) AS antall
+					FROM (
+						SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid
+						FROM Tidsperiode, Brukerprofil
+						WHERE
+							(Brukerprofil.accountid = $1) AND
+							(Brukerprofil.id = Tidsperiode.brukerprofilid)
+					) AS Perioder
+					GROUP BY Perioder.pid
+				) AS Q ON (Brukerprofil.id = Q.pid)
+			WHERE
+				(Brukerprofil.accountid = $1) AND
+				(Account.id = Brukerprofil.accountid) AND
+				(Account.id = Preference.accountid)
+			ORDER BY aktiv DESC, Brukerprofil.navn";
+
+		$queryparams = array($uid);
+
+		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
+			$tot = pg_num_rows($query); 
+
+			for ($row = 0; $row < $tot; $row++) {
+				$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+				$profiler[$row][0] = $data["id"];
+				$profiler[$row][1] = $data["navn"];
+				$profiler[$row][2] = $data["antall"];
+				$profiler[$row][3] = $data["aktiv"];
+			}
+		} else {
+			checkDBError($this->connection, $querystring, $queryparams, __FILE__, __LINE__);
+		}
+
+		return $profiler;
 	}
-    
-    return $profiler;
-  }
 
-  // opprette ny hendelse i loggen
-  function nyLogghendelse($brukerid, $type, $descr) {
+	// opprette ny hendelse i loggen
+	function nyLogghendelse($brukerid, $type, $descr) {
 
-    // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Logg (accountid, type, descr, tid) VALUES (" . 
-    	addslashes($brukerid) . ", " . addslashes($type) .", '" . 
-    	addslashes($descr) . "', current_timestamp )";
-    
-	#print "<p>query: $querystring\n brukerid: $brukerid";
-    if ( $query = pg_exec( $this->connection, $querystring)) {
-      
-		return 1;
-    } else {
-      // fikk ikke til å legge i databasen
-      return 0;
-    }
+		// Spxrring som legger inn i databasen
+		$querystring = "INSERT INTO Logg (accountid, type, descr, tid)
+			VALUES ($1, $2, $3, current_timestamp)";
+		$queryparams = array($brukerid, $type, $descr);
 
-  }
-  
+		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
+			return 1;
+		} else {
+			checkDBError($this->connection, $querystring, $queryparams, __FILE__, __LINE__);
+			// fikk ikke til å legge i databasen
+			return 0;
+		}
 
-  function aktivProfil($uid, $profilid) {
+	}
 
-    // Spxrring som legger inn i databasen
-    $querystring = "UPDATE Preference SET activeProfile = " . addslashes($profilid) . " WHERE " .
-      " accountid = " . addslashes($uid) . "  ";
-    
-   //echo "<p>query: $querystring";
-    if ( $query = pg_exec( $this->connection, $querystring) ) {
-      return 1;
-    } else {
-      // fikk ikke til å legge i databasen
-      return 0;
-    }
 
-  }
+	function aktivProfil($uid, $profilid) {
+
+		// Spxrring som legger inn i databasen
+		$querystring = "UPDATE Preference
+			SET activeProfile = $1
+			WHERE accountid = $2";
+		$queryparams = array($profilid, $uid);
+
+		if ($query = pg_query_params($this->connection, $querystring, $queryparams)) {
+			return 1;
+		} else {
+			checkDBError($this->connection, $querystring, $queryparams, __FILE__, __LINE__);
+			// fikk ikke til å legge i databasen
+			return 0;
+		}
+
+	}
 
 
 
