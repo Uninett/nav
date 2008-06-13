@@ -68,21 +68,22 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 
 	$username = $_ENV['REMOTE_USER'];
 
-	$querystring = "
-		SELECT Account.id AS aid, ap.value 
-		FROM Preference, Account 
+	$querystring = 'SELECT Account.id AS aid, ap.value
+		FROM Preference, Account
 		LEFT OUTER JOIN (
-				SELECT accountid, property, value FROM AccountProperty WHERE property = 'language' 
-				) AS ap ON 
-		(Account.id = ap.accountid) 
-		WHERE (Account.login = '$username') AND 
-		(Account.id = Preference.accountid) ";
+				SELECT accountid, property, value
+				FROM AccountProperty
+				WHERE property = \'language\'
+			) AS ap ON (Account.id = ap.accountid)
+		WHERE
+			(Account.login = $1) AND
+			(Account.id = Preference.accountid)';
 	$queryparams = array($username);
 
 
 
 	if (! $query = pg_query_params($dbh->connection, $querystring, $queryparams)  ) {
-		checkDBError($this->connection, $querystring, $queryparams, __FILE__, __LINE__);
+		checkDBError($dbh->connection, $querystring, $queryparams, __FILE__, __LINE__);
 		$nerror = new Error(2);
 		$nerror->message = gettext("Error occured with database query.");
 		$error[] = $nerror;
