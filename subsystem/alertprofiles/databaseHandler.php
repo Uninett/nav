@@ -1297,7 +1297,7 @@ class DBH {
 		$query = pg_query_params($this->connection, $querystr, $querypar);
 
 		if ($query and pg_num_rows($query) == 1) {
-			$data = pg_fetch_assoc($query);
+			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$gr[0] = $data["navn"];
 			$gr[1] = $data["descr"];
 			$gr[2] = $data["min"];
