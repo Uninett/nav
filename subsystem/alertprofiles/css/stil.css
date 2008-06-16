@@ -85,7 +85,6 @@ table.meny {
 
 .meny caption, .mainWindowHead {
 	border: none !important;
-	border-bottom: 2px solid white !important;
 	font-weight : bold;
 	font-size: 1.2em;
 	color : white;
@@ -93,6 +92,7 @@ table.meny {
 	padding: 0.3em 0.5em;
 	background-color: #567899;
 	border: 1px solid #567899;
+	border-bottom: 2px solid white !important;
 }
 
 .mainWindowHead p {
@@ -192,14 +192,15 @@ h3 {
 
 /* LISTING */
 .listingTable {
-	border: 1px solid #666;
+	border: 1px solid #999999;
   margin : 2px 2px 2px 2px;
 }
 
 .listingLabel {
-  background : #336699;
-  color: #ccc ! important;
-  font-size: 0.8em;
+  background : #567899;
+  color: #fff ! important;
+	font-size: 0.8em;
+	padding: 3px;
   font-weight : bold;
 }
 A.sort:link, A.sort:visited {
@@ -211,7 +212,7 @@ A.sort:active, A.sort:hover {
 }
 
 .listingRowA {
-  background : #d0d0d0
+  background : #ccc;
 }
 
 .listingRowB {
@@ -229,9 +230,7 @@ A.sort:active, A.sort:hover {
 	border-bottom-style: none;
 	border-left-style: none;
 	border-color: #999999;
-	
-	padding-left: 0px;
-	padding-right: 0px;
+	padding: 1px 5px;
 	font-size: 0.9em; 
 }
 /* LISTING */
@@ -257,12 +256,12 @@ table.timetable tr.period td.eqg table.eqgroup { width: 100% }
 table.timetable tr td.helg { text-align: center }
 table.timetable tr td.clock { text-align: center }
 
-table.timetable { border: 1px solid #ccc;  width: 100% }
-table.timetable tr.period > td {border-top: 1px solid #666 }
+table.timetable { border: 1px solid #999999;  width: 100% }
+table.timetable tr.period > td {border-top: 1px solid #999999 }
 
 
 
-table.timetable tr.period.even > td { background: #aaa; padding: 2px }
+table.timetable tr.period.even > td { background: #ddd; padding: 2px }
 
 
 
