@@ -365,10 +365,9 @@ class Meny {
 ?>
 
 <table class="meny">
-<tr><td class="menyHead">
-<p><?php echo gettext('Alert Profiles'); ?>
-</td></tr>
-
+	<caption>
+		<?php echo gettext('Alert Profiles'); ?>
+	</caption>
 <tr><td>
 <?php
 

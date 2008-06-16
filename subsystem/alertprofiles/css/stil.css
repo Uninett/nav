@@ -66,42 +66,44 @@ BODY {
 	background : #FFFF99;
 	border : 1px groove #000000
 }
-.meny {
+table.meny {
 	width : 100%;
-	border : 1px solid #666;
-	margin : 0px 0px 10px 0px;
-	background : #dedede;
-	background-image:url('/images/toolbox/module-fill.gif'); 
-	background-repeat: repeat;
+	background-color: #eee;
+	border: 1px solid #999999;
+	margin-top: 3px;
 }
 
-.menyHead {
-	border: 1px solid #666;
+.meny td {
+}
 
+.meny hr {
+	border: 0;
+	color: #999999;
+	background-color: #999999;
+	height: 1px;
+}
+
+.meny caption, .mainWindowHead {
+	border: none !important;
+	border-bottom: 2px solid white !important;
 	font-weight : bold;
-	background : #ddd;
-	color : black;
+	font-size: 1.2em;
+	color : white;
 	text-align : center;
-	background-image:url('../images/backgroundpattern.png'); 
-	background-repeat: repeat;
+	padding: 0.3em 0.5em;
+/*background-image:url('../images/backgroundpattern.png'); */
+	background-color: #567899;
+	border: 1px solid #567899;
 }
-.menyHead p, .mainWindowHead p {
-	font-size: 1.4em;
+
+.mainWindowHead p {
+	font-size: 1.1em;
 	margin: 0px;
 }
+
 .mainWindow {
-	margin : 0px 0px 10px 0px;
-	background : #fffafa;
-	border : 1px groove #000000
-}
-.mainWindowHead {
-	border: 1px solid #666;
-	font-weight : bold;
-	background : #ddd;
-	color : black;
-	text-align : center;
-	background-image:url('../images/backgroundpattern.png'); 
-	background-repeat: repeat
+				border-collapse: separate;
+				border-spacing: 10px 0;
 }
 
 INPUT.subm {
