@@ -33,7 +33,8 @@ import logging
 
 from django.db.models import Q
 
-from nav.models.profiles import Account, AlertQueue, EquipmentGroup
+from nav.models.profiles import Account, AccountAlertQueue, FilterGroup
+from nav.models.event import AlertQueue
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -41,36 +42,30 @@ logging.basicConfig(level=logging.DEBUG)
 # attributes. This code relies on the internal model attribute _meta which
 # contains information about among other things db_tabels and db_columns
 _mapping = {}
-for model in [AlertQueue]:
+for model in [AccountAlertQueue]:
     _mapping[model._meta.db_table] = (model, dict([(f.db_column or f.attname, f.attname) for f in model._meta.fields]))
 
 def check_alerts():
     new_alerts = AlertQueue.objects.new_alerts()
 
     # Get all users with an active profile
-    for account in Account.objects.filter(accountpreference__active_profile__isnull=False):
+    for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
             logging.debug("Cheking alerts for account '%s'" % account)
 
-            # Check that equipment group is within users permision set or
-            # within the users groups
-            permision_check = Q(account_permisions__in=[account]) | Q(group_permisions__in=account.accountgroup_set.all())
+            permision_check = Q(group_permisions__account=account)
             in_profile_check = Q(alertsubscription__in=account.get_active_profile().get_active_timeperiod().alertsubscription_set.all())
 
-            equipment_groups = EquipmentGroup.objects.filter(permision_check,in_profile_check)
+            filter_groups = FilterGroup.objects.filter()
 
-            for group in equipment_groups:
-                logging.debug("Checking equipment group '%s' (%s)" % (group, account))
+            for filter_group in filter_groups:
+                logging.debug("Checking equipment group '%s' (%s)" % (filter_group, account))
 
-                for filter in group.groupfilter_set.all():
-                    logging.debug("Checking filter '%s' in group '%s' (%s)" % (filter, group, account))
+                for content in filter_group.filtergroupcontent_set.all():
+                    logging.debug("Checking filter '%s' in group '%s' (%s)" % (content, filter_group, account))
 
-                    for match in filter.equipment_filter.filtermatch_set.all():
-                        logging.debug("Cheking if '%s' %s '%s'" % (match.match_field, match.get_match_type_display(), match.value))
+                    for expresion in content.filter.expresion_set.all():
+                        logging.debug("Cheking if '%s' %s '%s'" % (expresion.match_field, expresion.get_match_type_display(), expresion.value))
 
-                        (table, column) = match.match_field.value_id.split('.')
-
-                        logging.debug("MatchField %s should corespond to the attribute %s on the django model %s" % (match.match_field, _mapping[table][1][column], _mapping[table][0]))
-
-
+                        print '%s%s' % (expresion.match_field.get_lookup_mapping, expresion.operator.get_operator_mapping)
 
     return new_alerts
