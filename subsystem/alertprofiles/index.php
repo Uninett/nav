@@ -212,7 +212,7 @@ class Meny {
 
 			// Har man tilgang til modulen man skal laste?
 			if (isset($this->level{$action}) ) {
-				if (!$this->adm >= $this->level{$action} ) {
+				if ($this->adm >= $this->level{$action} ) {
 					return $this->files{$action};
 
 
