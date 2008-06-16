@@ -40,15 +40,12 @@ from nav.models.event import AlertQueue
 logging.basicConfig(level=logging.DEBUG)
 
 def check_alerts():
-    new_alerts = AlertQueue.objects.new_alerts()
+    new_alerts = AlertQueue.objects.all()[:10]
     accounts = []
 
     # Build datastructure that contains accounts and corresponding
-    # filtergroupcontent_sets so that we don't risk redoing queuries all the
-    # time
+    # filtergroupcontent_sets so that we don't redo db queries to much
     for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
-            logging.debug("Cheking alerts for account '%s'" % account)
-
             current_alertsubscriptions = account.get_active_profile().get_active_timeperiod().alertsubscription_set.all()
 
             tmp = []
@@ -57,35 +54,49 @@ def check_alerts():
 
             if tmp:
                 permisions = FilterGroupContent.objects.filter(filter_group__group_permisions__accounts=account)
-
                 accounts.append( (account, tmp, permisions) )
 
+    # Check all acounts against all their active subsriptions
     for account, alertsubscriptions, permisions in accounts:
-        for alertsubscription, filtergroupcontents in alertsubscriptions:
-            matches = check_alert_against_filtergroupcontents(None, filtergroupcontents)
+        logging.debug("Cheking alerts for account '%s'" % account)
 
-            if matches:
-                if check_alert_against_filtergroupcontents(alert, permisions):
-                    logging.debug('Sending message')
+        for alert in new_alerts:
+            for alertsubscription, filtergroupcontents in alertsubscriptions:
+
+                # Check if alert matches, and if user has permision
+                if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
+                    if check_alert_against_filtergroupcontents(alert, permisions):
+                        alertsubscription.send(alert)
+                    else:
+                        logging.debug('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                 else:
-                    logging.debug('alert matched but permision test rejected alert')
-            else:
-                logging.debug('did not match')
+                    logging.debug('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
+
+    # FIXME handle AccountAlertQueue
+#    for alert in AccountAlertQueue.objects.all():
+#        
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
+    # Allways assume that the match will fail
     matches = False
 
     for content in filtergroupcontents:
+        original_macthes = matches
+
+        # If we have not matched the message see if we can match it
         if not matches and content.include:
-            # If we have not matched the message see if we can match it
             matches = content.filter.check(alert) == content.positive
 
+            if matches: logging.debug('alert %d: got included by filter %d' % (alert.id, content.filter.id))
+
+        # If the alert has been matched try excluding it
         elif matches and not content.include:
-            # See if we can exlcude the message
             matches = content.filter.check(alert) == content.positive
 
+            # Log that we excluded the alert
             if not matches:
-                # If matches has become false we excluded the message
-                # for good.
-                continue
+                logging.debug('alert %d got: excluded by filter %d' % (alert.id, content.filter.id))
+
+        if original_macthes == matches:
+            logging.debug('alert %d: unaffected by filter %d' % (alert.id, content.filter.id))
     return matches
