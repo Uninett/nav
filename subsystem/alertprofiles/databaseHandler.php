@@ -35,11 +35,10 @@ function checkDBError($connection, $query, $parameters, $file, $line) {
 	$error = pg_result_error($result);
 
 	if ($error) {
-		echo "<p>Error in query in
-			<strong>$file</strong>
-			near line <strong>$line</strong></p>";
-		echo "<pre>$error</pre>";
-		die();
+		$e = "<p>Error in query in <strong>$file</strong>
+				near line <strong>$line</strong>:</p>
+				<p>$error</p>";
+		trigger_error($e, E_USER_ERROR);
 	}
 }
 

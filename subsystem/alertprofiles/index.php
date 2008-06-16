@@ -53,9 +53,14 @@ class Error {
 	var $sev; 
 	
 	function Error ($errtype, $sev = 0) {
-		$this->type_name = array(gettext('Uknown error'), gettext('Log in error'), 
-			gettext('Database error'), gettext('Security error'), gettext('IO error'),
-			gettext('AlertProfiles PHP Errorhandler') );
+		$this->type_name = array(
+				gettext('Uknown error'),
+				gettext('Log in error'), 
+				gettext('Database error'),
+				gettext('Security error'),
+				gettext('IO error'),
+				gettext('AlertProfiles PHP Errorhandler')
+			);
 		$this->type = $errtype;
 		$this->sev = $sev;
 	}
@@ -113,13 +118,13 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
 			$ne = new Error(5);
 			$ne->message = gettext("AlertProfiles error-handler:<b>WARNING</b> [$errno] <h3>$errstr</h3><p>
 			$errfile<br>on line [$errline]\n");
-			$error[] = $ne;			
+			$error[] = $ne;
 		break;
 		default:
 			$ne = new Error(5, 1);
 			$ne->message = gettext("AlertProfiles error-handler:Unkown error type: [$errno] <h3>$errstr</h3><p>
 			$errfile<br>on line [$errline]\n");
-			$error[] = $ne;							
+			$error[] = $ne;
 		break;
 	}
 }
