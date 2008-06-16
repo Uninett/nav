@@ -142,10 +142,8 @@ DIV.newelement {
 	background: #eee
 }
 DIV.subheader {
-	border: 1px solid black; 
-	padding: 2px; 
-	margin: 2px; 
-	background: #eee
+				font-size: 0.9em;
+				font-weight: normal;
 }
 
 P, TD, TH, TR, LI {
