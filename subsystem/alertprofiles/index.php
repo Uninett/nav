@@ -100,7 +100,7 @@ textdomain($domain);
 
 <!-- INCLUDE HEADER -->
 <?php
-$interpreter = $_ENV['PYTHONHOME'] ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
+$interpreter = isset($_ENV['PYTHONHOME']) ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
 $cmd = $interpreter . ' ' . PATH_BIN . '/navTemplate.py user=' . session_get('bruker') . 
 	' content=%%% path=AlertProfiles:/alertprofiles 2>&1';
 
@@ -212,7 +212,7 @@ class Meny {
 
 			// Har man tilgang til modulen man skal laste?
 			if (isset($this->level{$action}) ) {
-				if ($this->adm >= $this->level{$action} ) {
+				if (!$this->adm >= $this->level{$action} ) {
 					return $this->files{$action};
 
 
