@@ -53,15 +53,12 @@ class Account(models.Model):
         return self.login
 
     def get_active_profile(self):
-        return self.accountpreference.active_profile
+        return self.alertpreference.active_profile
 
 class AccountGroup(models.Model):
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
-
-    default_equipment = models.ManyToManyField('EquipmentGroup') # FIXME this uses view hack, was defaultutstyr
-    default_filters = models.ManyToManyField('EquipmentFilter') # FIXME this uses view hack, was defaultfilter
 
     class Meta:
         db_table = u'accountgroup'
@@ -80,9 +77,9 @@ class AccountProperty(models.Model):
     def __unicode__(self):
         return '%s=%s' % (self.property, self.value)
 
-class AccountOrg(models.Model):
+class AccountOrganization(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
-    orgid = models.CharField(max_length=30)
+    organization = models.CharField(max_length=30)
 
     class Meta:
         db_table = u'accountorg'
@@ -90,7 +87,7 @@ class AccountOrg(models.Model):
     def __unicode__(self):
         return self.orgid
 
-class AlarmAddress(models.Model):
+class AlertAddress(models.Model):
     SMS = 2
     EMAIL = 1
 
@@ -109,9 +106,8 @@ class AlarmAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
-class AccountPreference(models.Model):
+class AlertPreference(models.Model):
     account = models.OneToOneField('Account', primary_key=True,  db_column='accountid')
-    queuelength = models.TextField() # This is realy an PG interval FIXME?
     active_profile = models.OneToOneField('AlertProfile', db_column='activeprofile', null=True)
     last_sent_day = models.DateTimeField(db_column='lastsentday')
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
@@ -121,38 +117,6 @@ class AccountPreference(models.Model):
 
     def __unicode__(self):
         return 'preferences for %s' % self.account
-
-class Log(models.Model):
-    EMERGENCY = 0
-    ALERT = 1
-    CRITICAL = 2
-    ERROR = 3
-    WARNING = 4
-    NOTIFIACTION = 5
-    INFORMATION = 6
-    DEBUGGING = 7
-
-    LOG_TYPES = (
-        (EMERGENCY, _('emergency')),
-        (ALERT, _('alert')),
-        (CRITICAL, _('critical')),
-        (ERROR, _('error')),
-        (WARNING, _('warning')),
-        (NOTIFIACTION, _('notification')),
-        (INFORMATION, _('information')),
-        (DEBUGGING, _('debugging')),
-    )
-
-    account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=LOG_TYPES)
-    time = models.DateTimeField(db_column='tid')
-    description = models.CharField(max_length=-1, db_column='descr')
-
-    class Meta:
-        db_table = u'logg'
-
-    def __unicode__(self):
-        return '%s %s - %s' % (self.time, self.type, self.description)
 
 
 #######################################################################
@@ -229,8 +193,8 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
 
     alarm_address = models.ForeignKey('AlarmAddress', db_column='alarmadresseid')
     time_period = models.ForeignKey('TimePeriod', db_column='tidsperiodeid')
-    equipment_group = models.ForeignKey('EquipmentGroup', db_column='utstyrgruppeid')
-    subscription_type = models.IntegerField(db_column='vent', choices=SUBSCRIPTION_TYPES)
+    equipment_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
+    type = models.IntegerField(db_column='vent', choices=SUBSCRIPTION_TYPES)
 
     class Meta:
         db_table = u'varsle'
@@ -241,16 +205,23 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
 #######################################################################
 ### Equipment models
 
-class GroupFilter(models.Model):
-    # FIXME name!
-    include = models.BooleanField(db_column='inkluder')
-    positive = models.BooleanField(db_column='positiv')
+class FilterGroupContent(models.Model):
+    #            inc   pos
+    # Add      |  1  |  1  | union in set theory
+    # Sub      |  0  |  1  | exclusion
+    # And      |  0  |  0  | intersection in set theory
+    # Add inv. |  1  |  0  | complement of set
+
+    include = models.BooleanField(db_column='inkluder')   # Include alert if filter macthes?
+    positive = models.BooleanField(db_column='positiv')   # Negate match?
     priority = models.IntegerField(db_column='prioritet')
-    equipment_filter = models.ForeignKey('EquipmentFilter', db_column='utstyrfilterid')
-    equipment_group = models.ForeignKey('EquipmentGroup', db_column='utstyrgruppeid')
+
+    filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
+    filter_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
 
     class Meta:
         db_table = u'gruppetilfilter'
+        ordering = ['priority']
 
     def __unicode__(self):
         if self.include:
@@ -261,7 +232,7 @@ class GroupFilter(models.Model):
         if not self.positive:
             type = 'inverted %s'  % type
 
-        return '%s filter on %s' % (type, self.equipment_filter)
+        return '%s filter on %s' % (type, self.filter)
 
 class Operator(models.Model):
     EQUALS = 0
@@ -317,22 +288,25 @@ class Operator(models.Model):
     def __unicode__(self):
         return u'%s match on %s' % (self.get_operator_display(), self.match_field)
 
+    def get_operator_mapping(self):
+        return self.OPERATOR_MAPPING[self.type]
 
-class FilterMatch(models.Model):
-    equipment_filter = models.ForeignKey('EquipmentFilter', db_column='utstyrfilterid')
+
+class Expresion(models.Model):
+    equipment_filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
     match_field = models.ForeignKey('MatchField', db_column='matchfelt')
-    match_type = models.IntegerField(db_column='matchtype', choices=Operator.OPERATOR_TYPES)
+    operator = models.ForeignKey('Operator' ,db_column='matchtype')
     value = models.CharField(max_length=-1, db_column='verdi')
 
     class Meta:
         db_table = u'filtermatch'
 
     def __unicode__(self):
-        return '%s match on %s against %s' % (self.get_match_type_display(), self.match_field, self.value)
+        return '%s match on %s against %s' % (self.operator.get_type_display(), self.match_field, self.value)
 
-class EquipmentFilter(models.Model):
+class Filter(models.Model):
     id = models.IntegerField(primary_key=True)
-    account = models.ForeignKey('Account', db_column='accountid')
+    owner = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField(max_length=-1, db_column='navn')
 
     class Meta:
@@ -341,13 +315,12 @@ class EquipmentFilter(models.Model):
     def __unicode__(self):
         return self.name
 
-class EquipmentGroup(models.Model):
+class FilterGroup(models.Model):
     id = models.IntegerField(primary_key=True)
-    account = models.ForeignKey('Account', db_column='accountid', null=True) # XXX what is this link for?
+    owner = models.ForeignKey('Account', db_column='accountid', null=True)
     name = models.CharField(max_length=-1, db_column='navn')
     description = models.CharField(max_length=-1, db_column='descr')
 
-    account_permisions = models.ManyToManyField('Account') # FIXME this uses view hack, was brukerettighet
     group_permisions = models.ManyToManyField('AccountGroup') # FIXME this uses view hack, was rettighet
 
     class Meta:
@@ -368,6 +341,7 @@ class MatchField(models.Model):
         (IP, _('ip')),
     )
 
+    ''' #TODO finish this
     FIELD_CHOICES = []
     from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
     from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxCategory, NetboxInfo, NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort, Usage, Vlan, Vendor
@@ -386,6 +360,7 @@ class MatchField(models.Model):
         for field in model._meta.fields:
             model_choices.append( (field.db_column or field.attname, field.attname))
         FIELD_CHOICES.append( (model._meta.db_table, model_choices) )
+    '''
 
     # Attributes for the fields:
 
@@ -416,7 +391,7 @@ class MatchField(models.Model):
     TYPEGROUP = 'typegroup'
     VENDOR = 'vendor'
     VLAN = 'vlan'
-    VLAN_USAGE = 'usage'
+    USAGE = 'usage'
 
 
     LOOKUP_FIELDS = (
@@ -445,7 +420,7 @@ class MatchField(models.Model):
         (TYPEGROUP, _('typegroup')),
         (VENDOR, _('vendor')),
         (VLAN, _('vlan')),
-        (VLAN_USAGE, _('usage')),
+        (USAGE, _('usage')),
     )
 
     # This mapping designates how a MatchField relates to an alert. (yes the
@@ -453,32 +428,32 @@ class MatchField(models.Model):
     #
     # <lookup>__<variable>__<operator>=<value> should do the trick here.
     LOOKUP_MAP = {
-        ARP:        'netbox__arp',                              # "select a.* from arp a, netbox n where n.netboxid=$this->{alertq}->{netboxid} and a.netboxid=n.netboxid",
-        CAM:        'netbox__cam',                              # "select c.* from cam c, netbox n where n.netboxid=$this->{alertq}->{netboxid} and c.netboxid=n.netboxid",
-        CAT:        'netbox__category',#FIXME                   # "select c.* from cat c, netbox n where n.netboxid=$this->{alertq}->{netboxid} and n.catid=c.catid",
-        DEVICE:     'netbox__device',                           # "select d.* from device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid",
-        EVENT_TYPE: 'event_type',                               # "select * from eventtype where eventtypeid='$this->{alertq}->{eventtypeid}'",
-        GWPORT:     'netbox__connected_to_gwport',              # "select g.* from gwport g,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and g.moduleid=m.moduleid",
-        LOCATION:   'netbox__room__location',                   # "select l.* from location l, room r, netbox n where n.netboxid=$this->{alertq}->{netboxid} and r.roomid=n.roomid and r.locationid=l.locationid",
-        MEMORY:     'netbox__memory',                           # "select m.* from mem m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.netboxid=n.netboxid",
-        MODULE:     'netbox__module',                           # "select m.* from module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid",
-        NETBOX:     'netbox',                                   # "select * from netbox where netboxid=$this->{alertq}->{netboxid}",
-        CATEGORY:   'netbox__category', #FIXME                   # "select nc.* from netboxcategory nc, netbox n where n.netboxid=$this->{alertq}->{netboxid} and nc.netboxid=n.netboxid",
-        NETBOXINFO: 'netbox__info',                             # "select ni.* from netboxinfo ni, netbox n where n.netboxid=$this->{alertq}->{netboxid} and ni.netboxid=n.netboxid",
-        ORG:        'netbox__organization',                     # "select o.* from org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid",
-        PREFIX:     'netbox__prefix',                           # "select p.* from prefix p, netbox n where n.netboxid=$this->{alertq}->{netboxid} and p.prefixid=n.prefixid",
-        PRODUCT:    'netbox__device__product',                  # "select p.* from product p, device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid and p.productid=d.productid",
-        ROOM:       'netbox__room',                             # "select r.* from room r, netbox n where n.netboxid=$this->{alertq}->{netboxid} and r.roomid=n.roomid",
-        SERVICE:    'netbox__', #FIXME                          # "select s.* from service s, netbox n where n.netboxid=$this->{alertq}->{netboxid} and s.netboxid=n.netboxid",
-        SUBSYSTEM:  '', #FXIME                                   # "select * from subsystem where name=$this->{alertq}->{subid}",
-        SWPORT:     'netbox__connected_to_swport',              # "select s.* from swport s,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and s.moduleid=m.moduleid",
-        TYPE:       'netbox__type',                             # "select t.* from type t, netbox n where n.netboxid=$this->{alertq}->{netboxid} and t.typeid=n.typeid",
-        TYPEGROUP:  'netbox__type__group', #FIXME               # "select tg.* from typegroup tg,type t, netbox n where n.netboxid=$this->{alertq}->{netboxid} and t.typeid=n.typeid and tg.typegroupid=t.typehroupid",
-        USAGE:      'netbox__organization__vlan__usage', #FIXME # "select u.* from usage u,vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid and u.usageid=v.usageid",
-        VENDOR:     'netbox__device__product__vendor',          # "select v.* from vendor v, product p, device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid and p.productid=d.productid and v.vendorid=p.vendorid",
-        VLAN:       'netbox__organization__vlan',               # "select v.* from vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid",
-        SUBCAT:     '', #FIXME                                  # "select s.* from subcat s join netboxcategory n on (s.subcatid=n.category) where n.netboxid=$this->{alertq}->{netboxid}",
-        ALERTTYPE:  'alert_type',                               # "select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}",
+        ARP:          'netbox__arp',                              # "select a.* from arp a, netbox n where n.netboxid=$this->{alertq}->{netboxid} and a.netboxid=n.netboxid",
+        CAM:          'netbox__cam',                              # "select c.* from cam c, netbox n where n.netboxid=$this->{alertq}->{netboxid} and c.netboxid=n.netboxid",
+        CAT:          'netbox__category',#FIXME                   # "select c.* from cat c, netbox n where n.netboxid=$this->{alertq}->{netboxid} and n.catid=c.catid",
+        DEVICE:       'netbox__device',                           # "select d.* from device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid",
+        EVENT_TYPE:   'event_type',                               # "select * from eventtype where eventtypeid='$this->{alertq}->{eventtypeid}'",
+        GWPORT:       'netbox__connected_to_gwport',              # "select g.* from gwport g,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and g.moduleid=m.moduleid",
+        LOCATION:     'netbox__room__location',                   # "select l.* from location l, room r, netbox n where n.netboxid=$this->{alertq}->{netboxid} and r.roomid=n.roomid and r.locationid=l.locationid",
+        MEMORY:       'netbox__memory',                           # "select m.* from mem m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.netboxid=n.netboxid",
+        MODULE:       'netbox__module',                           # "select m.* from module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid",
+        NETBOX:       'netbox',                                   # "select * from netbox where netboxid=$this->{alertq}->{netboxid}",
+        CATEGORY:     'netbox__category', #FIXME                   # "select nc.* from netboxcategory nc, netbox n where n.netboxid=$this->{alertq}->{netboxid} and nc.netboxid=n.netboxid",
+        NETBOXINFO:   'netbox__info',                             # "select ni.* from netboxinfo ni, netbox n where n.netboxid=$this->{alertq}->{netboxid} and ni.netboxid=n.netboxid",
+        ORGANIZATION: 'netbox__organization',                     # "select o.* from org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid",
+        PREFIX:       'netbox__prefix',                           # "select p.* from prefix p, netbox n where n.netboxid=$this->{alertq}->{netboxid} and p.prefixid=n.prefixid",
+        PRODUCT:      'netbox__device__product',                  # "select p.* from product p, device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid and p.productid=d.productid",
+        ROOM:         'netbox__room',                             # "select r.* from room r, netbox n where n.netboxid=$this->{alertq}->{netboxid} and r.roomid=n.roomid",
+        SERVICE:      'netbox__', #FIXME                          # "select s.* from service s, netbox n where n.netboxid=$this->{alertq}->{netboxid} and s.netboxid=n.netboxid",
+        SUBSYSTEM:    '', #FXIME                                   # "select * from subsystem where name=$this->{alertq}->{subid}",
+        SWPORT:       'netbox__connected_to_swport',              # "select s.* from swport s,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and s.moduleid=m.moduleid",
+        TYPE:         'netbox__type',                             # "select t.* from type t, netbox n where n.netboxid=$this->{alertq}->{netboxid} and t.typeid=n.typeid",
+        TYPEGROUP:    'netbox__type__group', #FIXME               # "select tg.* from typegroup tg,type t, netbox n where n.netboxid=$this->{alertq}->{netboxid} and t.typeid=n.typeid and tg.typegroupid=t.typehroupid",
+        USAGE:        'netbox__organization__vlan__usage', #FIXME # "select u.* from usage u,vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid and u.usageid=v.usageid",
+        VENDOR:       'netbox__device__product__vendor',          # "select v.* from vendor v, product p, device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid and p.productid=d.productid and v.vendorid=p.vendorid",
+        VLAN:         'netbox__organization__vlan',               # "select v.* from vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid",
+        SUBCATEGORY:  '', #FIXME                                  # "select s.* from subcat s join netboxcategory n on (s.subcatid=n.category) where n.netboxid=$this->{alertq}->{netboxid}",
+        ALERT_TYPE:   'alert_type',                               # "select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}",
     }
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
@@ -520,7 +495,7 @@ class SMSQueue(models.Model):
     class Meta:
         db_table = u'smsq'
 
-class Queue(models.Model):
+class AccountAlertQueue(models.Model):
     id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     addrress = models.ForeignKey('AlarmAddress', db_column='addrid')
@@ -529,47 +504,3 @@ class Queue(models.Model):
 
     class Meta:
         db_table = u'queue'
-
-
-#######################################################################
-### XXX models
-
-class AccountNavBar(models.Model):
-    account = models.ForeignKey('Account', db_column='accountid')
-    navbarlink = models.ForeignKey('NavBarLink', db_column='navbarlinkid')
-    positions = models.CharField(max_length=-1)
-
-    class Meta:
-        db_table = u'accountnavbar'
-
-class AccountGroupPrivilege(models.Model):
-    accountgroup = models.ForeignKey('AccountGroup', db_column='accountgroupid')
-    privilege = models.ForeignKey('Privilege', db_column='privilegeid')
-    target = models.CharField(max_length=-1)
-
-    class Meta:
-        db_table = u'accountgroupprivilege'
-
-class NavBarLink(models.Model):
-    id = models.IntegerField(primary_key=True)
-    account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1)
-    uri = models.CharField(max_length=-1)
-
-    class Meta:
-        db_table = u'navbarlink'
-
-class PrivilegeByGroup(models.Model):
-    account_group = models.IntegerField(db_column='accountgroupid')
-    action = models.CharField(max_length=30)
-    target = models.CharField(max_length=-1)
-
-    class Meta:
-        db_table = u'privilegebygroup'
-
-class AlertPrivilege(models.Model):
-    id = models.IntegerField(primary_key=True, db_column='privilegeid')
-    name = models.CharField(unique=True, max_length=30, db_column='privilegename')
-
-    class Meta:
-        db_table = u'privilege'
