@@ -1719,13 +1719,14 @@ class DBH {
 			FROM Tidsperiode WHERE (id = $1)';
 		$querypar = array($tid);
 
-		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
+		if (
+			$query = pg_query_params($this->connection, $querystr, $querypar) and
+			pg_num_rows($query) == 1
+		) {
 			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
-			$perioder[] = array(
-					$data["helg"],
-					$data["time"],
-					$data["minutt"]
-				);
+			$perioder[0] = $data["helg"];
+			$perioder[1] = $data["time"];
+			$perioder[2] = $data["minutt"];
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
