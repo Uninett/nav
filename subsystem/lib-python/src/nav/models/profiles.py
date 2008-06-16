@@ -28,6 +28,7 @@ __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no"
 __id__ = "$Id$"
 
+import logging
 from datetime import datetime
 
 from django.db import models
@@ -202,10 +203,10 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
     # time peroid, engine thinks that 3="NOW()-q.time>=p.queuelength AS max" ie
     # queu until alert has been in queue a certain number of days
     SUBSCRIPTION_TYPES = (
-        (NOW, _('send immediately')),
-        (DAILY, _('send daily at predefined time')),
-        (WEEKLY, _('send weekly at predefined time')),
-        (MAX, _('send at end of timeperiod')),
+        (NOW, _('immediately')),
+        (DAILY, _('daily at predefined time')),
+        (WEEKLY, _('weekly at predefined time')),
+        (MAX, _('at end of timeperiod')),
     )
 
     alarm_address = models.ForeignKey('AlertAddress', db_column='alarmadresseid')
@@ -218,6 +219,10 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
 
     def __unicode__(self):
         return 'alerts received %s should be %s to %s' % (self.time_period, self.get_type_display(), self.alarm_address)
+
+    def send(self, alert):
+        # FIXME handle queuing sending etc.
+        logging.debug('alert %d: sending to %s with %s %s' % (alert.id, self.alarm_address.address, self.alarm_address.get_type_display(), self.get_type_display()))
 
 #######################################################################
 ### Equipment models
@@ -287,13 +292,22 @@ class Operator(models.Model):
         GREATER_EQ: '__gte',
         LESS: '__lt',
         LESS_EQ: '__lte',
-#        NOT_EQUAL: '', # FIXME
         STARTSWITH: '__startswith',
         ENDSWITH: '__endswith',
         CONTAINS: '__contains',
         REGEXP: '__regex',
-#        WILDCARD: '', #FIXME
         IN: '__in',
+    }
+
+    IP_OPERATOR_MAPPING = {
+        EQUALS: '=',
+        GREATER: '>',
+        GREATER_EQ: '>=',
+        LESS: '<',
+        LESS_EQ: '<=',
+        NOT_EQUAL: '<>',
+        CONTAINS: '>>=',
+        IN: '<<=',
     }
     type = models.IntegerField(db_column='operatorid', choices=OPERATOR_TYPES)
     match_field = models.ForeignKey('MatchField', db_column='matchfieldid')
@@ -306,7 +320,12 @@ class Operator(models.Model):
         return u'%s match on %s' % (self.get_type_display(), self.match_field)
 
     def get_operator_mapping(self):
+        # FIXME error catching
         return self.OPERATOR_MAPPING[self.type]
+
+    def get_ip_operator_mapping(self):
+        # FIXME error catching
+        return self.IP_OPERATOR_MAPPING[self.type]
 
 
 class Expresion(models.Model):
@@ -333,8 +352,51 @@ class Filter(models.Model):
         return self.name
 
     def check(self, alert):
+        filter = {}
+        exclude = {}
+        extra = {'where': [], 'params': []}
+
         for expresion in self.expresion_set.all():
-            print expresion.match_field.get_lookup_mapping() + Operator(type=expresion.operator).get_operator_mapping()
+            if expresion.match_field.data_type == MatchField.IP:
+                # Trick the ORM into joining the tables we want
+                lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
+                operator = Operator(type=expresion.operator).get_ip_operator_mapping()
+
+                filter[lookup] = False
+
+                extra['where'].append('%s %s %%s' % (expresion.match_field.value_id, operator))
+                extra['params'].append(expresion.value)
+
+            elif expresion.operator == Operator.WILDCARD:
+                # Trick the ORM into joining the tables we want
+                lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
+                filter[lookup] = False
+
+                extra['where'].append('%s ILIKE %%s' % expresion.match_field.value_id)
+                extra['params'].append(expresion.value)
+            else:
+                lookup = expresion.match_field.get_lookup_mapping() + Operator(type=expresion.operator).get_operator_mapping()
+
+                if expresion.operator == Operator.IN:
+                    filter[lookup] = expresion.value.split('|')
+                elif expresion.operator == Operator.NOT_EQUAL:
+                    exclude[lookup] = expresion.value
+                else:
+                    filter[lookup] = expresion.value
+
+        filter['id'] = alert.id
+
+        if not extra['where']:
+            extra = {}
+
+        logging.debug('alert %d: checking against filter %d with filter: %s, exclude: %s and extra: %s' % (alert.id, self.id, filter, exclude, extra))
+
+        if AlertQueue.objects.filter(**filter).exclude(**exclude).extra(**extra).count():
+            logging.debug('alert %d: matches filter %d' % (alert.id, self.id))
+            return True
+
+        logging.debug('alert %d: did not matche filter %d' % (alert.id, self.id))
+        return False
 
 class FilterGroup(models.Model):
     id = models.IntegerField(primary_key=True)
