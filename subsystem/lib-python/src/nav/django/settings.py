@@ -29,11 +29,14 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 from nav.config import readConfig
+import nav.buildconf
 import nav.path
 
 # Debugging
-# TODO: Should be set to False before release
-DEBUG = True
+if 'devel' in nav.buildconf.VERSION:
+    DEBUG = True
+else:
+    DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # Admins
@@ -46,8 +49,8 @@ MANAGERS = ADMINS
 db_config = readConfig('db.conf')
 DATABASE_ENGINE = 'postgresql_psycopg2'
 DATABASE_NAME = db_config['db_nav']
-DATABASE_USER = db_config['script_default']
-DATABASE_PASSWORD = db_config['userpw_nav']
+DATABASE_USER = db_config['script_django']
+DATABASE_PASSWORD = db_config['userpw_%s' % DATABASE_USER]
 DATABASE_HOST = db_config['dbhost']
 DATABASE_PORT = db_config['dbport']
 

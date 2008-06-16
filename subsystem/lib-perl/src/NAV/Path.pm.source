@@ -1,0 +1,12 @@
+#!/usr/bin/env perl
+# This template file is filled during NAV build
+package NAV::Path;
+$prefix="@prefix@";
+$exec_prefix="@exec_prefix@";
+$bindir="@bindir@";
+$libdir="@libdir@";
+$perllibdir="@perllibdir@";
+$sysconfdir="@sysconfdir@";
+$initdir="@initdir@";
+$localstatedir="@localstatedir@";
+1;

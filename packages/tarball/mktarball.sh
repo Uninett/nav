@@ -30,7 +30,6 @@ do
 done
 
 # Some chmod fixes
-chmod 755 ${BUILD_ROOT}${_prefix}/bin/arplogger.pl
 chmod g+w ${BUILD_ROOT}${_prefix}/etc/*
 chmod 755 ${BUILD_ROOT}${_prefix}/etc/init.d/*
 

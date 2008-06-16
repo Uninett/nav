@@ -1,7 +1,7 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -27,7 +27,7 @@
 mod_python handler for Maintenance subsystem.
 """
 
-__copyright__ = "Copyright 2006 UNINETT AS"
+__copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id:$"
@@ -39,6 +39,7 @@ import nav.db
 import nav.maintenance
 from nav.web.URI import URI
 from nav.web.templates.MaintenanceCalTemplate import MaintenanceCalTemplate
+from nav.web.templates.MaintenanceDetailsTemplate import MaintenanceDetailsTemplate
 from nav.web.templates.MaintenanceListTemplate import MaintenanceListTemplate
 from nav.web.templates.MaintenanceNewTemplate import MaintenanceNewTemplate
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
@@ -90,7 +91,7 @@ def handler(req):
 
     # View a maintenance task
     elif section == 'view' and args.get('id'):
-        page = MaintenanceListTemplate()
+        page = MaintenanceDetailsTemplate()
         page.title = 'Maintenance Task'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         taskid = int(args.get('id'))
@@ -98,7 +99,7 @@ def handler(req):
 
     # Cancel a maintenance task
     elif section == 'cancel' and args.get('id'):
-        page = MaintenanceListTemplate()
+        page = MaintenanceDetailsTemplate()
         page.title = 'Cancel maintenance task'
         menu.append({'link': 'cancel', 'text': 'Cancel', 'admin': True})
         page.infomsgs = []

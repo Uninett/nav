@@ -36,6 +36,7 @@ CREATE TABLE org (
   orgid VARCHAR(30) PRIMARY KEY,
   parent VARCHAR(30) REFERENCES org (orgid),
   descr VARCHAR,
+  contact VARCHAR,
   opt1 VARCHAR,
   opt2 VARCHAR,
   opt3 VARCHAR
@@ -208,6 +209,15 @@ CREATE TABLE netbox (
   UNIQUE(deviceid)
 );
 CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
+
+-- Rules to automatically close open cam and arp entries related to a given netbox
+CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
+  DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
+  DO UPDATE cam SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
@@ -395,18 +405,6 @@ UNIQUE(swportid,cablingid));
 ------------------------------------------------------------------
 
 
--- Attach a trigger to arp and cam, to make sure records are closed as
--- netboxes are deleted.
--- The pl/pgsql scripting language must be installed on this database first.
-CREATE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
-  'BEGIN
-     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
-        AND new.end_time = ''infinity'' THEN
-       new.end_time = current_timestamp;
-     END IF;
-     RETURN new;
-   end' LANGUAGE plpgsql;
-
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
@@ -417,7 +415,6 @@ CREATE TABLE arp (
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
-CREATE TRIGGER update_arp BEFORE UPDATE ON arp FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 CREATE INDEX arp_mac_btree ON arp USING btree (mac);
 CREATE INDEX arp_ip_btree ON arp USING btree (ip);
 CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
@@ -442,12 +439,11 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
-CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
-CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
 
 
 -- VIEWs -----------------------
@@ -575,6 +571,9 @@ CREATE TABLE rrd_file (
   key       VARCHAR,
   value     VARCHAR
 );
+
+-- Values are used a lot in Netmap
+CREATE INDEX rrd_file_value ON rrd_file(value);
 
 -- Each datasource for each rrdfile is registered here. We need the name and
 -- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and

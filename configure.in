@@ -26,7 +26,7 @@ if test -z "$ANT"; then
 fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
-AC_PATH_PROG(SVN, svn)
+AC_PATH_PROG(HG, hg)
 
 AC_SUBST(nav_user)
 AC_SUBST(webapps)
@@ -54,9 +54,9 @@ tooldir='${prefix}/apache/tools'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
 VERSION=`cat VERSION`
-if $GREP -q devel VERSION && ! test -z "$SVN" && test -e .svn
+if $GREP -q devel VERSION && ! test -z "$HG" && test -e .hg
 then
-	VERSION=r`$SVN info . | $GREP ^Revision | $SED 's/[[^0-9]]//g'`
+	VERSION=`$HG identify -i`
 fi
 
 
@@ -97,7 +97,6 @@ AC_OUTPUT(Makefile
 	subsystem/deviceManagement/Makefile
 	subsystem/machinetracker/src/Makefile
 	subsystem/machinetracker/Makefile
-	subsystem/report/src/Makefile
 	subsystem/report/Makefile
 	subsystem/alertprofiles/Makefile
 	subsystem/alertengine/Makefile
@@ -109,11 +108,14 @@ AC_OUTPUT(Makefile
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile
+	subsystem/arnold/lib/Makefile
+	subsystem/arnold/images/Makefile
 	subsystem/snmptrapd/Makefile
 	subsystem/snmptrapd/snmptrapd
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
-	subsystem/ipdevinfo/Makefile)
+	subsystem/ipdevinfo/Makefile
+	subsystem/netmap/Makefile)
 
 echo
 echo "Now run 'make' to build NAV"

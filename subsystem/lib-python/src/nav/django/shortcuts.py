@@ -31,6 +31,17 @@ __id__ = "$Id$"
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.template.loader import render_to_string
+from django.views.generic import list_detail
+
+def _cheetah_render(cheetah_template_func, rendered_by_django):
+    """Inserts a rendered template from Django into a Cheetah template"""
+
+    # Insert the result into content_string in the given Cheetah template
+    cheetah_template = cheetah_template_func()
+    cheetah_template.content_string = rendered_by_django
+
+    # Return a Django HttpResponse with the Cheetah template result
+    return HttpResponse(cheetah_template.respond())
 
 def render_to_response(cheetah_template_func, template_name, context,
         context_instance=None):
@@ -39,9 +50,29 @@ def render_to_response(cheetah_template_func, template_name, context,
     # Render a Django template with the given context
     rendered = render_to_string(template_name, context, context_instance)
 
-    # Insert the result into content_string in the given Cheetah template
-    cheetah_template = cheetah_template_func()
-    cheetah_template.content_string = rendered
+    # Pass it on to the Cheetah template
+    return _cheetah_render(cheetah_template_func, rendered)
 
-    # Return a Django HttpResponse with the Cheetah template result
-    return HttpResponse(cheetah_template.respond())
+def object_list(cheetah_template_func, *args, **kwargs):
+    """Mixes Django's generic view object_list with a Cheetah template"""
+
+    # Pass on call to original object_list view
+    response = list_detail.object_list(*args, **kwargs)
+
+    # Get rendered template from the response object
+    rendered = response.content
+
+    # Pass it on to the Cheetah template
+    return _cheetah_render(cheetah_template_func, rendered)
+
+def object_detail(cheetah_template_func, *args, **kwargs):
+    """Mixes Django's generic view object_detail with a Cheetah template"""
+
+    # Pass on call to original object_detail view
+    response = list_detail.object_detail(*args, **kwargs)
+
+    # Get rendered template from the response object
+    rendered = response.content
+
+    # Pass it on to the Cheetah template
+    return _cheetah_render(cheetah_template_func, rendered)

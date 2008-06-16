@@ -44,7 +44,7 @@
 {% ifequal port_type 'swport' %}
     <tr>
         <th>Trunk</th>
-        <td>{{ port.trunk|yesno|capfirst }}</td>
+        <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
     </tr>
 {% endifequal %}
     <tr>
@@ -54,7 +54,7 @@
                 <a href="{{ port.to_netbox.get_absolute_url }}">
                     {{ port.to_netbox }}</a>
             {% else %}
-                Unknown
+                N/A
             {% endif %}
         </td>
     </tr>
@@ -65,11 +65,27 @@
                 <a href="{{ port.to_swport.get_absolute_url }}">
                     {{ port.to_swport }}</a>
             {% else %}
-                Unknown
+                N/A
             {% endif %}
         </td>
     </tr>
 {% ifequal port_type 'swport' %}
+    <tr>
+        <th>Patched to</th>
+        <td>
+            {% if port.patch_set.count %}
+                <ul>
+                {% for patch in port.patch_set.all %}
+                    <li>Jack {{ patch.cabling.jack }}, in room
+                        <a href="{% url report-netbox-room patch.cabling.room.id %}">
+                        {{ patch.cabling.room.id }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
     <tr>
         <th>Actions</th>
         <td>
@@ -92,7 +108,7 @@
 <ul>
     {% if port.gwportprefix_set.all %}
         {% for gwprefix in port.gwportprefix_set.all %}
-            <li><a href="{% url report-prefix gwprefix.prefix.id %}">
+            <li><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
                 {{ gwprefix.prefix.net_address }}</a></li>
         {% endfor %}
     {% else %}
