@@ -80,8 +80,8 @@ if (session_get('gruppesubaction') == "endregruppe") {
 $l = new Lister( 103,
 	array(gettext('User group'), gettext('#users'), gettext('#perms'), 
 		gettext('#std.groups'), gettext('#std.filters'), gettext('Options..') ),
-	array(25, 15, 15, 15, 15, 5),
-	array('left', 'left', 'left', 'left', 'left', 'right' ),
+	array(25, 15, 15, 15, 15, 10),
+	array('left', 'left', 'left', 'left', 'left', 'left' ),
 	array(true, true, true, true, true, false),
 	0
 );

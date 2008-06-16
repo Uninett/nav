@@ -103,8 +103,8 @@ if (isset($subaction) && $subaction == "nymatch") {
 
 $l = new Lister(111,
     array(gettext('Field'), gettext('Condition'), gettext('Value'), gettext('Option..') ),
-    array(40, 15, 25, 20),
-    array('left', 'left', 'left', 'right'),
+    array(40, 15, 25, 10),
+    array('left', 'left', 'left', 'left'),
     array(true, true, true, false),
     0
 );

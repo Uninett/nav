@@ -156,8 +156,8 @@ if (sizeof($konflikter) > 0) {
 $l[0] = new Lister( 108,
 		array(gettext('Time'), gettext('Weekday'), gettext('#addresses'), 
 			gettext('#equip grp.'), gettext('Options..') ),
-		array(20, 20, 20, 20, 20),
-		array('right', 'center', 'right', 'right', 'right'),
+		array(20, 20, 20, 20, 10),
+		array('left', 'left', 'left', 'left', 'left'),
 		array(true, false, false, false, false),
 		0
 	);
@@ -167,8 +167,8 @@ $l[0] = new Lister( 108,
 $l[1] = new Lister( 109,
 		array(gettext('Time'), gettext('Weekday'), gettext('#addresses'), 
 			gettext('#equip. grp.'), gettext('Options..') ),
-		array(20, 20, 20, 20, 20),
-		array('right', 'center', 'right', 'right', 'right'),
+		array(20, 20, 20, 20, 10),
+		array('left', 'left', 'left', 'left', 'left'),
 		array(true, false, false, false, false),
 		0
 	);
