@@ -186,6 +186,7 @@ class Meny {
 	function newOption($name, $action, $actionnow, $level, $files) {
 
 		if ($this->adm >= $level) {
+			print "<p>";
 			if ($action != $actionnow) {
 				print "<A href=\"index.php?action=" . $action . "\">";
 			}
@@ -193,7 +194,7 @@ class Meny {
 			if ($action != $actionnow) {			
 				print "</A>";
 			}
-			print "<br>\n";
+			print "</p>";
 		}
 		
 		$this->level{$action} = $level;
@@ -257,7 +258,7 @@ $meny->newOption(gettext("Filters"), "filter", session_get('action'), 1, array('
 if (access_sms(session_get('bruker'))) {
 	// Just creating a simple link, as the menu class isn't usable for
 	// linking to other subsystems.
-	print '<a href="/mysms/">' . gettext("My SMS") . "</a><br>\n";
+	print '<p><a href="/mysms/">' . gettext("My SMS") . "</a></p>\n";
 }
 
 echo "<hr><p>";
@@ -268,7 +269,7 @@ $meny->newOption(gettext("WAP setup"), "wap", session_get('action'), 1, array('m
 $meny->newOption(gettext("Help"), "hjelp", session_get('action'), 1, array('modules/help.php') );
 
 if (session_get('admin') >= 100) {
-	echo '<hr><p><span style="font-weight: bold">Admin menu</span><img src="icons/person100.gif" style="float: right"><br>';
+	echo '<hr><p><span style="font-weight: bold">Admin menu</span><img src="icons/person100.gif" style="float: right"></p>';
 }
 /*
 $meny->newOption(gettext("Users"), "admin", 1000, array('modules/user-admin.php') );
