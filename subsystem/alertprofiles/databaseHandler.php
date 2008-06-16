@@ -174,6 +174,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
@@ -215,6 +217,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
@@ -339,6 +343,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
@@ -378,6 +384,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $grupper;
@@ -436,6 +444,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $brukere;
@@ -466,6 +476,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $adr;
@@ -512,6 +524,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $adr;
@@ -555,6 +569,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $adr;
@@ -589,6 +605,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $matcher;
@@ -621,6 +639,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
@@ -640,6 +660,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 
 		}
@@ -695,6 +717,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $profiler;
@@ -764,6 +788,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $perioder;
@@ -811,6 +837,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $konf;
@@ -902,6 +930,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -942,6 +972,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -1006,6 +1038,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -1082,6 +1116,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -1127,6 +1163,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -1181,6 +1219,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -1210,6 +1250,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $br;
@@ -1233,6 +1275,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
 		return $gr;
@@ -1256,6 +1300,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
 		return $gr;
@@ -1278,6 +1324,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
 		return $gr;
@@ -1303,6 +1351,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
 		return $gr;
@@ -1335,6 +1385,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasesørring.";
 		}
 		return $p;
@@ -1409,6 +1461,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $utst;
@@ -1474,6 +1528,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $filtre;
@@ -1538,6 +1594,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $filtre;
@@ -1588,6 +1646,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $filtre;
@@ -1623,6 +1683,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $filtre;
@@ -1666,6 +1728,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $filtre;
@@ -1704,6 +1768,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 		return $match;
@@ -1730,6 +1796,8 @@ class DBH {
 		}  else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasesp&oslash;rring. Fant ikke periode.";
 		}
 		return $perioder;
@@ -2189,6 +2257,8 @@ class DBH {
 			$error = new Error(2);
 			$error->SetMessage("Brukernavn allerede i bruk. Forsøk
 				på nytt med et annet brukernavn.");
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			return 0;
 		}
 	}
@@ -2214,6 +2284,8 @@ class DBH {
 			// fikk ikke til e legge i databasen
 			$error = new Error(2);
 			$error->SetMessage("feil med databaseinnlegging av brukergruppe.");
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			return 0;
 		}
 
@@ -2893,6 +2965,8 @@ class DBHK {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 
@@ -2921,6 +2995,8 @@ class DBHK {
 		}  else {
 			checkDBError($this->connection, $querystr, array(), __FILE__, __LINE__);
 			$error = new Error(2);
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 			$bruker{'errmsg'}= "Feil med datbasespørring.";
 		}
 

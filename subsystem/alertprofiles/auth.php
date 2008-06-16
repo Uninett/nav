@@ -84,9 +84,10 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 
 	if (! $query = pg_query_params($dbh->connection, $querystring, $queryparams)  ) {
 		checkDBError($dbh->connection, $querystring, $queryparams, __FILE__, __LINE__);
-		$nerror = new Error(2);
-		$nerror->message = gettext("Error occured with database query.");
-		$error[] = $nerror;
+		$error = new Error(2);
+		$error->message = gettext("Error occured with database query.");
+		global $RUNTIME_ERRORS;
+		$RUNTIME_ERRORS[][] = $error;
 	} else {
 		if (pg_num_rows($query) == 1) {
 			if ( $data = pg_fetch_array($query, 0, PGSQL_ASSOC) ) {
@@ -123,9 +124,10 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 				session_set('login', true);
 				$login = true;
 			} else {
-				$nerror = new Error(2, 1);
-				$nerror->message = gettext("Something bad happened when trying to fetch the user ID from the database.");
-				$error[] = $nerror;
+				$error = new Error(2, 1);
+				$error->message = gettext("Something bad happened when trying to fetch the user ID from the database.");
+				global $RUNTIME_ERRORS;
+				$RUNTIME_ERRORS[][] = $error;
 				/* 				session_delete('uid'); */
 				/* 				session_delete('admin'); */
 				/* 				session_delete('lang'); */
@@ -136,9 +138,10 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 				/*                 session_set('login', false); */				
 			}
 		} else {
-			$nerror = new Error(1, 1);
-			$nerror->message = gettext("Database inconsistency. You are correctly logged in, but your user is not correctly configured to work with NAV Alert Profiles. Contact your system administrator.");
-			$error[] = $nerror;
+			$error = new Error(1, 1);
+			$error->message = gettext("Database inconsistency. You are correctly logged in, but your user is not correctly configured to work with NAV Alert Profiles. Contact your system administrator.");
+			global $RUNTIME_ERRORS;
+			$RUNTIME_ERRORS[][] = $error;
 
 			/* 			session_delete('uid'); */
 			/* 			session_delete('admin'); */

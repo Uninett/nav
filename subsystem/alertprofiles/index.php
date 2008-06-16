@@ -218,9 +218,9 @@ class Meny {
 
 
 				} else {
-					$ne = new Error(3, 1);
-					$ne->message = gettext("You have <b>no access</b> to this module.");
-					$error[] = $ne;
+					$error = new Error(3, 1);
+					$error->message = gettext("You have <b>no access</b> to this module.");
+					$RUNTIME_ERRORS[] = $error;
 				}
 			} else { // Vises som default...
 				return array('modules/overview.php');
@@ -339,13 +339,9 @@ foreach($filer as $incfile) {
 	if( file_exists($incfile)) {
 		require($incfile);
 	} else {
-		$nerror = new Error(4);
-		$nerror->message = gettext("Could not read file") . " &lt;" . $incfile . "&gt;";
-/* 		print '<pre>DEBUG ERRORS'; */
-/* 		print_r($error); */
-/* 		print '</pre>'; */
-		$error[] = $nerror;
-
+		$error = new Error(4);
+		$error->message = gettext("Could not read file") . " &lt;" . $incfile . "&gt;";
+		$RUNTIME_ERRORS[] = $error;
 	}
 }
 flusherrors();

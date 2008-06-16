@@ -44,16 +44,19 @@ class Error {
 
 }
 
-global $error;
-
-// set the error reporting level for this script
-//error_reporting(E_ALL);
-
+// This variable keeps all the errors that occures during the script.
+// Usage example:
+//  global $RUNTIME_ERRORS;
+//  $error = new Error(2, 0);
+//  $RUNTIME_ERRORS[] = $error;
+//
+// Of course, it is possible to just use trigger_error() instead
+global $RUNTIME_ERRORS;
 
 // error handler function
 function myErrorHandler($errno, $errstr, $errfile, $errline) 
 {
-	global $error;
+	global $RUNTIME_ERRORS;
 	switch ($errno) {
 		case E_ERROR:
 			if (AP_DEBUG_LEVEL > 0) {
@@ -88,9 +91,6 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
 
 function flusherrors() {
 	global $error;
-	/* 	print "<pre>ERRORS:"; */
-	/* 	print_r($error); */
-	/* 	print "</pre>"; */
 
 	while (is_array($error) && $err = array_pop($error)) {
 
