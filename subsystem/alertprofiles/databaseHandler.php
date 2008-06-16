@@ -2306,11 +2306,11 @@ class DBH {
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
 			// Henter ut object id`n til raden.
-			$id_querystr = 'SELECT currval(\'brukerprofil_id_seq\') AS lastid';
-			$id_query = pg_query($this->connection, $id_querystr);
+			$lastid_querystr = 'SELECT currval(\'brukerprofil_id_seq\') AS lastid';
+			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
 				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
-			$last_id = pg_fetch_result($id_query, 'lastid');
+			$last_id = pg_fetch_result($lastid_query, 'lastid');
 			return $last_id;
 		} else {
 			checkDBError($this->connection, $querystr, $querypar, __FILE__, __LINE__);
@@ -2371,7 +2371,7 @@ class DBH {
 
 	function extrval($value) {
 		if ($value == "." || $value == 'undef') {
-			return "null";
+			return null;
 		} else {
 			return $value;
 		}
@@ -2796,7 +2796,7 @@ class DBH {
 	// sett en profil som aktiv for en bestemt bruker
 	function aktivProfil($brukerid, $profilid) {
 
-		if ($profilid == 0) { $profilid = "null"; }
+		if ($profilid == 0) { $profilid = null; }
 		// Spxrring som legger inn i databasen
 		$querystr = "UPDATE Preference
 			SET activeprofile = $1

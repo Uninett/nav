@@ -11,6 +11,11 @@ if (!function_exists('pg_query_params')) {
 
 	function pg_query_params($db, $query, $params) {
 		global $pg_query_params__parameters;
+
+		// Escape paramteres according to these rules:
+		//   - Strings: Use pg_escape_string()
+		//   - Integers: Do not escape at all
+		//   - The "null" value: Add quotes
 		foreach ($params as $k => $v) {
 			if (is_null($v))
 				$params[$k] = 'null';

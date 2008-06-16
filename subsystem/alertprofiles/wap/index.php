@@ -104,7 +104,7 @@ echo "<p>You are successfully logged in as <br/>" . $user[1]. "</p>";
 
 
 if ( get_exist('p') ) {
-	$nyprofil = get_get('p') == 0 ? 'null' : get_get('p');
+	$nyprofil = get_get('p') == 0 ? null : get_get('p');
 	$dbh->aktivProfil($user[0], $nyprofil );
 	$dbh->nyLogghendelse($user[0], 9, "Active profile is changed to (id=" . get_get('p') . ")");
 	echo '<p>Active profile is changed. (new id: ' . $nyprofil . ')</p>';
