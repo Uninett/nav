@@ -33,7 +33,24 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Q
 
-from nav.models.event import AlertQueue
+from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
+from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
+    Memory, Netbox, NetboxCategory, NetboxInfo, NetboxType, Organization, \
+    Prefix, Product, Room, Subcategory, SwPort, Usage, Vlan, Vendor
+
+# This should be the authorative source as to which models alertengine supports.
+# The acctuall mapping from alerts to data in these models is done the MatchField
+# model.
+SUPPORTED_MODELS = [
+    # event models
+    AlertQueue, AlertType, EventType, Subsystem,
+    # manage models
+    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox,
+    NetboxCategory, NetboxInfo, NetboxType, Organization, Prefix,
+    Product, Room, Subcategory, SwPort, Vendor, Vlan,
+    Usage,
+#                TypeGroup, Service,
+]
 
 _ = lambda a: a
 
@@ -191,16 +208,16 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
         (MAX, _('send at end of timeperiod')),
     )
 
-    alarm_address = models.ForeignKey('AlarmAddress', db_column='alarmadresseid')
+    alarm_address = models.ForeignKey('AlertAddress', db_column='alarmadresseid')
     time_period = models.ForeignKey('TimePeriod', db_column='tidsperiodeid')
-    equipment_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
+    filter_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
     type = models.IntegerField(db_column='vent', choices=SUBSCRIPTION_TYPES)
 
     class Meta:
         db_table = u'varsle'
 
     def __unicode__(self):
-        return 'alerts received %s should be %s to %s' % (self.time_period, self.get_subscription_type_display(), self.alarm_address)
+        return 'alerts received %s should be %s to %s' % (self.time_period, self.get_type_display(), self.alarm_address)
 
 #######################################################################
 ### Equipment models
@@ -286,7 +303,7 @@ class Operator(models.Model):
         unique_together = (('operator', 'match_field'),)
 
     def __unicode__(self):
-        return u'%s match on %s' % (self.get_operator_display(), self.match_field)
+        return u'%s match on %s' % (self.get_type_display(), self.match_field)
 
     def get_operator_mapping(self):
         return self.OPERATOR_MAPPING[self.type]
@@ -295,14 +312,14 @@ class Operator(models.Model):
 class Expresion(models.Model):
     equipment_filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
     match_field = models.ForeignKey('MatchField', db_column='matchfelt')
-    operator = models.ForeignKey('Operator' ,db_column='matchtype')
+    operator = models.IntegerField(db_column='matchtype', choices=Operator.OPERATOR_TYPES)
     value = models.CharField(max_length=-1, db_column='verdi')
 
     class Meta:
         db_table = u'filtermatch'
 
     def __unicode__(self):
-        return '%s match on %s against %s' % (self.operator.get_type_display(), self.match_field, self.value)
+        return '%s match on %s against %s' % (self.get_operator_display(), self.match_field, self.value)
 
 class Filter(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -314,6 +331,10 @@ class Filter(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def check(self, alert):
+        for expresion in self.expresion_set.all():
+            print expresion.match_field.get_lookup_mapping() + Operator(type=expresion.operator).get_operator_mapping()
 
 class FilterGroup(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -340,33 +361,12 @@ class MatchField(models.Model):
         (INTEGER, _('integer')),
         (IP, _('ip')),
     )
-
-    ''' #TODO finish this
-    FIELD_CHOICES = []
-    from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
-    from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxCategory, NetboxInfo, NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort, Usage, Vlan, Vendor
-
-    for model in [
-            # event models
-                AlertQueue, AlertType, EventType, Subsystem,
-            # manage models
-                Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox,
-                NetboxCategory, NetboxInfo, NetboxType, Organization, Prefix,
-                Product, Room, Subcategory, SwPort, Vendor, Vlan,
-                Usage,
-#                TypeGroup, Service,
-            ]:
-        model_choices = []
-        for field in model._meta.fields:
-            model_choices.append( (field.db_column or field.attname, field.attname))
-        FIELD_CHOICES.append( (model._meta.db_table, model_choices) )
-    '''
-
     # Attributes for the fields:
 
     # Unless the attribute name is prefixed with something we are refering to
     # the netbox connected to an alert.
-    ALERT_TYPE = 'alerttype'
+    ALERT = 'alertq'
+    ALERTTYPE = 'alerttype'
     ARP = 'arp'
     CAM = 'cam'
     CAT = 'cat'
@@ -388,14 +388,14 @@ class MatchField(models.Model):
     SUBSYSTEM = 'subsystem'
     SWPORT = 'swport'
     TYPE = 'type'
-    TYPEGROUP = 'typegroup'
+#    TYPEGROUP = 'typegroup'
     VENDOR = 'vendor'
     VLAN = 'vlan'
     USAGE = 'usage'
 
-
     LOOKUP_FIELDS = (
-        (ALERT_TYPE, _('alert type')),
+        (ALERT, _('alert')),
+        (ALERTTYPE, _('alert type')),
         (ARP, _('arp')),
         (CAM, _('cam')),
         (CAT, _('cat')),
@@ -417,7 +417,7 @@ class MatchField(models.Model):
         (SUBSYSTEM, _('subsystem')),
         (SWPORT, _('SW-port')),
         (TYPE, _('type')),
-        (TYPEGROUP, _('typegroup')),
+#        (TYPEGROUP, _('typegroup')),
         (VENDOR, _('vendor')),
         (VLAN, _('vlan')),
         (USAGE, _('usage')),
@@ -425,36 +425,41 @@ class MatchField(models.Model):
 
     # This mapping designates how a MatchField relates to an alert. (yes the
     # formating is not PEP8, but it wouldn't be very readable otherwise)
-    #
-    # <lookup>__<variable>__<operator>=<value> should do the trick here.
-    LOOKUP_MAP = {
-        ARP:          'netbox__arp',                              # "select a.* from arp a, netbox n where n.netboxid=$this->{alertq}->{netboxid} and a.netboxid=n.netboxid",
-        CAM:          'netbox__cam',                              # "select c.* from cam c, netbox n where n.netboxid=$this->{alertq}->{netboxid} and c.netboxid=n.netboxid",
-        CAT:          'netbox__category',#FIXME                   # "select c.* from cat c, netbox n where n.netboxid=$this->{alertq}->{netboxid} and n.catid=c.catid",
-        DEVICE:       'netbox__device',                           # "select d.* from device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid",
-        EVENT_TYPE:   'event_type',                               # "select * from eventtype where eventtypeid='$this->{alertq}->{eventtypeid}'",
-        GWPORT:       'netbox__connected_to_gwport',              # "select g.* from gwport g,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and g.moduleid=m.moduleid",
-        LOCATION:     'netbox__room__location',                   # "select l.* from location l, room r, netbox n where n.netboxid=$this->{alertq}->{netboxid} and r.roomid=n.roomid and r.locationid=l.locationid",
-        MEMORY:       'netbox__memory',                           # "select m.* from mem m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.netboxid=n.netboxid",
-        MODULE:       'netbox__module',                           # "select m.* from module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid",
-        NETBOX:       'netbox',                                   # "select * from netbox where netboxid=$this->{alertq}->{netboxid}",
-        CATEGORY:     'netbox__category', #FIXME                   # "select nc.* from netboxcategory nc, netbox n where n.netboxid=$this->{alertq}->{netboxid} and nc.netboxid=n.netboxid",
-        NETBOXINFO:   'netbox__info',                             # "select ni.* from netboxinfo ni, netbox n where n.netboxid=$this->{alertq}->{netboxid} and ni.netboxid=n.netboxid",
-        ORGANIZATION: 'netbox__organization',                     # "select o.* from org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid",
-        PREFIX:       'netbox__prefix',                           # "select p.* from prefix p, netbox n where n.netboxid=$this->{alertq}->{netboxid} and p.prefixid=n.prefixid",
-        PRODUCT:      'netbox__device__product',                  # "select p.* from product p, device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid and p.productid=d.productid",
-        ROOM:         'netbox__room',                             # "select r.* from room r, netbox n where n.netboxid=$this->{alertq}->{netboxid} and r.roomid=n.roomid",
-        SERVICE:      'netbox__', #FIXME                          # "select s.* from service s, netbox n where n.netboxid=$this->{alertq}->{netboxid} and s.netboxid=n.netboxid",
-        SUBSYSTEM:    '', #FXIME                                   # "select * from subsystem where name=$this->{alertq}->{subid}",
-        SWPORT:       'netbox__connected_to_swport',              # "select s.* from swport s,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and s.moduleid=m.moduleid",
-        TYPE:         'netbox__type',                             # "select t.* from type t, netbox n where n.netboxid=$this->{alertq}->{netboxid} and t.typeid=n.typeid",
-        TYPEGROUP:    'netbox__type__group', #FIXME               # "select tg.* from typegroup tg,type t, netbox n where n.netboxid=$this->{alertq}->{netboxid} and t.typeid=n.typeid and tg.typegroupid=t.typehroupid",
-        USAGE:        'netbox__organization__vlan__usage', #FIXME # "select u.* from usage u,vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid and u.usageid=v.usageid",
-        VENDOR:       'netbox__device__product__vendor',          # "select v.* from vendor v, product p, device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid and p.productid=d.productid and v.vendorid=p.vendorid",
-        VLAN:         'netbox__organization__vlan',               # "select v.* from vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid",
-        SUBCATEGORY:  '', #FIXME                                  # "select s.* from subcat s join netboxcategory n on (s.subcatid=n.category) where n.netboxid=$this->{alertq}->{netboxid}",
-        ALERT_TYPE:   'alert_type',                               # "select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}",
+    FOREIGN_MAP = {
+        ARP:          'netbox__arp',
+        CAM:          'netbox__cam',
+        CAT:          'netbox__category',#FIXME
+        DEVICE:       'netbox__device',
+        EVENT_TYPE:   'event_type',
+        GWPORT:       'netbox__connected_to_gwport',
+        LOCATION:     'netbox__room__location',
+        MEMORY:       'netbox__memory',
+        MODULE:       'netbox__module',
+        NETBOX:       'netbox',
+        CATEGORY:     'netbox__category', #FIXME
+        NETBOXINFO:   'netbox__info',
+        ORGANIZATION: 'netbox__organization',
+        PREFIX:       'netbox__prefix',
+        PRODUCT:      'netbox__device__product',
+        ROOM:         'netbox__room',
+        SERVICE:      'netbox__', #FIXME
+        SUBSYSTEM:    '', #FXIME
+        SWPORT:       'netbox__connected_to_swport',
+        TYPE:         'netbox__type',
+#        TYPEGROUP:    'netbox__type__group', #FIXME
+        USAGE:        'netbox__organization__vlan__usage', #FIXME
+        VENDOR:       'netbox__device__product__vendor',
+        VLAN:         'netbox__organization__vlan',
+        SUBCATEGORY:  '', #FIXME
+        ALERT:        '',
+        ALERTTYPE:    'alert_type',
     }
+
+    VALUE_MAP = {}
+    # Build the mapping we need to be able to do checks.
+    for model in SUPPORTED_MODELS:
+        for field in model._meta.fields:
+            VALUE_MAP['%s.%s' % (model._meta.db_table, field.db_column or field.attname)] = field.attname
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
@@ -475,7 +480,17 @@ class MatchField(models.Model):
         return self.name
 
     def get_lookup_mapping(self):
-        return self.LOOKUP_MAP[self.value_id]
+        try:
+            foreign_lookup = self.FOREIGN_MAP[self.value_id.split('.')[0]]
+            value = self.VALUE_MAP[self.value_id]
+
+            if foreign_lookup:
+                return '%s__%s' % (foreign_lookup, value)
+            return value
+
+        except KeyError:
+            logging.warn("Tried to lookup mapping for %s which is not supported" % self.value_id)
+        return None
 
 
 #######################################################################
@@ -498,7 +513,7 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
-    addrress = models.ForeignKey('AlarmAddress', db_column='addrid')
+    addrress = models.ForeignKey('AlertAddress', db_column='addrid')
     alertid = models.IntegerField()
     insertion_time = models.DateTimeField(auto_now_add=True, db_column='time')
 
