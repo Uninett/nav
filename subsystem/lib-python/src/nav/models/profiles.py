@@ -61,6 +61,8 @@ _ = lambda a: a
 ### Account models
 
 class Account(models.Model):
+    ''' NAV's basic account model'''
+
     login = models.CharField(max_length=-1, unique=True)
     name = models.CharField(max_length=-1)
     password = models.CharField(max_length=-1)
@@ -76,6 +78,8 @@ class Account(models.Model):
         return self.alertpreference.active_profile
 
 class AccountGroup(models.Model):
+    '''NAV account groups'''
+
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
@@ -87,6 +91,8 @@ class AccountGroup(models.Model):
         return self.name
 
 class AccountProperty(models.Model):
+    '''Key-value for account settings'''
+
     account = models.ForeignKey('Account', db_column='accountid')
     property = models.CharField(max_length=-1)
     value = models.CharField(max_length=-1)
@@ -108,6 +114,8 @@ class AccountOrganization(models.Model):
         return self.orgid
 
 class AlertAddress(models.Model):
+    '''FIXME'''
+
     SMS = 2
     EMAIL = 1
 
@@ -127,9 +135,15 @@ class AlertAddress(models.Model):
         return '%s by %s' % (self.address, self.get_type_display())
 
     def send(self, alert):
-        # FIXME take language into account
+        '''Handles sending of alerts to with defined alert notification types'''
+
+        try:
+            lang = self.account.accountproperty_set.get(property='language').value or 'en'
+        except AccountProperty.DoesNotExist:
+            lang = 'en'
+
         if self.type == self.EMAIL:
-            message = alert.messages.get(language='en', type='email').message
+            message = alert.messages.get(language=lang, type='email').message
 
             # Extract the subject
             subject = message.splitlines(1)[0].lstrip('Subject:').strip()
@@ -138,12 +152,13 @@ class AlertAddress(models.Model):
 
             try:
                 #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
+                # FIXME
                 print 'sending mail.\nTo: %s\nSubject: %s\n\n%s' % (self.address, subject, message)
             except SMTPException, e:
                 logging.warn('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
 
         elif self.type == self.SMS:
-            message = alert.messages.get(language='en', type='sms').message
+            message = alert.messages.get(language=lang, type='sms').message
 
             if has_sms_privelge:
                 SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
@@ -154,6 +169,8 @@ class AlertAddress(models.Model):
             logging.warn('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
 
 class AlertPreference(models.Model):
+    '''AlertProfile account preferences'''
+
     account = models.OneToOneField('Account', primary_key=True,  db_column='accountid')
     active_profile = models.OneToOneField('AlertProfile', db_column='activeprofile', null=True)
     last_sent_day = models.DateTimeField(db_column='lastsentday')
@@ -170,6 +187,8 @@ class AlertPreference(models.Model):
 ### Profile models
 
 class AlertProfile(models.Model):
+    '''Account AlertProfiles'''
+
     account = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField(max_length=-1, db_column='navn')
     time = models.TimeField(db_column='tid')
@@ -179,7 +198,14 @@ class AlertProfile(models.Model):
     class Meta:
         db_table = u'brukerprofil'
 
+    def __unicode__(self):
+        return self.name
+
     def get_active_timeperiod(self):
+        '''Gets the currently active timeperiod for this profile'''
+        # Could have been done with a ModelManager, but the logic
+        # is somewhat tricky to do with the django ORM.
+
         now = datetime.now()
 
         # Limit our query to the correct type of time periods
@@ -189,20 +215,19 @@ class AlertProfile(models.Model):
             valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKDAYS]
 
         # The following code should get the currently active timeperiod.
-        # If we don't find a timeperiod we use tp which will we the last
-        # possilbe timeperiod (which wraps around to covering the first part of
-        # the day.
-        activve_timeperiod = None
+
+        active_timeperiod = None
         for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
-            if not activve_timeperiod or (tp.start <= now.time()):
-                activve_timeperiod = tp
+            if not active_timeperiod or (tp.start <= now.time()):
+                active_timeperiod = tp
 
-        return activve_timeperiod or tp
-
-    def __unicode__(self):
-        return self.name
+        # Return the active timeperiod we found or the last one we checked as
+        # timeperiods looparound midnight.
+        return active_timeperiod or tp
 
 class TimePeriod(models.Model):
+    '''FIXME'''
+
     ALL_WEEK = 1
     WEEKDAYS = 2
     WEEKENDS = 3
@@ -224,13 +249,13 @@ class TimePeriod(models.Model):
         return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
 class AlertSubscription(models.Model): # FIXME this needs a better name
+    '''FIXME'''
+
     NOW = 0
     DAILY = 1
     WEEKLY = 2
     NEXT = 3
-    # FIXME according to profiles 3="Queue [Until profile changes]" ie next
-    # time peroid, engine thinks that 3="NOW()-q.time>=p.queuelength AS max" ie
-    # queu until alert has been in queue a certain number of days
+
     SUBSCRIPTION_TYPES = (
         (NOW, _('immediately')),
         (DAILY, _('daily at predefined time')),
@@ -249,9 +274,9 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
     def __unicode__(self):
         return 'alerts received %s should be %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
 
-    # FIXME rename to handle alert?
-    def send(self, alert):
-        # Decide what to do with the alert here and now
+    def handle_alert(self, alert):
+        '''Decides what to do with an alert based on subscription'''
+
         if self.type == self.NOW:
             # Delegate the sending to the alarm address that knows where this
             # message should go.
@@ -266,14 +291,26 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
 ### Equipment models
 
 class FilterGroupContent(models.Model):
+    '''FIXME'''
+
     #            inc   pos
     # Add      |  1  |  1  | union in set theory
     # Sub      |  0  |  1  | exclusion
     # And      |  0  |  0  | intersection in set theory
     # Add inv. |  1  |  0  | complement of set
 
-    include = models.BooleanField(db_column='inkluder')   # Include alert if filter macthes?
-    positive = models.BooleanField(db_column='positiv')   # Negate match?
+    # include and positive are used to decide how the match result of the
+    # filter should be applied. the table above is an attempt at showing how
+    # this should work. Add inv is really the only tricky one, basicly it is
+    # nothing more that a negated add, ie if we have a filter  that checks
+    # severity > 70 using a add inv on it is equivilent til severity < 70.
+
+    # The actual checking of the FilterGroup is done in the alertengine
+    # subsystem in an attempt to keep most of the alerteninge code simple and
+    # in one place.
+
+    include = models.BooleanField(db_column='inkluder')
+    positive = models.BooleanField(db_column='positiv')
     priority = models.IntegerField(db_column='prioritet')
 
     filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
@@ -295,6 +332,8 @@ class FilterGroupContent(models.Model):
         return '%s filter on %s' % (type, self.filter)
 
 class Operator(models.Model):
+    '''FIXME'''
+
     EQUALS = 0
     GREATER = 1
     GREATER_EQ = 2
@@ -308,8 +347,10 @@ class Operator(models.Model):
     WILDCARD = 10
     IN = 11
 
-    # FIXME implment all of these in alertengine or disable those that don't
-    # get implemeted.
+    # This list designates which operators are supported for any field. The
+    # only major special case is IP's which are matched with special pg ip
+    # operators where it makes sense, the rest of the operators are handeled
+    # with plain text comaparisons against the result of text(ip)
     OPERATOR_TYPES = (
         (EQUALS, _('equals')),
         (GREATER, _('is greater')),
@@ -324,28 +365,40 @@ class Operator(models.Model):
         (WILDCARD, _('wildcard (? og *)')),
         (IN, _('in')),
     )
+
+    # This is the mapping that is jused when we try querying the ORM to se if
+    # filtes match. Note that wildcard is not here as it neeeds to be special
+    # cased.
     OPERATOR_MAPPING = {
         EQUALS: '__exact',
         GREATER: '__gt',
         GREATER_EQ: '__gte',
         LESS: '__lt',
         LESS_EQ: '__lte',
-        STARTSWITH: '__startswith',
-        ENDSWITH: '__endswith',
-        CONTAINS: '__contains',
-        REGEXP: '__regex',
+        STARTSWITH: '__istartswith',
+        ENDSWITH: '__iendswith',
+        CONTAINS: '__icontains',
+        REGEXP: '__iregex',
         IN: '__in',
     }
 
+    # The IpAddressField in django does not support ipv6 yet so the IP
+    # datatype needs to be completly special cased. The following operator
+    # mapping is used to achive this and expects that it will get '% field'
     IP_OPERATOR_MAPPING = {
-        EQUALS: '=',
-        GREATER: '>',
-        GREATER_EQ: '>=',
-        LESS: '<',
-        LESS_EQ: '<=',
-        NOT_EQUAL: '<>',
-        CONTAINS: '>>=',
-        IN: '<<=',
+        EQUALS: '%s = %%s',
+        GREATER: '%s > %%s',
+        GREATER_EQ: '%s >= %%s',
+        LESS: '%s < %%s',
+        LESS_EQ: '%s <= %%s',
+        NOT_EQUAL: '%s <> %%s',
+        CONTAINS: '%s >>= %%s',
+        IN: '%s <<= %%s',
+
+        WILDCARD: "host(%s) LIKE %%s",
+        REGEXP: "host(%s) ~* %%s",
+        STARTSWITH: "host(%s) ILIKE '%%%%' + %%s",
+        ENDSWITH: "host(%s) ILIKE %%s + '%%%%'",
     }
     type = models.IntegerField(db_column='operatorid', choices=OPERATOR_TYPES)
     match_field = models.ForeignKey('MatchField', db_column='matchfieldid')
@@ -358,15 +411,15 @@ class Operator(models.Model):
         return u'%s match on %s' % (self.get_type_display(), self.match_field)
 
     def get_operator_mapping(self):
-        # FIXME error catching
         return self.OPERATOR_MAPPING[self.type]
 
     def get_ip_operator_mapping(self):
-        # FIXME error catching
         return self.IP_OPERATOR_MAPPING[self.type]
 
 
 class Expresion(models.Model):
+    '''FIXME'''
+
     equipment_filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
     match_field = models.ForeignKey('MatchField', db_column='matchfelt')
     operator = models.IntegerField(db_column='matchtype', choices=Operator.OPERATOR_TYPES)
@@ -378,7 +431,12 @@ class Expresion(models.Model):
     def __unicode__(self):
         return '%s match on %s against %s' % (self.get_operator_display(), self.match_field, self.value)
 
+    def get_operator_mapping(self):
+        return Operator(type=self.operator).get_operator_mapping()
+
 class Filter(models.Model):
+    '''FIXME'''
+
     id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField(max_length=-1, db_column='navn')
@@ -395,16 +453,20 @@ class Filter(models.Model):
         extra = {'where': [], 'params': []}
 
         for expresion in self.expresion_set.all():
+            # Handle IP datatypes:
             if expresion.match_field.data_type == MatchField.IP:
                 # Trick the ORM into joining the tables we want
                 lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
-                operator = Operator(type=expresion.operator).get_ip_operator_mapping()
-
                 filter[lookup] = False
 
-                extra['where'].append('%s %s %%s' % (expresion.match_field.value_id, operator))
+                # Get the IP mapping and put in the field before adding it to
+                # our where clause.
+                where = Operator(type=expresion.operator).get_ip_operator_mapping()
+                extra['where'].append(where % expresion.match_field.value_id)
                 extra['params'].append(expresion.value)
 
+            # Handle wildcard lookups which are not directly supported by
+            # django
             elif expresion.operator == Operator.WILDCARD:
                 # Trick the ORM into joining the tables we want
                 lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
@@ -412,9 +474,12 @@ class Filter(models.Model):
 
                 extra['where'].append('%s ILIKE %%s' % expresion.match_field.value_id)
                 extra['params'].append(expresion.value)
-            else:
-                lookup = expresion.match_field.get_lookup_mapping() + Operator(type=expresion.operator).get_operator_mapping()
 
+            # Handle the plain lookups that we can do directly in ORM
+            else:
+                lookup = expresion.match_field.get_lookup_mapping() + expresion.get_operator_mapping()
+
+                # Ensure that in and not equal are handeled correctly
                 if expresion.operator == Operator.IN:
                     filter[lookup] = expresion.value.split('|')
                 elif expresion.operator == Operator.NOT_EQUAL:
@@ -422,6 +487,7 @@ class Filter(models.Model):
                 else:
                     filter[lookup] = expresion.value
 
+        # Limit ourselves to our alert
         filter['id'] = alert.id
 
         if not extra['where']:
@@ -429,6 +495,8 @@ class Filter(models.Model):
 
         logging.debug('alert %d: checking against filter %d with filter: %s, exclude: %s and extra: %s' % (alert.id, self.id, filter, exclude, extra))
 
+        # Check the alert maches whith a SELECT COUNT(*) FROM .... so that the
+        # db doesn't have to work as much.
         if AlertQueue.objects.filter(**filter).exclude(**exclude).extra(**extra).count():
             logging.debug('alert %d: matches filter %d' % (alert.id, self.id))
             return True
@@ -437,6 +505,8 @@ class Filter(models.Model):
         return False
 
 class FilterGroup(models.Model):
+    '''FIXME'''
+
     id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account', db_column='accountid', null=True)
     name = models.CharField(max_length=-1, db_column='navn')
@@ -451,26 +521,30 @@ class FilterGroup(models.Model):
         return self.name
 
 class MatchField(models.Model):
-    # Attributes that define data type meanings:
+    '''FIXME'''
+
     STRING = 0
     INTEGER = 1
     IP = 2
 
+    # Due to the way alertengine has been reimpleneted the code only really
+    # does stuff diffrently if datatype is set to IP, however setting datatype
+    # still makes alot of sense in alertprofiles so that we can verify
+    # userinput
     DATA_TYPES = (
         (STRING, _('string')),
         (INTEGER, _('integer')),
         (IP, _('ip')),
     )
-    # Attributes for the fields:
 
-    # Unless the attribute name is prefixed with something we are refering to
-    # the netbox connected to an alert.
+    # This is a manualy mainted mapping between our model concepts and the
+    # actual db tables that are in use. This is needed as our value_id is base
+    # on this value.
     ALERT = 'alertq'
     ALERTTYPE = 'alerttype'
     ARP = 'arp'
     CAM = 'cam'
-    CAT = 'cat'
-    CATEGORY = 'category'
+    CATEGORY = 'cat'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
     GWPORT = 'gwport'
@@ -485,10 +559,8 @@ class MatchField(models.Model):
     ROOM = 'room'
     SERVICE = 'service'
     SUBCATEGORY = 'subcat'
-    SUBSYSTEM = 'subsystem'
     SWPORT = 'swport'
     TYPE = 'type'
-#    TYPEGROUP = 'typegroup'
     VENDOR = 'vendor'
     VLAN = 'vlan'
     USAGE = 'usage'
@@ -498,7 +570,6 @@ class MatchField(models.Model):
         (ALERTTYPE, _('alert type')),
         (ARP, _('arp')),
         (CAM, _('cam')),
-        (CAT, _('cat')),
         (CATEGORY, _('category')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
@@ -514,10 +585,8 @@ class MatchField(models.Model):
         (ROOM, _('room')),
         (SERVICE, _('service')),
         (SUBCATEGORY, _('subcategory')),
-        (SUBSYSTEM, _('subsystem')),
         (SWPORT, _('SW-port')),
         (TYPE, _('type')),
-#        (TYPEGROUP, _('typegroup')),
         (VENDOR, _('vendor')),
         (VLAN, _('vlan')),
         (USAGE, _('usage')),
@@ -525,10 +594,11 @@ class MatchField(models.Model):
 
     # This mapping designates how a MatchField relates to an alert. (yes the
     # formating is not PEP8, but it wouldn't be very readable otherwise)
+    # Since we need to know how things are connected this has been done manualy
     FOREIGN_MAP = {
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
-        CAT:          'netbox__category',#FIXME
+        CATEGORY:     'netbox__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         GWPORT:       'netbox__connected_to_gwport',
@@ -536,27 +606,28 @@ class MatchField(models.Model):
         MEMORY:       'netbox__memory',
         MODULE:       'netbox__module',
         NETBOX:       'netbox',
-        CATEGORY:     'netbox__category', #FIXME
         NETBOXINFO:   'netbox__info',
         ORGANIZATION: 'netbox__organization',
         PREFIX:       'netbox__prefix',
         PRODUCT:      'netbox__device__product',
         ROOM:         'netbox__room',
-        SERVICE:      'netbox__', #FIXME
-        SUBSYSTEM:    '', #FXIME
+        SERVICE:      'netbox__service',
         SWPORT:       'netbox__connected_to_swport',
         TYPE:         'netbox__type',
-#        TYPEGROUP:    'netbox__type__group', #FIXME
-        USAGE:        'netbox__organization__vlan__usage', #FIXME
+        USAGE:        'netbox__organization__vlan__usage',
         VENDOR:       'netbox__device__product__vendor',
         VLAN:         'netbox__organization__vlan',
-        SUBCATEGORY:  '', #FIXME
-        ALERT:        '',
+        SUBCATEGORY:  'netbox__category__subcategory',
+        ALERT:        '', # Checks alert object itself
         ALERTTYPE:    'alert_type',
     }
 
     VALUE_MAP = {}
     # Build the mapping we need to be able to do checks.
+
+    # This code loops over all the SUPPORTED_MODELS and gets the db_table and
+    # db_column so that we can translate them into the correspinding attributes
+    # on our django models.
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
             VALUE_MAP['%s.%s' % (model._meta.db_table, field.db_column or field.attname)] = field.attname
@@ -597,12 +668,14 @@ class MatchField(models.Model):
 ### AlertEngine models
 
 class SMSQueue(models.Model):
+    '''FIXME'''
+
     id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
     message = models.CharField(max_length=145, db_column='msg')
-    sent = models.CharField(max_length=1, default='N') #FIXME change to boolean?
+    sent = models.CharField(max_length=1, default='N') #FIXME add choices
     sms_id = models.IntegerField(db_column='smsid')
     time_sent = models.DateTimeField(db_column='timesent')
     severity = models.IntegerField()
@@ -613,7 +686,16 @@ class SMSQueue(models.Model):
     def __unicode__(self):
         return '"%s" to %s, sent: %s' % (self.message, self.phone, self.sent)
 
+    def save(self, *args, **kwargs):
+        # Truncate long messages (max is 145)
+        if len(self.message) > 142:
+            self.message = self.message[:142] + '...'
+
+        return super(SMSQueue, self).save(*args, **kwargs)
+
 class AccountAlertQueue(models.Model):
+    '''FIXME'''
+
     id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     addrress = models.ForeignKey('AlertAddress', db_column='addrid')

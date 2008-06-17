@@ -66,7 +66,7 @@ def check_alerts():
                 # Check if alert matches, and if user has permision
                 if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                     if check_alert_against_filtergroupcontents(alert, permisions):
-                        alertsubscription.send(alert)
+                        alertsubscription.handle_alert(alert)
                     else:
                         logging.debug('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                 else:
@@ -74,7 +74,6 @@ def check_alerts():
 
     # FIXME handle AccountAlertQueue
 #    for alert in AccountAlertQueue.objects.all():
-#        
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
     # Allways assume that the match will fail
