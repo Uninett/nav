@@ -26,10 +26,17 @@
  */
 error_reporting(0);
 
-	header("Content-type: text/vnd.wap.wml");  
+// Include required files
+require_once '../config.php';
+require_once '../php4support.php';
+require_once 'db.php';
+require_once 'varlib.php';
 
-	echo '<?xml version="1.0" encoding="UTF-8"?>'; 
-	echo '<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">';
+
+header("Content-type: text/vnd.wap.wml");  
+
+echo '<?xml version="1.0" encoding="UTF-8"?>'; 
+echo '<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">';
 ?>
 
 <wml>
@@ -37,43 +44,8 @@ error_reporting(0);
 
 <?php
 
-$filename = "/usr/local/nav/local/etc/conf/db.conf";
-
-// Get fileconfiglines            
-$conffile = file($filename);
-
-// Init variables, in case they dont exist in config file...
-$dhost = "localhost";
-$dport = "5432";
-$ddb = "navprofiles";
-$duser = "navprofile";
-$dpass = "";
-
-foreach ($conffile as $confline) {
-    $tvar = split('=', trim($confline));
-    $prop = trim($tvar[0]); $value = trim($tvar[1]);
-
-    switch ($prop) {
-        case 'dbhost'		: $dhost = $value; break;
-        case 'dbport'		: $dport = $value; break;
-        case 'db_navprofile'	: $ddb   = $value; break;
-        case 'script_navprofile' 	: $duser = $value; break;
-        case 'userpw_navprofile' 	: $dpass = $value; break;
-    }
-}
-
-$cstr = "user=$duser password=$dpass dbname=$ddb";         
-//echo "<p>" . $cstr;
-
-if (! $dbcon = pg_connect($cstr) ) {
-    echo gettext("<p>Database error! Sorry.</p></card></wml>");
-    exit();
-} 
-            
-require("db.php");
-require("varlib.php");
-
-$dbh = new WDBH($dbcon);
+$db_wdbh = new WDBH();
+$db_wdbh->connect();
 
 
 /*
@@ -87,7 +59,7 @@ $dbh = new WDBH($dbcon);
 
 
 if (get_exist('k') ) {
-	$user = $dbh->sjekkwapkey(get_get('k'));
+	$user = $db_wdbh->sjekkwapkey(get_get('k'));
 	
 	if ($user[0] == 0) {
 		echo "<p>WAP key is invalid.</p></card></wml>";
@@ -105,21 +77,28 @@ echo "<p>You are successfully logged in as <br/>" . $user[1]. "</p>";
 
 if ( get_exist('p') ) {
 	$nyprofil = get_get('p') == 0 ? null : get_get('p');
-	$dbh->aktivProfil($user[0], $nyprofil );
-	$dbh->nyLogghendelse($user[0], 9, "Active profile is changed to (id=" . get_get('p') . ")");
+	$db_wdbh->aktivProfil($user[0], $nyprofil );
+	$db_wdbh->nyLogghendelse($user[0], 9, "Active profile is changed to (id=" . get_get('p') . ")");
 	echo '<p>Active profile is changed. (new id: ' . $nyprofil . ')</p>';
 }
 
-echo '<p><b>Active profile:</b></p>';
 
-$profiler = $dbh->listprofiler($user[0]);
+$profiler = $db_wdbh->listprofiler($user[0]);
 $selval = is_null($user[3]) ? 0 : $user[3];
 
+echo '<p><b>Active profile:</b><br />';
+for ($i = 0; $i < sizeof($profiler); $i++) {
+	if ($profiler[$i][3] == 't')
+		echo $profiler[$i][1];
+}
+echo "</p>";
+
+echo '<p><b>Select new active profile:</b></p>';
 echo '<p><select name="p" value="' . $selval . '" ivalue="' . $selval . '">' . "\n";
 echo '<option value="0">No active profile</option>' . "\n";
 
 for ($i = 0; $i < sizeof($profiler); $i++) {
-	echo '<option value="' . $profiler[$i][0] . '">' . 
+	echo '<option value="' . $profiler[$i][0] . '">' .
 		$profiler[$i][1] . '</option>' . "\n";
 }
 
@@ -137,5 +116,5 @@ echo '<go href="?k=' . get_get('k') . '&amp;p=$(p:escape)"/></do>';
 
 echo '</card></wml>';
 
-pg_close($dbcon);
+$db_wdbh->disconnect();
 ?>

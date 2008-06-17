@@ -28,14 +28,104 @@
  *
  */
 
+function checkDBError($connection, $query, $parameters, $file, $line) {
+	// Send query.
+	pg_send_query_params($connection, $query, $parameters);
+	$result = pg_get_result($connection);
+	$error = pg_result_error($result);
+
+	if ($error) {
+		$e = "<p>Error in query in <strong>$file</strong>
+				near line <strong>$line</strong>:</p>
+				<p>$error</p>";
+		trigger_error($e, E_USER_ERROR);
+	}
+}
+
 class WDBH {
 
-	// Må ha inn en ferdig oppkoblet databasekobling til postgres
 	var $connection;
 
 	// Konstruktor
-	function WDBH($connection) {
+	function WDBH($connection = null) {
 		$this->connection = $connection;
+	}
+
+	function disconnect() {
+		if ($this->connection != null)
+			pg_close($this->connection);
+	}
+
+	function connect() {
+		if ($this->connection == null) {
+			$filename = PATH_DB . "/db.conf";
+
+			// Exit if cannot find db configuration file.
+			if (!file_exists($filename)) {
+				print "<h1>" . gettext("File access error") . "</h1>";
+				print "<p>" . gettext("Could not find the database configuration file.");
+				exit(0);
+			}
+
+			// Get fileconfiglines            
+			$conffile = file($filename);
+
+			// Init variables, in case they dont exist in config file...
+			$dhost = "localhost";
+			$dport = "5432";
+			$ddb = "navprofiles_";
+			$duser = "navprofile_";
+			$dpass = "";
+
+
+			// Traverse all entries in db.conf file.
+			foreach ($conffile as $confline) {
+
+				// Skip comments.
+				if (preg_match('/^\s*#/', $confline))
+					continue;
+
+				$tvar = split('=', trim($confline));
+				if (sizeof($tvar) > 1) {
+					$prop = trim($tvar[0]); $value = trim($tvar[1]);
+
+					//print "<p>Property [$prop] Value [$value]\n";
+
+					switch ($prop) {
+						case 'dbhost':
+							$dhost = $value;
+							break;
+						case 'dbport':
+							$dport = $value;
+							break;
+						case 'db_navprofile':
+							$ddb = $value;
+							break;
+						case 'script_navprofile':
+							$duser = $value;
+							break;
+						case 'userpw_' . $duser:
+							$dpass = $value;
+							break;
+					}
+				}
+			}
+
+			$cstr = "user=$duser password=$dpass dbname=$ddb";         
+
+			if (isset($dhost)) {
+				$cstr .= " host=$dhost";
+			}
+			if (isset($dport)) {
+				$cstr .= " port=$dport";
+			}
+			//echo "<p>Connect string: " . $cstr;
+			if (! $this->connection = pg_connect($cstr) ) {
+				print "<h1>" . gettext("Database error") . "</h1>";
+				print "<p>" . gettext("Could not connect to the navprofiles database. The database server could be down, or the logininfo could be corrupt in the database configuration file.");
+				exit(0);
+			} 
+		}
 	}
 
 	// Henter ut informasjon om en periode..
@@ -44,10 +134,10 @@ class WDBH {
 		$uid = 0;
 		$querystring = "
 			SELECT
-				Account.login as al, Account.id as aid, Accountproperty.value,
-				account.name as aname, preference.activeprofile as ap
-			FROM AccountProperty, Account, Preference
-			WHERE
+			Account.login as al, Account.id as aid, Accountproperty.value,
+			account.name as aname, preference.activeprofile as ap
+				FROM AccountProperty, Account, Preference
+				WHERE
 				(property = 'wapkey') AND
 				(value = $1) AND
 				(account.id = accountproperty.accountid) AND
@@ -55,9 +145,9 @@ class WDBH {
 		$queryparams = array($wapkey);
 
 		if (
-			$query = pg_query_params($this->connection, $querystring) AND
-			pg_num_rows($query) == 1
-		) {
+				$query = pg_query_params($this->connection, $querystring, $queryparams) AND
+				pg_num_rows($query) == 1
+		   ) {
 			$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 			$uid = $data["aid"];
 			$brukernavn = $data["al"];
@@ -83,25 +173,25 @@ class WDBH {
 				'Q.antall, aktiv DESC, Brukerprofil.navn');
 
 		$querystring = "SELECT
-				(Preference.activeProfile = Brukerprofil.id) AS aktiv,
-				Brukerprofil.id, Brukerprofil.navn, Q.antall
-			FROM Account, Preference, Brukerprofil
-			LEFT OUTER JOIN (
-					SELECT pid, count(tid) AS antall
-					FROM (
-						SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid
-						FROM Tidsperiode, Brukerprofil
-						WHERE
+			(Preference.activeProfile = Brukerprofil.id) AS aktiv,
+			Brukerprofil.id, Brukerprofil.navn, Q.antall
+				FROM Account, Preference, Brukerprofil
+				LEFT OUTER JOIN (
+						SELECT pid, count(tid) AS antall
+						FROM (
+							SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid
+							FROM Tidsperiode, Brukerprofil
+							WHERE
 							(Brukerprofil.accountid = $1) AND
 							(Brukerprofil.id = Tidsperiode.brukerprofilid)
-					) AS Perioder
-					GROUP BY Perioder.pid
-				) AS Q ON (Brukerprofil.id = Q.pid)
-			WHERE
+						     ) AS Perioder
+						GROUP BY Perioder.pid
+						) AS Q ON (Brukerprofil.id = Q.pid)
+				WHERE
 				(Brukerprofil.accountid = $1) AND
 				(Account.id = Brukerprofil.accountid) AND
 				(Account.id = Preference.accountid)
-			ORDER BY aktiv DESC, Brukerprofil.navn";
+				ORDER BY aktiv DESC, Brukerprofil.navn";
 
 		$queryparams = array($uid);
 
@@ -158,11 +248,6 @@ class WDBH {
 		}
 
 	}
-
-
-
-
-
 }
 
 ?>
