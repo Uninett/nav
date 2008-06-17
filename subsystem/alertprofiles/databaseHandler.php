@@ -2509,7 +2509,18 @@ class DBH {
 		$querypar = array($gid, $fid, $inkl, $neg);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
-			$lastid_querystr = 'SELECT currval(\'gruppetilfilter_id_seq\') AS lastid';
+			// In NAV <= 3.4 GruppeTilFilter have one constraint:
+			//   * PRIMARY KEY (utstyrgruppeid, utstyrfilterid)
+			// So the following query should return only one row.
+			// In NAV >= 3.5 GruppeTilFilter will have an id-column
+			// as it's primary key, but also enforce an additional
+			// constaint:
+			//  * UNIQUE (utstyrgruppeid, utstyrfilterid)
+			$lastid_querystr = 'SELECT utstyrfilterid
+				FROM GruppeTilFilter
+				WHERE
+					utstyrgruppeid = $1 AND
+					utstyrfilterid = $2';
 			$lastid_query = pg_query($this->connection, $lastid_querystr);
 			if (!$lastid_query)
 				checkDBError($this->connection, $lastid_querystr, array(), __FILE__, __LINE__);
