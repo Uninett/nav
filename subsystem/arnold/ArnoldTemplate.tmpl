@@ -481,17 +481,28 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 <table class="listtable">
 
+    #if $candidates[0]['ip'] != '0.0.0.0'
+
     <caption>
-	#if $type == 'block'
-        Choose which port to block
-        #elif $type == 'quarantine'
-        Choose which port to change vlan on
-        #end if
+	#if $candidates[0]['ipendtime'].year == 999999
+	$candidates[0]['ip'] is currently active
+	#else
+	$candidates[0]['ip'] last seen $candidates[0]['ipendtime']
+	#end if
+	
     </caption>
+
+    #else
+
+    <caption>
+	Choose which port to block based on mac-address
+    </caption>
+
+    #end if
+
 
     <thead>
       <tr>
-        <th>IP</th>
         <th>MAC</th>
         <th>Switch</th>
         <th>Mod</th>
@@ -506,7 +517,6 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
   #for candidate in $candidates
     <tbody>
       <tr class="$rowcycler">
-        <td>$candidate['ip']</td>
         <td>$candidate['mac']</td>
         <td>$candidate['sysname']</td>
         <td>$candidate['module']</td>
