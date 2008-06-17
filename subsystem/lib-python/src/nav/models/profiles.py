@@ -30,9 +30,11 @@ __id__ = "$Id$"
 
 import logging
 from datetime import datetime
+from smtplib import SMTPException
 
 from django.db import models
 from django.db.models import Q
+from django.core.mail import send_mail
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -124,6 +126,33 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
+    def send(self, alert):
+        # FIXME take language into account
+        if self.type == self.EMAIL:
+            message = alert.messages.get(language='en', type='email').message
+
+            # Extract the subject
+            subject = message.splitlines(1)[0].lstrip('Subject:').strip()
+            # Remove the subject line
+            message = '\n'.join(message.splitlines()[1:])
+
+            try:
+                #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
+                print 'sending mail.\nTo: %s\nSubject: %s\n\n%s' % (self.address, subject, message)
+            except SMTPException, e:
+                logging.warn('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
+
+        elif self.type == self.SMS:
+            message = alert.messages.get(language='en', type='sms').message
+
+            if has_sms_privelge:
+                SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
+            else:
+                logging.info('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
+
+        else:
+            logging.warn('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+
 class AlertPreference(models.Model):
     account = models.OneToOneField('Account', primary_key=True,  db_column='accountid')
     active_profile = models.OneToOneField('AlertProfile', db_column='activeprofile', null=True)
@@ -198,7 +227,7 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
     NOW = 0
     DAILY = 1
     WEEKLY = 2
-    MAX = 3
+    NEXT = 3
     # FIXME according to profiles 3="Queue [Until profile changes]" ie next
     # time peroid, engine thinks that 3="NOW()-q.time>=p.queuelength AS max" ie
     # queu until alert has been in queue a certain number of days
@@ -206,10 +235,10 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
         (NOW, _('immediately')),
         (DAILY, _('daily at predefined time')),
         (WEEKLY, _('weekly at predefined time')),
-        (MAX, _('at end of timeperiod')),
+        (NEXT, _('at end of timeperiod')),
     )
 
-    alarm_address = models.ForeignKey('AlertAddress', db_column='alarmadresseid')
+    alert_address = models.ForeignKey('AlertAddress', db_column='alarmadresseid')
     time_period = models.ForeignKey('TimePeriod', db_column='tidsperiodeid')
     filter_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
     type = models.IntegerField(db_column='vent', choices=SUBSCRIPTION_TYPES)
@@ -218,11 +247,20 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
         db_table = u'varsle'
 
     def __unicode__(self):
-        return 'alerts received %s should be %s to %s' % (self.time_period, self.get_type_display(), self.alarm_address)
+        return 'alerts received %s should be %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
 
+    # FIXME rename to handle alert?
     def send(self, alert):
-        # FIXME handle queuing sending etc.
-        logging.debug('alert %d: sending to %s with %s %s' % (alert.id, self.alarm_address.address, self.alarm_address.get_type_display(), self.get_type_display()))
+        # Decide what to do with the alert here and now
+        if self.type == self.NOW:
+            # Delegate the sending to the alarm address that knows where this
+            # message should go.
+            self.alert_address.send(alert)
+        elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
+            # FIXME add to AccountAlertQueue
+            pass
+        else:
+            logging.warn('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
 
 #######################################################################
 ### Equipment models
@@ -561,16 +599,19 @@ class MatchField(models.Model):
 class SMSQueue(models.Model):
     id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
-    time = models.DateTimeField()
+    time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
-    msg = models.CharField(max_length=145)
+    message = models.CharField(max_length=145, db_column='msg')
     sent = models.CharField(max_length=1, default='N') #FIXME change to boolean?
-    smsid = models.IntegerField()
+    sms_id = models.IntegerField(db_column='smsid')
     time_sent = models.DateTimeField(db_column='timesent')
     severity = models.IntegerField()
 
     class Meta:
         db_table = u'smsq'
+
+    def __unicode__(self):
+        return '"%s" to %s, sent: %s' % (self.message, self.phone, self.sent)
 
 class AccountAlertQueue(models.Model):
     id = models.IntegerField(primary_key=True)
