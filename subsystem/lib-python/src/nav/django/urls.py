@@ -33,6 +33,8 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     # Give the ipdevinfo namespace to the IP Device Info subsystem
     (r'^ipdevinfo/', include('nav.web.ipdevinfo.urls')),
+    (r'^networkexplorer/', include('nav.web.networkexplorer.urls')),
+    (r'^alertprofiles-django/', include('nav.web.alertprofiles.urls')),
 )
 
 ### URL patterns for non-Django subsystems
