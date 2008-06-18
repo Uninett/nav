@@ -99,8 +99,8 @@ AC_OUTPUT(Makefile
 	subsystem/machinetracker/Makefile
 	subsystem/report/Makefile
 	subsystem/alertprofiles/Makefile
-	subsystem/alertEngine/Makefile
-	subsystem/alertEngine/alertengine
+	subsystem/alertengine/Makefile
+	subsystem/alertengine/alertengine
 	subsystem/webFront/templates/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/smsd/Makefile

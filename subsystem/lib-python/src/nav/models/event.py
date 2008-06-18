@@ -132,6 +132,10 @@ class EventQueueVar(models.Model):
 #######################################################################
 ### Alert system
 
+class AlertQueueManager(models.Manager):
+    def new_alerts(self):
+        return self.extra(where=['alertq.alertqid > (SELECT lastalertqid FROM alertengine LIMIT 1)']).order_by('id')
+
 class AlertQueue(models.Model):
     """From MetaNAV: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
@@ -145,7 +149,8 @@ class AlertQueue(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.AutoField(db_column='alertqid', primary_key=True)
+    id = models.IntegerField(db_column='alertqid', primary_key=True)
+    objects = AlertQueueManager()
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
