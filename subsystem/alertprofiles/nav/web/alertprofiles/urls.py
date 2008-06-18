@@ -18,56 +18,52 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+# Authors: Magnus Motzfeldt Eide <magnus.eide@uninett.no>
 #
 
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+__author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
 from django.conf.urls.defaults import *
 
-from nav.web.ipdevinfo.views import *
+from nav.web.alertprofiles.views import *
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
-    # Search
-    url(r'^$', search,
-        name='ipdevinfo-search'),
+    # Overview
+    url(r'^$', overview,
+        name='alertprofiles-overview'),
 
-    # Service list
-    url(r'^service/$', service_list,
-        name='ipdevinfo-service-list-all'),
-    url(r'^service/handler=(?P<handler>\w+)/$', service_list,
-        name='ipdevinfo-service-list-handler'),
-
-    # Service matrix
-    url(r'^service/matrix/$', service_matrix,
-        name='ipdevinfo-service-matrix'),
-
-    # IP Device details
-    url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-name'),
-    url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-addr'),
-
-    # Module details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/$',
-        module_details, name='ipdevinfo-module-details'),
-
-    # Switch port details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/swport=(?P<port_id>\d+)/$',
-        port_details, {'port_type': 'swport'}, name='ipdevinfo-swport-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/swport=(?P<port_name>[\w\d\/]+)/$',
-        port_details, {'port_type': 'swport'},
-        name='ipdevinfo-swport-details-by-interface'),
-
-    # Router port details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_id>\d+)/$',
-        port_details, {'port_type': 'gwport'}, name='ipdevinfo-gwport-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_name>[\w\d\/]+)/$',
-        port_details, {'port_type': 'gwport'},
-        name='ipdevinfo-gwport-details-by-interface'),
+#    # User settings
+#    url(r'^profile/$', profiles_list),
+#    url(r'^profile/settings/$', profile_settings),
+#    url(r'^profile/(?P<profile_id>\d+)/$', profile_detail),
+#    url(r'^profile/(?P<profile_id>\d+)/timetable/$', profile_timetable),
+#
+#    # Filters
+#    url(r'^filters/$', filters_list,
+#        name='alertprofiles-filters'),
+#    url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
+#        name='alertprofiles-filters-detail'),
+#
+#    # Filter groups
+#    url(r'^filter-groups/$', filtergroups_list,
+#        name='alertprofiles-filtergroups-list'),
+#    url(r'^filter-groups/(?P<filter_id>\d+)/$', filtergroup_detail,
+#        name='alertprofiles-filtergourps-detail'),
+#
+#    # Filter variables (aka. matchfields)
+#    url(r'^matchfields/$', matchfields_list,
+#        name='alertprofiles-matchfields'),
+#    url(r'^matchfields/(?P<matchfield_id>\d+)/$', matchfield_detail,
+#        name='alertprofiles-matchfield-detail'),
+#
+#    # Admin settings:
+#    #################
+#
+#    # Permissions
+#    url(r'^permissions/$', permissions_list),
+#    url(r'^permissions/(?P<group_id>\d+)/$', profile_detail),
 )
-
