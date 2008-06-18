@@ -1,0 +1,19 @@
+<div class="tabs">
+    <ul>
+        <li><a href="{% url alertprofiles-overview %}">Overview</a></li>
+        <li><a href="filters-groups">Filter groups</a></li>
+        <li><a href="filters">Filters</a></li>
+        <li><a href="matchfields">Matchfields</a></li>
+        {# Options only available to admins #}
+        {# if account.isAdmin #}
+        <li><a href="permissions">Permissions</a></li>
+        {# endif #}
+    </ul>
+</div>
+
+<div class="tabcontent">
+
+{% block tabcontent %}
+{% endblock %}
+
+</div>
