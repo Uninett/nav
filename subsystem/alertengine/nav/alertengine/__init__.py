@@ -40,6 +40,13 @@ from nav.models.event import AlertQueue
 logging.basicConfig(level=logging.DEBUG)
 
 def check_alerts():
+    '''Handles all new and user queued alerts'''
+
+    # Alot of this functionality could have been backed into the models for the
+    # corresponding objects, however it seems better to keep all of this logic
+    # in one place. Despite this some the simpler logic has been offloaded to
+    # the models themselves.
+
     new_alerts = AlertQueue.objects.all()[:10]
     accounts = []
 
@@ -75,7 +82,11 @@ def check_alerts():
     # FIXME handle AccountAlertQueue
 #    for alert in AccountAlertQueue.objects.all():
 
+    # FIXME update the state for which alerts have been handeled
+
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
+    '''Checks a given alert against an array of filtergroupcontents'''
+
     # Allways assume that the match will fail
     matches = False
 

@@ -36,6 +36,9 @@ from django.db import models
 from django.db.models import Q
 from django.core.mail import send_mail
 
+from nav.db.navprofiles import Account as OldAccount
+from nav.auth import hasPrivilege
+
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
     Memory, Netbox, NetboxCategory, NetboxInfo, NetboxType, Organization, \
@@ -76,6 +79,10 @@ class Account(models.Model):
 
     def get_active_profile(self):
         return self.alertpreference.active_profile
+
+    def has_perm(self, action, target):
+        account = OldAccount.loadByLogin(str(self.login))
+        return hasPrivilege(account, action, target)
 
 class AccountGroup(models.Model):
     '''NAV account groups'''
@@ -151,17 +158,19 @@ class AlertAddress(models.Model):
             message = '\n'.join(message.splitlines()[1:])
 
             try:
-                #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
                 # FIXME
+                #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
                 print 'sending mail.\nTo: %s\nSubject: %s\n\n%s' % (self.address, subject, message)
             except SMTPException, e:
                 logging.warn('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
 
         elif self.type == self.SMS:
-            message = alert.messages.get(language=lang, type='sms').message
-
-            if has_sms_privelge:
+            if self.account.has_perm('alerttype', 'sms'):
+                message = alert.messages.get(language=lang, type='sms').message
                 SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
+
+                logging.debug('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
+
             else:
                 logging.info('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
 
@@ -281,9 +290,13 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
             # Delegate the sending to the alarm address that knows where this
             # message should go.
             self.alert_address.send(alert)
+
         elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
-            # FIXME add to AccountAlertQueue
-            pass
+            account = self.time_period.profile.account
+            AccountAlertQueue.objects.create(account=account, alert=alert, addrress=self.alert_address)
+
+            logging.debug('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+
         else:
             logging.warn('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
 
@@ -670,12 +683,22 @@ class MatchField(models.Model):
 class SMSQueue(models.Model):
     '''FIXME'''
 
+    SENT = 'Y'
+    NOT_SENT = 'N'
+    IGNORED = 'I'
+
+    SENT_CHOICES = (
+        (SENT, _('sent')),
+        (NOT_SENT, _('not sent yet')),
+        (IGNORED, _('ignored')),
+    )
+
     id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
     message = models.CharField(max_length=145, db_column='msg')
-    sent = models.CharField(max_length=1, default='N') #FIXME add choices
+    sent = models.CharField(max_length=1, default=NOT_SENT, choices=SENT_CHOICES)
     sms_id = models.IntegerField(db_column='smsid')
     time_sent = models.DateTimeField(db_column='timesent')
     severity = models.IntegerField()
@@ -696,10 +719,9 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     '''FIXME'''
 
-    id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     addrress = models.ForeignKey('AlertAddress', db_column='addrid')
-    alertid = models.IntegerField()
+    alert = models.ForeignKey('AlertQueue', db_column='alertid')
     insertion_time = models.DateTimeField(auto_now_add=True, db_column='time')
 
     class Meta:
