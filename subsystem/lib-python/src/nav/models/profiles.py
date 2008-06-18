@@ -472,11 +472,20 @@ class Filter(models.Model):
                 lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
                 filter[lookup] = False
 
-                # Get the IP mapping and put in the field before adding it to
-                # our where clause.
                 where = Operator(type=expresion.operator).get_ip_operator_mapping()
-                extra['where'].append(where % expresion.match_field.value_id)
-                extra['params'].append(expresion.value)
+
+                if expresion.operator in [Operator.IN, Operator.CONTAINS]:
+                    values = expresion.value.split('|')
+                    where = ' OR '.join([where % expresion.match_field.value_id] * len(values))
+
+                    extra['where'].append('(%s)' % where)
+                    extra['params'].extend(values)
+
+                else:
+                    # Get the IP mapping and put in the field before adding it to
+                    # our where clause.
+                    extra['where'].append(where % expresion.match_field.value_id)
+                    extra['params'].append(expresion.value)
 
             # Handle wildcard lookups which are not directly supported by
             # django
@@ -514,7 +523,7 @@ class Filter(models.Model):
             logging.debug('alert %d: matches filter %d' % (alert.id, self.id))
             return True
 
-        logging.debug('alert %d: did not matche filter %d' % (alert.id, self.id))
+        logging.debug('alert %d: did not match filter %d' % (alert.id, self.id))
         return False
 
 class FilterGroup(models.Model):
