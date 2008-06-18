@@ -41,14 +41,14 @@ djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 
 # Names
-WEBNAME = ipdevinfo
+WEBNAME = alertprofiles
 
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/ipdevinfo/*.py)
+LIBS = $(wildcard nav/*.py nav/web/alertprofiles/*.py)
 CONFFILES =
-TOOLS = ipdevinfo.tool
+TOOLS = alertprofiles.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
