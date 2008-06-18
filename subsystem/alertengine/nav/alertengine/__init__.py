@@ -79,8 +79,66 @@ def check_alerts():
                 else:
                     logging.debug('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
-    # FIXME handle AccountAlertQueue
-#    for alert in AccountAlertQueue.objects.all():
+
+    now = datetime.now()
+
+    # We want to keep track of wether or not any weekly or daily messages have
+    # been sent.
+    sent_weekly = False
+    sent_daily = False
+
+    for queued_alert in AccountAlertQueue.objects.all():
+        if queued_alert.subsription.type == AlertSubscription.NOW:
+            # Send right away if the subscription has been changed to now
+            queued_alert.send()
+
+        elif queued_alert.subsription.type == AlertSubscription.DAILY:
+            daily_time = queued_alert.subsription.time_period.profile.time
+            last_sent  = queued_alert.subsription.time_period.profiles.alertpreference.last_sent_day
+
+            # If the last sent date is less than the current date, and we are
+            # past the daily time and the alert was added to the queue before
+            # this time
+            if last_sent.date() < now.date() and daily_time < now.time() and queued_alert.insertion_time < daily_time:
+                queued_alert.send()
+                sent_daily = True
+
+        elif queued_alert.subsription.type == AlertSubscription.WEEKLY:
+            weekly_time = queued_alert.subsription.time_period.profile.weektime
+            weekly_day = queued_alert.subsription.time_period.profile.weekday
+            last_sent  = queued_alert.subsription.time_period.profiles.alertpreference.last_sent_weekly
+
+            # Check that we are at the correct weekday, and that the last sent
+            # time is less than today, and that alert was inserted before the
+            # weekly time.
+            if weekly_day == now.weekday() and last_sent.date() < now.date() and weekly_time < now.time() and queued_alert.insertion_time.time() < weekly_time:
+                queued_alert.send()
+                sent_weekly = True
+
+        elif queued_alert.subsription.type == AlertSubscription.NEXT:
+            current_time_period = account.get_active_profile().get_active_timeperiod()
+            insertion_time = queued_alert.insertion_time
+            queued_alert_time_period = queued_alert.subscription.time_period
+
+            # Send if we are in a different time period than the one that the
+            # message was inserted with.
+            if queued_alert.subscription.time_period.id != current_time_period.id:
+                queued_alert.send()
+            # Check if the message was inserted on a previous day and that the
+            # start period of the time period it was inserted in has passed.
+            # This check should catch the corner case where a user only has one
+            # timeperiod that loops.
+            elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.time):
+                queued_alert.send()
+
+        else:
+            logging.warn('account %s has an invalid subscription type in subsription %d' % (queued_alert.subsription.account, queued_alert.subsription.id))
+
+    # Update the when the user last recieved daily or weekly alerts.
+    if sent_daily:
+        account.alertpreference.last_sent_day = now
+    if sent_weekly:
+        account.alertpreference.last_sent_weekly = now
 
     # FIXME update the state for which alerts have been handeled
 

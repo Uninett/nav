@@ -293,7 +293,7 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
 
         elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
             account = self.time_period.profile.account
-            AccountAlertQueue.objects.create(account=account, alert=alert, addrress=self.alert_address)
+            AccountAlertQueue.objects.create(account=account, alert=alert, subscription=self)
 
             logging.debug('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
 
@@ -720,9 +720,14 @@ class AccountAlertQueue(models.Model):
     '''FIXME'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    addrress = models.ForeignKey('AlertAddress', db_column='addrid')
+    subscription = models.ForeignKey('AlertSubscription')
     alert = models.ForeignKey('AlertQueue', db_column='alertid')
     insertion_time = models.DateTimeField(auto_now_add=True, db_column='time')
 
     class Meta:
         db_table = u'queue'
+
+    def send(self):
+        self.subsription.alert_address.send(self.alert)
+        self.delete()
+
