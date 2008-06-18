@@ -1,7 +1,9 @@
 /*
  *
- * This SQL script is designed to upgrade your NAV database from
- * version 3.3 to 3.4.
+ * This preliminary SQL script is designed to upgrade your NAV database from
+ * version 3.3 to the current trunk revision.  Please update this with every
+ * change you make to the database initialization scripts.  It will eventually
+ * become the update script for the next release.
  *
  * Run the script as the nav database user like this:
  *
@@ -14,6 +16,75 @@
  *  psql -f snmpoid.sql manage nav
  *
 */
+
+-- Clean install of 3.3.0 caused this rule never to be created.  Recreate it
+-- here for those who started out with clean 3.3.0 installs.
+-- NAV 3.3.1 also contained bug SF#1899431 in this rule, which has
+-- been fixed here, and should be applied when upgrading.
+CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+     WHERE prefixid=OLD.prefixid AND end_time='infinity';
+
+-- Replace the netboxid_null_upd_end_time trigger, which has been
+-- faulty the last six years.
+CREATE OR REPLACE FUNCTION netboxid_null_upd_end_time () RETURNS trigger AS
+  'BEGIN
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL 
+        AND new.end_time = ''infinity'' THEN
+       new.end_time = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
+
+-- Django needs a single column it can treat as primary key :-(
+ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
+ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
+ALTER TABLE maint_component ADD COLUMN id SERIAL;
+ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
+ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
+
+ALTER TABLE accountproperty ADD COLUMN id SERIAL;
+
+ALTER TABLE brukerrettighet DROP CONSTRAINT brukerrettighet_pk;
+ALTER TABLE brukerrettighet ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE brukerrettighet ADD UNIQUE(accountid, utstyrgruppeid);
+
+ALTER TABLE defaultfilter DROP CONSTRAINT defaultfilter_pk;
+ALTER TABLE defaultfilter ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE defaultfilter ADD UNIQUE(accountgroupid, utstyrfilterid);
+
+ALTER TABLE defaultutstyr DROP CONSTRAINT defaultutstyr_pk;
+ALTER TABLE defaultutstyr ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE defaultutstyr ADD UNIQUE(accountgroupid, utstyrgruppeid);
+
+ALTER TABLE grouptilfilter DROP CONSTRAINT gruppetilfilter_pk;
+ALTER TABLE grouptilfilter ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE grouptilfilter ADD UNIQUE(utstyrfilterid, utstyrgruppeid);
+
+ALTER TABLE operator DROP CONSTRAINT operator_pk;
+ALTER TABLE operator id SERIAL PRIMARY KEY;
+ALTER TABLE operator ADD UNIQUE(operatorid, matchfieldid);
+
+ALTER TABLE rettighet DROP CONSTRAINT rettighet_pk;
+ALTER TABLE rettighet ADD COLUMN id PRIMARY KEY;
+ALTER TABLE rettighet ADD UNIQUE(accountgroupid,, utstyrgruppeid)
+
+ALTER TABLE brukerrettighet DROP CONSTRAINT brukerrettighet_pk;
+ALTER TABLE brukerrettighet ADD COLUMN id PRIMARY KEY;
+ALTER TABLE brukerrettighet ADD UNIQUE(accountid, utstyrgruppeid)
+
+ALTER TABLE varsle DROP CONSTRAINT varsleadresse_pk;
+ALTER TABLE varsle ADD COLUMN id PRIMARY KEY;
+ALTER TABLE varsle ADD UNIQUE(alarmadresseid, tidsperiodeid, utstyrgruppeid);
+
+-- Both old IP Device Center and new IP Device Info does lots of selects on cam
+-- with netboxid and ifindex in the where clause
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
 
 \connect manage
 BEGIN;
@@ -125,3 +196,4 @@ BEGIN;
 -- Increase the maximum length of user organization IDs, to fix SF#1680011
 ALTER TABLE AccountOrg ALTER COLUMN orgid TYPE VARCHAR(30);
 END;
+dd>>>>>>> /tmp/3.4.0.sql~other.uW0bla
