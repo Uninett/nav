@@ -44,6 +44,8 @@ from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
     Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
+logger = logging.getLogger('nav.alertengine')
+
 # This should be the authorative source as to which models alertengine supports.
 # The acctuall mapping from alerts to data in these models is done the MatchField
 # model.
@@ -168,23 +170,23 @@ class AlertAddress(models.Model):
             try:
                 # FIXME
                 #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
-                logging.info('alert %d: Sending email to %s' % (alert.id, self.address))
+                logger.info('alert %d: Sending email to %s' % (alert.id, self.address))
 
             except SMTPException, e:
-                logging.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
+                logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
 
         elif self.type == self.SMS:
             if self.account.has_perm('alerttype', 'sms'):
                 message = alert.messages.get(language=lang, type='sms').message
 
                 SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
-                logging.info('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
+                logger.info('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
 
             else:
-                logging.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
+                logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
 
         else:
-            logging.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+            logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -303,10 +305,10 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
             account = self.time_period.profile.account
             AccountAlertQueue.objects.create(account=account, alert=alert, subscription=self)
 
-            logging.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+            logger.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
 
         else:
-            logging.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
+            logger.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
 
 #######################################################################
 ### Equipment models
@@ -523,15 +525,15 @@ class Filter(models.Model):
         if not extra['where']:
             extra = {}
 
-        logging.debug('alert %d: checking against filter %d with filter: %s, exclude: %s and extra: %s' % (alert.id, self.id, filter, exclude, extra))
+        logger.debug('alert %d: checking against filter %d with filter: %s, exclude: %s and extra: %s' % (alert.id, self.id, filter, exclude, extra))
 
         # Check the alert maches whith a SELECT COUNT(*) FROM .... so that the
         # db doesn't have to work as much.
         if AlertQueue.objects.filter(**filter).exclude(**exclude).extra(**extra).count():
-            logging.debug('alert %d: matches filter %d' % (alert.id, self.id))
+            logger.debug('alert %d: matches filter %d' % (alert.id, self.id))
             return True
 
-        logging.debug('alert %d: did not match filter %d' % (alert.id, self.id))
+        logger.debug('alert %d: did not match filter %d' % (alert.id, self.id))
         return False
 
 class FilterGroup(models.Model):
@@ -695,7 +697,7 @@ class MatchField(models.Model):
             return value
 
         except KeyError:
-            logging.error("Tried to lookup mapping for %s which is not supported" % self.value_id)
+            logger.error("Tried to lookup mapping for %s which is not supported" % self.value_id)
         return None
 
 

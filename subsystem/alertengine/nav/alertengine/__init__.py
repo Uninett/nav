@@ -39,10 +39,12 @@ from nav.models.event import AlertQueue
 
 logging.basicConfig(level=logging.DEBUG)
 
+logger = logging.getLogger('nav.alertengine')
+
 def check_alerts():
     '''Handles all new and user queued alerts'''
 
-    logging.info('Starting alertengine check_alerts()')
+    logger.info('Starting alertengine check_alerts()')
 
     # Alot of this functionality could have been backed into the models for the
     # corresponding objects, however it seems better to keep all of this logic
@@ -67,7 +69,7 @@ def check_alerts():
 
     # Check all acounts against all their active subsriptions
     for account, alertsubscriptions, permisions in accounts:
-        logging.debug("Cheking alerts for account '%s'" % account)
+        logger.debug("Cheking alerts for account '%s'" % account)
 
         for alert in new_alerts:
             for alertsubscription, filtergroupcontents in alertsubscriptions:
@@ -77,9 +79,9 @@ def check_alerts():
                     if check_alert_against_filtergroupcontents(alert, permisions):
                         alertsubscription.handle_alert(alert)
                     else:
-                        logging.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
+                        logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                 else:
-                    logging.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
+                    logger.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
 
     now = datetime.now()
@@ -93,7 +95,7 @@ def check_alerts():
         try:
             subscription = queued_alert.subscription
         except AlertSubscription.DoesNotExist:
-            logging.warn('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
+            logger.warn('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
             continue
 
         if subscription.type == AlertSubscription.NOW:
@@ -140,7 +142,7 @@ def check_alerts():
                 queued_alert.send()
 
         else:
-            logging.error('account %s has an invalid subscription type in subsription %d' % (subsription.account, subsription.id))
+            logger.error('account %s has an invalid subscription type in subsription %d' % (subsription.account, subsription.id))
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
@@ -150,7 +152,7 @@ def check_alerts():
 
     # FIXME update the state for which alerts have been handeled
 
-    logging.info('Finished alertengine check_alerts()')
+    logger.info('Finished alertengine check_alerts()')
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
     '''Checks a given alert against an array of filtergroupcontents'''
@@ -165,7 +167,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
         if not matches and content.include:
             matches = content.filter.check(alert) == content.positive
 
-            if matches: logging.debug('alert %d: got included by filter %d' % (alert.id, content.filter.id))
+            if matches: logger.debug('alert %d: got included by filter %d' % (alert.id, content.filter.id))
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
@@ -173,8 +175,8 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
 
             # Log that we excluded the alert
             if not matches:
-                logging.debug('alert %d got: excluded by filter %d' % (alert.id, content.filter.id))
+                logger.debug('alert %d got: excluded by filter %d' % (alert.id, content.filter.id))
 
         if original_macthes == matches:
-            logging.debug('alert %d: unaffected by filter %d' % (alert.id, content.filter.id))
+            logger.debug('alert %d: unaffected by filter %d' % (alert.id, content.filter.id))
     return matches
