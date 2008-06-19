@@ -653,9 +653,10 @@ class MatchField(models.Model):
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
             key = '%s.%s' % (model._meta.db_table, field.db_column or field.attname)
+            value = '%s__%s' % (FOREIGN_MAP[model._meta.db_table], field.attname)
 
             VALUE_MAP[key] = field.attname
-            CHOICES.append((key, '__'.join([FOREIGN_MAP[model._meta.db_table], field.attname])))
+            CHOICES.append((key, value.lstrip('_')))
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
