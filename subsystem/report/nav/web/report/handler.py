@@ -26,11 +26,6 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
-# TODO: remember to remove pprint (module used for debugging) and all related usage
-
-
-#from nav.report.matrix import Matrix
-#from nav.web.templates.MainTemplate import MainTemplate
 from IPy import IP
 from mod_python import apache,util
 from nav import db
@@ -43,12 +38,12 @@ from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
+from operator import itemgetter
 import os.path, nav.path
 import psycopg
 import re,string, copy, urllib
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
-#configFile = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
@@ -82,20 +77,8 @@ def handler(req):
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
-        list = []
         page.path = [("Home", "/"), ("Report", False)]
         page.title = "Report - Index"
-        if req.args and req.args.find("sort=alnum")>-1:
-            sortby = "<a href=\"index\">Logical order</a> | Alphabetical order"
-            list.sort()
-        else:
-            sortby = "Logical order | <a href=\"index?sort=alnum\">Alphabetical order</a>"
-
-        w = "<ul>"
-        for (description,key) in list:
-            w += "<li><a href="+key+">"+description+"</a></li>"
-        w += "</ul>"
-
         page.content = lambda:file(frontFile).read()
         req.write(page.respond())
         return apache.OK
@@ -158,7 +141,6 @@ def handler(req):
 
             else:
                 ## print all scopes or error message
-
                 page = MatrixScopesTemplate()
                 page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
                 page.scopes = []
@@ -171,13 +153,13 @@ def handler(req):
         page = ReportListTemplate()
         req.content_type = "text/html"
         req.send_http_header()
-        gen = Generator()
+
         report_list = ReportList(configFile).getReportList()
-        report_list.sort()
+        map(itemgetter(2), report_list)
+        report_list = sorted(report_list, key=itemgetter(2))
 
         name = "Report List"
         name_link = "reportlist"
-
         page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)] # Perhaps I should fetch these values and not hardcode them.
         page.title = "Report - " + name
         page.report_list = report_list
