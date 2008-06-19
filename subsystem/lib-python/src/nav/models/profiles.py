@@ -645,7 +645,7 @@ class MatchField(models.Model):
 
     # Build the mapping we need to be able to do checks.
     VALUE_MAP = {}
-    CHOICES = []
+    CHOICES = [('', _('No references'))]
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
