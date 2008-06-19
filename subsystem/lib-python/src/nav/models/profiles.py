@@ -128,6 +128,8 @@ class AccountOrganization(models.Model):
 class AlertAddress(models.Model):
     '''FIXME'''
 
+    DEBUG_MODE = False
+
     SMS = 2
     EMAIL = 1
 
@@ -146,7 +148,7 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
-    def send(self, alert):
+    def send(self, alert, type=_('now')):
         '''Handles sending of alerts to with defined alert notification types'''
 
         # TODO this should probably be converted to a plugin based system so
@@ -168,9 +170,11 @@ class AlertAddress(models.Model):
             message = '\n'.join(message.splitlines()[1:])
 
             try:
-                # FIXME
-                #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
-                logger.info('alert %d: Sending email to %s' % (alert.id, self.address))
+                if not self.DEBUG_MODE:
+                    send_mail(subject, message, 'nav', [self.address], fail_silently=False)
+                    logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, self.address, type))
+                else:
+                    logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, self.address, type))
 
             except SMTPException, e:
                 logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
@@ -179,8 +183,11 @@ class AlertAddress(models.Model):
             if self.account.has_perm('alerttype', 'sms'):
                 message = alert.messages.get(language=lang, type='sms').message
 
-                SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
-                logger.info('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
+                if not self.DEBUG_MODE:
+                    SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
+                    logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
+                else:
+                    logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
 
             else:
                 logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
@@ -291,7 +298,7 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
         db_table = u'varsle'
 
     def __unicode__(self):
-        return 'alerts received %s should be %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
+        return 'alerts received %s should be sent %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
 
     def handle_alert(self, alert):
         '''Decides what to do with an alert based on subscription'''
@@ -303,9 +310,13 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
 
         elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
             account = self.time_period.profile.account
-            AccountAlertQueue.objects.create(account=account, alert=alert, subscription=self)
 
-            logger.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+            obj, created = AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=self)
+
+            if created:
+                logger.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+            else:
+                logger.info('alert %d: allready in alert queue with same subscription for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
 
         else:
             logger.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
@@ -752,6 +763,6 @@ class AccountAlertQueue(models.Model):
         db_table = u'queue'
 
     def send(self):
-        self.subsription.alert_address.send(self.alert)
+        self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
         self.delete()
 
