@@ -42,6 +42,8 @@ logging.basicConfig(level=logging.DEBUG)
 def check_alerts():
     '''Handles all new and user queued alerts'''
 
+    logging.info('Starting alertengine check_alerts()')
+
     # Alot of this functionality could have been backed into the models for the
     # corresponding objects, however it seems better to keep all of this logic
     # in one place. Despite this some the simpler logic has been offloaded to
@@ -75,9 +77,9 @@ def check_alerts():
                     if check_alert_against_filtergroupcontents(alert, permisions):
                         alertsubscription.handle_alert(alert)
                     else:
-                        logging.debug('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
+                        logging.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                 else:
-                    logging.debug('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
+                    logging.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
 
     now = datetime.now()
@@ -138,7 +140,7 @@ def check_alerts():
                 queued_alert.send()
 
         else:
-            logging.warn('account %s has an invalid subscription type in subsription %d' % (subsription.account, subsription.id))
+            logging.error('account %s has an invalid subscription type in subsription %d' % (subsription.account, subsription.id))
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
@@ -147,6 +149,8 @@ def check_alerts():
         account.alertpreference.last_sent_weekly = now
 
     # FIXME update the state for which alerts have been handeled
+
+    logging.info('Finished alertengine check_alerts()')
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
     '''Checks a given alert against an array of filtergroupcontents'''

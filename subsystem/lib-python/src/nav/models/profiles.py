@@ -77,9 +77,13 @@ class Account(models.Model):
         return self.login
 
     def get_active_profile(self):
+        '''Returns the accounts active alert profile'''
         return self.alertpreference.active_profile
 
     def has_perm(self, action, target):
+        '''Checks user perisions'''
+
+        # Simply wrap the hasPrivilege function of non-Django nav.
         account = OldAccount.loadByLogin(str(self.login))
         return hasPrivilege(account, action, target)
 
@@ -143,6 +147,11 @@ class AlertAddress(models.Model):
     def send(self, alert):
         '''Handles sending of alerts to with defined alert notification types'''
 
+        # TODO this should probably be converted to a plugin based system so
+        # that adding features like jabber notification won't be a problem.
+        # This would also imply moving the SMS and email functionality into
+        # other modules.
+
         try:
             lang = self.account.accountproperty_set.get(property='language').value or 'en'
         except AccountProperty.DoesNotExist:
@@ -159,22 +168,23 @@ class AlertAddress(models.Model):
             try:
                 # FIXME
                 #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
-                print 'sending mail.\nTo: %s\nSubject: %s\n\n%s' % (self.address, subject, message)
+                logging.info('alert %d: Sending email to %s' % (alert.id, self.address))
+
             except SMTPException, e:
-                logging.warn('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
+                logging.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
 
         elif self.type == self.SMS:
             if self.account.has_perm('alerttype', 'sms'):
                 message = alert.messages.get(language=lang, type='sms').message
-                SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
 
-                logging.debug('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
+                SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
+                logging.info('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
 
             else:
-                logging.info('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
+                logging.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
 
         else:
-            logging.warn('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+            logging.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -223,7 +233,6 @@ class AlertProfile(models.Model):
             valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKDAYS]
 
         # The following code should get the currently active timeperiod.
-
         active_timeperiod = None
         for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
             if not active_timeperiod or (tp.start <= now.time()):
@@ -294,10 +303,10 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
             account = self.time_period.profile.account
             AccountAlertQueue.objects.create(account=account, alert=alert, subscription=self)
 
-            logging.debug('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+            logging.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
 
         else:
-            logging.warn('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
+            logging.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
 
 #######################################################################
 ### Equipment models
@@ -686,7 +695,7 @@ class MatchField(models.Model):
             return value
 
         except KeyError:
-            logging.warn("Tried to lookup mapping for %s which is not supported" % self.value_id)
+            logging.error("Tried to lookup mapping for %s which is not supported" % self.value_id)
         return None
 
 
