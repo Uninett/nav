@@ -643,24 +643,28 @@ class MatchField(models.Model):
         ALERTTYPE:    'alert_type',
     }
 
-    VALUE_MAP = {}
     # Build the mapping we need to be able to do checks.
+    VALUE_MAP = {}
+    CHOICES = []
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
     # on our django models.
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
-            VALUE_MAP['%s.%s' % (model._meta.db_table, field.db_column or field.attname)] = field.attname
+            key = '%s.%s' % (model._meta.db_table, field.db_column or field.attname)
+
+            VALUE_MAP[key] = field.attname
+            CHOICES.append((key, '__'.join([FOREIGN_MAP[model._meta.db_table], field.attname])))
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
     value_help = models.CharField(max_length=-1, db_column='valuehelp')
-    value_id = models.CharField(max_length=-1, db_column='valueid')
-    value_name = models.CharField(max_length=-1, db_column='valuename')
-    value_category = models.CharField(max_length=-1, db_column='valuecategory')
-    value_sort = models.CharField(max_length=-1, db_column='valuesort')
+    value_id = models.CharField(max_length=-1, db_column='valueid', choices=CHOICES)
+    value_name = models.CharField(max_length=-1, db_column='valuename', choices=CHOICES)
+    value_category = models.CharField(max_length=-1, db_column='valuecategory', choices=CHOICES)
+    value_sort = models.CharField(max_length=-1, db_column='valuesort', choices=CHOICES)
     list_limit = models.IntegerField(db_column='listlimit')
     data_type = models.IntegerField(db_column='datatype', choices=DATA_TYPES)
     show_list = models.BooleanField(db_column='showlist')
