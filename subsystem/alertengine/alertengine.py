@@ -19,7 +19,8 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>,
+#          Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 
 """
@@ -32,9 +33,9 @@ Usage: alertengine [FIXME]
 FIXME: Detailed usage
 """
 
-__copyright__ = "Copyright 2007 UNINETT AS"
+__copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+__author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id$"
 
 import ConfigParser
@@ -53,8 +54,11 @@ import nav.config
 import nav.daemon
 import nav.logs
 import nav.path
-#import nav.alertengine.FIXME
 
+if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+
+from nav.alertengine import check_alerts
 
 ### PATHS
 
@@ -62,21 +66,28 @@ configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 logfile = os.path.join(nav.path.localstatedir, 'log', 'alertengine.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'alertengine.pid')
 
-
 ### MAIN FUNCTION
 
 def main(args):
     # Get command line arguments
     try:
-        opts, args = getopt.getopt(args, 'h', ['help'])
+        opts, args = getopt.getopt(args, 'ht', ['help', 'test', 'loglevel='])
     except getopt.GetoptError, e:
         print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
             (e, sys.argv[0])
         sys.exit(1)
+
+    opttest = False
+    optlevel = None
+
     for opt, val in opts:
         if opt in ('-h', '--help'):
             usage()
             sys.exit(0)
+        if opt in ('-t', '--test'):
+            opttest = True
+        if opt == '--loglevel':
+            optlevel = val
 
     # Set config defaults
     defaults = {
@@ -88,13 +99,14 @@ def main(args):
         'mailaddr': nav.config.readConfig('nav.conf')['ADMIN_MAIL']
     }
 
+
     # Read config file
     config = getconfig(defaults)
 
     # Set variables based on config
     username = config['main']['username']
     delay = int(config['main']['delay'])
-    loglevel = eval('logging.' + config['main']['loglevel'])
+    loglevel = eval('logging.' + (optlevel or config['main']['loglevel']))
     mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
@@ -106,12 +118,13 @@ def main(args):
     loginitstderr(loglevel)
 
     # Switch user to navcron (only works if we're root)
-    try:
-        nav.daemon.switchuser(username)
-    except nav.daemon.DaemonError, e:
-        logger.error("%s Run as root or %s to enter daemon mode. " \
-            + "Try `%s --help' for more information.",
-            e, username, sys.argv[0])
+    if not opttest:
+        try:
+            nav.daemon.switchuser(username)
+        except nav.daemon.DaemonError, e:
+            logger.error("%s Run as root or %s to enter daemon mode. " \
+                + "Try `%s --help' for more information.",
+                e, username, sys.argv[0])
         sys.exit(1)
 
     # Init daemon loggers
@@ -128,32 +141,30 @@ def main(args):
         sys.exit(1)
 
     # Daemonize
-    try:
-        nav.daemon.daemonize(pidfile)
-    except nav.daemon.DaemonError, e:
-        logger.error(e)
-        sys.exit(1)
+    if not opttest:
+        try:
+            nav.daemon.daemonize(pidfile)
+        except nav.daemon.DaemonError, e:
+            logger.error(e)
+            sys.exit(1)
 
     # Reopen log files on SIGHUP
     signal.signal(signal.SIGHUP, signalhandler)
 
     # Loop forever
     while True:
-        logger.debug('Starting loop.')
-
-        # FIXME refactor contents of this loop
-
-        for account in Account.objects.all():
-            account.check_alerts()
-
-        # Sleep a bit before the next run
-        logger.debug('Sleeping for %d seconds.', delay)
-        time.sleep(delay)
+        check_alerts(debug=opttest)
 
         # Devel only
-        break
+        if opttest:
+            break
+        else:
+            # Sleep a bit before the next run
+            logger.debug('Sleeping for %d seconds.', delay)
+            time.sleep(delay)
 
     # Exit nicely
+    logger.info('Shutting down.')
     sys.exit(0)
 
 
