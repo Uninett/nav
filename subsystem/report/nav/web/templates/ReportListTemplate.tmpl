@@ -35,10 +35,10 @@
 <h2>Report List</h2>
 
 <ul>
-#for $x in $report_list
+#for $report in $report_list
     <li>
-        $x[2]
-        <p>$x[0]</p>
+        <a href="/report/$report[1]">$report[2]</a>
+        <p style="font-style: italic; color: #555753; padding-bottom: 15px">$report[0]</p>
     </li>
 #end for
 </ul>
