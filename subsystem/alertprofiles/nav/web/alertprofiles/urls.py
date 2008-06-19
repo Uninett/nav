@@ -43,8 +43,7 @@ urlpatterns = patterns('',
 #    url(r'^profile/(?P<profile_id>\d+)/timetable/$', profile_timetable),
 #
 #    # Filters
-#    url(r'^filters/$', filters_list,
-#        name='alertprofiles-filters'),
+    url(r'^filters/$', filter_list, name='alertprofiles-filters'),
 #    url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
 #        name='alertprofiles-filters-detail'),
 #

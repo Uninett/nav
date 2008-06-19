@@ -37,4 +37,11 @@ from nav.django.shortcuts import render_to_response, object_list
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 
 def overview(request):
+    account = Account.objects.get(login=request._req.session['user'].login)
     return render_to_response(AlertProfilesTemplate, 'alertprofiles/overview.html', {})
+
+def filter_list(request):
+    return object_list(AlertProfilesTemplate, {
+            'queryset': Filter.objects.all(),
+            'template_name': 'index/filter_list.html',
+        }, {})

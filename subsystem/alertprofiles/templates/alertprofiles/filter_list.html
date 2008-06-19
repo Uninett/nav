@@ -1,0 +1,22 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<caption>
+    Filters
+</caption>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for filter in object_list %}
+        <tr>
+            <td><a href="{% url alterprofiles-filters %}/{{ filter.id }}">
+                {{ filter.name }}</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
