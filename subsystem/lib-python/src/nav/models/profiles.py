@@ -41,21 +41,20 @@ from nav.auth import hasPrivilege
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
-    Memory, Netbox, NetboxCategory, NetboxInfo, NetboxType, Organization, \
-    Prefix, Product, Room, Subcategory, SwPort, Usage, Vlan, Vendor
+    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
+    Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 # This should be the authorative source as to which models alertengine supports.
 # The acctuall mapping from alerts to data in these models is done the MatchField
 # model.
 SUPPORTED_MODELS = [
     # event models
-    AlertQueue, AlertType, EventType, Subsystem,
+    AlertQueue, AlertType, EventType, # Subsystem,
     # manage models
-    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox,
-    NetboxCategory, NetboxInfo, NetboxType, Organization, Prefix,
-    Product, Room, Subcategory, SwPort, Vendor, Vlan,
-    Usage,
-#                TypeGroup, Service,
+    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
+    NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+    Vendor, Vlan,
+    Usage, # Service
 ]
 
 _ = lambda a: a
@@ -78,9 +77,13 @@ class Account(models.Model):
         return self.login
 
     def get_active_profile(self):
+        '''Returns the accounts active alert profile'''
         return self.alertpreference.active_profile
 
     def has_perm(self, action, target):
+        '''Checks user perisions'''
+
+        # Simply wrap the hasPrivilege function of non-Django nav.
         account = OldAccount.loadByLogin(str(self.login))
         return hasPrivilege(account, action, target)
 
@@ -144,6 +147,11 @@ class AlertAddress(models.Model):
     def send(self, alert):
         '''Handles sending of alerts to with defined alert notification types'''
 
+        # TODO this should probably be converted to a plugin based system so
+        # that adding features like jabber notification won't be a problem.
+        # This would also imply moving the SMS and email functionality into
+        # other modules.
+
         try:
             lang = self.account.accountproperty_set.get(property='language').value or 'en'
         except AccountProperty.DoesNotExist:
@@ -160,22 +168,23 @@ class AlertAddress(models.Model):
             try:
                 # FIXME
                 #send_mail(subject, message, from_mail, [self.address], fail_sinlently=False)
-                print 'sending mail.\nTo: %s\nSubject: %s\n\n%s' % (self.address, subject, message)
+                logging.info('alert %d: Sending email to %s' % (alert.id, self.address))
+
             except SMTPException, e:
-                logging.warn('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
+                logging.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
 
         elif self.type == self.SMS:
             if self.account.has_perm('alerttype', 'sms'):
                 message = alert.messages.get(language=lang, type='sms').message
-                SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
 
-                logging.debug('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
+                SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
+                logging.info('alert %d: added message to sms queue for user %s at %s' % (alert.id, self.account, self.adress))
 
             else:
-                logging.info('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
+                logging.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
 
         else:
-            logging.warn('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+            logging.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -224,7 +233,6 @@ class AlertProfile(models.Model):
             valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKDAYS]
 
         # The following code should get the currently active timeperiod.
-
         active_timeperiod = None
         for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
             if not active_timeperiod or (tp.start <= now.time()):
@@ -295,10 +303,10 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
             account = self.time_period.profile.account
             AccountAlertQueue.objects.create(account=account, alert=alert, subscription=self)
 
-            logging.debug('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+            logging.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
 
         else:
-            logging.warn('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
+            logging.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
 
 #######################################################################
 ### Equipment models
@@ -472,11 +480,20 @@ class Filter(models.Model):
                 lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
                 filter[lookup] = False
 
-                # Get the IP mapping and put in the field before adding it to
-                # our where clause.
                 where = Operator(type=expresion.operator).get_ip_operator_mapping()
-                extra['where'].append(where % expresion.match_field.value_id)
-                extra['params'].append(expresion.value)
+
+                if expresion.operator in [Operator.IN, Operator.CONTAINS]:
+                    values = expresion.value.split('|')
+                    where = ' OR '.join([where % expresion.match_field.value_id] * len(values))
+
+                    extra['where'].append('(%s)' % where)
+                    extra['params'].extend(values)
+
+                else:
+                    # Get the IP mapping and put in the field before adding it to
+                    # our where clause.
+                    extra['where'].append(where % expresion.match_field.value_id)
+                    extra['params'].append(expresion.value)
 
             # Handle wildcard lookups which are not directly supported by
             # django
@@ -514,7 +531,7 @@ class Filter(models.Model):
             logging.debug('alert %d: matches filter %d' % (alert.id, self.id))
             return True
 
-        logging.debug('alert %d: did not matche filter %d' % (alert.id, self.id))
+        logging.debug('alert %d: did not match filter %d' % (alert.id, self.id))
         return False
 
 class FilterGroup(models.Model):
@@ -558,6 +575,7 @@ class MatchField(models.Model):
     ARP = 'arp'
     CAM = 'cam'
     CATEGORY = 'cat'
+    SUBCATEGORY = 'subcat'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
     GWPORT = 'gwport'
@@ -571,7 +589,6 @@ class MatchField(models.Model):
     PRODUCT = 'product'
     ROOM = 'room'
     SERVICE = 'service'
-    SUBCATEGORY = 'subcat'
     SWPORT = 'swport'
     TYPE = 'type'
     VENDOR = 'vendor'
@@ -584,6 +601,7 @@ class MatchField(models.Model):
         (ARP, _('arp')),
         (CAM, _('cam')),
         (CATEGORY, _('category')),
+        (SUBCATEGORY, _('subcategory')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
         (GWPORT, _('GW-port')),
@@ -597,7 +615,6 @@ class MatchField(models.Model):
         (PRODUCT, _('product')),
         (ROOM, _('room')),
         (SERVICE, _('service')),
-        (SUBCATEGORY, _('subcategory')),
         (SWPORT, _('SW-port')),
         (TYPE, _('type')),
         (VENDOR, _('vendor')),
@@ -612,6 +629,7 @@ class MatchField(models.Model):
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
         CATEGORY:     'netbox__category',
+        SUBCATEGORY:  'netbox__category__subcategory',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         GWPORT:       'netbox__connected_to_gwport',
@@ -630,29 +648,33 @@ class MatchField(models.Model):
         USAGE:        'netbox__organization__vlan__usage',
         VENDOR:       'netbox__device__product__vendor',
         VLAN:         'netbox__organization__vlan',
-        SUBCATEGORY:  'netbox__category__subcategory',
         ALERT:        '', # Checks alert object itself
         ALERTTYPE:    'alert_type',
     }
 
-    VALUE_MAP = {}
     # Build the mapping we need to be able to do checks.
+    VALUE_MAP = {}
+    CHOICES = [('', _('No references'))]
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
     # on our django models.
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
-            VALUE_MAP['%s.%s' % (model._meta.db_table, field.db_column or field.attname)] = field.attname
+            key = '%s.%s' % (model._meta.db_table, field.db_column or field.attname)
+            value = '%s__%s' % (FOREIGN_MAP[model._meta.db_table], field.attname)
+
+            VALUE_MAP[key] = field.attname
+            CHOICES.append((key, value.lstrip('_')))
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
     value_help = models.CharField(max_length=-1, db_column='valuehelp')
-    value_id = models.CharField(max_length=-1, db_column='valueid')
-    value_name = models.CharField(max_length=-1, db_column='valuename')
-    value_category = models.CharField(max_length=-1, db_column='valuecategory')
-    value_sort = models.CharField(max_length=-1, db_column='valuesort')
+    value_id = models.CharField(max_length=-1, db_column='valueid', choices=CHOICES)
+    value_name = models.CharField(max_length=-1, db_column='valuename', choices=CHOICES)
+    value_category = models.CharField(max_length=-1, db_column='valuecategory', choices=CHOICES)
+    value_sort = models.CharField(max_length=-1, db_column='valuesort', choices=CHOICES)
     list_limit = models.IntegerField(db_column='listlimit')
     data_type = models.IntegerField(db_column='datatype', choices=DATA_TYPES)
     show_list = models.BooleanField(db_column='showlist')
@@ -673,7 +695,7 @@ class MatchField(models.Model):
             return value
 
         except KeyError:
-            logging.warn("Tried to lookup mapping for %s which is not supported" % self.value_id)
+            logging.error("Tried to lookup mapping for %s which is not supported" % self.value_id)
         return None
 
 
