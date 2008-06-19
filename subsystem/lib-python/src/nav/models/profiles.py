@@ -41,21 +41,20 @@ from nav.auth import hasPrivilege
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
-    Memory, Netbox, NetboxCategory, NetboxInfo, NetboxType, Organization, \
-    Prefix, Product, Room, Subcategory, SwPort, Usage, Vlan, Vendor
+    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
+    Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 # This should be the authorative source as to which models alertengine supports.
 # The acctuall mapping from alerts to data in these models is done the MatchField
 # model.
 SUPPORTED_MODELS = [
     # event models
-    AlertQueue, AlertType, EventType, Subsystem,
+    AlertQueue, AlertType, EventType, # Subsystem,
     # manage models
-    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox,
-    NetboxCategory, NetboxInfo, NetboxType, Organization, Prefix,
-    Product, Room, Subcategory, SwPort, Vendor, Vlan,
-    Usage,
-#                TypeGroup, Service,
+    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
+    NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+    Vendor, Vlan,
+    Usage, # Service
 ]
 
 _ = lambda a: a
@@ -567,6 +566,7 @@ class MatchField(models.Model):
     ARP = 'arp'
     CAM = 'cam'
     CATEGORY = 'cat'
+    SUBCATEGORY = 'subcat'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
     GWPORT = 'gwport'
@@ -580,7 +580,6 @@ class MatchField(models.Model):
     PRODUCT = 'product'
     ROOM = 'room'
     SERVICE = 'service'
-    SUBCATEGORY = 'subcat'
     SWPORT = 'swport'
     TYPE = 'type'
     VENDOR = 'vendor'
@@ -593,6 +592,7 @@ class MatchField(models.Model):
         (ARP, _('arp')),
         (CAM, _('cam')),
         (CATEGORY, _('category')),
+        (SUBCATEGORY, _('subcategory')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
         (GWPORT, _('GW-port')),
@@ -606,7 +606,6 @@ class MatchField(models.Model):
         (PRODUCT, _('product')),
         (ROOM, _('room')),
         (SERVICE, _('service')),
-        (SUBCATEGORY, _('subcategory')),
         (SWPORT, _('SW-port')),
         (TYPE, _('type')),
         (VENDOR, _('vendor')),
@@ -621,6 +620,7 @@ class MatchField(models.Model):
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
         CATEGORY:     'netbox__category',
+        SUBCATEGORY:  'netbox__category__subcategory',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         GWPORT:       'netbox__connected_to_gwport',
@@ -639,7 +639,6 @@ class MatchField(models.Model):
         USAGE:        'netbox__organization__vlan__usage',
         VENDOR:       'netbox__device__product__vendor',
         VLAN:         'netbox__organization__vlan',
-        SUBCATEGORY:  'netbox__category__subcategory',
         ALERT:        '', # Checks alert object itself
         ALERTTYPE:    'alert_type',
     }
