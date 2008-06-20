@@ -19,7 +19,7 @@
         <tr class="oddrow">
         {% endif %}
             <td><input name="matchfield[]" value="{{ matchfield.id }}" type="checkbox" /></td>
-            <td><a href="{% url alterprofiles-matchfields %}/{{ matchfield.id }}">
+            <td><a href="{% url alertprofiles-matchfields-detail matchfield.id %}">
                 {{ matchfield.name }}</a></td>
             <td>{{ matchfield.description }}</td>
         </tr>

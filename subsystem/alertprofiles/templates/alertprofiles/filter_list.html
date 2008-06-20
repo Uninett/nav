@@ -13,7 +13,7 @@
         <tr class="oddrow">
         {% endif %}
             <td><input name="filter[]" value="{{ filter.id }}" type="checkbox" /></td>
-            <td><a href="{% url alterprofiles-filters %}/{{ filter.id }}">
+            <td><a href="{% url alertprofiles-filters-detail filter.id %}">
                 {{ filter.name }}</a></td>
             <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
         </tr>

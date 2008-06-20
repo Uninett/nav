@@ -44,20 +44,20 @@ urlpatterns = patterns('',
 #
     # Filters
     url(r'^filters/$', filter_list, name='alertprofiles-filters'),
-#    url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
-#        name='alertprofiles-filters-detail'),
-#
+    url(r'^filters/(?P<filter_id>\d+)/$', 'filter_detail',
+        name='alertprofiles-filters-detail'),
+
     # Filter groups
     url(r'^filter-groups/$', filtergroup_list,
         name='alertprofiles-filtergroups'),
     url(r'^filter-groups/(?P<filter_id>\d+)/$', 'filtergroup_detail',
         name='alertprofiles-filtergroups-detail'),
-#
+
     # Filter variables (aka. matchfields)
     url(r'^matchfields/$', matchfield_list,
         name='alertprofiles-matchfields'),
-#    url(r'^matchfields/(?P<matchfield_id>\d+)/$', matchfield_detail,
-#        name='alertprofiles-matchfield-detail'),
+    url(r'^matchfields/(?P<matchfield_id>\d+)/$', 'matchfield_detail',
+        name='alertprofiles-matchfields-detail'),
 #
 #    # Admin settings:
 #    #################
