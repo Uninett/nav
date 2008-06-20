@@ -48,5 +48,6 @@ def permission_required(function):
         if account.has_perm('web_access', request.path):
             return function(request, *args, **kwargs)
         else:
-            return HttpResponseForbidden('Ingen tilgang')
+            # FIXME better 403 handling
+            return HttpResponseForbidden('<h1>403 Forbidden</h1><p>You do not have access to this page</p>')
     return _check_permission
