@@ -26,18 +26,15 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 from django.db.models import Q
 
 from nav.models.profiles import *
 from nav.django.shortcuts import render_to_response, object_list
-
+from nav.django.utils import get_account, permission_required
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
-
-get_account = lambda r: Account.objects.get(login=r._req.session['user'].login)
 
 def overview(request):
     account = get_account(request)
@@ -85,28 +82,19 @@ def filtergroup_list(request):
             extra_context={'active': active},
         )
 
+@permission_required
 def matchfield_list(request):
     account = get_account(request)
-    groups = AccountGroup.objects.filter(accounts=account.id)
 
-    # FIXME Admin group should be 1, but we really should use other wrapper
-    # functions to grant access, and not just simply assume this is always
-    # correct
-    if [g.pk == 1 for g in groups]:
-        # Get all matchfields aka. filter variables
-        matchfields = MatchField.objects.all().order_by('name')
+    # Get all matchfields aka. filter variables
+    matchfields = MatchField.objects.all().order_by('name')
 
-        active = {'matchfields': True}
+    active = {'matchfields': True}
 
-        return object_list(
-                AlertProfilesTemplate,
-                request,
-                queryset=matchfields,
-                template_name='alertprofiles/matchfield_list.html',
-                extra_context={'active': active},
-            )
-    else:
-        # FIXME 404 is wrong here, should be 403 forbidden (i think)
-        raise Http404
-
-
+    return object_list(
+            AlertProfilesTemplate,
+            request,
+            queryset=matchfields,
+            template_name='alertprofiles/matchfield_list.html',
+            extra_context={'active': active},
+        )
