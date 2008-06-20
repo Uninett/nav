@@ -34,23 +34,29 @@ from datetime import datetime
 
 from django.db.models import Q
 
-from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription
+from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress
 from nav.models.event import AlertQueue
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('nav.alertengine')
 
-def check_alerts():
+def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
 
-    logging.info('Starting alertengine check_alerts()')
+    if debug:
+        AlertAddress.DEBUG_MODE = True
+
+    logger.info('Starting alertengine check_alerts()')
 
     # Alot of this functionality could have been backed into the models for the
     # corresponding objects, however it seems better to keep all of this logic
     # in one place. Despite this some the simpler logic has been offloaded to
     # the models themselves.
 
-    new_alerts = AlertQueue.objects.all()[:5]
+    now = datetime.now()
     accounts = []
+
+    new_alerts = AlertQueue.objects.all()[:5]
+    queued_alerts = AccountAlertQueue.objects.filter(insertion_time__lt=now)
 
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_sets so that we don't redo db queries to much
@@ -65,9 +71,9 @@ def check_alerts():
                 permisions = FilterGroupContent.objects.filter(filter_group__group_permisions__accounts=account)
                 accounts.append( (account, tmp, permisions) )
 
-    # Check all acounts against all their active subsriptions
+    # Check all acounts against all their active subscriptions
     for account, alertsubscriptions, permisions in accounts:
-        logging.debug("Cheking alerts for account '%s'" % account)
+        logger.debug("Cheking alerts for account '%s'" % account)
 
         for alert in new_alerts:
             for alertsubscription, filtergroupcontents in alertsubscriptions:
@@ -77,56 +83,66 @@ def check_alerts():
                     if check_alert_against_filtergroupcontents(alert, permisions):
                         alertsubscription.handle_alert(alert)
                     else:
-                        logging.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
+                        logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                 else:
-                    logging.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
+                    logger.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
 
-    now = datetime.now()
 
     # We want to keep track of wether or not any weekly or daily messages have
     # been sent.
     sent_weekly = False
     sent_daily = False
 
-    for queued_alert in AccountAlertQueue.objects.all():
+    for queued_alert in queued_alerts:
         try:
             subscription = queued_alert.subscription
         except AlertSubscription.DoesNotExist:
-            logging.warn('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
+            logger.warn('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
             continue
+
+        logger.info('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert.id, queued_alert.account, subscription.get_type_display()) )
 
         if subscription.type == AlertSubscription.NOW:
             # Send right away if the subscription has been changed to now
             queued_alert.send()
 
         elif subscription.type == AlertSubscription.DAILY:
-            daily_time = subsription.time_period.profile.time
-            last_sent  = subsription.time_period.profiles.alertpreference.last_sent_day
+            daily_time = subscription.time_period.profile.time
+            last_sent  = subscription.time_period.profile.alertpreference.last_sent_day or datetime.min
 
             # If the last sent date is less than the current date, and we are
             # past the daily time and the alert was added to the queue before
             # this time
-            if last_sent.date() < now.date() and daily_time < now.time() and queued_alert.insertion_time < daily_time:
+
+            logger.debug('Tests: last sent %s, daily time %s, insertion time %s' % (last_sent.date() < now.date(), daily_time < now.time(), queued_alert.insertion_time.time() < daily_time))
+
+            if last_sent.date() < now.date() and daily_time < now.time() and queued_alert.insertion_time.time() < daily_time:
                 queued_alert.send()
                 sent_daily = True
 
         elif subscription.type == AlertSubscription.WEEKLY:
             weekly_time = subscription.time_period.profile.weektime
             weekly_day = subscription.time_period.profile.weekday
-            last_sent  = subscription.time_period.profile.alertpreference.last_sent_week
+            last_sent  = subscription.time_period.profile.alertpreference.last_sent_week or datetime.min
 
             # Check that we are at the correct weekday, and that the last sent
             # time is less than today, and that alert was inserted before the
             # weekly time.
+
+            logger.debug('Tests: weekday %s, last sent %s, weekly time %s, insertion time %s' % (weekly_day == now.weekday(), last_sent.date() < now.date(), weekly_time < now.time(), queued_alert.insertion_time.time() < weekly_time))
+
             if weekly_day == now.weekday() and last_sent.date() < now.date() and weekly_time < now.time() and queued_alert.insertion_time.time() < weekly_time:
                 queued_alert.send()
                 sent_weekly = True
 
-        elif subsription.type == AlertSubscription.NEXT:
-            current_time_period = account.get_active_profile().get_active_timeperiod()
+        elif subscription.type == AlertSubscription.NEXT:
+            current_time_period = subscription.alert_address.account.get_active_profile().get_active_timeperiod()
             insertion_time = queued_alert.insertion_time
             queued_alert_time_period = subscription.time_period
+
+            logger.debug('Tests: different time period %s' % (queued_alert_time_period.id != current_time_period.id))
+            logger.debug('Tests: different day %s, insertion time %s' % (insertion_time.date() < now.date(), insertion_time.time() < queued_alert_time_period.start))
 
             # Send if we are in a different time period than the one that the
             # message was inserted with.
@@ -136,11 +152,11 @@ def check_alerts():
             # start period of the time period it was inserted in has passed.
             # This check should catch the corner case where a user only has one
             # timeperiod that loops.
-            elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.time:
+            elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.start:
                 queued_alert.send()
 
         else:
-            logging.error('account %s has an invalid subscription type in subsription %d' % (subsription.account, subsription.id))
+            logger.error('account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
@@ -150,7 +166,7 @@ def check_alerts():
 
     # FIXME update the state for which alerts have been handeled
 
-    logging.info('Finished alertengine check_alerts()')
+    logger.info('Finished alertengine check_alerts()')
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
     '''Checks a given alert against an array of filtergroupcontents'''
@@ -165,7 +181,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
         if not matches and content.include:
             matches = content.filter.check(alert) == content.positive
 
-            if matches: logging.debug('alert %d: got included by filter %d' % (alert.id, content.filter.id))
+            if matches: logger.debug('alert %d: got included by filter %d' % (alert.id, content.filter.id))
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
@@ -173,8 +189,8 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
 
             # Log that we excluded the alert
             if not matches:
-                logging.debug('alert %d got: excluded by filter %d' % (alert.id, content.filter.id))
+                logger.debug('alert %d got: excluded by filter %d' % (alert.id, content.filter.id))
 
         if original_macthes == matches:
-            logging.debug('alert %d: unaffected by filter %d' % (alert.id, content.filter.id))
+            logger.debug('alert %d: unaffected by filter %d' % (alert.id, content.filter.id))
     return matches
