@@ -36,26 +36,26 @@ urlpatterns = patterns('',
     url(r'^$', overview,
         name='alertprofiles-overview'),
 
-#    # User settings
+    # User settings
 #    url(r'^profile/$', profiles_list),
 #    url(r'^profile/settings/$', profile_settings),
 #    url(r'^profile/(?P<profile_id>\d+)/$', profile_detail),
 #    url(r'^profile/(?P<profile_id>\d+)/timetable/$', profile_timetable),
 #
-#    # Filters
+    # Filters
     url(r'^filters/$', filter_list, name='alertprofiles-filters'),
 #    url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
 #        name='alertprofiles-filters-detail'),
 #
-#    # Filter groups
-#    url(r'^filter-groups/$', filtergroups_list,
-#        name='alertprofiles-filtergroups-list'),
-#    url(r'^filter-groups/(?P<filter_id>\d+)/$', filtergroup_detail,
-#        name='alertprofiles-filtergourps-detail'),
+    # Filter groups
+    url(r'^filter-groups/$', filtergroup_list,
+        name='alertprofiles-filtergroups'),
+    url(r'^filter-groups/(?P<filter_id>\d+)/$', 'filtergroup_detail',
+        name='alertprofiles-filtergroups-detail'),
 #
-#    # Filter variables (aka. matchfields)
-#    url(r'^matchfields/$', matchfields_list,
-#        name='alertprofiles-matchfields'),
+    # Filter variables (aka. matchfields)
+    url(r'^matchfields/$', matchfield_list,
+        name='alertprofiles-matchfields'),
 #    url(r'^matchfields/(?P<matchfield_id>\d+)/$', matchfield_detail,
 #        name='alertprofiles-matchfield-detail'),
 #

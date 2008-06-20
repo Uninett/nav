@@ -1,22 +1,21 @@
-{% extends "alertprofiles/base.html" %}
+{% extends "alertprofiles/base_list.html" %}
 
-{% block tabcontent %}
-<caption>
+{% block captioncontent %}
     Filters
-</caption>
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-        </tr>
-    </thead>
-    <tbody>
+{% endblock %}
+
+
+{% block tbodycontent %}
     {% for filter in object_list %}
-        <tr>
+        {% if forloop.counter|divisibleby:"2" %}
+        <tr class="evenrow">
+        {% else %}
+        <tr class="oddrow">
+        {% endif %}
+            <td><input name="filter[]" value="{{ filter.id }}" type="checkbox" /></td>
             <td><a href="{% url alterprofiles-filters %}/{{ filter.id }}">
                 {{ filter.name }}</a></td>
+            <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
         </tr>
     {% endfor %}
-    </tbody>
-</table>
 {% endblock %}

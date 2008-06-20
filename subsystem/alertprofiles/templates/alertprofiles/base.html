@@ -1,14 +1,25 @@
 <div class="tabs">
+    {% block tabs %}
     <ul>
-        <li><a href="{% url alertprofiles-overview %}">Overview</a></li>
-        <li><a href="filters-groups">Filter groups</a></li>
-        <li><a href="filters">Filters</a></li>
-        <li><a href="matchfields">Matchfields</a></li>
+        <li class="{{ active.overview|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-overview %}">Overview</a>
+        </li>
+        <li class="{{ active.filtergroups|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filtergroups %}">Filter groups</a>
+        </li>
+        <li class="{{ active.filters|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filters %}">Filters</a>
+        </li>
+        <li class="{{ active.matchfields|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-matchfields %}">Matchfields</a>
+        </li>
         {# Options only available to admins #}
         {# if account.isAdmin #}
-        <li><a href="permissions">Permissions</a></li>
+        <li><a href="permissions">
+            Permissions</a></li>
         {# endif #}
     </ul>
+    {% endblock %}
 </div>
 
 <div class="tabcontent">

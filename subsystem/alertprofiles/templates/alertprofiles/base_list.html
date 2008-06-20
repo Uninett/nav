@@ -1,0 +1,33 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<form action="" method="post">
+
+<table class="listtable">
+
+    <caption>
+    {% block captioncontent %}
+    {% endblock %}
+    </caption>
+
+    <thead>
+        <tr>
+        {% block theadcols %}
+            <th></th>
+            <th>Name</th>
+            <th>Owner</th>
+        {% endblock %}
+        </tr>
+    </thead>
+
+    <tbody>
+    {% block tbodycontent %}
+    {% endblock %}
+    </tbody>
+
+</table>
+
+<div><button type="delete">Delete selected</button></div>
+
+</form>
+{% endblock %}

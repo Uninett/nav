@@ -27,21 +27,86 @@ __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
+from django.db.models import Q
 
 from nav.models.profiles import *
 from nav.django.shortcuts import render_to_response, object_list
 
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 
+get_account = lambda r: Account.objects.get(login=r._req.session['user'].login)
+
 def overview(request):
-    account = Account.objects.get(login=request._req.session['user'].login)
-    return render_to_response(AlertProfilesTemplate, 'alertprofiles/overview.html', {})
+    account = get_account(request)
+    active = {'overview': True}
+    return render_to_response(
+            AlertProfilesTemplate,
+            'alertprofiles/overview.html',
+            {'active': active}
+        )
 
 def filter_list(request):
-    return object_list(AlertProfilesTemplate, {
-            'queryset': Filter.objects.all(),
-            'template_name': 'index/filter_list.html',
-        }, {})
+    account = get_account(request)
+
+    # Get all public filters, and private filters belonging to this user only
+    filters = Filter.objects.filter(
+            Q(owner__exact=account.pk) | Q(owner__exact=None)
+        ).order_by('owner', 'name')
+
+    active = {'filters': True}
+
+    return object_list(
+            AlertProfilesTemplate,
+            request,
+            queryset=filters,
+            template_name='alertprofiles/filter_list.html',
+            extra_context={'active': active},
+        )
+
+def filtergroup_list(request):
+    account = get_account(request)
+
+    # Get all public filtergroups, and private filtergroups belonging to this
+    # user only
+    filtergroups = FilterGroup.objects.filter(
+            Q(owner__exact=account.pk) | Q(owner__isnull=True)
+        ).order_by('owner', 'name')
+
+    active = {'filtergroups': True}
+
+    return object_list(
+            AlertProfilesTemplate,
+            request,
+            queryset=filtergroups,
+            template_name='alertprofiles/filtergroup_list.html',
+            extra_context={'active': active},
+        )
+
+def matchfield_list(request):
+    account = get_account(request)
+    groups = AccountGroup.objects.filter(accounts=account.id)
+
+    # FIXME Admin group should be 1, but we really should use other wrapper
+    # functions to grant access, and not just simply assume this is always
+    # correct
+    if [g.pk == 1 for g in groups]:
+        # Get all matchfields aka. filter variables
+        matchfields = MatchField.objects.all().order_by('name')
+
+        active = {'matchfields': True}
+
+        return object_list(
+                AlertProfilesTemplate,
+                request,
+                queryset=matchfields,
+                template_name='alertprofiles/matchfield_list.html',
+                extra_context={'active': active},
+            )
+    else:
+        # FIXME 404 is wrong here, should be 403 forbidden (i think)
+        raise Http404
+
+
