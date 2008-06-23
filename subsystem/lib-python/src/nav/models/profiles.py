@@ -675,6 +675,7 @@ class MatchField(models.Model):
     # Build the mapping we need to be able to do checks.
     VALUE_MAP = {}
     CHOICES = [('', _('No references'))]
+    MODEL_MAP = {}
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
@@ -686,6 +687,7 @@ class MatchField(models.Model):
 
             VALUE_MAP[key] = field.attname
             CHOICES.append((key, value.lstrip('_')))
+            MODEL_MAP[key] = (model, field.attname)
 
     id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
