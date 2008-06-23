@@ -125,7 +125,7 @@ def main(args):
             logger.error("%s Run as root or %s to enter daemon mode. " \
                 + "Try `%s --help' for more information.",
                 e, username, sys.argv[0])
-        sys.exit(1)
+            sys.exit(1)
 
     # Init daemon loggers
     if not loginitfile(loglevel, logfile):
