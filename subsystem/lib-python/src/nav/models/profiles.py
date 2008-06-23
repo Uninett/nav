@@ -555,7 +555,7 @@ class FilterGroup(models.Model):
     name = models.CharField(max_length=-1, db_column='navn')
     description = models.CharField(max_length=-1, db_column='descr')
 
-    group_permisions = models.ManyToManyField('AccountGroup') # FIXME this uses view hack, was rettighet
+    group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
 
     class Meta:
         db_table = u'utstyrgruppe'

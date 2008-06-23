@@ -80,6 +80,10 @@ ALTER TABLE varsle DROP CONSTRAINT varsleadresse_pk;
 ALTER TABLE varsle ADD COLUMN id PRIMARY KEY;
 ALTER TABLE varsle ADD UNIQUE(alarmadresseid, tidsperiodeid, utstyrgruppeid);
 
+ALTER TABLE rettighet RENAME TO filtergroup_group_permision;
+ALTER TABLE filtergroup_group_permision RENAME utstyrgruppeid TO filtergroup_id;
+ALTER TABLE filtergroup_group_permision RENAME accountgroupid TO accountgroup_id;
+
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
