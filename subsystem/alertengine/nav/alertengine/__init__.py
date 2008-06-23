@@ -63,6 +63,10 @@ def check_alerts(debug=False):
     # Get all queued alerts that have been inserted in the past.
     queued_alerts = AccountAlertQueue.objects.filter(insertion_time__lt=now)
 
+    if not len(new_alerts) and not len(queued_alerts):
+        logger.debug('No new alerts or account queued alerts to process')
+        return
+
     logger.info('Starting alertengine run, checking %d new alerts and %d alerts in user queue' % (len(new_alerts), len(queued_alerts)))
 
     if len(new_alerts):

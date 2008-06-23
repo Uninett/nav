@@ -152,6 +152,7 @@ def main(args):
     signal.signal(signal.SIGHUP, signalhandler)
 
     # Loop forever
+    logger.info('Starting alertengine loop.')
     while True:
         check_alerts(debug=opttest)
 
