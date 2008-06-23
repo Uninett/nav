@@ -34,7 +34,7 @@ from smtplib import SMTPException
 
 from django.db import models
 from django.db.models import Q
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
@@ -169,9 +169,16 @@ class AlertAddress(models.Model):
             # Remove the subject line
             message = '\n'.join(message.splitlines()[1:])
 
+            headers = {
+                'X-NAV-alert-netbox': alert.netbox,
+                'X-NAV-alert-device': alert.device,
+                'X-NAV-alert-subsystem': alert.source,
+            }
+
             try:
                 if not self.DEBUG_MODE:
-                    send_mail(subject, message, 'nav', [self.address], fail_silently=False)
+                    email = EmailMessage(subject=subject, body=message, to=[self.address])
+                    email.send(fail_silently=False)
                     logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, self.address, type))
                 else:
                     logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, self.address, type))
