@@ -154,7 +154,11 @@ def main(args):
     # Loop forever
     logger.info('Starting alertengine loop.')
     while True:
-        check_alerts(debug=opttest)
+        try:
+            check_alerts(debug=opttest)
+        except Exception, e:
+            logger.critical('Dying due to unhandeled error: %s' % e)
+            raise e
 
         # Devel only
         if opttest:
