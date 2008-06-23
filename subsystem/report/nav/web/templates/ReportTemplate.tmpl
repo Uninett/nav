@@ -81,8 +81,7 @@ $default_table_CSS()
 $advSearch
 #else
 <div id="advsearchlink">
-<p><a id="advSLOpenJS" href="#" onClick="showHideElement('advsearchblock', 'advsearchlink'); return false" style="display: none">Advanced Search</a></p>
-<p><a id="advSLOpen" href="${old_uri}adv=1">Advanced Search</a></p>
+<p><a id="advSLOpen" href="${old_uri}adv=1" onClick="changeDisplay('advsearchlink', 'none'); changeDisplay('advsearchblock', 'block'); return false">Advanced Search</a></p>
 </div>
 #end if
 
@@ -90,8 +89,7 @@ $advSearch
 <div id="advsearchblock" style="display: none">
 #block advSearch
 <h3>Advanced Search</h3>
-<p><a id="advSLCloseJS" href="#" onClick="showHideElement('advsearchblock', 'advsearchlink'); return false" style="display: none">Close Advanced Search</a></p>
-<p><a id="advSLClose" href="${old_uri}adv=">Close Advanced Search</a></p>
+<p><a id="advSLClose" href="${old_uri}adv=" onClick="changeDisplay('advsearchlink', 'block'); changeDisplay('advsearchblock', 'none'); return false">Close Advanced Search</a></p>
 
 <div class="infobox" style="float: right">
 <h4>Operator usage</h4>
