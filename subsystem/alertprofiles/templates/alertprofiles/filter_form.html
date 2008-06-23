@@ -24,7 +24,7 @@
     {% for e in expresions %}
         <tr class="{% cycle oddrow,evenrow %}">
             <td>{{ e.match_field }}</td>
-            <td>{{ e.get_operator_mapping }}</td>
+            <td>{{ e.get_operator_display }}</td>
             <td>{{ e.value }}</td>
         </tr>
     {% endfor %}
