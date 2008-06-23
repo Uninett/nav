@@ -46,7 +46,7 @@ urlpatterns = patterns('',
 
     # Filters
     url(r'^filters/$', filter_list, name='alertprofiles-filters'),
-    url(r'^filters/(?P<filter_id>\d+)/$', 'filter_detail',
+    url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
         name='alertprofiles-filters-detail'),
 
     # Filter groups

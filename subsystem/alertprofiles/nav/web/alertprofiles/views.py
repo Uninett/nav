@@ -37,7 +37,7 @@ from nav.django.shortcuts import render_to_response, object_list
 from nav.django.utils import get_account, permission_required
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 
-from nav.web.alertprofiles.forms import SimpleCheckbox
+from nav.web.alertprofiles.forms import *
 
 def overview(request):
     account = get_account(request)
@@ -96,6 +96,32 @@ def filter_list(request):
             queryset=filters,
             template_name='alertprofiles/filter_list.html',
             extra_context={'active': active},
+        )
+
+def filter_detail(request, filter_id=None):
+    active = {'filters': True}
+
+    filter_form = None
+    matchfield_form = ExpresionForm()
+    
+    if filter_id:
+        filter = get_object_or_404(Filter, pk=filter_id)
+        filter_form = FilterForm(instance=filter)
+
+        # Get all matchfields (many-to-many connection by table Expresion)
+        expresions = Expresion.objects.filter(equipment_filter=filter_id)
+    else:
+        filter_form = FilterForm()
+
+    return render_to_response(
+            AlertProfilesTemplate,
+            'alertprofiles/filter_form.html',
+            {
+                    'active': active,
+                    'filter_form': filter_form,
+                    'matchfield_form': matchfield_form,
+                    'expresions': expresions,
+                },
         )
 
 def filtergroup_list(request):
