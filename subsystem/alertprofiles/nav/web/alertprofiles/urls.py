@@ -37,11 +37,13 @@ urlpatterns = patterns('',
         name='alertprofiles-overview'),
 
     # User settings
-#    url(r'^profile/$', profiles_list),
+    url(r'^profile/$', profile,
+        name='alertprofiles-profile'),
 #    url(r'^profile/settings/$', profile_settings),
 #    url(r'^profile/(?P<profile_id>\d+)/$', profile_detail),
-#    url(r'^profile/(?P<profile_id>\d+)/timetable/$', profile_timetable),
-#
+    url(r'^profile/(?P<profile_id>\d+)/setup/$', 'profile_setup',
+        name='alertprofiles-profile-setup'),
+
     # Filters
     url(r'^filters/$', filter_list, name='alertprofiles-filters'),
     url(r'^filters/(?P<filter_id>\d+)/$', 'filter_detail',
@@ -58,11 +60,15 @@ urlpatterns = patterns('',
         name='alertprofiles-matchfields'),
     url(r'^matchfields/(?P<matchfield_id>\d+)/$', 'matchfield_detail',
         name='alertprofiles-matchfields-detail'),
-#
-#    # Admin settings:
-#    #################
-#
-#    # Permissions
-#    url(r'^permissions/$', permissions_list),
-#    url(r'^permissions/(?P<group_id>\d+)/$', profile_detail),
+
+    # Admin settings:
+    #################
+
+    # Permissions
+    url(r'^permissions/$', permission_list,
+        name='alertprofiles-permissions'),
+    url(r'^permissions/(?P<group_id>\d+)/$', permission_list,
+        name='alertprofiles-permissions-detail'),
+    url(r'^permissions/save/$', permissions_save,
+        name='alertprofiles-permissions-save'),
 )
