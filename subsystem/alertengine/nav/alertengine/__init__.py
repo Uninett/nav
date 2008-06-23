@@ -39,8 +39,13 @@ from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
 
+# FIXME add test_alerts(time) which simulates what should have happened to
+# historical alerts if now=time and returns the debug logs.
+
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
+
+    # FIXME cleanup this code and possibly split it into smaller functions
 
     if debug:
         AlertAddress.DEBUG_MODE = True
@@ -165,6 +170,7 @@ def check_alerts(debug=False):
         account.alertpreference.last_sent_weekly = now
 
     # FIXME update the state for which alerts have been handeled
+    # An alternative would be to add a checked_at timestamp for this state.
 
     logger.info('Finished alertengine check_alerts()')
 

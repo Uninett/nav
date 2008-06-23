@@ -763,6 +763,9 @@ class AccountAlertQueue(models.Model):
         db_table = u'queue'
 
     def send(self):
+        '''Sends the alert in question to the address in the subscription'''
         self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+
+        # This operation should delete the item from the queue
         self.delete()
 
