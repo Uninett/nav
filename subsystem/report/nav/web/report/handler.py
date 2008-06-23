@@ -27,24 +27,28 @@
 #
 
 from IPy import IP
-from mod_python import apache,util
+from mod_python import apache, util
+from operator import itemgetter
+import copy
+import os.path
+import psycopg
+import re
+import string
+import urllib
+
 from nav import db
-from nav.report.IPtree import getMaxLeaf,buildTree
-from nav.report.generator import Generator,ReportList
-from nav.report.matrixIPv4 import MatrixIPv4
-from nav.report.matrixIPv6 import MatrixIPv6
+from nav.report.IPtree import getMaxLeaf, buildTree
+from nav.report.generator import Generator, ReportList
 from nav.web import redirect
 from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
-from operator import itemgetter
-import os.path, nav.path
-import psycopg
-import re,string, copy, urllib
+import nav.path
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
+
 
 def handler(req):
     uri = req.unparsed_uri
@@ -52,7 +56,7 @@ def handler(req):
     nuri = URI(uri)
 
     remo = [] # these arguments and their friends will be deleted
-
+    
     for key,val in nuri.args.items():
         if val == "" or key=="r4g3n53nd":
             remo.append(key)
@@ -112,10 +116,22 @@ def handler(req):
                 tree = buildTree(scope)
 
                 if scope.version() == 6:
+                    # Must do import this local because of the insane startup
+                    # cost of importing which slows every run of handler down
+                    # drastically.
+                    from nav.report.matrixIPv6 import MatrixIPv6
+
                     end_net = getMaxLeaf(tree)
                     matrix = MatrixIPv6(scope,end_net=end_net)
+
                 elif scope.version() == 4:
+                    # Must do import this local because of the insane startup
+                    # cost of importing which slows every run of handler down
+                    # drastically.
+                    from nav.report.matrixIPv4 import MatrixIPv4
+
                     end_net = None
+
                     if scope.prefixlen() < 24:
                         end_net = IP("/".join([scope.net().strNormal(),"27"]))
                         matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
@@ -219,6 +235,7 @@ def handler(req):
 
     return apache.OK
 
+# Is this used?
 def selectoptiondraw(name,elementlist,elementdict,selectedvalue="",descriptiondict=None):
     ret = '<select name="%s">'%name
     for element in elementlist:
