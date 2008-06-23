@@ -769,3 +769,7 @@ class AccountAlertQueue(models.Model):
         # This operation should delete the item from the queue
         self.delete()
 
+        # Remove the alert from the AlertQueue if we are the last item
+        # depending upon it.
+        if AlertQueue.objects.filter(alert=self.alert).count() == 0:
+            self.alert.delete()
