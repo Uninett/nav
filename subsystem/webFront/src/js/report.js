@@ -58,24 +58,32 @@ function changeDisplay(elementId, setTo) {
 	theElement.display = setTo;
 }
 
-var show = 0;
-function showHideElement(elementId1, elementId2) {
-	if (show) {
-		changeDisplay(elementId1, 'none');
-		changeDisplay(elementId2, 'block');
-		show = 0;
-	} else {
-		changeDisplay(elementId1, 'block');
-		changeDisplay(elementId2, 'none');
-		show = 1;
-	} 
+function findLinkById() {
+	for (var i=0; i<document.links.length; i++) {
+		if (document.links[i].id == id) return i;
+	}
+	return -1;
+}
+
+function changeLinkHref(id, newHref) {
+	if (document.links.length > 0) {
+		if (document.getElementById) {
+			document.getElementById(id).href = newHref;
+		}
+		else if (document.all) {
+			document.all[id].href = newHref;
+		}
+		else {
+			var index = findLinkById(id);
+			if (index > -1)
+				document.links[index].href = newHref;
+		}
+	}
 }
 
 function init() {
-	changeDisplay('advSLOpen', 'none');
-	changeDisplay('advSLOpenJS', 'block');
-	changeDisplay('advSLClose', 'none');
-	changeDisplay('advSLCloseJS', 'block');
+	changeLinkHref('advSLOpen', '#');
+	changeLinkHref('advSLClose', '#');
 }
 
 window.onload = init;
