@@ -218,9 +218,9 @@ class AlertProfile(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField(max_length=-1, db_column='navn')
-    time = models.TimeField(db_column='tid')
-    weekday = models.IntegerField(db_column='ukedag')
-    weektime = models.TimeField(db_column='uketid')
+    daily_dispatch_time = models.TimeField(db_column='tid')
+    weekly_dispatch_day = models.IntegerField(db_column='ukedag')
+    weekly_dispatch_time = models.TimeField(db_column='uketid')
 
     class Meta:
         db_table = u'brukerprofil'

@@ -113,7 +113,7 @@ def check_alerts(debug=False):
             queued_alert.send()
 
         elif subscription.type == AlertSubscription.DAILY:
-            daily_time = subscription.time_period.profile.time
+            daily_time = subscription.time_period.profile.daily_dispatch_time
             last_sent  = subscription.time_period.profile.alertpreference.last_sent_day or datetime.min
 
             # If the last sent date is less than the current date, and we are
@@ -127,8 +127,8 @@ def check_alerts(debug=False):
                 sent_daily = True
 
         elif subscription.type == AlertSubscription.WEEKLY:
-            weekly_time = subscription.time_period.profile.weektime
-            weekly_day = subscription.time_period.profile.weekday
+            weekly_time = subscription.time_period.profile.weekly_dispatch_time
+            weekly_day = subscription.time_period.profile.weekly_dispatch_day
             last_sent  = subscription.time_period.profile.alertpreference.last_sent_week or datetime.min
 
             # Check that we are at the correct weekday, and that the last sent
