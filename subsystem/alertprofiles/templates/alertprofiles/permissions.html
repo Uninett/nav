@@ -50,14 +50,14 @@
     <tbody>
     {% for fg in filtergroups %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}"
+            <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
             {% for perm in permisions %}
                 {% ifequal perm.id fg.id %}
                 checked="checked"
                 {% endifequal %}
             {% endfor %}
                 /></td>
-            <td>{{ fg.name }}</td>
+            <td><label for="filterid_{{ fg.id }}">{{ fg.name }}</label></td>
             <td>{{ fg.description }}</td>
         </tr>
     {% endfor %}
