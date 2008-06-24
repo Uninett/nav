@@ -39,7 +39,7 @@ from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
 
-@transaction.autocommit
+@transaction.commit_on_success
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
 
