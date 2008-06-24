@@ -32,15 +32,20 @@ __id__ = "$Id$"
 import logging
 from datetime import datetime
 
-from django.db.models import Q
+from django.db import transaction
 
 from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress
 from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
 
+@transaction.autocommit
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
+
+    # We use transaction autocommit so that the changes we make only propogate
+    # if the entire loop finishes.
+
     # Alot of this functionality could have been backed into the models for the
     # corresponding objects, however it seems better to keep all of this logic
     # in one place. Despite this some the simpler logic has been offloaded to
