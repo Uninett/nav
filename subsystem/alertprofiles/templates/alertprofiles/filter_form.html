@@ -1,0 +1,39 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<form action="" method="post">
+
+<table class="listtable">
+{{ filter_form }}
+</table>
+
+<table class="listtable">
+    <caption>
+        Fisk
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Condition</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    
+    <tbody>
+    {% for e in expresions %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>{{ e.match_field }}</td>
+            <td>{{ e.get_operator_display }}</td>
+            <td>{{ e.value }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<table class="listtable">
+{{ matchfield_form }}
+</table>
+
+</form>
+{% endblock %}

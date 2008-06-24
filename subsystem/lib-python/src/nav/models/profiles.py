@@ -461,7 +461,7 @@ class Operator(models.Model):
 class Expresion(models.Model):
     '''FIXME'''
 
-    equipment_filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
+    filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
     match_field = models.ForeignKey('MatchField', db_column='matchfelt')
     operator = models.IntegerField(db_column='matchtype', choices=Operator.OPERATOR_TYPES)
     value = models.CharField(max_length=-1, db_column='verdi')

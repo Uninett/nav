@@ -1,0 +1,27 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Matchfields<br />
+    <span class="subtitle">aka. filter variables</span>
+{% endblock %}
+
+{% block theadcols %}
+    <th></th>
+    <th>Name</th>
+    <th>Description</th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for matchfield in object_list %}
+        {% if forloop.counter|divisibleby:"2" %}
+        <tr class="evenrow">
+        {% else %}
+        <tr class="oddrow">
+        {% endif %}
+            <td><input name="matchfield[]" value="{{ matchfield.id }}" type="checkbox" /></td>
+            <td><a href="{% url alertprofiles-matchfields-detail matchfield.id %}">
+                {{ matchfield.name }}</a></td>
+            <td>{{ matchfield.description }}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}
