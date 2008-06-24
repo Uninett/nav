@@ -96,7 +96,7 @@ def check_alerts(debug=False):
                 for alertsubscription, filtergroupcontents in alertsubscriptions:
                     # Check if alert matches, and if user has permision
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
-                        if check_alert_against_filtergroupcontents(alert, permisions):
+                        if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
                             alertsubscription.handle_alert(alert)
                             sent_new += 1
                         else:
@@ -204,7 +204,7 @@ def check_alerts(debug=False):
     logger.info('Finished alertengine run, sent %d new alerts and %d user queued alerts, %d user queued alerts left in queue' % (sent_new, sent_queued, len(alerts_in_account_queues)))
 
 
-def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
+def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
 
     # Allways assume that the match will fail
@@ -217,7 +217,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
         if not matches and content.include:
             matches = content.filter.check(alert) == content.positive
 
-            if matches: logger.debug('alert %d: got included by filter %d' % (alert.id, content.filter.id))
+            if matches: logger.debug('alert %d: got included by filter %d in %s' % (alert.id, content.filter.id, type))
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
@@ -225,8 +225,8 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents):
 
             # Log that we excluded the alert
             if not matches:
-                logger.debug('alert %d got: excluded by filter %d' % (alert.id, content.filter.id))
+                logger.debug('alert %d got: excluded by filter %d in %s' % (alert.id, content.filter.id, type))
 
         if original_macthes == matches:
-            logger.debug('alert %d: unaffected by filter %d' % (alert.id, content.filter.id))
+            logger.debug('alert %d: unaffected by filter %d in %s' % (alert.id, content.filter.id, type))
     return matches
