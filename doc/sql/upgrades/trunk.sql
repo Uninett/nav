@@ -80,9 +80,73 @@ ALTER TABLE varsle DROP CONSTRAINT varsleadresse_pk;
 ALTER TABLE varsle ADD COLUMN id PRIMARY KEY;
 ALTER TABLE varsle ADD UNIQUE(alarmadresseid, tidsperiodeid, utstyrgruppeid);
 
+-- We wan't english names for everything so here goes:
+-- FIXME rename all pkeys etc.
 ALTER TABLE rettighet RENAME TO filtergroup_group_permision;
 ALTER TABLE filtergroup_group_permision RENAME utstyrgruppeid TO filtergroup_id;
 ALTER TABLE filtergroup_group_permision RENAME accountgroupid TO accountgroup_id;
+
+ALTER TABLE alarmadresse RENAME TO alertaddress;
+ALTER TABLE alertaddress RENAME adresse TO address;
+
+ALTER TABLE preference RENAME TO alertpreference;
+
+ALTER TABLE brukerprofil RENAME TO alertprofile;
+ALTER TABLE alertprofile RENAME navn TO name;
+ALTER TABLE alertprofile RENAME tid TO daily_dispatch_time;
+ALTER TABLE alertprofile RENAME ukedag TO weekly_dispatch_day;
+ALTER TABLE alertprofile RENAME uketid TO weekly_dispatch_time;
+
+ALTER TABLE tidsperiode RENAME TO timeperiod;
+ALTER TABLE timeperiod RENAME brukerprofilid TO alert_profile_id;
+ALTER TABLE timeperiod RENAME starttid TO start_time;
+ALTER TABLE timeperiod RENAME helg TO valid_during;
+
+ALTER TABLE varsle RENAME TO alertsubscription;
+ALTER TABLE alertsubscription RENAME alarmadresseid TO alert_address_id;
+ALTER TABLE alertsubscription RENAME tidsperiodeid TO time_period_id;
+ALTER TABLE alertsubscription RENAME utstyrgruppeid TO filter_group_id;
+ALTER TABLE alertsubscription RENAME vent TO subscription_type;
+
+ALTER TABLE gruppetilfilter RENAME TO  filtergroupcontent;
+ALTER TABLE filtergroupcontent RENAME inkluder TO include;
+ALTER TABLE filtergroupcontent RENAME positiv TO positive;
+ALTER TABLE filtergroupcontent RENAME prioritet TO priority;
+ALTER TABLE filtergroupcontent RENAME utstyrfilterid TO filter_id;
+ALTER TABLE filtergroupcontent RENAME utstyrgruppeid TO filter_group_id;
+
+ALTER TABLE operator RENAME operatorid TO operator_id;
+ALTER TABLE operator RENAME matchfieldid TO match_field_id;
+
+ALTER TABLE filtermatch RENAME TO expresion;
+ALTER TABLE expresion RENAME utstyrfilterid TO filter_id;
+ALTER TABLE expresion RENAME matchfelt TO match_field_id;
+ALTER TABLE expresion RENAME matchtype TO operator;
+ALTER TABLE expresion RENAME verdi TO value;
+
+ALTER TABLE utstyrfilter RENAME TO filter;
+ALTER TABLE filter RENAME accountid TO owner_id;
+ALTER TABLE filter RENAME navn TO name;
+
+ALTER TABLE utstyrgruppe RENAME TO filtergroup;
+ALTER TABLE filtergroup RENAME accountid TO owner_id;
+ALTER TABLE filtergroup RENAME navn TO name;
+ALTER TABLE filtergroup RENAME descr TO description;
+
+ALTER TABLE matchfield RENAME matchfieldid TO id;
+ALTER TABLE matchfield RENAME descr TO description;
+ALTER TABLE matchfield RENAME valueid TO value_id;
+ALTER TABLE matchfield RENAME valuename TO value_name;
+ALTER TABLE matchfield RENAME valuecategory TO value_category;
+ALTER TABLE matchfield RENAME valuesort TO value_sort;
+ALTER TABLE matchfield RENAME listlimit TO list_limit;
+ALTER TABLE matchfield RENAME datatype TO data_type;
+ALTER TABLE matchfield RENAME showlist TO show_list;
+
+ALTER TABLE queue RENAME TO accountalertqueue;
+ALTER TABLE accountalertqueue RENAME accountid TO account_id;
+ALTER TABLE accountalertqueue RENAME alertid TO alert_id;
+ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
