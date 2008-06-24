@@ -31,7 +31,7 @@ from django import newforms as forms
 from nav.models.profiles import MatchField, Filter, Expresion
 
 class FilterForm(forms.ModelForm):
-    owner = forms.BooleanField(required=False, label='Public')
+    owner = forms.BooleanField(required=False, label='Private')
     class Meta:
         model = Filter
         exclude = ('id',)
@@ -41,6 +41,9 @@ class MatchFieldForm(forms.ModelForm):
         model = MatchField
 
 class ExpresionForm(forms.ModelForm):
+    filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    value = forms.CharField()
     class Meta:
         model = Expresion
 
@@ -48,7 +51,11 @@ class ExpresionForm(forms.ModelForm):
         match_field = kwargs.pop('match_field', None)
         super(ExpresionForm, self).__init__(*args, **kwargs)
 
-        match_field = MatchField.objects.all()[0]
+        if not isinstance(match_field, MatchField):
+            match_field = MatchField.objects.get(pk=match_field)
+
+#        self.fields['filter'].widget.attrs['disabled'] = 'disabled'
+#        self.fields['match_field'].widget.attrs['disabled'] = 'disabled'
 
         self.fields['operator'] = forms.models.ModelChoiceField(match_field.operator_set.all())
 
