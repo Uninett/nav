@@ -48,6 +48,10 @@ urlpatterns = patterns('',
     url(r'^filters/$', filter_list, name='alertprofiles-filters'),
     url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
         name='alertprofiles-filters-detail'),
+    url(r'^filters/addexpresion/$', filter_addexpresion,
+        name='alertprofiles-filters-addexpresion'),
+    url(r'^filters/saveexpresion/$', filter_saveexpresion,
+        name='alertprofiles-filters-saveexpresion'),
 
     # Filter groups
     url(r'^filter-groups/$', filtergroup_list,

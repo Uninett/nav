@@ -1,0 +1,26 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<form action="{% url alertprofiles-filters-saveexpresion %}" method="post">
+<table class="listtable">
+    <caption>
+        Add expresion
+    </caption>
+
+    <tbody>
+        <tr>
+            <th>Filter</th>
+            <td>{{ filter.name }}</td>
+        </tr>
+        <tr>
+            <th>Match field</th>
+            <td>{{ matchfield.name }}</td>
+        {{ form }}
+        <tr>
+            <th></th>
+            <td><button type="submit">Save</button></td>
+        </tr>
+    </tbody>
+</table>
+</form>
+{% endblock %}

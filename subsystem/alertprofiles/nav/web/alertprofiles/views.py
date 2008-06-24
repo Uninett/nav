@@ -102,14 +102,14 @@ def filter_detail(request, filter_id=None):
     active = {'filters': True}
 
     filter_form = None
-    matchfield_form = ExpresionForm()
-    
+    matchfields = MatchField.objects.all()
+
     if filter_id:
         filter = get_object_or_404(Filter, pk=filter_id)
         filter_form = FilterForm(instance=filter)
 
         # Get all matchfields (many-to-many connection by table Expresion)
-        expresions = Expresion.objects.filter(equipment_filter=filter_id)
+        expresions = Expresion.objects.filter(filter=filter_id)
     else:
         filter_form = FilterForm()
 
@@ -118,11 +118,45 @@ def filter_detail(request, filter_id=None):
             'alertprofiles/filter_form.html',
             {
                     'active': active,
+                    'filter_id': filter_id,
                     'filter_form': filter_form,
-                    'matchfield_form': matchfield_form,
+                    'matchfields': matchfields,
                     'expresions': expresions,
                 },
         )
+
+def filter_addexpresion(request):
+    if request.method == 'POST':
+        filter = get_object_or_404(Filter, pk=request.POST.get('filter'))
+        matchfield = get_object_or_404(MatchField, pk=request.POST.get('matchfield'))
+        initial = {'filter': filter.id, 'match_field': matchfield.id}
+        form = ExpresionForm(match_field=matchfield, initial=initial)
+
+        active = {'filters': True}
+        info_dict = {
+                'form': form,
+                'active': active,
+                'filter': filter,
+                'matchfield': matchfield,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/expresion_form.html',
+                info_dict,
+            )
+    else:
+        return HttpResponseRedirect(reverse('alertprofiles-filters'))
+
+def filter_saveexpresion(request):
+    if request.method == 'POST':
+        data = ExpresionForm(request.POST)
+        if data.is_valid():
+            expresion = data.save(commit=False)
+            raise Exception(expresion.get_operator_mapping())
+        else:
+            raise Exception(data.errors)
+    else:
+        return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
 def filtergroup_list(request):
     account = get_account(request)
@@ -195,5 +229,4 @@ def permissions_save(request):
 
         return HttpResponseRedirect(reverse('alertprofiles-permissions-detail', args=(group.id,)))
     else:
-        # Simply return to where we came from if there's no input
-        return HttpResponseRedirect(reverse('alertprofiles-permissions-detail', args=(group.id,)))
+        return HttpResponseRedirect(reverse('alertprofiles-permissions'))
