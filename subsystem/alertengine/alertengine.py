@@ -150,38 +150,47 @@ def main(args):
 
     # Reopen log files on SIGHUP
     signal.signal(signal.SIGHUP, signalhandler)
+    signal.signal(signal.SIGTERM, signalhandler)
 
     # Loop forever
     logger.info('Starting alertengine loop.')
+    backof_multiplier = 1
     while True:
         try:
             check_alerts(debug=opttest)
+            backof_multiplier = 1
+
         except Exception, e:
             logger.critical('Dying due to unhandeled error: %s' % e)
-            raise e
+
+            # Upon an error we start backing of untill atmost waiting 30 min.
+            if backof_multiplier * delay < 1800:
+                backof_multiplier *= 2
 
         # Devel only
         if opttest:
             break
         else:
             # Sleep a bit before the next run
-            logger.debug('Sleeping for %d seconds.', delay)
-            time.sleep(delay)
+            logger.debug('Sleeping for %d seconds.', delay * backof_multiplier)
+            time.sleep(delay * backof_multiplier)
 
     # Exit nicely
-    logger.info('Shutting down.')
     sys.exit(0)
 
 
 ### HELPER FUNCTIONS
 
 def signalhandler(signum, _):
-    """Signal handler to close and reopen log file(s) on HUP."""
+    """Signal handler to close and reopen log file(s) on HUP and exit on TERM."""
 
     if signum == signal.SIGHUP:
         logger.info('SIGHUP received; reopening log files.')
         nav.logs.reopen_log_files()
         logger.info('Log files reopened.')
+    elif signum == signal.SIGTERM:
+        logger.warn('SIGTERM received: Shutting down')
+        sys.exit(0)
 
 def getconfig(defaults = None):
     """
