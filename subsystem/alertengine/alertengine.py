@@ -26,12 +26,12 @@
 """
 The NAV Alert Engine daemon (alertengine)
 
-FIXME: Description
+This background process polls the alert queue for new alerts from the
+eventengine and sends put alerts to users based on user defined profiles.
 
-Usage: alertengine [FIXME]
-
-FIXME: Detailed usage
+Usage: alertengine [--test] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
 """
+# FIXME missing detailed usage
 
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
@@ -266,7 +266,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
         fromaddr = localuser + '@' + hostname
 
         mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
-         mailaddr, 'NAV smsd warning from ' + hostname)
+         mailaddr, 'NAV alertengine warning from ' + hostname)
         mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)

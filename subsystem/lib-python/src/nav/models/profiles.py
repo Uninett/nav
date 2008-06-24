@@ -281,7 +281,7 @@ class TimePeriod(models.Model):
     def __unicode__(self):
         return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
-class AlertSubscription(models.Model): # FIXME this needs a better name
+class AlertSubscription(models.Model):
     '''FIXME'''
 
     NOW = 0
