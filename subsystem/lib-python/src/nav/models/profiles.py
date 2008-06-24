@@ -211,7 +211,7 @@ class AlertPreference(models.Model):
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
 
     class Meta:
-        db_table = u'preference'
+        db_table = u'alertpreference'
 
     def __unicode__(self):
         return 'preferences for %s' % self.account
@@ -441,7 +441,7 @@ class Operator(models.Model):
         STARTSWITH: "host(%s) ILIKE '%%%%' + %%s",
         ENDSWITH: "host(%s) ILIKE %%s + '%%%%'",
     }
-    type = models.IntegerField(choices=OPERATOR_TYPES)
+    type = models.IntegerField(choices=OPERATOR_TYPES, db_column='operator_id')
     match_field = models.ForeignKey('MatchField')
 
     class Meta:
@@ -479,8 +479,8 @@ class Filter(models.Model):
     '''FIXME'''
 
     id = models.IntegerField(primary_key=True)
-    owner = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1, db_column='navn')
+    owner = models.ForeignKey('Account')
+    name = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'filter'
@@ -559,7 +559,7 @@ class FilterGroup(models.Model):
 
     owner = models.ForeignKey('Account')
     name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1)
+    description = models.CharField(max_length=-1, db_column='descr')
 
     group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
 
@@ -689,7 +689,7 @@ class MatchField(models.Model):
             MODEL_MAP[key] = (model, field.attname)
 
     name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1)
+    description = models.CharField(max_length=-1, db_column='descr')
     value_help = models.CharField(max_length=-1)
     value_id = models.CharField(max_length=-1, choices=CHOICES)
     value_name = models.CharField(max_length=-1, choices=CHOICES)

@@ -131,12 +131,11 @@ ALTER TABLE filter RENAME navn TO name;
 ALTER TABLE utstyrgruppe RENAME TO filtergroup;
 ALTER TABLE filtergroup RENAME accountid TO owner_id;
 ALTER TABLE filtergroup RENAME navn TO name;
-ALTER TABLE filtergroup RENAME descr TO description;
 
 ALTER TABLE matchfield RENAME matchfieldid TO id;
-ALTER TABLE matchfield RENAME descr TO description;
 ALTER TABLE matchfield RENAME valueid TO value_id;
 ALTER TABLE matchfield RENAME valuename TO value_name;
+ALTER TABLE matchfield RENAME valuehelp TO value_help;
 ALTER TABLE matchfield RENAME valuecategory TO value_category;
 ALTER TABLE matchfield RENAME valuesort TO value_sort;
 ALTER TABLE matchfield RENAME listlimit TO list_limit;
@@ -148,6 +147,8 @@ ALTER TABLE accountalertqueue RENAME accountid TO account_id;
 ALTER TABLE accountalertqueue RENAME alertid TO alert_id;
 ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 
+ALTER TABLE filtergroup RENAME descr TO description;
+ALTER TABLE matchfield RENAME descr TO description;
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
