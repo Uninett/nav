@@ -26,12 +26,12 @@
 """
 The NAV Alert Engine daemon (alertengine)
 
-FIXME: Description
+This background process polls the alert queue for new alerts from the
+eventengine and sends put alerts to users based on user defined profiles.
 
-Usage: alertengine [FIXME]
-
-FIXME: Detailed usage
+Usage: alertengine [--test] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
 """
+# FIXME missing detailed usage
 
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
@@ -125,7 +125,7 @@ def main(args):
             logger.error("%s Run as root or %s to enter daemon mode. " \
                 + "Try `%s --help' for more information.",
                 e, username, sys.argv[0])
-        sys.exit(1)
+            sys.exit(1)
 
     # Init daemon loggers
     if not loginitfile(loglevel, logfile):
@@ -150,33 +150,47 @@ def main(args):
 
     # Reopen log files on SIGHUP
     signal.signal(signal.SIGHUP, signalhandler)
+    signal.signal(signal.SIGTERM, signalhandler)
 
     # Loop forever
+    logger.info('Starting alertengine loop.')
+    backof_multiplier = 1
     while True:
-        check_alerts(debug=opttest)
+        try:
+            check_alerts(debug=opttest)
+            backof_multiplier = 1
+
+        except Exception, e:
+            logger.critical('Dying due to unhandeled error: %s' % e)
+
+            # Upon an error we start backing of untill atmost waiting 30 min.
+            if backof_multiplier * delay < 1800:
+                backof_multiplier *= 2
 
         # Devel only
         if opttest:
             break
         else:
             # Sleep a bit before the next run
-            logger.debug('Sleeping for %d seconds.', delay)
-            time.sleep(delay)
+            logger.debug('Sleeping for %d seconds.', delay * backof_multiplier)
+            time.sleep(delay * backof_multiplier)
 
     # Exit nicely
-    logger.info('Shutting down.')
     sys.exit(0)
 
 
 ### HELPER FUNCTIONS
 
 def signalhandler(signum, _):
-    """Signal handler to close and reopen log file(s) on HUP."""
+    """Signal handler to close and reopen log file(s) on HUP and exit on TERM."""
 
     if signum == signal.SIGHUP:
         logger.info('SIGHUP received; reopening log files.')
         nav.logs.reopen_log_files()
         logger.info('Log files reopened.')
+    elif signum == signal.SIGTERM:
+        logger.warn('SIGTERM received: Shutting down')
+        sys.exit(0)
 
 def getconfig(defaults = None):
     """
@@ -252,7 +266,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
         fromaddr = localuser + '@' + hostname
 
         mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
-         mailaddr, 'NAV smsd warning from ' + hostname)
+         mailaddr, 'NAV alertengine warning from ' + hostname)
         mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)

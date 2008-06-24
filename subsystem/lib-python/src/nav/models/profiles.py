@@ -34,7 +34,7 @@ from smtplib import SMTPException
 
 from django.db import models
 from django.db.models import Q
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
@@ -140,10 +140,10 @@ class AlertAddress(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     type = models.IntegerField(choices=ALARM_TYPE)
-    address = models.CharField(max_length=-1, db_column='adresse')
+    address = models.CharField(max_length=-1)
 
     class Meta:
-        db_table = u'alarmadresse'
+        db_table = u'alertaddress'
 
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
@@ -169,9 +169,16 @@ class AlertAddress(models.Model):
             # Remove the subject line
             message = '\n'.join(message.splitlines()[1:])
 
+            headers = {
+                'X-NAV-alert-netbox': alert.netbox,
+                'X-NAV-alert-device': alert.device,
+                'X-NAV-alert-subsystem': alert.source,
+            }
+
             try:
                 if not self.DEBUG_MODE:
-                    send_mail(subject, message, 'nav', [self.address], fail_silently=False)
+                    email = EmailMessage(subject=subject, body=message, to=[self.address])
+                    email.send(fail_silently=False)
                     logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, self.address, type))
                 else:
                     logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, self.address, type))
@@ -204,7 +211,7 @@ class AlertPreference(models.Model):
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
 
     class Meta:
-        db_table = u'preference'
+        db_table = u'alertpreference'
 
     def __unicode__(self):
         return 'preferences for %s' % self.account
@@ -217,13 +224,13 @@ class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1, db_column='navn')
-    time = models.TimeField(db_column='tid')
-    weekday = models.IntegerField(db_column='ukedag')
-    weektime = models.TimeField(db_column='uketid')
+    name = models.CharField(max_length=-1)
+    daily_dispatch_time = models.TimeField()
+    weekly_dispatch_day = models.IntegerField()
+    weekly_dispatch_time = models.TimeField()
 
     class Meta:
-        db_table = u'brukerprofil'
+        db_table = u'alertprofile'
 
     def __unicode__(self):
         return self.name
@@ -264,17 +271,17 @@ class TimePeriod(models.Model):
         (WEEKENDS, _('weekends')),
     )
 
-    profile = models.ForeignKey('AlertProfile', db_column='brukerprofilid')
-    start = models.TimeField(db_column='starttid')
-    valid_during = models.IntegerField(db_column='helg', choices=VALID_DURING_CHOICES)
+    profile = models.ForeignKey('AlertProfile', db_column='alert_profile_id')
+    start = models.TimeField(db_column='start_time')
+    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES)
 
     class Meta:
-        db_table = u'tidsperiode'
+        db_table = u'timeperiod'
 
     def __unicode__(self):
         return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
-class AlertSubscription(models.Model): # FIXME this needs a better name
+class AlertSubscription(models.Model):
     '''FIXME'''
 
     NOW = 0
@@ -289,13 +296,13 @@ class AlertSubscription(models.Model): # FIXME this needs a better name
         (NEXT, _('at end of timeperiod')),
     )
 
-    alert_address = models.ForeignKey('AlertAddress', db_column='alarmadresseid')
-    time_period = models.ForeignKey('TimePeriod', db_column='tidsperiodeid')
-    filter_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
-    type = models.IntegerField(db_column='vent', choices=SUBSCRIPTION_TYPES)
+    alert_address = models.ForeignKey('AlertAddress')
+    time_period = models.ForeignKey('TimePeriod')
+    filter_group = models.ForeignKey('FilterGroup')
+    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES)
 
     class Meta:
-        db_table = u'varsle'
+        db_table = u'alertsubscription'
 
     def __unicode__(self):
         return 'alerts received %s should be sent %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
@@ -343,15 +350,15 @@ class FilterGroupContent(models.Model):
     # subsystem in an attempt to keep most of the alerteninge code simple and
     # in one place.
 
-    include = models.BooleanField(db_column='inkluder')
-    positive = models.BooleanField(db_column='positiv')
-    priority = models.IntegerField(db_column='prioritet')
+    include = models.BooleanField()
+    positive = models.BooleanField()
+    priority = models.IntegerField()
 
-    filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
-    filter_group = models.ForeignKey('FilterGroup', db_column='utstyrgruppeid')
+    filter = models.ForeignKey('Filter')
+    filter_group = models.ForeignKey('FilterGroup')
 
     class Meta:
-        db_table = u'gruppetilfilter'
+        db_table = u'filtergroupcontent'
         ordering = ['priority']
 
     def __unicode__(self):
@@ -434,8 +441,8 @@ class Operator(models.Model):
         STARTSWITH: "host(%s) ILIKE '%%%%' + %%s",
         ENDSWITH: "host(%s) ILIKE %%s + '%%%%'",
     }
-    type = models.IntegerField(db_column='operatorid', choices=OPERATOR_TYPES)
-    match_field = models.ForeignKey('MatchField', db_column='matchfieldid')
+    type = models.IntegerField(choices=OPERATOR_TYPES, db_column='operator_id')
+    match_field = models.ForeignKey('MatchField')
 
     class Meta:
         db_table = u'operator'
@@ -454,13 +461,13 @@ class Operator(models.Model):
 class Expresion(models.Model):
     '''FIXME'''
 
-    filter = models.ForeignKey('Filter', db_column='utstyrfilterid')
-    match_field = models.ForeignKey('MatchField', db_column='matchfelt')
-    operator = models.IntegerField(db_column='matchtype', choices=Operator.OPERATOR_TYPES)
-    value = models.CharField(max_length=-1, db_column='verdi')
+    filter = models.ForeignKey('Filter')
+    match_field = models.ForeignKey('MatchField')
+    operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
+    value = models.CharField(max_length=-1)
 
     class Meta:
-        db_table = u'filtermatch'
+        db_table = u'expresion'
 
     def __unicode__(self):
         return '%s match on %s against %s' % (self.get_operator_display(), self.match_field, self.value)
@@ -472,11 +479,11 @@ class Filter(models.Model):
     '''FIXME'''
 
     id = models.IntegerField(primary_key=True)
-    owner = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1, db_column='navn')
+    owner = models.ForeignKey('Account')
+    name = models.CharField(max_length=-1)
 
     class Meta:
-        db_table = u'utstyrfilter'
+        db_table = u'filter'
 
     def __unicode__(self):
         return self.name
@@ -550,15 +557,14 @@ class Filter(models.Model):
 class FilterGroup(models.Model):
     '''FIXME'''
 
-    id = models.IntegerField(primary_key=True)
-    owner = models.ForeignKey('Account', db_column='accountid', null=True)
-    name = models.CharField(max_length=-1, db_column='navn')
+    owner = models.ForeignKey('Account')
+    name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
 
     group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
 
     class Meta:
-        db_table = u'utstyrgruppe'
+        db_table = u'filtergroup'
 
     def __unicode__(self):
         return self.name
@@ -682,17 +688,16 @@ class MatchField(models.Model):
             CHOICES.append((key, value.lstrip('_')))
             MODEL_MAP[key] = (model, field.attname)
 
-    id = models.IntegerField(primary_key=True, db_column='matchfieldid')
     name = models.CharField(max_length=-1)
     description = models.CharField(max_length=-1, db_column='descr')
-    value_help = models.CharField(max_length=-1, db_column='valuehelp')
-    value_id = models.CharField(max_length=-1, db_column='valueid', choices=CHOICES)
-    value_name = models.CharField(max_length=-1, db_column='valuename', choices=CHOICES)
-    value_category = models.CharField(max_length=-1, db_column='valuecategory', choices=CHOICES)
-    value_sort = models.CharField(max_length=-1, db_column='valuesort', choices=CHOICES)
-    list_limit = models.IntegerField(db_column='listlimit')
-    data_type = models.IntegerField(db_column='datatype', choices=DATA_TYPES)
-    show_list = models.BooleanField(db_column='showlist')
+    value_help = models.CharField(max_length=-1)
+    value_id = models.CharField(max_length=-1, choices=CHOICES)
+    value_name = models.CharField(max_length=-1, choices=CHOICES)
+    value_category = models.CharField(max_length=-1, choices=CHOICES)
+    value_sort = models.CharField(max_length=-1, choices=CHOICES)
+    list_limit = models.IntegerField()
+    data_type = models.IntegerField(choices=DATA_TYPES)
+    show_list = models.BooleanField()
 
     class Meta:
         db_table = u'matchfield'
@@ -756,15 +761,22 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     '''FIXME'''
 
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account')
     subscription = models.ForeignKey('AlertSubscription')
-    alert = models.ForeignKey('AlertQueue', db_column='alertid')
-    insertion_time = models.DateTimeField(auto_now_add=True, db_column='time')
+    alert = models.ForeignKey('AlertQueue')
+    insertion_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = u'queue'
+        db_table = u'accountalertqueue'
 
     def send(self):
+        '''Sends the alert in question to the address in the subscription'''
         self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+
+        # This operation should delete the item from the queue
         self.delete()
 
+        # Remove the alert from the AlertQueue if we are the last item
+        # depending upon it.
+        if AlertQueue.objects.filter(alert=self.alert).count() == 0:
+            self.alert.delete()
