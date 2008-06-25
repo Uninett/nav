@@ -67,10 +67,10 @@ _ = lambda a: a
 class Account(models.Model):
     ''' NAV's basic account model'''
 
-    login = models.CharField(max_length=-1, unique=True)
-    name = models.CharField(max_length=-1)
-    password = models.CharField(max_length=-1)
-    ext_sync = models.CharField(max_length=-1)
+    login = models.TextField(unique=True)
+    name = models.TextField()
+    password = models.TextField()
+    ext_sync = models.TextField()
 
     class Meta:
         db_table = u'account'
@@ -92,8 +92,8 @@ class Account(models.Model):
 class AccountGroup(models.Model):
     '''NAV account groups'''
 
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1, db_column='descr')
+    name = models.TextField()
+    description = models.TextField(db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
 
     class Meta:
@@ -106,8 +106,8 @@ class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    property = models.CharField(max_length=-1)
-    value = models.CharField(max_length=-1)
+    property = models.TextField()
+    value = models.TextField()
 
     class Meta:
         db_table = u'accountproperty'
@@ -140,7 +140,7 @@ class AlertAddress(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     type = models.IntegerField(choices=ALARM_TYPE)
-    address = models.CharField(max_length=-1)
+    address = models.TextField()
 
     class Meta:
         db_table = u'alertaddress'
@@ -224,7 +224,7 @@ class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1)
+    name = models.TextField()
     daily_dispatch_time = models.TimeField()
     weekly_dispatch_day = models.IntegerField()
     weekly_dispatch_time = models.TimeField()
@@ -464,7 +464,7 @@ class Expresion(models.Model):
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.CharField(max_length=-1)
+    value = models.TextField()
 
     class Meta:
         db_table = u'expresion'
@@ -480,7 +480,7 @@ class Filter(models.Model):
 
     id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account')
-    name = models.CharField(max_length=-1)
+    name = models.TextField()
 
     class Meta:
         db_table = u'filter'
@@ -558,8 +558,8 @@ class FilterGroup(models.Model):
     '''FIXME'''
 
     owner = models.ForeignKey('Account')
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1, db_column='descr')
+    name = models.TextField()
+    description = models.TextField(db_column='descr')
 
     group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
 
@@ -688,13 +688,13 @@ class MatchField(models.Model):
             CHOICES.append((key, value.lstrip('_')))
             MODEL_MAP[key] = (model, field.attname)
 
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1, db_column='descr')
-    value_help = models.CharField(max_length=-1)
-    value_id = models.CharField(max_length=-1, choices=CHOICES)
-    value_name = models.CharField(max_length=-1, choices=CHOICES)
-    value_category = models.CharField(max_length=-1, choices=CHOICES)
-    value_sort = models.CharField(max_length=-1, choices=CHOICES)
+    name = models.TextField()
+    description = models.TextField(db_column='descr')
+    value_help = models.TextField()
+    value_id = models.TextField(choices=CHOICES)
+    value_name = models.TextField(choices=CHOICES)
+    value_category = models.TextField(choices=CHOICES)
+    value_sort = models.TextField(choices=CHOICES)
     list_limit = models.IntegerField()
     data_type = models.IntegerField(choices=DATA_TYPES)
     show_list = models.BooleanField()
