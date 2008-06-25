@@ -1,19 +1,35 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-<form action="" method="post">
+<form action="{% url alertprofiles-filters-save %}" method="post">
 <table class="listtable">
-{{ filter_form }}
+    <caption>
+        Filter details
+    </caption>
+
+    <tbody>
+        {{ filter_form }}
+        <tr>
+            <th></th>
+            <td>
+                <button type="submit">Save changes</button>
+                <input type="hidden" name="filter" value="{{ filter_id }}" />
+            </td>
+        </tr>
+    </tbody>
 </table>
 </form>
 
+{% if expresions %}
+<form action="{% url alertprofiles-filters-removeexpresion %}" method="post">
 <table class="listtable">
     <caption>
-        Fisk
+        Expressions
     </caption>
 
     <thead>
         <tr>
+            <th></th>
             <th>Field</th>
             <th>Condition</th>
             <th>Value</th>
@@ -23,7 +39,8 @@
     <tbody>
     {% for e in expresions %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td>{{ e.match_field }}</td>
+            <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
+            <td><label for="expressionid_{{ e.id }}">{{ e.match_field }}</label></td>
             <td>{{ e.get_operator_display }}</td>
             <td>{{ e.value }}</td>
         </tr>
@@ -31,11 +48,20 @@
     </tbody>
 </table>
 
+<div>
+    <input type="hidden" name="filter" value="{{ filter_id }}" />
+    <button type="submit">Delete selected</button>
+</div>
 
+</form>
+{% endif %}
+
+
+{% if matchfields %}
 <form action="{% url alertprofiles-filters-addexpresion %}" method="post">
 <table class="listtable">
     <caption>
-        Add expresion<br />
+        Add Expression<br />
         <span class="subtitle">Choose one type to add</span>
     </caption>
     
@@ -60,8 +86,9 @@
 
 <div>
     <input type="hidden" name="filter" value="{{ filter_id }}" />
-    <button type="submit">New expresion</button>
+    <button type="submit">New Expression</button>
 </div>
 </form>
+{% endif %}
 
 {% endblock %}
