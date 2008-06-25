@@ -114,7 +114,7 @@ def filter_detail(request, filter_id=None):
 
     if filter_id:
         filter = get_object_or_404(Filter, pk=filter_id)
-        filter_form = FilterForm(instance=filter)
+        filter_form = FilterForm(instance=filter, admin=admin)
 
         # Get all matchfields (many-to-many connection by table Expresion)
         expresions = Expresion.objects.filter(filter=filter_id)

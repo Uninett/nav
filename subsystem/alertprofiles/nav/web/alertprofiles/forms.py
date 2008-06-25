@@ -39,6 +39,13 @@ class FilterForm(forms.ModelForm):
     class Meta:
         model = Filter
 
+    def __init__(self, *args, **kwargs):
+        admin = kwargs.pop('admin', None)
+        super(FilterForm, self).__init__(*args, **kwargs)
+        
+        if not admin:
+            self.fields['owner'].widget.attrs['disabled'] = 'disabled'
+
 class MatchFieldForm(forms.ModelForm):
     class Meta:
         model = MatchField
