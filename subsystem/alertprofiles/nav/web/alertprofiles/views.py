@@ -143,7 +143,7 @@ def filter_save(request):
         if account.has_perm('web_access', request.path):
             admin = True
 
-        filter = get_object_or_404(Filter, pk=request.POST.get('filter'))
+        filter = get_object_or_404(Filter, pk=request.POST.get('id'))
         if not account_owns_filter(account, filter):
             return HttpResponseRedirect('No access')
 
