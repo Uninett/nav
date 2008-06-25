@@ -51,7 +51,7 @@ class MatrixIPv4(Matrix):
         self.show_unused_addresses = show_unused_addresses
 
     def getTemplateResponse(self):
-        template = MatrixIpv4Template()
+        template = MatrixIPv4Template()
         template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 
         #functions and classes
