@@ -22,6 +22,25 @@
 
 """
 Package placeholder. If you remove it, the package won't work.
+
+The dispatchers package contains all the methods that alertengine can use to
+send out alerts. Adding new messaging channels is a simple matter of writting
+a send function that conforms to the following interface.
+
+    def send(address, alert, language='en', type='unknown'):
+        ...
+
+address - the alertaddress object that is "sending" the alert
+  alert - the alertqueue object that we want to send out an notification about
+   type - the subscription type that caused the sending of the message, mainly for
+          log messages
+
+The address to send to is `address.address`. To get the message we want to send
+simply call `alert.messages.get(language=language, type='your_message_type'
+
+For your dispatchers logging please use `logging.getlogger('nav.alertengine.dispatchers.your_dispatcher')`
+and try to use sensible log messages, look at the modules that ship with NAV
+for examples.
 """
 
 __copyright__ = "Copyright 2008 UNINETT AS"
