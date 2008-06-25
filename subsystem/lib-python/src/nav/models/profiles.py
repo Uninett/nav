@@ -30,11 +30,10 @@ __id__ = "$Id$"
 
 import logging
 from datetime import datetime
-from smtplib import SMTPException
+import logging
 
 from django.db import models
 from django.db.models import Q
-from django.core.mail import EmailMessage
 
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
@@ -130,16 +129,24 @@ class AlertAddress(models.Model):
 
     DEBUG_MODE = False
 
-    SMS = 2
     EMAIL = 1
+    SMS = 2
+    JABBER = 3
 
-    ALARM_TYPE = (
+    ADDRESS_TYPE = (
         (EMAIL, _('email')),
         (SMS, _('SMS')),
     )
 
+    # FIXME move this to config
+    ALERT_DISPATCHERS = {
+        EMAIL: 'nav.alertengine.dispatchers.email',
+        SMS: 'nav.alertengine.dispatchers.sms',
+        JABBER: 'nav.alertengine.dispatchers.jabber',
+    }
+
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=ALARM_TYPE)
+    type = models.IntegerField(choices=ADDRESS_TYPE)
     address = models.CharField(max_length=-1)
 
     class Meta:
@@ -151,56 +158,25 @@ class AlertAddress(models.Model):
     def send(self, alert, type=_('now')):
         '''Handles sending of alerts to with defined alert notification types'''
 
-        # TODO this should probably be converted to a plugin based system so
-        # that adding features like jabber notification won't be a problem.
-        # This would also imply moving the SMS and email functionality into
-        # other modules.
-
+        # Determine the right language for the user.
         try:
             lang = self.account.accountproperty_set.get(property='language').value or 'en'
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
-        if self.type == self.EMAIL:
-            message = alert.messages.get(language=lang, type='email').message
-
-            # Extract the subject
-            subject = message.splitlines(1)[0].lstrip('Subject:').strip()
-            # Remove the subject line
-            message = '\n'.join(message.splitlines()[1:])
-
-            headers = {
-                'X-NAV-alert-netbox': alert.netbox,
-                'X-NAV-alert-device': alert.device,
-                'X-NAV-alert-subsystem': alert.source,
-            }
-
+        # Load dispatcher if this has not been done yet.
+        if isinstance(AlertAddress.ALERT_DISPATCHERS[self.type], str):
             try:
-                if not self.DEBUG_MODE:
-                    email = EmailMessage(subject=subject, body=message, to=[self.address])
-                    email.send(fail_silently=False)
-                    logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, self.address, type))
-                else:
-                    logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, self.address, type))
+                AlertAddress.ALERT_DISPATCHERS[self.type] = __import__(AlertAddress.ALERT_DISPATCHERS[self.type], globals(), locals(), ['send'])
+            except KeyError:
+                logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+            except ImportError, e:
+                logger.error('Could not load dispatcher for %s (%s), ie. alert %d could not be sent to %s' % (key, e, alert.id, self.address))
+                return
 
-            except SMTPException, e:
-                logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
+        # Dispatch our message
+        self.ALERT_DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
 
-        elif self.type == self.SMS:
-            if self.account.has_perm('alerttype', 'sms'):
-                message = alert.messages.get(language=lang, type='sms').message
-
-                if not self.DEBUG_MODE:
-                    SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
-                    logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
-                else:
-                    logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
-
-            else:
-                logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
-
-        else:
-            logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -771,12 +747,15 @@ class AccountAlertQueue(models.Model):
         db_table = u'accountalertqueue'
 
     def delete(self, *args, **kwargs):
-        # Remove the alert from the AlertQueue if we are the last item
-        # depending upon it.
-        if self.alert.accountalertqueue_set.count() <= 1:
-            self.alert.delete()
+        # TODO deleting items with the manager will not trigger this behaviour
+        # cleaning up related messages.
 
         super(AccountAlertQueue, self).delete(*args, **kwargs)
+
+        # Remove the alert from the AlertQueue if we are the last item
+        # depending upon it.
+        if self.alert.accountalertqueue_set.count() == 0:
+            self.alert.delete()
 
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
