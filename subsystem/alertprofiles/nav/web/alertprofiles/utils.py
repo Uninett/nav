@@ -33,44 +33,25 @@ from nav.models.profiles import Filter, FilterGroup, Account
 # Admingroup is identified by having id/primary key 1.
 ADMINGROUP = 1
 
-def account_owns_filter(account, filter):
-    """Checks if account have access to edit filter."""
-    try:
-        # Try to find owner, will raise DoesNotExist if there is no owner
-        owner = filter.owner
-    except Account.DoesNotExist:
-        # There is no owner set, and that means the filter is public
-        # Only admins are allowed to edit public filters, so check if account is
-        # admin.
-        groups = account.accountgroup_set.filter(pk=ADMINGROUP).count()
-        if groups > 0:
-            return True
-        else:
-            return False
-    else:
-        # Owner is set, check if account is the owner
-        if owner == account:
-            return True
-        else:
-            return False
+def account_owns_filters(account, *filters):
+    """Checks if account have access to edit/remove filters and/or filter groups."""
 
-def account_owns_filter_group(account, filter_group):
-    """Checks if account have access to edit filter_group."""
-    try:
-        # Try to find owner, will raise DoesNotExist if there is no owner
-        owner = filter_group.owner
-    except Account.DoesNotExist:
-        # There is no owner set, and that means the filtergroup is public
-        # Only admins are allowed to edit public filtergroups, so check if account is
-        # admin.
-        groups = account.accountgroup_set.filter(pk=ADMINGROUP).count()
-        if groups > 0:
-            return True
-        else:
-            return False
+    # Check if user is admin
+    groups = account.accountgroup_set.filter(pk=ADMINGROUP).count()
+    if groups > 0:
+        # User is admin
+        return True
     else:
-        # Owner is set, check if account is the owner
-        if owner == account:
-            return True
-        else:
-            return False
+        # User is not admin, check each filter
+        for filter in filters:
+            try:
+                owner = filter.get().owner
+            except:
+                # This is a public filter, and we already know that this user
+                # is not an admin
+                return False
+            else:
+                if owner == account:
+                    return True
+                else:
+                    return False
