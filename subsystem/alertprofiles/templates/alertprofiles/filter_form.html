@@ -4,7 +4,11 @@
 <form action="{% url alertprofiles-filters-save %}" method="post">
 <table class="listtable">
     <caption>
+    {% if filter_id %}
         Filter details
+    {% else %}
+        New filter
+    {% endif %}
     </caption>
 
     <tbody>
@@ -12,14 +16,20 @@
         <tr>
             <th></th>
             <td>
-                <button type="submit">Save changes</button>
+                <button type="submit">
+                {% if filter_id %}
+                    Save changes
+                {% else %}
+                    Save new filter
+                {% endif %}
+                </button>
             </td>
         </tr>
     </tbody>
 </table>
 </form>
 
-{% if expresions %}
+{% if filter_id %}
 <form action="{% url alertprofiles-filters-removeexpresion %}" method="post">
 <table class="listtable">
     <caption>
@@ -53,10 +63,8 @@
 </div>
 
 </form>
-{% endif %}
 
 
-{% if matchfields %}
 <form action="{% url alertprofiles-filters-addexpresion %}" method="post">
 <table class="listtable">
     <caption>
