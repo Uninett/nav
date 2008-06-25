@@ -300,6 +300,7 @@ class AlertSubscription(models.Model):
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES)
+    ignore_closed_alerts = models.BooleanField()
 
     class Meta:
         db_table = u'alertsubscription'
@@ -769,14 +770,16 @@ class AccountAlertQueue(models.Model):
     class Meta:
         db_table = u'accountalertqueue'
 
+    def delete(self, *args, **kwargs):
+        # Remove the alert from the AlertQueue if we are the last item
+        # depending upon it.
+        if self.alert.accountalertqueue_set.count() <= 1:
+            self.alert.delete()
+
+        super(AccountAlertQueue, self).delete(*args, **kwargs)
+
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
         self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
 
-        # This operation should delete the item from the queue
         self.delete()
-
-        # Remove the alert from the AlertQueue if we are the last item
-        # depending upon it.
-        if AlertQueue.objects.filter(alert=self.alert).count() == 0:
-            self.alert.delete()

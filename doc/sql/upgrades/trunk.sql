@@ -149,6 +149,16 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
+
+-- seqs:
+ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
+
+-- Add new fields
+ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
+ALTER TABLE alertq ADD closed BOOLEAN;
+-- FIXME add subscrition to accountalertqueue
+
+
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);

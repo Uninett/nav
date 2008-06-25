@@ -158,6 +158,7 @@ class AlertQueue(models.Model):
         default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
+    closed = models.BooleanField()
 
     class Meta:
         db_table = 'alertq'

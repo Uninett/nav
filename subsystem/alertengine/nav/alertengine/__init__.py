@@ -51,8 +51,6 @@ def check_alerts(debug=False):
     # in one place. Despite this some the simpler logic has been offloaded to
     # the models themselves.
 
-
-
     # Try to avoid spamming people when running tests
     if debug:
         AlertAddress.DEBUG_MODE = True
@@ -193,8 +191,9 @@ def check_alerts(debug=False):
         # Get id's of alerts that have been queued for users.
 
         if not debug:
-            AlertQueue.objects.filter(id__in=[a.id for a in new_alerts]).exclude(id__in=alerts_in_account_queues).delete()
-            logger.info('Deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
+            to_delete = AlertQueue.objects.filter(id__in=[a.id for a in new_alerts]).exclude(id__in=alerts_in_account_queues)
+            logger.info('Deleted following alerts from alert queue: %s' % ([a.id for a in to_delete]))
+            to_delete.delete()
         else:
             logger.info('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
