@@ -26,7 +26,7 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
@@ -38,6 +38,7 @@ from nav.django.utils import get_account, permission_required
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 
 from nav.web.alertprofiles.forms import *
+from nav.web.alertprofiles.utils import account_owns_filter, account_owns_filter_group
 
 def overview(request):
     account = get_account(request)
@@ -101,6 +102,13 @@ def filter_list(request):
 def filter_detail(request, filter_id=None):
     active = {'filters': True}
 
+    # Check if user has admin access
+    # FIXME Not the right way to check if a user has admin access
+    admin = False
+    account = get_account(request)
+    if account.has_perm('web_access', request.path):
+        admin = True
+
     filter_form = None
     matchfields = MatchField.objects.all()
 
@@ -111,13 +119,14 @@ def filter_detail(request, filter_id=None):
         # Get all matchfields (many-to-many connection by table Expresion)
         expresions = Expresion.objects.filter(filter=filter_id)
     else:
-        filter_form = FilterForm()
+        filter_form = FilterForm(admin=admin)
 
     return render_to_response(
             AlertProfilesTemplate,
             'alertprofiles/filter_form.html',
             {
                     'active': active,
+                    'admin': admin,
                     'filter_id': filter_id,
                     'filter_form': filter_form,
                     'matchfields': matchfields,
@@ -125,12 +134,53 @@ def filter_detail(request, filter_id=None):
                 },
         )
 
+def filter_save(request):
+    if request.method == 'POST':
+        # Check if user has admin access
+        # FIXME Not the right way to check if a user has admin access
+        admin = False
+        account = get_account(request)
+        if account.has_perm('web_access', request.path):
+            admin = True
+
+        filter = get_object_or_404(Filter, pk=request.POST.get('filter'))
+        if not account_owns_filter(account, filter):
+            return HttpResponseRedirect('No access')
+
+        form = FilterForm(request.POST, instance=filter)
+        if not form.is_valid():
+            info_dict = {
+                    'filter_form': form,
+                    'filter_id': filter.id,
+                    'active': {'filters': True},
+                }
+            return render_to_response(
+                    AlertProfilesTemplate,
+                    'alertprofiles/filter_form.html',
+                    info_dict,
+                )
+
+        owner = None
+        if request.POST.get('owner'):
+            owner = account
+
+        filter.name = request.POST.get('name')
+        filter.owner = owner
+        filter.save()
+
+        return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+    else:
+        return HttpResponseRedirect(reverse('alertprofiles-filters'))
+
 def filter_addexpresion(request):
     if request.method == 'POST':
         filter = get_object_or_404(Filter, pk=request.POST.get('filter'))
         matchfield = get_object_or_404(MatchField, pk=request.POST.get('matchfield'))
         initial = {'filter': filter.id, 'match_field': matchfield.id}
         form = ExpresionForm(match_field=matchfield, initial=initial)
+
+        if not account_owns_filter(get_account(request), filter):
+            return HttpResponseForbidden('No access')
 
         active = {'filters': True}
         info_dict = {
@@ -149,12 +199,73 @@ def filter_addexpresion(request):
 
 def filter_saveexpresion(request):
     if request.method == 'POST':
-        data = ExpresionForm(request.POST)
-        if data.is_valid():
-            expresion = data.save(commit=False)
-            raise Exception(expresion.get_operator_mapping())
+        # Get the MatchField, Filter and Operator objects associated with the
+        # input POST-data
+        filter = Filter.objects.get(pk=request.POST.get('filter'))
+        type = request.POST.get('operator')
+        match_field = MatchField.objects.get(pk=request.POST.get('match_field'))
+        operator = Operator.objects.get(type=type, match_field=match_field.pk)
+
+        if not account_owns_filter(get_account(request), filter):
+            return HttpResponseForbidden('No access')
+
+        # Get the value
+        value = ""
+        if operator.type == Operator.IN:
+            # If input was a multiple choice list we have to join each option
+            # in one string, where each option is separated by a | (pipe).
+            # If input was a IP adress we should replace space with | (pipe).
+            # FIXME We might want some data checks here
+            if match_field.data_type == MatchField.IP:
+                # FIXME We might want to check that it is a valid IP adress.
+                # If we do so, we need to remember both IPv4 and IPv6
+                value = request.POST.get('value').replace(' ', '|')
+            else:
+                value = "|".join([value for value in request.POST.getlist('value')])
         else:
-            raise Exception(data.errors)
+            value = request.POST.get('value')
+
+        expresion = Expresion(
+                filter=filter,
+                match_field=match_field,
+                operator=operator.type,
+                value=value,
+            )
+        expresion.save()
+        return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+    else:
+        return HttpResponseRedirect(reverse('alertprofiles-filters'))
+
+def filter_removeexpresion(request):
+    if request.method == 'POST':
+        if request.POST.get('confirm'):
+            expresions = request.POST.getlist('element')
+            filter = get_object_or_404(Filter, pk=request.POST.get('perform_on'))
+
+            if not account_owns_filter(get_account(request), filter):
+                return HttpResponseForbidden('No access')
+
+            Expresion.objects.filter(pk__in=expresions).delete()
+
+            return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+        else:
+            expresions = Expresion.objects.filter(pk__in=request.POST.getlist('expression'))
+            filter = get_object_or_404(Filter, pk=request.POST.get('filter'))
+
+            if not account_owns_filter(get_account(request), filter):
+                return HttpResponseForbidden('No access')
+
+            info_dict = {
+                    'form_action': reverse('alertprofiles-filters-removeexpresion'),
+                    'active': {'filters': True},
+                    'elements': expresions,
+                    'perform_on': filter.id,
+                }
+            return render_to_response(
+                    AlertProfilesTemplate,
+                    'alertprofiles/confirmation_list.html',
+                    info_dict,
+                )
     else:
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
