@@ -31,7 +31,10 @@ from django import newforms as forms
 from nav.models.profiles import MatchField, Filter, Expresion
 
 class FilterForm(forms.ModelForm):
-    owner = forms.BooleanField(required=False, label='Private')
+    owner = forms.BooleanField(required=False, label='Private',
+        help_text='Uncheck to allow all users to use this filter.')
+    name = forms.CharField()
+
     class Meta:
         model = Filter
         exclude = ('id',)
@@ -51,16 +54,15 @@ class ExpresionForm(forms.ModelForm):
         match_field = kwargs.pop('match_field', None)
         super(ExpresionForm, self).__init__(*args, **kwargs)
 
-        if not isinstance(match_field, MatchField):
-            match_field = MatchField.objects.get(pk=match_field)
-
 #        self.fields['filter'].widget.attrs['disabled'] = 'disabled'
 #        self.fields['match_field'].widget.attrs['disabled'] = 'disabled'
 
-        self.fields['operator'] = forms.models.ModelChoiceField(match_field.operator_set.all())
+        if isinstance(match_field, MatchField):
+            operators = match_field.operator_set.all()
+            self.fields['operator'] = forms.models.ChoiceField([(o.type, o) for o in operators])
 
-        if match_field.show_list:
-            model, attname = MatchField.MODEL_MAP[match_field.value_id]
-            choices = [(getattr(a, attname), getattr(a, attname)) for a in model.objects.all()]
+            if match_field.show_list:
+                model, attname = MatchField.MODEL_MAP[match_field.value_id]
+                choices = [(getattr(a, attname), getattr(a, attname)) for a in model.objects.all()]
 
-            self.fields['value'] = forms.MultipleChoiceField(choices=choices)
+                self.fields['value'] = forms.MultipleChoiceField(choices=choices)
