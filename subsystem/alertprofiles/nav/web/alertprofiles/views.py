@@ -161,7 +161,7 @@ def filter_save(request):
                 )
 
         owner = None
-        if request.POST.get('owner'):
+        if request.POST.get('owner') or not admin:
             owner = account
 
         filter.name = request.POST.get('name')
