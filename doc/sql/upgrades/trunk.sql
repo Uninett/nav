@@ -150,14 +150,61 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
--- seqs:
-ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
-
 -- Add new fields
 ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
 ALTER TABLE alertq ADD closed BOOLEAN;
 -- FIXME add subscrition to accountalertqueue
 
+-- Rename indexes so they match with the new english table names
+ALTER INDEX alarmadresse_pk RENAME TO alertaddress_pkey;
+ALTER INDEX preference_pk RENAME TO alertpreference_pkey;
+ALTER INDEX brukerprofil_pk RENAME TO alertprofile_pkey;
+ALTER INDEX tidsperiode_pk RENAME TO timeperiod_pkey;
+ALTER INDEX varsle_pkey RENAME TO alertsubscription_pkey;
+ALTER INDEX varsle_alarmadresseid_key RENAME TO alertsubscription_alert_address_id_key;
+ALTER INDEX gruppetilfilter_pkey RENAME TO filtergroupcontent_pkey;
+ALTER INDEX gruppetilfilter_utstyrfilterid_key RENAME TO filtergroupcontent_filter_id_key;
+ALTER INDEX operator_operatorid_key RENAME TO operator_operator_id_key;
+ALTER INDEX filtermatch_pk RENAME TO filtermatch_pkey;
+ALTER INDEX utstyrfilter_pk RENAME TO filter_pkey;
+ALTER INDEX utstyrgruppe_pk RENAME TO filtergroup_pkey;
+ALTER INDEX matchfield_pk RENAME TO matchfield_pkey;
+ALTER INDEX queue_pkey RENAME TO accountalertqueue_pkey;
+
+-- Rename sequences so they match with the new english table names
+-- NOTE Internally a sequence has a column named 'sequence_name' which keeps
+-- the name of the sequence. This value will not be changed when renaming
+-- sequences, and you can not use UPDATE to set it either.
+ALTER TABLE alarmadresse_id_seq RENAME TO alertaddress_id_seq;
+ALTER TABLE alertaddress ALTER COLUMN id SET DEFAULT nextval('alertaddress_id_seq');
+
+ALTER TABLE brukerprofil_id_seq RENAME TO alertprofile_id_seq;
+ALTER TABLE alertprofile ALTER COLUMN id SET DEFAULT nextval('alertprofile_id_seq');
+
+ALTER TABLE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
+ALTER TABLE timeperiod ALTER COLUMN id SET DEFAULT nextval('timeperiod_id_seq');
+
+ALTER TABLE varsle_id_seq RENAME TO alertsubscription_id_seq;
+ALTER TABLE alertsubscription ALTER COLUMN id SET DEFAULT nextval('alertsubscription_id_seq');
+
+ALTER TABLE gruppetilfilter_id_seq RENAME TO filtergroupcontent_id_seq;
+ALTER TABLE filtergroupcontent ALTER COLUMN id SET DEFAULT nextval('filtergroupcontent_id_seq');
+
+ALTER TABLE operator_id_seq RENAME TO operator_operator_id_seq;
+ALTER TABLE operator ALTER COLUMN id SET DEFAULT nextval('operator_operator_id_seq');
+ALTER TABLE operator_id_seq1 RENAME TO operator_id_seq;
+ALTER TABLE operator ALTER COLUMN id SET DEFAULT nextval('operator_id_seq');
+
+ALTER TABLE filtermatch_id_seq RENAME TO expresion_id_seq;
+ALTER TABLE expresion ALTER COLUMN id SET DEFAULT nextval('expresion_id_seq');
+
+ALTER TABLE utstyrfilter_id_seq RENAME TO filter_id_seq;
+ALTER TABLE filter ALTER COLUMN id SET DEFAULT nextval('filter_id_seq');
+
+ALTER TABLE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
+ALTER TABLE filtergroup ALTER COLUMN id SET DEFAULT nextval('filtergroup_id_seq');
+
+ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
 
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
