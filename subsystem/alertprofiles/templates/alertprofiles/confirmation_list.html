@@ -14,6 +14,8 @@
 {% endblock %}
 
 {% block additional_fields %}
-    <input type="hidden" name="perform_on" value="{{ perform_on }}" />
+    {% if permform_on %}
+        <input type="hidden" name="perform_on" value="{{ perform_on }}" />
+    {% endif %}
     <input type="hidden" name="confirm" value="true" />
 {% endblock %}
