@@ -96,6 +96,7 @@ def check_alerts(debug=False):
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                         if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
                             alertsubscription.handle_alert(alert)
+                            # FIXME this is wrong
                             sent_new += 1
                         else:
                             logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
