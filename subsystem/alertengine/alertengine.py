@@ -49,6 +49,7 @@ import signal
 import socket
 import sys
 import time
+import traceback
 
 import nav.config
 import nav.daemon
@@ -154,26 +155,21 @@ def main(args):
 
     # Loop forever
     logger.info('Starting alertengine loop.')
-    backof_multiplier = 1
     while True:
         try:
             check_alerts(debug=opttest)
-            backof_multiplier = 1
 
         except Exception, e:
-            logger.critical('Dying due to unhandeled error: %s' % e)
-
-            # Upon an error we start backing of untill atmost waiting 30 min.
-            if backof_multiplier * delay < 1800:
-                backof_multiplier *= 2
+            logger.critical('DYING due to unhandeled error: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
+            raise e
 
         # Devel only
         if opttest:
             break
         else:
             # Sleep a bit before the next run
-            logger.debug('Sleeping for %d seconds.', delay * backof_multiplier)
-            time.sleep(delay * backof_multiplier)
+            logger.debug('Sleeping for %d seconds.', delay)
+            time.sleep(delay)
 
     # Exit nicely
     sys.exit(0)
