@@ -31,7 +31,7 @@ from django import newforms as forms
 from nav.models.profiles import MatchField, Filter, Expresion
 
 class FilterForm(forms.ModelForm):
-    id = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private',
         help_text='Uncheck to allow all users to use this filter.')
     name = forms.CharField()
