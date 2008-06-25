@@ -38,7 +38,7 @@ from nav.django.utils import get_account, permission_required
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 
 from nav.web.alertprofiles.forms import *
-from nav.web.alertprofiles.utils import account_owns_filter, account_owns_filter_group
+from nav.web.alertprofiles.utils import account_owns_filters, ADMINGROUP
 
 def overview(request):
     account = get_account(request)
@@ -84,19 +84,28 @@ def profile(request):
 def filter_list(request):
     account = get_account(request)
 
+    admin = False
+    if account.accountgroup_set.filter(pk=ADMINGROUP).count() > 0:
+        admin = True
+
     # Get all public filters, and private filters belonging to this user only
     filters = Filter.objects.filter(
             Q(owner__exact=account.pk) | Q(owner__exact=None)
         ).order_by('owner', 'name')
 
     active = {'filters': True}
+    info_dict = {
+            'active': active,
+            'admin': admin,
+            'form_action': reverse('alertprofiles-filters-remove'),
+        }
 
     return object_list(
             AlertProfilesTemplate,
             request,
             queryset=filters,
             template_name='alertprofiles/filter_list.html',
-            extra_context={'active': active},
+            extra_context=info_dict,
         )
 
 def filter_detail(request, filter_id=None):
@@ -110,16 +119,18 @@ def filter_detail(request, filter_id=None):
         admin = True
 
     filter_form = None
-    matchfields = MatchField.objects.all()
+    expresions = None
+    matchfields = None
 
     if filter_id:
         filter = get_object_or_404(Filter, pk=filter_id)
         filter_form = FilterForm(instance=filter, admin=admin)
 
+        matchfields = MatchField.objects.all()
         # Get all matchfields (many-to-many connection by table Expresion)
         expresions = Expresion.objects.filter(filter=filter_id)
     else:
-        filter_form = FilterForm(admin=admin)
+        filter_form = FilterForm(initial={'owner': account}, admin=admin)
 
     return render_to_response(
             AlertProfilesTemplate,
@@ -143,15 +154,27 @@ def filter_save(request):
         if account.has_perm('web_access', request.path):
             admin = True
 
-        filter = get_object_or_404(Filter, pk=request.POST.get('id'))
-        if not account_owns_filter(account, filter):
-            return HttpResponseRedirect('No access')
+        # Set inital values
+        filter = None
+        owner = Account()
+        if request.POST.get('owner') or not admin:
+            owner = account
 
-        form = FilterForm(request.POST, instance=filter)
+        # Build a form. Different values depending on if we are updating or
+        # making a new filter
+        if request.POST.get('id'):
+            filter = get_object_or_404(Filter, pk=request.POST.get('id'))
+            if not account_owns_filters(account, filter):
+                return HttpResponseRedirect('No access')
+
+            form = FilterForm(request.POST, instance=filter, admin=admin)
+        else:
+            form = FilterForm(request.POST, admin=admin)
+
+        # If there are some invalid values, return to form and show the errors
         if not form.is_valid():
             info_dict = {
                     'filter_form': form,
-                    'filter_id': filter.id,
                     'active': {'filters': True},
                 }
             return render_to_response(
@@ -160,15 +183,48 @@ def filter_save(request):
                     info_dict,
                 )
 
-        owner = None
-        if request.POST.get('owner') or not admin:
-            owner = account
+        # Set the fields in Filter to the submited values
+        if request.POST.get('id'):
+            filter.name = request.POST.get('name')
+            filter.owner = owner
+        else:
+            filter = Filter(name=request.POST.get('name'), owner=owner)
 
-        filter.name = request.POST.get('name')
-        filter.owner = owner
+        # Save the filter
         filter.save()
 
         return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+    else:
+        return HttpResponseRedirect(reverse('alertprofiles-filters'))
+
+def filter_remove(request):
+    if request.method == 'POST':
+        if request.POST.get('confirm'):
+            filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
+
+            if not account_owns_filters(get_account(request), filters):
+                return HttpResponseForbidden('No access')
+
+            filters.delete()
+
+            return HttpResponseRedirect(reverse('alertprofiles-filters'))
+        else:
+            filters = Filter.objects.filter(pk__in=request.POST.getlist('filter'))
+
+            if not account_owns_filters(get_account(request), filters):
+                return HttpResponseForbidden('No access')
+
+            info_dict = {
+                    'form_action': reverse('alertprofiles-filters-remove'),
+                    'active': {'filters': True},
+                    'elements': filters,
+                    'perform_on': None,
+                }
+            return render_to_response(
+                    AlertProfilesTemplate,
+                    'alertprofiles/confirmation_list.html',
+                    info_dict,
+                )
     else:
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
@@ -179,7 +235,7 @@ def filter_addexpresion(request):
         initial = {'filter': filter.id, 'match_field': matchfield.id}
         form = ExpresionForm(match_field=matchfield, initial=initial)
 
-        if not account_owns_filter(get_account(request), filter):
+        if not account_owns_filters(get_account(request), filter):
             return HttpResponseForbidden('No access')
 
         active = {'filters': True}
@@ -206,7 +262,7 @@ def filter_saveexpresion(request):
         match_field = MatchField.objects.get(pk=request.POST.get('match_field'))
         operator = Operator.objects.get(type=type, match_field=match_field.pk)
 
-        if not account_owns_filter(get_account(request), filter):
+        if not account_owns_filters(get_account(request), filter):
             return HttpResponseForbidden('No access')
 
         # Get the value
@@ -242,7 +298,7 @@ def filter_removeexpresion(request):
             expresions = request.POST.getlist('element')
             filter = get_object_or_404(Filter, pk=request.POST.get('perform_on'))
 
-            if not account_owns_filter(get_account(request), filter):
+            if not account_owns_filters(get_account(request), filter):
                 return HttpResponseForbidden('No access')
 
             Expresion.objects.filter(pk__in=expresions).delete()
@@ -252,7 +308,7 @@ def filter_removeexpresion(request):
             expresions = Expresion.objects.filter(pk__in=request.POST.getlist('expression'))
             filter = get_object_or_404(Filter, pk=request.POST.get('filter'))
 
-            if not account_owns_filter(get_account(request), filter):
+            if not account_owns_filters(get_account(request), filter):
                 return HttpResponseForbidden('No access')
 
             info_dict = {
