@@ -1,0 +1,31 @@
+NAV migrated from Subversion to Mercurial as its SCM system on 1 April
+2008.  
+
+This directory contains the file localtags, which maps Mercurial
+changeset IDs to SVN revision numbers using Mercurial tags.  If you
+ever have the need to look up an old reference to an SVN revision, you
+can install the localtags file in the .hg/ directory of your
+repository.
+
+Usage example
+-------------
+You want to know whatever happened to SVN revision 4242:
+
+  $ hg log -r svn.4242
+  changeset:   3726:00d0929f54bd
+  tag:         svn.4242
+  user:        Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+  date:        Wed Oct 03 12:22:04 2007 +0000
+  summary:     Fix bug in FrontpageTemplate which fails with Cheetah<1.0. Put this one in 3.3.1.
+
+
+Caveats
+-------
+
+The original SVN repository was split into several Mercurial
+repositories, one for each development branch.  Many of the
+changesets from the localtags file will therefore not exist in the
+particular repository you are working with.  Many hg commands,
+including log, will complain profusely about the missing nodes as it
+parses the localtags file.  These complaints can be safely ignored,
+although they will annoyingly clutter your output somewhat.

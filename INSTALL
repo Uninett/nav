@@ -51,7 +51,7 @@ The following Java librares are required:
 
 The following python modules are required:
 
- * django (>= svn7189)
+ * django (>= svn7534)
  * egenix-mxdatetime
  * forgethtml
  * forgetsql

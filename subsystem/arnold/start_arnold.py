@@ -30,7 +30,7 @@ __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 # Libraries
 from optparse import OptionParser
 import ConfigParser
-import sys, re, sets, os
+import sys, re, os
 import getpass
 import logging
 
@@ -165,7 +165,10 @@ Pipe in id's to block or use the -f option to specify file"""
     blocked = []
 
     # Try to block all id's that we got
-    for candidate in ids:
+    for candidate, comment in ids:
+        if not comment:
+            comment = ''
+        
         logger.debug("Trying to block %s" %candidate)
         print "%s - " %(candidate) ,
         # Find information for each candidate
@@ -210,7 +213,7 @@ Pipe in id's to block or use the -f option to specify file"""
                 nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
                                      blockinfo['determined'],
                                      blockinfo['reasonid'],
-                                     'Detention %s' %blockinfo['blocktitle'],
+                                     comment,
                                      username, 'block' )
             except (nav.arnold.InExceptionListError,
                     nav.arnold.WrongCatidError,
@@ -228,7 +231,7 @@ Pipe in id's to block or use the -f option to specify file"""
                 nav.arnold.blockPort(id, sw, blockinfo['blocktime'], 0,
                                      blockinfo['determined'],
                                      blockinfo['reasonid'],
-                                     'Detention %s' %blockinfo['blocktitle'],
+                                     comment,
                                      username, 'quarantine', blockinfo['vlan'])
             except (nav.arnold.InExceptionListError,
                     nav.arnold.WrongCatidError,
@@ -352,15 +355,16 @@ def handleLines(lines):
         if line and line[-1] == '\n':
             line = line[:-1]
 
-        # Grab first part of line, put it in list
-        if re.match("[^ ]+", line):
-            id = re.match("([^ ]+)", line).groups()[0]
-            idlist.append(id)
+        # Grab first part of line, use that as id to block. Grab the rest and
+        # use it as comment
+        m = re.match("([^ ]+)(\s+.+)?", line)
+        if m:
+            id, comment = m.groups()
+            if comment:
+                comment.strip()
+            idlist.append((id,comment))
 
-    # Remove duplicates from the list
-    s = sets.Set(idlist)
-    
-    return list(s)
+    return idlist
 
 
 

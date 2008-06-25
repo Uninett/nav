@@ -174,18 +174,40 @@ def findIdInformation(id, limit):
     if type in ['IP','MAC']:
 
         c = conn.cursor()
+        query = ""
 
-        # Based on type, use the correct query to find information in
-        # the database about id and the switch
-        query = """SELECT DISTINCT ON (cam.end_time, cam.netboxid, module,
-        port) *, cam.end_time AS endtime FROM arp RIGHT JOIN cam USING (mac)
-        WHERE %s=%%s
-        AND module IS NOT NULL
-        AND port IS NOT NULL
-        AND ifindex IS NOT NULL
-        ORDER BY cam.end_time DESC LIMIT %%s""" %type.lower()
+        if type == 'IP':
+
+            # Find cam-tuple which relates to the time where this ip was last
+            # active.
+            query = """
+            SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
+            FROM cam
+            JOIN (SELECT ip, mac, start_time AS ipstarttime,
+            end_time AS ipendtime
+                  FROM arp
+                  WHERE ip=%s
+                  ORDER BY end_time DESC
+                  LIMIT 1) arpaggr USING (mac)
+            WHERE (cam.start_time >= arpaggr.ipstarttime
+                   AND cam.start_time <= arpaggr.ipendtime)
+               OR (cam.end_time >= arpaggr.ipstarttime
+                   AND cam.end_time <= arpaggr.ipendtime)
+            ORDER BY endtime DESC
+            LIMIT %s
+            """
+
+        elif type == 'MAC':
+
+            # Fetch last camtuple regarding this macaddress
+            query = """
+            SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
+            FROM cam
+            WHERE mac = %s
+            ORDER BY endtime DESC
+            LIMIT %s
+            """
         
-        # Find mac and ip-address of id.
         try:
             c.execute(query, (id, limit))
         except Exception, e:
@@ -205,6 +227,10 @@ def findIdInformation(id, limit):
                     row['endtime'] = 'Still Active'
                 else:
                     row['endtime'] = row['endtime'].strftime('%Y-%m-%d %H:%M:%S')
+
+                if not row.has_key('ip'):
+                    row['ip'] = '0.0.0.0'
+                    
         else:
             result = 1
         
@@ -301,11 +327,13 @@ def findInputType (input):
     tuple"""
 
     # Support mac-adresses on xx:xx... format
-    input = input.replace(':','')
+    mac = input.replace(':','')
 
-    if isValidIP(input) and re.match('\d+\.\d+\.\d+\.\d+', input):
+    # idValidIP returns 10.0.0.0 if you type 10.0.0. Check that this is not the
+    # case.
+    if isValidIP(input) and not isValidIP(input).endswith('.0'):
         return ("IP", input)
-    elif re.match("^[A-Fa-f0-9]{12}$", input):
+    elif re.match("^[A-Fa-f0-9]{12}$", mac):
         return ("MAC",input)
     elif re.match("^\d+$", input):
         return ("SWPORTID",input)
@@ -477,7 +505,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         logger.info("blockPort: Not %s before, creating new identity" %action)
 
         # Get nextvalue of sequence to use in both queries
-        nextvalq = "SELECT nextval('public.identity_identityid_seq')"
+        nextvalq = "SELECT nextval('identity_identityid_seq')"
         try:
             c.execute(nextvalq)
         except nav.db.driver.ProgrammingError, why:
@@ -711,12 +739,12 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
         if action == 'disable':
             logger.info("Disabling ifindex %s on %s with %s"
                         %(ifindex, ip, query))
-            #s.set(query, 'i', 2)
+            s.set(query, 'i', 2)
             pass
         elif action == 'enable':
             logger.info("Enabling ifindex %s on %s with %s"
                         %(ifindex, ip, query))
-            #s.set(query, 'i', 1)
+            s.set(query, 'i', 1)
             pass
         
     except nav.Snmp.AgentError, why:
@@ -853,7 +881,7 @@ def changePortVlan(ip, ifindex, vlan):
     # the netbox, luckily.
 
     try:
-        #snmpset.set(query, type, vlan)
+        snmpset.set(query, type, vlan)
         pass
     except nav.Snmp.AgentError, why:
         raise ChangePortVlanError, why
@@ -883,7 +911,7 @@ def changePortVlan(ip, ifindex, vlan):
         newhexports = computeOctetString(hexports, ifindex, 'disable')
 
         try:
-            #snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
+            snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
             pass
         except nav.Snmp.NoSuchObjectError, why:
             raise ChangePortVlanError, why

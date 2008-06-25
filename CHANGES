@@ -1,3 +1,60 @@
+Version 3.4.0
+(released 16 May 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * IPv6 prefixes are collected.
+
+  * Router IPv6 neighboring caches are now collected and made
+    searchable in the Machine Tracker.
+
+  * IP address matrix report rewritten to also support IPv6 address
+    ranges.
+
+  * New Netmap preview included.
+
+  * New IP Device Info preview included.
+
+  * arplogger (iptrace) has been reimplemented as a getDeviceData
+    plugin.  Starting/stopping iptrace is no longer possible with the
+    nav command.
+
+  * Advanced report search form can be opened/closed without reloading
+    the entire report page (requires Javascript-enabled browser)
+
+  * More flexible configuration of LDAP authentication allows more
+    ways to organize objects in LDAP servers.  Now also allows TLS
+    encryption of LDAP connections.
+
+  * Machine tracker now links to IP Device Info for individual ports
+    found in searches.
+
+  * Specific prefixes can now be ignored by getDeviceData based on
+    configuration file setting.
+
+ Bugfixes:
+
+  * SF#1680011 (User admin panel crashes with orgid > 10 chars)
+  * SF#1702800 (The IP Device Center does not properly flag disabled ports)
+    This was a regression fix.
+  * SF#1707993 (Character encoding problems in Cricket configuration)
+  * SF#1716297 ("PSQLException: The column name prefixid not found" in gDD)
+  * SF#1949567 (eventEngine posts duplicate alert for duplicate start event)
+  * SF#1954786 (makecricketconfig.pl does not escape descriptions)
+
+
 Version 3.3.3
 (released 14 March 2008)
 

@@ -1,5 +1,6 @@
 # $Id: htaccess 4012 2007-06-13 12:46:38Z jodal $
 
 SetHandler python-program
-PythonHandler nav.web.netmapserver.handler
+PythonHandler nav.web.netmap.handler
 DirectoryIndex index
+
