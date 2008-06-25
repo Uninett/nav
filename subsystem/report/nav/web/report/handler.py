@@ -55,7 +55,7 @@ def handler(req):
     args = req.args
     nuri = URI(uri)
 
-    remo = [] # these arguments and their friends will be deleted
+    remo = [] # These arguments and their friends will be deleted
     
     for key,val in nuri.args.items():
         if val == "" or key=="r4g3n53nd":
@@ -92,7 +92,7 @@ def handler(req):
         req.content_type = "text/html"
         req.send_http_header()
 
-        ## parameterdict
+        ## Parameterdictionary
         argsdict = {}
         if req.args:
             reqargsplit = urllib.unquote_plus(req.args).split("&")
@@ -112,58 +112,62 @@ def handler(req):
                 elif boolstring == "False":
                     show_unused_addresses = False
 
-                matrix = None
-                tree = buildTree(scope)
+            matrix = None
+            tree = buildTree(scope)
 
-                if scope.version() == 6:
-                    # Must do import this local because of the insane startup
-                    # cost of importing which slows every run of handler down
-                    # drastically.
-                    from nav.report.matrixIPv6 import MatrixIPv6
+            if scope.version() == 6:
+                # Must do import this local because of the insane startup cost
+                # of importing which slows every run of handler down
+                # drastically.
+                from nav.report.matrixIPv6 import MatrixIPv6
+                end_net = getMaxLeaf(tree)
+                matrix = MatrixIPv6(scope,end_net=end_net)
 
-                    end_net = getMaxLeaf(tree)
-                    matrix = MatrixIPv6(scope,end_net=end_net)
+            elif scope.version() == 4:
+                # Must do import this local because of the insane startup cost
+                # of importing which slows every run of handler down
+                # drastically.
+                from nav.report.matrixIPv4 import MatrixIPv4
+                end_net = None
 
-                elif scope.version() == 4:
-                    # Must do import this local because of the insane startup
-                    # cost of importing which slows every run of handler down
-                    # drastically.
-                    from nav.report.matrixIPv4 import MatrixIPv4
+                if scope.prefixlen() < 24:
+                    end_net = IP("/".join([scope.net().strNormal(),"27"]))
+                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
 
-                    end_net = None
-
-                    if scope.prefixlen() < 24:
-                        end_net = IP("/".join([scope.net().strNormal(),"27"]))
-                        matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
-                    else:
-                        max_leaf = getMaxLeaf(tree)
-                        bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-
-                        matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
                 else:
-                    raise UnknownNetworkTypeException, "version: " + str(scope.version())
-                req.write(matrix.getTemplateResponse())
-
-        else:
-
-            connection = db.getConnection('webfront','manage')
-            database = connection.cursor()
-            database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
-
-            databasescopes = database.fetchall()
-            if len(databasescopes) == 1:
-                matrix = Matrix(databasescopes[0][0])
-                req.write(matrix.makeMatrix())
+                    max_leaf = getMaxLeaf(tree)
+                    bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
+                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
 
             else:
-                ## print all scopes or error message
-                page = MatrixScopesTemplate()
-                page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
-                page.scopes = []
-                for scope in databasescopes:
-                    page.scopes.append(scope[0])
+                raise UnknownNetworkTypeException, "version: " + str(scope.version())
+            req.write(matrix.getTemplateResponse())
 
-                req.write(page.respond())
+
+        else:
+            connection = db.getConnection('webfront','manage')
+            database = connection.cursor()
+            database.execute("SELECT netaddr FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
+            databasescopes = database.fetchall()
+            
+            # FIXME: What the duck?
+            # As I've understood the use of matrix.py it shouldn't be
+            # instansiated, but rather use it's methods. "Subclasses"
+            # matrixIPv{4,6}.py uses these methods.
+
+            #if len(databasescopes) == 1:
+            #    matrix = Matrix(databasescopes[0][0])
+            #    req.write(matrix.makeMatrix()
+            #else:
+
+            ## Print all scopes or an error message
+            page = MatrixScopesTemplate()
+            page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+            page.scopes = []
+            for scope in databasescopes:
+                page.scopes.append(scope[0])
+
+            req.write(page.respond())
 
     elif reportName == "reportlist":
         page = ReportListTemplate()
