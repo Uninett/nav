@@ -154,7 +154,7 @@ class DBH {
 				GROUP BY (alarmadresse.accountid)
 			) AS adresser ON (account.id = adresser.uid)
 			WHERE (preference.accountid = account.id)
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
 		$numrows = pg_num_rows($query);
@@ -199,7 +199,7 @@ class DBH {
 					FROM AccountInGroup
 					WHERE groupid = $1
 				) AS Medlem ON (account.id = medlem.accountid)
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -239,7 +239,7 @@ class DBH {
 				date_part(\'epoch\', logg.tid) AS tid, account.name
 			FROM account, logg
 			WHERE account.id = logg.accountid
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]).'
+			ORDER BY '.pg_escape_string($sorts[$sort]).'
 			LIMIT 100';
 
 		if ($query = pg_query($this->connection, $querystr)) {
@@ -272,7 +272,7 @@ class DBH {
 
 		$querystr = "SELECT matchfieldid, name, valueid
 			FROM MatchField
-			ORDER BY ".pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY ".pg_escape_string($sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
 		$numrows = pg_num_rows($query);
@@ -324,7 +324,7 @@ class DBH {
 					FROM DefaultFilter
 					GROUP BY accountgroupid
 				) AS DFCount ON (id = DFCount.accountgroupid)
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
 		$numrows = pg_num_rows($query);
@@ -424,7 +424,7 @@ class DBH {
 					SELECT accountid, groupid FROM AccountInGroup
 					WHERE accountid = $1
 				) AS Medlem ON (id = Medlem.groupid)
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -460,7 +460,7 @@ class DBH {
 		$querystr = 'SELECT id, adresse, type
 			FROM Alarmadresse
 			WHERE accountid = $1
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -504,7 +504,7 @@ class DBH {
 				utstyrgruppe.id = varsle.utstyrgruppeid AND
 				alarmadresse.id = varsle.alarmadresseid AND
 				varsle.tidsperiodeid = $2
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid, $tid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -552,7 +552,7 @@ class DBH {
 					WHERE tidsperiodeid = $2
 					AND utstyrgruppeid = $3
 				) AS periode ON (adr.id = periode.alarmadresseid)
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid, $tid, $gid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -589,7 +589,7 @@ class DBH {
 
 		$querystr = 'SELECT matchfieldid, name, descr, valuehelp 
 			FROM MatchField
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
 		$numrows = pg_num_rows($query);
@@ -700,7 +700,7 @@ class DBH {
 				Brukerprofil.accountid = $1 AND
 				Account.id = Brukerprofil.accountid AND
 				Account.id = Preference.accountid
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -907,7 +907,7 @@ class DBH {
 					GROUP BY utstyrgruppeid
 				) AS FCount ON (id = FCount.utstyrgruppeid)
 			) jalla
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid);
 
 		//print "<pre>" . $querystr . "</pre>";
@@ -1018,7 +1018,7 @@ class DBH {
 				) AS Y
 				GROUP BY utstyrgruppeid
 			) AS FCount ON (id = FCount.utstyrgruppeid)) jalla
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 
 		if ($query = pg_query($this->connection, $querystr)) {
 		$numrows = pg_num_rows($query);
@@ -1440,7 +1440,7 @@ class DBH {
 				) AS Gcount
 				GROUP BY uid
 			) AS grupper ON (MineFilter.id = grupper.uid)
-		) AS jalla ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+		) AS jalla ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($uid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -1748,7 +1748,7 @@ class DBH {
 			WHERE
 				utstyrfilterid = $1 AND
 				FilterMatch.matchfelt = MatchField.matchfieldid
-			ORDER BY '.pg_escape_string($this->connection, $sorts[$sort]);
+			ORDER BY '.pg_escape_string($sorts[$sort]);
 		$querypar = array($fid);
 
 		if ($query = pg_query_params($this->connection, $querystr, $querypar)) {
@@ -2948,7 +2948,7 @@ class DBHK {
 		}
 		$querystr = "SELECT $vid, $vname $vc " . 
 			"FROM $vtabell " .
-			"ORDER BY $vsort LIMIT " . pg_escape_string($this->connection, $limit);
+			"ORDER BY $vsort LIMIT " . pg_escape_string($limit);
 
 		if ($query = pg_query($this->connection, $querystr)) {
 		$numrows = pg_num_rows($query);
