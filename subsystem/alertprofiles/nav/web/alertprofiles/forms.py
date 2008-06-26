@@ -28,7 +28,7 @@ __id__ = "$Id$"
 
 from django import newforms as forms
 
-from nav.models.profiles import MatchField, Filter, Expresion
+from nav.models.profiles import MatchField, Filter, Expresion, Operator
 
 class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
@@ -54,6 +54,7 @@ class ExpresionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
     value = forms.CharField()
+
     class Meta:
         model = Expresion
 
@@ -61,15 +62,23 @@ class ExpresionForm(forms.ModelForm):
         match_field = kwargs.pop('match_field', None)
         super(ExpresionForm, self).__init__(*args, **kwargs)
 
-#        self.fields['filter'].widget.attrs['disabled'] = 'disabled'
-#        self.fields['match_field'].widget.attrs['disabled'] = 'disabled'
-
         if isinstance(match_field, MatchField):
-            operators = match_field.operator_set.all()
-            self.fields['operator'] = forms.models.ChoiceField([(o.type, o) for o in operators])
-
             if match_field.show_list:
+                # Values are selected from a multiple choice list.
+                # Populate that list with possible choices.
                 model, attname = MatchField.MODEL_MAP[match_field.value_id]
                 choices = [(getattr(a, attname), getattr(a, attname)) for a in model.objects.all()]
 
                 self.fields['value'] = forms.MultipleChoiceField(choices=choices)
+            else:
+                # Value is (probably) entered into a text-input, therefore
+                # display a list of possible operators.
+                operators = match_field.operator_set.all()
+                self.fields['operator'] = forms.models.ChoiceField([(o.type, o) for o in operators])
+
+            if match_field.show_list or match_field.data_type == MatchField.IP:
+                # Value input is either from a list or an IP address.
+                # Force operator to be 'IN', and then check if it really should
+                # be 'equals' before saving.
+                self.fields['operator'] = forms.IntegerField(widget=forms.widgets.HiddenInput)
+                self.fields['operator'].widget.attrs['value'] = Operator.IN

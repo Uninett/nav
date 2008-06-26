@@ -278,6 +278,11 @@ def filter_saveexpresion(request):
                 value = request.POST.get('value').replace(' ', '|')
             else:
                 value = "|".join([value for value in request.POST.getlist('value')])
+
+            # Determine operator. If there's only one value we're really
+            # dealing with an 'equals' operation.
+            if value.count("|") == 0:
+                operator.type = Operator.EQUALS
         else:
             value = request.POST.get('value')
 
