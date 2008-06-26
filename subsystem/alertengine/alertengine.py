@@ -60,7 +60,7 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 # These have to be imported after the envrionment is setup
-from django.db import DatabaseError
+from django.db import DatabaseError, connection
 from nav.alertengine import check_alerts
 
 ### PATHS
@@ -161,7 +161,9 @@ def main(args):
         try:
             check_alerts(debug=opttest)
         except DatabaseError, e:
-            logger.error('Database error: %s' % e)
+            logger.error('Database error, closing the DB connection just in case:\n%s' % e)
+            connection.close()
+
         except Exception, e:
             logger.critical('Unhandeled error: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
             raise e
