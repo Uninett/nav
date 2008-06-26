@@ -31,6 +31,31 @@ if (!function_exists('pg_query_params')) {
 	}
 }
 
+// Async parameterized queries for PHP < 5.1
+if (!function_exists('pg_send_query_params')) {
+	function pg_send_query_params__callback($at) {
+		global $pg_send_query_params__parameters;
+		return $pg_send_query_params__parameters[$at[1] -1];
+	}
+
+	function pg_send_query_params($db, $query, $params) {
+		global $pg_send_query_params__parameters;
+
+		foreach ($params as $k => $v) {
+			if (is_null($v))
+				$params[$k] = 'null';
+			elseif (is_int($v))
+				$params[$k] = $v;
+			else
+				$params[$k] = "'".pg_escape_string($v)."'";
+		}
+		$pg_send_query_params__parameters = $params;
+
+		$query = preg_replace_callback('/\$(\d+)/', 'pg_send_query_params__callback', $query);
+		return pg_send_query($db, $query);
+	}
+}
+
 // pg_query() was once known as pg_exec()
 if (!function_exists('pg_query')) {
 	function pg_query($param1, $param2) {
@@ -48,7 +73,7 @@ if (!function_exists('pg_num_rows')) {
 // pg_escape_string() was introduced in PHP 4.2, use addslashes if
 // pg_escape_string() is not available
 if (!function_exists('pg_escape_string')) {
-	function pg_escape_string($db, $string) {
+	function pg_escape_string($string) {
 		return addslashes($string);
 	}
 }
