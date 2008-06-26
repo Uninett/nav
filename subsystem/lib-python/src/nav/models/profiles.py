@@ -664,6 +664,8 @@ class MatchField(models.Model):
             VALUE_MAP[key] = field.attname
             CHOICES.append((key, value.lstrip('_')))
             MODEL_MAP[key] = (model, field.attname)
+        field = None
+    model = None
 
     name = models.TextField()
     description = models.TextField(db_column='descr')
