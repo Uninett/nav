@@ -1,0 +1,119 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-filtergroups-save %}{% endblock %}
+{% block url_remove_expresion %}{% url alertprofiles-filtergroups-removefilter %}{% endblock %}
+{% block url_add_expresion %}{% url alertprofiles-filtergroups-addfilter %}{% endblock %}
+
+{% block captioncontent %}
+    {% if detail_id %}
+        Filter group details
+    {% else %}
+        New filter group
+    {% endif %}
+{% endblock %}
+
+{% block expresions_caption_content %}
+    Filters
+{% endblock %}
+
+{% block expresions_thead_cols %}
+    <th></th>
+    <th>Priority</th>
+    <th>Operation</th>
+    <th>Filter</th>
+    <th></th>
+    <th></th>
+{% endblock %}
+
+{% block expresions_tbody_content %}
+    {% for f in filter_group_content %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="filter" value="{{ f.id }}" /></td>
+            <td>{{ f.priority }}</td>
+            <td>
+                {{ f.positive|yesno:",inverted" }}
+                {{ f.include|yesno:"inclusive,exclusive" }}
+            </td>
+            <td>{{ f.filter }}</td>
+            <td>
+                {% if not forloop.first %}
+                <button type="submit" name="moveup" value="{{ f.id }}">Move up</button>
+                {% endif %}
+            </td>
+            <td>
+                {% if not forloop.last %}
+                <button type="submit" name="movedown" value="{{ f.id }}">Move down</button>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block addexpresion_caption_content %}
+    Add filter<br />
+    <span class="subtitle">
+        Choose the filter you want to add to this filter group.
+    </span>
+{% endblock %}
+
+{% block addexpresion_thead_cols %}
+    <th></th>
+    <th>Name</th>
+{% endblock %}
+
+{% block addexpresion_tbody_content %}
+    {% for f in filters %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="radio" name="filter" value="{{ f.id }}" id="addfilterid_{{ f.id }}" /></td>
+            <td><label for="addfilterid_{{ f.id }}">{{ f.name }}</label></td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block addexpresion_extra_fields %}
+<table class="listtable">
+    <caption>
+        Operator
+    </caption>
+    
+    <tbody>
+        <tr>
+            <th>
+                <label>
+                    <input type="radio" name="operator" value="11" />
+                    Add
+                </label>
+            </th>
+            <td>Union in set theory.</td>
+        </tr>
+        <tr>
+            <th>
+                <label>
+                    <input type="radio" name="operator" value="01" />
+                    Subtract 
+                </label>
+            </th>
+            <td>Exlusion.</td>
+        </tr>
+        <tr>
+            <th>
+                <label>
+                    <input type="radio" name="operator" value="00" />
+                    And 
+                </label>
+            </th>
+            <td>Intersection in set theory.</td>
+        </tr>
+        <tr>
+            <th>
+                <label>
+                    <input type="radio" name="operator" value="10" />
+                    Add inverse 
+                </label>
+            </th>
+            <td>Complement of set.</td>
+        </tr>
+    </tbody>
+</table>
+{{ block.super }}
+{% endblock %}
