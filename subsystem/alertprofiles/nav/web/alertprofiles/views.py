@@ -352,7 +352,8 @@ def filtergroup_detail(request, filter_group_id=None):
 
         filtergroupcontent = FilterGroupContent.objects.filter(filter_group=filtergroup.id).order_by('priority')
         filters = Filter.objects.filter(
-                Q(owner__exact=account.pk) | Q(owner__isnull=True)
+                Q(owner__exact=account.pk) | Q(owner__isnull=True) &
+                ~Q(pk__in=[f.filter.id for f in filtergroupcontent])
             ).order_by('owner', 'name')
     else:
         form = FilterGroupForm(initial={'owner': account}, admin=admin)
