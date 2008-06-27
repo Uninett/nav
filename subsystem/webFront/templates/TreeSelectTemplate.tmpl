@@ -31,8 +31,8 @@
 
     #set optgroup_end = False
 
-    #for select in $selectbox.elementList:
-        <div class="treeselect">
+    <div class="treeselect">
+        #for select in $selectbox.elementList:
             #if len($select.options)
                 <label>$select.title</label>
             #end if
@@ -60,6 +60,6 @@
                 </select>
                 $select.lastKeys()
             #end if
-        </div>
-    #end for
+        #end for
+    </div>
 #end def

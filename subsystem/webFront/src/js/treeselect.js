@@ -23,15 +23,15 @@
  */
 
 $(function() {
-    $('.treeselect select').each(function() {
-        var select = $(this);
-        var input = $('<input tyoe="text" style="width: 100%;"/>');
+    $('.treeselect').each(function() {
+        var treeselect = $(this);
+        var search = $('<p><label>Search <input tyoe="text" style="width: 100%;"/></label></p>');
 
-        input.keyup(function() {
-            select.find("option:not(:contains('" + input.val() + "'))").hide();
-            select.find("option:contains('" + input.val() + "')").show();
+        search.find('input').keyup(function() {
+            treeselect.find("option:not(:contains('" + $(this).val() + "'))").hide();
+            treeselect.find("option:contains('" + $(this).val() + "')").show();
         });
 
-        select.before(input);
+        treeselect.prepend(search);
     });
 });
