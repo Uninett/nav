@@ -242,12 +242,12 @@ def filter_addexpresion(request):
         )
 
 def filter_saveexpresion(request):
-    if request.method == 'POST':
+    if not request.method == 'POST':
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     # Get the MatchField, Filter and Operator objects associated with the
     # input POST-data
-    filter = Filter.objects.get(pk=request.POST.get('id'))
+    filter = Filter.objects.get(pk=request.POST.get('filter'))
     type = request.POST.get('operator')
     match_field = MatchField.objects.get(pk=request.POST.get('match_field'))
     operator = Operator.objects.get(type=type, match_field=match_field.pk)
