@@ -59,7 +59,7 @@ class FilterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         admin = kwargs.pop('admin', None)
         super(FilterForm, self).__init__(*args, **kwargs)
-        
+
         if not admin:
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
 
@@ -88,4 +88,5 @@ class ExpresionForm(forms.ModelForm):
                 # Populate that list with possible choices.
                 model, attname = MatchField.MODEL_MAP[match_field.value_id]
                 choices = [(getattr(a, attname), getattr(a, attname)) for a in model.objects.all()]
+                choices = sorted(choices)
                 self.fields['value'] = forms.MultipleChoiceField(choices=choices)
