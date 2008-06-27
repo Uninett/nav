@@ -25,13 +25,28 @@
 $(function() {
     $('.treeselect').each(function() {
         var treeselect = $(this);
-        var search = $('<p><label>Search <input tyoe="text" style="width: 100%;"/></label></p>');
+        var search = $('<label>Search <input tyoe="text" /></label>');
 
         search.find('input').keyup(function() {
-            treeselect.find("option:not(:contains('" + $(this).val() + "'))").hide();
-            treeselect.find("option:contains('" + $(this).val() + "')").show();
+
+            var keywords = $(this).val().split(/\s+/);
+
+            if (keywords[0] == '') {
+                // Show all options when our search is empty
+                treeselect.find("option").show();
+
+            } else {
+                // Hide all options an show the ones that match our keywords.
+                treeselect.find("option").hide();
+                for (var i = 0; i < keywords.length; i++) {
+                    if(keywords[i]) {
+                        treeselect.find("option:contains('" + keywords[i] + "')").show();
+                    }
+                }
+            }
         });
 
+        // Add our search field :)
         treeselect.prepend(search);
     });
 });
