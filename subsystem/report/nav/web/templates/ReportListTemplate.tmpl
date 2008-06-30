@@ -30,6 +30,19 @@
 
 <h2>Report List</h2>
 
+#if $report_list_local
+<h3>Local reports</h3>
+<ul>
+    #for $report in $report_list_local
+    <li>
+        <a href="/report/$report[1]">$report[2]</a>
+        <p style="font-style: italic; color: #555753; padding-bottom: 15px">$report[0]</p>
+    </li>
+    #end for
+</ul>
+#end if
+
+<h3>Default reports</h3>
 <ul>
 #for $report in $report_list
     <li>
