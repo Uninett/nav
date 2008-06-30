@@ -51,14 +51,12 @@ class DatabaseResult:
         database = connection.cursor()
 
         self.sql = reportConfig.makeSQL()
-        #print self.sql
         sql = reportConfig.orig_sql
         self.originalSQL = sql
+        self.sums = dict([(sum_key, '') for sum_key in reportConfig.sum])
 
         try:
             database.execute(self.sql)
-            go_on = 1
-            #print self.sql
             self.result = database.fetchall()
 
             ## total count of the rows returned
@@ -71,6 +69,13 @@ class DatabaseResult:
                 sumsql = reportConfig.makeSumSQL()
                 database.execute(sumsql)
                 sums = database.fetchone()
+
+                # Converting float to int, tuple to list
+                sums_list = []
+                for index, sum in enumerate(sums):
+                    sums_list.append(int(long(sum)))
+
+                sums = sums_list
 
             ## coherce the results from the databasequery to the field-labels
                 if sums:
