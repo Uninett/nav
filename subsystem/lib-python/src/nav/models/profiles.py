@@ -29,8 +29,9 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no"
 __id__ = "$Id$"
 
 import logging
+import sys
+import traceback
 from datetime import datetime
-import logging
 
 from django.db import models
 from django.db.models import Q
@@ -133,9 +134,11 @@ class AlertAddress(models.Model):
     SMS = 2
     JABBER = 3
 
+    # FIXME this does not support our plugin arch
     ADDRESS_TYPE = (
         (EMAIL, _('email')),
         (SMS, _('SMS')),
+        (JABBER, _('Jabber')),
     )
 
     # FIXME move this to config
@@ -167,11 +170,12 @@ class AlertAddress(models.Model):
         # Load dispatcher if this has not been done yet.
         if isinstance(AlertAddress.ALERT_DISPATCHERS[self.type], str):
             try:
-                AlertAddress.ALERT_DISPATCHERS[self.type] = __import__(AlertAddress.ALERT_DISPATCHERS[self.type], globals(), locals(), ['send'])
+                AlertAddress.ALERT_DISPATCHERS[self.type] = __import__(AlertAddress.ALERT_DISPATCHERS[self.type]+'_dispatcher', globals(), locals(), ['send'])
             except KeyError:
                 logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
             except ImportError, e:
-                logger.error('Could not load dispatcher for %s (%s), ie. alert %d could not be sent to %s' % (key, e, alert.id, self.address))
+                logger.error('Could not load dispatcher for %s (%s), ie. alert %d could not be sent to %s\n%s' %
+                    (self.type, e, alert.id, self.address, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
                 return
 
         # Dispatch our message
