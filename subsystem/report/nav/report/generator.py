@@ -61,8 +61,8 @@ class Generator:
         args = parsed_uri[3]
 
         configParser = ConfigParser(configFile)
-        config = configParser.configuration
         parseOK = configParser.parseReport(reportName)
+        config = configParser.configuration
 
         adv = 0
         if parseOK:
