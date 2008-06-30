@@ -47,6 +47,7 @@ from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
 import nav.path
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
+configFileLocal = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 
@@ -55,8 +56,11 @@ def handler(req):
     args = req.args
     nuri = URI(uri)
 
-    remo = [] # These arguments and their friends will be deleted
-    
+
+    # These arguments and their friends will be deleted
+    remo = []     
+
+    # FIXME: What is this magic key? :-) //Jørgen
     for key,val in nuri.args.items():
         if val == "" or key=="r4g3n53nd":
             remo.append(key)
@@ -73,8 +77,22 @@ def handler(req):
         # Redirect if any arguments were removed
         redirect(req, nuri.make())
 
-    r = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
-    reportName = r.group(1)
+
+    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
+    
+    # FIXME: just to avoid noise in the apache log I check for a match, and if
+    # not set it to the start page of report tool. The error appearing
+    # in the logs when accessing reports: 
+    #   AttributeError: 'NoneType' object has no attribute 'group'
+    # The weird thing is that the 'if match' is true all the time. So 'match'
+    # IS a Match object and doesn't have a 'None'-value. I just don't
+    # understand what raises the error referred to in the logs...
+    if match:
+        reportName = match.group(1)
+    else:
+        reportName = "report"
+
+
 
     if reportName == "report" or reportName == "index":
 
@@ -174,15 +192,21 @@ def handler(req):
         req.content_type = "text/html"
         req.send_http_header()
 
+        # Default config
         report_list = ReportList(configFile).getReportList()
         map(itemgetter(2), report_list)
         report_list = sorted(report_list, key=itemgetter(2))
+        # Local config
+        report_list_local = ReportList(configFileLocal).getReportList()
+        map(itemgetter(2), report_list_local)
+        report_list_local = sorted(report_list_local, key=itemgetter(2))
 
         name = "Report List"
         name_link = "reportlist"
         page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)] # Perhaps I should fetch these values and not hardcode them.
         page.title = "Report - " + name
         page.report_list = report_list
+        page.report_list_local = report_list_local
 
         req.write(page.respond())
 
@@ -191,7 +215,7 @@ def handler(req):
         req.content_type = "text/html"
         req.send_http_header()
         gen = Generator()
-        (report,contents,neg,operator,adv) = gen.makeReport(reportName,configFile,uri)
+        (report,contents,neg,operator,adv) = gen.makeReport(reportName,configFile,configFileLocal,uri)
 
         page.report = report
         page.contents = contents
@@ -239,7 +263,7 @@ def handler(req):
 
     return apache.OK
 
-# Is this used?
+# FIXME: Is this code block used?
 def selectoptiondraw(name,elementlist,elementdict,selectedvalue="",descriptiondict=None):
     ret = '<select name="%s">'%name
     for element in elementlist:
