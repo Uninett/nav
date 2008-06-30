@@ -45,8 +45,10 @@ class Generator:
         self.answer = None
         self.sql = ""
         self.hei = ""
+        self.configParser = None
+        self.parseOK = ""
 
-    def makeReport(self,reportName,configFile,uri):
+    def makeReport(self,reportName,configFile,configFileLocal,uri):
         """
         Makes a report
 
@@ -60,12 +62,17 @@ class Generator:
         parsed_uri = urlsplit(uri)
         args = parsed_uri[3]
 
-        configParser = ConfigParser(configFile)
-        parseOK = configParser.parseReport(reportName)
-        config = configParser.configuration
+        self.configParser = ConfigParser(configFileLocal)
+        self.parseOK = self.configParser.parseReport(reportName)
+
+        if not self.parseOK:
+            self.configParser = ConfigParser(configFile)
+            self.parseOK = self.configParser.parseReport(reportName)
+
+        config = self.configParser.configuration
 
         adv = 0
-        if parseOK:
+        if self.parseOK:
             argumentParser = ArgumentParser(config)
             argumentHash = argumentParser.parseArguments(args)
             if argumentHash.has_key("adv"):
@@ -91,15 +98,15 @@ class Generator:
 
 class ReportList:
 
-    def __init__(self,configurationFile):
+    def __init__(self,configFile):
 
         self.reports = []
 
         reportRe = re.compile("^\s*(\S+)\s*\{(.*?)\}$",re.M|re.S|re.I)
-        fileContents = file(configurationFile).read()
+        fileContents = file(configFile).read()
         list = reportRe.findall(fileContents)
 
-        configParser = ConfigParser(configurationFile)
+        configParser = ConfigParser(configFile)
 
         for rep in list:
             configtext = rep[1]
