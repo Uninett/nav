@@ -32,29 +32,32 @@ from smtplib import SMTPException
 
 from django.core.mail import EmailMessage
 
+from nav.alertengine.dispatchers import dispatcher
+
 logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
-def send(address, alert, language='en', type='unknown'):
-    message = alert.messages.get(language=language, type='email').message
+class email(dispatcher):
+    def send(self, address, alert, language='en', type='unknown'):
+        message = alert.messages.get(language=language, type='email').message
 
-    # Extract the subject
-    subject = message.splitlines(1)[0].lstrip('Subject:').strip()
-    # Remove the subject line
-    message = '\n'.join(message.splitlines()[1:])
+        # Extract the subject
+        subject = message.splitlines(1)[0].lstrip('Subject:').strip()
+        # Remove the subject line
+        message = '\n'.join(message.splitlines()[1:])
 
-    headers = {
-        'X-NAV-alert-netbox': alert.netbox,
-        'X-NAV-alert-device': alert.device,
-        'X-NAV-alert-subsystem': alert.source,
-    }
+        headers = {
+            'X-NAV-alert-netbox': alert.netbox,
+            'X-NAV-alert-device': alert.device,
+            'X-NAV-alert-subsystem': alert.source,
+        }
 
-    try:
-        if not address.DEBUG_MODE:
-            email = EmailMessage(subject=subject, body=message, to=[address.address])
-            email.send(fail_silently=False)
-            logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, address.address, type))
-        else:
-            logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
+        try:
+            if not address.DEBUG_MODE:
+                email = EmailMessage(subject=subject, body=message, to=[address.address])
+                email.send(fail_silently=False)
+                logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, address.address, type))
+            else:
+                logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
 
-    except SMTPException, e:
-        logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, adress.adress, e))
+        except SMTPException, e:
+            logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, adress.adress, e))

@@ -38,7 +38,6 @@ __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id$"
 
-import ConfigParser
 import getopt
 import logging
 import logging.handlers
@@ -61,10 +60,10 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
 
 # These have to be imported after the envrionment is setup
 from django.db import DatabaseError, connection
-from nav.alertengine import check_alerts
+from nav.alertengine.base import check_alerts
+from nav.alertengine.dispatchers import load_dispatchers
 
 ### PATHS
-
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 logfile = os.path.join(nav.path.localstatedir, 'log', 'alertengine.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'alertengine.pid')
@@ -104,7 +103,7 @@ def main(args):
 
 
     # Read config file
-    config = getconfig(defaults)
+    config = nav.config.getconfig(configfile, defaults)
 
     # Set variables based on config
     username = config['main']['username']
@@ -155,6 +154,8 @@ def main(args):
     signal.signal(signal.SIGHUP, signalhandler)
     signal.signal(signal.SIGTERM, signalhandler)
 
+    load_dispatchers()
+
     # Loop forever
     logger.info('Starting alertengine loop.')
     while True:
@@ -163,7 +164,6 @@ def main(args):
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
             connection.close()
-
         except Exception, e:
             logger.critical('Unhandeled error: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
             raise e
@@ -192,33 +192,6 @@ def signalhandler(signum, _):
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down')
         sys.exit(0)
-
-def getconfig(defaults = None):
-    """
-    Read whole config from file.
-
-    Arguments:
-        ``defaults'' are passed on to configparser before reading config.
-
-    Returns:
-        Returns a dict, with sections names as keys and a dict for each
-        section as values.
-    """
-
-    config = ConfigParser.RawConfigParser(defaults)
-    config.read(configfile)
-
-    sections = config.sections()
-    configdict = {}
-
-    for section in sections:
-        configsection = config.items(section)
-        sectiondict = {}
-        for opt, val in configsection:
-            sectiondict[opt] = val
-        configdict[section] = sectiondict
-
-    return configdict
 
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""

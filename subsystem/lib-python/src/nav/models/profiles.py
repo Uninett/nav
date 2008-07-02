@@ -29,6 +29,7 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no"
 __id__ = "$Id$"
 
 import logging
+import os
 import sys
 import traceback
 from datetime import datetime
@@ -36,8 +37,11 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Q
 
+import nav.path
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
+from nav.config import getconfig as get_alertengine_config
+from nav.alertengine.dispatchers import DISPATCHERS, DISPATCHER_TYPES
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -45,6 +49,8 @@ from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 logger = logging.getLogger('nav.alertengine')
+
+configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
 # This should be the authorative source as to which models alertengine supports.
 # The acctuall mapping from alerts to data in these models is done the MatchField
@@ -130,26 +136,8 @@ class AlertAddress(models.Model):
 
     DEBUG_MODE = False
 
-    EMAIL = 1
-    SMS = 2
-    JABBER = 3
-
-    # FIXME this does not support our plugin arch
-    ADDRESS_TYPE = (
-        (EMAIL, _('email')),
-        (SMS, _('SMS')),
-        (JABBER, _('Jabber')),
-    )
-
-    # FIXME move this to config
-    ALERT_DISPATCHERS = {
-        EMAIL: 'nav.alertengine.dispatchers.email',
-        SMS: 'nav.alertengine.dispatchers.sms',
-        JABBER: 'nav.alertengine.dispatchers.jabber',
-    }
-
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=ADDRESS_TYPE)
+    type = models.IntegerField(choices=DISPATCHER_TYPES)
     address = models.TextField()
 
     class Meta:
@@ -158,7 +146,7 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
-    def send(self, alert, type=_('now')):
+    def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types'''
 
         # Determine the right language for the user.
@@ -167,20 +155,11 @@ class AlertAddress(models.Model):
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
-        # Load dispatcher if this has not been done yet.
-        if isinstance(AlertAddress.ALERT_DISPATCHERS[self.type], str):
-            try:
-                AlertAddress.ALERT_DISPATCHERS[self.type] = __import__(AlertAddress.ALERT_DISPATCHERS[self.type]+'_dispatcher', globals(), locals(), ['send'])
-            except KeyError:
-                logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
-            except ImportError, e:
-                logger.error('Could not load dispatcher for %s (%s), ie. alert %d could not be sent to %s\n%s' %
-                    (self.type, e, alert.id, self.address, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
-                return
-
-        # Dispatch our message
-        self.ALERT_DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
-
+        try:
+            logger.debug(DISPATCHERS[self.type])
+            DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
+        except KeyError:
+            logger.error('account %s has an unknown alert adress type set, %d, valid types are: %s' % (self.account, self.type, DISPATCHERS))
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''

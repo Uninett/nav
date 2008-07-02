@@ -30,18 +30,20 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 import logging
 
 from nav.models.profiles import SMSQueue
+from nav.alertengine.dispatchers import dispatcher
 
 logger = logging.getLogger('nav.alertengine.dispatchers.sms')
 
-def send(address, alert, language='en', type='unknown'):
-    if address.account.has_perm('alerttype', 'sms'):
-        message = alert.messages.get(language=language, type='sms').message
+class sms(dispatcher):
+    def send(self, address, alert, language='en', type='unknown'):
+        if address.account.has_perm('alerttype', 'sms'):
+            message = alert.messages.get(language=language, type='sms').message
 
-        if not address.DEBUG_MODE:
-            SMSQueue.objects.create(account=address.account, message=message, severity=alert.severity, phone=address.address)
-            logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.adress, type))
+            if not address.DEBUG_MODE:
+                SMSQueue.objects.create(account=address.account, message=message, severity=alert.severity, phone=address.address)
+                logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.adress, type))
+            else:
+                logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.adress, type))
         else:
-            logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.adress, type))
-    else:
-        logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
+            logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
 

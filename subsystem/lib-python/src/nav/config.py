@@ -24,6 +24,7 @@
 #
 import os, os.path, nav.path
 import sys
+import ConfigParser
 
 def readConfig(filename, splitChar='='):
     """Reads a key=value type config file. If the specified path does
@@ -50,3 +51,32 @@ def readConfig(filename, splitChar='='):
 
     file.close()
     return configuration
+
+def getconfig(configfile, defaults = None):
+    """
+    Read whole config from file.
+
+    Arguments:
+        ``configfile'' the configfile to open
+        ``defaults'' are passed on to configparser before reading config.
+
+    Returns:
+        Returns a dict, with sections names as keys and a dict for each
+        section as values.
+    """
+
+    config = ConfigParser.RawConfigParser(defaults)
+    config.read(configfile)
+
+    sections = config.sections()
+    configdict = {}
+
+    for section in sections:
+        configsection = config.items(section)
+        sectiondict = {}
+        for opt, val in configsection:
+            sectiondict[opt] = val
+        configdict[section] = sectiondict
+
+    return configdict
+

@@ -20,9 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+#FIXME Docstring needs to be updated with respect to plugin changes
 """
-Package placeholder. If you remove it, the package won't work.
-
 The dispatchers package contains all the methods that alertengine can use to
 send out alerts. Adding new messaging channels is a simple matter of writting
 a send function that conforms to the following interface.
@@ -46,3 +45,39 @@ for examples.
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
+
+import logging
+import os
+
+import nav.path
+from nav.config import getconfig
+
+logger = logging.getLogger('nav.alertengine.dispatchers')
+configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
+DISPATCHERS = {}
+
+DISPATCHER_TYPES = []
+CONFIG = getconfig(configfile)
+if 'dispatchers' in CONFIG:
+    for key, value in CONFIG['dispatchers'].items():
+        DISPATCHER_TYPES.append((value, key))
+
+class dispatcher:
+    '''Base class for dispatchers'''
+    def __init__(self, config={}):
+        self.config = config
+
+    def __call__(alert, address, language='en', type='unknow'):
+        raise Exception('Not implemented')
+
+def load_dispatchers():
+    config = getconfig(configfile)
+
+    if 'dispatchers' in config:
+        for key, value in config['dispatchers'].items():
+            # Load dispatcher
+            module = __import__(key+'_dispatcher', globals(), locals(), [key])
+
+            DISPATCHERS[int(value)] = getattr(module, key)(config=config.get(key, {}))
+    else:
+        logger.warn('No dispatchers found in config, alertengine can\'t send out any messages')
