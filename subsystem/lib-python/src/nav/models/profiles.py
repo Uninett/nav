@@ -57,12 +57,12 @@ configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 # model.
 SUPPORTED_MODELS = [
     # event models
-    AlertQueue, AlertType, EventType, # Subsystem,
+        AlertQueue, AlertType, EventType,
     # manage models
-    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-    NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
-    Vendor, Vlan,
-    Usage, # Service
+        Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
+        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        Vendor, Vlan,
+        Usage,
 ]
 
 _ = lambda a: a
@@ -89,7 +89,7 @@ class Account(models.Model):
         return self.alertpreference.active_profile
 
     def has_perm(self, action, target):
-        '''Checks user perisions'''
+        '''Checks user permisions by using legacy NAV hasPrivilege function'''
 
         # Simply wrap the hasPrivilege function of non-Django nav.
         account = OldAccount.loadByLogin(str(self.login))
@@ -132,7 +132,7 @@ class AccountOrganization(models.Model):
         return self.orgid
 
 class AlertAddress(models.Model):
-    '''FIXME'''
+    '''Accounts alert addresses, valid types are retrived from alertengine.conf'''
 
     DEBUG_MODE = False
 
@@ -156,7 +156,6 @@ class AlertAddress(models.Model):
             lang = 'en'
 
         try:
-            logger.debug(DISPATCHERS[self.type])
             DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
         except KeyError:
             logger.error('account %s has an unknown alert adress type set, %d, valid types are: %s' % (self.account, self.type, DISPATCHERS))
@@ -218,7 +217,7 @@ class AlertProfile(models.Model):
         return active_timeperiod or tp
 
 class TimePeriod(models.Model):
-    '''FIXME'''
+    '''Defines TimerPeriods and which part of the week they are valid'''
 
     ALL_WEEK = 1
     WEEKDAYS = 2
@@ -241,7 +240,7 @@ class TimePeriod(models.Model):
         return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
 class AlertSubscription(models.Model):
-    '''FIXME'''
+    '''Links an address and timeperiod to a filtergroup with a given subscription type'''
 
     NOW = 0
     DAILY = 1
@@ -292,7 +291,7 @@ class AlertSubscription(models.Model):
 ### Equipment models
 
 class FilterGroupContent(models.Model):
-    '''FIXME'''
+    '''Defines how a given filter should be used in a filtergroup'''
 
     #            inc   pos
     # Add      |  1  |  1  | union in set theory
@@ -333,7 +332,7 @@ class FilterGroupContent(models.Model):
         return '%s filter on %s' % (type, self.filter)
 
 class Operator(models.Model):
-    '''FIXME'''
+    '''Defines valid operators for a given matchfield.'''
 
     EQUALS = 0
     GREATER = 1
@@ -419,7 +418,7 @@ class Operator(models.Model):
 
 
 class Expresion(models.Model):
-    '''FIXME'''
+    '''Combines filer, operator, matchfield and value into an expresion that can be evaluated'''
 
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
@@ -436,7 +435,10 @@ class Expresion(models.Model):
         return Operator(type=self.operator).get_operator_mapping()
 
 class Filter(models.Model):
-    '''FIXME'''
+    '''One or more expresions that are combined with an and operation.
+
+    Handles the actual construction of queries to be run taking into account
+    special cases like the IP datatype and WILDCARD lookups.'''
 
     id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account')
@@ -449,6 +451,14 @@ class Filter(models.Model):
         return self.name
 
     def check(self, alert):
+        '''Combines expresions to an ORM query that will tell us if an alert matched.
+
+        This function builds three dicts that are used in the ORM .filter()
+        .exclude() and .extra() methods which finally gets a .count() as we
+        only need to know if something matched.
+
+        Running alertengine in debug mode will print the dicts to the logs.'''
+
         filter = {}
         exclude = {}
         extra = {'where': [], 'params': []}
@@ -476,7 +486,7 @@ class Filter(models.Model):
                     extra['params'].append(expresion.value)
 
             # Handle wildcard lookups which are not directly supported by
-            # django
+            # django (as far as i know)
             elif expresion.operator == Operator.WILDCARD:
                 # Trick the ORM into joining the tables we want
                 lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
@@ -515,7 +525,7 @@ class Filter(models.Model):
         return False
 
 class FilterGroup(models.Model):
-    '''FIXME'''
+    '''A set of filters group contents that an account can subscribe to or be given permision to'''
 
     owner = models.ForeignKey('Account')
     name = models.TextField()
@@ -530,7 +540,7 @@ class FilterGroup(models.Model):
         return self.name
 
 class MatchField(models.Model):
-    '''FIXME'''
+    '''Defines which fields can be matched upon and how'''
 
     STRING = 0
     INTEGER = 1
@@ -638,7 +648,8 @@ class MatchField(models.Model):
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
-    # on our django models.
+    # on our django models. (field and model need to be set to None to avoid an
+    # ugly side effect of field becoming an acctuall field on MatchField)
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
             key = '%s.%s' % (model._meta.db_table, field.db_column or field.attname)
@@ -685,7 +696,7 @@ class MatchField(models.Model):
 ### AlertEngine models
 
 class SMSQueue(models.Model):
-    '''FIXME'''
+    '''Queue of messages that should be sent or have been sent by SMSd'''
 
     SENT = 'Y'
     NOT_SENT = 'N'
@@ -721,7 +732,7 @@ class SMSQueue(models.Model):
         return super(SMSQueue, self).save(*args, **kwargs)
 
 class AccountAlertQueue(models.Model):
-    '''FIXME'''
+    '''Defines which alerts should be keept around and sent at a later time'''
 
     account = models.ForeignKey('Account')
     subscription = models.ForeignKey('AlertSubscription')
