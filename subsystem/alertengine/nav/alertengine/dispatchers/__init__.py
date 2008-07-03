@@ -20,13 +20,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-#FIXME Docstring needs to be updated with respect to plugin changes
 """
 The dispatchers package contains all the methods that alertengine can use to
 send out alerts. Adding new messaging channels is a simple matter of writting
-a send function that conforms to the following interface.
+a new subclass of ``dispatcher'' overriding send with the following:
 
-    def send(address, alert, language='en', type='unknown'):
+    def send(self, address, alert, language='en', type='unknown'):
         ...
 
 address - the alertaddress object that is "sending" the alert
@@ -58,6 +57,7 @@ DISPATCHERS = {}
 
 DISPATCHER_TYPES = []
 CONFIG = getconfig(configfile)
+# Build a dispatchers types list for use in models.
 if 'dispatchers' in CONFIG:
     for key, value in CONFIG['dispatchers'].items():
         DISPATCHER_TYPES.append((value, key))
@@ -71,6 +71,7 @@ class dispatcher:
         raise Exception('Not implemented')
 
 def load_dispatchers():
+    '''Load all dispatchers classes from config and initialise them'''
     config = getconfig(configfile)
 
     if 'dispatchers' in config:

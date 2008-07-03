@@ -267,12 +267,17 @@ class AlertSubscription(models.Model):
         return 'alerts received %s should be sent %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
 
     def handle_alert(self, alert):
-        '''Decides what to do with an alert based on subscription'''
+        '''Decides what to do with an alert based on subscription
+
+           Returns a touple (sent, queued) indicating how many messages have
+           been sent and queued'''
 
         if self.type == self.NOW:
             # Delegate the sending to the alarm address that knows where this
             # message should go.
             self.alert_address.send(alert)
+
+            return (1,0)
 
         elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
             account = self.time_period.profile.account
@@ -281,8 +286,10 @@ class AlertSubscription(models.Model):
 
             if created:
                 logger.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+                return (0,1)
             else:
                 logger.info('alert %d: allready in alert queue with same subscription for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+                return (0,0)
 
         else:
             logger.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))

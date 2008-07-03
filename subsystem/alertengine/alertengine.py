@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007 UNINETT AS
+# Copyright 2007-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -233,7 +233,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
     """Initalize the logging handler for SMTP."""
 
     try:
-        # localuser will be root if smsd was started as root, since
+        # localuser will be root if alertengine was started as root, since
         # switchuser() is first called at a later time
         localuser = pwd.getpwuid(os.getuid())[0]
         hostname = socket.gethostname()

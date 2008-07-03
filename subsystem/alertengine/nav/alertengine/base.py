@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,6 +19,7 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Thomas Adamcik <thomas.adamcik@uninett.no>
 
 """
 Package placeholder. If you remove it, the package won't work.
@@ -95,9 +96,8 @@ def check_alerts(debug=False):
                     # Check if alert matches, and if user has permision
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                         if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
-                            alertsubscription.handle_alert(alert)
-                            # FIXME this is wrong
-                            sent_new += 1
+                            sent, queued = alertsubscription.handle_alert(alert)
+                            sent_new += sent
                         else:
                             logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                     else:

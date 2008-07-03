@@ -36,7 +36,7 @@ from threading import Thread, Lock
 
 from nav.alertengine.dispatchers import dispatcher
 
-logger = logging.getLogger('nav.alertengine.jabber')
+logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
 
 class jabber(dispatcher):
     con = None
