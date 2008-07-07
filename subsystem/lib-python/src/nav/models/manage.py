@@ -265,7 +265,6 @@ class Module(models.Model):
     description = models.CharField(db_column='descr', max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
-    community_suffix = models.CharField(max_length=-1)
 
     class Meta:
         db_table = 'module'
