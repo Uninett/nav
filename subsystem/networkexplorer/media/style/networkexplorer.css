@@ -1,0 +1,26 @@
+
+.search {
+	float: left;
+	clear: both;
+}
+.networktree {
+	clear: both;
+}
+.gwport_match {
+	font-weight: bold;
+	background: #ddd;
+}
+.gwport_match * {
+	font-weight: normal;
+	background: #fff;
+}
+.swport_match {
+	font-weight: bold;
+	background: #ccc;
+}
+
+.prefix {
+	font-weight: normal;
+	background: #fff;
+}
+
