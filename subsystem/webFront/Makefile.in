@@ -11,10 +11,14 @@ sysconfdir = @sysconfdir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 tooldir = @tooldir@
+djangotmpldir = ${libdir}/templates
 
 tools = useradmin.tool
 
 top_srcdir = @top_srcdir@
+
+DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
+DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
 
 config = contact-information.txt  nav-links.conf  welcome-anonymous.txt external-links.txt webfront.conf welcome-registered.txt
 
@@ -33,6 +37,9 @@ install-lib:
 	@cd lib; \
 	for file in nav/web/*.py; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)/$(pythonlibdir)/$$file || exit 1; \
+	done
+	for file in $(DJANGO_TEMPLATES); do \
+	  $(INSTALL) -v -D -m 644 templates/$$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; \
 	done
 
 install-bin:
