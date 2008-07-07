@@ -57,12 +57,18 @@ public class NetmapControl extends ControlAdapter {
 	    item.setFixed(true);
 	    JPopupMenu t = new JPopupMenu();
 	    if (item.isInGroup("graph.nodes")){
+		    String load;
+		    try {
+			load = String.format("%.2f", Double.parseDouble(item.getString("cpuload"))) + " %";
+		    } catch (java.lang.NumberFormatException parseException){
+			    load = "unknown";
+		    }
 		    t.add(new netboxTooltip(
 					    item.getString("sysname"),
 					    item.getString("category"),
 					    item.getString("type"),
 					    item.getString("room"),
-					    String.format("%.2f", Double.parseDouble(item.getString("cpuload"))) + " %"
+					    load
 					   ));
 	    } else if (item.isInGroup("graph.edges")){
 		    Double cap = -1.0;
