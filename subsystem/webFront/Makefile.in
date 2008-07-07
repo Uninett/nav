@@ -21,13 +21,13 @@ config = contact-information.txt  nav-links.conf  welcome-anonymous.txt external
 .PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
 all: config/webfront.conf
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
 
 config/webfront.conf: config/webfront.conf.source
 	$(top_srcdir)/tools/expand.pl config/webfront.conf.source > config/webfront.conf
 
 install: install-lib install-bin install-web install-conf
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
 
 install-lib:
 	@cd lib; \
@@ -73,8 +73,8 @@ clean:
 	@backups=`find lib bin src -name '*~'`; \
 	rm -f $$backups
 	rm -f *~
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
 
 distclean: clean
 	rm -f Makefile
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@

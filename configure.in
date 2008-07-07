@@ -75,6 +75,7 @@ AC_OUTPUT(Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
+	subsystem/webFront/lib/nav/web/templates/Makefile
 	subsystem/devBrowser/Makefile
 	subsystem/ipinfo/Makefile
 	subsystem/ipinfo/templates/Makefile
@@ -101,7 +102,6 @@ AC_OUTPUT(Makefile
 	subsystem/alertprofiles/Makefile
 	subsystem/alertEngine/Makefile
 	subsystem/alertEngine/alertengine
-	subsystem/webFront/templates/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/smsd/Makefile
 	subsystem/smsd/smsd
