@@ -1,0 +1,14 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-matchfields-save %}{% endblock %}
+
+{% block captioncontent %}
+    {% if detail_id %}
+        Matchfield details
+    {% else %}
+        New matchfield
+    {% endif %}
+{% endblock %}
+
+{% block filter_content %}
+{% endblock %}
