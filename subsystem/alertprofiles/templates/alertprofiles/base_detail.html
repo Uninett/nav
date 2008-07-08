@@ -65,35 +65,14 @@
 </form>
 {% endblock expresions %}
 
-{% block addexpresion %}
 <form action="{% block url_add_expresion %}{% endblock %}" method="post">
-    <table class="listtable">
-        <caption>
-        {% block addexpresion_caption_content %}
-        {% endblock %}
-        </caption>
-
-        <thead>
-            <tr>
-            {% block addexpresion_thead_cols %}
-            {% endblock %}
-            </tr>
-        </thead>
-
-        <tbody>
-        {% block addexpresion_tbody_content %}
-        {% endblock %}
-        </tbody>
-    </table>
-
-    {% block addexpresion_extra_fields %}
+{% block addexpresion %}
     <p>
         <input type="hidden" name="id" value="{{ detail_id }}" />
-        <button type="submit">Add expresion</button>
+        <button type="submit">Add</button>
     </p>
-    {% endblock %}
-</form>
 {% endblock addexpresion %}
+</form>
 
 {% endif %}
 

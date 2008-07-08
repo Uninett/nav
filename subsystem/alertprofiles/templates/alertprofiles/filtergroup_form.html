@@ -49,71 +49,25 @@
     {% endfor %}
 {% endblock %}
 
-{% block addexpresion_caption_content %}
-    Add filter<br />
-    <span class="subtitle">
-        Choose the filter you want to add to this filter group.
-    </span>
-{% endblock %}
+{% block addexpresion %}
+<div class="infobox">
+    <h4>Add another filter to this filter group</h4>
 
-{% block addexpresion_thead_cols %}
-    <th></th>
-    <th>Name</th>
-{% endblock %}
+    <label for="select_operation">Use operation</label>
+    <select name="operator" id="select_operation">
+        <option value="11">Add</option>
+        <option value="01">Substract</option>
+        <option value="00">And</option>
+        <option value="10">Add inverse</option>
+    </select>
 
-{% block addexpresion_tbody_content %}
+    <label for="select_filter">on filter</label>
+    <select name="filter" id="select_filter">
     {% for f in filters %}
-        <tr class="{% cycle oddrow,evenrow %}">
-            <td><input type="radio" name="filter" value="{{ f.id }}" id="addfilterid_{{ f.id }}" /></td>
-            <td><label for="addfilterid_{{ f.id }}">{{ f.name }}</label></td>
-        </tr>
+        <option value="{{ f.id }}">{{ f.name }}</option>
     {% endfor %}
-{% endblock %}
+    </select>
 
-{% block addexpresion_extra_fields %}
-<table class="listtable">
-    <caption>
-        Operator
-    </caption>
-    
-    <tbody>
-        <tr>
-            <th>
-                <label>
-                    <input type="radio" name="operator" value="11" />
-                    Add
-                </label>
-            </th>
-            <td>Union in set theory.</td>
-        </tr>
-        <tr>
-            <th>
-                <label>
-                    <input type="radio" name="operator" value="01" />
-                    Subtract 
-                </label>
-            </th>
-            <td>Exlusion.</td>
-        </tr>
-        <tr>
-            <th>
-                <label>
-                    <input type="radio" name="operator" value="00" />
-                    And 
-                </label>
-            </th>
-            <td>Intersection in set theory.</td>
-        </tr>
-        <tr>
-            <th>
-                <label>
-                    <input type="radio" name="operator" value="10" />
-                    Add inverse 
-                </label>
-            </th>
-            <td>Complement of set.</td>
-        </tr>
-    </tbody>
-</table>
-{{ block.super }}
+    {{ block.super }}
+</div>
 {% endblock %}

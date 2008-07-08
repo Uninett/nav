@@ -26,23 +26,17 @@
     {% endfor %}
 {% endblock %}
 
-{% block addexpresion_caption_content %}
-    Add Expression<br />
-    <span class="subtitle">Choose one type to add</span>
-{% endblock %}
+{% block addexpresion %}
+<div class="infobox">
+    <h4>Add another expression to this filter</h4>
 
-{% block addexpresion_thead_cols %}
-    <th></th>
-    <th>Name</th>
-    <th>Description</th>
-{% endblock %}
-
-{% block addexpresion_tbody_content %}
+    <label for="select_matchfield">Expression</label>
+    <select name="matchfield" id="select_matchfield">
     {% for m in matchfields %}
-        <tr>
-            <td><input type="radio" name="matchfield" id="matchfieldid_{{ m.id }}" value="{{ m.id }}" /></td>
-            <td><label for="matchfieldid_{{ m.id }}">{{ m.name }}</label></td>
-            <td>{{ m.description }}</td>
-        </tr>
+        <option value="{{ m.id }}">{{ m.name }}</option>
     {% endfor %}
+    </select>
+
+    {{ block.super }}
+</div>
 {% endblock %}
