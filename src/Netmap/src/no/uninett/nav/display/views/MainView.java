@@ -143,8 +143,11 @@ public class MainView {
 	    this.cancelActions();
 
 	    ArrayList<String> def_types = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableCategories());
-	    ArrayList<String> link_type = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableLinkTypes());
-	    if (categories != null) {
+		 ArrayList<String> link_type = new ArrayList<String>();
+		 try {
+	    	link_type = new ArrayList<String>(no.uninett.nav.netmap.Main.getResourceHandler().getAvailableLinkTypes());
+	    } catch (Exception e){}
+		 if (categories != null) {
 		    for (String cat : categories) {
 			    if (def_types.contains(cat)) def_types.remove(cat);
 		    }
