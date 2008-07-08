@@ -44,7 +44,7 @@ WEBNAME =
 # Files
 INITFILES = alertengine
 BINS = alertengine.py
-LIBS = $(wildcard nav/alertengine/*.py)
+LIBS = $(wildcard nav/alertengine/*py nav/alertengine/dispatchers/*.py)
 CONFFILES = alertengine.conf
 TOOLS =
 TEMPLATES =

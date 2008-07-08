@@ -150,6 +150,11 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
+-- Add new fields
+ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
+ALTER TABLE alertq ADD closed BOOLEAN;
+-- FIXME add subscrition to accountalertqueue
+
 -- Rename indexes so they match with the new english table names
 ALTER INDEX alarmadresse_pk RENAME TO alertaddress_pkey;
 ALTER INDEX preference_pk RENAME TO alertpreference_pkey;
@@ -198,6 +203,8 @@ ALTER TABLE filter ALTER COLUMN id SET DEFAULT nextval('filter_id_seq');
 
 ALTER TABLE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
 ALTER TABLE filtergroup ALTER COLUMN id SET DEFAULT nextval('filtergroup_id_seq');
+
+ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
 
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause

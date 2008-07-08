@@ -29,15 +29,19 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no"
 __id__ = "$Id$"
 
 import logging
+import os
+import sys
+import traceback
 from datetime import datetime
-from smtplib import SMTPException
 
 from django.db import models
 from django.db.models import Q
-from django.core.mail import EmailMessage
 
+import nav.path
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
+from nav.config import getconfig as get_alertengine_config
+from nav.alertengine.dispatchers import DISPATCHERS, DISPATCHER_TYPES
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -46,17 +50,19 @@ from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
 
 logger = logging.getLogger('nav.alertengine')
 
+configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
+
 # This should be the authorative source as to which models alertengine supports.
 # The acctuall mapping from alerts to data in these models is done the MatchField
 # model.
 SUPPORTED_MODELS = [
     # event models
-    AlertQueue, AlertType, EventType, # Subsystem,
+        AlertQueue, AlertType, EventType,
     # manage models
-    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-    NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
-    Vendor, Vlan,
-    Usage, # Service
+        Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
+        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        Vendor, Vlan,
+        Usage,
 ]
 
 _ = lambda a: a
@@ -83,7 +89,7 @@ class Account(models.Model):
         return self.alertpreference.active_profile
 
     def has_perm(self, action, target):
-        '''Checks user perisions'''
+        '''Checks user permisions by using legacy NAV hasPrivilege function'''
 
         # Simply wrap the hasPrivilege function of non-Django nav.
         account = OldAccount.loadByLogin(str(self.login))
@@ -126,20 +132,12 @@ class AccountOrganization(models.Model):
         return self.orgid
 
 class AlertAddress(models.Model):
-    '''FIXME'''
+    '''Accounts alert addresses, valid types are retrived from alertengine.conf'''
 
     DEBUG_MODE = False
 
-    SMS = 2
-    EMAIL = 1
-
-    ALARM_TYPE = (
-        (EMAIL, _('email')),
-        (SMS, _('SMS')),
-    )
-
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=ALARM_TYPE)
+    type = models.IntegerField(choices=DISPATCHER_TYPES)
     address = models.TextField()
 
     class Meta:
@@ -148,59 +146,19 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
-    def send(self, alert, type=_('now')):
+    def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types'''
 
-        # TODO this should probably be converted to a plugin based system so
-        # that adding features like jabber notification won't be a problem.
-        # This would also imply moving the SMS and email functionality into
-        # other modules.
-
+        # Determine the right language for the user.
         try:
             lang = self.account.accountproperty_set.get(property='language').value or 'en'
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
-        if self.type == self.EMAIL:
-            message = alert.messages.get(language=lang, type='email').message
-
-            # Extract the subject
-            subject = message.splitlines(1)[0].lstrip('Subject:').strip()
-            # Remove the subject line
-            message = '\n'.join(message.splitlines()[1:])
-
-            headers = {
-                'X-NAV-alert-netbox': alert.netbox,
-                'X-NAV-alert-device': alert.device,
-                'X-NAV-alert-subsystem': alert.source,
-            }
-
-            try:
-                if not self.DEBUG_MODE:
-                    email = EmailMessage(subject=subject, body=message, to=[self.address])
-                    email.send(fail_silently=False)
-                    logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, self.address, type))
-                else:
-                    logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, self.address, type))
-
-            except SMTPException, e:
-                logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
-
-        elif self.type == self.SMS:
-            if self.account.has_perm('alerttype', 'sms'):
-                message = alert.messages.get(language=lang, type='sms').message
-
-                if not self.DEBUG_MODE:
-                    SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
-                    logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
-                else:
-                    logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
-
-            else:
-                logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
-
-        else:
-            logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+        try:
+            DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
+        except KeyError:
+            logger.error('account %s has an unknown alert adress type set, %d, valid types are: %s' % (self.account, self.type, DISPATCHERS))
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -259,7 +217,7 @@ class AlertProfile(models.Model):
         return active_timeperiod or tp
 
 class TimePeriod(models.Model):
-    '''FIXME'''
+    '''Defines TimerPeriods and which part of the week they are valid'''
 
     ALL_WEEK = 1
     WEEKDAYS = 2
@@ -282,7 +240,7 @@ class TimePeriod(models.Model):
         return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
 class AlertSubscription(models.Model):
-    '''FIXME'''
+    '''Links an address and timeperiod to a filtergroup with a given subscription type'''
 
     NOW = 0
     DAILY = 1
@@ -300,6 +258,7 @@ class AlertSubscription(models.Model):
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES)
+    ignore_closed_alerts = models.BooleanField()
 
     class Meta:
         db_table = u'alertsubscription'
@@ -308,12 +267,17 @@ class AlertSubscription(models.Model):
         return 'alerts received %s should be sent %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
 
     def handle_alert(self, alert):
-        '''Decides what to do with an alert based on subscription'''
+        '''Decides what to do with an alert based on subscription
+
+           Returns a touple (sent, queued) indicating how many messages have
+           been sent and queued'''
 
         if self.type == self.NOW:
             # Delegate the sending to the alarm address that knows where this
             # message should go.
             self.alert_address.send(alert)
+
+            return (1,0)
 
         elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
             account = self.time_period.profile.account
@@ -322,8 +286,10 @@ class AlertSubscription(models.Model):
 
             if created:
                 logger.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+                return (0,1)
             else:
                 logger.info('alert %d: allready in alert queue with same subscription for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
+                return (0,0)
 
         else:
             logger.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
@@ -332,7 +298,7 @@ class AlertSubscription(models.Model):
 ### Equipment models
 
 class FilterGroupContent(models.Model):
-    '''FIXME'''
+    '''Defines how a given filter should be used in a filtergroup'''
 
     #            inc   pos
     # Add      |  1  |  1  | union in set theory
@@ -373,7 +339,7 @@ class FilterGroupContent(models.Model):
         return '%s filter on %s' % (type, self.filter)
 
 class Operator(models.Model):
-    '''FIXME'''
+    '''Defines valid operators for a given matchfield.'''
 
     EQUALS = 0
     GREATER = 1
@@ -459,7 +425,7 @@ class Operator(models.Model):
 
 
 class Expresion(models.Model):
-    '''FIXME'''
+    '''Combines filer, operator, matchfield and value into an expresion that can be evaluated'''
 
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
@@ -476,7 +442,10 @@ class Expresion(models.Model):
         return Operator(type=self.operator).get_operator_mapping()
 
 class Filter(models.Model):
-    '''FIXME'''
+    '''One or more expresions that are combined with an and operation.
+
+    Handles the actual construction of queries to be run taking into account
+    special cases like the IP datatype and WILDCARD lookups.'''
 
     id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account')
@@ -489,6 +458,14 @@ class Filter(models.Model):
         return self.name
 
     def check(self, alert):
+        '''Combines expresions to an ORM query that will tell us if an alert matched.
+
+        This function builds three dicts that are used in the ORM .filter()
+        .exclude() and .extra() methods which finally gets a .count() as we
+        only need to know if something matched.
+
+        Running alertengine in debug mode will print the dicts to the logs.'''
+
         filter = {}
         exclude = {}
         extra = {'where': [], 'params': []}
@@ -516,7 +493,7 @@ class Filter(models.Model):
                     extra['params'].append(expresion.value)
 
             # Handle wildcard lookups which are not directly supported by
-            # django
+            # django (as far as i know)
             elif expresion.operator == Operator.WILDCARD:
                 # Trick the ORM into joining the tables we want
                 lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
@@ -555,7 +532,7 @@ class Filter(models.Model):
         return False
 
 class FilterGroup(models.Model):
-    '''FIXME'''
+    '''A set of filters group contents that an account can subscribe to or be given permision to'''
 
     owner = models.ForeignKey('Account')
     name = models.TextField()
@@ -570,7 +547,7 @@ class FilterGroup(models.Model):
         return self.name
 
 class MatchField(models.Model):
-    '''FIXME'''
+    '''Defines which fields can be matched upon and how'''
 
     STRING = 0
     INTEGER = 1
@@ -678,7 +655,8 @@ class MatchField(models.Model):
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
-    # on our django models.
+    # on our django models. (field and model need to be set to None to avoid an
+    # ugly side effect of field becoming an acctuall field on MatchField)
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
             key = '%s.%s' % (model._meta.db_table, field.db_column or field.attname)
@@ -687,6 +665,8 @@ class MatchField(models.Model):
             VALUE_MAP[key] = field.attname
             CHOICES.append((key, value.lstrip('_')))
             MODEL_MAP[key] = (model, field.attname)
+        field = None
+    model = None
 
     name = models.TextField()
     description = models.TextField(db_column='descr')
@@ -723,7 +703,7 @@ class MatchField(models.Model):
 ### AlertEngine models
 
 class SMSQueue(models.Model):
-    '''FIXME'''
+    '''Queue of messages that should be sent or have been sent by SMSd'''
 
     SENT = 'Y'
     NOT_SENT = 'N'
@@ -759,7 +739,7 @@ class SMSQueue(models.Model):
         return super(SMSQueue, self).save(*args, **kwargs)
 
 class AccountAlertQueue(models.Model):
-    '''FIXME'''
+    '''Defines which alerts should be keept around and sent at a later time'''
 
     account = models.ForeignKey('Account')
     subscription = models.ForeignKey('AlertSubscription')
@@ -769,14 +749,19 @@ class AccountAlertQueue(models.Model):
     class Meta:
         db_table = u'accountalertqueue'
 
+    def delete(self, *args, **kwargs):
+        # TODO deleting items with the manager will not trigger this behaviour
+        # cleaning up related messages.
+
+        super(AccountAlertQueue, self).delete(*args, **kwargs)
+
+        # Remove the alert from the AlertQueue if we are the last item
+        # depending upon it.
+        if self.alert.accountalertqueue_set.count() == 0:
+            self.alert.delete()
+
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
         self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
 
-        # This operation should delete the item from the queue
         self.delete()
-
-        # Remove the alert from the AlertQueue if we are the last item
-        # depending upon it.
-        if AlertQueue.objects.filter(alert=self.alert).count() == 0:
-            self.alert.delete()

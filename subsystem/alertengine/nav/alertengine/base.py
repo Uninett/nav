@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,6 +19,7 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Thomas Adamcik <thomas.adamcik@uninett.no>
 
 """
 Package placeholder. If you remove it, the package won't work.
@@ -50,8 +51,6 @@ def check_alerts(debug=False):
     # corresponding objects, however it seems better to keep all of this logic
     # in one place. Despite this some the simpler logic has been offloaded to
     # the models themselves.
-
-
 
     # Try to avoid spamming people when running tests
     if debug:
@@ -97,8 +96,8 @@ def check_alerts(debug=False):
                     # Check if alert matches, and if user has permision
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                         if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
-                            alertsubscription.handle_alert(alert)
-                            sent_new += 1
+                            sent, queued = alertsubscription.handle_alert(alert)
+                            sent_new += sent
                         else:
                             logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                     else:
@@ -193,8 +192,9 @@ def check_alerts(debug=False):
         # Get id's of alerts that have been queued for users.
 
         if not debug:
-            AlertQueue.objects.filter(id__in=[a.id for a in new_alerts]).exclude(id__in=alerts_in_account_queues).delete()
-            logger.info('Deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
+            to_delete = AlertQueue.objects.filter(id__in=[a.id for a in new_alerts]).exclude(id__in=alerts_in_account_queues)
+            logger.info('Deleted following alerts from alert queue: %s' % ([a.id for a in to_delete]))
+            to_delete.delete()
         else:
             logger.info('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
