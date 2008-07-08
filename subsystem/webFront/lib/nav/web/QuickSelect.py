@@ -33,16 +33,31 @@ from nav.models.manage import Location, Room, Netbox, Module
 from nav.models.service import Service
 
 class QuickSelect:
-    def __init__(self, prefix='', location=True, room=True, netbox=True, service=False, module=False):
+    def __init__(self, prefix='', location=True, room=True, netbox=True,
+            service=False, module=False, location_label='%(id)s (%(description)s)',
+            room_label='%(id)s (%(description)s)', netbox_label='%(sysname)s',
+            service_label='%(handler)s', module_label='%(module_number)d'):
+
         self.location = location
         self.room = room
         self.netbox = netbox
         self.service = service
         self.module = module
 
+        self.location_label = location_label
+        self.room_label = room_label
+        self.netbox_label = netbox_label
+        self.service_label = service_label
+        self.module_label = module_label
+
         self.location_set = Location.objects.order_by(('id')).values()
         self.service_set = Service.objects.order_by('handler').values()
-        self.netbox_set = Netbox.objects.order_by('sysname').values()
+
+        # Quick hack to add the serial to our values.
+        netbox_value_args = [f.attname for f in Netbox._meta.fields]
+        netbox_value_args.append('device__serial')
+        self.netbox_set = Netbox.objects.order_by('sysname').values(*netbox_value_args)
+
         self.module_set = Module.objects.order_by('module_number').values()
         self.room_set = Room.objects.order_by('id').values()
 
@@ -99,7 +114,7 @@ class QuickSelect:
             if self.location:
                 locations = {'': []}
                 for location in self.location_set:
-                    location_name[location['id']] = '%(id)s (%(description)s)' % location
+                    location_name[location['id']] = self.location_label % location
                     locations[''].append((location['id'], location_name[location['id']]))
 
                 if prefix:
@@ -118,7 +133,7 @@ class QuickSelect:
                 rooms = {}
                 for room in self.room_set:
                     location = location_name.get(room['location_id'])
-                    room_name[room['id']] = '%(id)s (%(description)s)' % room
+                    room_name[room['id']] = self.room_label % room
                     if location in rooms:
                         rooms[location].append((room['id'], room_name[room['id']]))
                     else:
@@ -140,7 +155,7 @@ class QuickSelect:
                 netboxes = {}
                 for netbox in self.netbox_set:
                     room = room_name.get(netbox['room_id'])
-                    netbox_name[netbox['id']] = '%(sysname)s' % netbox
+                    netbox_name[netbox['id']] = self.netbox_label % netbox
                     if room in netboxes:
                         netboxes[room].append((netbox['id'], netbox_name[netbox['id']]))
                     else:
@@ -161,7 +176,7 @@ class QuickSelect:
                 services = {}
                 for service in self.service_set:
                     netbox = netbox_name[service['netbox_id']]
-                    name = '%(handler)s' % service
+                    name = self.service_label % service
                     if netbox in services:
                         services[netbox].append((service['id'], name))
                     else:
@@ -183,7 +198,7 @@ class QuickSelect:
                 modules = {}
                 for module in self.module_set:
                     netbox = netbox_name[module['netbox_id']]
-                    name = '%(module_number)s' % module
+                    name = self.module_label % module
                     if netbox in modules:
                         modules[netbox].append((module['id'], name))
                     else:
