@@ -33,7 +33,6 @@ from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterG
 class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private')
-    name = forms.CharField()
     description = forms.CharField(required=False)
 
     class Meta:
@@ -51,7 +50,6 @@ class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private',
         help_text='Uncheck to allow all users to use this filter.')
-    name = forms.CharField()
 
     class Meta:
         model = Filter
@@ -70,7 +68,6 @@ class MatchFieldForm(forms.ModelForm):
 class ExpresionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
-    value = forms.CharField()
 
     class Meta:
         model = Expresion

@@ -80,7 +80,7 @@ urlpatterns = patterns('',
     # Filter variables (aka. matchfields)
     url(r'^matchfields/$', matchfield_list,
         name='alertprofiles-matchfields'),
-    url(r'^matchfields/(?P<matchfield_id>\d+)/$', 'matchfield_detail',
+    url(r'^matchfields/(?P<matchfield_id>\d+)/$', matchfield_detail,
         name='alertprofiles-matchfields-detail'),
 
     # Admin settings:

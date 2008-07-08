@@ -598,6 +598,32 @@ def matchfield_list(request):
         )
 
 @permission_required
+def matchfield_detail(request, matchfield_id=None):
+    active = {'matchfields': True}
+    account = get_account(request)
+
+    form = None
+
+    try:
+        matchfield = MatchField.objects.get(pk=matchfield_id)
+    except MatchField.DoesNotExist:
+        form = MatchFieldForm()
+        matchfield_id = None
+    else:
+        form = MatchFieldForm(instance=matchfield)
+
+    info_dict = {
+            'active': active,
+            'detail_id': matchfield_id,
+            'form': form,
+        }
+    return render_to_response(
+            AlertProfilesTemplate,
+            'alertprofiles/matchfield_form.html',
+            info_dict,
+        )
+
+@permission_required
 def permission_list(request, group_id=None):
     groups = AccountGroup.objects.all().order_by('name')
 
