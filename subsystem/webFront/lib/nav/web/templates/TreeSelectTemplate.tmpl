@@ -33,33 +33,35 @@
 
     <div class="treeselect">
         #for select in $selectbox.elementList:
-            #if len($select.options)
-                <label>$select.title</label>
-            #end if
+            <div>
+                #if len($select.options)
+                    <label>$select.title</label>
+                #end if
 
-            #if len($select.options)
-                <select name="$select.elementName" onchange="$select.onchange" $select.getAttribs()>
-                    #for option in $select.options
-                        #if $option.optgroup
-                            #if $optgroup_end
-                                </optgroup>
-                                #set optgroup_end = False
-                            #end if
-                            <optgroup label="$option.value">
-                            #set optgroup_end = True
-                        #else
-                            #if $option.selected
-                                <option value="$option.value" selected>$option.text</option>
-                            #elif $option.disabled
-                                <option value="$option.value" disabled>$option.text</option>
+                #if len($select.options)
+                    <select name="$select.elementName" onchange="$select.onchange" $select.getAttribs()>
+                        #for option in $select.options
+                            #if $option.optgroup
+                                #if $optgroup_end
+                                    </optgroup>
+                                    #set optgroup_end = False
+                                #end if
+                                <optgroup label="$option.value">
+                                #set optgroup_end = True
                             #else
-                                <option value="$option.value">$option.text</option>
+                                #if $option.selected
+                                    <option value="$option.value" selected>$option.text</option>
+                                #elif $option.disabled
+                                    <option value="$option.value" disabled>$option.text</option>
+                                #else
+                                    <option value="$option.value">$option.text</option>
+                                #end if
                             #end if
-                        #end if
-                    #end for
-                </select>
-                $select.lastKeys()
-            #end if
+                        #end for
+                    </select>
+                    $select.lastKeys()
+                #end if
+            </div>
         #end for
     </div>
 #end def

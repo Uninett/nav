@@ -27,5 +27,16 @@
 }
 .treeselect select, .treeselect input {
 	margin-bottom: 1em;
-	width: 100%;
+	width: 25em;
+}
+.treeselect div {
+	float: left;
+	margin-right: 0.5em;
+}
+.treeselect:after {
+	content: '.';
+	visibility: hidden;
+	display: block;
+	height: 0;
+	clear: both;
 }
