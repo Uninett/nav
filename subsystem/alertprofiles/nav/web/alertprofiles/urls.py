@@ -82,6 +82,8 @@ urlpatterns = patterns('',
         name='alertprofiles-matchfields'),
     url(r'^matchfields/(?P<matchfield_id>\d+)/$', matchfield_detail,
         name='alertprofiles-matchfields-detail'),
+    url(r'^matchfields/save/$', matchfield_save,
+        name='alertprofiles-matchfields-save'),
 
     # Admin settings:
     #################

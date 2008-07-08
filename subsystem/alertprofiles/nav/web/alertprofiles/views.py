@@ -624,6 +624,34 @@ def matchfield_detail(request, matchfield_id=None):
         )
 
 @permission_required
+def matchfield_save(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
+
+    account = get_account(request)
+    matchfield = None
+
+    form = MatchFieldForm(request.POST)
+
+    # If there are some invalid values, return to form and show the errors
+    if not form.is_valid():
+        info_dict = {
+                'form': form,
+                'active': {'matchfields': True},
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/matchfield_form.html',
+                info_dict,
+            )
+
+    # Save the filter
+    raise Exception(form)
+    form.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail', args=(form.id,)))
+
+@permission_required
 def permission_list(request, group_id=None):
     groups = AccountGroup.objects.all().order_by('name')
 

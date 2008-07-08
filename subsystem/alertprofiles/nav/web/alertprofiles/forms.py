@@ -62,6 +62,9 @@ class FilterForm(forms.ModelForm):
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
 
 class MatchFieldForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    description = forms.CharField(required=False)
+
     class Meta:
         model = MatchField
 
