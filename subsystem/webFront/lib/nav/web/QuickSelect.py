@@ -33,35 +33,60 @@ from nav.models.manage import Location, Room, Netbox, Module
 from nav.models.service import Service
 
 class QuickSelect:
-    def __init__(self, request=None, prefix='', location=True, room=True, netbox=True, service=False, module=False):
-        if location:
-            self.location = Location.objects.values()
-        else:
-            self.location = []
+    def __init__(self, prefix='', location=True, room=True, netbox=True, service=False, module=False):
+        self.location = location
+        self.room = room
+        self.netbox = netbox
+        self.service = service
+        self.module = module
 
-        if room:
-            self.room = Room.objects.values()
-        else:
-            self.room = []
+        self.location_set = Location.objects.order_by(('id')).values()
+        self.service_set = Service.objects.order_by('handler').values()
+        self.netbox_set = Netbox.objects.order_by('sysname').values()
+        self.module_set = Module.objects.order_by('module_number').values()
+        self.room_set = Room.objects.order_by('id').values()
 
-        if netbox:
-            self.netbox = Netbox.objects.values()
-        else:
-            self.netbox = []
-
-        if service:
-            self.service = Service.objects.values()
-        else:
-            self.service = []
-
-        if module:
-            self.module = Module.objects.values()
-        else:
-            self.module = []
-
-        self.request = request
         self.prefix = prefix
         self.output = []
+
+    def handle_post(self, request):
+        result = {
+            'location': [],
+            'service': [],
+            'netbox': [],
+            'module': [],
+            'room': [],
+        }
+
+        if self.prefix:
+            location = 'submit_%s_location' % prefix
+            service = 'submit_%s_service' % prefix
+            module = 'submit_%s_location' % prefix
+            netbox = 'submit_%s_netbox' % prefix
+            room = 'submit_%s_room' % prefix
+        else:
+            location = 'submit_location'
+            service = 'submit_service'
+            module = 'submit_location'
+            netbox = 'submit_netbox'
+            room = 'submit_room'
+
+        if self.location and request.form.has_key(location):
+            result['location'] = request.form.getlist(location[7:])
+
+        if self.room and request.form.has_key(room):
+            result['room'] = request.form.getlist(room[7:])
+
+        if self.netbox and request.form.has_key(netbox):
+            result['netbox'] = request.form.getlist(netbox[7:])
+
+        if self.service and request.form.has_key(service):
+            result['service'] = request.form.getlist(service[7:])
+
+        if self.module and request.form.has_key(module):
+            result['module'] = request.form.getlist(module[7:])
+
+        return result
 
     def __str__(self):
         if not self.output:
@@ -73,22 +98,25 @@ class QuickSelect:
 
             if self.location:
                 locations = {'': []}
-                for location in Location.objects.values():
+                for location in self.location_set:
                     location_name[location['id']] = '%(id)s (%(description)s)' % location
                     locations[''].append((location['id'], location_name[location['id']]))
 
-                [value.sort(key=lambda (k,v): (v,k)) for key,value in locations.iteritems()]
+                if prefix:
+                    name = '%s_%s' % (prefix, 'location')
+                else:
+                    name = 'location'
 
                 output.append({
                         'label': 'Location',
-                        'name': '_'.join([prefix,'location']),
+                        'name': name,
                         'collapse': True,
                         'objects': sorted(locations.iteritems()),
                     })
 
             if self.room:
                 rooms = {}
-                for room in Room.objects.values():
+                for room in self.room_set:
                     location = location_name.get(room['location_id'])
                     room_name[room['id']] = '%(id)s (%(description)s)' % room
                     if location in rooms:
@@ -96,18 +124,21 @@ class QuickSelect:
                     else:
                         rooms[location] = [(room['id'], room_name[room['id']])]
 
-                [value.sort(key=lambda (k,v): (v,k)) for key,value in rooms.iteritems()]
+                if prefix:
+                    name = '%s_%s' % (prefix, 'room')
+                else:
+                    name = 'room'
 
                 output.append({
                         'label': 'Room',
-                        'name': '_'.join([prefix,'room']),
+                        'name': name,
                         'collapse': True,
                         'objects': sorted(rooms.iteritems()),
                     })
 
             if self.netbox:
                 netboxes = {}
-                for netbox in Netbox.objects.values():
+                for netbox in self.netbox_set:
                     room = room_name.get(netbox['room_id'])
                     netbox_name[netbox['id']] = '%(sysname)s' % netbox
                     if room in netboxes:
@@ -115,17 +146,20 @@ class QuickSelect:
                     else:
                         netboxes[room] = [(netbox['id'], netbox_name[netbox['id']])]
 
-                [value.sort(key=lambda (k,v): (v,k)) for key,value in netboxes.iteritems()]
+                if prefix:
+                    name = '%s_%s' % (prefix, 'netbox')
+                else:
+                    name = 'netbox'
 
                 output.append({
                         'label': 'IP device',
-                        'name': '_'.join([prefix,'netbox']),
+                        'name': name,
                         'objects': sorted(netboxes.iteritems()),
                     })
 
             if self.service:
                 services = {}
-                for service in Service.objects.values():
+                for service in self.service_set:
                     netbox = netbox_name[service['netbox_id']]
                     name = '%(handler)s' % service
                     if netbox in services:
@@ -133,18 +167,21 @@ class QuickSelect:
                     else:
                         services[netbox] = [(service['id'], name)]
 
-                [value.sort(key=lambda (k,v): (v,k)) for key,value in services.iteritems()]
+                if prefix:
+                    name = '%s_%s' % (prefix, 'service')
+                else:
+                    name = 'service'
 
                 output.append({
                         'label': 'Service',
-                        'name': '_'.join([prefix,'service']),
+                        'name': name,
                         'collapse': True,
                         'objects': sorted(services.iteritems()),
                     })
 
             if self.module:
                 modules = {}
-                for module in Module.objects.values():
+                for module in self.module_set:
                     netbox = netbox_name[module['netbox_id']]
                     name = '%(module_number)s' % module
                     if netbox in modules:
@@ -152,16 +189,18 @@ class QuickSelect:
                     else:
                         modules[netbox] = [(module['id'], name)]
 
-                [value.sort(key=lambda (k,v): (v,k)) for key,value in modules.iteritems()]
+                if prefix:
+                    name = '%s_%s' % (prefix, 'module')
+                else:
+                    name = 'module'
 
                 output.append({
                         'label': 'Module',
-                        'name': '_'.join([prefix,'module']),
+                        'name': name,
                         'collapse': True,
                         'objects': sorted(modules.iteritems()),
                     })
             self.output = output
-
 
         template = get_template('webfront/quickselect.html')
         context  = Context({'output': output})

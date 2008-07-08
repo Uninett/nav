@@ -4,7 +4,7 @@
             <label for="id{{ attrs.name }}">
                 {{ attrs.label }}
             </label>
-            <select multiple="multiple" size="10" name="{{ attrs.name|slice:"1:" }}" id="id{{ attrs.name }}">
+            <select multiple="multiple" size="10" name="{{ attrs.name }}" id="id_{{ attrs.name }}">
                 {% for optgroup,options in attrs.objects %}
                     {% if optgroup %}
                         <optgroup label="{{ optgroup }}">
@@ -18,7 +18,7 @@
                 {% endfor %}
             </select>
             <p>
-                <input type="submit" name="submit{{ attrs.name }}" value="Add {{ attr.label }}" />
+                <input type="submit" name="submit_{{ attrs.name }}" value="Add {{ attrs.label }}" />
             </p>
         </div>
     {% endfor %}
