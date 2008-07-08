@@ -73,10 +73,10 @@ _ = lambda a: a
 class Account(models.Model):
     ''' NAV's basic account model'''
 
-    login = models.TextField(unique=True)
-    name = models.TextField()
-    password = models.TextField()
-    ext_sync = models.TextField()
+    login = models.CharField(unique=True)
+    name = models.CharField()
+    password = models.CharField()
+    ext_sync = models.CharField()
 
     class Meta:
         db_table = u'account'
@@ -98,8 +98,8 @@ class Account(models.Model):
 class AccountGroup(models.Model):
     '''NAV account groups'''
 
-    name = models.TextField()
-    description = models.TextField(db_column='descr')
+    name = models.CharField()
+    description = models.CharField(db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
 
     class Meta:
@@ -112,8 +112,8 @@ class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    property = models.TextField()
-    value = models.TextField()
+    property = models.CharField()
+    value = models.CharField()
 
     class Meta:
         db_table = u'accountproperty'
@@ -138,7 +138,7 @@ class AlertAddress(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     type = models.IntegerField(choices=DISPATCHER_TYPES)
-    address = models.TextField()
+    address = models.CharField()
 
     class Meta:
         db_table = u'alertaddress'
@@ -182,7 +182,7 @@ class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.TextField()
+    name = models.CharField()
     daily_dispatch_time = models.TimeField()
     weekly_dispatch_day = models.IntegerField()
     weekly_dispatch_time = models.TimeField()
@@ -430,7 +430,7 @@ class Expresion(models.Model):
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.TextField()
+    value = models.CharField()
 
     class Meta:
         db_table = u'expresion'
@@ -449,7 +449,7 @@ class Filter(models.Model):
 
     id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account')
-    name = models.TextField()
+    name = models.CharField()
 
     class Meta:
         db_table = u'filter'
@@ -535,8 +535,8 @@ class FilterGroup(models.Model):
     '''A set of filters group contents that an account can subscribe to or be given permision to'''
 
     owner = models.ForeignKey('Account')
-    name = models.TextField()
-    description = models.TextField(db_column='descr')
+    name = models.CharField()
+    description = models.CharField(db_column='descr')
 
     group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
 
@@ -668,13 +668,13 @@ class MatchField(models.Model):
         field = None
     model = None
 
-    name = models.TextField()
-    description = models.TextField(db_column='descr')
-    value_help = models.TextField()
-    value_id = models.TextField(choices=CHOICES)
-    value_name = models.TextField(choices=CHOICES)
-    value_category = models.TextField(choices=CHOICES)
-    value_sort = models.TextField(choices=CHOICES)
+    name = models.CharField()
+    description = models.CharField(db_column='descr')
+    value_help = models.CharField()
+    value_id = models.CharField(choices=CHOICES)
+    value_name = models.CharField(choices=CHOICES)
+    value_category = models.CharField(choices=CHOICES)
+    value_sort = models.CharField(choices=CHOICES)
     list_limit = models.IntegerField()
     data_type = models.IntegerField(choices=DATA_TYPES)
     show_list = models.BooleanField()
