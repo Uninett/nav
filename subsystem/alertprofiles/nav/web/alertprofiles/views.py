@@ -586,15 +586,16 @@ def filtergroup_movefilter(request):
 def matchfield_list(request):
     # Get all matchfields aka. filter variables
     matchfields = MatchField.objects.all().order_by('name')
-
-    active = {'matchfields': True}
-
+    info_dict = {
+            'active': {'matchfields': True},
+            'form_action': reverse('alertprofiles-matchfields-remove'),
+        }
     return object_list(
             AlertProfilesTemplate,
             request,
             queryset=matchfields,
             template_name='alertprofiles/matchfield_list.html',
-            extra_context={'active': active},
+            extra_context=info_dict,
         )
 
 @permission_required
@@ -609,13 +610,21 @@ def matchfield_detail(request, matchfield_id=None):
     except MatchField.DoesNotExist:
         form = MatchFieldForm()
         matchfield_id = None
+        matchfield_operators_id = []
     else:
         form = MatchFieldForm(instance=matchfield)
+        matchfield_operators_id = [m_operator.type for m_operator in matchfield.operator_set.all()]
+
+    operators = []
+    for o in Operator.OPERATOR_TYPES:
+        selected = o[0] in matchfield_operators_id
+        operators.append({'id': o[0], 'name': o[1], 'selected': selected})
 
     info_dict = {
             'active': active,
             'detail_id': matchfield_id,
             'form': form,
+            'operators': operators,
         }
     return render_to_response(
             AlertProfilesTemplate,
@@ -631,12 +640,20 @@ def matchfield_save(request):
     account = get_account(request)
     matchfield = None
 
-    form = MatchFieldForm(request.POST)
+    try:
+        if not request.POST.get('id'):
+            raise MatchField.DoesNotExist
+        m = MatchField.objects.get(pk=request.POST.get('id'))
+    except MatchField.DoesNotExist:
+        form = MatchFieldForm(request.POST)
+    else:
+        form = MatchFieldForm(request.POST, instance=m)
 
     # If there are some invalid values, return to form and show the errors
     if not form.is_valid():
         info_dict = {
                 'form': form,
+                'operator_form': operator_form,
                 'active': {'matchfields': True},
             }
         return render_to_response(
@@ -645,11 +662,38 @@ def matchfield_save(request):
                 info_dict,
             )
 
-    # Save the filter
-    raise Exception(form)
-    form.save()
+    matchfield = form.save()
 
-    return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail', args=(form.id,)))
+    operators = []
+    for o in request.POST.getlist('operator'):
+        operators.append(Operator(type=int(o), match_field=matchfield))
+    matchfield.operator_set.all().delete()
+    matchfield.operator_set.add(*operators)
+
+    return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail', args=(matchfield.id,)))
+
+@permission_required
+def matchfield_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-filters'))
+
+    if request.POST.get('confirm'):
+        matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('element'))
+        matchfields.delete()
+        return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
+    else:
+        matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('matchfield'))
+        info_dict = {
+                'form_action': reverse('alertprofiles-matchfields-remove'),
+                'active': {'matchfields': True},
+                'elements': matchfields,
+                'perform_on': None,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+            )
 
 @permission_required
 def permission_list(request, group_id=None):

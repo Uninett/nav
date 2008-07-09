@@ -28,7 +28,7 @@ __id__ = "$Id$"
 
 from django import newforms as forms
 
-from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup
+from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, Operator
 
 class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
@@ -63,7 +63,6 @@ class FilterForm(forms.ModelForm):
 
 class MatchFieldForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    description = forms.CharField(required=False)
 
     class Meta:
         model = MatchField

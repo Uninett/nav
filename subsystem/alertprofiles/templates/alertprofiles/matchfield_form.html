@@ -10,5 +10,20 @@
     {% endif %}
 {% endblock %}
 
+{% block form_additional_fields %}
+<tr>
+    <th><label for="id_operator">Available operators:</label></th>
+    <td>
+        <select name="operator" id="id_operator" multiple="multiple">
+        {% for o in operators %}
+            <option value="{{ o.id }}"
+            {% if o.selected %}selected="selected"{% endif %}
+            >{{ o.name }}</option>
+        {% endfor %}
+        </select>
+    </td>
+</tr>
+{% endblock %}
+
 {% block filter_content %}
 {% endblock %}
