@@ -73,6 +73,8 @@ public class Main extends JPrefuseApplet {
 
     private javax.swing.JCheckBoxMenuItem allLinktypes;
     private javax.swing.JCheckBoxMenuItem freezeCheckbox;
+    private javax.swing.JButton increaseFontSizeButton;
+    private javax.swing.JButton decreaseFontSizeButton;
     private javax.swing.JMenu categoryMenu;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenu freezeMenu;
@@ -189,6 +191,21 @@ public class Main extends JPrefuseApplet {
             }
         };
 
+        ActionListener increaseFontSizeHandler = new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                        if (m_view != null){
+                                m_view.increaseFontSize();
+                        }
+                }
+        };
+        ActionListener decreaseFontSizeHandler = new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                        if (m_view != null){
+                                m_view.decreaseFontSize();
+                        }
+                }
+        };
+
         /*
          * Clear and add available checkboxes according
          * to what the server has.
@@ -245,6 +262,15 @@ public class Main extends JPrefuseApplet {
         freezeCheckbox.setToolTipText("Stop the layout-process.");
         freezeCheckbox.addActionListener(freezeButtonHandler);
         freezeMenu.add(freezeCheckbox);
+
+        increaseFontSizeButton = new javax.swing.JButton("Increase font size");
+        increaseFontSizeButton.addActionListener(increaseFontSizeHandler);
+        freezeMenu.add(increaseFontSizeButton);
+        decreaseFontSizeButton = new javax.swing.JButton("Decrease font size");
+        decreaseFontSizeButton.addActionListener(decreaseFontSizeHandler);
+        freezeMenu.add(decreaseFontSizeButton);
+
+
 
         menuBar.add(freezeMenu);
 
