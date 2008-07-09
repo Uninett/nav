@@ -41,6 +41,9 @@ public class MainView {
     private Logger log = Logger.getLogger("netmap");
     private Node largest = null;
     private NetmapGrouping ng;
+    private int currentFontSize = 80;
+
+	private prefuse.action.assignment.FontAction fontAction;
 
     @SuppressWarnings(value = "unchecked")
     public void prepare() {
@@ -72,8 +75,8 @@ public class MainView {
         prefuse.action.ItemAction nodeColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.FILLCOLOR, prefuse.util.ColorLib.rgb(255, 0, 0));
         prefuse.action.ItemAction textColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.TEXTCOLOR, prefuse.util.ColorLib.rgb(0, 0, 0));
 
-        prefuse.action.assignment.FontAction fontAction = new prefuse.action.assignment.FontAction();
-        fontAction.setDefaultFont(new java.awt.Font("Serif", 1, 80));
+        fontAction = new prefuse.action.assignment.FontAction();
+        fontAction.setDefaultFont(new java.awt.Font("Serif", 1, currentFontSize));
 
         // create an action list containing all color assignments
         prefuse.action.ActionList color = new prefuse.action.ActionList();
@@ -233,4 +236,14 @@ public class MainView {
 	    ((prefuse.action.assignment.FontAction)no.uninett.nav.netmap.Main.getVis().getAction("font")).setDefaultFont(font);
 	    no.uninett.nav.netmap.Main.getVis().run("font");
     }
+    public void increaseFontSize(){
+	currentFontSize += 4;
+        setFont(new java.awt.Font("Serif", 1, currentFontSize));
+    }
+    public void decreaseFontSize(){
+	if (currentFontSize < 10) return;
+	currentFontSize -= 4;
+        setFont(new java.awt.Font("Serif", 1, currentFontSize));
+    }
+
 }
