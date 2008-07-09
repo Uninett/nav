@@ -651,9 +651,14 @@ def matchfield_save(request):
 
     # If there are some invalid values, return to form and show the errors
     if not form.is_valid():
+        operators = []
+        selected_operators = [int(o) for o in request.POST.getlist('operator')]
+        for o in Operator.OPERATOR_TYPES:
+            selected = o[0] in selected_operators
+            operators.append({'id': o[0], 'name': o[1], 'selected': selected})
         info_dict = {
                 'form': form,
-                'operator_form': operator_form,
+                'operators': operators,
                 'active': {'matchfields': True},
             }
         return render_to_response(
