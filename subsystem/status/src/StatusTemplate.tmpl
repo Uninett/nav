@@ -52,8 +52,10 @@ $displaySectionBoxes($history)
 #end def
 
 #def additionalMeta
+#if not $prefs
 ## Refresh every 30 seconds
 <meta http-equiv="refresh" content="30" />
+#end if
 #end def
 
 #def additionalCSS
@@ -237,6 +239,7 @@ $default_table_CSS()
 
 ## This renders the preferences page
 #def displayPrefs($prefsPage)
+
 ## move this from template to StatusPrefs.py
 <p>Add, delete or rearrange sections on your status page.</p>
 
