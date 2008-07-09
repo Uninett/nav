@@ -87,6 +87,7 @@ class ExpresionForm(forms.ModelForm):
                 # Values are selected from a multiple choice list.
                 # Populate that list with possible choices.
                 model, attname = MatchField.MODEL_MAP[match_field.value_id]
-                choices = [(getattr(a, attname), getattr(a, attname)) for a in model.objects.all()]
+                model_objects = model.objects.all()[:match_field.list_limit]
+                choices = [(getattr(a, attname), getattr(a, attname)) for a in model_objects]
                 choices = sorted(choices)
                 self.fields['value'] = forms.MultipleChoiceField(choices=choices)
