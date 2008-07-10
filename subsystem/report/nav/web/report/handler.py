@@ -109,8 +109,34 @@ def handler(req):
                     (c,d) = a.split("=")
                     argsdict[c] = d
 
+        scope = None
         if argsdict.has_key("scope") and argsdict["scope"]:
 			scope = IP(argsdict["scope"])
+        else:
+            # Find all scopes in database.
+            from nav import db
+            import psycopg
+            connection = db.getConnection('webfront','manage')
+            database = connection.cursor()
+            database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
+
+            databasescopes = database.fetchall()
+            if len(databasescopes) == 1:
+                # If there is a single scope in the db, display that
+                scope = IP(databasescopes[0][0])
+            else:
+                # Otherwise, show an error or let the user select from
+                # a list of scopes.
+                page = MatrixScopesTemplate()
+                page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+                page.scopes = []
+                for scope in databasescopes:
+                    page.scopes.append(scope[0])
+
+                req.write(page.respond())
+                return apache.OK
+        # If a single scope has been selected, display that.
+        if scope is not None:
 			show_unused_addresses = True
 
 			if argsdict.has_key("show_unused_addresses"):
@@ -140,29 +166,6 @@ def handler(req):
 				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())
 
-        else:
-
-            from nav import db
-            import psycopg
-            connection = db.getConnection('webfront','manage')
-            database = connection.cursor()
-            database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
-
-            databasescopes = database.fetchall()
-            if len(databasescopes) == 1:
-                matrix = Matrix(databasescopes[0][0])
-                req.write(matrix.makeMatrix())
-
-            else:
-                ## print all scopes or error message
-
-                page = MatrixScopesTemplate()
-                page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
-                page.scopes = []
-                for scope in databasescopes:
-                    page.scopes.append(scope[0])
-
-                req.write(page.respond())
 
     else:
         page = ReportTemplate()
