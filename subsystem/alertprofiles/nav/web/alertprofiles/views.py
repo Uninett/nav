@@ -111,24 +111,28 @@ def filter_list(request):
             extra_context=info_dict,
         )
 
-def filter_detail(request, filter_id=None):
+def filter_show_form(request, filter_id=None, filter_form=None):
+    '''Convenience method for showing the filter form'''
     active = {'filters': True}
     account = get_account(request)
     admin = is_admin(account)
 
-    filter_form = None
     expresions = None
     matchfields = None
 
-    if filter_id:
-        filter = get_object_or_404(Filter, pk=filter_id)
-        filter_form = FilterForm(instance=filter, admin=admin)
+    # If no form i supplied we must make one
+    if not filter_form:
+        if filter_id:
+            filter = get_object_or_404(Filter, pk=filter_id)
+            filter_form = FilterForm(instance=filter, admin=admin)
+        else:
+            filter_form = FilterForm(initial={'owner': account}, admin=admin)
 
+    # We assume that if no filter_id is set this filter has not been saved
+    if filter_id:
         matchfields = MatchField.objects.all()
         # Get all matchfields (many-to-many connection by table Expresion)
         expresions = Expresion.objects.filter(filter=filter_id)
-    else:
-        filter_form = FilterForm(initial={'owner': account}, admin=admin)
 
     return render_to_response(
             AlertProfilesTemplate,
@@ -142,6 +146,9 @@ def filter_detail(request, filter_id=None):
                     'expresions': expresions,
                 },
         )
+
+def filter_detail(request, filter_id=None):
+    return filter_show_form(request, filter_id)
 
 def filter_save(request):
     if not request.method == 'POST':
@@ -163,15 +170,8 @@ def filter_save(request):
 
     # If there are some invalid values, return to form and show the errors
     if not form.is_valid():
-        info_dict = {
-                'form': form,
-                'active': {'filters': True},
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/filter_form.html',
-                info_dict,
-            )
+        detail_id = request.POST.get('id') or None
+        return filter_show_form(request, detail_id, form)
 
     # Set the fields in Filter to the submited values
     if request.POST.get('id'):
@@ -337,26 +337,33 @@ def filtergroup_list(request):
             extra_context=info_dict
         )
 
-def filtergroup_detail(request, filter_group_id=None):
+def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None):
+    '''Convenience method for showing the filter group form'''
     active = {'filtergroups': True}
     account = get_account(request)
     admin = is_admin(account)
 
-    form = None
     filtergroupcontent = None
     filters = None
 
+    # If id is supplied we can assume that this is a already saved filter
+    # group, and we can fetch it and get it's content and available filters
     if filter_group_id:
         filtergroup = get_object_or_404(FilterGroup, pk=filter_group_id)
-        form = FilterGroupForm(instance=filtergroup, admin=admin)
-
-        filtergroupcontent = FilterGroupContent.objects.filter(filter_group=filtergroup.id).order_by('priority')
+        filtergroupcontent = FilterGroupContent.objects.filter(
+                filter_group=filtergroup.id
+            ).order_by('priority')
         filters = Filter.objects.filter(
                 Q(owner__exact=account.pk) | Q(owner__isnull=True) &
                 ~Q(pk__in=[f.filter.id for f in filtergroupcontent])
             ).order_by('owner', 'name')
-    else:
-        form = FilterGroupForm(initial={'owner': account}, admin=admin)
+
+    # If no form is supplied we must make it
+    if not filter_group_form:
+        if filter_group_id:
+            filter_group_form = FilterGroupForm(instance=filtergroup, admin=admin)
+        else:
+            filter_group_form = FilterGroupForm(initial={'owner': account}, admin=admin)
 
     info_dict = {
             'active': active,
@@ -364,13 +371,16 @@ def filtergroup_detail(request, filter_group_id=None):
             'detail_id': filter_group_id,
             'filter_group_content': filtergroupcontent,
             'filters': filters,
-            'form': form,
+            'form': filter_group_form,
         }
     return render_to_response(
             AlertProfilesTemplate,
             'alertprofiles/filtergroup_form.html',
             info_dict,
         )
+
+def filtergroup_detail(request, filter_group_id=None):
+    return filtergroup_show_form(request, filter_group_id)
 
 def filtergroup_save(request):
     if not request.method == 'POST':
@@ -388,15 +398,8 @@ def filtergroup_save(request):
         form = FilterGroupForm(request.POST, admin=admin)
 
     if not form.is_valid():
-        info_dict = {
-                'form': form,
-                'active': {'filtergroups': True},
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/filtergroup_form.html',
-                info_dict,
-            )
+        detail_id = request.POST.get('id') or None
+        return filtergroup_show_form(request, detail_id, form)
 
     if request.POST.get('id'):
         filter_group.name = request.POST.get('name')
@@ -599,20 +602,20 @@ def matchfield_list(request):
         )
 
 @permission_required
-def matchfield_detail(request, matchfield_id=None):
+def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     active = {'matchfields': True}
     account = get_account(request)
-
-    form = None
 
     try:
         matchfield = MatchField.objects.get(pk=matchfield_id)
     except MatchField.DoesNotExist:
-        form = MatchFieldForm()
+        if not matchfield_form:
+            matchfield_form = MatchFieldForm()
         matchfield_id = None
         matchfield_operators_id = []
     else:
-        form = MatchFieldForm(instance=matchfield)
+        if not matchfield_form:
+            matchfield_form = MatchFieldForm(instance=matchfield)
         matchfield_operators_id = [m_operator.type for m_operator in matchfield.operator_set.all()]
 
     operators = []
@@ -623,7 +626,7 @@ def matchfield_detail(request, matchfield_id=None):
     info_dict = {
             'active': active,
             'detail_id': matchfield_id,
-            'form': form,
+            'form': matchfield_form,
             'operators': operators,
         }
     return render_to_response(
@@ -631,6 +634,9 @@ def matchfield_detail(request, matchfield_id=None):
             'alertprofiles/matchfield_form.html',
             info_dict,
         )
+
+def matchfield_detail(request, matchfield_id=None):
+    return matchfield_show_form(request, matchfield_id)
 
 @permission_required
 def matchfield_save(request):
@@ -651,21 +657,8 @@ def matchfield_save(request):
 
     # If there are some invalid values, return to form and show the errors
     if not form.is_valid():
-        operators = []
-        selected_operators = [int(o) for o in request.POST.getlist('operator')]
-        for o in Operator.OPERATOR_TYPES:
-            selected = o[0] in selected_operators
-            operators.append({'id': o[0], 'name': o[1], 'selected': selected})
-        info_dict = {
-                'form': form,
-                'operators': operators,
-                'active': {'matchfields': True},
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/matchfield_form.html',
-                info_dict,
-            )
+        detail_id = request.POST.get('id') or None
+        return matchfield_show_form(request, detail_id, form)
 
     matchfield = form.save()
 
