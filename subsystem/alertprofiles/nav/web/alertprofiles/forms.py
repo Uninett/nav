@@ -48,8 +48,8 @@ class FilterGroupForm(forms.ModelForm):
 
 class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    owner = forms.BooleanField(required=False, label='Private',
-        help_text='Uncheck to allow all users to use this filter.')
+    owner = forms.BooleanField(required=False, label=u'Private',
+        help_text=u'Uncheck to allow all users to use this filter.')
 
     class Meta:
         model = Filter
@@ -73,24 +73,36 @@ class MatchFieldForm(forms.ModelForm):
         model = MatchField
 
     def clean_value_name(self):
-        clean_value_id = self.cleaned_data['value_id']
         clean_value_name = self.cleaned_data['value_name']
-        if clean_value_name:
-            model, attname = MatchField.MODEL_MAP[clean_value_id]
-            name_model, name_attname = MatchField.MODEL_MAP[clean_value_name.split('|')[0]]
-            if not model == name_model:
-                raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
+        try:
+            clean_value_id = self.cleaned_data['value_id']
+        except:
+            # value_id is not set. We pass and return clean_value_name.
+            # value_id is required and will raise it's own ValidationErrors
+            pass
+        else:
+            if clean_value_name:
+                model, attname = MatchField.MODEL_MAP[clean_value_id]
+                name_model, name_attname = MatchField.MODEL_MAP[clean_value_name.split('|')[0]]
+                if not model == name_model:
+                    raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
         return clean_value_name
 
 
     def clean_value_sort(self):
-        clean_value_id = self.cleaned_data['value_id']
         clean_value_sort = self.cleaned_data['value_sort']
-        if clean_value_sort:
-            model, attname = MatchField.MODEL_MAP[clean_value_id]
-            sort_model, sort_attname = MatchField.MODEL_MAP[clean_value_sort]
-            if not model == sort_model:
-                raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
+        try:
+            clean_value_id = self.cleaned_data['value_id']
+        except:
+            # value_id is not set. We pass and return clean_value_name.
+            # value_id is required and will raise it's own ValidationErrors
+            pass
+        else:
+            if clean_value_sort:
+                model, attname = MatchField.MODEL_MAP[clean_value_id]
+                sort_model, sort_attname = MatchField.MODEL_MAP[clean_value_sort]
+                if not model == sort_model:
+                    raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
         return clean_value_sort
 
 class ExpresionForm(forms.ModelForm):
