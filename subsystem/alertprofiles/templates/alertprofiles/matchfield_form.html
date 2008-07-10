@@ -21,6 +21,12 @@
             >{{ o.name }}</option>
         {% endfor %}
         </select>
+        <br />
+        The operators that will be available to use on this match field.<br />
+        Note:<br />
+        Only "equals" and "in" makes sense when "Show list" is checked, there
+        is however nothing that will prevent you from selecting them all for
+        use on a list, but alert engine won't understand it.
     </td>
 </tr>
 {% endblock %}
