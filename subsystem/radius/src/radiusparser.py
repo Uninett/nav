@@ -1,30 +1,5 @@
 #!/usr/local/bin/python -W ignore
 # -*- coding: utf-8 -*-
-#
-# Copyright 2003-2004 Norwegian University of Science and Technology
-# Copyright 2006-2007 UNINETT AS
-#
-# This file is part of Network Administration Visualized (NAV)
-#
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-#
-# Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
-#          Kai Bjørnenak <kai.bjornenak@cc.uit.no>
-#
 
 import psycopg
 import sys
@@ -40,13 +15,13 @@ import datetime
 def main(args):
 
     # Config
-    host    = ""
+    host    = "" # Hostname where the nav-database runs
     dbname  = "manage"
-    user    = "<navuser>"
-    passwd  = ""
+    user    = "" # Username for the nav-database, usually 'nav'
+    passwd  = "" # Password for nav-user
     db_radiuslog_table = "radiuslog"
 
-    logfile = "/usr/local/var/log/radius/radius.log"
+    logfile = "" # Location of the freeradius-logfile to parse
 
 
     try:
@@ -85,6 +60,20 @@ def main(args):
             except AttributeError, e:
                 print "AttributeError: " + line
                 
+
+            # We want to look for octals in the messages
+            p = re.compile(r'(\\\d\d\d)')
+            
+            # Then parse the octals, this is a workaround since
+            # Freeradius encodes non-ascii characters with UTF8
+            # in octals and we need to let python evaluate them 
+            # before they are chucked into the DB
+            if p.search(row.message):
+                row.message = parse_octals(row.message)
+                row.client = parse_octals(row.client)
+                row.user = parse_octals(row.user)
+            
+
             # Logging to find out what the maximum length of the db fields
             # need to be
 
@@ -135,6 +124,18 @@ def main(args):
     sys.exit()
 
 
+
+# Parses octals from the freeradius-server
+def parse_octals(line):
+    
+    def suboct(match):
+        return eval("'" + match.group(1) + "'")
+        # Consider: eval(func,{"__builtins__":None},{})
+        # Maybe Not necessary here
+    
+    ret = re.sub(r'(\\\d\d\d)', suboct, line)
+
+    return ret
 
 def pid_running(pidfile="/tmp/radiusparser_po.pid"):
     """
@@ -348,22 +349,15 @@ class Tail(object):
 
 auth_pattern = re.compile('^(?P<time>.*) : (?P<type>Auth): (?P<message>(?P<status>.*?): \[(?P<user>.*?)\] \(from client (?P<client>[^ ]+) port (?P<port>[^ ]+)( cli (?P<cli>[^ ]+)|)\))\s*$')
 other_pattern = re.compile('^(?P<time>.*) : (?P<type>[^:]+): (?P<message>.*?)\s*$')
-wrong_encoding_pattern = re.compile(r'`\\\d{3}')
 ignore_rlmsql = re.compile('Error: rlm_sql')
 
 unknown = []
-lineno = 0
 
 
 def parse_line(line):
     """
     Parse a line in the radius error log
-
-    By Ole Martin Bjorndalen
-    Modified by Kai Bjornenak
     """
-    global lineno
-    lineno += 1
     
     # Try to parse this as an authentication line
     # (the common case by far)
@@ -371,16 +365,6 @@ def parse_line(line):
     if m:
         return m
     else:
-        #DEV This is a special case where a bunch of numbers on the form
-        # \xxx\xxx\xxx\ gets inserted in the log message. Might only
-        # apply to conditions at UiTø. However we decided to remove the 
-        # numbers and replace them with nothing.
-        m = wrong_encoding_pattern.search(line) 
-        if m:
-            m = re.sub(wrong_encoding_pattern, '', m.group(message))
-            return m
-            #unknown.append(line)
-            #return None
         #DEV We want to ignore some freeradius sql-errors as well
         m = ignore_rlmsql.search(line)
         if m:
