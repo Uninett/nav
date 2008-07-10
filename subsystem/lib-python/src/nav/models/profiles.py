@@ -447,7 +447,6 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups.'''
 
-    id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account')
     name = models.CharField()
 
@@ -650,7 +649,7 @@ class MatchField(models.Model):
 
     # Build the mapping we need to be able to do checks.
     VALUE_MAP = {}
-    CHOICES = [('', _('No references'))]
+    CHOICES = []
     MODEL_MAP = {}
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
@@ -669,15 +668,15 @@ class MatchField(models.Model):
     model = None
 
     name = models.CharField()
-    description = models.CharField(db_column='descr')
-    value_help = models.CharField()
-    value_id = models.CharField(choices=CHOICES)
-    value_name = models.CharField(choices=CHOICES)
-    value_category = models.CharField(choices=CHOICES)
-    value_sort = models.CharField(choices=CHOICES)
-    list_limit = models.IntegerField()
-    data_type = models.IntegerField(choices=DATA_TYPES)
-    show_list = models.BooleanField()
+    description = models.CharField(db_column='descr', blank=True)
+    value_help = models.CharField(u'Help text for the matchfield', blank=True, help_text=u'Displayed by the value input box in the GUI to help users enter sane values.')
+    value_id = models.CharField(u'Matchfield, the database field to watch', choices=CHOICES, help_text=u'This is the acctual field alert engine will watch.')
+    value_name = models.CharField(u'Description for the matchfield used in the GUI', choices=CHOICES, blank=True, help_text=u'Only used in the GUI to show additonal description of the matchfield. Only does something when "Show list" is checked.')
+    value_category = models.CharField(u'Somthing that was never implemented', choices=CHOICES, blank=True, help_text=u'Should have been a way to group options in the GUI.')
+    value_sort = models.CharField(u'Order matchfields by this field', choices=CHOICES, blank=True, help_text=u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
+    list_limit = models.IntegerField(blank=True, help_text=u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
+    data_type = models.IntegerField(choices=DATA_TYPES, help_text=u'The data type of the match field. Purely cosmetic')
+    show_list = models.BooleanField(blank=True, help_text=u'If unchecked values can be entered into a text input. If checked values must be selected from a list populated by data from the match field selected above.')
 
     class Meta:
         db_table = u'matchfield'
