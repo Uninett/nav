@@ -7,25 +7,14 @@ sysconfdir = @sysconfdir@
 tooldir = @tooldir@
 
 tool = radius.tool
-conffiles = radius.conf
 
-.PHONY: all install clean distclean install-conf
+.PHONY: all install clean distclean
 
 all:
 	$(MAKE) -C src $@
 
-install: install-conf install-web
+install: install-web
 	$(MAKE) -C src $@
-
-install-conf:
-	@for file in $(conffiles); do                          \
-	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
-	  if [ -f "$$target" ]; then                           \
-	    echo Skipping installation of config file $$file;  \
-	  else                                                 \
-	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
-	  fi;                                                  \
-	done
 
 install-web:
 	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)

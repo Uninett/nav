@@ -1,13 +1,8 @@
-Author: Roger Kristiansen <roger.kristiansen@gmail.com>
+Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
 	Kai Bjørnenak <kai.bjornenak@cc.uit.no>
 
 Created:        Aug. 4, 2005
-
-Changelog:      Mar. 30, 2006 - This module originally intended to be a Radius
-                                accounting module. Updated docs to reflect that
-                                it is now made into a more generic Radius module.
-		Feb. 12, 2008 - Added freeradius encoding error in the Error log 
-		     	      	section.
+Last changed:	May, 23, 2008
 
 --------------------------------------------------------------------------------
 
@@ -65,11 +60,9 @@ tables are from MachineTracker. Authors of MachineTracker are:
 There have yet to be confirmed reports on this stuff working (or even being 
 tried) on any other setup than what it was developed on, which is:
 
-NAV v3.3.2
+NAV v3.3.3
 PostgreSQL 7.4.8
 Python 2.4
-
-..and has only been viewed using Mozilla Firefox 2.0.0.12 during development.
 
 Please tell us about successful installs on other setups.
 
@@ -98,8 +91,8 @@ Usage
 Intro
 -----
 The visual part of the Radius accounting subsystem consists of 3 main sections;
-a search page, a page for displaying details about a specific session, and a
-page containing various statistics/charts.
+a search page, a page for displaying details about a specific session, a
+page top users in terms of traffic and a search page for the error-log.
 
 
 Search page
@@ -133,7 +126,7 @@ user, using the already specified time interval. A click on a session id will
 bring up all available details for that session.
 
 Take care when searching for large time intervals, so you don't trash your
-DB server. ;]
+DB server.
 
 
 Details page
@@ -147,33 +140,15 @@ Charts page
 Displays top upload, top download, and top overall bandwidth hog for as many
 days back as the user specifies. The default is a week (7 days).
 
-These chart will lie a little, since it sums up all sessions that _ended_ within
+This chart will lie a little, since it sums up all sessions that ended within
 the specified number of days. The reason for doing this is that we only get any
 numbers on how much data the user has sent/received when the session ends. Thus
 there is really no way to know for sure, just from the radius accounting log,
-_when_ during the session the data was transferred. 
+when during the session the data was transferred. 
 
-Of course, we could always limit the search to sessions that only _started_
+Of course, we could always limit the search to sessions that only started
 inside our search interval, but then a lot of long sessions might slip under
-the radar. Let us know what you prefer. Maybe we could let the user select
-which mode to use using a couple of radiobuttons?
-
-
-
-
-.--------------------.
-| Error log          |
-'--------------------'
-
-Freeradius encoding 
-
-This is a bug or possibly some flaw in the configuration of the
-freeradius server where norwegian characters ÆØÅ and cyrilic
-characters gets replaced by its octal representation on the form
-\xxx\xxx. To give an example the octal representation \303\246 is the
-norwegian character æ. I suspect this bug also affects characters with
-accents and other "special" characters. Most likely this is linked to
-some UTF8 encoding error somewhere in the server.
+the radar.
 
 
 
@@ -219,6 +194,18 @@ any of this.
 
 
 
+Freeradius encoding 
+-------------------
+
+This module do not handle freeradius's way of encoding characters with
+UTF8 gracefully. Norwegian characters ÆØÅ and cyrilic characters gets
+replaced by its octal representation on the form \xxx\xxx. To give an
+example the octal representation \303\246 is the norwegian character
+æ. I suspect this bug also affects characters with accents and other
+special characters.
+
+
+
 
 --------------------------------------------------------------------------------
 
@@ -230,11 +217,3 @@ Session Details
   how people use the information on this page would be useful for knowing what
   to link to.
 
-
-Graphics
---------
-* Get custom graphics for the table headings and NAV main menu item.
-
-Code
-----
-* Validate the HTML..?

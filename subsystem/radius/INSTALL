@@ -41,10 +41,9 @@ The module has been tested and run on the following:
 
 NAV 3.3.2
 FreeBSD 6.2
-FreeRADIUS
+FreeRADIUS 1.1.7
 PostgreSQL 8.2.5
 Firefox 2.0.0.x
-Cisco switches
 
 
 1. Configuring NAV
