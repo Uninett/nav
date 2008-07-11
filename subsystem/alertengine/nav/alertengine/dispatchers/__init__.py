@@ -67,8 +67,12 @@ class dispatcher:
     def __init__(self, config={}):
         self.config = config
 
-    def __call__(alert, address, language='en', type='unknow'):
-        raise Exception('Not implemented')
+    def update(self, *args, **kwargs):
+        '''Will be called once per check_alert call to allow plugins to do housekeeping'''
+        pass
+
+    def send(alert, address, language='en', type='unknow'):
+        raise NotImplementedError
 
 def load_dispatchers():
     '''Load all dispatchers classes from config and initialise them'''
