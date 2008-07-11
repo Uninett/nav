@@ -1,6 +1,9 @@
 package no.uninett.nav.window;
 
+import java.applet.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.net.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -16,6 +19,7 @@ public class netboxTooltip extends JPanel {
 	private JLabel roomValue;
 	private JLabel cpuLabel;
 	private JLabel cpuValue;
+	private JButton ipdevinfoLink;
 
 	public netboxTooltip() {
 		initComponents();
@@ -34,6 +38,21 @@ public class netboxTooltip extends JPanel {
 		return sysnameValue;
 	}
 
+	private ActionListener linkClickHandler = new ActionListener() {
+		public void actionPerformed(ActionEvent arg){
+			try {
+				AppletContext ac = no.uninett.nav.netmap.Main._getAppletContext();
+				String path = no.uninett.nav.netmap.Main.getBaseURL().toString();
+				path = path.substring(0,path.length()-7);
+				URL url = new URL(path + "/ipdevinfo/" + sysnameValue.getText());
+				ac.showDocument(url, "_blank");
+			} catch (Exception e){
+				System.out.println("Could not open link with error" + e.getMessage());
+			}
+		}
+	};
+
+
 	private void initComponents() {
 		sysnameLabel = new JLabel();
 		sysnameValue = new JLabel();
@@ -45,6 +64,8 @@ public class netboxTooltip extends JPanel {
 		roomValue = new JLabel();
 		cpuLabel = new JLabel();
 		cpuValue = new JLabel();
+		ipdevinfoLink = new JButton("View in IP Device Info");
+		ipdevinfoLink.addActionListener(linkClickHandler);
 
 		setBorder(new LineBorder(new Color(33, 33, 33), 1, true));
 
@@ -109,5 +130,9 @@ public class netboxTooltip extends JPanel {
 		add(cpuValue, new GridBagConstraints(1, 4, 1, 1, 0.0, 0.0,
 			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
 			new Insets(0, 10, 0, 10), 0, 0));
+
+		add(ipdevinfoLink, new GridBagConstraints(0, 5, 2, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 0, 5), 0, 0));
 	}
 }

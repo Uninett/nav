@@ -58,6 +58,8 @@ public class Main extends JPrefuseApplet {
     private static ArrayList<JCheckBox> categoryCheckboxes;
     private static ArrayList<String> availableCategories;
     private static ArrayList<String> availableLinkTypes;
+    private static String[] Layer3_LinkTypes = new String[] {"core","elink","link"};
+    private static String[] Layer2_LinkTypes = new String[] {"lan"};
     private static Graph m_graph;
     private static Logger log = Logger.getAnonymousLogger();
     private static MainView m_view;
@@ -66,10 +68,13 @@ public class Main extends JPrefuseApplet {
     private static URL baseURL;
     private static Visualization m_vis;
     private static prefuse.Display m_display;
+    private static ActionListener catFilter;
     private boolean prepared = false;
 
     private javax.swing.JCheckBoxMenuItem allLinktypes;
     private javax.swing.JCheckBoxMenuItem freezeCheckbox;
+    private javax.swing.JButton increaseFontSizeButton;
+    private javax.swing.JButton decreaseFontSizeButton;
     private javax.swing.JMenu categoryMenu;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenu freezeMenu;
@@ -119,7 +124,6 @@ public class Main extends JPrefuseApplet {
         m_resourceHandler = new ResourceHandler();
         try {
             availableCategories = m_resourceHandler.getAvailableCategories();
-            availableLinkTypes = m_resourceHandler.getAvailableLinkTypes();
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -144,7 +148,7 @@ public class Main extends JPrefuseApplet {
         /*
          * Create actionListeners
          */
-        ActionListener catFilter = new ActionListener() {
+        catFilter = new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
                 ArrayList<String> wantedCategories = new ArrayList<String>();
@@ -157,7 +161,16 @@ public class Main extends JPrefuseApplet {
                 }
                 for (Component c : linkMenu.getMenuComponents()) {
                     if (((JCheckBox) c).isSelected()) {
-                        wantedLinkTypes.add(((JCheckBox) c).getText());
+			if (((JCheckBox) c).getText().equals("Layer 3")){
+				for (String type : Layer3_LinkTypes){
+					wantedLinkTypes.add(type);
+				}
+			}
+			if (((JCheckBox) c).getText().equals("Layer 2")){
+				for (String type : Layer2_LinkTypes){
+					wantedLinkTypes.add(type);
+				}
+			}
                     }
                 }
                 if (m_view != null) {
@@ -178,6 +191,21 @@ public class Main extends JPrefuseApplet {
             }
         };
 
+        ActionListener increaseFontSizeHandler = new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                        if (m_view != null){
+                                m_view.increaseFontSize();
+                        }
+                }
+        };
+        ActionListener decreaseFontSizeHandler = new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                        if (m_view != null){
+                                m_view.decreaseFontSize();
+                        }
+                }
+        };
+
         /*
          * Clear and add available checkboxes according
          * to what the server has.
@@ -187,6 +215,9 @@ public class Main extends JPrefuseApplet {
             JCheckBox tmp = new JCheckBox();
             tmp.setText(cat);
             tmp.addActionListener(catFilter);
+	    if (cat.equals("GW") || cat.equals("GSW")){
+		tmp.setSelected(true);
+	    }
             tmp.setEnabled(true);
 	    categoryMenu.add(tmp);
         }
@@ -194,12 +225,18 @@ public class Main extends JPrefuseApplet {
         filterMenu.add(categoryMenu);
 
         linkMenu.setText("Linktypes");
-
 	linkMenu.removeAll();
+
+	availableLinkTypes = new ArrayList<String>();
+	availableLinkTypes.add("Layer 2");
+	availableLinkTypes.add("Layer 3");
         for (String type : availableLinkTypes) {
             JCheckBox tmp = new JCheckBox();
             tmp.setText(type);
             tmp.addActionListener(catFilter);
+	    if (type.equals("Layer 3")){
+		    tmp.setSelected(true);
+	    }
             tmp.setEnabled(true);
             linkMenu.add(tmp);
         }
@@ -225,6 +262,15 @@ public class Main extends JPrefuseApplet {
         freezeCheckbox.setToolTipText("Stop the layout-process.");
         freezeCheckbox.addActionListener(freezeButtonHandler);
         freezeMenu.add(freezeCheckbox);
+
+        increaseFontSizeButton = new javax.swing.JButton("Increase font size");
+        increaseFontSizeButton.addActionListener(increaseFontSizeHandler);
+        freezeMenu.add(increaseFontSizeButton);
+        decreaseFontSizeButton = new javax.swing.JButton("Decrease font size");
+        decreaseFontSizeButton.addActionListener(decreaseFontSizeHandler);
+        freezeMenu.add(decreaseFontSizeButton);
+
+
 
         menuBar.add(freezeMenu);
 
@@ -278,6 +324,7 @@ public class Main extends JPrefuseApplet {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.prepared = true;
+
     }
 
     @Override
@@ -293,9 +340,10 @@ public class Main extends JPrefuseApplet {
         m_view.prepare();
         m_view.runActions();
 
-	m_view.filterNodes(new ArrayList<String>(), new ArrayList<String>(), false);
+	// Run default filters
+	catFilter.actionPerformed(null);
 
-        m_display.addControlListener(new prefuse.controls.FocusControl());
+	m_display.addControlListener(new prefuse.controls.FocusControl());
         m_display.addControlListener(new no.uninett.nav.display.controllers.NetmapControl());
         m_display.addControlListener(new prefuse.controls.DragControl());
         m_display.addControlListener(new prefuse.controls.PanControl());
@@ -382,5 +430,11 @@ public class Main extends JPrefuseApplet {
 	    } catch(Exception e){
 		    return "unknown";
 	    }
+    }
+    public static ArrayList getAllLinkTypes(){
+	    ArrayList<String> ret = new ArrayList<String>();
+	    for (String type : Layer2_LinkTypes) ret.add(type);
+	    for (String type : Layer3_LinkTypes) ret.add(type);
+	    return ret;
     }
 }
