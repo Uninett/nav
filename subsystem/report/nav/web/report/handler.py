@@ -111,7 +111,7 @@ def handler(req):
 
         scope = None
         if argsdict.has_key("scope") and argsdict["scope"]:
-			scope = IP(argsdict["scope"])
+            scope = IP(argsdict["scope"])
         else:
             # Find all scopes in database.
             from nav import db
@@ -137,34 +137,34 @@ def handler(req):
                 return apache.OK
         # If a single scope has been selected, display that.
         if scope is not None:
-			show_unused_addresses = True
+            show_unused_addresses = True
 
-			if argsdict.has_key("show_unused_addresses"):
-				boolstring = argsdict["show_unused_addresses"]
-				if boolstring == "True":
-					show_unused_addresses = True
-				elif boolstring == "False":
-					show_unused_addresses = False
+            if argsdict.has_key("show_unused_addresses"):
+                boolstring = argsdict["show_unused_addresses"]
+                if boolstring == "True":
+                    show_unused_addresses = True
+                elif boolstring == "False":
+                    show_unused_addresses = False
 
-			matrix = None
-			tree = buildTree(scope)
+            matrix = None
+            tree = buildTree(scope)
 
-			if scope.version() == 6:
-				end_net = getMaxLeaf(tree)
-				matrix = MatrixIPv6(scope,end_net=end_net)
-			elif scope.version() == 4:
-				end_net = None
-				if scope.prefixlen() < 24:
-					end_net = IP("/".join([scope.net().strNormal(),"27"]))
-					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
-				else:
-					max_leaf = getMaxLeaf(tree)
-					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
+            if scope.version() == 6:
+                end_net = getMaxLeaf(tree)
+                matrix = MatrixIPv6(scope,end_net=end_net)
+            elif scope.version() == 4:
+                end_net = None
+                if scope.prefixlen() < 24:
+                    end_net = IP("/".join([scope.net().strNormal(),"27"]))
+                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+                else:
+                    max_leaf = getMaxLeaf(tree)
+                    bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
 
-					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
-			else:
-				raise UnknownNetworkTypeException, "version: " + str(scope.version())
-			req.write(matrix.getTemplateResponse())
+                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+            else:
+                raise UnknownNetworkTypeException, "version: " + str(scope.version())
+            req.write(matrix.getTemplateResponse())
 
 
     else:
