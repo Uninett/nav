@@ -795,8 +795,6 @@ class DBH {
 		return $perioder;
 	}
 
-
-
 	// Denne funksjonen returnerer en liste over alle tidsperioder som
 	// kræsjer, altså har samme tid.
 	function listPeriodekonflikter($pid) {
@@ -1256,7 +1254,6 @@ class DBH {
 		}
 		return $br;
 	}
-
 
 	// Hent ut info om en gruppeid
 	function brukergruppeInfo($gid) {
@@ -3004,10 +3001,6 @@ class DBHK {
 		return $felter;  
 
 	}
-
-
-
-
 }
 
 

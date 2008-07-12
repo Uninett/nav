@@ -80,8 +80,6 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 			(Account.id = Preference.accountid)';
 	$queryparams = array($username);
 
-
-
 	if (! $query = pg_query_params($dbh->connection, $querystring, $queryparams)  ) {
 		checkDBError($dbh->connection, $querystring, $queryparams, __FILE__, __LINE__);
 		$error = new Error(2);
