@@ -74,11 +74,11 @@ class QuickSelect:
         }
 
         if self.prefix:
-            location = 'submit_%s_location' % prefix
-            service = 'submit_%s_service' % prefix
-            module = 'submit_%s_location' % prefix
-            netbox = 'submit_%s_netbox' % prefix
-            room = 'submit_%s_room' % prefix
+            location = 'submit_%s_location' % self.prefix
+            service = 'submit_%s_service' % self.prefix
+            module = 'submit_%s_location' % self.prefix
+            netbox = 'submit_%s_netbox' % self.prefix
+            room = 'submit_%s_room' % self.prefix
         else:
             location = 'submit_location'
             service = 'submit_service'
@@ -86,20 +86,21 @@ class QuickSelect:
             netbox = 'submit_netbox'
             room = 'submit_room'
 
-        if self.location and request.form.has_key(location):
-            result['location'] = request.form.getlist(location[7:])
+        for field in result.keys():
+            if self.prefix:
+                submit = 'submit_%s_%s' % (self.prefix, field)
+                add = 'add_%s_%s' % (self.prefix, field)
+                key = '%s_%s' % (self.prefix, field)
+            else:
+                submit = 'submit_%s' % field
+                add = 'add_%s' % field
+                key = field
 
-        if self.room and request.form.has_key(room):
-            result['room'] = request.form.getlist(room[7:])
-
-        if self.netbox and request.form.has_key(netbox):
-            result['netbox'] = request.form.getlist(netbox[7:])
-
-        if self.service and request.form.has_key(service):
-            result['service'] = request.form.getlist(service[7:])
-
-        if self.module and request.form.has_key(module):
-            result['module'] = request.form.getlist(module[7:])
+            if getattr(self, field):
+                if request.form.has_key(key):
+                    result[field] = request.form.getlist(key)
+                elif request.form.has_key(add):
+                    result[field] = request.form.getlist(add)
 
         return result
 
@@ -220,4 +221,4 @@ class QuickSelect:
         template = get_template('webfront/quickselect.html')
         context  = Context({'output': output})
 
-        return template.render(context)
+        return template.render(context).encode('utf-8')
