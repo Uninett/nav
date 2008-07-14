@@ -50,7 +50,7 @@
 {% endblock subscriptions %}
 
 {% block subscription_form %}
-<form action="{% url alertprofiles-profile-timeperiod-add %}" method="post">
+<form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
     <div class="infobox">
         <h4>{{ editing|yesno:"Edit,Add new" }} subscription</h4>
         {{ form.non_field_errors }}
