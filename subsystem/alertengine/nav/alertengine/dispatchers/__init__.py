@@ -26,12 +26,11 @@ send out alerts. Adding new messaging channels is a simple matter of writting
 a new subclass of ``dispatcher'' overriding send with the following:
 
     def send(self, address, alert, language='en', type='unknown'):
-        ...
 
 address - the alertaddress object that is "sending" the alert
   alert - the alertqueue object that we want to send out an notification about
-   type - the subscription type that caused the sending of the message, mainly for
-          log messages
+   type - the subscription type that caused the sending of the message, mainly
+          for log messages
 
 The address to send to is `address.address`. To get the message we want to send
 simply call `alert.messages.get(language=language, type='your_message_type'
@@ -67,12 +66,11 @@ class dispatcher:
     def __init__(self, config={}):
         self.config = config
 
-    def update(self, *args, **kwargs):
-        '''Will be called once per check_alert call to allow plugins to do housekeeping'''
-        pass
-
     def send(alert, address, language='en', type='unknow'):
         raise NotImplementedError
+
+class DispatcherException(Exception):
+    pass
 
 def load_dispatchers():
     '''Load all dispatchers classes from config and initialise them'''

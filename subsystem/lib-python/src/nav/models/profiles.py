@@ -41,7 +41,7 @@ import nav.path
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DISPATCHERS, DISPATCHER_TYPES
+from nav.alertengine.dispatchers import DISPATCHERS, DISPATCHER_TYPES, DispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -159,6 +159,12 @@ class AlertAddress(models.Model):
             DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
         except KeyError:
             logger.error('account %s has an unknown alert adress type set, %d, valid types are: %s' % (self.account, self.type, DISPATCHERS))
+        except DispatcherException, e:
+            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (DISPATCHERS[self.type], e))
+        except Exception, e:
+            logger.critical('Unhandeled error from %s: %s' %
+                (DISPATCHERS[self.type], ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''

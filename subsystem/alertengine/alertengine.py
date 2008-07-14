@@ -162,11 +162,6 @@ def main(args):
         try:
             check_alerts(debug=opttest)
 
-            # Allow plugins to do their housekeeping.
-            for dispatcher in DISPATCHERS.values():
-                logger.debug(dispatcher)
-                dispatcher.update()
-
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
             connection.close()
