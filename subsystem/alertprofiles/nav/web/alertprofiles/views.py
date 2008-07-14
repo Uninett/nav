@@ -87,6 +87,175 @@ def profile(request):
             info_dict,
         )
 
+def profile_show_form(request, profile_id=None, profile_form=None):
+    account = get_account(request)
+
+    profile = get_object_or_404(AlertProfile, pk=profile_id, account=account)
+    periods = TimePeriod.objects.filter(profile=profile).order_by('valid_during', 'start')
+    period_form = TimePeriodForm(initial={'profile': profile.id})
+
+    if not profile_form:
+        profile_form = AlertProfileForm(instance=profile)
+
+    subscriptions = []
+    for p in periods:
+        subscriptions.append({
+            'time_period': p,
+            'alert_subscriptions': AlertSubscription.objects.filter(time_period=p),
+        })
+
+    info_dict = {
+        'form': profile_form,
+        'time_period_form': period_form,
+        'detail_id': profile.id,
+        'alert_subscriptions': subscriptions,
+        'active': {'profile': True},
+    }
+    return render_to_response(
+        AlertProfilesTemplate,
+        'alertprofiles/profile_detail.html',
+        info_dict,
+    )
+
+def profile_detail(request, profile_id=None):
+    return profile_show_form(request, profile_id)
+
+def profile_save(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    profile_form = None
+    if request.POST.get('id'):
+        profile = get_object_or_404(
+            AlertProfile,
+            pk=request.POST.get('id'),
+            account=account,
+        )
+        profile_form = AlertProfileForm(request.POST, instance=profile)
+    else:
+        profile_form = AlertProfileForm(request.POST)
+
+    if not profile_form.is_valid():
+        detail_id = request.POST.get('id') or None
+        return profile_show_form(request, detail_id, profile_form)
+
+    profile = profile_form.save()
+    return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
+
+def profile_time_period_setup(request, time_period_id=None):
+    if not time_period_id:
+        redirect_url = reverse('alertprofiles-profile')
+        return HttpResponseRedirect(redirect_url)
+
+    time_period = TimePeriod.objects.get(pk=time_period_id)
+    subscriptions = AlertSubscription.objects.filter(time_period=time_period).order_by('alert_address', 'filter_group')
+
+    editing = False
+    if request.method == 'POST' and request.POST.get('time_period'):
+        time_period_form = AlertSubscriptionForm(request.POST, time_period=time_period)
+        if request.POST.get('id'):
+            editing = True
+    else:
+        time_period_form = AlertSubscriptionForm(time_period=time_period)
+
+    info_dict = {
+        'form': time_period_form,
+        'subscriptions': subscriptions,
+        'time_period': time_period,
+        'active': {'profile': True},
+        'editing': editing,
+    }
+    return render_to_response(
+        AlertProfilesTemplate,
+        'alertprofiles/subscription_form.html',
+        info_dict,
+    )
+
+def profile_time_period_subscription_add(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+
+    if request.POST.get('id'):
+        existing_subscription = AlertSubscription.objects.get(pk=request.POST.get('id'))
+        form = AlertSubscriptionForm(request.POST, instance=existing_subscription)
+    else:
+        form = AlertSubscriptionForm(request.POST)
+
+    if not form.is_valid():
+        time_period_id = request.POST.get('time_period')
+        return profile_time_period_setup(request, time_period_id)
+
+    time_period = form.cleaned_data['time_period']
+
+    if time_period.profile.account != account:
+        HttpResponseForbidden('No access')
+
+    subscription = form.save()
+
+    return HttpResponseRedirect(reverse(
+        'alertprofiles-profile-timeperiod-setup',
+        args=(time_period.id,)
+    ))
+
+def profile_time_period_subscription_edit(request, subscription_id=None):
+    if not subscription_id:
+        return HttpResponseRedirect(reverse('alertprofile-profile'))
+
+    subscription = AlertSubscription.objects.get(pk=subscription_id)
+    form = AlertSubscriptionForm(instance=subscription, time_period=subscription.time_period)
+
+    info_dict = {
+        'form': form,
+        'active': {'profile': True},
+        'editing': True,
+    }
+    return render_to_response(
+        AlertProfilesTemplate,
+        'alertprofiles/subscription_form.html',
+        info_dict,
+    )
+
+def profile_time_period_subscription_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseForbidden(reverse('alertprofiles-profile'))
+
+    if request.POST.get('confirm'):
+        account = get_account(request)
+        subscriptions = request.POST.getlist('element')
+        period = get_object_or_404(TimePeriod, pk=request.POST.get('perform_on'))
+
+        if period.profile.account != account:
+            return HttpResponseForbidden('No access')
+
+        AlertSubscription.objects.filter(pk__in=subscriptions).delete()
+
+        return HttpResponseRedirect(reverse(
+            'alertprofiles-profile-timeperiod-setup',
+            args=(period.id,)
+        ))
+    else:
+        account = get_account(request)
+        subscriptions = AlertSubscription.objects.filter(pk__in=request.POST.getlist('subscription'))
+        period = get_object_or_404(TimePeriod, pk=request.POST.get('id'))
+
+        if period.profile.account != account:
+            return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-profile-timeperiod-subscription-remove'),
+                'active': {'profile': True},
+                'elements': subscriptions,
+                'perform_on': period.id,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+            )
+
 def filter_list(request):
     account = get_account(request)
     admin = is_admin(account)

@@ -27,8 +27,104 @@ __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
 from django import newforms as forms
+from django.db.models import Q
 
-from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup
+from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress
+
+class AlertProfileForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+
+    class Meta:
+        model = AlertProfile
+        exclude = ('account',)
+
+class TimePeriodForm(forms.ModelForm):
+    profile = forms.IntegerField(widget=forms.widgets.HiddenInput)
+
+    class Meta:
+        model = TimePeriod
+    
+    def clean(self):
+        profile = self.cleaned_data['profile']
+        start_time = self.cleaned_data['start']
+        valid_during = self.cleaned_data['valid_during']
+
+        valid_during_choices = None
+        if valid_during == TimePeriod.ALL_WEEK:
+            valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS, TimePeriod.WEEKENDS)
+        elif valid_during == TimePeriod.WEEKDAYS:
+            valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS)
+        else:
+            valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS)
+
+        time_periods = TimePeriod.objects.filter(
+            profile=profile, start=start_time, valid_during__in=valid_during_choices)
+        if len(time_periods) > 0:
+            error_msg = []
+            for t in time_periods:
+                error_msg.append(
+                    u'Collides with existing time period: %s for %s' % (t.start, t.get_valid_during_display())
+                )
+            raise forms.util.ValidationError(error_msg)
+        else:
+            return self.cleaned_data
+
+class AlertSubscriptionForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+
+    class Meta:
+        model = AlertSubscription
+
+    def __init__(self, *args, **kwargs):
+        time_period = kwargs.pop('time_period', None)
+        super(AlertSubscriptionForm, self).__init__(*args, **kwargs)
+
+        if isinstance(time_period, TimePeriod):
+            self.fields['time_period'] = forms.IntegerField(
+                    widget=forms.widgets.HiddenInput,
+                    initial=time_period.id
+                )
+            # Get account
+            account = time_period.profile.account
+
+            addresses = AlertAddress.objects.filter(account=account).order_by('type', 'address')
+            filter_groups = FilterGroup.objects.filter(
+                Q(owner__isnull=True) | Q(owner__exact=account)).order_by('owner', 'name')
+        
+            address_choices = [(a.id, a.address) for a in addresses]
+            filter_group_choices = [(f.id, f.name) for f in filter_groups]
+
+            self.fields['alert_address'] = forms.ChoiceField(
+                    choices=address_choices,
+                )
+            self.fields['filter_group'] = forms.ChoiceField(
+                    choices=filter_group_choices,
+                )
+
+    def clean(self):
+        alert_address = self.cleaned_data['alert_address']
+        time_period = self.cleaned_data['time_period']
+        filter_group = self.cleaned_data['filter_group']
+        id = self.cleaned_data['id']
+
+        existing_subscriptions = AlertSubscription.objects.filter(
+                Q(alert_address=alert_address),
+                Q(time_period=time_period),
+                Q(filter_group=filter_group),
+                ~Q(pk=id)
+            )
+        
+        if len(existing_subscriptions) > 0:
+            error_msg = []
+            for e in existing_subscriptions:
+                error_msg.append(
+                    u'''Filter group and alert address must be unique for each
+                    subscription. This one collides with group %s watched by %s
+                    ''' % (e.filter_group.name, e.alert_address.address)
+                )
+            raise forms.util.ValidationError(error_msg)
+        else:
+            return self.cleaned_data
 
 class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
