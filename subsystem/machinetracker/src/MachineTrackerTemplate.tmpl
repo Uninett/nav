@@ -132,7 +132,7 @@ $default_table_CSS
         <td style="text-align: center;"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a>
 	#if $row.port
             (<a href="/ipdevinfo/$row.switch/module=$row.module/swport=$row.port/">details</a>)</td>
-	#endif
+	#end if
 	<td>$row.start_time</td>
 	<td>$row.end_time</td>
         <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a></td>

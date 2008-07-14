@@ -265,7 +265,6 @@ class Module(models.Model):
     description = models.CharField(db_column='descr', max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
-    community_suffix = models.CharField(max_length=-1)
 
     class Meta:
         db_table = 'module'
@@ -459,7 +458,6 @@ class Vendor(models.Model):
     product is of a vendor."""
 
     id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
-    enterprise_id = models.IntegerField(db_column='enterpriseid')
 
     class Meta:
         db_table = 'vendor'
