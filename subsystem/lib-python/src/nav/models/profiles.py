@@ -181,10 +181,28 @@ class AlertPreference(models.Model):
 class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
+    MONDAY = 1
+    TUESDAY = 2
+    WEDNESDAY = 3
+    THURSDAY = 4
+    FRIDAY = 5
+    SATURDAY = 6
+    SUNDAY = 7
+
+    VALID_WEEKDAYS = (
+        (MONDAY, _('monday')),
+        (TUESDAY, _('tuesday')),
+        (WEDNESDAY, _('wednesday')),
+        (THURSDAY, _('thursday')),
+        (FRIDAY, _('friday')),
+        (SATURDAY, _('saturday')),
+        (SUNDAY, _('sunday')),
+    )
+
     account = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField()
     daily_dispatch_time = models.TimeField()
-    weekly_dispatch_day = models.IntegerField()
+    weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS, default=MONDAY)
     weekly_dispatch_time = models.TimeField()
 
     class Meta:
@@ -230,8 +248,8 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey('AlertProfile', db_column='alert_profile_id')
-    start = models.TimeField(db_column='start_time')
-    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES)
+    start = models.TimeField(db_column='start_time', default='08:00:00')
+    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
 
     class Meta:
         db_table = u'timeperiod'
@@ -257,7 +275,7 @@ class AlertSubscription(models.Model):
     alert_address = models.ForeignKey('AlertAddress')
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
-    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES)
+    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
     ignore_closed_alerts = models.BooleanField()
 
     class Meta:
