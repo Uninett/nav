@@ -106,6 +106,7 @@ def index(req):
 def newlink(req):
   from nav.web.templates.ChangeLinkTemplate import ChangeLinkTemplate
   template = ChangeLinkTemplate()
+  template.path = [("Home", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
   req.content_type = "text/html"
   req.send_http_header()
   template.link = False
@@ -118,6 +119,7 @@ def newlink(req):
 def editlink(req, id):
   from nav.web.templates.ChangeLinkTemplate import ChangeLinkTemplate
   template = ChangeLinkTemplate()
+  template.path = [("Home", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
   req.content_type = "text/html"
   req.send_http_header()
   conn = nav.db.getConnection('navprofile', 'navprofile')

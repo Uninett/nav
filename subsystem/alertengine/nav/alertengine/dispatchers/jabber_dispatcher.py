@@ -19,101 +19,54 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Author: Thomas Adamcik <thomas.adamcik@uninett.no>
+#
 
-"""
-"""
+"""FIXME"""
 
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 
-
-import sys
+import xmpp
 import logging
-from jabber import jabber as jabber_ext, xmlstream
-from time import sleep
-from threading import Thread, Lock
+import time
 
-from nav.alertengine.dispatchers import dispatcher
+from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
 logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
 
 class jabber(dispatcher):
-    con = None
+    def __init__(self, *args, **kwargs):
+        self.config = kwargs['config'];
 
-    def __init__(self, config={}):
-        self.config = config
-        self.lock = Lock()
+        self.jid = xmpp.protocol.JID(self.config['jid'])
+        self.client = xmpp.Client(self.jid.getDomain())
+
         self.connect()
 
     def connect(self):
-        server = self.config.get('server')
-        password = self.config.get('password')
-        username = self.config.get('username', 'nav')
-        resource = self.config.get('resource', 'default')
-        port = self.config.get('port', 5223)
+        self.con = self.client.connect()
 
+        if not self.con:
+            raise DispatcherException('Could not connect to jabber server')
 
-        # FIXME ssl
-        con = jabber_ext.Client(host=server, log=sys.stderr,
-                            port=port, connection=xmlstream.TCP_SSL)
+        logger.debug('Connected with %s' % self.con)
 
-        con.registerHandler('presence', self.presence_handler)
+        auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource())
 
-        try:
-            con.connect()
-        except IOError, e:
-            # FIXME handle reconnect?
-            logger.critical("Couldn't connect: %s" % e)
-        else:
-            logger.info('Connected to %s' % server)
-
-        if con.auth(username, password, resource):
-            logger.info('Logged in as %s to server %s' % (username, server))
-        else:
-            # FIXME handle reconnect?
-            logger.critical('Could not log in: %s %s' % (con.lastErr, con.lastErrCode))
-
-        con.sendInitPresence()
-        con.requestRoster()
-
-        self.con = con
-
-        # Start up process_loop thread, run as a deamon so that the thread dies when
-        # the parent dies.
-        # FIXME we should probably get rid of the thread upon reconnection...
-        self.thread = Thread(target=self.process_loop)
-        self.thread.setDaemon(1)
-        self.thread.start()
-
-    @staticmethod
-    def presence_handler(con, presence):
-        '''Handels presence changes, only cares about subscribe and unsubscribe'''
-        who = str(presence.getFrom())
-        type = presence.getType()
-
-        if type == 'subscribe':
-            con.send(jabber_ext.Presence(to=who, type='subscribed'))
-        elif type == 'unsubscribe':
-            con.send(jabber_ext.Presence(to=who, type='unsubscribed'))
-
-    def process_loop(self):
-        '''Checks for jabber events, uses lock tp prevent checking and sending at the same time'''
-        logger.debug('Starting process_loop thread')
-        while self.lock.acquire():
-            try:
-                self.con.process(5)
-            except Exception, e:
-                logger.debug('Something went wrong in our thread: %s' % e)
-                break
-            self.lock.release()
-            sleep(5)
-        self.lock.release()
+        if not auth:
+            self.con = None
+            raise DispatcherException('Could not authenticate with jabber server')
 
     def send(self, address, alert, language='en', type='unknown'):
         message = alert.messages.get(language=language, type='email')
-        # Get the lock and the send any messages
-        if self.lock.acquire():
-            self.con.send(jabber_ext.Message(address.address, message.message, type='chat'))
-            self.lock.release()
 
+        if not self.con:
+            self.connect()
+
+        try:
+            id = self.client.send(xmpp.protocol.Message(address.address, message.message, typ='chat'))
+            logger.debug('Send message with jabber id %s' % id)
+        except xmpp.protocol.StreamError, e:
+            raise DispatcherException('Jabber stream error occured: %s' % e)

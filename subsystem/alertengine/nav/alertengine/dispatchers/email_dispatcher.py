@@ -32,7 +32,7 @@ from smtplib import SMTPException
 
 from django.core.mail import EmailMessage
 
-from nav.alertengine.dispatchers import dispatcher
+from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
 logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
@@ -60,4 +60,5 @@ class email(dispatcher):
                 logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
 
         except SMTPException, e:
-            logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, adress.adress, e))
+            # Reraise as DispatcherException so that we can catch it further up
+            raise DispatcherException('Could not send email: %s' % e)

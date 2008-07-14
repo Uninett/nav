@@ -27,71 +27,26 @@
 
 #extends MainTemplate
 
-#block content
+#def additionalCSS
+$default_table_CSS
+<style type="text/css">
+    .header-active, .header-inactive {
+        color: #FFF;
+        background: #567899;
+    }
+    td {
+        padding: 0 0.5em;
+    }
+    table table {
+        border: 1px solid #999999;
+    }
+    table table table {
+        border: 0;
+    }
+</style>
+#end def additionalCSS
 
-#if $user.id == 0
-  #set $type = "default"
-#else
-  #set $type = "personal"
-#end if
-
-<html>
-  <head>
-    <meta http-equiv="Pragma" content="no-cache">
-    <style type="text/css">
-
-      BODY { 
-        font-family: verdana, arial, helvetica, sans-serif; 
-        background-color: white; 
-      }
-
-      table.header-active { 
-        font-size: 15px;
-        border: 1px solid #666;
-        background-color: #ccf;
-        background-image: url('/images/form/fill-active.gif');
-      }
-
-      td.header-active {
-        border: 1px solid #69c;
-        text-align: center;
-      }
-
-      table.header-inactive {
-        font-size: 15px;
-        border: 1px solid #666;
-        background-color: #eee;
-        background-image: url('/images/form/fill-inactive.gif');
-      }
-
-      td.header-inactive {
-        border: 1px solid #bcd;
-        text-align: center;
-      }
-
-      table.options {
-        font-size: 13px;
-        border: 1px solid #666;
-        background-color: #fff;
-      }
-
-      table.homemade-options {
-        font-size: 13px;
-        border: 1px solid #666;
-        background-color: #eee;
-      }
-
-      tr.active   { background-color: #eef; }
-      td.active   { border: 1px solid #99c; }
-
-      tr.inactive { background-color: #fff; }
-      td.inactive { border: 1px solid #ccc; }
-
-      tr.dead     { background-color: #fff; }
-      td.dead     { border: 1px solid #ccc;
-                    color: #999;            }
-
-    </style>
+#def additionalJavaScript
     <script language="JavaScript" type="text/javascript">
     <!-- BEGIN
 
@@ -186,31 +141,41 @@
         checkColumn("ql2");
       }
 
+      window.onload = checkAll;
+
     // END -->
     </script>
-  </head>
-  <body onLoad="checkAll();">
+#end def additionalJavaScript
+
+#block content
+
+#if $user.id == 0
+  #set $type = "default"
+#else
+  #set $type = "personal"
+#end if
 
 #if $user.id == 0
 
+<p>
 <b>Please note:</b> You are logged in as site administrator. This means you are now changing the default preferences.
 All users that are not logged in, and all users that have not changed their preferences, will be affected by your changes.
 The navigation-bar has been temporarily changed, so you can see the changes like an anonymous user will see them.
-<br>
+</p>
 
-#end if  
+#end if
 
-  <form method="post" action="navigation/saveprefs">    <td colspan=2></td>
-    <table width="100%" cellspacing="5" cellpadding="0" border="0">
+  <form method="post" action="navigation/saveprefs">
+    <table width="100%">
       <tr>
         <td width="33%">
-      
+
 <!-- HEADERS -->
 <!-- NAVBAR -->
 
-  <table id="nb-table-h" width="100%" height="50" cellspacing="5" cellpadding="5" border="0" class="header-active">
+  <table id="nb-table-h" width="100%" class="header-active">
     <tr>
-      <td id="nb-td-h" nowrap class="header-active">
+      <td id="nb-td-h">
         Navbar
       </td>
     </tr>
@@ -223,9 +188,9 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 <!-- QUICKLINK #1 -->
 
-  <table id="ql1-table-h" width="100%" height="50" cellspacing="5" cellpadding="5" border="0" class="header-active">
+  <table id="ql1-table-h" width="100%" class="header-active">
     <tr>
-      <td id="ql1-td-h" nowrap class="header-active" onClick="clickColumn('ql1');">
+      <td id="ql1-td-h" class="header-active" onClick="clickColumn('ql1');">
         <input id="ql1-checkbox-h" type="checkbox" onClick="checkColumn('ql1'); clickedColumnBox = true;" #slurp
 #if $checked.has_key('qlink1') then 'checked' else ''# /> Quicklink #1
       </td>
@@ -239,7 +204,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 <!-- QUICKLINK #2 -->
 
-  <table id="ql2-table-h" width="100%" height="50" cellspacing="5" cellpadding="5" border="0" class="header-active">
+  <table id="ql2-table-h" width="100%" class="header-active">
     <tr>
       <td id="ql2-td-h" nowrap class="header-active" onClick="clickColumn('ql2');">
         <input id="ql2-checkbox-h" type="checkbox" onClick="checkColumn('ql2'); clickedColumnBox = true;" #slurp
@@ -260,7 +225,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 <!-- OPTIONS -->
 <!-- NAVBAR -->
 
-  <table id="options" width="100%" cellspacing="5" cellpadding="5" border="0" class="options">
+  <table id="options" width="100%" class="options">
 #for $link in $defaultlinks
     <tr id="nb-table-$number" class="inactive">
       <td id="nb-cb-$number" nowrap class="inactive" width=0%>
@@ -284,7 +249,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 <!-- QUICKLINK #1 -->
 
-  <table id="options" width="100%" cellspacing="5" cellpadding="5" border="0" class="options">
+  <table id="options" width="100%" class="options">
 #set $number = 0
 #for $link in $defaultlinks
     <tr id="ql1-table-$number" class="inactive">
@@ -311,7 +276,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 <!-- QUICKLINK #2 -->
 
-  <table id="options" width="100%" cellspacing="5" cellpadding="5" border="0" class="options">
+  <table id="options" width="100%" class="options">
 #set $number = 0
 #for $link in $defaultlinks
     <tr id="ql2-table-$number" class="inactive">
@@ -342,7 +307,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 <!-- NAVBAR -->
 #set $startnumber = $number
 
-  <table id="options" width="100%" cellspacing="5" cellpadding="5" border="0" class="homemade-options">
+  <table id="options" width="100%" class="homemade-options">
 #set $number = $startnumber
 #for $link in $homemadelinks
     <tr id="nb-table-$number" class="inactive">
@@ -355,8 +320,8 @@ The navigation-bar has been temporarily changed, so you can see the changes like
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
           <td width="0%" nowrap>$link.name</td>
           <td width="100%" align="right">
-            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
-            <a href="navigation/editlink?id=$id" title="Edit link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
+            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.png"></a>
+            <a href="navigation/editlink?id=$id" title="Edit link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.png"></a>
           </td>
         </tr></table>
       </td>
@@ -372,7 +337,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 <!-- QUICKLINK #1 -->
 
-  <table id="options" width="100%" cellspacing="5" cellpadding="5" border="0" class="homemade-options">
+  <table id="options" width="100%" class="homemade-options">
 #set $number = $startnumber
 #for $link in $homemadelinks
     <tr id="ql1-table-$number" class="inactive">
@@ -385,8 +350,8 @@ The navigation-bar has been temporarily changed, so you can see the changes like
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
           <td width="0%" nowrap>$link.name</td>
           <td width="100%" align="right">
-            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
-            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
+            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.png"></a>
+            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.png"></a>
           </td>
         </tr></table>
       </td>
@@ -402,7 +367,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 <!-- QUICKLINK #2 -->
 
-  <table id="options" width="100%" cellspacing="5" cellpadding="5" border="0" class="homemade-options">
+  <table id="options" width="100%" class="homemade-options">
 #set $number = $startnumber
 #for $link in $homemadelinks
     <tr id="ql2-table-$number" class="inactive">
@@ -415,8 +380,8 @@ The navigation-bar has been temporarily changed, so you can see the changes like
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
           <td width="0%" nowrap>$link.name</td>
           <td width="100%" align="right">
-            <a href="navigation/deletelink?id=$id" title="Delete $type link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
-            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
+            <a href="navigation/deletelink?id=$id" title="Delete $type link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.png"></a>
+            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.png"></a>
           </td>
         </tr></table>
       </td>
@@ -442,7 +407,5 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 </table>
 </form>
-
-</body>
 
 #end block
