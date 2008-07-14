@@ -39,7 +39,7 @@ class AlertProfileForm(forms.ModelForm):
         exclude = ('account',)
 
 class TimePeriodForm(forms.ModelForm):
-    profile = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    profile = forms.ModelChoiceField(AlertProfile.objects.all(), widget=forms.widgets.HiddenInput)
 
     class Meta:
         model = TimePeriod

@@ -87,26 +87,52 @@ def profile(request):
             info_dict,
         )
 
-def profile_show_form(request, profile_id=None, profile_form=None):
+def profile_show_form(request, profile_id=None, profile_form=None, time_period_form=None):
     account = get_account(request)
 
     profile = get_object_or_404(AlertProfile, pk=profile_id, account=account)
     periods = TimePeriod.objects.filter(profile=profile).order_by('valid_during', 'start')
-    period_form = TimePeriodForm(initial={'profile': profile.id})
+
+    if not time_period_form:
+        time_period_form = TimePeriodForm(initial={'profile': profile.id})
 
     if not profile_form:
         profile_form = AlertProfileForm(instance=profile)
 
-    subscriptions = []
-    for p in periods:
-        subscriptions.append({
-            'time_period': p,
-            'alert_subscriptions': AlertSubscription.objects.filter(time_period=p),
-        })
+    subscriptions = {'weekdays': [], 'weekends': []}
+    for i, p in enumerate(periods):
+        # TimePeriod is a model.
+        # We transform it to a dictionary so we can add additinal information
+        # to it, such as end_time (which does not really exist, it's just the
+        # start time for the next period.
+        if i < len(periods) - 1:
+            end_time = periods[i+1].start
+        else:
+            end_time = periods[0].start
+
+        period = {
+            'profile': p.profile,
+            'start': p.start,
+            'end': end_time,
+            'valid_during': p.get_valid_during_display(),
+        }
+
+        # For usability we change 'all days' periods to one weekdays and one
+        # weekends period.
+        if p.valid_during == TimePeriod.WEEKDAYS or p.valid_during == TimePeriod.ALL_WEEK:
+            subscriptions['weekdays'].append({
+                'time_period': period,
+                'alert_subscriptions': AlertSubscription.objects.filter(time_period=p),
+            })
+        if p.valid_during == TimePeriod.WEEKENDS or p.valid_during == TimePeriod.ALL_WEEK:
+            subscriptions['weekends'].append({
+                'time_period': period,
+                'alert_subscriptions': AlertSubscription.objects.filter(time_period=p),
+            })
 
     info_dict = {
         'form': profile_form,
-        'time_period_form': period_form,
+        'time_period_form': time_period_form,
         'detail_id': profile.id,
         'alert_subscriptions': subscriptions,
         'active': {'profile': True},
@@ -141,6 +167,25 @@ def profile_save(request):
         return profile_show_form(request, detail_id, profile_form)
 
     profile = profile_form.save()
+    return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
+
+def profile_time_period_add(request):
+    # FIXME 'all days' needs tweaking.
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    profile = get_object_or_404(AlertProfile, pk=request.POST.get('profile'))
+
+    if profile.account != account:
+        return HttpResponseForbidden('No access')
+
+    time_period_form = TimePeriodForm(request.POST, initial={'profile': profile})
+
+    if not time_period_form.is_valid():
+        return profile_show_form(request, profile.id, None, time_period_form)
+
+    time_period = time_period_form.save()
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
 def profile_time_period_setup(request, time_period_id=None):
