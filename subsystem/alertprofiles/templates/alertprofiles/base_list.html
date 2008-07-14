@@ -1,7 +1,10 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-<form action="" method="post">
+
+{% block top_links %}
+{% endblock %}
+<form action="{{ form_action }}" method="post">
 
 <table class="listtable">
 
@@ -15,7 +18,6 @@
         {% block theadcols %}
             <th></th>
             <th>Name</th>
-            <th>Owner</th>
         {% endblock %}
         </tr>
     </thead>
@@ -27,7 +29,11 @@
 
 </table>
 
-<div><button type="delete">Delete selected</button></div>
+<div>
+    {% block additional_fields %}
+    {% endblock %}
+    <button type="delete">Delete selected</button>
+</div>
 
 </form>
 {% endblock %}

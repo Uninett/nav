@@ -73,10 +73,10 @@ _ = lambda a: a
 class Account(models.Model):
     ''' NAV's basic account model'''
 
-    login = models.TextField(unique=True)
-    name = models.TextField()
-    password = models.TextField()
-    ext_sync = models.TextField()
+    login = models.CharField(unique=True)
+    name = models.CharField()
+    password = models.CharField()
+    ext_sync = models.CharField()
 
     class Meta:
         db_table = u'account'
@@ -98,8 +98,8 @@ class Account(models.Model):
 class AccountGroup(models.Model):
     '''NAV account groups'''
 
-    name = models.TextField()
-    description = models.TextField(db_column='descr')
+    name = models.CharField()
+    description = models.CharField(db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
 
     class Meta:
@@ -112,8 +112,8 @@ class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    property = models.TextField()
-    value = models.TextField()
+    property = models.CharField()
+    value = models.CharField()
 
     class Meta:
         db_table = u'accountproperty'
@@ -138,7 +138,7 @@ class AlertAddress(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     type = models.IntegerField(choices=DISPATCHER_TYPES)
-    address = models.TextField()
+    address = models.CharField()
 
     class Meta:
         db_table = u'alertaddress'
@@ -187,10 +187,28 @@ class AlertPreference(models.Model):
 class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
+    MONDAY = 1
+    TUESDAY = 2
+    WEDNESDAY = 3
+    THURSDAY = 4
+    FRIDAY = 5
+    SATURDAY = 6
+    SUNDAY = 7
+
+    VALID_WEEKDAYS = (
+        (MONDAY, _('monday')),
+        (TUESDAY, _('tuesday')),
+        (WEDNESDAY, _('wednesday')),
+        (THURSDAY, _('thursday')),
+        (FRIDAY, _('friday')),
+        (SATURDAY, _('saturday')),
+        (SUNDAY, _('sunday')),
+    )
+
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.TextField()
+    name = models.CharField()
     daily_dispatch_time = models.TimeField()
-    weekly_dispatch_day = models.IntegerField()
+    weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS, default=MONDAY)
     weekly_dispatch_time = models.TimeField()
 
     class Meta:
@@ -236,8 +254,8 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey('AlertProfile', db_column='alert_profile_id')
-    start = models.TimeField(db_column='start_time')
-    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES)
+    start = models.TimeField(db_column='start_time', default='08:00:00')
+    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
 
     class Meta:
         db_table = u'timeperiod'
@@ -263,7 +281,7 @@ class AlertSubscription(models.Model):
     alert_address = models.ForeignKey('AlertAddress')
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
-    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES)
+    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
     ignore_closed_alerts = models.BooleanField()
 
     class Meta:
@@ -436,7 +454,7 @@ class Expresion(models.Model):
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.TextField()
+    value = models.CharField()
 
     class Meta:
         db_table = u'expresion'
@@ -453,9 +471,8 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups.'''
 
-    id = models.IntegerField(primary_key=True)
     owner = models.ForeignKey('Account')
-    name = models.TextField()
+    name = models.CharField()
 
     class Meta:
         db_table = u'filter'
@@ -541,8 +558,8 @@ class FilterGroup(models.Model):
     '''A set of filters group contents that an account can subscribe to or be given permision to'''
 
     owner = models.ForeignKey('Account')
-    name = models.TextField()
-    description = models.TextField(db_column='descr')
+    name = models.CharField()
+    description = models.CharField(db_column='descr')
 
     group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
 
@@ -656,7 +673,7 @@ class MatchField(models.Model):
 
     # Build the mapping we need to be able to do checks.
     VALUE_MAP = {}
-    CHOICES = [('', _('No references'))]
+    CHOICES = []
     MODEL_MAP = {}
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
@@ -674,16 +691,16 @@ class MatchField(models.Model):
         field = None
     model = None
 
-    name = models.TextField()
-    description = models.TextField(db_column='descr')
-    value_help = models.TextField()
-    value_id = models.TextField(choices=CHOICES)
-    value_name = models.TextField(choices=CHOICES)
-    value_category = models.TextField(choices=CHOICES)
-    value_sort = models.TextField(choices=CHOICES)
-    list_limit = models.IntegerField()
-    data_type = models.IntegerField(choices=DATA_TYPES)
-    show_list = models.BooleanField()
+    name = models.CharField()
+    description = models.CharField(db_column='descr', blank=True)
+    value_help = models.CharField(u'Help text for the matchfield', blank=True, help_text=u'Displayed by the value input box in the GUI to help users enter sane values.')
+    value_id = models.CharField(u'Matchfield, the database field to watch', choices=CHOICES, help_text=u'This is the acctual field alert engine will watch.')
+    value_name = models.CharField(u'Description for the matchfield used in the GUI', choices=CHOICES, blank=True, help_text=u'Only used in the GUI to show additonal description of the matchfield. Only does something when "Show list" is checked.')
+    value_category = models.CharField(u'Somthing that was never implemented', choices=CHOICES, blank=True, help_text=u'Should have been a way to group options in the GUI.')
+    value_sort = models.CharField(u'Order matchfields by this field', choices=CHOICES, blank=True, help_text=u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
+    list_limit = models.IntegerField(blank=True, help_text=u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
+    data_type = models.IntegerField(choices=DATA_TYPES, help_text=u'The data type of the match field. Purely cosmetic')
+    show_list = models.BooleanField(blank=True, help_text=u'If unchecked values can be entered into a text input. If checked values must be selected from a list populated by data from the match field selected above.')
 
     class Meta:
         db_table = u'matchfield'

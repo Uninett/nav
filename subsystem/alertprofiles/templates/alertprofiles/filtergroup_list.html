@@ -1,5 +1,11 @@
 {% extends "alertprofiles/base_list.html" %}
 
+{% block top_links %}
+    <p>
+        <a href="{% url alertprofiles-filtergroups-new %}">Add new filter group</a>
+    </p>
+{% endblock %}
+
 {% block captioncontent %}
     Filter groups
 {% endblock %}
@@ -14,7 +20,12 @@
 {% block tbodycontent %}
     {% for filter in object_list %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td><input name="filtergroup[]" value="{{ filter.id }}" type="checkbox" /></td>
+            <td>
+                <input name="filter_group" value="{{ filter.id }}"
+                type="checkbox"
+                {% if not admin and not filter.owner %}disabled="disabled"{% endif %}
+                />
+            </td>
             <td><a href="{% url alertprofiles-filtergroups-detail filter.id %}">
                 {{ filter.name }}</a></td>
             <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>

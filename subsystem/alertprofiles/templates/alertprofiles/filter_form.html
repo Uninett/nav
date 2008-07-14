@@ -1,67 +1,42 @@
-{% extends "alertprofiles/base.html" %}
+{% extends "alertprofiles/base_detail.html" %}
 
-{% block tabcontent %}
-<form action="" method="post">
-<table class="listtable">
-{{ filter_form }}
-</table>
-</form>
+{% block url_edit %}{% url alertprofiles-filters-save %}{% endblock %}
+{% block url_remove_expresion %}{% url alertprofiles-filters-removeexpresion %}{% endblock %}
+{% block url_add_expresion %}{% url alertprofiles-filters-addexpresion %}{% endblock %}
 
-<table class="listtable">
-    <caption>
-        Fisk
-    </caption>
+{% block expresions_caption_content %}
+    Expressions
+{% endblock %}
 
-    <thead>
-        <tr>
-            <th>Field</th>
-            <th>Condition</th>
-            <th>Value</th>
-        </tr>
-    </thead>
+{% block expresions_thead_cols %}
+    <th></th>
+    <th>Field</th>
+    <th>Condition</th>
+    <th>Value</th>
+{% endblock %}
     
-    <tbody>
+{% block expresions_tbody_content %}
     {% for e in expresions %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td>{{ e.match_field }}</td>
+            <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
+            <td><label for="expressionid_{{ e.id }}">{{ e.match_field }}</label></td>
             <td>{{ e.get_operator_display }}</td>
             <td>{{ e.value }}</td>
         </tr>
     {% endfor %}
-    </tbody>
-</table>
+{% endblock %}
 
+{% block addexpresion %}
+<div class="infobox">
+    <h4>Add another expression to this filter</h4>
 
-<form action="{% url alertprofiles-filters-addexpresion %}" method="post">
-<table class="listtable">
-    <caption>
-        Add expresion<br />
-        <span class="subtitle">Choose one type to add</span>
-    </caption>
-    
-    <thead>
-        <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-
-    <tbody>
+    <label for="select_matchfield">Expression</label>
+    <select name="matchfield" id="select_matchfield">
     {% for m in matchfields %}
-        <tr>
-            <td><input type="radio" name="matchfield" id="matchfieldid_{{ m.id }}" value="{{ m.id }}" /></td>
-            <td><label for="matchfieldid_{{ m.id }}">{{ m.name }}</label></td>
-            <td>{{ m.description }}</td>
-        </tr>
+        <option value="{{ m.id }}">{{ m.name }}</option>
     {% endfor %}
-    </tbody>
-</table>
+    </select>
 
-<div>
-    <input type="hidden" name="filter" value="{{ filter_id }}" />
-    <button type="submit">New expresion</button>
+    {{ block.super }}
 </div>
-</form>
-
 {% endblock %}

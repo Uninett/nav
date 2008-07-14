@@ -1,0 +1,73 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-filtergroups-save %}{% endblock %}
+{% block url_remove_expresion %}{% url alertprofiles-filtergroups-removefilter %}{% endblock %}
+{% block url_add_expresion %}{% url alertprofiles-filtergroups-addfilter %}{% endblock %}
+
+{% block captioncontent %}
+    {% if detail_id %}
+        Filter group details
+    {% else %}
+        New filter group
+    {% endif %}
+{% endblock %}
+
+{% block expresions_caption_content %}
+    Filters
+{% endblock %}
+
+{% block expresions_thead_cols %}
+    <th></th>
+    <th>Priority</th>
+    <th>Operation</th>
+    <th>Filter</th>
+    <th></th>
+    <th></th>
+{% endblock %}
+
+{% block expresions_tbody_content %}
+    {% for f in filter_group_content %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="filter" value="{{ f.id }}" /></td>
+            <td>{{ f.priority }}</td>
+            <td>
+                {{ f.positive|yesno:",inverted" }}
+                {{ f.include|yesno:"inclusive,exclusive" }}
+            </td>
+            <td>{{ f.filter }}</td>
+            <td>
+                {% if not forloop.first %}
+                <button type="submit" name="moveup" value="{{ f.id }}">Move up</button>
+                {% endif %}
+            </td>
+            <td>
+                {% if not forloop.last %}
+                <button type="submit" name="movedown" value="{{ f.id }}">Move down</button>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block addexpresion %}
+<div class="infobox">
+    <h4>Add another filter to this filter group</h4>
+
+    <label for="select_operation">Use operation</label>
+    <select name="operator" id="select_operation">
+        <option value="11">Add</option>
+        <option value="01">Substract</option>
+        <option value="00">And</option>
+        <option value="10">Add inverse</option>
+    </select>
+
+    <label for="select_filter">on filter</label>
+    <select name="filter" id="select_filter">
+    {% for f in filters %}
+        <option value="{{ f.id }}">{{ f.name }}</option>
+    {% endfor %}
+    </select>
+
+    {{ block.super }}
+</div>
+{% endblock %}
