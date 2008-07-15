@@ -165,8 +165,8 @@ if (isset($subaction) && $subaction == "nyttfilter") {
 
 $l = new Lister( 110,
 		array(gettext('Name'), gettext('#match'), gettext('#groups'), gettext('Options..') ),
-		array(50, 15, 15, 20),
-		array('left', 'right', 'right', 'right'),
+		array(50, 15, 15, 10),
+		array('left', 'left', 'left', 'left'),
 		array(true, true, true, false),
 		0
 );

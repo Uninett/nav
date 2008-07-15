@@ -180,8 +180,8 @@ print "<p>";
 //	function Lister($id, $labels, $c, $align, $isorts, $defaultsort) {
 $l = new Lister( 101,
 		array(gettext('Type'), gettext('Address'), gettext('Options..') ),
-		array(20, 60, 20),
-		array('left', 'left', 'right'),
+		array(20, 60, 10),
+		array('left', 'left', 'left'),
 		array(true, true, false),
 		0 
 );
