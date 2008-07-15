@@ -87,9 +87,10 @@ class QuickSelect:
                 # Hack to work around noscript XSS protection that triggers on
                 # location
                 key = key.replace('location', 'loc')
+                submit = submit.replace('location', 'loc')
 
             if getattr(self, field):
-                if request.form.has_key(key):
+                if submit in request.form and key in request.form:
                     result[field] = request.form.getlist(key)
                 elif request.form.has_key(add):
                     result[field] = request.form.getlist(add)
@@ -110,6 +111,7 @@ class QuickSelect:
                     location_name[location['id']] = self.location_label % location
                     locations[''].append((location['id'], location_name[location['id']]))
 
+                # use loc instead of location to avoid noscript XSS protection
                 if prefix:
                     name = '%s_%s' % (prefix, 'loc')
                 else:
