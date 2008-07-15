@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Thomas Adamcik <thomas.adamcik@uninett.no>
+# Author: Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 
 __copyright__ = "Copyright 2008 UNINETT AS"
@@ -73,19 +73,6 @@ class QuickSelect:
             'room': [],
         }
 
-        if self.prefix:
-            location = 'submit_%s_location' % self.prefix
-            service = 'submit_%s_service' % self.prefix
-            module = 'submit_%s_location' % self.prefix
-            netbox = 'submit_%s_netbox' % self.prefix
-            room = 'submit_%s_room' % self.prefix
-        else:
-            location = 'submit_location'
-            service = 'submit_service'
-            module = 'submit_location'
-            netbox = 'submit_netbox'
-            room = 'submit_room'
-
         for field in result.keys():
             if self.prefix:
                 submit = 'submit_%s_%s' % (self.prefix, field)
@@ -95,6 +82,11 @@ class QuickSelect:
                 submit = 'submit_%s' % field
                 add = 'add_%s' % field
                 key = field
+
+            if field == 'location':
+                # Hack to work around noscript XSS protection that triggers on
+                # location
+                key = key.replace('location', 'loc')
 
             if getattr(self, field):
                 if request.form.has_key(key):
@@ -119,9 +111,9 @@ class QuickSelect:
                     locations[''].append((location['id'], location_name[location['id']]))
 
                 if prefix:
-                    name = '%s_%s' % (prefix, 'location')
+                    name = '%s_%s' % (prefix, 'loc')
                 else:
-                    name = 'location'
+                    name = 'loc'
 
                 output.append({
                         'label': 'Location',
