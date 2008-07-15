@@ -458,7 +458,6 @@ class Vendor(models.Model):
     product is of a vendor."""
 
     id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
-    enterprise_id = models.IntegerField(db_column='enterpriseid')
 
     class Meta:
         db_table = 'vendor'
