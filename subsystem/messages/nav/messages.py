@@ -78,7 +78,7 @@ def getMsgs(where = False, order = 'publish_start DESC'):
     db.execute(sql)
     logger.debug("getMsgs() number of results: %d", db.rowcount)
     if not db.rowcount:
-        return False
+        return []
     results = db.dictfetchall()
 
     # Attach tasks connected to this message
