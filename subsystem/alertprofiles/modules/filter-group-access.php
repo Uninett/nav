@@ -80,8 +80,8 @@ if (session_get('gruppesubaction') == "endregruppe") {
 $l = new Lister( 103,
 	array(gettext('User group'), gettext('#users'), gettext('#perms'), 
 		gettext('#std.groups'), gettext('#std.filters'), gettext('Options..') ),
-	array(25, 15, 15, 15, 15, 15),
-	array('left', 'right', 'right', 'right', 'right', 'right' ),
+	array(25, 15, 15, 15, 15, 10),
+	array('left', 'left', 'left', 'left', 'left', 'left' ),
 	array(true, true, true, true, true, false),
 	0
 );
@@ -123,11 +123,12 @@ for ($i = 0; $i < sizeof($grupper); $i++) {
 	} else { 
 		$adf = "<img alt=\"Ingen\" src=\"icons/stop.gif\">"; 
 	}	
-	$l->addElement( array($grupper[$i][1],  // gruppenavn
-		$ab,  // #bruekre
-		$ar, // #rettigheter
-		$ag,  // #std grupper
-		$adf, // #std. filter..
+	$l->addElement( array(
+		$grupper[$i][1],	// gruppenavn
+		$ab,			// #bruekre
+		$ar,			// #rettigheter
+		$ag,			// #std grupper
+		$adf,			// #std. filter..
 		$valg
 		) 
 	);
