@@ -34,7 +34,7 @@ from nav.web.alertprofiles.views import *
 urlpatterns = patterns('',
     # Overview
     url(r'^$', overview,
-        name='alertprofiles-overview'),
+        name='alertprofiles'),
 
     # User settings
     url(r'^profile/$', profile,
