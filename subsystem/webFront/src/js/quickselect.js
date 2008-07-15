@@ -58,7 +58,7 @@ $(function() {
                 quickselect.find(':hidden option').removeAttr('selected');
                 quickselect.find('option:visible').parents('select').siblings('label').addClass('highlight');
             }
-        spinner.css('visibility', 'hidden');
+            spinner.css('visibility', 'hidden');
         };
 
         function handler() {
@@ -72,7 +72,10 @@ $(function() {
             }
 
             timeout = setTimeout(function() { do_search(value) }, 300);
-            spinner.css('visibility', 'visible');
+
+            if (value.length > 0) {
+                spinner.css('visibility', 'visible');
+            }
         }
         search.find('.search').keyup(handler).click(handler);
 
@@ -107,6 +110,8 @@ $(function() {
         selects.each(function (){
             var select = $(this);
             var clone  = all.clone();
+
+            select.attr('size', 10);
 
             clone.click(function() {
                 select.find('option:visible').attr('selected', 'selected');

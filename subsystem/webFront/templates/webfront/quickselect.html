@@ -4,7 +4,7 @@
             <label for="id{{ attrs.name }}">
                 {{ attrs.label }}
             </label>
-            <select multiple="multiple" size="10" name="{{ attrs.name }}" id="id_{{ attrs.name }}">
+            <select multiple="multiple" size="5" name="{{ attrs.name }}" id="id_{{ attrs.name }}">
                 {% for optgroup,options in attrs.objects %}
                     {% if optgroup %}
                         <optgroup label="{{ optgroup }}">
