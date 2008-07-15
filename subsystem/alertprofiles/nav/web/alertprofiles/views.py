@@ -48,7 +48,7 @@ from nav.web.alertprofiles.utils import *
 
 BASE_PATH = [
         ('Home', '/'),
-        ('Alert profiles', 'alertprofiles'),
+        ('Alert profiles', '/alertprofiles/'),
     ]
 
 def overview(request):
