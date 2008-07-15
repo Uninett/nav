@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block expresions %}
-<form action="{% url alertprofiles-filters-removeexpresion %}" method="post">
+<form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
 <table class="listtable">
     <caption>
         Weekdays
@@ -45,7 +45,8 @@
                 {% for b in a.alert_subscriptions %}
                     <li>
                         Watch <em>{{ b.filter_group }}</em>,
-                        send to <em>{{ b.alert_address.address }}</em>
+                        send to <em>{{ b.alert_address.address }}</em>,
+                        {{ b.get_type_display }}.
                     </li>
                 {% endfor %}
                     <li><a href="{% url alertprofiles-profile-timeperiod-setup a.time_period.id %}"
@@ -84,7 +85,8 @@
                 {% for b in a.alert_subscriptions %}
                     <li>
                         Watch <em>{{ b.filter_group }}</em>,
-                        send to <em>{{ b.alert_address.address }}</em>
+                        send to <em>{{ b.alert_address.address }}</em>,
+                        {{ b.get_type_display }}.
                     </li>
                 {% endfor %}
                     <li><a href="{% url alertprofiles-profile-timeperiod-setup a.time_period.id %}"

@@ -202,6 +202,51 @@ def profile_time_period_add(request):
     time_period = time_period_form.save()
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
+def profile_time_period_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseForbidden(reverse('alertprofiles-profile'))
+
+    if request.POST.get('confirm'):
+        account = get_account(request)
+        elements = request.POST.getlist('element')
+
+        time_periods = TimePeriod.objects.filter(pk__in=elements)
+        first = True
+        for t in time_periods:
+            if first:
+                # We only check profile once and assume it's the same for all.
+                # It's only used to redirect the user after deleting all the
+                # periods anyways.
+                profile = t.profile
+                first = False
+            if t.profile.account != account:
+                return HttpResponseForbidden('No access')
+
+        time_periods.delete()
+
+        return HttpResponseRedirect(reverse(
+            'alertprofiles-profile-detail',
+            args=(profile.id,)
+        ))
+    else:
+        account = get_account(request)
+        time_periods = TimePeriod.objects.filter(pk__in=request.POST.getlist('period'))
+
+        for t in time_periods:
+            if t.profile.account != account:
+                return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-profile-timeperiod-remove'),
+                'active': {'profile': True},
+                'elements': time_periods,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+            )
+
 def profile_time_period_setup(request, time_period_id=None):
     if not time_period_id:
         redirect_url = reverse('alertprofiles-profile')
