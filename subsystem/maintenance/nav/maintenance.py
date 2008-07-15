@@ -350,7 +350,7 @@ def getRoom(roomid):
 
     """
 
-    if not len(romid):
+    if not len(roomid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')

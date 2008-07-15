@@ -20,7 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+#          Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 
 """
@@ -29,7 +30,7 @@ mod_python handler for Maintenance subsystem.
 
 __copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no), Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id:$"
 
 import time
