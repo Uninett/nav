@@ -102,8 +102,8 @@ if (isset($subaction) && $subaction == "swap") {
 
 $l = new Lister( 114,
 		array(gettext('Operator') . '&nbsp;', gettext('Filter'), gettext('Move'), gettext('Options..') ),
-		array(25,  45, 15, 15),
-		array('right', 'left', 'center', 'right'),
+		array(25,  45, 15, 10),
+		array('right', 'left', 'left', 'left'),
 		array(false, false, false, false),
 		0
 );

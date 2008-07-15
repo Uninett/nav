@@ -72,8 +72,8 @@ if (get_get('subaction') == "nymatch") {
 
 $l = new Lister( 301,
 	array(gettext('ID'), gettext('Name'), gettext('Database-reference'), gettext('Options...')),
-	array(10, 30, 40, 20),
-	array('left', 'left', 'left', 'right'),
+	array(10, 30, 40, 10),
+	array('left', 'left', 'left', 'left'),
 	array(true, true, true, false),
 	1
 );
