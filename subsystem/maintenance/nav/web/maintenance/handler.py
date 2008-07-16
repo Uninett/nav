@@ -43,7 +43,7 @@ from nav.web.templates.MaintenanceCalTemplate import MaintenanceCalTemplate
 from nav.web.templates.MaintenanceDetailsTemplate import MaintenanceDetailsTemplate
 from nav.web.templates.MaintenanceListTemplate import MaintenanceListTemplate
 from nav.web.templates.MaintenanceNewTemplate import MaintenanceNewTemplate
-from nav.web.QuickSelect import QuickSelect
+from nav.web.quickselect import QuickSelect
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
