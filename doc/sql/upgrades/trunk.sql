@@ -215,3 +215,6 @@ CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
 --  * Remove template portion of value_name
 ALTER TABLE matchfield DROP COLUMN value_category;
 UPDATE matchfield SET value_name = regexp_replace(value_name, E'\\|.*$', '');
+
+-- Drop queuelength from alertpreference as it is not used
+ALTER TABLE alertpreference DROP COLUMN queuelength;
