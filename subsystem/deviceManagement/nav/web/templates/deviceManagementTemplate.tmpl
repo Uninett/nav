@@ -327,21 +327,11 @@ $showErrors($page)
 <p>$page.description</p>
 $showErrors($page)
 <form action="$page.action" method="post">
-#if $page.treeselect
-    $displayTreeSelect($page.treeselect)
-## Error description input
     <p>
-        <table width="50%">
-            <tr>
-                <th>$renderwhead($page.widgets['comment'])</th>
-            </tr>
-            <tr>
-                <td>$renderwidget($page.widgets['comment'])</td>
-            </tr>
-        </table>
+	<label><b>$renderwhead($page.widgets['comment'])</b></label><br />
+	$renderwidget($page.widgets['comment'])
     </p>
-$submitButton($page.submit)
-#end if
+    $page.quickselect
 </form>
 #end def
 

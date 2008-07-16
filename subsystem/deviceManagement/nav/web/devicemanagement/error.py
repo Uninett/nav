@@ -38,11 +38,22 @@ from nav.web.devicemanagement.deviceevent import DeviceEvent
 from nav.web.devicemanagement.page import Page
 from nav.web.devicemanagement.widget import Widget
 
+from nav.web.quickselect import QuickSelect
+
 ### Functions
 
 def error(req):
     page = Page()
     form = req.form
+
+    quickselect_kwargs = {
+        'button': 'Add %s error event',
+        'module': True,
+        'netbox_multiple': False,
+        'module_multiple': False,
+        'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
+    }
+    page.quickselect = QuickSelect(**quickselect_kwargs)
 
     page.name = 'error'
     page.title = 'Register error'
@@ -56,53 +67,28 @@ def error(req):
     page.action = ''
 
     showSelect = True
-    if form.has_key('error') and form.has_key(CN_ERRCOMMENT):
-        if len(form[CN_ERRCOMMENT]):
-            # Register error
-            comment = form[CN_ERRCOMMENT]
+    errorType = None
+    for key,value in page.quickselect.handle_post(req).iteritems():
+        if value:
+            errorType = key
+
+            comment = form.get(CN_ERRCOMMENT, '')
             username = req.session['user'].login
-            errorType = None
-            if form.has_key(CN_MODULE):
-                errorType = CN_MODULE
-            elif form.has_key(CN_BOX):
-                errorType = CN_BOX
-            elif form.has_key(CN_ROOM):
-                errorType = CN_ROOM
-            elif form.has_key(CN_LOCATION):
-                errorType = CN_LOCATION
-            elif form.has_key(CN_DEVICE):
-                errorType = CN_DEVICE
 
-            if form[errorType] is list:
-                unitList = form[errorType]
+            if comment:
+                result = registerError(errorType,value,comment,username)
+                page.messages = result
             else:
-                unitList = [form[errorType]]
+                page.errors.append('You must enter an error comment.')
 
-            result = registerError(errorType,unitList,comment,username)
-            page.messages = result
-        else:
-            page.errors.append('You must enter an error comment.')
+            break
 
     if showSelect:
         # Browse mode, make treeselect
-        page.searchbox,page.treeselect = makeTreeSelect(req,size=10,
-                                                        serialSearch=True)
-        page.formname = page.treeselect.formName
-
-        page.submit = {'control': 'error',
-                       'value': 'Register error',
-                       'enabled': True}
-
         page.widgets = {}
         page.widgets['comment'] = Widget(CN_ERRCOMMENT,'textarea','Error comment',
                                            options={'rows': '5',
-                                                    'cols': '80',
-                                                    'style': 'width: 100%;'})
-
-        #page.errorInput = {'control': 'errorinput',
-        #                   'description': 'Error comment:',
-        #                   'size': '50',
-        #                   'enabled': validSubmit}
+                                                    'cols': '70'})
 
     nameSpace = {'page': page}
     template = deviceManagementTemplate(searchList=[nameSpace])
