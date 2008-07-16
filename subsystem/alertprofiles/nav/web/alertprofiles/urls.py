@@ -45,12 +45,16 @@ urlpatterns = patterns('',
         name='alertprofiles-profile-detail'),
     url(r'^profile/save/$', profile_save,
         name='alertprofiles-profile-save'),
+    url(r'^profile/remove/$', profile_remove,
+        name='alertprofiles-profile-remove'),
+
     url(r'^profile/time_period/(?P<time_period_id>\d+)/$', profile_time_period_setup,
         name='alertprofiles-profile-timeperiod-setup'),
     url(r'^profile/time_period/add/$', profile_time_period_add,
         name='alertprofiles-profile-timeperiod-add'),
     url(r'^profile/time_period/remove/$', profile_time_period_remove,
         name='alertprofiles-profile-timeperiod-remove'),
+
     url(r'^profile/time_period/subscription/(?P<subscription_id>\d+)$', profile_time_period_subscription_edit,
         name='alertprofiles-profile-timeperiod-subscription'),
     url(r'^profile/time_period/subscription/add/$', profile_time_period_subscription_add,
@@ -60,7 +64,8 @@ urlpatterns = patterns('',
 
 
     # Filters
-    url(r'^filters/$', filter_list, name='alertprofiles-filters'),
+    url(r'^filters/$', filter_list,
+        name='alertprofiles-filters'),
     url(r'^filters/(?P<filter_id>\d+)/$', filter_detail,
         name='alertprofiles-filters-detail'),
     url(r'^filters/new/$', filter_detail,

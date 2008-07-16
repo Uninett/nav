@@ -215,6 +215,45 @@ def profile_save(request):
     profile = profile_form.save()
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
+def profile_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    if request.POST.get('confirm'):
+        filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
+        profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('element'))
+
+        for p in profiles:
+            if p.account != account:
+                return HttpResponseForbidden('No access')
+
+        profiles.delete()
+
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+    else:
+        profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('profile'))
+
+        for p in profiles:
+            if p.account != account:
+                return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-profile-remove'),
+                'active': {'profile': True},
+                'elements': profiles,
+                'perform_on': None,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                path=BASE_PATH+[
+                    ('Profiles', reverse('alertprofiles-profile')),
+                    ('Remove profiles', None),
+                ]
+            )
+
 def profile_time_period_add(request):
     # FIXME 'all days' needs tweaking.
     if request.method != 'POST':
