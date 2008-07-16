@@ -28,7 +28,10 @@ import datetime
 from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
 
+from nav import auth
+
 from mod_python import apache, util, Cookie
+from mod_python.util import FieldStorage
 
 from nav.web.templates.GraphML import GraphML
 from nav.web.templates.Netmap import Netmap
@@ -61,6 +64,45 @@ def handler(req):
         req.write(page.respond());
 
         return apache.OK
+
+    # Save positions for later usage
+    elif path == '/position':
+        # Check if user is admin
+        if not auth.hasPrivilege(req.session['user'], None, None):
+            return apache.HTTP_UNAUTHORIZED
+
+        form = FieldStorage(req)
+        req.content_type="text/plain"
+        req.send_http_header()
+
+        positions = {}
+        for key in form.keys():
+            try:
+                sysname,direction = key.split("_")
+                position = float(form.get(key, 0.0))
+            except ValueError:
+                continue
+            if not sysname or not direction or not position:
+                continue
+            if sysname not in positions:
+                positions[sysname] = [0.0, 0.0]
+            if direction == "x":
+                positions[sysname][0] = position
+            elif direction == "y":
+                positions[sysname][1] = position
+
+        for sysname in positions.keys():
+            db.execute("SELECT COUNT(*) FROM netmap_position WHERE sysname = '%s'" % sysname)
+            result = db.fetchall()
+            if result[0][0] > 0:
+                db.execute("UPDATE netmap_position SET xpos = %s, ypos = %s WHERE sysname = '%s'" % (positions[sysname][0], positions[sysname][1], sysname))
+            else:
+                db.execute("INSERT INTO netmap_position(xpos, ypos, sysname) VALUES (%s, %s, '%s')" % (positions[sysname][1], positions[sysname][1], sysname))
+
+
+        return apache.OK
+
+
 
     #Fetch categories
     elif path == '/catids':
