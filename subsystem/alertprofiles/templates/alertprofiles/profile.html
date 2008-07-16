@@ -38,6 +38,15 @@
                 permissions to be alerted by SMS.
             </td>
         </tr>
+        <tr>
+            <th>Language</th>
+            <td>
+                <form action="{% url alertprofiles-language-save %}" method="post">
+                    {{ language_form.value }}
+                    {{ language_form.property }}
+                    <button type="submit">Save changes</button>
+                </form>
+            </td>
     </tbody>
 </table>
 
@@ -119,4 +128,5 @@
     <button type="submit" name="remove">Remove selected</button>
 </p>
 </form>
+
 {% endblock %}

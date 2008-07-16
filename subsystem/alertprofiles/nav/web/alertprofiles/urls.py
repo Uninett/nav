@@ -73,6 +73,9 @@ urlpatterns = patterns('',
     url(r'^address/remove/$', address_remove,
         name='alertprofiles-address-remove'),
 
+    url(r'^language/save/$', language_save,
+        name='alertprofiles-language-save'),
+
     # Filters
     url(r'^filters/$', filter_list,
         name='alertprofiles-filters'),

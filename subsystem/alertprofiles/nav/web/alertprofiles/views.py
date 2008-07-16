@@ -84,6 +84,16 @@ def profile(request):
     filter_dict = {'group_permisions__in': [g.id for g in groups]}
     filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
 
+    language = AccountProperty.objects.get(
+        account=account,
+        property='language'
+    )
+    language_form = AccountPropertyForm(
+        instance=language,
+        property='language',
+        values=[('en', 'English'), ('no', 'Norwegian')]
+    )
+
     info_dict = {
             'active': active,
             'groups': groups,
@@ -92,6 +102,7 @@ def profile(request):
             'active_profile': active_profile,
             'sms_privilege': sms_privilege,
             'filter_groups': filter_groups,
+            'language_form': language_form,
         }
 
     return render_to_response(
@@ -553,9 +564,6 @@ def address_show_form(request, address_id=None, address_form=None):
 def address_detail(request, address_id=None):
     return address_show_form(request, address_id)
 
-def address_new(request):
-    pass
-
 def address_save(request):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse('alertprofiles-address'))
@@ -624,6 +632,23 @@ def address_remove(request):
                     ('Remove addresses', None),
                 ]
             )
+
+def language_save(request):
+    if request.method != 'POST' or not request.POST.get('value'):
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    language = None
+
+    try:
+        language = AccountProperty.objects.get(account=account, property='language')
+    except AccountGroup.DoesNotExist:
+        language = AccountProperty(account=account, property='language')
+
+    language.value = request.POST.get('value')
+    language.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
 def filter_list(request):
     account = get_account(request)
