@@ -83,11 +83,9 @@ class QuickSelect:
         for field in result.keys():
             if self.prefix:
                 submit = 'submit_%s_%s' % (self.prefix, field)
-                add = 'add_%s_%s' % (self.prefix, field)
                 key = '%s_%s' % (self.prefix, field)
             else:
                 submit = 'submit_%s' % field
-                add = 'add_%s' % field
                 key = field
 
             if field == 'location':
@@ -101,14 +99,16 @@ class QuickSelect:
                     # Multi is set so we should get all the input
                     if submit in request.form and key in request.form:
                         result[field] = request.form.getlist(key)
-                    elif request.form.has_key(add):
-                        result[field] = request.form.getlist(add)
+                    elif request.form.has_key('add_%s' % key):
+                        result[field] = request.form.getlist('add_%s' % key)
                 else:
                     # Multi is false only get first input
                     if submit in request.form and key in request.form:
                         result[field] = [request.form.getfirst(key)]
-                    elif request.form.has_key(add):
-                        result[field] = [request.form.getfirst(add)]
+                    elif request.form.has_key('add_%s' % key):
+                        result[field] = request.form.getlist('add_%s' % key)
+                    elif request.form.has_key('view_%s' % key):
+                        result[field] = request.form.getlist('view_%s' % key)
 
         return result
 
