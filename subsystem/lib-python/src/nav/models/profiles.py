@@ -207,9 +207,9 @@ class AlertProfile(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField()
-    daily_dispatch_time = models.TimeField()
+    daily_dispatch_time = models.TimeField(default='08:00')
     weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS, default=MONDAY)
-    weekly_dispatch_time = models.TimeField()
+    weekly_dispatch_time = models.TimeField(default='08:00')
 
     class Meta:
         db_table = u'alertprofile'
@@ -254,7 +254,7 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey('AlertProfile', db_column='alert_profile_id')
-    start = models.TimeField(db_column='start_time', default='08:00:00')
+    start = models.TimeField(db_column='start_time', default='08:00')
     valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
 
     class Meta:
