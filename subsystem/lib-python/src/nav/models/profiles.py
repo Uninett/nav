@@ -146,6 +146,14 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
+    # FIXME For some reason 'get_type_display()' does not give the desired
+    # result, it returns the first position of the tuple, not the second, which
+    # it should. This function returns the second position of the selected
+    # type.
+    def get_dispatcher_type(self):
+        types = dict(DISPATCHER_TYPES)
+        return types[unicode(self.type)]
+
     def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types'''
 
