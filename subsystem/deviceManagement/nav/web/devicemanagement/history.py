@@ -392,7 +392,7 @@ class LocationHistoryBox(HistoryBox):
 class RoomHistoryBox(HistoryBox):
     def __init__(self, roomid, startTime, endTime, eventtypes, alerttypes):
         room = nav.db.manage.Room(roomid)
-        self.title = str(roomid) + ' (' + room.descr + ')'
+        self.title = str(roomid) + ' (' + str(room.descr) + ')'
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
