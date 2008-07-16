@@ -101,15 +101,24 @@ def profile(request):
 
 def profile_show_form(request, profile_id=None, profile_form=None, time_period_form=None):
     account = get_account(request)
+    profile = None
+    periods = []
+    detail_id = None
+    page_name = 'New profile'
 
-    profile = get_object_or_404(AlertProfile, pk=profile_id, account=account)
-    periods = TimePeriod.objects.filter(profile=profile).order_by('start')
+    if profile_id:
+        profile = get_object_or_404(AlertProfile, pk=profile_id, account=account)
+        detail_id = profile.id
+        page_name = profile.name
+        periods = TimePeriod.objects.filter(profile=profile).order_by('start')
 
-    if not time_period_form:
-        time_period_form = TimePeriodForm(initial={'profile': profile.id})
+        if not time_period_form:
+            time_period_form = TimePeriodForm(initial={'profile': profile.id})
 
-    if not profile_form:
-        profile_form = AlertProfileForm(instance=profile)
+        if not profile_form:
+            profile_form = AlertProfileForm(instance=profile)
+    elif not profile_form:
+        profile_form = AlertProfileForm()
 
     subscriptions = {'weekdays': [], 'weekends': []}
     weekdays = (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK)
@@ -159,7 +168,7 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
     info_dict = {
         'form': profile_form,
         'time_period_form': time_period_form,
-        'detail_id': profile.id,
+        'detail_id': detail_id,
         'alert_subscriptions': subscriptions,
         'active': {'profile': True},
     }
@@ -169,12 +178,15 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         info_dict,
         path=BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
-            (profile.name, None)
+            (page_name, None)
         ]
     )
 
 def profile_detail(request, profile_id=None):
     return profile_show_form(request, profile_id)
+
+def profile_new(request):
+    return profile_show_form(request)
 
 def profile_save(request):
     if not request.method == 'POST':
@@ -188,9 +200,13 @@ def profile_save(request):
             pk=request.POST.get('id'),
             account=account,
         )
-        profile_form = AlertProfileForm(request.POST, instance=profile)
+
+        if profile.account != account:
+            return HttpResponseForbidden('No access')
     else:
-        profile_form = AlertProfileForm(request.POST)
+        profile = AlertProfile(account=account)
+
+    profile_form = AlertProfileForm(request.POST, instance=profile)
 
     if not profile_form.is_valid():
         detail_id = request.POST.get('id') or None
