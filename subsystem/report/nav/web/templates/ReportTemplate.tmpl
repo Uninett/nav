@@ -65,12 +65,13 @@
 #extends nav.web.templates.MainTemplate
 
 #block additionalCSS
-$default_table_CSS()
+    $default_table_CSS()
+    <link rel="stylesheet" href="/style/report.css" type="text/css" /> 
 #end block additionalCSS
 
 #block additionalJavaScript
-<script type="text/javascript" src="/js/table.js"></script>
-<script type="text/javascript" src="/js/report.js"></script>
+    <script type="text/javascript" src="/js/table.js"></script>
+    <script type="text/javascript" src="/js/report.js"></script>
 #end block additionalJavaScript
 
 #block content
