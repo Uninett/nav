@@ -62,6 +62,16 @@ urlpatterns = patterns('',
     url(r'^profile/time_period/subscription/remove/$', profile_time_period_subscription_remove,
         name='alertprofiles-profile-timeperiod-subscription-remove'),
 
+    url(r'^address/$', 'address_list',
+        name='alertprofiles-address'),
+    url(r'^address/(?P<address_id>\d+)/$', address_detail,
+        name='alertprofiles-address-detail'),
+    url(r'^address/new/$', address_detail,
+        name='alertprofiles-address-new'),
+    url(r'^address/save/$', address_save,
+        name='alertprofiles-address-save'),
+    url(r'^address/remove/$', address_remove,
+        name='alertprofiles-address-remove'),
 
     # Filters
     url(r'^filters/$', filter_list,

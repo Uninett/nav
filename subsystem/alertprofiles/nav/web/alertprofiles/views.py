@@ -230,7 +230,6 @@ def profile_remove(request):
 
     account = get_account(request)
     if request.POST.get('confirm'):
-        filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
         profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('element'))
 
         for p in profiles:
@@ -402,7 +401,7 @@ def profile_time_period_setup(request, time_period_id=None):
         AlertProfilesTemplate,
         'alertprofiles/subscription_form.html',
         info_dict,
-        path=BASE_PATH[
+        path=BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
             (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
             (unicode(time_period.start) + u', ' + time_period.get_valid_during_display(), None),
@@ -509,6 +508,120 @@ def profile_time_period_subscription_remove(request):
                         reverse('alertprofiles-profile-timeperiod-setup', args=(period.id,))
                     ),
                     ('Remove subscriptions', None)
+                ]
+            )
+
+def address_show_form(request, address_id=None, address_form=None):
+    account = get_account(request)
+    page_name = 'New address'
+    detail_id = None
+    address = None
+
+    if address_id:
+        try:
+            address = AlertAddress.objects.get(pk=address_id)
+        except AlertAddress.DoesNotExist:
+            # We have already set the variables we need, so we can fail
+            # silently.
+            address = None
+        else:
+            # Check if we really are the owner of the address
+            if address.account == account:
+                page_name = address.address
+                detail_id = address.id
+            else:
+                address = None
+
+    if not address_form:
+        address_form = AlertAddressForm(instance=address)
+
+    info_dict = {
+        'active': {'profile': True},
+        'detail_id': detail_id,
+        'form': address_form,
+    }
+    return render_to_response(
+        AlertProfilesTemplate,
+        'alertprofiles/address_form.html',
+        info_dict,
+        path=BASE_PATH+[
+            ('Address', None),
+            (page_name, None),
+        ]
+    )
+
+def address_detail(request, address_id=None):
+    return address_show_form(request, address_id)
+
+def address_new(request):
+    pass
+
+def address_save(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-address'))
+
+    account = get_account(request)
+    address = None
+    address_id = None
+
+    if request.POST.get('id'):
+        try:
+            address = AlertAddress.objects.get(pk=request.POST.get('id'))
+        except AlertAddress.DoesNotExist:
+            address = None
+        else:
+            if address.account != account:
+                return HttpResponseForbidden('No access')
+            else:
+                address_id = address.id
+
+    if not address:
+        address = AlertAddress(account=account)
+
+    address_form = AlertAddressForm(request.POST, instance=address)
+
+    if not address_form.is_valid():
+        return address_show_form(request, address_id, address_form)
+
+    address = address_form.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-address-detail', args=(address.id,)))
+
+def address_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    if request.POST.get('confirm'):
+        addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('element'))
+
+        for a in addresses:
+            if a.account != account:
+                return HttpResponseForbidden('No access')
+
+        addresses.delete()
+
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+    else:
+        addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('address'))
+
+        for a in addresses:
+            if a.account != account:
+                return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-address-remove'),
+                'active': {'profile': True},
+                'elements': addresses,
+                'perform_on': None,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                path=BASE_PATH+[
+                    ('Profiles', reverse('alertprofiles-profile')),
+                    ('Remove addresses', None),
                 ]
             )
 

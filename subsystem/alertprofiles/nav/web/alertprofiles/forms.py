@@ -38,6 +38,13 @@ class AlertProfileForm(forms.ModelForm):
         model = AlertProfile
         exclude = ('account',)
 
+class AlertAddressForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+
+    class Meta:
+        model = AlertAddress
+        exclude = ('account',)
+
 class TimePeriodForm(forms.ModelForm):
     profile = forms.ModelChoiceField(AlertProfile.objects.all(), widget=forms.widgets.HiddenInput)
 

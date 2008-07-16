@@ -41,6 +41,10 @@
     </tbody>
 </table>
 
+<p>
+    <a href="{% url alertprofiles-address-new %}">Add new alert address.</a>
+</p>
+<form action="{% url alertprofiles-address-remove %}" method="post">
 <table class="listtable">
     <caption>
         Alert adresses
@@ -49,30 +53,34 @@
     <thead>
         <tr>
             <th></th>
-            <th>Type</th>
             <th>Address</th>
+            <th>Type</th>
         </tr>
     </thead>
     
     <tbody>
     {% for a in adress %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td><input type="checkbox" name="adress" value="{{ a.id }}" /></td>
+            <td><input type="checkbox" name="address" value="{{ a.id }}" /></td>
             <td>
-            {{ a.get_dispatcher_type }}
+                <a href="{% url alertprofiles-address-detail a.id %}">{{ a.address }}</a>
             </td>
             <td>
-                <a href="">{{ a.address }}</a>
+                {{ a.get_dispatcher_type }}
             </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
+<p>
+    <button type="submit">Remove selected</button>
+</p>
+</form>
 
-<form action="{% url alertprofiles-profile-remove %}" method="post">
 <p>
     <a href="{% url alertprofiles-profile-new %}">Make a new profile.</a>
 </p>
+<form action="{% url alertprofiles-profile-remove %}" method="post">
 <table class="listtable">
     <caption>
         Profiles
