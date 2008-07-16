@@ -704,7 +704,6 @@ class MatchField(models.Model):
     value_help = models.CharField(u'Help text for the matchfield', blank=True, help_text=u'Displayed by the value input box in the GUI to help users enter sane values.')
     value_id = models.CharField(u'Matchfield, the database field to watch', choices=CHOICES, help_text=u'This is the acctual field alert engine will watch.')
     value_name = models.CharField(u'Description for the matchfield used in the GUI', choices=CHOICES, blank=True, help_text=u'Only used in the GUI to show additonal description of the matchfield. Only does something when "Show list" is checked.')
-    value_category = models.CharField(u'Somthing that was never implemented', choices=CHOICES, blank=True, help_text=u'Should have been a way to group options in the GUI.')
     value_sort = models.CharField(u'Order matchfields by this field', choices=CHOICES, blank=True, help_text=u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
     list_limit = models.IntegerField(blank=True, help_text=u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
     data_type = models.IntegerField(choices=DATA_TYPES, help_text=u'The data type of the match field. Purely cosmetic')
