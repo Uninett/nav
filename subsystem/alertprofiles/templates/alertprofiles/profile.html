@@ -1,0 +1,110 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+
+<table class="listtable">
+    <caption>
+        Account information
+    </caption>
+
+    <tbody>
+        <tr>
+            <th>Groups you are member of</th>
+            <td>
+                <ul>
+                {% for group in groups %}
+                    <li>{{ group.name }}<br />{{ group.description }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th>Alerts you have permissions to recieve</th>
+            <td>
+                <ul>
+                {% for filtergroup in filter_groups %}
+                    <li>{{ filtergroup.name }}<br />{{ filtergroup.description }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th>Alert by sms</th>
+            <td>
+                <!--
+                <img src="{{ sms_privilege|yesno:"check,cross" }}" />
+                -->
+                You <em>{{ sms_privilege|yesno:",do not" }}</em> have
+                permissions to be alerted by SMS.
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="listtable">
+    <caption>
+        Alert adresses
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Type</th>
+            <th>Address</th>
+        </tr>
+    </thead>
+    
+    <tbody>
+    {% for a in adress %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="adress" value="{{ a.id }}" /></td>
+            <td>
+            {{ a.get_type_display }}
+            </td>
+            <td>
+                <a href="">{{ a.address }}</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<form action="{% url alertprofiles-profile-remove %}" method="post">
+<p>
+    <a href="{% url alertprofiles-profile-new %}">Make a new profile.</a>
+</p>
+<table class="listtable">
+    <caption>
+        Profiles
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Active</th>
+            <th>Name</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for profile in profiles %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
+            <td>
+            {% ifequal profile.id active_profile.id %}
+                Active
+            {% else %}
+                <a href="" title="Click to activate">Inavtive</a>
+            {% endifequal %}
+            </td>
+            <td><a href="{% url alertprofiles-profile-detail profile.id %}">
+                {{ profile.name }}</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p>
+    <button type="submit">Remove selected</button>
+</p>
+</form>
+{% endblock %}
