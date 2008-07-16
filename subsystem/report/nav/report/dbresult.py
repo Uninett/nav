@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# $Id: DatabaseResult.py 3425 2006-06-08 13:07:54Z mortenv $
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,6 +21,7 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
 from nav import db
@@ -70,19 +71,21 @@ class DatabaseResult:
                 database.execute(sumsql)
                 sums = database.fetchone()
 
-                # Converting float to int, tuple to list
-                sums_list = []
-                for index, sum in enumerate(sums):
-                    sums_list.append(int(long(sum)))
-
-                sums = sums_list
-
-            ## coherce the results from the databasequery to the field-labels
                 if sums:
-                    for sum in reportConfig.sum:
-                        self.sums[sum] = sums[reportConfig.sum.index(sum)]
+                    # Converting float to int, tuple to list
+                    sums_list = []
+                    for sum in sums:
+                        if sum != None:
+                            sums_list.append(int(sum))
+
+                    sums = sums_list
+
+                    ## coherce the results from the databasequery to the field-labels
+                    if sums:
+                        for sum in reportConfig.sum:
+                            self.sums[sum] = sums[reportConfig.sum.index(sum)]
 
 
         except psycopg.ProgrammingError,p:
             #raise ProblemExistBetweenKeyboardAndChairException
-            self.error = "Configuration error! The report generator is not able to do such things."+str(p)
+            self.error = "Configuration error! The report generator is not able to do such things. " + str(p)
