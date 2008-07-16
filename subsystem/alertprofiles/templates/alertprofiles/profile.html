@@ -59,7 +59,7 @@
         <tr class="{% cycle oddrow,evenrow %}">
             <td><input type="checkbox" name="adress" value="{{ a.id }}" /></td>
             <td>
-            {{ a.get_type_display }}
+            {{ a.get_dispatcher_type }}
             </td>
             <td>
                 <a href="">{{ a.address }}</a>
@@ -81,8 +81,8 @@
     <thead>
         <tr>
             <th></th>
-            <th>Active</th>
             <th>Name</th>
+            <th>Active</th>
         </tr>
     </thead>
 
@@ -90,21 +90,25 @@
     {% for profile in profiles %}
         <tr class="{% cycle oddrow,evenrow %}">
             <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
-            <td>
-            {% ifequal profile.id active_profile.id %}
-                Active
-            {% else %}
-                <a href="" title="Click to activate">Inavtive</a>
-            {% endifequal %}
-            </td>
             <td><a href="{% url alertprofiles-profile-detail profile.id %}">
                 {{ profile.name }}</a></td>
+            <td>
+            {% ifequal profile.id active_profile.id %}
+{#                Active #}
+                <button type="submit" title="Click to deactivate"
+                name="deactivate" value="{{ profile.id }}">Active</button>
+            {% else %}
+{#                <a href="" title="Click to activate">Inavtive</a> #}
+                <button type="submit" title="Click to activate" name="activate"
+                value="{{ profile.id }}">Inactive</button>
+            {% endifequal %}
+            </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
 <p>
-    <button type="submit">Remove selected</button>
+    <button type="submit" name="remove">Remove selected</button>
 </p>
 </form>
 {% endblock %}

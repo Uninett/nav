@@ -42,6 +42,7 @@ from nav.models.profiles import *
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.utils import get_account, permission_required
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
+from nav.alertengine.dispatchers import DISPATCHER_TYPES
 
 from nav.web.alertprofiles.forms import *
 from nav.web.alertprofiles.utils import *
@@ -70,7 +71,10 @@ def profile(request):
 
     # Get information about user
     groups = account.accountgroup_set.all()
-    active_profile = account.alertpreference.active_profile
+    try:
+        active_profile = account.alertpreference.active_profile
+    except:
+        active_profile = None
     adress = AlertAddress.objects.filter(account=account.pk)
     profiles = AlertProfile.objects.filter(account=account.pk).order_by('name')
 
@@ -219,6 +223,11 @@ def profile_remove(request):
     if not request.method == 'POST':
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
+    if request.POST.get('activate'):
+        return profile_activate(request)
+    if request.POST.get('deactivate'):
+        return profile_deactivate(request)
+
     account = get_account(request)
     if request.POST.get('confirm'):
         filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
@@ -253,6 +262,43 @@ def profile_remove(request):
                     ('Remove profiles', None),
                 ]
             )
+
+def profile_activate(request):
+    if not request.method == 'POST' or not request.POST.get('activate'):
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+
+    try:
+        profile = AlertProfile.objects.get(pk=request.POST.get('activate'))
+    except AlertProfile.DoesNotExist:
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    try:
+        preference = AlertPreference.objects.get(account=account)
+    except AlertPreference.DoesNotExist:
+        preference = AlertPreference(account=account)
+
+    preference.active_profile = profile
+    preference.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+def profile_deactivate(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+
+    try:
+        preference = AlertPreference.objects.get(account=account)
+    except AlertPreference.DoesNotExist:
+        preference = AlertPreference(account=account)
+
+    preference.active_profile = None
+    preference.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
 def profile_time_period_add(request):
     # FIXME 'all days' needs tweaking.
