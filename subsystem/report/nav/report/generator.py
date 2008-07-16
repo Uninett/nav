@@ -32,7 +32,6 @@ from urlparse import urlsplit
 import nav.db
 import re,string
 
-# TODO: remove "hei" from code. It's, as far as I can see, not in any use. No, seriously, do it.
 
 class Generator:
     """
@@ -44,17 +43,15 @@ class Generator:
         self.config = None
         self.answer = None
         self.sql = ""
-        self.hei = ""
-        self.configParser = None
-        self.parseOK = ""
 
     def makeReport(self,reportName,configFile,configFileLocal,uri):
         """
         Makes a report
 
-        - reportName : the name of the report that will be represented
-        - configFile : the configuration file where the definittion resides
-        - uri        : the request from the user as a uri
+        - reportName      : the name of the report that will be represented
+        - configFile      : the configuration file where the definition resides
+        - configFileLocal : the local configuration file where changes to the default definition resides
+        - uri             : the request from the user as a uri
 
         returns a formatted report object instance or 0
         """
@@ -62,17 +59,13 @@ class Generator:
         parsed_uri = urlsplit(uri)
         args = parsed_uri[3]
 
-        self.configParser = ConfigParser(configFileLocal)
-        self.parseOK = self.configParser.parseReport(reportName)
+        configParser = ConfigParser(configFile,configFileLocal)
+        parseOK = configParser.parseReport(reportName)
 
-        if not self.parseOK:
-            self.configParser = ConfigParser(configFile)
-            self.parseOK = self.configParser.parseReport(reportName)
-
-        config = self.configParser.configuration
+        config = configParser.configuration
 
         adv = 0
-        if self.parseOK:
+        if parseOK:
             argumentParser = ArgumentParser(config)
             argumentHash = argumentParser.parseArguments(args)
             if argumentHash.has_key("adv"):
@@ -82,7 +75,6 @@ class Generator:
             (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
 
             answer = DatabaseResult(config)
-            #self.hei = answer.error
             self.sql = answer.sql
 
             formatted = Report(config,answer,uri)
@@ -106,21 +98,19 @@ class ReportList:
         fileContents = file(configFile).read()
         list = reportRe.findall(fileContents)
 
-        configParser = ConfigParser(configFile)
+        configParser = ConfigParser(configFile,None)
 
         for rep in list:
             configtext = rep[1]
             rep = rep[0]
 
-            #configParser.parseReport(rep)
             configParser.parseConfiguration(configtext)
             report = configParser.configuration
-            #raise KeyError, report.header
             if report.header and report.description:
                 r = ReportListElement(rep,report.header,report.description)
                 self.reports.append(r.getReportListElement())
             else:
-                r = ReportListElement(rep)
+                r = ReportListElement(rep,None,None)
                 self.reports.append(r.getReportListElement())
 
     def getReportList(self):
@@ -146,16 +136,20 @@ class ReportListElement:
 
 class ConfigParser:
     """
-    Loads a configuration file, parses the contents, and returns the results as a ReportConfig object instance
+    Loads the configuration files, parses the contents - the local
+    configuration the default, and returns the results as a ReportConfig object
+    instance
     """
 
-    def __init__(self,configFile):
+    def __init__(self,configFile,configFileLocal):
         """
-        Loads the configuration file
+        Loads the configuration files
         """
 
         self.configFile = configFile
+        self.configFileLocal = configFileLocal
         self.config = None
+        self.configLocal = None
         self.configuration = ReportConfig()
 
 
@@ -164,7 +158,7 @@ class ConfigParser:
         Parses the configuration file and returns a Report object
         according to the reportName.
 
-        - reportName : the name of the report, tells which part of configuration file to use when making a ReportConfig
+        - reportName : the name of the report, tells which part of configuration files to use when making a ReportConfig
 
         returns 1 when there was a report with that name, 0 otherwise
 
@@ -173,26 +167,34 @@ class ConfigParser:
 
         if self.config is None:
             self.config = file(self.configFile).read()
+            self.configLocal = file(self.configFileLocal).read()
         reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$",re.M|re.S|re.I)
         reResult = reportRe.search(self.config)
+        reResultLocal = reportRe.search(self.configLocal)
 
         if reResult:
+            if reResultLocal:
+                # Local report config overloads default report config.
+                self.parseConfiguration(reResult.group(1))
+                self.parseConfiguration(reResultLocal.group(1))
+                return 1
+
             self.parseConfiguration(reResult.group(1))
             return 1
         else:
             return 0
 
 
-    def parseConfiguration(self,reportConfiguration):
+    def parseConfiguration(self,reportConfig):
         """
         Parses the right portion of the configuration and builds a ReportConfig object, stone by stone.
 
-        - reportConfiguration : the part of the configuration to build the configuration from
+        - reportConfig : the part of the configuration to build the configuration from
 
         """
 
         configurationRe = re.compile("^\s*\$(\S*)\s*\=\s*\"(.*?)\"\;?",re.M|re.S)
-        reResult = configurationRe.findall(reportConfiguration)
+        reResult = configurationRe.findall(reportConfig)
 
         config = self.configuration
 
@@ -241,7 +243,6 @@ class ArgumentParser:
         """
 
         self.configuration = configuration
-        self.hei = ""
 
     def parseQuery(self,query):
         """
@@ -298,7 +299,7 @@ class ArgumentParser:
                         reResult = None
 
                 if not reResult:
-                    if value and not key == "r4g3n53nd":
+                    if value:
                         fields[unquote_plus(key)] = unquote_plus(value)
 
         for key,value in fields.items():
