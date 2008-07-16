@@ -109,14 +109,16 @@ $(function() {
         // Add select all buttons
         selects.each(function (){
             var select = $(this);
-            var clone  = all.clone();
 
             select.attr('size', 10);
 
-            clone.click(function() {
-                select.find('option:visible').attr('selected', 'selected');
-            });
-            $(this).parent().find('input').after(clone);
+            if (select.attr('multiple')) {
+                var clone  = all.clone();
+                clone.click(function() {
+                    select.find('option:visible').attr('selected', 'selected');
+                });
+                select.parent().find('input').after(clone);
+            }
         });
 
         // Fix the search box with to match selects and insert the search box

@@ -33,35 +33,42 @@ from nav.models.manage import Location, Room, Netbox, Module
 from nav.models.service import Service
 
 class QuickSelect:
-    def __init__(self, prefix='', location=True, room=True, netbox=True,
-            service=False, module=False, location_label='%(id)s (%(description)s)',
-            room_label='%(id)s (%(description)s)', netbox_label='%(sysname)s',
-            service_label='%(handler)s', module_label='%(module_number)d'):
+    def __init__(self, **kwargs):
+        self.prefix = kwargs.pop('prefix', '')
+        self.button = kwargs.pop('button', 'Add %s')
 
-        self.location = location
-        self.room = room
-        self.netbox = netbox
-        self.service = service
-        self.module = module
+        self.location = kwargs.pop('location', True)
+        self.room     = kwargs.pop('room',     True)
+        self.netbox   = kwargs.pop('netbox',   True)
+        self.service  = kwargs.pop('service',  False)
+        self.module   = kwargs.pop('module',   False)
 
-        self.location_label = location_label
-        self.room_label = room_label
-        self.netbox_label = netbox_label
-        self.service_label = service_label
-        self.module_label = module_label
+        self.location_label = kwargs.pop('location_label', '%(id)s (%(description)s)')
+        self.room_label     = kwargs.pop('room_label',     '%(id)s (%(description)s)')
+        self.netbox_label   = kwargs.pop('netbox_label',   '%(sysname)s')
+        self.service_label  = kwargs.pop('service_label',  '%(handler)s')
+        self.module_label   = kwargs.pop('module_label',   '%(module_number)d')
 
-        self.location_set = Location.objects.order_by(('id')).values()
-        self.service_set = Service.objects.order_by('handler').values()
+        self.location_multi = kwargs.pop('location_multiple', True)
+        self.room_multi     = kwargs.pop('room_multiple',     True)
+        self.netbox_multi   = kwargs.pop('netbox_multiple',   True)
+        self.service_multi  = kwargs.pop('service_multiple',  True)
+        self.module_multi   = kwargs.pop('module_multiple',   True)
+
+        for key in kwargs.keys():
+            raise TypeError('__init__() got an unexpected keyword argument %s' % key)
 
         # Quick hack to add the serial to our values.
         netbox_value_args = [f.attname for f in Netbox._meta.fields]
         netbox_value_args.append('device__serial')
         self.netbox_set = Netbox.objects.order_by('sysname').values(*netbox_value_args)
 
+        # Rest of the queryset we need
+        self.location_set = Location.objects.order_by(('id')).values()
+        self.service_set = Service.objects.order_by('handler').values()
         self.module_set = Module.objects.order_by('module_number').values()
         self.room_set = Room.objects.order_by('id').values()
 
-        self.prefix = prefix
         self.output = []
 
     def handle_post(self, request):
@@ -90,10 +97,18 @@ class QuickSelect:
                 submit = submit.replace('location', 'loc')
 
             if getattr(self, field):
-                if submit in request.form and key in request.form:
-                    result[field] = request.form.getlist(key)
-                elif request.form.has_key(add):
-                    result[field] = request.form.getlist(add)
+                if getattr(self, '%s_multi' % field):
+                    # Multi is set so we should get all the input
+                    if submit in request.form and key in request.form:
+                        result[field] = request.form.getlist(key)
+                    elif request.form.has_key(add):
+                        result[field] = request.form.getlist(add)
+                else:
+                    # Multi is false only get first input
+                    if submit in request.form and key in request.form:
+                        result[field] = [request.form.getfirst(key)]
+                    elif request.form.has_key(add):
+                        result[field] = [request.form.getfirst(add)]
 
         return result
 
@@ -119,6 +134,8 @@ class QuickSelect:
 
                 output.append({
                         'label': 'Location',
+                        'button': self.button % 'location',
+                        'multi': self.location_multi,
                         'name': name,
                         'collapse': True,
                         'objects': sorted(locations.iteritems()),
@@ -141,6 +158,8 @@ class QuickSelect:
 
                 output.append({
                         'label': 'Room',
+                        'button': self.button % 'room',
+                        'multi': self.room_multi,
                         'name': name,
                         'collapse': True,
                         'objects': sorted(rooms.iteritems()),
@@ -163,6 +182,8 @@ class QuickSelect:
 
                 output.append({
                         'label': 'IP device',
+                        'button': self.button % 'IP device',
+                        'multi': self.netbox_multi,
                         'name': name,
                         'objects': sorted(netboxes.iteritems()),
                     })
@@ -184,6 +205,8 @@ class QuickSelect:
 
                 output.append({
                         'label': 'Service',
+                        'button': self.button % 'service',
+                        'multi': self.service_multi,
                         'name': name,
                         'collapse': True,
                         'objects': sorted(services.iteritems()),
@@ -206,6 +229,8 @@ class QuickSelect:
 
                 output.append({
                         'label': 'Module',
+                        'button': self.button % 'module',
+                        'multi': self.module_multi,
                         'name': name,
                         'collapse': True,
                         'objects': sorted(modules.iteritems()),
@@ -213,6 +238,6 @@ class QuickSelect:
             self.output = output
 
         template = get_template('webfront/quickselect.html')
-        context  = Context({'output': output})
+        context  = Context({'output': self.output})
 
         return template.render(context).encode('utf-8')
