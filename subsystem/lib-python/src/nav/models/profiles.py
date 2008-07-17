@@ -232,6 +232,7 @@ class AlertProfile(models.Model):
 
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
+        tp = None
         for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
             if not active_timeperiod or (tp.start <= now.time()):
                 active_timeperiod = tp
