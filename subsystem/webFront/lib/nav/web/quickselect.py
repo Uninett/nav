@@ -34,7 +34,6 @@ from nav.models.service import Service
 
 class QuickSelect:
     def __init__(self, **kwargs):
-        self.prefix = kwargs.pop('prefix', '')
         self.button = kwargs.pop('button', 'Add %s')
 
         self.location = kwargs.pop('location', True)
@@ -81,12 +80,8 @@ class QuickSelect:
         }
 
         for field in result.keys():
-            if self.prefix:
-                submit = 'submit_%s_%s' % (self.prefix, field)
-                key = '%s_%s' % (self.prefix, field)
-            else:
-                submit = 'submit_%s' % field
-                key = field
+            submit = 'submit_%s' % field
+            key = field
 
             if field == 'location':
                 # Hack to work around noscript XSS protection that triggers on
@@ -95,26 +90,26 @@ class QuickSelect:
                 submit = submit.replace('location', 'loc')
 
             if getattr(self, field):
-                if getattr(self, '%s_multi' % field):
-                    # Multi is set so we should get all the input
-                    if submit in request.form and key in request.form:
-                        result[field] = request.form.getlist(key)
-                    elif request.form.has_key('add_%s' % key):
-                        result[field] = request.form.getlist('add_%s' % key)
-                else:
-                    # Multi is false only get first input
-                    if submit in request.form and key in request.form:
-                        result[field] = [request.form.getfirst(key)]
-                    elif request.form.has_key('add_%s' % key):
-                        result[field] = request.form.getlist('add_%s' % key)
-                    elif request.form.has_key('view_%s' % key):
-                        result[field] = request.form.getlist('view_%s' % key)
+                if submit in request.form and key in request.form:
+                    result[field] = request.form.getlist(key)
+                elif 'add_%s' % key in request.form:
+                    result[field] = request.form.getlist('add_%s' % key)
+                elif key != field:
+                    # Extra check that allows add_loc in addtion to
+                    # add_location
+                    if 'add_%s' % field in request.form:
+                         result[field] = request.form.getlist('add_%s' % field)
+                    elif 'view_%s' % field in request.form:
+                         result[field] = request.form.getlist('view_%s' % field)
+
+                if not getattr(self, '%s_multi' % field):
+                    # Limit to first element if multi is not set.
+                    result[field] = result[field][:1]
 
         return result
 
     def __str__(self):
         if not self.output:
-            prefix = self.prefix
             output = []
             location_name = {}
             room_name = {}
@@ -127,16 +122,11 @@ class QuickSelect:
                     locations[''].append((location['id'], location_name[location['id']]))
 
                 # use loc instead of location to avoid noscript XSS protection
-                if prefix:
-                    name = '%s_%s' % (prefix, 'loc')
-                else:
-                    name = 'loc'
-
                 output.append({
                         'label': 'Location',
                         'button': self.button % 'location',
                         'multi': self.location_multi,
-                        'name': name,
+                        'name': 'loc',
                         'collapse': True,
                         'objects': sorted(locations.iteritems()),
                     })
@@ -151,16 +141,11 @@ class QuickSelect:
                     else:
                         rooms[location] = [(room['id'], room_name[room['id']])]
 
-                if prefix:
-                    name = '%s_%s' % (prefix, 'room')
-                else:
-                    name = 'room'
-
                 output.append({
                         'label': 'Room',
                         'button': self.button % 'room',
                         'multi': self.room_multi,
-                        'name': name,
+                        'name': 'room',
                         'collapse': True,
                         'objects': sorted(rooms.iteritems()),
                     })
@@ -175,16 +160,11 @@ class QuickSelect:
                     else:
                         netboxes[room] = [(netbox['id'], netbox_name[netbox['id']])]
 
-                if prefix:
-                    name = '%s_%s' % (prefix, 'netbox')
-                else:
-                    name = 'netbox'
-
                 output.append({
                         'label': 'IP device',
                         'button': self.button % 'IP device',
                         'multi': self.netbox_multi,
-                        'name': name,
+                        'name': 'netbox',
                         'objects': sorted(netboxes.iteritems()),
                     })
 
@@ -198,16 +178,11 @@ class QuickSelect:
                     else:
                         services[netbox] = [(service['id'], name)]
 
-                if prefix:
-                    name = '%s_%s' % (prefix, 'service')
-                else:
-                    name = 'service'
-
                 output.append({
                         'label': 'Service',
                         'button': self.button % 'service',
                         'multi': self.service_multi,
-                        'name': name,
+                        'name': 'service',
                         'collapse': True,
                         'objects': sorted(services.iteritems()),
                     })
@@ -222,16 +197,11 @@ class QuickSelect:
                     else:
                         modules[netbox] = [(module['id'], name)]
 
-                if prefix:
-                    name = '%s_%s' % (prefix, 'module')
-                else:
-                    name = 'module'
-
                 output.append({
                         'label': 'Module',
                         'button': self.button % 'module',
                         'multi': self.module_multi,
-                        'name': name,
+                        'name': 'module',
                         'collapse': True,
                         'objects': sorted(modules.iteritems()),
                     })
