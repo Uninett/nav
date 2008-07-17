@@ -209,3 +209,12 @@ ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+
+-- Make matchfields/expressions simpler:
+--  * Remove value_category
+--  * Remove template portion of value_name
+ALTER TABLE matchfield DROP COLUMN value_category;
+UPDATE matchfield SET value_name = regexp_replace(value_name, E'\\|.*$', '');
+
+-- Drop queuelength from alertpreference as it is not used
+ALTER TABLE alertpreference DROP COLUMN queuelength;

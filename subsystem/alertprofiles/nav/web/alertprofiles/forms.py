@@ -29,7 +29,22 @@ __id__ = "$Id$"
 from django import newforms as forms
 from django.db.models import Q
 
-from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress
+from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, AccountProperty
+
+class AccountPropertyForm(forms.ModelForm):
+
+    class Meta:
+        model = AccountProperty
+        exclude = ('account',)
+
+    def __init__(self, *args, **kwargs):
+        property = kwargs.pop('property', None)
+        values = kwargs.pop('values', None)
+
+        super(AccountPropertyForm, self).__init__(*args, **kwargs)
+
+        self.fields['property'] = forms.CharField(widget=forms.widgets.HiddenInput, initial=property)
+        self.fields['value'] = forms.ChoiceField(choices=values)
 
 class AlertProfileForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
@@ -38,8 +53,15 @@ class AlertProfileForm(forms.ModelForm):
         model = AlertProfile
         exclude = ('account',)
 
+class AlertAddressForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+
+    class Meta:
+        model = AlertAddress
+        exclude = ('account',)
+
 class TimePeriodForm(forms.ModelForm):
-    profile = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    profile = forms.ModelChoiceField(AlertProfile.objects.all(), widget=forms.widgets.HiddenInput)
 
     class Meta:
         model = TimePeriod

@@ -146,6 +146,14 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.get_type_display())
 
+    # FIXME For some reason 'get_type_display()' does not give the desired
+    # result, it returns the first position of the tuple, not the second, which
+    # it should. This function returns the second position of the selected
+    # type.
+    def get_dispatcher_type(self):
+        types = dict(DISPATCHER_TYPES)
+        return types[unicode(self.type)]
+
     def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types'''
 
@@ -207,9 +215,9 @@ class AlertProfile(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     name = models.CharField()
-    daily_dispatch_time = models.TimeField()
+    daily_dispatch_time = models.TimeField(default='08:00')
     weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS, default=MONDAY)
-    weekly_dispatch_time = models.TimeField()
+    weekly_dispatch_time = models.TimeField(default='08:00')
 
     class Meta:
         db_table = u'alertprofile'
@@ -255,7 +263,7 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey('AlertProfile', db_column='alert_profile_id')
-    start = models.TimeField(db_column='start_time', default='08:00:00')
+    start = models.TimeField(db_column='start_time', default='08:00')
     valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
 
     class Meta:
@@ -697,7 +705,6 @@ class MatchField(models.Model):
     value_help = models.CharField(u'Help text for the matchfield', blank=True, help_text=u'Displayed by the value input box in the GUI to help users enter sane values.')
     value_id = models.CharField(u'Matchfield, the database field to watch', choices=CHOICES, help_text=u'This is the acctual field alert engine will watch.')
     value_name = models.CharField(u'Description for the matchfield used in the GUI', choices=CHOICES, blank=True, help_text=u'Only used in the GUI to show additonal description of the matchfield. Only does something when "Show list" is checked.')
-    value_category = models.CharField(u'Somthing that was never implemented', choices=CHOICES, blank=True, help_text=u'Should have been a way to group options in the GUI.')
     value_sort = models.CharField(u'Order matchfields by this field', choices=CHOICES, blank=True, help_text=u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
     list_limit = models.IntegerField(blank=True, help_text=u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
     data_type = models.IntegerField(choices=DATA_TYPES, help_text=u'The data type of the match field. Purely cosmetic')

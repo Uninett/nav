@@ -42,9 +42,15 @@ from nav.models.profiles import *
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.utils import get_account, permission_required
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
+from nav.alertengine.dispatchers import DISPATCHER_TYPES
 
 from nav.web.alertprofiles.forms import *
 from nav.web.alertprofiles.utils import *
+
+BASE_PATH = [
+        ('Home', '/'),
+        ('Alert profiles', '/alertprofiles/'),
+    ]
 
 def overview(request):
     account = get_account(request)
@@ -52,7 +58,11 @@ def overview(request):
     return render_to_response(
             AlertProfilesTemplate,
             'alertprofiles/overview.html',
-            {'active': active}
+            {'active': active},
+            path=[
+                ('Home', '/'),
+                ('Alert profiles', None),
+            ]
         )
 
 def profile(request):
@@ -61,7 +71,10 @@ def profile(request):
 
     # Get information about user
     groups = account.accountgroup_set.all()
-    active_profile = account.alertpreference.active_profile
+    try:
+        active_profile = account.alertpreference.active_profile
+    except:
+        active_profile = None
     adress = AlertAddress.objects.filter(account=account.pk)
     profiles = AlertProfile.objects.filter(account=account.pk).order_by('name')
 
@@ -71,6 +84,16 @@ def profile(request):
     filter_dict = {'group_permisions__in': [g.id for g in groups]}
     filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
 
+    language = AccountProperty.objects.get(
+        account=account,
+        property='language'
+    )
+    language_form = AccountPropertyForm(
+        instance=language,
+        property='language',
+        values=[('en', 'English'), ('no', 'Norwegian')]
+    )
+
     info_dict = {
             'active': active,
             'groups': groups,
@@ -79,35 +102,88 @@ def profile(request):
             'active_profile': active_profile,
             'sms_privilege': sms_privilege,
             'filter_groups': filter_groups,
+            'language_form': language_form,
         }
 
     return render_to_response(
             AlertProfilesTemplate,
             'alertprofiles/profile.html',
             info_dict,
+            path=BASE_PATH+[
+                ('Profiles', None)
+            ],
         )
 
-def profile_show_form(request, profile_id=None, profile_form=None):
+def profile_show_form(request, profile_id=None, profile_form=None, time_period_form=None):
     account = get_account(request)
+    profile = None
+    periods = []
+    detail_id = None
+    page_name = 'New profile'
 
-    profile = get_object_or_404(AlertProfile, pk=profile_id, account=account)
-    periods = TimePeriod.objects.filter(profile=profile).order_by('valid_during', 'start')
-    period_form = TimePeriodForm(initial={'profile': profile.id})
+    if profile_id:
+        profile = get_object_or_404(AlertProfile, pk=profile_id, account=account)
+        detail_id = profile.id
+        page_name = profile.name
+        periods = TimePeriod.objects.filter(profile=profile).order_by('start')
 
-    if not profile_form:
-        profile_form = AlertProfileForm(instance=profile)
+        if not time_period_form:
+            time_period_form = TimePeriodForm(initial={'profile': profile.id})
 
-    subscriptions = []
-    for p in periods:
-        subscriptions.append({
-            'time_period': p,
-            'alert_subscriptions': AlertSubscription.objects.filter(time_period=p),
-        })
+        if not profile_form:
+            profile_form = AlertProfileForm(instance=profile)
+    elif not profile_form:
+        profile_form = AlertProfileForm()
+
+    subscriptions = {'weekdays': [], 'weekends': []}
+    weekdays = (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK)
+    weekends = (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK)
+    for i, p in enumerate(periods):
+        # TimePeriod is a model.
+        # We transform it to a dictionary so we can add additinal information
+        # to it, such as end_time (which does not really exist, it's just the
+        # start time for the next period.
+        period = {
+            'id': p.id,
+            'profile': p.profile,
+            'start': p.start,
+            'end': None,
+            'valid_during': p.get_valid_during_display(),
+        }
+        valid_during = p.valid_during
+        alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
+
+        # For usability we change 'all days' periods to one weekdays and one
+        # weekends period.
+        # Because we might add the same period to both weekdays and weekends we
+        # must make sure at least one of them is a copy, so changes to one of
+        # them don't apply to both.
+        if valid_during in weekdays:
+            subscriptions['weekdays'].append({
+                'time_period': period.copy(),
+                'alert_subscriptions': alert_subscriptions,
+            })
+        if valid_during in weekends:
+            subscriptions['weekends'].append({
+                'time_period': period,
+                'alert_subscriptions': alert_subscriptions,
+            })
+
+    # There's not stored any information about a end time in the DB, only start
+    # times, so the end time of one period is the start time of the next
+    # period.
+    for key, subscription in subscriptions.items():
+        for i, s in enumerate(subscription):
+            if i < len(subscription) - 1:
+                end_time = subscription[i+1]['time_period']['start']
+            else:
+                end_time = subscription[0]['time_period']['start']
+            s['time_period']['end'] = end_time
 
     info_dict = {
         'form': profile_form,
-        'time_period_form': period_form,
-        'detail_id': profile.id,
+        'time_period_form': time_period_form,
+        'detail_id': detail_id,
         'alert_subscriptions': subscriptions,
         'active': {'profile': True},
     }
@@ -115,10 +191,17 @@ def profile_show_form(request, profile_id=None, profile_form=None):
         AlertProfilesTemplate,
         'alertprofiles/profile_detail.html',
         info_dict,
+        path=BASE_PATH+[
+            ('Profiles', reverse('alertprofiles-profile')),
+            (page_name, None)
+        ]
     )
 
 def profile_detail(request, profile_id=None):
     return profile_show_form(request, profile_id)
+
+def profile_new(request):
+    return profile_show_form(request)
 
 def profile_save(request):
     if not request.method == 'POST':
@@ -132,9 +215,13 @@ def profile_save(request):
             pk=request.POST.get('id'),
             account=account,
         )
-        profile_form = AlertProfileForm(request.POST, instance=profile)
+
+        if profile.account != account:
+            return HttpResponseForbidden('No access')
     else:
-        profile_form = AlertProfileForm(request.POST)
+        profile = AlertProfile(account=account)
+
+    profile_form = AlertProfileForm(request.POST, instance=profile)
 
     if not profile_form.is_valid():
         detail_id = request.POST.get('id') or None
@@ -143,12 +230,167 @@ def profile_save(request):
     profile = profile_form.save()
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
+def profile_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    if request.POST.get('activate'):
+        return profile_activate(request)
+    if request.POST.get('deactivate'):
+        return profile_deactivate(request)
+
+    account = get_account(request)
+    if request.POST.get('confirm'):
+        profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('element'))
+
+        for p in profiles:
+            if p.account != account:
+                return HttpResponseForbidden('No access')
+
+        profiles.delete()
+
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+    else:
+        profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('profile'))
+
+        for p in profiles:
+            if p.account != account:
+                return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-profile-remove'),
+                'active': {'profile': True},
+                'elements': profiles,
+                'perform_on': None,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                path=BASE_PATH+[
+                    ('Profiles', reverse('alertprofiles-profile')),
+                    ('Remove profiles', None),
+                ]
+            )
+
+def profile_activate(request):
+    if not request.method == 'POST' or not request.POST.get('activate'):
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+
+    try:
+        profile = AlertProfile.objects.get(pk=request.POST.get('activate'))
+    except AlertProfile.DoesNotExist:
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    try:
+        preference = AlertPreference.objects.get(account=account)
+    except AlertPreference.DoesNotExist:
+        preference = AlertPreference(account=account)
+
+    preference.active_profile = profile
+    preference.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+def profile_deactivate(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+
+    try:
+        preference = AlertPreference.objects.get(account=account)
+    except AlertPreference.DoesNotExist:
+        preference = AlertPreference(account=account)
+
+    preference.active_profile = None
+    preference.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+def profile_time_period_add(request):
+    # FIXME 'all days' needs tweaking.
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    profile = get_object_or_404(AlertProfile, pk=request.POST.get('profile'))
+
+    if profile.account != account:
+        return HttpResponseForbidden('No access')
+
+    time_period_form = TimePeriodForm(request.POST, initial={'profile': profile})
+
+    if not time_period_form.is_valid():
+        return profile_show_form(request, profile.id, None, time_period_form)
+
+    time_period = time_period_form.save()
+    return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
+
+def profile_time_period_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseForbidden(reverse('alertprofiles-profile'))
+
+    if request.POST.get('confirm'):
+        account = get_account(request)
+        elements = request.POST.getlist('element')
+
+        time_periods = TimePeriod.objects.filter(pk__in=elements)
+        first = True
+        for t in time_periods:
+            if first:
+                # We only check profile once and assume it's the same for all.
+                # It's only used to redirect the user after deleting all the
+                # periods anyways.
+                profile = t.profile
+                first = False
+            if t.profile.account != account:
+                return HttpResponseForbidden('No access')
+
+        time_periods.delete()
+
+        return HttpResponseRedirect(reverse(
+            'alertprofiles-profile-detail',
+            args=(profile.id,)
+        ))
+    else:
+        account = get_account(request)
+        time_periods = TimePeriod.objects.filter(pk__in=request.POST.getlist('period'))
+
+        first = True
+        for t in time_periods:
+            if first:
+                # We only check profile once and assume it's the same for all.
+                profile = t.profile
+                first = False
+            if t.profile.account != account:
+                return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-profile-timeperiod-remove'),
+                'active': {'profile': True},
+                'elements': time_periods,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                path=BASE_PATH+[
+                    ('Profiles', reverse('alertprofiles-profile')),
+                    (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+                    ('Remove time periods', None),
+                ]
+            )
+
 def profile_time_period_setup(request, time_period_id=None):
     if not time_period_id:
         redirect_url = reverse('alertprofiles-profile')
         return HttpResponseRedirect(redirect_url)
 
     time_period = TimePeriod.objects.get(pk=time_period_id)
+    profile = time_period.profile
     subscriptions = AlertSubscription.objects.filter(time_period=time_period).order_by('alert_address', 'filter_group')
 
     editing = False
@@ -170,6 +412,11 @@ def profile_time_period_setup(request, time_period_id=None):
         AlertProfilesTemplate,
         'alertprofiles/subscription_form.html',
         info_dict,
+        path=BASE_PATH+[
+            ('Profiles', reverse('alertprofiles-profile')),
+            (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+            (unicode(time_period.start) + u', ' + time_period.get_valid_during_display(), None),
+        ],
     )
 
 def profile_time_period_subscription_add(request):
@@ -205,6 +452,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         return HttpResponseRedirect(reverse('alertprofile-profile'))
 
     subscription = AlertSubscription.objects.get(pk=subscription_id)
+    profile = subscription.time_period.profile
     form = AlertSubscriptionForm(instance=subscription, time_period=subscription.time_period)
 
     info_dict = {
@@ -216,6 +464,15 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         AlertProfilesTemplate,
         'alertprofiles/subscription_form.html',
         info_dict,
+        path=BASE_PATH+[
+            ('Profiles', reverse('alertprofiles-profile')),
+            (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+            (
+                unicode(subscription.time_period.start) + u', ' + subscription.time_period.get_valid_during_display(),
+                reverse('alertprofiles-profile-timeperiod-setup', args=(subscription.time_period.id,))
+            ),
+            ('Edit subscription', None)
+        ]
     )
 
 def profile_time_period_subscription_remove(request):
@@ -254,7 +511,144 @@ def profile_time_period_subscription_remove(request):
                 AlertProfilesTemplate,
                 'alertprofiles/confirmation_list.html',
                 info_dict,
+                path=BASE_PATH+[
+                    ('Profiles', reverse('alertprofiles-profile')),
+                    (period.profile.name, reverse('alertprofiles-profile-detail', args=(period.profile.id,))),
+                    (
+                        unicode(period.start) + u', ' + period.get_valid_during_display(),
+                        reverse('alertprofiles-profile-timeperiod-setup', args=(period.id,))
+                    ),
+                    ('Remove subscriptions', None)
+                ]
             )
+
+def address_show_form(request, address_id=None, address_form=None):
+    account = get_account(request)
+    page_name = 'New address'
+    detail_id = None
+    address = None
+
+    if address_id:
+        try:
+            address = AlertAddress.objects.get(pk=address_id)
+        except AlertAddress.DoesNotExist:
+            # We have already set the variables we need, so we can fail
+            # silently.
+            address = None
+        else:
+            # Check if we really are the owner of the address
+            if address.account == account:
+                page_name = address.address
+                detail_id = address.id
+            else:
+                address = None
+
+    if not address_form:
+        address_form = AlertAddressForm(instance=address)
+
+    info_dict = {
+        'active': {'profile': True},
+        'detail_id': detail_id,
+        'form': address_form,
+    }
+    return render_to_response(
+        AlertProfilesTemplate,
+        'alertprofiles/address_form.html',
+        info_dict,
+        path=BASE_PATH+[
+            ('Address', None),
+            (page_name, None),
+        ]
+    )
+
+def address_detail(request, address_id=None):
+    return address_show_form(request, address_id)
+
+def address_save(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-address'))
+
+    account = get_account(request)
+    address = None
+    address_id = None
+
+    if request.POST.get('id'):
+        try:
+            address = AlertAddress.objects.get(pk=request.POST.get('id'))
+        except AlertAddress.DoesNotExist:
+            address = None
+        else:
+            if address.account != account:
+                return HttpResponseForbidden('No access')
+            else:
+                address_id = address.id
+
+    if not address:
+        address = AlertAddress(account=account)
+
+    address_form = AlertAddressForm(request.POST, instance=address)
+
+    if not address_form.is_valid():
+        return address_show_form(request, address_id, address_form)
+
+    address = address_form.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-address-detail', args=(address.id,)))
+
+def address_remove(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    if request.POST.get('confirm'):
+        addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('element'))
+
+        for a in addresses:
+            if a.account != account:
+                return HttpResponseForbidden('No access')
+
+        addresses.delete()
+
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+    else:
+        addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('address'))
+
+        for a in addresses:
+            if a.account != account:
+                return HttpResponseForbidden('No access')
+
+        info_dict = {
+                'form_action': reverse('alertprofiles-address-remove'),
+                'active': {'profile': True},
+                'elements': addresses,
+                'perform_on': None,
+            }
+        return render_to_response(
+                AlertProfilesTemplate,
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                path=BASE_PATH+[
+                    ('Profiles', reverse('alertprofiles-profile')),
+                    ('Remove addresses', None),
+                ]
+            )
+
+def language_save(request):
+    if request.method != 'POST' or not request.POST.get('value'):
+        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    account = get_account(request)
+    language = None
+
+    try:
+        language = AccountProperty.objects.get(account=account, property='language')
+    except AccountGroup.DoesNotExist:
+        language = AccountProperty(account=account, property='language')
+
+    language.value = request.POST.get('value')
+    language.save()
+
+    return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
 def filter_list(request):
     account = get_account(request)
@@ -271,49 +665,57 @@ def filter_list(request):
             'admin': admin,
             'form_action': reverse('alertprofiles-filters-remove'),
         }
-
     return object_list(
             AlertProfilesTemplate,
             request,
             queryset=filters,
             template_name='alertprofiles/filter_list.html',
             extra_context=info_dict,
+            path=BASE_PATH+[('Filters', None)]
         )
 
 def filter_show_form(request, filter_id=None, filter_form=None):
     '''Convenience method for showing the filter form'''
     active = {'filters': True}
+    page_name = 'New filter'
     account = get_account(request)
     admin = is_admin(account)
 
+    filter = None
     expresions = None
     matchfields = None
+
+    # We assume that if no filter_id is set this filter has not been saved
+    if filter_id:
+        filter = get_object_or_404(Filter, pk=filter_id)
+        matchfields = MatchField.objects.all()
+        # Get all matchfields (many-to-many connection by table Expresion)
+        expresions = Expresion.objects.filter(filter=filter_id)
+
+        page_name = filter.name
 
     # If no form i supplied we must make one
     if not filter_form:
         if filter_id:
-            filter = get_object_or_404(Filter, pk=filter_id)
             filter_form = FilterForm(instance=filter, admin=admin)
         else:
             filter_form = FilterForm(initial={'owner': account}, admin=admin)
-
-    # We assume that if no filter_id is set this filter has not been saved
-    if filter_id:
-        matchfields = MatchField.objects.all()
-        # Get all matchfields (many-to-many connection by table Expresion)
-        expresions = Expresion.objects.filter(filter=filter_id)
 
     return render_to_response(
             AlertProfilesTemplate,
             'alertprofiles/filter_form.html',
             {
-                    'active': active,
-                    'admin': admin,
-                    'detail_id': filter_id,
-                    'form': filter_form,
-                    'matchfields': matchfields,
-                    'expresions': expresions,
-                },
+                'active': active,
+                'admin': admin,
+                'detail_id': filter_id,
+                'form': filter_form,
+                'matchfields': matchfields,
+                'expresions': expresions,
+            },
+            path=BASE_PATH+[
+                ('Filters', reverse('alertprofiles-filters')),
+                (page_name, None),
+            ]
         )
 
 def filter_detail(request, filter_id=None):
@@ -383,6 +785,10 @@ def filter_remove(request):
                 AlertProfilesTemplate,
                 'alertprofiles/confirmation_list.html',
                 info_dict,
+                path=BASE_PATH+[
+                    ('Filters', reverse('alertprofiles-filters')),
+                    ('Remove filters', None),
+                ]
             )
 
 def filter_addexpresion(request):
@@ -408,6 +814,11 @@ def filter_addexpresion(request):
             AlertProfilesTemplate,
             'alertprofiles/expresion_form.html',
             info_dict,
+            path=BASE_PATH+[
+                ('Filters', reverse('alertprofiles-filters')),
+                (filter.name, reverse('alertprofiles-filters-detail', args=(filter.id,))),
+                ('Add expression', None)
+            ]
         )
 
 def filter_saveexpresion(request):
@@ -480,6 +891,11 @@ def filter_removeexpresion(request):
                 AlertProfilesTemplate,
                 'alertprofiles/confirmation_list.html',
                 info_dict,
+                path=BASE_PATH+[
+                    ('Filters', reverse('alertprofiles-filters')),
+                    (filter.name, reverse('alertprofiles-filters-detail', args=(filter.id,))),
+                    ('Remove expressions', None),
+                ]
             )
 
 def filtergroup_list(request):
@@ -503,12 +919,16 @@ def filtergroup_list(request):
             request,
             queryset=filtergroups,
             template_name='alertprofiles/filtergroup_list.html',
-            extra_context=info_dict
+            extra_context=info_dict,
+            path=BASE_PATH+[
+                ('Filter groups', None)
+            ]
         )
 
 def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None):
     '''Convenience method for showing the filter group form'''
     active = {'filtergroups': True}
+    page_name = 'New filter group'
     account = get_account(request)
     admin = is_admin(account)
 
@@ -526,6 +946,8 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
                 Q(owner__exact=account.pk) | Q(owner__isnull=True) &
                 ~Q(pk__in=[f.filter.id for f in filtergroupcontent])
             ).order_by('owner', 'name')
+
+        page_name = filtergroup.name
 
     # If no form is supplied we must make it
     if not filter_group_form:
@@ -546,6 +968,10 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
             AlertProfilesTemplate,
             'alertprofiles/filtergroup_form.html',
             info_dict,
+            path=BASE_PATH+[
+                ('Filter groups', reverse('alertprofiles-filtergroups')),
+                (page_name, None),
+            ]
         )
 
 def filtergroup_detail(request, filter_group_id=None):
@@ -613,6 +1039,10 @@ def filtergroup_remove(request):
                 AlertProfilesTemplate,
                 'alertprofiles/confirmation_list.html',
                 info_dict,
+                path=BASE_PATH+[
+                    ('Filter groups', reverse('alertprofiles-filters')),
+                    ('Remove filter groups', None),
+                ]
             )
 
 def filtergroup_addfilter(request):
@@ -706,6 +1136,14 @@ def filtergroup_removefilter(request):
                 AlertProfilesTemplate,
                 'alertprofiles/confirmation_list.html',
                 info_dict,
+                path=BASE_PATH+[
+                    ('Filter groups', reverse('alertprofiles-filtergroups')),
+                    (
+                        filter_group.name,
+                        reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,))
+                    ),
+                    ('Remove filters', None),
+                ]
             )
 
 def filtergroup_movefilter(request):
@@ -768,11 +1206,15 @@ def matchfield_list(request):
             queryset=matchfields,
             template_name='alertprofiles/matchfield_list.html',
             extra_context=info_dict,
+            path=BASE_PATH+[
+                ('Matchfields', None),
+            ]
         )
 
 @permission_required
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     active = {'matchfields': True}
+    page_name = 'New matchfield'
     account = get_account(request)
 
     try:
@@ -786,6 +1228,8 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         if not matchfield_form:
             matchfield_form = MatchFieldForm(instance=matchfield)
         matchfield_operators_id = [m_operator.type for m_operator in matchfield.operator_set.all()]
+
+        page_name = matchfield.name
 
     operators = []
     for o in Operator.OPERATOR_TYPES:
@@ -802,6 +1246,10 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
             AlertProfilesTemplate,
             'alertprofiles/matchfield_form.html',
             info_dict,
+            path=BASE_PATH+[
+                ('Matchfields', reverse('alertprofiles-matchfields')),
+                (page_name, None),
+            ]
         )
 
 def matchfield_detail(request, matchfield_id=None):
@@ -860,6 +1308,10 @@ def matchfield_remove(request):
                 AlertProfilesTemplate,
                 'alertprofiles/confirmation_list.html',
                 info_dict,
+                path=BASE_PATH+[
+                    ('Matchfields', reverse('alertprofiles-matchfields')),
+                    ('Remove matchfields', None),
+                ]
             )
 
 @permission_required
@@ -887,6 +1339,9 @@ def permission_list(request, group_id=None):
             AlertProfilesTemplate,
             'alertprofiles/permissions.html',
             info_dict,
+            path=BASE_PATH+[
+                ('Permissions', None),
+            ]
         )
 
 @permission_required

@@ -109,39 +109,11 @@ def handler(req):
                     (c,d) = a.split("=")
                     argsdict[c] = d
 
+        scope = None
         if argsdict.has_key("scope") and argsdict["scope"]:
-			scope = IP(argsdict["scope"])
-			show_unused_addresses = True
-
-			if argsdict.has_key("show_unused_addresses"):
-				boolstring = argsdict["show_unused_addresses"]
-				if boolstring == "True":
-					show_unused_addresses = True
-				elif boolstring == "False":
-					show_unused_addresses = False
-
-			matrix = None
-			tree = buildTree(scope)
-
-			if scope.version() == 6:
-				end_net = getMaxLeaf(tree)
-				matrix = MatrixIPv6(scope,end_net=end_net)
-			elif scope.version() == 4:
-				end_net = None
-				if scope.prefixlen() < 24:
-					end_net = IP("/".join([scope.net().strNormal(),"27"]))
-					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
-				else:
-					max_leaf = getMaxLeaf(tree)
-					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-
-					matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
-			else:
-				raise UnknownNetworkTypeException, "version: " + str(scope.version())
-			req.write(matrix.getTemplateResponse())
-
+            scope = IP(argsdict["scope"])
         else:
-
+            # Find all scopes in database.
             from nav import db
             import psycopg
             connection = db.getConnection('webfront','manage')
@@ -150,12 +122,11 @@ def handler(req):
 
             databasescopes = database.fetchall()
             if len(databasescopes) == 1:
-                matrix = Matrix(databasescopes[0][0])
-                req.write(matrix.makeMatrix())
-
+                # If there is a single scope in the db, display that
+                scope = IP(databasescopes[0][0])
             else:
-                ## print all scopes or error message
-
+                # Otherwise, show an error or let the user select from
+                # a list of scopes.
                 page = MatrixScopesTemplate()
                 page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
                 page.scopes = []
@@ -163,6 +134,38 @@ def handler(req):
                     page.scopes.append(scope[0])
 
                 req.write(page.respond())
+                return apache.OK
+        # If a single scope has been selected, display that.
+        if scope is not None:
+            show_unused_addresses = True
+
+            if argsdict.has_key("show_unused_addresses"):
+                boolstring = argsdict["show_unused_addresses"]
+                if boolstring == "True":
+                    show_unused_addresses = True
+                elif boolstring == "False":
+                    show_unused_addresses = False
+
+            matrix = None
+            tree = buildTree(scope)
+
+            if scope.version() == 6:
+                end_net = getMaxLeaf(tree)
+                matrix = MatrixIPv6(scope,end_net=end_net)
+            elif scope.version() == 4:
+                end_net = None
+                if scope.prefixlen() < 24:
+                    end_net = IP("/".join([scope.net().strNormal(),"27"]))
+                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+                else:
+                    max_leaf = getMaxLeaf(tree)
+                    bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
+
+                    matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+            else:
+                raise UnknownNetworkTypeException, "version: " + str(scope.version())
+            req.write(matrix.getTemplateResponse())
+
 
     else:
         page = ReportTemplate()

@@ -21,7 +21,6 @@
                 <th>Watched filter group</th>
                 <th>Alert address</th>
                 <th>Dispatch</th>
-                <th>Ignore closed alerts</th>
                 <th></th>
             </tr>
         </thead>
@@ -34,7 +33,6 @@
                 <td>{{ s.filter_group.name }}</td>
                 <td>{{ s.alert_address.address }}</td>
                 <td>{{ s.get_type_display|capfirst }}</td>
-                <td>{{ s.ignore_closed_alerts|yesno:"Yes,No" }}</td>
                 <td><a href="{% url alertprofiles-profile-timeperiod-subscription s.id %}">
                     Edit</a></td>
             </tr>
@@ -56,11 +54,6 @@
         {{ form.non_field_errors }}
         Watch {{ form.filter_group }},
         send alerts to {{ form.alert_address }} {{ form.type }}
-        <p>
-            <label>
-                {{ form.ignore_closed_alerts }} {{ form.ignore_closed_alerts.label }}
-            </label>
-        </p>
         <p>
             {{ form.time_period }}
             {{ form.id }}
