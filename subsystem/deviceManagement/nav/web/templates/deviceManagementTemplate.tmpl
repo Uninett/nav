@@ -280,18 +280,11 @@ $renderFormattedList($page.orderList)
 #def history(page)
 #if $page.subname == 'history':
 <form action="" method="get">
-    #if len($page.filterform['location'])
-    <input type="hidden" name="location" value="$page.filterform['location']" />
-    #end if
-    #if len($page.filterform['room'])
-    <input type="hidden" name="room" value="$page.filterform['room']" />
-    #end if
-    #if len($page.filterform['box'])
-    <input type="hidden" name="box" value="$page.filterform['box']" />
-    #end if
-    #if len($page.filterform['module'])
-    <input type="hidden" name="module" value="$page.filterform['module']" />
-    #end if
+    #for key,values in $page.filterform.items()
+        #for $v in $values
+            <input type="hidden" name="view_$key" value="$v" />
+        #end for 
+    #end for 
     <table class="vertitable">
         <tr>
             <th>From</th>

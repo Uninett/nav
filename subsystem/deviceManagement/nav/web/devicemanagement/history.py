@@ -171,30 +171,6 @@ def history(req,deviceorderid=None):
                                               options=type_options)
     page.widgets['filter_submit'] = Widget('history', 'submit', 'Filter')
 
-    # Add data from treeselect to hidden fields in the filter form
-    page.filterform = {}
-
-    if form.has_key('location'):
-        page.filterform['location'] = form['location']
-    else:
-        page.filterform['location'] = ''
-
-    if form.has_key('room'):
-        page.filterform['room'] = form['room']
-    else:
-        page.filterform['room'] = ''
-
-    if form.has_key('box'):
-        page.filterform['box'] = form['box']
-    else:
-        page.filterform['box'] = ''
-
-    if form.has_key('module'):
-        page.filterform['module'] = form['module']
-    else:
-        page.filterform['module'] = ''
-
-
     submenu = []
     if deviceorderid:
         submenu.append(('Order history','Go back to order history',
@@ -206,6 +182,7 @@ def history(req,deviceorderid=None):
 
     page.action = ''
     page.subname = ''
+    page.filterform = {}
 
     showHistory = False
 
@@ -218,8 +195,10 @@ def history(req,deviceorderid=None):
 
             page.boxList = makeHistory(form, historyType, unitList, startTime,
                                        endTime, eventtype_filter, alerttype_filter)
-            page.subname = 'history'
 
+            page.filterform[key] = value
+
+            page.subname = 'history'
             showHistory = True
 
             break
