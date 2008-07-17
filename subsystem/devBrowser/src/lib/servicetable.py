@@ -154,11 +154,11 @@ class ServiceTable:
 
             status = _getServiceState(service)
             if service.up == 'y':
-                statusLight = html.Image(src="/images/lys/green.png", alt="Up")
+                statusLight = html.Image(src="/images/lys/green.png", alt="")
             elif service.up == 'n':
-                statusLight = html.Image(src="/images/lys/red.png", alt="Down")
+                statusLight = html.Image(src="/images/lys/red.png", alt="")
             elif service.up == 's':
-                statusLight = html.Image(src="/images/lys/yellow.png", alt="Shadow")
+                statusLight = html.Image(src="/images/lys/yellow.png", alt="")
             if service.up != 'y':
                 since = downSince(service)
                 title = 'since %s' % since
