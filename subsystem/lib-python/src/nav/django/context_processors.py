@@ -28,6 +28,8 @@ __id__ = "$Id$"
 
 from django.conf import settings
 
+from nav.django.utils import get_account, Messages
+
 def debug(request):
     """Returns context variables helpful for debugging.
 
@@ -39,3 +41,19 @@ def debug(request):
         from django.db import connection
         context_extras['sql_queries'] = connection.queries
     return context_extras
+
+def account_processor(request):
+    """Provides account information to RequestContext.
+
+    Returns these variables:
+     - account: This is the nav.models.profiles.Account object representing the
+       current user.
+     - messages: A list of message dictionaries which is meant for the user to
+       see.
+    """
+    account = get_account(request)
+    messages = Messages(request)
+    messages = messages.get_and_delete()
+
+    return {'account': account, 'messages': messages}
+
