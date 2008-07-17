@@ -268,3 +268,24 @@ table.toolbox3cols tr td {
 table.toolbox4cols tr td {
 	width: 15em;
 }
+
+/* Messages */
+.messages, .errorlist {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+.messages .success {
+	color: #4E9A06; 
+}
+
+.messages .notice {
+	color: #204A87;
+}
+
+.messages .warning {
+  color: #CE5C00;
+}
+
+.messages .error, .errorlist {
+  color: #A40000;
+}
