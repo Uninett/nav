@@ -100,6 +100,7 @@
             <th></th>
             <th>Name</th>
             <th>Active</th>
+            <th></th>
         </tr>
     </thead>
 
@@ -111,13 +112,19 @@
                 {{ profile.name }}</a></td>
             <td>
             {% ifequal profile.id active_profile.id %}
-{#                Active #}
-                <button type="submit" title="Click to deactivate"
-                name="deactivate" value="{{ profile.id }}">Active</button>
+                Active
+            </td>
+            <td>
+                <button type="submit" name="deactivate" value="{{ profile.id }}">
+                    Click to deactivate
+                </button>
             {% else %}
-{#                <a href="" title="Click to activate">Inavtive</a> #}
-                <button type="submit" title="Click to activate" name="activate"
-                value="{{ profile.id }}">Inactive</button>
+                Inavtive
+            </td>
+            <td>
+                <button type="submit" name="activate" value="{{ profile.id }}">
+                    Click to activate
+                </button>
             {% endifequal %}
             </td>
         </tr>
