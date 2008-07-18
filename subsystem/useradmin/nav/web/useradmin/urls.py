@@ -33,10 +33,10 @@ urlpatterns = patterns('nav.web.useradmin.views',
     url(r'^$', 'account_list', name='useradmin-account_list'),
 
     url(r'^account/new/$', 'account_details', name='useradmin-account_new'),
-    url(r'^account/(?<account_id>\d+)/$', 'account_details', name='useradmin-account_details'),
+    url(r'^account/(?P<account_id>:\d+)/$', 'account_details', name='useradmin-account_details'),
 
     url(r'^groups/$', 'group_list', name='useradmin-group_list'),
 
     url(r'^group/new/$', 'group_details', name='useradmin-group_new'),
-    url(r'^group/(?<group_id>\d+)/$', 'group_details', name='useradmin-group_details'),
+    url(r'^group/(?P<group_id>\d+)/$', 'group_details', name='useradmin-group_details'),
 )
