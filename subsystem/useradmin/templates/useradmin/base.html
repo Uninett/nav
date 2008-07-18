@@ -1,0 +1,21 @@
+<div class="tabs">
+    <ul>
+        <li{% if active.account_list %} class="tabactive"{% endif %}>
+            <a href="{% url useradmin-account_list %}">Account List</a>
+        </li>
+        <li{% if active.account_new %} class="tabactive"{% endif %}>
+            <a href="{% url useradmin-account_new %}">New Account</a>
+        </li>
+        <li{% if active.group_list %} class="tabactive"{% endif %}>
+            <a href="{% url useradmin-group_list %}">Group List</a>
+         </li>
+        <li{% if active.group_new %} class="tabactive"{% endif %}>
+            <a href="{% url useradmin-group_new %}">New group</a>
+        </li>
+    </ul>
+</div>
+<div class="tabcontent">
+    {% block content %}
+        tester
+    {% endblock %}
+</div>
