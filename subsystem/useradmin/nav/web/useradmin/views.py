@@ -30,13 +30,16 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 
-from nav.models.profiles import Account, Group
-from nav.django.shortcuts import render_to_response, object_list
+from nav.models.profiles import Account, AccountGroup
+from nav.django.shortcuts import render_to_response, object_list, object_detail
 
 from nav.web.templates.UserAdmin import UserAdmin
 
 def account_list(request):
-    pass
+    return object_list(UserAdmin, request, Account.objects.all(), 
+                        template_object_name='account',
+                        template_name='useradmin/account_list.html',
+                        extra_context={'active': {'account_list': 1}})
 
 def account_details(request, account_id=None):
     pass
