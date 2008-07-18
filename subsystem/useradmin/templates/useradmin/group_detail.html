@@ -1,0 +1,54 @@
+{% extends "useradmin/base.html" %}
+
+{% block content %}
+    {% if group %}
+        <h3>Editing group "{{ group.name }}"</h3>
+    {% else %}
+        <h3>Create new group</h3>
+    {% endif %}
+    {% if group_form %}
+        <form action="." method="post">
+            <table class="vertitable">
+                {{ group_form.as_table }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Submit changes" /></td>
+                </tr>
+            </table>
+        </form>
+    {% endif %}
+    {% if group %}
+        <p>
+            <a href="{% url useradmin-group_delete group.id %}">
+                Delete group
+            </a>
+        </p>
+
+        <h3>Privigeges</h3>
+        <p><b>FIXME</b></p>
+
+        <h3>Group memberships</h3>
+        {% if group.accounts.all %}
+            <ul>
+                {% for account in group.accounts.all %}
+                    <li>
+                        <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
+                        - [<a href="{% url useradmin-account_group_remove account.id,group.id %}">Remove</a>]
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Not members in this group.</p>
+        {% endif %}
+
+        {% if account_form %}
+            <form action="." method="post">
+                {{ account_form.account.errors }}
+                <p>
+                    {{ account_form.account }}
+                    <input type="submit" value="Add to group" />
+                </p>
+            </form>
+        {% endif %}
+    {% endif %}
+{% endblock %}

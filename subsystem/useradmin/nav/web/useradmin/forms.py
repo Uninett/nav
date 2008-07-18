@@ -31,6 +31,11 @@ from django import newforms as forms
 from nav.models.profiles import Account, AccountGroup
 from nav.models.manage import Organization
 
+class AccountGroupForm(forms.ModelForm):
+    class Meta:
+        model = AccountGroup
+        fields = ('name', 'description')
+
 class AccountForm(forms.ModelForm):
     password1 = forms.CharField(label='New password', min_length=8, widget=forms.widgets.PasswordInput)
     password2 = forms.CharField(label='Repeat password', min_length=8, widget=forms.widgets.PasswordInput, required=False)
@@ -66,8 +71,11 @@ class AccountForm(forms.ModelForm):
         model = Account
         exclude = ('password', 'ext_sync')
 
-class OrganizationForm(forms.Form):
-    organization = forms.models.ModelChoiceField(Organization.objects.all())
+class OrganizationAddForm(forms.Form):
+    organization = forms.models.ModelChoiceField(Organization.objects.all(), required=True)
 
-class GroupForm(forms.Form):
-    group= forms.models.ModelChoiceField(AccountGroup.objects.all())
+class GroupAddForm(forms.Form):
+    group= forms.models.ModelChoiceField(AccountGroup.objects.all(), required=True)
+
+class AccountAddForm(forms.Form):
+    account = forms.models.ModelChoiceField(Account.objects.all(), required=True)

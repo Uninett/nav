@@ -50,8 +50,8 @@ def account_detail(request, account_id=None):
         account = None
 
     account_form = AccountForm(instance=account)
-    org_form = OrganizationForm()
-    group_form = GroupForm()
+    org_form = OrganizationAddForm()
+    group_form = GroupAddForm()
 
     return render_to_response(UserAdmin, 'useradmin/account_detail.html',
                         {
@@ -69,4 +69,19 @@ def group_list(request):
                         extra_context={'active': {'group_list': 1}})
 
 def group_detail(request, group_id=None):
-    pass
+    try:
+        group = AccountGroup.objects.get(id=group_id)
+    except AccountGroup.DoesNotExist:
+        group = None
+
+    group_form = AccountGroupForm(instance=group)
+    account_form = AccountAddForm()
+#    privilege_form = Prive
+
+    return render_to_response(UserAdmin, 'useradmin/group_detail.html',
+                        {
+                            'active': {'group_detail': True},
+                            'group': group,
+                            'group_form': group_form,
+                            'account_form': account_form,
+                        }, RequestContext(request))
