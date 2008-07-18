@@ -36,7 +36,7 @@ urlpatterns = patterns('',
 
     (r'^networkexplorer/', include('nav.web.networkexplorer.urls')),
     (r'^alertprofiles-django/', include('nav.web.alertprofiles.urls')),
-    (r'^useradmin-django/$', include('nav.web.useradmin.urls')),
+    (r'^useradmin-django/', include('nav.web.useradmin.urls')),
 )
 
 ### URL patterns for non-Django subsystems
