@@ -18,7 +18,7 @@
     <tbody>
         {% for group in group_list %}
             <tr class="{% cycle oddrow,evenrow %}">
-                <td><a href="{% url useradmin-group_details group.id %}">{{ group.name }}</a></td>
+                <td><a href="{% url useradmin-group_detail group.id %}">{{ group.name }}</a></td>
                 <td>{{ group.description }}</td>
                 <td>{{ group.accounts.all|length }}</td>
             </tr>
