@@ -19,7 +19,7 @@
     <tbody>
         {% for account in account_list %}
             <tr class="{% cycle oddrow,evenrow %}">
-                <td>{{ account.login }}</td>
+                <td><a href="{% url useradmin-account_details account.id %}">{{ account.login }}</a></td>
                 <td>{{ account.name }}</td>
                 <td>{{ account.ext_sync|default_if_none:"" }}</td>
                 <td>{{ account.accountgroup_set.all|length }}</td>

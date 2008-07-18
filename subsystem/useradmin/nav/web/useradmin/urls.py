@@ -30,13 +30,16 @@ from django.conf.urls.defaults import *
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('nav.web.useradmin.views',
-    url(r'^$', 'account_list', name='useradmin-account_list'),
+    # List accounts and groups
+    url(r'^$', 'account_list', name='useradmin'),
+    url(r'^accounts/$', 'account_list', name='useradmin-account_list'),
+    url(r'^groups/$', 'group_list', name='useradmin-group_list'),
 
+    # Edit/Create accounts
     url(r'^account/new/$', 'account_details', name='useradmin-account_new'),
     url(r'^account/(?P<account_id>:\d+)/$', 'account_details', name='useradmin-account_details'),
 
-    url(r'^groups/$', 'group_list', name='useradmin-group_list'),
-
+    # Edit/Create groups
     url(r'^group/new/$', 'group_details', name='useradmin-group_new'),
     url(r'^group/(?P<group_id>\d+)/$', 'group_details', name='useradmin-group_details'),
 )
