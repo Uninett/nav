@@ -1,0 +1,38 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+<h3>Search for {{ search_form.query.label }}</h3>
+
+<form action="{% url ipdevinfo-search %}" method="get">
+<p>{{ search_form.query }} <button type="submit">Search</button></p>
+</form>
+
+{% if netboxes %}
+<table class="listtable">
+    <caption>{{ netboxes|length }} result{{ netboxes|pluralize:",s" }}
+    for "{{ query }}"</caption>
+
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Sysname</th>
+            <th>IP</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for netbox in netboxes %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+            </td>
+            <td>{{ netbox.ip }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

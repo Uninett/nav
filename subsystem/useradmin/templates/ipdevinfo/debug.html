@@ -1,0 +1,29 @@
+<div id="debug">
+
+<p>Debug: {{ sql_queries|length }} Quer{{ sql_queries|pluralize:"y,ies" }}
+{% if sql_queries %}
+(<span style="cursor: pointer;" onclick="var s=document.getElementById('query_table').style; s.display=s.display=='none' ? '' : 'none'; this.innerHTML=this.innerHTML=='Show' ? 'Hide' : 'Show';">Show</span>)
+{% endif %}</p>
+
+{% if sql_queries %}
+<table class="listtable reporttable" id="query_table" style="display: none;">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Query</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for query in sql_queries %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ query.sql|escape }}</td>
+            <td>{{ query.time }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+</div>
