@@ -28,12 +28,14 @@ __id__ = "$Id$"
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from django.template import RequestContext
 
 from nav.models.profiles import Account, AccountGroup
 from nav.django.shortcuts import render_to_response, object_list, object_detail
 
 from nav.web.templates.UserAdmin import UserAdmin
+from nav.web.useradmin.forms import *
 
 def account_list(request):
     return object_list(UserAdmin, request, Account.objects.all(),
@@ -41,8 +43,24 @@ def account_list(request):
                         template_name='useradmin/account_list.html',
                         extra_context={'active': {'account_list': 1}})
 
-def account_details(request, account_id=None):
-    pass
+def account_detail(request, account_id=None):
+    try:
+        account = Account.objects.get(id=account_id)
+    except Account.DoesNotExist:
+        account = None
+
+    account_form = AccountForm(instance=account)
+    org_form = OrganizationForm()
+    group_form = GroupForm()
+
+    return render_to_response(UserAdmin, 'useradmin/account_detail.html',
+                        {
+                            'active': {'account_detail': True},
+                            'account': account,
+                            'account_form': account_form,
+                            'org_form': org_form,
+                            'group_form': group_form,
+                        }, RequestContext(request))
 
 def group_list(request):
     return object_list(UserAdmin, request, AccountGroup.objects.all(),
@@ -50,5 +68,5 @@ def group_list(request):
                         template_name='useradmin/group_list.html',
                         extra_context={'active': {'group_list': 1}})
 
-def group_details(request, group_id=None):
+def group_detail(request, group_id=None):
     pass
