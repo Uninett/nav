@@ -45,4 +45,5 @@ urlpatterns = patterns('nav.web.useradmin.views',
 
     # Deletion
     url(r'^account/(?P<account_id>\d+)/delete/$', 'account_delete', name='useradmin-account_delete'),
+    url(r'^account/(?P<account_id>\d+)/org/(?P<org_id>\d+)/delete/$', 'account_organization_remove', name='useradmin-account_organization_remove'),
 )

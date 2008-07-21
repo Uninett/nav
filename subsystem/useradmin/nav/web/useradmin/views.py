@@ -120,6 +120,30 @@ def account_delete(request, account_id):
                             'type': 'account',
                         }, RequestContext(request))
 
+def account_organization_remove(request, account_id, org_id):
+    try:
+        account = Account.objects.get(id=account_id)
+    except Account.DoesNotExist:
+        # FIXME add message
+        return HttpResponseRedirect(reverse('useradmin-account_list'))
+
+    try:
+        organization = account.accountorganization_set.get(id=org_id)
+    except AccountOrganization.DoesNotExist:
+        # FIXME add message
+        return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
+
+    if request.method == 'POST':
+        organization.delete()
+        # FIXME add message
+        return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
+
+    return render_to_response(UserAdmin, 'useradmin/delete.html',
+                        {
+                            'name': '%s from %s' % (organization, account),
+                            'type': 'organization',
+                        }, RequestContext(request))
+
 
 
 def group_list(request):
