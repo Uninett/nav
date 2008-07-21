@@ -61,9 +61,12 @@ class AccountForm(forms.ModelForm):
         return password1
 
     def is_valid(self):
-        if not super(ApplicantForm, self).is_valid():
-            del self.data['password1']
-            del self.data['password2']
+        if not super(AccountForm, self).is_valid():
+            self.data = self.data.copy()
+            if 'password1' in self.data:
+                del self.data['password1']
+            if 'password2' in self.data:
+                del self.data['password2']
             return False
         return True
 

@@ -53,6 +53,30 @@ def account_detail(request, account_id=None):
     org_form = OrganizationAddForm()
     group_form = GroupAddForm()
 
+    if request.method == 'POST':
+        if 'submit_account' in request.POST:
+            account_form = AccountForm(request.POST, instance=account)
+
+            if account_form.is_valid():
+                account = account_form.save(commit=False)
+
+                if account_form.cleaned_data['password1']:
+                    pass # FIXME change pass
+                account.save()
+
+        elif 'submit_org' in request.POST:
+            org_form = OrganizationAddForm(request.POST)
+
+            if org_form.is_valid():
+                account.accountorganization_set.create(organization=org_form.cleaned_data['organization'].id)
+
+        elif 'submit_group' in request.POST:
+            group_form = GroupAddForm(request.POST)
+
+            if group_form.is_valid():
+                account.accountgroup_set.add(group_form.cleaned_data['group'])
+                account.save()
+
     return render_to_response(UserAdmin, 'useradmin/account_detail.html',
                         {
                             'active': {'account_detail': True},

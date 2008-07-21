@@ -22,7 +22,7 @@
                 </tr>
                 <tr>
                     <th></th>
-                    <td><input type="submit" value="Submit changes" /></td>
+                    <td><input type="submit" value="Submit changes" name="submit_account" /></td>
                 </tr>
             </table>
         </form>
@@ -53,7 +53,7 @@
                 {{ org_form.organization.errors }}
                 <p>
                     {{ org_form.organization }}
-                    <input type="submit" value="Add to organization" />
+                    <input type="submit" value="Add to organization" name="submit_org" />
                 </p>
             </form>
         {% endif %}
@@ -78,7 +78,7 @@
                 {{ group_form.group.errors }}
                 <p>
                     {{ group_form.group }}
-                    <input type="submit" value="Add to group" />
+                    <input type="submit" value="Add to group" name="submit_group" />
                 </p>
             </form>
         {% endif %}
