@@ -53,6 +53,8 @@ def account_detail(request, account_id=None):
     org_form = OrganizationAddForm()
     group_form = GroupAddForm()
 
+    current_url = reverse('useradmin-account_detail', args=[account.id])
+
     if request.method == 'POST':
         if 'submit_account' in request.POST:
             account_form = AccountForm(request.POST, instance=account)
@@ -60,15 +62,20 @@ def account_detail(request, account_id=None):
             if account_form.is_valid():
                 account = account_form.save(commit=False)
 
-                if account_form.cleaned_data['password1']:
-                    pass # FIXME change pass
+                if account_form.cleaned_data['password1'].strip():
+                    account.set_password(account_form.cleaned_data['password1'])
+
                 account.save()
+
+                return HttpResponseRedirect(current_url)
 
         elif 'submit_org' in request.POST:
             org_form = OrganizationAddForm(request.POST)
 
             if org_form.is_valid():
-                account.accountorganization_set.create(organization=org_form.cleaned_data['organization'].id)
+                account.accountorganization_set.get_or_create(organization=org_form.cleaned_data['organization'].id)
+
+                return HttpResponseRedirect(current_url)
 
         elif 'submit_group' in request.POST:
             group_form = GroupAddForm(request.POST)
@@ -76,6 +83,8 @@ def account_detail(request, account_id=None):
             if group_form.is_valid():
                 account.accountgroup_set.add(group_form.cleaned_data['group'])
                 account.save()
+
+                return HttpResponseRedirect(current_url)
 
     return render_to_response(UserAdmin, 'useradmin/account_detail.html',
                         {
