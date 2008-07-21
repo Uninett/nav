@@ -80,6 +80,8 @@ class Account(models.Model):
     password = models.CharField()
     ext_sync = models.CharField()
 
+    organizations = models.ManyToManyField(Organization, db_table='accountorg')
+
     class Meta:
         db_table = u'account'
         ordering = ('login',)
@@ -172,16 +174,6 @@ class AccountProperty(models.Model):
 
     def __unicode__(self):
         return '%s=%s' % (self.property, self.value)
-
-class AccountOrganization(models.Model):
-    account = models.ForeignKey('Account', db_column='accountid')
-    organization = models.CharField(max_length=30, db_column='orgid')
-
-    class Meta:
-        db_table = u'accountorg'
-
-    def __unicode__(self):
-        return self.organization
 
 class Privilege(models.Model):
     group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
