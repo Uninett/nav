@@ -123,13 +123,13 @@ class AccountProperty(models.Model):
 
 class AccountOrganization(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
-    organization = models.CharField(max_length=30)
+    organization = models.CharField(max_length=30, db_column='orgid')
 
     class Meta:
         db_table = u'accountorg'
 
     def __unicode__(self):
-        return self.orgid
+        return self.organization
 
 class AlertAddress(models.Model):
     '''Accounts alert addresses, valid types are retrived from alertengine.conf'''
