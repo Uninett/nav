@@ -32,8 +32,6 @@ __id__ = "$Id$"
 from copy import copy
 from django.http import HttpResponseForbidden
 
-from nav.web.state import setupSession, setSessionCookie, getSessionCookie, \
-    deleteSessionCookie, Session
 from nav.models.profiles import Account
 
 def get_account(request):
@@ -53,56 +51,3 @@ def permission_required(function):
             # FIXME better 403 handling
             return HttpResponseForbidden('<h1>403 Forbidden</h1><p>You do not have access to this page</p>')
     return _check_permission
-
-class MessageType:
-    """Constants for message type. Used to set html/css class, ie. only
-    presentation, and are therefore not enforced.
-    """
-    SUCCESS = 'success'
-    NOTICE = 'notice'
-    WARNING = 'warning'
-    ERROR = 'error'
-
-def new_message(request, message, type):
-    """Convenience method for fetching Messages object and adding a new message
-    to it.
-    """
-    messages = Messages(request)
-    messages.append({'message': message, 'type': type})
-    messages.save()
-
-class Messages(list):
-    """List object that stores messsages for the user accross page views.
-    Uses sessions.
-    """
-    session = None
-
-    def __init__(self, request=None):
-        self.session = request._req.session
-
-    def __new__(cls, request=None):
-        # We try to fetch a Messages object from this users session.
-        # If it doesn't exist we make a new one.
-        setupSession(request._req)
-        messages = request._req.session.get('messages', None)
-
-        if not messages or not isinstance(messages, Messages):
-            return list.__new__(cls)
-        else:
-            return messsages
-
-    def save(self):
-        """Save this Messages object to this users session.
-        """
-        messages = self.session.get('messages', [])
-        messages.extend(self)
-        self.session['messages'] = messages
-        self.session.save()
-
-    def get_and_delete(self):
-        """Copies messages from this users session and purges the originals.
-        """
-        messages = copy(self.session.get('messages', None))
-        self.session['messages'] = []
-        self.session.save()
-        return messages
