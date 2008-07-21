@@ -102,6 +102,10 @@ def account_delete(request, account_id):
         # FIXME add message
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
+    if account.is_system_account():
+        # FIXME add message
+        return HttpResponseRedirect(reverse('useradmin-account_list'))
+
     if request.method == 'POST':
         account.delete()
         # FIXME add message

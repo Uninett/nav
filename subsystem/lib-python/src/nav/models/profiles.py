@@ -98,6 +98,9 @@ class Account(models.Model):
         account = OldAccount.loadByLogin(str(self.login))
         return hasPrivilege(account, action, target)
 
+    def is_system_account(self):
+        return self.id < 1000
+
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
         if len(password.strip()):
