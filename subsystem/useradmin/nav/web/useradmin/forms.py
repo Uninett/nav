@@ -72,7 +72,7 @@ class AccountForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        exclude = ('password', 'ext_sync')
+        exclude = ('password', 'ext_sync', 'organizations')
 
 class PrivilegeForm(forms.ModelForm):
     class Meta:
