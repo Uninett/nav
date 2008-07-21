@@ -45,9 +45,9 @@
         {% endif %}
 
         <h3>Organizations</h3>
-        {% if account.accountorganization_set.all %}
+        {% if account.organizations.all %}
             <ul>
-                {% for org in account.accountorganization_set.all %}
+                {% for org in account.organizations.all %}
                     <li>
                         {{ org }}
                         - [<a href="{% url useradmin-account_organization_remove account.id,org.id %}">Remove</a>]
