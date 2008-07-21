@@ -25,7 +25,34 @@
         </p>
 
         <h3>Privigeges</h3>
-        <p><b>FIXME</b></p>
+        {% if group.privigege_set.all %}
+            <ul>
+                {% for privilege in group.privigege_set.all %}
+                    <li>
+                        {{ privilege }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Group has no privileges set.</p>
+        {% endif %}
+        {% if privilege_form %}
+            <h4>Grant privileges</h4>
+            <form action="." method="post">
+                <p>
+                    See <a href="http://www.amk.ca/python/howto/regex/"> this
+                    HOWTO</a> on the Regular expressions used for matching
+                    targets for privileges like 'web_access'.
+                </p>
+                {{ privilege_form.errors }}
+                <p>
+                    {{ privilege_form.type }}
+                    {{ privilege_form.target }}
+                    <input type="submit" value="Grant" />
+                </p>
+            </form>
+        {% endif %}
+                
 
         <h3>Group memberships</h3>
         {% if group.accounts.all %}
@@ -38,10 +65,11 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>Not members in this group.</p>
+            <p>Group does not have any members.</p>
         {% endif %}
 
         {% if account_form %}
+                <h4>Add member</h4>
             <form action="." method="post">
                 {{ account_form.account.errors }}
                 <p>

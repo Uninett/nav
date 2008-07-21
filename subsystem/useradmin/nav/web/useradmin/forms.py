@@ -28,7 +28,7 @@ __id__ = "$Id$"
 
 from django import newforms as forms
 
-from nav.models.profiles import Account, AccountGroup
+from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 
 class AccountGroupForm(forms.ModelForm):
@@ -73,6 +73,11 @@ class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
         exclude = ('password', 'ext_sync')
+
+class PrivilegeForm(forms.ModelForm):
+    class Meta:
+        model = Privilege
+        exclude = ('group',)
 
 class OrganizationAddForm(forms.Form):
     organization = forms.models.ModelChoiceField(Organization.objects.all(), required=True)

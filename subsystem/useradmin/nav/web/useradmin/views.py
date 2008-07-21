@@ -100,7 +100,7 @@ def group_detail(request, group_id=None):
 
     group_form = AccountGroupForm(instance=group)
     account_form = AccountAddForm()
-#    privilege_form = Prive
+    privilege_form = PrivilegeForm()
 
     return render_to_response(UserAdmin, 'useradmin/group_detail.html',
                         {
@@ -108,4 +108,5 @@ def group_detail(request, group_id=None):
                             'group': group,
                             'group_form': group_form,
                             'account_form': account_form,
+                            'privilege_form': privilege_form,
                         }, RequestContext(request))
