@@ -71,7 +71,7 @@ def account_detail(request, account_id=None):
             org_form = OrganizationAddForm(request.POST)
 
             if org_form.is_valid():
-                account.accountorganization_set.get_or_create(organization=org_form.cleaned_data['organization'].id)
+                account.organizations.add(org_form.cleaned_data['organization'])
 
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
@@ -128,13 +128,13 @@ def account_organization_remove(request, account_id, org_id):
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     try:
-        organization = account.accountorganization_set.get(id=org_id)
-    except AccountOrganization.DoesNotExist:
+        organization = account.organizations.get(id=org_id)
+    except Organization.DoesNotExist:
         # FIXME add message
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if request.method == 'POST':
-        organization.delete()
+        account.organizations.remove(organization)
         # FIXME add message
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
