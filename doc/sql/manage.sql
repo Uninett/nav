@@ -210,15 +210,6 @@ CREATE TABLE netbox (
 );
 CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
 
--- Rules to automatically close open cam and arp entries related to a given netbox
-CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
-  DO UPDATE arp SET end_time=NOW()
-     WHERE netboxid=OLD.netboxid AND end_time='infinity';
-
-CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
-  DO UPDATE cam SET end_time=NOW()
-     WHERE netboxid=OLD.netboxid AND end_time='infinity';
-
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
@@ -444,6 +435,16 @@ CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
+
+
+-- Rules to automatically close open cam and arp entries related to a given netbox
+CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
+  DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
+  DO UPDATE cam SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
 
 -- VIEWs -----------------------
@@ -816,7 +817,7 @@ CREATE TABLE service (
 CREATE RULE rrdfile_deleter AS 
     ON DELETE TO service 
     DO DELETE FROM rrd_file 
-        WHERE key='serviceid' AND value=old.serviceid;
+        WHERE key='serviceid' AND value=old.serviceid::text;
 
 CREATE TABLE serviceproperty (
   id SERIAL,
