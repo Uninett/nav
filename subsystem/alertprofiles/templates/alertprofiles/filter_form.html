@@ -1,0 +1,42 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-filters-save %}{% endblock %}
+{% block url_remove_expresion %}{% url alertprofiles-filters-removeexpresion %}{% endblock %}
+{% block url_add_expresion %}{% url alertprofiles-filters-addexpresion %}{% endblock %}
+
+{% block expresions_caption_content %}
+    Expressions
+{% endblock %}
+
+{% block expresions_thead_cols %}
+    <th></th>
+    <th>Field</th>
+    <th>Condition</th>
+    <th>Value</th>
+{% endblock %}
+    
+{% block expresions_tbody_content %}
+    {% for e in expresions %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
+            <td><label for="expressionid_{{ e.id }}">{{ e.match_field }}</label></td>
+            <td>{{ e.get_operator_display }}</td>
+            <td>{{ e.value }}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block addexpresion %}
+<div class="infobox">
+    <h4>Add another expression to this filter</h4>
+
+    <label for="select_matchfield">Expression</label>
+    <select name="matchfield" id="select_matchfield">
+    {% for m in matchfields %}
+        <option value="{{ m.id }}">{{ m.name }}</option>
+    {% endfor %}
+    </select>
+
+    {{ block.super }}
+</div>
+{% endblock %}

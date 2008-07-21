@@ -1,7 +1,7 @@
 #encoding UTF-8
 ## $Id:$
 ##
-## Copyright 2006 UNINETT AS
+## Copyright 2006-2008 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -21,6 +21,7 @@
 ##
 ##
 ## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##         Thomas Adamcik <thomas.adamcik@uninett.no>
 ##
 
 #extends MaintenanceTemplate
@@ -61,22 +62,25 @@
         #else
             #set $date = '%04d-%02d-%02d' % ($year, $month, $day)
             #if $date == $today
-                #set $todays = 'Today - '
+                #set $todays = '<div style="font-size: 80%">Today:</div>'
         <td class="today">
             #else
                 #set $todays = ''
         <td>
             #end if
-            <div class="dayheader">
+            <span class="dayheader"
             #if calendar.weekday($year, $month, $day) == 5
-                <span style="color: gray;">
+                style="color: gray;">
             #elif calendar.weekday($year, $month, $day) == 6
-                <span style="color: red;">
+                style="color: red;">
             #else
-                <span>
+                >
             #end if
-                <strong>$todays$day</strong>
-            </span></div>
+                <b>$day</b>
+            </span>
+
+	    $todays
+
             #if $tasks.has_key($date)
                 #for $task in $tasks[$date]
             <strong>$task.maint_start.strftime('%H:%M'):</strong>

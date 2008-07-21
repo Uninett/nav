@@ -1,0 +1,21 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Confirm deletion
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for element in elements %}
+    <tr>
+        <td><input type="checkbox" name="element" value="{{ element.id }}" id="elementid_{{ element.id }}" checked="checked" /></td>
+        <td><label for="elementid_{{ element.id }}">{{ element }}</label></td>
+    </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block additional_fields %}
+    {% if perform_on %}
+        <input type="hidden" name="perform_on" value="{{ perform_on }}" />
+    {% endif %}
+    <input type="hidden" name="confirm" value="true" />
+{% endblock %}

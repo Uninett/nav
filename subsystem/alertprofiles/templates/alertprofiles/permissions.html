@@ -1,0 +1,73 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<table class="listtable">
+    <caption>
+        Groups<br />
+        <span class="subtitle">Choose one to set permissions</span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            {# if not selected_group #}
+            <th>Description</th>
+            {# endif #}
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for group in groups %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>
+                <a href="{% url alertprofiles-permissions-detail group.id %}">{{ group.name }}</a>
+            </td>
+            {# if not selected_group #}
+            <td>{{ group.description }}</td>
+            {# endif #}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if selected_group %}
+<form action="{% url alertprofiles-permissions-save %}" method="post">
+<table class="listtable">
+    <caption>
+        Permissions for {{ selected_group.name }}<br />
+        <span class="subtitle">Choose which alerts this group will
+        recieve</span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for fg in filtergroups %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
+            {% for perm in permisions %}
+                {% ifequal perm.id fg.id %}
+                checked="checked"
+                {% endifequal %}
+            {% endfor %}
+                /></td>
+            <td><label for="filterid_{{ fg.id }}">{{ fg.name }}</label></td>
+            <td>{{ fg.description }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div>
+    <input type="hidden" name="group" value="{{ selected_group.id }}" />
+    <button type="submit">Save</button>
+</div>
+</form>
+{% endif %}
+
+{% endblock %}

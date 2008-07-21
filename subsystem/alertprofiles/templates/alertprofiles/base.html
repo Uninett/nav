@@ -1,0 +1,31 @@
+<div class="tabs">
+    {% block tabs %}
+    <ul>
+        <li class="{{ active.overview|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-overview %}">Overview</a>
+        </li>
+        <li class="{{ active.profile|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-profile %}">Profile</a>
+        </li>
+        <li class="{{ active.filtergroups|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filtergroups %}">Filter groups</a>
+        </li>
+        <li class="{{ active.filters|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filters %}">Filters</a>
+        </li>
+        <li class="{{ active.matchfields|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-matchfields %}">Matchfields</a>
+        </li>
+        <li class="{{ active.permissions|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-permissions %}">Permissions</a>
+        </li>
+    </ul>
+    {% endblock %}
+</div>
+
+<div class="tabcontent">
+
+{% block tabcontent %}
+{% endblock %}
+
+</div>

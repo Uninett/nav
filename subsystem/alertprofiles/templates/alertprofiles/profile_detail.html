@@ -1,0 +1,119 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-profile-save %}{% endblock %}
+{% block url_add_expresion %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
+
+{% block captioncontent %}
+    {% if detail_id %}
+       Profile details 
+    {% else %}
+        New profile
+    {% endif %}
+{% endblock %}
+
+{% block expresions_caption_content  %}
+    Time periods
+{% endblock %}
+
+{% block expresions %}
+<form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
+<table class="listtable">
+    <caption>
+        Weekdays
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Valid during</th>
+            <th>Subscriptions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for a in alert_subscriptions.weekdays %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            {# The same time period may appear in both tables, so we need to #}
+            {# identify by both the parent loops counter and the time_periods id. #}
+            <td><input type="checkbox" name="period" id="id_period_weekday_{{ a.time_period.id }}" value="{{ a.time_period.id }}" /></td>
+            <td><label for="id_period_weekday_{{ a.time_period.id }}">
+                {{ a.time_period.start }} - {{ a.time_period.end }},
+                {{ a.time_period.valid_during }}
+            </label></td>
+            <td>
+                <ul>
+                {% for b in a.alert_subscriptions %}
+                    <li>
+                        Watch <em>{{ b.filter_group }}</em>,
+                        send to <em>{{ b.alert_address.address }}</em>,
+                        {{ b.get_type_display }}.
+                    </li>
+                {% endfor %}
+                    <li><a href="{% url alertprofiles-profile-timeperiod-setup a.time_period.id %}"
+                        >Edit subscriptions</a></li>
+                </ul>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<table class="listtable">
+    <caption>
+        Weekends
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Valid during</th>
+            <th>Subscriptions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for a in alert_subscriptions.weekends %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            {# The same time period may appear in both tables, so we need to #}
+            {# identify by both the parent loops counter and the time_periods id. #}
+            <td><input type="checkbox" name="period" id="id_period_weekend_{{ a.time_period.id }}" value="{{ a.time_period.id }}" /></td>
+            <td><label for="id_period_weekend_{{ a.time_period.id }}">
+                {{ a.time_period.start }} - {{ a.time_period.end }},
+                {{ a.time_period.valid_during }}
+            </label></td>
+            <td>
+                <ul>
+                {% for b in a.alert_subscriptions %}
+                    <li>
+                        Watch <em>{{ b.filter_group }}</em>,
+                        send to <em>{{ b.alert_address.address }}</em>,
+                        {{ b.get_type_display }}.
+                    </li>
+                {% endfor %}
+                    <li><a href="{% url alertprofiles-profile-timeperiod-setup a.time_period.id %}"
+                        >Edit subscriptions</a></li>
+                </ul>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p>
+    <button type="submit">Delete selected</button>
+</p>
+</form>
+{% endblock %}
+
+{% block addexpresion %}
+<div class="infobox">
+    <h4>Add new time period</h4>
+    {{ time_period_form.non_field_errors }}
+    {{ time_period_form.start.errors }}
+    {{ time_period_form.valid_during.errors }}
+    Time period from {{ time_period_form.start }}
+    for {{ time_period_form.valid_during }}
+    {{ time_period_form.profile }}
+    <p>
+        <button type="submit">Add</button>
+    </p>
+</div>
+{% endblock %}
