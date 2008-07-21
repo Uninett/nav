@@ -46,7 +46,7 @@ def account_owns_filters(account, *filters):
         # User is not admin, check each filter
         for filter in filters:
             try:
-                if isinstance(filter, Filter):
+                if isinstance(filter, Filter) or isinstance(filter, FilterGroup):
                     owner = filter.owner
                 else:
                     owner = filter.get().owner
