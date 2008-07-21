@@ -131,6 +131,28 @@ class AccountOrganization(models.Model):
     def __unicode__(self):
         return self.organization
 
+class Privilege(models.Model):
+    group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
+    type = models.ForeignKey('PrivilegeType', db_column='privilegeid')
+    target = models.CharField()
+
+    class Meta:
+        db_table = u'accountgroupprivilege'
+
+    def __unicode__(self):
+        return self.target
+
+
+class PrivilegeType(models.Model):
+    id = models.AutoField(db_column='privilegeid', primary_key=True)
+    name = models.CharField(max_length=30, db_column='privilegename')
+
+    class Meta:
+        db_table = u'privilege'
+
+    def __unicode__(self):
+        return self.name
+
 class AlertAddress(models.Model):
     '''Accounts alert addresses, valid types are retrived from alertengine.conf'''
 
