@@ -80,6 +80,7 @@ class Account(models.Model):
 
     class Meta:
         db_table = u'account'
+        ordering = ('login',)
 
     def __unicode__(self):
         return self.login
@@ -104,6 +105,7 @@ class AccountGroup(models.Model):
 
     class Meta:
         db_table = u'accountgroup'
+        ordering = ('name',)
 
     def __unicode__(self):
         return self.name
