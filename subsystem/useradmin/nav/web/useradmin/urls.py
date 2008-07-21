@@ -42,4 +42,7 @@ urlpatterns = patterns('nav.web.useradmin.views',
     # Edit/Create groups
     url(r'^group/new/$', 'group_detail', name='useradmin-group_new'),
     url(r'^group/(?P<group_id>\d+)/$', 'group_detail', name='useradmin-group_detail'),
+
+    # Deletion
+    url(r'^account/(?P<account_id>\d+)/delete/$', 'account_delete', name='useradmin-account_delete'),
 )

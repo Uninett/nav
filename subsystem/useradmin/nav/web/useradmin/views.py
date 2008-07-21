@@ -95,6 +95,26 @@ def account_detail(request, account_id=None):
                             'group_form': group_form,
                         }, RequestContext(request))
 
+def account_delete(request, account_id):
+    try:
+        account = Account.objects.get(id=account_id)
+    except Account.DoesNotExist:
+        # FIXME add message
+        return HttpResponseRedirect(reverse('useradmin-account_list'))
+
+    if request.method == 'POST':
+        account.delete()
+        # FIXME add message
+        return HttpResponseRedirect(reverse('useradmin-account_list'))
+
+    return render_to_response(UserAdmin, 'useradmin/delete.html',
+                        {
+                            'name': '%s (%s)' % (account.name, account.login),
+                            'type': 'account',
+                        }, RequestContext(request))
+
+
+
 def group_list(request):
     return object_list(UserAdmin, request, AccountGroup.objects.all(),
                         template_object_name='group',
