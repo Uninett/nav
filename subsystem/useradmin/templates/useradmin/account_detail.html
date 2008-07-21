@@ -1,5 +1,13 @@
 {% extends "useradmin/base.html" %}
 
+{% block extra_tab_account %}
+    {% if account %}
+        <li class="tabactive">
+            <a href="{% url useradmin-account_detail account.id %}">Account Detail</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     {% if account %}
         <h3>Editing account "{{ account.name }}" (#{{ account.id }})</h3>

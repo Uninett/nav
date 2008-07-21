@@ -53,8 +53,6 @@ def account_detail(request, account_id=None):
     org_form = OrganizationAddForm()
     group_form = GroupAddForm()
 
-    current_url = reverse('useradmin-account_detail', args=[account.id])
-
     if request.method == 'POST':
         if 'submit_account' in request.POST:
             account_form = AccountForm(request.POST, instance=account)
@@ -67,7 +65,7 @@ def account_detail(request, account_id=None):
 
                 account.save()
 
-                return HttpResponseRedirect(current_url)
+                return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
         elif 'submit_org' in request.POST:
             org_form = OrganizationAddForm(request.POST)
@@ -75,7 +73,7 @@ def account_detail(request, account_id=None):
             if org_form.is_valid():
                 account.accountorganization_set.get_or_create(organization=org_form.cleaned_data['organization'].id)
 
-                return HttpResponseRedirect(current_url)
+                return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
         elif 'submit_group' in request.POST:
             group_form = GroupAddForm(request.POST)
@@ -84,11 +82,16 @@ def account_detail(request, account_id=None):
                 account.accountgroup_set.add(group_form.cleaned_data['group'])
                 account.save()
 
-                return HttpResponseRedirect(current_url)
+                return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
+
+    if account:
+        active = {'account_detail': True}
+    else:
+        active = {'account_new': True}
 
     return render_to_response(UserAdmin, 'useradmin/account_detail.html',
                         {
-                            'active': {'account_detail': True},
+                            'active': active,
                             'account': account,
                             'account_form': account_form,
                             'org_form': org_form,
@@ -135,9 +138,14 @@ def group_detail(request, group_id=None):
     account_form = AccountAddForm()
     privilege_form = PrivilegeForm()
 
+    if group:
+        active = {'group_detail': True}
+    else:
+        active = {'group_new': True}
+
     return render_to_response(UserAdmin, 'useradmin/group_detail.html',
                         {
-                            'active': {'group_detail': True},
+                            'active': active,
                             'group': group,
                             'group_form': group_form,
                             'account_form': account_form,

@@ -6,12 +6,14 @@
         <li{% if active.account_new %} class="tabactive"{% endif %}>
             <a href="{% url useradmin-account_new %}">New Account</a>
         </li>
+        {% block extra_tab_account %}{% endblock %}
         <li{% if active.group_list %} class="tabactive"{% endif %}>
             <a href="{% url useradmin-group_list %}">Group List</a>
          </li>
         <li{% if active.group_new %} class="tabactive"{% endif %}>
             <a href="{% url useradmin-group_new %}">New group</a>
         </li>
+        {% block extra_tab_group %}{% endblock %}
     </ul>
 </div>
 <div class="tabcontent">

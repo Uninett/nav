@@ -1,5 +1,13 @@
 {% extends "useradmin/base.html" %}
 
+{% block extra_tab_group %}
+    {% if group %}
+        <li class="tabactive">
+            <a href="{% url useradmin-group_detail group.id %}">Group details</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     {% if group %}
         <h3>Editing group "{{ group.name }}"</h3>
