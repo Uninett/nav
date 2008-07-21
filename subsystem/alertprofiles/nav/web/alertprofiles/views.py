@@ -874,9 +874,11 @@ def filter_list(request):
     admin = is_admin(account)
 
     # Get all public filters, and private filters belonging to this user only
+    # NOTE We would like to order by owner first, but then filters with no
+    # owner won't show up.
     filters = Filter.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)
-        ).order_by('owner', 'name')
+        ).order_by('name')
 
     active = {'filters': True}
     info_dict = {
@@ -1224,9 +1226,11 @@ def filtergroup_list(request):
 
     # Get all public filtergroups, and private filtergroups belonging to this
     # user only
+    # NOTE We would like to order by owner first, but then filters with no
+    # owner won't show up.
     filtergroups = FilterGroup.objects.filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
-        ).order_by('owner', 'name')
+        ).order_by('name')
 
     active = {'filtergroups': True}
     info_dict = {
@@ -1279,10 +1283,12 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
         filtergroupcontent = FilterGroupContent.objects.filter(
                 filter_group=filtergroup.id
             ).order_by('priority')
+        # NOTE We would like to order by owner first, but then filters with no
+        # owner won't show up.
         filters = Filter.objects.filter(
                 ~Q(pk__in=[f.filter.id for f in filtergroupcontent]),
                 Q(owner__exact=account.pk) | Q(owner__isnull=True)
-            ).order_by('owner', 'name')
+            ).order_by('name')
 
         page_name = filtergroup.name
 
