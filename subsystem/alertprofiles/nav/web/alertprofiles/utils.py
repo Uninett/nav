@@ -46,8 +46,11 @@ def account_owns_filters(account, *filters):
         # User is not admin, check each filter
         for filter in filters:
             try:
-                owner = filter.get().owner
-            except:
+                if isinstance(filter, Filter):
+                    owner = filter.owner
+                else:
+                    owner = filter.get().owner
+            except Account.DoesNotExist:
                 # This is a public filter, and we already know that this user
                 # is not an admin
                 return False
