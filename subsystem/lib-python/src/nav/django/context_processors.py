@@ -28,7 +28,8 @@ __id__ = "$Id$"
 
 from django.conf import settings
 
-from nav.django.utils import get_account, Messages
+from nav.django.utils import get_account
+from nav.web.message import new_message, Messages
 
 def debug(request):
     """Returns context variables helpful for debugging.

@@ -32,6 +32,8 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
+from copy import copy
+
 from nav.web.state import setupSession, setSessionCookie, getSessionCookie, \
     deleteSessionCookie, Session
 
