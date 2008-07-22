@@ -197,7 +197,8 @@ def group_list(request):
     return object_list(UserAdmin, request, AccountGroup.objects.all(),
                         template_object_name='group',
                         template_name='useradmin/group_list.html',
-                        extra_context={'active': {'group_list': 1}})
+                        extra_context={'active': {'group_list': True}},
+                        context_processors=[account_processor])
 
 def group_detail(request, group_id=None):
     try:
@@ -264,7 +265,26 @@ def group_detail(request, group_id=None):
                         }, UserAdminContext(request))
 
 def group_delete(request, group_id):
-    pass
+    try:
+        group = AccountGroup.objects.get(id=group_id)
+    except AccountGroup.DoesNotExist:
+        new_message(request, 'Group %s does not exist.' % (group_id), type=Messages.ERROR)
+        return HttpResponseRedirect(reverse('useradmin-group_list'))
+
+    if group.is_system_group():
+        new_message(request, 'Group %s is a system group and can not be deleted.' % (group), type=Messages.ERROR)
+        return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
+
+    if request.method == 'POST':
+        group.delete()
+        new_message(request, 'Group %s has been deleted.' % (group), type=Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('useradmin-group_list'))
+
+    return render_to_response(UserAdmin, 'useradmin/delete.html',
+                        {
+                            'name': group,
+                            'type': 'group',
+                        }, UserAdminContext(request))
 
 def group_account_remove(request, group_id, account_id):
     return account_group_remove(request, account_id, group_id,
@@ -272,4 +292,25 @@ def group_account_remove(request, group_id, account_id):
             plain_redirect=reverse('useradmin-group_detail', args=[group_id]))
 
 def group_privilege_remove(request, group_id, privilege_id):
-    pass
+    try:
+        group = AccountGroup.objects.get(id=group_id)
+    except AccountGroup.DoesNotExist:
+        new_message(request, 'Group %s does not exist.' % (group_id), type=Messages.ERROR)
+        return HttpResponseRedirect(reverse('useradmin-group_list'))
+
+    try:
+        privilege = group.privilege_set.get(id=privilege_id)
+    except Privilege.DoesNotExist:
+        new_message(request, 'Privilege %s does not exist or it is not associated with %s.' % (privilege_id, group), type=Messages.WARNING)
+        return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
+
+    if request.method == 'POST':
+        privilege.delete()
+        new_message(request, 'Privilege %s has been removed from group %s.' % (privilege, group), type=Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
+
+    return render_to_response(UserAdmin, 'useradmin/delete.html',
+                        {
+                            'name': '%s from %s' % (privilege, group),
+                            'type': 'privilege',
+                        }, UserAdminContext(request))

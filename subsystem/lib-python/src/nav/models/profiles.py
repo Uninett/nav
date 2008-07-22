@@ -162,6 +162,9 @@ class AccountGroup(models.Model):
     def __unicode__(self):
         return self.name
 
+    def is_system_group(self):
+        return self.id < 1000
+
 class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
