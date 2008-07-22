@@ -20,24 +20,26 @@
                 {{ group_form.as_table }}
                 <tr>
                     <th></th>
-                    <td><input type="submit" value="Submit changes" /></td>
+                    <td><input type="submit" value="Submit changes" name="submit_group"/></td>
                 </tr>
             </table>
         </form>
     {% endif %}
     {% if group %}
-        <p>
-            <a href="{% url useradmin-group_delete group.id %}">
-                Delete group
-            </a>
-        </p>
+        {% if not group.is_system_group %}
+            <p>
+                [<a href="{% url useradmin-group_delete group.id %}">
+                    Delete group
+                </a>]
+            </p>
+        {% endif %}
 
         <h3>Privigeges</h3>
-        {% if group.privigege_set.all %}
+        {% if group.privilege_set.all %}
             <ul>
-                {% for privilege in group.privigege_set.all %}
+                {% for privilege in group.privilege_set.all %}
                     <li>
-                        {{ privilege }}
+                        {{ privilege }} - [<a href="{% url useradmin-group_privilege_remove group.id,privilege.id %}">Revoke</a>]
                     </li>
                 {% endfor %}
             </ul>
@@ -56,7 +58,7 @@
                 <p>
                     {{ privilege_form.type }}
                     {{ privilege_form.target }}
-                    <input type="submit" value="Grant" />
+                    <input type="submit" value="Grant" name="submit_privilege" />
                 </p>
             </form>
         {% endif %}
@@ -82,7 +84,7 @@
                 {{ account_form.account.errors }}
                 <p>
                     {{ account_form.account }}
-                    <input type="submit" value="Add to group" />
+                    <input type="submit" value="Add to group" name="submit_account" />
                 </p>
             </form>
         {% endif %}

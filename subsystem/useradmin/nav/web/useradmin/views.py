@@ -200,6 +200,46 @@ def group_detail(request, group_id=None):
     account_form = AccountAddForm()
     privilege_form = PrivilegeForm()
 
+    if request.method == 'POST':
+
+        if 'submit_group' in request.POST:
+            group_form = AccountGroupForm(request.POST, instance=group)
+
+            if group_form.is_valid():
+                group_form.save()
+
+                new_message(request, '"%s" has been saved.' % (group), type=Messages.SUCCESS)
+                return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
+
+        elif 'submit_privilege' in request.POST:
+            privilege_form = PrivilegeForm(request.POST)
+
+            if privilege_form.is_valid():
+                type = privilege_form.cleaned_data['type']
+                target = privilege_form.cleaned_data['target']
+
+                try:
+                    group.privilege_set.get(type=type, target=target)
+                    new_message(request, 'Privilege was not added as it allready exists.', type=Messages.WARNING)
+                except Privilege.DoesNotExist:
+                    group.privilege_set.create(type=type, target=target)
+                    new_message(request, 'Privilege has been added.', type=Messages.SUCCESS)
+
+                return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
+        elif 'submit_account' in request.POST:
+            account_form = AccountAddForm(request.POST)
+
+            if account_form.is_valid():
+                try:
+                    account = account_form.cleaned_data['account']
+                    group.accounts.get(login=account.login)
+                    new_message(request, 'Account %s was not added as it is allready a member of the group.' % account, type=Messages.WARNING)
+                except Account.DoesNotExist:
+                    group.accounts.add(account)
+                    new_message(request, 'Account %s has been added.' % account, type=Messages.SUCCESS)
+
+                return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
+
     if group:
         active = {'group_detail': True}
     else:
@@ -214,3 +254,12 @@ def group_detail(request, group_id=None):
                             'privilege_form': privilege_form,
                         }, UserAdminContext(request))
 
+def group_delete(request, group_id):
+    pass
+
+def group_account_remove(request, group_id, account_id):
+    # FIXME Redirect
+    return account_group_remove(request, account_id, group_id)
+
+def group_privilege_remove(request, group_id, privilege_id):
+    pass
