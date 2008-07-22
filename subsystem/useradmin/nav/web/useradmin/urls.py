@@ -39,12 +39,12 @@ urlpatterns = patterns('nav.web.useradmin.views',
     url(r'^account/new/$', 'account_detail', name='useradmin-account_new'),
     url(r'^account/(?P<account_id>\d+)/$', 'account_detail', name='useradmin-account_detail'),
 
+    # Deletion
+    url(r'^account/(?P<account_id>\d+)/delete/$', 'account_delete', name='useradmin-account_delete'),
+    url(r'^account/(?P<account_id>\d+)/remove/group/(?P<group_id>\d+)/$', 'account_group_remove', name='useradmin-account_group_remove'),
+    url(r'^account/(?P<account_id>\d+)/remove/org/(?P<org_id>\w+)/$', 'account_organization_remove', name='useradmin-account_organization_remove'),
+
     # Edit/Create groups
     url(r'^group/new/$', 'group_detail', name='useradmin-group_new'),
     url(r'^group/(?P<group_id>\d+)/$', 'group_detail', name='useradmin-group_detail'),
-
-    # Deletion
-    url(r'^account/(?P<account_id>\d+)/delete/$', 'account_delete', name='useradmin-account_delete'),
-    url(r'^account/(?P<account_id>\d+)/remove/(?P<org_id>\w+)/$', 'account_organization_remove', name='useradmin-account_organization_remove'),
-    url(r'^account/(?P<account_id>\d+)/remove/group(?P<group_id>\d+)/$', 'account_group_remove', name='useradmin-account_group_remove'),
 )

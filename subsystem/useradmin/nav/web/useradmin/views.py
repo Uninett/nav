@@ -34,14 +34,24 @@ from django.template import RequestContext
 from nav.models.profiles import Account, AccountGroup
 from nav.django.shortcuts import render_to_response, object_list, object_detail
 
+from nav.web.message import new_message, Messages
 from nav.web.templates.UserAdmin import UserAdmin
 from nav.web.useradmin.forms import *
+from nav.django.context_processors import account_processor
+
+# FIXME make this global
+class UserAdminContext(RequestContext):
+    def __init__(self, *args, **kwargs):
+        if 'processors' not in kwargs:
+            kwargs['processors'] = [account_processor]
+        super(UserAdminContext, self).__init__(*args, **kwargs)
 
 def account_list(request):
     return object_list(UserAdmin, request, Account.objects.all(),
                         template_object_name='account',
                         template_name='useradmin/account_list.html',
-                        extra_context={'active': {'account_list': 1}})
+                        extra_context={'active': {'account_list': 1}},
+                        context_processors=[account_processor])
 
 def account_detail(request, account_id=None):
     try:
@@ -60,28 +70,33 @@ def account_detail(request, account_id=None):
             if account_form.is_valid():
                 account = account_form.save(commit=False)
 
-                if account_form.cleaned_data['password1'].strip():
+                if 'password1' in account_form.cleaned_data and not account.ext_sync:
                     account.set_password(account_form.cleaned_data['password1'])
 
                 account.save()
 
+                new_message(request, '"%s" has been saved.' % (account), type=Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
         elif 'submit_org' in request.POST:
             org_form = OrganizationAddForm(request.POST)
 
             if org_form.is_valid():
-                account.organizations.add(org_form.cleaned_data['organization'])
+                organization = org_form.cleaned_data['organization']
+                account.organizations.add(organization)
 
+                new_message(request, 'Added organization "%s" to account "%s"' % (organization, account), type=Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
         elif 'submit_group' in request.POST:
             group_form = GroupAddForm(request.POST)
 
             if group_form.is_valid():
-                account.accountgroup_set.add(group_form.cleaned_data['group'])
+                group = group_form.cleaned_data['group']
+                account.accountgroup_set.add(group)
                 account.save()
 
+                new_message(request, 'Added "%s" to group "%s"' % (account, group), type=Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if account:
@@ -96,77 +111,77 @@ def account_detail(request, account_id=None):
                             'account_form': account_form,
                             'org_form': org_form,
                             'group_form': group_form,
-                        }, RequestContext(request))
+                        }, UserAdminContext(request))
 
 def account_delete(request, account_id):
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
-        # FIXME add message
+        new_message(request, 'Account %s does not exist.' % (account_id), type=Messages.ERROR)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     if account.is_system_account():
-        # FIXME add message
-        return HttpResponseRedirect(reverse('useradmin-account_list'))
+        new_message(request, 'Account %s can not be deleted as it is a system account.' % (account.name), type=Messages.ERROR)
+        return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if request.method == 'POST':
         account.delete()
-        # FIXME add message
+        new_message(request, 'Account %s has been deleted.' % (account.name), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     return render_to_response(UserAdmin, 'useradmin/delete.html',
                         {
                             'name': '%s (%s)' % (account.name, account.login),
                             'type': 'account',
-                        }, RequestContext(request))
+                        }, UserAdminContext(request))
 
 def account_organization_remove(request, account_id, org_id):
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
-        # FIXME add message
+        new_message(request, 'Account %s does not exist.' % (account_id), type=Messages.ERROR)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     try:
         organization = account.organizations.get(id=org_id)
     except Organization.DoesNotExist:
-        # FIXME add message
+        new_message(request, 'Organization %s does not exist or it is not associated with %s.' % (org_id, account), type=Messages.ERROR)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if request.method == 'POST':
         account.organizations.remove(organization)
-        # FIXME add message
+        new_message(request, 'Organization %s has been removed from account %s.' % (organization, account), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     return render_to_response(UserAdmin, 'useradmin/delete.html',
                         {
                             'name': '%s from %s' % (organization, account),
                             'type': 'organization',
-                        }, RequestContext(request))
+                        }, UserAdminContext(request))
 
 def account_group_remove(request, account_id, group_id):
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
-        # FIXME add message
+        new_message(request, 'Account %s does not exist.' % (account_id), type=Messages.ERROR)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     try:
         group = account.accountgroup_set.get(id=group_id)
     except AccountGroup.DoesNotExist:
-        # FIXME add message
+        new_message(request, 'Group %s does not exist or it is not associated with %s.' % (group_id, account), type=Messages.ERROR)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if request.method == 'POST':
         account.accountgroup_set.remove(group)
-        # FIXME add message
+        new_message(request, 'Group %s has been removed from account %s.' % (group, account), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     return render_to_response(UserAdmin, 'useradmin/delete.html',
                         {
                             'name': '%s from the group %s' % (account, group),
                             'type': 'account',
-                        }, RequestContext(request))
+                        }, UserAdminContext(request))
 
 
 def group_list(request):
@@ -197,4 +212,5 @@ def group_detail(request, group_id=None):
                             'group_form': group_form,
                             'account_form': account_form,
                             'privilege_form': privilege_form,
-                        }, RequestContext(request))
+                        }, UserAdminContext(request))
+

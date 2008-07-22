@@ -17,7 +17,14 @@
     </ul>
 </div>
 <div class="tabcontent">
+    {% if messages %}
+        <ul class="messages">
+            {% for m in messages %}
+                <li class="{{ m.type }}">{{ m.message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
     {% block content %}
-        tester
+        Replace me!
     {% endblock %}
 </div>
