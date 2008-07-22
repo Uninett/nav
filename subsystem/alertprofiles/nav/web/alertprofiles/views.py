@@ -61,24 +61,6 @@ BASE_PATH = [
 def overview(request):
     account = get_account(request)
     active = {'overview': True}
-    return render_to_response(
-            AlertProfilesTemplate,
-            'alertprofiles/overview.html',
-            {'active': active},
-            RequestContext(
-                request,
-                processors=[account_processor]
-            ),
-            path=[
-                ('Home', '/'),
-                ('Alert profiles', None),
-            ]
-        )
-
-def profile(request):
-    account = get_account(request)
-    active = {'profile': True}
-    active_profile = None
 
     # Get information about user
     groups = account.accountgroup_set.all()
@@ -89,9 +71,6 @@ def profile(request):
 
     if not active_profile:
         new_message(request, _('There\'s no active profile set.'), Messages.NOTICE)
-
-    adress = AlertAddress.objects.filter(account=account.pk)
-    profiles = AlertProfile.objects.filter(account=account.pk).order_by('name')
 
     # Get information about users privileges
     sms_privilege = account.has_perm('alert_by', 'sms')
@@ -116,12 +95,44 @@ def profile(request):
     info_dict = {
             'active': active,
             'groups': groups,
-            'adress': adress,
-            'profiles': profiles,
             'active_profile': active_profile,
             'sms_privilege': sms_privilege,
             'filter_groups': filter_groups,
             'language_form': language_form,
+        }
+
+    return render_to_response(
+            AlertProfilesTemplate,
+            'alertprofiles/account_detail.html',
+            info_dict,
+            RequestContext(
+                request,
+                processors=[account_processor]
+            ),
+            path=[
+                ('Home', '/'),
+                ('Alert profiles', None),
+            ]
+        )
+
+def profile(request):
+    account = get_account(request)
+    active = {'profile': True}
+
+    try:
+        active_profile = account.alertpreference.active_profile
+    except:
+        active_profile = None
+
+    if not active_profile:
+        new_message(request, _('There\'s no active profile set.'), Messages.NOTICE)
+
+    profiles = AlertProfile.objects.filter(account=account.pk).order_by('name')
+
+    info_dict = {
+            'active': active,
+            'profiles': profiles,
+            'active_profile': active_profile,
         }
 
     return render_to_response(
@@ -688,6 +699,24 @@ def profile_time_period_subscription_remove(request):
                 ]
             )
 
+def address_list(request):
+    account = get_account(request)
+    address = AlertAddress.objects.filter(account=account.pk)
+
+    info_dict = {
+            'active': {'address': True},
+            'form_action': reverse('alertprofiles-address-remove'),
+        }
+    return object_list(
+            AlertProfilesTemplate,
+            request,
+            queryset=address,
+            template_name='alertprofiles/address_list.html',
+            extra_context=info_dict,
+            context_processors=[account_processor],
+            path=BASE_PATH+[('Address', None)]
+        )
+
 def address_show_form(request, address_id=None, address_form=None):
     account = get_account(request)
     page_name = 'New address'
@@ -717,7 +746,7 @@ def address_show_form(request, address_id=None, address_form=None):
         address_form = AlertAddressForm(instance=address)
 
     info_dict = {
-        'active': {'profile': True},
+        'active': {'address': True},
         'detail_id': detail_id,
         'form': address_form,
         'owner': True,
@@ -731,7 +760,7 @@ def address_show_form(request, address_id=None, address_form=None):
             processors=[account_processor]
         ),
         path=BASE_PATH+[
-            ('Address', None),
+            ('Address', reverse('alertprofiles-address')),
             (page_name, None),
         ]
     )
@@ -779,7 +808,7 @@ def address_save(request):
 def address_remove(request):
     if not request.method == 'POST':
         new_message(request, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+        return HttpResponseRedirect(reverse('alertprofiles-address'))
 
     account = get_account(request)
     if request.POST.get('confirm'):
@@ -815,7 +844,7 @@ def address_remove(request):
             _('Removed addresses: %(names)s') % {'names': names},
             Messages.SUCCESS
         )
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
+        return HttpResponseRedirect(reverse('alertprofiles-address'))
     else:
         addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('address'))
 
@@ -842,7 +871,7 @@ def address_remove(request):
 
         info_dict = {
                 'form_action': reverse('alertprofiles-address-remove'),
-                'active': {'profile': True},
+                'active': {'address': True},
                 'elements': addresses,
                 'perform_on': None,
             }
@@ -855,7 +884,7 @@ def address_remove(request):
                     processors=[account_processor]
                 ),
                 path=BASE_PATH+[
-                    ('Profiles', reverse('alertprofiles-profile')),
+                    ('Address', reverse('alertprofiles-address')),
                     ('Remove addresses', None),
                 ]
             )
@@ -879,7 +908,7 @@ def language_save(request):
     language.save()
 
     new_message(request, _('Changed language'), Messages.SUCCESS)
-    return HttpResponseRedirect(reverse('alertprofiles-profile'))
+    return HttpResponseRedirect(reverse('alertprofiles-overview'))
 
 def filter_list(request):
     account = get_account(request)

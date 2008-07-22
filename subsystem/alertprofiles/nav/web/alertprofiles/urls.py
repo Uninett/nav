@@ -34,7 +34,7 @@ from nav.web.alertprofiles.views import *
 urlpatterns = patterns('',
     # Overview
     url(r'^$', overview,
-        name='alertprofiles'),
+        name='alertprofiles-overview'),
 
     # User settings
     url(r'^profile/$', profile,
@@ -62,7 +62,11 @@ urlpatterns = patterns('',
     url(r'^profile/time_period/subscription/remove/$', profile_time_period_subscription_remove,
         name='alertprofiles-profile-timeperiod-subscription-remove'),
 
-    url(r'^address/$', 'address_list',
+    url(r'^language/save/$', language_save,
+        name='alertprofiles-language-save'),
+
+    # Alert address
+    url(r'^address/$', address_list,
         name='alertprofiles-address'),
     url(r'^address/(?P<address_id>\d+)/$', address_detail,
         name='alertprofiles-address-detail'),
@@ -72,9 +76,6 @@ urlpatterns = patterns('',
         name='alertprofiles-address-save'),
     url(r'^address/remove/$', address_remove,
         name='alertprofiles-address-remove'),
-
-    url(r'^language/save/$', language_save,
-        name='alertprofiles-language-save'),
 
     # Filters
     url(r'^filters/$', filter_list,

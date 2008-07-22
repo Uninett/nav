@@ -2,10 +2,13 @@
     {% block tabs %}
     <ul>
         <li class="{{ active.overview|yesno:"tabactive," }}">
-            <a href="{% url alertprofiles-overview %}">Overview</a>
+            <a href="{% url alertprofiles-overview %}">Account details</a>
+        </li>
+        <li class="{{ active.address|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-address %}">Alert addresses</a>
         </li>
         <li class="{{ active.profile|yesno:"tabactive," }}">
-            <a href="{% url alertprofiles-profile %}">Profile</a>
+            <a href="{% url alertprofiles-profile %}">Profiles</a>
         </li>
         <li class="{{ active.filtergroups|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-filtergroups %}">Filter groups</a>
