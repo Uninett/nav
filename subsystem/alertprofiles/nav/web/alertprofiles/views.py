@@ -788,11 +788,9 @@ def address_remove(request):
         for a in addresses:
             if a.account != account:
                 return alertprofiles_response_forbidden(request, _('You do not own this address.'))
-        try:
-            subscriptions = AlertSubscription.objects.filter(alert_address__in=addresses)
-        except AlertSubscription.DoesNotExist:
-            return HttpResponseRedirect(reverse('alertprofiles-profile'))
-        else:
+
+        subscriptions = AlertSubscription.objects.filter(alert_address__in=addresses)
+        if len(subscriptions) > 0:
             for s in subscriptions:
                 new_message(
                     request,
@@ -825,11 +823,8 @@ def address_remove(request):
             if a.account != account:
                 return alertprofiles_response_forbidden(request, _('You do not own this address.'))
 
-        try:
-            subscriptions = AlertSubscription.objects.filter(alert_address__in=addresses)
-        except AlertSubscription.DoesNotExist:
-            return HttpResponseRedirect(reverse('alertprofiles-profile'))
-        else:
+        subscriptions = AlertSubscription.objects.filter(alert_address__in=addresses)
+        if len(subscriptions) > 0:
             for s in subscriptions:
                 new_message(
                     request,
@@ -946,11 +941,8 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         page_name = filter.name
 
         # Check if filter is used by any filter groups
-        try:
-            filter_groups = FilterGroupContent.objects.filter(filter=filter)
-        except FilterGroup.DoesNotExist:
-            pass
-        else:
+        filter_groups = FilterGroupContent.objects.filter(filter=filter)
+        if len(filter_groups) > 0:
             fg_names = ', '.join([f.filter_group.name for f in filter_groups])
             new_message(
                 request,
@@ -1330,13 +1322,10 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
 
         page_name = filtergroup.name
 
-        try:
-            subscriptions = AlertSubscription.objects.filter(filter_group=filtergroup)
-            time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
-            profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
-        except ObjectDoesNotExist:
-            pass
-        else:
+        subscriptions = AlertSubscription.objects.filter(filter_group=filtergroup)
+        time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
+        profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+        if len(profiles) > 0:
             names = ', '.join([p.name for p in profiles])
             new_message(
                 request,
@@ -1451,13 +1440,10 @@ def filtergroup_remove(request):
 
         messages = Messages(request)
         for fg in filter_groups:
-            try:
-                subscriptions = AlertSubscription.objects.filter(filter_group=fg)
-                time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
-                profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
-            except ObjectDoesNotExist:
-                pass
-            else:
+            subscriptions = AlertSubscription.objects.filter(filter_group=fg)
+            time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
+            profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+            if len(profiles) > 0:
                 names = ', '.join([p.name for p in profiles])
                 messages.append({
                     'message': _('''Filter group %(fg)s is used in profiles:
