@@ -187,7 +187,7 @@ class Privilege(models.Model):
         db_table = u'accountgroupprivilege'
 
     def __unicode__(self):
-        return self.target
+        return '%s for %s' % (self.type, self.target)
 
 
 class PrivilegeType(models.Model):

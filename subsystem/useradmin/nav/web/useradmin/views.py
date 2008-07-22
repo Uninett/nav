@@ -83,9 +83,14 @@ def account_detail(request, account_id=None):
 
             if org_form.is_valid():
                 organization = org_form.cleaned_data['organization']
-                account.organizations.add(organization)
 
-                new_message(request, 'Added organization "%s" to account "%s"' % (organization, account), type=Messages.SUCCESS)
+                try:
+                    account.organizations.get(id=organization.id)
+                    new_message(request, 'Organization was not added as it has allready been added.', type=Messages.WARNING)
+                except Organization.DoesNotExist:
+                    account.organizations.add(organization)
+                    new_message(request, 'Added organization "%s" to account "%s"' % (organization, account), type=Messages.SUCCESS)
+
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
         elif 'submit_group' in request.POST:
@@ -93,10 +98,14 @@ def account_detail(request, account_id=None):
 
             if group_form.is_valid():
                 group = group_form.cleaned_data['group']
-                account.accountgroup_set.add(group)
-                account.save()
 
-                new_message(request, 'Added "%s" to group "%s"' % (account, group), type=Messages.SUCCESS)
+                try:
+                    account.accountgroup_set.get(id=group.id)
+                    new_message(request, 'Group was not added as it has allready been added.', type=Messages.WARNING)
+                except AccountGroup.DoesNotExist:
+                    account.accountgroup_set.add(group)
+                    new_message(request, 'Added "%s" to group "%s"' % (account, group), type=Messages.SUCCESS)
+
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if account:
