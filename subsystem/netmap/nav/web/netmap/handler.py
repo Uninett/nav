@@ -45,8 +45,11 @@ def handler(req):
             baseURL = "https://" + req.hostname + req.uri
         else:
             baseURL = "http://" + req.hostname + req.uri
-    except:
-        baseURL = "http://" + req.hostname + req.uri
+    except AttributeError:
+        if req.subprocess_env.get('HTTPS', '').lower() in ('on', '1'):
+            baseURL = "https://" + req.hostname + req.uri
+        else:
+            baseURL = "http://" + req.hostname + req.uri
 
     if path == '/server':
         page = GraphML()
