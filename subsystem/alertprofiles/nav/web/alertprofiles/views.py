@@ -54,9 +54,11 @@ from nav.web.alertprofiles.shortcuts import alertprofiles_response_forbidden, \
 _ = lambda a: a
 
 BASE_PATH = [
-        ('Home', '/'),
-        ('Alert profiles', '/alertprofiles/'),
-    ]
+    ('Home', '/'),
+    ('Alert profiles', '/alertprofiles/'),
+]
+
+PAGINATE_BY = 25
 
 def overview(request):
     account = get_account(request)
@@ -115,7 +117,7 @@ def overview(request):
             ]
         )
 
-def profile(request):
+def profile(request, page=1):
     account = get_account(request)
     active = {'profile': True}
 
@@ -133,19 +135,19 @@ def profile(request):
             'active': active,
             'profiles': profiles,
             'active_profile': active_profile,
+            'page_link': reverse('alertprofiles-profile'),
         }
 
-    return render_to_response(
+    return object_list(
             AlertProfilesTemplate,
-            'alertprofiles/profile.html',
-            info_dict,
-            RequestContext(
-                request,
-                processors=[account_processor]
-            ),
-            path=BASE_PATH+[
-                ('Profiles', None)
-            ],
+            request,
+            queryset=profiles,
+            paginate_by=PAGINATE_BY,
+            page=page,
+            template_name='alertprofiles/profile.html',
+            extra_context=info_dict,
+            context_processors=[account_processor],
+            path=BASE_PATH+[('Profiles', None)]
         )
 
 def profile_show_form(request, profile_id=None, profile_form=None, time_period_form=None):
@@ -699,18 +701,21 @@ def profile_time_period_subscription_remove(request):
                 ]
             )
 
-def address_list(request):
+def address_list(request, page=1):
     account = get_account(request)
     address = AlertAddress.objects.filter(account=account.pk)
 
     info_dict = {
             'active': {'address': True},
             'form_action': reverse('alertprofiles-address-remove'),
+            'page_link': reverse('alertprofiles-address'),
         }
     return object_list(
             AlertProfilesTemplate,
             request,
             queryset=address,
+            paginate_by=PAGINATE_BY,
+            page=page,
             template_name='alertprofiles/address_list.html',
             extra_context=info_dict,
             context_processors=[account_processor],
@@ -910,7 +915,7 @@ def language_save(request):
     new_message(request, _('Changed language'), Messages.SUCCESS)
     return HttpResponseRedirect(reverse('alertprofiles-overview'))
 
-def filter_list(request):
+def filter_list(request, page=1):
     account = get_account(request)
     admin = is_admin(account)
 
@@ -926,11 +931,14 @@ def filter_list(request):
             'active': active,
             'admin': admin,
             'form_action': reverse('alertprofiles-filters-remove'),
+            'page_link': reverse('alertprofiles-filters'),
         }
     return object_list(
             AlertProfilesTemplate,
             request,
             queryset=filters,
+            paginate_by=PAGINATE_BY,
+            page=page,
             template_name='alertprofiles/filter_list.html',
             extra_context=info_dict,
             context_processors=[account_processor],
@@ -1279,7 +1287,7 @@ def filter_removeexpresion(request):
                 ]
             )
 
-def filtergroup_list(request):
+def filtergroup_list(request, page=1):
     account = get_account(request)
     admin = is_admin(account)
 
@@ -1296,11 +1304,14 @@ def filtergroup_list(request):
             'active': active,
             'admin': admin,
             'form_action': reverse('alertprofiles-filtergroups-remove'),
+            'page_link': reverse('alertprofiles-filtergroups'),
         }
     return object_list(
             AlertProfilesTemplate,
             request,
             queryset=filtergroups,
+            paginate_by=PAGINATE_BY,
+            page=page,
             template_name='alertprofiles/filtergroup_list.html',
             extra_context=info_dict,
             context_processors=[account_processor],
@@ -1720,7 +1731,7 @@ def filtergroup_movefilter(request):
         )
 
 @permission_required
-def matchfield_list(request):
+def matchfield_list(request, page=1):
     # Get all matchfields aka. filter variables
     matchfields = MatchField.objects.all().order_by('name')
     info_dict = {
@@ -1731,6 +1742,8 @@ def matchfield_list(request):
             AlertProfilesTemplate,
             request,
             queryset=matchfields,
+            paginate_by=PAGINATE_BY,
+            page=page,
             template_name='alertprofiles/matchfield_list.html',
             extra_context=info_dict,
             context_processors=[account_processor],

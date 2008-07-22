@@ -4,6 +4,9 @@
 
 {% block top_links %}
 {% endblock %}
+
+{% include "alertprofiles/paginator.html" %}
+
 <form action="{{ form_action }}" method="post">
 
 <table class="listtable">
@@ -36,4 +39,7 @@
 </div>
 
 </form>
+
+{% include "alertprofiles/paginator.html" %}
+
 {% endblock %}
