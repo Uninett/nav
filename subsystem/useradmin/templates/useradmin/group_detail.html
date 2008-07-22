@@ -70,7 +70,7 @@
                 {% for account in group.accounts.all %}
                     <li>
                         <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
-                        - [<a href="{% url useradmin-account_group_remove account.id,group.id %}">Remove</a>]
+                        - [<a href="{% url useradmin-group_account_remove group.id,account.id %}">Remove</a>]
                     </li>
                 {% endfor %}
             </ul>

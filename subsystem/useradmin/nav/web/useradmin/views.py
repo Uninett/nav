@@ -159,22 +159,31 @@ def account_organization_remove(request, account_id, org_id):
                             'type': 'organization',
                         }, UserAdminContext(request))
 
-def account_group_remove(request, account_id, group_id):
+def account_group_remove(request, account_id, group_id, missing_redirect=None, plain_redirect=None):
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
         new_message(request, 'Account %s does not exist.' % (account_id), type=Messages.ERROR)
+
+        if missing_redirect:
+            return HttpResponseRedirect(missing_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     try:
         group = account.accountgroup_set.get(id=group_id)
     except AccountGroup.DoesNotExist:
-        new_message(request, 'Group %s does not exist or it is not associated with %s.' % (group_id, account), type=Messages.ERROR)
+        new_message(request, 'Group %s does not exist or it is not associated with %s.' % (group_id, account), type=Messages.WARNING)
+
+        if plain_redirect:
+            return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     if request.method == 'POST':
         account.accountgroup_set.remove(group)
-        new_message(request, 'Group %s has been removed from account %s.' % (group, account), type=Messages.SUCCESS)
+        new_message(request, '%s has been removed from %s.' % (account, group), type=Messages.SUCCESS)
+
+        if plain_redirect:
+            return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
     return render_to_response(UserAdmin, 'useradmin/delete.html',
@@ -258,8 +267,9 @@ def group_delete(request, group_id):
     pass
 
 def group_account_remove(request, group_id, account_id):
-    # FIXME Redirect
-    return account_group_remove(request, account_id, group_id)
+    return account_group_remove(request, account_id, group_id,
+            missing_redirect=reverse('useradmin-group_list'),
+            plain_redirect=reverse('useradmin-group_detail', args=[group_id]))
 
 def group_privilege_remove(request, group_id, privilege_id):
     pass
