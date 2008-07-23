@@ -39,7 +39,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from nav.models.profiles import *
-from nav.django.utils import get_account, permission_required
+from nav.django.utils import get_account, permission_required, is_admin
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
@@ -67,36 +67,12 @@ def overview(request):
     # Get information about user
     groups = account.accountgroup_set.all()
     try:
-        active_profile = account.alertpreference.active_profile
-    except:
+        active_profile = account.get_active_profile()
+    except ObjectDoesNotExist:
         active_profile = None
 
     if not active_profile:
         new_message(request, _('There\'s no active profile set.'), Messages.NOTICE)
-
-    # Get information about users privileges
-    sms_privilege = account.has_perm('alert_by', 'sms')
-
-    filter_dict = {'group_permisions__in': [g.id for g in groups]}
-    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
-
-    try:
-        language = AccountProperty.objects.get(
-            account=account,
-            property='language'
-        )
-    except AccountProperty.DoesNotExist:
-        language = AccountProperty(account=account, property='language', value='en')
-
-    language_form = AccountPropertyForm(
-        instance=language,
-        property='language',
-        values=[('en', 'English'), ('no', 'Norwegian')]
-    )
-
-    try:
-        active_profile = account.get_active_profile()
-    except AlertProfile.DoesNotExist:
         subscriptions = None
     else:
         periods = TimePeriod.objects.filter(profile=active_profile).order_by('start')
@@ -145,6 +121,27 @@ def overview(request):
                 else:
                     end_time = subscription[0]['time_period']['start']
                 s['time_period']['end'] = end_time
+
+
+    # Get information about users privileges
+    sms_privilege = account.has_perm('alert_by', 'sms')
+
+    filter_dict = {'group_permisions__in': [g.id for g in groups]}
+    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
+
+    try:
+        language = AccountProperty.objects.get(
+            account=account,
+            property='language'
+        )
+    except AccountProperty.DoesNotExist:
+        language = AccountProperty(account=account, property='language', value='en')
+
+    language_form = AccountPropertyForm(
+        instance=language,
+        property='language',
+        values=[('en', 'English'), ('no', 'Norwegian')]
+    )
 
     info_dict = {
             'active': active,
