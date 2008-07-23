@@ -938,7 +938,7 @@ CREATE OR REPLACE VIEW maint AS
 -- radius tables
 ------------------------------------------------------------------------------
 
-CREATE TABLE uit_radiusacct (
+CREATE TABLE radiusacct (
         RadAcctId               BIGSERIAL PRIMARY KEY,
         AcctSessionId           VARCHAR(96) NOT NULL,
         AcctUniqueId            VARCHAR(32) NOT NULL,
@@ -962,12 +962,12 @@ CREATE TABLE uit_radiusacct (
 );
 
 -- For use by onoff-, update-, stop- and simul_* queries
-CREATE INDEX uit_radiusacct_active_user_idx ON uit_radiusacct (userName) WHERE AcctStopTime IS NULL;
+CREATE INDEX radiusacct_active_user_idx ON radiusacct (userName) WHERE AcctStopTime IS NULL;
 -- and for common statistic queries:
-CREATE INDEX uit_radiusacct_start_user_index ON uit_radiusacct (acctStartTime, lower(UserName));
-CREATE INDEX uit_radiusacct_stop_user_index ON uit_radiusacct (acctStopTime, UserName);
+CREATE INDEX radiusacct_start_user_index ON radiusacct (acctStartTime, lower(UserName));
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (acctStopTime, UserName);
 
-CREATE TABLE uit_radiuslog (
+CREATE TABLE radiuslog (
         ID                      BIGSERIAL PRIMARY KEY,
         Time                    TIMESTAMP with time zone,
         Type                    VARCHAR(10),
@@ -979,5 +979,5 @@ CREATE TABLE uit_radiuslog (
         );
 
 
-CREATE INDEX uit_radiuslog_time_index ON uit_radiuslog(time);
-CREATE INDEX uit_radiuslog_username_index ON uit_radiuslog(username);
+CREATE INDEX radiuslog_time_index ON radiuslog(time);
+CREATE INDEX radiuslog_username_index ON radiuslog(username);

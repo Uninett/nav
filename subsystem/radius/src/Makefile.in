@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-templates = AcctChartsTemplate.py AccDetailTemplate.py AcctSearchTemplate.py \
+templates = AcctChartsTemplate.py AcctDetailTemplate.py AcctSearchTemplate.py \
 LogDetailTemplate.py LogTemplate.py
 
 files = radius.py radiuslib.py radius_config.py .htaccess
