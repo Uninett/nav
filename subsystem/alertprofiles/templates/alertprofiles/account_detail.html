@@ -45,5 +45,10 @@
     </tbody>
 </table>
 
+<h3>Active profile: 
+<a href="{% url alertprofiles-profile-detail active_profile.id %}">
+{{ active_profile.name }}</a></h3>
+{% include "alertprofiles/timeperiods.html" %}
+
 {% endblock %}
 
