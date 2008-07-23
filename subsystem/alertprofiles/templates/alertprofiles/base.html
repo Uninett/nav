@@ -19,12 +19,14 @@
         <li class="{{ active.sms|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-sms %}">My SMS</a>
         </li>
+        {% if is_admin %}
         <li class="{{ active.matchfields|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-matchfields %}">Matchfields</a>
         </li>
         <li class="{{ active.permissions|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-permissions %}">Permissions</a>
         </li>
+        {% endif %}
     </ul>
     {% endblock %}
 </div>
