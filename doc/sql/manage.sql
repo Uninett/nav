@@ -933,3 +933,51 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
+
+------------------------------------------------------------------------------
+-- radius tables
+------------------------------------------------------------------------------
+
+CREATE TABLE uit_radiusacct (
+        RadAcctId               BIGSERIAL PRIMARY KEY,
+        AcctSessionId           VARCHAR(96) NOT NULL,
+        AcctUniqueId            VARCHAR(32) NOT NULL,
+        UserName                VARCHAR(70),
+        Realm                   VARCHAR(24),
+        NASIPAddress            INET NOT NULL,
+        NASPortType             VARCHAR(32),
+        CiscoNASPort            VARCHAR(32),
+        AcctStartTime           TIMESTAMP,
+        AcctStopTime            TIMESTAMP,
+        AcctSessionTime         BIGINT,
+        AcctInputOctets         BIGINT,
+        AcctOutputOctets        BIGINT,
+        CalledStationId         VARCHAR(50),
+        CallingStationId        VARCHAR(50),
+        AcctTerminateCause      VARCHAR(32),
+        FramedProtocol          VARCHAR(32),
+        FramedIPAddress         INET,
+        AcctStartDelay          BIGINT,
+        AcctStopDelay           BIGINT
+);
+
+-- For use by onoff-, update-, stop- and simul_* queries
+CREATE INDEX uit_radiusacct_active_user_idx ON uit_radiusacct (userName) WHERE AcctStopTime IS NULL;
+-- and for common statistic queries:
+CREATE INDEX uit_radiusacct_start_user_index ON uit_radiusacct (acctStartTime, lower(UserName));
+CREATE INDEX uit_radiusacct_stop_user_index ON uit_radiusacct (acctStopTime, UserName);
+
+CREATE TABLE uit_radiuslog (
+        ID                      BIGSERIAL PRIMARY KEY,
+        Time                    TIMESTAMP with time zone,
+        Type                    VARCHAR(10),
+        Message                 VARCHAR(200),
+        Status                  VARCHAR(65),
+        UserName                VARCHAR(70),
+        Client                  VARCHAR(65),
+        Port                    VARCHAR(8)
+        );
+
+
+CREATE INDEX uit_radiuslog_time_index ON uit_radiuslog(time);
+CREATE INDEX uit_radiuslog_username_index ON uit_radiuslog(username);
