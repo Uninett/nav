@@ -3,9 +3,8 @@
 {% block tabcontent %}
 
 {% block top_links %}
+    {% include "alertprofiles/paginator.html" %}
 {% endblock %}
-
-{% include "alertprofiles/paginator.html" %}
 
 <form action="{{ form_action }}" method="post">
 
@@ -40,6 +39,8 @@
 
 </form>
 
-{% include "alertprofiles/paginator.html" %}
+{% block bottom_links %}
+    {% include "alertprofiles/paginator.html" %}
+{% endblock %}
 
 {% endblock %}

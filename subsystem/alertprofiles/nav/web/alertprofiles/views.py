@@ -117,9 +117,17 @@ def overview(request):
             ]
         )
 
-def profile(request, page=1):
+def profile(request):
     account = get_account(request)
     active = {'profile': True}
+
+    page = request.GET.get('page', 1)
+
+    # Define valid options for ordering
+    valid_ordering = ['name', '-name']
+    order_by = request.GET.get('order_by', 'name').lower()
+    if order_by not in valid_ordering:
+        order_by = 'name'
 
     try:
         active_profile = account.alertpreference.active_profile
@@ -129,15 +137,15 @@ def profile(request, page=1):
     if not active_profile:
         new_message(request, _('There\'s no active profile set.'), Messages.NOTICE)
 
-    profiles = AlertProfile.objects.filter(account=account.pk).order_by('name')
+    profiles = AlertProfile.objects.filter(account=account.pk).order_by(order_by)
 
     info_dict = {
             'active': active,
             'profiles': profiles,
             'active_profile': active_profile,
             'page_link': reverse('alertprofiles-profile'),
+            'order_by': order_by,
         }
-
     return object_list(
             AlertProfilesTemplate,
             request,
@@ -701,14 +709,24 @@ def profile_time_period_subscription_remove(request):
                 ]
             )
 
-def address_list(request, page=1):
+def address_list(request):
     account = get_account(request)
-    address = AlertAddress.objects.filter(account=account.pk)
+
+    page = request.GET.get('page', 1)
+
+    # Define valid options for ordering
+    valid_ordering = ['address', '-address', 'type', '-type']
+    order_by = request.GET.get('order_by', 'address').lower()
+    if order_by not in valid_ordering:
+        order_by = 'address'
+
+    address = AlertAddress.objects.filter(account=account.pk).order_by(order_by)
 
     info_dict = {
             'active': {'address': True},
             'form_action': reverse('alertprofiles-address-remove'),
             'page_link': reverse('alertprofiles-address'),
+            'order_by': order_by,
         }
     return object_list(
             AlertProfilesTemplate,
@@ -915,14 +933,26 @@ def language_save(request):
     new_message(request, _('Changed language'), Messages.SUCCESS)
     return HttpResponseRedirect(reverse('alertprofiles-overview'))
 
-def sms_list(request, page=1):
+def sms_list(request):
     account = get_account(request)
+    page = request.GET.get('page', 1)
+
+    # Define valid options for ordering
+    valid_ordering = [
+        'time', '-time', 'time_sent', '-time_sent', 'phone', '-phone',
+        'message', '-message', 'severity', '-severity', 'sent', '-sent',
+    ]
+    order_by = request.GET.get('order_by', 'time').lower()
+    if order_by not in valid_ordering:
+        order_by = 'time'
+
     # NOTE Old versions of alert engine may not have set account.
-    sms = SMSQueue.objects.filter(account=account).order_by('time', 'severity')
+    sms = SMSQueue.objects.filter(account=account).order_by(order_by)
 
     info_dict = {
         'active': {'sms': True},
         'page_link': reverse('alertprofiles-sms'),
+        'order_by': order_by,
     }
     return object_list(
         AlertProfilesTemplate,
@@ -936,16 +966,24 @@ def sms_list(request, page=1):
         path=BASE_PATH+[('SMS', None)]
     )
 
-def filter_list(request, page=1):
+def filter_list(request):
     account = get_account(request)
     admin = is_admin(account)
+
+    page = request.GET.get('page', 1)
+
+    # Define valid options for ordering
+    valid_ordering = ['name', '-name', 'owner', '-owner']
+    order_by = request.GET.get('order_by', 'name').lower()
+    if order_by not in valid_ordering:
+        order_by = 'name'
 
     # Get all public filters, and private filters belonging to this user only
     # NOTE We would like to order by owner first, but then filters with no
     # owner won't show up.
     filters = Filter.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)
-        ).order_by('name')
+        ).order_by(order_by)
 
     active = {'filters': True}
     info_dict = {
@@ -953,6 +991,7 @@ def filter_list(request, page=1):
             'admin': admin,
             'form_action': reverse('alertprofiles-filters-remove'),
             'page_link': reverse('alertprofiles-filters'),
+            'order_by': order_by,
         }
     return object_list(
             AlertProfilesTemplate,
@@ -1308,9 +1347,17 @@ def filter_removeexpresion(request):
                 ]
             )
 
-def filtergroup_list(request, page=1):
+def filtergroup_list(request):
     account = get_account(request)
     admin = is_admin(account)
+
+    page = request.GET.get('page', 1)
+
+    # Define valid options for ordering
+    valid_ordering = ['name', '-name', 'owner', '-owner', '-description', 'description']
+    order_by = request.GET.get('order_by', 'name').lower()
+    if order_by not in valid_ordering:
+        order_by = 'name'
 
     # Get all public filtergroups, and private filtergroups belonging to this
     # user only
@@ -1318,7 +1365,7 @@ def filtergroup_list(request, page=1):
     # owner won't show up.
     filtergroups = FilterGroup.objects.filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
-        ).order_by('name')
+        ).order_by(order_by)
 
     active = {'filtergroups': True}
     info_dict = {
@@ -1326,6 +1373,7 @@ def filtergroup_list(request, page=1):
             'admin': admin,
             'form_action': reverse('alertprofiles-filtergroups-remove'),
             'page_link': reverse('alertprofiles-filtergroups'),
+            'order_by': order_by,
         }
     return object_list(
             AlertProfilesTemplate,
@@ -1752,12 +1800,21 @@ def filtergroup_movefilter(request):
         )
 
 @permission_required
-def matchfield_list(request, page=1):
+def matchfield_list(request):
+    page = request.GET.get('page', 1)
+
+    # Define valid options for ordering
+    valid_ordering = ['name', '-name', 'description', '-description']
+    order_by = request.GET.get('order_by', 'name').lower()
+    if order_by not in valid_ordering:
+        order_by = 'name'
+
     # Get all matchfields aka. filter variables
-    matchfields = MatchField.objects.all().order_by('name')
+    matchfields = MatchField.objects.all().order_by(order_by)
     info_dict = {
             'active': {'matchfields': True},
             'form_action': reverse('alertprofiles-matchfields-remove'),
+            'order_by': order_by,
         }
     return object_list(
             AlertProfilesTemplate,

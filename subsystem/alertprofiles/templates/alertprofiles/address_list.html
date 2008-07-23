@@ -12,8 +12,32 @@
 
 {% block theadcols %}
     <th></th>
-    <th>Address</th>
-    <th>Type</th>
+    <th>
+    {% ifequal order_by "address" %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-address">
+        Address</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=address">
+        Address</a>
+        {% ifequal order_by "-address" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "type" %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-type">
+        Type</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=type">
+        Type</a>
+        {% ifequal order_by "-type" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
 {% endblock %}
 
 {% block tbodycontent %}
