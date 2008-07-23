@@ -67,6 +67,11 @@ urlpatterns = patterns('',
     url(r'^language/save/$', language_save,
         name='alertprofiles-language-save'),
 
+    url(r'^sms/$', sms_list,
+        name='alertprofiles-sms'),
+    url(r'^sms/page(?P<page>[0-9]+)/$', sms_list,
+        name='alertprofiles-sms-list'),
+
     # Alert address
     url(r'^address/$', address_list,
         name='alertprofiles-address'),

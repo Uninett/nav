@@ -915,6 +915,27 @@ def language_save(request):
     new_message(request, _('Changed language'), Messages.SUCCESS)
     return HttpResponseRedirect(reverse('alertprofiles-overview'))
 
+def sms_list(request, page=1):
+    account = get_account(request)
+    # NOTE Old versions of alert engine may not have set account.
+    sms = SMSQueue.objects.filter(account=account).order_by('time', 'severity')
+
+    info_dict = {
+        'active': {'sms': True},
+        'page_link': reverse('alertprofiles-sms'),
+    }
+    return object_list(
+        AlertProfilesTemplate,
+        request,
+        queryset=sms,
+        paginate_by=PAGINATE_BY,
+        page=page,
+        template_name='alertprofiles/sms_list.html',
+        extra_context=info_dict,
+        context_processors=[account_processor],
+        path=BASE_PATH+[('SMS', None)]
+    )
+
 def filter_list(request, page=1):
     account = get_account(request)
     admin = is_admin(account)

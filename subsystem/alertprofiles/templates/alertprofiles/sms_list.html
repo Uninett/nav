@@ -1,0 +1,48 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    My SMS
+{% endblock %}
+
+{% block theadcols %}
+    <th>Time</th>
+    <th>Sent</th>
+    <th>Phone</th>
+    <th>Message</th>
+    <th>Severity</th>
+    <th>Status</th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for sms in object_list %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>{{ sms.time }}</td>
+            <td>
+                {% if sms.time_sent %}
+                    {{ sms.time_sent }}
+                {% endif %}
+            </td>
+            <td>{{ sms.phone }}</td>
+            <td>{{ sms.message }}</td>
+            <td>{{ sms.severity }}</td>
+            <td
+                {% ifequal sms.sent 'Y' %}
+                    style="color: green">
+                    <img src="/images/lys/green.png" />
+                    Sent
+                {% endifequal %}
+                {% ifequal sms.sent 'N' %}
+                    style="color: red">
+                    <img src="/images/lys/red.png" />
+                    Not sent
+                {% endifequal %}
+                {% ifequal sms.sent 'I' %}
+                    style="color: orange">
+                    <img src="/images/lys/yellow.png" />
+                    Ignored
+                {% endifequal %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+

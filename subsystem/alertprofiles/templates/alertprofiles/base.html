@@ -16,6 +16,9 @@
         <li class="{{ active.filters|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-filters %}">Filters</a>
         </li>
+        <li class="{{ active.sms|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-sms %}">My SMS</a>
+        </li>
         <li class="{{ active.matchfields|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-matchfields %}">Matchfields</a>
         </li>
