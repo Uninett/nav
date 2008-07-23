@@ -311,8 +311,10 @@ def profile_save(request):
         new_message(request, _('There was no post-data'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
+    messages = Messages(request)
     account = get_account(request)
     profile_form = None
+
     if request.POST.get('id'):
         try:
             profile = AlertProfile.objects.get(pk=request.POST.get('id'))
@@ -331,11 +333,30 @@ def profile_save(request):
         return profile_show_form(request, detail_id, profile_form)
 
     profile = profile_form.save()
-    new_message(
-        request,
-        _('Saved profile %(profile)s') % {'profile': profile.name},
-        Messages.SUCCESS
-    )
+
+    if AlertProfile.objects.filter(account=account).count() == 1:
+        # No other profile, might as well set active profile to this
+        # profile.
+        # A bit magic, but removes a step for the user to perform.
+        try:
+            preference = AlertPreference.objects.get(account=account)
+        except AlertPreference.DoesNotExist:
+            preference = AlertPreference(account=account, active_profile=profile)
+        else:
+            preference.active_profile = profile
+        preference.save()
+        messages.append({
+            'message': _('''Active profile automatically set to %(profile)s''') % {
+                'profile': profile.name,
+            },
+            'type': Messages.NOTICE,
+        })
+
+    messages.append({
+        'message': _('Saved profile %(profile)s') % {'profile': profile.name},
+        'type': Messages.SUCCESS,
+    })
+    messages.save()
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
 def profile_remove(request):
