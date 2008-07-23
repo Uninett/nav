@@ -1,18 +1,17 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-<form action="{% block url_edit %}{% endblock %}" method="post">
-<table class="listtable">
-    <caption>
-    {% block captioncontent %}
+<h3>
+{% block headercontent %}
     {% if detail_id %}
         Filter details
     {% else %}
         New filter
     {% endif %}
-    {% endblock %}
-    </caption>
-
+{% endblock %}
+</h3>
+<form action="{% block url_edit %}{% endblock %}" method="post">
+<table class="vertitable">
     <tbody>
         {{ form }}
         {% block form_additional_fields %}
