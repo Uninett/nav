@@ -27,11 +27,11 @@ public class netboxTooltip extends JPanel {
 
 	public netboxTooltip(String sysname, String category, String type, String room, String cpuload){
 		initComponents();
-		this.sysnameValue.setText(sysname);
-		this.categoryValue.setText(category);
-		this.typeValue.setText(type);
-		this.roomValue.setText(room);
-		this.cpuValue.setText(cpuload);
+		sysnameValue.setText(sysname);
+		categoryValue.setText(category);
+		typeValue.setText(type);
+		roomValue.setText(room);
+		cpuValue.setText(cpuload);
 	}
 
 	public JLabel getSysnameValue() {

@@ -26,10 +26,7 @@ import java.applet.AppletContext;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.*;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -59,7 +56,6 @@ import prefuse.visual.VisualItem;
 public class Main extends JPrefuseApplet {
 
     private static AppletContext appletContext;
-    private static ArrayList<JCheckBox> categoryCheckboxes;
     private static ArrayList<String> availableCategories;
     private static ArrayList<String> availableLinkTypes;
     private static String[] Layer3_LinkTypes = new String[] {"core","elink","link"};
@@ -93,7 +89,7 @@ public class Main extends JPrefuseApplet {
     public void init() {
         log.entering("Main", "init");
 
-        sessionID = this.getParameter("sessionid");
+        sessionID = getParameter("sessionid");
         if (sessionID == null || sessionID.equals("")) {
             JOptionPane.showMessageDialog(null, "ERROR: No sessionID found\n");
             return;
@@ -103,9 +99,9 @@ public class Main extends JPrefuseApplet {
          * Fetch the baseURL so we know where to get our files
          */
         try {
-            baseURL = new URL(this.getParameter("baseurl"));
+            baseURL = new URL(getParameter("baseurl"));
         } catch (MalformedURLException e) {
-            JOptionPane.showMessageDialog(null, "ERROR: baseurl (" + this.getParameter("baseurl") + ") not in valid format\n" + e.getMessage());
+            JOptionPane.showMessageDialog(null, "ERROR: baseurl (" + getParameter("baseurl") + ") not in valid format\n" + e.getMessage());
         }
 
         /*
@@ -113,8 +109,8 @@ public class Main extends JPrefuseApplet {
          * Defaults to 800x600
          */
         try {
-            int width = Integer.parseInt(this.getParameter("width"));
-            int height = Integer.parseInt(this.getParameter("height"));
+            int width = Integer.parseInt(getParameter("width"));
+            int height = Integer.parseInt(getParameter("height"));
 
             if (width > 0 && height > 0) {
                 this.setSize(new java.awt.Dimension(width, height));
@@ -293,9 +289,9 @@ public class Main extends JPrefuseApplet {
 
         menuBar.add(freezeMenu);
 
-        this.setJMenuBar(menuBar);
-        this.doLayout();
-        this.setVisible(true);
+        setJMenuBar(menuBar);
+        doLayout();
+        setVisible(true);
 
         appletContext = getAppletContext();
 
@@ -342,7 +338,7 @@ public class Main extends JPrefuseApplet {
         } catch (DataIOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-        this.prepared = true;
+        prepared = true;
 
     }
 
@@ -386,7 +382,7 @@ public class Main extends JPrefuseApplet {
 	JSearchPanel jsp = new JSearchPanel(m_vis, "graph.nodes", Visualization.SEARCH_ITEMS, new String[]{"sysname","ip","room"}, true, true);
 	jsp.setLabelText("  Search: ");
 	jsp.setEnabled(true);
-	this.menuBar.add(jsp);
+	menuBar.add(jsp);
 
 			// Zoom after initial run
 			try {
@@ -419,7 +415,7 @@ public class Main extends JPrefuseApplet {
     }
 
     public boolean inLayoutFreeze() {
-        return this.freezeCheckbox.isSelected();
+        return freezeCheckbox.isSelected();
     }
 
     public static AppletContext _getAppletContext() {
@@ -460,8 +456,12 @@ public class Main extends JPrefuseApplet {
     }
     public static ArrayList getAllLinkTypes(){
 	    ArrayList<String> ret = new ArrayList<String>();
-	    for (String type : Layer2_LinkTypes) ret.add(type);
-	    for (String type : Layer3_LinkTypes) ret.add(type);
+	    for (String type : Layer2_LinkTypes) {
+			ret.add(type);
+		}
+	    for (String type : Layer3_LinkTypes) {
+			ret.add(type);
+		}
 	    return ret;
     }
 

@@ -12,7 +12,6 @@ public class NetmapNodeSizeAction extends SizeAction {
     
     @Override
 public double getSize(VisualItem item){
-        Node n = (Node)item;
         return 1.0;
     }
 
