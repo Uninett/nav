@@ -207,15 +207,6 @@ CREATE TABLE netbox (
   UNIQUE(deviceid)
 );
 
--- Rules to automatically close open cam and arp entries related to a given netbox
-CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
-  DO UPDATE arp SET end_time=NOW()
-     WHERE netboxid=OLD.netboxid AND end_time='infinity';
-
-CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
-  DO UPDATE cam SET end_time=NOW()
-     WHERE netboxid=OLD.netboxid AND end_time='infinity';
-
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
@@ -425,6 +416,16 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
+
+
+-- Rules to automatically close open cam and arp entries related to a given netbox
+CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
+  DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
+  DO UPDATE cam SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
 
 -- VIEWs -----------------------
@@ -788,7 +789,7 @@ CREATE TABLE service (
 CREATE RULE rrdfile_deleter AS 
     ON DELETE TO service 
     DO DELETE FROM rrd_file 
-        WHERE key='serviceid' AND value=old.serviceid;
+        WHERE key='serviceid' AND value=old.serviceid::text;
 
 CREATE TABLE serviceproperty (
   id SERIAL,
