@@ -78,7 +78,8 @@ class dbinit {
             foreach ($conffile as $confline) {
             	
 				// Skip comments.
-            		if (preg_match('/^\s*#/', $confline)) next;
+            		if (preg_match('/^\s*#/', $confline))
+				continue;
             		
                 $tvar = split('=', trim($confline));
                 if (sizeof($tvar) > 1) {
@@ -144,8 +145,9 @@ class dbinit {
             // Traverse all entries in db.conf file.
             foreach ($conffile as $confline) {
             	
-				// Skip comments.
-            		if (preg_match('/^\s*#/', $confline)) next;
+		    // Skip comments.
+          	if (preg_match('/^\s*#/', $confline))
+			continue;
             		
                 $tvar = split('=', trim($confline));
                 if (sizeof($tvar) > 1) {

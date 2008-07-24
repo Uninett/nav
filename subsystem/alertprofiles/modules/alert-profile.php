@@ -210,8 +210,8 @@ if (get_get('subaction') == "nyprofil") {
 
 $l = new Lister( 106,
 	array(gettext('Active'), gettext('Name'), gettext('#periods'), gettext('Options..')),
-	array(10, 50, 15, 25),
-	array('left', 'left', 'right', 'right'),
+	array(10, 50, 25, 10),
+	array('left', 'left', 'left', 'left'),
 	array(true, true, true, false),
 	1);
 

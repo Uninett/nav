@@ -35,7 +35,7 @@ function access_address_type($username, $addresstype) {
 		2 => 'sms',
 	);
 	$returncode = 'NA';
-	$interpreter = $_ENV['PYTHONHOME'] ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
+	$interpreter = isset($_ENV['PYTHONHOME']) ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
 	
 	$cmd = $interpreter . ' ' . PATH_BIN . '/hasPrivilege.py ' . escapeshellcmd($username) . ' alert_by ' . $atypes[$addresstype];
 	system($cmd, $returncode);
