@@ -1,49 +1,52 @@
 What?
 =====
-This directory contains SQL scripts to create the initial NAV databases.
+This directory contains SQL scripts to create the NAV database and
+fill it with initial data.
 
 
 Files
 =====
-manage.sql       - Creates the manage database
+
+createdb.sql     - Creates the nav user and nav database and the four
+                   namespaces manage, profiles, logger and arnold.
+                   Runs all the other needed SQL script listed below.
+
+manage.sql       - Creates tables in the manage namespace.
 types.sql        - Initializes the equipment vendor and type tables of the
-                   manage database
-snmpoid.sql      - Initializes the SNMP OID registry of the manage database
-logger.sql       - Creates the navlog database
-navprofiles.sql  - Creates the navprofiles database
-arnold.sql       - Creates the arnold database
+                   manage namespace.
+snmpoid.sql      - Initializes the SNMP OID registry of the manage namespace.
+logger.sql       - Creates tables in the logger namespace.
+navprofiles.sql  - Creates tables in the profiles namespace.
+arnold.sql       - Creates tables in arnold namespace.
+
+indexes.sql      - Creates auxiliary indexes for all namespaces in the nav
+                   database.
 
 
-How to create the databases from scratch
-========================================
+How to create the database from scratch
+=======================================
 This section assumes your PostgreSQL server is configured to directly
-identify the local unix account postgres as the postgres database user
-(with the "ident sameuser" directive in pg_hba.conf).  su from root to
-the postgres account before performing these commands.
+identify the local unix account postgres as the postgres database
+superuser (with the "ident sameuser" directive in pg_hba.conf).  su
+from root to the postgres account before performing these commands.
 
-First, create a database user for NAV, and choose a password for it:
+Run the createdb.sql script, which should take care of everything.
+Make sure your current working directory is the doc/sql directory:
 
-  createuser --no-createdb --no-adduser --pwprompt nav
+  psql -f createdb.sql template1
 
-Now, create the databases:
+You need to set a password for the nav user that was created by the
+createdb script.  Start the PostgreSQL interactive command line tool:
 
-  createdb --owner nav --encoding UTF-8 manage
-  createdb --owner nav --encoding UTF-8 navprofiles
-  createdb --owner nav --encoding UTF-8 logger
-  createdb --owner nav --encoding UTF-8 arnold
-  createlang plpgsql manage
-  createlang plpgsql navprofiles
+  psql nav
 
-Then, finally, initialize the databases.  These scripts are run as the
-nav user you created above, so you will be prompted for the password
-you chose.
+Enter the following SQL statement, then type \q and enter to quit:
 
-  psql -f manage.sql manage nav
-  psql -f types.sql manage nav
-  psql -f snmpoid.sql manage nav
-  psql -f navprofiles.sql navprofiles nav
-  psql -f logger.sql logger nav
-  psql -f arnold.sql arnold nav
+  ALTER USER nav WITH PASSWORD 'secret';
+
+Oh, I'm sure you can think of something better than 'secret' for your
+password.  Remember to configure this password in db.conf, under the
+userpw_nav option.
 
 Please be aware that on some installations, the PostgreSQL superuser
 might not be named postgres.
