@@ -6,7 +6,17 @@
  * every change you make to the database initialization scripts.  It
  * will eventually become the update script for the next release.
  *
- * Also, if you are keeping your installation in sync with the default
+ * *************** NB NB NB NB NB NB NB ***************
+ *
+ * This upgrade scripts assumes you have merged your NAV databases
+ * into a single, multi-namespaced database.  If you haven't, please
+ * read the instructions in doc/sql/migrate.sql, and use that script
+ * to merge your databases first.  Only then should you use this
+ * script.
+ *
+ * *************** NB NB NB NB NB NB NB ***************
+ *
+ * If you are keeping your installation in sync with the default
  * branch, you should watch this file for changes and run them when
  * updating (check the diffs!)
  *
