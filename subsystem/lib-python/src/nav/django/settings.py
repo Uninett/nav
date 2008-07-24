@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007 UNINETT AS
+# Copyright 2007,2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -23,7 +23,7 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
-__copyright__ = "Copyright 2007 UNINETT AS"
+__copyright__ = "Copyright 2007,2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
@@ -32,8 +32,8 @@ from nav.config import readConfig
 import nav.buildconf
 import nav.path
 
-# Debugging
-if 'devel' in nav.buildconf.VERSION:
+if 'DJANGO_DEBUG' in readConfig('nav.conf') \
+    and readConfig('nav.conf')['DJANGO_DEBUG'] == "True":
     DEBUG = True
 else:
     DEBUG = False
