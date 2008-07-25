@@ -109,6 +109,9 @@ class Account(models.Model):
     def is_default_account(self):
         return self.id == self.DEFAULT_ACCOUNT
 
+    def is_admin_account(self):
+        return self.id == self.ADMIN_ACCOUNT
+
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
         if len(password.strip()):

@@ -198,6 +198,13 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None, p
             return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
+    if group.is_admin_group() and account.is_admin_account():
+        new_message(request, '%s can not be removed from %s.' % (account, group), type=Messages.ERROR)
+
+        if plain_redirect:
+            return HttpResponseRedirect(plain_redirect)
+        return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
+
     if request.method == 'POST':
         account.accountgroup_set.remove(group)
         new_message(request, '%s has been removed from %s.' % (account, group), type=Messages.SUCCESS)
