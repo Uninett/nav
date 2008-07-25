@@ -1,7 +1,7 @@
-"""
-ipdevpoll daemon.
+"""ipdevpoll daemon.
 
 This is the daemon program that runs the IP device poller.
+
 """
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"

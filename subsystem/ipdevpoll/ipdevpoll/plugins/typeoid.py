@@ -1,11 +1,11 @@
-"""
-ipdevpoll type detection plugin.
+"""ipdevpoll type detection plugin.
 
 Collects sysObjectId and compares with the registered type of the
 netbox.
 
 TODO: If netbox type has changed, NAVdb needs to be updated, an event
       must be dispatched, and the poll run restarted.
+
 """
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"

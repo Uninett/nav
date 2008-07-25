@@ -1,7 +1,7 @@
-"""
-ipdevpoll plugin to pull iftable date.
+"""ipdevpoll plugin to pull iftable date.
 
 Just a prototype, will only log info, not store it in NAVdb.
+
 """
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"

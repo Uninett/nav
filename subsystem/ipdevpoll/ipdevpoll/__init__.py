@@ -1,17 +1,30 @@
-"""
-NAV subsystem for IP device polling.
+"""NAV subsystem for IP device polling.
+
+Packages:
+
+  plugins -- polling plugin system
+
+Modules:
+
+  daemon  -- device polling daemon
+  models  -- internal data models
+  snmpoid -- snmpoid based poll run scheduling
+
 """
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
 import logging
+
 from nav.errors import GeneralException
 
 class Plugin(object):
-    """
-    Base Plugin class to provide common useful functions for all
-    polling plugins.  Do *NOT* create instances of the base class.
+
+    """Abstract class providing common functionality for all polling plugins.
+
+    Do *NOT* create instances of the base class.
+
     """
 
     def __init__(self, netbox):
@@ -25,21 +38,30 @@ class Plugin(object):
         return '%s(%s)' % (self.full_name(), repr(self.netbox))
 
     def handle(self):
-        """Handle plugin business, return a deferred"""
+        """Handle plugin business, return a deferred."""
         raise NotImplemented
 
     @classmethod
     def can_handle(cls, netbox):
-        """
-        Returns a true value if this plugin class can/wants to handle
-        polling for this netbox instance at this time.
+        """Verify whether this plugin can/wants to handle polling for this
+        netbox instance at this time.
+
+        Returns a boolean value.
         """
         raise NotImplemented
 
     def order(self, queue):
-        """
-        Offer a chance for this plugin to manipulate the order of the
-        plugin calling queue prior to the handle method being called.
+        """Manipulate this plugin's order on the queue.
+
+        The RunHandler may offer a plugin a chance to manipulate the
+        list of plugin instances to run, by calling this method with
+        the plugin list as its argument.
+
+        When a plugin knows it needs to be run before or after a
+        specific other plugin, it can check for that plugin's presence
+        in the queue list, and if found, alter its own position in the
+        list accordingly.
+
         """
         # By default do nothing here
         pass
@@ -53,29 +75,31 @@ class Plugin(object):
         return "%s.%s" % (self.__class__.__module__,
                           self.__class__.__name__)
 
+
 class FatalPluginError(GeneralException):
     """Fatal plugin error"""
     pass
 
 
 def get_class_logger(cls):
-    """
-    Get a logger with a name corresponding to the fully qualified
-    class name of the class specified in the cls parameter.
+    """Return a logger instance for a given class object.
+
+    The logger object is named after the fully qualified class name of
+    the cls class.
+
     """
     full_class_name = "%s.%s" % (cls.__module__, cls.__name__)
     return logging.getLogger(full_class_name)
 
 def get_instance_logger(instance, instance_id=None):
-    """
-    Get a logger with a name corresponding to the fully qualified
-    class name and instance identifier of the instance in the instance
-    parameter.
+    """Return a logger instance for a given instance object.
 
-    If an instanceId parameter is specified, this string will be
-    appended to the fully qualified class name (with a separating dot)
-    of the instance to name the logger.  If omitted, str(instance) is
-    used as an instance identifier.
+    The logger object is named after the fully qualified class name of
+    the instance object + '.' + an instance identifier.
+
+    If the instance_id parameter is omitted, str(instance) will be
+    used as the identifier.
+
     """
     if not instance_id:
         instance_id = str(instance)

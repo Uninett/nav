@@ -1,5 +1,4 @@
-"""
-ipdevpoll data models are contained herein.
+"""ipdevpoll internal data models.
 
 To perform its polling duties, the ipdevpoll system must know what
 netboxes to poll, what type netboxes are and what vendors they come
@@ -14,17 +13,18 @@ __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
 from pysnmp.asn1.oid import OID
+
 from twistedsnmp import snmpprotocol, agentproxy
+
 from nav.db import getConnection
 import ipdevpoll
 
 def _load_helper(cls, sql):
-    """
-    Generator function to run a SQL query and instantiate a class for
-    each row of the result.
+    """Runs the sql query and yield instances of cls for each resulting row.
 
     The supplied SQL query must return a number of columns that can be
     mapped directly as arguments to the cls class constructor.
+
     """
     conn = getConnection('default')
     cursor = conn.cursor()
@@ -33,14 +33,16 @@ def _load_helper(cls, sql):
         yield cls(*row)
 
 def load_models():
-    """Load all models into their respective caches"""
+    """Loads all models into their respective caches"""
     Netbox.load()
     Type.load()
     SnmpOid.load()
     NetboxSnmpOid.load()
 
 class Netbox(object):
-    """A device with an IP address"""
+
+    """A device with an IP address."""
+
     # Netbox instance store, key=netboxid
     all = {}
 
@@ -75,9 +77,8 @@ class Netbox(object):
 
     @classmethod
     def load(cls):
-        """
-        Load a list of netboxes to poll from, and populate the Netbox.all
-        dictionary with it.
+        """Load netbox information from database and populate the Netbox.all
+        dictionary with corresponding Netbox instances.
         """
         logger = ipdevpoll.get_class_logger(cls)
         # FIXME: This SQL selects only a subset of netboxes for testing
@@ -112,14 +113,17 @@ class Netbox(object):
         return self.proxy
 
     def release_proxy(self):
-        """Release SNMP agent proxy."""
+        """Release the SNMP agent proxy.
+
+        Should be called when the proxy is no longer needed, and the
+        corresponding UDP port can be freed.
+        """
         del self.proxy
         self.proxy = None
 
     def get_table(self, oidkey):
-        """
-        Retrieve an SNMP table from the given oidkey, using the SNMP agent
-        proxy for this netbox.  Returns a deferred.
+        """Retrieve an SNMP table from the given oidkey and return a
+        deferred.
         """
         snmpoid = SnmpOid.all[oidkey]
         df = self.get_proxy().getTable(
@@ -130,9 +134,8 @@ class Netbox(object):
         return df
 
     def get(self, oidkey):
-        """
-        Retrieve a single SNMP value from the given oidkey, using the
-        SNMP agent proxy for this netbox.  Returns a deferred.
+        """Retrieve a single SNMP value from the given oidkey, and return a
+        deferred.
         """
         snmpoid = SnmpOid.all[oidkey]
         df = self.get_proxy().get(
@@ -143,18 +146,22 @@ class Netbox(object):
         return df
             
     def is_supported_oid(self, key):
-        """Verify that a given oidkey is supported by this netbox."""
+        """Verify that a given oidkey is supported by this netbox and return a
+        boolean value.
+        """
         return key in self.oidkeys
 
     def is_supported_all_oids(self, keys):
-        """
-        Verify that all oidkeys in the keys list are supported by this
-        netbox.
+        """Verify that all oidkeys in the keys list are supported by this
+        netbox and return a boolean value.
         """
         return all(key in self.oidkeys for key in keys)
 
+
 class Type(object):
+
     """A device type with a sysObjectID"""
+
     all = {}
     by_sysobjectid = {}
 
@@ -182,8 +189,9 @@ class Type(object):
 
     @classmethod
     def load(cls):
-        """
-        Load and cache known device types from db
+        """Load type rows from the database and popule the Type.all dictionary
+        with corresponding Type instances.
+
         """
         logger = ipdevpoll.get_class_logger(cls)
         sql = """
@@ -201,11 +209,16 @@ class Type(object):
 
 
 class Vendor(object):
+
     """A device vendor"""
+
     pass
 
+
 class NetboxSnmpOid(object):
-    """A Netbox OID profile entry with interval schedule"""
+
+    """A Netbox OID profile entry with interval schedule."""
+
     # NetboxSnmpOid instance store, key=oidkey
     all = {}
 
@@ -224,7 +237,11 @@ class NetboxSnmpOid(object):
 
     @classmethod
     def load(cls):
-        """Load all netboxsnmpoid entries from the database"""
+        """Load all netboxsnmpoid rows from the database and populate the
+        NetboxSnmpOid.all dictionary with corresponding NetboxSnmpOid
+        instances.
+
+        """
         logger = ipdevpoll.get_class_logger(cls)
         sql = """
               SELECT netboxid, oidkey, frequency
@@ -251,7 +268,9 @@ class NetboxSnmpOid(object):
         logger.debug('load: Loaded %d netboxsnmpoids from database', counter)
 
 class SnmpOid(object):
+
     """A pollable SNMP OID"""
+
     # SnmpOid instance store, key=oidkey
     all = {}
 
@@ -291,7 +310,10 @@ class SnmpOid(object):
 
     @classmethod
     def load(cls):
-        """Load SnmpOid entries from the database"""
+        """Load all SnmpOid rows from the database and populate the
+        SnmpOid.all dictionary with corresponding SnmpOid instances.
+
+        """
         logger = ipdevpoll.get_class_logger(cls)
         sql = """
               SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex,

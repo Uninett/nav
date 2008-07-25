@@ -1,32 +1,33 @@
-"""
-Handles scheduling of poll runs according to the NAV snmpoid database.
-"""
+"""Handle scheduling of poll runs according to the NAV snmpoid database."""
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
-from twisted.internet import defer
 import logging
+
+from twisted.internet import defer
+
 import ipdevpoll
 from ipdevpoll.plugins import plugin_registry
 
 logger = logging.getLogger('ipdevpoll.snmpoid')
 
 class RunHandler(object):
+
+    """Handles a single polling run against a single netbox.
+
+    The responsibility of finding matching plugins and executing them
+    in a proper sequence is the responsibility of this class.
+
     """
-    An instance of RunHandler will handle an entire poll run for a
-    single netbox, calling polling plugins sequentially and in order.
-    """
+
     def __init__(self, netbox):
         self.netbox = netbox
         self.logger = ipdevpoll.get_instance_logger(self, 
                                                   "[%s]" % netbox.sysname)
 
     def find_plugins(self):
-        """
-        Populate and sorts the internal plugin instance list with
-        plugins that want to handle this polling run.
-        """
+        """Populate and sort the interal plugin list."""
         self.plugins = []
         for plugin_class in plugin_registry:
             if plugin_class.can_handle(self.netbox):
@@ -44,7 +45,7 @@ class RunHandler(object):
                           ",".join([p.name() for p in self.plugins]))
 
     def run(self):
-        """Start a polling run against a netbox."""
+        """Do a polling run against a netbox."""
         self.logger.info("Starting polling run")
         self.find_plugins()
         self.plugin_iterator = iter(self.plugins)
@@ -55,7 +56,7 @@ class RunHandler(object):
         return self.deferred
 
     def _nextplugin(self, result=None):
-        """Callback to advance to the next plugin in the sequence."""
+        """Callback that advances to the next plugin in the sequence."""
         try:
             self.current_plugin = self.plugin_iterator.next()
         except StopIteration:
@@ -68,7 +69,7 @@ class RunHandler(object):
             df.addErrback(self._error)
 
     def _error(self, failure):
-        """Error callback, called whenver a plugin fails."""
+        """Error callback that handles plugin failures."""
         if failure.check(ipdevpoll.FatalPluginError):
             # Handle known exceptions from plugins
             self.logger.error("Aborting poll run due to error in plugin "
@@ -88,9 +89,10 @@ class RunHandler(object):
         #return self.deferred
 
     def _done(self):
-        """
-        Clean up after a successfull poll run, firing callbacks
-        attached to the handler.
+        """Performs internal cleanup and callback firing.
+
+        This is called after successful poll run.
+
         """
         # Release the proxy (i.e. release the listening UDP port so we
         # don't hold on to resources unnecessarily)

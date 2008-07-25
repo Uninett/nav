@@ -1,7 +1,7 @@
-"""
-ipdevpoll plugin handling.
+"""ipdevpoll plugin handling.
 
 This package contains plugins submodules as distributed with NAV.
+
 """
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
@@ -13,9 +13,11 @@ logger = logging.getLogger('ipdevpoll.plugins')
 plugin_registry = set()
 
 def import_plugins():
-    """
-    Import all know plugin modules.  Each module is responsible for
-    registering it classes in the plugin registry.
+    """Import all know plugin modules.
+
+    Each module is responsible for registering its classes in the
+    plugin registry, using the register function in this module.
+
     """
     global logger
     names = (
