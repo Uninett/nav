@@ -23,6 +23,7 @@ def import_plugins():
     names = (
         'ipdevpoll.plugins.iftable',
         'ipdevpoll.plugins.typeoid',
+        'ipdevpoll.plugins.dnsname',
         #'ipdevpoll.plugins.test',
         )
     for plug in names:
