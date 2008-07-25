@@ -67,7 +67,7 @@ class Accountnavbar(_Wrapper):
     _descriptions =  {}
 
 class Accountorg(_Wrapper):
-    _sqlFields =  {'account': 'accountid', 'orgid': 'orgid'}
+    _sqlFields =  {'account': 'account_id', 'orgid': 'organization_id'}
     _sqlLinks =  {}
     _userClasses =  {'account': 'Account'}
     _shortView =  ()
