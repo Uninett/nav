@@ -151,6 +151,12 @@ class Account(models.Model):
 class AccountGroup(models.Model):
     '''NAV account groups'''
 
+    # FIXME other places in code that use similiar definitions should switch to
+    # using this one.
+    ADMINGROUP = 1
+    EVERYONE = 2
+    AUTHENTICATED = 3
+
     name = models.CharField()
     description = models.CharField(db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
@@ -164,6 +170,9 @@ class AccountGroup(models.Model):
 
     def is_system_group(self):
         return self.id < 1000
+
+    def is_protected_group(self):
+        return self.id in [self.EVERYONE, self.AUTHENTICATED]
 
 class AccountProperty(models.Model):
     '''Key-value for account settings'''

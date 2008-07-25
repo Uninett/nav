@@ -70,7 +70,9 @@
                 {% for account in group.accounts.all %}
                     <li>
                         <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
-                        - [<a href="{% url useradmin-group_account_remove group.id,account.id %}">Remove</a>]
+                        {% if not group.is_protected_group %}
+                            - [<a href="{% url useradmin-group_account_remove group.id,account.id %}">Remove</a>]
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>
