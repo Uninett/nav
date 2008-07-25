@@ -159,10 +159,15 @@ class FilterGroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         admin = kwargs.pop('admin', None)
+        is_owner = kwargs.pop('is_owner', None)
         super(FilterGroupForm, self).__init__(*args, **kwargs)
 
         if not admin:
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
+
+        if not is_owner:
+            for f in self.fields.itervalues():
+                f.widget.attrs['disabled'] = 'disabled'
 
 class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
@@ -174,10 +179,15 @@ class FilterForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         admin = kwargs.pop('admin', None)
+        is_owner = kwargs.pop('is_owner', None)
         super(FilterForm, self).__init__(*args, **kwargs)
 
         if not admin:
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
+
+        if not is_owner:
+            for f in self.fields.itervalues():
+                f.widget.attrs['disabled'] = 'disabled'
 
 class MatchFieldForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)

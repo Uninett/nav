@@ -28,11 +28,8 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
-from nav.django.utils import get_account
+from nav.django.utils import get_account, is_admin
 from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, Account
-
-# Admingroup is identified by having id/primary key 1.
-ADMINGROUP = 1
 
 def account_owns_filters(account, *filters):
     """Checks if account have access to edit/remove filters and/or filter groups."""
@@ -46,8 +43,11 @@ def account_owns_filters(account, *filters):
         # User is not admin, check each filter
         for filter in filters:
             try:
-                owner = filter.get().owner
-            except:
+                if isinstance(filter, Filter) or isinstance(filter, FilterGroup):
+                    owner = filter.owner
+                else:
+                    owner = filter.get().owner
+            except Account.DoesNotExist:
                 # This is a public filter, and we already know that this user
                 # is not an admin
                 return False
@@ -56,10 +56,6 @@ def account_owns_filters(account, *filters):
                     return True
                 else:
                     return False
-
-def is_admin(account):
-    """Check if user is a member of the administrator group"""
-    return account.accountgroup_set.filter(pk=ADMINGROUP).count() > 0;
 
 def resolve_account_admin_and_owner(request):
     """Primarily used before saving filters and filter groups.

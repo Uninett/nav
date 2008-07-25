@@ -22,17 +22,20 @@
 # Authors: Magnus Motzfeldt Eide <magnus.eide@uninett.no>
 #
 
-"""Shortcuts for using Django with NAV and Cheetah"""
-"""Utility methods for django"""
+"""Utility methods for django used in NAV"""
 
 __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
+from copy import copy
 from django.http import HttpResponseForbidden
 
 from nav.models.profiles import Account
+
+# Admingroup is identified by having id/primary key 1.
+ADMINGROUP = 1
 
 def get_account(request):
     """Extracts users login from sessionvariables and looks up the
@@ -40,6 +43,10 @@ def get_account(request):
     """
 
     return Account.objects.get(login=request._req.session['user'].login)
+
+def is_admin(account):
+    """Check if user is a member of the administrator group"""
+    return account.accountgroup_set.filter(pk=ADMINGROUP).count() > 0;
 
 def permission_required(function):
     """Decorator to check if user have access"""
