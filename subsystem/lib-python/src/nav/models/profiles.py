@@ -75,6 +75,9 @@ _ = lambda a: a
 class Account(models.Model):
     ''' NAV's basic account model'''
 
+    DEFAULT_ACCOUNT = 0
+    ADMIN_ACCOUNT = 1
+
     login = models.CharField(unique=True)
     name = models.CharField()
     password = models.CharField()
@@ -102,6 +105,9 @@ class Account(models.Model):
 
     def is_system_account(self):
         return self.id < 1000
+
+    def is_default_account(self):
+        return self.id == self.DEFAULT_ACCOUNT
 
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
@@ -153,9 +159,9 @@ class AccountGroup(models.Model):
 
     # FIXME other places in code that use similiar definitions should switch to
     # using this one.
-    ADMINGROUP = 1
-    EVERYONE = 2
-    AUTHENTICATED = 3
+    ADMIN_GROUP = 1
+    EVERYONE_GROUP = 2
+    AUTHENTICATED_GROUP = 3
 
     name = models.CharField()
     description = models.CharField(db_column='descr')
@@ -172,7 +178,10 @@ class AccountGroup(models.Model):
         return self.id < 1000
 
     def is_protected_group(self):
-        return self.id in [self.EVERYONE, self.AUTHENTICATED]
+        return self.id in [self.EVERYONE_GROUP, self.AUTHENTICATED_GROUP]
+
+    def is_admin_group(self):
+        return self.id == self.ADMIN_GROUP
 
 class AccountProperty(models.Model):
     '''Key-value for account settings'''

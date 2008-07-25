@@ -100,12 +100,15 @@ def account_detail(request, account_id=None):
             if group_form.is_valid():
                 group = group_form.cleaned_data['group']
 
-                try:
-                    account.accountgroup_set.get(id=group.id)
-                    new_message(request, 'Group was not added as it has allready been added.', type=Messages.WARNING)
-                except AccountGroup.DoesNotExist:
-                    account.accountgroup_set.add(group)
-                    new_message(request, 'Added "%s" to group "%s"' % (account, group), type=Messages.SUCCESS)
+                if group.is_admin_group() and account.is_default_account():
+                    new_message(request, 'Default user may not be added to admin group.', type=Messages.ERROR)
+                else:
+                    try:
+                        account.accountgroup_set.get(id=group.id)
+                        new_message(request, 'Group was not added as it has allready been added.', type=Messages.WARNING)
+                    except AccountGroup.DoesNotExist:
+                        account.accountgroup_set.add(group)
+                        new_message(request, 'Added "%s" to group "%s"' % (account, group), type=Messages.SUCCESS)
 
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
