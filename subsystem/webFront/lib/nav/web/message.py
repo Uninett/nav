@@ -32,6 +32,9 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
+from copy import copy
+from django.core.handlers.modpython import ModPythonRequest
+
 from nav.web.state import setupSession, setSessionCookie, getSessionCookie, \
     deleteSessionCookie, Session
 
@@ -58,13 +61,17 @@ class Messages(list):
     session = None
 
     def __init__(self, request=None):
-        self.session = request._req.session
+        if isinstance(request, ModPythonRequest):
+            request = request._req
+        self.session = request.session
 
     def __new__(cls, request=None):
         # We try to fetch a Messages object from this users session.
         # If it doesn't exist we make a new one.
-        setupSession(request._req)
-        messages = request._req.session.get('messages', None)
+        if isinstance(request, ModPythonRequest):
+            request = request._req
+        setupSession(request)
+        messages = request.session.get('messages', None)
 
         if not messages or not isinstance(messages, Messages):
             return list.__new__(cls)

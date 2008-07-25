@@ -31,7 +31,7 @@ __id__ = "$Id$"
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.template import RequestContext
 
-from nav.django.utils import new_message, MessageType
+from nav.web.message import new_message, Messages
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate

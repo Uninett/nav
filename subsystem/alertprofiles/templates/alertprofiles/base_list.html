@@ -3,7 +3,9 @@
 {% block tabcontent %}
 
 {% block top_links %}
+    {% include "alertprofiles/paginator.html" %}
 {% endblock %}
+
 <form action="{{ form_action }}" method="post">
 
 <table class="listtable">
@@ -36,4 +38,9 @@
 </div>
 
 </form>
+
+{% block bottom_links %}
+    {% include "alertprofiles/paginator.html" %}
+{% endblock %}
+
 {% endblock %}
