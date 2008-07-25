@@ -94,6 +94,8 @@ class QuickSelect:
                     result[field] = request.form.getlist(key)
                 elif 'add_%s' % key in request.form:
                     result[field] = request.form.getlist('add_%s' % key)
+                elif 'view_%s' % key in request.form:
+                    result[field] = request.form.getlist('view_%s' % key)
                 elif key != field:
                     # Extra check that allows add_loc in addtion to
                     # add_location
@@ -210,4 +212,9 @@ class QuickSelect:
         template = get_template('webfront/quickselect.html')
         context  = Context({'output': self.output})
 
-        return template.render(context).encode('utf-8')
+        result = template.render(context)
+
+        if isinstance(result, unicode):
+                result = result.encode('utf-8')
+
+        return result
