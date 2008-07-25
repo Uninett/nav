@@ -74,6 +74,34 @@ class AccountForm(forms.ModelForm):
         model = Account
         exclude = ('password', 'ext_sync', 'organizations')
 
+class ChangePasswordForm(forms.Form):
+    old_password = forms.CharField(label='Old password', min_length=8, widget=forms.widgets.PasswordInput)
+    new_password1 = forms.CharField(label='New password', min_length=8, widget=forms.widgets.PasswordInput)
+    new_password2 = forms.CharField(label='Repeat password', min_length=8, widget=forms.widgets.PasswordInput, required=False)
+
+    def clean_password1(self):
+        password1 = self.data.get('new_password1')
+        password2 = self.data.get('new_password2')
+
+        if password1 != password2:
+            raise forms.ValidationError('Passwords did not match')
+        return password1
+
+    def clear_passwords(self):
+        self.data = self.data.copy()
+        if 'new_password1' in self.data:
+            del self.data['new_password1']
+        if 'new_password2' in self.data:
+            del self.data['new_password2']
+        if 'old_password' in self.data:
+            del self.data['old_password']
+
+    def is_valid(self):
+        if not super(ChangePasswordForm, self).is_valid():
+            self.clear_passwords()
+            return False
+        return True
+
 class PrivilegeForm(forms.ModelForm):
     class Meta:
         model = Privilege

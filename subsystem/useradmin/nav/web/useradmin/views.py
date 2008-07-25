@@ -33,6 +33,7 @@ from django.template import RequestContext
 
 from nav.models.profiles import Account, AccountGroup
 from nav.django.shortcuts import render_to_response, object_list, object_detail
+from nav.django.utils import get_account
 
 from nav.web.message import new_message, Messages
 from nav.web.templates.UserAdmin import UserAdmin
@@ -322,4 +323,30 @@ def group_privilege_remove(request, group_id, privilege_id):
                         {
                             'name': '%s from %s' % (privilege, group),
                             'type': 'privilege',
+                        }, UserAdminContext(request))
+
+def userinfo(request):
+    account = get_account(request)
+
+    if account.ext_sync:
+        password_form = None
+    else:
+        password_form = ChangePasswordForm()
+
+    if request.method == 'POST' and password_form:
+        password_form = ChangePasswordForm(request.POST)
+
+        if password_form.is_valid():
+            if not account.check_password(password_form.cleaned_data['old_password']):
+                password_form.clear_passwords()
+                new_message(request, 'Old password is incorrect.', type=Messages.ERROR)
+            else:
+                account.set_password(password_form.cleaned_data['new_password1'])
+                new_message(request, 'Your password has been changed.', type=Messages.SUCCESS)
+                return HttpResponseRedirect(reverse('userinfo'))
+
+    return render_to_response(UserAdmin, 'useradmin/userinfo.html',
+                        {
+                            'account': account,
+                            'password_form': password_form,
                         }, UserAdminContext(request))
