@@ -9,20 +9,40 @@ __license__ = "GPLv2"
 
 import sys
 import logging, logging.config
+from optparse import OptionParser
+
 from twisted.internet import reactor
+
 from ipdevpoll.models import load_models, Netbox
 from ipdevpoll.snmpoid import RunHandler
 from ipdevpoll.plugins import import_plugins
 
+from nav import buildconf
+
 def run_poller():
-    """Main execution hook, run after reactor start."""
+    """Load plugins, set up data caching and polling schedules."""
     import_plugins()
     load_models()
     for netbox in Netbox.all.values():
         pollrun = RunHandler(netbox)
         pollrun.run()
 
+def get_parser():
+    """Setup and return a command line option parser."""
+    parser = OptionParser(version="NAV " + buildconf.VERSION)
+    parser.add_option("-c", "--config", dest="configfile",
+                      help="read configuration from FILE", metavar="FILE")
+    parser.add_option("-l", "--logconfig", dest="logconfigfile",
+                      help="read logging configuration from FILE", 
+                      metavar="FILE")
+    return parser
+
+
 def main():
+    """Main exection function"""
+    parser = get_parser()
+    (options, args) = parser.parse_args()
+
     logging.config.fileConfig('logging.conf')
     logger = logging.getLogger('ipdevpoll')
     logger.info("--- Starting ipdevpolld ---")
