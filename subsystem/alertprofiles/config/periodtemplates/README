@@ -1,0 +1,41 @@
+In this directory we have templates for time period layouts. These templates
+may be used when making new profiles and are intended to make the operation of
+making profiles easier.
+
+The templates follow python config file rules, ie. first a "[section]" header
+and then "name: value" pairs.
+
+Alert profiles will only recognize the following sections:
+ - [main]
+ - [all_week]
+ - [weekdays]
+ - [weekends]
+
+Under [main] only one entry is recognized: "description:". It's only purpose is
+to describe what's special about this time period template, and is used in the
+drop-down list the user can choose a template from when making a new profile.
+
+[all_week], [weekdays] and [weekends] are used to specify the time periods, in
+the same manner one would specify them in the web GUI. The "key: value" pairs
+one will use here is "unique_name: start_of_period" where start_of_period is a
+time stamp, ie "08:00" or "15:00". The name of the key is not important, but
+should be unique to follow configuration file rules.
+
+Example file (START and EOF are for your readability only, and should not be in
+a real template file):
+
+START
+[main]
+description: This is an example time period template.
+
+[all_week]
+period_1: 08:00
+
+[weekdays]
+period_1: 16:00
+period_2: 22:00
+period_3: 24:00
+
+[weekends]
+period_1: 04:00
+EOF
