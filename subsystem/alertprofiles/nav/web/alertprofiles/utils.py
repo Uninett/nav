@@ -28,8 +28,19 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
+import dircache
+# md5 is deprecated in python 2.5.
+# If one wish to bump python requirement to 2.5, one can s/md5 as //
+import md5 as hashlib
+import os
+
+import nav.config
+import nav.path
 from nav.django.utils import get_account, is_admin
 from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, Account
+
+CONFIGDIR = 'alertprofiles/'
+TIME_PERIOD_TEMPLATES_DIR = CONFIGDIR + 'periodtemplates/'
 
 def account_owns_filters(account, *filters):
     """Checks if account have access to edit/remove filters and/or filter groups."""
@@ -96,3 +107,16 @@ def order_filter_group_content(filter_group):
     else:
         return 0
 
+def read_time_period_templates():
+    templates = {}
+    template_dir = os.path.join(nav.path.sysconfdir, TIME_PERIOD_TEMPLATES_DIR)
+    template_configs = dircache.listdir(template_dir)
+
+    for template_file in template_configs:
+        if '.conf' in template_file:
+            file = os.path.join(template_dir, template_file)
+            key = hashlib.md5(file).hexdigest()
+            config = nav.config.getconfig(file)
+            templates[key] = config
+
+    return templates

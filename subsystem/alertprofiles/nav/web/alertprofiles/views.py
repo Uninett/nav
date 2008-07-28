@@ -233,6 +233,10 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
     elif not profile_form:
         profile_form = AlertProfileForm()
 
+    templates = None
+    if not profile_id:
+        templates = read_time_period_templates()
+
     subscriptions = {'weekdays': [], 'weekends': []}
     weekdays = (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK)
     weekends = (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK)
@@ -284,6 +288,7 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         'detail_id': detail_id,
         'owner': True,
         'alert_subscriptions': subscriptions,
+        'time_period_templates': templates,
         'active': {'profile': True},
     }
     return render_to_response(
@@ -351,6 +356,34 @@ def profile_save(request):
             },
             'type': Messages.NOTICE,
         })
+
+    # Should we make some time periods from a template?
+    if 'template' in request.POST:
+        templates = read_time_period_templates()
+        template = templates.get(request.POST.get('template'), None)
+
+        if template:
+            # A template were selected. Loop through each subsection and make
+            # periods if the title of the subsection is 'all_week', 'weekends'
+            # or 'weekdays'.
+            for key, value in template.items():
+                periods = {}
+                if key == 'all_week':
+                    valid_during = TimePeriod.ALL_WEEK
+                    periods = value
+                elif key == 'weekdays':
+                    valid_during = TimePeriod.WEEKDAYS
+                    periods = value
+                elif key == 'weekends':
+                    valid_during = TimePeriod.WEEKENDS
+                    periods = value
+
+                # Make the time periods. We're only interested in the values of
+                # the dictionary, not the keys.
+                for start_time in periods.values():
+                    p = TimePeriod(profile=profile, start=start_time,
+                        valid_during=valid_during)
+                    p.save()
 
     messages.append({
         'message': _('Saved profile %(profile)s') % {'profile': profile.name},

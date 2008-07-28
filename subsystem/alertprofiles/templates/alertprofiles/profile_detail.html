@@ -11,6 +11,24 @@
     {% endif %}
 {% endblock %}
 
+{% block form_additional_fields %}
+{% if time_period_templates %}
+<tr>
+    <th>
+        <label for="id_template">Choose a template for time periods:</label>
+    </th>
+    <td>
+        <select name="template" id="id_template">
+            <option value="">No template</option>
+            {% for key, template in time_period_templates.items %}
+                <option value="{{ key }}">{{ template.main.description }}</option>
+            {% endfor %}
+        </select>
+    </td>
+</tr>
+{% endif %}
+{% endblock %}
+
 {% block expresions_caption_content  %}
     Time periods
 {% endblock %}
