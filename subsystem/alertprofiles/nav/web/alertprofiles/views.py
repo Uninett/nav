@@ -39,7 +39,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from nav.models.profiles import *
-from nav.django.utils import get_account, permission_required, is_admin
+from nav.django.utils import get_account, is_admin
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
@@ -1902,8 +1902,10 @@ def filtergroup_movefilter(request):
             reverse('alertprofiles-filtergroups-detail', args=(filter_group_id,))
         )
 
-@permission_required
 def matchfield_list(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
     page = request.GET.get('page', 1)
 
     # Define valid options for ordering
@@ -1933,11 +1935,12 @@ def matchfield_list(request):
             ]
         )
 
-@permission_required
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     active = {'matchfields': True}
     page_name = 'New matchfield'
     account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
 
     try:
         matchfield = MatchField.objects.get(pk=matchfield_id)
@@ -1996,13 +1999,15 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
 def matchfield_detail(request, matchfield_id=None):
     return matchfield_show_form(request, matchfield_id)
 
-@permission_required
 def matchfield_save(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
 
-    account = get_account(request)
     matchfield = None
 
     try:
@@ -2034,8 +2039,11 @@ def matchfield_save(request):
     )
     return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail', args=(matchfield.id,)))
 
-@permission_required
 def matchfield_remove(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
@@ -2088,8 +2096,11 @@ def matchfield_remove(request):
                 ]
             )
 
-@permission_required
 def permission_list(request, group_id=None):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     groups = AccountGroup.objects.all().order_by('name')
 
     selected_group = None
@@ -2126,8 +2137,11 @@ def permission_list(request, group_id=None):
             ]
         )
 
-@permission_required
 def permissions_save(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-permissions'))
