@@ -30,6 +30,7 @@ from nav.web.netmap.datacollector import *
 
 from nav import auth
 
+
 from mod_python import apache, util, Cookie
 from mod_python.util import FieldStorage
 
@@ -136,7 +137,10 @@ def handler(req):
         page = Netmap()
         page.sessionID = cookies['nav_sessid']
         page.baseURL = baseURL[:-1]
-        (cookies['nav_sessid'], cookies['nav_sessid'])
+        if auth.hasPrivilege(req.session['user'], None, None):
+            page.is_admin = "True"
+        else:
+            page.is_admin = "False"
         req.content_type="text/html"
         req.send_http_header()
 
