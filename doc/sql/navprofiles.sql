@@ -47,7 +47,6 @@ CREATE TABLE Account (
 
     CONSTRAINT account_pk PRIMARY KEY (id)
 );
-CREATE INDEX account_idx ON Account(login);
 
 
 /*

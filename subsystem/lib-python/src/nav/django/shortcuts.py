@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007 UNINETT AS
+# Copyright 2007, 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -23,7 +23,7 @@
 
 """Shortcuts for using Django with NAV and Cheetah"""
 
-__copyright__ = "Copyright 2007 UNINETT AS"
+__copyright__ = "Copyright 2007, 2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
@@ -38,6 +38,11 @@ def _cheetah_render(cheetah_template_func, rendered_by_django):
 
     # Insert the result into content_string in the given Cheetah template
     cheetah_template = cheetah_template_func()
+    # Make sure we don't mix unicode into the Cheetah template, which
+    # will cause UnicodeDecodeErrors (legacy code inserts utf-8
+    # encoded strings)
+    if isinstance(rendered_by_django, unicode):
+        rendered_by_django = rendered_by_django.encode('utf-8')
     cheetah_template.content_string = rendered_by_django
 
     # Return a Django HttpResponse with the Cheetah template result

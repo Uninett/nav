@@ -66,42 +66,45 @@ BODY {
 	background : #FFFF99;
 	border : 1px groove #000000
 }
-.meny {
+table.meny {
 	width : 100%;
-	border : 1px solid #666;
-	margin : 0px 0px 10px 0px;
-	background : #dedede;
-	background-image:url('/images/toolbox/module-fill.gif'); 
-	background-repeat: repeat;
+	background-color: #eee;
+	border: 1px solid #999999;
+	margin-top: 3px;
 }
 
-.menyHead {
-	border: 1px solid #666;
+.meny td p {
+	margin: 0;
+	padding: 1px 5px;
+}
 
+.meny hr {
+	border: 0;
+	color: #999999;
+	background-color: #999999;
+	height: 1px;
+}
+
+.meny caption, .mainWindowHead {
+	border: none !important;
 	font-weight : bold;
-	background : #ddd;
-	color : black;
+	font-size: 1.2em;
+	color : white;
 	text-align : center;
-	background-image:url('../images/backgroundpattern.png'); 
-	background-repeat: repeat;
+	padding: 0.3em 0.5em;
+	background-color: #567899;
+	border: 1px solid #567899;
+	border-bottom: 2px solid white !important;
 }
-.menyHead p, .mainWindowHead p {
-	font-size: 1.4em;
+
+.mainWindowHead p {
+	font-size: 1.1em;
 	margin: 0px;
 }
+
 .mainWindow {
-	margin : 0px 0px 10px 0px;
-	background : #fffafa;
-	border : 1px groove #000000
-}
-.mainWindowHead {
-	border: 1px solid #666;
-	font-weight : bold;
-	background : #ddd;
-	color : black;
-	text-align : center;
-	background-image:url('../images/backgroundpattern.png'); 
-	background-repeat: repeat
+				border-collapse: separate;
+				border-spacing: 10px 0;
 }
 
 INPUT.subm {
@@ -141,10 +144,8 @@ DIV.newelement {
 	background: #eee
 }
 DIV.subheader {
-	border: 1px solid black; 
-	padding: 2px; 
-	margin: 2px; 
-	background: #eee
+				font-size: 0.9em;
+				font-weight: normal;
 }
 
 P, TD, TH, TR, LI {
@@ -191,14 +192,17 @@ h3 {
 
 /* LISTING */
 .listingTable {
-	border: 1px solid #666;
   margin : 2px 2px 2px 2px;
+	border-bottom: 1px solid #999;
 }
 
 .listingLabel {
-  background : #336699;
-  color: #ccc ! important;
-  font-size: 0.8em;
+  background : #567899;
+  color: #fff ! important;
+	font-size: 0.8em;
+	border: 1px solid #567899;
+	border-bottom-color: #999999;
+	padding: 3px;
   font-weight : bold;
 }
 A.sort:link, A.sort:visited {
@@ -206,15 +210,19 @@ A.sort:link, A.sort:visited {
 }
 
 A.sort:active, A.sort:hover {
-        color: #FF9999;
+        color: #cccccc;
 }
 
 .listingRowA {
-  background : #d0d0d0
+  background : #ddd;
+	border-left: 1px solid #999999;
+	border-right: 1px solid #999999;
 }
 
 .listingRowB {
-  background : #f5f5f5
+  background: #f5f5f5;
+	border-left: 1px solid #999999;
+	border-right: 1px solid #999999;
 }
 
 .listingHL {
@@ -222,17 +230,14 @@ A.sort:active, A.sort:hover {
 }
 
 .listingField {
-	border-width: 1px;
-	border-top-style: solid;
-	border-right-style: none;
-	border-bottom-style: none;
-	border-left-style: none;
-	border-color: #999999;
-	
-	padding-left: 0px;
-	padding-right: 0px;
+	padding: 1px 5px;
 	font-size: 0.9em; 
 }
+
+.listingTable p.descr {
+	padding: 1px 15px;
+}
+
 /* LISTING */
 
 
@@ -242,6 +247,14 @@ A.sort:active, A.sort:hover {
 table.timetable, table.timetable table.eqgroup {
 	font-size: x-small;
 }
+
+table.timetable tr.header td {
+	background-color: #ccc;
+	padding: 3px;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
 table.timetable tr.period td.clock { font-size: medium }
 table.timetable td {
 	vertical-align: top;
@@ -256,14 +269,9 @@ table.timetable tr.period td.eqg table.eqgroup { width: 100% }
 table.timetable tr td.helg { text-align: center }
 table.timetable tr td.clock { text-align: center }
 
-table.timetable { border: 1px solid #ccc;  width: 100% }
-table.timetable tr.period > td {border-top: 1px solid #666 }
+table.timetable { border: 1px solid #999;  width: 100% }
 
-
-
-table.timetable tr.period.even > td { background: #aaa; padding: 2px }
-
-
+table.timetable tr.period.even > td { background: #ddd; padding: 2px }
 
 table.timetable tr.period table.eqgroup  tr td.eqoel {border-top: 1px dashed #339; color: #dde }
 

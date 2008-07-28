@@ -373,7 +373,7 @@ def handler(req):
                 cur.execute(q,(newreason,))
                 if cur.rowcount < 1:
                     q = """SELECT
-                    nextval('public.blocked_reason_blocked_reasonid_seq')"""
+                    nextval('blocked_reason_blocked_reasonid_seq')"""
                     cur.execute(q)
                     reasonid = cur.fetchone()[0]
                     try:
