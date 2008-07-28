@@ -121,6 +121,7 @@ public class Main extends JPrefuseApplet {
             this.setSize(new java.awt.Dimension(800, 600));
         }
 
+      
 
         m_resourceHandler = new ResourceHandler();
         try {
@@ -282,9 +283,16 @@ public class Main extends JPrefuseApplet {
         decreaseFontSizeButton.addActionListener(decreaseFontSizeHandler);
         freezeMenu.add(decreaseFontSizeButton);
 
-	saveLayoutButton = new javax.swing.JButton("Save layout");
-	saveLayoutButton.addActionListener(saveLayoutHandler);
-	freezeMenu.add(saveLayoutButton);
+        try {
+        	if (getParameter("is_admin").equals("true")){
+        		saveLayoutButton = new javax.swing.JButton("Save layout");
+        		saveLayoutButton.addActionListener(saveLayoutHandler);
+        		freezeMenu.add(saveLayoutButton);
+        	}
+        } catch (Exception e){
+        	System.out.println("NOTICE: Could not get is_admin-parameter");
+        }
+
 
 
         menuBar.add(freezeMenu);
