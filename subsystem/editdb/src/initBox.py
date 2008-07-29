@@ -193,13 +193,21 @@ class Box:
             return devlist[0]
      
     def getSnmpVersion(self,identifier,ro):
-        """
-        Uses different versions of the snmp-protocol to decide if this box uses version 1 or 2(c) of the protocol
+        """Determine the highest SNMP version supported by this box.
+
+        This is accomplished by attempting to retrieve sysObjectID
+        using v2c.  If this times out, attempts the same request using
+        v1.  Any exceptions at this point is up to the caller to
+        handle: A nav.Snmp.TimeoutException is thrown if the v1
+        request times out. This most likely means the box does not
+        support SNMP, or the community is wrong.
 
         - identifier: hostname or ip-address
         - ro: snmp read-only community
 
-        returns the protocol version number, 1 or 2 (for 2c)
+        Returns a string containing the protocol version number,
+        possible values are '1' and '2' (the latter actually means
+        2c).
         """
 
         snmp = Snmp(identifier,ro,"2c")
@@ -208,13 +216,11 @@ class Box:
             sysname = snmp.get("1.3.6.1.2.1.1.5.0")
             version = "2c"
         except TimeOutException:
-
+            # Fall back to v1
             snmp = Snmp(identifier,ro, "1")
-            try:
-                sysname = snmp.get("1.3.6.1.2.1.1.5.0")
-                version = "1"
-            except TimeOutException:
-                version = "0"
+            # Any exceptions this time around is handled by the caller
+            sysname = snmp.get("1.3.6.1.2.1.1.5.0")
+            version = "1"
             
         return version
 

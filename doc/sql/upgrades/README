@@ -35,8 +35,9 @@ Performing the schema upgrade
    the comments at the top of the file to find more information about
    the upgrade.  After following any instructions in the comments, run
    the upgrade script as the PostgreSQL superuser (usually named
-   postgres), or as the NAV database owner: 
-     psql -f <upgrade-script.sql> manage <username>
+   postgres), or as the NAV database owner:
+ 
+     psql -f <upgrade-script.sql> nav <username>
 
 4. If everything looks OK, start NAV again by issuing the command "nav
    start" and then start the Apache and Tomcat web servers.
