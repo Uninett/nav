@@ -39,6 +39,7 @@ import nav.path
 from nav.django.utils import get_account, is_admin
 from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, Account
 
+ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
 TIME_PERIOD_TEMPLATES_DIR = CONFIGDIR + 'periodtemplates/'
 

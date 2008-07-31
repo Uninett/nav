@@ -1134,7 +1134,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
             if owner != account:
                 return alertprofiles_response_forbidden(request, _('You do not have acccess to the requested filter.'))
 
-        matchfields = MatchField.objects.all()
+        matchfields = MatchField.objects.all().order_by('name')
         # Get all matchfields (many-to-many connection by table Expresion)
         expresions = Expresion.objects.filter(filter=filter_id)
 
