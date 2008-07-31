@@ -34,54 +34,32 @@ ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
 ALTER TABLE logger.type RENAME TO message_type;
 ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
 
--- Django needs a single column it can treat as primary key :-(
-ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
-ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
-ALTER TABLE maint_component ADD COLUMN id SERIAL;
-ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
-ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
+-- Add closed flag to alertq
+ALTER TABLE alertq ADD closed BOOLEAN;
 
-ALTER TABLE accountproperty ADD COLUMN id SERIAL;
 
-ALTER TABLE brukerrettighet DROP CONSTRAINT brukerrettighet_pk;
-ALTER TABLE brukerrettighet ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE brukerrettighet ADD UNIQUE(accountid, utstyrgruppeid);
+--------------------------------------------------------------------------------
+-- profiles clean-up:
+-- * Rename tables in profiles so they all are english.
+-- * Rename indexes.
+-- * Add id column to tables that django can use as primary key.
+-- * Drop keys and re-add them with new name.
+-- * Explicitly name keys/indexes/sequences. Use what Postgres would have named
+--   them by default
 
-ALTER TABLE defaultfilter DROP CONSTRAINT defaultfilter_pk;
-ALTER TABLE defaultfilter ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE defaultfilter ADD UNIQUE(accountgroupid, utstyrfilterid);
+-- Drop some unused tables
+DROP TABLE defaultutstyr;
+DROP TABLE defaultfilter;
+DROP TABLE brukerrettighet;
+DROP TABLE logg;
+DROP SEQUENCE logg_id_seq;
 
-ALTER TABLE defaultutstyr DROP CONSTRAINT defaultutstyr_pk;
-ALTER TABLE defaultutstyr ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE defaultutstyr ADD UNIQUE(accountgroupid, utstyrgruppeid);
-
-ALTER TABLE grouptilfilter DROP CONSTRAINT gruppetilfilter_pk;
-ALTER TABLE grouptilfilter ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE grouptilfilter ADD UNIQUE(utstyrfilterid, utstyrgruppeid);
-
-ALTER TABLE operator DROP CONSTRAINT operator_pk;
-ALTER TABLE operator id SERIAL PRIMARY KEY;
-ALTER TABLE operator ADD UNIQUE(operatorid, matchfieldid);
-
-ALTER TABLE rettighet DROP CONSTRAINT rettighet_pk;
-ALTER TABLE rettighet ADD COLUMN id PRIMARY KEY;
-ALTER TABLE rettighet ADD UNIQUE(accountgroupid,, utstyrgruppeid)
-
-ALTER TABLE brukerrettighet DROP CONSTRAINT brukerrettighet_pk;
-ALTER TABLE brukerrettighet ADD COLUMN id PRIMARY KEY;
-ALTER TABLE brukerrettighet ADD UNIQUE(accountid, utstyrgruppeid)
-
-ALTER TABLE varsle DROP CONSTRAINT varsleadresse_pk;
-ALTER TABLE varsle ADD COLUMN id PRIMARY KEY;
-ALTER TABLE varsle ADD UNIQUE(alarmadresseid, tidsperiodeid, utstyrgruppeid);
 
 -- We wan't english names for everything so here goes:
--- FIXME rename all pkeys etc.
+ALTER TABLE accountingroup RENAME TO accountgroup_accounts;
+ALTER TABLE accountgroup_accounts RENAME accountid TO account_id;
+ALTER TABLE accountgroup_accounts RENAME groupid TO accountgroup_id;
+
 ALTER TABLE rettighet RENAME TO filtergroup_group_permision;
 ALTER TABLE filtergroup_group_permision RENAME utstyrgruppeid TO filtergroup_id;
 ALTER TABLE filtergroup_group_permision RENAME accountgroupid TO accountgroup_id;
@@ -108,7 +86,7 @@ ALTER TABLE alertsubscription RENAME tidsperiodeid TO time_period_id;
 ALTER TABLE alertsubscription RENAME utstyrgruppeid TO filter_group_id;
 ALTER TABLE alertsubscription RENAME vent TO subscription_type;
 
-ALTER TABLE gruppetilfilter RENAME TO  filtergroupcontent;
+ALTER TABLE gruppetilfilter RENAME TO filtergroupcontent;
 ALTER TABLE filtergroupcontent RENAME inkluder TO include;
 ALTER TABLE filtergroupcontent RENAME positiv TO positive;
 ALTER TABLE filtergroupcontent RENAME prioritet TO priority;
@@ -150,65 +128,282 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
--- Add new fields
-ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
-ALTER TABLE alertq ADD closed BOOLEAN;
--- FIXME add subscrition to accountalertqueue
-
--- Rename indexes so they match with the new english table names
-ALTER INDEX alarmadresse_pk RENAME TO alertaddress_pkey;
-ALTER INDEX preference_pk RENAME TO alertpreference_pkey;
-ALTER INDEX brukerprofil_pk RENAME TO alertprofile_pkey;
-ALTER INDEX tidsperiode_pk RENAME TO timeperiod_pkey;
-ALTER INDEX varsle_pkey RENAME TO alertsubscription_pkey;
-ALTER INDEX varsle_alarmadresseid_key RENAME TO alertsubscription_alert_address_id_key;
-ALTER INDEX gruppetilfilter_pkey RENAME TO filtergroupcontent_pkey;
-ALTER INDEX gruppetilfilter_utstyrfilterid_key RENAME TO filtergroupcontent_filter_id_key;
-ALTER INDEX operator_operatorid_key RENAME TO operator_operator_id_key;
-ALTER INDEX filtermatch_pk RENAME TO filtermatch_pkey;
-ALTER INDEX utstyrfilter_pk RENAME TO filter_pkey;
-ALTER INDEX utstyrgruppe_pk RENAME TO filtergroup_pkey;
-ALTER INDEX matchfield_pk RENAME TO matchfield_pkey;
-ALTER INDEX queue_pkey RENAME TO accountalertqueue_pkey;
 
 -- Rename sequences so they match with the new english table names
 -- NOTE Internally a sequence has a column named 'sequence_name' which keeps
 -- the name of the sequence. This value will not be changed when renaming
 -- sequences, and you can not use UPDATE to set it either.
-ALTER TABLE alarmadresse_id_seq RENAME TO alertaddress_id_seq;
+ALTER SEQUENCE alarmadresse_id_seq RENAME TO alertaddress_id_seq;
 ALTER TABLE alertaddress ALTER COLUMN id SET DEFAULT nextval('alertaddress_id_seq');
+ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
-ALTER TABLE brukerprofil_id_seq RENAME TO alertprofile_id_seq;
+ALTER SEQUENCE brukerprofil_id_seq RENAME TO alertprofile_id_seq;
 ALTER TABLE alertprofile ALTER COLUMN id SET DEFAULT nextval('alertprofile_id_seq');
+ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
-ALTER TABLE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
+ALTER SEQUENCE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
 ALTER TABLE timeperiod ALTER COLUMN id SET DEFAULT nextval('timeperiod_id_seq');
+ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
-ALTER TABLE varsle_id_seq RENAME TO alertsubscription_id_seq;
-ALTER TABLE alertsubscription ALTER COLUMN id SET DEFAULT nextval('alertsubscription_id_seq');
-
-ALTER TABLE gruppetilfilter_id_seq RENAME TO filtergroupcontent_id_seq;
-ALTER TABLE filtergroupcontent ALTER COLUMN id SET DEFAULT nextval('filtergroupcontent_id_seq');
-
-ALTER TABLE operator_id_seq RENAME TO operator_operator_id_seq;
-ALTER TABLE operator ALTER COLUMN id SET DEFAULT nextval('operator_operator_id_seq');
-ALTER TABLE operator_id_seq1 RENAME TO operator_id_seq;
-ALTER TABLE operator ALTER COLUMN id SET DEFAULT nextval('operator_id_seq');
-
-ALTER TABLE filtermatch_id_seq RENAME TO expresion_id_seq;
+ALTER SEQUENCE filtermatch_id_seq RENAME TO expresion_id_seq;
 ALTER TABLE expresion ALTER COLUMN id SET DEFAULT nextval('expresion_id_seq');
+ALTER SEQUENCE expresion_id_seq OWNED BY expresion.id;
 
-ALTER TABLE utstyrfilter_id_seq RENAME TO filter_id_seq;
+ALTER SEQUENCE utstyrfilter_id_seq RENAME TO filter_id_seq;
 ALTER TABLE filter ALTER COLUMN id SET DEFAULT nextval('filter_id_seq');
+ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
-ALTER TABLE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
+ALTER SEQUENCE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
 ALTER TABLE filtergroup ALTER COLUMN id SET DEFAULT nextval('filtergroup_id_seq');
+ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
 ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
+ALTER TABLE accountalertqueue ALTER COLUMN id SET DEFAULT nextval('accountalertqueue_id_seq');
+ALTER SEQUENCE accountalertqueue_id_seq OWNED BY accountalertqueue.id;
 
--- Both old IP Device Center and new IP Device Info does lots of selects on cam
--- with netboxid and ifindex in the where clause
-CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+-- operator_id_seq should really be called operator_operator_id_seq as it is a
+-- sequence for the column operator_id in the table operator.
+ALTER SEQUENCE operator_id_seq RENAME TO operator_operator_id_seq;
+ALTER TABLE operator ALTER COLUMN operator_id SET DEFAULT nextval('operator_operator_id_seq');
+ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
+
+
+-- Django needs a single column it can treat as primary key :-(
+ALTER TABLE accountgroup_accounts DROP CONSTRAINT accountingroup_pk;
+CREATE SEQUENCE accountgroup_accounts_id_seq;
+ALTER TABLE accountgroup_accounts ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('accountgroup_accounts_id_seq')
+	CONSTRAINT accountgroup_accounts_pkey PRIMARY KEY;
+ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+ALTER TABLE accountgroup_accounts ADD CONSTRAINT accountgroup_accounts_account_id_key UNIQUE(account_id, accountgroup_id);
+
+ALTER TABLE accountgroupprivilege DROP CONSTRAINT agprivilege_pk;
+CREATE SEQUENCE accountgroupprivilege_id_seq;
+ALTER TABLE accountgroupprivilege ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('accountgroupprivilege_id_seq')
+	CONSTRAINT accountgroupprivilege_pkey PRIMARY KEY;
+ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
+ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_accountgroupid_key UNIQUE(accountgroupid, privilegeid, target);
+
+ALTER TABLE accountorg DROP CONSTRAINT accountorg_pk;
+CREATE SEQUENCE accountorg_id_seq;
+ALTER TABLE accountorg ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('accountorg_id_seq')
+	CONSTRAINT accountorg_pkey PRIMARY KEY;
+ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid);
+
+CREATE SEQUENCE accountproperty_id_seq;
+ALTER TABLE accountproperty ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('accountproperty_id_seq')
+	CONSTRAINT accountproperty_pkey PRIMARY KEY;
+ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
+
+ALTER TABLE filtergroupcontent DROP CONSTRAINT gruppetilfilter_pk;
+CREATE SEQUENCE filtergroupcontent_id_seq;
+ALTER TABLE filtergroupcontent ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('filtergroupcontent_id_seq')
+	CONSTRAINT filtergroupcontent_pkey PRIMARY KEY;
+ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
+ALTER TABLE filtergroupcontent ADD CONSTRAINT filtergroupcontent_filter_id_key UNIQUE(filter_id, filter_group_id);
+
+ALTER TABLE operator DROP CONSTRAINT operator_pk;
+CREATE SEQUENCE operator_id_seq;
+ALTER TABLE operator ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('operator_id_seq')
+	CONSTRAINT operator_pkey PRIMARY KEY;
+ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
+ALTER TABLE operator ADD CONSTRAINT operator_operator_id_key UNIQUE(operator_id, match_field_id);
+
+ALTER TABLE filtergroup_group_permision DROP CONSTRAINT rettighet_pk;
+CREATE SEQUENCE filtergroup_group_permision_id_seq;
+ALTER TABLE filtergroup_group_permision ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('filtergroup_group_permision_id_seq')
+	CONSTRAINT filtergroup_group_permision_pkey PRIMARY KEY;
+ALTER SEQUENCE filtergroup_group_permision_id_seq OWNED BY filtergroup_group_permision.id;
+ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_accountgroup_id_key UNIQUE(accountgroup_id, filtergroup_id);
+
+ALTER TABLE alertsubscription DROP CONSTRAINT varsleadresse_pk;
+CREATE SEQUENCE alertsubscription_id_seq;
+ALTER TABLE alertsubscription ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('alertsubscription_id_seq')
+	CONSTRAINT alertsubscription_pkey PRIMARY KEY;
+ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
+ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_alert_address_id_key UNIQUE(alert_address_id, time_period_id, filter_group_id);
+
+
+-- Rename indexes so they match with the new english table names
+ALTER INDEX account_pk RENAME TO account_pkey;
+ALTER INDEX brukernavn_uniq RENAME TO account_login_key;
+ALTER INDEX accountgroup_pk RENAME TO accountgroup_pkey;
+ALTER INDEX alarmadresse_pk RENAME TO alertaddress_pkey;
+ALTER INDEX brukerprofil_pk RENAME TO alertprofile_pkey;
+ALTER INDEX preference_pk RENAME TO alertpreference_pkey;
+ALTER INDEX tidsperiode_pk RENAME TO timeperiod_pkey;
+ALTER INDEX utstyrgruppe_pk RENAME TO filtergroup_pkey;
+ALTER INDEX utstyrfilter_pk RENAME TO filter_pkey;
+ALTER INDEX matchfield_pk RENAME TO matchfield_pkey;
+ALTER INDEX filtermatch_pk RENAME TO expresion_pkey;
+ALTER INDEX queue_pkey RENAME TO accountalertqueue_pkey;
+ALTER INDEX navbarlink_pk RENAME TO navbarlink_pkey;
+ALTER INDEX accountnavbar_pk RENAME TO accountnavbar_pkey;
+ALTER INDEX privilege_pk RENAME TO privilege_pkey;
+ALTER INDEX privilegename_uniq RENAME TO privilege_privilegename_key;
+
+
+-- Rename foreign keys so they match with the new english names.
+-- Not done so easy. One can't simply rename foreign keys, so we drop them, and
+-- then re-add them.
+ALTER TABLE accountgroup_accounts DROP CONSTRAINT account_exist;
+ALTER TABLE accountgroup_accounts DROP CONSTRAINT group_exist;
+ALTER TABLE accountgroup_accounts ADD CONSTRAINT accountgroup_accounts_account_id_fkey
+	FOREIGN KEY(account_id) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE accountgroup_accounts ADD CONSTRAINT accountgroup_accounts_accountgroup_id_fkey
+	FOREIGN KEY(accountgroup_id) REFERENCES accountgroup(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE accountproperty DROP CONSTRAINT account_exist;
+ALTER TABLE accountproperty ADD CONSTRAINT accountproperty_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE alertaddress DROP CONSTRAINT account_exist;
+ALTER TABLE alertaddress ADD CONSTRAINT alertaddress_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE alertprofile DROP CONSTRAINT bruker_eksisterer;
+ALTER TABLE alertprofile ADD CONSTRAINT alertprofile_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE alertpreference DROP CONSTRAINT account_exist;
+ALTER TABLE alertpreference DROP CONSTRAINT brukerprofil_eksisterer;
+ALTER TABLE alertpreference ADD CONSTRAINT alertpreference_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE alertpreference ADD CONSTRAINT alertpreference_activeprofile_fkey
+	FOREIGN KEY(activeprofile) REFERENCES alertprofile(id)
+	ON DELETE SET NULL
+	ON UPDATE CASCADE;
+
+ALTER TABLE timeperiod DROP CONSTRAINT brukerprofil_eksisterer;
+ALTER TABLE timeperiod ADD CONSTRAINT timeperiod_alert_profile_id_fkey
+	FOREIGN KEY(alert_profile_id) REFERENCES alertprofile(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE filtergroup DROP CONSTRAINT account_exist;
+ALTER TABLE filtergroup ADD CONSTRAINT filtergroup_owner_id_fkey
+	FOREIGN KEY(owner_id) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE alertsubscription DROP CONSTRAINT alarmadresse_eksisterer;
+ALTER TABLE alertsubscription DROP CONSTRAINT tidsperiode_eksisterer;
+ALTER TABLE alertsubscription DROP CONSTRAINT utstyrgruppe_eksisterer;
+ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_alert_address_id_fkey
+	FOREIGN KEY(alert_address_id) REFERENCES alertaddress(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_time_period_id_fkey
+	FOREIGN KEY(time_period_id) REFERENCES timeperiod(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_filter_group_id_fkey
+	FOREIGN KEY(filter_group_id) REFERENCES filtergroup(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE filtergroup_group_permision DROP CONSTRAINT accountgroup_exist;
+ALTER TABLE filtergroup_group_permision DROP CONSTRAINT utstyrgruppe_eksisterer;
+ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_accountgroup_id_fkey
+	FOREIGN KEY(accountgroup_id) REFERENCES accountgroup(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_filtergroup_id_fkey
+	FOREIGN KEY(filtergroup_id) REFERENCES filtergroup(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE filter DROP CONSTRAINT user_exist;
+ALTER TABLE filter ADD CONSTRAINT filter_owner_id_fkey
+	FOREIGN KEY(owner_id) REFERENCES account(id)
+	ON DELETE SET NULL
+	ON UPDATE CASCADE;
+
+ALTER TABLE filtergroupcontent DROP CONSTRAINT utstyrgruppeid_eksisterer;
+ALTER TABLE filtergroupcontent DROP CONSTRAINT utstyrfilter_eksisterer;
+ALTER TABLE filtergroupcontent ADD CONSTRAINT filtergroupcontent_filter_group_id_fkey
+	FOREIGN KEY(filter_group_id) REFERENCES filtergroup(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE filtergroupcontent ADD CONSTRAINT filtergroupcontent_filter_id_fkey
+	FOREIGN KEY(filter_id) REFERENCES filter(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE expresion DROP CONSTRAINT matchfield_exist;
+ALTER TABLE expresion DROP CONSTRAINT utstyrfilter_eksisterer;
+ALTER TABLE expresion ADD CONSTRAINT expresion_match_field_id_fkey
+	FOREIGN KEY(match_field_id) REFERENCES matchfield(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE expresion ADD CONSTRAINT expresion_filter_id_fkey
+	FOREIGN KEY(filter_id) REFERENCES filter(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE operator DROP CONSTRAINT matchfield_eksisterer;
+ALTER TABLE operator ADD CONSTRAINT operator_match_field_id_fkey
+	FOREIGN KEY(match_field_id) REFERENCES matchfield(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE navbarlink DROP CONSTRAINT account_exists;
+ALTER TABLE navbarlink ADD CONSTRAINT navbarlink_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE accountnavbar DROP CONSTRAINT account_exists;
+ALTER TABLE accountnavbar DROP CONSTRAINT navbarlink_exists;
+ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_navbarlinkid_fkey
+	FOREIGN KEY(navbarlinkid) REFERENCES navbarlink(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE accountorg DROP CONSTRAINT account_exists;
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_fkey
+	FOREIGN KEY(accountid) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE accountgroupprivilege DROP CONSTRAINT accountgroup_exists;
+ALTER TABLE accountgroupprivilege DROP CONSTRAINT privilege_exists;
+ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_accountgroupid_fkey
+	FOREIGN KEY (accountgroupid) REFERENCES accountgroup(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilegeid_fkey
+	FOREIGN KEY (privilegeid) REFERENCES privilege
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+-- Add new fields
+ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
+-- FIXME add subscrition to accountalertqueue
 
 -- Make matchfields/expressions simpler:
 --  * Remove value_category
