@@ -39,6 +39,7 @@ from nav.report.generator import Generator,ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.IPtree import getMaxLeaf,buildTree
+from nav.report.metaIP import MetaIP
 from IPy import IP
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
@@ -165,6 +166,9 @@ def handler(req):
             else:
                 raise UnknownNetworkTypeException, "version: " + str(scope.version())
             req.write(matrix.getTemplateResponse())
+
+            # Invalidating the MetaIP cache to get rid of processed data.
+            MetaIP.invalidateCache()
 
 
     else:
