@@ -44,6 +44,26 @@ For more information about Django in general, please refer to
 http://www.djangoproject.com/ .
 
 
+Upgrading to NAV 3.4.2
+======================
+NAV 3.4.2 contains fixes to a database schema problem that affects
+machine tracker history.  If either one of the two following cases
+apply to you, you will need to manually run the SQL upgrade script to
+fix these problems:
+
+ 1. You installed NAV 3.4 from scratch (not as an upgrade), creating a
+    new database.
+ 
+   or
+ 
+ 2. You are running PostgreSQL 8.3 or newer.
+
+See doc/sql/upgrade/3.4.2.sql for more details on running the script.
+
+If you installed NAV from a Debian binary package, the upgrade process
+should have automatically run this upgrade script for you.
+
+
 Upgrading from NAV 3.3
 ======================
 
