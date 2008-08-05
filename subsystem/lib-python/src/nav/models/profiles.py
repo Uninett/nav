@@ -144,7 +144,7 @@ class AlertAddress(models.Model):
         db_table = u'alertaddress'
 
     def __unicode__(self):
-        return '%s by %s' % (self.address, self.get_type_display())
+        return '%s by %s' % (self.address, self.type.name)
 
     def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types'''

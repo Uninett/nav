@@ -47,6 +47,9 @@
             <td>
                 <a href="{% url alertprofiles-address-detail a.id %}">{{ a.address }}</a>
             </td>
+            <td>
+                {{ a.type.name }}
+            </td>
         </tr>
     {% endfor %}
 {% endblock %}
