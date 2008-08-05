@@ -40,33 +40,38 @@ class jabber(dispatcher):
     def __init__(self, *args, **kwargs):
         self.config = kwargs['config'];
 
-        self.jid = xmpp.protocol.JID(self.config['jid'])
-        self.client = xmpp.Client(self.jid.getDomain())
-
         self.connect()
 
     def connect(self):
-        self.con = self.client.connect()
+        self.jid = xmpp.protocol.JID(self.config['jid'])
+        self.client = xmpp.Client(self.jid.getDomain())
 
-        if not self.con:
+        con = self.client.connect()
+
+        if not con:
             raise DispatcherException('Could not connect to jabber server')
 
-        logger.debug('Connected with %s' % self.con)
+        logger.debug('Connected with %s' % con)
 
-        auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource())
+        auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource() or 'alertengine')
 
         if not auth:
-            self.con = None
             raise DispatcherException('Could not authenticate with jabber server')
 
-    def send(self, address, alert, language='en', type='unknown'):
+    def send(self, address, alert, language='en', type='unknown', retry=True, retry_reason=None):
         message = alert.messages.get(language=language, type='email')
 
-        if not self.con:
+        if not self.client.isConnected():
             self.connect()
 
         try:
+            self.client.Process(1)
             id = self.client.send(xmpp.protocol.Message(address.address, message.message, typ='chat'))
             logger.debug('Send message with jabber id %s' % id)
-        except xmpp.protocol.StreamError, e:
-            raise DispatcherException('Jabber stream error occured: %s' % e)
+        except (xmpp.protocol.StreamError, IOError), e:
+            if retry:
+                logger.warn('Retrying...')
+                self.connect()
+                self.send(address, alert, language, type, False, e)
+            else:
+                raise DispatcherException("Couldn't send message due to: '%s', reason for retry: '%s'" % (e, retry_reason))
