@@ -47,19 +47,7 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 import logging
 import os
 
-import nav.path
-from nav.config import getconfig
-
 logger = logging.getLogger('nav.alertengine.dispatchers')
-configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
-DISPATCHERS = {}
-
-DISPATCHER_TYPES = []
-CONFIG = getconfig(configfile)
-# Build a dispatchers types list for use in models.
-if 'dispatchers' in CONFIG:
-    for key, value in CONFIG['dispatchers'].items():
-        DISPATCHER_TYPES.append((value, key))
 
 class dispatcher:
     '''Base class for dispatchers'''
@@ -71,16 +59,3 @@ class dispatcher:
 
 class DispatcherException(Exception):
     pass
-
-def load_dispatchers():
-    '''Load all dispatchers classes from config and initialise them'''
-    config = getconfig(configfile)
-
-    if 'dispatchers' in config:
-        for key, value in config['dispatchers'].items():
-            # Load dispatcher
-            module = __import__(key+'_dispatcher', globals(), locals(), [key])
-
-            DISPATCHERS[int(value)] = getattr(module, key)(config=config.get(key, {}))
-    else:
-        logger.warn('No dispatchers found in config, alertengine can\'t send out any messages')

@@ -26,6 +26,24 @@
 ------------------------------------------------------
 */
 
+-- FIXME
+CREATE SEQUENCE alertsender_id_seq START 1000;
+CREATE TABLE alertsender (
+	id integer NOT NULL DEFAULT nextval('alertsender_id_seq'),
+	name varchar(100) NOT NULL,
+	handler varchar(100) NOT NULL,
+
+	CONSTRAINT alertsender_unique_name UNIQUE(name),
+	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
+	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
+);
+-- FIXME on delete ...
+ALTER TABLE alertaddress ADD CONSTRAINT alertaddress_type_fkey FOREIGN KEY(type) REFERENCES alertsender(id);
+
+INSERT INTO alertsender VALUES (1, 'Email', 'email');
+INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber');
+
 /*
 -- 1 ACCOUNT
 

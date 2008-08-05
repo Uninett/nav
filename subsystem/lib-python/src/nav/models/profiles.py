@@ -41,7 +41,7 @@ import nav.path
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DISPATCHERS, DISPATCHER_TYPES, DispatcherException
+from nav.alertengine.dispatchers import DispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -137,7 +137,7 @@ class AlertAddress(models.Model):
     DEBUG_MODE = False
 
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=DISPATCHER_TYPES)
+    type = models.ForeignKey('AlertSender', db_column='type')
     address = models.CharField()
 
     class Meta:
@@ -164,15 +164,37 @@ class AlertAddress(models.Model):
             lang = 'en'
 
         try:
-            DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
-        except KeyError:
-            logger.error('account %s has an unknown alert adress type set, %d, valid types are: %s' % (self.account, self.type, DISPATCHERS))
+            self.type.send(self, alert, language=lang, type=type)
         except DispatcherException, e:
-            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (DISPATCHERS[self.type], e))
+            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
         except Exception, e:
             logger.critical('Unhandeled error from %s: %s' %
-                (DISPATCHERS[self.type], ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+                (self.type, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
 
+class AlertSender(models.Model):
+    name = models.CharField(max_length=100)
+    handler = models.CharField(max_length=100)
+
+    def __unicode__(self):
+        return self.name
+
+    def send(self, *args, **kwargs):
+        if not hasattr(self, 'handler_instance'):
+            # Get config
+            if not hasattr(AlertSender, 'config'):
+                AlertSender.config = get_alertengine_config(os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
+
+            # Load module
+            module = __import__('nav.alertengine.dispatchers.%s_dispatcher' % self.handler, globals(), locals(), [self.handler])
+
+            # Init module with config
+            self.handler_instance = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
+
+        # Delegate sending of message
+        return self.handler_instance.send(*args, **kwargs)
+
+    class Meta:
+        db_table = 'alertsender'
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
