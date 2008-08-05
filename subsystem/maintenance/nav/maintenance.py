@@ -317,6 +317,9 @@ def getLocation(locationid):
 
     """
 
+    if not len(locationid):
+        return False
+
     dbconn = nav.db.getConnection('webfront', 'manage')
     db = dbconn.cursor()
 
@@ -346,6 +349,9 @@ def getRoom(roomid):
         If no room found, returns false
 
     """
+
+    if not len(roomid):
+        return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
     db = dbconn.cursor()
@@ -379,6 +385,9 @@ def getNetbox(netboxid):
         If no netbox found, returns false
 
     """
+
+    if not len(netboxid):
+        return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
     db = dbconn.cursor()
@@ -414,6 +423,9 @@ def getService(serviceid):
         If no service found, returns false
 
     """
+
+    if not len(serviceid):
+        return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
     db = dbconn.cursor()

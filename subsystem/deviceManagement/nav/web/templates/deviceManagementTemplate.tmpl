@@ -33,7 +33,14 @@
 $default_form_CSS()
 $default_tabs_CSS()
 $default_table_CSS()
+$default_treeselect_CSS()
+$default_quickselect_CSS()
 #end def
+
+#def additionalJavaScript
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/quickselect.js"></script>
+#end def additionalJavaScript
 
 #def content
 <h2>$page.title</h2>
@@ -273,18 +280,11 @@ $renderFormattedList($page.orderList)
 #def history(page)
 #if $page.subname == 'history':
 <form action="" method="get">
-    #if len($page.filterform['location'])
-    <input type="hidden" name="location" value="$page.filterform['location']" />
-    #end if
-    #if len($page.filterform['room'])
-    <input type="hidden" name="room" value="$page.filterform['room']" />
-    #end if
-    #if len($page.filterform['box'])
-    <input type="hidden" name="box" value="$page.filterform['box']" />
-    #end if
-    #if len($page.filterform['module'])
-    <input type="hidden" name="module" value="$page.filterform['module']" />
-    #end if
+    #for key,values in $page.filterform.items()
+        #for $v in $values
+            <input type="hidden" name="view_$key" value="$v" />
+        #end for 
+    #end for 
     <table class="vertitable">
         <tr>
             <th>From</th>
@@ -311,10 +311,7 @@ $renderFormattedList($box)
 <p>$page.description</p>
 $showErrors($page)
 <form action="$page.action" method="post">
-#if $page.treeselect
-    $displayTreeSelect($page.treeselect)
-$submitButton($page.submit)
-#end if
+    $page.quickselect
 </form>
 #end if
 #end def
@@ -323,21 +320,11 @@ $submitButton($page.submit)
 <p>$page.description</p>
 $showErrors($page)
 <form action="$page.action" method="post">
-#if $page.treeselect
-    $displayTreeSelect($page.treeselect)
-## Error description input
     <p>
-        <table width="50%">
-            <tr>
-                <th>$renderwhead($page.widgets['comment'])</th>
-            </tr>
-            <tr>
-                <td>$renderwidget($page.widgets['comment'])</td>
-            </tr>
-        </table>
+	<label><b>$renderwhead($page.widgets['comment'])</b></label><br />
+	$renderwidget($page.widgets['comment'])
     </p>
-$submitButton($page.submit)
-#end if
+    $page.quickselect
 </form>
 #end def
 
