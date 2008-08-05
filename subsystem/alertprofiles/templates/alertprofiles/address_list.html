@@ -47,9 +47,6 @@
             <td>
                 <a href="{% url alertprofiles-address-detail a.id %}">{{ a.address }}</a>
             </td>
-            <td>
-                {{ a.get_dispatcher_type }}
-            </td>
         </tr>
     {% endfor %}
 {% endblock %}

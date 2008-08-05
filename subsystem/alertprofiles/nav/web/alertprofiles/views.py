@@ -44,7 +44,6 @@ from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 from nav.web.message import new_message, Messages
-from nav.alertengine.dispatchers import DISPATCHER_TYPES
 
 from nav.web.alertprofiles.forms import *
 from nav.web.alertprofiles.utils import *
