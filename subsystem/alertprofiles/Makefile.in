@@ -47,7 +47,7 @@ WEBNAME = alertprofiles
 INITFILES =
 BINS =
 LIBS = $(wildcard nav/*.py nav/web/alertprofiles/*.py)
-CONFFILES =
+CONFFILES = periodtemplates/README periodtemplates/one_period.conf periodtemplates/three_periods.conf periodtemplates/five_periods.conf
 TOOLS = alertprofiles.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
@@ -77,11 +77,11 @@ install-bin: bin
 
 install-conf: conf
 	@for file in $(CONFFILES); do \
-		target=$(DESTDIR)$(sysconfdir)/$$file; \
+		target=$(DESTDIR)$(sysconfdir)/alertprofiles/$$file; \
 		if [ -f "$$target" ]; then \
 			echo "Skipping installation of config file $$file"; \
 		else \
-			$(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+			$(INSTALL) -v -D -m 644 config/$$file $$target || exit 1; \
 		fi \
 	done
 
