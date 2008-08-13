@@ -413,3 +413,6 @@ UPDATE matchfield SET value_name = regexp_replace(value_name, E'\\|.*$', '');
 
 -- Drop queuelength from alertpreference as it is not used
 ALTER TABLE alertpreference DROP COLUMN queuelength;
+
+-- No longer needed
+DROP TABLE alertengine;
