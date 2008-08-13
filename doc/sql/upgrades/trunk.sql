@@ -218,3 +218,6 @@ UPDATE matchfield SET value_name = regexp_replace(value_name, E'\\|.*$', '');
 
 -- Drop queuelength from alertpreference as it is not used
 ALTER TABLE alertpreference DROP COLUMN queuelength;
+
+-- report_access is not used by any systems so time to purge it from the db.
+DELETE FROM privilege WHERE privilegename = 'report_access';
