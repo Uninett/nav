@@ -101,6 +101,8 @@ def check_alerts(debug=False):
                     # Check if alert matches, and if user has permision
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                         if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
+
+                            # FIXME add to user alert queue no matter what
                             sent, queued = alertsubscription.handle_alert(alert)
                             sent_new += sent
                         else:
@@ -119,10 +121,15 @@ def check_alerts(debug=False):
             try:
                 subscription = queued_alert.subscription
             except AlertSubscription.DoesNotExist:
-                logger.warn('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
+                logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
                 continue
 
             logger.info('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert.id, queued_alert.account, subscription.get_type_display()) )
+
+             # FIXME pack this inside a try except so that we can avoid
+             # deleting messages that weren't sent for some reason. An
+             # alternative would be to give send() a return value that we need
+             # to check.
 
             if subscription.type == AlertSubscription.NOW:
                 # Send right away if the subscription has been changed to now
