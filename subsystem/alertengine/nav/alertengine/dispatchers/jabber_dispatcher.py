@@ -101,7 +101,7 @@ class jabber(dispatcher):
         self.client.sendInitPresence()
 
     def send(self, address, alert, language='en', type='unknown', retry=True, retry_reason=None):
-        message = alert.messages.get(language=language, type='email')
+        message = alert.messages.get(language=language, type='jabber')
 
         if not self.client.isConnected():
             self.connect()
