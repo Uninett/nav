@@ -49,6 +49,19 @@ CREATE TABLE Account (
 );
 CREATE INDEX account_idx ON Account(login);
 
+-- Trigger that ensures that users are a part of the groups everyone and authenticated users
+CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
+        BEGIN
+                IF NEW.id >= 1000 THEN
+                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 2);
+                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 3);
+                END IF; RETURN NULL;
+        END;
+$group_membership$ LANGUAGE plpgsql;
+
+CREATE TRIGGER group_membership AFTER INSERT ON account
+        FOR EACH ROW EXECUTE PROCEDURE group_membership();
+
 
 /*
 -- 2 ACCOUNTGROUP
