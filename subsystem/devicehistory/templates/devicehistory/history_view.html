@@ -1,0 +1,53 @@
+{% extends "devicehistory/base.html" %}
+
+{% block tabcontent %}
+    <table class="vertitable">
+    </table>
+
+    {% for type, section in history.items %}
+        <h3>{{ type|capfirst }}</h3>
+
+        {% for key, elements in section.items %}
+        <table class="listtable">
+            <caption>
+                {{ elements.description }}<br />
+                <span class="subtitle">{{ elements|length }} entries</span>
+            </caption>
+
+            <thead>
+                <tr>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Event type</th>
+                    <th>Alert type</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for e in elements %}
+                <tr class="{% cycle "oddrow" "evenrow" %}">
+                    <td>{{ e.alert.start_time }}</td>
+                    <td>{{ e.alert.end_time }}</td>
+                    <td>{{ e.alert.event_type.id }}</td>
+                    <td>{{ e.alert.alert_type.name }}</td>
+                    <td>
+                        <ul>
+                        {% for m in e.messages %}
+                            <li>{{ m.message }}</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+            <tfoot>
+                <tr>
+                    <th colspan="0">{{ elements|length }} entries</th>
+                </tr>
+            </tfoot>
+        </table>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}

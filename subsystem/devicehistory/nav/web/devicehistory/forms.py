@@ -28,3 +28,39 @@ __id__ = "$Id$"
 
 from django import newforms as forms
 
+from nav.models.event import EventType, AlertType
+
+class SearchForm(forms.Form):
+    from_date = forms.DateField()
+    to_date = forms.DateField()
+    type = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        # FIXME Optgroups in ChoiceField does not work before rev 7977 of
+        # django
+        super(SearchForm, self).__init__(*args, **kwargs)
+
+        alert_types = AlertType.objects.all().order_by('event_type', 'id')
+        event_types = {}
+
+        for t in alert_types:
+            if t.event_type.id not in event_types.keys():
+                event_types[t.event_type.id] = []
+            event_types[t.event_type.id].append([t.id, t.name])
+
+        choices = []
+        for key, values in event_types.items():
+            choices.append([key, values])
+
+        WAKA = (
+            ('1',
+                ('1', 'A'),
+                ('2', 'B'),
+            ),
+            ('2',
+                ('1', 'A'),
+                ('2', 'B'),
+            ),
+        )
+        
+        self.fields['type'] = forms.ChoiceField(choices=[])

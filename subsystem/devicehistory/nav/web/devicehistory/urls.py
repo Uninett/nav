@@ -33,7 +33,10 @@ from nav.web.devicehistory.views import *
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
     # Search
-    url(r'^$', 'devicehistory',
-        name='devicehistory'),
+    url(r'^$', devicehistory_search,
+        name='devicehistory-search'),
+
+    url(r'^history/$', devicehistory_view,
+        name='devicehistory-view'),
 )
 
