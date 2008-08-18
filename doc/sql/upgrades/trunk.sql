@@ -234,3 +234,11 @@ $group_membership$ LANGUAGE plpgsql;
 
 CREATE TRIGGER group_membership AFTER INSERT ON account
         FOR EACH ROW EXECUTE PROCEDURE group_membership();
+
+-- Add all users to "Everyone" and "Authenticated users" 
+INSERT INTO accountgroup_accounts SELECT account.id, 2 FROM account WHERE account.id >= 1000 AND account.id NOT IN (SELECT account.id FROM accountgroup_accounts WHERE accountgroup_id = 2);
+INSERT INTO accountgroup_accounts SELECT account.id, 3 FROM account WHERE account.id >= 1000 AND account.id NOT IN (SELECT account.id FROM accountgroup_accounts WHERE accountgroup_id = 3);
+
+INSERT INTO accountgroup_accounts VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated users

@@ -785,7 +785,7 @@ CREATE VIEW PrivilegeByGroup AS (
 -- Accounts and Accountgroups
 
 INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', 'Full access to everything');
-INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
+INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Everyone', 'Unauthenticated and authenticated users');
 INSERT INTO AccountGroup (id, name, descr) VALUES (3, 'Authenticated users', 'Any authenticated user (logged in)');
 
 -- Some default example groups
@@ -794,6 +794,10 @@ INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS al
 -- Default system accounts
 INSERT INTO Account (id, login, name, password) VALUES (0, 'default', 'Default User', '');
 INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', '{sha1}s3F6XX/D$L3vU8Rs2bTJ4zArBLVIPbh7cN9Q=');
+
+INSERT INTO accountgroup_accounts VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated users
 
 INSERT INTO AccountInGroup (accountid, groupid) VALUES (1, 1);
 
