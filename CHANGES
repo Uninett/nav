@@ -1,3 +1,27 @@
+Version 3.4.2
+(released 01 August 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database. If you are         ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * SF#1805509 (EditDB says: Unsupported SNMP protocol version: 0)
+  * SF#2023345 (Errors in manage.sql)
+    - This fix requires manual intervention; must run SQL script
+      doc/sql/upgrades/3.4.2.sql
+  * SF#2031154 (Report pages load unnormally slow)
+  * Various small fixes to the Netmap beta/preview.
+
 Version 3.4.1
 (released 15  July 2008)
 
