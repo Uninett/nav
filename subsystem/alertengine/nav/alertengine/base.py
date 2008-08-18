@@ -58,18 +58,13 @@ def check_alerts(debug=False):
 
     now = datetime.now()
     accounts = []
-    sent_new = 0
-    sent_queued = 0
+    num_sent_alerts = 0
 
     # Get all alerts that aren't in alert queue due to subscription
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
 
-    # Get all queued alerts that have been inserted in the past.
-    queued_alerts = AccountAlertQueue.objects.filter(insertion_time__lt=now)
-
-    if not len(new_alerts) and not len(queued_alerts):
-        logger.debug('No new alerts or account queued alerts to process')
-        return
+    # Get all queued alerts.
+    queued_alerts = AccountAlertQueue.objects.all()
 
     logger.info('Starting alertengine run, checking %d new alerts and %d alerts in user queue' % (len(new_alerts), len(queued_alerts)))
 
@@ -102,9 +97,10 @@ def check_alerts(debug=False):
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                         if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
 
-                            # FIXME add to user alert queue no matter what
-                            sent, queued = alertsubscription.handle_alert(alert)
-                            sent_new += sent
+                            # Allways queue alert so that we have it incase of
+                            # failed send.
+                            AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
+
                         else:
                             logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                     else:
@@ -132,9 +128,8 @@ def check_alerts(debug=False):
              # to check.
 
             if subscription.type == AlertSubscription.NOW:
-                # Send right away if the subscription has been changed to now
                 queued_alert.send()
-                sent_queued += 1
+                num_sent_alerts += 1
 
             elif subscription.type == AlertSubscription.DAILY:
                 daily_time = subscription.time_period.profile.daily_dispatch_time
@@ -148,7 +143,7 @@ def check_alerts(debug=False):
 
                 if last_sent.date() < now.date() and daily_time < now.time() and queued_alert.insertion_time.time() < daily_time:
                     queued_alert.send()
-                    sent_queued += 1
+                    num_sent_alerts += 1
                     sent_daily = True
 
             elif subscription.type == AlertSubscription.WEEKLY:
@@ -163,7 +158,7 @@ def check_alerts(debug=False):
 
                 if weekly_day == now.weekday() and last_sent.date() < now.date() and weekly_time < now.time() and queued_alert.insertion_time.time() < weekly_time:
                     queued_alert.send()
-                    sent_queued += 1
+                    num_sent_alerts += 1
                     sent_weekly = True
 
             elif subscription.type == AlertSubscription.NEXT:
@@ -183,10 +178,10 @@ def check_alerts(debug=False):
 
                 if subscription.time_period.id != current_time_period.id:
                     queued_alert.send()
-                    sent_queued += 1
+                    num_sent_alerts += 1
                 elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.start:
                     queued_alert.send()
-                    sent_queued += 1
+                    num_sent_alerts += 1
 
             else:
                 logger.error('account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
@@ -210,10 +205,7 @@ def check_alerts(debug=False):
         else:
             logger.info('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
-    if alerts_in_account_queues:
-        logger.info('Alerts %s keept in alert queue as they are still needed by user subscriptions' % (alerts_in_account_queues))
-
-    logger.info('Finished alertengine run, sent %d new alerts and %d user queued alerts, %d user queued alerts left in queue' % (sent_new, sent_queued, len(alerts_in_account_queues)))
+    logger.info('Finished alertengine run, sent %d alerts, %d user queued alerts left in queue' % (num_sent_alerts, len(alerts_in_account_queues)))
 
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
