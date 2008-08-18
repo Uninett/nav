@@ -599,7 +599,7 @@ def registerOrder(req,formData):
     if formData.has_key(CN_COMMENT):
         fields['comment'] = formData[CN_COMMENT]
 
-    sequence = ('deviceorderid','public.deviceorder_deviceorderid_seq')
+    sequence = ('deviceorderid','deviceorder_deviceorderid_seq')
     orderid = insertFields(fields,'deviceorder',sequence)
 
     # Create devices

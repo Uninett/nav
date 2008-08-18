@@ -27,7 +27,6 @@
 from IPy import IP
 from copy import deepcopy
 from nav import db
-from nav.report.utils import contains
 from nav.report.IPtools import getMask,sort_nets_by_prefixlength,andIpMask
 
 db_cursor = db.getConnection('webfront','manage').cursor()
@@ -70,7 +69,7 @@ def buildTree(start_net, end_net=None, bits_in_matrix=0, add_missing_nets=False,
 			if ip.prefixlen() <= mask.prefixlen():
 				continue
 			supernet = andIpMask(ip,mask)
-			if not contains(sorted_subnets,supernet):
+			if supernet not in sorted_subnets:
 				sorted_subnets.append(supernet)
 
 		sorted_subnets = sort_nets_by_prefixlength(sorted_subnets)

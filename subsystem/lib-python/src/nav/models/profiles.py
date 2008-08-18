@@ -43,7 +43,7 @@ import nav.pwhash
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DISPATCHERS, DISPATCHER_TYPES, DispatcherException
+from nav.alertengine.dispatchers import DispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -227,22 +227,14 @@ class AlertAddress(models.Model):
     DEBUG_MODE = False
 
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=DISPATCHER_TYPES)
+    type = models.ForeignKey('AlertSender', db_column='type')
     address = models.CharField()
 
     class Meta:
         db_table = u'alertaddress'
 
     def __unicode__(self):
-        return '%s by %s' % (self.address, self.get_type_display())
-
-    # FIXME For some reason 'get_type_display()' does not give the desired
-    # result, it returns the first position of the tuple, not the second, which
-    # it should. This function returns the second position of the selected
-    # type.
-    def get_dispatcher_type(self):
-        types = dict(DISPATCHER_TYPES)
-        return types[unicode(self.type)]
+        return '%s by %s' % (self.address, self.type.name)
 
     def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types'''
@@ -254,15 +246,37 @@ class AlertAddress(models.Model):
             lang = 'en'
 
         try:
-            DISPATCHERS[self.type].send(self, alert, language=lang, type=type)
-        except KeyError:
-            logger.error('account %s has an unknown alert adress type set, %d, valid types are: %s' % (self.account, self.type, DISPATCHERS))
+            self.type.send(self, alert, language=lang, type=type)
         except DispatcherException, e:
-            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (DISPATCHERS[self.type], e))
+            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
         except Exception, e:
             logger.critical('Unhandeled error from %s: %s' %
-                (DISPATCHERS[self.type], ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+                (self.type, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
 
+class AlertSender(models.Model):
+    name = models.CharField(max_length=100)
+    handler = models.CharField(max_length=100)
+
+    def __unicode__(self):
+        return self.name
+
+    def send(self, *args, **kwargs):
+        if not hasattr(self, 'handler_instance'):
+            # Get config
+            if not hasattr(AlertSender, 'config'):
+                AlertSender.config = get_alertengine_config(os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
+
+            # Load module
+            module = __import__('nav.alertengine.dispatchers.%s_dispatcher' % self.handler, globals(), locals(), [self.handler])
+
+            # Init module with config
+            self.handler_instance = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
+
+        # Delegate sending of message
+        return self.handler_instance.send(*args, **kwargs)
+
+    class Meta:
+        db_table = 'alertsender'
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -285,13 +299,14 @@ class AlertPreference(models.Model):
 class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
-    MONDAY = 1
-    TUESDAY = 2
-    WEDNESDAY = 3
-    THURSDAY = 4
-    FRIDAY = 5
-    SATURDAY = 6
-    SUNDAY = 7
+    # Weekday numbers follows date.weekday(), not day.isoweekday().
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
 
     VALID_WEEKDAYS = (
         (MONDAY, _('monday')),
@@ -792,13 +807,36 @@ class MatchField(models.Model):
 
     name = models.CharField()
     description = models.CharField(db_column='descr', blank=True)
-    value_help = models.CharField(u'Help text for the matchfield', blank=True, help_text=u'Displayed by the value input box in the GUI to help users enter sane values.')
-    value_id = models.CharField(u'Matchfield, the database field to watch', choices=CHOICES, help_text=u'This is the acctual field alert engine will watch.')
-    value_name = models.CharField(u'Description for the matchfield used in the GUI', choices=CHOICES, blank=True, help_text=u'Only used in the GUI to show additonal description of the matchfield. Only does something when "Show list" is checked.')
-    value_sort = models.CharField(u'Order matchfields by this field', choices=CHOICES, blank=True, help_text=u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
-    list_limit = models.IntegerField(blank=True, help_text=u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
-    data_type = models.IntegerField(choices=DATA_TYPES, help_text=u'The data type of the match field. Purely cosmetic')
-    show_list = models.BooleanField(blank=True, help_text=u'If unchecked values can be entered into a text input. If checked values must be selected from a list populated by data from the match field selected above.')
+    value_help = models.CharField(
+        blank=True,
+        help_text=_(u'Help text for the match field. Displayed by the value input box in the GUI to help users enter sane values.')
+    )
+    value_id = models.CharField(
+        choices=CHOICES,
+        help_text=_(u'The "match field". This is the acctual database field alert engine will watch.')
+    )
+    value_name = models.CharField(
+        choices=CHOICES,
+        blank=True,
+        help_text=_(u'When "show list" is checked, the list will be populated with data from this column as well as the "value id" field. Does nothing else than provide a little more info for the users in the GUI.')
+    )
+    value_sort = models.CharField(
+        choices=CHOICES,
+        blank=True,
+        help_text=_(u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
+    )
+    list_limit = models.IntegerField(
+        blank=True,
+        help_text=_(u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
+    )
+    data_type = models.IntegerField(
+        choices=DATA_TYPES,
+        help_text=_(u'The data type of the match field.')
+    )
+    show_list = models.BooleanField(
+        blank=True,
+        help_text=_(u'If unchecked values can be entered into a text input. If checked values must be selected from a list populated by data from the match field selected above.')
+    )
 
     class Meta:
         db_table = u'matchfield'

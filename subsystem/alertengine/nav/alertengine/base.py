@@ -77,7 +77,12 @@ def check_alerts(debug=False):
         # Build datastructure that contains accounts and corresponding
         # filtergroupcontent_sets so that we don't redo db queries to much
         for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
-                current_alertsubscriptions = account.get_active_profile().get_active_timeperiod().alertsubscription_set.all()
+                time_period = account.get_active_profile().get_active_timeperiod()
+
+                if not time_period:
+                    continue
+
+                current_alertsubscriptions = time_period.alertsubscription_set.all()
 
                 tmp = []
                 for alertsubscription in current_alertsubscriptions:

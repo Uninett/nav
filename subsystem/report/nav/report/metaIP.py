@@ -28,7 +28,6 @@
 from math import ceil
 from IPy import IP
 from nav import db
-from nav.report.utils import contains
 
 
 cursor = db.getConnection('webfront','manage').cursor()
@@ -134,14 +133,14 @@ class MetaIP:
         return netaddr
 
     def _setupIpv6(self):
-        if contains(ipv6MetaMap.keys(),self.netaddr):
+        if self.netaddr in ipv6MetaMap:
             metainfo = ipv6MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
             self.usage_percent = 4
 
     def _setupIpv4(self):
-        if contains(ipv4MetaMap.keys(),self.netaddr):
+        if self.netaddr in ipv4MetaMap:
             metainfo = ipv4MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]

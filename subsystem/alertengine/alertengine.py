@@ -61,7 +61,6 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
 # These have to be imported after the envrionment is setup
 from django.db import DatabaseError, connection
 from nav.alertengine.base import check_alerts
-from nav.alertengine.dispatchers import load_dispatchers, DISPATCHERS
 
 ### PATHS
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
@@ -154,8 +153,6 @@ def main(args):
     signal.signal(signal.SIGHUP, signalhandler)
     signal.signal(signal.SIGTERM, signalhandler)
 
-    load_dispatchers()
-
     # Loop forever
     logger.info('Starting alertengine loop.')
     while True:
@@ -164,6 +161,7 @@ def main(args):
 
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
+            logger.debug('Traceback: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
             connection.close()
         except Exception, e:
             logger.critical('Unhandeled error: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))

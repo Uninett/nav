@@ -31,6 +31,8 @@ from django.db.models import Q
 
 from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, AccountProperty
 
+_ = lambda a: a
+
 class AccountPropertyForm(forms.ModelForm):
 
     class Meta:
@@ -65,7 +67,7 @@ class TimePeriodForm(forms.ModelForm):
 
     class Meta:
         model = TimePeriod
-    
+
     def clean(self):
         profile = self.cleaned_data['profile']
         start_time = self.cleaned_data['start']
@@ -112,7 +114,7 @@ class AlertSubscriptionForm(forms.ModelForm):
             addresses = AlertAddress.objects.filter(account=account).order_by('type', 'address')
             filter_groups = FilterGroup.objects.filter(
                 Q(owner__isnull=True) | Q(owner__exact=account)).order_by('owner', 'name')
-        
+
             address_choices = [(a.id, a.address) for a in addresses]
             filter_group_choices = [(f.id, f.name) for f in filter_groups]
 
@@ -135,7 +137,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                 Q(filter_group=filter_group),
                 ~Q(pk=id)
             )
-        
+
         if len(existing_subscriptions) > 0:
             error_msg = []
             for e in existing_subscriptions:
@@ -150,7 +152,8 @@ class AlertSubscriptionForm(forms.ModelForm):
 
 class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    owner = forms.BooleanField(required=False, label='Private')
+    owner = forms.BooleanField(required=False, label='Private',
+        help_text=_(u'Uncheck to allow all users to use this filter group.'))
     description = forms.CharField(required=False)
 
     class Meta:
@@ -172,7 +175,7 @@ class FilterGroupForm(forms.ModelForm):
 class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label=u'Private',
-        help_text=u'Uncheck to allow all users to use this filter.')
+        help_text=_(u'Uncheck to allow all users to use this filter.'))
 
     class Meta:
         model = Filter
@@ -194,7 +197,7 @@ class MatchFieldForm(forms.ModelForm):
     list_limit = forms.ChoiceField(
             choices=((100,100),(200,200),(300,300),(500,500),(1000,'1 000'),(10000,'10 000')),
             initial=300,
-            help_text=u'Only this many options will be available in the list. Only does something when "Show list" is checked.',
+            help_text=_(u'Only this many options will be available in the list. Only does something when "Show list" is checked.'),
         )
 
     class Meta:

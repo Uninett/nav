@@ -39,12 +39,11 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from nav.models.profiles import *
-from nav.django.utils import get_account, permission_required, is_admin
+from nav.django.utils import get_account, is_admin
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 from nav.web.message import new_message, Messages
-from nav.alertengine.dispatchers import DISPATCHER_TYPES
 
 from nav.web.alertprofiles.forms import *
 from nav.web.alertprofiles.utils import *
@@ -233,6 +232,10 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
     elif not profile_form:
         profile_form = AlertProfileForm()
 
+    templates = None
+    if not profile_id:
+        templates = read_time_period_templates()
+
     subscriptions = {'weekdays': [], 'weekends': []}
     weekdays = (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK)
     weekends = (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK)
@@ -284,6 +287,7 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         'detail_id': detail_id,
         'owner': True,
         'alert_subscriptions': subscriptions,
+        'time_period_templates': templates,
         'active': {'profile': True},
     }
     return render_to_response(
@@ -351,6 +355,34 @@ def profile_save(request):
             },
             'type': Messages.NOTICE,
         })
+
+    # Should we make some time periods from a template?
+    if 'template' in request.POST:
+        templates = read_time_period_templates()
+        template = templates.get(request.POST.get('template'), None)
+
+        if template:
+            # A template were selected. Loop through each subsection and make
+            # periods if the title of the subsection is 'all_week', 'weekends'
+            # or 'weekdays'.
+            for key, value in template.items():
+                periods = {}
+                if key == 'all_week':
+                    valid_during = TimePeriod.ALL_WEEK
+                    periods = value
+                elif key == 'weekdays':
+                    valid_during = TimePeriod.WEEKDAYS
+                    periods = value
+                elif key == 'weekends':
+                    valid_during = TimePeriod.WEEKENDS
+                    periods = value
+
+                # Make the time periods. We're only interested in the values of
+                # the dictionary, not the keys.
+                for start_time in periods.values():
+                    p = TimePeriod(profile=profile, start=start_time,
+                        valid_during=valid_during)
+                    p.save()
 
     messages.append({
         'message': _('Saved profile %(profile)s') % {'profile': profile.name},
@@ -1101,7 +1133,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
             if owner != account:
                 return alertprofiles_response_forbidden(request, _('You do not have acccess to the requested filter.'))
 
-        matchfields = MatchField.objects.all()
+        matchfields = MatchField.objects.all().order_by('name')
         # Get all matchfields (many-to-many connection by table Expresion)
         expresions = Expresion.objects.filter(filter=filter_id)
 
@@ -1869,8 +1901,10 @@ def filtergroup_movefilter(request):
             reverse('alertprofiles-filtergroups-detail', args=(filter_group_id,))
         )
 
-@permission_required
 def matchfield_list(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
     page = request.GET.get('page', 1)
 
     # Define valid options for ordering
@@ -1900,11 +1934,12 @@ def matchfield_list(request):
             ]
         )
 
-@permission_required
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     active = {'matchfields': True}
     page_name = 'New matchfield'
     account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
 
     try:
         matchfield = MatchField.objects.get(pk=matchfield_id)
@@ -1963,13 +1998,15 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
 def matchfield_detail(request, matchfield_id=None):
     return matchfield_show_form(request, matchfield_id)
 
-@permission_required
 def matchfield_save(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
 
-    account = get_account(request)
     matchfield = None
 
     try:
@@ -2001,8 +2038,11 @@ def matchfield_save(request):
     )
     return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail', args=(matchfield.id,)))
 
-@permission_required
 def matchfield_remove(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
@@ -2055,8 +2095,11 @@ def matchfield_remove(request):
                 ]
             )
 
-@permission_required
 def permission_list(request, group_id=None):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     groups = AccountGroup.objects.all().order_by('name')
 
     selected_group = None
@@ -2093,8 +2136,11 @@ def permission_list(request, group_id=None):
             ]
         )
 
-@permission_required
 def permissions_save(request):
+    account = get_account(request)
+    if not is_admin(account):
+        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-permissions'))
