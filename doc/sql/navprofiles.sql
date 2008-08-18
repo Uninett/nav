@@ -731,14 +731,10 @@ INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS al
 INSERT INTO Account (id, login, name, password) VALUES (0, 'default', 'Default User', '');
 INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', '{sha1}s3F6XX/D$L3vU8Rs2bTJ4zArBLVIPbh7cN9Q=');
 
-INSERT INTO accountgroup_accounts VALUES (0,2); -- add default to Everyone
-INSERT INTO accountgroup_accounts VALUES (1,2); -- add admin to Everyone
-INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated users
-
-INSERT INTO AccountInGroup (accountid, groupid) VALUES (1, 1);
-
-INSERT INTO Preference (accountid, queuelength) VALUES (1, '14 days');
-INSERT INTO Preference (accountid, queuelength) VALUES (0, '14 days');
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); -- add admin to Administrators
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
 
 -- Default preference rows are now inserted, so we create the trigger
 -- on the account table
