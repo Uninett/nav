@@ -28,8 +28,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -303,36 +301,6 @@ public class Main extends JPrefuseApplet {
 
         appletContext = getAppletContext();
 
-        final JLabel loaderImg;
-        try {
-            URL loadingImage = new URL(baseURL.toString() + "/media/loading.gif");
-            loaderImg = new JLabel(new ImageIcon(loadingImage));
-            loaderImg.setEnabled(true);
-            loaderImg.setSize(100, 100);
-
-            this.add(loaderImg);
-            Thread loadingWatcher = new Thread() {
-
-                @Override
-                public void run() {
-                    boolean running = true;
-                    while (running) {
-                        if (m_view != null && prepared) {
-                            loaderImg.setVisible(false);
-                            running = false;
-                        }
-                        try {
-                            sleep(10);
-                        } catch (InterruptedException ex) {
-                        }
-                    }
-                }
-            };
-            loadingWatcher.start();
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         // Load graph
         URL graphURL = null;
         try {
@@ -395,7 +363,6 @@ public class Main extends JPrefuseApplet {
 			// Zoom after initial run
 			try {
 			Thread.sleep(5000);
-			System.out.println("zoooming");
 			m_vis.getAction("zoomAction").setEnabled(true);
 			m_vis.getAction("zoomAction").run();
 			} catch (Exception e){}
@@ -500,8 +467,8 @@ public class Main extends JPrefuseApplet {
 		VisualItem item = (VisualItem) iter.next();
 		if (item.getX() != 0.0 && item.getY() != 0.0){
 			if (item.getString("sysname") != null && !item.getString("sysname").equals("")){
-				postData += URLEncoder.encode(item.getString("sysname") + "_x") + "=" + item.getX() + "&";
-				postData += URLEncoder.encode(item.getString("sysname") + "_y") + "=" + item.getY() + "&";
+				postData += URLEncoder.encode(item.getString("sysname") + "_x", "utf-8") + "=" + item.getX() + "&";
+				postData += URLEncoder.encode(item.getString("sysname") + "_y", "utf-8") + "=" + item.getY() + "&";
 		 	}
 		}
 	    }
