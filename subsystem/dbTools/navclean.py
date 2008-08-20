@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2004 Norwegian University of Science and Technology
 #
@@ -48,7 +48,8 @@ Available options are:
                    months'
   --arp         -- Delete from ARP table
   --cam         -- Delete from CAM table
-  --radius      -- Delete from radius accounting table
+  --radiusacct  -- Delete from radius accounting table
+  --radiuslog   -- Delete from radius error log table
 
 """
 __id__ = "$Id: navclean.py 2875 2004-07-14 09:51:24Z mortenv $"
@@ -65,12 +66,13 @@ def main(args):
     force = False
     expiry = "NOW() - interval '6 months'"
     radiusAcct = False
-    radiusAcctTable = "uit_radiusacct"
+    radiusAcctTable = "radiusacct"
+    radiusLogTable = "radiuslog"
  
     tables = []
    
     try:
-        opts, args = getopt.getopt(args, 'hqfe:E:', ['help', 'arp', 'cam', 'radius'])
+        opts, args = getopt.getopt(args, 'hqfe:E:', ['help', 'arp', 'cam', 'radiusacct', 'radiuslog'])
     except getopt.GetoptError, error:
         print >> sys.stderr, error
         usage()
@@ -92,8 +94,10 @@ def main(args):
             tables.append("arp")
         if opt == '--cam':
             tables.append("cam")
-        if opt == '--radius':
-            tables.append(radiusAcctTable)
+        if opt == '--radiusacct':
+            tables.append("radiusacct")
+        if opt == '--radiuslog':
+            tables.append("radiuslog")
 
     cx = nav.db.getConnection('default', 'manage')
     # Perform deletions inside a transaction, so that we may rollback
@@ -108,12 +112,15 @@ def main(args):
                     OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < %s)
                     OR (acctstarttime < %s AND (acctstarttime + (acctsessiontime * interval '1 sec')) IS NULL)
 """ % (expiry, expiry, expiry)
+    radiusLogSelector = "WHERE time < %s" % expiry
 
     for table in tables:
         if table == "arp" or table == "cam":
             selector = arpCamSelector
         if table == radiusAcctTable:
             selector = radiusAcctSelector
+        if table == radiusLogTable:
+            selector = radiusLogSelector
 
         sql = 'DELETE FROM %s %s' % (table, selector)
         

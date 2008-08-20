@@ -1,5 +1,6 @@
 Author:         Roger Kristiansen <roger.kristiansen@gmail.com>
 		Kai Bjørnenak <kai.bjornenak@cc.uit.no>
+
 Date:           Aug. 4, 2005
 
 Changelog: 	Sep. 18, 2005 
@@ -7,121 +8,50 @@ Changelog: 	Sep. 18, 2005
                 intended to be a Radius accounting module. Updated
                 docs to reflect that it is now made into a more
                 generic Radius module.
-		Feb. 08, 2008 - Some updates to reflect changes done
+		Aug 6, 2008 - Some updates to reflect changes done
 		in the module.
 
-If you find errors or unclear points in this file, please notify the
+If you find errors or unclear instructions in this file, please notify the
 author, and a attempt at fixing it will be made.
 --------------------------------------------------------------------------------
 
 Table of contents:
 
 0. Enviroment and testing
-1. Configuring NAV
-2. Installing the accounting module
-    Step 1: Configuring the database
-    Step 2: Configuring freeradius
-    Step 3: Configuring your switches
-    Step 4: Configuring the radius accounting subsystem
-    Step 5: Setting up automatic deletion of old entries
-    Step 6: Finishing up
-3. Installing the error log module
+1. Installing the accounting module
+    Step 1: Configuring freeradius
+    Step 2: Configuring your switches
+    Step 3: Configuring the radius accounting subsystem
+    Step 4: Finishing up
+2. Installing the error log module
     Step 1: Configuring the database
     Step 2: Installing and starting the parsing script on the radius server
     Step 3: Configuring the error log module subsystem
-    Step 4: Setting up automatic deletion of old entries
-
+3. Setting up deletion of old entries
+4. Configuring NAV
 
 
 --------------------------------------------------------------------------------
+
+
 0. Enviroment and testing
 #########################
 
 The module has been tested and run on the following:
 
-NAV 3.3.2
+NAV 3.4
 FreeBSD 6.2
 FreeRADIUS 1.1.7
 PostgreSQL 8.2.5
-Firefox 2.0.0.x
+Firefox 2/3
 
 
-1. Configuring NAV
-##################
-
-<?>/etc/db.conf
----------------
-
-We need to tell NAV which account should be used to run queries on our
-database table. This only needs to be done if your tables are in NAV's
-'manage' database.
-
-script_radius      = <db user with INSERT, UPDATE, DELETE privileges>
-userpw_<username> = <password>
-
-
-Alternate configuration for differentiated db-users
----------------------------------------------------
-
-It might be desirable to have separate users for select-queries and
-queries that does modifications to the table (insert, delete, update),
-this is up to the user to decide, this will require that you create
-two new users in your db and do some modification of these files:
-
-db.conf
-postgresql.conf
-radius.py
-radius_config.py
-
-Make two new new entries in db.conf
-
-script_radius_front = <db user with SELECT privilege>
-script_radius_back = <db user with INSERT, UPDATE, DELETE privileges>
-
-postgresql.conf is the same file that is mentioned in step 2.2, change
-login here to whatever you called your user with write-privileges.
-
-
---------------------------------------------------------------------------------
-
-2. Installing the accounting module 
-####################################
+1. Installing the accounting module
+###################################
 
 
 .-----------------------------------.
-| Step 1: Configuring the database  |
-'-----------------------------------'
-
-
-Creating the table and indices:
--------------------------------
-
-We are doing accounting directly into NAV's 'manage' database, so everything
-described here should be done on this database. You could probably use the
-Radius Accounting NAV module against an external (to NAV)  database as well,
-but you will have to change the way we connect to the database in radius.py.
-
-In postgres, execute the sql commands in sql/accounting_tables.sql:
-
-manage=> \i /path/to/radius_module/sql/accounting_tables.sql
-
-
-Creating the users: ------------------- 
-
-We need a user that can access this table. This should be a user for
-Freeradius and NAV subsystem, that needs SELECT, INSERT and UPDATE
-privilege.
-
-Edit the file sql/accounting_users.sql to reflect the usernames and passwords
-you want, and then execute the sql commands in postgres:
-
-manage=> \i /path/to/radius_module/sql/accounting_users.sql
-
-
-
-
-.-----------------------------------.
-| Step 2: Configuring FreeRadius    |
+| Step 1: Configuring FreeRadius    |
 '-----------------------------------'
 
 
@@ -130,13 +60,12 @@ manage=> \i /path/to/radius_module/sql/accounting_users.sql
 
 The following needs to be set:
 
-server          - address to your PostgreSQL server
-login           - the name of the user you grantet SELECT, INSERT and UPDATE 
-                  priviledge to on the radius accounting table, ie. the
-                  mentioned 'radiuswrite' user.
-password        - Take a wild guess.
+server          - Hostname to your server running the PostgreSQL DB
+login           - The name of the user you granted INSERT and UPDATE 
+                  privilege to on the radius accounting table.
+password        - Password.
 radius_db       - This should be set to "manage" for a standard NAV install
-acct_table1     - This should be set to the name of your accounting table
+acct_table1     - Should be set to "radiusacct"
 acct_table2     - Same as above. Freeradius lets you log Start and Stop 
                   packets to different tables, but we don't make use of this.
 
@@ -226,8 +155,7 @@ whatever the correct naming is) strips the date and time out of Acct-Session-Id.
 It needs to be defined in the main section, ie. among the other attr_rewrite 
 examples, and called in the preacct{} section, before acct_unique (which 
 generates the unique session id). The regexp isn't very precise, but it does 
-the job. Feel free to write a new one and share it with us, this wasn't a
-priority :]
+the job.
 
 
     attr_rewrite modify_acctsessionid {
@@ -240,112 +168,62 @@ priority :]
 
 Also add a line saying 'sql' to the accounting{} section. We have put it last,
 but we have also seen people recommending it being put between 'unix' and 
-'radutmp', although the reason was unclear. We've experienced no (known) 
+'radutmp', although the reason was unclear. We've experienced no known 
 problems by putting it last. :]
 
 
 .-----------------------------------.
-| Step 3: Configuring your switches |
+| Step 2: Configuring your switches |
 '-----------------------------------'
 
 To get accounting data from your dot1x switches, they must be configured using
-the following:
+the following for Cisco equipment:
 
 'aaa accounting dot1x default start-stop group radius'
 'radius-server vsa send accounting'
 
 
 .--------------------------------------------.
-| Step 4: Configuring the accounting module  |
+| Step 3: Configuring the accounting module  |
 '--------------------------------------------'
 
-Edit radius_config.py, change the values according to your setup. You should
-probably only have to change REAUTH_TIMEOUT to reflect the reauthentication
-interval on your radius server. The time is in seconds. This value is used
-in the search results, to indicate whether a session is (probably) still active,
-or if it has timed out and not sent an explicit "Stop".
-
-.------------------------------------------------------.
-| Step 5: Setting up automatic deletion of old entries | 
-'------------------------------------------------------'
-
-To automatically delete old accounting entries, we have made a modification
-to NAV's navclean.py. I'm not quite sure of the usefulness of doing this, so
-it might be split of into a separate cleanup script for the accounting module
-at a later time. Anyway, to set this up, enter the navcron crontab 
-('crontab -u navcron -e'), and make an entry executing our modified 
-navclean.py on regular intervals. ie:
-
-50      5       *       *       6       /path/to/radiusmodule/bin/navclean.py 
---radius -E "3 months" -f
-
-This will run the script once a week, deleting all entries older than three 
-months.
+Edit radius_config.py, change the values according to your setup. You
+should probably only have to change REAUTH_TIMEOUT to reflect the
+reauthentication interval on your Freeradius server. The time is in
+seconds. This value is used in the search results, to indicate whether
+a session is likely to still be active, or if it has timed out and not
+sent an explicit "Stop".
 
 
 .-----------------------------------.
-| Step 6: Finishing up              |
+| Step 4: Finishing up              |
 '-----------------------------------'
 
-Restart freeradius, and you should be good to go. At least in theory. We have
-probably forgotten _something_ - please tell us what, so we can update this
-file. :)
+Restart freeradius, and you should be good to go.
 
 
-
-3. Installing the error log module
+2. Installing the error log module
 ##################################
 
     Step 1: Configuring the database
     Step 2: Installing the parsing script on the radius server
-    Step 4: Configuring the error log module subsystem
-
-
-.-----------------------------------.
-| Step 1: Configuring the database  |
-'-----------------------------------'
-
-Creating the table and indices:
--------------------------------
-
-In postgres, execute the sql commands in sql/accounting_tables.sql:
-
-manage=> \i /path/to/radius_module/sql/log_tables.sql
-
-
-Creating the users:
--------------------
-
-We need a user that can access this table. This should be a user for
-Freeradius and NAV subsystem, that needs SELECT, INSERT and UPDATE
-privilege.
-
-Edit the file sql/accounting_users.sql to reflect the usernames and passwords
-you want, and then execute the sql commands in postgres:
-
-Edit the file sql/users.sql to reflect the usernames and passwords
-you want, and then execute the sql commands in postgres:
-
-manage=> \i /path/to/radius_module/sql/users.sql
-
-If you already did this while setting up the accounting module, this does not
-need to be done again.
-
-Consider setting up a separate user with the appropriate rights to the tables.
+    Step 3: Configuring the error log module subsystem
 
 
 .-------------------------------------------------------------------------.
 | Step 2: Installing and starting the parsing script on the radius server | 
 '-------------------------------------------------------------------------'
 
-Edit the variables at the top of /path/to/radius_module/bin/radiusparser.py to
-reflect the hostname of the nav database server, the username and password you
-want for connecting to the database, and the path to the log file.
+Edit the variables at the top of
+/path/to/radius_module/src/radiusparser.py to reflect the hostname of
+the nav database server, the username and password you want for
+connecting to the database, and the path to the Freeradius error log
+file.
 
-Copy the script to a location of your choice on the server where the radius.log
-is accessible as part of the file system. Create a cron job that executes this 
-script as often as you would like to make sure that the script is actually
-running. For example:
+Copy the script to a location of your choice on the server where the
+radius.log is accessible as part of the file system. Create a cron job
+that executes this script as often as you would like to make sure that
+the script is actually running. For example:
 
 0 * * * *  /path/to/radiusparser.py
 
@@ -353,7 +231,7 @@ This will run the script every hour, but if it detects that it is already
 running, it quits and leaves the running script alone.
 
 Of course, you may also simply execute the script yourself by running it at the
-command line, but you will lose the security of the hourly test.
+command line.
 
 
 .------------------------------------------.
@@ -364,20 +242,56 @@ Edit radius_config.py, change the values according to your setup. Not much
 should need to be changed here, except perhaps the ACCT_TABLE variable, if you
 have chosen a different name than the default.
 
-.------------------------------------------------------.
-| Step 4: Setting up automatic deletion of old entries | 
-'------------------------------------------------------'
 
-You probably don't want the entries in the error log accumulating forever, so
-to delete them automatically, enter the navcron crontab 
-('crontab -u navcron -e'), and make an entry executing radiuslog_clean.py
-on regular intervals. ie:
+#----------------------------------------------------------------------------------#
 
-45      5       *       *       6       /path/to/radiusmodule/bin/radiuslog_
-clean.py -E '1 month'
+3. Setting up deletion of old entries
+#####################################
 
-This will run the script once a week, deleting all entries older than one
-month.
+You probably don't want the entries in the error log table or the
+accounting log table accumulating forever, so to delete them
+automatically, enter the navcron crontab ('crontab -u navcron -e'),
+and make two entries executing radiuslog_clean.py and navclean.py on
+regular intervals. ie:
+
+50 5 * * 6 /path/to/navclean.py --radius -E "3 months" -f
+
+45 5 * * 6 /path/to/radius/src/radiuslog_clean.py -E '1 month'
+
+This will run the scripts once a week, deleting all entries older than
+three and one month respectively. Feel free to change the intervals to
+something you think is suitable for your organization.
 
 
 #----------------------------------------------------------------------------------#
+
+4. Configuring NAV
+##################
+
+Alternate configuration for differentiated db-users
+---------------------------------------------------
+
+Note that this step is entirely optional.
+
+Everything should already be configured during the installation, but it
+might be desirable to have separate users for select-queries and
+queries that does modifications to the table (insert, delete, update),
+this is up to the user to decide, this will require that you create
+two new users in your db and do some modifications of these files:
+
+db.conf
+postgresql.conf
+radius.py
+radius_config.py
+
+Make two new entries in db.conf
+
+script_radius_front = <db user with SELECT privilege>
+script_radius_back = <db user with INSERT, UPDATE, DELETE privileges>
+
+postgresql.conf is the same file that is mentioned in step 2.2, change
+login here to whatever you called your user with write-privileges. See
+radius.py and radius_config.py for what to change there.
+
+
+--------------------------------------------------------------------------------

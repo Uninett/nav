@@ -44,25 +44,28 @@ def handler(req):
     # Mod_python caches these modules if we just import them
     # like we would usually do. Enable the DEBUG flag during development 
     # to get around this.
-    if DEBUG:
+    
+    """if DEBUG:
         AcctSearchTemplate = apache.import_module("AcctSearchTemplate", autoreload = 1)
-
         AcctDetailTemplate = apache.import_module("AcctDetailTemplate", autoreload = 1)
-
         AcctChartsTemplate = apache.import_module("AcctChartsTemplate", autoreload = 1)
-
         LogTemplate = apache.import_module("LogTemplate", autoreload = 1)
-
         LogDetailTemplate = apache.import_module("LogDetailTemplate", autoreload = 1)
-
         radiuslib = apache.import_module("radiuslib", autoreload = 1)
+"""
 
+    #from AcctSearchTemplate import AcctSearchTemplate
+    #from AcctDetailTemplate import AcctDetailTemplate
+    #from AcctChartsTemplate import AcctChartsTemplate
+    #from LogTemplate import LogTemplate
+    #from LogDetailTemplate import LogDetailTemplate
 
-    from AcctSearchTemplate import AcctSearchTemplate
-    from AcctDetailTemplate import AcctDetailTemplate
-    from AcctChartsTemplate import AcctChartsTemplate
-    from LogTemplate import LogTemplate
-    from LogDetailTemplate import LogDetailTemplate
+    from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
+    from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
+    from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
+    from nav.web.templates.LogTemplate import LogTemplate
+    from nav.web.templates.LogDetailTemplate import LogDetailTemplate
+
     from radiuslib import makeTimeHumanReadable, makeBytesHumanReadable
 
     args = URI(req.unparsed_uri) 

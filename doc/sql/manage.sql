@@ -962,10 +962,10 @@ CREATE TABLE radiusacct (
 );
 
 -- For use by onoff-, update-, stop- and simul_* queries
-CREATE INDEX radiusacct_active_user_idx ON radiusacct (userName) WHERE AcctStopTime IS NULL;
+CREATE INDEX radiusacct_active_user_idx ON radiusacct (UserName) WHERE AcctStopTime IS NULL;
 -- and for common statistic queries:
-CREATE INDEX radiusacct_start_user_index ON radiusacct (acctStartTime, lower(UserName));
-CREATE INDEX radiusacct_stop_user_index ON radiusacct (acctStopTime, UserName);
+CREATE INDEX radiusacct_start_user_index ON radiusacct (AcctStartTime, lower(UserName));
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, UserName);
 
 CREATE TABLE radiuslog (
         ID                      BIGSERIAL PRIMARY KEY,
@@ -980,4 +980,4 @@ CREATE TABLE radiuslog (
 
 
 CREATE INDEX radiuslog_time_index ON radiuslog(time);
-CREATE INDEX radiuslog_username_index ON radiuslog(username);
+CREATE INDEX radiuslog_username_index ON radiuslog(UserName);
