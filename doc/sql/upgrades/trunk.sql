@@ -403,7 +403,13 @@ ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilege
 
 -- Add new fields
 ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
--- FIXME add subscrition to accountalertqueue
+
+ALTER TABLE accountalertqueue ADD subscription_id integer;
+ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
+	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
+	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
+	-- ON DELETE CASCADE -- FIXME
+	;
 
 -- Make matchfields/expressions simpler:
 --  * Remove value_category
