@@ -77,8 +77,8 @@ class jabber(dispatcher):
         # Put thread to sleep waiting for flag to be set.
         while True:
             get_client().Process(1)
-            logger.debug('thread sleeping 30 seconds')
-            sleep(30)
+            logger.debug('thread sleeping 120 seconds')
+            sleep(120)
         logger.debug('stopping thread loop')
 
     def connect(self):
