@@ -147,7 +147,9 @@ class AlertAddress(models.Model):
         return '%s by %s' % (self.address, self.type.name)
 
     def send(self, alert, type=_('now'), dispatcher={}):
-        '''Handles sending of alerts to with defined alert notification types'''
+        '''Handles sending of alerts to with defined alert notification types
+
+           Return value should indicate if message was sent'''
 
         # Determine the right language for the user.
         try:
@@ -159,9 +161,14 @@ class AlertAddress(models.Model):
             self.type.send(self, alert, language=lang, type=type)
         except DispatcherException, e:
             logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            return False
+
         except Exception, e:
             logger.critical('Unhandeled error from %s: %s' %
                 (self.type, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+            return False
+
+        return True
 
 class AlertSender(models.Model):
     name = models.CharField(max_length=100)
@@ -803,6 +810,9 @@ class AccountAlertQueue(models.Model):
 
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
-        self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+        sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
 
-        self.delete()
+        if sent:
+            self.delete()
+
+        return sent
