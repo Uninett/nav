@@ -1,3 +1,209 @@
+Version 3.4.2
+(released 01 August 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database. If you are         ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * SF#1805509 (EditDB says: Unsupported SNMP protocol version: 0)
+  * SF#2023345 (Errors in manage.sql)
+    - This fix requires manual intervention; must run SQL script
+      doc/sql/upgrades/3.4.2.sql
+  * SF#2031154 (Report pages load unnormally slow)
+  * Various small fixes to the Netmap beta/preview.
+
+Version 3.4.1
+(released 15  July 2008)
+
+ Bugfixes:
+
+  * SF#1967784 (Cheetah 2.0.1 errors on some templates in NAV 3.4)
+  * SF#1967947 (Building NAV 3.4.0 for packaging fails on Netmap)
+  * SF#1990664 (IP Device info crashes)
+  * SF#1991654 (Many PHP errors in AlertProfiles under PHP5)
+  * SF#1992863 (Arnold presents wrong ports when detentioning)
+  * SF#2008627 (IP scope matrix crashes in NAV 3.4)
+  * SF#2014809 (UnicodeDecodeError in IP Device Info)
+  * SF#2016635 (Status page crashes under PostgreSQL 8.3)
+  * SF#2017947 (Maintenance engine crashes under PostgreSQL 8.3)
+  * SF#2018505 (Register device RMA crashes)
+  * SF#2018579 (Messages RSS feed crashes)
+
+ Also includes various small updates to the Netmap preview version.
+
+
+Version 3.4.0
+(released 16 May 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * IPv6 prefixes are collected.
+
+  * Router IPv6 neighboring caches are now collected and made
+    searchable in the Machine Tracker.
+
+  * IP address matrix report rewritten to also support IPv6 address
+    ranges.
+
+  * New Netmap preview included.
+
+  * New IP Device Info preview included.
+
+  * arplogger (iptrace) has been reimplemented as a getDeviceData
+    plugin.  Starting/stopping iptrace is no longer possible with the
+    nav command.
+
+  * Advanced report search form can be opened/closed without reloading
+    the entire report page (requires Javascript-enabled browser)
+
+  * More flexible configuration of LDAP authentication allows more
+    ways to organize objects in LDAP servers.  Now also allows TLS
+    encryption of LDAP connections.
+
+  * Machine tracker now links to IP Device Info for individual ports
+    found in searches.
+
+  * Specific prefixes can now be ignored by getDeviceData based on
+    configuration file setting.
+
+ Bugfixes:
+
+  * SF#1680011 (User admin panel crashes with orgid > 10 chars)
+  * SF#1702800 (The IP Device Center does not properly flag disabled ports)
+    This was a regression fix.
+  * SF#1707993 (Character encoding problems in Cricket configuration)
+  * SF#1716297 ("PSQLException: The column name prefixid not found" in gDD)
+  * SF#1949567 (eventEngine posts duplicate alert for duplicate start event)
+  * SF#1954786 (makecricketconfig.pl does not escape descriptions)
+
+
+Version 3.3.3
+(released 14 March 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * SF#1897681 (Wrong traffic counters used on Juniper devices)
+  * SF#1899431 (ARP records munged on router or prefix removal)
+  * SF#1899476 (CAM records munged on netbox removal)
+
+Version 3.3.2
+(released 10 December 2007)
+
+ Bugfixes:
+
+  * SF#1831074 ("Value %r not a number" in IP device center)
+  * SF#1847738 (t1000 uses wrong field in database for fetching module)
+  * SF#1847772 (No switch ports in IP Device Center for some switches)
+  * SF#1847776 (Arnold blocks wrong switch ports on some HP switches)
+  * SF#1847934 (Compile error in FrontpageTemplate.tmpl using old Cheetah)
+
+Version 3.3.1
+(released 08 November 2007)
+
+ Bugfixes:
+
+  * SF#1550393 (HW/SW/FW versions flipping back and forth on devices)
+  * SF#1811548 (Wrong results in port activity view in IP Device Center)
+  * SF#1812189 (NAV says no cam table support for many switches)
+  * SF#1815618 (ERROR: relation "arp" does not exist in manage.sql)
+  * SF#1815756 (Service status matrix has become cluttered in NAV 3.3.0)
+  * SF#1822583 (Crazy numbers in ranked statistics)
+  * SF#1822650 (snmptrapd is unable to load any handler modules)
+  * SF#1822651 (snmptrapd loads plugins only when traps are received)
+  * SF#1822731 (snmptrapd fails with a TypeError)
+  * SF#1822760 (Browsing service details fails with PostgreSQL >= 8.2)
+  * SF#1828136 (arplogger closes all arp records from non-responsive routers)
+
+Version 3.3.0
+(released 01 October 2007)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * Plugin-based SNMP trap reception daemon.  Comes ready with plugins
+    for LINKUP/LINKDOWN traps and association traps from Airespace
+    equipment (Cisco WLAN Controllers).
+
+  * Greatly improved browsing and searching of device history in
+    device management web tool.
+
+  * Redesigned web interface to make it more concise.
+
+  * Switch port numbers replaced by interface names as identifiers in
+    all parts of the interface, including the Machine Tracker.
+
+  * IP Device Center now has a tab to display router ports on modules,
+    and also has detail views for router ports.
+
+  * SF#1556369 (Support machine tracker switch searches by IP address).
+
+  * Status page automatically refreshes every 30 seconds.
+
+  * Logengine can now parse syslog files using a user defined
+    character set (whereas it would previously choke on non-ASCII
+    Latin-1 characters being inserted in the database).
+
+ Bugfixes:
+
+  * SF#1733239 (SQL character encoding errors in logengine)
+  * SF#1750311 (Status subsystem crashes under mod_python 3.3.1)
+  * SF#1733356 (Alert profile filters based on subcategory do not work)
+  * SF#1660467 (Status Page crashes when box is down/on maintenance)
+  * SF#1742713 (Messages retains db connections between browser requests)
+  * SF#1739532 (l2trace crashes with traceback when searching by dns name)
+  * SF#1702676 (EditDB assumes all SNMP devices can speak SNMPv1)
+  * SF#1724688 (Missing quotes in arnold.pl)
+  * SF#1798698 (PSQLException: This statement has been closed)
+  * SF#1792351 (No traffic map load data with PostgreSQL 8.2.x)
+  * SF#1801886 (getBoksMacs throws SQLExceptions for LLDP-enabled devices)
+
+ Also various other small bugfixes and improvements.
+
 Version 3.2.2
 (released 01 May 2007)
 

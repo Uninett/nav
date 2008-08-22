@@ -47,7 +47,6 @@ CREATE TABLE Account (
 
     CONSTRAINT account_pk PRIMARY KEY (id)
 );
-CREATE INDEX account_idx ON Account(login);
 
 
 /*
@@ -690,7 +689,7 @@ server.
 */
 CREATE TABLE AccountOrg (
        accountid integer NOT NULL,
-       orgid varchar(10) NOT NULL,
+       orgid varchar(30) NOT NULL,
 
        CONSTRAINT accountorg_pk
                   PRIMARY KEY (accountid, orgid),
@@ -834,7 +833,7 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vPServer/servlet/vPServer\\b');
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger|ipdevinfo)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 

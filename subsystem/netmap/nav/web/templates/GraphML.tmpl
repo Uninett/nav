@@ -32,49 +32,61 @@
 ## TODO: Add more attributes
 <key id="sysname" for="node" attr.name="sysname" attr.type="string"/>
 <key id="ip" for="node" attr.name="ip" attr.type="string"/>
+<key id="image" for="node" attr.name="image" attr.type="string"/>
 <key id="category" for="node" attr.name="category" attr.type="string"/>
+<key id="type" for="node" attr.name="type" attr.type="string"/>
 <key id="cpuload" for="node" attr.name="cpuload" attr.type="string"/>
 <key id="room" for="node" attr.name="room" attr.type="string"/>
 <key id="location" for="node" attr.name="location" attr.type="string"/>
 <key id="uptime" for="node" attr.name="uptime" attr.type="string"/>
 <key id="up" for="node" attr.name="up" attr.type="string"/>
-<key id="is_linked" for="node" attr.name="is_linked" attr.type="string"/>
+<key id="position" for="node" attr.name="position" attr.type="string"/>
+<key id="link_load_in" for="edge" attr.name="link_load_in" attr.type="string"/>
+<key id="link_load_out" for="edge" attr.name="link_load_out" attr.type="string"/>
+<key id="link_capacity" for="edge" attr.name="link_capacity" attr.type="string"/>
+<key id="from_interface" for="edge" attr.name="from_interface" attr.type="string"/>
+<key id="to_interface" for="edge" attr.name="to_interface" attr.type="string"/>
+<key id="from_sysname" for="edge" attr.name="from_sysname" attr.type="string"/>
+<key id="to_sysname" for="edge" attr.name="to_sysname" attr.type="string"/>
+<key id="nettype" for="edge" attr.name="nettype" attr.type="string"/>
+<key id="netident" for="edge" attr.name="netident" attr.type="string"/>
 
 <graph id="main" edgedefault="directed">
-	#for $box in $netboxes.values()
+	#for $box in $netboxes
 	<node id="$box.netboxid">
 		<data key="sysname">$box.sysname</data>
 		<data key="ip">$box.ip</data>
 		<data key="category">$box.catid</data>
+		<data key="type">$box.descr</data>
 		<data key="room">$box.roomid</data>
-		<data key="uptime">$box.uptime</data>
 		<data key="up">$box.up</data>
-		## Not implemented yet
-		<data key="location">-</data>
-		<data key="cpuload">-1.0</data>
-        #if len($box.linked_to.keys()) > 1
-            <data key="is_linked">true</data>
-        #end if
+		<data key="location">$box.descr</data>
+		<data key="cpuload">$box.load</data>
+        <data key="image">$baseURL/applet/media/${box.catid}.png</data>
+        #if $box.xpos and $box.ypos
+            <data key="position">$box.xpos x $box.ypos</data>
+        #endif
     </node>
-	    #if len($box.linked_to.keys()) > 1
-            #for $linked_to in $box.linked_to.keys()
-                #if $linked_to
-                ## Ok, this is a bit ugly, but as we generate the GraphML
-                ## here, and graphml doesnt allow non-existing targets,
-                ## we have to do some looping..
-                    #set $found = False
-                    #for $tbox in $netboxes.values()
-                        #if $tbox.netboxid == $linked_to
-                            #set $found = True
-                            #break
-                        #end if
-                    #end for
-                    #if $found
-    <edge id="$box.netboxid-$linked_to" source="$box.netboxid" target="$linked_to" />
-                    #end if
-                #end if
-		    #end for
-        #end if
 	#end for
+    #set $a = 0
+    #for $conn in $connections
+    <edge id="$a" source="$conn.netboxid" target="$conn.to_netboxid">
+    <data key="link_capacity">$conn.speed</data>
+#if $conn.load
+     <data key="link_load_in">$conn.load[0]</data>
+     <data key="link_load_out">$conn.load[1]</data>
+#else
+     <data key="link_load_in">-1</data>
+     <data key="link_load_out">-1</data>
+#end if
+     <data key="from_interface">$conn.from_interface</data>
+     <data key="to_interface">$conn.to_interface</data>
+     <data key="from_sysname">$conn.from_sysname</data>
+     <data key="to_sysname">$conn.to_sysname</data>
+     <data key="nettype">$conn.nettype</data>
+     <data key="netident">$conn.netident</data>
+    </edge>
+    #set $a = $a +1
+    #end for
 </graph>
 </graphml>

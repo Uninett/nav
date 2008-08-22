@@ -41,11 +41,11 @@ pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
 # Names
-WEBNAME = netmapserver
+WEBNAME = netmap
 
 # Files
 BINS =
-LIBS = $(wildcard nav/web/netmap/*.py nav/web/netmapserver/*.py)
+LIBS = $(wildcard nav/web/netmap/*.py)
 CONFFILES =
 CRONFILES =
 INITFILES =

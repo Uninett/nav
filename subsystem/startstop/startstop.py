@@ -29,7 +29,7 @@ import os
 import os.path
 import sys
 import time
-import sre as re
+import re
 import nav.config
 from nav.errors import GeneralException
 from UserDict import UserDict

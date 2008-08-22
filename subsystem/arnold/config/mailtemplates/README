@@ -1,8 +1,7 @@
 In this directory we have the mail-templates. The templates are used
 when Arnold sends out mails to the people responsible for a computer.
 
-You specify the name of the template Arnold uses on the website. Or if
-you manually run Arnold use the -m option. 
+You specify the name of the template Arnold uses on the website.
 
 A template is easy to make. It consist of a subject and whatever text
 you want to include. There are some variales available for you to make

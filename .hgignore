@@ -10,6 +10,10 @@ syntax: glob
 Makefile
 autom4te.cache
 
+# Generated javadoc and build dirs
+*/javadoc/*
+*/build/*
+
 # Generated init.d files etc. which probably should have a common file
 # extension so they easier could be ignored
 src/build.properties
