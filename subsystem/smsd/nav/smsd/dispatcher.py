@@ -95,6 +95,12 @@ class DispatcherHandler(object):
                 except Exception, error:
                     self.logger.exception("Unknown exception: %s", error)
 
+        # Fail if no dispatchers are available
+        if len(self.dispatchers) == 0:
+            raise PermanentDispatcherError, \
+                  "No dispatchers available. None configured " + \
+                  "or all dispatchers failed permanently."
+
     def importbyname(self, name):
         """Import module given by name."""
         mod = __import__(name)
