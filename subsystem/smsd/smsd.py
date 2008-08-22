@@ -123,6 +123,13 @@ def main(args):
     logger = logging.getLogger('nav.smsd')
     logger.setLevel(1) # Let all info through to the root node
     loginitstderr(loglevel)
+    if not loginitfile(loglevel, logfile):
+        sys.exit('Failed to init file logging.')
+    if not loginitsmtp(mailwarnlevel, mailaddr, mailserver):
+        sys.exit('Failed to init SMTP logging.')
+
+    # First log message
+    logger.info('Starting smsd.')
 
     # Set custom loop delay
     if optdelay:
@@ -158,12 +165,6 @@ def main(args):
         logger.error("%s Run as root or %s to enter daemon mode. " \
          + "Try `%s --help' for more information.",
          error, username, sys.argv[0])
-        sys.exit(1)
-
-    # Init daemon loggers
-    if not loginitfile(loglevel, logfile):
-        sys.exit(1)
-    if not loginitsmtp(mailwarnlevel, mailaddr, mailserver):
         sys.exit(1)
 
     # Check if already running
@@ -304,7 +305,7 @@ def loginitstderr(loglevel):
 
     try:
         stderrhandler = logging.StreamHandler(sys.stderr)
-        stderrformat = '%(levelname)s %(message)s'
+        stderrformat = '[%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         stderrformatter = logging.Formatter(stderrformat)
         stderrhandler.setFormatter(stderrformatter)
         stderrhandler.setLevel(loglevel)
@@ -344,11 +345,14 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
 
 def usage():
     """Print a usage screen to stderr."""
+
     print >> sys.stderr, __doc__
 
 def setdelay(sec):
     """Set delay (in seconds) between queue checks."""
+
     global delay
+
     if sec.isdigit():
         sec = int(sec)
         delay = sec
