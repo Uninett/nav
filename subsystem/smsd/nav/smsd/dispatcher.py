@@ -59,7 +59,8 @@ class DispatcherHandler(object):
             self.dispatcherretry = config['dispatcher']['dispatcherretry']
         except KeyError, error:
             self.dispatcherretry = 300 # 5 min
-            self.logger.debug("Dispatcher retry time not set, using default.")
+            self.logger.debug('Dispatcher retry time not set. Default %ds.' %
+                self.dispatcherretry)
 
         # Get dispatchers
         self.dispatchers = []
