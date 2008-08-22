@@ -119,8 +119,8 @@ def main(args):
 
     # Initialize logger
     global logger
+    nav.logs.setLogLevels()
     logger = logging.getLogger('nav.smsd')
-    logger.setLevel(1) # Let all info through to the root node
     loginitstderr(loglevel)
     if not loginitfile(loglevel, logfile):
         sys.exit('Failed to init file logging.')
@@ -255,9 +255,10 @@ def signalhandler(signum, _):
     """
 
     if signum == signal.SIGHUP:
-        logger.info("SIGHUP received; reopening log files")
+        global logger
+        logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
-        logger.info("Log files reopened")
+        logger.info("Log files reopened.")
 
 def getconfig(defaults = None):
     """
@@ -355,7 +356,7 @@ def usage():
 def setdelay(sec):
     """Set delay (in seconds) between queue checks."""
 
-    global delay
+    global delay, logger
 
     if sec.isdigit():
         sec = int(sec)

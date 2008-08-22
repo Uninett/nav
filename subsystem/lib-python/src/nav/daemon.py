@@ -50,7 +50,9 @@ import logging
 import os
 import pwd
 import sys
+import nav.logs
 
+nav.logs.setLogLevels()
 logger = logging.getLogger('nav.daemon')
 
 
