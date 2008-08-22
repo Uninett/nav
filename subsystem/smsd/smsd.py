@@ -143,7 +143,11 @@ def main(args):
         sys.exit(0)
 
     # Let the dispatcherhandler take care of our dispatchers
-    dh = nav.smsd.dispatcher.DispatcherHandler(config)
+    try:
+        dh = nav.smsd.dispatcher.DispatcherHandler(config)
+    except PermanentDispatcherError, error:
+        logger.critical("Dispatcher configuration failed. Exiting. (%s)", error)
+        sys.exit(1)
 
     # Send test message (in other words: test the dispatcher)
     if opttest:
