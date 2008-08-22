@@ -42,7 +42,6 @@ CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
 CREATE OR REPLACE RULE rrdfile_deleter AS
     ON DELETE TO service
     DO DELETE FROM rrd_file
-        WHERE key='serviceid' AND value=old.serviceid;
         WHERE key='serviceid' AND value=old.serviceid::text;
 
 COMMIT;
