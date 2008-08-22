@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2006 UNINETT AS
 #
@@ -30,7 +30,6 @@ sent from a uninett.no host, so this is of little use for others.
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id: uninettmaildispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 
 import os
 import pwd
@@ -80,8 +79,8 @@ class UninettMailDispatcher(Dispatcher):
 
         # Send SMS
         sender = "%s@%s" % (pwd.getpwuid(os.getuid())[0], socket.gethostname())
-        headers = "From: %s\r\nTo: %s\r\nSubject: sms %s\r\n\r\n" % \
-         (sender, self.mailaddr, phone)
+        headers = "From: %s\r\nTo: %s\r\nSubject: sms %s\r\n\r\n" % (
+            sender, self.mailaddr, phone)
         message = headers + sms
 
         try:
