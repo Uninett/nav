@@ -319,7 +319,7 @@ class ServiceSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
-        # FIXME: The handler list should be dynamic (see editdb.py for example)
+        # FIXME: The handler list should be dynamic (see seeddb.py for example)
         optionsList = [(FILTER_ALL_SELECTED,'All')]
         filterSelects.append((controlBaseName + '_' + 'handler',\
             [(FILTER_ALL_SELECTED, 'All', True),
@@ -586,7 +586,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
-        # FIXME: The handler list should be dynamic (see editdb.py for example)
+        # FIXME: The handler list should be dynamic (see seeddb.py for example)
         optionsList = [(FILTER_ALL_SELECTED,'All')]
         filterSelects.append((controlBaseName + '_' + 'handler',\
             [(FILTER_ALL_SELECTED, 'All', True),

@@ -48,10 +48,10 @@ urlpatterns += patterns('',
     url(r'^devicemanagement/?box=(?P<netbox_id>\d+)&history=1$',
         dummy, name='devicemanagement-history-netbox'),
 
-    # Subsystem: EditDB
-    url(r'^editdb/$', dummy, name='editdb'),
-    url(r'^editdb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
-        dummy, name='editdb-edit-object'),
+    # Subsystem: SeedDB
+    url(r'^seeddb/$', dummy, name='seeddb'),
+    url(r'^seeddb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
+        dummy, name='seeddb-edit-object'),
 
     # Subsystem: Maintenance
     url(r'^maintenance/$',
