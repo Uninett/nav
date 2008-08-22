@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -37,15 +37,14 @@ Usage: smsd [-h] [-c] [-d sec] [-t phone no.]
   -t, --test            Send a test message to <phone no.>
 """
 
-__copyright__ = "Copyright 2006 UNINETT AS"
+__copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
-import ConfigParser # parts require Python >= 2.3
+import ConfigParser
 import getopt
-import logging # require Python >= 2.3
-import logging.handlers # require Python >= 2.3
+import logging
+import logging.handlers
 import os
 import os.path
 import pwd
@@ -81,8 +80,8 @@ def main(args):
         opts, args = getopt.getopt(args, 'hcd:t:',
          ['help', 'cancel', 'delay=', 'test='])
     except getopt.GetoptError, error:
-        print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
-         (error, sys.argv[0])
+        print >> sys.stderr, "%s\nTry `%s --help' for more information." % (
+            error, sys.argv[0])
         sys.exit(1)
     for opt, val in opts:
         if opt in ('-h', '--help'):
@@ -162,9 +161,9 @@ def main(args):
     try:
         nav.daemon.switchuser(username)
     except nav.daemon.DaemonError, error:
-        logger.error("%s Run as root or %s to enter daemon mode. " \
-         + "Try `%s --help' for more information.",
-         error, username, sys.argv[0])
+        logger.error("%s Run as root or %s to enter daemon mode. "
+            + "Try `%s --help' for more information.",
+            error, username, sys.argv[0])
         sys.exit(1)
 
     # Check if already running
@@ -181,7 +180,12 @@ def main(args):
         logger.error(error)
         sys.exit(1)
 
+    # Daemonized; reopen log files
+    nav.logs.reopen_log_files()
+    logger.debug('Daemonization complete; reopened log files.')
+
     # Reopen log files on SIGHUP
+    logger.debug('Adding signal handler for reopening log files on SIGHUP.')
     signal.signal(signal.SIGHUP, signalhandler)
 
     # Initialize queue
@@ -194,7 +198,7 @@ def main(args):
     if autocancel != '0':
         ignCount = queue.cancel(autocancel)
         logger.info("%d unsent messages older than '%s' autocanceled.",
-                    ignCount, autocancel)
+            ignCount, autocancel)
 
     # Loop forever
     while True:
@@ -208,15 +212,14 @@ def main(args):
         for user in users:
             # Queue: Get unsent messages for a user ordered by severity desc
             msgs = queue.getusermsgs(user, 'N')
-            logger.info("Found %d unsent message(s) for %s.",
-             len(msgs), user)
+            logger.info("Found %d unsent message(s) for %s.", len(msgs), user)
 
             # Dispatcher: Format and send SMS
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
             except PermanentDispatcherError, error:
                 logger.critical("Sending failed permanently. Exiting. (%s)",
-                                error)
+                    error)
                 sys.exit(1)
             except DispatcherError, error:
                 logger.critical("Sending failed. (%s)", error)
@@ -231,7 +234,7 @@ def main(args):
             for msgid in ignored:
                 queue.setsentstatus(msgid, 'I', smsid)
             logger.info("%d messages was sent and %d ignored.",
-             len(sent), len(ignored))
+                len(sent), len(ignored))
 
         # Sleep a bit before the next run
         logger.debug("Sleeping for %d seconds.", delay)
@@ -250,6 +253,7 @@ def signalhandler(signum, _):
     """
     Signal handler to close and reopen log file(s) on HUP.
     """
+
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files")
         nav.logs.reopen_log_files()
@@ -296,8 +300,8 @@ def loginitfile(loglevel, filename):
         return True
     except IOError, error:
         print >> sys.stderr, \
-         "Failed creating file loghandler. Daemon mode disabled. (%s)" \
-         % error
+            "Failed creating file loghandler. Daemon mode disabled. (%s)" \
+            % error
         return False
 
 def loginitstderr(loglevel):
@@ -314,8 +318,8 @@ def loginitstderr(loglevel):
         return True
     except IOError, error:
         print >> sys.stderr, \
-         "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
-         % error
+            "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
+            % error
         return False
 
 def loginitsmtp(loglevel, mailaddr, mailserver):
@@ -329,7 +333,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
         fromaddr = localuser + '@' + hostname
 
         mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
-         mailaddr, 'NAV smsd warning from ' + hostname)
+            mailaddr, 'NAV smsd warning from ' + hostname)
         mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
@@ -339,8 +343,8 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
         return True
     except Exception, error:
         print >> sys.stderr, \
-         "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
-         % error
+            "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
+            % error
         return False
 
 def usage():
