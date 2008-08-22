@@ -49,3 +49,6 @@ ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
 -- Both old IP Device Center and new IP Device Info does lots of selects on cam
 -- with netboxid and ifindex in the where clause
 CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
+
+-- Allow authenticated users access to the ipdevinfo tool
+UPDATE accountgroupprivilege SET target = '^/(preferences|status|navAdmin|report|browse|stats|cricket|machinetracker|ipinfo|l2trace|logger|alertprofiles|ipdevinfo)/?' WHERE target = '^/(preferences|status|navAdmin|report|browse|stats|cricket|machinetracker|ipinfo|l2trace|logger|alertprofiles)/?';

@@ -834,7 +834,7 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vPServer/servlet/vPServer\\b');
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger|ipdevinfo)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
