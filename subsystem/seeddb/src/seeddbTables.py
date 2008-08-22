@@ -26,7 +26,7 @@
 from nav.db import manage
 import forgetSQL
 
-class editdbLocation(manage.Location):
+class seeddbLocation(manage.Location):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='locationid'):
@@ -35,7 +35,7 @@ class editdbLocation(manage.Location):
         return options       
     getOptions = classmethod(getOptions)
 
-class editdbOrg(manage.Org):
+class seeddbOrg(manage.Org):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='orgid'):
@@ -44,7 +44,7 @@ class editdbOrg(manage.Org):
         return options       
     getOptions = classmethod(getOptions)
 
-class editdbVendor(manage.Vendor):
+class seeddbVendor(manage.Vendor):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='vendorid'):
@@ -54,7 +54,7 @@ class editdbVendor(manage.Vendor):
 
 
 
-class editdbNetbox(manage.Netbox):
+class seeddbNetbox(manage.Netbox):
     # added catid
     _sqlFields =  {'catid': 'catid',
                    'cat': 'catid',
@@ -87,7 +87,7 @@ class editdbNetbox(manage.Netbox):
     _shortView =  ()
                                                         
 
-class editdbProduct(manage.Product):
+class seeddbProduct(manage.Product):
     # adds vendorid
     _sqlFields =  {'descr': 'descr',
                   'productid': 'productid',
@@ -95,7 +95,7 @@ class editdbProduct(manage.Product):
                   'vendor': 'vendorid',
                   'vendorid': 'vendorid'}
                                                           
-class editdbType(manage.Type):
+class seeddbType(manage.Type):
     # adds typegroupid and vendorid
     _sqlFields =  {'cdp': 'cdp',
                    'descr': 'descr',
@@ -107,7 +107,7 @@ class editdbType(manage.Type):
                    'vendor': 'vendorid',
                    'vendorid': 'vendorid'}
 
-class editdbRoom(manage.Room):
+class seeddbRoom(manage.Room):
     _sqlFields =  {'descr': 'descr',
                   'locationid': 'locationid',
                   'location': 'locationid',
@@ -124,7 +124,7 @@ class editdbRoom(manage.Room):
     _sqlTable =  'room'
     _descriptions =  {}
 
-class editdbPrefixVlan(manage.Prefix):
+class seeddbPrefixVlan(manage.Prefix):
     _sqlFields =  {'prefixid': 'prefixid',
                    'vlan': 'vlanid', 
                    'netaddr': 'netaddr',
@@ -140,7 +140,7 @@ class editdbPrefixVlan(manage.Prefix):
     _sqlTable = 'prefix'
     _descriptions = {}
 
-class editdbVlan(manage.Vlan):
+class seeddbVlan(manage.Vlan):
     _sqlFields =  {'description': 'description',
                    'netident': 'netident',
                    'nettype': 'nettype',
@@ -157,7 +157,7 @@ class editdbVlan(manage.Vlan):
     _sqlTable =  'vlan'
     _descriptions =  {}
 
-class editdbSubcat(manage.Subcat):
+class seeddbSubcat(manage.Subcat):
     _sqlFields =  {'subcatid': 'subcatid', 'descr': 'descr', 'catid': 'catid'}
     _sqlLinks =  {}
     _userClasses =  {}
@@ -166,7 +166,7 @@ class editdbSubcat(manage.Subcat):
     _sqlTable =  'subcat'
     _descriptions =  {}
                             
-class editdbService(manage.Service):
+class seeddbService(manage.Service):
     _sqlFields =  {'active': 'active',
                    'handler': 'handler',
                    'netboxid': 'netboxid',

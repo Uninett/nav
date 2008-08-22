@@ -5,7 +5,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 tooldir = @tooldir@
 
-tool = editdb.tool
+tool = seeddb.tool
 
 .PHONY: all install clean distclean
 

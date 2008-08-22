@@ -29,11 +29,11 @@
 #def additionalCSS
 $default_form_CSS
 $default_table_CSS
-<link rel="stylesheet" type="text/css" href="/style/editdbTemplate.css" />
+<link rel="stylesheet" type="text/css" href="/style/seeddbTemplate.css" />
 #end def
 
 #block additionalJavaScript
-<script type="text/javascript" src="/js/editdbTemplate.js"></script>
+<script type="text/javascript" src="/js/seeddbTemplate.js"></script>
 #end block additionalJavaScript
 
 #def content
@@ -58,7 +58,7 @@ $showBody($body)
 ##   ++-- formMethod                :: method for form, post or get
 ##   ++-- formAction                :: action for form
 ##   ++-- selectCname               :: controlname for radiob./checkbox
-##   ++-- status                    :: editdb.status object
+##   ++-- status                    :: seeddb.status object
 ##   ++-- buttonsTop                :: list of buttons for top of list
 ##          +-- (cname,value)       :: tuple of control name and value (text)
 ##   ++-- buttonsBottom             :: list of buttons for bottom of list
@@ -222,7 +222,7 @@ $showBody($body)
 ## function showStatus
 ##
 ## Function for displaying status and error messages
-## takes an editdb.status object as parameter
+## takes an seeddb.status object as parameter
 ##
 ## $status
 ##   +-- messages                   :: list of message strings
@@ -242,7 +242,7 @@ $showBody($body)
 #end def
 
 ## Form to show a body object
-## ie. display the editdb main menu
+## ie. display the seeddb main menu
 #def $showBody($body)
     <h2>$body.title</h2>
 #if $body.status
@@ -1060,7 +1060,7 @@ $input($field)
 
 ## Displays headings in forms, marks required fields
 #def heading($control)
-## REQ_TRUE = 1 (from editdb.py header)
+## REQ_TRUE = 1 (from seeddb.py header)
 #if $control[1] == 1
 $control[2]&nbsp;<span style="color: #ff0000">*</span>
 #else
