@@ -33,3 +33,6 @@ ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
 
 ALTER TABLE logger.type RENAME TO message_type;
 ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
+
+-- Allow authenticated users to visit ipdevinfo
+UPDATE accountgroupprivilege SET target = '^/(preferences|status|navAdmin|report|browse|stats|cricket|machinetracker|ipinfo|l2trace|logger|alertprofiles|ipdevinfo)/?' WHERE target = '^/(preferences|status|navAdmin|report|browse|stats|cricket|machinetracker|ipinfo|l2trace|logger|alertprofiles)/?';
