@@ -436,7 +436,7 @@ def profile_remove(request):
                     },
                     Messages.WARNING
                 )
-            elements.append((profile.id, profile.name))
+            elements.append((p.id, p.name))
 
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-remove'),
@@ -613,7 +613,11 @@ def profile_time_period_remove(request):
                 # Even though we assume profile is the same for GUI-stuff, we
                 # can't do that when it comes to permissions.
                 return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
-            description = u'From', t.start, u'for', t.profile.name, u'during', t.get_valid_during_display()
+            description = _(u'From %(time)s for %(profile)s during %(valid_during)s') % {
+                'time': t.start,
+                'profile': t.profile.name,
+                'valid_during': t.get_valid_during_display(),
+            }
             elements.append((t.id, description))
 
         info_dict = {
@@ -795,10 +799,24 @@ def profile_time_period_subscription_remove(request):
         if period.profile.account != account:
             return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
 
+        # Make tuples, (id, description_string) for the confirmation page
+        elements = []
+        for s in subscriptions:
+            description = _(u'''Watch %(fg)s, send to %(address)s %(dispatch)s,
+                from %(time)s for %(profile)s during %(during)s''') % {
+                'fg': s.filter_group.name,
+                'address': s.alert_address.address,
+                'dispatch': s.get_type_display(),
+                'time': s.time_period.start,
+                'profile': s.time_period.profile.name,
+                'during': s.time_period.get_valid_during_display(),
+            }
+            elements.append((s.id, description))
+
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-timeperiod-subscription-remove'),
                 'active': {'profile': True},
-                'elements': subscriptions,
+                'elements': elements,
                 'perform_on': period.id,
             }
         return render_to_response(
@@ -982,9 +1000,15 @@ def address_remove(request):
     else:
         addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('address'))
 
+        elements = []
         for a in addresses:
             if a.account != account:
                 return alertprofiles_response_forbidden(request, _('You do not own this address.'))
+            description = _(u'''%(type)s address %(address)s''') % {
+                'type': a.type.name,
+                'address': a.address,
+            }
+            elements.append((a.id, description))
 
         subscriptions = AlertSubscription.objects.filter(alert_address__in=addresses)
         if len(subscriptions) > 0:
@@ -1006,7 +1030,7 @@ def address_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-address-remove'),
                 'active': {'address': True},
-                'elements': addresses,
+                'elements': elements,
                 'perform_on': None,
             }
         return render_to_response(
@@ -1280,12 +1304,24 @@ def filter_remove(request):
                    'type': Messages.WARNING,
                }
             )
+        for f in filters:
+            try:
+                owner = f.owner
+            except Account.DoesNotExist:
+                messages.append({
+                    'message': _('''Filter %(filter)s is public. Deleting it
+                        will make it unavailable for all users of this system.''')
+                        % {
+                            'filter': f.name,
+                        },
+                    'type': Messages.WARNING,
+                })
         messages.save()
 
         info_dict = {
                 'form_action': reverse('alertprofiles-filters-remove'),
                 'active': {'filters': True},
-                'elements': filters,
+                'elements': [(f.id, f.name) for f in filters],
                 'perform_on': None,
             }
         return render_to_response(
@@ -1437,10 +1473,21 @@ def filter_removeexpresion(request):
                 Messages.WARNING
             )
 
+        elements = []
+        for e in expresions:
+            description = _(u'''Expresion, %(match_field)s %(operator)s
+                %(value)s, used in filter %(filter)s''') % {
+                'match_field': e.match_field.name,
+                'operator': e.get_operator_display(),
+                'value': e.value,
+                'filter': e.filter.name,
+            }
+            elements.append((e.id, description))
+
         info_dict = {
                 'form_action': reverse('alertprofiles-filters-removeexpresion'),
                 'active': {'filters': True},
-                'elements': expresions,
+                'elements': elements,
                 'perform_on': filter.id,
             }
         return render_to_response(
@@ -1663,6 +1710,7 @@ def filtergroup_remove(request):
             subscriptions = AlertSubscription.objects.filter(filter_group=fg)
             time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
             profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+
             if len(profiles) > 0:
                 names = ', '.join([p.name for p in profiles])
                 messages.append({
@@ -1674,12 +1722,25 @@ def filtergroup_remove(request):
                         },
                     'type': Messages.WARNING,
                 })
-                messages.save()
+
+            try:
+                owner = fg.owner
+            except Account.DoesNotExist:
+                messages.append({
+                    'message': _('''Filter group %(fg)s is a public filter
+                        group. Deleting it will make it unavailable for all other
+                        users of this system.''') % {
+                            'fg': fg.name,
+                        },
+                    'type': Messages.WARNING,
+                })
+
+        messages.save()
 
         info_dict = {
                 'form_action': reverse('alertprofiles-filtergroups-remove'),
                 'active': {'filtergroups': True},
-                'elements': filter_groups,
+                'elements': [(f.id, f.name) for f in filter_groups],
                 'perform_on': None,
             }
         return render_to_response(
@@ -1809,10 +1870,18 @@ def filtergroup_removefilter(request):
         if not account_owns_filters(get_account(request), filter_group):
             return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
 
+        elements = []
+        for f in filter_group_content:
+            description = _('''Remove filter %(filter)s from %(fg)s.''') % {
+                'filter': f.filter.name,
+                'fg': f.filter_group.name,
+            }
+            elements.append((f.id, description))
+
         info_dict = {
                 'form_action': reverse('alertprofiles-filtergroups-removefilter'),
                 'active': {'filters': True},
-                'elements': filter_group_content,
+                'elements': elements,
                 'perform_on': filter_group.id,
             }
         return render_to_response(
@@ -2087,7 +2156,7 @@ def matchfield_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-matchfields-remove'),
                 'active': {'matchfields': True},
-                'elements': matchfields,
+                'elements': [(m.id, m.name) for m in matchfields],
                 'perform_on': None,
             }
         return render_to_response(
