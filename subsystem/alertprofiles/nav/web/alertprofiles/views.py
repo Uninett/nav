@@ -422,6 +422,9 @@ def profile_remove(request):
         active_profile = AlertPreference.objects.get(account=account).active_profile
         profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('profile'))
 
+        # Build tuples, (id, description_string), and check for errors while
+        # doing so.
+        elements = []
         for p in profiles:
             if p.account != account:
                 return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
@@ -433,11 +436,12 @@ def profile_remove(request):
                     },
                     Messages.WARNING
                 )
+            elements.append((profile.id, profile.name))
 
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-remove'),
                 'active': {'profile': True},
-                'elements': profiles,
+                'elements': elements,
                 'perform_on': None,
             }
         return render_to_response(
@@ -587,6 +591,9 @@ def profile_time_period_remove(request):
         except:
             pass
 
+        # Build tuples, (id, description_string), and check for errors while
+        # doing so.
+        elements = []
         first = True
         for t in time_periods:
             if first:
@@ -606,11 +613,13 @@ def profile_time_period_remove(request):
                 # Even though we assume profile is the same for GUI-stuff, we
                 # can't do that when it comes to permissions.
                 return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+            description = u'From', t.start, u'for', t.profile.name, u'during', t.get_valid_during_display()
+            elements.append((t.id, description))
 
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-timeperiod-remove'),
                 'active': {'profile': True},
-                'elements': time_periods,
+                'elements': elements,
             }
         return render_to_response(
                 AlertProfilesTemplate,
