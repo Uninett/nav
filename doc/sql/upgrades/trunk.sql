@@ -128,6 +128,8 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
+ALTER TABLE accountorg RENAME orgid TO organization_id;
+ALTER TABLE accountorg RENAME accountid TO account_id;
 
 -- Rename sequences so they match with the new english table names
 -- NOTE Internally a sequence has a column named 'sequence_name' which keeps

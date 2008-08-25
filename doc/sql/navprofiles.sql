@@ -631,8 +631,8 @@ server.
 CREATE SEQUENCE accountorg_id_seq;
 CREATE TABLE AccountOrg (
        id integer NOT NULL DEFAULT nextval('accountorg_id_seq'),
-       accountid integer NOT NULL,
-       orgid varchar(30) NOT NULL,
+       account_id integer NOT NULL,
+       organization_id varchar(30) NOT NULL,
 
        CONSTRAINT accountorg_pkey PRIMARY KEY(id),
        CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid),
