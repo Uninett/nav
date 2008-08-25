@@ -1,8 +1,7 @@
 {% extends "devicehistory/base.html" %}
 
 {% block tabcontent %}
-    <table class="vertitable">
-    </table>
+    {% include "devicehistory/history_view_filter.html" %}
 
     {% for type, section in history.items %}
         <h3>{{ type|capfirst }}</h3>

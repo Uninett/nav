@@ -27,7 +27,7 @@ __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
 import time
-from datetime import datetime
+from datetime import date
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
@@ -36,12 +36,12 @@ from django.template import RequestContext
 
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import AlertHistory, AlertHistoryVariable
+from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType, EventType
 from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
-from nav.web.devicehistory.forms import SearchForm
-from nav.web.devicehistory.utils import get_history
+from nav.web.devicehistory.forms import HistoryFilterForm
+from nav.web.devicehistory.utils import History
 
 DeviceQuickSelect_kwargs = {
     'button': 'View %s history',
@@ -68,16 +68,26 @@ def devicehistory_view(request):
     if not request.method == 'POST':
         pass
 
-    #start_time_condition = request.POST.get('from_date', datetime.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    from_date = request.POST.get('from_date', '2006-01-01 00:00:00')
-    to_date = request.POST.get('to_date', datetime.now())
+    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
+    to_date = request.POST.get('to_date', date.today())
+
+    # FIXME check that date is a valid "yyyy-mm-dd" string
 
     selection = DeviceQuickSelect.handle_post(request)
-    history = get_history(selection)
+    params = {
+        'selection': selection,
+        'from_date': from_date,
+        'to_date': to_date,
+        'type': request.POST.get('type', None),
+    }
+    history = History(**params)
 
     info_dict = {
         'active': {'devicehistory': True},
-        'history': history,
+        'history': history.history,
+        'event_type': EventType.objects.all().order_by('id'),
+        'from_date': from_date,
+        'to_date': to_date,
     }
     return render_to_response(
         DeviceHistoryTemplate,

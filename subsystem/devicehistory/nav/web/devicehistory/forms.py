@@ -26,19 +26,31 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
+import time
+import operator
+from datetime import date
 from django import newforms as forms
+
+# FIXME Optgroups in ChoiceField does not work before rev 7977 of
+# django. Use GroupedChoiceField from djangosnippets in the mean time.
+from nav.django.widgets import GroupedSelect, GroupedChoiceField
 
 from nav.models.event import EventType, AlertType
 
-class SearchForm(forms.Form):
-    from_date = forms.DateField()
-    to_date = forms.DateField()
-    type = forms.ChoiceField()
+class HistoryFilterForm(forms.Form):
+    from_date = forms.DateField(
+        initial=date.fromtimestamp(time.time() - 7 * 24 * 60 * 60),
+        required=False
+    )
+    to_date = forms.DateField(initial=date.today(), required=False)
+    type = GroupedChoiceField(required=False)
+    loc = forms.MultipleChoiceField(widget=forms.MultipleHiddenInput, required=False)
+    room = forms.MultipleChoiceField(widget=forms.MultipleHiddenInput, required=False)
+    netbox = forms.MultipleChoiceField(widget=forms.MultipleHiddenInput, required=False)
+    module = forms.MultipleChoiceField(widget=forms.MultipleHiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
-        # FIXME Optgroups in ChoiceField does not work before rev 7977 of
-        # django
-        super(SearchForm, self).__init__(*args, **kwargs)
+        super(HistoryFilterForm, self).__init__(*args, **kwargs)
 
         alert_types = AlertType.objects.all().order_by('event_type', 'id')
         event_types = {}
@@ -46,21 +58,16 @@ class SearchForm(forms.Form):
         for t in alert_types:
             if t.event_type.id not in event_types.keys():
                 event_types[t.event_type.id] = []
-            event_types[t.event_type.id].append([t.id, t.name])
+            event_types[t.event_type.id].append((t.id, t.name))
 
-        choices = []
-        for key, values in event_types.items():
-            choices.append([key, values])
-
-        WAKA = (
-            ('1',
-                ('1', 'A'),
-                ('2', 'B'),
-            ),
-            ('2',
-                ('1', 'A'),
-                ('2', 'B'),
-            ),
+        all_choice = (
+            None, (
+                ('all', 'All'),
+            )
         )
-        
-        self.fields['type'] = forms.ChoiceField(choices=[])
+        choices = [all_choice]
+        for key, values in event_types.items():
+            choices.append((key, values))
+
+        choices.sort(key=operator.itemgetter(0))
+        self.fields['type'] = GroupedChoiceField(choices, required=False)
