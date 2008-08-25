@@ -1160,6 +1160,14 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         except Filter.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested filter does not exist.'))
         except Account.DoesNotExist:
+            new_message(
+                request,
+                _('''%(filter)s is a public filter and may be used by
+                    other users than you.''') % {
+                        'filter': filter.name,
+                    },
+                Messages.WARNING,
+            )
             if not admin:
                 is_owner = False
         else:
@@ -1178,7 +1186,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
             fg_names = ', '.join([f.filter_group.name for f in filter_groups])
             new_message(
                 request,
-                _('''Filter %(filter)s is used in the filter groups:
+                _('''%(filter)s is used in the filter groups:
                 %(filter_groups)s. Editing this filter will also change how those
                 filter group works.''') % {
                     'filter': filter.name,
@@ -1568,6 +1576,14 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
         except FilterGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
         except Account.DoesNotExist:
+            new_message(
+                request,
+                _('''%(fg)s is a public filter group and may be used by other
+                users than you.''') % {
+                    'fg': filtergroup.name,
+                },
+                Messages.WARNING
+            )
             if not admin:
                 is_owner = False
         else:
