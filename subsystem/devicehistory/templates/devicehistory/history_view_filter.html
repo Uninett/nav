@@ -1,0 +1,31 @@
+<form action="" method="post">
+    <table class="vertitable">
+        <tr>
+            <th>From:</th>
+            <td><input type="text" name="from_date" value="{{ from_date }}" /></td>
+        </tr>
+        <tr>
+            <th>To:</th>
+            <td><input type="text" name="to_date" value="{{ to_date }}" /></td>
+        </tr>
+        <tr>
+            <th>Type:</th>
+            <td>
+                <select name="type">
+                <option value="all">All</option>
+                {% for e in event_type %}
+                    <optgroup label="{{ e.id }}">
+                    {% for a in e.alerttype_set.all %}
+                        <option value="{{ a.id }}">{{ a.name }}</option>
+                    {% endfor %}
+                    </optgroup>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th></th>
+            <td><button type="submit">Filter</button></td>
+        </tr>
+    </table>
+</form>
