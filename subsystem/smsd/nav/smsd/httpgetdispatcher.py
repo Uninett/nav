@@ -37,7 +37,6 @@ Oslo, but could be useful for other similar solutions.
 __copyright__ = "Copyright 2007 USIT, UiO"
 __license__ = "GPL"
 __author__ = "Arne Meyer Vedø-Hansen (amveha@ulrik.uio.no), Asbjørn Prøis (asbjorp@usit.uio.no), Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 import urllib
 import urllib2
