@@ -26,7 +26,7 @@ __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id$"
 
-from django import newforms as forms
+from django import forms
 
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
@@ -46,6 +46,7 @@ class AccountForm(forms.ModelForm):
         if kwargs.get('instance', False):
             self.fields['password1'].required = False
 
+            # Remove password and login from external accounts
             if kwargs['instance'].ext_sync:
                 del self.fields['password1']
                 del self.fields['password2']
