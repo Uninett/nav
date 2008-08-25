@@ -2127,7 +2127,7 @@ def matchfield_remove(request):
 
     if request.POST.get('confirm'):
         matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('element'))
-        names = ', '.join([m.names for m in matchfields])
+        names = ', '.join([m.name for m in matchfields])
         matchfields.delete()
         new_message(
             request,
