@@ -21,12 +21,24 @@
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
+"""Main Django URL configuration"""
+
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
-from django import forms
+# Import all submodules in the urls package
+import os
+__all__ = []
+for file_name in os.listdir(os.path.dirname(__file__)):
+    if file_name.endswith('.py') and file_name != os.path.basename(__file__):
+        module_name = file_name.replace('.py', '')
+        __all__.append(module_name)
+from nav.django.urls import *
 
-class SearchForm(forms.Form):
-    query = forms.CharField(max_length=100, label='IP or hostname')
+# Combine urlpatterns from all the submodules
+from django.conf.urls.defaults import *
+urlpatterns = patterns('')
+for module_name in __all__:
+    urlpatterns += eval(module_name + '.get_urlpatterns()')
+

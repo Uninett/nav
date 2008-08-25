@@ -10,7 +10,7 @@ from xmlrpclib import ServerProxy
 
 # Config
 
-lp_xmlrpc_url = "xmlrpc.demo.launchpad.net/bugs/"
+lp_xmlrpc_url = "xmlrpc.launchpad.net/bugs/"
 
 
 # No need to edit anything below this

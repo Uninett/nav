@@ -3446,8 +3446,8 @@ class pagePatch(editdbPage):
  
 
 class pagePrefix(editdbPage):
-    """ Describes editing of the prefix table for nettypes of 'static'
-        'reserved' or 'scope'. """
+    """ Describes editing of the prefix table for nettypes of 'reserved' or
+    'scope'. """
 
     basePath = BASEPATH + 'prefix/'
     table = nav.db.manage.Prefix
@@ -3527,8 +3527,7 @@ class pagePrefix(editdbPage):
             self.page = page.pageName
             self.table = page.table
 
-            nettypes = [('static','static'),
-                        ('reserved','reserved'),
+            nettypes = [('reserved','reserved'),
                         ('scope','scope')]
 
             orgs = [('','No organisation')]
