@@ -410,6 +410,12 @@ ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
 	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
 	-- ON DELETE CASCADE -- FIXME
 	;
+-- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
+-- guarantee a correct upgrade due to the db design issue we are fixing here.
+-- We can only we sure that the alert is delivered to the correct address, not
+-- necessarily at the correct time.
+UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
+ALTER TABLE accountalertqueue DROP addrid;
 
 -- Make matchfields/expressions simpler:
 --  * Remove value_category
