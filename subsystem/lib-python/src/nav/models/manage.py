@@ -99,6 +99,8 @@ class Netbox(models.Model):
     category = models.ForeignKey('Category', db_column='catid')
     # TODO: Probably deprecated. Check and remove.
     #subcategory = models.CharField(db_column='subcat', max_length=-1)
+    subcategories = models.ManyToManyField('Subcategory',
+        through='NetboxCategory')
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
@@ -405,7 +407,7 @@ class Subcategory(models.Model):
 
     def __unicode__(self):
         try:
-            return u'%s, sub of %s' % (self.description, self.category)
+            return u'%s, sub of %s' % (self.id, self.category)
         except Category.DoesNotExist:
             return self.description
 
@@ -413,9 +415,6 @@ class NetboxCategory(models.Model):
     """From MetaNAV: A netbox may be in many subcategories. This relation is
     defined here."""
 
-    # TODO: This should be a ManyToMany-field in Netbox, but at this time
-    # Django only supports specifying the name of the M2M-table, and not the
-    # column names.
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
