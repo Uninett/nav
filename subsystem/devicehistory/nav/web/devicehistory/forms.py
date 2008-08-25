@@ -29,7 +29,7 @@ __id__ = "$Id$"
 import time
 import operator
 from datetime import date
-from django import newforms as forms
+from django import forms
 
 # FIXME Optgroups in ChoiceField does not work before rev 7977 of
 # django. Use GroupedChoiceField from djangosnippets in the mean time.
