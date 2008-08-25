@@ -4,7 +4,7 @@
 <table class="listtable">
     <caption>
         Groups<br />
-        <span class="subtitle">Choose one to set permissions</span>
+        <span class="subtitle">Choose a group to set it's permissions</span>
     </caption>
 
     <thead>
@@ -69,5 +69,24 @@
 </div>
 </form>
 {% endif %}
+
+<div class="infobox">
+    <p>
+        Here you can choose which groups are able to recieve which alerts.
+    </p>
+    <p>
+        Permissions are set by filter groups, so if one wants to deny a certain
+        group to recieve alerts about a certain match field, one must deny the
+        group to recieve alerts from <em>all</em> filter groups that uses a
+        filter that uses that particular match field. In other words: if you
+        have a lot of custom filter groups, that kind of granular control can
+        be hard.
+    </p>
+    <p>
+        Denying a group to recieve alerts from a certain filter group will not
+        hide the option to add that filter group to one users profile, even
+        though the user won't be able to recieve alerts from it.
+    </p>
+</div>
 
 {% endblock %}
