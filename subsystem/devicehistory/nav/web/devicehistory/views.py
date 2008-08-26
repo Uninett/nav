@@ -40,7 +40,6 @@ from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType, Even
 from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
-from nav.web.devicehistory.forms import HistoryFilterForm
 from nav.web.devicehistory.utils import History
 
 DeviceQuickSelect_kwargs = {
@@ -76,8 +75,8 @@ def devicehistory_view(request):
     selection = DeviceQuickSelect.handle_post(request)
     params = {
         'selection': selection,
-        'from_date': from_date,
-        'to_date': to_date,
+        'start_time': from_date,
+        'end_time': to_date,
         'type': request.POST.get('type', None),
     }
     history = History(**params)
@@ -85,6 +84,7 @@ def devicehistory_view(request):
     info_dict = {
         'active': {'devicehistory': True},
         'history': history.history,
+        'selection': selection,
         'event_type': EventType.objects.all().order_by('id'),
         'from_date': from_date,
         'to_date': to_date,

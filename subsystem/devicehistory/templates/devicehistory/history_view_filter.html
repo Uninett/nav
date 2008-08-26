@@ -1,4 +1,9 @@
 <form action="" method="post">
+    {% for type, elements in selection.items %}
+        {% for id in elements %}
+            <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
+        {% endfor %}
+    {% endfor %}
     <table class="vertitable">
         <tr>
             <th>From:</th>

@@ -38,8 +38,8 @@ class History:
 
     def __init__(self, **kwargs):
         self.selection = kwargs.pop('selection', [])
-        self.from_date = kwargs.pop('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-        self.to_date = kwargs.pop('to_date', date.today())
+        self.start_time = kwargs.pop('start_time', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
+        self.end_time = kwargs.pop('end_time', date.today())
         self.type = kwargs.pop('type', None)
 
         for key in kwargs.keys():
@@ -47,6 +47,15 @@ class History:
 
         if not isinstance(self.type, int) or not self.type.isdigit():
             self.type = None
+
+        self.time_limit = [
+            Q(start_time__lte=self.end_time),
+            (
+                Q(end_time__gte=self.start_time) |
+                Q(end_time__isnull=True)
+            ),
+            Q(start_time__gte=self.start_time)
+        ];
 
         if 'location' in self.selection and len(self.selection['location']) > 0:
             self._get_location_history()
@@ -61,10 +70,7 @@ class History:
         alert_history = AlertHistory.objects.filter(
             Q(alerthistoryvariable__variable='locationid'),
             Q(alerthistoryvariable__value__in=self.selection['location']),
-            Q(start_time__lte=self.end_time),
-            (
-                Q(end_time__gte=self.start_time) |
-                Q(end_time__isnull=True
+            *self.time_limit
         ).extra(
             select={
                 'location_id': 'location.locationid',
@@ -77,14 +83,15 @@ class History:
         history = {}
         for a in alert_history:
             if a.location_id not in history:
-                history[a.location_id] = DescriptiveList(description=a.location_name)
+                history[a.location_id] = DeviceList(description=a.location_name)
             history[a.location_id].append(Alert(alert=a))
         self.history['location'] = history
 
     def _get_room_history(self):
         alert_history = AlertHistory.objects.filter(
             alerthistoryvariable__variable='roomid',
-            alerthistoryvariable__value__in=self.selection['room']
+            alerthistoryvariable__value__in=self.selection['room'],
+            *self.time_limit
         ).extra(
             select={
                 'room_id': 'room.roomid',
@@ -102,13 +109,14 @@ class History:
                 if not isinstance(a.room_descr, unicode):
                     a.room_descr = unicode(a.room_descr)
                 descr = a.room_id + ' (' + a.room_descr + ')'
-                history[a.room_id] = DescriptiveList(description=descr)
+                history[a.room_id] = DeviceList(description=descr)
             history[a.room_id].append(Alert(alert=a))
         self.history['room'] = history
 
     def _get_netbox_history(self):
         alert_history = AlertHistory.objects.filter(
             device__netbox__id__in=self.selection['netbox'],
+            *self.time_limit
         ).extra(
             select={
                 'netbox_id': 'netbox.netboxid',
@@ -121,13 +129,14 @@ class History:
         history = {}
         for a in alert_history:
             if a.netbox_id not in history:
-                history[a.netbox_id] = DescriptiveList(description=a.netbox_name)
+                history[a.netbox_id] = DeviceList(description=a.netbox_name)
             history[a.netbox_id].append(Alert(alert=a))
         self.history['netbox'] = history
 
     def _get_module_history(self):
         alert_history = AlertHistory.objects.filter(
             device__module__id__in=self.selection['module'],
+            *self.time_limit
         ).extra(
             select={'module': 'module.moduleid'},
             tables=['module'],
@@ -137,19 +146,17 @@ class History:
         history = {}
         for a in alert_history:
             if a.module not in history:
-                history[a.module] = DescriptiveList(description=Netbox.objects.get(module=a.module))
+                history[a.module] = DeviceList(description=Netbox.objects.get(module=a.module))
             history[a.module].append(Alert(alert=a))
         self.history['module'] = history
 
 
-class DescriptiveList(list):
+class DeviceList(list):
     description = None
 
     def __init__(self, *args, **kwargs):
         self.description = kwargs.pop('description', None)
-        self.history = kwargs.pop('history', [])
-
-        super(DescriptiveList, self).__init__(*args, **kwargs)
+        super(DeviceList, self).__init__(*args, **kwargs)
 
 class Alert:
     alert = None
