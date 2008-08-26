@@ -40,7 +40,7 @@ from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType, Even
 from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
-from nav.web.devicehistory.utils import History
+from nav.web.devicehistory.utils.history import History
 
 DeviceQuickSelect_kwargs = {
     'button': 'View %s history',
@@ -52,7 +52,6 @@ DeviceQuickSelect_kwargs = {
 DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_kwargs)
 
 def devicehistory_search(request):
-
     info_dict = {
         'active': {'devicehistory': True},
         'quickselect': DeviceQuickSelect,
@@ -97,3 +96,26 @@ def devicehistory_view(request):
         info_dict,
     )
 
+def error_form(request):
+    if request.method == 'POST':
+        return register_error(request)
+
+    info_dict = {
+        'active': {'error': True},
+        'quickselect': DeviceQuickSelect,
+    }
+    return render_to_response(
+        DeviceHistoryTemplate,
+        'devicehistory/register_error.html',
+        info_dict,
+    );
+
+def register_error(request):
+    selection = DeviceQuickSelect.handle_post(request)
+    error_comment = request.POST.get('error_comment', None)
+
+    events = []
+    for type, devices in selection:
+        pass
+
+    eventq = EventQueue()
