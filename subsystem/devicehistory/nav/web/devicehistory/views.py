@@ -69,6 +69,7 @@ def devicehistory_view(request):
 
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
     to_date = request.POST.get('to_date', date.today())
+    type = request.POST.get('type', None)
 
     # FIXME check that date is a valid "yyyy-mm-dd" string
 
@@ -77,7 +78,7 @@ def devicehistory_view(request):
         'selection': selection,
         'start_time': from_date,
         'end_time': to_date,
-        'type': request.POST.get('type', None),
+        'types': [type],
     }
     history = History(**params)
 
@@ -85,6 +86,7 @@ def devicehistory_view(request):
         'active': {'devicehistory': True},
         'history': history.history,
         'selection': selection,
+        'selected_type': type,
         'event_type': EventType.objects.all().order_by('id'),
         'from_date': from_date,
         'to_date': to_date,

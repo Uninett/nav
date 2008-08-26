@@ -31,7 +31,7 @@ from datetime import date
 from django.db.models import Q
 
 from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import AlertHistory, AlertHistoryVariable
+from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType
 
 class History:
     history = {}
@@ -40,13 +40,15 @@ class History:
         self.selection = kwargs.pop('selection', [])
         self.start_time = kwargs.pop('start_time', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
         self.end_time = kwargs.pop('end_time', date.today())
-        self.type = kwargs.pop('type', None)
+        self.types = kwargs.pop('types', None)
 
         for key in kwargs.keys():
             raise TypeError('__init__() got an unexpected keyword argument %s' % key)
 
-        if not isinstance(self.type, int) or not self.type.isdigit():
-            self.type = None
+        self.types = [type for type in self.types if type and type.isdigit()]
+
+        if len(self.types) == 0:
+            self.types = AlertType.objects.all().values_list('pk', flat=True)
 
         self.time_limit = [
             Q(start_time__lte=self.end_time),
@@ -55,7 +57,7 @@ class History:
                 Q(end_time__isnull=True)
             ),
             Q(start_time__gte=self.start_time)
-        ];
+        ]
 
         if 'location' in self.selection and len(self.selection['location']) > 0:
             self._get_location_history()
@@ -70,6 +72,7 @@ class History:
         alert_history = AlertHistory.objects.filter(
             Q(alerthistoryvariable__variable='locationid'),
             Q(alerthistoryvariable__value__in=self.selection['location']),
+            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={
@@ -89,8 +92,9 @@ class History:
 
     def _get_room_history(self):
         alert_history = AlertHistory.objects.filter(
-            alerthistoryvariable__variable='roomid',
-            alerthistoryvariable__value__in=self.selection['room'],
+            Q(alerthistoryvariable__variable='roomid'),
+            Q(alerthistoryvariable__value__in=self.selection['room']),
+            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={
@@ -115,7 +119,8 @@ class History:
 
     def _get_netbox_history(self):
         alert_history = AlertHistory.objects.filter(
-            device__netbox__id__in=self.selection['netbox'],
+            Q(device__netbox__id__in=self.selection['netbox']),
+            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={
@@ -135,7 +140,8 @@ class History:
 
     def _get_module_history(self):
         alert_history = AlertHistory.objects.filter(
-            device__module__id__in=self.selection['module'],
+            Q(device__module__id__in=self.selection['module']),
+            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={'module': 'module.moduleid'},

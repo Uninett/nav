@@ -21,7 +21,11 @@
                 {% for e in event_type %}
                     <optgroup label="{{ e.id }}">
                     {% for a in e.alerttype_set.all %}
-                        <option value="{{ a.id }}">{{ a.name }}</option>
+                        {% ifequal a.id selected_type %}
+                            <option value="{{ a.id }}" selected="selected">{{ a.name }}</option>
+                        {% else %}
+                            <option value="{{ a.id }}">{{ a.name }}</option>
+                        {% endifequal %}
                     {% endfor %}
                     </optgroup>
                 {% endfor %}

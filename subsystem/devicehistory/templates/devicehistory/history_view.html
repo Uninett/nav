@@ -5,6 +5,7 @@
 
     {% for type, section in history.items %}
         <h3>{{ type|capfirst }}</h3>
+        <p>Found {{ section|length }} device with history in the specified period.</p>
 
         {% for key, elements in section.items %}
         <table class="listtable">
