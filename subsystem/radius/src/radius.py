@@ -45,27 +45,22 @@ def handler(req):
     # like we would usually do. Enable the DEBUG flag during development 
     # to get around this.
     
-    """if DEBUG:
-        AcctSearchTemplate = apache.import_module("AcctSearchTemplate", autoreload = 1)
-        AcctDetailTemplate = apache.import_module("AcctDetailTemplate", autoreload = 1)
-        AcctChartsTemplate = apache.import_module("AcctChartsTemplate", autoreload = 1)
-        LogTemplate = apache.import_module("LogTemplate", autoreload = 1)
-        LogDetailTemplate = apache.import_module("LogDetailTemplate", autoreload = 1)
+    if DEBUG:
+        AcctSearchTemplate = apache.import_module("nav.web.templates.AcctSearchTemplate", autoreload = 1)
+        AcctDetailTemplate = apache.import_module("nav.web.templates.AcctDetailTemplate", autoreload = 1)
+        AcctChartsTemplate = apache.import_module("nav.web.templates.AcctChartsTemplate", autoreload = 1)
+        LogTemplate = apache.import_module("nav.web.templates.LogTemplate", autoreload = 1)
+        LogDetailTemplate = apache.import_module("nav.web.templates.LogDetailTemplate", autoreload = 1)
+        
         radiuslib = apache.import_module("radiuslib", autoreload = 1)
-"""
-
-    #from AcctSearchTemplate import AcctSearchTemplate
-    #from AcctDetailTemplate import AcctDetailTemplate
-    #from AcctChartsTemplate import AcctChartsTemplate
-    #from LogTemplate import LogTemplate
-    #from LogDetailTemplate import LogDetailTemplate
+    
 
     from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
     from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
     from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
     from nav.web.templates.LogTemplate import LogTemplate
     from nav.web.templates.LogDetailTemplate import LogDetailTemplate
-
+    
     from radiuslib import makeTimeHumanReadable, makeBytesHumanReadable
 
     args = URI(req.unparsed_uri) 
@@ -95,7 +90,7 @@ def handler(req):
 
     if section.lower() == "logsearch":
         page = LogTemplate()
-        page.current = "logsearch" #DEV
+        page.current = "logsearch"
         page.search = None
         page.error = None
         page.dbfields = LOG_SEARCHRESULTFIELDS #Infofields to display 
@@ -384,7 +379,7 @@ class AcctChartsQuery(SQLQuery):
     """
     Get top bandwidth hogs for specified period, 
 
-    Can generate SQL queryies for top uploaders, top downloaders, and top
+    Can generate SQL queries for top uploaders, top downloaders, and top
     overall bandwidth (ab)users
     """
 
@@ -458,7 +453,7 @@ class AcctChartsQuery(SQLQuery):
 
 class AcctDetailQuery(SQLQuery):
     """
-    Get all details about specified session
+    Get all details about a specified session
     """
 
     def __init__(self, sessionid):
