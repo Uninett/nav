@@ -1,4 +1,4 @@
-#! /usr/bin/env make
+#! /usr/bin/env make.
 # -*- coding: UTF-8 -*-
 #
 # Copyright 2007 UNINETT AS
@@ -41,14 +41,14 @@ djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 
 # Names
-WEBNAME = devicehist
+WEBNAME = devicehistory
 
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/devicehist/*.py)
+LIBS = $(wildcard nav/*.py nav/web/devicehistory/*.py nav/web/devicehistory/*/*.py)
 CONFFILES =
-TOOLS = devicehist.tool
+TOOLS = devicehistory.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
