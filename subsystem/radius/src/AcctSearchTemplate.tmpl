@@ -72,9 +72,9 @@ $makeMenu($menu, $current)
             <td>
                 <select name=searchtype>
                     <option value="username" $setSelectItem($form.searchtype, "username", output="selected", default=True)>Username</option>
-                    ##<option value="realm" $setSelectItem($form.searchtype, "realm", output="selected")>Realm</option>
                     <option value="framedipaddress" $setSelectItem($form.searchtype, "framedipaddress", output="selected")>User Hostname/IP Address</option>
                     <option value="nasipaddress" $setSelectItem($form.searchtype, "nasipaddress", output="selected")>NAS Hostname/IP Address</option>
+		    <option value="iprange" $setSelectItem($form.searchtype, "iprange", output="selected")>IP-range</option>
                 </select>
             </td>
             </tr>
@@ -87,7 +87,6 @@ $makeMenu($menu, $current)
                     <option value="isdn" $setSelectItem($form.nasporttype, "isdn", output="selected")>ISDN</option>
                     <option value="modem" $setSelectItem($form.nasporttype, "modem", output="selected")>Modem</option>
                     <option value="vpn" $setSelectItem($form.nasporttype, "vpn", output="selected")>VPN</option>
-		     <option value="Eduroam" $setSelectItem($form.nasporttype, "Eduroam", output="selected")>Eduroam</option>
                 </select>
             </td>
             </tr>

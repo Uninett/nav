@@ -574,25 +574,20 @@ class AcctSearchQuery(SQLQuery):
                 self.sqlQuery += " AND LOWER(cisconasport) = %s"
                 self.sqlParameters += tuple(match.group("swport").lower().split())
 
-        #DEV
-        if searchtype == "wildcardtest":
+               
+        
+        if searchtype == "iprange":
             if searchstring.find('%'):
                 self.sqlQuery += " %s << %%s" % ('framedipaddress')
                 self.sqlParameters += (searchstring,)
                 
-        #DEV
+        
 
         if nasporttype:
             if nasporttype.lower() == "isdn": nasporttype = "ISDN"
             if nasporttype.lower() == "vpn": nasporttype = "Virtual"
             if nasporttype.lower() == "modem": nasporttype = "Async"
             if nasporttype.lower() == "dot1x": nasporttype = "Ethernet"
-            if nasporttype.lower() == "wireless":
-                if searchstring != "%":
-                    self.sqlQuery += " AND "
-
-                self.sqlQuery += " nasipaddress = %s OR nasipaddress = %s OR nasipaddress = %s OR nasipaddress = %s"
-                self.sqlParameters += ('129.242.3.212','129.242.3.214','129.242.3.216', '129.242.3.218',)
             else:
                 if searchstring != "%":
                     self.sqlQuery += " AND "
