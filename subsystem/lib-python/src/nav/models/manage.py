@@ -128,10 +128,13 @@ class Netbox(models.Model):
 
     def last_updated(self):
         try:
-            value = self.info_set.get(variable='lastUpdated').value
+            # XXX: Netboxes with multiple values for lastUpdated in NetboxInfo
+            # have been observed. Using the highest value.
+            value = self.info_set.filter(variable='lastUpdated').order_by(
+                '-value')[0].value
             value = int(value) / 1000.0
             return datetime(*time.gmtime(value)[:6])
-        except NetboxInfo.DoesNotExist:
+        except IndexError:
             return None
         except ValueError:
             return '(Invalid value in DB)'
