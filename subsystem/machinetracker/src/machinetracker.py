@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright 2003-2004 Norwegian University of Science and Technology
-# Copyright 2006-2007 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -153,6 +153,17 @@ def handler(req):
     return apache.OK
 
 
+def ip_range(from_addr, to_addr):
+    """Generate all IPs between from_addr and to_addr inclusive.
+
+    Should only be used for IPv4 addresses!
+    """
+    current_addr = from_addr
+    while current_addr <= to_addr:
+        yield current_addr
+        current_addr = IPy.IP(current_addr.ip + 1)
+
+
 class MachineTrackerSQLQuery:
 
     def __init__(self, days=7, order_by=""):
@@ -296,38 +307,37 @@ class IPSQLQuery(MachineTrackerSQLQuery):
                 yield ResultRow(ipaddr, mac, None, None, None, start, end, dns)
 
     def getRows(self, dns=False, active=False, nonActive=False):
-        currentRow = 0 # Counts current row in SQL result set
-        firstIP = self.ip_from
-        lastIP = self.ip_to
-        ipCounter = self.ip_from
+        if self.ip_from.version() == 6 or self.ip_to.version() == 6:
+            # Never generate results for inactive IPv6 addresses, the
+            # result set will usually become HUGE and take forever to
+            # compute.
+            nonActive = False
+
+        # Generate a list of ip addresses in the result range
+        if nonActive:
+            addr_range = ip_range(self.ip_from, self.ip_to)
+        else:
+            addr_range = (IPy.IP(r[0]) for r in self.result)
+
+        result_map = dict([(IPy.IP(r[0]), r) for r in self.result])
+
         lastKey = None
-
-        while ipCounter <= lastIP:
-            isActive = False
-            while True:
-                try:
-                    ipaddr, mac, start, end = self.result[currentRow]
-                    key = (ipaddr, mac)
-                except IndexError:
-                    break
-                if IPy.IP(ipaddr) == ipCounter:
-                    isActive = True
-                    currentRow += 1
-                    if active:
-                        if key == lastKey:
-                            yield ResultRow(None, None, None, None, None,
-                                            start, end, dns)
-                        else:
-                            lastKey = key
-                            yield ResultRow(ipaddr, mac, None, None, None,
-                                            start, end, dns)
-                else:
-                    break
-
-            if nonActive and not isActive:
-                yield ResultRow(ipCounter, None, None, None, None,
+        for addr in addr_range:
+            if addr in result_map:
+                # Address is active (i.e. part of arp result)
+                ipaddr, mac, start, end = result_map[addr]
+                key = (ipaddr, mac)
+                if active:
+                    if key == lastKey:
+                        yield ResultRow(None, None, None, None, None,
+                                        start, end, dns)
+                    else:
+                        lastKey = key
+                        yield ResultRow(ipaddr, mac, None, None, None,
+                                        start, end, dns)
+            elif nonActive:
+                yield ResultRow(addr, None, None, None, None,
                                 None, None, dns)
-            ipCounter = IPy.IP(ipCounter.ip + 1)
 
 
 class SwPortSQLQuery(MACSQLQuery):
