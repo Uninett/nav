@@ -48,9 +48,14 @@
     {{ time_period_form.non_field_errors }}
     {{ time_period_form.start.errors }}
     {{ time_period_form.valid_during.errors }}
-    Time period from {{ time_period_form.start }}
-    for {{ time_period_form.valid_during }}
-    {{ time_period_form.profile }}
+    <p>
+        Time period from {{ time_period_form.start }}
+        for {{ time_period_form.valid_during }}
+        {{ time_period_form.profile }}
+    </p>
+    <p>
+        {{ time_period_form.start.help_text }}
+    </p>
     <p>
         <button type="submit">Add</button>
     </p>

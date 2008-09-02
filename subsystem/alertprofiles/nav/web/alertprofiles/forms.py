@@ -50,6 +50,16 @@ class AccountPropertyForm(forms.ModelForm):
 
 class AlertProfileForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    daily_dispatch_time = forms.TimeField(
+        initial='08:00',
+        input_formats=['%H:%M:%S', '%H:%M', '%H'],
+        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+    )
+    weekly_dispatch_time = forms.TimeField(
+        initial='08:00',
+        input_formats=['%H:%M:%S', '%H:%M', '%H'],
+        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+    )
 
     class Meta:
         model = AlertProfile
@@ -63,15 +73,23 @@ class AlertAddressForm(forms.ModelForm):
         exclude = ('account',)
 
 class TimePeriodForm(forms.ModelForm):
-    profile = forms.ModelChoiceField(AlertProfile.objects.all(), widget=forms.widgets.HiddenInput)
+    profile = forms.ModelChoiceField(
+        AlertProfile.objects.all(),
+        widget=forms.widgets.HiddenInput
+    )
+    start = forms.TimeField(
+        initial='08:00',
+        input_formats=['%H:%M:%S', '%H:%M', '%H'],
+        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+    )
 
     class Meta:
         model = TimePeriod
 
     def clean(self):
-        profile = self.cleaned_data['profile']
-        start_time = self.cleaned_data['start']
-        valid_during = self.cleaned_data['valid_during']
+        profile = self.cleaned_data.get('profile', None)
+        start_time = self.cleaned_data.get('start', None)
+        valid_during = self.cleaned_data.get('valid_during', None)
 
         valid_during_choices = None
         if valid_during == TimePeriod.ALL_WEEK:
@@ -126,9 +144,9 @@ class AlertSubscriptionForm(forms.ModelForm):
                 )
 
     def clean(self):
-        alert_address = self.cleaned_data['alert_address']
-        time_period = self.cleaned_data['time_period']
-        filter_group = self.cleaned_data['filter_group']
+        alert_address = self.cleaned_data.get('alert_address', None)
+        time_period = self.cleaned_data.get('time_period', None)
+        filter_group = self.cleaned_data.get('filter_group', None)
         id = self.cleaned_data['id']
 
         existing_subscriptions = AlertSubscription.objects.filter(
