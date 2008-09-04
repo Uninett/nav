@@ -426,8 +426,31 @@ def profile_deactivate(request):
     )
     return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
-def profile_time_period(request, time_period_id):
+def profile_time_period(request, time_period_id, time_period_form=None):
     time_period = TimePeriod.objects.get(pk=time_period_id)
+    profile = time_period.profile
+
+    if not time_period_form:
+        time_period_form = TimePeriodForm(instance=time_period)
+
+    info_dict = {
+        'time_period': time_period,
+        'time_period_form': time_period_form,
+    }
+    return render_to_response(
+        AlertProfilesTemplate,
+        'alertprofiles/timeperiod_edit.html',
+        info_dict,
+        RequestContext(
+            request,
+            processors=[account_processor]
+        ),
+        path=BASE_PATH+[
+            ('Profiles', reverse('alertprofiles-profile')),
+            (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+            ('Edit time period', None),
+        ]
+    )
 
 def profile_time_period_add(request):
     if request.method != 'POST' or not request.POST.get('profile'):
@@ -444,15 +467,26 @@ def profile_time_period_add(request):
     if profile.account != account:
         return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
 
-    time_period_form = TimePeriodForm(request.POST, initial={'profile': profile})
+    time_period = None
+    if request.POST.get('id'):
+        time_period = TimePeriod.objects.get(pk=request.POST.get('id'))
+
+    time_period_form = TimePeriodForm(
+        request.POST,
+        instance=time_period,
+        initial={'profile': profile},
+    )
 
     if not time_period_form.is_valid():
-        return profile_show_form(request, profile.id, None, time_period_form)
+        if time_period:
+            return profile_time_period(request, time_period.id, time_period_form)
+        else:
+            return profile_show_form(request, profile.id, None, time_period_form)
 
     time_period = time_period_form.save()
     new_message(
         request,
-        _('Added time profile %(time)s for %(during)s to profile %(profile)s') % {
+        _('Saved time period %(time)s for %(during)s to profile %(profile)s') % {
             'time': time_period.start,
             'during': time_period.get_valid_during_display(),
             'profile': profile.name

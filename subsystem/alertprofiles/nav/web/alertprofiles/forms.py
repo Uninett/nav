@@ -73,6 +73,7 @@ class AlertAddressForm(forms.ModelForm):
         exclude = ('account',)
 
 class TimePeriodForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     profile = forms.ModelChoiceField(
         AlertProfile.objects.all(),
         widget=forms.widgets.HiddenInput
@@ -87,6 +88,7 @@ class TimePeriodForm(forms.ModelForm):
         model = TimePeriod
 
     def clean(self):
+        id = self.cleaned_data.get('id', None)
         profile = self.cleaned_data.get('profile', None)
         start_time = self.cleaned_data.get('start', None)
         valid_during = self.cleaned_data.get('valid_during', None)
@@ -100,7 +102,11 @@ class TimePeriodForm(forms.ModelForm):
             valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS)
 
         time_periods = TimePeriod.objects.filter(
-            profile=profile, start=start_time, valid_during__in=valid_during_choices)
+            ~Q(pk=id),
+            profile=profile,
+            start=start_time,
+            valid_during__in=valid_during_choices
+        )
         if len(time_periods) > 0:
             error_msg = []
             for t in time_periods:
