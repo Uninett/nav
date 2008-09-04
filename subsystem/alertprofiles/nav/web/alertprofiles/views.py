@@ -75,52 +75,7 @@ def overview(request):
         subscriptions = None
     else:
         periods = TimePeriod.objects.filter(profile=active_profile).order_by('start')
-
-        subscriptions = {'weekdays': [], 'weekends': []}
-        weekdays = (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK)
-        weekends = (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK)
-        for i, p in enumerate(periods):
-            # TimePeriod is a model.
-            # We transform it to a dictionary so we can add additinal information
-            # to it, such as end_time (which does not really exist, it's just the
-            # start time for the next period.
-            period = {
-                'id': p.id,
-                'profile': p.profile,
-                'start': p.start,
-                'end': None,
-                'valid_during': p.get_valid_during_display(),
-            }
-            valid_during = p.valid_during
-            alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
-
-            # For usability we change 'all days' periods to one weekdays and one
-            # weekends period.
-            # Because we might add the same period to both weekdays and weekends we
-            # must make sure at least one of them is a copy, so changes to one of
-            # them don't apply to both.
-            if valid_during in weekdays:
-                subscriptions['weekdays'].append({
-                    'time_period': period.copy(),
-                    'alert_subscriptions': alert_subscriptions,
-                })
-            if valid_during in weekends:
-                subscriptions['weekends'].append({
-                    'time_period': period,
-                    'alert_subscriptions': alert_subscriptions,
-                })
-
-        # There's not stored any information about a end time in the DB, only start
-        # times, so the end time of one period is the start time of the next
-        # period.
-        for key, subscription in subscriptions.items():
-            for i, s in enumerate(subscription):
-                if i < len(subscription) - 1:
-                    end_time = subscription[i+1]['time_period']['start']
-                else:
-                    end_time = subscription[0]['time_period']['start']
-                s['time_period']['end'] = end_time
-
+        subscriptions = alert_subscriptions_table(periods)
 
     # Get information about users privileges
     sms_privilege = account.has_perm('alert_by', 'sms')
@@ -236,57 +191,12 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
     if not profile_id:
         templates = read_time_period_templates()
 
-    subscriptions = {'weekdays': [], 'weekends': []}
-    weekdays = (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK)
-    weekends = (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK)
-    for i, p in enumerate(periods):
-        # TimePeriod is a model.
-        # We transform it to a dictionary so we can add additinal information
-        # to it, such as end_time (which does not really exist, it's just the
-        # start time for the next period.
-        period = {
-            'id': p.id,
-            'profile': p.profile,
-            'start': p.start,
-            'end': None,
-            'valid_during': p.get_valid_during_display(),
-        }
-        valid_during = p.valid_during
-        alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
-
-        # For usability we change 'all days' periods to one weekdays and one
-        # weekends period.
-        # Because we might add the same period to both weekdays and weekends we
-        # must make sure at least one of them is a copy, so changes to one of
-        # them don't apply to both.
-        if valid_during in weekdays:
-            subscriptions['weekdays'].append({
-                'time_period': period.copy(),
-                'alert_subscriptions': alert_subscriptions,
-            })
-        if valid_during in weekends:
-            subscriptions['weekends'].append({
-                'time_period': period,
-                'alert_subscriptions': alert_subscriptions,
-            })
-
-    # There's not stored any information about a end time in the DB, only start
-    # times, so the end time of one period is the start time of the next
-    # period.
-    for key, subscription in subscriptions.items():
-        for i, s in enumerate(subscription):
-            if i < len(subscription) - 1:
-                end_time = subscription[i+1]['time_period']['start']
-            else:
-                end_time = subscription[0]['time_period']['start']
-            s['time_period']['end'] = end_time
-
     info_dict = {
         'form': profile_form,
         'time_period_form': time_period_form,
         'detail_id': detail_id,
         'owner': True,
-        'alert_subscriptions': subscriptions,
+        'alert_subscriptions': alert_subscriptions_table(periods),
         'time_period_templates': templates,
         'active': {'profile': True},
     }
@@ -515,6 +425,9 @@ def profile_deactivate(request):
         Messages.SUCCESS
     )
     return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+def profile_time_period(request, time_period_id):
+    time_period = TimePeriod.objects.get(pk=time_period_id)
 
 def profile_time_period_add(request):
     if request.method != 'POST' or not request.POST.get('profile'):
