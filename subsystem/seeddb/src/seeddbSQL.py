@@ -33,21 +33,21 @@ REQ_FALSE = 2
 REQ_NONEMPTY = 3
 
 def executeSQL(sqllist):
-    connection = nav.db.getConnection('editdb','manage')
+    connection = nav.db.getConnection('default','manage')
     database = connection.cursor()
     for sql in sqllist:
         database.execute(sql)
     connection.commit()
 
 def executeSQLreturn(sql):
-    connection = nav.db.getConnection('editdb','manage')
+    connection = nav.db.getConnection('default','manage')
     database = connection.cursor()
     database.execute(sql)
     connection.commit()
     return database.fetchall()
 
 def rollbackSQL():
-    connection = nav.db.getConnection('editdb','manage')
+    connection = nav.db.getConnection('default','manage')
     connection.rollback()
 
 def addEntryBulk(data,table):
