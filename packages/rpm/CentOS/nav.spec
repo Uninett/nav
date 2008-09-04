@@ -88,7 +88,7 @@ fi
 %config(noreplace) %{_prefix}/etc/cricket-views.conf
 %config(noreplace) %{_prefix}/etc/db.conf
 %config(noreplace) %{_prefix}/etc/devbrowser.conf
-%config(noreplace) %{_prefix}/etc/editdb.conf
+%config(noreplace) %{_prefix}/etc/seeddb.conf
 %config(noreplace) %{_prefix}/etc/eventEngine.conf
 %config(noreplace) %{_prefix}/etc/getBoksMacs.conf
 %config(noreplace) %{_prefix}/etc/getDeviceData.conf
