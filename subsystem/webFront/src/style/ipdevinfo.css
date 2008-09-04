@@ -34,8 +34,8 @@
 	width: 100%;
 }
 
-/* Host info table */
-#hostinfo {
+/* Host info table, recent alerts table */
+#hostinfo, #alerts {
 	float: left;
 	margin-right: 1em;
 	display: inline;

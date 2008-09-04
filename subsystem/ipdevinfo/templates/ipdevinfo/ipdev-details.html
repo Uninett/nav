@@ -214,6 +214,42 @@
 </table>
 </div>
 
+<div id="alerts">
+<table class="listtable">
+    <caption>
+        Recent alerts<br />
+        <span class="subtitle">From the last week. For older alerts, see
+        <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a>.
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Event</th>
+            <th>Start</th>
+            <th>Downtime</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% if alerts %}
+        {% for alert in alerts %}
+        <tr>
+            <td>{{ alert.event_type }}</td>
+            <td>{{ alert.start_time }}</td>
+            <!-- FIXME: Add timedelta formatting filter -->
+            <td align="right">{{ alert.get_downtime }}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td>No matching alerts found.</td>
+        </tr>
+    {% endif %}
+    </tbody>
+</table>
+</div>
+
 <hr class="floatclear" />
 
 {% if netbox and netbox.service_set.count %}

@@ -28,6 +28,7 @@ __id__ = "$Id$"
 
 import IPy
 import re
+import datetime as dt
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
@@ -36,6 +37,7 @@ from django.template import RequestContext
 
 from nav.models.manage import Netbox, Module, SwPort, GwPort
 from nav.models.cabling import Cabling, Patch
+from nav.models.event import AlertHistory
 from nav.models.service import Service
 from nav.django.shortcuts import render_to_response, object_list
 
@@ -161,12 +163,17 @@ def ipdev_details(request, name=None, addr=None):
         # Require name or addr to be set
         HttpResponseRedirect(reverse('ipdevinfo-search'))
 
+    # All alerts which ends in the last week or later (including open alerts)
+    alerts = netbox.alerthistory_set.filter(
+        end_time__gt=(dt.datetime.now() - dt.timedelta(7)))
+
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/ipdev-details.html',
         {
             'errors': errors,
             'host_info': host_info,
             'netbox': netbox,
+            'alerts': alerts,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
