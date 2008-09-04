@@ -10,11 +10,11 @@
     <tbody>
         <tr>
             <th>Filter</th>
-            <td>{{ filter.name }}</td>
+            <td>{{ filter.name }}{{ form.filter }}</td>
         </tr>
         <tr>
             <th>Match field</th>
-            <td>{{ matchfield.name }}</td>
+            <td>{{ matchfield.name }}{{ form.match_field }}</td>
         </tr>
         <tr>
             <th><label for="id_operator">{{ form.operator.label }}</label></th>
@@ -25,10 +25,24 @@
                 <label for="id_value">{{ form.value.label }}</label><br />
             </th>
             <td>
+                {% if list_limited %}
+                <p>
+                    There are more available options than the list_limit
+                    permits to show.<br />
+                </p>
+                <p>
+                    Showing {{ matchfield.list_limit }} of
+                    {{ form.number_of_choices }} available options.
+                </p>
+                {% endif %}
+                <div>
                 {{ form.value }}
+                </div>
                 <div>
                     {# FIXME it's not good practice to trust stuff in the database #}
-                    {{ matchfield.value_help|safe }}
+                    {% if matchfield.value_help %}
+                        {{ matchfield.value_help|safe }}
+                    {% endif %}
                 </div>
             </td>
         </tr>

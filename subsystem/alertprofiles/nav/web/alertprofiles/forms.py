@@ -296,6 +296,8 @@ class ExpresionForm(forms.ModelForm):
                     order_model, order_attname = MatchField.MODEL_MAP[match_field.value_sort]
                 else:
                     order_model = None
+                
+                self.number_of_choices = model.objects.count()
 
                 # First we say we want all the objects, unordered
                 model_objects = model.objects.all()

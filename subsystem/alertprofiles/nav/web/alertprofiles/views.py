@@ -1369,12 +1369,18 @@ def filter_addexpresion(request):
     if not account_owns_filters(get_account(request), filter):
         return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
 
+    # Check if there's more values than we can show in the list
+    list_limited = False
+    if matchfield.show_list and form.number_of_choices > matchfield.list_limit:
+        list_limited = True
+
     active = {'filters': True}
     info_dict = {
             'form': form,
             'active': active,
             'filter': filter,
             'matchfield': matchfield,
+            'list_limited': list_limited,
         }
     return render_to_response(
             AlertProfilesTemplate,
