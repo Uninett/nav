@@ -32,6 +32,7 @@ from django.conf.urls.defaults import *
 
 def get_urlpatterns():
     urlpatterns = patterns('',
-        (r'^useradmin-django/', include('nav.web.useradmin.urls')),
+        (r'^useradmin/', include('nav.web.useradmin.urls')),
+        url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
     )
     return urlpatterns

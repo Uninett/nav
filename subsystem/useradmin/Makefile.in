@@ -41,14 +41,14 @@ djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 
 # Names
-WEBNAME = useradmin-django
+WEBNAME = useradmin
 
 # Files
 INITFILES =
 BINS =
 LIBS = $(wildcard nav/*.py nav/web/*/*.py)
 CONFFILES =
-TOOLS = useradmin-django.tool
+TOOLS = useradmin.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
