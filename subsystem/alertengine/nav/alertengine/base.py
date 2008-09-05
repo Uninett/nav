@@ -63,10 +63,7 @@ def check_alerts(debug=False):
     # Get all alerts that aren't in alert queue due to subscription
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
 
-    # Get all queued alerts.
-    queued_alerts = AccountAlertQueue.objects.all()
-
-    logger.info('Starting alertengine run, checking %d new alerts and %d alerts in user queue' % (len(new_alerts), len(queued_alerts)))
+    logger.info('Starting alertengine run, checking %d new alerts' % len(new_alerts))
 
     if len(new_alerts):
         # Build datastructure that contains accounts and corresponding
@@ -84,6 +81,8 @@ def check_alerts(debug=False):
                     tmp.append( (alertsubscription, alertsubscription.filter_group.filtergroupcontent_set.all()) )
 
                 if tmp:
+                    # FIXME switch perminsions to proper sets of filtergroups
+                    # not _all_
                     permisions = FilterGroupContent.objects.filter(filter_group__group_permisions__accounts=account)
                     accounts.append( (account, tmp, permisions) )
 
@@ -106,11 +105,16 @@ def check_alerts(debug=False):
                     else:
                         logger.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
+    # Get all queued alerts.
+    queued_alerts = AccountAlertQueue.objects.all()
+
+    logger.info('Checking %d queued alerts' % len(queued_alerts))
+
     # We want to keep track of wether or not any weekly or daily messages have
     # been sent so that we can update the state of the users
     # last_sent_daily/weekly
-    sent_weekly = False
-    sent_daily = False
+    sent_weekly = []
+    sent_daily = []
 
     if len(queued_alerts):
         for queued_alert in queued_alerts:
@@ -144,7 +148,7 @@ def check_alerts(debug=False):
                 if last_sent.date() < now.date() and daily_time < now.time() and queued_alert.insertion_time.time() < daily_time:
                     queued_alert.send()
                     num_sent_alerts += 1
-                    sent_daily = True
+                    sent_daily.append(queued_alert.account)
 
             elif subscription.type == AlertSubscription.WEEKLY:
                 weekly_time = subscription.time_period.profile.weekly_dispatch_time
@@ -159,7 +163,7 @@ def check_alerts(debug=False):
                 if weekly_day == now.weekday() and last_sent.date() < now.date() and weekly_time < now.time() and queued_alert.insertion_time.time() < weekly_time:
                     queued_alert.send()
                     num_sent_alerts += 1
-                    sent_weekly = True
+                    sent_weekly.append(queued_alert.account)
 
             elif subscription.type == AlertSubscription.NEXT:
                 current_time_period = subscription.alert_address.account.get_active_profile().get_active_timeperiod()
@@ -179,6 +183,7 @@ def check_alerts(debug=False):
                 if subscription.time_period.id != current_time_period.id:
                     queued_alert.send()
                     num_sent_alerts += 1
+                # FIXME this test is to naive, different day just doesn't cut it!
                 elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.start:
                     queued_alert.send()
                     num_sent_alerts += 1
@@ -188,9 +193,11 @@ def check_alerts(debug=False):
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
-        account.alertpreference.last_sent_day = now
+        for account in sent_daily:
+            account.alertpreference.last_sent_day = now
     if sent_weekly:
-        account.alertpreference.last_sent_weekly = now
+        for account in sent_weekly:
+            account.alertpreference.last_sent_weekly = now
 
     alerts_in_account_queues = [a.alert_id for a in AccountAlertQueue.objects.all()]
 
@@ -221,11 +228,12 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='ma
         if not matches and content.include:
             matches = content.filter.check(alert) == content.positive
 
-            if matches: logger.debug('alert %d: got included by filter %d in %s' % (alert.id, content.filter.id, type))
+            if matches:
+                logger.debug('alert %d: got included by filter %d in %s' % (alert.id, content.filter.id, type))
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
-            matches = content.filter.check(alert) == content.positive
+            matches = content.filter.check(alert) != content.positive
 
             # Log that we excluded the alert
             if not matches:

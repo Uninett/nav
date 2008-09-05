@@ -651,7 +651,7 @@ class MatchField(models.Model):
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
         CATEGORY:     'netbox__category',
-        SUBCATEGORY:  'netbox__category__subcategory',
+        SUBCATEGORY:  'netbox__netboxcategory__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         GWPORT:       'netbox__connected_to_gwport',

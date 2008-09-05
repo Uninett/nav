@@ -97,8 +97,6 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = models.CharField(unique=True, max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
-    # TODO: Probably deprecated. Check and remove.
-    #subcategory = models.CharField(db_column='subcat', max_length=-1)
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
