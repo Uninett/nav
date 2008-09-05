@@ -35,7 +35,7 @@ from datetime import datetime
 
 from django.db import transaction
 
-from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress
+from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress, FilterGroup
 from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
@@ -67,7 +67,7 @@ def check_alerts(debug=False):
 
     if len(new_alerts):
         # Build datastructure that contains accounts and corresponding
-        # filtergroupcontent_sets so that we don't redo db queries to much
+        # filtergroupcontent_set so that we don't redo db queries to much
         for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
                 time_period = account.get_active_profile().get_active_timeperiod()
 
@@ -81,9 +81,10 @@ def check_alerts(debug=False):
                     tmp.append( (alertsubscription, alertsubscription.filter_group.filtergroupcontent_set.all()) )
 
                 if tmp:
-                    # FIXME switch perminsions to proper sets of filtergroups
-                    # not _all_
-                    permisions = FilterGroupContent.objects.filter(filter_group__group_permisions__accounts=account)
+                    permisions = []
+                    for filtergroup in FilterGroup.objects.filter(group_permisions__accounts__in=[account]):
+                        permisions.append(filtergroup.filtergroupcontent_set.all())
+
                     accounts.append( (account, tmp, permisions) )
 
         # Check all acounts against all their active subscriptions
@@ -94,13 +95,18 @@ def check_alerts(debug=False):
                 for alertsubscription, filtergroupcontents in alertsubscriptions:
                     # Check if alert matches, and if user has permision
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
-                        if check_alert_against_filtergroupcontents(alert, permisions, type='permision check'):
+                        sent = False
+                        for permision in permisions:
+                            if check_alert_against_filtergroupcontents(alert, permision, type='permision check'):
 
-                            # Allways queue alert so that we have it incase of
-                            # failed send.
-                            AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
+                                # Allways queue alert so that we have it incase of
+                                # failed send.
+                                AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
 
-                        else:
+                                sent = True
+                                break;
+
+                        if not sent:
                             logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
                     else:
                         logger.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
@@ -124,12 +130,12 @@ def check_alerts(debug=False):
                 logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
                 continue
 
-            logger.info('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert.id, queued_alert.account, subscription.get_type_display()) )
+            logger.info('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
 
-             # FIXME pack this inside a try except so that we can avoid
-             # deleting messages that weren't sent for some reason. An
-             # alternative would be to give send() a return value that we need
-             # to check.
+            # FIXME pack this inside a try except so that we can avoid
+            # deleting messages that weren't sent for some reason. An
+            # alternative would be to give send() a return value that we need
+            # to check.
 
             if subscription.type == AlertSubscription.NOW:
                 queued_alert.send()
@@ -166,27 +172,35 @@ def check_alerts(debug=False):
                     sent_weekly.append(queued_alert.account)
 
             elif subscription.type == AlertSubscription.NEXT:
-                current_time_period = subscription.alert_address.account.get_active_profile().get_active_timeperiod()
-                insertion_time = queued_alert.insertion_time
-                queued_alert_time_period = subscription.time_period
+                active_profile = subscription.alert_address.account.get_active_profile()
 
-                # Send if we are in a different time period than the one that the
-                # message was inserted with.
-                logger.debug('Tests: different time period %s' % (queued_alert_time_period.id != current_time_period.id))
+                if not active_profile:
+                    # No active profile do nothing (FIXME ask if this is how we
+                    # want things)
+                    pass
+                else:
+                    current_time_period = active_profile.get_active_timeperiod()
 
-                # Check if the message was inserted on a previous day and that the
-                # start period of the time period it was inserted in has passed.
-                # This check should catch the corner case where a user only has one
-                # timeperiod that loops.
-                logger.debug('Tests: different day %s, insertion time %s' % (insertion_time.date() < now.date(), insertion_time.time() < queued_alert_time_period.start))
+                    insertion_time = queued_alert.insertion_time
+                    queued_alert_time_period = subscription.time_period
 
-                if subscription.time_period.id != current_time_period.id:
-                    queued_alert.send()
-                    num_sent_alerts += 1
-                # FIXME this test is to naive, different day just doesn't cut it!
-                elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.start:
-                    queued_alert.send()
-                    num_sent_alerts += 1
+                    # Send if we are in a different time period than the one that the
+                    # message was inserted with.
+                    logger.debug('Tests: different time period %s' % (queued_alert_time_period.id != current_time_period.id))
+
+                    # Check if the message was inserted on a previous day and that the
+                    # start period of the time period it was inserted in has passed.
+                    # This check should catch the corner case where a user only has one
+                    # timeperiod that loops.
+                    logger.debug('Tests: different day %s, insertion time %s' % (insertion_time.date() < now.date(), insertion_time.time() < queued_alert_time_period.start))
+
+                    if subscription.time_period.id != current_time_period.id:
+                        queued_alert.send()
+                        num_sent_alerts += 1
+                    # FIXME this test is to naive, different day just doesn't cut it!
+                    elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.start:
+                        queued_alert.send()
+                        num_sent_alerts += 1
 
             else:
                 logger.error('account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
