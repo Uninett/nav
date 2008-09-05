@@ -439,3 +439,7 @@ INSERT INTO accountgroup_accounts SELECT account.id, 3 FROM account WHERE accoun
 INSERT INTO accountgroup_accounts VALUES (0,2); -- add default to Everyone
 INSERT INTO accountgroup_accounts VALUES (1,2); -- add admin to Everyone
 INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated users
+
+-- Update navbar links
+UPDATE navbarlink SET uri = '/userinfo/' WHERE uri = '/index/userinfo';
+UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';
