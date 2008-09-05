@@ -42,6 +42,7 @@ webroot = @webroot@
 
 # Names
 WEBNAME = useradmin
+USERINFO = userinfo
 
 # Files
 INITFILES =
@@ -88,6 +89,7 @@ install-conf: conf
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
 	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(USERINFO)/.htaccess
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
