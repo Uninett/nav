@@ -36,6 +36,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Q
 
 from nav.models.profiles import *

@@ -34,6 +34,8 @@ import dircache
 import md5 as hashlib
 import os
 
+from django.db import transaction
+
 import nav.config
 import nav.path
 from nav.django.utils import get_account, is_admin
@@ -84,6 +86,7 @@ def resolve_account_admin_and_owner(request):
 
     return (account, admin, owner)
 
+@transaction.commit_on_success
 def order_filter_group_content(filter_group):
     """Filter group content is ordered by priority where each filters priority
     is the previous filters priority incremented by one, starting at 1. Here we
