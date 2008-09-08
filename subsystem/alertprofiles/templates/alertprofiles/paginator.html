@@ -1,4 +1,5 @@
 {% block paginator %}
+{% if page_obj %}
     {% ifnotequal page_obj.number 1 %}
         <a href="{{ page_link }}?page=1&amp;order_by={{ order_by }}">
             &lt;&lt;
@@ -20,4 +21,5 @@
             &gt;&gt;
         </a>
     {% endifnotequal %}
+{% endif %}
 {% endblock %}
