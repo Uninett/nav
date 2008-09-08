@@ -43,11 +43,11 @@ function session_set($var, $par) {
 }
 
 function session_get($var) {
-/* 	if (!session_exist($var)){ */
-/* 		return null; */
-/* 	} */
 	$varname = 'SeSsIoN_' . $var;
-	return $_SESSION[$varname];
+	if (isset($_SESSION[$varname]))
+		return $_SESSION[$varname];
+	else
+		return null;
 }
 
 function session_delete($var) {

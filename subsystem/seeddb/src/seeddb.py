@@ -26,12 +26,19 @@
 #################################################
 ## Imports
 
-import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
+import seeddbTables
+import nav.Snmp
+import sys
+import re
+import copy
+import initBox
+import forgetSQL
+import nav.web
 from nav.db import manage
 import nav.util
 
 from mod_python import util,apache
-from editdbSQL import *
+from seeddbSQL import *
 from socket import gethostbyaddr,gethostbyname,gaierror
 from nav.web.serviceHelper import getCheckers,getDescription
 from nav.web.selectTree import selectTree,selectTreeLayoutBox
@@ -46,15 +53,15 @@ mod = __import__('encodings.utf_16',globals(),locals(),'*')
 #################################################
 ## Templates
 
-from nav.web.templates.editdbTemplate import editdbTemplate
+from nav.web.templates.seeddbTemplate import seeddbTemplate
 
 #################################################
 ## Constants
 
-BASEPATH = '/editdb/'
-CONFIGFILE = 'editdb.conf'
+BASEPATH = '/seeddb/'
+CONFIGFILE = 'seeddb.conf'
 
-EDITPATH = [('Home','/'), ('Edit database',BASEPATH)]
+EDITPATH = [('Home','/'), ('Seed Database',BASEPATH)]
 
 ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
@@ -90,7 +97,7 @@ def handler(req):
     ''' mod_python handler '''
 
     path = req.uri
-    match = re.search('editdb/(.+)$',path)
+    match = re.search('seeddb/(.+)$',path)
     if match:
         request = match.group(1)
         request = request.split('/')
@@ -165,7 +172,7 @@ def handler(req):
         return apache.HTTP_NOT_FOUND
 
 def readConfig():
-    ''' Reads configuration from editdb.conf and sets global
+    ''' Reads configuration from seeddb.conf and sets global
         variables. '''
     global CONFIG_CACHED,DEFAULT_ENCODING,BULK_TRY_ENCODINGS,\
            CATEGORY_LIST,SPLIT_LIST,SPLIT_OPPOSITE
@@ -210,7 +217,7 @@ def index(req,showHelp=False,status=None):
     
     body.status = status
 
-    body.title = 'Edit Database - Modify seed information for the NAV database'
+    body.title = 'Seed Database - Modify seed information for the NAV database'
     body.infotext = 'Here you can add, delete or edit seed information ' +\
                     'that are needed for the NAV database. Keep in mind ' +\
                     'that most of the data in  the NAV database are ' +\
@@ -348,9 +355,9 @@ def index(req,showHelp=False,status=None):
 
 
     nameSpace = {'entryList': None, 'editList': None, 'editForm': None, 'body': body}
-    template = editdbTemplate(searchList=[nameSpace])
+    template = seeddbTemplate(searchList=[nameSpace])
     template.path = [('Home','/'),
-                     ('Edit database',None)]
+                     ('Seed Database',None)]
     return template.respond()
 
 
@@ -370,7 +377,7 @@ def editPage(req,page,request,unicodeError):
         nav.web.redirect(req,BASEPATH,seeOther=True)
    
     # Make a status object
-    status = editdbStatus()
+    status = seeddbStatus()
 
     # Get action from request (url)
     action = request[1] 
@@ -532,7 +539,7 @@ def editPage(req,page,request,unicodeError):
         return index(req,status=status)
 
     nameSpace = {'entryList': listView,'editList': None,'editForm': outputForm}
-    template = editdbTemplate(searchList=[nameSpace])
+    template = seeddbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
 
@@ -626,7 +633,7 @@ class Table:
         self.headings = headings
         self.rows = rows
 
-class editdbStatus:
+class seeddbStatus:
     ''' Struct class which holds two lists (messages and errors). Every 
         form object got an instance of this class and uses it to add 
         messages and errors which is then displayed by the template. '''
@@ -1328,7 +1335,7 @@ class editboxHiddenOrMessage(editbox):
         self.boxName = IGNORE_BOX
 
 
-class editdbPage:
+class seeddbPage:
     """ The main editing class. Every edit page inherits from this class.
 
         Contains functions for adding, updating and describing entries.
@@ -1338,7 +1345,7 @@ class editdbPage:
         The children of this class contains all the information needed
         for handling the different tables.
 
-         class editdbPage
+         class seeddbPage
                  |+-- class listDef
                  |+-- class editbox
                  |+-- (optionally more editboxes)
@@ -1365,7 +1372,7 @@ class editdbPage:
                         manipulated directly by eg. editNetbox.add() """
 
         error = None
-        status = editdbStatus()
+        status = seeddbStatus()
 
         id = None
         nextId = None 
@@ -1438,7 +1445,7 @@ class editdbPage:
             from form in request object. Overriden by some subclasses 
             such as pageNetbox. """
 
-        status = editdbStatus()
+        status = seeddbStatus()
         sqllist = []
         data = []
         error = None
@@ -1648,7 +1655,7 @@ class editdbPage:
         return status
 
         
-class pageCabling(editdbPage):
+class pageCabling(seeddbPage):
     """ Describes editing of the cabling table. """
     
     basePath = BASEPATH + 'cabling/'
@@ -1776,7 +1783,7 @@ class pageCabling(editdbPage):
             if formData:
                 self.formFill(formData)
 
-class pageContainer(editdbPage):
+class pageContainer(seeddbPage):
     """ Describes editing of containers (vp_netbox_grp_info). """
     
     basePath = BASEPATH + 'container/'
@@ -1846,7 +1853,7 @@ class pageContainer(editdbPage):
             if formData:
                 self.formFill(formData)
             
-class pageLocation(editdbPage):
+class pageLocation(seeddbPage):
     """ Describes editing of the location table. """
     
     basePath = BASEPATH + 'location/'
@@ -1936,7 +1943,7 @@ class pageLocation(editdbPage):
 
 
 
-class pageNetbox(editdbPage):
+class pageNetbox(seeddbPage):
     """ Describes editing of the netbox table """
 
     basePath = BASEPATH + 'netbox/'
@@ -2048,10 +2055,10 @@ class pageNetbox(editdbPage):
                 self.addHidden(selectList.cnameChk,editId)
                 self.sysname = manage.Netbox(editId).sysname
                 self.editId = editId
-                self.path = EDITPATH + [('IP devices','/editdb/netbox/list'),
+                self.path = EDITPATH + [('IP devices','/seeddb/netbox/list'),
                                         ('Edit',False)]
             else:
-                self.path = EDITPATH + [('IP devices','/editdb/netbox/list'),
+                self.path = EDITPATH + [('IP devices','/seeddb/netbox/list'),
                                         ('Add',False)]
      
             o = [(None,'Select an organisation')]
@@ -2256,7 +2263,7 @@ class pageNetbox(editdbPage):
 
         box = None
         error = None
-        status = editdbStatus()
+        status = seeddbStatus()
         action = 'predefined'
         form = req.form
         templateform.title = 'Add IP device'
@@ -2522,7 +2529,7 @@ class pageNetbox(editdbPage):
 
         box = None
         error = None
-        status = editdbStatus()
+        status = seeddbStatus()
         action = 'predefined'
         form = req.form
         templateform.title = 'Edit IP device'
@@ -2538,7 +2545,7 @@ class pageNetbox(editdbPage):
             step = int(form[CNAME_STEP])
         nextStep = step + 1
 
-        oldBox = editTables.editdbNetbox(selected)
+        oldBox = seeddbTables.seeddbNetbox(selected)
 
         if step == STEP_1:
             # Look up sysname in DNS, it might have changed
@@ -2886,7 +2893,7 @@ class pageNetbox(editdbPage):
             editboxHidden.addHidden(CNAME_STEP,nextStep) 
         return (status,action,templateform,selected)
 
-class pageOrg(editdbPage):
+class pageOrg(seeddbPage):
     """ Describes editing of the org table. """
     
     basePath = BASEPATH + 'org/'
@@ -2988,7 +2995,7 @@ class pageOrg(editdbPage):
                 self.formFill(formData)
 
 
-class pagePatch(editdbPage):
+class pagePatch(seeddbPage):
     """ Describes editing of the patch table. """
     
     basePath = BASEPATH + 'patch/'
@@ -3093,7 +3100,7 @@ class pagePatch(editdbPage):
         """ Describes fields for adding and editing patch entries.
             The template uses this field information to display the form. 
             This box uses the selectTree classes and updates itself
-            instead of using editdbPage.formFill(). """
+            instead of using seeddbPage.formFill(). """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -3316,7 +3323,7 @@ class pagePatch(editdbPage):
     def add(self,req,templateForm,action):
             """ Adds patch entries. Overrides the default add function. """
             error = None
-            status = editdbStatus()
+            status = seeddbStatus()
 
             split = None
             cablingid = None
@@ -3381,7 +3388,7 @@ class pagePatch(editdbPage):
     def update(self,req,outputForm,selected):
         """ Updates patch entries. Overrides the default update function. """
 
-        status = editdbStatus()
+        status = seeddbStatus()
         error = None
         action = 'edit'
 
@@ -3445,9 +3452,9 @@ class pagePatch(editdbPage):
         return (status,action,outputForm,selected)
  
 
-class pagePrefix(editdbPage):
-    """ Describes editing of the prefix table for nettypes of 'static'
-        'reserved' or 'scope'. """
+class pagePrefix(seeddbPage):
+    """ Describes editing of the prefix table for nettypes of 'reserved' or
+    'scope'. """
 
     basePath = BASEPATH + 'prefix/'
     table = nav.db.manage.Prefix
@@ -3527,8 +3534,7 @@ class pagePrefix(editdbPage):
             self.page = page.pageName
             self.table = page.table
 
-            nettypes = [('static','static'),
-                        ('reserved','reserved'),
+            nettypes = [('reserved','reserved'),
                         ('scope','scope')]
 
             orgs = [('','No organisation')]
@@ -3568,7 +3574,7 @@ class pagePrefix(editdbPage):
     def add(self,req,templateForm,action):
         """ Adds prefix entries. Overrides the default add function. """
         error = None
-        status = editdbStatus()
+        status = seeddbStatus()
 
         data = {'nettype': req.form['vlan.nettype'],
                 'description': req.form['vlan.description'],
@@ -3632,7 +3638,7 @@ class pagePrefix(editdbPage):
     def update(self,req,templateform,selected):
         """ Updates prefix entries. Overrides the default update function.  """
         error = None
-        status = editdbStatus()
+        status = seeddbStatus()
         formdata = {}
         idlist = []
         if type(req.form[UPDATE_ENTRY]) is list:
@@ -3696,7 +3702,7 @@ class pagePrefix(editdbPage):
             status.errors.append(error)
         return (status,action,templateform,selected)
 
-class pageProduct(editdbPage):
+class pageProduct(seeddbPage):
     """ Describes editing of the product table. """
     
     basePath = BASEPATH + 'product/'
@@ -3760,7 +3766,7 @@ class pageProduct(editdbPage):
             self.page = page.pageName
             self.table = page.table
             # Field definitions {field name: [input object, required]}
-            f = {'vendorid': [inputSelect(table=editTables.editdbVendor),
+            f = {'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
                               REQ_TRUE,'Vendor',FIELD_STRING],
                  'productno': [inputText(),REQ_TRUE,'Productno',FIELD_STRING],
                  'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING]}
@@ -3775,7 +3781,7 @@ class pageProduct(editdbPage):
             if formData:
                 self.formFill(formData)
 
-class pageRic(editdbPage):
+class pageRic(seeddbPage):
     """ Describes editing of routers in containers (vp_netbox_grp). """
     
     basePath = BASEPATH + 'ric/'
@@ -3921,7 +3927,7 @@ class pageRic(editdbPage):
             """ Adds routers in containers. Overrides the default add 
                 function. """
             error = None
-            status = editdbStatus()
+            status = seeddbStatus()
 
             containerId = req.form['container']
             routerList = req.form['cn_routers']
@@ -3948,10 +3954,10 @@ class pageRic(editdbPage):
 
     def update(self,req,templateForm,selected):
         """ Updates routers in containers. Overrides the default update 
-            function in editdbPage """
+            function in seeddbPage """
 
         action = 'list'
-        status = editdbStatus()
+        status = seeddbStatus()
         editId = req.form[UPDATE_ENTRY]
 
         routerList = req.form['cn_routers']
@@ -3980,7 +3986,7 @@ class pageRic(editdbPage):
         return (status,action,templateForm,selected)
 
 
-class pageRoom(editdbPage):
+class pageRoom(seeddbPage):
     """ Describes editing of the room table. """
     
     basePath = BASEPATH + 'room/'
@@ -4091,7 +4097,7 @@ class pageRoom(editdbPage):
             if disabled:
                 self.addDisabled()
 
-class pageService(editdbPage):
+class pageService(seeddbPage):
     """ Describes editing of the service table. """
     
     basePath = BASEPATH + 'service/'
@@ -4466,10 +4472,10 @@ class pageService(editdbPage):
 
     def add(self,req,templateForm,action):
         """ Adds a service entry. Overrides the default add function of
-            editdbPage. """
+            seeddbPage. """
 
         action = 'add'
-        status = editdbStatus()
+        status = seeddbStatus()
 
         form = req.form
         try:
@@ -4502,10 +4508,10 @@ class pageService(editdbPage):
 
     def update(self,req,templateForm,selected):
         """ Updates service entries. Overrides the default update function
-            in editdbPage """
+            in seeddbPage """
 
         action = 'edit'
-        status = editdbStatus()
+        status = seeddbStatus()
         editId = selected[0]
         form = req.form
 
@@ -4598,7 +4604,7 @@ class pageService(editdbPage):
 
     def updateOLD(self):
         action = 'edit'
-        status = editdbStatus()
+        status = seeddbStatus()
         editId = req.form[UPDATE_ENTRY]
         # Check if all required serviceproperties are present
         handler = nav.db.manage.Service(editId).handler
@@ -4669,7 +4675,7 @@ class pageService(editdbPage):
         selected = [editId]
         return (status,action,templateForm,selected)
 
-class pageSnmpoid(editdbPage):
+class pageSnmpoid(seeddbPage):
     """ Describes adding to the snmpoid table. """
     
     basePath = BASEPATH + 'snmpoid/'
@@ -4736,16 +4742,16 @@ class pageSnmpoid(editdbPage):
 
 
     def add(self,req,outputForm,action):
-        """ Dummy function which calls editdbPage.add and then sets action
+        """ Dummy function which calls seeddbPage.add and then sets action
             to redirect (to the menu page). """
 
-        status,action,outputForm,addedId = editdbPage.add(self,req,
+        status,action,outputForm,addedId = seeddbPage.add(self,req,
                                                           outputForm,action)
         action = 'redirect'
 
         return (status,action,outputForm,addedId)
 
-class pageSubcat(editdbPage):
+class pageSubcat(seeddbPage):
     """ Describes editing of the subcat table. """
     
     basePath = BASEPATH + 'subcat/'
@@ -4828,7 +4834,7 @@ class pageSubcat(editdbPage):
             if formData:
                 self.formFill(formData) 
 
-class pageType(editdbPage):
+class pageType(seeddbPage):
     """ Describes editing of the type table. """
     
     basePath = BASEPATH + 'type/'
@@ -4906,7 +4912,7 @@ class pageType(editdbPage):
             self.table = page.table
             # Field definitions {field name: [input object, required]}
             f = {'typename': [inputText(),REQ_TRUE,'Typename',FIELD_STRING],
-                 'vendorid': [inputSelect(table=editTables.editdbVendor),
+                 'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
                               REQ_TRUE,'Vendor',FIELD_STRING],
                  'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING],
                  'sysobjectid': [inputText(),REQ_TRUE,'Sysobjectid',
@@ -4927,7 +4933,7 @@ class pageType(editdbPage):
                 self.formFill(formData)
 
 
-class pageUsage(editdbPage):
+class pageUsage(seeddbPage):
     """ Describes editing of the usage table. """
     
     basePath = BASEPATH + 'usage/'
@@ -5003,7 +5009,7 @@ class pageUsage(editdbPage):
             if formData:
                 self.formFill(formData)
 
-class pageVendor(editdbPage):
+class pageVendor(seeddbPage):
     """ Describes editing of the vendor table. """
     
     basePath = BASEPATH + 'vendor/'
@@ -5081,7 +5087,7 @@ class pageVendor(editdbPage):
             if formData:
                 self.formFill(formData)
 
-class pageVlan(editdbPage):
+class pageVlan(seeddbPage):
     """ Describes editing of the vlan table (no adding or 
         deleting allowed). """
     
@@ -5197,7 +5203,7 @@ class pageVlan(editdbPage):
             if formData:
                 self.formFill(formData)
 
-# List of editdb pages
+# List of seeddb pages
 pageList = {'cabling': pageCabling,
             'container': pageContainer,
             'location': pageLocation,
@@ -5371,7 +5377,7 @@ def bulkImport(req,action):
     BULK_TABLENAME = 'blk_tbl'
     BULK_SEPARATOR = 'blk_sep'
 
-    status = editdbStatus()
+    status = seeddbStatus()
     # form
     form = editForm()
     form.status = status
@@ -5487,7 +5493,7 @@ def bulkImport(req,action):
         # import confirmed after preview
         table = req.form[BULK_TABLENAME]
         separator = req.form[BULK_SEPARATOR]
-        form.status = editdbStatus()
+        form.status = seeddbStatus()
         if req.form.has_key(BULK_HIDDEN_DATA):
             data = req.form[BULK_HIDDEN_DATA]
             result = bulkInsert(data,bulkdef[table],separator)
@@ -5504,7 +5510,7 @@ def bulkImport(req,action):
             form.status.errors.append('No rows to insert.')
 
     nameSpace = {'entryList': listView, 'editList': list, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
+    template = seeddbTemplate(searchList=[nameSpace])
     template.path = EDITPATH + [('Bulk import',False)]
     return template.respond()
 

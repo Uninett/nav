@@ -28,60 +28,15 @@
 from math import ceil
 from IPy import IP
 from nav import db
-from nav.report.utils import contains
 
 
-cursor = db.getConnection('webfront','manage').cursor()
-
-ipv4MetaMap = None
-ipv6MetaMap = None
-
-def _createIpv6MetaMap():
-    """At the time of writing, neither prefix_active_ip_cnt nor prefix_max_ip_cnt
-    contain/calculates the correct values for IPv6. Once this has been fixed, this
-    function needs to be changed."""
-
-    sql = """SELECT prefixid, nettype, netaddr
-             FROM prefix LEFT OUTER JOIN vlan USING(vlanid)
-             WHERE family(netaddr)=6"""
-
-    cursor.execute(sql)
-    rows = cursor.fetchall()
-    result = {}
-    for row in rows:
-        tupple = {}
-        tupple["prefixid"] = row[0]
-        tupple["nettype"] = row[1]
-        result[IP(row[2])] = tupple
-    return result
-
-def _createIpv4MetaMap():
-    sql = """SELECT prefixid, active_ip_cnt, max_ip_cnt, nettype, netaddr
-             FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
-                         LEFT OUTER JOIN prefix_max_ip_cnt USING(prefixid)
-                         LEFT OUTER JOIN vlan USING(vlanid)
-             WHERE family(netaddr)=4"""
-    cursor.execute(sql)
-    rows = cursor.fetchall()
-    result = {}
-    for row in rows:
-        tupple = {}
-        tupple["prefixid"] = row[0]
-        tupple["active_ip_cnt"] = row[1]
-        tupple["max_ip_cnt"] = row[2]
-        tupple["nettype"] = row[3]
-        result[IP(row[4])] = tupple
-    return result
-
-if ipv4MetaMap is None:
-    ipv4MetaMap = _createIpv4MetaMap()
-
-if ipv6MetaMap is None:
-    ipv6MetaMap = _createIpv6MetaMap()
-
-class UnexpectedRowCountError(Exception): pass
 class MetaIP:
     """Class for holding meta information on one IPy.IP address"""
+
+    # Class variables for caching
+    IPv4MetaMap = None
+    IPv6MetaMap = None
+
     def __init__(self,ip):
         self.netaddr = ip
         self.prefixid = None
@@ -91,9 +46,21 @@ class MetaIP:
         self.usage_percent = None
 
         if ip.version() == 4:
+            if MetaIP.IPv4MetaMap == None:
+                MetaIP.IPv4MetaMap = self._createIpv4MetaMap()
             self._setupIpv4()
         else:
+            if MetaIP.IPv6MetaMap == None:
+                MetaIP.IPv6MetaMap = self._createIpv6MetaMap()
             self._setupIpv6()
+
+    @classmethod
+    def invalidateCache(cls):
+        """Class method for invalidating the cache between calls from the
+        handler."""
+
+        cls.IPv4MetaMap = None
+        cls.IPv6MetaMap = None
 
     def getTreeNet(self,leadingZeros=True):
         """This method is used to get the string representation of the IP
@@ -133,16 +100,58 @@ class MetaIP:
 
         return netaddr
 
+    @classmethod
+    def _createIpv6MetaMap(cls):
+        """At the time of writing, neither prefix_active_ip_cnt nor prefix_max_ip_cnt
+        contain/calculates the correct values for IPv6. Once this has been fixed, this
+        function needs to be changed."""
+
+        sql = """SELECT prefixid, nettype, netaddr
+                 FROM prefix LEFT OUTER JOIN vlan USING(vlanid)
+                 WHERE family(netaddr)=6"""
+
+        cursor = db.getConnection('default','manage').cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        result = {}
+        for row in rows:
+            tupple = {}
+            tupple["prefixid"] = row[0]
+            tupple["nettype"] = row[1]
+            result[IP(row[2])] = tupple
+        return result
+
+    @classmethod
+    def _createIpv4MetaMap(cls):
+        sql = """SELECT prefixid, active_ip_cnt, max_ip_cnt, nettype, netaddr
+                 FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
+                             LEFT OUTER JOIN prefix_max_ip_cnt USING(prefixid)
+                             LEFT OUTER JOIN vlan USING(vlanid)
+                 WHERE family(netaddr)=4"""
+
+        cursor = db.getConnection('default','manage').cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        result = {}
+        for row in rows:
+            tupple = {}
+            tupple["prefixid"] = row[0]
+            tupple["active_ip_cnt"] = row[1]
+            tupple["max_ip_cnt"] = row[2]
+            tupple["nettype"] = row[3]
+            result[IP(row[4])] = tupple
+        return result
+
     def _setupIpv6(self):
-        if contains(ipv6MetaMap.keys(),self.netaddr):
-            metainfo = ipv6MetaMap[self.netaddr]
+        if self.netaddr in MetaIP.IPv6MetaMap:
+            metainfo = MetaIP.IPv6MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
             self.usage_percent = 4
 
     def _setupIpv4(self):
-        if contains(ipv4MetaMap.keys(),self.netaddr):
-            metainfo = ipv4MetaMap[self.netaddr]
+        if self.netaddr in MetaIP.IPv4MetaMap:
+            metainfo = MetaIP.IPv4MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
 
@@ -160,3 +169,5 @@ class MetaIP:
                 self.usage_percent = int(ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
             else:
                 self.usage_percent = 0
+
+class UnexpectedRowCountError(Exception): pass

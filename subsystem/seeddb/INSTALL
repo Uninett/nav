@@ -1,4 +1,4 @@
-editdb - Edit database
+seeddb - Seed database
 
 Dependencies
 ------------
@@ -6,11 +6,11 @@ Dependencies
 Imports forgetSQL
 
 All other imports are either python builtins or modules located in
-the editdb directory.
+the seeddb directory.
 
 
 Installation
 ------------
 
-The files should be placed in a directory 'editdb' in the webroot. Except
+The files should be placed in a directory 'seeddb' in the webroot. Except
 for the compiled template which goes with the other webfront templates.

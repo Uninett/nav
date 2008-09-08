@@ -35,7 +35,7 @@ subdirs = src \
 	subsystem/dbTools \
 	subsystem/devBrowser \
 	subsystem/deviceManagement \
-	subsystem/editdb \
+	subsystem/seeddb \
 	subsystem/ipinfo \
 	subsystem/ipdevinfo \
 	subsystem/l2trace \

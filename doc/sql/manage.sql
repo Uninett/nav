@@ -90,7 +90,6 @@ CREATE TABLE vlan (
   netident VARCHAR,
   description VARCHAR
 );  
-CREATE INDEX vlan_vlan_btree ON vlan USING btree (vlan);
 
 CREATE TABLE prefix (
   prefixid SERIAL PRIMARY KEY,
@@ -98,7 +97,6 @@ CREATE TABLE prefix (
   vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE(netaddr)
 );
-CREATE INDEX prefix_vlanid_btree ON prefix USING btree (vlanid);
 
 CREATE TABLE vendor (
   vendorid VARCHAR(15) PRIMARY KEY
@@ -208,16 +206,6 @@ CREATE TABLE netbox (
   UNIQUE(ip),
   UNIQUE(deviceid)
 );
-CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
-
--- Rules to automatically close open cam and arp entries related to a given netbox
-CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
-  DO UPDATE arp SET end_time=NOW()
-     WHERE netboxid=OLD.netboxid AND end_time='infinity';
-
-CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
-  DO UPDATE cam SET end_time=NOW()
-     WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
@@ -227,7 +215,6 @@ CREATE TABLE netboxsnmpoid (
   PRIMARY KEY(id),
   UNIQUE(netboxid, snmpoidid)
 );  
-CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
 
 CREATE TABLE netbox_vtpvlan (
   id SERIAL,
@@ -343,7 +330,6 @@ CREATE TABLE gwport (
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   UNIQUE(moduleid, ifindex)
 );
-CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE gwportprefix (
   gwportid INT4 NOT NULL REFERENCES gwport ON UPDATE CASCADE ON DELETE CASCADE,
@@ -352,8 +338,6 @@ CREATE TABLE gwportprefix (
   hsrp BOOL NOT NULL DEFAULT false,
   UNIQUE(gwip)
 );
-CREATE INDEX gwportprefix_gwportid_btree ON gwportprefix USING btree (gwportid);
-CREATE INDEX gwportprefix_prefixid_btree ON gwportprefix USING btree (prefixid);
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
@@ -362,8 +346,6 @@ CREATE TABLE swportvlan (
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, n=down, x=undefined?
   UNIQUE (swportid, vlanid)
 );
-CREATE INDEX swportvlan_swportid_btree ON swportvlan USING btree (swportid);
-CREATE INDEX swportvlan_vlanid_btree ON swportvlan USING btree (vlanid);
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
@@ -415,11 +397,6 @@ CREATE TABLE arp (
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
-CREATE INDEX arp_mac_btree ON arp USING btree (mac);
-CREATE INDEX arp_ip_btree ON arp USING btree (ip);
-CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
-CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
-CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
 
 -- Rule to automatically close open arp entries related to a given prefix
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
@@ -439,11 +416,16 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
-CREATE INDEX cam_mac_btree ON cam USING btree (mac);
-CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
-CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
-CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
-CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
+
+
+-- Rules to automatically close open cam and arp entries related to a given netbox
+CREATE OR REPLACE RULE netbox_close_arp AS ON DELETE TO netbox
+  DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
+  DO UPDATE cam SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
 
 -- VIEWs -----------------------
@@ -572,9 +554,6 @@ CREATE TABLE rrd_file (
   value     VARCHAR
 );
 
--- Values are used a lot in Netmap
-CREATE INDEX rrd_file_value ON rrd_file(value);
-
 -- Each datasource for each rrdfile is registered here. We need the name and
 -- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and
 -- to understand what that is for humans we need the descr.
@@ -647,14 +626,13 @@ CREATE TABLE eventq (
   value INT4 NOT NULL DEFAULT '100',
   severity INT4 NOT NULL DEFAULT '50'
 );
-CREATE INDEX eventq_target_btree ON eventq USING btree (target);
+
 CREATE TABLE eventqvar (
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
   UNIQUE(eventqid, var) -- only one val per var per event
 );
-CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
 
 
@@ -742,7 +720,7 @@ CREATE TABLE alertqmsg (
   PRIMARY KEY(id),
   UNIQUE(alertqid, msgtype, language)
 );
-CREATE INDEX alertqmsg_alertqid_btree ON alertqmsg USING btree (alertqid);
+
 CREATE TABLE alertqvar (
   id SERIAL,
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
@@ -751,7 +729,6 @@ CREATE TABLE alertqvar (
   PRIMARY KEY(id),
   UNIQUE(alertqid, var) -- only one val per var per event
 );
-CREATE INDEX alertqvar_alertqid_btree ON alertqvar USING btree (alertqid);
 
 
 CREATE TABLE alerthist (
@@ -767,8 +744,6 @@ CREATE TABLE alerthist (
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
-CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
-CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 
 -- Rule to automatically close module related alert states when modules are
 -- deleted.
@@ -788,7 +763,6 @@ CREATE TABLE alerthistmsg (
   PRIMARY KEY(id),
   UNIQUE(alerthistid, state, msgtype, language)
 );
-CREATE INDEX alerthistmsg_alerthistid_btree ON alerthistmsg USING btree (alerthistid);
 
 CREATE TABLE alerthistvar (
   id SERIAL,
@@ -799,7 +773,6 @@ CREATE TABLE alerthistvar (
   PRIMARY KEY(id),
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
-CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
 
 ------------------------------------------------------------------------------
 -- servicemon tables
@@ -816,7 +789,7 @@ CREATE TABLE service (
 CREATE RULE rrdfile_deleter AS 
     ON DELETE TO service 
     DO DELETE FROM rrd_file 
-        WHERE key='serviceid' AND value=old.serviceid;
+        WHERE key='serviceid' AND value=old.serviceid::text;
 
 CREATE TABLE serviceproperty (
   id SERIAL,

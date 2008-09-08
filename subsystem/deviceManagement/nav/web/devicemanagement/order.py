@@ -63,7 +63,7 @@ def order(req,path):
                 ('Order history','Show closed orders',
                 BASEPATH+'order/history'),
                 ('Add product','Add new product to the database',
-                '/editdb/product/edit/')]
+                '/seeddb/product/edit/')]
     page.submenu = submenu
 
     if not subpath or form.has_key(CN_CANCEL):
@@ -599,7 +599,7 @@ def registerOrder(req,formData):
     if formData.has_key(CN_COMMENT):
         fields['comment'] = formData[CN_COMMENT]
 
-    sequence = ('deviceorderid','public.deviceorder_deviceorderid_seq')
+    sequence = ('deviceorderid','deviceorder_deviceorderid_seq')
     orderid = insertFields(fields,'deviceorder',sequence)
 
     # Create devices

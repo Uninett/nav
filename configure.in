@@ -81,8 +81,8 @@ AC_OUTPUT(Makefile
 	subsystem/statemon/Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
-	subsystem/editdb/Makefile
-	subsystem/editdb/src/Makefile
+	subsystem/seeddb/Makefile
+	subsystem/seeddb/src/Makefile
 	subsystem/status/Makefile
 	subsystem/status/src/Makefile
 	subsystem/maintenance/Makefile

@@ -3,7 +3,6 @@ package no.uninett.nav.display.views.layouts;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.Line2D;
 import no.uninett.nav.netmap.Main;
 import prefuse.Constants;
 import prefuse.render.EdgeRenderer;
@@ -32,7 +31,7 @@ public class NetmapEdgeRender extends EdgeRenderer {
 	private int medHighLevel = 4096*1024;
 
 	public NetmapEdgeRender() {
-		this.setEdgeType(Constants.EDGE_TYPE_LINE);
+		setEdgeType(Constants.EDGE_TYPE_LINE);
 	}
 
 	@Override
