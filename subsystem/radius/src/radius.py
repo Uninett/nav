@@ -42,16 +42,20 @@ database = connection.cursor()
 def handler(req):
 
     # Mod_python caches these modules if we just import them
-    # like we would usually do. Enable the DEBUG flag during development 
-    # to get around this.
+    # like we would usually do. Enable the DEBUG flag during 
+    # development to get around this.
     
     if DEBUG:
-        AcctSearchTemplate = apache.import_module("nav.web.templates.AcctSearchTemplate", autoreload = 1)
-        AcctDetailTemplate = apache.import_module("nav.web.templates.AcctDetailTemplate", autoreload = 1)
-        AcctChartsTemplate = apache.import_module("nav.web.templates.AcctChartsTemplate", autoreload = 1)
-        LogTemplate = apache.import_module("nav.web.templates.LogTemplate", autoreload = 1)
-        LogDetailTemplate = apache.import_module("nav.web.templates.LogDetailTemplate", autoreload = 1)
-        
+        AcctSearchTemplate = apache.import_module(
+            "nav.web.templates.AcctSearchTemplate", autoreload = 1)
+        AcctDetailTemplate = apache.import_module(
+            "nav.web.templates.AcctDetailTemplate", autoreload = 1)
+        AcctChartsTemplate = apache.import_module(
+            "nav.web.templates.AcctChartsTemplate", autoreload = 1)
+        LogTemplate = apache.import_module(
+            "nav.web.templates.LogTemplate", autoreload = 1)
+        LogDetailTemplate = apache.import_module(
+            "nav.web.templates.LogDetailTemplate", autoreload = 1)
         radiuslib = apache.import_module("radiuslib", autoreload = 1)
     
 
@@ -60,7 +64,6 @@ def handler(req):
     from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
     from nav.web.templates.LogTemplate import LogTemplate
     from nav.web.templates.LogDetailTemplate import LogDetailTemplate
-    
     from radiuslib import makeTimeHumanReadable, makeBytesHumanReadable
 
     args = URI(req.unparsed_uri) 
@@ -77,13 +80,19 @@ def handler(req):
     menu = []
     if nav.auth.hasPrivilege(req.session['user'],
                              "web_access", "/" + baseurl + "/" + "acctsearch"):
-        menu.append({'link': 'acctsearch', 'text': 'Accounting Log', 'admin': False})
+        menu.append({'link': 'acctsearch', 
+                     'text': 'Accounting Log', 
+                     'admin': False})
     if nav.auth.hasPrivilege(req.session['user'],
                              "web_access", "/" + baseurl + "/" + "acctcharts"):
-        menu.append({'link': 'acctcharts', 'text': 'Accounting Charts', 'admin': False})
+        menu.append({'link': 'acctcharts', 
+                     'text': 'Accounting Charts', 
+                     'admin': False})
     if nav.auth.hasPrivilege(req.session['user'],
                              "web_access", "/" + baseurl + "/" + "logsearch"):
-        menu.append({'link': 'logsearch', 'text': 'Error Log', 'admin': False})
+        menu.append({'link': 'logsearch', 
+                     'text': 'Error Log', 
+                     'admin': False})
 
     page = AcctSearchTemplate()
     page.menu = menu
@@ -151,7 +160,7 @@ def handler(req):
 
     elif section.lower() == "acctcharts":
         page = AcctChartsTemplate()
-        page.current = "acctcharts" #DEV
+        page.current = "acctcharts"
         page.error = None
         page.menu = menu
 
@@ -191,7 +200,7 @@ def handler(req):
 
     else:
         page = AcctSearchTemplate()
-        page.current = "acctsearch" #DEV
+        page.current = "acctsearch"
         if DEBUG: page.refreshCache()
         page.search = None
         page.error = None
@@ -642,7 +651,7 @@ class AcctSearchQuery(SQLQuery):
                 # following clauses into two queries, which we then UNION
                 # together. This is done to be able to utilize the indices.
                 # For some reason postgres doesn't use the indices when we
-                # we OR all three of these clauses together.
+                # OR all three of these clauses together.
                 tmpWhereClause = ""
                 tmpWhereClause += """ 
                     (
