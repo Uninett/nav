@@ -48,7 +48,7 @@ urlpatterns = patterns('',
     url(r'^profile/remove/$', profile_remove,
         name='alertprofiles-profile-remove'),
 
-    url(r'^profile/time_period/(?P<time_period_id>\d+)/', profile_time_period,
+    url(r'^profile/time_period/(?P<time_period_id>\d+)/$', profile_time_period,
         name='alertprofiles-profile-timeperiod'),
     url(r'^profile/time_period/(?P<time_period_id>\d+)/subscriptions/$', profile_time_period_setup,
         name='alertprofiles-profile-timeperiod-setup'),

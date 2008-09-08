@@ -4,11 +4,30 @@
     Confirm deletion
 {% endblock %}
 
+{% block theadcols %}
+    {{ block.super }}
+    <th>Warnings</th>
+{% endblock %}
+
 {% block tbodycontent %}
     {% for element in elements %}
-    <tr>
-        <td><input type="checkbox" name="element" value="{{ element.0 }}" id="elementid_{{ element.0 }}" checked="checked" /></td>
-        <td><label for="elementid_{{ element.0 }}">{{ element.1 }}</label></td>
+    <tr class="{% cycle oddrow,evenrow %}">
+        <td><input type="checkbox" name="element" value="{{ element.0 }}" id="elementid_{{ element.id }}" checked="checked" /></td>
+        <td>
+            <label for="elementid_{{ element.id }}">{{ element.description }}</label>
+        </td>
+        <td>
+            <ul class="errorlist">
+                {% for warning in element.warnings %}
+                    <li>
+                        {{ warning.message }}
+                        {% if warning.link %}
+                            <a href="{{ warning.link }}">View</a>
+                        {% endif %}
+                   </li>
+                {% endfor %}
+            </ul>
+        </td>
     </tr>
     {% endfor %}
 {% endblock %}
