@@ -113,6 +113,10 @@
             {{ netbox.category }}</a></td>
     </tr>
     <tr>
+        <th>Function</th>
+        <td>{{ netbox.get_function|default:"N/A" }}</td>
+    </tr>
+    <tr>
         <th>Type</th>
         <td>
             {% if netbox.type %}

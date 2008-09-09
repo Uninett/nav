@@ -208,6 +208,12 @@ class Netbox(models.Model):
 
         return result
 
+    def get_function(self):
+        try:
+            return self.info_set.get(variable='function').value
+        except NetboxInfo.DoesNotExist:
+            return None
+
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
