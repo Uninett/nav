@@ -212,12 +212,13 @@ class MachineTrackerSQLQuery:
 class ResultRow:
 
     def __init__(self, ipaddr, mac, switch, module, port, start_time, end_time,
-                 dns=False):
+                 dns=False, current_sysname=None):
         self.ipaddr = ipaddr
         self.mac = mac
         self.switch = switch
         self.module = module
         self.port = port
+        self.current_sysname = current_sysname
 
         if start_time is not None:
             self.start_time = start_time.strftime("%Y-%m-%d %H:%M")
@@ -242,8 +243,11 @@ class MACSQLQuery(MachineTrackerSQLQuery):
 
     def __init__(self, mac=None, days=7):
         MachineTrackerSQLQuery.__init__(self, days)
-        self.select = ("SELECT mac, sysname, module, port, start_time,  " +
-                       "end_time FROM cam")
+        self.select = ("""
+            SELECT cam.mac, cam.sysname, cam.module, cam.port, cam.start_time,
+                cam.end_time, n.sysname AS current_sysname
+            FROM cam LEFT JOIN netbox AS n ON (cam.netboxid = n.netboxid)
+            """)
         if mac:
             mac = re.sub("[^0-9a-fA-F]+", "", mac)
             mac = mac.lower()
@@ -254,20 +258,20 @@ class MACSQLQuery(MachineTrackerSQLQuery):
                         mac_min, mac_max))
             else:
                 self.where.append("mac = '%s'" % mac)
-        self.order_by = "mac,sysname,module,port,start_time DESC"
+        self.order_by = "mac,cam.sysname,module,port,start_time DESC"
 
     def getRows(self, dns=False, active=False, nonActive=False):
         lastKey = None
         for row in self.result:
-            mac, switch, module, port, start, end = row
+            (mac, switch, module, port, start, end, current_sysname) = row
             key = (mac, switch, module, port)
             if key == lastKey:
                 yield ResultRow(None, None, None, None, None, start, end,
-                                False)
+                                False, None)
             else:
                 lastKey = key
                 yield ResultRow(None, mac, switch, module, port, start, end,
-                                False)
+                                False, current_sysname)
 
 
 class IPSQLQuery(MachineTrackerSQLQuery):
@@ -352,8 +356,8 @@ class SwPortSQLQuery(MACSQLQuery):
         except ValueError:
             pass
 
-        self.order_by = "sysname, module, port, mac, start_time DESC"
-        self.where.append("sysname ILIKE '%s%%'" % ip)
+        self.order_by = "cam.sysname, module, port, mac, start_time DESC"
+        self.where.append("cam.sysname ILIKE '%s%%'" % ip)
         if module and module != "*":
             self.where.append("module = '%s'" % module)
         if port and port != "*":
