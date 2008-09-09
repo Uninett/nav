@@ -29,9 +29,7 @@ subdirs = \
 	Logger \
 	NetboxInfo \
 	SimpleSnmp \
-	vlanPlot \
 	webapps/navAdmin \
-	webapps/vPServer \
 	Netmap
 
 # We build our own classpath, to resolve interdependencies between the java modules.
