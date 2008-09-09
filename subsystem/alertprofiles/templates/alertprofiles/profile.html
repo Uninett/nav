@@ -1,9 +1,6 @@
-{% extends "alertprofiles/base.html" %}
+{% extends "alertprofiles/base_list.html" %}
 
 {% block tabcontent %}
-<p>
-    <a href="{% url alertprofiles-profile-new %}">Make a new profile.</a>
-</p>
 <form action="{% url alertprofiles-profile-remove %}" method="post">
 <table class="listtable">
     <caption>

@@ -123,7 +123,6 @@ def overview(request):
 
 def profile(request):
     account = get_account(request)
-    active = {'profile': True}
 
     page = request.GET.get('page', 1)
 
@@ -144,7 +143,8 @@ def profile(request):
     profiles = AlertProfile.objects.filter(account=account.pk).order_by(order_by)
 
     info_dict = {
-            'active': active,
+            'active': {'profile': True},
+            'subsection': {'list': True},
             'profiles': profiles,
             'active_profile': active_profile,
             'page_link': reverse('alertprofiles-profile'),
@@ -191,6 +191,9 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
     templates = None
     if not profile_id:
         templates = read_time_period_templates()
+        subsection = {'new': True}
+    else:
+        subsection = {'detail': profile.id}
 
     info_dict = {
         'form': profile_form,
@@ -200,6 +203,7 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         'alert_subscriptions': alert_subscriptions_table(periods),
         'time_period_templates': templates,
         'active': {'profile': True},
+        'subsection': subsection,
     }
     return render_to_response(
         AlertProfilesTemplate,
@@ -333,8 +337,6 @@ def profile_remove(request):
         active_profile = AlertPreference.objects.get(account=account).active_profile
         profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('profile'))
 
-        # Build tuples, (id, description_string), and check for errors while
-        # doing so.
         elements = []
         for p in profiles:
             warnings = []
@@ -363,6 +365,7 @@ def profile_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-remove'),
                 'active': {'profile': True},
+                'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
             }
@@ -446,6 +449,8 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         time_period_form = TimePeriodForm(instance=time_period)
 
     info_dict = {
+        'active': {'profile': True},
+        'subsection': {'detail': time_period.profile.id, 'timeperiod': time_period.id},
         'time_period': time_period,
         'time_period_form': time_period_form,
     }
@@ -595,6 +600,7 @@ def profile_time_period_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-timeperiod-remove'),
                 'active': {'profile': True},
+                'subsection': {'detail': profile.id},
                 'elements': elements,
             }
         return render_to_response(
@@ -640,6 +646,7 @@ def profile_time_period_setup(request, time_period_id=None):
         'subscriptions': subscriptions,
         'time_period': time_period,
         'active': {'profile': True},
+        'subsection': {'detail': profile.id, 'subscriptions': time_period.id},
         'editing': editing,
     }
     return render_to_response(
@@ -702,7 +709,9 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
 
     account = get_account(request)
 
-    subscription = AlertSubscription.objects.get(pk=subscription_id)
+    subscription = AlertSubscription.objects.select_related(
+        'time_period', 'time_period__profile'
+    ).get(pk=subscription_id)
     form = AlertSubscriptionForm(instance=subscription, time_period=subscription.time_period)
     profile = subscription.time_period.profile
 
@@ -712,6 +721,12 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
     info_dict = {
         'form': form,
         'active': {'profile': True},
+        'subsection': {
+            'detail': profile.id,
+            'subscriptions': subscription.time_period.id,
+            'subscription_detail': subscription.id,
+        },
+        'subscription': subscription,
         'editing': True,
     }
     return render_to_response(
@@ -804,6 +819,7 @@ def profile_time_period_subscription_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-profile-timeperiod-subscription-remove'),
                 'active': {'profile': True},
+                'subsection': {'detail': period.profile.id, 'subscriptions': period.id},
                 'elements': elements,
                 'perform_on': period.id,
             }
@@ -841,6 +857,7 @@ def address_list(request):
 
     info_dict = {
             'active': {'address': True},
+            'subsection': {'list': True},
             'form_action': reverse('alertprofiles-address-remove'),
             'page_link': reverse('alertprofiles-address'),
             'order_by': order_by,
@@ -885,8 +902,14 @@ def address_show_form(request, address_id=None, address_form=None):
     if not address_form:
         address_form = AlertAddressForm(instance=address)
 
+    if not detail_id:
+        subsection = {'new': True}
+    else:
+        subsection = {'detail': detail_id}
+
     info_dict = {
         'active': {'address': True},
+        'subsection': subsection,
         'detail_id': detail_id,
         'form': address_form,
         'owner': True,
@@ -1032,6 +1055,7 @@ def address_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-address-remove'),
                 'active': {'address': True},
+                'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
             }
