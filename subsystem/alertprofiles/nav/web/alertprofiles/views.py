@@ -1149,6 +1149,7 @@ def filter_list(request):
     active = {'filters': True}
     info_dict = {
             'active': active,
+            'subsection': {'list': True},
             'admin': admin,
             'form_action': reverse('alertprofiles-filters-remove'),
             'page_link': reverse('alertprofiles-filters'),
@@ -1228,11 +1229,17 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         else:
             filter_form = FilterForm(initial={'owner': account}, admin=admin, is_owner=is_owner)
 
+    if filter_id:
+        subsection = {'detail': filter_id}
+    else:
+        subsection = {'new': True}
+
     return render_to_response(
             AlertProfilesTemplate,
             'alertprofiles/filter_form.html',
             {
                 'active': active,
+                'subsection': subsection,
                 'admin': admin,
                 'owner': is_owner,
                 'detail_id': filter_id,
@@ -1349,6 +1356,7 @@ def filter_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-filters-remove'),
                 'active': {'filters': True},
+                'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
             }
@@ -1398,6 +1406,7 @@ def filter_addexpresion(request):
     info_dict = {
             'form': form,
             'active': active,
+            'subsection': {'detail': filter.id},
             'filter': filter,
             'matchfield': matchfield,
             'list_limited': list_limited,
@@ -1523,6 +1532,7 @@ def filter_removeexpresion(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-filters-removeexpresion'),
                 'active': {'filters': True},
+                'subsection': {'detail': filter.id},
                 'elements': elements,
                 'perform_on': filter.id,
             }
@@ -1564,6 +1574,7 @@ def filtergroup_list(request):
     active = {'filtergroups': True}
     info_dict = {
             'active': active,
+            'subsection': {'list': True},
             'admin': admin,
             'form_action': reverse('alertprofiles-filtergroups-remove'),
             'page_link': reverse('alertprofiles-filtergroups'),
@@ -1654,8 +1665,14 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
         else:
             filter_group_form = FilterGroupForm(initial={'owner': account}, admin=admin, is_owner=is_owner)
 
+    if filter_group_id:
+        subsection = {'detail': filter_group_id}
+    else:
+        subsection = {'new': True}
+
     info_dict = {
             'active': active,
+            'subsection': subsection,
             'admin': admin,
             'owner': is_owner,
             'detail_id': filter_group_id,
@@ -1781,6 +1798,7 @@ def filtergroup_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-filtergroups-remove'),
                 'active': {'filtergroups': True},
+                'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
             }
@@ -1938,6 +1956,7 @@ def filtergroup_removefilter(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-filtergroups-removefilter'),
                 'active': {'filters': True},
+                'subsection': {'detail': filter_group.id},
                 'elements': elements,
                 'perform_on': filter_group.id,
             }
@@ -2052,6 +2071,7 @@ def matchfield_list(request):
     matchfields = MatchField.objects.all().order_by(order_by)
     info_dict = {
             'active': {'matchfields': True},
+            'subsection': {'list': True},
             'form_action': reverse('alertprofiles-matchfields-remove'),
             'order_by': order_by,
         }
@@ -2109,8 +2129,14 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         selected = o[0] in matchfield_operators_id
         operators.append({'id': o[0], 'name': o[1], 'selected': selected})
 
+    if matchfield_id:
+        subsection = {'detail': matchfield_id}
+    else:
+        subsection = {'new': True}
+
     info_dict = {
             'active': active,
+            'subsection': subsection,
             'detail_id': matchfield_id,
             'form': matchfield_form,
             'operators': operators,
@@ -2213,6 +2239,7 @@ def matchfield_remove(request):
         info_dict = {
                 'form_action': reverse('alertprofiles-matchfields-remove'),
                 'active': {'matchfields': True},
+                'subsection': {'list': True},
                 'elements': [{'id': m.id,'description': m.name} for m in matchfields],
                 'perform_on': None,
             }
