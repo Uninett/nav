@@ -189,6 +189,7 @@
 </table>
 </div>
 
+
 <div id="hostinfo">
 <table class="vertitable">
     <caption>Host: {{ host_info.host }}</caption>
@@ -217,6 +218,7 @@
     </tr>
 </table>
 </div>
+
 
 {% if netbox %}
 <div id="alerts">
@@ -271,69 +273,49 @@
 
 {% endif %}
 
+
 {% if netbox and netbox.module_set.count %}
 
-<h3>Port view</h3>
+<div id="portview">
+    <h3>Port view</h3>
 
-{% if netbox.get_swports.count %}
-
-<div id="swportstatus">
     <div class="tabs">
-    <ul>
-        <li class="tabactive"><a>Switch port status</a></li>
-        <li><a href="#" onClick="showPorts('swportactive'); return false">Switch port activity</a></li>
-        <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
-    </ul>
+        <ul>
+            {% if netbox.get_swports.count %}
+            <li{% ifequal port_view 'swportstatus' %} class="tabactive"{% endifequal %}>
+                <a href="?view=swportstatus#portview">Switch port status</a>
+            </li>
+            <li{% ifequal port_view 'swportactive' %} class="tabactive"{% endifequal %}>
+                <a href="?view=swportactive#portview">Switch port activity</a>
+            </li>
+            {% endif %}
+            {% if netbox.get_gwports.count %}
+            <li{% ifequal port_view 'gwportstatus' %} class="tabactive"{% endifequal %}>
+                <a href="?view=gwportstatus#portview">Router port status</a>
+            </li>
+            {% endif %}
+        </ul>
     </div>
 
     <div class="tabcontent">
     {% for module in netbox.module_set.select_related %}
-    {% include "ipdevinfo/module-swport-status.html" %}
+        {% ifequal port_view 'swportstatus' %}
+            {% include "ipdevinfo/module-swport-status.html" %}
+        {% endifequal %}
+        {% ifequal port_view 'swportactive' %}
+            {% include "ipdevinfo/module-swport-active.html" %}
+        {% endifequal %}
+        {% ifequal port_view 'gwportstatus' %}
+            {% include "ipdevinfo/module-gwport-status.html" %}
+        {% endifequal %}
     {% endfor %}
     </div>
-</div>
 
-<div id="swportactive" style="display: none;">
-    <div class="tabs">
-    <ul>
-        <li><a href="#" onClick="showPorts('swportstatus'); return false">Switch port status</a></li>
-        <li class="tabactive"><a>Switch port activity</a></li>
-        <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
-    </ul>
-    </div>
-
-    <div class="tabcontent">
-    {% for module in netbox.module_set.select_related %}
-    {% include "ipdevinfo/module-swport-active.html" %}
-    {% endfor %}
-    </div>
+    {% include "ipdevinfo/port-legend.html" %}
 </div>
 
 {% endif %}
 
-{% if netbox.get_gwports.count %}
-
-<div id="gwportstatus" style="display: none;">
-    <div class="tabs">
-    <ul>
-        <li><a href="#" onClick="showPorts('swportstatus'); return false">Switch port status</a></li>
-        <li><a href="#" onClick="showPorts('swportactive'); return false">Switch port activity</a></li>
-        <li class="tabactive"><a>Router port status</a></li>
-    </ul>
-    </div>
-
-    <div class="tabcontent">
-    {% for module in netbox.module_set.select_related %}
-    {% include "ipdevinfo/module-gwport-status.html" %}
-    {% endfor %}
-    </div>
-</div>
-
-{% endif %}
-
-{% include "ipdevinfo/port-legend.html" %}
-
-{% endif %}
 
 {% if netbox %}
 <h3>Statistics</h3>

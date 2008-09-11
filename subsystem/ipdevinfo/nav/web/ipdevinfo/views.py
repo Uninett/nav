@@ -139,6 +139,7 @@ def ipdev_details(request, name=None, addr=None):
     errors = []
     host_info = get_host_info(name or addr)
     netbox = None
+    port_view = None
 
     # Lookup IP device in NAV
     if name is not None:
@@ -170,6 +171,15 @@ def ipdev_details(request, name=None, addr=None):
     else:
         alerts = AlertHistory.objects.none()
 
+    # Select port view to display
+    if netbox is not None:
+        port_view = request.GET.get('view', None)
+        if port_view not in ('swportstatus', 'swportactive', 'gwportstatus'):
+            if netbox.get_swports().count():
+                port_view = 'swportstatus'
+            elif netbox.get_gwports().count():
+                port_view = 'gwportstatus'
+
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/ipdev-details.html',
         {
@@ -177,6 +187,7 @@ def ipdev_details(request, name=None, addr=None):
             'host_info': host_info,
             'netbox': netbox,
             'alerts': alerts,
+            'port_view': port_view,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
