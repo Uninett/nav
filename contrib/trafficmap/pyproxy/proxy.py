@@ -1,7 +1,5 @@
 # -*- coding: ISO8859-1 -*-
 #
-# $Id$
-#
 # Copyright 2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)

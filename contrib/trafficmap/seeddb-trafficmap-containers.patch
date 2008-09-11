@@ -1,0 +1,326 @@
+Add Traffic Map container editing capability to seeddb.
+--- a/subsystem/seeddb/src/seeddb.py	Tue Sep 09 14:53:22 2008 +0200
++++ b/subsystem/seeddb/src/seeddb.py	Tue Sep 09 14:47:46 2008 +0200
+@@ -339,6 +339,19 @@ def index(req,showHelp=False,status=None
+             [BASEPATH + 'bulk/patch','Bulk import']]]
+     body.tables.append(Table('Cabling system','',headings,rows))
+ 
++    # Table for containers (Network load map)
++    rows = [['Container',
++             'A container is a collection of routers for the traffic map ',
++            [BASEPATH + 'container/edit','Add'],
++            [BASEPATH + 'container/list','Edit'],
++            None],
++            ['Routers In Container',
++             'Add or remove routers from containers ',
++            [BASEPATH + 'ric/edit','Add'],
++            [BASEPATH + 'ric/list','Edit'],
++            None]]
++    body.tables.append(Table('Traffic Map','',headings,rows))
++
+ 
+ 
+     nameSpace = {'entryList': None, 'editList': None, 'editForm': None, 'body': body}
+@@ -1770,6 +1783,76 @@ class pageCabling(seeddbPage):
+             if formData:
+                 self.formFill(formData)
+ 
++class pageContainer(seeddbPage):
++    """ Describes editing of containers (vp_netbox_grp_info). """
++    
++    basePath = BASEPATH + 'container/'
++    table = nav.db.manage.Vp_netbox_grp_info
++    pageName = 'container'
++    tableName = 'vp_netbox_grp_info'
++    tableIdKey = 'vp_netbox_grp_infoid'
++    sequence = 'vp_netbox_grp_info_vp_netbox_grp_infoid_seq'
++    editMultipleAllowed = True
++    editIdAllowed = False
++
++    # Unique fields (for errormessages from add/update)
++    unique = None
++
++    # Nouns
++    singular = 'container'
++    plural = 'containers'
++
++    # Delete dependencies
++    dependencies = []
++
++    # Description format used by describe(id)
++    # Example: room 021 (descr) to jack 123, building, office
++    descriptionFormat = [('','name')]
++
++    pathAdd = EDITPATH + [('Container',basePath+'list'),('Add',False)]
++    pathEdit = EDITPATH + [('Container',basePath+'list'),('Edit',False)]
++    pathDelete = EDITPATH + [('Container',basePath+'list'),('Delete',False)]
++    pathList = EDITPATH + [('Container',False)]
++
++    class listDef(entryList):
++        """ Describes the format of the list view of containers. """
++        def __init__(self,req,struct,sort,deleteWhere=None):
++            # Do general init
++            entryList.__init__(self,req,struct,sort,deleteWhere)
++            
++            self.defaultSortBy = 1
++
++            # list of (heading text, show sortlink, compare function for sort)
++            self.headingDefinition = [('Select',False,None),
++                                      ('Name',True,None)]
++
++            self.cellDefinition = [(('vp_netbox_grp_infoid,name',
++                                     'vp_netbox_grp_info',
++                                     None,
++                                     None,
++                                     'name'),
++                                    [(None,None,entryListCell.CHECKBOX,None,None),
++                                     (1,'{p}edit/{id}',None,None,None)])]
++
++    class editbox(editbox):
++        """ Describes fields for adding and editing vendor entries.
++            The template uses this field information to display the form. """
++    
++        def __init__(self,page,req=None,editId=None,formData=None):
++            self.page = page.pageName
++            self.table = page.table
++            # Field definitions {field name: [input object, required]}
++            f = {'name': [inputText(),REQ_TRUE,'Name',FIELD_STRING]}
++            self.fields = f
++            self.setControlNames()
++
++            if editId:
++                self.editId = editId
++                self.fill()
++
++            if formData:
++                self.formFill(formData)
++            
+ class pageLocation(seeddbPage):
+     """ Describes editing of the location table. """
+     
+@@ -3697,6 +3780,210 @@ class pageProduct(seeddbPage):
+ 
+             if formData:
+                 self.formFill(formData)
++
++class pageRic(seeddbPage):
++    """ Describes editing of routers in containers (vp_netbox_grp). """
++    
++    basePath = BASEPATH + 'ric/'
++    table = nav.db.manage.Vp_netbox_grp
++    pageName = 'ric'
++    tableName = 'vp_netbox_grp'
++    # Id is vp_netbox_grp_infoid and pnetboxid, but use pnetboxid
++    # since it's easier and should be unique
++    tableIdKey = 'pnetboxid'
++    sequence = None
++    editMultipleAllowed = False
++    editIdAllowed = True
++
++    # Description format used by describe(id)
++    descriptionFormat = [(' in container',None)]
++
++    # Unique fields (for errormessages from add/update)
++    unique = ['vp_netbox_grp_infoid','pnetboxid']
++
++    # Nouns
++    singular = 'router in container'
++    plural = 'routers in containers'
++
++    # Delete dependencies
++    dependencies = []
++
++    ric = 'Routers in containers'
++    pathAdd = EDITPATH + [(ric,basePath+'list'),('Add',False)]
++    pathEdit = EDITPATH + [(ric,basePath+'list'),('Edit',False)]
++    pathDelete = EDITPATH + [(ric,basePath+'list'),('Delete',False)]
++    pathList = EDITPATH + [(ric,False)]
++
++    class listDef(entryList):
++        """ Describes product list view """
++        def __init__(self,req,struct,sort,deleteWhere=None):
++            # Do general init
++            entryList.__init__(self,req,struct,sort,deleteWhere)
++            
++            # Specific init
++            self.defaultSortBy = 1
++
++            # list of (heading text, show sortlink, compare function for sort)
++            self.headingDefinition = [('Select',False,None),
++                                      ('Container',True,None),
++                                      ('Router',True,None)]
++
++            self.cellDefinition = [(('vp_netbox_grp.pnetboxid,' +\
++                                     'vp_netbox_grp_info.name,netbox.sysname',
++                                     'vp_netbox_grp,vp_netbox_grp_info,netbox',
++                                     None,
++                                     'pnetboxid=netbox.netboxid AND ' +\
++                                     'vp_netbox_grp.vp_netbox_grp_infoid=' +\
++                                     'vp_netbox_grp_info.vp_netbox_grp_infoid',
++                                     'vp_netbox_grp_info.name,netbox.sysname'),
++                                    [(None,None,entryListCell.CHECKBOX,None,None),
++                                     (1,'{p}edit/{id}',None,None,None),
++                                     (2,None,None,None,None)])]
++
++    class editbox(editbox):
++        """ Describes fields for adding and editing routers to containers.
++            The template uses this field information to display the form. """
++
++        def __init__(self,page,req=None,editId=None,formData=None):
++            self.page = page.pageName
++            self.table = page.table
++            self.hiddenFields = {}
++
++            # Make list of routers
++            where = "AND ((SELECT count(*) FROM vp_netbox_grp WHERE " +\
++                    "pnetboxid=netbox.netboxid) = 0)"
++            selectedRouters = []
++            disabled = False
++            if editId:
++                # editId given is netboxid, get containerid
++                sql = "SELECT vp_netbox_grp_infoid FROM vp_netbox_grp " +\
++                      "WHERE pnetboxid='" + editId + "'"
++                result = executeSQLreturn(sql)
++                containerId = str(result[0][0])
++                # Doesn't call self.fill(), so set update attribs here
++                self.boxName = UPDATE_ENTRY
++                self.editId = editId
++                self.boxId = self.editId
++                # Disable container select
++                disabled = True
++
++                sql = "SELECT pnetboxid FROM vp_netbox_grp WHERE " +\
++                      "vp_netbox_grp_infoid='" + containerId + "'"
++                result = executeSQLreturn(sql)      
++                for row in result:
++                    selectedRouters.append(str(row[0]))
++
++                # If we're editing, include routers already in container
++                where = "AND (((SELECT count(*) FROM vp_netbox_grp WHERE " +\
++                        "pnetboxid=netbox.netboxid) = 0) OR ((SELECT " +\
++                        "count(*) FROM vp_netbox_grp WHERE " +\
++                        "vp_netbox_grp_infoid='" + containerId +\
++                        "' AND pnetboxid=netboxid) = 1))"
++               
++            select1 = simpleSelect('Routers',
++                                   'cn_routers',
++                                   ('netboxid,sysname',
++                                    'netbox',
++                                    None,
++                                    "(catid='GSW' OR catid='GW') " + where,
++                                    'sysname'),
++                                    selectedRouters,
++                                    optionFormat='$2',
++                                    setOnChange=False,
++                                    selectMultiple=True,
++                                    multipleHeight=8)
++
++            st = selectTree()
++            st.addSelect(select1)
++            lb = None
++            if req:
++                st.update(req.form)
++                lb = selectTreeLayoutBox(showEmptySelects=True,
++                                         showTitles=False)
++                lb.addSelect(select1)
++
++            # Make list of containers
++            containers = [('','Select a container')]
++            cs = nav.db.manage.Vp_netbox_grp_info.getAll(orderBy='name')
++            for c in cs:
++                containers.append((str(c.vp_netbox_grp_infoid),c.name))
++            # Field definitions {field name: [input object, required]}
++            f = {'container': [inputSelect(options=containers,
++                                           disabled=disabled),
++                              REQ_TRUE,'Container',FIELD_STRING],
++                 'routers': [inputTreeSelect(treeselect=lb),REQ_TRUE,
++                             'Routers',FIELD_STRING]}
++
++            self.fields = f
++            self.setControlNames()
++
++            if editId:
++                # Set container value (routers list set by selectTree)
++                self.fields['container'][0].value = containerId
++            if disabled:
++                self.addDisabled()
++
++    def add(self,req,templateForm,action):
++            """ Adds routers in containers. Overrides the default add 
++                function. """
++            error = None
++            status = seeddbStatus()
++
++            containerId = req.form['container']
++            routerList = req.form['cn_routers']
++            if not type(routerList) is list:
++                routerList = [routerList]
++                
++            for netboxId in routerList:
++                fields = {'vp_netbox_grp_infoid': containerId,
++                          'pnetboxid': netboxId}
++                try:
++                    addEntryFields(fields,self.tableName)
++                except psycopg.ProgrammingError:
++                    # This router already added to this container
++                    routerList.remove(netboxId)
++
++            action = 'list'
++            cntname = nav.db.manage.Vp_netbox_grp_info(containerId).name
++            for netboxId in routerList:
++                sysname = nav.db.manage.Netbox(netboxId).sysname
++                message = "Added router '" + sysname + "' to container '" +\
++                          cntname + "'"
++                status.messages.append(message)
++            return (status,action,templateForm,None)
++
++    def update(self,req,templateForm,selected):
++        """ Updates routers in containers. Overrides the default update 
++            function in seeddbPage """
++
++        action = 'list'
++        status = seeddbStatus()
++        editId = req.form[UPDATE_ENTRY]
++
++        routerList = req.form['cn_routers']
++        if not type(routerList) is list:
++            routerList = [routerList]
++       
++        # editId given is netboxid, get containerid
++        sql = "SELECT vp_netbox_grp_infoid FROM vp_netbox_grp " +\
++              "WHERE pnetboxid='" + editId + "'"
++        result = executeSQLreturn(sql)
++        containerId = str(result[0][0])
++
++        # Remove all routers from container
++        sql = "DELETE FROM vp_netbox_grp WHERE vp_netbox_grp_infoid='" +\
++             containerId + "'"
++        executeSQL([sql])
++
++        # Add selected routers to container
++        for netboxId in routerList:
++            fields = {'vp_netbox_grp_infoid':  containerId,
++                      'pnetboxid': netboxId}
++            addEntryFields(fields,self.tableName)
++
++        selected = [editId]
++        status.messages.append('Updated container')
++        return (status,action,templateForm,selected)
+ 
+ 
+ class pageRoom(seeddbPage):
+@@ -4918,12 +5205,14 @@ class pageVlan(seeddbPage):
+ 
+ # List of seeddb pages
+ pageList = {'cabling': pageCabling,
++            'container': pageContainer,
+             'location': pageLocation,
+             'netbox': pageNetbox,
+             'org': pageOrg,
+             'patch': pagePatch,
+             'prefix': pagePrefix,
+             'product': pageProduct,
++            'ric': pageRic,
+             'room': pageRoom,
+             'service': pageService,
+             'snmpoid': pageSnmpoid,

@@ -1,7 +1,5 @@
 # -*- coding: ISO8859-1 -*-
 #
-# $Id: proxy.py 2719 2004-05-20 13:54:20Z mortenv $
-#
 # Copyright 2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
@@ -37,7 +35,7 @@ def handler(req):
                    443:'https',
                    }
     protocol = protocolmap.get(req.connection.local_addr[1], 'http')
-    applet = '<APPLET ARCHIVE="vlanPlot.jar" CODE="vlanPlot.class" CODEBASE="." WIDTH=800 HEIGHT=600>\n'
+    applet = '<APPLET ARCHIVE="applet/vlanPlot.jar" CODE="vlanPlot.class" CODEBASE="." WIDTH=800 HEIGHT=600>\n'
        
     args = {}
     server = req.server.server_hostname
