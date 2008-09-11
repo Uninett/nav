@@ -749,6 +749,15 @@ class SwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
+    def get_vlans(self):
+        # XXX: This causes a DB query per port
+        vlans = [swpv.vlan.vlan
+            for swpv in self.swportvlan_set.select_related(depth=1)]
+        if self.vlan not in vlans:
+            vlans.append(self.vlan)
+        vlans.sort()
+        return vlans
+
     def get_status_classes(self):
         """Status classes for IP Device Info port view"""
 
@@ -793,12 +802,9 @@ class SwPort(models.Model):
             title.append(self.get_duplex_display())
         if self.media:
             title.append(self.media)
-
-        # XXX: This causes a DB query per port
-        vlans = [str(swpv.vlan.vlan)
-            for swpv in self.swportvlan_set.select_related(depth=1)]
-        if vlans:
-            title.append('vlan ' + ','.join(vlans))
+        if self.get_vlans():
+            title.append('vlan ' + ','.join(
+                [str(v) for v in self.get_vlans()]))
 
         # XXX: This causes a DB query per port
         blocked_vlans = [str(block.vlan)
