@@ -18,15 +18,20 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+# Authors: Magnus Motzfeldt Eide <magnus.eide@uninett.no>
 #
+
+"""Django URL configuration"""
 
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
+__author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 
-from django import forms
+from django.conf.urls.defaults import *
 
-class SearchForm(forms.Form):
-    query = forms.CharField(max_length=100, label='IP or hostname')
+def get_urlpatterns():
+    urlpatterns = patterns('',
+        # Give the alertprofiles namespace to the Alert Profile subsystem
+        (r'^alertprofiles/', include('nav.web.alertprofiles.urls')),
+    )
+    return urlpatterns

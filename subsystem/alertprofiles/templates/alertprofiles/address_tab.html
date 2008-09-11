@@ -1,0 +1,18 @@
+<div class="tabs">
+    {% block address_tabs %}
+    <ul>
+        <li class="{{ subsection.list|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-address %}">Addresses</a>
+        </li>
+        <li class="{{ subsection.new|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-address-new %}">New address</a>
+        </li>
+        {% if subsection.detail %}
+        <li class="tabactive">
+            <a href="{% url alertprofiles-address-detail subsection.detail %}">Address detail</a>
+        </li>
+        {% endif %}
+    </ul>
+    {% endblock %}
+</div>
+

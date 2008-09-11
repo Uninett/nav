@@ -1,0 +1,41 @@
+<div class="tabs">
+    {% block profile_tabs %}
+    <ul>
+        <li class="{{ subsection.list|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-profile %}">Profiles</a>
+        </li>
+        <li class="{{ subsection.new|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-profile-new %}">New profile</a>
+        </li>
+        {% if subsection.detail %}
+            {% if not subsection.timeperiod and not subsection.subscriptions %}
+            <li class="tabactive">
+            {% else %}
+            <li>
+            {% endif %}
+            <a href="{% url alertprofiles-profile-detail subsection.detail %}">Profile detail</a>
+        </li>
+        {% endif %}
+        {% if subsection.timeperiod %}
+            <li class="tabactive">
+                <a href="{% url alertprofiles-profile-timeperiod subsection.timeperiod %}">Time period</a>
+            </li>
+        {% endif %}
+        {% if subsection.subscriptions %}
+            {% if not subsection.subscription_detail %}
+            <li class="tabactive">
+            {% else %}
+            <li>
+            {% endif %}
+            <a href="{% url alertprofiles-profile-timeperiod-setup subsection.subscriptions %}">Subscriptions</a>
+        </li>
+        {% endif %}
+        {% if subsection.subscription_detail %}
+        <li class="tabactive">
+            <a href="{% url alertprofiles-profile-timeperiod-subscription subsection.subscription_detail %}">
+                Edit subscription</a>
+        </li>
+        {% endif %}
+    </ul>
+    {% endblock %}
+</div>

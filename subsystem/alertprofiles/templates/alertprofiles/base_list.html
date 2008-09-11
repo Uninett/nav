@@ -3,7 +3,6 @@
 {% block tabcontent %}
 
 {% block top_links %}
-    {% include "alertprofiles/paginator.html" %}
 {% endblock %}
 
 <form action="{{ form_action }}" method="post">
@@ -13,6 +12,10 @@
     <caption>
     {% block captioncontent %}
     {% endblock %}
+        <br />
+        <span class="subtitle">
+        {% include "alertprofiles/paginator.html" %}
+        </span>
     </caption>
 
     <thead>
@@ -29,6 +32,14 @@
     {% endblock %}
     </tbody>
 
+    <tfoot>
+        <tr>
+            <th colspan="0">
+                {% include "alertprofiles/paginator.html" %}
+            </th>
+        </tr>
+    </tfoot>
+
 </table>
 
 <div>
@@ -40,7 +51,6 @@
 </form>
 
 {% block bottom_links %}
-    {% include "alertprofiles/paginator.html" %}
 {% endblock %}
 
 {% endblock %}

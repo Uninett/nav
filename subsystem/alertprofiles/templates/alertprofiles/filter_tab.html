@@ -1,0 +1,19 @@
+<div class="tabs">
+    {% block filter_tabs %}
+    <ul>
+        <li class="{{ subsection.list|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filters %}">Filters</a>
+        </li>
+        <li class="{{ subsection.new|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filters-new %}">New filter</a>
+        </li>
+        {% if subsection.detail %}
+            <li class="tabactive">
+                <a href="{% url alertprofiles-filters-detail subsection.detail %}">Filter detail</a>
+            </li>
+        {% endif %}
+    </ul>
+    {% endblock %}
+</div>
+
+
