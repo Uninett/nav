@@ -1,7 +1,7 @@
 {% extends "alertprofiles/base_detail.html" %}
 
 {% block url_edit %}{% url alertprofiles-profile-save %}{% endblock %}
-{% block url_add_expresion %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
+{% block url_add_expression %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
 
 {% block headercontent %}
     {% if detail_id %}
@@ -29,11 +29,11 @@
 {% endif %}
 {% endblock %}
 
-{% block expresions_caption_content  %}
+{% block expressions_caption_content  %}
     Time periods
 {% endblock %}
 
-{% block expresions %}
+{% block expressions %}
 <form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
     {% include "alertprofiles/timeperiods.html" %}
     <p>
@@ -42,7 +42,7 @@
 </form>
 {% endblock %}
 
-{% block addexpresion %}
+{% block addexpression %}
     <div class="infobox">
     {% include "alertprofiles/timeperiod_form.html" %}
     </div>

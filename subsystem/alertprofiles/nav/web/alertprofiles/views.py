@@ -81,7 +81,7 @@ def overview(request):
     # Get information about users privileges
     sms_privilege = account.has_perm('alert_by', 'sms')
 
-    filter_dict = {'group_permisions__in': [g.id for g in groups]}
+    filter_dict = {'group_permissions__in': [g.id for g in groups]}
     filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
 
     try:
@@ -1176,7 +1176,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     is_owner = True
 
     filter = None
-    expresions = None
+    expressions = None
     matchfields = None
 
     # We assume that if no filter_id is set this filter has not been saved
@@ -1202,8 +1202,8 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 return alertprofiles_response_forbidden(request, _('You do not have acccess to the requested filter.'))
 
         matchfields = MatchField.objects.all().order_by('name')
-        # Get all matchfields (many-to-many connection by table Expresion)
-        expresions = Expresion.objects.filter(filter=filter_id)
+        # Get all matchfields (many-to-many connection by table Expression)
+        expressions = Expression.objects.filter(filter=filter_id)
 
         page_name = filter.name
 
@@ -1245,7 +1245,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 'detail_id': filter_id,
                 'form': filter_form,
                 'matchfields': matchfields,
-                'expresions': expresions,
+                'expressions': expressions,
             },
             RequestContext(
                 request,
@@ -1374,7 +1374,7 @@ def filter_remove(request):
                 ]
             )
 
-def filter_addexpresion(request):
+def filter_addexpression(request):
     if not request.method == 'POST' or not request.POST.get('id') or not request.POST.get('matchfield'):
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
@@ -1392,7 +1392,7 @@ def filter_addexpresion(request):
         return alertprofiles_response_not_found(request, _('Requested match field does not exist'))
 
     initial = {'filter': filter.id, 'match_field': matchfield.id}
-    form = ExpresionForm(match_field=matchfield, initial=initial)
+    form = ExpressionForm(match_field=matchfield, initial=initial)
 
     if not account_owns_filters(get_account(request), filter):
         return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
@@ -1413,7 +1413,7 @@ def filter_addexpresion(request):
         }
     return render_to_response(
             AlertProfilesTemplate,
-            'alertprofiles/expresion_form.html',
+            'alertprofiles/expression_form.html',
             info_dict,
             RequestContext(
                 request,
@@ -1426,7 +1426,7 @@ def filter_addexpresion(request):
             ]
         )
 
-def filter_saveexpresion(request):
+def filter_saveexpression(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
@@ -1457,13 +1457,13 @@ def filter_saveexpresion(request):
     else:
         value = request.POST.get('value')
 
-    expresion = Expresion(
+    expression = Expression(
             filter=filter,
             match_field=match_field,
             operator=operator.type,
             value=value,
         )
-    expresion.save()
+    expression.save()
     new_message(
         request,
         _('Added expression to filter %(name)s') % {'name': filter.name},
@@ -1471,13 +1471,13 @@ def filter_saveexpresion(request):
    )
     return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
 
-def filter_removeexpresion(request):
+def filter_removeexpression(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     if request.POST.get('confirm'):
-        expresions = request.POST.getlist('element')
+        expressions = request.POST.getlist('element')
         filter = None
         try:
             filter = Filter.objects.get(pk=request.POST.get('perform_on'))
@@ -1487,12 +1487,12 @@ def filter_removeexpresion(request):
         if not account_owns_filters(get_account(request), filter):
             return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
 
-        Expresion.objects.filter(pk__in=expresions).delete()
+        Expression.objects.filter(pk__in=expressions).delete()
 
         new_message(request, _('Removed expressions'), Messages.SUCCESS)
         return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
     else:
-        expresions = Expresion.objects.filter(pk__in=request.POST.getlist('expression'))
+        expressions = Expression.objects.filter(pk__in=request.POST.getlist('expression'))
         filter = None
         try:
             filter = Filter.objects.get(pk=request.POST.get('id'))
@@ -1503,8 +1503,8 @@ def filter_removeexpresion(request):
             return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
 
         elements = []
-        for e in expresions:
-            description = _(u'''Expresion, %(match_field)s %(operator)s
+        for e in expressions:
+            description = _(u'''Expression, %(match_field)s %(operator)s
                 %(value)s, used in filter %(filter)s''') % {
                 'match_field': e.match_field.name,
                 'operator': e.get_operator_display(),
@@ -1513,7 +1513,7 @@ def filter_removeexpresion(request):
             }
 
             warnings = []
-            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter__expresion=e)
+            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter__expression=e)
             for fg in filter_groups:
                 warnings.append({
                     'message': u'''Used in filter group %(name)s. Deleting this
@@ -1530,7 +1530,7 @@ def filter_removeexpresion(request):
             })
 
         info_dict = {
-                'form_action': reverse('alertprofiles-filters-removeexpresion'),
+                'form_action': reverse('alertprofiles-filters-removeexpression'),
                 'active': {'filters': True},
                 'subsection': {'detail': filter.id},
                 'elements': elements,
@@ -2110,8 +2110,8 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
 
         page_name = matchfield.name
 
-        expressions = Expresion.objects.filter(match_field=matchfield)
-        filters = Filter.objects.filter(expresion__in=expressions)
+        expressions = Expression.objects.filter(match_field=matchfield)
+        filters = Filter.objects.filter(expression__in=expressions)
 
         if len(filters) > 0:
             names = ', '.join([f.name for f in filters])
@@ -2220,7 +2220,7 @@ def matchfield_remove(request):
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
     else:
         matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('matchfield'))
-        expressions = Expresion.objects.filter(match_field__in=matchfields).order_by('match_field__name')
+        expressions = Expression.objects.filter(match_field__in=matchfields).order_by('match_field__name')
 
         if len(expressions) > 0:
             messages = Messages(request)
@@ -2266,7 +2266,7 @@ def permission_list(request, group_id=None):
 
     selected_group = None
     filtergroups = None
-    permisions = None
+    permissions = None
     if group_id:
         filtergroups = FilterGroup.objects.filter(owner__isnull=True).order_by('name')
         try:
@@ -2274,14 +2274,14 @@ def permission_list(request, group_id=None):
         except AccountGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
 
-        permisions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
+        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
 
     active = {'permissions': True}
     info_dict = {
             'groups': groups,
             'selected_group': selected_group,
             'filtergroups': filtergroups,
-            'permisions': permisions,
+            'permissions': permissions,
             'active': active,
         }
 

@@ -82,23 +82,23 @@ def check_alerts(debug=False):
                     tmp.append( (alertsubscription, alertsubscription.filter_group.filtergroupcontent_set.all()) )
 
                 if tmp:
-                    permisions = []
-                    for filtergroup in FilterGroup.objects.filter(group_permisions__accounts__in=[account]):
-                        permisions.append(filtergroup.filtergroupcontent_set.all())
+                    permissions = []
+                    for filtergroup in FilterGroup.objects.filter(group_permissions__accounts__in=[account]):
+                        permissions.append(filtergroup.filtergroupcontent_set.all())
 
-                    accounts.append( (account, tmp, permisions) )
+                    accounts.append( (account, tmp, permissions) )
 
         # Check all acounts against all their active subscriptions
-        for account, alertsubscriptions, permisions in accounts:
+        for account, alertsubscriptions, permissions in accounts:
             logger.debug("Cheking alerts for account '%s'" % account)
 
             for alert in new_alerts:
                 for alertsubscription, filtergroupcontents in alertsubscriptions:
-                    # Check if alert matches, and if user has permision
+                    # Check if alert matches, and if user has permission
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
                         sent = False
-                        for permision in permisions:
-                            if check_alert_against_filtergroupcontents(alert, permision, type='permision check'):
+                        for permission in permissions:
+                            if check_alert_against_filtergroupcontents(alert, permission, type='permission check'):
 
                                 # Allways queue alert so that we have it incase of
                                 # failed send.
@@ -108,7 +108,7 @@ def check_alerts(debug=False):
                                 break;
 
                         if not sent:
-                            logger.warn('alert %d not: sent to %s due to lacking permisions' % (alert.id, account))
+                            logger.warn('alert %d not: sent to %s due to lacking permissions' % (alert.id, account))
                     else:
                         logger.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 

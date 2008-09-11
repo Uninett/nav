@@ -182,7 +182,7 @@ class FilterGroupForm(forms.ModelForm):
 
     class Meta:
         model = FilterGroup
-        exclude = ('group_permisions',)
+        exclude = ('group_permissions',)
 
     def __init__(self, *args, **kwargs):
         admin = kwargs.pop('admin', None)

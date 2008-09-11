@@ -60,9 +60,9 @@ ALTER TABLE accountingroup RENAME TO accountgroup_accounts;
 ALTER TABLE accountgroup_accounts RENAME accountid TO account_id;
 ALTER TABLE accountgroup_accounts RENAME groupid TO accountgroup_id;
 
-ALTER TABLE rettighet RENAME TO filtergroup_group_permision;
-ALTER TABLE filtergroup_group_permision RENAME utstyrgruppeid TO filtergroup_id;
-ALTER TABLE filtergroup_group_permision RENAME accountgroupid TO accountgroup_id;
+ALTER TABLE rettighet RENAME TO filtergroup_group_permission;
+ALTER TABLE filtergroup_group_permission RENAME utstyrgruppeid TO filtergroup_id;
+ALTER TABLE filtergroup_group_permission RENAME accountgroupid TO accountgroup_id;
 
 ALTER TABLE alarmadresse RENAME TO alertaddress;
 ALTER TABLE alertaddress RENAME adresse TO address;
@@ -96,11 +96,11 @@ ALTER TABLE filtergroupcontent RENAME utstyrgruppeid TO filter_group_id;
 ALTER TABLE operator RENAME operatorid TO operator_id;
 ALTER TABLE operator RENAME matchfieldid TO match_field_id;
 
-ALTER TABLE filtermatch RENAME TO expresion;
-ALTER TABLE expresion RENAME utstyrfilterid TO filter_id;
-ALTER TABLE expresion RENAME matchfelt TO match_field_id;
-ALTER TABLE expresion RENAME matchtype TO operator;
-ALTER TABLE expresion RENAME verdi TO value;
+ALTER TABLE filtermatch RENAME TO expression;
+ALTER TABLE expression RENAME utstyrfilterid TO filter_id;
+ALTER TABLE expression RENAME matchfelt TO match_field_id;
+ALTER TABLE expression RENAME matchtype TO operator;
+ALTER TABLE expression RENAME verdi TO value;
 
 ALTER TABLE utstyrfilter RENAME TO filter;
 ALTER TABLE filter RENAME accountid TO owner_id;
@@ -145,9 +145,9 @@ ALTER SEQUENCE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
 ALTER TABLE timeperiod ALTER COLUMN id SET DEFAULT nextval('timeperiod_id_seq');
 ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
-ALTER SEQUENCE filtermatch_id_seq RENAME TO expresion_id_seq;
-ALTER TABLE expresion ALTER COLUMN id SET DEFAULT nextval('expresion_id_seq');
-ALTER SEQUENCE expresion_id_seq OWNED BY expresion.id;
+ALTER SEQUENCE filtermatch_id_seq RENAME TO expression_id_seq;
+ALTER TABLE expression ALTER COLUMN id SET DEFAULT nextval('expression_id_seq');
+ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 ALTER SEQUENCE utstyrfilter_id_seq RENAME TO filter_id_seq;
 ALTER TABLE filter ALTER COLUMN id SET DEFAULT nextval('filter_id_seq');
@@ -215,13 +215,13 @@ ALTER TABLE operator ADD COLUMN id integer NOT NULL
 ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
 ALTER TABLE operator ADD CONSTRAINT operator_operator_id_key UNIQUE(operator_id, match_field_id);
 
-ALTER TABLE filtergroup_group_permision DROP CONSTRAINT rettighet_pk;
-CREATE SEQUENCE filtergroup_group_permision_id_seq;
-ALTER TABLE filtergroup_group_permision ADD COLUMN id integer NOT NULL
-	DEFAULT nextval('filtergroup_group_permision_id_seq')
-	CONSTRAINT filtergroup_group_permision_pkey PRIMARY KEY;
-ALTER SEQUENCE filtergroup_group_permision_id_seq OWNED BY filtergroup_group_permision.id;
-ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_accountgroup_id_key UNIQUE(accountgroup_id, filtergroup_id);
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT rettighet_pk;
+CREATE SEQUENCE filtergroup_group_permission_id_seq;
+ALTER TABLE filtergroup_group_permission ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('filtergroup_group_permission_id_seq')
+	CONSTRAINT filtergroup_group_permission_pkey PRIMARY KEY;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
+ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_accountgroup_id_key UNIQUE(accountgroup_id, filtergroup_id);
 
 ALTER TABLE alertsubscription DROP CONSTRAINT varsleadresse_pk;
 CREATE SEQUENCE alertsubscription_id_seq;
@@ -243,7 +243,7 @@ ALTER INDEX tidsperiode_pk RENAME TO timeperiod_pkey;
 ALTER INDEX utstyrgruppe_pk RENAME TO filtergroup_pkey;
 ALTER INDEX utstyrfilter_pk RENAME TO filter_pkey;
 ALTER INDEX matchfield_pk RENAME TO matchfield_pkey;
-ALTER INDEX filtermatch_pk RENAME TO expresion_pkey;
+ALTER INDEX filtermatch_pk RENAME TO expression_pkey;
 ALTER INDEX queue_pkey RENAME TO accountalertqueue_pkey;
 ALTER INDEX navbarlink_pk RENAME TO navbarlink_pkey;
 ALTER INDEX accountnavbar_pk RENAME TO accountnavbar_pkey;
@@ -322,13 +322,13 @@ ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_filter_group_id_f
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
-ALTER TABLE filtergroup_group_permision DROP CONSTRAINT accountgroup_exist;
-ALTER TABLE filtergroup_group_permision DROP CONSTRAINT utstyrgruppe_eksisterer;
-ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_accountgroup_id_fkey
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT accountgroup_exist;
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT utstyrgruppe_eksisterer;
+ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_accountgroup_id_fkey
 	FOREIGN KEY(accountgroup_id) REFERENCES accountgroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_filtergroup_id_fkey
+ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_filtergroup_id_fkey
 	FOREIGN KEY(filtergroup_id) REFERENCES filtergroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
@@ -350,13 +350,13 @@ ALTER TABLE filtergroupcontent ADD CONSTRAINT filtergroupcontent_filter_id_fkey
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
-ALTER TABLE expresion DROP CONSTRAINT matchfield_exist;
-ALTER TABLE expresion DROP CONSTRAINT utstyrfilter_eksisterer;
-ALTER TABLE expresion ADD CONSTRAINT expresion_match_field_id_fkey
+ALTER TABLE expression DROP CONSTRAINT matchfield_exist;
+ALTER TABLE expression DROP CONSTRAINT utstyrfilter_eksisterer;
+ALTER TABLE expression ADD CONSTRAINT expression_match_field_id_fkey
 	FOREIGN KEY(match_field_id) REFERENCES matchfield(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-ALTER TABLE expresion ADD CONSTRAINT expresion_filter_id_fkey
+ALTER TABLE expression ADD CONSTRAINT expression_filter_id_fkey
 	FOREIGN KEY(filter_id) REFERENCES filter(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;

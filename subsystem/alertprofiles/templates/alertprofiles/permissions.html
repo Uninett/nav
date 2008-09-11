@@ -51,7 +51,7 @@
     {% for fg in filtergroups %}
         <tr class="{% cycle oddrow,evenrow %}">
             <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
-            {% for perm in permisions %}
+            {% for perm in permissions %}
                 {% ifequal perm.id fg.id %}
                 checked="checked"
                 {% endifequal %}

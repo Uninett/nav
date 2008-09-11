@@ -89,7 +89,7 @@ class Account(models.Model):
         return self.alertpreference.active_profile
 
     def has_perm(self, action, target):
-        '''Checks user permisions by using legacy NAV hasPrivilege function'''
+        '''Checks user permissions by using legacy NAV hasPrivilege function'''
 
         # Simply wrap the hasPrivilege function of non-Django nav.
         account = OldAccount.loadByLogin(str(self.login))
@@ -451,8 +451,8 @@ class Operator(models.Model):
         return self.IP_OPERATOR_MAPPING[self.type]
 
 
-class Expresion(models.Model):
-    '''Combines filer, operator, matchfield and value into an expresion that can be evaluated'''
+class Expression(models.Model):
+    '''Combines filer, operator, matchfield and value into an expression that can be evaluated'''
 
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
@@ -460,7 +460,7 @@ class Expresion(models.Model):
     value = models.CharField()
 
     class Meta:
-        db_table = u'expresion'
+        db_table = u'expression'
 
     def __unicode__(self):
         return '%s match on %s against %s' % (self.get_operator_display(), self.match_field, self.value)
@@ -469,7 +469,7 @@ class Expresion(models.Model):
         return Operator(type=self.operator).get_operator_mapping()
 
 class Filter(models.Model):
-    '''One or more expresions that are combined with an and operation.
+    '''One or more expressions that are combined with an and operation.
 
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups.'''
@@ -484,7 +484,7 @@ class Filter(models.Model):
         return self.name
 
     def check(self, alert):
-        '''Combines expresions to an ORM query that will tell us if an alert matched.
+        '''Combines expressions to an ORM query that will tell us if an alert matched.
 
         This function builds three dicts that are used in the ORM .filter()
         .exclude() and .extra() methods which finally gets a .count() as we
@@ -496,18 +496,18 @@ class Filter(models.Model):
         exclude = {}
         extra = {'where': [], 'params': []}
 
-        for expresion in self.expresion_set.all():
+        for expression in self.expression_set.all():
             # Handle IP datatypes:
-            if expresion.match_field.data_type == MatchField.IP:
+            if expression.match_field.data_type == MatchField.IP:
                 # Trick the ORM into joining the tables we want
-                lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
+                lookup = '%s__isnull' % expression.match_field.get_lookup_mapping()
                 filter[lookup] = False
 
-                where = Operator(type=expresion.operator).get_ip_operator_mapping()
+                where = Operator(type=expression.operator).get_ip_operator_mapping()
 
-                if expresion.operator in [Operator.IN, Operator.CONTAINS]:
-                    values = expresion.value.split('|')
-                    where = ' OR '.join([where % expresion.match_field.value_id] * len(values))
+                if expression.operator in [Operator.IN, Operator.CONTAINS]:
+                    values = expression.value.split('|')
+                    where = ' OR '.join([where % expression.match_field.value_id] * len(values))
 
                     extra['where'].append('(%s)' % where)
                     extra['params'].extend(values)
@@ -515,30 +515,30 @@ class Filter(models.Model):
                 else:
                     # Get the IP mapping and put in the field before adding it to
                     # our where clause.
-                    extra['where'].append(where % expresion.match_field.value_id)
-                    extra['params'].append(expresion.value)
+                    extra['where'].append(where % expression.match_field.value_id)
+                    extra['params'].append(expression.value)
 
             # Handle wildcard lookups which are not directly supported by
             # django (as far as i know)
-            elif expresion.operator == Operator.WILDCARD:
+            elif expression.operator == Operator.WILDCARD:
                 # Trick the ORM into joining the tables we want
-                lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
+                lookup = '%s__isnull' % expression.match_field.get_lookup_mapping()
                 filter[lookup] = False
 
-                extra['where'].append('%s ILIKE %%s' % expresion.match_field.value_id)
-                extra['params'].append(expresion.value)
+                extra['where'].append('%s ILIKE %%s' % expression.match_field.value_id)
+                extra['params'].append(expression.value)
 
             # Handle the plain lookups that we can do directly in ORM
             else:
-                lookup = expresion.match_field.get_lookup_mapping() + expresion.get_operator_mapping()
+                lookup = expression.match_field.get_lookup_mapping() + expression.get_operator_mapping()
 
                 # Ensure that in and not equal are handeled correctly
-                if expresion.operator == Operator.IN:
-                    filter[lookup] = expresion.value.split('|')
-                elif expresion.operator == Operator.NOT_EQUAL:
-                    exclude[lookup] = expresion.value
+                if expression.operator == Operator.IN:
+                    filter[lookup] = expression.value.split('|')
+                elif expression.operator == Operator.NOT_EQUAL:
+                    exclude[lookup] = expression.value
                 else:
-                    filter[lookup] = expresion.value
+                    filter[lookup] = expression.value
 
         # Limit ourselves to our alert
         filter['id'] = alert.id
@@ -558,13 +558,13 @@ class Filter(models.Model):
         return False
 
 class FilterGroup(models.Model):
-    '''A set of filters group contents that an account can subscribe to or be given permision to'''
+    '''A set of filters group contents that an account can subscribe to or be given permission to'''
 
     owner = models.ForeignKey('Account')
     name = models.CharField()
     description = models.CharField(db_column='descr')
 
-    group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
+    group_permissions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permission')
 
     class Meta:
         db_table = u'filtergroup'
