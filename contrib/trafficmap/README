@@ -108,6 +108,17 @@ do the following:
 
   cp -r pyproxy /usr/local/nav/lib/python/nav/web/
 
+Then create the necessary directory structure and Apache config to
+have the proxy respond to the /vPServer URI.  Assuming your NAV
+webroot directory is /usr/local/nav/apache/webroot/, do this:
+
+  TARGET=/usr/local/nav/apache/webroot/vPServer
+  # make target directory
+  mkdir $TARGET
+  # Copy the htaccess file which tells Apache/mod_python to use the
+  # pyproxy for this directory
+  cp htaccess-vpserver $TARGET/.htaccess
+
 
 Installing the vlanPlot applet
 ------------------------------
@@ -128,6 +139,16 @@ do this:
   cp htaccess-none $TARGET/gfx/.htaccess
   cp htaccess-none $TARGET/icons/.htaccess
 
+
+Installing the tool file
+------------------------
+For easy access to vlanPlot, install the vlanPlot/vlanPlot.tool file
+in the NAV toolbox.  This is typically located in
+/usr/local/nav/apache/tools/ .
+
+Don't forget to setup permissions in the user admin panel.  To have
+proper access to the traffic map, a user needs to be able to access
+the URIs "/vlanPlot" and "/vPServer".
 
 
 Container editing
