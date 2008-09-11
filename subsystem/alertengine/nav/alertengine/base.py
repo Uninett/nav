@@ -133,11 +133,6 @@ def check_alerts(debug=False):
 
             logger.info('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
 
-            # FIXME pack this inside a try except so that we can avoid
-            # deleting messages that weren't sent for some reason. An
-            # alternative would be to give send() a return value that we need
-            # to check.
-
             if subscription.type == AlertSubscription.NOW:
                 if queued_alert.send():
                     num_sent_alerts += 1
@@ -199,15 +194,23 @@ def check_alerts(debug=False):
                     # start period of the time period it was inserted in has passed.
                     # This check should catch the corner case where a user only has one
                     # timeperiod that loops.
-                    logger.debug('Tests: different day %s, insertion time %s' % (insertion_time.date() < now.date(), insertion_time.time() < queued_alert_time_period.start))
+
+                    if datetime.now().isoweekday() in [6,7]:
+                        valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKENDS]
+                    else:
+                        valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKDAYS]
+
+                    only_one_time_period = active_profile.timperiod_set.filter(valid_during__in=valid_during).count() == 1
+
+                    logger.debug('Tests: only one time period %s, insertion time %s' % (only_one_time_period, insertion_time.time() < queued_alert_time_period.start))
 
                     if subscription.time_period.id != current_time_period.id:
                         if queued_alert.send():
                             num_sent_alerts += 1
                         else:
                             num_failed_sends += 1
-                    # FIXME this test is to naive, different day just doesn't cut it!
-                    elif insertion_time.date() < now.date() and insertion_time.time() < queued_alert_time_period.start:
+
+                    elif only_one_time_period and insertion_time.time() < queued_alert_time_period.start:
                         if queued_alert.send():
                             num_sent_alerts += 1
                         else:
