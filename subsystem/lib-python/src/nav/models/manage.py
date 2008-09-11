@@ -162,9 +162,10 @@ class Netbox(models.Model):
         try:
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
-            data_source_status = data_sources.get(name='STATUS')
-            data_source_response_time = data_sources.get(name='RESPONSETIME')
-        except RrdDataSource.DoesNotExist:
+            data_source_status = data_sources.filter(name='STATUS')[0]
+            data_source_response_time = data_sources.filter(
+                name='RESPONSETIME')[0]
+        except IndexError:
             return None
 
         result = {
