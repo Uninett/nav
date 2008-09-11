@@ -720,7 +720,8 @@ class SwPort(models.Model):
     link = models.CharField(max_length=1, choices=LINK_CHOICES)
     speed = models.FloatField()
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES)
-    media = models.CharField(max_length=-1)
+    # TODO: Probably deprecated. Check and remove.
+    #media = models.CharField(max_length=-1)
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     port_name = models.CharField(db_column='portname', max_length=-1)
