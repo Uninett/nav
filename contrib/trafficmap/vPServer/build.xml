@@ -125,12 +125,15 @@
   <property name="app.path"      value="/${app.name}"/>
   <property name="app.version"   value="1.0"/>
   <property name="build.home"    value="${basedir}/build"/>
+  <property name="catalina.home" value="."/> <!-- SET THIS PROPERLY WITH -Dcatalina.home=foo ON COMMAND LINE! -->
   <property name="dist.home"     value="${basedir}/dist"/>
   <property name="manager.url"   value="http://localhost:8080/manager"/>
   <property name="src.home"      value="${basedir}/src"/>
   <property name="web.home"      value="${basedir}/web"/>
   <property name="manager.username"      value="manager"/>
   <property name="manager.password"      value="manager"/>
+  <property name="nav.javalib"   
+            value="/usr/local/nav/lib/java"/>  <!-- SET THIS PROPERLY WITH -Dnav.javalib=foo ON COMMAND LINE! -->
 
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -179,6 +182,8 @@
            value="/path/to/foo.jar"/>
 -->
 
+  <property name="Database.jar" value="${nav.javalib}/Database.jar" />
+  <property name="Util.jar" value="${nav.javalib}/Util.jar" />
 
 <!-- ==================== Compilation Classpath =========================== -->
 
@@ -200,6 +205,24 @@
 <!--
     <pathelement location="${foo.jar}"/>
 -->
+    <!-- Include all elements that Tomcat exposes to applications -->
+    <pathelement location="${catalina.home}/common/classes"/>
+    <fileset dir="${catalina.home}/common/endorsed">
+      <include name="*.jar"/>
+    </fileset>
+    <fileset dir="${catalina.home}/common/lib">
+      <include name="*.jar"/>
+    </fileset>
+    <pathelement location="${catalina.home}/shared/classes"/>
+    <fileset dir="${catalina.home}/shared/lib">
+      <include name="*.jar"/>
+    </fileset>
+
+    <!-- Include NAV libraries -->
+    <pathelement location="${Database.jar}"/>
+    <pathelement location="${Util.jar}"/>
+
+
 
   </path>
 
@@ -216,30 +239,6 @@
 
   <target name="all" depends="clean,compile"
    description="Clean build and dist directories, then compile"/>
-
-<!-- ==================== Install Target ================================== -->
-
-  <target name="install" depends="dist">
-    <!-- The point of the following is to set the isUnix property to
-    os.name if os.family is unix.  Later, we use isUnix in os lists to
-    exec when calling chmod on files -->
-    <condition property="isUnix" value="${os.name}">
-      <os family="unix" />
-    </condition>
-
-    <mkdir dir="${DESTDIR}${warinstdir}"/>
-    <copy file="${dist.home}/${app.name}.war" todir="${DESTDIR}${warinstdir}"/>
-
-    <mkdir dir="${DESTDIR}${bindir}"/>
-    <copy file="vprrd.py" todir="${DESTDIR}${bindir}"/>
-    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
-      <arg line="755 vprrd.py" />
-    </exec>
-  </target>
-  <target name="uninstall">
-    <delete file="${DESTDIR}${warinstdir}/${war}"/>
-    <delete file="${DESTDIR}${bindir}/vprrd.py"/>
-  </target>
 
 <!-- ==================== Clean Target ==================================== -->
 
@@ -284,6 +283,9 @@
     </javac>
 
     <!-- Copy application resources -->
+    <mkdir  dir="${build.home}/WEB-INF/lib"/>
+    <copy todir="${build.home}/WEB-INF/lib" file="${Database.jar}"/>
+    <copy todir="${build.home}/WEB-INF/lib" file="${Util.jar}"/>
 <!--
     <copy  todir="${build.home}/WEB-INF/classes">
       <fileset dir="${src.home}" excludes="**/*.java"/>

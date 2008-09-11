@@ -29,9 +29,6 @@ subdirs = \
 	Logger \
 	NetboxInfo \
 	SimpleSnmp \
-	vlanPlot \
-	webapps/navAdmin \
-	webapps/vPServer \
 	Netmap
 
 # We build our own classpath, to resolve interdependencies between the java modules.
@@ -63,7 +60,6 @@ Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
 Util:
-webapps/navAdmin: ConfigParser Database Event Logger
 
 .lastbuild:
 # Do absolutely nothing, just let ANT decide whether a rebuild is necessary

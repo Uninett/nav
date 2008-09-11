@@ -33,3 +33,8 @@ ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
 
 ALTER TABLE logger.type RENAME TO message_type;
 ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
+
+-- Drop obsolete vlanPlot tables
+DROP TABLE vp_netbox_xy;
+DROP TABLE vp_netbox_grp;
+DROP TABLE vp_netbox_info;

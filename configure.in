@@ -71,7 +71,6 @@ AC_OUTPUT(Makefile
 	src/getBoksMacs/getBoksMacs.sh
 	src/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/pyproxy/Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile

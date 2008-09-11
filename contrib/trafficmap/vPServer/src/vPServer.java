@@ -20,7 +20,7 @@ import javax.servlet.http.*;
 
 public class vPServer extends HttpServlet
 {
-	public static final String scriptName = "vPServer";
+	public static final String scriptName = "default";
 
 	public void init(ServletConfig conf) throws ServletException
 	{
