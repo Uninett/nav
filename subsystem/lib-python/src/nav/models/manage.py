@@ -582,11 +582,12 @@ class GwPort(models.Model):
         if self.speed:
             title.append('%d Mbit' % self.speed)
         try:
-            title.append('-> %s' % self.to_netbox)
+            if self.to_netbox:
+                title.append('-> %s' % self.to_netbox)
         except Netbox.DoesNotExist:
             pass
         if self.port_name:
-            title.append(self.port_name)
+            title.append('"%s"' % self.port_name)
         return ', '.join(title)
 
 class GwPortPrefix(models.Model):
@@ -776,9 +777,12 @@ class SwPort(models.Model):
         if self.link == self.LINK_UP and self.speed:
             title.append('%d Mbit' % self.speed)
         try:
-            title.append('-> %s' % self.to_netbox)
+            if self.to_netbox:
+                title.append('-> %s' % self.to_netbox)
         except Netbox.DoesNotExist:
             pass
+        if self.port_name:
+            title.append('"%s"' % self.port_name)
         if self.link == self.LINK_DOWN_ADM:
             title.append('disabled')
         elif self.link != self.LINK_UP:
