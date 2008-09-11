@@ -22,7 +22,7 @@
 # Author: Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 
-"""FIXME"""
+"""Plugin module for sending jabber alerts"""
 
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
