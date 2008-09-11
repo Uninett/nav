@@ -37,7 +37,6 @@ ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
 -- Add closed flag to alertq
 ALTER TABLE alertq ADD closed BOOLEAN;
 
-
 --------------------------------------------------------------------------------
 -- profiles clean-up:
 -- * Rename tables in profiles so they all are english.
@@ -52,6 +51,7 @@ DROP TABLE defaultutstyr;
 DROP TABLE defaultfilter;
 DROP TABLE brukerrettighet;
 DROP TABLE logg;
+DROP TABLE alertengine;
 DROP SEQUENCE logg_id_seq;
 
 
@@ -64,10 +64,15 @@ ALTER TABLE rettighet RENAME TO filtergroup_group_permission;
 ALTER TABLE filtergroup_group_permission RENAME utstyrgruppeid TO filtergroup_id;
 ALTER TABLE filtergroup_group_permission RENAME accountgroupid TO accountgroup_id;
 
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT rettighet_pk;
+ALTER TABLE filtergroup_group_permission ADD COLUMN id PRIMARY KEY;
+ALTER TABLE filtergroup_group_permission ADD UNIQUE(accountgroup_id, filtergroup_id);
+
 ALTER TABLE alarmadresse RENAME TO alertaddress;
 ALTER TABLE alertaddress RENAME adresse TO address;
 
 ALTER TABLE preference RENAME TO alertpreference;
+ALTER TABLE alertpreference DROP COLUMN queuelength;
 
 ALTER TABLE brukerprofil RENAME TO alertprofile;
 ALTER TABLE alertprofile RENAME navn TO name;
@@ -85,6 +90,11 @@ ALTER TABLE alertsubscription RENAME alarmadresseid TO alert_address_id;
 ALTER TABLE alertsubscription RENAME tidsperiodeid TO time_period_id;
 ALTER TABLE alertsubscription RENAME utstyrgruppeid TO filter_group_id;
 ALTER TABLE alertsubscription RENAME vent TO subscription_type;
+
+ALTER TABLE alertsubscription DROP CONSTRAINT varsleadresse_pk;
+ALTER TABLE alertsubscription ADD COLUMN id PRIMARY KEY;
+ALTER TABLE alertsubscription ADD UNIQUE(alert_address_id, time_period_id, filter_group_id);
+ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
 
 ALTER TABLE gruppetilfilter RENAME TO filtergroupcontent;
 ALTER TABLE filtergroupcontent RENAME inkluder TO include;
@@ -110,6 +120,9 @@ ALTER TABLE utstyrgruppe RENAME TO filtergroup;
 ALTER TABLE filtergroup RENAME accountid TO owner_id;
 ALTER TABLE filtergroup RENAME navn TO name;
 
+-- Make matchfields/expressions simpler:
+--  * Remove value_category
+--  * Remove template portion of value_name
 ALTER TABLE matchfield RENAME matchfieldid TO id;
 ALTER TABLE matchfield RENAME valueid TO value_id;
 ALTER TABLE matchfield RENAME valuename TO value_name;
@@ -119,15 +132,31 @@ ALTER TABLE matchfield RENAME valuesort TO value_sort;
 ALTER TABLE matchfield RENAME listlimit TO list_limit;
 ALTER TABLE matchfield RENAME datatype TO data_type;
 ALTER TABLE matchfield RENAME showlist TO show_list;
+ALTER TABLE matchfield DROP COLUMN value_category;
+UPDATE matchfield SET value_name = regexp_replace(value_name, E'\\|.*$', '');
 
 ALTER TABLE queue RENAME TO accountalertqueue;
 ALTER TABLE accountalertqueue RENAME accountid TO account_id;
 ALTER TABLE accountalertqueue RENAME alertid TO alert_id;
 ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 
+-- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
+-- guarantee a correct upgrade due to the db design issue we are fixing here.
+-- We can only we sure that the alert is delivered to the correct address, not
+-- necessarily at the correct time.
+UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
+ALTER TABLE accountalertqueue DROP addrid;
+
+ALTER TABLE accountalertqueue ADD subscription_id integer;
+ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
+	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
+	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
+	-- ON DELETE CASCADE -- FIXME
+	;
+
+
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
-
 
 -- Rename sequences so they match with the new english table names
 -- NOTE Internally a sequence has a column named 'sequence_name' which keeps
@@ -169,6 +198,24 @@ ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 
 -- Django needs a single column it can treat as primary key :-(
+ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
+ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
+ALTER TABLE maint_component ADD COLUMN id SERIAL;
+ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
+ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
+
+ALTER TABLE accountproperty ADD COLUMN id SERIAL;
+
+-- FIXME
+ALTER TABLE grouptilfilter DROP CONSTRAINT gruppetilfilter_pk;
+ALTER TABLE grouptilfilter ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE grouptilfilter ADD UNIQUE(utstyrfilterid, utstyrgruppeid);
+
 ALTER TABLE accountgroup_accounts DROP CONSTRAINT accountingroup_pk;
 CREATE SEQUENCE accountgroup_accounts_id_seq;
 ALTER TABLE accountgroup_accounts ADD COLUMN id integer NOT NULL
@@ -379,6 +426,7 @@ ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_fkey
 	FOREIGN KEY(accountid) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
+
 ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_navbarlinkid_fkey
 	FOREIGN KEY(navbarlinkid) REFERENCES navbarlink(id)
 	ON DELETE CASCADE
@@ -396,35 +444,12 @@ ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_accountgr
 	FOREIGN KEY (accountgroupid) REFERENCES accountgroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
+
 ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilegeid_fkey
 	FOREIGN KEY (privilegeid) REFERENCES privilege
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
--- Add new fields
-ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
-
-ALTER TABLE accountalertqueue ADD subscription_id integer;
-ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
-	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
-	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
-	-- ON DELETE CASCADE -- FIXME
-	;
--- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
--- guarantee a correct upgrade due to the db design issue we are fixing here.
--- We can only we sure that the alert is delivered to the correct address, not
--- necessarily at the correct time.
-UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
-ALTER TABLE accountalertqueue DROP addrid;
-
--- Make matchfields/expressions simpler:
---  * Remove value_category
---  * Remove template portion of value_name
-ALTER TABLE matchfield DROP COLUMN value_category;
-UPDATE matchfield SET value_name = regexp_replace(value_name, E'\\|.*$', '');
-
--- Drop queuelength from alertpreference as it is not used
-ALTER TABLE alertpreference DROP COLUMN queuelength;
-
--- No longer needed
-DROP TABLE alertengine;
+-- Both old IP Device Center and new IP Device Info does lots of selects on cam
+-- with netboxid and ifindex in the where clause
+CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
