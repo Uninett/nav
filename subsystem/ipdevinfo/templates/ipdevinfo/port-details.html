@@ -43,6 +43,14 @@
     </tr>
 {% ifequal port_type 'swport' %}
     <tr>
+        <th>Duplex</th>
+        <td>{{ port.get_duplex_display|capfirst }}</td>
+    </tr>
+    <tr>
+        <th>VLAN</th>
+        <td>{{ port.get_vlans|join:", " }}</td>
+    </tr>
+    <tr>
         <th>Trunk</th>
         <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
     </tr>
