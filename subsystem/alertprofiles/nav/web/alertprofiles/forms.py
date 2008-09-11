@@ -29,7 +29,7 @@ __id__ = "$Id$"
 from django import forms
 from django.db.models import Q
 
-from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, AccountProperty
+from nav.models.profiles import MatchField, Filter, Expression, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, AccountProperty
 
 _ = lambda a: a
 
@@ -260,16 +260,16 @@ class MatchFieldForm(forms.ModelForm):
                     raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
         return clean_value_sort
 
-class ExpresionForm(forms.ModelForm):
+class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
 
     class Meta:
-        model = Expresion
+        model = Expression
 
     def __init__(self, *args, **kwargs):
         match_field = kwargs.pop('match_field', None)
-        super(ExpresionForm, self).__init__(*args, **kwargs)
+        super(ExpressionForm, self).__init__(*args, **kwargs)
 
         if isinstance(match_field, MatchField):
             # Get all operators and make a choice field
