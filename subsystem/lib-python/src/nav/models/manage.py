@@ -754,7 +754,7 @@ class SwPort(models.Model):
         # XXX: This causes a DB query per port
         vlans = [swpv.vlan.vlan
             for swpv in self.swportvlan_set.select_related(depth=1)]
-        if self.vlan not in vlans:
+        if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
         vlans.sort()
         return vlans
@@ -801,8 +801,6 @@ class SwPort(models.Model):
             title.append('trunk')
         if self.duplex:
             title.append(self.get_duplex_display())
-        if self.media:
-            title.append(self.media)
         if self.get_vlans():
             title.append('vlan ' + ','.join(
                 [str(v) for v in self.get_vlans()]))
