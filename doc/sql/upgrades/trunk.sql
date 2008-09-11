@@ -65,7 +65,7 @@ ALTER TABLE filtergroup_group_permission RENAME utstyrgruppeid TO filtergroup_id
 ALTER TABLE filtergroup_group_permission RENAME accountgroupid TO accountgroup_id;
 
 ALTER TABLE filtergroup_group_permission DROP CONSTRAINT rettighet_pk;
-ALTER TABLE filtergroup_group_permission ADD COLUMN id PRIMARY KEY;
+ALTER TABLE filtergroup_group_permission ADD COLUMN id integer PRIMARY KEY;
 ALTER TABLE filtergroup_group_permission ADD UNIQUE(accountgroup_id, filtergroup_id);
 
 ALTER TABLE alarmadresse RENAME TO alertaddress;
@@ -92,7 +92,7 @@ ALTER TABLE alertsubscription RENAME utstyrgruppeid TO filter_group_id;
 ALTER TABLE alertsubscription RENAME vent TO subscription_type;
 
 ALTER TABLE alertsubscription DROP CONSTRAINT varsleadresse_pk;
-ALTER TABLE alertsubscription ADD COLUMN id PRIMARY KEY;
+ALTER TABLE alertsubscription ADD COLUMN id integer PRIMARY KEY;
 ALTER TABLE alertsubscription ADD UNIQUE(alert_address_id, time_period_id, filter_group_id);
 ALTER TABLE alertsubscription ADD ignore_closed_alerts BOOLEAN;
 
@@ -140,20 +140,18 @@ ALTER TABLE accountalertqueue RENAME accountid TO account_id;
 ALTER TABLE accountalertqueue RENAME alertid TO alert_id;
 ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 
--- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
--- guarantee a correct upgrade due to the db design issue we are fixing here.
--- We can only we sure that the alert is delivered to the correct address, not
--- necessarily at the correct time.
-UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
-ALTER TABLE accountalertqueue DROP addrid;
-
 ALTER TABLE accountalertqueue ADD subscription_id integer;
 ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
 	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
 	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
 	-- ON DELETE CASCADE -- FIXME
 	;
-
+-- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
+-- guarantee a correct upgrade due to the db design issue we are fixing here.
+-- We can only we sure that the alert is delivered to the correct address, not
+-- necessarily at the correct time.
+UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
+ALTER TABLE accountalertqueue DROP addrid;
 
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
@@ -198,17 +196,6 @@ ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 
 -- Django needs a single column it can treat as primary key :-(
-ALTER TABLE netboxcategory ADD COLUMN id SERIAL;
-ALTER TABLE netbox_vtpvlan ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE netboxsnmpoid ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE serviceproperty ADD COLUMN id SERIAL;
-ALTER TABLE maint_component ADD COLUMN id SERIAL;
-ALTER TABLE message_to_maint_task ADD COLUMN id SERIAL;
-ALTER TABLE alertqmsg ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE alertqvar ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE alerthistmsg ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE alerthistvar ADD COLUMN id SERIAL PRIMARY KEY;
-
 ALTER TABLE accountproperty ADD COLUMN id SERIAL;
 
 -- FIXME
