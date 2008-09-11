@@ -138,7 +138,7 @@ def ipdev_details(request, name=None, addr=None):
 
     errors = []
     host_info = get_host_info(name or addr)
-    netbox = Netbox.objects.none()
+    netbox = None
 
     # Lookup IP device in NAV
     if name is not None:
@@ -164,8 +164,11 @@ def ipdev_details(request, name=None, addr=None):
         HttpResponseRedirect(reverse('ipdevinfo-search'))
 
     # All alerts which ends in the last week or later (including open alerts)
-    alerts = netbox.alerthistory_set.filter(
-        end_time__gt=(dt.datetime.now() - dt.timedelta(7)))
+    if netbox is not None:
+        alerts = netbox.alerthistory_set.filter(
+            end_time__gt=(dt.datetime.now() - dt.timedelta(7)))
+    else:
+        alerts = AlertHistory.objects.none()
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/ipdev-details.html',
