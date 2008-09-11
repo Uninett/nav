@@ -162,6 +162,8 @@ class Netbox(models.Model):
         try:
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
+            # XXX: Multiple identical data sources in the database have been
+            # observed. Using the first result.
             data_source_status = data_sources.filter(name='STATUS')[0]
             data_source_response_time = data_sources.filter(
                 name='RESPONSETIME')[0]
