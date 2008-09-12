@@ -47,10 +47,10 @@ def get_urlpatterns():
         url(r'^devicemanagement/\?box=(?P<netbox_id>\d+)&history=1$',
             dummy, name='devicemanagement-history-netbox'),
 
-        # Subsystem: SeedDB
-        url(r'^seeddb/$', dummy, name='seeddb'),
-        url(r'^seeddb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
-            dummy, name='seeddb-edit-object'),
+        # Subsystem: IP Info
+        url(r'^ipinfo/$', dummy, name='ipinfo'),
+        url(r'^ipinfo/\?ip=(?P<hostname_or_ip>[\w\d._-]+)',
+            dummy, name='ipinfo-host'),
 
         # Subsystem: Maintenance
         url(r'^maintenance/$',
@@ -115,6 +115,11 @@ def get_urlpatterns():
             dummy, name='report-prefix-all'),
         url(r'^report/prefix\?prefix.prefixid=(?P<prefix_id>\d+)$',
             dummy, name='report-prefix-prefix'),
+
+        # Subsystem: SeedDB
+        url(r'^seeddb/$', dummy, name='seeddb'),
+        url(r'^seeddb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
+            dummy, name='seeddb-edit-object'),
     )
 
     return urlpatterns
