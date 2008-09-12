@@ -51,14 +51,15 @@
         <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
     </tr>
     <tr>
-        <th>VLANs</th>
+        <th>Configured VLAN</th>
+        <td>{{ port.vlan|default:"N/A" }}</td>
+    </tr>
+    <tr>
+        <th>Detected VLANs</th>
         <td>
             {% with port.swportvlan_set.all as swportvlans %}
-                {% if swportvlans or port.vlan %}
+                {% if swportvlans %}
                     <ul>
-                    {% if port.vlan %}
-                        <li>{{ port.vlan }} (FIXME: This is from swport.vlan)</li>
-                    {% endif %}
                     {% for swportvlan in swportvlans %}
                         <li>
                             <a href="{% url report-swporttrunk-vlan swportvlan.vlan.id %}">
