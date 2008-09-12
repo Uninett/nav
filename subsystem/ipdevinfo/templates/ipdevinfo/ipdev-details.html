@@ -237,8 +237,8 @@
 <table class="listtable">
     <caption>
         Recent alerts<br />
-        <span class="subtitle">From the last week. For older alerts, see
-        <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a>.
+        <span class="subtitle">For details, see
+        <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a>
         </span>
     </caption>
 
@@ -246,6 +246,7 @@
         <tr>
             <th>Event</th>
             <th>Start</th>
+            <th>End</th>
             <th>Downtime</th>
         </tr>
     </thead>
@@ -253,11 +254,22 @@
     <tbody>
     {% if alerts %}
         {% for alert in alerts %}
-        <tr>
+        <tr class="{% cycle oddrow,evenrow %}">
             <td>{{ alert.event_type }}</td>
             <td>{{ alert.start_time }}</td>
-            <!-- FIXME: Add timedelta formatting filter -->
-            <td align="right">{{ alert.get_downtime }}</td>
+            {% if alert.is_open %}
+                <td class="status_down">Still active</td>
+            {% else %}
+                <td>{{ alert.end_time }}</td>
+            {% endif %}
+            </td>
+            <td align="right">
+                {% if alert.is_open %}
+                    {{ alert.start_time|timesince }}
+                {% else %}
+                    {{ alert.start_time|timesince:alert.end_time }}
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     {% else %}
