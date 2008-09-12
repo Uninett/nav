@@ -714,6 +714,7 @@ class SwPort(models.Model):
         (DUPLEX_FULL, 'full duplex'),
         (DUPLEX_HALF, 'half duplex'),
     )
+    CAM_ACTIVITY_NUM_DAYS_TO_SEARCH = 30
 
     id = models.AutoField(db_column='swportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
@@ -817,7 +818,7 @@ class SwPort(models.Model):
 
         return ', '.join(title)
 
-    def get_active_time(self, interval=30):
+    def get_active_time(self, interval=None):
         """
         Time since last CAM activity on port, looking at CAM entries
         for the last ``interval'' (default 30) days.
@@ -826,8 +827,18 @@ class SwPort(models.Model):
         activity as a datetime.timedelta object.
         """
 
-        if hasattr(self, 'time_since_activity'):
-            return self.time_since_activity
+        # Default interval length
+        if interval is None:
+            interval = self.CAM_ACTIVITY_NUM_DAYS_TO_SEARCH
+
+        # Create cache dictionary
+        # FIXME: Replace with real Django caching
+        if not hasattr(self, 'time_since_activity_cache'):
+             self.time_since_activity_cache = {}
+
+        # Check cache for result
+        if interval in self.time_since_activity_cache:
+            return self.time_since_activity_cache[interval]
 
         min_time = datetime.now() - timedelta(interval)
         try:
@@ -842,12 +853,13 @@ class SwPort(models.Model):
 
         if last_cam_entry_end_time == datetime.max:
             # Active now
-            self.time_since_activity = timedelta(0)
+            self.time_since_activity_cache[interval] = timedelta(0)
         else:
             # Active some time inside the given interval
-            self.time_since_activity = datetime.now() - last_cam_entry_end_time
+            self.time_since_activity_cache[interval] = \
+                datetime.now() - last_cam_entry_end_time
 
-        return self.time_since_activity
+        return self.time_since_activity_cache[interval]
 
     def get_active_classes(self, interval=30):
         """Active classes for IP Device Info port view"""
