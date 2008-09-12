@@ -163,10 +163,11 @@ class Netbox(models.Model):
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
             # XXX: Multiple identical data sources in the database have been
-            # observed. Using the first result.
-            data_source_status = data_sources.filter(name='STATUS')[0]
+            # observed. Using the result with highest primary key.
+            data_source_status = data_sources.filter(name='STATUS'
+                ).order_by('-pk')[0]
             data_source_response_time = data_sources.filter(
-                name='RESPONSETIME')[0]
+                name='RESPONSETIME').order_by('-pk')[0]
         except IndexError:
             return None
 
