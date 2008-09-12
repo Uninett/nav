@@ -30,9 +30,14 @@
 -- Rename logger tables to avoid naming confusion with manage schema.
 ALTER TABLE logger.message RENAME TO log_message;
 ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
+ALTER INDEX logger.message_pkey RENAME TO log_message_pkey;
+ALTER INDEX logger.message_origin_hash RENAME TO log_message_origin_hash;
+ALTER INDEX logger.message_time_btree RENAME TO log_message_time_btree;
+ALTER INDEX logger.message_type_hash RENAME TO log_message_type_hash;
 
-ALTER TABLE logger.type RENAME TO message_type;
-ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
+ALTER TABLE logger.type RENAME TO log_message_type;
+ALTER SEQUENCE logger.type_type_seq RENAME TO log_message_type_type_seq;
+ALTER INDEX logger.type_priority_key RENAME TO log_message_type_priority_key;
 
 -- Drop obsolete vlanPlot tables
 DROP TABLE vp_netbox_xy;
