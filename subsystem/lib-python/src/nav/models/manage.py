@@ -164,6 +164,8 @@ class Netbox(models.Model):
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
             # XXX: Multiple identical data sources in the database have been
             # observed. Using the result with highest primary key.
+            # FIXME: Should probably check the mtime of the RRD files on disk
+            # and use the newest one.
             data_source_status = data_sources.filter(name='STATUS'
                 ).order_by('-pk')[0]
             data_source_response_time = data_sources.filter(
