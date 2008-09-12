@@ -116,6 +116,23 @@
         </td>
     </tr>
     <tr>
+        <th>Last CAM record</th>
+        <td>
+            {% with port.get_active_time.days as days_ago %}
+                {% if days_ago %}
+                    {% ifequal days_ago 0 %}
+                        Today
+                    {% else %}
+                        {{ days_ago }} day{{ days_ago|pluralize }} ago
+                    {% endifequal %}
+                {% else %}
+                    More than {{ port.CAM_ACTIVITY_NUM_DAYS_TO_SEARCH }}
+                    days ago
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+    <tr>
         <th>Actions</th>
         <td>
             <ul>
