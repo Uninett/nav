@@ -76,7 +76,7 @@ class Service(models.Model):
 
         try:
             data_sources = RrdDataSource.objects.filter(
-                rrd_file__key='serviceid', rrd_file__value=self.id)
+                rrd_file__key='serviceid', rrd_file__value=str(self.id))
             data_source_status = None
             data_source_response_time = None
             for ds in data_sources:
