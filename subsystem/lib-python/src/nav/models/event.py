@@ -244,20 +244,37 @@ class AlertHistory(models.Model):
     def __unicode__(self):
         return u'Source %s, severity %d' % (self.source, self.severity)
 
+    def is_statefull(self):
+        """Returns true if the alert is statefull."""
+
+        if self.end_time is None:
+            return False
+        else:
+            return True
+
+    def is_open(self):
+        """Returns true if statefull and open."""
+
+        if self.is_statefull() and self.end_time == dt.datetime.max:
+            return True
+        else:
+            return False
+
     def get_downtime(self):
         """Returns the difference between start_time and end_time, the current
         downtime if the alert is still open, and None if the alert is
         stateless."""
 
-        if self.end_time is None:
+        if self.is_statefull():
+            if self.is_open():
+                # Open alert
+                return (dt.datetime.now() - self.start_time)
+            else:
+                # Closed alert
+                return (self.end_time - self.start_time)
+        else:
             # Stateless alert
             return None
-        elif self.end_time == dt.datetime.max:
-            # Open alert
-            return (dt.datetime.now() - self.start_time)
-        else:
-            # Closed alert
-            return (self.end_time - self.start_time)
 
 class AlertHistoryMessage(models.Model):
     """From MetaNAV: To have a history of the formatted messages too, they are
