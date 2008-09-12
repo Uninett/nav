@@ -177,13 +177,25 @@
                     Schedule maintenance</a></li>
                 <li><a href="{% url devicemanagement-history-netbox netbox.id %}">
                     View device history</a></li>
+                <li><a href="{% url ipinfo-host netbox.sysname %}">
+                    View in IP Info</a></li>
             </ul>
         </td>
     </tr>
 {% else %}
     <caption>IP Device</caption>
     <tr>
+        <th>Status</th>
         <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
+    </tr>
+    <tr>
+        <th>Actions</th>
+        <td>
+            <ul>
+                <li><a href="{% url ipinfo-host host_info.host %}">
+                    View in IP Info</a></li>
+            </ul>
+        </td>
     </tr>
 {% endif %}
 </table>
