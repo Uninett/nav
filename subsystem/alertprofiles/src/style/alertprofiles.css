@@ -3,3 +3,16 @@
   background-color: #FCf27F !important;
 }
 
+.infobox caption {
+  font-size: 1.2em;
+  font-weight: bolder;
+  padding: 0.3em 0.5em;
+}
+
+.infobox td, .infobox th {
+  padding: 0.2em 0.5em;
+}
+
+.infobox th {
+  font-weight: bold;
+}

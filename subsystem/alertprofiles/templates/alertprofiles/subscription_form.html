@@ -61,6 +61,32 @@
         </p>
     </div>
 </form>
+<div class="infobox">
+    <table>
+        <caption>
+            Dispatch time help
+        </caption>
+        <tbody>
+            <tr>
+                <th>Immidiately</th>
+                <td>Send the alert as soon as alertengine has processed it.</td>
+            </tr>
+            <tr>
+                <th>Daily at predefined time</th>
+                <td>Send all matched alerts at the specified daily dispatch time.</td>
+            </tr>
+            <tr>
+                <th>Weekly at predefined time</th>
+                <td>Send all matched alerts at the specified weekly dispatch time.</td>
+            </tr>
+            <tr>
+                <th>At end of timeperiod</th>
+                <td>Send all matched alerts when the current timeperiod is over and
+                a new one starts.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endblock subscription_form %}
 
 {% endblock %}
