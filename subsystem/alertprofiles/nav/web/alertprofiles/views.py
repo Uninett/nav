@@ -768,7 +768,7 @@ def profile_time_period_subscription_remove(request):
 
         AlertSubscription.objects.filter(pk__in=subscriptions).delete()
 
-        new_message(request, _('Remved alert subscriptions'), Messages.SUCCESS)
+        new_message(request, _('Removed alert subscriptions.'), Messages.SUCCESS)
         return HttpResponseRedirect(reverse(
             'alertprofiles-profile-timeperiod-setup',
             args=(period.id,)

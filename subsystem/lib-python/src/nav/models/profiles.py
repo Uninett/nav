@@ -702,7 +702,7 @@ class MatchField(models.Model):
     )
     value_id = models.CharField(
         choices=CHOICES,
-        help_text=_(u'The "match field". This is the acctual database field alert engine will watch.')
+        help_text=_(u'The "match field". This is the actual database field alert engine will watch.')
     )
     value_name = models.CharField(
         choices=CHOICES,
