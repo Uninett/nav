@@ -25,7 +25,15 @@
  */
 
 $(function() {
-	$("tr.all_days_period").hover(function () {
+    // Display some help text to the "highlight shared periods" js
+    $("#timeperiods_table_container").append("<div class=\"infobox\"><p>" +
+        "If, when hovering over one period in one of the tables, two rows " +
+        "in different tables are highlighted, those two periods are " +
+        "actually the one and same period. It's just an \"all days\" period." +
+    "</p></div>");
+
+    // Highlight shared periods
+	$("#timeperiods_table_container tr.all_days_period").hover(function () {
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
 		$("tr." + shared_id).addClass('hilight');
 	}, function() {
@@ -35,15 +43,15 @@ $(function() {
 
 	$("select#id_operator").ready(function() {
 	    if ($(this).val() == 0) {
-		$("select#id_value").removeAttr('multiple');
+            $("select#id_value").removeAttr('multiple');
 	    }
 	});
 
 	$("select#id_operator").change(function() {
 	    if ($(this).val() == 0) {
-		$("select#id_value").removeAttr('multiple');
+            $("select#id_value").removeAttr('multiple');
 	    } else {
-		$("select#id_value").attr('multiple', 'multiple');
+            $("select#id_value").attr('multiple', 'multiple');
 	    }
 	});
 });
