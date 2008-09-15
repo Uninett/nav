@@ -359,12 +359,6 @@ CREATE TABLE swportblocked (
   PRIMARY KEY(swportid, vlan)
 );
 
-CREATE TABLE alertengine (
-	lastalertqid integer
-);
-
-INSERT INTO alertengine (lastalertqid) values(0);
-
 CREATE TABLE cabling (
   cablingid SERIAL PRIMARY KEY,
   roomid VARCHAR(30) NOT NULL REFERENCES room ON UPDATE CASCADE ON DELETE CASCADE,

@@ -22,7 +22,7 @@
 # Author: Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 
-"""FIXME"""
+"""Plugin module for sending jabber alerts"""
 
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
@@ -31,6 +31,8 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 import xmpp
 import logging
 import time
+from threading import Thread
+from time import sleep
 
 from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
@@ -41,6 +43,43 @@ class jabber(dispatcher):
         self.config = kwargs['config'];
 
         self.connect()
+
+        self.thread = Thread(target=self.thread_loop, args=[self.get_client])
+        self.thread.setDaemon(True)
+        self.thread.start()
+
+    def get_client(self):
+        return self.client
+
+    @staticmethod
+    def presence_handler(connection, presence):
+        who = str(presence.getFrom())
+        type = presence.getType()
+
+        logger.debug('presence_handler invoked for %s' % presence)
+
+        if type == 'subscribe':
+            connection.send(xmpp.Presence(to=who, type='subscribed'))
+            connection.send(xmpp.Presence(to=who, type='subscribe'))
+
+            logger.debug('Sent subscription confirmation to %s' % who)
+
+        elif type == 'unsubscribe':
+            connection.send(xmpp.Presence(to=who, type='unsubscribed'))
+            connection.send(xmpp.Presence(to=who, type='unsubscribe'))
+
+            logger.debug('Sent unsubscription confirmation to %s' % who)
+
+    @staticmethod
+    def thread_loop(get_client):
+        logger.debug('starting thread loop')
+
+        # Put thread to sleep waiting for flag to be set.
+        while True:
+            get_client().Process(1)
+            logger.debug('thread sleeping 120 seconds')
+            sleep(120)
+        logger.debug('stopping thread loop')
 
     def connect(self):
         self.jid = xmpp.protocol.JID(self.config['jid'])
@@ -58,14 +97,16 @@ class jabber(dispatcher):
         if not auth:
             raise DispatcherException('Could not authenticate with jabber server')
 
+        self.client.RegisterHandler('presence',self.presence_handler)
+        self.client.sendInitPresence()
+
     def send(self, address, alert, language='en', type='unknown', retry=True, retry_reason=None):
-        message = alert.messages.get(language=language, type='email')
+        message = alert.messages.get(language=language, type='jabber')
 
         if not self.client.isConnected():
             self.connect()
 
         try:
-            self.client.Process(1)
             id = self.client.send(xmpp.protocol.Message(address.address, message.message, typ='chat'))
             logger.debug('Send message with jabber id %s' % id)
         except (xmpp.protocol.StreamError, IOError), e:

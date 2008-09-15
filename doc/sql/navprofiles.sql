@@ -333,7 +333,7 @@ CREATE TABLE alertsubscription (
 ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 /*
--- 11 filtergroup_group_permission
+-- 11 FILTERGROUP_GROUP_PERMISSION
 
 Permissions.
 
@@ -452,33 +452,33 @@ CREATE TABLE MatchField (
 ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
 
 /*
--- 17 EXPRESION
+-- 17 EXPRESSION
 
-Expresion is a single condition. It consist of a matchfield, a operator and a value.
+Expression is a single condition. It consist of a matchfield, a operator and a value.
 
 match_field_id	This is a relation to matchfield
 operator	This specifies the operator used. This a static list.
 value		The value
 */
-CREATE SEQUENCE expresion_id_seq START 1000;
-CREATE TABLE expresion (
-       id integer NOT NULL DEFAULT nextval('expresion_id_seq'),
+CREATE SEQUENCE expression_id_seq START 1000;
+CREATE TABLE expression (
+       id integer NOT NULL DEFAULT nextval('expression_id_seq'),
        filter_id integer NOT NULL,
        match_field_id integer NOT NULL,
        operator integer,
        value varchar,
 
-    CONSTRAINT expresion_pkey PRIMARY KEY(id),
-    CONSTRAINT expresion_match_field_id_fkey
+    CONSTRAINT expression_pkey PRIMARY KEY(id),
+    CONSTRAINT expression_match_field_id_fkey
         FOREIGN KEY(match_field_id) REFERENCES matchfield(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    CONSTRAINT expresion_filter_id_fkey
+    CONSTRAINT expression_filter_id_fkey
         FOREIGN KEY(filter_id) REFERENCES filter(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE expresion_id_seq OWNED BY expresion.id;
+ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 
 /*
@@ -973,29 +973,29 @@ INSERT INTO filtergroupcontent (include, positive, priority, filter_id, filter_g
 INSERT INTO filtergroupcontent (include, positive, priority, filter_id, filter_group_id) VALUES (true, true, 1, 23, 83);
 INSERT INTO filtergroupcontent (include, positive, priority, filter_id, filter_group_id) VALUES (true, true, 1, 24, 84);
 
--- Table: expresion
+-- Table: expression
 
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (26, 29, 13, 11, 'GSW|GW');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (27, 13, 12, 4, '100');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (25, 30, 13, 11, 'EDGE|GSW|SW');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (28, 31, 13, 11, 'GSW|SW');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (29, 14, 11, 11, 'boxDown|boxUp');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (30, 15, 11, 11, 'boxShadow|boxSunny');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (31, 25, 11, 11, 'boxDownWarning|boxShadowWarning');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (32, 16, 10, 0, 'moduleState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (43, 32, 13, 0, 'EDGE');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (44, 33, 13, 0, 'WLAN');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (45, 34, 13, 0, 'SRV');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (46, 35, 13, 0, 'OTHER');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (47, 36, 10, 0, 'boxState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (52, 26, 10, 0, 'serviceState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (53, 27, 10, 0, 'thresholdState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (55, 20, 12, 2, '20');
---INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (56, 19, 12, 2, '0');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (57, 21, 12, 2, '40');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (58, 28, 10, 0, 'deviceChanged');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (59, 23, 12, 2, '60');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (61, 24, 12, 2, '80');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (26, 29, 13, 11, 'GSW|GW');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (27, 13, 12, 4, '100');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (25, 30, 13, 11, 'EDGE|GSW|SW');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (28, 31, 13, 11, 'GSW|SW');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (29, 14, 11, 11, 'boxDown|boxUp');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (30, 15, 11, 11, 'boxShadow|boxSunny');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (31, 25, 11, 11, 'boxDownWarning|boxShadowWarning');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (32, 16, 10, 0, 'moduleState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (43, 32, 13, 0, 'EDGE');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (44, 33, 13, 0, 'WLAN');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (45, 34, 13, 0, 'SRV');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (46, 35, 13, 0, 'OTHER');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (47, 36, 10, 0, 'boxState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (52, 26, 10, 0, 'serviceState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (53, 27, 10, 0, 'thresholdState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (55, 20, 12, 2, '20');
+--INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (56, 19, 12, 2, '0');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (57, 21, 12, 2, '40');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (58, 28, 10, 0, 'deviceChanged');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (59, 23, 12, 2, '60');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (61, 24, 12, 2, '80');
 
 
 -- Table: filtergroup_group_permission
