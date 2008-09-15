@@ -2071,7 +2071,7 @@ def matchfield_list(request):
         request,
         _('''Editing matchfields is black magic. Don't do it unless you know
         exacly what you are doing.'''),
-        Messages.WARNING,
+        Messages.NOTICE,
     )
 
     # Get all matchfields aka. filter variables
@@ -2145,7 +2145,7 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         request,
         _('''Editing matchfields is black magic. Don't do it unless you know
         exacly what you are doing.'''),
-        Messages.WARNING,
+        Messages.NOTICE,
     )
 
     info_dict = {
@@ -2236,8 +2236,8 @@ def matchfield_remove(request):
         matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('matchfield'))
         expressions = Expression.objects.filter(match_field__in=matchfields).order_by('match_field__name')
 
+        messages = Messages(request)
         if len(expressions) > 0:
-            messages = Messages(request)
             for e in expressions:
                 messages.append({
                     'message': _('''Match field %(match_field)s is used in
@@ -2248,7 +2248,14 @@ def matchfield_remove(request):
                         },
                     'type': Messages.WARNING
                 })
-            messages.save()
+
+        messages.append({
+            'message': _('''It is strongly recomended that one do not remove
+                one of the default match fields that comes preinstalled with
+                NAV.'''),
+            'type': Messages.NOTICE,
+        })
+        messages.save()
 
         info_dict = {
                 'form_action': reverse('alertprofiles-matchfields-remove'),
