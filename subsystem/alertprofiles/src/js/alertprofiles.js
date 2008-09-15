@@ -24,8 +24,8 @@
  *
  */
 
-$("#time_period_table").ready(function() {
-	$("tr.all").hover(function () {
+$(function() {
+	$("tr.all_days_period").hover(function () {
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
 		$("tr." + shared_id).addClass('hilight');
 	}, function() {
@@ -38,12 +38,12 @@ $("select#id_operator").ready(function() {
     if ($(this).val() == 0) {
         $("select#id_value").removeAttr('multiple');
     }
+});
 
-    $("select#id_operator").change(function() {
-        if ($(this).val() == 0) {
-            $("select#id_value").removeAttr('multiple');
-        } else {
-            $("select#id_value").attr('multiple', 'multiple');
-        }
-    });
+$("select#id_operator").change(function() {
+    if ($(this).val() == 0) {
+        $("select#id_value").removeAttr('multiple');
+    } else {
+        $("select#id_value").attr('multiple', 'multiple');
+    }
 });

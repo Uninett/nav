@@ -1,5 +1,5 @@
 {% for type in alert_subscriptions %}
-<table class="listtable" id="time_period_tabe">
+<table class="listtable">
     <caption>
         {{ type.title }}
     </caption>
@@ -16,7 +16,10 @@
 
     <tbody>
     {% for a in type.subscriptions %}
-        <tr class="{% cycle oddrow,evenrow %} {% ifequal a.time_period.valid_during 'all days' %}all {{ a.time_period.id }}{% endifequal %}">
+        <tr class="{% cycle oddrow,evenrow %}
+            {% ifequal a.time_period.valid_during 'all days' %}
+            all_days_period period_{{ a.time_period.id }}
+            {% endifequal %}">
             {# The same time period may appear in both tables, so we need to #}
             {# identify by both the parent loops counter and the time_periods id. #}
             {% if active.profile %}
