@@ -222,7 +222,7 @@ class AlertQueueVariable(models.Model):
 
 class AlertHistory(models.Model):
     """From MetaNAV: The alert history. Simular to the alert queue with one
-    important distinction; alert history stores statefull events as one row,
+    important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
@@ -244,8 +244,8 @@ class AlertHistory(models.Model):
     def __unicode__(self):
         return u'Source %s, severity %d' % (self.source, self.severity)
 
-    def is_statefull(self):
-        """Returns true if the alert is statefull."""
+    def is_stateful(self):
+        """Returns true if the alert is stateful."""
 
         if self.end_time is None:
             return False
@@ -253,9 +253,9 @@ class AlertHistory(models.Model):
             return True
 
     def is_open(self):
-        """Returns true if statefull and open."""
+        """Returns true if stateful and open."""
 
-        if self.is_statefull() and self.end_time == dt.datetime.max:
+        if self.is_stateful() and self.end_time == dt.datetime.max:
             return True
         else:
             return False
@@ -265,7 +265,7 @@ class AlertHistory(models.Model):
         downtime if the alert is still open, and None if the alert is
         stateless."""
 
-        if self.is_statefull():
+        if self.is_stateful():
             if self.is_open():
                 # Open alert
                 return (dt.datetime.now() - self.start_time)
