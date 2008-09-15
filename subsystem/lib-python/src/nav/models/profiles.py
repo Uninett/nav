@@ -585,7 +585,7 @@ class FilterGroup(models.Model):
     name = models.CharField()
     description = models.CharField(db_column='descr')
 
-    group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
+    group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permission')
 
     class Meta:
         db_table = u'filtergroup'

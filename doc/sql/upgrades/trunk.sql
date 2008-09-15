@@ -70,9 +70,9 @@ ALTER TABLE accountingroup RENAME TO accountgroup_accounts;
 ALTER TABLE accountgroup_accounts RENAME accountid TO account_id;
 ALTER TABLE accountgroup_accounts RENAME groupid TO accountgroup_id;
 
-ALTER TABLE rettighet RENAME TO filtergroup_group_permision;
-ALTER TABLE filtergroup_group_permision RENAME utstyrgruppeid TO filtergroup_id;
-ALTER TABLE filtergroup_group_permision RENAME accountgroupid TO accountgroup_id;
+ALTER TABLE rettighet RENAME TO filtergroup_group_permission;
+ALTER TABLE filtergroup_group_permission RENAME utstyrgruppeid TO filtergroup_id;
+ALTER TABLE filtergroup_group_permission RENAME accountgroupid TO accountgroup_id;
 
 ALTER TABLE alarmadresse RENAME TO alertaddress;
 ALTER TABLE alertaddress RENAME adresse TO address;
@@ -225,13 +225,13 @@ ALTER TABLE operator ADD COLUMN id integer NOT NULL
 ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
 ALTER TABLE operator ADD CONSTRAINT operator_operator_id_key UNIQUE(operator_id, match_field_id);
 
-ALTER TABLE filtergroup_group_permision DROP CONSTRAINT rettighet_pk;
-CREATE SEQUENCE filtergroup_group_permision_id_seq;
-ALTER TABLE filtergroup_group_permision ADD COLUMN id integer NOT NULL
-	DEFAULT nextval('filtergroup_group_permision_id_seq')
-	CONSTRAINT filtergroup_group_permision_pkey PRIMARY KEY;
-ALTER SEQUENCE filtergroup_group_permision_id_seq OWNED BY filtergroup_group_permision.id;
-ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_accountgroup_id_key UNIQUE(accountgroup_id, filtergroup_id);
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT rettighet_pk;
+CREATE SEQUENCE filtergroup_group_permission_id_seq;
+ALTER TABLE filtergroup_group_permission ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('filtergroup_group_permission_id_seq')
+	CONSTRAINT filtergroup_group_permission_pkey PRIMARY KEY;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
+ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_accountgroup_id_key UNIQUE(accountgroup_id, filtergroup_id);
 
 ALTER TABLE alertsubscription DROP CONSTRAINT varsleadresse_pk;
 CREATE SEQUENCE alertsubscription_id_seq;
@@ -332,13 +332,13 @@ ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_filter_group_id_f
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
-ALTER TABLE filtergroup_group_permision DROP CONSTRAINT accountgroup_exist;
-ALTER TABLE filtergroup_group_permision DROP CONSTRAINT utstyrgruppe_eksisterer;
-ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_accountgroup_id_fkey
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT accountgroup_exist;
+ALTER TABLE filtergroup_group_permission DROP CONSTRAINT utstyrgruppe_eksisterer;
+ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_accountgroup_id_fkey
 	FOREIGN KEY(accountgroup_id) REFERENCES accountgroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-ALTER TABLE filtergroup_group_permision ADD CONSTRAINT filtergroup_group_permision_filtergroup_id_fkey
+ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_filtergroup_id_fkey
 	FOREIGN KEY(filtergroup_id) REFERENCES filtergroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;

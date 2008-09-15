@@ -333,7 +333,7 @@ CREATE TABLE alertsubscription (
 ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 /*
--- 11 FILTERGROUP_GROUP_PERMISION
+-- 11 filtergroup_group_permission
 
 Permissions.
 
@@ -341,25 +341,25 @@ This table contatins a relation from a user group to an equipment group. It give
 actual user group permission to set up notofication for alerts matching this filter. The relation 
 usergroup <-> equipment group is many to many.
 */
-CREATE SEQUENCE filtergroup_group_permision_id_seq;
-CREATE TABLE filtergroup_group_permision (
-       id integer NOT NULL DEFAULT nextval('filtergroup_group_permision_id_seq'),
+CREATE SEQUENCE filtergroup_group_permission_id_seq;
+CREATE TABLE filtergroup_group_permission (
+       id integer NOT NULL DEFAULT nextval('filtergroup_group_permission_id_seq'),
        accountgroup_id integer NOT NULL,
        filtergroup_id integer NOT NULL,
 
-       CONSTRAINT filtergroup_group_permision_pkey PRIMARY KEY(id),
-       CONSTRAINT filtergroup_group_permision_accountgroup_id_key
+       CONSTRAINT filtergroup_group_permission_pkey PRIMARY KEY(id),
+       CONSTRAINT filtergroup_group_permission_accountgroup_id_key
        		UNIQUE(accountgroup_id, filtergroup_id),
-       CONSTRAINT filtergroup_group_permision_accountgroup_id_fkey
+       CONSTRAINT filtergroup_group_permission_accountgroup_id_fkey
 		  FOREIGN KEY(accountgroup_id) REFERENCES accountgroup(id)
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE,
-       CONSTRAINT filtergroup_group_permision_filtergroup_id_fkey
+       CONSTRAINT filtergroup_group_permission_filtergroup_id_fkey
 		  FOREIGN KEY(filtergroup_id) REFERENCES filtergroup(id)
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroup_group_permision_id_seq OWNED BY filtergroup_group_permision.id;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
 
 /*
 -- 14 FILTER
@@ -998,9 +998,9 @@ INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (5
 INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (61, 24, 12, 2, '80');
 
 
--- Table: filtergroup_group_permision
+-- Table: filtergroup_group_permission
 
-INSERT INTO filtergroup_group_permision (accountgroup_id, filtergroup_id) VALUES (1, 71);
+INSERT INTO filtergroup_group_permission (accountgroup_id, filtergroup_id) VALUES (1, 71);
 
 
 /*
