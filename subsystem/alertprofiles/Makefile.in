@@ -53,8 +53,10 @@ TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
 DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
-WEBSTYLES_SRC = $(wildcard src/*/*)
-WEBSTYLES = $(WEBSTYLES_SRC:src/%=%)
+STYLE_SRC = $(wildcard style/*)
+STYLE = $(STYLE_SRC:style/%=%)
+JAVASCRIPT_SRC = $(wildcard js/*)
+JAVASCRIPT = $(JAVASCRIPT_SRC:js/%=%)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
@@ -89,7 +91,8 @@ install-conf: conf
 
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	for file in $(WEBSTYLES); do $(INSTALL) -v -D -m 644 src/$$file $(DESTDIR)$(webroot)/$$file || exit 1; done
+	for file in $(STYLE); do $(INSTALL) -v -D -m 644 style/$$file $(DESTDIR)$(webroot)/style/$$file || exit 1; done
+	for file in $(JAVASCRIPT); do $(INSTALL) -v -D -m 644 js/$$file $(DESTDIR)$(webroot)/js/$$file || exit 1; done
 	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
 
 uninstall:
