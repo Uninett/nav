@@ -2067,6 +2067,13 @@ def matchfield_list(request):
     if order_by not in valid_ordering:
         order_by = 'name'
 
+    new_message(
+        request,
+        _('''Editing matchfields is black magic. Don't do it unless you know
+        exacly what you are doing.'''),
+        Messages.WARNING,
+    )
+
     # Get all matchfields aka. filter variables
     matchfields = MatchField.objects.all().order_by(order_by)
     info_dict = {
@@ -2133,6 +2140,13 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         subsection = {'detail': matchfield_id}
     else:
         subsection = {'new': True}
+
+    new_message(
+        request,
+        _('''Editing matchfields is black magic. Don't do it unless you know
+        exacly what you are doing.'''),
+        Messages.WARNING,
+    )
 
     info_dict = {
             'active': active,
