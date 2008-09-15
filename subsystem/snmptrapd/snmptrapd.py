@@ -36,6 +36,8 @@ import ConfigParser
 import logging
 
 # Import PySNMP modules
+# Make sure Ubuntu/Debian picks the correct pysnmp API version:
+os.environ['PYSNMP_API_VERSION'] = 'v2'
 from pysnmp import asn1, v1, v2c
 from pysnmp import role
 

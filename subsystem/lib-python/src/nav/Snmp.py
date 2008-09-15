@@ -28,6 +28,9 @@ for NAV, as pysnmp2 is quite low-level and tedious to work with.
 The module uses the version 2 branch of pysnmp.
 """
 import re
+import os
+# Make sure Ubuntu/Debian picks the correct pysnmp API version:
+os.environ['PYSNMP_API_VERSION'] = 'v2'
 import pysnmp # Version 2
 from pysnmp import role, v1, v2c, asn1
 # Ugly hack to escape inconsistencies in pysnmp2

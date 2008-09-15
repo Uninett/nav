@@ -235,7 +235,7 @@ if __name__ == '__main__':
             origins[r[1]] = int(r[0])
 
     types = {}
-    database.execute("select type, facility, mnemonic, priority from message_type")
+    database.execute("select type, facility, mnemonic, priority from log_message_type")
     for r in database.fetchall():
         if not types.has_key(r[1]): 
             types[r[1]] = {}
@@ -324,10 +324,10 @@ if __name__ == '__main__':
 
                 else:
                     ## update type database table
-                    database.execute("SELECT nextval('message_type_type_seq')")
+                    database.execute("SELECT nextval('log_message_type_type_seq')")
                     typeid = int(database.fetchone()[0])
 
-                    database.execute("INSERT INTO message_type (type, facility, "
+                    database.execute("INSERT INTO log_message_type (type, facility, "
                                      "mnemonic, priority) "
                                      "VALUES (%d, %s, %s, %d)",
                                      (typeid, message.facility,

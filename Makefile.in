@@ -35,7 +35,7 @@ subdirs = src \
 	subsystem/dbTools \
 	subsystem/devBrowser \
 	subsystem/deviceManagement \
-	subsystem/editdb \
+	subsystem/seeddb \
 	subsystem/ipinfo \
 	subsystem/ipdevinfo \
 	subsystem/l2trace \
@@ -43,7 +43,6 @@ subdirs = src \
 	subsystem/machinetracker \
 	subsystem/maintenance \
 	subsystem/messages \
-	subsystem/pyproxy \
 	subsystem/report \
 	subsystem/smsd \
 	subsystem/snmptrapd \
