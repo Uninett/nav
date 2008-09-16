@@ -1,0 +1,28 @@
+<dl>
+    {% for service in services %}
+    {% if forloop.first %}
+    <dt class="swport_tree">Services</dt>
+    {% endif %}
+    <dd>
+{% if forloop.last %}
+   <img src="/images/networkexplorer/end.gif">
+{% else %}
+   <img src="/images/networkexplorer/vertical-bound.gif">
+{% endif %}
+    {{ service.handler }} - Status: {{ service.get_up_display }}</dd>
+    {% endfor %}
+
+    {% for host in active_hosts %}
+    {% if forloop.first %}
+    <dt class="swport_tree">Active hosts behind port</dt>
+    {% endif %}
+    <dd>
+{% if forloop.last %}
+   <img src="/images/networkexplorer/end.gif">
+{% else %}
+   <img src="/images/networkexplorer/vertical-bound.gif">
+{% endif %}
+        {{ host|safe }}
+    </dd>
+    {% endfor %}
+</dl>

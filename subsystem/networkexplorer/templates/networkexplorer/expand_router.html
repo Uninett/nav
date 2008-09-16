@@ -1,22 +1,40 @@
-<ul>
+<dl class="gwports">
+<dt>Router ports:</dt>
 {% for gwport in ports %}
-    <li id="gwport-{{ gwport.id }}">
+{% if gwport %}
+    <dd id="gwport-{{ gwport.id }}">
         {% if gwport.has_children %}
-        <img src="https://navdev.uninett.no/navAdmin/gfx/boxclosed_both.gif" onclick="openNode(this);" />
+	        <img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigator"/>
         {% else %}
-        <img src="https://navdev.uninett.no/navAdmin/gfx/strek_bottom.gif" />
+		{% if forloop.last %}
+   			<img src="/images/networkexplorer/end.gif">
+		{% else %}
+			<img src="/images/networkexplorer/vertical-bound.gif">
+		{% endif %}
         {% endif %}
-        <img src="https://navdev.uninett.no/navAdmin/gfx/gwport.gif" />
-        {{ gwport.interface }}
+        <a href="{{ gwport.get_absolute_url }}" target="_blank">{{ gwport.interface }}</a>
         {% if gwport.to_netbox %}
-            {% if gwport.to_swport.trunk %} ⇉ {% else %} → {% endif %}
+            {% if gwport.to_swport.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}
              {{ gwport.to_netbox.sysname }}
         {% endif %}
-        <ul style="list-style: none">
-        {% for prefix in gwport.gwportprefix_set.all %}
-        <li class="prefix">({{ prefix.prefix.net_address }}, {{prefix.prefix.vlan.net_type}}, {{prefix.prefix.vlan.net_ident}})</li>
-        {% endfor %}
-        </ul>
-    </li>
+	{% with gwport.prefixes as prefix_list %}
+	{% if prefix_list %}
+        <dl>
+			<dt class="prefix">Prefixes:</dt>
+		        {% for prefix in prefix_list %}
+	        	<dd class="prefix">
+{% if forloop.last %}
+   <img src="/images/networkexplorer/end.gif">
+{% else %}
+   <img src="/images/networkexplorer/vertical-bound.gif">
+{% endif %}
+				({{ prefix.display_addr }}, {{prefix.prefix.vlan.net_type}}, {{prefix.prefix.vlan.net_ident}})
+			</dd>
+		        {% endfor %}
+        </dl>
+	{% endif %}
+	{% endwith %}
+    </dd>
+{% endif %}
 {% endfor %}
-</ul>
+</dl>
