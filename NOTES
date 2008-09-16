@@ -69,6 +69,12 @@ won't hurt to run it even if you don't need to).
 If you installed NAV from a Debian binary package, the upgrade process
 should have automatically run this upgrade script for you.
 
+This version fixes a problem with the way users' status page
+preferences are stored, which would cause problems under mod_python >=
+3.3.1 (and possibly earlier versions).  After the upgrade, any user
+who has set up his/her own custom preferences for the status page will
+need to do so over again.
+
 
 Upgrading from NAV 3.3
 ======================
