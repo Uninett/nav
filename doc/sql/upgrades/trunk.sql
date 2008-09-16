@@ -6,14 +6,40 @@
  * every change you make to the database initialization scripts.  It
  * will eventually become the update script for the next release.
  *
- * Also, if you are keeping your installation in sync with the default
+ * *************** NB NB NB NB NB NB NB ***************
+ *
+ * This upgrade scripts assumes you have merged your NAV databases
+ * into a single, multi-namespaced database.  If you haven't, please
+ * read the instructions in doc/sql/migrate.sql, and use that script
+ * to merge your databases first.  Only then should you use this
+ * script.
+ *
+ * *************** NB NB NB NB NB NB NB ***************
+ *
+ * If you are keeping your installation in sync with the default
  * branch, you should watch this file for changes and run them when
  * updating (check the diffs!)
  *
  * Connect to PostgreSQL as the postgres superuser or the nav database user
  * like this:
  *
- *  psql -f trunk.sql manage <username>
+ *  psql -f trunk.sql nav <username>
  *
 */
 
+-- Rename logger tables to avoid naming confusion with manage schema.
+ALTER TABLE logger.message RENAME TO log_message;
+ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
+ALTER INDEX logger.message_pkey RENAME TO log_message_pkey;
+ALTER INDEX logger.message_origin_hash RENAME TO log_message_origin_hash;
+ALTER INDEX logger.message_time_btree RENAME TO log_message_time_btree;
+ALTER INDEX logger.message_type_hash RENAME TO log_message_type_hash;
+
+ALTER TABLE logger.type RENAME TO log_message_type;
+ALTER SEQUENCE logger.type_type_seq RENAME TO log_message_type_type_seq;
+ALTER INDEX logger.type_priority_key RENAME TO log_message_type_priority_key;
+
+-- Drop obsolete vlanPlot tables
+DROP TABLE vp_netbox_xy;
+DROP TABLE vp_netbox_grp;
+DROP TABLE vp_netbox_info;

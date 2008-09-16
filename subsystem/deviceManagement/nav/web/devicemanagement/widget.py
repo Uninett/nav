@@ -52,10 +52,10 @@ class Widget:
 
         if type == 'date':
             # date widget
-            self.valueY = int(self.value[0])
-            self.valueM = int(self.value[1])
-            self.valueD = int(self.value[2])
             now = mx.DateTime.now()
+            self.valueY = int(self.value[0] or now.year)
+            self.valueM = int(self.value[1] or now.month)
+            self.valueD = int(self.value[2] or now.day)
 
             if options.has_key('startyear'):
                 startYear = options['startyear']

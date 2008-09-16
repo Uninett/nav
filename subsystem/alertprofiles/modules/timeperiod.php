@@ -156,8 +156,8 @@ if (sizeof($konflikter) > 0) {
 $l[0] = new Lister( 108,
 		array(gettext('Time'), gettext('Weekday'), gettext('#addresses'), 
 			gettext('#equip grp.'), gettext('Options..') ),
-		array(20, 20, 20, 20, 20),
-		array('right', 'center', 'right', 'right', 'right'),
+		array(20, 20, 20, 20, 10),
+		array('left', 'left', 'left', 'left', 'left'),
 		array(true, false, false, false, false),
 		0
 	);
@@ -167,8 +167,8 @@ $l[0] = new Lister( 108,
 $l[1] = new Lister( 109,
 		array(gettext('Time'), gettext('Weekday'), gettext('#addresses'), 
 			gettext('#equip. grp.'), gettext('Options..') ),
-		array(20, 20, 20, 20, 20),
-		array('right', 'center', 'right', 'right', 'right'),
+		array(20, 20, 20, 20, 10),
+		array('left', 'left', 'left', 'left', 'left'),
 		array(true, false, false, false, false),
 		0
 	);
@@ -177,6 +177,10 @@ if ( get_exist('sortid') ) {
 	$l[0]->setSort(get_get('sort'), get_get('sortid') );
 	$l[1]->setSort(get_get('sort'), get_get('sortid') );	
 }
+
+// Initialize variable used to populate the "hours of the day" image. $kt is an
+// array which holds one array for regular weekdays, and one for weekends
+$kt = array(array(), array());
 
 $perioder = $dbh->listPerioder(session_get('periode_pid'), $l[0]->getSort() );
 

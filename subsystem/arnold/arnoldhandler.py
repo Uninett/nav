@@ -32,7 +32,6 @@ from mod_python import apache
 import re
 import nav, nav.path
 from nav import web, db
-from nav.db import manage
 from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.templates.ArnoldTemplate import ArnoldTemplate
 from nav.web.URI import URI
@@ -373,7 +372,7 @@ def handler(req):
                 cur.execute(q,(newreason,))
                 if cur.rowcount < 1:
                     q = """SELECT
-                    nextval('public.blocked_reason_blocked_reasonid_seq')"""
+                    nextval('blocked_reason_blocked_reasonid_seq')"""
                     cur.execute(q)
                     reasonid = cur.fetchone()[0]
                     try:

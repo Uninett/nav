@@ -235,7 +235,7 @@ if __name__ == '__main__':
             origins[r[1]] = int(r[0])
 
     types = {}
-    database.execute("select type, facility, mnemonic, priority from type")
+    database.execute("select type, facility, mnemonic, priority from log_message_type")
     for r in database.fetchall():
         if not types.has_key(r[1]): 
             types[r[1]] = {}
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     for priority in range(0,8):
         if config.get("deletepriority",str(priority)):
             days = config.getint("deletepriority", str(priority))
-            database.execute("DELETE FROM message WHERE newpriority=%s "
+            database.execute("DELETE FROM log_message WHERE newpriority=%s "
                              "AND time < now() - interval %s",
                              (priority, '%d days' % days))
 
@@ -324,10 +324,10 @@ if __name__ == '__main__':
 
                 else:
                     ## update type database table
-                    database.execute("SELECT nextval('type_type_seq')")
+                    database.execute("SELECT nextval('log_message_type_type_seq')")
                     typeid = int(database.fetchone()[0])
 
-                    database.execute("INSERT INTO type (type, facility, "
+                    database.execute("INSERT INTO log_message_type (type, facility, "
                                      "mnemonic, priority) "
                                      "VALUES (%d, %s, %s, %d)",
                                      (typeid, message.facility,
@@ -356,7 +356,7 @@ if __name__ == '__main__':
                         pass
 
                 ## insert message into database
-                database.execute("INSERT INTO message (time, origin, "
+                database.execute("INSERT INTO log_message (time, origin, "
                                  "newpriority, type, message) "
                                  "VALUES (%s, %s, %s, %s, %s)",
                                  (str(message.time), originid,

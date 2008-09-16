@@ -1,0 +1,16 @@
+seeddb - Seed database
+
+Dependencies
+------------
+
+Imports forgetSQL
+
+All other imports are either python builtins or modules located in
+the seeddb directory.
+
+
+Installation
+------------
+
+The files should be placed in a directory 'seeddb' in the webroot. Except
+for the compiled template which goes with the other webfront templates.

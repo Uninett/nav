@@ -82,11 +82,14 @@ if (isset($subaction) && $subaction == "nymatch") {
 				$tval = implode('|', post_get('mverdi'));
 				//print "<p>Values:$tval";
 				$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
-				$tval, session_get('match_fid') );				
+					$tval, session_get('match_fid') );				
+			} else if (post_exist('verdi')) {
+				$tval = implode('|', explode(' ', post_get('verdi')));
+				$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
+					$tval, session_get('match_fid') );				
 			} else {
 				print "<p><font size=\"+3\">" . gettext("No values selected, a new expression is <b>not</b> added.");
 			}
-					
 		} else {
 			$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
 			post_get('verdi'), session_get('match_fid') );
@@ -103,8 +106,8 @@ if (isset($subaction) && $subaction == "nymatch") {
 
 $l = new Lister(111,
     array(gettext('Field'), gettext('Condition'), gettext('Value'), gettext('Option..') ),
-    array(40, 15, 25, 20),
-    array('left', 'left', 'left', 'right'),
+    array(40, 15, 25, 10),
+    array('left', 'left', 'left', 'left'),
     array(true, true, true, false),
     0
 );

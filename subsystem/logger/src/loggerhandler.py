@@ -75,7 +75,7 @@ def handler(req):
     categories = database.fetchall()
     categories.insert(0,("(All)",))
 
-    database.execute("select priority, facility, mnemonic, type from type order by priority, facility, mnemonic")
+    database.execute("select priority, facility, mnemonic, type from log_message_type order by priority, facility, mnemonic")
     types = []
     typeid2type = {}
     type2typeid = {}
@@ -166,7 +166,7 @@ def handler(req):
             ## log
 
             #where = re.sub("priority","newpriority",where)
-            database.execute("select time, origin, newpriority, priority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
+            database.execute("select time, origin, newpriority, priority, facility, mnemonic, message from log_message inner join log_message_type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
             #raise repr("select time, name, newpriority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
             log = []
             for l in database.fetchall():

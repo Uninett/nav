@@ -70,7 +70,7 @@ def register(req,path):
                     deviceid = None
                     try:
                         sequence = ('deviceid',
-                                    'public.device_deviceid_seq')
+                                    'device_deviceid_seq')
                         deviceid = insertFields(fields,'device',sequence)
                         page.messages.append("Added device with serial '" +\
                                              serial + "'")
