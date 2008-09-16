@@ -78,22 +78,18 @@ def expand_router(request):
     for gwport in sorted_ports:
         gwport.prefixes = []
         # Check if the port is expandable
-        for prefix in gwport.gwportprefix_set.exclude(prefix__vlan__net_type='static'):
-            if prefix not in gwport.prefixes:
-                netmask_pos = prefix.prefix.net_address.find('/')
-                netmask = prefix.prefix.net_address[netmask_pos:]
-                prefix.display_addr = prefix.gw_ip + netmask
-                gwport.prefixes.append(prefix)
+        gpp = GwPortPrefix.objects.filter(gwport__id=gwport.id).exclude(prefix__vlan__net_type='static')
+        for prefix in gpp:
+            netmask_pos = prefix.prefix.net_address.find('/')
+            netmask = prefix.prefix.net_address[netmask_pos:]
+            prefix.display_addr = prefix.gw_ip + netmask
+            gwport.prefixes.append(prefix)
+            
             for vlan in prefix.prefix.vlan.swportvlan_set.exclude(vlan__net_type='static'):
                 if vlan.swport.swportblocked_set.filter(vlan=vlan.vlan.vlan).count() < 1:
                     gwport.has_children = True
-                    break
-            try:
-                if gwport.has_children:
-                    break
-            except:
-                pass
-
+        
+        gwport.prefixes.sort()
         if gwport.to_netbox:
             continue
         if gwport.to_swport and gwport.to_swport.module.netbox:
