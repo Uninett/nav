@@ -62,7 +62,7 @@ to manually run the SQL upgrade script to fix these problems:
  
  2. You are running PostgreSQL 8.3 or newer.
 
-The upgrade script is located as doc/sql/upgrade/3.4.2.sql - see the
+The upgrade script is located as doc/sql/upgrades/3.4.2.sql - see the
 comments inside the script for more information on how to run it (It
 won't hurt to run it even if you don't need to).
 
