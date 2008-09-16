@@ -40,6 +40,8 @@ urlpatterns = patterns('',
         name="networkexplorer-expand-gwport"),
     url(r'^expand/swport', expand_swport,
         name="networkexplorer-expand-swport"),
+    url(r'^expand/switch', expand_switch,
+        name="networkexplorer-expand-switch"),
     url(r'^search', search ,
         name="networkexplorer-search"),
 )
