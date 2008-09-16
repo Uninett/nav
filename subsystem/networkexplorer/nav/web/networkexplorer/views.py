@@ -84,11 +84,11 @@ def expand_router(request):
             netmask = prefix.prefix.net_address[netmask_pos:]
             prefix.display_addr = prefix.gw_ip + netmask
             gwport.prefixes.append(prefix)
-            
+
             for vlan in prefix.prefix.vlan.swportvlan_set.exclude(vlan__net_type='static'):
                 if vlan.swport.swportblocked_set.filter(vlan=vlan.vlan.vlan).count() < 1:
                     gwport.has_children = True
-        
+
         gwport.prefixes.sort()
         if gwport.to_netbox:
             continue

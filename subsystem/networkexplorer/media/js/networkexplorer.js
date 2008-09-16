@@ -89,7 +89,7 @@ function openNode(img){
 
     if ($(img).parent('dd').data("loaded") == "true"){
         $(img).parent('dd').data('working', 'false');
-        $(img).parent('dd').children().select("dl").not("img").not("a").slideToggle("fast",
+        $(img).parent('dd').children().select("dl").not("img").not("a").not('abbr').slideToggle("fast",
 	function () {
 	
 		if ($(img).parent('dd').children().select("dl").not("img").css('display') == 'block'){ 
