@@ -7,146 +7,60 @@
 {% endif %}
 
 {% block content %}
-<script type="text/javascript">
-$(function(){
-    $('#searchForm').submit(function(){
-        var parameters = {};
-        $(':input', this).each(function(){
-            parameters[this.name] = escape($(this).val());
-        });
-        console.log(parameters);
-        $.getJSON('/networkexplorer/search', parameters,
-        function(data){
-
-            var num_routers = data.routers.length;
-            var num_gwports = data.gwports.length;
-            var num_swports = data.swports.length;
-            $.each(data.routers, function(i, router){
-                $.get('/networkexplorer/expand/router',
-                    { 'netboxid': router },
-                    function(data){
-                        $('#router-'+ router).css('background-color', '#FCE94F');
-                        $($('#router-'+ router).children().select('img')).parent('li').append(data);
-                        $($('#router-'+ router).children().select('img')).parent('li').data("loaded", "true");
-                        $($('#router-'+ router).children().select('img')).parent('li').children().select("ul").not("img").show();
-                        num_routers -= 1;
-                        if (num_routers < 1){
-                            gwports();
-                        }
-                    });
-            });
-            function gwports(){
-            $.each(data.gwports, function(i, gwport){
-                $.get('/networkexplorer/expand/gwport',
-                    { 'gwportid': gwport },
-                    function(data){
-                        $('#gwport-'+ gwport).css('background-color','#FCAF3E');
-                        $($('#gwport-'+ gwport).children().select('img')).parent('li').append(data);
-                        $($('#gwport-'+ gwport).children().select('img')).parent('li').data("loaded", "true");
-                        $($('#gwport-'+ gwport).children().select('img')).parent('li').children().select("ul").not("img").show();
-                        num_gwports =- 1;
-                        if (num_gwports < 1){
-                            swports();
-                        }
-                    });
-            });};
-            function swports(){
-            $.each(data.swports, function(i, swport){
-                $.get('/networkexplorer/expand/swport',
-                    { 'swportid': swport },
-                    function(data){
-                        $('#swport-'+ swport).css('background-color','#73D216');
-                        $('#swport-'+ swport).children().css('background-color','#73D216');
-                        $($('#swport-'+ swport).children().select('img')).parent('li').append(data);
-                        $($('#swport-'+ swport).children().select('img')).parent('li').data("loaded", "true");
-                        $($('#swport-'+ swport).children().select('img')).parent('li').children().select("ul").not("img").show();
-                    });
-            });
-            };
-            console.log("Got search result: " + data);
-        });
-
-        return false;
-    });
-});
-
-function openNode(img){
-    var expand_type = $(img).parent().attr('id').substr(0,6);
-    var expand_id   = $(img).parent().attr('id').substr(7);
-
-    // We dont want to double-load data and such,
-    // so we set/check a state for that tree-node
-    if ($(img).parent('li').data('working') == "true"){
-        console.log("Node allready working. Returning");
-        return false;
-    } else {
-        $(img).parent('li').data('working', 'true');
-    }
-
-    console.log("Node " + $(img).parent('li').select("ul").attr('id') + " clicked");
-
-    if ($(img).parent('li').data("loaded") == "true"){
-        $(img).parent('li').children().select("ul").not("img").toggle();
-        console.log("  Node had loaded data; toggling " + $(img).parent('li').select("ul").attr('id'));
-        $(img).parent('li').data('working', 'false');
-        return false;
-    }
-
-    // We want to show/hide nodes when we actually have any data to show/hide
-    $(img).parent('li').ajaxSuccess(
-        function(){
-            console.log(" Got data for node " + $(this).children().select("ul").attr('id'));
-            $(img).parent('li').data('working', "false");
-        });
- 
-    if (expand_type == "router"){
-        $.get('/networkexplorer/expand/router',
-            { 'netboxid': expand_id },
-            function(data){
-                console.log(" Appending data to" + $(img).parent('li').attr('id'));
-                $(img).parent('li').append(data);
-                $(img).parent('li').data("loaded", "true");
-            });
-    }
-    if (expand_type == "gwport"){
-        $.get('/networkexplorer/expand/gwport',
-            { 'gwportid': expand_id },
-            function(data){
-                console.log(" Appending data to" + $(img).parent('li').attr('id'));
-                $(img).parent('li').append(data);
-                $(img).parent('li').data("loaded", "true");
-            });
-    }
-    if (expand_type == "swport"){
-        $.get('/networkexplorer/expand/swport',
-            { 'swportid': expand_id },
-            function(data){
-                console.log(" Appending data to" + $(img).parent('li').attr('id'));
-                $(img).parent('li').append(data);
-                $(img).parent('li').data("loaded", "true");
-            });
-    }
-};
-
-</script>
-<div id="networkexplorer">
 <form action="" method="post" id="searchForm">
-<label for="search">Search:</label><input type="text" name="sysname" id="search" />
-<input type="submit" value="search" />
+<table class="boxes">
+	<tr>
+		<th colspan="2">Search</th>
+	</tr>
+	<tr>
+		<td>Type:</td>
+		<td>
+			<select name="lookup_field">
+				<option value="sysname">Sysname</option>
+				<option value="ip">IP</option>
+				<option value="ip">MAC</option>
+				<option value="ip">Port Description</option>
+				<option value="ip">Vlan</option>
+				<option value="ip">Room</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Query:</td>
+		<td><input type="text" name="query" id="search" /></td>
+	</tr>
+	<tr>
+		<td>Search exact (no substring):</td>
+		<td><input type="checkbox" name="exact" id="search" /></td>
+	</tr>
+	<tr>
+		<td>Hide ports with no description:</td>
+		<td><input type="checkbox" name="hide" id="search" /></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+            <input type="submit" value="Search" />
+        </td>
+	</tr>
+</table>
 </form>
-<ul id="tree" style="list-style: none;">
-    {% for router in routers %}
-    <li id="router-{{ router.id }}">
-    {% if router.has_children %}
-        <img src="https://navdev.uninett.no/navAdmin/gfx/boxclosed_both.gif" onclick="openNode(this);" />
-    {% else %}
-        <img src="https://navdev.uninett.no/navAdmin/gfx/strek_bottom.gif" />
-    {% endif %}
-        {{router}}
-    </li>
-    {% endfor %}
-</ul>
+
+<div class="networktree">
+	<dl id="tree" class="routers">
+	<dt>Routers:</dt>
+	{% for router in routers %}
+		<dd id="router-{{ router.id }}">
+		{% if router.has_children %}
+			<img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigators"/>
+		{% else %}
+			<img src="/images/networkexplorer/end.gif" class="tree-navigators"/>
+		{% endif %}
+			<a target="_blank" href="/ipdevinfo/{{router}}">{{router}}</a>
+		</dd>
+	{% endfor %}
+	<dl>
 </div>
+
 {% endblock %}
 
 {% include "networkexplorer/debug.html" %}
