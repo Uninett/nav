@@ -49,7 +49,7 @@
 
 {% block subscription_form %}
 <form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
-{% if subscriptions %}<div class="infobox">{% endif %}
+<div class="formcontainer">
         <h4>{{ editing|yesno:"Edit,Add new" }} subscription</h4>
         {{ form.non_field_errors }}
         Watch {{ form.filter_group }},
@@ -59,7 +59,7 @@
             {{ form.id }}
             <button type="submit">{{ editing|yesno:"Save,Add" }}</button>
         </p>
-{% if subscriptions %}</div>{% endif %}
+</div>
 </form>
 
 <div class="infobox">
