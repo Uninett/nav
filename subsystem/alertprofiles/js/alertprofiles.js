@@ -42,16 +42,16 @@ $(function() {
 	});
 
 	$("select#id_operator").ready(function() {
-		if ($(this).val() == 0) {
+		if ($(this).val() != 11) {
 			$("select#id_value").removeAttr('multiple');
 		}
 	});
 
 	$("select#id_operator").change(function() {
-		if ($(this).val() == 0) {
-			$("select#id_value").removeAttr('multiple');
-		} else {
+		if ($(this).val() == 11) {
 			$("select#id_value").attr('multiple', 'multiple');
+		} else {
+			$("select#id_value").removeAttr('multiple');
 		}
 	});
 });
