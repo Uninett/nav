@@ -26,7 +26,7 @@
 
 $(function() {
 	// Display some help text to the "highlight shared periods" js
-	$("#timeperiods_table_container").append("<div class=\"infobox\"><p>" +
+	$("#timeperiods_table_container").prepend("<div class=\"boxes infobox\"><p>" +
 		"If, when hovering over one period in one of the tables, two rows " +
 		"in different tables are highlighted, those two periods are " +
 		"actually the one and same period. It's just an \"all days\" period." +
