@@ -1205,7 +1205,9 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         # Get all matchfields (many-to-many connection by table Expression)
         expressions = Expression.objects.filter(filter=filter_id)
 
-        page_name = filter.name
+        for e in expressions:
+            if e.operator == Operator.IN:
+                e.value = e.value.split("|")
 
         # Check if filter is used by any filter groups
         filter_groups = FilterGroupContent.objects.filter(filter=filter)
@@ -1221,6 +1223,8 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 },
                 Messages.WARNING
             )
+
+        page_name = filter.name
 
     # If no form is supplied we must make one
     if not filter_form:

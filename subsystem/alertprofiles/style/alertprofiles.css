@@ -24,6 +24,6 @@ caption a:link, caption a:visited {
 .formcontainer {
   background: #ffb;
 	padding: 0.5em;
-	margin: 1em 0;
+	margin: 2em 0 1em 0;
 	border: 1px solid #888A85;
 }
