@@ -65,7 +65,6 @@ PAGINATE_BY = 25
 
 def overview(request):
     account = get_account(request)
-    active = {'overview': True}
 
     # Get information about user
     groups = account.accountgroup_set.all()
@@ -102,7 +101,7 @@ def overview(request):
     )
 
     info_dict = {
-            'active': active,
+            'active': {'overview': True},
             'groups': groups,
             'active_profile': active_profile,
             'sms_privilege': sms_privilege,
