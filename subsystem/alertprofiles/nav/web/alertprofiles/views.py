@@ -1959,7 +1959,7 @@ def filtergroup_removefilter(request):
 
         info_dict = {
                 'form_action': reverse('alertprofiles-filtergroups-removefilter'),
-                'active': {'filters': True},
+                'active': {'filtergroups': True},
                 'subsection': {'detail': filter_group.id},
                 'elements': elements,
                 'perform_on': filter_group.id,
