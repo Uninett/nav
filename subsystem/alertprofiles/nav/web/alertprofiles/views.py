@@ -39,7 +39,10 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q
 
-from nav.models.profiles import *
+from nav.models.profiles import Account, AccountGroup, AccountProperty, \
+    AlertAddress, AlertPreference, AlertProfile, TimePeriod, \
+    AlertSubscription, FilterGroupContent, Operator, Expression, \
+    Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
