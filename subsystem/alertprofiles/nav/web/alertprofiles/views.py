@@ -1648,9 +1648,9 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
 
         page_name = filtergroup.name
 
-        subscriptions = AlertSubscription.objects.filter(filter_group=filtergroup)
-        time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
-        profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+        profiles = AlertProfile.objects.filter(
+            timeperiod__alertsubscription__filter_group=filtergroup
+        ).distinct()
         if len(profiles) > 0:
             names = ', '.join([p.name for p in profiles])
             new_message(
