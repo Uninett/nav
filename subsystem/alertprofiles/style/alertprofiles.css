@@ -1,6 +1,6 @@
 /* For highlighting shared "all days" time periods. */
 .hilight {
-  background-color: #ffb !important;
+  background-color: #ffa !important;
 }
 
 caption a:link, caption a:visited {
@@ -21,9 +21,13 @@ caption a:link, caption a:visited {
   font-weight: bold;
 }
 
+.addexpressionform {
+  margin-top: 2em;
+}
+
 .formcontainer {
-  background: #ffb;
+	background: #ffb;
 	padding: 0.5em;
-	margin: 2em 0 1em 0;
-	border: 1px solid #888A85;
+	margin-bottom: 1em;
+	border: 1px solid #999;
 }

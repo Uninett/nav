@@ -38,9 +38,8 @@
 
 {% block addexpression %}
     {% if owner %}
+    <h3>Add another expression to this filter</h3>
     <div class="formcontainer">
-        <h4>Add another expression to this filter</h4>
-
         <label for="select_matchfield">Expression</label>
         <select name="matchfield" id="select_matchfield">
         {% for m in matchfields %}

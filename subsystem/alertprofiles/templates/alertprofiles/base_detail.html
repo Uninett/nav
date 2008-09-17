@@ -40,6 +40,7 @@
 
 {% block filter_content %}
 
+<div class="expressionstable">
     {% block expressions %}
     <form action="{% block url_remove_expression %}{% endblock %}" method="post">
         <table class="listtable">
@@ -47,7 +48,7 @@
             {% block expressions_caption_content %}
             {% endblock %}
             </caption>
-            
+
             <thead>
                 <tr>
                 {% block expressions_thead_cols %}
@@ -71,7 +72,9 @@
         {% endif %}
     </form>
     {% endblock expressions %}
+</div>
 
+<div class="addexpressionform">
     <form action="{% block url_add_expression %}{% endblock %}" method="post">
     {% block addexpression %}
         <p>
@@ -80,6 +83,7 @@
         </p>
     {% endblock addexpression %}
     </form>
+</div>
 
 {% endblock filter_content %}
 
