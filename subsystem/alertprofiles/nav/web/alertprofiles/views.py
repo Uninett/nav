@@ -1516,21 +1516,10 @@ def filter_removeexpression(request):
                 'filter': e.filter.name,
             }
 
-            warnings = []
-            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter__expression=e)
-            for fg in filter_groups:
-                warnings.append({
-                    'message': u'''Used in filter group %(name)s. Deleting this
-                        expression will alter how that filter group works.''' % {
-                            'name': fg.name
-                        },
-                    'link': reverse('alertprofiles-filtergroups-detail', args=(fg.id,)),
-                })
-
             elements.append({
                 'id': e.id,
                 'description': description,
-                'warnings': warnings,
+                'warnings': [],
             })
 
         info_dict = {
@@ -2237,35 +2226,37 @@ def matchfield_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
     else:
-        matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('matchfield'))
-        expressions = Expression.objects.filter(match_field__in=matchfields).order_by('match_field__name')
+        matchfields = MatchField.objects.select_related(
+            'expression'
+        ).filter(pk__in=request.POST.getlist('matchfield'))
 
-        messages = Messages(request)
-        if len(expressions) > 0:
+        elements = []
+        for m in matchfields:
+            expressions = m.expression_set.all()
+            warnings = []
             for e in expressions:
-                messages.append({
-                    'message': _('''Match field %(match_field)s is used in
-                        filter %(filter)s. Deleting this match field will alter how
-                        the filter works.''') % {
-                            'match_field': e.match_field.name,
-                            'filter': e.filter.name,
-                        },
-                    'type': Messages.WARNING
+                warnings.append({
+                    'message': 'Used in filter %(filter)s.' % {'filter': e.filter.name},
+                    'link': reverse('alertprofiles-filters-detail', args=(e.filter.id,)),
                 })
+            elements.append({
+                'id': m.id,
+                'description': m.name,
+                'warnings': warnings,
+            })
 
-        messages.append({
-            'message': _('''It is strongly recomended that one do not remove
-                one of the default match fields that comes preinstalled with
-                NAV.'''),
-            'type': Messages.NOTICE,
-        })
-        messages.save()
+        new_message(
+            request,
+            _('''It is strongly recomended that one do not remove one of the
+            default match fields that comes preinstalled with NAV.'''),
+            Messages.NOTICE
+        )
 
         info_dict = {
                 'form_action': reverse('alertprofiles-matchfields-remove'),
                 'active': {'matchfields': True},
                 'subsection': {'list': True},
-                'elements': [{'id': m.id,'description': m.name} for m in matchfields],
+                'elements': elements,
                 'perform_on': None,
             }
         return render_to_response(
