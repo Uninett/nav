@@ -1,0 +1,1130 @@
+#encoding UTF-8
+## $Id$
+##
+## Copyright 2003, 2004 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+##
+
+#extends nav.web.templates.MainTemplate
+#from nav.web.templates.selectTreeTemplate import selectTreeTemplate
+
+#def additionalCSS
+$default_form_CSS
+$default_table_CSS
+<link rel="stylesheet" type="text/css" href="/style/seeddbTemplate.css" />
+#end def
+
+#block additionalJavaScript
+<script type="text/javascript" src="/js/seeddbTemplate.js"></script>
+#end block additionalJavaScript
+
+#def content
+#if $entryList
+$showSelectList($entryList)
+#elif $editList
+$showList($editList)
+#elif $editForm
+$showForm($editForm)
+#else
+$showBody($body)
+#end if
+#end def
+
+## function showSelectList
+##
+## Function for displaying a list in a table with optional
+## radiobuttons or checkboxes for selecting rows
+##
+## $selectList
+##   ++-- title                     :: list title
+##   ++-- formMethod                :: method for form, post or get
+##   ++-- formAction                :: action for form
+##   ++-- selectCname               :: controlname for radiob./checkbox
+##   ++-- status                    :: seeddb.status object
+##   ++-- buttonsTop                :: list of buttons for top of list
+##          +-- (cname,value)       :: tuple of control name and value (text)
+##   ++-- buttonsBottom             :: list of buttons for bottom of list
+##          +-- (cname,value)       :: tuple of control name and value (text)
+##   ++-- headings                  :: list of heading cells (cell objects)
+##          +-- text                :: heading text
+##          +-- url                 :: heading link (optional)
+##   ++-- rows                      :: array of rows
+##          +-- (id,cells)          :: tuple (id, list of cells)
+##                +-- text          :: cell text
+##                +-- url           :: link for this cell
+##                +-- checkbox      :: boolean, show a checkbox in this cell
+##                +-- radiobutton   :: boolean, show a radiobuttion
+##                +-- image         :: path to an image (optional)
+##                +-- tooltip       :: list of tooltip strings (optional) 
+##
+#def $showSelectList($selectList)
+    <h3>$selectList.title</h3>
+#if $selectList.body
+    <p>$selectList.body</p>
+#end if
+#if $selectList.status
+    $showStatus($selectList.status)
+#end if
+## Filters
+#if $selectList.filters
+    $renderFilters($selectList)
+#end if
+    <form method="$selectList.formMethod" action="$selectList.formAction">
+## Top buttons
+#if $selectList.buttonsTop
+        <p>
+#for $cname,$value in $selectList.buttonsTop
+            <input type="submit" name="$cname" value="$value" />
+#end for
+        </p>
+#end if
+        <table class="listtable reporttable">
+## Show headings
+            <thead>
+            <tr>
+            #for $cell in $selectList.headings
+                <th>
+                #if $cell.url
+                    <a href="$cell.url">$cell.text</a>
+                #else
+                    $cell.text
+                #end if
+                #if $cell.tooltip
+                    <span>
+                    #for $line in $cell.tooltip
+                        $line<br />
+                    #end for
+                    </span>
+                #end if
+                </th>
+            #end for
+            </tr>
+            </thead>
+## Rows
+            <tbody>
+#for $fullrow in $selectList.rows
+## $fullrow[0] is sortKey
+#set $id = $fullrow[1][0]
+#set $row = $fullrow[1][1]
+            <tr class="$rowcycler">
+## Cells in a row
+#for $cell in $row
+                <td>
+#if $cell.url
+                    <a href="$cell.url">
+#elif $cell.tooltip
+                    <a title="" class="info" href="#$id">
+#end if
+#if $cell.image
+                    <img src="$cell.image">
+#end if
+#if $cell.text
+#set $first = True
+#for $line in $cell.text
+#if not $first
+                        <br />
+#end if
+#set $first = False
+                    $line
+#end for
+#end if
+#if $cell.tooltip
+                    <span>
+#set $first = True
+#for $line in $cell.tooltip
+#if not $first
+                        <br />
+#end if
+#set $first = False
+                        $line
+#end for
+                    </span>
+#end if
+#if $cell.buttonType == 'chk'
+                    <input type="checkbox" name="$selectList.selectCname" value="$id" />
+#elif $cell.buttonType == 'rad'
+                    <input type="radio" name="$selectList.selectCname" value="$id" />
+#elif $cell.buttonType == 'hid'
+                    <input type="hidden" name="$selectList.selectCname" value="$id" />
+#end if
+#if $cell.url or $cell.tooltip
+                    </a>
+#end if
+                    &nbsp;&nbsp;
+                </td>
+#end for
+            </tr>
+#end for
+        </tbody>
+        </table>
+## Bottom buttons
+#if $selectList.buttonsBottom
+        <p>
+#for $cname,$value in $selectList.buttonsBottom
+            <input type="submit" name="$cname" value="$value" />
+#end for
+        </p>
+#end if
+    </form>
+#end def
+
+## function renderFilters
+##
+## Function for displaying list filters
+##
+#def renderFilters($slist)
+<form method="$slist.formMethod" action="$slist.filterAction">
+    <table class="header-active">
+#set $filters = $slist.filters
+#for $listFilter in $filters
+        <tr>
+            <td>${listFilter[0]}</td>
+            <td>
+                <select name="${listFilter[5]}">
+##raise repr($listFilter)
+#for $option in $listFilter[9]
+#if $option[0][0] == $listFilter[10]:
+                    <option value="$option[0][0]" selected>$option[1][0]</option>
+#else
+                    <option value="$option[0][0]">$option[1][0]</option>
+#end if
+#end for
+                </select>
+            </td>
+        </tr>
+#end for
+        <tr>
+            <td colspan="2" align="right"><input type="submit" name="$slist.filterConfirm" value="$slist.filterConfirmText" /></td>
+        </tr>
+    </table>
+</form>
+#end def
+
+
+## function showStatus
+##
+## Function for displaying status and error messages
+## takes an seeddb.status object as parameter
+##
+## $status
+##   +-- messages                   :: list of message strings
+##   +-- errors                     :: list of error strings
+##
+#def $showStatus($status)
+    <p class="status">
+#for $message in $status.messages
+        $message<br />
+#end for
+    </p>
+    <p class="error">
+#for $error in $status.errors
+        $error<br />
+#end for
+    </p>
+#end def
+
+## Form to show a body object
+## ie. display the seeddb main menu
+#def $showBody($body)
+    <h2>$body.title</h2>
+#if $body.status
+    $showStatus($body.status)
+#end if
+    <p class="infotext">$body.infotext</p>
+    <p>
+#if not $body.showHelp
+        <a href="$body.help[0]">$body.help[1]</a>
+
+#else
+        <a href="$body.nohelp[0]">$body.nohelp[1]</a>
+#end if
+    </p>
+#for $table in $body.tables
+    <h3>$table.title</h3>
+#if $table.infotext
+    <p>$table.infotext</p>
+#end if
+#if $body.showHelp
+    <table style="width: 80%;">
+#else
+    <table style="width: 40%;">
+#end if
+#if $table.headings
+        <tr>
+#for $heading in $table.headings
+            <th>$heading</th>
+#end for
+        </tr>
+#end if
+#set odd = False
+#for $row in $table.rows
+#if odd == True
+#set style = "oddrow"
+#set odd = False
+#else
+#set style = "evenrow"
+#set odd = True
+#end if
+#if $body.showHelp
+#set $rowstyle=['width: 10%;','width: 60%;','','','']
+#else
+#set $rowstyle=['width: 40%;','','width: 15%;','width: 15%;','width: 30%;']
+#end if
+        <tr class="$style" title="$row[1]">
+            <td style="$rowstyle[0]">$row[0]</td>
+#if $body.showHelp
+            <td style="$rowstyle[1]">$row[1]</td>
+#end if
+#if $row[2]
+## Add
+            <td style="$rowstyle[2]"><a href="$row[2][0]">$row[2][1]</a></td>
+#else
+            <td>&nbsp;</td>
+#end if
+            <td style="$rowstyle[3]"><a href="$row[3][0]">$row[3][1]</a></td>
+#if $row[4]
+## Bulk import
+            <td style="$rowstyle[4]"><a href="$row[4][0]">$row[4][1]</a></td>
+#else
+            <td>&nbsp;</td>
+#end if
+        </tr>
+#end for
+    </table>
+#end for
+#end def
+
+
+## Function to display a list for selecting
+## which entries to edit, or delete
+#def showList($list)
+    <h3>$list.title</h3>
+#if $list.status
+    <p class="status">
+#for $message in $list.status.messages
+        $message<br />
+#end for
+    </p>
+    <p class="error">
+#for $error in $list.status.errors
+        $error<br />
+#end for
+    </p>
+#end if
+#if $list.isBulkList
+## Show bulk preview legend
+        <p>
+            Legend
+        </p>
+        <p>
+            <img src="$list.imgGreen">&nbsp;$list.legendGreen<br />
+            <img src="$list.imgRed">&nbsp;$list.legendRed<br />
+            <img src="$list.imgYellow">&nbsp;$list.legendYellow<br />
+        </p>
+#end if
+    <form method="$list.method" action="$list.action">
+#if $list.hiddenIdValue
+        <input type="hidden" name="$list.cnameHiddenId" value="$list.hiddenIdValue" />
+#end if
+#if not $list.isDeleteList
+    $actionBar($list)
+#end if
+        <table border="0" cellspacing="0" cellpadding="0">
+            <tr class="header">
+                <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+#for $heading in $list.headings
+                <td valign="top">$heading&nbsp;</td>
+#end for
+                <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
+            </tr>
+#set $odd = True
+#for $id,$row in $list.rows
+#if $odd
+#set $rowtype = 'oddrow'
+#set $odd = False
+#else
+#set $rowtype = 'evenrow'
+#set $odd = True
+#end if
+            <tr class="$rowtype">
+                <td>&nbsp;</td> ## first column is start gfx (fix)
+#if not ($list.isDeleteList or $list.isBulkList)
+                <td><input type="checkbox" name="$list.cnameChk" value="$id" align="center" />&nbsp;&nbsp;</td>
+#elif $list.isDeleteList
+                <input type="hidden" name="$list.cnameChk" value="$id" />
+#end if
+#for $entry,$link in $row
+#if $link
+                <td><a href="$link">$entry[0]</a>&nbsp;&nbsp;</td>
+#else
+                <td>
+#for $line in $entry
+                    $line&nbsp;&nbsp;<br />
+#end for
+                </td>
+#end if
+#end for
+                <td>&nbsp;</td> ## last column is end gfx (fix)
+            </tr>
+#end for
+        </table>
+    $actionBar($list)
+#if $list.isBulkList
+#for $name,$value in $list.hiddenData
+    <input type="hidden" name="$name" value="$value" />
+#end for
+#end if
+    </form>
+#end def
+
+## This function displays the bar with add/edit/delete buttons
+#def actionBar($list)
+    <p>
+        <table>
+            <tr>
+#if not ($list.isDeleteList or $list.isBulkList)
+                <td><input type="submit" name="$list.cnameAdd" value="$list.textAdd" /></td>
+                <td><input type="submit" name="$list.cnameEdit" value="$list.textEdit" /></td>
+                <td><input type="submit" name="$list.cnameDelete" value="$list.textDelete" /></td>
+#elif $list.isDeleteList
+                <td><input type="submit" name="$list.cnameDeleteConfirm" value="$list.textDeleteConfirm" /></td>
+#elif $list.isBulkList
+                <td><input type="submit" name="$list.cnameBulkConfirm" value="$list.textBulkConfirm" /></td>
+#end if
+            </tr>
+        </table>
+    </p>
+#end def
+
+## Function for displaying a form for adding or editing
+#def showForm($form)
+    <h3>$form.title</h3>
+#if $form.status
+    <p class="status">
+#for $message in $form.status.messages
+        $message<br />
+#end for
+    </p>
+    <p class="error">
+#for $error in $form.status.errors
+        $error<br />
+#end for
+    </p>
+#end if
+    <form method="$form.method" action="$form.action" enctype="$form.enctype">
+#for $editbox in $form.editboxes
+        <input type="hidden" name="$editbox.boxName" value="$editbox.boxId" />
+        <p>
+#if $editbox.page == 'room'
+            $room($editbox)
+#elif $editbox.page == 'container'
+            $container($editbox)
+#elif $editbox.page == 'location'
+            $location($editbox)
+#elif $editbox.page == 'org'
+            $org($editbox)
+#elif $editbox.page == 'type'
+            $typebox($editbox)
+#elif $editbox.page == 'vendor'
+            $vendor($editbox)
+#elif $editbox.page == 'netbox'
+            $netbox($editbox)
+#elif $editbox.page == 'netboxserial'
+            $netboxserial($editbox)
+#elif $editbox.page == 'netboxcategory'
+            $netboxcategory($editbox)
+#elif $editbox.page == 'netboxproduct'
+            $netboxproduct($editbox)
+#elif $editbox.page == 'bulk'
+            $bulk($editbox)
+#elif $editbox.page == 'usage'
+            $usage($editbox)
+#elif $editbox.page == 'service'
+            $service($editbox)
+#elif $editbox.page == 'product'
+            $product($editbox)
+#elif $editbox.page == 'prefix'
+            $prefix($editbox)
+#elif $editbox.page == 'ric'
+            $ric($editbox)
+#elif $editbox.page == 'vlan'
+            $vlan($editbox)
+#elif $editbox.page == 'subcat'
+            $subcat($editbox)
+#elif $editbox.page == 'snmpoid'
+            $snmpoid($editbox)
+#elif $editbox.page == 'hiddenormessage'
+            $hiddenormessage($editbox)
+#elif $editbox.page == 'cabling'
+            $cabling($editbox)
+#elif $editbox.page == 'patch'
+            $patch($editbox)
+#end if
+        </p>
+#end for
+#if $form.showConfirm
+        <table>
+            <tr>
+                <td><input type="submit" name="$form.cnameConfirm" value="$form.textConfirm" /></td>
+#if $form.showCancel
+                <td><input type="submit" name="$form.cnameCancel" value="$form.textCancel" /></td>
+#end if 
+#if $form.showDelete and $editbox.page == 'netbox' and $form.action != 'add'
+                <td><input type="submit" name="$form.cnameDelete" value="$form.textDelete" /></td>
+#end if
+            </tr>
+        </table>
+    </form>
+#end if
+#end def
+
+
+
+##
+## Forms for adding and editing
+##
+
+## For for editing patches
+#def patch($editbox)
+#set $fields = $editbox.fields
+    <p>
+        $editbox.help
+    </p>
+    <div style="border: 1px solid #666; background-image:url('/images/form/fill-active.gif');   background-color:#ccf; font-size: 13px; padding-top: 1em; padding-bottom: 1em; padding-left: 1em;">
+        <p>
+            $input($fields['box1'])
+        </p>
+        <p>
+            <h3>$heading($fields['split'])</h3>
+            $input($fields['split'])
+        </p>
+        <p>
+            $input($fields['box2'])
+        </p>
+    </div>
+#end def
+
+## Form for editing cabling
+#def cabling($editbox)
+#set $fields = $editbox.fields
+    <p>
+        <table class="header-active">
+            <tr>
+                <th colspan="2">$heading($fields['roomid'])</th>
+                <th>$heading($fields['jack'])</th>
+            </tr>
+            <tr>
+                <td colspan="2">$input($fields['roomid'])</td>
+                <td>$input($fields['jack'])</td>
+            </tr>
+            <tr>
+                <th>$heading($fields['building'])</th>
+                <th>$heading($fields['targetroom'])</th>
+                <th>$heading($fields['category'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['building'],'width: 100%;')</td>
+                <td align="center">$input($fields['targetroom'])</td>
+                <td>$input($fields['category'])</td>
+            </tr>
+            <tr>
+                <th colspan="3">$heading($fields['descr'])</th>
+            </tr>
+            <tr>
+                <td colspan="3">$input($fields['descr'],'width: 100%;')</td>
+            </tr>
+        </table>
+    </p>
+#end def
+
+## Form for entering a serialnumber
+#def netboxserial($editbox)
+#set $fields = $editbox.fields
+    <p>
+        <table class="header-active">
+            <tr>
+                <td>Sysname</td>
+                <td>$editbox.sysname</td>
+            </tr>
+            <tr>
+                <td>Type</td>
+                <td>$editbox.typename</td>
+            </tr>
+            <tr>
+                <td>SNMP version</td>
+                <td>$editbox.snmpversion</td>
+            </tr>
+        </table>
+    </p>
+    <p>$editbox.help</p>
+    <p>
+        <table class="header-active">
+            <tr>
+                <th>$heading($fields['serial'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['serial'])</td>
+            </tr>
+        </table>
+    </p>
+<!-- def netboxserial -->
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+## Form for server subcat and function
+#def netboxcategory($editbox)
+#set $fields = $editbox.fields
+    <p>$editbox.help</p>
+    <p>
+        <table class="header-active">
+#if $fields.has_key('subcat')
+            <tr>
+                <th>$heading($fields['subcat'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['subcat'],'width: 100%;')</td>
+            </tr>
+#end if
+            <tr>
+                <th>$heading($fields['function'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['function'])</td>
+            </tr>
+        </table>
+    </p>
+#end def
+
+## Form for adding or editing a netbox
+#def netbox($editbox)
+#set $fields = $editbox.fields
+#if $editbox.editId
+    <h3>$editbox.sysname</h3>
+#end if
+        <table class="header-active">
+            <tr>
+                <th>$heading($fields['ip'])</th>
+                <th>$heading($fields['catid'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['ip'])</td>
+                <td>$input($fields['catid'],style='width: 100%;')</td>
+            </tr>
+            <tr>
+                <th>$heading($fields['ro'])</th>
+                <th>$heading($fields['roomid'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['ro'])</td>
+                <td>$input($fields['roomid'],style='width: 100%;')</td>
+            </tr>
+            <tr>
+                <th>$heading($fields['rw'])</th>
+                <th>$heading($fields['orgid'])</th>
+            </tr>
+            <tr>
+                <td>$input($fields['rw'])</td>
+                <td>$input($fields['orgid'])</td>
+            </tr>
+        </table>
+<!-- def netbox -->
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+## Form for adding or editing an snmpoid
+#def snmpoid($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['oidkey'])</th>
+            <th>$heading($fields['snmpoid'])</th>
+            <th>$heading($fields['oidsource'])</th>
+            <th>$heading($fields['match_regex'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['oidkey'])</td>
+            <td>$input($fields['snmpoid'])</td>
+            <td>$input($fields['oidsource'])</td>
+            <td>$input($fields['match_regex'])</td>
+        </tr>
+        <tr>
+            <th colspan="2">$heading($fields['oidname'])</th>
+            <th colspan="2">$heading($fields['mib'])</th>
+        </tr>
+        <tr>
+            <td colspan="2">$input($fields['oidname'],'width: 100%;')</td>
+            <td colspan="2">$input($fields['mib'],'width: 100%;')</td>
+        </tr>
+        <tr>
+            <th colspan="4">$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td colspan="4">$input($fields['descr'],'width: 100%;')</td>
+        </tr>
+    </table>
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+
+
+
+## Form for adding or editing a room
+#def room($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['roomid'])</th>
+            <th>$heading($fields['locationid'])</th>
+            <th colspan="2">$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['roomid'])</td>
+            <td>$input($fields['locationid'])</td>
+            <td colspan="2">$input($fields['descr'],'width: 100%;')</td>
+        </tr>
+        <tr>
+            <th>$heading($fields['opt1'])</th>
+            <th>$heading($fields['opt2'])</th>
+            <th>$heading($fields['opt3'])</th>
+            <th>$heading($fields['opt4'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['opt1'])</td>
+            <td>$input($fields['opt2'],'width: 100%;')</td>
+            <td>$input($fields['opt3'])</td>
+            <td>$input($fields['opt4'])</td>
+        </tr>
+    </table>
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+## Form for adding or editing a location
+#def location($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active" width="50%">
+        <tr>
+            <th width="30%">$heading($fields['locationid'])</th>
+            <th width="70%">$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['locationid'],'width: 100%;')</td>
+            <td>$input($fields['descr'],'width: 100%;')</td>
+        </tr>
+    </table>
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+## Form for adding or editing an org
+#def org($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['orgid'])</th>
+            <th colspan="2">$heading($fields['parent'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['orgid'])</td>
+            <td colspan="2">$input($fields['parent'])</td>
+        </tr>
+        <tr>
+            <th colspan="3">$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td colspan="3">$input($fields['descr'],'width: 100%;')</td>
+        </tr>
+        <tr>
+            <th>$heading($fields['opt1'])</th>
+            <th>$heading($fields['opt2'])</th>
+            <th>$heading($fields['opt3'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['opt1'])</td>
+            <td>$input($fields['opt2'])</td>
+            <td>$input($fields['opt3'])</td>
+        </tr>
+    </table>
+#end def
+
+## Form for adding or editing a type
+#def typebox($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active" width="60%">
+        <tr>
+            <th colspan="3" width="30%">$heading($fields['typename'])</th>
+            <th>$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td colspan="3">$input($fields['typename'],'width: 100%;')</td>
+            <td>$input($fields['descr'],'width: 100%;')</td>
+        <tr>
+            <th colspan="3">$heading($fields['vendorid'])</th>
+            <th>$heading($fields['sysobjectid'])</th>
+        </tr>
+            <td colspan="3">$input($fields['vendorid'],'width: 100%;')</td>
+            <td>$input($fields['sysobjectid'],'width: 100%')</td>
+        </tr>
+        <tr>
+            <th>$heading($fields['cdp'])</th>
+            <th>$heading($fields['tftp'])</th>
+            <th>$heading($fields['frequency'])</th>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td align="center">$input($fields['cdp'])</td>
+            <td align="center">$input($fields['tftp'])</td>
+            <td>$input($fields['frequency'])</td>
+            <td>&nbsp;</td>
+        </tr>
+</table>
+#end def
+
+## Form for adding or editing a product
+#def product($editbox)
+#set $fields = $editbox.fields
+#if $fields.has_key('productid')
+$input($fields['productid'])
+#end if
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['vendorid'])</th>
+            <th>$heading($fields['productno'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['vendorid'])</td>
+            <td>$input($fields['productno'])</td>
+        </tr>
+        <tr>
+            <th colspan="2">$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td colspan="2">$input($fields['descr'],'width: 100%;')</td>
+        </tr>
+    </table>
+#end def
+
+## Form for adding or editing a container
+#def container($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['name'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['name'])</td>
+        </tr>
+    </table>
+#end def
+
+## Form for adding or editing routers in containers
+#def ric($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['container'])</th>
+            <th>$heading($fields['routers'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['container'])</td>
+            <td>$input($fields['routers'])</td>
+        </tr>
+    </table>
+#end def
+
+
+
+
+## Form for adding or editing a vendor
+#def vendor($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['vendorid'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['vendorid'])</td>
+        </tr>
+    </table>
+#end def
+
+## Form for adding or editing a user category
+#def usage($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['usageid'])</th>
+            <th>$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['usageid'])</td>
+            <td>$input($fields['descr'])</td>
+        </tr>
+    </table>
+#end def
+
+## Form for adding or editing a service
+#def service($editbox)
+#set $fields = $editbox.fields
+    <p>$editbox.help</p>
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['boxid'])</th>
+            <th>$heading($fields['handler'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['boxid'])</td>
+            <td>$input($fields['handler'])</td>
+        </tr>
+    </table>
+    $input($fields['properties'])
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+## Form for editing serviceproperties (called by input())
+#def serviceproperty($property)
+#set $args = $property.args
+#set $optargs = $property.optargs
+#if $property.display
+#set $style = ''
+#else
+#set $style = 'display:none;'
+#end if
+    <div id="$property.id" style="$style">
+        <p>$property.title</p>
+        <table class="header-active">
+#if len($property.args)
+                <tr>
+                    <th colspan="2">Required</th>
+                </tr>
+#for $field,$content in $args.items()
+                <tr>
+                    <td>$field&nbsp;<span style="color: #ff0000">*</span></td>
+                    <td>$input($args[$field])</td>
+                </tr>
+#end for
+#end if
+#if len($property.optargs)
+                <tr>
+                    <th colspan="2">Optional</th>
+                </tr>
+#for $field,$content in $optargs.items()
+                <tr>
+                    <td>$field</td>
+                    <td>$input($optargs[$field])</td>
+                </tr>
+#end for
+#end if
+        </table>
+    </DIV>
+#end def
+
+## Form for prefix editing
+#def prefix($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th colspan="2">$heading($fields['netaddr'])</th>
+            <th>$heading($fields['vlan.description'])</th>
+        </tr>
+        <tr>
+            <td colspan="2">$input($fields['netaddr'])</td>
+            <td>$input($fields['vlan.description'],style='width: 100%;')</td>
+        </tr>
+        <tr>
+            <th colspan="2">$heading($fields['vlan.netident'])</th>
+            <th>$heading($fields['vlan.orgid'])</th>
+        </tr>
+        <tr>
+            <td colspan="2">$input($fields['vlan.netident'])</td>
+            <td>$input($fields['vlan.orgid'])</td>
+        </tr>
+        <tr>
+            <th>$heading($fields['vlan.nettype'])</th>
+            <th>$heading($fields['vlan.vlan'])</th>
+            <th>$heading($fields['vlan.usageid'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['vlan.nettype'])</td>
+            <td>$input($fields['vlan.vlan'])</td>
+            <td>$input($fields['vlan.usageid'],style='width: 100%')</td>
+        </tr>
+    </table>
+#end def
+
+## Form for vlan editing
+#def $vlan($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th colspan="2">$heading($fields['netident'])</th>
+            <th>$heading($fields['orgid'])</th>
+        </tr>
+        <tr>
+            <td colspan="2">$input($fields['netident'])</td>
+            <td>$input($fields['orgid'])</td>
+        </tr>
+        <tr>
+            <th>$heading($fields['nettype'])</th>
+            <th>$heading($fields['vlan'])</th>
+            <th>$heading($fields['usageid'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['nettype'])</td>
+            <td>$input($fields['vlan'])</td>
+            <td>$input($fields['usageid'],style='width: 100%')</td>
+        </tr>
+        <tr>
+            <th colspan="3">$heading($fields['description'])</th>
+        </tr>
+        <tr>
+            <td colspan="3">$input($fields['description'],style='width: 100%;')</td>
+        </tr>
+    </table>
+#end def
+
+## Form for adding or editing a subcategory
+#def subcat($editbox)
+#set $fields = $editbox.fields
+    <table class="header-active">
+        <tr>
+            <th>$heading($fields['subcatid'])</th>
+            <th colspan="2">$heading($fields['catid'])</th>
+        </tr>
+        <tr>
+            <td>$input($fields['subcatid'])</td>
+            <td colspan="2">$input($fields['catid'])</td>
+        </tr>
+        <tr>
+            <th colspan="3">$heading($fields['descr'])</th>
+        </tr>
+        <tr>
+            <td colspan="3">$input($fields['descr'],'width: 100%;')</td>
+        </tr>
+    </table>
+#end def
+
+## Form for showing a message and adding hidden controls
+#def hiddenormessage($editbox)
+<p>$editbox.message</p>
+<!-- def hiddenormessage -->
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+## Form for bulk import
+#def bulk($editbox)
+#set $fields = $editbox.fields
+    <p>$editbox.help</p>
+    <table class="header-active">
+        <tr>
+            <th align="left">Import</th>
+            <td>$input($fields['table'],'width: 60%;')</td>
+        </tr>
+        <tr>
+            <th align="left">Separator</th>
+            <td>$input($fields['separator'],'width: 60%;')</td>
+        </tr>
+        <tr>
+            <th align="left">Import from file</th>
+            <td>$input($fields['file'],'width: 60%;')</td>
+        </tr>
+        <tr>
+            <th align="left">Import from text</th>
+            <td>$input($fields['textarea'])</td>
+        </tr>
+    </table>
+#end def
+
+## Form to write out all hidden input fields
+#def hiddenfields($fieldlist)
+#for $field in $fieldlist.values()
+$input($field)
+#end for
+#end def
+
+## Displays headings in forms, marks required fields
+#def heading($control)
+## REQ_TRUE = 1 (from seeddb.py header)
+#if $control[1] == 1
+$control[2]&nbsp;<span style="color: #ff0000">*</span>
+#else
+$control[2]
+#end if
+#end def
+
+## Form to display all input fields
+#def input($control,$style='')
+#if $control[0].disabled
+#set $disabled = 'disabled'
+#else
+#set $disabled = ''
+#end if
+#set $control = $control[0]
+#if $control.type == 'text'
+#if $control.maxlength
+<input $disabled type="text" style="$style" size="$control.size" maxlength="$control.maxlength" name="$control.name" value="$control.value" />
+#else
+<input $disabled type="text" style="$style" size="$control.size" name="$control.name" value="$control.value" />
+#end if
+#elif $control.type == 'select'
+<select $disabled name="$control.name" style="$style" $control.attribs>
+#for $id,$option in $control.options
+#if $id == $control.value
+    <option value="$id" selected>$option</option>
+#else
+    <option value="$id">$option</option>
+#end if
+#end for
+</select>
+#elif $control.type == 'multipleselect'
+<select multiple name="$control.name" style="$style">
+#for $id,$option in $control.options
+#if $control.value.count($id)
+    <option value="$id" selected>$option</option>
+#else
+    <option value="$id">$option</option>
+#end if
+#end for
+</select>
+#elif $control.type == 'file'
+    <input type="file" style="$style" name="$control.name" value="$control.value" />
+#elif $control.type == 'textarea'
+    <textarea name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</textarea>
+#elif $control.type == 'checkbox'
+#if $control.value == '1'
+## VALUE is hardcoded to 1, which is good for boolean fields in the db
+    <input type="checkbox" style="$style" name="$control.name" value="1" checked />
+#else
+    <input type="checkbox" style="$style" name="$control.name" value="1" />
+#end if
+#elif $control.type == 'hidden'
+    <input type="hidden" name="$control.name" value="$control.value" />
+#elif $control.type == 'treeselect'
+#set $ts = selectTreeTemplate()
+#if $control.treeselect
+    $ts.renderLayoutBox($control.treeselect)
+#end if
+#elif $control.type == 'serviceproperties'
+#for $property in $control.propertyList
+    $serviceproperty($property)
+#end for
+#else
+Undefined control
+#end if
+#end def

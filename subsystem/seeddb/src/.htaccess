@@ -1,0 +1,3 @@
+SetHandler python-program
+PythonHandler seeddb
+DirectoryIndex seeddb.py
