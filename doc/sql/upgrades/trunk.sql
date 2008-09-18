@@ -29,10 +29,10 @@
 
 -- Rename logger tables to avoid naming confusion with manage schema.
 ALTER TABLE logger.message RENAME TO log_message;
-ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
+ALTER TABLE logger.message_id_seq RENAME TO log_message_id_seq;
 
 ALTER TABLE logger.type RENAME TO message_type;
-ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
+ALTER TABLE logger.type_type_seq RENAME TO message_type_type_seq;
 
 -- Add closed flag to alertq
 ALTER TABLE alertq ADD closed BOOLEAN;
@@ -139,37 +139,37 @@ ALTER TABLE matchfield RENAME descr TO description;
 -- NOTE Internally a sequence has a column named 'sequence_name' which keeps
 -- the name of the sequence. This value will not be changed when renaming
 -- sequences, and you can not use UPDATE to set it either.
-ALTER SEQUENCE alarmadresse_id_seq RENAME TO alertaddress_id_seq;
+ALTER TABLE alarmadresse_id_seq RENAME TO alertaddress_id_seq;
 ALTER TABLE alertaddress ALTER COLUMN id SET DEFAULT nextval('alertaddress_id_seq');
 ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
-ALTER SEQUENCE brukerprofil_id_seq RENAME TO alertprofile_id_seq;
+ALTER TABLE brukerprofil_id_seq RENAME TO alertprofile_id_seq;
 ALTER TABLE alertprofile ALTER COLUMN id SET DEFAULT nextval('alertprofile_id_seq');
 ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
-ALTER SEQUENCE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
+ALTER TABLE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
 ALTER TABLE timeperiod ALTER COLUMN id SET DEFAULT nextval('timeperiod_id_seq');
 ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
-ALTER SEQUENCE filtermatch_id_seq RENAME TO expression_id_seq;
+ALTER TABLE filtermatch_id_seq RENAME TO expression_id_seq;
 ALTER TABLE expression ALTER COLUMN id SET DEFAULT nextval('expression_id_seq');
 ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
-ALTER SEQUENCE utstyrfilter_id_seq RENAME TO filter_id_seq;
+ALTER TABLE utstyrfilter_id_seq RENAME TO filter_id_seq;
 ALTER TABLE filter ALTER COLUMN id SET DEFAULT nextval('filter_id_seq');
 ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
-ALTER SEQUENCE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
+ALTER TABLE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
 ALTER TABLE filtergroup ALTER COLUMN id SET DEFAULT nextval('filtergroup_id_seq');
 ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
-ALTER SEQUENCE queue_id_seq RENAME TO accountalertqueue_id_seq;
+ALTER TABLE queue_id_seq RENAME TO accountalertqueue_id_seq;
 ALTER TABLE accountalertqueue ALTER COLUMN id SET DEFAULT nextval('accountalertqueue_id_seq');
 ALTER SEQUENCE accountalertqueue_id_seq OWNED BY accountalertqueue.id;
 
 -- operator_id_seq should really be called operator_operator_id_seq as it is a
 -- sequence for the column operator_id in the table operator.
-ALTER SEQUENCE operator_id_seq RENAME TO operator_operator_id_seq;
+ALTER TABLE operator_id_seq RENAME TO operator_operator_id_seq;
 ALTER TABLE operator ALTER COLUMN operator_id SET DEFAULT nextval('operator_operator_id_seq');
 ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
