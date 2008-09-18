@@ -132,19 +132,6 @@ ALTER TABLE accountalertqueue RENAME accountid TO account_id;
 ALTER TABLE accountalertqueue RENAME alertid TO alert_id;
 ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 
-ALTER TABLE accountalertqueue ADD subscription_id integer;
-ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
-	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
-	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
-	-- ON DELETE CASCADE -- FIXME
-	;
--- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
--- guarantee a correct upgrade due to the db design issue we are fixing here.
--- We can only we sure that the alert is delivered to the correct address, not
--- necessarily at the correct time.
-UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
-ALTER TABLE accountalertqueue DROP addrid;
-
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
@@ -249,6 +236,20 @@ ALTER TABLE alertsubscription ADD COLUMN id integer NOT NULL
 	CONSTRAINT alertsubscription_pkey PRIMARY KEY;
 ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_alert_address_id_key UNIQUE(alert_address_id, time_period_id, filter_group_id);
+
+-- Fix alertqueue
+ALTER TABLE accountalertqueue ADD subscription_id integer;
+ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_subscription_fkey
+	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
+	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
+	-- ON DELETE CASCADE -- FIXME
+	;
+-- Try to upgrade accountalertqueue.addrid to subscription_id, this will not
+-- guarantee a correct upgrade due to the db design issue we are fixing here.
+-- We can only we sure that the alert is delivered to the correct address, not
+-- necessarily at the correct time.
+UPDATE accountalertqueue SET subscription_id = (SELECT id FROM alertsubscription WHERE alert_address_id = addrid LIMIT 1);
+ALTER TABLE accountalertqueue DROP addrid;
 
 
 -- Rename indexes so they match with the new english table names
