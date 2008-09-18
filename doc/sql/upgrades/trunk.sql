@@ -64,10 +64,6 @@ ALTER TABLE rettighet RENAME TO filtergroup_group_permission;
 ALTER TABLE filtergroup_group_permission RENAME utstyrgruppeid TO filtergroup_id;
 ALTER TABLE filtergroup_group_permission RENAME accountgroupid TO accountgroup_id;
 
-ALTER TABLE filtergroup_group_permission DROP CONSTRAINT rettighet_pk;
-ALTER TABLE filtergroup_group_permission ADD COLUMN id integer PRIMARY KEY;
-ALTER TABLE filtergroup_group_permission ADD UNIQUE(accountgroup_id, filtergroup_id);
-
 ALTER TABLE alarmadresse RENAME TO alertaddress;
 ALTER TABLE alertaddress RENAME adresse TO address;
 
@@ -196,13 +192,6 @@ ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 
 -- Django needs a single column it can treat as primary key :-(
-ALTER TABLE accountproperty ADD COLUMN id SERIAL;
-
--- FIXME
-ALTER TABLE grouptilfilter DROP CONSTRAINT gruppetilfilter_pk;
-ALTER TABLE grouptilfilter ADD COLUMN id SERIAL PRIMARY KEY;
-ALTER TABLE grouptilfilter ADD UNIQUE(utstyrfilterid, utstyrgruppeid);
-
 ALTER TABLE accountgroup_accounts DROP CONSTRAINT accountingroup_pk;
 CREATE SEQUENCE accountgroup_accounts_id_seq;
 ALTER TABLE accountgroup_accounts ADD COLUMN id integer NOT NULL
