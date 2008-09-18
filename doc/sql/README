@@ -22,6 +22,9 @@ arnold.sql       - Creates tables in arnold namespace.
 indexes.sql      - Creates auxiliary indexes for all namespaces in the nav
                    database.
 
+mergedb.sh       - Merges the four NAV databases from NAV 3.4 into a single
+                   database, as required by an upgrade to NAV 3.5.
+
 
 How to create the database from scratch
 =======================================
