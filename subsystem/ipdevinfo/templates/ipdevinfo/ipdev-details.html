@@ -138,11 +138,11 @@
     </tr>
     <tr>
         <th>Software</th>
-        <td>{{ netbox.device.software_version }}</td>
+        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
     </tr>
     <tr>
         <th>Serial number</th>
-        <td>{{ netbox.device.serial }}</td>
+        <td>{{ netbox.device.serial|default:"N/A" }}</td>
     </tr>
     <tr>
         <th># of modules</th>
@@ -161,11 +161,13 @@
     </tr>
     <tr>
         <th>First discovered</th>
-        <td>{{ netbox.discovered }}</td>
+        <td>{{ netbox.discovered|date|default:"N/A" }}
+            {{ netbox.discovered|time }}</td>
     </tr>
     <tr>
         <th>Last updated</th>
-        <td>{{ netbox.last_updated }}</td>
+        <td>{{ netbox.last_updated|date|default:"N/A" }}
+            {{ netbox.last_updated|time }}</td>
     </tr>
     <tr>
         <th>Actions</th>
@@ -256,11 +258,11 @@
         {% for alert in alerts %}
         <tr class="{% cycle oddrow,evenrow %}">
             <td>{{ alert.event_type }}</td>
-            <td>{{ alert.start_time }}</td>
+            <td>{{ alert.start_time|date }} {{ alert.start_time|time }}</td>
             {% if alert.is_open %}
                 <td class="status_down">Unresolved</td>
             {% else %}
-                <td>{{ alert.end_time }}</td>
+                <td>{{ alert.end_time|date }} {{ alert.end_time|time }}</td>
             {% endif %}
             </td>
             <td align="right">
