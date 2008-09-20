@@ -620,7 +620,10 @@ class Prefix(models.Model):
         db_table = 'prefix'
 
     def __unicode__(self):
-        return u'%s at vlan %s' % (self.net_address, self.vlan)
+        if self.vlan:
+            return u'%s (vlan %s)' % (self.net_address, self.vlan)
+        else:
+            return self.net_address
 
 class Vlan(models.Model):
     """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
@@ -641,12 +644,14 @@ class Vlan(models.Model):
         db_table = 'vlan'
 
     def __unicode__(self):
-        vlan = str(self.vlan) or 'unknown'
-        try:
-            return u'%s, type %s, ident %s' % (
-                vlan, self.net_type, self.net_ident)
-        except NetType.DoesNotExist:
-            return u'%s, ident %s' % (vlan, self.net_ident)
+        result = u''
+        if self.vlan:
+            result += u'%d' % self.vlan
+        else:
+            result += u'N/A'
+        if self.net_ident:
+            result += ' (%s)' % self.net_ident
+        return result
 
 class NetType(models.Model):
     """From MetaNAV: The nettype table defines network type;lan, core, link,
