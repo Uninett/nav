@@ -46,7 +46,7 @@ WEBNAME = ipdevinfo
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/ipdevinfo/*.py)
+LIBS = $(wildcard nav/django/urls/ipdevinfo.py nav/web/ipdevinfo/*.py)
 CONFFILES =
 TOOLS = ipdevinfo.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
