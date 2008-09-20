@@ -136,54 +136,63 @@ def ipdev_details(request, name=None, addr=None):
 
         return host_info
 
-    errors = []
-    host_info = get_host_info(name or addr)
-    netbox = None
-    port_view = None
+    def get_netbox(name=None, addr=None, host_info=None):
+        """Lookup IP device in NAV by either hostname or IP address"""
 
-    # Lookup IP device in NAV
-    if name is not None:
-        try:
-            netbox = Netbox.objects.select_related(depth=2).get(sysname=name)
-        except Netbox.DoesNotExist:
-            pass
-    elif addr is not None:
-        try:
-            netbox = Netbox.objects.select_related(depth=2).get(ip=addr)
-        except Netbox.DoesNotExist:
-            # Check if any reverse addresses from DNS matches a netbox
+        # Prefetch related objects as to reduce number of database queries
+        netboxes = Netbox.objects.select_related(depth=2)
+
+        if name is not None:
+            try:
+                return netboxes.get(sysname=name)
+            except Netbox.DoesNotExist:
+                pass
+        elif addr is not None:
+            try:
+                return netboxes.get(ip=addr)
+            except Netbox.DoesNotExist:
+                pass
+        elif host_info is not None:
             for address in host_info['addresses']:
                 if 'name' in address:
                     try:
-                        netbox = Netbox.objects.select_related(depth=2).get(
-                            sysname=address['name'])
+                        netbox = netboxes.get(sysname=address['name'])
                         break # Exit loop at first match
                     except Netbox.DoesNotExist:
                         pass
-    else:
-        # Require name or addr to be set
-        HttpResponseRedirect(reverse('ipdevinfo-search'))
 
-    # All alerts which ends in the last week or later (including open alerts)
-    if netbox is not None:
+        # All lookups failed
+        return None
+
+    def get_recent_alerts(netbox):
+        """Returns the most recents alerts related to a netbox"""
+
+        # Limit to alerts which where closed in the last 7 days or which are
+        # still open
+        lowest_end_time = dt.datetime.now() - dt.timedelta(days=7)
+
         alerts = netbox.alerthistory_set.filter(
-            end_time__gt=(dt.datetime.now() - dt.timedelta(7)))
-    else:
-        alerts = AlertHistory.objects.none()
+            end_time__gt=lowest_end_time).order_by('start_time')
+
+        return alerts
+
+    host_info = get_host_info(name or addr)
+    netbox = get_netbox(name=name, addr=addr, host_info=host_info)
+    if netbox is None:
+        return HttpResponseRedirect(reverse('ipdevinfo-search'))
+    alerts = get_recent_alerts(netbox)
 
     # Select port view to display
-    if netbox is not None:
-        port_view = request.GET.get('view', None)
-        if port_view not in ('swportstatus', 'swportactive', 'gwportstatus'):
-            if netbox.get_swports().count():
-                port_view = 'swportstatus'
-            elif netbox.get_gwports().count():
-                port_view = 'gwportstatus'
+    port_view = request.GET.get('view', None)
+    if port_view not in ('swportstatus', 'swportactive', 'gwportstatus'):
+        if netbox.get_swports().count():
+            port_view = 'swportstatus'
+        elif netbox.get_gwports().count():
+            port_view = 'gwportstatus'
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/ipdev-details.html',
         {
-            'errors': errors,
             'host_info': host_info,
             'netbox': netbox,
             'alerts': alerts,
