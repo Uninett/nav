@@ -66,6 +66,7 @@
                 last month</a>
             {% endwith %}
         </td>
+    </tr>
 {% endwith %}
     <tr>
         <th>Uptime</th>
@@ -125,6 +126,7 @@
             {% else %}
                 N/A
             {% endif %}
+        </td>
     </tr>
     <tr>
         <th>Organization</th>
@@ -238,7 +240,7 @@
 <div id="alerts">
 <table class="listtable">
     <caption>
-        Recent alerts<br />
+        Alerts last 7 days<br />
         <span class="subtitle">For details, see
         <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a>
         </span>
@@ -255,21 +257,22 @@
 
     <tbody>
     {% if alerts %}
-        {% for alert in alerts %}
+        {% for a in alerts %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td>{{ alert.event_type }}</td>
-            <td>{{ alert.start_time|date }} {{ alert.start_time|time }}</td>
-            {% if alert.is_open %}
+            <td title="{{ a.message }}">{{ a.type }}</td>
+            <td>{{ a.alert.start_time|date|default:"N/A" }}
+                {{ a.alert.start_time|time }}</td>
+            {% if a.alert.is_open %}
                 <td class="status_down">Unresolved</td>
             {% else %}
-                <td>{{ alert.end_time|date }} {{ alert.end_time|time }}</td>
+                <td>{{ a.alert.end_time|date|default:"N/A" }}
+                    {{ a.alert.end_time|time }}</td>
             {% endif %}
-            </td>
             <td align="right">
-                {% if alert.is_open %}
-                    {{ alert.start_time|timesince }}
+                {% if a.alert.is_open %}
+                    {{ a.alert.start_time|timesince }}
                 {% else %}
-                    {{ alert.start_time|timesince:alert.end_time }}
+                    {{ a.alert.start_time|timesince:a.alert.end_time }}
                 {% endif %}
             </td>
         </tr>
@@ -284,7 +287,9 @@
 </div>
 {% endif %}
 
+
 <hr class="floatclear" />
+
 
 {% if netbox and netbox.service_set.count %}
 

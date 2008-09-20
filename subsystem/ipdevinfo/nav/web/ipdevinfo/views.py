@@ -105,6 +105,7 @@ def ipdev_details(request, name=None, addr=None):
 
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
+
         import socket
         from nav import natsort
 
@@ -171,8 +172,25 @@ def ipdev_details(request, name=None, addr=None):
         # still open
         lowest_end_time = dt.datetime.now() - dt.timedelta(days=7)
 
-        alerts = netbox.alerthistory_set.filter(
+        raw_alerts = netbox.alerthistory_set.filter(
             end_time__gt=lowest_end_time).order_by('start_time')
+
+        alerts = []
+        for alert in raw_alerts:
+            if alert.source.name == 'serviceping':
+                try:
+                    type = Service.objects.get(id=alert.subid).handler
+                except Service.DoesNotExist:
+                    type = '%s (%d)' % (alert.event_type, alert.subid)
+            else:
+                type = '%s' % alert.event_type
+
+            try:
+                message = alert.messages.filter(type='sms')[0].message
+            except IndexError:
+                message = None
+
+            alerts.append({'alert': alert, 'type': type, 'message': message})
 
         return alerts
 
