@@ -258,7 +258,7 @@
             <td>{{ alert.event_type }}</td>
             <td>{{ alert.start_time }}</td>
             {% if alert.is_open %}
-                <td class="status_down">Still active</td>
+                <td class="status_down">Unresolved</td>
             {% else %}
                 <td>{{ alert.end_time }}</td>
             {% endif %}
