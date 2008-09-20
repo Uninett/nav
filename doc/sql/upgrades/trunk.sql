@@ -10,9 +10,8 @@
  *
  * This upgrade scripts assumes you have merged your NAV databases
  * into a single, multi-namespaced database.  If you haven't, please
- * read the instructions in doc/sql/migrate.sql, and use that script
- * to merge your databases first.  Only then should you use this
- * script.
+ * read the instructions in doc/sql/upgrades/README .  A helper script
+ * exists to help you merge your databases: doc/sql/mergedb.sh .
  *
  * *************** NB NB NB NB NB NB NB ***************
  *
