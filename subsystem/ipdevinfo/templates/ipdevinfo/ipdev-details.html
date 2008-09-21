@@ -240,10 +240,8 @@
 <div id="alerts">
 <table class="listtable">
     <caption>
-        Alerts last 7 days<br />
-        <span class="subtitle">For details, see
-        <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a>
-        </span>
+        Alerts last {{ alert_info.days_back }}
+        day{{ alert_info.days_back|pluralize }}
     </caption>
 
     <thead>
@@ -255,11 +253,28 @@
         </tr>
     </thead>
 
+    <tfoot>
+        <tr>
+            <th colspan="4">
+            {% if alert_info.is_more_alerts %}
+                Showing {{ alert_info.alerts|length }} of
+                {{ alert_info.count }} alerts, see
+                <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                Device History</a> for all
+            {% else %}
+                {{ alert_info.alerts|length }}
+                alert{{ alert_info.alerts|length|pluralize }} found, see
+                <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+            {% endif %}
+            </th>
+        </tr>
+    </tfoot>
+
     <tbody>
-    {% if alerts %}
-        {% for a in alerts %}
+    {% if alert_info.count %}
+        {% for a in alert_info.alerts %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td title="{{ a.message }}">{{ a.type }}</td>
+            <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
             <td>{{ a.alert.start_time|date|default:"N/A" }}
                 {{ a.alert.start_time|time }}</td>
             {% if a.alert.is_open %}
@@ -268,7 +283,7 @@
                 <td>{{ a.alert.end_time|date|default:"N/A" }}
                     {{ a.alert.end_time|time }}</td>
             {% endif %}
-            <td align="right">
+            <td>
                 {% if a.alert.is_open %}
                     {{ a.alert.start_time|timesince }}
                 {% else %}

@@ -165,15 +165,17 @@ def ipdev_details(request, name=None, addr=None):
         # All lookups failed
         return None
 
-    def get_recent_alerts(netbox):
+    def get_recent_alerts(netbox, days_back=7, max_num_alerts=15):
         """Returns the most recents alerts related to a netbox"""
 
-        # Limit to alerts which where closed in the last 7 days or which are
+        # Limit to alerts which where closed in the last days or which are
         # still open
-        lowest_end_time = dt.datetime.now() - dt.timedelta(days=7)
+        lowest_end_time = dt.datetime.now() - dt.timedelta(days=days_back)
 
-        raw_alerts = netbox.alerthistory_set.filter(
-            end_time__gt=lowest_end_time).order_by('start_time')
+        qs = netbox.alerthistory_set.filter(
+            end_time__gt=lowest_end_time).order_by('-start_time')
+        count = qs.count()
+        raw_alerts = qs[:max_num_alerts]
 
         alerts = []
         for alert in raw_alerts:
@@ -192,13 +194,18 @@ def ipdev_details(request, name=None, addr=None):
 
             alerts.append({'alert': alert, 'type': type, 'message': message})
 
-        return alerts
+        return {
+            'days_back': days_back,
+            'alerts': alerts,
+            'count': count,
+            'is_more_alerts': count > max_num_alerts,
+        }
 
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
     if netbox is None:
         return HttpResponseRedirect(reverse('ipdevinfo-search'))
-    alerts = get_recent_alerts(netbox)
+    alert_info = get_recent_alerts(netbox)
 
     # Select port view to display
     port_view = request.GET.get('view', None)
@@ -213,7 +220,7 @@ def ipdev_details(request, name=None, addr=None):
         {
             'host_info': host_info,
             'netbox': netbox,
-            'alerts': alerts,
+            'alert_info': alert_info,
             'port_view': port_view,
         },
         context_instance=RequestContext(request,
