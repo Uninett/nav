@@ -37,12 +37,6 @@ CREATE TABLE alertsender (
 	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
--- FIXME on delete ...
-ALTER TABLE alertaddress ADD CONSTRAINT alertaddress_type_fkey FOREIGN KEY(type) REFERENCES alertsender(id);
-
-INSERT INTO alertsender VALUES (1, 'Email', 'email');
-INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
-INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); indexes etc. are explicitly named.
 
 /*
 -- 1 ACCOUNT
@@ -160,7 +154,12 @@ CREATE TABLE alertaddress (
        CONSTRAINT alertaddress_accountid_fkey
 		  FOREIGN KEY(accountid) REFERENCES Account(id)
 		  ON DELETE CASCADE
-		  ON UPDATE CASCADE
+		  ON UPDATE CASCADE,
+       CONSTRAINT alertaddress_type_fkey 
+                  FOREIGN KEY(type) REFERENCES alertsender(id)
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE
+         
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
@@ -793,6 +792,11 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
        VALUES ((SELECT id FROM AccountGroup WHERE name='SMS'), 3, 'sms');
+
+-- Alert senders
+INSERT INTO alertsender VALUES (1, 'Email', 'email');
+INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
 
 
 -- Matchfields
