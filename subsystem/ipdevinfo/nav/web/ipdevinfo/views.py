@@ -273,7 +273,8 @@ def service_list(request, handler=None):
 
     page = request.GET.get('page', '1')
 
-    services = Service.objects.select_related(depth=1)
+    services = Service.objects.select_related(depth=1).order_by(
+        'netbox__sysname', 'handler')
     if handler:
         services = services.filter(handler=handler)
 
