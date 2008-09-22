@@ -24,20 +24,21 @@
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 import IPy
 import re
 import datetime as dt
 
+from django.core.files import File
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
 from nav.models.manage import Netbox, Module, SwPort, GwPort
 from nav.models.cabling import Cabling, Patch
 from nav.models.event import AlertHistory
+from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.service import Service
 from nav.django.shortcuts import render_to_response, object_list
 
@@ -322,3 +323,28 @@ def service_matrix(request):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+def rrd_details(request, datasource_id):
+    """Show the RRD graph corresponding to the given datasource ID"""
+
+    # TODO
+
+    return render_to_response(IpDevInfoTemplate,
+        'ipdevinfo/rrd-graph.html',
+        {
+
+        },
+        context_instance=RequestContext(request,
+            processors=[search_form_processor]))
+
+def rrd_image(request, rrdfile_id):
+    """Return the graph image of an RRD file"""
+
+    # TODO
+    try:
+        rrdfile = RrdFile.objects.get(id=rrdfile_id)
+    except RrdFile.DoesNotExist:
+        raise Http404
+
+    file = File(open(rrdfile.get_file_path()))
+    return HttpResponse(file.read(), mimetype='image/gif')
