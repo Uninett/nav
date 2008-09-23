@@ -542,6 +542,7 @@ CREATE TABLE accountalertqueue (
     account_id integer,
     addrid integer,
     alert_id integer,
+    subscription_id integer,
     insertion_time timestamp NOT NULL,
 
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
@@ -552,7 +553,11 @@ CREATE TABLE accountalertqueue (
     CONSTRAINT accountalertqueue_addrid_fkey
     	FOREIGN KEY(addrid) REFERENCES alertaddress(id)
 	ON DELETE CASCADE
-	ON UPDATE CASCADE
+	ON UPDATE CASCADE,
+    CONSTRAINT accountalertqueue_subscription_fkey
+	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
+	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
+	-- ON DELETE CASCADE -- FIXME
 );
 
 /*
