@@ -123,7 +123,8 @@ CREATE SCHEMA public;
 ALTER SCHEMA public RENAME TO arnold;
 CREATE SCHEMA public;
 
-ALTER DATABASE $newnavdb SET search_path = manage,profiles,logger,arnold;
+CREATE SCHEMA radius;
+ALTER DATABASE $newnavdb SET search_path = manage,profiles,logger,arnold,radius;
 EOF
 
 echo "---"

@@ -102,7 +102,10 @@ SET search_path = logger;
 SET search_path = arnold;
 \i arnold.sql
 
-ALTER DATABASE $navdb SET search_path = manage,profiles,logger,arnold;
+SET search_path = radius;
+\i radius.sql
+
+ALTER DATABASE $navdb SET search_path = manage,profiles,logger,arnold,radius;
 SET search_path = manage,profiles,logger,arnold;
 
 -- Build indexes now
