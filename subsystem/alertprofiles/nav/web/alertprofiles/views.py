@@ -1085,9 +1085,12 @@ def language_save(request):
 
     # Try to fetch language property. If it doesn't exist we must make it.
     try:
-        language = AccountProperty.objects.get(account=account, property='language')
-    except AccountGroup.DoesNotExist:
-        language = AccountProperty(account=account, property='language')
+        language = AccountProperty.objects.get(
+            account=account,
+            property='language'
+        )
+    except AccountProperty.DoesNotExist:
+        language = AccountProperty(account=account, property='language', value='en')
 
     value = request.POST.get('value')
     language.value = value
