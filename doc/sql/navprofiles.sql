@@ -37,12 +37,6 @@ CREATE TABLE alertsender (
 	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
--- FIXME on delete ...
-ALTER TABLE alertaddress ADD CONSTRAINT alertaddress_type_fkey FOREIGN KEY(type) REFERENCES alertsender(id);
-
-INSERT INTO alertsender VALUES (1, 'Email', 'email');
-INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
-INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); indexes etc. are explicitly named.
 
 /*
 -- 1 ACCOUNT
@@ -66,7 +60,8 @@ CREATE TABLE Account (
     CONSTRAINT account_pkey PRIMARY KEY(id),
     CONSTRAINT account_login_key UNIQUE(login)
 );
-ALTER SEQUENCE account_id_seq OWNED BY account.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE account_id_seq OWNED BY account.id;
 
 
 /*
@@ -85,7 +80,8 @@ CREATE TABLE AccountGroup (
 
     CONSTRAINT accountgroup_pkey PRIMARY KEY(id)
 );
-ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
 
 
 -- 3 ACCOUNTGROUP_ACCOUNTS
@@ -106,7 +102,8 @@ CREATE TABLE accountgroup_accounts (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
-ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
 
 
 /*
@@ -130,7 +127,8 @@ CREATE TABLE AccountProperty (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
 
 /*
 -- 5 ALERTADDRESS
@@ -156,9 +154,15 @@ CREATE TABLE alertaddress (
        CONSTRAINT alertaddress_accountid_fkey
 		  FOREIGN KEY(accountid) REFERENCES Account(id)
 		  ON DELETE CASCADE
-		  ON UPDATE CASCADE
+		  ON UPDATE CASCADE,
+       CONSTRAINT alertaddress_type_fkey 
+                  FOREIGN KEY(type) REFERENCES alertsender(id)
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE
+         
 );
-ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
 
 /*
@@ -190,7 +194,8 @@ CREATE TABLE alertprofile (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
 
 /*
@@ -264,7 +269,8 @@ CREATE TABLE timeperiod (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
 /*
 -- 9 FILTERGROUP
@@ -289,7 +295,8 @@ CREATE TABLE filtergroup (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
 /*
 -- 10 ALERTSUBSCRIPTION
@@ -330,7 +337,8 @@ CREATE TABLE alertsubscription (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 );
-ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 /*
 -- 11 FILTERGROUP_GROUP_PERMISSION
@@ -359,7 +367,8 @@ CREATE TABLE filtergroup_group_permission (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
 
 /*
 -- 14 FILTER
@@ -383,7 +392,8 @@ CREATE TABLE filter (
 		  ON DELETE SET NULL
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
 /*
 -- 15 FILTERGROUPCONTENT
@@ -417,7 +427,8 @@ CREATE TABLE filtergroupcontent (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
 
 /*
 -- 16 MATCHFIELD
@@ -449,7 +460,8 @@ CREATE TABLE MatchField (
 
     CONSTRAINT matchfield_pkey PRIMARY KEY(id)
 );
-ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
 
 /*
 -- 17 EXPRESSION
@@ -478,7 +490,8 @@ CREATE TABLE expression (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 
 /*
@@ -502,8 +515,9 @@ CREATE TABLE Operator (
             ON DELETE CASCADE
             ON UPDATE CASCADE
 );
-ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
-ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
+-- ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 /*
 -- 20 SMSQ
@@ -585,7 +599,8 @@ CREATE TABLE NavbarLink (
                ON DELETE CASCADE
                ON UPDATE CASCADE
 );
-ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
 
 /*
 -- 21 ACCOUNTNAVBAR
@@ -634,7 +649,8 @@ CREATE TABLE AccountOrg (
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
-ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
 
 /*
 -- Privilege
@@ -651,7 +667,8 @@ CREATE TABLE Privilege (
        CONSTRAINT privilege_pkey PRIMARY KEY (privilegeid),
        CONSTRAINT privilege_privilegename_key UNIQUE(privilegename)
 );
-ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
 
 /*
 -- AccountGroupPrivilege
@@ -677,7 +694,8 @@ CREATE TABLE AccountGroupPrivilege (
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
-ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
 
 /*
 -- PrivilegeByGroup
@@ -770,15 +788,18 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/index(.py)?/(index|login|logout|userinfo|passwd)\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/messages/(active|historic|planned|view|rss)\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/maintenance/(calendar|active|historic|planned|view)\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/vlanPlot\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/vPServer/servlet/vPServer\\b');
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
        VALUES ((SELECT id FROM AccountGroup WHERE name='SMS'), 3, 'sms');
+
+-- Alert senders
+INSERT INTO alertsender VALUES (1, 'Email', 'email');
+INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
 
 
 -- Matchfields

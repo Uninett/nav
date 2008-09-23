@@ -151,37 +151,29 @@ ALTER TABLE matchfield RENAME descr TO description;
 -- sequences, and you can not use UPDATE to set it either.
 ALTER TABLE alarmadresse_id_seq RENAME TO alertaddress_id_seq;
 ALTER TABLE alertaddress ALTER COLUMN id SET DEFAULT nextval('alertaddress_id_seq');
-ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
 ALTER TABLE brukerprofil_id_seq RENAME TO alertprofile_id_seq;
 ALTER TABLE alertprofile ALTER COLUMN id SET DEFAULT nextval('alertprofile_id_seq');
-ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
 ALTER TABLE tidsperiode_id_seq RENAME TO timeperiod_id_seq;
 ALTER TABLE timeperiod ALTER COLUMN id SET DEFAULT nextval('timeperiod_id_seq');
-ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
 ALTER TABLE filtermatch_id_seq RENAME TO expression_id_seq;
 ALTER TABLE expression ALTER COLUMN id SET DEFAULT nextval('expression_id_seq');
-ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 ALTER TABLE utstyrfilter_id_seq RENAME TO filter_id_seq;
 ALTER TABLE filter ALTER COLUMN id SET DEFAULT nextval('filter_id_seq');
-ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
 ALTER TABLE utstyrgruppe_id_seq RENAME TO filtergroup_id_seq;
 ALTER TABLE filtergroup ALTER COLUMN id SET DEFAULT nextval('filtergroup_id_seq');
-ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
 ALTER TABLE queue_id_seq RENAME TO accountalertqueue_id_seq;
 ALTER TABLE accountalertqueue ALTER COLUMN id SET DEFAULT nextval('accountalertqueue_id_seq');
-ALTER SEQUENCE accountalertqueue_id_seq OWNED BY accountalertqueue.id;
 
 -- operator_id_seq should really be called operator_operator_id_seq as it is a
 -- sequence for the column operator_id in the table operator.
 ALTER TABLE operator_id_seq RENAME TO operator_operator_id_seq;
 ALTER TABLE operator ALTER COLUMN operator_id SET DEFAULT nextval('operator_operator_id_seq');
-ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 
 -- Django needs a single column it can treat as primary key :-(
@@ -190,7 +182,6 @@ CREATE SEQUENCE profiles.accountgroup_accounts_id_seq;
 ALTER TABLE accountgroup_accounts ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('accountgroup_accounts_id_seq')
 	CONSTRAINT accountgroup_accounts_pkey PRIMARY KEY;
-ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
 ALTER TABLE accountgroup_accounts ADD CONSTRAINT accountgroup_accounts_account_id_key UNIQUE(account_id, accountgroup_id);
 
 ALTER TABLE accountgroupprivilege DROP CONSTRAINT agprivilege_pk;
@@ -198,7 +189,6 @@ CREATE SEQUENCE profiles.accountgroupprivilege_id_seq;
 ALTER TABLE accountgroupprivilege ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('accountgroupprivilege_id_seq')
 	CONSTRAINT accountgroupprivilege_pkey PRIMARY KEY;
-ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
 ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_accountgroupid_key UNIQUE(accountgroupid, privilegeid, target);
 
 ALTER TABLE accountorg DROP CONSTRAINT accountorg_pk;
@@ -206,21 +196,18 @@ CREATE SEQUENCE profiles.accountorg_id_seq;
 ALTER TABLE accountorg ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('accountorg_id_seq')
 	CONSTRAINT accountorg_pkey PRIMARY KEY;
-ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
 ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid);
 
 CREATE SEQUENCE profiles.accountproperty_id_seq;
 ALTER TABLE accountproperty ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('accountproperty_id_seq')
 	CONSTRAINT accountproperty_pkey PRIMARY KEY;
-ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
 
 ALTER TABLE filtergroupcontent DROP CONSTRAINT gruppetilfilter_pk;
 CREATE SEQUENCE profiles.filtergroupcontent_id_seq;
 ALTER TABLE filtergroupcontent ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('filtergroupcontent_id_seq')
 	CONSTRAINT filtergroupcontent_pkey PRIMARY KEY;
-ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
 ALTER TABLE filtergroupcontent ADD CONSTRAINT filtergroupcontent_filter_id_key UNIQUE(filter_id, filter_group_id);
 
 ALTER TABLE operator DROP CONSTRAINT operator_pk;
@@ -228,7 +215,6 @@ CREATE SEQUENCE profiles.operator_id_seq;
 ALTER TABLE operator ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('operator_id_seq')
 	CONSTRAINT operator_pkey PRIMARY KEY;
-ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
 ALTER TABLE operator ADD CONSTRAINT operator_operator_id_key UNIQUE(operator_id, match_field_id);
 
 ALTER TABLE filtergroup_group_permission DROP CONSTRAINT rettighet_pk;
@@ -236,7 +222,6 @@ CREATE SEQUENCE profiles.filtergroup_group_permission_id_seq;
 ALTER TABLE filtergroup_group_permission ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('filtergroup_group_permission_id_seq')
 	CONSTRAINT filtergroup_group_permission_pkey PRIMARY KEY;
-ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
 ALTER TABLE filtergroup_group_permission ADD CONSTRAINT filtergroup_group_permission_accountgroup_id_key UNIQUE(accountgroup_id, filtergroup_id);
 
 ALTER TABLE alertsubscription DROP CONSTRAINT varsleadresse_pk;
@@ -244,7 +229,6 @@ CREATE SEQUENCE profiles.alertsubscription_id_seq;
 ALTER TABLE alertsubscription ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('alertsubscription_id_seq')
 	CONSTRAINT alertsubscription_pkey PRIMARY KEY;
-ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 ALTER TABLE alertsubscription ADD CONSTRAINT alertsubscription_alert_address_id_key UNIQUE(alert_address_id, time_period_id, filter_group_id);
 
 -- Fix alertqueue
