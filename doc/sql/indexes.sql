@@ -71,6 +71,8 @@ CREATE INDEX log_message_type_btree ON log_message USING btree (type);
 CREATE INDEX log_message_origin_btree ON log_message USING btree (origin);
 CREATE INDEX log_message_time_btree ON log_message USING btree (time);
 
+-- combined index for quick lookups when expiring old records.
+CREATE INDEX log_message_expiration_btree ON log_message USING btree(newpriority, time);
 
 -- Reset the search path
 RESET search_path;
