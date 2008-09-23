@@ -562,7 +562,7 @@ class FilterGroup(models.Model):
 
     owner = models.ForeignKey('Account')
     name = models.CharField()
-    description = models.CharField(db_column='descr')
+    description = models.CharField()
 
     group_permissions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permission')
 
