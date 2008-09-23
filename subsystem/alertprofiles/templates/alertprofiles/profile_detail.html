@@ -37,6 +37,7 @@
 <form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
     {% include "alertprofiles/timeperiods.html" %}
     <p>
+        <input type="hidden" name="profile" value="{{ detail_id }}" />
         <button type="submit">Delete selected</button>
     </p>
 </form>
