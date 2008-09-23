@@ -147,6 +147,8 @@ def alert_subscriptions_table(periods):
         valid_during = p.valid_during
         alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
 
+        # This little snippet magically assigns a class to shared time periods
+        # so they appear with the same highlight color.
         if valid_during == TimePeriod.ALL_WEEK:
             period['class'] = 'shared' + unicode(shared_class_id)
             shared_class_id += 1
