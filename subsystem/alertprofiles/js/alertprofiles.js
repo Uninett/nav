@@ -27,15 +27,17 @@
 $(function() {
 	// Highlights shared time-periods
 	var doHighlight = function() {
+		// The last class should (in theory) be the "shared_period"
+		// class
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
 		$("tr." + shared_id).addClass('hilight');
 	}
-
 	// Removes highlight from shared time-periods
 	var removeHighlight = function() {
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
 		$("tr." + shared_id).removeClass('hilight');
 	}
+	$("#timeperiods_table_container tr.all_days_period").hover(doHighlight, removeHighlight);
 
 	// Switch between multiple and single select list in the expression form
 	var switchMultiple = function() {
@@ -45,6 +47,22 @@ $(function() {
 			$("select#id_value").removeAttr('multiple');
 		}
 	}
+	$("select#id_operator").ready(switchMultiple);
+	$("select#id_operator").change(switchMultiple);
+
+	// Check multiple checkboxes for shared periods
+	var checkMultiple = function() {
+		// The last class is "hilight", the second last is the
+		// "shared_period" class
+		var shared_id = $(this).parents("tr").attr('class').split(' ').slice(-2, -1);
+		var checked = $(this).attr('checked');
+		if (checked == undefined) {
+			$("tr." + shared_id + " input").removeAttr('checked');
+		} else {
+			$("tr." + shared_id + " input").attr('checked', 'checked');
+		}
+	}
+	$("#timeperiods_table_container tr.all_days_period input").click(checkMultiple);
 
 	// Display some help text to the "highlight shared periods" js
 	$("#timeperiods_table_container").prepend("<div class=\"boxes infobox\"><p>" +
@@ -52,15 +70,4 @@ $(function() {
 		"in different tables are highlighted, those two periods are " +
 		"actually the one and same period. It's just an \"all days\" period." +
 	"</p></div>");
-
-
-	// Highlight shared periods
-	$("#timeperiods_table_container tr.all_days_period").hover(doHighlight, removeHighlight);
-
-	// Set the right attribute for select list on page load
-	$("select#id_operator").ready(switchMultiple);
-
-	// If operator switch is changed, check if we have to add/remove 'multiple'
-	// attribute
-	$("select#id_operator").change(switchMultiple);
 });
