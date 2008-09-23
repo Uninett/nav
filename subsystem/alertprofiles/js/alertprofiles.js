@@ -28,13 +28,13 @@ $(function() {
 	// Highlights shared time-periods
 	var doHighlight = function() {
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
-		$("tr." + shared_id + " td:first-child").addClass('hilight');
+		$("tr." + shared_id).addClass('hilight');
 	}
 
 	// Removes highlight from shared time-periods
 	var removeHighlight = function() {
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
-		$("tr." + shared_id + " td:first-child").removeClass('hilight');
+		$("tr." + shared_id).removeClass('hilight');
 	}
 
 	// Switch between multiple and single select list in the expression form
