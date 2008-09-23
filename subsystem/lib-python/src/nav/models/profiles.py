@@ -695,7 +695,7 @@ class MatchField(models.Model):
     model = None
 
     name = models.CharField()
-    description = models.CharField(db_column='descr', blank=True)
+    description = models.CharField(blank=True)
     value_help = models.CharField(
         blank=True,
         help_text=_(u'Help text for the match field. Displayed by the value input box in the GUI to help users enter sane values.')
