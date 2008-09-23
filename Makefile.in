@@ -43,7 +43,6 @@ subdirs = src \
 	subsystem/machinetracker \
 	subsystem/maintenance \
 	subsystem/messages \
-	subsystem/pyproxy \
 	subsystem/report \
 	subsystem/smsd \
 	subsystem/snmptrapd \

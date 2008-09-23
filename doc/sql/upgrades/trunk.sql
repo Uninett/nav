@@ -10,9 +10,8 @@
  *
  * This upgrade scripts assumes you have merged your NAV databases
  * into a single, multi-namespaced database.  If you haven't, please
- * read the instructions in doc/sql/migrate.sql, and use that script
- * to merge your databases first.  Only then should you use this
- * script.
+ * read the instructions in doc/sql/upgrades/README .  A helper script
+ * exists to help you merge your databases: doc/sql/mergedb.sh .
  *
  * *************** NB NB NB NB NB NB NB ***************
  *
@@ -30,6 +29,16 @@
 -- Rename logger tables to avoid naming confusion with manage schema.
 ALTER TABLE logger.message RENAME TO log_message;
 ALTER SEQUENCE logger.message_id_seq RENAME TO log_message_id_seq;
+ALTER INDEX logger.message_pkey RENAME TO log_message_pkey;
+ALTER INDEX logger.message_origin_hash RENAME TO log_message_origin_hash;
+ALTER INDEX logger.message_time_btree RENAME TO log_message_time_btree;
+ALTER INDEX logger.message_type_hash RENAME TO log_message_type_hash;
 
-ALTER TABLE logger.type RENAME TO message_type;
-ALTER SEQUENCE logger.type_type_seq RENAME TO message_type_type_seq;
+ALTER TABLE logger.type RENAME TO log_message_type;
+ALTER SEQUENCE logger.type_type_seq RENAME TO log_message_type_type_seq;
+ALTER INDEX logger.type_priority_key RENAME TO log_message_type_priority_key;
+
+-- Drop obsolete vlanPlot tables
+DROP TABLE vp_netbox_xy;
+DROP TABLE vp_netbox_grp;
+DROP TABLE vp_netbox_info;

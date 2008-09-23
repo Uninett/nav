@@ -40,7 +40,7 @@ import no.ntnu.nav.Database.Database;
 
 public class navAdmin extends HttpServlet
 {
-	public static final String scriptName = "navAdmin";
+	public static final String scriptName = "default";
 
 	public void init(ServletConfig conf) throws ServletException
 	{
