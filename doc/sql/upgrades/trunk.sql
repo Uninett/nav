@@ -38,6 +38,9 @@ ALTER TABLE logger.type RENAME TO log_message_type;
 ALTER SEQUENCE logger.type_type_seq RENAME TO log_message_type_type_seq;
 ALTER INDEX logger.type_priority_key RENAME TO log_message_type_priority_key;
 
+-- combined index for quick lookups when expiring old records.
+CREATE INDEX log_message_expiration_btree ON logger.log_message USING btree(newpriority, time);
+
 -- Drop obsolete vlanPlot tables
 DROP TABLE vp_netbox_xy;
 DROP TABLE vp_netbox_grp;
