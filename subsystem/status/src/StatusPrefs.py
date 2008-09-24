@@ -344,7 +344,14 @@ class HandleStatusPrefs:
                                req.session['user'].login)
                 logger.debug("The unpickle exception was: ", exc_info=True)
             else:
-                return prefs
+                # Although we expect the pickle to be a list, it might
+                # be that we successfully unpickled an old StatusPrefs
+                # object.  If so, we return the unpickled object
+                # as-is.
+                if isinstance(prefs.sections, StatusPrefs):
+                    return prefs.sections
+                else:
+                    return prefs
 
         # No system default prefs found (admin users prefs)
         # load from DEFAULT_STATUSPREFS variable
