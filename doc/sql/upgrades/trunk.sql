@@ -439,8 +439,8 @@ ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilege
 	ON UPDATE CASCADE;
 
 -- FIXME
-CREATE SEQUENCE alertsender_id_seq START 1000;
-CREATE TABLE alertsender (
+CREATE SEQUENCE profiles.alertsender_id_seq START 1000;
+CREATE TABLE profiles.alertsender (
 	id integer NOT NULL DEFAULT nextval('alertsender_id_seq'),
 	name varchar(100) NOT NULL,
 	handler varchar(100) NOT NULL,
@@ -453,7 +453,7 @@ CREATE TABLE alertsender (
 -- ACCOUNTINGROUP
 -- View for compability with older code that thinks accountgroup_accounts is
 -- still called accountingroup.
-CREATE VIEW accountingroup AS (
+CREATE VIEW profiles.accountingroup AS (
     SELECT
         accountgroup_accounts.account_id AS accountid,
         accountgroup_accounts.accountgroup_id AS groupid
