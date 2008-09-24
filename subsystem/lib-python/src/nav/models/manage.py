@@ -693,7 +693,6 @@ class SwPort(models.Model):
         (DUPLEX_FULL, 'full duplex'),
         (DUPLEX_HALF, 'half duplex'),
     )
-    CAM_ACTIVITY_NUM_DAYS_TO_SEARCH = 30
 
     id = models.AutoField(db_column='swportid', primary_key=True)
     module = models.ForeignKey('Module', db_column='moduleid')
@@ -744,18 +743,14 @@ class SwPort(models.Model):
         vlans.sort()
         return vlans
 
-    def get_active_time(self, interval=None):
+    def get_active_time(self, interval):
         """
         Time since last CAM activity on port, looking at CAM entries
-        for the last ``interval'' (default 30) days.
+        for the last ``interval'' days.
 
         Returns None if no activity is found, else number of days since last
         activity as a datetime.timedelta object.
         """
-
-        # Default interval length
-        if interval is None:
-            interval = self.CAM_ACTIVITY_NUM_DAYS_TO_SEARCH
 
         # Create cache dictionary
         # FIXME: Replace with real Django caching
