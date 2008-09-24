@@ -54,7 +54,7 @@
             <p>
                 Activity based on CAM records from the last
                 {{ module.activity_interval }}
-                day{{ port_view.activity_interval|pluralize }}.
+                day{{ module.activity_interval|pluralize }}.
                 {{ activity_interval_form.interval.label }}:
                 {{ activity_interval_form.interval }}
                 <button type="submit">Recheck activity</button>
