@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2003-2004 Norwegian University of Science and Technology
-# Copyright 2006-2007 UNINETT AS
+# Copyright 2008 University of Tromsø 
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,9 +19,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-#
 # Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
-#          Kai Bjørnenak <kai.bjornenak@cc.uit.no>
+#          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
 #
 
 import time

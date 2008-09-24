@@ -1,12 +1,26 @@
-## RadiusChartsTemplate.tmpl
 ##
-## Outputs detailed information about one single session. 
-## See radius.py for more information on the data sent to this page
+## Copyright 2008 University of Tromsø 
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+## RadiusChartsTemplate.tmpl
 ##
 ## Author: Roger Kristiansen <roger.kristiansen@gmail.com>
 ## 	   Kai Bjornenak <kai.bjornenak@cc.uit.no>
-## Date:   Aug. 2, 2005
-## 	   Feb. 14, 2008
 ##
 
 #extends nav.web.templates.MainTemplate
@@ -24,10 +38,6 @@ $default_tabs_CSS
 #block content
 $makeMenu($menu, $current)
 <div class="tabcontent">
-##<div id="radius" style="font-size: 13px;">
-##<br>
-##$menu
-##<br><br>
 
 #if $error:
 <div id="error">

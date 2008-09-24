@@ -13,6 +13,10 @@
     ! æøåÆØÅ !
     Check 2 : This is the Euro currency sign: 
     ! € !
+
+    These table definitions are grabbed from wiki.freeradius.org and have been 
+    slightly modified for use with the radius-module.
+
 =============================================
 */
 

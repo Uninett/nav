@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2003-2004 Norwegian University of Science and Technology
-# Copyright 2006-2007 UNINETT AS
+# Copyright 2008 University of Tromsø 
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,8 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-#
-# Author: Roger Kristiansen <roger.kristiansen@gmail.com>
+# Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
 #
 
 
@@ -34,7 +32,7 @@ DB_USER = "radius"
 """ Alternate configuration for separate DB-users with read and write
 rights. Comment out the DB_USER above and uncomment the next two lines
 to enable this. NB! Some modification to radius.py and db.conf must
-also be done to enable this. Se INSTALL for instructions.
+also be done to enable this. See INSTALL for instructions.
 """
 #DB_USER_READ = "radius_front"
 #DB_USER_WRITE = "radius_back"

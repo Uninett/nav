@@ -1,5 +1,29 @@
 #!/usr/local/bin/python -W ignore
 # -*- coding: utf-8 -*-
+#
+# Copyright 2008 University of Tromsø 
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
+#          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
+#
+
 
 import psycopg
 import sys
@@ -172,6 +196,8 @@ def pid_running(pidfile="/tmp/radiusparser_po.pid"):
 # The Tail Class is written by Jon More, and is Copyright (C) 2005 by The
 # Trustees of the University of Pennsylvania
 ##############################################################################
+__license__ = 'Python Software Foundation License' # Grabbed from code.activestate.com
+
 
 from os import stat
 from os.path import abspath
