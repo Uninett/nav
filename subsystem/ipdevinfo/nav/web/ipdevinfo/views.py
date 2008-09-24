@@ -245,18 +245,21 @@ def ipdev_details(request, name=None, addr=None):
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
     if netbox is None:
-        return HttpResponseRedirect(reverse('ipdevinfo-search'))
-    alert_info = get_recent_alerts(netbox)
+        alert_info = None
+        port_view = None
+    else:
+        alert_info = get_recent_alerts(netbox)
 
-    # Select port view to display
-    if port_view_perspective not in (
-        'swportstatus', 'swportactive', 'gwportstatus'):
-        if netbox.get_swports().count():
-            port_view_perspective = 'swportstatus'
-        elif netbox.get_gwports().count():
-            port_view_perspective = 'gwportstatus'
+        # Select port view to display
+        if port_view_perspective not in (
+            'swportstatus', 'swportactive', 'gwportstatus'):
+            if netbox.get_swports().count():
+                port_view_perspective = 'swportstatus'
+            elif netbox.get_gwports().count():
+                port_view_perspective = 'gwportstatus'
 
-    port_view = get_port_view(netbox, port_view_perspective, activity_interval)
+        port_view = get_port_view(
+            netbox, port_view_perspective, activity_interval)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/ipdev-details.html',
