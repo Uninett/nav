@@ -105,6 +105,17 @@ CREATE TABLE accountgroup_accounts (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
 
+-- ACCOUNTINGROUP
+-- View for compability with older code that thinks accountgroup_accounts is
+-- still called accountingroup.
+CREATE VIEW accountingroup AS (
+    SELECT
+        accountgroup_accounts.account_id AS accountid,
+        accountgroup_accounts.accountgroup_id AS groupid
+    FROM
+        accountgroup_accounts
+);
+
 
 /*
 -- 4 ACCOUNTPROPERTY

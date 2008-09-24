@@ -449,3 +449,14 @@ CREATE TABLE alertsender (
 	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
+
+-- ACCOUNTINGROUP
+-- View for compability with older code that thinks accountgroup_accounts is
+-- still called accountingroup.
+CREATE VIEW accountingroup AS (
+    SELECT
+        accountgroup_accounts.account_id AS accountid,
+        accountgroup_accounts.accountgroup_id AS groupid
+    FROM
+        accountgroup_accounts
+);
