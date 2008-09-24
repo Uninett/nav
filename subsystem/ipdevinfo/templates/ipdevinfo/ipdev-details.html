@@ -322,38 +322,30 @@
 
 {% if netbox and netbox.module_set.count %}
 
-<div id="portview">
+<div id="ports">
     <h3>Port view</h3>
 
     <div class="tabs">
         <ul>
             {% if netbox.get_swports.count %}
-            <li{% ifequal port_view 'swportstatus' %} class="tabactive"{% endifequal %}>
-                <a href="?view=swportstatus#portview">Switch port status</a>
+            <li{% ifequal port_view.perspective 'swportstatus' %} class="tabactive"{% endifequal %}>
+                <a href="?view=swportstatus#ports">Switch port status</a>
             </li>
-            <li{% ifequal port_view 'swportactive' %} class="tabactive"{% endifequal %}>
-                <a href="?view=swportactive#portview">Switch port activity</a>
+            <li{% ifequal port_view.perspective 'swportactive' %} class="tabactive"{% endifequal %}>
+                <a href="?view=swportactive#ports">Switch port activity</a>
             </li>
             {% endif %}
             {% if netbox.get_gwports.count %}
-            <li{% ifequal port_view 'gwportstatus' %} class="tabactive"{% endifequal %}>
-                <a href="?view=gwportstatus#portview">Router port status</a>
+            <li{% ifequal port_view.perspective 'gwportstatus' %} class="tabactive"{% endifequal %}>
+                <a href="?view=gwportstatus#ports">Router port status</a>
             </li>
             {% endif %}
         </ul>
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.select_related %}
-        {% ifequal port_view 'swportstatus' %}
-            {% include "ipdevinfo/module-swport-status.html" %}
-        {% endifequal %}
-        {% ifequal port_view 'swportactive' %}
-            {% include "ipdevinfo/module-swport-active.html" %}
-        {% endifequal %}
-        {% ifequal port_view 'gwportstatus' %}
-            {% include "ipdevinfo/module-gwport-status.html" %}
-        {% endifequal %}
+    {% for module in port_view.modules %}
+        {% include "ipdevinfo/module-port-view.html" %}
     {% endfor %}
     </div>
 
