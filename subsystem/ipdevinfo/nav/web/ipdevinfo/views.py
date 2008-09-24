@@ -43,7 +43,7 @@ from nav.models.service import Service
 from nav.django.shortcuts import render_to_response, object_list
 
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
-from nav.web.ipdevinfo.forms import SearchForm
+from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo.utils import get_module_view
 
@@ -203,25 +203,45 @@ def ipdev_details(request, name=None, addr=None):
             'is_more_alerts': count > max_num_alerts,
         }
 
-    def get_port_view(netbox, perspective):
+    def get_port_view(netbox, perspective, activity_interval):
         """
         Returns a dict structure with all modules and ports on the netbox.
 
-        ''perspective'' decides what kind of ports are included.
+        Arguments:
+        perspective -- decides what kind of ports are included.
+        activity_interval -- number of days to check for port activity.
 
         """
 
         port_view = {
             'perspective': perspective,
             'modules': [],
+            'activity_interval': activity_interval,
         }
 
         for module in netbox.module_set.select_related():
-            port_view['modules'].append(get_module_view(module, perspective))
+            port_view['modules'].append(get_module_view(
+                module, perspective, activity_interval))
 
         return port_view
 
-    # Get the data needed by the template
+    port_view_perspective = request.GET.get('view', None)
+
+    # Get port activity search interval from form
+    activity_interval = 30
+    if port_view_perspective == 'swportactive':
+        if 'interval' in request.GET:
+            activity_interval_form = ActivityIntervalForm(request.GET)
+            if activity_interval_form.is_valid():
+                activity_interval = activity_interval_form.cleaned_data[
+                    'interval']
+        else:
+            activity_interval_form = ActivityIntervalForm(
+                initial={'interval': activity_interval})
+    else:
+        activity_interval_form = None
+
+    # Get data needed by the template
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
     if netbox is None:
@@ -229,14 +249,14 @@ def ipdev_details(request, name=None, addr=None):
     alert_info = get_recent_alerts(netbox)
 
     # Select port view to display
-    port_view_perspective = request.GET.get('view', None)
     if port_view_perspective not in (
         'swportstatus', 'swportactive', 'gwportstatus'):
         if netbox.get_swports().count():
             port_view_perspective = 'swportstatus'
         elif netbox.get_gwports().count():
             port_view_perspective = 'gwportstatus'
-    port_view = get_port_view(netbox, port_view_perspective)
+
+    port_view = get_port_view(netbox, port_view_perspective, activity_interval)
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/ipdev-details.html',
@@ -245,6 +265,7 @@ def ipdev_details(request, name=None, addr=None):
             'netbox': netbox,
             'alert_info': alert_info,
             'port_view': port_view,
+            'activity_interval_form': activity_interval_form,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -252,10 +273,22 @@ def ipdev_details(request, name=None, addr=None):
 def module_details(request, netbox_sysname, module_number):
     """Show detailed view of one IP device module"""
 
+    # Get port activity search interval from form
+    activity_interval = 30
+    if 'interval' in request.GET:
+        activity_interval_form = ActivityIntervalForm(request.GET)
+        if activity_interval_form.is_valid():
+            activity_interval = activity_interval_form.cleaned_data[
+                'interval']
+    else:
+        activity_interval_form = ActivityIntervalForm(
+            initial={'interval': activity_interval})
+
     module = get_object_or_404(Module.objects.select_related(depth=1),
         netbox__sysname=netbox_sysname, module_number=module_number)
     swportstatus_view = get_module_view(module, 'swportstatus')
-    swportactive_view = get_module_view(module, 'swportactive')
+    swportactive_view = get_module_view(
+        module, 'swportactive', activity_interval)
     gwportstatus_view = get_module_view(module, 'gwportstatus')
 
     return render_to_response(IpDevInfoTemplate,
@@ -265,6 +298,7 @@ def module_details(request, netbox_sysname, module_number):
             'swportstatus_view': swportstatus_view,
             'swportactive_view': swportactive_view,
             'gwportstatus_view': gwportstatus_view,
+            'activity_interval_form': activity_interval_form,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))

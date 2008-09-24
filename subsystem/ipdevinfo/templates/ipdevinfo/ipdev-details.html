@@ -344,6 +344,20 @@
     </div>
 
     <div class="tabcontent">
+    {% ifequal port_view.perspective 'swportactive' %}
+        <form action="" method="get">
+            <input type="hidden" name="view" value="swportactive" />
+            <p>
+                Activity based on CAM records from the last
+                {{ port_view.activity_interval }}
+                day{{ port_view.activity_interval|pluralize }}.
+                {{ activity_interval_form.interval.label }}:
+                {{ activity_interval_form.interval }}
+                <button type="submit">Recheck activity</button>
+            </p>
+        </form>
+    {% endifequal %}
+
     {% for module in port_view.modules %}
         {% include "ipdevinfo/module-port-view.html" %}
     {% endfor %}

@@ -25,15 +25,20 @@ __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 
-# We use nav.util.color_gradient
 import nav.util
 
-def get_module_view(module_object, perspective):
+def get_module_view(module_object, perspective, activity_interval=None):
     """
-    Internal function used by ipdev_details and module_details
+    Returns a dict structure of ports on the module with additional meta
+    information.
 
-    Returns a dict structure with ports on the module. ''perspective'' decides
-    what kind of ports are included.
+    Arguments:
+    perspective -- string that decides what kind of ports are included, can be
+        either ''swportstatus'', ''swportactive'', or ''gwportstatus''.
+
+    Keyword arguments:
+    activity_interval -- the number of days to check for port activity if
+        perspective is ''swportactive''.
 
     """
 
@@ -42,6 +47,7 @@ def get_module_view(module_object, perspective):
     module = {
         'object': module_object,
         'ports': [],
+        'activity_interval': activity_interval,
     }
 
     if perspective in ('swportstatus', 'swportactive'):
@@ -57,9 +63,12 @@ def get_module_view(module_object, perspective):
             port['style'] = ''
             port['title'] = _get_swportstatus_title(port_object)
         elif perspective == 'swportactive':
-            port['class'] = _get_swportactive_class(port_object)
-            port['style'] = _get_swportactive_style(port_object)
-            port['title'] = _get_swportactive_title(port_object)
+            port['class'] = _get_swportactive_class(
+                port_object, activity_interval)
+            port['style'] = _get_swportactive_style(
+                port_object, activity_interval)
+            port['title'] = _get_swportactive_title(
+                port_object, activity_interval)
         elif perspective == 'gwportstatus':
             port['class'] = _get_gwportstatus_class(port_object)
             port['style'] = ''

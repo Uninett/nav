@@ -50,6 +50,16 @@
 {% if swportactive_view.ports|length %}
     <h3>Switch port activity</h3>
     {% with swportactive_view as module %}
+        <form action="" method="get">
+            <p>
+                Activity based on CAM records from the last
+                {{ module.activity_interval }}
+                day{{ port_view.activity_interval|pluralize }}.
+                {{ activity_interval_form.interval.label }}:
+                {{ activity_interval_form.interval }}
+                <button type="submit">Recheck activity</button>
+            </p>
+        </form>
         {% include "ipdevinfo/module-port-view.html" %}
     {% endwith %}
 {% endif %}
