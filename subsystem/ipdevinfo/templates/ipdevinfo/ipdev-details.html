@@ -207,31 +207,49 @@
 
 
 <div id="hostinfo">
-<table class="vertitable">
+<table class="listtable">
     <caption>DNS: {{ host_info.host }}</caption>
 
-    <tr>
-        <th>Addresses</th>
-        <td>
-            {% if host_info.addresses %}
-            <ul>
-            {% for address in host_info.addresses %}
-                <li>
-                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
+    <thead>
+        <tr>
+            <th>IP address</th>
+            <th>Reverse name</th>
+        </tr>
+    </thead>
+
+    <tfoot>
+        <tr>
+            <th colspan="2">
+                {{ host_info.addresses|length }}
+                address{{ host_info.addresses|length|pluralize:"es" }} found
+            </th>
+        </tr>
+    </tfoot>
+
+    <tbody>
+    {% if host_info.addresses %}
+        {% for address in host_info.addresses %}
+        <tr>
+            <td>
+                <a href="{% url ipdevinfo-details-by-addr address.addr %}">
+                    {{ address.addr }}</a>
+            </td>
+            <td>
                     {% if address.name %}
-                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
+                        <a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>
                     {% endif %}
                     {% if address.error %}
                         ({{ address.error }})
                     {% endif %}
-                </li>
-            {% endfor %}
-            </ul>
-            {% else %}
-            None found
-            {% endif %}
-        </td>
-    </tr>
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td>No addresses found.</td>
+        </tr>
+    {% endif %}
+    </tbody>
 </table>
 </div>
 
