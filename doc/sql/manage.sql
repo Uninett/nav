@@ -672,7 +672,8 @@ CREATE TABLE alertq (
   alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   value INT4 NOT NULL,
-  severity INT4 NOT NULL
+  severity INT4 NOT NULL,
+  closed BOOLEAN
 );
 
 CREATE TABLE alertqmsg (

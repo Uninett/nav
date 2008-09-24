@@ -565,7 +565,6 @@ QUEUE Description
 CREATE TABLE accountalertqueue (
     id serial,
     account_id integer,
-    addrid integer,
     alert_id integer,
     subscription_id integer,
     insertion_time timestamp NOT NULL,
@@ -573,10 +572,6 @@ CREATE TABLE accountalertqueue (
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
     CONSTRAINT accountalertqueue_account_id_fkey
     	FOREIGN KEY(account_id) REFERENCES account(id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE,
-    CONSTRAINT accountalertqueue_addrid_fkey
-    	FOREIGN KEY(addrid) REFERENCES alertaddress(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE,
     CONSTRAINT accountalertqueue_subscription_fkey
