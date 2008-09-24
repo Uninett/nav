@@ -52,12 +52,18 @@
     {% with swportactive_view as module %}
         <form action="" method="get">
             <p>
-                Activity based on CAM records from the last
-                {{ module.activity_interval }}
-                day{{ module.activity_interval|pluralize }}.
+                Activity based on CAM records since
+                {{ module.activity_interval_start|date }}.
                 {{ activity_interval_form.interval.label }}:
                 {{ activity_interval_form.interval }}
                 <button type="submit">Recheck activity</button>
+                {% if not module.activity_complete_data %}
+                    <em>
+                        Warning: CAM data is only available for
+                        {{ module.activity_data_interval }}
+                        day{{ module.activity_data_interval|pluralize }}.
+                    </em>
+                {% endif %}
             </p>
         </form>
         {% include "ipdevinfo/module-port-view.html" %}

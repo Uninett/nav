@@ -366,12 +366,18 @@
         <form action="" method="get">
             <input type="hidden" name="view" value="swportactive" />
             <p>
-                Activity based on CAM records from the last
-                {{ port_view.activity_interval }}
-                day{{ port_view.activity_interval|pluralize }}.
+                Activity based on CAM records since
+                {{ port_view.activity_interval_start|date }}.
                 {{ activity_interval_form.interval.label }}:
                 {{ activity_interval_form.interval }}
                 <button type="submit">Recheck activity</button>
+                {% if not port_view.activity_complete_data %}
+                    <em>
+                        Warning: CAM data is only available for
+                        {{ port_view.activity_data_interval }}
+                        day{{ port_view.activity_data_interval|pluralize }}.
+                    </em>
+                {% endif %}
             </p>
         </form>
     {% endifequal %}

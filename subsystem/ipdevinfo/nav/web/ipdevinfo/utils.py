@@ -47,7 +47,6 @@ def get_module_view(module_object, perspective, activity_interval=None):
     module = {
         'object': module_object,
         'ports': [],
-        'activity_interval': activity_interval,
     }
 
     if perspective in ('swportstatus', 'swportactive'):

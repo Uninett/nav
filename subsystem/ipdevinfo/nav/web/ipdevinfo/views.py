@@ -45,7 +45,7 @@ from nav.django.shortcuts import render_to_response, object_list
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
-from nav.web.ipdevinfo.utils import get_module_view
+from nav.web.ipdevinfo import utils
 
 def search(request):
     """Search for an IP device"""
@@ -217,10 +217,27 @@ def ipdev_details(request, name=None, addr=None):
             'perspective': perspective,
             'modules': [],
             'activity_interval': activity_interval,
+            'activity_interval_start':
+                dt.datetime.now() - dt.timedelta(days=activity_interval),
         }
 
+        # Check if we got data for the entire search interval
+        try:
+            port_view['activity_data_start'] = netbox.cam_set.order_by(
+                'start_time')[0].start_time
+            port_view['activity_data_interval'] = (
+                dt.datetime.now() - port_view['activity_data_start']).days
+            port_view['activity_complete_data'] = (
+                port_view['activity_data_start'] <
+                port_view['activity_interval_start'])
+        except IndexError:
+            port_view['activity_data_start'] = None
+            port_view['activity_data_interval'] = 0
+            port_view['activity_complete_data'] = False
+
+        # Add the modules
         for module in netbox.module_set.select_related():
-            port_view['modules'].append(get_module_view(
+            port_view['modules'].append(utils.get_module_view(
                 module, perspective, activity_interval))
 
         return port_view
@@ -275,6 +292,41 @@ def ipdev_details(request, name=None, addr=None):
 
 def module_details(request, netbox_sysname, module_number):
     """Show detailed view of one IP device module"""
+
+    def get_module_view(module_object, perspective, activity_interval=None):
+        """
+        Returns a dict structure with all ports on the module.
+
+        Arguments:
+        perspective -- decides what kind of ports are included.
+        activity_interval -- number of days to check for port activity.
+
+        """
+
+        module = utils.get_module_view(
+            module_object, perspective, activity_interval)
+
+        if activity_interval is not None:
+            module['activity_interval'] = activity_interval
+            module['activity_interval_start'] = (
+                    dt.datetime.now() - dt.timedelta(days=activity_interval))
+
+            # Check if we got data for the entire search interval
+            try:
+                module['activity_data_start'] = (
+                    module_object.netbox.cam_set.order_by(
+                        'start_time')[0].start_time)
+                module['activity_data_interval'] = (
+                    dt.datetime.now() - module['activity_data_start']).days
+                module['activity_complete_data'] = (
+                    module['activity_data_start'] <
+                    module['activity_interval_start'])
+            except IndexError:
+                module['activity_data_start'] = None
+                module['activity_data_interval'] = 0
+                module['activity_complete_data'] = False
+
+        return module
 
     # Get port activity search interval from form
     activity_interval = 30
