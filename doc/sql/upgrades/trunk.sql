@@ -438,3 +438,14 @@ ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilege
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
+-- FIXME
+CREATE SEQUENCE alertsender_id_seq START 1000;
+CREATE TABLE alertsender (
+	id integer NOT NULL DEFAULT nextval('alertsender_id_seq'),
+	name varchar(100) NOT NULL,
+	handler varchar(100) NOT NULL,
+
+	CONSTRAINT alertsender_unique_name UNIQUE(name),
+	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
+	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
+);
