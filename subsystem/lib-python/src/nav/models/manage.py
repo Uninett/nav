@@ -28,7 +28,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from datetime import datetime, timedelta
+import datetime as dt
 import time
 
 from django.core.urlresolvers import reverse
@@ -132,7 +132,7 @@ class Netbox(models.Model):
             value = self.info_set.filter(variable='lastUpdated').order_by(
                 '-value')[0].value
             value = int(value) / 1000.0
-            return datetime(*time.gmtime(value)[:6])
+            return dt.datetime(*time.gmtime(value)[:6])
         except IndexError:
             return None
         except ValueError:
@@ -253,7 +253,7 @@ class Device(models.Model):
     active = models.BooleanField(default=False)
     device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid',
         null=True)
-    discovered = models.DateTimeField(default=datetime.now)
+    discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
         db_table = 'device'
@@ -502,7 +502,7 @@ class DeviceOrder(models.Model):
     more) of a certain product."""
 
     id = models.AutoField(db_column='deviceorderid', primary_key=True)
-    registered = models.DateTimeField(default=datetime.now)
+    registered = models.DateTimeField(default=dt.datetime.now)
     ordered = models.DateField()
     arrived = models.DateTimeField()
     order_number = models.CharField(db_column='ordernumber', max_length=-1)
@@ -766,7 +766,7 @@ class SwPort(models.Model):
         if interval in self.time_since_activity_cache:
             return self.time_since_activity_cache[interval]
 
-        min_time = datetime.now() - timedelta(interval)
+        min_time = dt.datetime.now() - dt.timedelta(days=interval)
         try:
             # XXX: This causes a DB query per port
             # Use .values() to avoid creating additional objects we do not need
@@ -777,13 +777,13 @@ class SwPort(models.Model):
             # Inactive/not in use
             return None
 
-        if last_cam_entry_end_time == datetime.max:
+        if last_cam_entry_end_time == dt.datetime.max:
             # Active now
-            self.time_since_activity_cache[interval] = timedelta(0)
+            self.time_since_activity_cache[interval] = dt.timedelta(days=0)
         else:
             # Active some time inside the given interval
             self.time_since_activity_cache[interval] = \
-                datetime.now() - last_cam_entry_end_time
+                dt.datetime.now() - last_cam_entry_end_time
 
         return self.time_since_activity_cache[interval]
 
