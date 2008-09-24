@@ -35,7 +35,6 @@ from django.core.urlresolvers import reverse
 from django.db import models
 
 import nav.natsort
-import nav.util
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -568,31 +567,6 @@ class GwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
-    def get_status_classes(self):
-        """Status classes for IP Device Info port view"""
-
-        classes = ['port']
-        if self.speed:
-            classes.append('Mb%d' % self.speed)
-        return ' '.join(classes)
-
-    def get_status_title(self):
-        """Status title for IP Device Info port view"""
-
-        title = []
-        if self.interface:
-            title.append(self.interface)
-        if self.speed:
-            title.append('%d Mbit' % self.speed)
-        try:
-            if self.to_netbox:
-                title.append('-> %s' % self.to_netbox)
-        except Netbox.DoesNotExist:
-            pass
-        if self.port_name:
-            title.append('"%s"' % self.port_name)
-        return ', '.join(title)
-
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
@@ -770,59 +744,6 @@ class SwPort(models.Model):
         vlans.sort()
         return vlans
 
-    def get_status_classes(self):
-        """Status classes for IP Device Info port view"""
-
-        classes = ['port']
-        if self.link == self.LINK_UP and self.speed:
-            classes.append('Mb%d' % self.speed)
-        if self.link == self.LINK_DOWN_ADM:
-            classes.append('disabled')
-        elif self.link != self.LINK_UP:
-            classes.append('passive')
-        if self.trunk:
-            classes.append('trunk')
-        if self.duplex:
-            classes.append('%sduplex' % self.duplex)
-        # XXX: This causes a DB query per port
-        if self.swportblocked_set.count():
-            classes.append('blocked')
-        return ' '.join(classes)
-
-    def get_status_title(self):
-        """Status title for IP Device Info port view"""
-
-        title = []
-        if self.interface:
-            title.append(self.interface)
-        if self.link == self.LINK_UP and self.speed:
-            title.append('%d Mbit' % self.speed)
-        try:
-            if self.to_netbox:
-                title.append('-> %s' % self.to_netbox)
-        except Netbox.DoesNotExist:
-            pass
-        if self.port_name:
-            title.append('"%s"' % self.port_name)
-        if self.link == self.LINK_DOWN_ADM:
-            title.append('disabled')
-        elif self.link != self.LINK_UP:
-            title.append('not active')
-        if self.trunk:
-            title.append('trunk')
-        if self.duplex:
-            title.append(self.get_duplex_display())
-        if self.get_vlan_numbers():
-            title.append('vlan ' + ','.join(map(str, self.get_vlan_numbers())))
-
-        # XXX: This causes a DB query per port
-        blocked_vlans = [str(block.vlan)
-            for block in self.swportblocked_set.select_related(depth=1)]
-        if blocked_vlans:
-            title.append('blocked ' + ','.join(blocked_vlans))
-
-        return ', '.join(title)
-
     def get_active_time(self, interval=None):
         """
         Time since last CAM activity on port, looking at CAM entries
@@ -865,70 +786,6 @@ class SwPort(models.Model):
                 datetime.now() - last_cam_entry_end_time
 
         return self.time_since_activity_cache[interval]
-
-    def get_active_classes(self, interval=30):
-        """Active classes for IP Device Info port view"""
-
-        classes = ['port']
-
-        if self.link == self.LINK_UP:
-            classes.append('active')
-            classes.append('link')
-        else:
-            active = self.get_active_time(interval)
-            if active is not None:
-                classes.append('active')
-            else:
-                classes.append('inactive')
-
-        return ' '.join(classes)
-
-    def get_active_style(self, interval=30):
-        """Active style for IP Device Info port view"""
-
-        # Color range for port activity tab
-        color_recent = (116, 196, 118)
-        color_longago = (229, 245, 224)
-        # XXX: Is this CPU intensive? Cache result?
-        gradient = nav.util.color_gradient(
-            color_recent, color_longago, interval)
-
-        style = ''
-
-        if self.link == self.LINK_UP:
-            style = 'background-color: #%s;' % nav.util.colortohex(
-                gradient[0])
-        else:
-            active = self.get_active_time(interval)
-            if active is not None:
-                style = 'background-color: #%s;' % nav.util.colortohex(
-                    gradient[active.days])
-
-        return style
-
-    def get_active_title(self, interval=30):
-        """Active title for IP Device Info port view"""
-
-        title = []
-
-        if self.interface:
-            title.append(self.interface)
-
-        if self.link == self.LINK_UP:
-            title.append('link now')
-        else:
-            active = self.get_active_time(interval)
-            if active is not None:
-                if active.days > 1:
-                    title.append('MAC seen %d days ago' % active.days)
-                elif active.days == 1:
-                    title.append('MAC seen 1 day ago')
-                else:
-                    title.append('MAC seen today')
-            else:
-                title.append('free')
-
-        return ', '.join(title)
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch

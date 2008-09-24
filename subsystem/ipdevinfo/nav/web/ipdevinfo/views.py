@@ -45,47 +45,7 @@ from nav.django.shortcuts import render_to_response, object_list
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 from nav.web.ipdevinfo.forms import SearchForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
-
-def _get_module_view(module_object, perspective):
-    """
-    Internal function used by ipdev_details and module_details
-
-    Returns a dict structure with ports on the module. ''perspective'' decides
-    what kind of ports are included.
-
-    """
-
-    assert perspective in ('swportstatus', 'swportactive', 'gwportstatus')
-
-    module = {
-        'object': module_object,
-        'ports': [],
-    }
-
-    if perspective in ('swportstatus', 'swportactive'):
-        ports = module_object.get_swports_sorted()
-    elif perspective == 'gwportstatus':
-        ports = module_object.get_gwports_sorted()
-
-    for port_object in ports:
-        port = {'object': port_object}
-
-        if perspective == 'swportstatus':
-            port['class'] = port_object.get_status_classes()
-            port['style'] = ''
-            port['title'] = port_object.get_status_title()
-        elif perspective == 'swportactive':
-            port['class'] = port_object.get_active_classes()
-            port['style'] = port_object.get_active_style()
-            port['title'] = port_object.get_active_title()
-        elif perspective == 'gwportstatus':
-            port['class'] = port_object.get_status_classes()
-            port['style'] = ''
-            port['title'] = port_object.get_status_title()
-
-        module['ports'].append(port)
-
-    return module
+from nav.web.ipdevinfo.utils import get_module_view
 
 def search(request):
     """Search for an IP device"""
@@ -257,7 +217,7 @@ def ipdev_details(request, name=None, addr=None):
         }
 
         for module in netbox.module_set.select_related():
-            port_view['modules'].append(_get_module_view(module, perspective))
+            port_view['modules'].append(get_module_view(module, perspective))
 
         return port_view
 
@@ -294,9 +254,9 @@ def module_details(request, netbox_sysname, module_number):
 
     module = get_object_or_404(Module.objects.select_related(depth=1),
         netbox__sysname=netbox_sysname, module_number=module_number)
-    swportstatus_view = _get_module_view(module, 'swportstatus')
-    swportactive_view = _get_module_view(module, 'swportactive')
-    gwportstatus_view = _get_module_view(module, 'gwportstatus')
+    swportstatus_view = get_module_view(module, 'swportstatus')
+    swportactive_view = get_module_view(module, 'swportactive')
+    gwportstatus_view = get_module_view(module, 'gwportstatus')
 
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/module-details.html',
