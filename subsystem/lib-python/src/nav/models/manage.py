@@ -31,6 +31,7 @@ __id__ = "$Id$"
 import datetime as dt
 import time
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 
@@ -223,6 +224,16 @@ class Netbox(models.Model):
             return None
         else:
             return self.prefix
+
+    def get_short_sysname(self):
+        """Returns sysname without the domain suffix if specified in the
+        DOMAIN_SUFFIX setting in nav.conf"""
+
+        if (settings.DOMAIN_SUFFIX is not None
+            and self.sysname.endswith(settings.DOMAIN_SUFFIX)):
+            return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
+        else:
+            return self.sysname
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
