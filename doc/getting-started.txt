@@ -63,8 +63,7 @@ path to your non-threaded edition of Python.
 
 Some tips if you wish to configure Apache from scratch:
 
-- You need both mod_php4 and mod_python, and we strongly recommend
-  mod_ssl.
+- You need mod_python, and we strongly recommend mod_ssl.
 - Your document root should be /usr/local/nav/apache/webroot/.
 - .htaccess files below that directory should be allowed to override
   everything from the Apache configuration.
