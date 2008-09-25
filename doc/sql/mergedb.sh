@@ -83,7 +83,7 @@ EOF
 
     for db in manage navprofiles logger arnold; do
         echo Dumping $db...
-        pg_dump -f "$dumplocation/$db-dump.sql" --schema=public \
+        /usr/lib/postgresql/8.1/bin/pg_dump -f "$dumplocation/$db-dump.sql" --schema=public \
 	    --no-owner --verbose --no-acl $db || exit 1
     done
 fi

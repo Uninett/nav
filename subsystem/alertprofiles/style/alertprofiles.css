@@ -1,0 +1,51 @@
+/* This product includes color specifications and designs developed by Cynthia
+ * Brewer (http://colorbrewer.org/).
+ */
+
+/* For highlighting shared "all days" time periods. */
+.shared0 { background: #cbd5e8; }
+.shared1 { background: #e6f5c9; }
+.shared2 { background: #fdcdac; }
+.shared3 { background: #fff2ae; }
+.shared4 { background: #b3e2cd; }
+.shared5 { background: #f4cae4; }
+.shared6 { background: #f1e2cc; }
+.shared7 { background: #cccccc; }
+
+.hilight .shared0 { background: #7570b3; }
+.hilight .shared1 { background: #66a61e; }
+.hilight .shared2 { background: #d95f02; }
+.hilight .shared3 { background: #e6ab02; }
+.hilight .shared4 { background: #1b9e77; }
+.hilight .shared5 { background: #e7298a; }
+.hilight .shared6 { background: #a6761d; }
+.hilight .shared7 { background: #666666; }
+
+caption a:link, caption a:visited {
+  font-weight: bold;
+}
+
+.infobox caption {
+  font-size: 1.2em;
+  font-weight: bolder;
+  padding: 0.3em 0.5em;
+}
+
+.infobox td, .infobox th {
+  padding: 0.2em 0.5em;
+}
+
+.infobox th {
+  font-weight: bold;
+}
+
+.addexpressionform {
+  margin-top: 2em;
+}
+
+.formcontainer {
+	background: #D3D7CF;
+	padding: 0.5em;
+	margin-bottom: 1em;
+	border: 1px solid #999;
+}

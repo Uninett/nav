@@ -1,0 +1,94 @@
+{% extends "useradmin/base.html" %}
+
+{% block extra_tab_group %}
+    {% if group %}
+        <li class="tabactive">
+            <a href="{% url useradmin-group_detail group.id %}">Group details</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if group %}
+        <h3>Editing group "{{ group.name }}"</h3>
+    {% else %}
+        <h3>Create new group</h3>
+    {% endif %}
+    {% if group_form %}
+        <form action="." method="post">
+            <table class="vertitable">
+                {{ group_form.as_table }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Submit changes" name="submit_group"/></td>
+                </tr>
+            </table>
+        </form>
+    {% endif %}
+    {% if group %}
+        {% if not group.is_system_group %}
+            <p>
+                [<a href="{% url useradmin-group_delete group.id %}">
+                    Delete group
+                </a>]
+            </p>
+        {% endif %}
+
+        <h3>Privigeges</h3>
+        {% if group.privilege_set.all %}
+            <ul>
+                {% for privilege in group.privilege_set.all %}
+                    <li>
+                        {{ privilege }} - [<a href="{% url useradmin-group_privilege_remove group.id,privilege.id %}">Revoke</a>]
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Group has no privileges set.</p>
+        {% endif %}
+        {% if privilege_form %}
+            <h4>Grant privileges</h4>
+            <form action="." method="post">
+                <p>
+                    See <a href="http://www.amk.ca/python/howto/regex/"> this
+                    HOWTO</a> on the Regular expressions used for matching
+                    targets for privileges like 'web_access'.
+                </p>
+                {{ privilege_form.errors }}
+                <p>
+                    {{ privilege_form.type }}
+                    {{ privilege_form.target }}
+                    <input type="submit" value="Grant" name="submit_privilege" />
+                </p>
+            </form>
+        {% endif %}
+                
+
+        <h3>Group memberships</h3>
+        {% if group.accounts.all %}
+            <ul>
+                {% for account in group.accounts.all %}
+                    <li>
+                        <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
+                        {% if not group.is_protected_group %}
+                            - [<a href="{% url useradmin-group_account_remove group.id,account.id %}">Remove</a>]
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Group does not have any members.</p>
+        {% endif %}
+
+        {% if account_form %}
+                <h4>Add member</h4>
+            <form action="." method="post">
+                {{ account_form.account.errors }}
+                <p>
+                    {{ account_form.account }}
+                    <input type="submit" value="Add to group" name="submit_account" />
+                </p>
+            </form>
+        {% endif %}
+    {% endif %}
+{% endblock %}

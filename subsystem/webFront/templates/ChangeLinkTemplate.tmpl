@@ -22,53 +22,16 @@
 ##
 ## Authors: Magnar Sveen <magnars@stud.ntnu.no>
 ##
+
+#extends MainTemplate
+
 #attr $type = "personal"
 
-<html>
-  <head>
-    <style type="text/css">
+#def additionalCSS
+$default_table_CSS
+#end def additionalCSS
 
-      BODY { 
-        font-family: verdana, arial, helvetica, sans-serif; 
-        background-color: white; 
-      }
-
-      table.header-active { 
-        font-size: 15px;
-        border: 1px solid #666;
-        background-color: #ccf;
-        background-image: url('/images/form/fill-active.gif');
-        p: 5px
-      }
-
-      td.header-active {
-        border: 1px solid #69c;
-        text-align: center;
-      }
-
-      table.options {
-        font-size: 13px;
-        border: 1px solid #666;
-        background-color: #fff;
-      }
-
-      table.header-inactive {
-        font-size: 15px;
-        border: 1px solid #666;
-        background-color: #eee;
-        background-image: url('/images/form/fill-inactive.gif');
-      }
-
-      td.header-inactive {
-        border: 1px solid #bcd;
-        text-align: center;
-      }
-
-      tr.inactive { background-color: #fff; }
-      td.inactive { border: 1px solid #ccc; text-align: center }
-
-    </style>
-
+#def additionalJavaScript
     <script language="JavaScript" type="text/javascript">
     <!-- BEGIN
 
@@ -82,103 +45,76 @@
 
     // END -->
     </script>
-  </head>
-  <body>
+#end def additionalJavaScript
 
-    <div style="position: absolute; width=300; left: 50%; top: 20%; margin: 0px 0px 0px -150px;">
-#if $link
-      <form method="post" action="updatelink">
-#else
-      <form method="post" action="savenewlink">
-#end if
-      <table width="300" cellspacing="5" cellpadding="0" border="0">
-        <tr>
-          <td>
-            <table width="100%" height="50" cellspacing="5" cellpadding="5" border="0" class="header-active">
-              <tr>
-                <td nowrap class="header-active">
-#if $link
-                  Edit $type link
-#else
-                  Add $type link
-#end if
+#block content
+    <div>
+        #if $link
+            <form method="post" action="updatelink">
+        #else
+            <form method="post" action="savenewlink">
+        #end if
+        <table class="vertitable">
+            <caption>
+                #if $link
+                    Edit $type link
+                #else
+                    Add $type link
+                #end if
+            </caption>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <td>
+                    #if $link
+                        <input name="name" type="text" value="$link.name" />
+                    #else
+                        <input name="name" type="text" />
+                    #end if
                 </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <table width="100%" height="50" cellspacing="5" cellpadding="5" border="0" class="options">
-              <tr class="inactive">
-                <td nowrap class="inactive" width="30%">
-                  Name
+            </tr>
+            <tr>
+                <th>
+                    URL
+                </th>
+                <td>
+                    #if $link
+                        <input name="url" id="url" value="$link.uri" type="text" />
+                    #else
+                        <input name="url" id="url" value="http://" />
+                    #end if
                 </td>
-                <td nowrap class="inactive" width="70%">
-#if $link
-                  <input name="name" type="text" style="width: 90%; border: 1px solid #999;" value="$link.name">
-#else
-                  <input name="name" type="text" style="width: 90%; border: 1px solid #999;">
-#end if
+            </tr>
+            #if not $link
+                <tr>
+                    <th>
+                        Use in
+                    </th>
+                    <td >
+                        <select name="usein">
+                            <option>None</a>
+                            <option value="navbar">Navbar</a>
+                            <option value="qlink1">Quicklink #1</a>
+                            <option value="qlink2">Quicklink #2</a>
+                        </select>
+                    </td>
+                </tr>
+            #end if
+            <tr>
+                <th></th>
+                <td>
+                    #if $link
+                        <input type="hidden" name="id" value="$link.id">
+                        <input type="submit" value=" Save ">
+                    #else
+                        <input type="submit" value=" Add ">
+                    #end if
+                    <input type="button" value="Test URL" onClick="testURL();">
+                    <input type="button" value="Cancel" onclick="top.location='javascript:history.back(1)'">
                 </td>
-              </tr>
-              <tr class="inactive">
-                <td nowrap class="inactive" width="30%">
-                  URL
-                </td>
-                <td nowrap class="inactive" width="70%">
-#if $link
-                  <input name="url" id="url" value="$link.uri" type=text style="width: 90%; border: 1px solid #999;">
-#else 
-                  <input name="url" id="url" value="http://" type=text style="width: 90%; border: 1px solid #999;">
-#end if
-                </td>
-              </tr>
-#if not $link
-              <tr class="inactive">
-                <td nowrap class="inactive" width="30%">
-                  Use in
-                </td>
-                <td nowrap class="inactive" width="70%">
-                  <select name="usein" style="width: 90%;">
-                    <option>None</a>
-                    <option value="navbar">Navbar</a>
-                    <option value="qlink1">Quicklink #1</a>
-                    <option value="qlink2">Quicklink #2</a>
-	          </select>
-                </td>
-              </tr>
-#end if
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td>
+        </table>
+    </form>
+</div>
 
-            <table width="100%" height="50" cellspacing="5" cellpadding="5" border="0" class="header-inactive">
-              <tr>
-                <td nowrap class="header-inactive">
-                  <input type="button" value="Cancel" onclick="top.location='javascript:history.back(1)'">
-                </td>
-                <td nowrap class="header-inactive">
-                  <input type="button" value="Test URL" onClick="testURL();">
-                </td>
-                <td nowrap class="header-inactive">
-#if $link
-                  <input type="hidden" name="id" value="$link.id">
-                  <input type="submit" value=" Save ">
-#else
-                  <input type="submit" value=" Add ">
-#end if
-                </td>
-              </tr>
-            </table>
-            
-          </td>
-        </tr>
-      </table>
-      </form>
-    </div>
-
-  </body>
-</html>
+#end block content

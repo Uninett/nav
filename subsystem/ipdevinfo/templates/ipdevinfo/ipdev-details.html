@@ -66,6 +66,7 @@
                 last month</a>
             {% endwith %}
         </td>
+    </tr>
 {% endwith %}
     <tr>
         <th>Uptime</th>
@@ -113,6 +114,10 @@
             {{ netbox.category }}</a></td>
     </tr>
     <tr>
+        <th>Function</th>
+        <td>{{ netbox.get_function|default:"N/A" }}</td>
+    </tr>
+    <tr>
         <th>Type</th>
         <td>
             {% if netbox.type %}
@@ -121,6 +126,7 @@
             {% else %}
                 N/A
             {% endif %}
+        </td>
     </tr>
     <tr>
         <th>Organization</th>
@@ -134,11 +140,11 @@
     </tr>
     <tr>
         <th>Software</th>
-        <td>{{ netbox.device.software_version }}</td>
+        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
     </tr>
     <tr>
         <th>Serial number</th>
-        <td>{{ netbox.device.serial }}</td>
+        <td>{{ netbox.device.serial|default:"N/A" }}</td>
     </tr>
     <tr>
         <th># of modules</th>
@@ -157,11 +163,13 @@
     </tr>
     <tr>
         <th>First discovered</th>
-        <td>{{ netbox.discovered }}</td>
+        <td>{{ netbox.discovered|date|default:"N/A" }}
+            {{ netbox.discovered|time }}</td>
     </tr>
     <tr>
         <th>Last updated</th>
-        <td>{{ netbox.last_updated }}</td>
+        <td>{{ netbox.last_updated|date|default:"N/A" }}
+            {{ netbox.last_updated|time }}</td>
     </tr>
     <tr>
         <th>Actions</th>
@@ -173,48 +181,148 @@
                     Schedule maintenance</a></li>
                 <li><a href="{% url devicemanagement-history-netbox netbox.id %}">
                     View device history</a></li>
+                <li><a href="{% url ipinfo-host netbox.sysname %}">
+                    View in IP Info</a></li>
             </ul>
         </td>
     </tr>
 {% else %}
     <caption>IP Device</caption>
     <tr>
+        <th>Status</th>
         <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
+    </tr>
+    <tr>
+        <th>Actions</th>
+        <td>
+            <ul>
+                <li><a href="{% url ipinfo-host host_info.host %}">
+                    View in IP Info</a></li>
+            </ul>
+        </td>
     </tr>
 {% endif %}
 </table>
 </div>
 
-<div id="hostinfo">
-<table class="vertitable">
-    <caption>Host: {{ host_info.host }}</caption>
 
-    <tr>
-        <th>Addresses</th>
-        <td>
-            {% if host_info.addresses %}
-            <ul>
-            {% for address in host_info.addresses %}
-                <li>
-                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">{{ address.addr }}</a>
+<div id="hostinfo">
+<table class="listtable">
+    <caption>DNS: {{ host_info.host }}</caption>
+
+    <thead>
+        <tr>
+            <th>IP address</th>
+            <th>Reverse name</th>
+        </tr>
+    </thead>
+
+    <tfoot>
+        <tr>
+            <th colspan="2">
+                {{ host_info.addresses|length }}
+                address{{ host_info.addresses|length|pluralize:"es" }} found
+            </th>
+        </tr>
+    </tfoot>
+
+    <tbody>
+    {% if host_info.addresses %}
+        {% for address in host_info.addresses %}
+        <tr>
+            <td>
+                <a href="{% url ipdevinfo-details-by-addr address.addr %}">
+                    {{ address.addr }}</a>
+            </td>
+            <td>
                     {% if address.name %}
-                        (<a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>)
+                        <a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>
                     {% endif %}
                     {% if address.error %}
                         ({{ address.error }})
                     {% endif %}
-                </li>
-            {% endfor %}
-            </ul>
-            {% else %}
-            None found
-            {% endif %}
-        </td>
-    </tr>
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td>No addresses found.</td>
+        </tr>
+    {% endif %}
+    </tbody>
 </table>
 </div>
 
+
+{% if netbox %}
+<div id="alerts">
+<table class="listtable">
+    <caption>
+        Alerts last {{ alert_info.days_back }}
+        day{{ alert_info.days_back|pluralize }}
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Event</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Downtime</th>
+        </tr>
+    </thead>
+
+    <tfoot>
+        <tr>
+            <th colspan="4">
+            {% if alert_info.is_more_alerts %}
+                Showing {{ alert_info.alerts|length }} of
+                {{ alert_info.count }} alerts, see
+                <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                Device History</a> for all
+            {% else %}
+                {{ alert_info.alerts|length }}
+                alert{{ alert_info.alerts|length|pluralize }} found, see
+                <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+            {% endif %}
+            </th>
+        </tr>
+    </tfoot>
+
+    <tbody>
+    {% if alert_info.count %}
+        {% for a in alert_info.alerts %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
+            <td>{{ a.alert.start_time|date|default:"N/A" }}
+                {{ a.alert.start_time|time }}</td>
+            {% if a.alert.is_open %}
+                <td class="status_down">Unresolved</td>
+            {% else %}
+                <td>{{ a.alert.end_time|date|default:"N/A" }}
+                    {{ a.alert.end_time|time }}</td>
+            {% endif %}
+            <td>
+                {% if a.alert.is_open %}
+                    {{ a.alert.start_time|timesince }}
+                {% else %}
+                    {{ a.alert.start_time|timesince:a.alert.end_time }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td>No matching alerts found.</td>
+        </tr>
+    {% endif %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+
+
 <hr class="floatclear" />
+
 
 {% if netbox and netbox.service_set.count %}
 
@@ -229,69 +337,61 @@
 
 {% endif %}
 
+
 {% if netbox and netbox.module_set.count %}
 
-<h3>Port view</h3>
+<div id="ports">
+    <h3>Port view</h3>
 
-{% if netbox.get_swports.count %}
-
-<div id="swportstatus">
     <div class="tabs">
-    <ul>
-        <li class="tabactive"><a>Switch port status</a></li>
-        <li><a href="#" onClick="showPorts('swportactive'); return false">Switch port activity</a></li>
-        <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
-    </ul>
+        <ul>
+            {% if netbox.get_swports.count %}
+            <li{% ifequal port_view.perspective 'swportstatus' %} class="tabactive"{% endifequal %}>
+                <a href="?view=swportstatus#ports">Switch port status</a>
+            </li>
+            <li{% ifequal port_view.perspective 'swportactive' %} class="tabactive"{% endifequal %}>
+                <a href="?view=swportactive#ports">Switch port activity</a>
+            </li>
+            {% endif %}
+            {% if netbox.get_gwports.count %}
+            <li{% ifequal port_view.perspective 'gwportstatus' %} class="tabactive"{% endifequal %}>
+                <a href="?view=gwportstatus#ports">Router port status</a>
+            </li>
+            {% endif %}
+        </ul>
     </div>
 
     <div class="tabcontent">
-    {% for module in netbox.module_set.select_related %}
-    {% include "ipdevinfo/module-swport-status.html" %}
+    {% ifequal port_view.perspective 'swportactive' %}
+        <form action="" method="get">
+            <input type="hidden" name="view" value="swportactive" />
+            <p>
+                Activity based on CAM records since
+                {{ port_view.activity_interval_start|date }}.
+                {{ activity_interval_form.interval.label }}:
+                {{ activity_interval_form.interval }}
+                <button type="submit">Recheck activity</button>
+                {% if not port_view.activity_complete_data %}
+                    <em>
+                        Warning: CAM data is only available for
+                        {{ port_view.activity_data_interval }}
+                        day{{ port_view.activity_data_interval|pluralize }}.
+                    </em>
+                {% endif %}
+            </p>
+        </form>
+    {% endifequal %}
+
+    {% for module in port_view.modules %}
+        {% include "ipdevinfo/module-port-view.html" %}
     {% endfor %}
     </div>
-</div>
 
-<div id="swportactive" style="display: none;">
-    <div class="tabs">
-    <ul>
-        <li><a href="#" onClick="showPorts('swportstatus'); return false">Switch port status</a></li>
-        <li class="tabactive"><a>Switch port activity</a></li>
-        <li><a href="#" onClick="showPorts('gwportstatus'); return false">Router port status</a></li>
-    </ul>
-    </div>
-
-    <div class="tabcontent">
-    {% for module in netbox.module_set.select_related %}
-    {% include "ipdevinfo/module-swport-active.html" %}
-    {% endfor %}
-    </div>
-</div>
-
-{% endif %}
-
-{% if netbox.get_gwports.count %}
-
-<div id="gwportstatus" style="display: none;">
-    <div class="tabs">
-    <ul>
-        <li><a href="#" onClick="showPorts('swportstatus'); return false">Switch port status</a></li>
-        <li><a href="#" onClick="showPorts('swportactive'); return false">Switch port activity</a></li>
-        <li class="tabactive"><a>Router port status</a></li>
-    </ul>
-    </div>
-
-    <div class="tabcontent">
-    {% for module in netbox.module_set.select_related %}
-    {% include "ipdevinfo/module-gwport-status.html" %}
-    {% endfor %}
-    </div>
+    {% include "ipdevinfo/port-legend.html" %}
 </div>
 
 {% endif %}
 
-{% include "ipdevinfo/port-legend.html" %}
-
-{% endif %}
 
 {% if netbox %}
 <h3>Statistics</h3>

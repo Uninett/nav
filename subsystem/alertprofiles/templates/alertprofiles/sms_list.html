@@ -1,0 +1,120 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    My SMS
+{% endblock %}
+
+{% block theadcols %}
+    <th>
+    {% ifequal order_by "time" %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-time">
+        Time</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=time">
+        Time</a>
+        {% ifequal order_by "-time" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "time_sent" %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-time_sent">
+        Sent</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=time_sent">
+        Sent</a>
+        {% ifequal order_by "-time_sent" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "phone" %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-phone">
+        Phone</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=phone">
+        Phone</a>
+        {% ifequal order_by "-phone" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "message" %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-message">
+        Message</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=message">
+        Message</a>
+        {% ifequal order_by "-message" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "severity" %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-severity">
+        Severity</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=severity">
+        Severity</a>
+        {% ifequal order_by "-severity" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "sent" %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-sent">
+        Status</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=sent">
+        Status</a>
+        {% ifequal order_by "-sent" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for sms in object_list %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>{{ sms.time }}</td>
+            <td>
+                {% if sms.time_sent %}
+                    {{ sms.time_sent }}
+                {% endif %}
+            </td>
+            <td>{{ sms.phone }}</td>
+            <td>{{ sms.message }}</td>
+            <td>{{ sms.severity }}</td>
+            <td
+                {% ifequal sms.sent 'Y' %}
+                    style="color: green">
+                    <img src="/images/lys/green.png" />
+                    Sent
+                {% endifequal %}
+                {% ifequal sms.sent 'N' %}
+                    style="color: red">
+                    <img src="/images/lys/red.png" />
+                    Not sent
+                {% endifequal %}
+                {% ifequal sms.sent 'I' %}
+                    style="color: orange">
+                    <img src="/images/lys/yellow.png" />
+                    Ignored
+                {% endifequal %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
