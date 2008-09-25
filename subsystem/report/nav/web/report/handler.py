@@ -26,6 +26,7 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
+
 from IPy import IP
 from mod_python import apache, util
 from operator import itemgetter
@@ -35,11 +36,16 @@ import psycopg
 import re
 import string
 import urllib
+import os
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+from django.core.cache import cache
 
 from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
 from nav.report.generator import Generator, ReportList
 from nav.web import redirect
+from nav.web import state
 from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
@@ -50,7 +56,6 @@ configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 configFileLocal = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
-
 def handler(req):
     uri = req.unparsed_uri
     args = req.args
@@ -60,11 +65,12 @@ def handler(req):
     # These arguments and their friends will be deleted
     remo = []     
 
-    # FIXME: What is this magic key? :-) //Jørgen
+    # Finding empty values
     for key,val in nuri.args.items():
-        if val == "" or key=="r4g3n53nd":
+        if val == "":
             remo.append(key)
 
+    # Deleting empty values
     for r in remo:
         if nuri.args.has_key(r):
             del(nuri.args[r])
@@ -72,7 +78,7 @@ def handler(req):
             del(nuri.args["op_"+r])
         if nuri.args.has_key("not_"+r):
             del(nuri.args["not_"+r])
-
+    
     if len(remo):
         # Redirect if any arguments were removed
         redirect(req, nuri.make())
@@ -91,7 +97,6 @@ def handler(req):
         reportName = match.group(1)
     else:
         reportName = "report"
-
 
 
     if reportName == "report" or reportName == "index":
@@ -124,8 +129,6 @@ def handler(req):
             scope = IP(argsdict["scope"])
         else:
             # Find all scopes in database.
-            from nav import db
-            import psycopg
             connection = db.getConnection('webfront','manage')
             database = connection.cursor()
             database.execute("SELECT netaddr FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
@@ -161,17 +164,15 @@ def handler(req):
             tree = buildTree(scope)
 
             if scope.version() == 6:
-                # Must do import this local because of the insane startup cost
-                # of importing which slows every run of handler down
-                # drastically.
+                # Must do import local because of the insane startup cost of
+                # importing which slows every run of handler down drastically.
                 from nav.report.matrixIPv6 import MatrixIPv6
                 end_net = getMaxLeaf(tree)
                 matrix = MatrixIPv6(scope,end_net=end_net)
 
             elif scope.version() == 4:
-                # Must do import this local because of the insane startup cost
-                # of importing which slows every run of handler down
-                # drastically.
+                # Must do import local because of the insane startup cost of
+                # importing which slows every run of handler down drastically.
                 from nav.report.matrixIPv4 import MatrixIPv4
                 end_net = None
 
@@ -204,7 +205,7 @@ def handler(req):
 
         name = "Report List"
         name_link = "reportlist"
-        page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)] # Perhaps I should fetch these values and not hardcode them.
+        page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)]
         page.title = "Report - " + name
         page.report_list = report_list
         page.report_list_local = report_list_local
@@ -215,8 +216,30 @@ def handler(req):
         page = ReportTemplate()
         req.content_type = "text/html"
         req.send_http_header()
+
         gen = Generator()
-        (report,contents,neg,operator,adv) = gen.makeReport(reportName,configFile,configFileLocal,uri)
+        
+        report = contents = neg = operator = adv = dbresult = None
+
+        # Deleting offset and limit variables from uri so that we would know if
+        # it's the same dbresult asked for.
+        nuri.setArguments(['offset', 'limit'], '')
+        for key,val in nuri.args.items():
+            if val == "":
+                del nuri.args[key]
+
+        uri_strip = nuri.make()
+
+
+
+        if cache.get('report') and cache.get('report')[0] == uri_strip:
+            dbresult_cache = cache.get('report')[6]
+            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, dbresult_cache)
+
+        else:
+            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, None)
+            cache.set('report', (uri_strip, report, contents, neg, operator, adv, dbresult), 15 * 60)
+
 
         page.report = report
         page.contents = contents
@@ -263,20 +286,5 @@ def handler(req):
         req.write(page.respond())
 
     return apache.OK
-
-# FIXME: Is this code block used?
-def selectoptiondraw(name,elementlist,elementdict,selectedvalue="",descriptiondict=None):
-    ret = '<select name="%s">'%name
-    for element in elementlist:
-        if element == selectedvalue:
-            selected = " selected"
-        else:
-            selected = ""
-        description = ""
-        if descriptiondict.has_key(element):
-            description = ' title="%s"' %(descriptiondict[element])
-        ret += '<option value="%s"%s%s>%s</option>'%(element,description,selected,elementdict[element])
-    ret+= '</selected>'
-    return ret
 
 class UnknownNetworkTypeException(Exception): pass
