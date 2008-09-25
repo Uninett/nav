@@ -225,11 +225,14 @@ ALTER TABLE accountorg ADD COLUMN id integer NOT NULL
 	CONSTRAINT accountorg_pkey PRIMARY KEY;
 ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id);
 ALTER TABLE accountorg DROP CONSTRAINT account_exists;
-ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_fkey
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_account_id_fkey
 	FOREIGN KEY(account_id) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_organization_id_fkey
+	FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
 
 CREATE SEQUENCE profiles.accountproperty_id_seq;
 ALTER TABLE accountproperty ADD COLUMN id integer NOT NULL

@@ -645,10 +645,14 @@ CREATE TABLE AccountOrg (
 
        CONSTRAINT accountorg_pkey PRIMARY KEY(id),
        CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id),
-       CONSTRAINT accountorg_accountid_fkey
+       CONSTRAINT accountorg_account_id_fkey
                   FOREIGN KEY(account_id) REFERENCES Account(id)
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
+       CONSTRAINT accountorg_organization_id_fkey
+                  FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
