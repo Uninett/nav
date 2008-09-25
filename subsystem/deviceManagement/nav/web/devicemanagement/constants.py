@@ -57,7 +57,7 @@ CURRENT_PATH = [('Home', '/'),
 # Controlnames for TreeSelect
 CN_LOCATION = 'location'
 CN_ROOM = 'room'
-CN_BOX = 'box'
+CN_BOX = 'netbox'
 CN_MODULE = 'module'
 CN_DEVICE = 'device'
 

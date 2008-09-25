@@ -28,14 +28,13 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from datetime import datetime, timedelta
+import datetime as dt
 import time
 
 from django.core.urlresolvers import reverse
 from django.db import models
 
 import nav.natsort
-import nav.util
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -97,8 +96,6 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = models.CharField(unique=True, max_length=-1)
     category = models.ForeignKey('Category', db_column='catid')
-    # TODO: Probably deprecated. Check and remove.
-    #subcategory = models.CharField(db_column='subcat', max_length=-1)
     subcategories = models.ManyToManyField('Subcategory',
         through='NetboxCategory')
     organization = models.ForeignKey('Organization', db_column='orgid')
@@ -128,10 +125,13 @@ class Netbox(models.Model):
 
     def last_updated(self):
         try:
-            value = self.info_set.get(variable='lastUpdated').value
+            # XXX: Netboxes with multiple values for lastUpdated in NetboxInfo
+            # have been observed. Using the highest value.
+            value = self.info_set.filter(variable='lastUpdated').order_by(
+                '-value')[0].value
             value = int(value) / 1000.0
-            return datetime(*time.gmtime(value)[:6])
-        except NetboxInfo.DoesNotExist:
+            return dt.datetime(*time.gmtime(value)[:6])
+        except IndexError:
             return None
         except ValueError:
             return '(Invalid value in DB)'
@@ -159,9 +159,15 @@ class Netbox(models.Model):
         try:
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
-            data_source_status = data_sources.get(name='STATUS')
-            data_source_response_time = data_sources.get(name='RESPONSETIME')
-        except RrdDataSource.DoesNotExist:
+            # XXX: Multiple identical data sources in the database have been
+            # observed. Using the result with highest primary key.
+            # FIXME: Should probably check the mtime of the RRD files on disk
+            # and use the newest one.
+            data_source_status = data_sources.filter(name='STATUS'
+                ).order_by('-pk')[0]
+            data_source_response_time = data_sources.filter(
+                name='RESPONSETIME').order_by('-pk')[0]
+        except IndexError:
             return None
 
         result = {
@@ -205,6 +211,12 @@ class Netbox(models.Model):
 
         return result
 
+    def get_function(self):
+        try:
+            return self.info_set.get(variable='function').value
+        except NetboxInfo.DoesNotExist:
+            return None
+
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
@@ -239,7 +251,7 @@ class Device(models.Model):
     active = models.BooleanField(default=False)
     device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid',
         null=True)
-    discovered = models.DateTimeField(default=datetime.now)
+    discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
         db_table = 'device'
@@ -408,7 +420,7 @@ class Subcategory(models.Model):
 
     def __unicode__(self):
         try:
-            return u'%s, sub of %s' % (self.id, self.category)
+            return u'%s, sub of %s' % (self.description, self.category)
         except Category.DoesNotExist:
             return self.description
 
@@ -416,6 +428,9 @@ class NetboxCategory(models.Model):
     """From MetaNAV: A netbox may be in many subcategories. This relation is
     defined here."""
 
+    # TODO: This should be a ManyToMany-field in Netbox, but at this time
+    # Django only supports specifying the name of the M2M-table, and not the
+    # column names.
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
@@ -488,7 +503,7 @@ class DeviceOrder(models.Model):
     more) of a certain product."""
 
     id = models.AutoField(db_column='deviceorderid', primary_key=True)
-    registered = models.DateTimeField(default=datetime.now)
+    registered = models.DateTimeField(default=dt.datetime.now)
     ordered = models.DateField()
     arrived = models.DateTimeField()
     order_number = models.CharField(db_column='ordernumber', max_length=-1)
@@ -553,30 +568,6 @@ class GwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
-    def get_status_classes(self):
-        """Status classes for IP Device Info port view"""
-
-        classes = ['port']
-        if self.speed:
-            classes.append('Mb%d' % self.speed)
-        return ' '.join(classes)
-
-    def get_status_title(self):
-        """Status title for IP Device Info port view"""
-
-        title = []
-        if self.interface:
-            title.append(self.interface)
-        if self.speed:
-            title.append('%d Mbit' % self.speed)
-        try:
-            title.append('-> %s' % self.to_netbox)
-        except Netbox.DoesNotExist:
-            pass
-        if self.port_name:
-            title.append(self.port_name)
-        return ', '.join(title)
-
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
@@ -604,7 +595,10 @@ class Prefix(models.Model):
         db_table = 'prefix'
 
     def __unicode__(self):
-        return u'%s at vlan %s' % (self.net_address, self.vlan)
+        if self.vlan:
+            return u'%s (vlan %s)' % (self.net_address, self.vlan)
+        else:
+            return self.net_address
 
 class Vlan(models.Model):
     """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
@@ -625,12 +619,14 @@ class Vlan(models.Model):
         db_table = 'vlan'
 
     def __unicode__(self):
-        vlan = str(self.vlan) or 'unknown'
-        try:
-            return u'%s, type %s, ident %s' % (
-                vlan, self.net_type, self.net_ident)
-        except NetType.DoesNotExist:
-            return u'%s, ident %s' % (vlan, self.net_ident)
+        result = u''
+        if self.vlan:
+            result += u'%d' % self.vlan
+        else:
+            result += u'N/A'
+        if self.net_ident:
+            result += ' (%s)' % self.net_ident
+        return result
 
 class NetType(models.Model):
     """From MetaNAV: The nettype table defines network type;lan, core, link,
@@ -707,7 +703,8 @@ class SwPort(models.Model):
     link = models.CharField(max_length=1, choices=LINK_CHOICES)
     speed = models.FloatField()
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES)
-    media = models.CharField(max_length=-1)
+    # TODO: Probably deprecated. Check and remove.
+    #media = models.CharField(max_length=-1)
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     port_name = models.CharField(db_column='portname', max_length=-1)
@@ -736,75 +733,36 @@ class SwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
-    def get_status_classes(self):
-        """Status classes for IP Device Info port view"""
-
-        classes = ['port']
-        if self.link == self.LINK_UP and self.speed:
-            classes.append('Mb%d' % self.speed)
-        if self.link == self.LINK_DOWN_ADM:
-            classes.append('disabled')
-        elif self.link != self.LINK_UP:
-            classes.append('passive')
-        if self.trunk:
-            classes.append('trunk')
-        if self.duplex:
-            classes.append('%sduplex' % self.duplex)
-        # XXX: This causes a DB query per port
-        if self.swportblocked_set.count():
-            classes.append('blocked')
-        return ' '.join(classes)
-
-    def get_status_title(self):
-        """Status title for IP Device Info port view"""
-
-        title = []
-        if self.interface:
-            title.append(self.interface)
-        if self.link == self.LINK_UP and self.speed:
-            title.append('%d Mbit' % self.speed)
-        try:
-            title.append('-> %s' % self.to_netbox)
-        except Netbox.DoesNotExist:
-            pass
-        if self.link == self.LINK_DOWN_ADM:
-            title.append('disabled')
-        elif self.link != self.LINK_UP:
-            title.append('not active')
-        if self.trunk:
-            title.append('trunk')
-        if self.duplex:
-            title.append(self.get_duplex_display())
-        if self.media:
-            title.append(self.media)
+    def get_vlan_numbers(self):
+        """List of VLAN numbers related to the port"""
 
         # XXX: This causes a DB query per port
-        vlans = [str(swpv.vlan.vlan)
+        vlans = [swpv.vlan.vlan
             for swpv in self.swportvlan_set.select_related(depth=1)]
-        if vlans:
-            title.append('vlan ' + ','.join(vlans))
+        if self.vlan is not None and self.vlan not in vlans:
+            vlans.append(self.vlan)
+        vlans.sort()
+        return vlans
 
-        # XXX: This causes a DB query per port
-        blocked_vlans = [str(block.vlan)
-            for block in self.swportblocked_set.select_related(depth=1)]
-        if blocked_vlans:
-            title.append('blocked ' + ','.join(blocked_vlans))
-
-        return ', '.join(title)
-
-    def get_active_time(self, interval=30):
+    def get_active_time(self, interval):
         """
         Time since last CAM activity on port, looking at CAM entries
-        for the last ``interval'' (default 30) days.
+        for the last ``interval'' days.
 
         Returns None if no activity is found, else number of days since last
         activity as a datetime.timedelta object.
         """
 
-        if hasattr(self, 'time_since_activity'):
-            return self.time_since_activity
+        # Create cache dictionary
+        # FIXME: Replace with real Django caching
+        if not hasattr(self, 'time_since_activity_cache'):
+             self.time_since_activity_cache = {}
 
-        min_time = datetime.now() - timedelta(interval)
+        # Check cache for result
+        if interval in self.time_since_activity_cache:
+            return self.time_since_activity_cache[interval]
+
+        min_time = dt.datetime.now() - dt.timedelta(days=interval)
         try:
             # XXX: This causes a DB query per port
             # Use .values() to avoid creating additional objects we do not need
@@ -815,78 +773,15 @@ class SwPort(models.Model):
             # Inactive/not in use
             return None
 
-        if last_cam_entry_end_time == datetime.max:
+        if last_cam_entry_end_time == dt.datetime.max:
             # Active now
-            self.time_since_activity = timedelta(0)
+            self.time_since_activity_cache[interval] = dt.timedelta(days=0)
         else:
             # Active some time inside the given interval
-            self.time_since_activity = datetime.now() - last_cam_entry_end_time
+            self.time_since_activity_cache[interval] = \
+                dt.datetime.now() - last_cam_entry_end_time
 
-        return self.time_since_activity
-
-    def get_active_classes(self, interval=30):
-        """Active classes for IP Device Info port view"""
-
-        classes = ['port']
-
-        if self.link == self.LINK_UP:
-            classes.append('active')
-            classes.append('link')
-        else:
-            active = self.get_active_time(interval)
-            if active is not None:
-                classes.append('active')
-            else:
-                classes.append('inactive')
-
-        return ' '.join(classes)
-
-    def get_active_style(self, interval=30):
-        """Active style for IP Device Info port view"""
-
-        # Color range for port activity tab
-        color_recent = (116, 196, 118)
-        color_longago = (229, 245, 224)
-        # XXX: Is this CPU intensive? Cache result?
-        gradient = nav.util.color_gradient(
-            color_recent, color_longago, interval)
-
-        style = ''
-
-        if self.link == self.LINK_UP:
-            style = 'background-color: #%s;' % nav.util.colortohex(
-                gradient[0])
-        else:
-            active = self.get_active_time(interval)
-            if active is not None:
-                style = 'background-color: #%s;' % nav.util.colortohex(
-                    gradient[active.days])
-
-        return style
-
-    def get_active_title(self, interval=30):
-        """Active title for IP Device Info port view"""
-
-        title = []
-
-        if self.interface:
-            title.append(self.interface)
-
-        if self.link == self.LINK_UP:
-            title.append('link now')
-        else:
-            active = self.get_active_time(interval)
-            if active is not None:
-                if active.days > 1:
-                    title.append('MAC seen %d days ago' % active.days)
-                elif active.days == 1:
-                    title.append('MAC seen 1 day ago')
-                else:
-                    title.append('MAC seen today')
-            else:
-                title.append('free')
-
-        return ', '.join(title)
+        return self.time_since_activity_cache[interval]
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch

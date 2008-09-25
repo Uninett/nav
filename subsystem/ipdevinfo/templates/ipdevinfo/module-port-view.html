@@ -1,0 +1,27 @@
+{% with module.ports as ports %}
+{% if ports|length %}
+<div class="module">
+<h3><a href="{{ module.object.get_absolute_url }}">
+    {{ module.object.module_number }}</a></h3>
+<table>
+    <tr>
+    {% for port in ports %}
+        <td class="{{ port.class }}" style="{{ port.style }}" title="{{ port.title }}">
+            <a href="{{ port.object.get_absolute_url }}">
+                {{ port.object.get_interface_display }}</a>
+        </td>
+        {% if ports|length|divisibleby:12 %}
+            {% if forloop.counter|divisibleby:12 %}</tr><tr>{% endif %}
+        {% else %}
+            {% if ports|length|divisibleby:8 %}
+                {% if forloop.counter|divisibleby:8 %}</tr><tr>{% endif %}
+            {% else %}
+                {% if forloop.counter|divisibleby:10 %}</tr><tr>{% endif %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    </tr>
+</table>
+</div>
+{% endif %}
+{% endwith %}

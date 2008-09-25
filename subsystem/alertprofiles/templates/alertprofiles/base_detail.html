@@ -40,49 +40,53 @@
 
 {% block filter_content %}
 
-{% block expresions %}
-<form action="{% block url_remove_expresion %}{% endblock %}" method="post">
-<table class="listtable">
-    <caption>
-    {% block expresions_caption_content %}
-    {% endblock %}
-    </caption>
-    
-    <thead>
-        <tr>
-        {% block expresions_thead_cols %}
-        {% endblock %}
-        </tr>
-    </thead>
+<div class="expressionstable">
+    {% block expressions %}
+    <form action="{% block url_remove_expression %}{% endblock %}" method="post">
+        <table class="listtable">
+            <caption>
+            {% block expressions_caption_content %}
+            {% endblock %}
+            </caption>
 
-    <tbody>
-    {% block expresions_tbody_content %}
-    {% endblock %}
-    </tbody>
-</table>
+            <thead>
+                <tr>
+                {% block expressions_thead_cols %}
+                {% endblock %}
+                </tr>
+            </thead>
 
-{% if owner%}
-    {% block expresions_extra_fields %}
-    <p>
-        <input type="hidden" name="id" value="{{ detail_id }}" />
-        <button type="submit">Delete selected</button>
-    </p>
-    {% endblock %}
-{% endif %}
-</form>
-{% endblock expresions %}
+            <tbody>
+            {% block expressions_tbody_content %}
+            {% endblock %}
+            </tbody>
+        </table>
 
-<form action="{% block url_add_expresion %}{% endblock %}" method="post">
-{% block addexpresion %}
-    <p>
-        <input type="hidden" name="id" value="{{ detail_id }}" />
-        <button type="submit">Add</button>
-    </p>
-{% endblock addexpresion %}
-</form>
+        {% if owner%}
+            {% block expressions_extra_fields %}
+            <p>
+                <input type="hidden" name="id" value="{{ detail_id }}" />
+                <button type="submit">Delete selected</button>
+            </p>
+            {% endblock %}
+        {% endif %}
+    </form>
+    {% endblock expressions %}
+</div>
+
+<div class="addexpressionform">
+    <form action="{% block url_add_expression %}{% endblock %}" method="post">
+    {% block addexpression %}
+        <p>
+            <input type="hidden" name="id" value="{{ detail_id }}" />
+            <button type="submit">Add</button>
+        </p>
+    {% endblock addexpression %}
+    </form>
+</div>
 
 {% endblock filter_content %}
 
 {% endif %}
 
-{% endblock tabcontent %}
+{% endblock %}

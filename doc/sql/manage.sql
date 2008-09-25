@@ -359,12 +359,6 @@ CREATE TABLE swportblocked (
   PRIMARY KEY(swportid, vlan)
 );
 
-CREATE TABLE alertengine (
-	lastalertqid integer
-);
-
-INSERT INTO alertengine (lastalertqid) values(0);
-
 CREATE TABLE cabling (
   cablingid SERIAL PRIMARY KEY,
   roomid VARCHAR(30) NOT NULL REFERENCES room ON UPDATE CASCADE ON DELETE CASCADE,
@@ -484,36 +478,6 @@ CREATE VIEW allowedvlan_both AS
   (select swportid,swportid as swportid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
   (select  swport.swportid,to_swportid as swportid2,allowedvlan from swport join allowedvlan
     on (swport.to_swportid=allowedvlan.swportid) ORDER BY allowedvlan);
-
--------- vlanPlot tables ------
-CREATE TABLE vp_netbox_grp_info (
-  vp_netbox_grp_infoid SERIAL PRIMARY KEY,
-  name VARCHAR NOT NULL,
-  hideicons BOOL NOT NULL DEFAULT false,
-  iconname VARCHAR,
-  x INT4 NOT NULL DEFAULT '0',
-  y INT4 NOT NULL DEFAULT '0'
-);
--- Default network
-INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',false);
-
-CREATE TABLE vp_netbox_grp (
-  vp_netbox_grp_infoid INT4 REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
-  pnetboxid INT4 NOT NULL,
-  UNIQUE(vp_netbox_grp_infoid, pnetboxid)
-);
-
-CREATE TABLE vp_netbox_xy (
-  vp_netbox_xyid SERIAL PRIMARY KEY, 
-  pnetboxid INT4 NOT NULL,
-  x INT4 NOT NULL,
-  y INT4 NOT NULL,
-  vp_netbox_grp_infoid INT4 NOT NULL REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
-  UNIQUE(pnetboxid, vp_netbox_grp_infoid)
-);
-
-
--------- vlanPlot end ------
 
 ------------------------------------------------------------------------------
 -- rrd metadb tables
@@ -708,7 +672,8 @@ CREATE TABLE alertq (
   alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   value INT4 NOT NULL,
-  severity INT4 NOT NULL
+  severity INT4 NOT NULL,
+  closed BOOLEAN
 );
 
 CREATE TABLE alertqmsg (

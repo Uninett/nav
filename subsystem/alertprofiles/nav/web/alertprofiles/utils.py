@@ -34,10 +34,13 @@ import dircache
 import md5 as hashlib
 import os
 
+from django.db import transaction
+
 import nav.config
 import nav.path
 from nav.django.utils import get_account, is_admin
-from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, Account
+from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
+    Account, AlertSubscription, TimePeriod
 
 ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
@@ -83,6 +86,7 @@ def resolve_account_admin_and_owner(request):
 
     return (account, admin, owner)
 
+@transaction.commit_on_success
 def order_filter_group_content(filter_group):
     """Filter group content is ordered by priority where each filters priority
     is the previous filters priority incremented by one, starting at 1. Here we
@@ -121,3 +125,67 @@ def read_time_period_templates():
             templates[key] = config
 
     return templates
+
+def alert_subscriptions_table(periods):
+    weekday_subscriptions = []
+    weekend_subscriptions = []
+    shared_class_id = 0
+
+    for p in periods:
+        # TimePeriod is a model.
+        # We transform it to a dictionary so we can add additinal information
+        # to it, such as end_time (which does not really exist, it's just the
+        # start time for the next period.
+        period = {
+            'id': p.id,
+            'profile': p.profile,
+            'start': p.start,
+            'end': None,
+            'valid_during': p.get_valid_during_display(),
+            'class': None,
+        }
+        valid_during = p.valid_during
+        alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
+
+        # This little snippet magically assigns a class to shared time periods
+        # so they appear with the same highlight color.
+        if valid_during == TimePeriod.ALL_WEEK:
+            period['class'] = 'shared' + unicode(shared_class_id)
+            shared_class_id += 1
+            if shared_class_id > 7:
+                shared_class_id = 0
+
+        # For usability we change 'all days' periods to one weekdays and one
+        # weekends period.
+        # Because we might add the same period to both weekdays and weekends we
+        # must make sure at least one of them is a copy, so changes to one of
+        # them don't apply to both.
+        if valid_during in (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK):
+            weekday_subscriptions.append({
+                'time_period': period.copy(),
+                'alert_subscriptions': alert_subscriptions,
+            })
+        if valid_during in (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK):
+            weekend_subscriptions.append({
+                'time_period': period,
+                'alert_subscriptions': alert_subscriptions,
+            })
+
+    subscriptions = [
+        {'title': 'Weekdays', 'subscriptions': weekday_subscriptions},
+        {'title': 'Weekends', 'subscriptions': weekend_subscriptions},
+    ]
+
+    # There's not stored any information about a end time in the DB, only start
+    # times, so the end time of one period is the start time of the next
+    # period.
+    for type in subscriptions:
+        subscription = type['subscriptions']
+        for i, s in enumerate(subscription):
+            if i < len(subscription) - 1:
+                end_time = subscription[i+1]['time_period']['start']
+            else:
+                end_time = subscription[0]['time_period']['start']
+            s['time_period']['end'] = end_time
+
+    return subscriptions

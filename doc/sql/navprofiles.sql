@@ -37,12 +37,6 @@ CREATE TABLE alertsender (
 	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
--- FIXME on delete ...
-ALTER TABLE alertaddress ADD CONSTRAINT alertaddress_type_fkey FOREIGN KEY(type) REFERENCES alertsender(id);
-
-INSERT INTO alertsender VALUES (1, 'Email', 'email');
-INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
-INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); indexes etc. are explicitly named.
 
 /*
 -- 1 ACCOUNT
@@ -55,17 +49,19 @@ password	password for local authentication
 ext_sync	external syncronization, reserved for future use,
             null means local authentication
 */
-CREATE SEQUENCE account_id_seq START 1000;CREATE TABLE Account (
+CREATE SEQUENCE account_id_seq START 1000;
+CREATE TABLE Account (
     id integer NOT NULL DEFAULT nextval('account_id_seq'),
     login varchar NOT NULL,
     name varchar DEFAULT 'Noname',
     password varchar,
     ext_sync varchar,
 
-    CONSTRAINT account_pkey PRIMARY KEY (id)
+    CONSTRAINT account_pkey PRIMARY KEY(id),
     CONSTRAINT account_login_key UNIQUE(login)
 );
-ALTER SEQUENCE account_id_seq OWNED BY account.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE account_id_seq OWNED BY account.id;
 
 -- Trigger that ensures that users are a part of the groups everyone and authenticated users
 CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
@@ -97,7 +93,8 @@ CREATE TABLE AccountGroup (
 
     CONSTRAINT accountgroup_pkey PRIMARY KEY(id)
 );
-ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
 
 
 -- 3 ACCOUNTGROUP_ACCOUNTS
@@ -118,7 +115,19 @@ CREATE TABLE accountgroup_accounts (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
-ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+
+-- ACCOUNTINGROUP
+-- View for compability with older code that thinks accountgroup_accounts is
+-- still called accountingroup.
+CREATE VIEW accountingroup AS (
+    SELECT
+        accountgroup_accounts.account_id AS accountid,
+        accountgroup_accounts.accountgroup_id AS groupid
+    FROM
+        accountgroup_accounts
+);
 
 
 /*
@@ -142,7 +151,8 @@ CREATE TABLE AccountProperty (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
 
 /*
 -- 5 ALERTADDRESS
@@ -168,9 +178,15 @@ CREATE TABLE alertaddress (
        CONSTRAINT alertaddress_accountid_fkey
 		  FOREIGN KEY(accountid) REFERENCES Account(id)
 		  ON DELETE CASCADE
-		  ON UPDATE CASCADE
+		  ON UPDATE CASCADE,
+       CONSTRAINT alertaddress_type_fkey 
+                  FOREIGN KEY(type) REFERENCES alertsender(id)
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE
+         
 );
-ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
 
 /*
@@ -202,7 +218,8 @@ CREATE TABLE alertprofile (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
 
 /*
@@ -276,7 +293,8 @@ CREATE TABLE timeperiod (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
 /*
 -- 9 FILTERGROUP
@@ -301,7 +319,8 @@ CREATE TABLE filtergroup (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
 /*
 -- 10 ALERTSUBSCRIPTION
@@ -323,7 +342,7 @@ CREATE TABLE alertsubscription (
 	time_period_id integer NOT NULL,
 	filter_group_id integer NOT NULL,
 	subscription_type integer,
-	ingnore_closed_alerts boolean,
+	ignore_closed_alerts boolean,
 
 	CONSTRAINT alertsubscription_pkey PRIMARY KEY(id),
 	CONSTRAINT alertsubscription_alert_address_id_key
@@ -342,10 +361,11 @@ CREATE TABLE alertsubscription (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 );
-ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 /*
--- 11 FILTERGROUP_GROUP_PERMISION
+-- 11 FILTERGROUP_GROUP_PERMISSION
 
 Permissions.
 
@@ -353,25 +373,26 @@ This table contatins a relation from a user group to an equipment group. It give
 actual user group permission to set up notofication for alerts matching this filter. The relation 
 usergroup <-> equipment group is many to many.
 */
-CREATE SEQUENCE filtergroup_group_permision_id_seq;
-CREATE TABLE filtergroup_group_permision (
-       id integer NOT NULL DEFAULT nextval('filtergroup_group_permision_id_seq'),
+CREATE SEQUENCE filtergroup_group_permission_id_seq;
+CREATE TABLE filtergroup_group_permission (
+       id integer NOT NULL DEFAULT nextval('filtergroup_group_permission_id_seq'),
        accountgroup_id integer NOT NULL,
        filtergroup_id integer NOT NULL,
 
-       CONSTRAINT filtergroup_group_permision_pkey PRIMARY KEY(id),
-       CONSTRAINT filtergroup_group_permision_accountgroup_id_key
+       CONSTRAINT filtergroup_group_permission_pkey PRIMARY KEY(id),
+       CONSTRAINT filtergroup_group_permission_accountgroup_id_key
        		UNIQUE(accountgroup_id, filtergroup_id),
-       CONSTRAINT filtergroup_group_permision_accountgroup_id_fkey
+       CONSTRAINT filtergroup_group_permission_accountgroup_id_fkey
 		  FOREIGN KEY(accountgroup_id) REFERENCES accountgroup(id)
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE,
-       CONSTRAINT filtergroup_group_permision_filtergroup_id_fkey
+       CONSTRAINT filtergroup_group_permission_filtergroup_id_fkey
 		  FOREIGN KEY(filtergroup_id) REFERENCES filtergroup(id)
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroup_group_permision_id_seq OWNED BY filtergroup_group_permision.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
 
 /*
 -- 14 FILTER
@@ -395,7 +416,8 @@ CREATE TABLE filter (
 		  ON DELETE SET NULL
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
 /*
 -- 15 FILTERGROUPCONTENT
@@ -429,7 +451,8 @@ CREATE TABLE filtergroupcontent (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
-ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
 
 /*
 -- 16 MATCHFIELD
@@ -461,36 +484,38 @@ CREATE TABLE MatchField (
 
     CONSTRAINT matchfield_pkey PRIMARY KEY(id)
 );
-ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
 
 /*
--- 17 EXPRESION
+-- 17 EXPRESSION
 
-Expresion is a single condition. It consist of a matchfield, a operator and a value.
+Expression is a single condition. It consist of a matchfield, a operator and a value.
 
 match_field_id	This is a relation to matchfield
 operator	This specifies the operator used. This a static list.
 value		The value
 */
-CREATE SEQUENCE expresion_id_seq START 1000;
-CREATE TABLE expresion (
-       id integer NOT NULL DEFAULT nextval('expresion_id_seq'),
+CREATE SEQUENCE expression_id_seq START 1000;
+CREATE TABLE expression (
+       id integer NOT NULL DEFAULT nextval('expression_id_seq'),
        filter_id integer NOT NULL,
        match_field_id integer NOT NULL,
        operator integer,
        value varchar,
 
-    CONSTRAINT expresion_pkey PRIMARY KEY(id),
-    CONSTRAINT expresion_match_field_id_fkey
+    CONSTRAINT expression_pkey PRIMARY KEY(id),
+    CONSTRAINT expression_match_field_id_fkey
         FOREIGN KEY(match_field_id) REFERENCES matchfield(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    CONSTRAINT expresion_filter_id_fkey
+    CONSTRAINT expression_filter_id_fkey
         FOREIGN KEY(filter_id) REFERENCES filter(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-ALTER SEQUENCE expresion_id_seq OWNED BY expresion.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 
 /*
@@ -514,8 +539,9 @@ CREATE TABLE Operator (
             ON DELETE CASCADE
             ON UPDATE CASCADE
 );
-ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
-ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
+-- ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 /*
 -- 20 SMSQ
@@ -552,8 +578,8 @@ QUEUE Description
 CREATE TABLE accountalertqueue (
     id serial,
     account_id integer,
-    addrid integer,
     alert_id integer,
+    subscription_id integer,
     insertion_time timestamp NOT NULL,
 
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
@@ -561,10 +587,10 @@ CREATE TABLE accountalertqueue (
     	FOREIGN KEY(account_id) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE,
-    CONSTRAINT accountalertqueue_addrid_fkey
-    	FOREIGN KEY(addrid) REFERENCES alertaddress(id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE
+    CONSTRAINT accountalertqueue_subscription_fkey
+	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
+	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
+	-- ON DELETE CASCADE -- FIXME
 );
 
 /*
@@ -592,7 +618,8 @@ CREATE TABLE NavbarLink (
                ON DELETE CASCADE
                ON UPDATE CASCADE
 );
-ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
 
 /*
 -- 21 ACCOUNTNAVBAR
@@ -635,13 +662,14 @@ CREATE TABLE AccountOrg (
        organization_id varchar(30) NOT NULL,
 
        CONSTRAINT accountorg_pkey PRIMARY KEY(id),
-       CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid),
+       CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id),
        CONSTRAINT accountorg_accountid_fkey
-                  FOREIGN KEY(accountid) REFERENCES Account(id)
+                  FOREIGN KEY(account_id) REFERENCES Account(id)
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
-ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
 
 /*
 -- Privilege
@@ -658,7 +686,8 @@ CREATE TABLE Privilege (
        CONSTRAINT privilege_pkey PRIMARY KEY (privilegeid),
        CONSTRAINT privilege_privilegename_key UNIQUE(privilegename)
 );
-ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
 
 /*
 -- AccountGroupPrivilege
@@ -684,7 +713,8 @@ CREATE TABLE AccountGroupPrivilege (
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
-ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
 
 /*
 -- PrivilegeByGroup
@@ -768,25 +798,28 @@ INSERT INTO Privilege VALUES (3, 'alert_by');
 */
 -- Anonymous users need access to a few things, like the login page and images
 -- and soforth
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/about/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/images/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/js/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/style/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/alertprofiles/wap/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/$');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/toolbox\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index(.py)?/(index|login|logout|userinfo|passwd)\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/messages/(active|historic|planned|view|rss)\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/maintenance/(calendar|active|historic|planned|view)\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vlanPlot\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vPServer/servlet/vPServer\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/about/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/images/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/js/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/style/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/alertprofiles/wap/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/$');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/toolbox\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/index(.py)?/(index|login|logout|userinfo|passwd)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/messages/(active|historic|planned|view|rss)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/maintenance/(calendar|active|historic|planned|view)\\b');
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|navAdmin|stats|ipinfo|l2trace|logger)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
        VALUES ((SELECT id FROM AccountGroup WHERE name='SMS'), 3, 'sms');
+
+-- Alert senders
+INSERT INTO alertsender VALUES (1, 'Email', 'email');
+INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
 
 
 -- Matchfields
@@ -797,110 +830,110 @@ Matchfield.Datatype
 	ip adr:  2
 */
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc|[ID]: [NAME]', null, 'eventtype.eventtypeid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc', 'eventtype.eventtypeid', true, 
 'Event type: An event type describes a category of alarms. (Please note that alarm type is a more refined attribute. There are a set of alarm types within an event type.)');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 10);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 10);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 10);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 10);
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc|[ID]: [NAME]', 'alerttype.eventtypeid', 'alerttype.alerttypeid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttypeid', true, 
 'Alert type: An alert type describes the various values an event type may take.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 11);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 11);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 11);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 11);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr,valuehelp) VALUES 
-(12, 1, 'Severity', 'alertq.severity', null, null, null, false, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+(12, 1, 'Severity', 'alertq.severity', null, null, false,
 'Severity: Limit your alarms based on severity.',
 'Range: Severities are in the range 0-100, where 100 is most severe.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 12);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (1, 12);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (2, 12);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (3, 12);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (4, 12);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (5, 12);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 12);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (1, 12);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (2, 12);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (3, 12);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (4, 12);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (5, 12);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(13, 0, 'Category', 'cat.catid', 'cat.descr|[ID]: [NAME]', null, 'cat.catid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(13, 0, 'Category', 'cat.catid', 'cat.descr', 'cat.catid', true,
 'Category: All equipment is categorized in 7 main categories.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 13);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 13);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 13);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 13);
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr|[ID]: [NAME]', 'subcat.catid', 'subcat.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr', 'subcat.descr', true,
 'Sub category: Within a catogory user-defined subcategories may exist.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 14);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 14);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 14);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 14);
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
-(15, 0, 'Sysname', 'netbox.sysname', null, null, null, false, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+(15, 0, 'Sysname', 'netbox.sysname', null, null, false,
 'Sysname: Limit your alarms based on sysname.',
-'Sysname examples:<blockquote>
+E'Sysname examples:<blockquote>
 <b>Starts with:</b> samson.<br>
 <b>Ends with:</b> .stud.ntnu.no<br>
 <b>Contains:</b> .studby.<br>
 <b>Regexp:</b> [sbm][0-2][0-9]{2}[a-z]\\.studby\\.ntnu\\.no</blockquote>');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 15);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (5, 15);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (6, 15);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (7, 15);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (8, 15);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (9, 15);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 15);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (5, 15);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (6, 15);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (7, 15);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (8, 15);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (9, 15);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
-(16, 2, 'IP address', 'netbox.ip', null, null, null, false,
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+(16, 2, 'IP address', 'netbox.ip', null, null, false,
 'Limit your alarms based on an IP address/range (prefix)',
 'examples:<blockquote>
 129.241.190.190<br>
 129.241.190.0/24</br>
 129.241.0.0/16</blockquote>');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 16);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 16);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 16);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 16);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(17, 0, 'Room', 'room.roomid', 'room.descr|[ID]: [NAME]', 'room.locationid', 'room.roomid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(17, 0, 'Room', 'room.roomid', 'room.descr', 'room.roomid', true,
 'Room: Limit your alarms based on room.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 17);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 17);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 17);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 17);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(18, 0, 'Location', 'location.locationid', 'location.descr|[NAME] ([ID])', null, 'location.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(18, 0, 'Location', 'location.locationid', 'location.descr', 'location.descr', true, 
 'Location: Limit your alarms based on location (a location contains a set of rooms) ');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 18);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 18);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 18);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 18);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(19, 0, 'Organization', 'org.orgid', 'org.descr|[NAME] ([ID])', null, 'org.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(19, 0, 'Organization', 'org.orgid', 'org.descr', 'org.descr', true,
 'Organization: Limit your alarms based on the organization ownership of the alarm in question.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 19);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 19);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 19);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 19);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(20, 0, 'Usage', 'usage.usageid', 'usage.descr', null, 'usage.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(20, 0, 'Usage', 'usage.usageid', 'usage.descr', 'usage.descr', true,
 'Usage: Different network prefixes are mapped to usage areas.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 20);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 20);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 20);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 20);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(21, 0, 'Type', 'type.typename', 'type.descr', 'type.vendorid', 'type.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(21, 0, 'Type', 'type.typename', 'type.descr', 'type.descr', true,
 'Type: Limit your alarms equipment type');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 21);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 21);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 21);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 21);
 
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(22, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', null, 'vendor.vendorid', true,
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+(22, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', 'vendor.vendorid', true,
 'Equipment vendor: Limit alert by the vendor of the netbox.');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 22);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 22);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 22);
+INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 22);
 
 
 
@@ -986,35 +1019,34 @@ INSERT INTO filtergroupcontent (include, positive, priority, filter_id, filter_g
 INSERT INTO filtergroupcontent (include, positive, priority, filter_id, filter_group_id) VALUES (true, true, 1, 23, 83);
 INSERT INTO filtergroupcontent (include, positive, priority, filter_id, filter_group_id) VALUES (true, true, 1, 24, 84);
 
--- Table: expresion
+-- Table: expression
 
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (26, 29, 13, 11, 'GSW|GW');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (27, 13, 12, 4, '100');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (25, 30, 13, 11, 'EDGE|GSW|SW');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (28, 31, 13, 11, 'GSW|SW');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (29, 14, 11, 11, 'boxDown|boxUp');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (30, 15, 11, 11, 'boxShadow|boxSunny');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (31, 25, 11, 11, 'boxDownWarning|boxShadowWarning');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (32, 16, 10, 0, 'moduleState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (43, 32, 13, 0, 'EDGE');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (44, 33, 13, 0, 'WLAN');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (45, 34, 13, 0, 'SRV');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (46, 35, 13, 0, 'OTHER');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (47, 36, 10, 0, 'boxState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (52, 26, 10, 0, 'serviceState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (53, 27, 10, 0, 'thresholdState');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (55, 20, 12, 2, '20');
---INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (56, 19, 12, 2, '0');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (57, 21, 12, 2, '40');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (58, 28, 10, 0, 'deviceChanged');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (59, 23, 12, 2, '60');
-INSERT INTO expresion (id, filter_id, match_field_id, operator, value) VALUES (61, 24, 12, 2, '80');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (26, 29, 13, 11, 'GSW|GW');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (27, 13, 12, 4, '100');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (25, 30, 13, 11, 'EDGE|GSW|SW');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (28, 31, 13, 11, 'GSW|SW');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (29, 14, 11, 11, 'boxDown|boxUp');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (30, 15, 11, 11, 'boxShadow|boxSunny');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (31, 25, 11, 11, 'boxDownWarning|boxShadowWarning');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (32, 16, 10, 0, 'moduleState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (43, 32, 13, 0, 'EDGE');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (44, 33, 13, 0, 'WLAN');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (45, 34, 13, 0, 'SRV');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (46, 35, 13, 0, 'OTHER');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (47, 36, 10, 0, 'boxState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (52, 26, 10, 0, 'serviceState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (53, 27, 10, 0, 'thresholdState');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (55, 20, 12, 2, '20');
+--INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (56, 19, 12, 2, '0');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (57, 21, 12, 2, '40');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (58, 28, 10, 0, 'deviceChanged');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (59, 23, 12, 2, '60');
+INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (61, 24, 12, 2, '80');
 
 
--- Table: filtergroup_group_permision
+-- Table: filtergroup_group_permission
 
-INSERT INTO filtergroup_group_permision (accountgroup_id, filtergroup_id) VALUES (1, 71);
-
+INSERT INTO filtergroup_group_permission (accountgroup_id, filtergroup_id) VALUES (1, 71);
 
 
 /*

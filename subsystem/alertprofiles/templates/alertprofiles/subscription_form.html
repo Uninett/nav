@@ -48,19 +48,48 @@
 {% endblock subscriptions %}
 
 {% block subscription_form %}
-<form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
-    <div class="infobox">
-        <h4>{{ editing|yesno:"Edit,Add new" }} subscription</h4>
-        {{ form.non_field_errors }}
-        Watch {{ form.filter_group }},
-        send alerts to {{ form.alert_address }} {{ form.type }}
-        <p>
-            {{ form.time_period }}
-            {{ form.id }}
-            <button type="submit">{{ editing|yesno:"Save,Add" }}</button>
-        </p>
-    </div>
-</form>
+<div class="addexpressionform">
+    <form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
+        <h3>{{ editing|yesno:"Edit,Add new" }} subscription</h3>
+        <div class="formcontainer">
+                {{ form.non_field_errors }}
+                Watch {{ form.filter_group }},
+                send alerts to {{ form.alert_address }} {{ form.type }}
+                <p>
+                    {{ form.time_period }}
+                    {{ form.id }}
+                    <button type="submit">{{ editing|yesno:"Save,Add" }}</button>
+                </p>
+        </div>
+    </form>
+</div>
+
+<div class="infobox">
+    <table>
+        <caption>
+            Dispatch time help
+        </caption>
+        <tbody>
+            <tr>
+                <th>Immidiately</th>
+                <td>Send the alert as soon as alertengine has processed it.</td>
+            </tr>
+            <tr>
+                <th>Daily at predefined time</th>
+                <td>Send all matched alerts at the specified daily dispatch time.</td>
+            </tr>
+            <tr>
+                <th>Weekly at predefined time</th>
+                <td>Send all matched alerts at the specified weekly dispatch time.</td>
+            </tr>
+            <tr>
+                <th>At end of timeperiod</th>
+                <td>Send all matched alerts when the current timeperiod is over and
+                a new one starts.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endblock subscription_form %}
 
-{% endblock tabcontent %}
+{% endblock %}

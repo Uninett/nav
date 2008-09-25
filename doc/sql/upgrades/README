@@ -45,3 +45,25 @@ Performing the schema upgrade
 
 If something fails during the schema upgrade and you don't know why,
 consult the nav-users mailing list.
+
+
+Merging databases on upgrade from older versions than 3.5
+---------------------------------------------------------
+Prior to NAV 3.5, four separate PostgreSQL databases were used to
+store NAV's data.  In NAV 3.5, everything is assumed to be located in
+a single database with multiple namespaces.
+
+If you are upgrading from NAV 3.4 to NAV 3.5, you MUST merge your
+databases BEFORE you attempt to run any 3.5.*.sql script from this
+directory.
+
+A shell script to help you with this can be found in
+doc/sql/mergedb.sh .  This script will attempt to create a new
+database called 'nav' (configurable by command line option), then use
+pg_dump to dump the contents of the four old databases (manage,
+navprofiles, logger and arnold).  Each of these database dumps are
+then loaded into separate namespaces in the new database.
+
+On most systems, the script should be run by the postgres shell
+account (via su or sudo) to achieve superuser access in PostgreSQL.
+For detailed info on usage of the script, run it with the -h option.

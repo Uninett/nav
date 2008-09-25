@@ -1,5 +1,6 @@
 This is NAV - Network Administration Visualized
-http://sourceforge.net/projects/nav
+Project page: https://launchpad.net/nav
+Project wiki: http://metanav.uninett.no/
 
 Copyright belongs to various parties for different parts of NAV:
 Part copyright 1999-2008 Norwegian University of Science and Technology
@@ -18,5 +19,9 @@ Library (http://tango.freedesktop.org/) or other public domain collections.
 Most of these are licensed under the Creative Commons Attribution Share-Alike
 license (http://creativecommons.org/licenses/by-sa/2.5/).
 
-See the file INSTALL for installation instructions.
+This product includes color specifications and designs developed by Cynthia
+Brewer (http://colorbrewer.org/). These color schemes are Copyright (c) 2002
+Cynthia Brewer, Mark Harrower, and The Pennsylvania State University and are
+licensed under the Apache License v2.0.
 
+See the file INSTALL for installation instructions.

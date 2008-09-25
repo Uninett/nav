@@ -22,4 +22,3 @@ Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
 Util:
-webapps/navAdmin: ConfigParser Database Event Logger

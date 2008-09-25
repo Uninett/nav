@@ -4,7 +4,7 @@
 <table class="listtable">
     <caption>
         Groups<br />
-        <span class="subtitle">Choose one to set permissions</span>
+        <span class="subtitle">Choose a group to set it's permissions</span>
     </caption>
 
     <thead>
@@ -35,8 +35,8 @@
 <table class="listtable">
     <caption>
         Permissions for {{ selected_group.name }}<br />
-        <span class="subtitle">Choose which alerts this group will
-        recieve</span>
+        <span class="subtitle">Choose which alerts this group can
+        receive</span>
     </caption>
 
     <thead>
@@ -51,7 +51,7 @@
     {% for fg in filtergroups %}
         <tr class="{% cycle oddrow,evenrow %}">
             <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
-            {% for perm in permisions %}
+            {% for perm in permissions %}
                 {% ifequal perm.id fg.id %}
                 checked="checked"
                 {% endifequal %}
@@ -69,5 +69,18 @@
 </div>
 </form>
 {% endif %}
+
+<div class="infobox">
+    <p>
+        Here you can set which filter groups the different user groups are
+        allowed to receive alerts for.
+    </p>
+    <p>
+        Denying a user group to receive alerts from a certain filter group will
+        not hide that filter group from the interface, so the users of that
+        user group can still add the filter group to their profiles. They
+        still won't receive any alerts that matches that filter group though.
+    </p>
+</div>
 
 {% endblock %}

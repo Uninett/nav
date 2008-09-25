@@ -26,10 +26,12 @@ __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
-from django import newforms as forms
+from django import forms
 from django.db.models import Q
 
-from nav.models.profiles import MatchField, Filter, Expresion, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, AccountProperty
+from nav.models.profiles import MatchField, Filter, Expression, Operator, \
+    FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, \
+    AccountProperty
 
 _ = lambda a: a
 
@@ -50,6 +52,16 @@ class AccountPropertyForm(forms.ModelForm):
 
 class AlertProfileForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    daily_dispatch_time = forms.TimeField(
+        initial='08:00',
+        input_formats=['%H:%M:%S', '%H:%M', '%H'],
+        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+    )
+    weekly_dispatch_time = forms.TimeField(
+        initial='08:00',
+        input_formats=['%H:%M:%S', '%H:%M', '%H'],
+        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+    )
 
     class Meta:
         model = AlertProfile
@@ -63,15 +75,25 @@ class AlertAddressForm(forms.ModelForm):
         exclude = ('account',)
 
 class TimePeriodForm(forms.ModelForm):
-    profile = forms.ModelChoiceField(AlertProfile.objects.all(), widget=forms.widgets.HiddenInput)
+    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    profile = forms.ModelChoiceField(
+        AlertProfile.objects.all(),
+        widget=forms.widgets.HiddenInput
+    )
+    start = forms.TimeField(
+        initial='08:00',
+        input_formats=['%H:%M:%S', '%H:%M', '%H'],
+        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+    )
 
     class Meta:
         model = TimePeriod
 
     def clean(self):
-        profile = self.cleaned_data['profile']
-        start_time = self.cleaned_data['start']
-        valid_during = self.cleaned_data['valid_during']
+        id = self.cleaned_data.get('id', None)
+        profile = self.cleaned_data.get('profile', None)
+        start_time = self.cleaned_data.get('start', None)
+        valid_during = self.cleaned_data.get('valid_during', None)
 
         valid_during_choices = None
         if valid_during == TimePeriod.ALL_WEEK:
@@ -82,7 +104,11 @@ class TimePeriodForm(forms.ModelForm):
             valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS)
 
         time_periods = TimePeriod.objects.filter(
-            profile=profile, start=start_time, valid_during__in=valid_during_choices)
+            ~Q(pk=id),
+            profile=profile,
+            start=start_time,
+            valid_during__in=valid_during_choices
+        )
         if len(time_periods) > 0:
             error_msg = []
             for t in time_periods:
@@ -126,9 +152,9 @@ class AlertSubscriptionForm(forms.ModelForm):
                 )
 
     def clean(self):
-        alert_address = self.cleaned_data['alert_address']
-        time_period = self.cleaned_data['time_period']
-        filter_group = self.cleaned_data['filter_group']
+        alert_address = self.cleaned_data.get('alert_address', None)
+        time_period = self.cleaned_data.get('time_period', None)
+        filter_group = self.cleaned_data.get('filter_group', None)
         id = self.cleaned_data['id']
 
         existing_subscriptions = AlertSubscription.objects.filter(
@@ -158,7 +184,7 @@ class FilterGroupForm(forms.ModelForm):
 
     class Meta:
         model = FilterGroup
-        exclude = ('group_permisions',)
+        exclude = ('group_permissions',)
 
     def __init__(self, *args, **kwargs):
         admin = kwargs.pop('admin', None)
@@ -236,16 +262,16 @@ class MatchFieldForm(forms.ModelForm):
                     raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
         return clean_value_sort
 
-class ExpresionForm(forms.ModelForm):
+class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
 
     class Meta:
-        model = Expresion
+        model = Expression
 
     def __init__(self, *args, **kwargs):
         match_field = kwargs.pop('match_field', None)
-        super(ExpresionForm, self).__init__(*args, **kwargs)
+        super(ExpressionForm, self).__init__(*args, **kwargs)
 
         if isinstance(match_field, MatchField):
             # Get all operators and make a choice field
@@ -278,6 +304,8 @@ class ExpresionForm(forms.ModelForm):
                     order_model, order_attname = MatchField.MODEL_MAP[match_field.value_sort]
                 else:
                     order_model = None
+                
+                self.number_of_choices = model.objects.count()
 
                 # First we say we want all the objects, unordered
                 model_objects = model.objects.all()

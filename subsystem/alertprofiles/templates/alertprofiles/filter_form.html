@@ -1,14 +1,14 @@
 {% extends "alertprofiles/base_detail.html" %}
 
 {% block url_edit %}{% url alertprofiles-filters-save %}{% endblock %}
-{% block url_remove_expresion %}{% url alertprofiles-filters-removeexpresion %}{% endblock %}
-{% block url_add_expresion %}{% url alertprofiles-filters-addexpresion %}{% endblock %}
+{% block url_remove_expression %}{% url alertprofiles-filters-removeexpression %}{% endblock %}
+{% block url_add_expression %}{% url alertprofiles-filters-addexpression %}{% endblock %}
 
-{% block expresions_caption_content %}
+{% block expressions_caption_content %}
     Expressions
 {% endblock %}
 
-{% block expresions_thead_cols %}
+{% block expressions_thead_cols %}
     {% if owner %}
     <th></th>
     {% endif %}
@@ -17,8 +17,8 @@
     <th>Value</th>
 {% endblock %}
 
-{% block expresions_tbody_content %}
-    {% for e in expresions %}
+{% block expressions_tbody_content %}
+    {% for e in expressions %}
         <tr class="{% cycle oddrow,evenrow %}">
             {% if owner %}
             <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
@@ -27,16 +27,19 @@
             <td>{{ e.match_field }}</td>
             {% endif %}
             <td>{{ e.get_operator_display }}</td>
+            {% ifequal e.operator 11 %}
+            <td>{{ e.value|unordered_list }}</td>
+            {% else %}
             <td>{{ e.value }}</td>
+            {% endifequal %}
         </tr>
     {% endfor %}
 {% endblock %}
 
-{% block addexpresion %}
+{% block addexpression %}
     {% if owner %}
-    <div class="infobox">
-        <h4>Add another expression to this filter</h4>
-
+    <h3>Add another expression to this filter</h3>
+    <div class="formcontainer">
         <label for="select_matchfield">Expression</label>
         <select name="matchfield" id="select_matchfield">
         {% for m in matchfields %}
@@ -47,4 +50,12 @@
         {{ block.super }}
     </div>
     {% endif%}
+
+    <div class="infobox">
+        <p>
+            Expressions are ANDed together.<br />
+            This means that an alert must match all the above expressions to match
+            this filter.
+        </p>
+    </div>
 {% endblock %}
