@@ -229,6 +229,10 @@ ALTER TABLE accountorg ADD CONSTRAINT accountorg_account_id_fkey
 	FOREIGN KEY(account_id) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
+
+-- Delete bougs accountorg entries before adding foreign key constraint
+DELETE FROM accountorg WHERE organization_id NOT IN (SELECT orgid FROM org);
+
 ALTER TABLE accountorg ADD CONSTRAINT accountorg_organization_id_fkey
 	FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
 	ON DELETE CASCADE
