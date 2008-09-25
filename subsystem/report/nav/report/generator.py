@@ -44,7 +44,7 @@ class Generator:
         self.answer = None
         self.sql = ""
 
-    def makeReport(self,reportName,configFile,configFileLocal,uri):
+    def makeReport(self,reportName,configFile,configFileLocal,uri,dbresult):
         """
         Makes a report
 
@@ -68,23 +68,32 @@ class Generator:
         if parseOK:
             argumentParser = ArgumentParser(config)
             argumentHash = argumentParser.parseArguments(args)
+
             if argumentHash.has_key("adv"):
                 if argumentHash["adv"]:
                     adv = 1
                 del argumentHash["adv"]
+
             (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
 
-            answer = DatabaseResult(config)
-            self.sql = answer.sql
+            # Check if there exists a database result for the query
+            if dbresult != None:
+                formatted = Report(config,dbresult,uri)
+                formatted.titlebar = reportName + " - report - NAV"
 
-            formatted = Report(config,answer,uri)
-            formatted.titlebar = reportName + " - report - NAV"
+                return (formatted,contents,neg,operator,adv,None)
 
-            return (formatted,contents,neg,operator,adv)
+            else:
+                answer = DatabaseResult(config)
+                self.sql = answer.sql
+
+                formatted = Report(config,answer,uri)
+                formatted.titlebar = reportName + " - report - NAV"
+
+                return (formatted,contents,neg,operator,adv,answer)
 
         else:
-
-            return (0,None,None,None,adv)
+            return (0,None,None,None,adv,None)
 
 
 
@@ -449,25 +458,7 @@ class ReportConfig:
         self.sql_offset = self.parse_offset(sql)
 
     def makeSQL(self):
-        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring() + self.orderstring() + self.limitoffsetstring()
-        return sql
-
-    def makeTotalSQL(self):
-        #select = self.sql_select_orig[0]
-
-        #skulle gjerne begrenset dette søket, så det ikke tok sånn tid, ved å bruke select deklarert rett over i selectstring().
-        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring()
-        return sql
-
-    def makeSumSQL(self):
-        ## jukser her! count != sum --> ikke nå lenger
-
-        sum = []
-        for s in self.sum:
-            s = "sum("+s+")"
-            sum.append(s)
-            #sumString = string.join(self.sum,",")
-        sql = self.selectstring(sum) + self.fromstring() + self.wherestring()# + self.groupstring()
+        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring() + self.orderstring()
         return sql
 
     def fromstring(self):
@@ -507,23 +498,6 @@ class ReportConfig:
             return " ORDER BY " + string.join(sort,",")
         else:
             return ""
-
-    def limitoffsetstring(self):
-        if self.offset:
-            offset = self.offset
-        elif self.sql_offset:
-            offset = sql_offset
-        else:
-            offset = "0"
-
-        if self.limit:
-            limit = self.limit
-        elif self.sql_limit:
-            limit = self.sql_limit
-        else:
-            limit = "1000"
-        return " LIMIT " + limit + " OFFSET " + offset
-
 
     def rstrip(self,string):
         """Returns the last \w-portion of the string"""
