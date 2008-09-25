@@ -67,8 +67,8 @@ CREATE TABLE Account (
 CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
         BEGIN
                 IF NEW.id >= 1000 THEN
-                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 2);
-                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 3);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (2, NEW.id);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (3, NEW.id);
                 END IF; RETURN NULL;
         END;
 $group_membership$ LANGUAGE plpgsql;
