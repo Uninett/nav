@@ -1,6 +1,6 @@
 /* Calendar style sheet for NAV
  *
- * Copyright 2006 UNINETT AS
+ * Copyright 2006-2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *          Thomas Adamcik <thomas.adamcik@uninett.no>
  */
 
 table.calendar {
@@ -36,13 +37,11 @@ table.calendar tr td {
 	height: 5em; /* Content will increase height if necessary. */
 }
 table.calendar tr td.today {
-	background: #eee;
+	background: #FFC;
 	color: black;
 }
-table.calendar tr td div.dayheader {
-	display: inline;
+table.calendar tr td span.dayheader {
 	float: right;
-	font-weight: bolder;
 	margin: 0.3em 0;
 	padding: 0.3em;
 }

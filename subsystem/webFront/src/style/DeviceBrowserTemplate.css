@@ -175,10 +175,10 @@ table#rrdgraphs td.actionselectbottom {
 }
 /* Service table */
 table.listtable td.n {
-	background: #d7191c;
+	background: #CC0000;
 	color: white;
 }
 table.listtable td.y {
-	background: #91cf60;
+	background: #73D216;
 	color: black;
 }

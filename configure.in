@@ -33,7 +33,6 @@ AC_SUBST(webapps)
 AC_SUBST(webroot)
 AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
-AC_SUBST(perllibdir)
 AC_SUBST(djangotmpldir)
 AC_SUBST(initdir)
 AC_SUBST(tooldir)
@@ -47,7 +46,6 @@ webapps='${prefix}/apache/webapps'
 webroot='${prefix}/apache/webroot'
 pythonlibdir='${libdir}/python'
 javalibdir='${libdir}/java'
-perllibdir='${libdir}/perl'
 djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
@@ -71,7 +69,6 @@ AC_OUTPUT(Makefile
 	src/getBoksMacs/getBoksMacs.sh
 	src/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
 	subsystem/devBrowser/Makefile
@@ -98,8 +95,8 @@ AC_OUTPUT(Makefile
 	subsystem/machinetracker/Makefile
 	subsystem/report/Makefile
 	subsystem/alertprofiles/Makefile
-	subsystem/alertEngine/Makefile
-	subsystem/alertEngine/alertengine
+	subsystem/alertengine/Makefile
+	subsystem/alertengine/alertengine
 	subsystem/webFront/templates/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/smsd/Makefile
@@ -114,6 +111,7 @@ AC_OUTPUT(Makefile
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/ipdevinfo/Makefile
+	subsystem/useradmin/Makefile
 	subsystem/netmap/Makefile)
 
 echo

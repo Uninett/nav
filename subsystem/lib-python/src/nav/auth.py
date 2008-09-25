@@ -96,6 +96,8 @@ def cachePrivileges(account):
 
     groups = account.getChildren(navprofiles.Accountingroup)
     groupIds = [int(group.group) for group in groups]
+
+    # FIMXE these are no longer needed due to db insert trigger
     # Make sure the user is always considered a member of the
     # Anonymous group.
     if ANONYMOUSGROUP not in groupIds: groupIds.append(ANONYMOUSGROUP)

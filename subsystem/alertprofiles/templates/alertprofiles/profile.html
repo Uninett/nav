@@ -1,0 +1,65 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block tabcontent %}
+<form action="{% url alertprofiles-profile-remove %}" method="post">
+<table class="listtable">
+    <caption>
+        Profiles
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>
+            {% ifequal order_by "name" %}
+                <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
+                Name</a>
+                <span class="sort">&darr;</span>
+            {% else %}
+                <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
+                Name</a>
+                {% ifequal order_by "-name" %}
+                    <span class="sort">&uarr;</span>
+                {% endifequal %}
+            {% endifequal %}
+            </th>
+            <th>
+                Active
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for profile in profiles %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
+            <td><a href="{% url alertprofiles-profile-detail profile.id %}">
+                {{ profile.name }}</a></td>
+            <td>
+            {% ifequal profile.id active_profile.id %}
+                Active
+            </td>
+            <td>
+                <button type="submit" name="deactivate" value="{{ profile.id }}">
+                    Click to deactivate
+                </button>
+            {% else %}
+                Inactive
+            </td>
+            <td>
+                <button type="submit" name="activate" value="{{ profile.id }}">
+                    Click to activate
+                </button>
+            {% endifequal %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p>
+    <button type="submit" name="remove">Remove selected</button>
+</p>
+</form>
+
+{% endblock %}
