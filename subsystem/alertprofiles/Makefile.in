@@ -46,17 +46,16 @@ WEBNAME = alertprofiles
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/alertprofiles/*.py)
-CONFFILES = periodtemplates/README periodtemplates/one_period.conf periodtemplates/three_periods.conf periodtemplates/five_periods.conf
+LIBS = $(wildcard nav/django/urls/alertprofiles.py nav/web/alertprofiles/*.py)
+CONFFILES_SRC = $(wildcard config/*/*)
+CONFFILES = $(CONFFILES_SRC:config/%=%)
 TOOLS = alertprofiles.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
 DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
-STYLE_SRC = $(wildcard style/*)
-STYLE = $(STYLE_SRC:style/%=%)
-JAVASCRIPT_SRC = $(wildcard js/*)
-JAVASCRIPT = $(JAVASCRIPT_SRC:js/%=%)
+MEDIA_SRC = $(wildcard media/*/*)
+MEDIA = $(MEDIA_SRC:media/%=%)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
@@ -81,7 +80,7 @@ install-bin: bin
 
 install-conf: conf
 	@for file in $(CONFFILES); do \
-		target=$(DESTDIR)$(sysconfdir)/alertprofiles/$$file; \
+		target=$(DESTDIR)$(sysconfdir)/$$file; \
 		if [ -f "$$target" ]; then \
 			echo "Skipping installation of config file $$file"; \
 		else \
@@ -91,9 +90,8 @@ install-conf: conf
 
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	for file in $(STYLE); do $(INSTALL) -v -D -m 644 style/$$file $(DESTDIR)$(webroot)/style/$$file || exit 1; done
-	for file in $(JAVASCRIPT); do $(INSTALL) -v -D -m 644 js/$$file $(DESTDIR)$(webroot)/js/$$file || exit 1; done
 	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
+	for file in $(MEDIA); do $(INSTALL) -v -D -m 644 media/$$file $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
@@ -101,6 +99,7 @@ uninstall:
 	for file in $(DJANGO_TEMPLATES); do rm -rf $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
 	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
 	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
+	for file in $(MEDIA); do rm -rf $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 clean:
 	find -name *.pyc -print0 | xargs -0 rm -f
