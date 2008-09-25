@@ -217,6 +217,13 @@ class Netbox(models.Model):
         except NetboxInfo.DoesNotExist:
             return None
 
+    def get_filtered_prefix(self):
+        if self.prefix.vlan.net_type.description in (
+            'scope', 'private', 'reserved'):
+            return None
+        else:
+            return self.prefix
+
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
