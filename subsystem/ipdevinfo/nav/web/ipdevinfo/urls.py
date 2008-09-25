@@ -45,12 +45,6 @@ urlpatterns = patterns('',
     url(r'^service/matrix/$', service_matrix,
         name='ipdevinfo-service-matrix'),
 
-    # RRD viewer
-    url(r'^rrd/ds=(?P<rrddatasource_id>\d+)/$', rrd_details,
-        name='ipdevinfo-rrd-by-ds'),
-    url(r'^rrd/image/(?P<rrdfile_id>\d+)$', rrd_image,
-        name='ipdevinfo-rrd-image'),
-
     # IP Device details
     url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
