@@ -1,0 +1,38 @@
+{% extends "useradmin/base.html" %}
+
+{% block content %}
+    <table class="listtable">
+        <caption>
+            Account List<br />
+            <span class="subtitle">
+                {{ account_list|length}} accounts
+            </span>
+        </caption>
+        <thead>
+            <tr>
+                <th>Login</th>
+                <th>Name</th>
+                <th>External</th>
+                <th># of groups</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in account_list %}
+                <tr class="{% cycle oddrow,evenrow %}">
+                    <td><a href="{% url useradmin-account_detail account.id %}">{{ account.login }}</a></td>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.ext_sync|default_if_none:"" }}</td>
+                    <td>{{ account.accountgroup_set.all|length }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="4">{{ account_list|length}} accounts</th>
+            <tr>
+        </tfoot>
+    </table>
+    <p>
+        <a href="{% url useradmin-account_new %}">Create new account</a>
+    </p>
+{% endblock %}
