@@ -15,6 +15,7 @@ webroot = @webroot@
 initdir = @initdir@
 localstatedir = @localstatedir@
 tooldir = @tooldir@
+datarootdir = @datarootdir@
 docdir = @docdir@
 crondir = @crondir@
 
