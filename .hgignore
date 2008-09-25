@@ -23,7 +23,6 @@ src/getBoksMacs/getBoksMacs.sh
 src/getDeviceData/getDeviceData
 src/getDeviceData/getDeviceData.sh
 src/networkDiscovery/networkDiscovery.sh
-subsystem/alertEngine/alertengine
 subsystem/lib-python/src/nav/buildconf.py
 subsystem/smsd/smsd
 subsystem/snmptrapd/snmptrapd

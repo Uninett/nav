@@ -10,29 +10,33 @@ sysconfdir = @sysconfdir@
 
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
-tooldir = @tooldir@
-
-tools = useradmin.tool
+djangotmpldir = ${libdir}/templates
 
 top_srcdir = @top_srcdir@
+
+DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
+DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
 
 config = contact-information.txt  nav-links.conf  welcome-anonymous.txt external-links.txt webfront.conf welcome-registered.txt
 
 .PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
 all: config/webfront.conf
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
 
 config/webfront.conf: config/webfront.conf.source
 	$(top_srcdir)/tools/expand.pl config/webfront.conf.source > config/webfront.conf
 
 install: install-lib install-bin install-web install-conf
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
 
 install-lib:
 	@cd lib; \
 	for file in nav/web/*.py; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)/$(pythonlibdir)/$$file || exit 1; \
+	done
+	for file in $(DJANGO_TEMPLATES); do \
+	  $(INSTALL) -v -D -m 644 templates/$$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; \
 	done
 
 install-bin:
@@ -46,9 +50,6 @@ install-web: install-images
 	installable=`find . -name '*.py' -or -name '.htaccess' -or -name '*.html' -or -name '*.css' -or -name '*.js'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
-	done
-	for file in $(tools); do \
-	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; \
 	done
 
 install-images:
@@ -73,8 +74,8 @@ clean:
 	@backups=`find lib bin src -name '*~'`; \
 	rm -f $$backups
 	rm -f *~
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
 
 distclean: clean
 	rm -f Makefile
-	$(MAKE) -C templates $@
+	$(MAKE) -C lib/nav/web/templates $@
