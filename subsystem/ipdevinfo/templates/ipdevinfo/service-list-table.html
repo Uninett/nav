@@ -44,7 +44,7 @@
             {{ service.get_up_display|capfirst }}</td>
     {% if show_ipdev_info %}
         <td><a href="{{ service.netbox.get_absolute_url }}">
-            {{ service.netbox.sysname }}</a></td>
+            {{ service.netbox.get_short_sysname }}</a></td>
     {% endif %}
         <td><a href="{% url ipdevinfo-service-list-handler service.handler %}">
             {{ service.handler }}</a></td>
