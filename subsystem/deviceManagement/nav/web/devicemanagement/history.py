@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
-# Copyright 2007 UNINETT AS
+# Copyright 2007-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -22,7 +22,8 @@
 #
 #
 # Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
-#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+#          Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 """
 History page with helper classes of Device Management
@@ -46,6 +47,19 @@ from nav.web.devicemanagement import db as dtTables
 from nav.web.devicemanagement.deviceevent import DeviceEvent
 from nav.web.devicemanagement.page import Page
 from nav.web.devicemanagement.widget import Widget
+
+from nav.web.quickselect import QuickSelect
+
+
+quickselect_kwargs = {
+    'button': 'View %s history',
+    'module': True,
+    'netbox_multiple': False,
+    'module_multiple': False,
+    'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
+}
+
+DeviceQuickSelect = QuickSelect(**quickselect_kwargs)
 
 ### Functions
 
@@ -74,7 +88,7 @@ def history(req,deviceorderid=None):
     if row['exists']:
         date_options['startyear'] = row['min'].year
 
-    # Get filter values
+    # Get filter values for start time
     if (form.has_key('startday') and form['startday'].isdigit()
         and form.has_key('startmonth') and form['startmonth'].isdigit()
         and form.has_key('startyear') and form['startyear'].isdigit()):
@@ -93,6 +107,7 @@ def history(req,deviceorderid=None):
                            str(weekago.day)]
         startTime = weekago
 
+    # endtime
     if (form.has_key('endday') and form['endday'].isdigit()
         and form.has_key('endmonth') and form['endmonth'].isdigit()
         and form.has_key('endyear') and form['endyear'].isdigit()):
@@ -111,6 +126,7 @@ def history(req,deviceorderid=None):
                          str(now.day)]
         endTime = now
 
+    # types
     if form.has_key('type') and form['type'] != 'All':
         type_value = form['type']
     else:
@@ -142,53 +158,19 @@ def history(req,deviceorderid=None):
         type_options['options'].append(('grp', eventtype, eventtype, optgroup))
 
     # Create filter form widgets
-    page.widgets['filter_startdate'] = Widget(['startday', 'startmonth', 'startyear'],
-                                              'date',
+    page.widgets['filter_startdate'] = Widget(['startday', 'startmonth', 'startyear'], 'date',
                                               name='Start date',
                                               value=startdate_value,
                                               options=date_options)
-    page.widgets['filter_enddate'] = Widget(['endday', 'endmonth', 'endyear'],
-                                            'date',
+    page.widgets['filter_enddate'] = Widget(['endday', 'endmonth', 'endyear'], 'date',
                                             name='End date',
                                             value=enddate_value,
                                             options=date_options)
-    page.widgets['filter_eventtype'] = Widget('type',
-                                              'selectoptgroup',
+    page.widgets['filter_eventtype'] = Widget('type', 'selectoptgroup',
                                               name='Type',
                                               options=type_options)
     page.widgets['filter_submit'] = Widget('history', 'submit', 'Filter')
 
-    # Add data from treeselect to hidden fields in the filter form
-    page.filterform = {}
-
-    if form.has_key('location'):
-        page.filterform['location'] = form['location']
-    else:
-        page.filterform['location'] = ''
-
-    if form.has_key('room'):
-        page.filterform['room'] = form['room']
-    else:
-        page.filterform['room'] = ''
-
-    if form.has_key('box'):
-        page.filterform['box'] = form['box']
-    else:
-        page.filterform['box'] = ''
-
-    if form.has_key('module'):
-        page.filterform['module'] = form['module']
-    else:
-        page.filterform['module'] = ''
-
-    # FIXME: Vidar, what are these links supposed to point to?
-    #submenu = [('Browse devices','Browse or search for devices',
-    #            BASEPATH),
-    #           ('Show active devices','Show all devices in operation',
-    #            BASEPATH),
-    #           ('Show devices with registered errors',
-    #            'Show all devices with registered errors',
-    #            BASEPATH)]
     submenu = []
     if deviceorderid:
         submenu.append(('Order history','Go back to order history',
@@ -200,34 +182,28 @@ def history(req,deviceorderid=None):
 
     page.action = ''
     page.subname = ''
+    page.filterform = {}
 
     showHistory = False
-    if form.has_key('history'):
-        # History mode
-        historyType = None
-        if form.has_key(CN_MODULE):
-            historyType = CN_MODULE
-        elif form.has_key(CN_BOX):
-            historyType = CN_BOX
-        elif form.has_key(CN_ROOM):
-            historyType = CN_ROOM
-        elif form.has_key(CN_LOCATION):
-            historyType = CN_LOCATION
-        elif form.has_key(CN_DEVICE):
-            historyType = CN_DEVICE
-        if historyType:
-            showHistory = True
-            unitList = form[historyType]
-            if not type(unitList) is list:
-                unitList = [unitList]
-            page.boxList = makeHistory(form, historyType, unitList,
-                                       startTime, endTime, eventtype_filter,
-                                       alerttype_filter)
-            page.searchbox = None
+
+    historyType = None
+    unitList = []
+    for key, value in DeviceQuickSelect.handle_post(req).iteritems():
+        if value:
+            historyType = key
+            unitList = value
+
+            page.boxList = makeHistory(form, historyType, unitList, startTime,
+                                       endTime, eventtype_filter, alerttype_filter)
+
+            page.filterform[key] = value
+
             page.subname = 'history'
-        else:
-            page.errors.append('No unit selected')
-    elif deviceorderid:
+            showHistory = True
+
+            break
+
+    if deviceorderid:
         sql = "SELECT deviceid FROM device WHERE " +\
               "deviceorderid='%s'" % (deviceorderid,)
         result = executeSQL(sql,fetch=True)
@@ -239,24 +215,14 @@ def history(req,deviceorderid=None):
             page.boxList = makeHistory(form, historyType, unitList,
                                        startTime, endTime, eventtype_filter,
                                        alerttype_filter)
-            page.searchbox = None
             page.subname = 'history'
         else:
             page.errors.append('Could not find any devices for this order')
 
     if not showHistory:
-        # Browse mode, make treeselect
-        page.searchbox,page.treeselect = makeTreeSelect(req,serialSearch=True)
-        page.formname = page.treeselect.formName
-
-        #validSubmit = False
-        #if form.has_key(CN_LOCATION):
-        #    # If a location has been selected, allow submit
-        #    validSubmit = True
-
-        page.submit = {'control': 'history',
-                       'value': 'View history',
-                       'enabled': True}
+        page.quickselect = DeviceQuickSelect
+    else:
+        page.quickselect = ''
 
     nameSpace = {'page': page}
     template = deviceManagementTemplate(searchList=[nameSpace])
@@ -405,7 +371,7 @@ class LocationHistoryBox(HistoryBox):
 class RoomHistoryBox(HistoryBox):
     def __init__(self, roomid, startTime, endTime, eventtypes, alerttypes):
         room = nav.db.manage.Room(roomid)
-        self.title = str(roomid) + ' (' + room.descr + ')'
+        self.title = str(roomid) + ' (' + str(room.descr) + ')'
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
