@@ -109,6 +109,9 @@ a.navbar:active {
 em {
 	font-style: italic;
 }
+img {
+	vertical-align: middle;
+}
 
 .error {
 	color: red;

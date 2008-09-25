@@ -1,0 +1,67 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<form action="" method="post">
+<table class="listtable">
+{{ filter_form }}
+</table>
+</form>
+
+<table class="listtable">
+    <caption>
+        Fisk
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Condition</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    
+    <tbody>
+    {% for e in expresions %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>{{ e.match_field }}</td>
+            <td>{{ e.get_operator_display }}</td>
+            <td>{{ e.value }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<form action="{% url alertprofiles-filters-addexpresion %}" method="post">
+<table class="listtable">
+    <caption>
+        Add expresion<br />
+        <span class="subtitle">Choose one type to add</span>
+    </caption>
+    
+    <thead>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for m in matchfields %}
+        <tr>
+            <td><input type="radio" name="matchfield" id="matchfieldid_{{ m.id }}" value="{{ m.id }}" /></td>
+            <td><label for="matchfieldid_{{ m.id }}">{{ m.name }}</label></td>
+            <td>{{ m.description }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div>
+    <input type="hidden" name="filter" value="{{ filter_id }}" />
+    <button type="submit">New expresion</button>
+</div>
+</form>
+
+{% endblock %}

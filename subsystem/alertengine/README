@@ -1,0 +1,19 @@
+What is this?
+=============
+FIXME
+
+What does it do?
+================
+FIXME
+
+Usage
+=====
+For more help on usage, run ``alertengine.py --help'' and see the
+alertengine.conf config file.
+
+Development
+===========
+All modules and functions are documented with pydoc, and the code is commented
+where required.
+
+-- Stein Magnus Jodal <stein.magnus.jodal@uninett.no>, 2007-06-20

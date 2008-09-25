@@ -52,8 +52,10 @@ $displaySectionBoxes($history)
 #end def
 
 #def additionalMeta
+#if not $prefs
 ## Refresh every 30 seconds
 <meta http-equiv="refresh" content="30" />
+#end if
 #end def
 
 #def additionalCSS
@@ -68,7 +70,6 @@ th.sortedBy#descending:after {content: url("/images/status/pilopp.png")}
 tr.title    { vertical-align: baseline; font-size: 15; background-color: #ddddff;}
 </style>
 $default_table_CSS()
-$default_form_CSS()
 #end def
 
 ## This function show the select bar (type=boxes|services|?,days=1-?)
@@ -238,12 +239,13 @@ $default_form_CSS()
 
 ## This renders the preferences page
 #def displayPrefs($prefsPage)
+
 ## move this from template to StatusPrefs.py
 <p>Add, delete or rearrange sections on your status page.</p>
 
 <form action="$prefsPage.formAction" method="post">
 
-<table class="header-inactive">
+<table class="vertitable">
 <tr>
     <th style="width: 10px;">&nbsp;</th><th>Name</th><th>Filter</th>
 </tr>
@@ -297,10 +299,10 @@ $displayEditSectionBox($editSection,$prefsPage.radioButtonName)
 
 #def displayEditSectionBox($editSectionBox,$radioButtonName)
 <tr>
-    <td class=header-active><input type="radio" name="$radioButtonName" value="$editSectionBox.controlBaseName"></td>
-    <td class=header-active>$editSectionBox.name<br><input type="text" value="$editSectionBox.title" name="$editSectionBox.controlBaseName"></td>
-    <td class=header-active>
-        <table class=header-active cellpadding=5%>
+    <td><input type="radio" name="$radioButtonName" value="$editSectionBox.controlBaseName"></td>
+    <td>$editSectionBox.name<br><input type="text" value="$editSectionBox.title" name="$editSectionBox.controlBaseName"></td>
+    <td>
+        <table cellpadding=5%>
             <tr>
 #for $heading in $editSectionBox.filterHeadings
                 <th>$heading</th>

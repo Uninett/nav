@@ -145,7 +145,7 @@ class AlertQueue(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.AutoField(db_column='alertqid', primary_key=True)
+    id = models.IntegerField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
@@ -158,6 +158,7 @@ class AlertQueue(models.Model):
         default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
+    closed = models.BooleanField()
 
     class Meta:
         db_table = 'alertq'
@@ -291,14 +292,3 @@ class AlertHistoryVariable(models.Model):
 
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
-
-class AlertEngine(models.Model):
-    """From MetaNAV: Used by alert engine to keep track of processed alerts."""
-
-    last_alert_queue_id = models.IntegerField(db_column='lastalertqueueid')
-
-    class Meta:
-        db_table = 'alertengine'
-
-    def __unicode__(self):
-        return u'%d' % self.last_alert_queue_id

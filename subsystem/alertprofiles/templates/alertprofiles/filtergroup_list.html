@@ -1,0 +1,24 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Filter groups
+{% endblock %}
+
+{% block theadcols %}
+    <th></th>
+    <th>Name</th>
+    <th>Owner</th>
+    <th>Description</th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for filter in object_list %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input name="filtergroup[]" value="{{ filter.id }}" type="checkbox" /></td>
+            <td><a href="{% url alertprofiles-filtergroups-detail filter.id %}">
+                {{ filter.name }}</a></td>
+            <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
+            <td>{{ filter.description }}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}

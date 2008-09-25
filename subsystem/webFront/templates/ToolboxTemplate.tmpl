@@ -1,0 +1,74 @@
+#encoding UTF-8
+## $Id$
+##  
+## Copyright 2003, 2004 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Magnar Sveen <magnars@idi.ntnu.no>
+##
+
+##
+## Extends the MainTemplate for header-information, nav-logo and
+## navigation-bar.
+##
+## Builds html for the Toolbox with data in this form:
+##
+## $tools                              :: array of tools
+##   +-- name                          :: name of the tool
+##   +-- uri                           :: location of the tool
+##   +-- icon                          :: uri to the tools' icon
+##   +-- description                   :: explanation of the tools purpose or function
+##
+## The template uses images in $imagefolder/toolbox/, where $imagefolder
+## is inherited from MainTemplate and defaults to "/images".
+##
+
+#extends MainTemplate
+
+#attr $boxesPerRow = 3
+
+#block content
+
+<table class="toolbox toolbox3cols">
+#set $rowplace = 0
+#for $tool in $tools
+    #set $rowplace = $rowplace + 1
+    #if $rowplace == 1
+    <tr>
+    #end if
+        <td>
+<h2><a href="$tool.uri"><img src="$tool.icon" alt="" /></a>
+<a href="$tool.uri">$tool.name</a></h2>
+<p>$tool.description</p>
+        </td>
+    #if $rowplace == $boxesPerRow
+    </tr>
+    #set $rowplace = 0
+    #end if
+#end for
+
+#if $rowplace != 0 and $rowplace != $boxesPerRow
+    #for i in range($boxesPerRow - $rowplace)
+        <td></td>
+    #end for
+    </tr>
+#end if
+</table>
+
+#end block content
