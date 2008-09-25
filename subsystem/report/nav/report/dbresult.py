@@ -47,44 +47,23 @@ class DatabaseResult:
         self.sums = {}
         self.error = ""
 
-        connection = db.getConnection('webfront','manage')
+        connection = db.getConnection('default')
 
         database = connection.cursor()
 
         self.sql = reportConfig.makeSQL()
         sql = reportConfig.orig_sql
         self.originalSQL = sql
+
+        ## Make a dictionary of which columns to summarize
         self.sums = dict([(sum_key, '') for sum_key in reportConfig.sum])
 
         try:
             database.execute(self.sql)
             self.result = database.fetchall()
 
-            ## total count of the rows returned
-            totalSQL = reportConfig.makeTotalSQL()
-            database.execute(totalSQL)
-            self.rowcount = database.rowcount
-
-            ## handling of the "sum" option
-            if self.sums:
-                sumsql = reportConfig.makeSumSQL()
-                database.execute(sumsql)
-                sums = database.fetchone()
-
-                if sums:
-                    # Converting float to int, tuple to list
-                    sums_list = []
-                    for sum in sums:
-                        if sum != None:
-                            sums_list.append(int(sum))
-
-                    sums = sums_list
-
-                    ## coherce the results from the databasequery to the field-labels
-                    if sums:
-                        for sum in reportConfig.sum:
-                            self.sums[sum] = sums[reportConfig.sum.index(sum)]
-
+            ## Total count of the rows returned - no need for SQL query.
+            self.rowcount = len(self.result)
 
         except psycopg.ProgrammingError,p:
             #raise ProblemExistBetweenKeyboardAndChairException
