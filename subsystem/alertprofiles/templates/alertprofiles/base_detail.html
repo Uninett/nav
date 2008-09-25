@@ -1,0 +1,92 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<h3>
+{% block headercontent %}
+    {% if detail_id %}
+        Filter details
+    {% else %}
+        New filter
+    {% endif %}
+{% endblock %}
+</h3>
+<form action="{% block url_edit %}{% endblock %}" method="post">
+<table class="vertitable">
+    <tbody>
+        {{ form }}
+        {% block form_additional_fields %}
+        {% endblock %}
+        {% if owner %}
+        <tr>
+            <th></th>
+            <td>
+                <button type="submit">
+                {% block buttoncontent %}
+                {% if detail_id %}
+                    Save changes
+                {% else %}
+                    Save new
+                {% endif %}
+                {% endblock %}
+                </button>
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+</form>
+
+{% if detail_id %}
+
+{% block filter_content %}
+
+<div class="expressionstable">
+    {% block expressions %}
+    <form action="{% block url_remove_expression %}{% endblock %}" method="post">
+        <table class="listtable">
+            <caption>
+            {% block expressions_caption_content %}
+            {% endblock %}
+            </caption>
+
+            <thead>
+                <tr>
+                {% block expressions_thead_cols %}
+                {% endblock %}
+                </tr>
+            </thead>
+
+            <tbody>
+            {% block expressions_tbody_content %}
+            {% endblock %}
+            </tbody>
+        </table>
+
+        {% if owner%}
+            {% block expressions_extra_fields %}
+            <p>
+                <input type="hidden" name="id" value="{{ detail_id }}" />
+                <button type="submit">Delete selected</button>
+            </p>
+            {% endblock %}
+        {% endif %}
+    </form>
+    {% endblock expressions %}
+</div>
+
+<div class="addexpressionform">
+    <form action="{% block url_add_expression %}{% endblock %}" method="post">
+    {% block addexpression %}
+        <p>
+            <input type="hidden" name="id" value="{{ detail_id }}" />
+            <button type="submit">Add</button>
+        </p>
+    {% endblock addexpression %}
+    </form>
+</div>
+
+{% endblock filter_content %}
+
+{% endif %}
+
+{% endblock %}

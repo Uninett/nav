@@ -24,7 +24,6 @@
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 from django.conf import settings
 

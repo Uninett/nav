@@ -18,7 +18,7 @@ public class ResourceHandler extends Thread {
     private HashMap allocated_resources;
 
     public ResourceHandler() {
-        this.allocated_resources = new HashMap();
+        allocated_resources = new HashMap();
 
         // We trust all certificates
         TrustManager[] trustAllCerts = new TrustManager[]{
@@ -93,8 +93,8 @@ public class ResourceHandler extends Thread {
     public prefuse.data.Graph getGraphFromURL(URL url) throws DataIOException {
 
         // First see if we have the graph in our cache
-        if (this.allocated_resources.containsKey(url.toString())) {
-            return (prefuse.data.Graph) this.allocated_resources.get(url);
+        if (allocated_resources.containsKey(url.toString())) {
+            return (prefuse.data.Graph) allocated_resources.get(url);
         }
 
         HttpURLConnection conn;
@@ -121,7 +121,7 @@ public class ResourceHandler extends Thread {
             throw e;
         }
 
-        this.allocated_resources.put(url.toString(), ret);
+        allocated_resources.put(url.toString(), ret);
 
         return ret;
     }

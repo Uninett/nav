@@ -1,0 +1,56 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+
+<h3>Account details</h3>
+<table class="vertitable">
+    <tbody>
+        <tr class="oddrow">
+            <th>Groups you are member of</th>
+            <td>
+                <ul>
+                {% for group in groups %}
+                    <li>{{ group.name }}<br />{{ group.description }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr class="evenrow">
+            <th>Alerts you have permissions to recieve</th>
+            <td>
+                <ul>
+                {% for filtergroup in filter_groups %}
+                    <li>{{ filtergroup.name }}<br />{{ filtergroup.description }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr class="oddrow">
+            <th>Alert by sms</th>
+            <td>
+                <img src="/images/lys/{{ sms_privilege|yesno:"green,red" }}.png" />
+                You <em>{{ sms_privilege|yesno:",do not" }}</em> have
+                permissions to be alerted by SMS.
+            </td>
+        </tr>
+        <tr class="evenrow">
+            <th>Language</th>
+            <td>
+                <form action="{% url alertprofiles-language-save %}" method="post">
+                    {{ language_form.value }}
+                    {{ language_form.property }}
+                    <button type="submit">Save changes</button>
+                </form>
+            </td>
+    </tbody>
+</table>
+
+{% if active_profile %}
+    <h3>Active profile: 
+    <a href="{% url alertprofiles-profile-detail active_profile.id %}">
+    {{ active_profile.name }}</a></h3>
+    {% include "alertprofiles/timeperiods.html" %}
+{% endif %}
+
+{% endblock %}
+

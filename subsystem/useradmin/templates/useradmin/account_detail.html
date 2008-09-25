@@ -1,0 +1,98 @@
+{% extends "useradmin/base.html" %}
+
+{% block extra_tab_account %}
+    {% if account %}
+        <li class="tabactive">
+            <a href="{% url useradmin-account_detail account.id %}">Account Details</a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if account %}
+        <h3>Editing account "{{ account.name }}" (#{{ account.id }})</h3>
+    {% else %}
+        <h3>Create new account</h3>
+    {% endif %}
+    {% if account_form %}
+        <form action="." method="post">
+            <table class="vertitable">
+                {% if account.ext_sync %}
+                    <tr>
+                        <th>Login</th>
+                        <td>{{ account.login }}</td>
+                    </tr>
+                {% endif %}
+                {{ account_form }}
+                <tr>
+                    <th>External</th>
+                    <td>{{ account.ext_sync|default:"None" }}</td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Submit changes" name="submit_account" /></td>
+                </tr>
+            </table>
+        </form>
+    {% endif %}
+    {% if account %}
+        {% if not account.is_system_account %}
+            <p>
+                <a href="{% url useradmin-account_delete account.id %}">
+                    Delete account
+                </a>
+            </p>
+        {% endif %}
+
+        <h3>Organizations</h3>
+        {% if account.organizations.all %}
+            <ul>
+                {% for org in account.organizations.all %}
+                    <li>
+                        {{ org }}
+                        - [<a href="{% url useradmin-account_organization_remove account.id,org.id %}">Remove</a>]
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Not member of any organizations.</p>
+        {% endif %}
+
+        {% if org_form %}
+            <form action="." method="post">
+                {{ org_form.organization.errors }}
+                <p>
+                    {{ org_form.organization }}
+                    <input type="submit" value="Add to organization" name="submit_org" />
+                </p>
+            </form>
+        {% endif %}
+
+        <h3>Group memberships</h3>
+        {% if account.accountgroup_set.all %}
+            <ul>
+                {% for group in account.accountgroup_set.all %}
+                    <li>
+                        <a href="{% url useradmin-group_detail group.id %}">{{ group }}</a>
+                        - {{ group.description }}
+                        {% if not group.is_protected_group %}
+                            [<a href="{% url useradmin-account_group_remove account.id,group.id %}">Remove</a>]
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Not member of any groups.</p>
+        {% endif %}
+
+        {% if group_form %}
+            <form action="." method="post">
+                {{ group_form.group.errors }}
+                <p>
+                    {{ group_form.group }}
+                    <input type="submit" value="Add to group" name="submit_group" />
+                </p>
+            </form>
+        {% endif %}
+    {% endif %}
+{% endblock %}

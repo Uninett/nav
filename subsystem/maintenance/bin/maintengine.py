@@ -2,7 +2,7 @@
 # -*- coding: ISO-8859-1 -*-
 #
 # Copyright 2003-2005 Norwegian University of Science and Technology
-# Copyright 2006 UNINETT AS
+# Copyright 2006, 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -31,7 +31,7 @@ This program dispatches maintenance events according to the maintenance
 schedule in NAVdb.
 """
 
-__copyright__ = "Copyright 2003-2005 NTNU, 2006 UNINETT AS"
+__copyright__ = "Copyright 2003-2005 NTNU, 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Bjørn Ove Grøtan (bjorn.grotan@itea.ntnu.no), Sigurd Gartmann (sigurd-nav@brogar.org), Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
@@ -279,7 +279,7 @@ def remove_forgotten():
     # This SQL retrieves a list of boxes that are supposed to be on
     # maintenance, according to the schedule.
     sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
-        FROM maint m INNER JOIN netbox n ON (n.netboxid = m.value)
+        FROM maint m INNER JOIN netbox n ON (n.netboxid::text = m.value)
         WHERE m.key = 'netbox' AND m.state = 'active'
 
         UNION
@@ -300,7 +300,7 @@ def remove_forgotten():
         SELECT n.netboxid, n.deviceid, n.sysname, m.value AS subid
         FROM maint m INNER JOIN netbox n ON (n.netboxid IN
             (SELECT netboxid FROM service WHERE
-                serviceid LIKE m.value))
+                serviceid::text LIKE m.value))
         WHERE m.key = 'service' AND m.state = 'active'"""
 
     # The full SQL is a set operation to select all boxes that are

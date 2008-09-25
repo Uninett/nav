@@ -10,12 +10,10 @@ sysconfdir = @sysconfdir@
 
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
-tooldir = @tooldir@
 
 top_srcdir = @top_srcdir@
 
 config = ipinfo.conf
-tool = ipinfo.tool
 
 .PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
@@ -36,7 +34,6 @@ install-bin:
 install-web:
 	$(INSTALL) -v -D -m 644 .htaccess \
 	  $(DESTDIR)$(webroot)/ipinfo/.htaccess
-	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
 install-conf:
 	@for file in $(config); do                             \

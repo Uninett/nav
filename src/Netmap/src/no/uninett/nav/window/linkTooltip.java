@@ -28,12 +28,12 @@ public class linkTooltip extends JPanel {
 		String capacity, String load){
 		initComponents();
 
-		this.capacityValue.setText(capacity);
-		this.interfacesValue.setText(interfaces);
-		this.linkValue.setText(link);
-		this.loadValue.setText(load);
-		this.netidentValue.setText(netident);
-		this.nettypeValue.setText(nettype);
+		capacityValue.setText(capacity);
+		interfacesValue.setText(interfaces);
+		linkValue.setText(link);
+		loadValue.setText(load);
+		netidentValue.setText(netident);
+		nettypeValue.setText(nettype);
 	}
 
 	private void initComponents() {

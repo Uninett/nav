@@ -94,7 +94,7 @@ class EventQ:
     _getConnection = classmethod(_getConnection)
 
     def allocateId(cls):
-        sql = "SELECT NEXTVAL('public.eventq_eventqid_seq')"
+        sql = "SELECT NEXTVAL('eventq_eventqid_seq')"
         conn = cls._getConnection()
         cursor = conn.cursor()
         cursor.execute(sql)

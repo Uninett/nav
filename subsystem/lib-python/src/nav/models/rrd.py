@@ -52,6 +52,9 @@ class RrdFile(models.Model):
     def __unicode__(self):
         return u'%s/%s' % (self.path, self.filename)
 
+    def get_file_path(self):
+        return u'%s/%s' % (self.path, self.filename)
+
 class RrdDataSource(models.Model):
     """From MetaNAV: An rrd_file consists of a set of data sources defined in
     this table. A data source is a data set, i.e. outOctets for a given switch

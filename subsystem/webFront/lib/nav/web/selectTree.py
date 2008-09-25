@@ -247,8 +247,7 @@ class simpleSelect:
             if orderBy:
                 sql += 'ORDER BY ' + orderBy + ' '
 
-            # Execute sql query (replace editdb with treeSelect user)
-            connection = nav.db.getConnection('editdb','manage')
+            connection = nav.db.getConnection('default','manage')
             database = connection.cursor()
             database.execute(sql)
             result = database.fetchall()
@@ -412,8 +411,7 @@ class updateSelect(simpleSelect):
             if orderBy:
                 sql += 'ORDER BY ' + orderBy + ' '
 
-            # Execute sql query (replace editdb with treeSelect user)
-            connection = nav.db.getConnection('editdb','manage')
+            connection = nav.db.getConnection('default','manage')
             database = connection.cursor()
             database.execute(sql)
             result = database.fetchall()

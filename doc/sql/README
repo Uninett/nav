@@ -1,49 +1,75 @@
 What?
 =====
-This directory contains SQL scripts to create the initial NAV databases.
+This directory contains shell and SQL scripts to create the NAV
+database and fill it with initial data.
 
 
 Files
 =====
-manage.sql       - Creates the manage database
+
+createdb.sh      - Creates the nav user and nav database and the four
+                   namespaces manage, profiles, logger and arnold.
+                   Runs all the other needed SQL scripts listed below.
+
+manage.sql       - Creates tables in the manage namespace.
 types.sql        - Initializes the equipment vendor and type tables of the
-                   manage database
-snmpoid.sql      - Initializes the SNMP OID registry of the manage database
-logger.sql       - Creates the navlog database
-navprofiles.sql  - Creates the navprofiles database
-arnold.sql       - Creates the arnold database
+                   manage namespace.
+snmpoid.sql      - Initializes the SNMP OID registry of the manage namespace.
+logger.sql       - Creates tables in the logger namespace.
+navprofiles.sql  - Creates tables in the profiles namespace.
+arnold.sql       - Creates tables in arnold namespace.
+
+indexes.sql      - Creates auxiliary indexes for all namespaces in the nav
+                   database.
+
+mergedb.sh       - Merges the four NAV databases from NAV 3.4 into a single
+                   database, as required by an upgrade to NAV 3.5.
 
 
-How to create the databases from scratch
-========================================
-This section assumes your PostgreSQL server is configured to directly
-identify the local unix account postgres as the postgres database user
-(with the "ident sameuser" directive in pg_hba.conf).  su from root to
-the postgres account before performing these commands.
+How to create the database from scratch
+=======================================
+Use the createdb.sh script.  For a quick usage intro, run:
 
-First, create a database user for NAV, and choose a password for it:
+  ./createdb.sh -h
 
-  createuser --no-createdb --no-adduser --pwprompt nav
+The most common usage scenario is with a local PostgreSQL database,
+where the local postgres shell account is authenticated automatically
+(ident sameuser) by PostgreSQL.  In this scenario, all you need to do
+is:
 
-Now, create the databases:
+  sudo -u postgres ./createdb.sh
 
-  createdb --owner nav --encoding UTF-8 manage
-  createdb --owner nav --encoding UTF-8 navprofiles
-  createdb --owner nav --encoding UTF-8 logger
-  createdb --owner nav --encoding UTF-8 arnold
-  createlang plpgsql manage
-  createlang plpgsql navprofiles
+Usage details
+-------------
+If run without parameters, createdb.sh will create a database user
+called 'nav', and a database called 'nav' owned by that user.  You
+will be prompted to choose a password for this user, which you will
+also need to configure in db.conf.  If you do not want to be prompted
+for the password, it can be specified using the -p option on the
+command line.
 
-Then, finally, initialize the databases.  These scripts are run as the
-nav user you created above, so you will be prompted for the password
-you chose.
+You can specify a different name for the database user with the -u
+option, and a different name for the database with the -d option.
 
-  psql -f manage.sql manage nav
-  psql -f types.sql manage nav
-  psql -f snmpoid.sql manage nav
-  psql -f navprofiles.sql navprofiles nav
-  psql -f logger.sql logger nav
-  psql -f arnold.sql arnold nav
+Specify the -U option to tell createdb.sh that the user already
+exists, and the -D option to tell it that the database already exists.
 
-Please be aware that on some installations, the PostgreSQL superuser
-might not be named postgres.
+
+If no PostgreSQL environment variables are set, the script assumes it
+is being run as the postgres superuser, and that the PostgreSQL
+database is on the localhost.  This will only work if your PostgreSQL
+database is configured with "ident sameuser" for local connections in
+pg_hba.conf.
+
+If your pg_hba.conf doesn't specify "ident sameuser" authentication
+for local connections, you must set the environment variable
+PGPASSWORD to the password of the postgres superuser.  If you are not
+logged in as the postgres unix user, or you wish to authenticate as a
+different superuser, you must also set the PGUSER environment
+variable.
+
+If you want to create and initialize the database on a remote host,
+you can set the environment variable PGHOST to name this host.  Also
+set PGPORT if the remote PostgreSQL is listening to another port than
+the default 5432.  The PostgreSQL command line client utilities must
+be available on the localhost.

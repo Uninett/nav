@@ -33,7 +33,6 @@ Generally, a phone number is a user and vice versa.
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 import logging
 import nav.db

@@ -20,7 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+#          Thomas Adamcik <thomas.adamcik@uninett.no>
 #
 
 """
@@ -29,7 +30,7 @@ mod_python handler for Maintenance subsystem.
 
 __copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no), Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id:$"
 
 import time
@@ -42,7 +43,7 @@ from nav.web.templates.MaintenanceCalTemplate import MaintenanceCalTemplate
 from nav.web.templates.MaintenanceDetailsTemplate import MaintenanceDetailsTemplate
 from nav.web.templates.MaintenanceListTemplate import MaintenanceListTemplate
 from nav.web.templates.MaintenanceNewTemplate import MaintenanceNewTemplate
-from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
+from nav.web.quickselect import QuickSelect
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -115,100 +116,7 @@ def handler(req):
         page.errors = []
         page.components = []
 
-
-        # Create select tree
-        selectbox = TreeSelect()
-
-        sr = {"locations": [], "rooms": [], "netboxes": [], "services": []}
-        if req.form.has_key('sb_submit'):
-            sr = searchbox.getResults(req)
-
-        select1 = Select('cn_location',
-                        'Location',
-                        multiple = True,
-                        multipleSize = 10,
-                        initTable='Location',
-                        initTextColumn = 'descr',
-                        initIdColumn = 'locationid',
-                        preSelected = sr['locations'],
-                        optionFormat = '$v ($d)',
-                        optgroupFormat = '$v ($d)',
-                        orderByValue = True)
-
-        select2 = UpdateableSelect(select1,
-                                   'cn_room',
-                                   'Room',
-                                   'Room',
-                                   'descr',
-                                   'roomid',
-                                   'locationid',
-                                   multiple = True,
-                                   multipleSize = 10,
-                                   preSelected = sr['rooms'],
-                                   optionFormat = '$v ($d)',
-                                   optgroupFormat = '$v ($d)',
-                                   orderByValue = True)
-
-        select3 = UpdateableSelect(select2,
-                                   'cn_netbox',
-                                   'IP Device',
-                                   'Netbox',
-                                   'sysname',
-                                   'netboxid',
-                                   'roomid',
-                                   multiple = True,
-                                   multipleSize = 10,
-                                   optgroupFormat = '$v ($d)',
-                                   preSelected = sr['netboxes'])
-
-        select4 = UpdateableSelect(select3,
-                                   'cn_service',
-                                   'Service',
-                                   'Service',
-                                   'handler',
-                                   'serviceid',
-                                   'netboxid',
-                                   multiple = True,
-                                   multipleSize = 10,
-                                   optgroupFormat = '$d',
-                                   preSelected = sr['services'])
-
-        selectbox.addSelect(select1)
-        selectbox.addSelect(select2)
-        selectbox.addSelect(select3)
-        selectbox.addSelect(select4)
-
-        # Update the selectboxes based on form data
-        selectbox.update(req.form)
-        page.selectbox = selectbox
-
-        # Update component submit button
-        buttontext = "Add to task"
-        buttonkey = "cn_add"
-        buttonenabled = False
-        if len(select4.selectedList):
-            validSelect = True
-            buttontext = "Add service(s) to task"
-            buttonkey = "cn_add_services"
-            buttonenabled = True
-        elif len(select3.selectedList):
-            validSelect = True
-            buttontext = "Add IP device(s) to task"
-            buttonkey = "cn_add_netboxes"
-            buttonenabled = True
-        elif len(select2.selectedList):
-            validSelect = True
-            buttontext = "Add room(s) to task"
-            buttonkey = "cn_add_rooms"
-            buttonenabled = True
-        elif len(select1.selectedList):
-            validSelect = True
-            buttontext = "Add location(s) to task"
-            buttonkey = "cn_add_locations"
-            buttonenabled = True
-        page.selectsubmit = { 'control': buttonkey,
-                              'value': buttontext,
-                              'enabled': buttonenabled }
+        page.quickselect = QuickSelect(service=True)
 
         # Edit: Fill page with existing data
         if section == 'edit':
@@ -259,45 +167,13 @@ def handler(req):
             components = page.components
 
         # Handle added components
-        for field in req.form.list:
-            if (req.form.has_key('cn_add_services')
-             and field.name == 'cn_service'
-             or field.name == 'service'):
-                key = 'service'
-                value = field.value
+        for key,values in page.quickselect.handle_post(req).iteritems():
+            for v in values:
                 component = {
-                    'key': key, 'value': value,
-                    'info': nav.maintenance.getComponentInfo(key, value)}
-                if components.count(component) == 0:
-                    components.append(component)
-            elif ((req.form.has_key('cn_add_netboxes')
-             and field.name == 'cn_netbox')
-             or field.name == 'netbox'):
-             # 'cn_netbox' passed through POST (e.g. from Maintenance)
-             # 'netbox' passed through GET (e.g. from IP Device Center)
-                key = 'netbox'
-                value = field.value
-                component = {
-                    'key': key, 'value': value,
-                    'info': nav.maintenance.getComponentInfo(key, value)}
-                if components.count(component) == 0:
-                    components.append(component)
-            elif (req.form.has_key('cn_add_rooms')
-             and field.name == 'cn_room'):
-                key = 'room'
-                value = field.value
-                component = {
-                    'key': key, 'value': value,
-                    'info': nav.maintenance.getComponentInfo(key, value)}
-                if components.count(component) == 0:
-                    components.append(component)
-            elif (req.form.has_key('cn_add_locations')
-             and field.name == 'cn_location'):
-                key = 'location'
-                value = field.value
-                component = {
-                    'key': key, 'value': value,
-                    'info': nav.maintenance.getComponentInfo(key, value)}
+                    'key': key,
+                    'value': v,
+                    'info': nav.maintenance.getComponentInfo(key, v),
+                }
                 if components.count(component) == 0:
                     components.append(component)
 

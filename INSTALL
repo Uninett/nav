@@ -23,7 +23,6 @@ To run NAV, these software packages are required:
 
  * Apache2
  * mod_python
- * mod_php >= 4
  * Cricket
  * PostgreSQL >= 8.0
  * rrdtool
@@ -32,11 +31,6 @@ To run NAV, these software packages are required:
  * Java 2 SDK >= 1.5.0
  * Perl >= 5.6.0
  * Python >= 2.4.0
- 
-The following PHP extensions are required:
-
- * php-gd
- * php-pgsql
 
 The following Perl modules are required:
 
@@ -51,7 +45,7 @@ The following Java librares are required:
 
 The following python modules are required:
 
- * django (>= svn7534)
+ * django (>= 1.0)
  * egenix-mxdatetime
  * forgethtml
  * forgetsql

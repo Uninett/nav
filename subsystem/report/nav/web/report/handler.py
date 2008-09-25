@@ -41,9 +41,13 @@ import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 from django.core.cache import cache
 
+from IPy import IP
 from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
 from nav.report.generator import Generator, ReportList
+from nav.report.matrixIPv4 import MatrixIPv4
+from nav.report.matrixIPv6 import MatrixIPv6
+from nav.report.metaIP import MetaIP
 from nav.web import redirect
 from nav.web import state
 from nav.web.URI import URI
@@ -86,13 +90,6 @@ def handler(req):
 
     match = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
     
-    # FIXME: just to avoid noise in the apache log I check for a match, and if
-    # not set it to the start page of report tool. The error appearing
-    # in the logs when accessing reports: 
-    #   AttributeError: 'NoneType' object has no attribute 'group'
-    # The weird thing is that the 'if match' is true all the time. So 'match'
-    # IS a Match object and doesn't have a 'None'-value. I just don't
-    # understand what raises the error referred to in the logs...
     if match:
         reportName = match.group(1)
     else:
@@ -164,16 +161,10 @@ def handler(req):
             tree = buildTree(scope)
 
             if scope.version() == 6:
-                # Must do import local because of the insane startup cost of
-                # importing which slows every run of handler down drastically.
-                from nav.report.matrixIPv6 import MatrixIPv6
                 end_net = getMaxLeaf(tree)
                 matrix = MatrixIPv6(scope,end_net=end_net)
 
             elif scope.version() == 4:
-                # Must do import local because of the insane startup cost of
-                # importing which slows every run of handler down drastically.
-                from nav.report.matrixIPv4 import MatrixIPv4
                 end_net = None
 
                 if scope.prefixlen() < 24:
@@ -188,6 +179,9 @@ def handler(req):
             else:
                 raise UnknownNetworkTypeException, "version: " + str(scope.version())
             req.write(matrix.getTemplateResponse())
+            
+            # Invalidating the MetaIP cache to get rid of processed data.
+            MetaIP.invalidateCache()
 
     elif reportName == "reportlist":
         page = ReportListTemplate()
@@ -229,8 +223,6 @@ def handler(req):
                 del nuri.args[key]
 
         uri_strip = nuri.make()
-
-
 
         if cache.get('report') and cache.get('report')[0] == uri_strip:
             dbresult_cache = cache.get('report')[6]
