@@ -63,6 +63,19 @@ CREATE TABLE Account (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE account_id_seq OWNED BY account.id;
 
+-- Trigger that ensures that users are a part of the groups everyone and authenticated users
+CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
+        BEGIN
+                IF NEW.id >= 1000 THEN
+                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 2);
+                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 3);
+                END IF; RETURN NULL;
+        END;
+$group_membership$ LANGUAGE plpgsql;
+
+CREATE TRIGGER group_membership AFTER INSERT ON account
+        FOR EACH ROW EXECUTE PROCEDURE group_membership();
+
 
 /*
 -- 2 ACCOUNTGROUP
@@ -645,13 +658,13 @@ server.
 CREATE SEQUENCE accountorg_id_seq;
 CREATE TABLE AccountOrg (
        id integer NOT NULL DEFAULT nextval('accountorg_id_seq'),
-       accountid integer NOT NULL,
-       orgid varchar(30) NOT NULL,
+       account_id integer NOT NULL,
+       organization_id varchar(30) NOT NULL,
 
        CONSTRAINT accountorg_pkey PRIMARY KEY(id),
-       CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid),
+       CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id),
        CONSTRAINT accountorg_accountid_fkey
-                  FOREIGN KEY(accountid) REFERENCES Account(id)
+                  FOREIGN KEY(account_id) REFERENCES Account(id)
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
@@ -738,7 +751,7 @@ CREATE VIEW PrivilegeByGroup AS (
 -- Accounts and Accountgroups
 
 INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', 'Full access to everything');
-INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
+INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Everyone', 'Unauthenticated and authenticated users');
 INSERT INTO AccountGroup (id, name, descr) VALUES (3, 'Authenticated users', 'Any authenticated user (logged in)');
 
 -- Some default example groups
@@ -748,8 +761,10 @@ INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS al
 INSERT INTO Account (id, login, name, password) VALUES (0, 'default', 'Default User', '');
 INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', '{sha1}s3F6XX/D$L3vU8Rs2bTJ4zArBLVIPbh7cN9Q=');
 
-INSERT INTO alertpreference (accountid) VALUES (1);
-INSERT INTO alertpreference (accountid) VALUES (0);
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); -- add admin to Administrators
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
 
 -- Default preference rows are now inserted, so we create the trigger
 -- on the account table
@@ -759,8 +774,8 @@ CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCE
 
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (1, 0, 'Preferences', '/preferences');
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/toolbox');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/index');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/index/userinfo');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/userinfo/');
 
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
@@ -777,7 +792,6 @@ INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 4, 'na
 -- INSERT INTO Privilege VALUES (1, 'empty_privilege');
 INSERT INTO Privilege VALUES (2, 'web_access');
 INSERT INTO Privilege VALUES (3, 'alert_by');
-INSERT INTO Privilege VALUES (4, 'report_access');
 
 /*
   Set some default web_access privileges
@@ -809,7 +823,7 @@ INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber');
 
 
 -- Matchfields
-/*
+/* 
 Matchfield.Datatype
 	string:  0
 	integer: 1

@@ -33,11 +33,13 @@ import os
 import sys
 import traceback
 from datetime import datetime
+import md5
 
 from django.db import models
 from django.db.models import Q
 
 import nav.path
+import nav.pwhash
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
 from nav.config import getconfig as get_alertengine_config
@@ -73,13 +75,19 @@ _ = lambda a: a
 class Account(models.Model):
     ''' NAV's basic account model'''
 
+    DEFAULT_ACCOUNT = 0
+    ADMIN_ACCOUNT = 1
+
     login = models.CharField(unique=True)
     name = models.CharField()
     password = models.CharField()
     ext_sync = models.CharField()
 
+    organizations = models.ManyToManyField(Organization, db_table='accountorg')
+
     class Meta:
         db_table = u'account'
+        ordering = ('login',)
 
     def __unicode__(self):
         return self.login
@@ -95,8 +103,68 @@ class Account(models.Model):
         account = OldAccount.loadByLogin(str(self.login))
         return hasPrivilege(account, action, target)
 
+    def is_system_account(self):
+        return self.id < 1000
+
+    def is_default_account(self):
+        return self.id == self.DEFAULT_ACCOUNT
+
+    def is_admin_account(self):
+        return self.id == self.ADMIN_ACCOUNT
+
+    def set_password(self, password):
+        '''Sets user password. Copied from nav.db.navprofiles'''
+        if len(password.strip()):
+            hash = nav.pwhash.Hash(password=password)
+            self.password = str(hash)
+        else:
+            self.password = ''
+
+    def check_password(self, password):
+        """
+        Return True if the submitted authentication tokens are valid
+        for this Account.  In simpler terms; when password
+        authentication is used, this method compares the given
+        password with the one stored for this account and returns true
+        if they are equal.  If the stored password is blank, we
+        interpret this as: 'The user is not allowed to log in'
+
+        In the future, this could be extended to accept other types of
+        authentication tokens, such as personal certificates or
+        whatever.
+
+        Copied from nav.db.navprofiles
+        """
+        if len(self.password.strip()) > 0:
+            stored_hash = nav.pwhash.Hash()
+            try:
+                stored_hash.set_hash(self.password)
+            except nav.pwhash.InvalidHashStringError:
+                # Probably an old style NAV password hash, get out
+                # of here and check it the old way
+                pass
+            else:
+                return stored_hash.verify(password)
+
+            # If the stored password looks like an old-style NAV MD5
+            # hash we compute the MD5 hash of the supplied password
+            # for comparison.
+            if self.password[:3] == 'md5':
+                hash = md5.md5(password)
+                return (hash.hexdigest() == self.password[3:])
+            else:
+                return (password == self.password)
+        else:
+            return False
+
 class AccountGroup(models.Model):
     '''NAV account groups'''
+
+    # FIXME other places in code that use similiar definitions should switch to
+    # using this one.
+    ADMIN_GROUP = 1
+    EVERYONE_GROUP = 2
+    AUTHENTICATED_GROUP = 3
 
     name = models.CharField()
     description = models.CharField(db_column='descr')
@@ -104,9 +172,19 @@ class AccountGroup(models.Model):
 
     class Meta:
         db_table = u'accountgroup'
+        ordering = ('name',)
 
     def __unicode__(self):
         return self.name
+
+    def is_system_group(self):
+        return self.id < 1000
+
+    def is_protected_group(self):
+        return self.id in [self.EVERYONE_GROUP, self.AUTHENTICATED_GROUP]
+
+    def is_admin_group(self):
+        return self.id == self.ADMIN_GROUP
 
 class AccountProperty(models.Model):
     '''Key-value for account settings'''
@@ -121,15 +199,27 @@ class AccountProperty(models.Model):
     def __unicode__(self):
         return '%s=%s' % (self.property, self.value)
 
-class AccountOrganization(models.Model):
-    account = models.ForeignKey('Account', db_column='accountid')
-    organization = models.CharField(max_length=30)
+class Privilege(models.Model):
+    group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
+    type = models.ForeignKey('PrivilegeType', db_column='privilegeid')
+    target = models.CharField()
 
     class Meta:
-        db_table = u'accountorg'
+        db_table = u'accountgroupprivilege'
 
     def __unicode__(self):
-        return self.orgid
+        return '%s for %s' % (self.type, self.target)
+
+
+class PrivilegeType(models.Model):
+    id = models.AutoField(db_column='privilegeid', primary_key=True)
+    name = models.CharField(max_length=30, db_column='privilegename')
+
+    class Meta:
+        db_table = u'privilege'
+
+    def __unicode__(self):
+        return self.name
 
 class AlertAddress(models.Model):
     '''Accounts alert addresses, valid types are retrived from alertengine.conf'''

@@ -111,6 +111,7 @@ AC_OUTPUT(Makefile
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/ipdevinfo/Makefile
+	subsystem/useradmin/Makefile
 	subsystem/netmap/Makefile)
 
 echo

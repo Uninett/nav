@@ -166,6 +166,9 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
+ALTER TABLE accountorg RENAME orgid TO organization_id;
+ALTER TABLE accountorg RENAME accountid TO account_id;
+
 -- Rename sequences so they match with the new english table names
 -- NOTE Internally a sequence has a column named 'sequence_name' which keeps
 -- the name of the sequence. This value will not be changed when renaming
@@ -217,7 +220,13 @@ CREATE SEQUENCE profiles.accountorg_id_seq;
 ALTER TABLE accountorg ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('accountorg_id_seq')
 	CONSTRAINT accountorg_pkey PRIMARY KEY;
-ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid);
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id);
+ALTER TABLE accountorg DROP CONSTRAINT account_exists;
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_fkey
+	FOREIGN KEY(account_id) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
 
 CREATE SEQUENCE profiles.accountproperty_id_seq;
 ALTER TABLE accountproperty ADD COLUMN id integer NOT NULL
@@ -414,15 +423,8 @@ ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_fkey
 	FOREIGN KEY(accountid) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-
 ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_navbarlinkid_fkey
 	FOREIGN KEY(navbarlinkid) REFERENCES navbarlink(id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
-
-ALTER TABLE accountorg DROP CONSTRAINT account_exists;
-ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_fkey
-	FOREIGN KEY(accountid) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
@@ -432,7 +434,6 @@ ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_accountgr
 	FOREIGN KEY (accountgroupid) REFERENCES accountgroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-
 ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilegeid_fkey
 	FOREIGN KEY (privilegeid) REFERENCES privilege
 	ON DELETE CASCADE
@@ -460,3 +461,32 @@ CREATE VIEW profiles.accountingroup AS (
     FROM
         accountgroup_accounts
 );
+
+
+-- report_access is not used by any systems so time to purge it from the db.
+DELETE FROM privilege WHERE privilegename = 'report_access';
+
+-- Ensure that users are part of everyone and authenticated groups
+CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
+        BEGIN
+                IF NEW.id >= 1000 THEN
+                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 2);
+                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 3);
+                END IF; RETURN NULL;
+        END;
+$group_membership$ LANGUAGE plpgsql;
+
+CREATE TRIGGER group_membership AFTER INSERT ON account
+        FOR EACH ROW EXECUTE PROCEDURE group_membership();
+
+-- Add all users to "Everyone" and "Authenticated users" 
+INSERT INTO accountgroup_accounts SELECT account.id, 2 FROM account WHERE account.id >= 1000 AND account.id NOT IN (SELECT account.id FROM accountgroup_accounts WHERE accountgroup_id = 2);
+INSERT INTO accountgroup_accounts SELECT account.id, 3 FROM account WHERE account.id >= 1000 AND account.id NOT IN (SELECT account.id FROM accountgroup_accounts WHERE accountgroup_id = 3);
+
+INSERT INTO accountgroup_accounts VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated users
+
+-- Update navbar links
+UPDATE navbarlink SET uri = '/userinfo/' WHERE uri = '/index/userinfo';
+UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';

@@ -270,7 +270,7 @@ table.toolbox4cols tr td {
 }
 
 /* Messages */
-.messages, .errorlist {
+.messages {
 	font-size: 1.2em;
 	font-weight: bold;
 }
