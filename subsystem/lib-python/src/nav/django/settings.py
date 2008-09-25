@@ -40,7 +40,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # Admins
 ADMINS = (
-    ('NAV Administrator', readConfig('nav.conf')['ADMIN_MAIL']),
+    ('NAV Administrator', nav_config['ADMIN_MAIL']),
 )
 MANAGERS = ADMINS
 
@@ -72,3 +72,4 @@ TIME_FORMAT = 'H:i:s'
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 
 TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
+DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)

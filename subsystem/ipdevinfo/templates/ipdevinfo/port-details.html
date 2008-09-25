@@ -3,25 +3,21 @@
 {% block content %}
 
 <table class="vertitable">
-    <caption>Interface {{ port.interface }}
-    at {{ port.module.netbox.sysname }}</caption>
+    <caption>Interface {{ port.interface }}<br />
+    at {{ port.module.netbox.get_short_sysname }}</caption>
     <tr>
         <th>At IP device</th>
         <td><a href="{{ port.module.netbox.get_absolute_url }}">
             {{ port.module.netbox }}</a></td>
     </tr>
     <tr>
-        <th>At module</th>
-        <td><a href="{{ port.module.get_absolute_url }}">
-            Module {{ port.module.module_number }}</a></td>
-    </tr>
-    <tr>
         <th>Interface</th>
         <td>{{ port.interface }}</td>
     </tr>
     <tr>
-        <th>IfIndex</th>
-        <td>{{ port.ifindex }}</td>
+        <th>At module</th>
+        <td><a href="{{ port.module.get_absolute_url }}">
+            Module {{ port.module.module_number }}</a></td>
     </tr>
 {% ifequal port_type 'swport' %}
     <tr>
@@ -32,6 +28,10 @@
     <tr>
         <th>Port name</th>
         <td>{{ port.port_name }}</td>
+    </tr>
+    <tr>
+        <th>IfIndex</th>
+        <td>{{ port.ifindex }}</td>
     </tr>
     <tr>
         <th>Link</th>
@@ -118,18 +118,16 @@
     <tr>
         <th>Last CAM record</th>
         <td>
-            {% with port.get_active_time.days as days_ago %}
-                {% if days_ago %}
-                    {% ifequal days_ago 0 %}
-                        Today
-                    {% else %}
-                        {{ days_ago }} day{{ days_ago|pluralize }} ago
-                    {% endifequal %}
+            {% if time_since_last_cam %}
+                {% ifequal time_since_last_cam.days 0 %}
+                    Today
                 {% else %}
-                    More than {{ port.CAM_ACTIVITY_NUM_DAYS_TO_SEARCH }}
-                    days ago
-                {% endif %}
-            {% endwith %}
+                    {{ time_since_last_cam.days }}
+                    day{{ time_since_last_cam.days|pluralize }} ago
+                {% endifequal %}
+            {% else %}
+                More than {{ time_since_last_cam_max.days }} days ago
+            {% endif %}
         </td>
     </tr>
     <tr>
