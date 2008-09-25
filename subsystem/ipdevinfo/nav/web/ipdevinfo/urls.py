@@ -24,7 +24,6 @@
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 from django.conf.urls.defaults import *
 
@@ -45,6 +44,12 @@ urlpatterns = patterns('',
     # Service matrix
     url(r'^service/matrix/$', service_matrix,
         name='ipdevinfo-service-matrix'),
+
+    # RRD viewer
+    url(r'^rrd/ds=(?P<rrddatasource_id>\d+)/$', rrd_details,
+        name='ipdevinfo-rrd-by-ds'),
+    url(r'^rrd/image/(?P<rrdfile_id>\d+)$', rrd_image,
+        name='ipdevinfo-rrd-image'),
 
     # IP Device details
     url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
