@@ -44,7 +44,7 @@ from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
 
 ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
-TIME_PERIOD_TEMPLATES_DIR = CONFIGDIR + 'periodtemplates/'
+TIME_PERIOD_TEMPLATES_DIR = CONFIGDIR + 'alertprofiles/'
 
 def account_owns_filters(account, *filters):
     """Checks if account have access to edit/remove filters and/or filter groups."""
