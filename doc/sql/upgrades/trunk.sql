@@ -490,3 +490,7 @@ INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated us
 -- Update navbar links
 UPDATE navbarlink SET uri = '/userinfo/' WHERE uri = '/index/userinfo';
 UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';
+
+-- Allow authenticated users to visit ipdevinfo
+INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
+VALUES (3, 2, '^/ipdevinfo/?');

@@ -28,7 +28,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from datetime import datetime
+import datetime as dt
 
 from django.db import models
 
@@ -78,7 +78,7 @@ class EventQueue(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     subid = models.CharField(max_length=-1)
-    time = models.DateTimeField(default=datetime.now)
+    time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)
@@ -223,7 +223,7 @@ class AlertQueueVariable(models.Model):
 
 class AlertHistory(models.Model):
     """From MetaNAV: The alert history. Simular to the alert queue with one
-    important distinction; alert history stores statefull events as one row,
+    important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
@@ -244,6 +244,38 @@ class AlertHistory(models.Model):
 
     def __unicode__(self):
         return u'Source %s, severity %d' % (self.source, self.severity)
+
+    def is_stateful(self):
+        """Returns true if the alert is stateful."""
+
+        if self.end_time is None:
+            return False
+        else:
+            return True
+
+    def is_open(self):
+        """Returns true if stateful and open."""
+
+        if self.is_stateful() and self.end_time == dt.datetime.max:
+            return True
+        else:
+            return False
+
+    def get_downtime(self):
+        """Returns the difference between start_time and end_time, the current
+        downtime if the alert is still open, and None if the alert is
+        stateless."""
+
+        if self.is_stateful():
+            if self.is_open():
+                # Open alert
+                return (dt.datetime.now() - self.start_time)
+            else:
+                # Closed alert
+                return (self.end_time - self.start_time)
+        else:
+            # Stateless alert
+            return None
 
 class AlertHistoryMessage(models.Model):
     """From MetaNAV: To have a history of the formatted messages too, they are
