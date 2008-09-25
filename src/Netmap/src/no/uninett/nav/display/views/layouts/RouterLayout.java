@@ -14,6 +14,6 @@ public class RouterLayout extends ForceDirectedLayout {
     @Override
     protected float getMassValue(VisualItem vi) {
         Node n = (Node) vi;
-        return (float) 1+ (n.getDegree()*1.5f);
+        return 1+ (n.getDegree()*1.5f);
     }
 }

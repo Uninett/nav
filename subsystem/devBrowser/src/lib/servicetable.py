@@ -193,7 +193,7 @@ class ServiceTable:
                     row.append(stat)
 
             actionspan = html.Span()
-            editLink = urlbuilder.createLink(service, subsystem="editdb", content="[Edit]")
+            editLink = urlbuilder.createLink(service, subsystem="seeddb", content="[Edit]")
             actionspan.append(editLink)
             maintLink = urlbuilder.createLink(service,
                                               subsystem='maintenance',

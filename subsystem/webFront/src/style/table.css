@@ -34,6 +34,7 @@ table.listtable caption {
 	font-size: 1.2em;
 	font-weight: bolder;
 	padding: 0.3em 0.5em;
+	text-align: left;
 }
 table.vertitable caption span.subtitle,
 table.listtable caption span.subtitle {
@@ -57,11 +58,6 @@ table.vertitable {
 	border-spacing: 2px;
 	caption-side: top;
 	margin-bottom: 1em;
-}
-
-/* Table caption */
-table.vertitable caption {
-	text-align: left;
 }
 
 /* Table body */
@@ -91,11 +87,6 @@ table.listtable {
 	border-spacing: 2px;
 	caption-side: top;
 	margin-bottom: 1em;
-}
-
-/* Table caption */
-table.listtable caption {
-	text-align: center;
 }
 
 /* Table head */
@@ -131,7 +122,7 @@ table.listtable tr td {
 
 /* Table footer */
 table.listtable tbody.footer tr th, table.listtable tfoot tr th {
-	text-align: center;
+	text-align: left;
 }
 
 

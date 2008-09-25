@@ -29,15 +29,21 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no"
 __id__ = "$Id$"
 
 import logging
+import os
+import sys
+import traceback
 from datetime import datetime
-from smtplib import SMTPException
+import md5
 
 from django.db import models
 from django.db.models import Q
-from django.core.mail import EmailMessage
 
+import nav.path
+import nav.pwhash
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
+from nav.config import getconfig as get_alertengine_config
+from nav.alertengine.dispatchers import DispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -46,17 +52,19 @@ from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
 
 logger = logging.getLogger('nav.alertengine')
 
+configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
+
 # This should be the authorative source as to which models alertengine supports.
 # The acctuall mapping from alerts to data in these models is done the MatchField
 # model.
 SUPPORTED_MODELS = [
     # event models
-    AlertQueue, AlertType, EventType, # Subsystem,
+        AlertQueue, AlertType, EventType,
     # manage models
-    Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-    NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
-    Vendor, Vlan,
-    Usage, # Service
+        Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
+        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        Vendor, Vlan,
+        Usage,
 ]
 
 _ = lambda a: a
@@ -67,13 +75,19 @@ _ = lambda a: a
 class Account(models.Model):
     ''' NAV's basic account model'''
 
-    login = models.CharField(max_length=-1, unique=True)
-    name = models.CharField(max_length=-1)
-    password = models.CharField(max_length=-1)
-    ext_sync = models.CharField(max_length=-1)
+    DEFAULT_ACCOUNT = 0
+    ADMIN_ACCOUNT = 1
+
+    login = models.CharField(unique=True)
+    name = models.CharField()
+    password = models.CharField()
+    ext_sync = models.CharField()
+
+    organizations = models.ManyToManyField(Organization, db_table='accountorg')
 
     class Meta:
         db_table = u'account'
+        ordering = ('login',)
 
     def __unicode__(self):
         return self.login
@@ -83,31 +97,101 @@ class Account(models.Model):
         return self.alertpreference.active_profile
 
     def has_perm(self, action, target):
-        '''Checks user perisions'''
+        '''Checks user permissions by using legacy NAV hasPrivilege function'''
 
         # Simply wrap the hasPrivilege function of non-Django nav.
         account = OldAccount.loadByLogin(str(self.login))
         return hasPrivilege(account, action, target)
 
+    def is_system_account(self):
+        return self.id < 1000
+
+    def is_default_account(self):
+        return self.id == self.DEFAULT_ACCOUNT
+
+    def is_admin_account(self):
+        return self.id == self.ADMIN_ACCOUNT
+
+    def set_password(self, password):
+        '''Sets user password. Copied from nav.db.navprofiles'''
+        if len(password.strip()):
+            hash = nav.pwhash.Hash(password=password)
+            self.password = str(hash)
+        else:
+            self.password = ''
+
+    def check_password(self, password):
+        """
+        Return True if the submitted authentication tokens are valid
+        for this Account.  In simpler terms; when password
+        authentication is used, this method compares the given
+        password with the one stored for this account and returns true
+        if they are equal.  If the stored password is blank, we
+        interpret this as: 'The user is not allowed to log in'
+
+        In the future, this could be extended to accept other types of
+        authentication tokens, such as personal certificates or
+        whatever.
+
+        Copied from nav.db.navprofiles
+        """
+        if len(self.password.strip()) > 0:
+            stored_hash = nav.pwhash.Hash()
+            try:
+                stored_hash.set_hash(self.password)
+            except nav.pwhash.InvalidHashStringError:
+                # Probably an old style NAV password hash, get out
+                # of here and check it the old way
+                pass
+            else:
+                return stored_hash.verify(password)
+
+            # If the stored password looks like an old-style NAV MD5
+            # hash we compute the MD5 hash of the supplied password
+            # for comparison.
+            if self.password[:3] == 'md5':
+                hash = md5.md5(password)
+                return (hash.hexdigest() == self.password[3:])
+            else:
+                return (password == self.password)
+        else:
+            return False
+
 class AccountGroup(models.Model):
     '''NAV account groups'''
 
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1, db_column='descr')
+    # FIXME other places in code that use similiar definitions should switch to
+    # using this one.
+    ADMIN_GROUP = 1
+    EVERYONE_GROUP = 2
+    AUTHENTICATED_GROUP = 3
+
+    name = models.CharField()
+    description = models.CharField(db_column='descr')
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
 
     class Meta:
         db_table = u'accountgroup'
+        ordering = ('name',)
 
     def __unicode__(self):
         return self.name
+
+    def is_system_group(self):
+        return self.id < 1000
+
+    def is_protected_group(self):
+        return self.id in [self.EVERYONE_GROUP, self.AUTHENTICATED_GROUP]
+
+    def is_admin_group(self):
+        return self.id == self.ADMIN_GROUP
 
 class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
     account = models.ForeignKey('Account', db_column='accountid')
-    property = models.CharField(max_length=-1)
-    value = models.CharField(max_length=-1)
+    property = models.CharField()
+    value = models.CharField()
 
     class Meta:
         db_table = u'accountproperty'
@@ -115,92 +199,91 @@ class AccountProperty(models.Model):
     def __unicode__(self):
         return '%s=%s' % (self.property, self.value)
 
-class AccountOrganization(models.Model):
-    account = models.ForeignKey('Account', db_column='accountid')
-    organization = models.CharField(max_length=30)
+class Privilege(models.Model):
+    group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
+    type = models.ForeignKey('PrivilegeType', db_column='privilegeid')
+    target = models.CharField()
 
     class Meta:
-        db_table = u'accountorg'
+        db_table = u'accountgroupprivilege'
 
     def __unicode__(self):
-        return self.orgid
+        return '%s for %s' % (self.type, self.target)
+
+
+class PrivilegeType(models.Model):
+    id = models.AutoField(db_column='privilegeid', primary_key=True)
+    name = models.CharField(max_length=30, db_column='privilegename')
+
+    class Meta:
+        db_table = u'privilege'
+
+    def __unicode__(self):
+        return self.name
 
 class AlertAddress(models.Model):
-    '''FIXME'''
+    '''Accounts alert addresses, valid types are retrived from alertengine.conf'''
 
     DEBUG_MODE = False
 
-    SMS = 2
-    EMAIL = 1
-
-    ALARM_TYPE = (
-        (EMAIL, _('email')),
-        (SMS, _('SMS')),
-    )
-
     account = models.ForeignKey('Account', db_column='accountid')
-    type = models.IntegerField(choices=ALARM_TYPE)
-    address = models.CharField(max_length=-1)
+    type = models.ForeignKey('AlertSender', db_column='type')
+    address = models.CharField()
 
     class Meta:
         db_table = u'alertaddress'
 
     def __unicode__(self):
-        return '%s by %s' % (self.address, self.get_type_display())
+        return '%s by %s' % (self.address, self.type.name)
 
-    def send(self, alert, type=_('now')):
-        '''Handles sending of alerts to with defined alert notification types'''
+    def send(self, alert, type=_('now'), dispatcher={}):
+        '''Handles sending of alerts to with defined alert notification types
 
-        # TODO this should probably be converted to a plugin based system so
-        # that adding features like jabber notification won't be a problem.
-        # This would also imply moving the SMS and email functionality into
-        # other modules.
+           Return value should indicate if message was sent'''
 
+        # Determine the right language for the user.
         try:
             lang = self.account.accountproperty_set.get(property='language').value or 'en'
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
-        if self.type == self.EMAIL:
-            message = alert.messages.get(language=lang, type='email').message
+        try:
+            self.type.send(self, alert, language=lang, type=type)
+        except DispatcherException, e:
+            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            return False
 
-            # Extract the subject
-            subject = message.splitlines(1)[0].lstrip('Subject:').strip()
-            # Remove the subject line
-            message = '\n'.join(message.splitlines()[1:])
+        except Exception, e:
+            logger.critical('Unhandeled error from %s: %s' %
+                (self.type, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+            return False
 
-            headers = {
-                'X-NAV-alert-netbox': alert.netbox,
-                'X-NAV-alert-device': alert.device,
-                'X-NAV-alert-subsystem': alert.source,
-            }
+        return True
 
-            try:
-                if not self.DEBUG_MODE:
-                    email = EmailMessage(subject=subject, body=message, to=[self.address])
-                    email.send(fail_silently=False)
-                    logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, self.address, type))
-                else:
-                    logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, self.address, type))
+class AlertSender(models.Model):
+    name = models.CharField(max_length=100)
+    handler = models.CharField(max_length=100)
 
-            except SMTPException, e:
-                logger.error('alert %d: Sending email to %s failed: %s' % (alert.id, self.adress, e))
+    def __unicode__(self):
+        return self.name
 
-        elif self.type == self.SMS:
-            if self.account.has_perm('alerttype', 'sms'):
-                message = alert.messages.get(language=lang, type='sms').message
+    def send(self, *args, **kwargs):
+        if not hasattr(self, 'handler_instance'):
+            # Get config
+            if not hasattr(AlertSender, 'config'):
+                AlertSender.config = get_alertengine_config(os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
 
-                if not self.DEBUG_MODE:
-                    SMSQueue.objects.create(account=self.account, message=message, severity=alert.severity, phone=self.address)
-                    logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
-                else:
-                    logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, self.account, self.adress, type))
+            # Load module
+            module = __import__('nav.alertengine.dispatchers.%s_dispatcher' % self.handler, globals(), locals(), [self.handler])
 
-            else:
-                logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, self.account))
+            # Init module with config
+            self.handler_instance = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
 
-        else:
-            logger.error('account %s has an unknown alert adress type set: %d' % (self.account, self.type))
+        # Delegate sending of message
+        return self.handler_instance.send(*args, **kwargs)
+
+    class Meta:
+        db_table = 'alertsender'
 
 class AlertPreference(models.Model):
     '''AlertProfile account preferences'''
@@ -223,11 +306,30 @@ class AlertPreference(models.Model):
 class AlertProfile(models.Model):
     '''Account AlertProfiles'''
 
+    # Weekday numbers follows date.weekday(), not day.isoweekday().
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
+
+    VALID_WEEKDAYS = (
+        (MONDAY, _('monday')),
+        (TUESDAY, _('tuesday')),
+        (WEDNESDAY, _('wednesday')),
+        (THURSDAY, _('thursday')),
+        (FRIDAY, _('friday')),
+        (SATURDAY, _('saturday')),
+        (SUNDAY, _('sunday')),
+    )
+
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1)
-    daily_dispatch_time = models.TimeField()
-    weekly_dispatch_day = models.IntegerField()
-    weekly_dispatch_time = models.TimeField()
+    name = models.CharField()
+    daily_dispatch_time = models.TimeField(default='08:00')
+    weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS, default=MONDAY)
+    weekly_dispatch_time = models.TimeField(default='08:00')
 
     class Meta:
         db_table = u'alertprofile'
@@ -250,6 +352,7 @@ class AlertProfile(models.Model):
 
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
+        tp = None
         for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
             if not active_timeperiod or (tp.start <= now.time()):
                 active_timeperiod = tp
@@ -259,7 +362,7 @@ class AlertProfile(models.Model):
         return active_timeperiod or tp
 
 class TimePeriod(models.Model):
-    '''FIXME'''
+    '''Defines TimerPeriods and which part of the week they are valid'''
 
     ALL_WEEK = 1
     WEEKDAYS = 2
@@ -272,8 +375,8 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey('AlertProfile', db_column='alert_profile_id')
-    start = models.TimeField(db_column='start_time')
-    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES)
+    start = models.TimeField(db_column='start_time', default='08:00')
+    valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
 
     class Meta:
         db_table = u'timeperiod'
@@ -282,7 +385,7 @@ class TimePeriod(models.Model):
         return u'from %s for %s profile on %s' % (self.start, self.profile, self.get_valid_during_display())
 
 class AlertSubscription(models.Model):
-    '''FIXME'''
+    '''Links an address and timeperiod to a filtergroup with a given subscription type'''
 
     NOW = 0
     DAILY = 1
@@ -299,7 +402,7 @@ class AlertSubscription(models.Model):
     alert_address = models.ForeignKey('AlertAddress')
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
-    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES)
+    type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
     ignore_closed_alerts = models.BooleanField()
 
     class Meta:
@@ -308,32 +411,11 @@ class AlertSubscription(models.Model):
     def __unicode__(self):
         return 'alerts received %s should be sent %s to %s' % (self.time_period, self.get_type_display(), self.alert_address)
 
-    def handle_alert(self, alert):
-        '''Decides what to do with an alert based on subscription'''
-
-        if self.type == self.NOW:
-            # Delegate the sending to the alarm address that knows where this
-            # message should go.
-            self.alert_address.send(alert)
-
-        elif self.type in [self.DAILY, self.WEEKLY, self.NEXT]:
-            account = self.time_period.profile.account
-
-            obj, created = AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=self)
-
-            if created:
-                logger.info('alert %d: added to account alert queue for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
-            else:
-                logger.info('alert %d: allready in alert queue with same subscription for user %s, should be sent %s' % (alert.id, account, self.get_type_display()))
-
-        else:
-            logger.error('Alertsubscription %d has an invalid type %d' % (self.id, self.type))
-
 #######################################################################
 ### Equipment models
 
 class FilterGroupContent(models.Model):
-    '''FIXME'''
+    '''Defines how a given filter should be used in a filtergroup'''
 
     #            inc   pos
     # Add      |  1  |  1  | union in set theory
@@ -374,7 +456,7 @@ class FilterGroupContent(models.Model):
         return '%s filter on %s' % (type, self.filter)
 
 class Operator(models.Model):
-    '''FIXME'''
+    '''Defines valid operators for a given matchfield.'''
 
     EQUALS = 0
     GREATER = 1
@@ -459,16 +541,16 @@ class Operator(models.Model):
         return self.IP_OPERATOR_MAPPING[self.type]
 
 
-class Expresion(models.Model):
-    '''FIXME'''
+class Expression(models.Model):
+    '''Combines filer, operator, matchfield and value into an expression that can be evaluated'''
 
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.CharField(max_length=-1)
+    value = models.CharField()
 
     class Meta:
-        db_table = u'expresion'
+        db_table = u'expression'
 
     def __unicode__(self):
         return '%s match on %s against %s' % (self.get_operator_display(), self.match_field, self.value)
@@ -477,11 +559,13 @@ class Expresion(models.Model):
         return Operator(type=self.operator).get_operator_mapping()
 
 class Filter(models.Model):
-    '''FIXME'''
+    '''One or more expressions that are combined with an and operation.
 
-    id = models.IntegerField(primary_key=True)
+    Handles the actual construction of queries to be run taking into account
+    special cases like the IP datatype and WILDCARD lookups.'''
+
     owner = models.ForeignKey('Account')
-    name = models.CharField(max_length=-1)
+    name = models.CharField()
 
     class Meta:
         db_table = u'filter'
@@ -490,22 +574,30 @@ class Filter(models.Model):
         return self.name
 
     def check(self, alert):
+        '''Combines expressions to an ORM query that will tell us if an alert matched.
+
+        This function builds three dicts that are used in the ORM .filter()
+        .exclude() and .extra() methods which finally gets a .count() as we
+        only need to know if something matched.
+
+        Running alertengine in debug mode will print the dicts to the logs.'''
+
         filter = {}
         exclude = {}
         extra = {'where': [], 'params': []}
 
-        for expresion in self.expresion_set.all():
+        for expression in self.expression_set.all():
             # Handle IP datatypes:
-            if expresion.match_field.data_type == MatchField.IP:
+            if expression.match_field.data_type == MatchField.IP:
                 # Trick the ORM into joining the tables we want
-                lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
+                lookup = '%s__isnull' % expression.match_field.get_lookup_mapping()
                 filter[lookup] = False
 
-                where = Operator(type=expresion.operator).get_ip_operator_mapping()
+                where = Operator(type=expression.operator).get_ip_operator_mapping()
 
-                if expresion.operator in [Operator.IN, Operator.CONTAINS]:
-                    values = expresion.value.split('|')
-                    where = ' OR '.join([where % expresion.match_field.value_id] * len(values))
+                if expression.operator in [Operator.IN, Operator.CONTAINS]:
+                    values = expression.value.split('|')
+                    where = ' OR '.join([where % expression.match_field.value_id] * len(values))
 
                     extra['where'].append('(%s)' % where)
                     extra['params'].extend(values)
@@ -513,30 +605,30 @@ class Filter(models.Model):
                 else:
                     # Get the IP mapping and put in the field before adding it to
                     # our where clause.
-                    extra['where'].append(where % expresion.match_field.value_id)
-                    extra['params'].append(expresion.value)
+                    extra['where'].append(where % expression.match_field.value_id)
+                    extra['params'].append(expression.value)
 
             # Handle wildcard lookups which are not directly supported by
-            # django
-            elif expresion.operator == Operator.WILDCARD:
+            # django (as far as i know)
+            elif expression.operator == Operator.WILDCARD:
                 # Trick the ORM into joining the tables we want
-                lookup = '%s__isnull' % expresion.match_field.get_lookup_mapping()
+                lookup = '%s__isnull' % expression.match_field.get_lookup_mapping()
                 filter[lookup] = False
 
-                extra['where'].append('%s ILIKE %%s' % expresion.match_field.value_id)
-                extra['params'].append(expresion.value)
+                extra['where'].append('%s ILIKE %%s' % expression.match_field.value_id)
+                extra['params'].append(expression.value)
 
             # Handle the plain lookups that we can do directly in ORM
             else:
-                lookup = expresion.match_field.get_lookup_mapping() + expresion.get_operator_mapping()
+                lookup = expression.match_field.get_lookup_mapping() + expression.get_operator_mapping()
 
                 # Ensure that in and not equal are handeled correctly
-                if expresion.operator == Operator.IN:
-                    filter[lookup] = expresion.value.split('|')
-                elif expresion.operator == Operator.NOT_EQUAL:
-                    exclude[lookup] = expresion.value
+                if expression.operator == Operator.IN:
+                    filter[lookup] = expression.value.split('|')
+                elif expression.operator == Operator.NOT_EQUAL:
+                    exclude[lookup] = expression.value
                 else:
-                    filter[lookup] = expresion.value
+                    filter[lookup] = expression.value
 
         # Limit ourselves to our alert
         filter['id'] = alert.id
@@ -556,13 +648,13 @@ class Filter(models.Model):
         return False
 
 class FilterGroup(models.Model):
-    '''FIXME'''
+    '''A set of filters group contents that an account can subscribe to or be given permission to'''
 
     owner = models.ForeignKey('Account')
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1, db_column='descr')
+    name = models.CharField()
+    description = models.CharField()
 
-    group_permisions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permision')
+    group_permissions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permission')
 
     class Meta:
         db_table = u'filtergroup'
@@ -571,7 +663,7 @@ class FilterGroup(models.Model):
         return self.name
 
 class MatchField(models.Model):
-    '''FIXME'''
+    '''Defines which fields can be matched upon and how'''
 
     STRING = 0
     INTEGER = 1
@@ -649,7 +741,7 @@ class MatchField(models.Model):
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
         CATEGORY:     'netbox__category',
-        SUBCATEGORY:  'netbox__category__subcategory',
+        SUBCATEGORY:  'netbox__netboxcategory__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         GWPORT:       'netbox__connected_to_gwport',
@@ -674,12 +766,13 @@ class MatchField(models.Model):
 
     # Build the mapping we need to be able to do checks.
     VALUE_MAP = {}
-    CHOICES = [('', _('No references'))]
+    CHOICES = []
     MODEL_MAP = {}
 
     # This code loops over all the SUPPORTED_MODELS and gets the db_table and
     # db_column so that we can translate them into the correspinding attributes
-    # on our django models.
+    # on our django models. (field and model need to be set to None to avoid an
+    # ugly side effect of field becoming an acctuall field on MatchField)
     for model in SUPPORTED_MODELS:
         for field in model._meta.fields:
             key = '%s.%s' % (model._meta.db_table, field.db_column or field.attname)
@@ -688,17 +781,41 @@ class MatchField(models.Model):
             VALUE_MAP[key] = field.attname
             CHOICES.append((key, value.lstrip('_')))
             MODEL_MAP[key] = (model, field.attname)
+        field = None
+    model = None
 
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1, db_column='descr')
-    value_help = models.CharField(max_length=-1)
-    value_id = models.CharField(max_length=-1, choices=CHOICES)
-    value_name = models.CharField(max_length=-1, choices=CHOICES)
-    value_category = models.CharField(max_length=-1, choices=CHOICES)
-    value_sort = models.CharField(max_length=-1, choices=CHOICES)
-    list_limit = models.IntegerField()
-    data_type = models.IntegerField(choices=DATA_TYPES)
-    show_list = models.BooleanField()
+    name = models.CharField()
+    description = models.CharField(blank=True)
+    value_help = models.CharField(
+        blank=True,
+        help_text=_(u'Help text for the match field. Displayed by the value input box in the GUI to help users enter sane values.')
+    )
+    value_id = models.CharField(
+        choices=CHOICES,
+        help_text=_(u'The "match field". This is the actual database field alert engine will watch.')
+    )
+    value_name = models.CharField(
+        choices=CHOICES,
+        blank=True,
+        help_text=_(u'When "show list" is checked, the list will be populated with data from this column as well as the "value id" field. Does nothing else than provide a little more info for the users in the GUI.')
+    )
+    value_sort = models.CharField(
+        choices=CHOICES,
+        blank=True,
+        help_text=_(u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
+    )
+    list_limit = models.IntegerField(
+        blank=True,
+        help_text=_(u'Only this many options will be available in the list. Only does something when "Show list" is checked.')
+    )
+    data_type = models.IntegerField(
+        choices=DATA_TYPES,
+        help_text=_(u'The data type of the match field.')
+    )
+    show_list = models.BooleanField(
+        blank=True,
+        help_text=_(u'If unchecked values can be entered into a text input. If checked values must be selected from a list populated by data from the match field selected above.')
+    )
 
     class Meta:
         db_table = u'matchfield'
@@ -724,7 +841,7 @@ class MatchField(models.Model):
 ### AlertEngine models
 
 class SMSQueue(models.Model):
-    '''FIXME'''
+    '''Queue of messages that should be sent or have been sent by SMSd'''
 
     SENT = 'Y'
     NOT_SENT = 'N'
@@ -760,7 +877,7 @@ class SMSQueue(models.Model):
         return super(SMSQueue, self).save(*args, **kwargs)
 
 class AccountAlertQueue(models.Model):
-    '''FIXME'''
+    '''Defines which alerts should be keept around and sent at a later time'''
 
     account = models.ForeignKey('Account')
     subscription = models.ForeignKey('AlertSubscription')
@@ -771,15 +888,21 @@ class AccountAlertQueue(models.Model):
         db_table = u'accountalertqueue'
 
     def delete(self, *args, **kwargs):
-        # Remove the alert from the AlertQueue if we are the last item
-        # depending upon it.
-        if self.alert.accountalertqueue_set.count() <= 1:
-            self.alert.delete()
+        # TODO deleting items with the manager will not trigger this behaviour
+        # cleaning up related messages.
 
         super(AccountAlertQueue, self).delete(*args, **kwargs)
 
+        # Remove the alert from the AlertQueue if we are the last item
+        # depending upon it.
+        if self.alert.accountalertqueue_set.count() == 0:
+            self.alert.delete()
+
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
-        self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+        sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
 
-        self.delete()
+        if sent:
+            self.delete()
+
+        return sent

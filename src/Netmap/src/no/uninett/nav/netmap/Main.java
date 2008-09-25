@@ -26,12 +26,10 @@ import java.applet.AppletContext;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -42,20 +40,20 @@ import javax.swing.JOptionPane;
 import no.uninett.nav.display.views.MainView;
 import no.uninett.nav.netmap.resources.ResourceHandler;
 import prefuse.Visualization;
-import prefuse.data.event.TupleSetListener;
-import prefuse.data.tuple.TupleSet;
-import prefuse.data.Tuple;
 import prefuse.data.Graph;
+import prefuse.data.Tuple;
+import prefuse.data.event.TupleSetListener;
 import prefuse.data.io.DataIOException;
 import prefuse.data.search.PrefixSearchTupleSet;
 import prefuse.data.search.SearchTupleSet;
+import prefuse.data.tuple.TupleSet;
 import prefuse.util.ui.JPrefuseApplet;
 import prefuse.util.ui.JSearchPanel;
+import prefuse.visual.VisualItem;
 
 public class Main extends JPrefuseApplet {
 
     private static AppletContext appletContext;
-    private static ArrayList<JCheckBox> categoryCheckboxes;
     private static ArrayList<String> availableCategories;
     private static ArrayList<String> availableLinkTypes;
     private static String[] Layer3_LinkTypes = new String[] {"core","elink","link"};
@@ -75,6 +73,7 @@ public class Main extends JPrefuseApplet {
     private javax.swing.JCheckBoxMenuItem freezeCheckbox;
     private javax.swing.JButton increaseFontSizeButton;
     private javax.swing.JButton decreaseFontSizeButton;
+    private javax.swing.JButton saveLayoutButton;
     private javax.swing.JMenu categoryMenu;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenu freezeMenu;
@@ -88,7 +87,7 @@ public class Main extends JPrefuseApplet {
     public void init() {
         log.entering("Main", "init");
 
-        sessionID = this.getParameter("sessionid");
+        sessionID = getParameter("sessionid");
         if (sessionID == null || sessionID.equals("")) {
             JOptionPane.showMessageDialog(null, "ERROR: No sessionID found\n");
             return;
@@ -98,9 +97,9 @@ public class Main extends JPrefuseApplet {
          * Fetch the baseURL so we know where to get our files
          */
         try {
-            baseURL = new URL(this.getParameter("baseurl"));
+            baseURL = new URL(getParameter("baseurl"));
         } catch (MalformedURLException e) {
-            JOptionPane.showMessageDialog(null, "ERROR: baseurl (" + this.getParameter("baseurl") + ") not in valid format\n" + e.getMessage());
+            JOptionPane.showMessageDialog(null, "ERROR: baseurl (" + getParameter("baseurl") + ") not in valid format\n" + e.getMessage());
         }
 
         /*
@@ -108,8 +107,8 @@ public class Main extends JPrefuseApplet {
          * Defaults to 800x600
          */
         try {
-            int width = Integer.parseInt(this.getParameter("width"));
-            int height = Integer.parseInt(this.getParameter("height"));
+            int width = Integer.parseInt(getParameter("width"));
+            int height = Integer.parseInt(getParameter("height"));
 
             if (width > 0 && height > 0) {
                 this.setSize(new java.awt.Dimension(width, height));
@@ -120,6 +119,7 @@ public class Main extends JPrefuseApplet {
             this.setSize(new java.awt.Dimension(800, 600));
         }
 
+      
 
         m_resourceHandler = new ResourceHandler();
         try {
@@ -205,6 +205,17 @@ public class Main extends JPrefuseApplet {
                         }
                 }
         };
+	ActionListener saveLayoutHandler = new ActionListener() {
+		public void actionPerformed(ActionEvent arg0){
+			if (m_view != null){
+				if (!sendPositionData()){
+            				JOptionPane.showMessageDialog(null, "ERROR: Could not save layout\n");
+				} else {
+            				JOptionPane.showMessageDialog(null, "Layout saved\n");
+				}
+			}
+		}
+	};
 
         /*
          * Clear and add available checkboxes according
@@ -270,45 +281,25 @@ public class Main extends JPrefuseApplet {
         decreaseFontSizeButton.addActionListener(decreaseFontSizeHandler);
         freezeMenu.add(decreaseFontSizeButton);
 
+        try {
+        	if (getParameter("is_admin").equals("true")){
+        		saveLayoutButton = new javax.swing.JButton("Save layout");
+        		saveLayoutButton.addActionListener(saveLayoutHandler);
+        		freezeMenu.add(saveLayoutButton);
+        	}
+        } catch (Exception e){
+        	System.out.println("NOTICE: Could not get is_admin-parameter");
+        }
+
 
 
         menuBar.add(freezeMenu);
 
-        this.setJMenuBar(menuBar);
-        this.doLayout();
-        this.setVisible(true);
+        setJMenuBar(menuBar);
+        doLayout();
+        setVisible(true);
 
         appletContext = getAppletContext();
-
-        final JLabel loaderImg;
-        try {
-            URL loadingImage = new URL(baseURL.toString() + "/media/loading.gif");
-            loaderImg = new JLabel(new ImageIcon(loadingImage));
-            loaderImg.setEnabled(true);
-            loaderImg.setSize(100, 100);
-
-            this.add(loaderImg);
-            Thread loadingWatcher = new Thread() {
-
-                @Override
-                public void run() {
-                    boolean running = true;
-                    while (running) {
-                        if (m_view != null && prepared) {
-                            loaderImg.setVisible(false);
-                            running = false;
-                        }
-                        try {
-                            sleep(10);
-                        } catch (InterruptedException ex) {
-                        }
-                    }
-                }
-            };
-            loadingWatcher.start();
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
         // Load graph
         URL graphURL = null;
@@ -323,7 +314,7 @@ public class Main extends JPrefuseApplet {
         } catch (DataIOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-        this.prepared = true;
+        prepared = true;
 
     }
 
@@ -367,7 +358,14 @@ public class Main extends JPrefuseApplet {
 	JSearchPanel jsp = new JSearchPanel(m_vis, "graph.nodes", Visualization.SEARCH_ITEMS, new String[]{"sysname","ip","room"}, true, true);
 	jsp.setLabelText("  Search: ");
 	jsp.setEnabled(true);
-	this.menuBar.add(jsp);
+	menuBar.add(jsp);
+
+			// Zoom after initial run
+			try {
+			Thread.sleep(5000);
+			m_vis.getAction("zoomAction").setEnabled(true);
+			m_vis.getAction("zoomAction").run();
+			} catch (Exception e){}
 
     }
 
@@ -392,7 +390,7 @@ public class Main extends JPrefuseApplet {
     }
 
     public boolean inLayoutFreeze() {
-        return this.freezeCheckbox.isSelected();
+        return freezeCheckbox.isSelected();
     }
 
     public static AppletContext _getAppletContext() {
@@ -433,8 +431,62 @@ public class Main extends JPrefuseApplet {
     }
     public static ArrayList getAllLinkTypes(){
 	    ArrayList<String> ret = new ArrayList<String>();
-	    for (String type : Layer2_LinkTypes) ret.add(type);
-	    for (String type : Layer3_LinkTypes) ret.add(type);
+	    for (String type : Layer2_LinkTypes) {
+			ret.add(type);
+		}
+	    for (String type : Layer3_LinkTypes) {
+			ret.add(type);
+		}
 	    return ret;
+    }
+
+    public boolean sendPositionData(){
+	    try {
+	    URL url;
+	    URLConnection urlConn;
+	    DataOutputStream printout;
+	    DataInputStream input;
+	    // URL of CGI-Bin script.
+	    url = new URL (baseURL + "/position");
+	    // URL connection channel.
+	    urlConn = url.openConnection();
+	    // Let the run-time system (RTS) know that we want input.
+	    urlConn.setDoInput (true);
+	    // Let the RTS know that we want to do output.
+	    urlConn.setDoOutput (true);
+	    // No caching, we want the real thing.
+	    urlConn.setUseCaches (false);
+	    // Specify the content type.
+	    urlConn.setRequestProperty
+		    ("Content-Type", "application/x-www-form-urlencoded");
+	    // Send POST output.
+	    printout = new DataOutputStream (urlConn.getOutputStream ());
+	    Iterator iter = getVis().items("graph.nodes");
+	    String postData = "";
+	    while (iter.hasNext()){
+		VisualItem item = (VisualItem) iter.next();
+		if (item.getX() != 0.0 && item.getY() != 0.0){
+			if (item.getString("sysname") != null && !item.getString("sysname").equals("")){
+				postData += URLEncoder.encode(item.getString("sysname") + "_x", "utf-8") + "=" + item.getX() + "&";
+				postData += URLEncoder.encode(item.getString("sysname") + "_y", "utf-8") + "=" + item.getY() + "&";
+		 	}
+		}
+	    }
+	    System.out.println(postData);
+	    printout.writeBytes (postData);
+	    printout.flush ();
+	    printout.close ();
+	    // Get response data.
+	    input = new DataInputStream (urlConn.getInputStream ());
+	    String str;
+	    while (null != ((str = input.readLine())))
+	    {
+		    System.out.println (str);
+	    }
+	    input.close ();
+	    } catch (Exception e){
+		    System.out.println(e.getMessage());
+	    }
+	    return true;
     }
 }

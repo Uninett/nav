@@ -1,7 +1,7 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -40,18 +40,19 @@ All exceptions raised subclasses DaemonError.
 
 """
 
-__copyright__ = "Copyright 2006 UNINETT AS"
+__copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id: daemon.py 3494 2006-07-03 09:12:11Z jodal $"
 
 import atexit
 import grp
-import logging # Requires Python >= 2.3
+import logging
 import os
 import pwd
 import sys
+import nav.logs
 
+nav.logs.setLogLevels()
 logger = logging.getLogger('nav.daemon')
 
 
@@ -110,8 +111,8 @@ class PidFileWriteError(DaemonError):
         self.error = error
 
     def __str__(self):
-        return "Can't write pid to or remove pidfile (%s). (%s)" \
-         % (self.pidfile, self.error)
+        return "Can't write pid to or remove pidfile (%s). (%s)" % (
+            self.pidfile, self.error)
 
 class ForkError(DaemonError):
     """Raised if a fork fails."""
@@ -171,12 +172,12 @@ def switchuser(username):
             except OSError:
                 # Failed changing uid/gid
                 logger.debug("Failed chaning uid/gid from %d/%d to %d/%d.",
-                 olduid, oldgid, uid, gid)
+                    olduid, oldgid, uid, gid)
                 raise SwitchUserError(olduid, oldgid, uid, gid)
             else:
                 # Switch successfull
                 logger.debug("uid/gid changed from %d/%d to %d/%d.",
-                 olduid, oldgid, uid, gid)
+                    olduid, oldgid, uid, gid)
                 return True
         else:
             # Already running as the given user
@@ -217,7 +218,7 @@ def justme(pidfile):
 
         # Check if pid is readable
         if pid.isdigit():
-            pid = int(pid) 
+            pid = int(pid)
         else:
             logger.debug("Can't read pid from pid file %s.", pidfile)
             raise PidFileReadError(pidfile)
@@ -230,8 +231,7 @@ def justme(pidfile):
             return True
         else:
             # We assume the process lives and bails out
-            logger.debug("%s already running with pid %d.",
-             sys.argv[0], pid)
+            logger.debug("%s already running with pid %d.", sys.argv[0], pid)
             raise AlreadyRunningError(pid)
     else:
         # No pidfile, assume we're alone
@@ -246,16 +246,16 @@ def writepidfile(pidfile):
     try:
         fd = file(pidfile, 'w+')
     except IOError, error:
-        logger.debug("Cannot open pidfile %s for writing. Exiting. (%s)",
-         pidfile, error)
+        logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
+            pidfile, error)
         raise PidFileWriteError(pidfile, error)
 
     fd.write("%d\n" % pid)
     fd.close()
-    
 
-def daemonize(pidfile, stdout = '/dev/null', stderr = None,
- stdin = '/dev/null'):
+
+def daemonize(pidfile, stdout=os.path.devnull, stderr=None,
+              stdin=os.path.devnull):
     """
     Move the process to the background as a daemon and write the pid of the
     daemon to the pidfile.
@@ -275,9 +275,6 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
         If writing of pidfile fails, raises PidFileWriteError.
 
     """
-
-    # NOTE: When we require Python 2.4, replace '/dev/null' with
-    # os.path.devnull in the default argument values above
 
     # Do first fork
     # (allow shell to return, and permit us to call setsid())
@@ -323,7 +320,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
 
     # Set cleanup function to be run at exit so pidfile always is removed
     atexit.register(daemonexit, pidfile)
-    
+
     # Close newfds before dup2-ing them
     sys.stdout.flush()
     sys.stderr.flush()

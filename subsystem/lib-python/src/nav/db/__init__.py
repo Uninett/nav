@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright 2003 Norwegian University of Science and Technology
-# Copyright 2006, 2007 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -34,7 +34,6 @@ from nav import config
 import logging
 
 logger = logging.getLogger('nav.db')
-db = None
 driver = psycopg
 _connectionCache = nav.ObjectCache()
 
@@ -115,11 +114,6 @@ def getConnection(scriptName, database='manage'):
         
     return connection
 
-def setDefaultConnection(conn):
-    global db, cursor
-    db = conn
-    cursor = db.cursor
-
 def closeConnections():
     """Close all cached database connections"""
     for connection in _connectionCache.values():
@@ -129,9 +123,6 @@ def closeConnections():
             pass
 
 ###### Initialization ######
-
-if not db:
-    setDefaultConnection(getConnection('default'));
 
 # Psycopg doesn't seem to close connections when they are garbage
 # collected. Here we try to clean up our act on system exit, to

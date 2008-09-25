@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007 UNINETT AS
+# Copyright 2007-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -38,7 +38,6 @@ __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id$"
 
-import ConfigParser
 import getopt
 import logging
 import logging.handlers
@@ -60,11 +59,10 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 # These have to be imported after the envrionment is setup
-from django.db import DatabaseError
-from nav.alertengine import check_alerts
+from django.db import DatabaseError, connection
+from nav.alertengine.base import check_alerts
 
 ### PATHS
-
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 logfile = os.path.join(nav.path.localstatedir, 'log', 'alertengine.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'alertengine.pid')
@@ -104,7 +102,7 @@ def main(args):
 
 
     # Read config file
-    config = getconfig(defaults)
+    config = nav.config.getconfig(configfile, defaults)
 
     # Set variables based on config
     username = config['main']['username']
@@ -160,8 +158,11 @@ def main(args):
     while True:
         try:
             check_alerts(debug=opttest)
+
         except DatabaseError, e:
-            logger.error('Database error: %s' % e)
+            logger.error('Database error, closing the DB connection just in case:\n%s' % e)
+            logger.debug('Traceback: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
+            connection.close()
         except Exception, e:
             logger.critical('Unhandeled error: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
             raise e
@@ -190,33 +191,6 @@ def signalhandler(signum, _):
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down')
         sys.exit(0)
-
-def getconfig(defaults = None):
-    """
-    Read whole config from file.
-
-    Arguments:
-        ``defaults'' are passed on to configparser before reading config.
-
-    Returns:
-        Returns a dict, with sections names as keys and a dict for each
-        section as values.
-    """
-
-    config = ConfigParser.RawConfigParser(defaults)
-    config.read(configfile)
-
-    sections = config.sections()
-    configdict = {}
-
-    for section in sections:
-        configsection = config.items(section)
-        sectiondict = {}
-        for opt, val in configsection:
-            sectiondict[opt] = val
-        configdict[section] = sectiondict
-
-    return configdict
 
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""
@@ -258,7 +232,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
     """Initalize the logging handler for SMTP."""
 
     try:
-        # localuser will be root if smsd was started as root, since
+        # localuser will be root if alertengine was started as root, since
         # switchuser() is first called at a later time
         localuser = pwd.getpwuid(os.getuid())[0]
         hostname = socket.gethostname()

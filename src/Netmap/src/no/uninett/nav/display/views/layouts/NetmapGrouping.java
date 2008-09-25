@@ -20,21 +20,25 @@ public class NetmapGrouping extends Layout {
     /**
      * @see edu.berkeley.guir.prefuse.action.Action#run(edu.berkeley.guir.prefuse.ItemRegistry, double)
      */
-    public void run(double frac) {
-        if(!this.isEnabled()){
+    @Override
+	public void run(double frac) {
+        if(!isEnabled()){
             return;
         }
         
         AggregateTable aggr = (AggregateTable)m_vis.getGroup(m_group);
         // do we have any  to process?
         int num = aggr.getTupleCount();
-        if ( num == 0 ) return;
+        if ( num == 0 ) {
+			return;
+		}
         
         // update buffers
         int maxsz = 0;
-        for ( Iterator aggrs = aggr.tuples(); aggrs.hasNext();  )
-            maxsz = Math.max(maxsz, 4*2*
+        for ( Iterator aggrs = aggr.tuples(); aggrs.hasNext();  ) {
+			maxsz = Math.max(maxsz, 4*2*
                     ((AggregateItem)aggrs.next()).getAggregateSize());
+		}
         if ( m_pts == null || maxsz > m_pts.length ) {
             m_pts = new double[maxsz];
         }
@@ -45,7 +49,9 @@ public class NetmapGrouping extends Layout {
             AggregateItem aitem = (AggregateItem)aggrs.next();
 
             int idx = 0;
-            if ( aitem.getAggregateSize() == 0 ) continue;
+            if ( aitem.getAggregateSize() == 0 ) {
+				continue;
+			}
             VisualItem item = null;
             Iterator iter = aitem.items();
             while ( iter.hasNext() ) {
@@ -56,21 +62,25 @@ public class NetmapGrouping extends Layout {
                 }
             }
             // if no aggregates are visible, do nothing
-            if ( idx == 0 ) continue;
+            if ( idx == 0 ) {
+				continue;
+			}
 
             // compute convex hull
             double[] nhull = GraphicsLib.convexHull(m_pts, idx);
             
             // prepare viz attribute array
             float[]  fhull = (float[])aitem.get(VisualItem.POLYGON);
-            if ( fhull == null || fhull.length < nhull.length )
-                fhull = new float[nhull.length];
-            else if ( fhull.length > nhull.length )
-                fhull[nhull.length] = Float.NaN;
+            if ( fhull == null || fhull.length < nhull.length ) {
+				fhull = new float[nhull.length];
+			} else if ( fhull.length > nhull.length ) {
+				fhull[nhull.length] = Float.NaN;
+			}
             
             // copy hull values
-            for ( int j=0; j<nhull.length; j++ )
-                fhull[j] = (float)nhull[j];
+            for ( int j=0; j<nhull.length; j++ ) {
+				fhull[j] = (float)nhull[j];
+			}
             aitem.set(VisualItem.POLYGON, fhull);
             aitem.setValidated(false); // force invalidation
         }

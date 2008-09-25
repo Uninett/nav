@@ -1,0 +1,20 @@
+{# Subcategory tabs are stored in their own files to avoid clutter #}
+{% if active.profile %}
+    {% include "alertprofiles/profile_tab.html" %}
+{% else %}
+    {% if active.address %}
+        {% include "alertprofiles/address_tab.html" %}
+    {% else %}
+        {% if active.filters %}
+            {% include "alertprofiles/filter_tab.html" %}
+        {% else %}
+            {% if active.filtergroups %}
+                {% include "alertprofiles/filtergroup_tab.html" %}
+            {% else %}
+                {% if active.matchfields %}
+                    {% include "alertprofiles/matchfield_tab.html" %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endif %}

@@ -280,3 +280,32 @@ table.toolbox4cols tr td {
 .highlight .highlight .highlight {
 	background: #FEC44F;
 }
+
+/* Messages */
+.messages {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+.messages {
+	background: #eeeeec;
+	padding: 0.5em;
+	border: 1px solid #BABDB6;
+	-moz-border-radius: 1em;
+}
+
+.messages .success {
+	color: #4E9A06; 
+}
+
+.messages .notice {
+	color: black;
+}
+
+.messages .warning {
+  color: #CE5C00;
+}
+
+.messages .error, .errorlist {
+  color: #A40000;
+}

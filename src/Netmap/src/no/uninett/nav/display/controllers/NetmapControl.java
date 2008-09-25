@@ -37,10 +37,6 @@ import prefuse.visual.VisualItem;
 
 public class NetmapControl extends ControlAdapter {
 
-    private boolean shift_pressed = false;
-    private VisualItem last_clicked;
-    private TupleSet neighbor_group;
-
     @Override
     public void itemEntered(VisualItem item, MouseEvent e) {
         item.setHover(true);

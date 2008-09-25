@@ -850,7 +850,7 @@ class NetboxInfo(manage.Netbox):
     def showActions(self):
         actions = html.Paragraph()
         actions.append('[%s]' % urlbuilder.createLink(self.netboxid,
-                                                      subsystem='editdb',
+                                                      subsystem='seeddb',
                                                       content="Edit"))
         actions.append('[%s]' % urlbuilder.createLink(self.netboxid,
                                                       subsystem='maintenance',

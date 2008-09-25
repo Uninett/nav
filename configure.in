@@ -71,7 +71,6 @@ AC_OUTPUT(Makefile
 	src/getBoksMacs/getBoksMacs.sh
 	src/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/pyproxy/Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
@@ -82,8 +81,8 @@ AC_OUTPUT(Makefile
 	subsystem/statemon/Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
-	subsystem/editdb/Makefile
-	subsystem/editdb/src/Makefile
+	subsystem/seeddb/Makefile
+	subsystem/seeddb/src/Makefile
 	subsystem/status/Makefile
 	subsystem/status/src/Makefile
 	subsystem/maintenance/Makefile
@@ -115,6 +114,7 @@ AC_OUTPUT(Makefile
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/ipdevinfo/Makefile
+	subsystem/useradmin/Makefile
 	subsystem/netmap/Makefile)
 
 echo

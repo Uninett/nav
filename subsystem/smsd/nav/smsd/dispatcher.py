@@ -1,7 +1,7 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -24,10 +24,9 @@
 Class with common functions inherited/overrided by other dispatchers.
 """
 
-__copyright__ = "Copyright 2006 UNINETT AS"
+__copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 
 import logging
 import sys
@@ -59,7 +58,8 @@ class DispatcherHandler(object):
             self.dispatcherretry = config['dispatcher']['dispatcherretry']
         except KeyError, error:
             self.dispatcherretry = 300 # 5 min
-            self.logger.debug("Dispatcher retry time not set, using default.")
+            self.logger.debug('Dispatcher retry time not set. Default %ds.' %
+                self.dispatcherretry)
 
         # Get dispatchers
         self.dispatchers = []
@@ -83,16 +83,22 @@ class DispatcherHandler(object):
 
                 # Initialize dispatcher
                 try:
-                    instance = eval("%s.%s(%s)" % \
-                     (module.__name__, dispatcher, config[dispatcher]))
+                    instance = eval("%s.%s(%s)" % (
+                        module.__name__, dispatcher, config[dispatcher]))
                     self.dispatchers.append((dispatcher, instance))
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
                 except DispatcherError, error:
                     self.logger.warning("Failed to init %s: %s",
-                     dispatcher, error)
+                        dispatcher, error)
                     continue
                 except Exception, error:
                     self.logger.exception("Unknown exception: %s", error)
+
+        # Fail if no dispatchers are available
+        if len(self.dispatchers) == 0:
+            raise PermanentDispatcherError, \
+                  "No dispatchers available. None configured " + \
+                  "or all dispatchers failed permanently."
 
     def importbyname(self, name):
         """Import module given by name."""
@@ -127,23 +133,23 @@ class DispatcherHandler(object):
                 sincelastfail = int(time.time()) - dispatcher.lastfailed
                 if sincelastfail < self.dispatcherretry:
                     self.logger.debug("%s last failed %ds ago. Skipping.",
-                     dispatchername, sincelastfail)
+                        dispatchername, sincelastfail)
                     continue # Skip this dispatcher for now
 
             try:
                 self.logger.debug("Trying %s...", dispatchername)
                 (sms, sent, ignored, result, smsid) = \
-                 dispatcher.sendsms(phone, msgs)
+                    dispatcher.sendsms(phone, msgs)
             except PermanentDispatcherError, error:
                 self.logger.error("%s failed permanently to send SMS: %s",
-                 dispatchername, error)
+                    dispatchername, error)
                 self.logger.info("Removing failed dispatcher %s.",
-                 dispatchername)
+                    dispatchername)
                 del self.dispatchers[i]
                 continue # Skip to next dispatcher
             except DispatcherError, error:
                 self.logger.warning("%s failed to send SMS: %s",
-                 dispatchername, error)
+                    dispatchername, error)
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
             except Exception, error:
@@ -151,7 +157,7 @@ class DispatcherHandler(object):
 
             if result is False:
                 self.logger.warning("%s failed to send SMS: Returned false.",
-                 dispatchername)
+                    dispatchername)
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
 

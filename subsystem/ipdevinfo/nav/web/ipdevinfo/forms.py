@@ -24,9 +24,12 @@
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
-from django import newforms as forms
+from django import forms
 
 class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label='IP or hostname')
+
+class ActivityIntervalForm(forms.Form):
+    interval = forms.IntegerField(min_value=0, label='Interval in days',
+        widget=forms.TextInput(attrs={'size': 3}))

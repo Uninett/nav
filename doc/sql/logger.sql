@@ -10,11 +10,11 @@ CREATE TABLE priority (
 );
 
 --------------------------------------------------------
--- type
+-- log_message_type
 -- Types of messages, ala syslog
 --------------------------------------------------------
 
-CREATE TABLE type (
+CREATE TABLE log_message_type (
   type SERIAL PRIMARY KEY NOT NULL,
   priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE,
   facility VARCHAR NOT NULL,
@@ -43,17 +43,17 @@ CREATE TABLE origin (
 );
 
 --------------------------------------------------------
--- message
--- The messages 
+-- log_message
+-- The log messages 
 -- time, origin, priority, type and message text.
 --------------------------------------------------------
 
-CREATE TABLE message (
+CREATE TABLE log_message (
   id SERIAL PRIMARY KEY,
   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
   origin INTEGER NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
   newpriority INTEGER REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL, -- for overlagring av defaultverdier
-  type INTEGER NOT NULL REFERENCES type (type) ON UPDATE CASCADE ON DELETE SET NULL,
+  type INTEGER NOT NULL REFERENCES log_message_type (type) ON UPDATE CASCADE ON DELETE SET NULL,
   message VARCHAR
 );
 
@@ -69,20 +69,12 @@ CREATE TABLE errorerror (
 );
 
 --------------------------------------------------------
--- Some table indexes
---------------------------------------------------------
-
-CREATE INDEX message_type_btree ON message USING btree (type);
-CREATE INDEX message_origin_btree ON message USING btree (origin);
-CREATE INDEX message_time_btree ON message USING btree (time);
-
---------------------------------------------------------
 -- Create a view (wow, really?)
 --------------------------------------------------------
 
 CREATE VIEW message_view AS
 SELECT origin,type,newpriority,category,time 
-FROM origin INNER JOIN message USING (origin);
+FROM origin INNER JOIN log_message USING (origin);
 
 --------------------------------------------------------
 -- Insert default priority levels
