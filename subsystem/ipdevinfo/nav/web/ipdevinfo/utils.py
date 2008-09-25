@@ -191,6 +191,9 @@ def _get_swportactive_title(swport, interval=30):
         else:
             title.append('free')
 
+    if swport.port_name:
+        title.append('"%s"' % swport.port_name)
+
     return ', '.join(title)
 
 def _get_gwportstatus_class(gwport):
