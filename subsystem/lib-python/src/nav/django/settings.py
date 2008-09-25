@@ -72,3 +72,6 @@ TIME_FORMAT = 'H:i:s'
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 
 TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
+
+# Report subsystems Django cache setting.
+CACHE_BACKEND = 'file:///tmp/nav_report_cache'
