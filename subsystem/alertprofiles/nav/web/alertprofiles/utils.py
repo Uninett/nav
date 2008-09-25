@@ -44,7 +44,6 @@ from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
 
 ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
-TIME_PERIOD_TEMPLATES_DIR = CONFIGDIR + 'alertprofiles/'
 
 def account_owns_filters(account, *filters):
     """Checks if account have access to edit/remove filters and/or filter groups."""
@@ -114,7 +113,7 @@ def order_filter_group_content(filter_group):
 
 def read_time_period_templates():
     templates = {}
-    template_dir = os.path.join(nav.path.sysconfdir, TIME_PERIOD_TEMPLATES_DIR)
+    template_dir = os.path.join(nav.path.sysconfdir, CONFIGDIR)
     template_configs = dircache.listdir(template_dir)
 
     for template_file in template_configs:
