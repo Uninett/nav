@@ -249,24 +249,6 @@ CREATE TABLE alertpreference (
         ON UPDATE CASCADE
 );
 
--- Trigger function to copy the preference row of the default user
--- whenever a new account is inserted.  I would like to insert a
--- composite row variable, but couldn't find any way to do so, so this
--- function needs to be updated whenever the schema of the preference
--- table is updated!  We don't attach the trigger until after we
--- insert some default accounts and privileges (further down in this
--- script)
-CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
-  DECLARE
-    pref alertpreference%ROWTYPE;
-  BEGIN
-    SELECT INTO pref * FROM alertpreference WHERE accountid = 0;
-    pref.accountid := NEW.id;
-    INSERT INTO alertpreference (accountid, activeprofile, lastsentday, lastsentweek)
-      VALUES (pref.accountid, pref.activeprofile, pref.lastsentday, pref.lastsentweek);
-    RETURN NEW;
-  END' LANGUAGE 'plpgsql';
-
 /*
 -- 8 TIMEPERIOD
 
@@ -765,10 +747,6 @@ INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (0,2); --
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); -- add admin to Administrators
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
-
--- Default preference rows are now inserted, so we create the trigger
--- on the account table
-CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
 
 -- NAVBAR PREFERENCES
 

@@ -85,6 +85,9 @@ DROP TABLE logg;
 DROP TABLE alertengine;
 DROP SEQUENCE logg_id_seq;
 
+-- Remove copy_default_preferences trigger
+DROP TRIGGER insert_account ON account;
+DROP FUNCTION copy_default_preferences();
 
 -- We wan't english names for everything so here goes:
 ALTER TABLE accountingroup RENAME TO accountgroup_accounts;
