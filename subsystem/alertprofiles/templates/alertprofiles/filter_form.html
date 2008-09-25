@@ -1,67 +1,61 @@
-{% extends "alertprofiles/base.html" %}
+{% extends "alertprofiles/base_detail.html" %}
 
-{% block tabcontent %}
-<form action="" method="post">
-<table class="listtable">
-{{ filter_form }}
-</table>
-</form>
+{% block url_edit %}{% url alertprofiles-filters-save %}{% endblock %}
+{% block url_remove_expression %}{% url alertprofiles-filters-removeexpression %}{% endblock %}
+{% block url_add_expression %}{% url alertprofiles-filters-addexpression %}{% endblock %}
 
-<table class="listtable">
-    <caption>
-        Fisk
-    </caption>
+{% block expressions_caption_content %}
+    Expressions
+{% endblock %}
 
-    <thead>
-        <tr>
-            <th>Field</th>
-            <th>Condition</th>
-            <th>Value</th>
-        </tr>
-    </thead>
-    
-    <tbody>
-    {% for e in expresions %}
+{% block expressions_thead_cols %}
+    {% if owner %}
+    <th></th>
+    {% endif %}
+    <th>Field</th>
+    <th>Condition</th>
+    <th>Value</th>
+{% endblock %}
+
+{% block expressions_tbody_content %}
+    {% for e in expressions %}
         <tr class="{% cycle oddrow,evenrow %}">
+            {% if owner %}
+            <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
+            <td><label for="expressionid_{{ e.id }}">{{ e.match_field }}</label></td>
+            {% else %}
             <td>{{ e.match_field }}</td>
+            {% endif %}
             <td>{{ e.get_operator_display }}</td>
+            {% ifequal e.operator 11 %}
+            <td>{{ e.value|unordered_list }}</td>
+            {% else %}
             <td>{{ e.value }}</td>
+            {% endifequal %}
         </tr>
     {% endfor %}
-    </tbody>
-</table>
+{% endblock %}
 
+{% block addexpression %}
+    {% if owner %}
+    <h3>Add another expression to this filter</h3>
+    <div class="formcontainer">
+        <label for="select_matchfield">Expression</label>
+        <select name="matchfield" id="select_matchfield">
+        {% for m in matchfields %}
+            <option value="{{ m.id }}">{{ m.name }}</option>
+        {% endfor %}
+        </select>
 
-<form action="{% url alertprofiles-filters-addexpresion %}" method="post">
-<table class="listtable">
-    <caption>
-        Add expresion<br />
-        <span class="subtitle">Choose one type to add</span>
-    </caption>
-    
-    <thead>
-        <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Description</th>
-        </tr>
-    </thead>
+        {{ block.super }}
+    </div>
+    {% endif%}
 
-    <tbody>
-    {% for m in matchfields %}
-        <tr>
-            <td><input type="radio" name="matchfield" id="matchfieldid_{{ m.id }}" value="{{ m.id }}" /></td>
-            <td><label for="matchfieldid_{{ m.id }}">{{ m.name }}</label></td>
-            <td>{{ m.description }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-
-<div>
-    <input type="hidden" name="filter" value="{{ filter_id }}" />
-    <button type="submit">New expresion</button>
-</div>
-</form>
-
+    <div class="infobox">
+        <p>
+            Expressions are ANDed together.<br />
+            This means that an alert must match all the above expressions to match
+            this filter.
+        </p>
+    </div>
 {% endblock %}

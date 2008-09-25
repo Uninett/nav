@@ -1,3 +1,81 @@
+Version 3.4.3
+(released 16 September 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database. If you are         ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade, see the     ##
+## release NOTES and the contents of doc/sql/upgrades for more     ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#262303 (Searching an entire IPv6 subnet hangs the Machine Tracker)
+  * LP#262296 (Remove obsolete cricketoids.txt)
+  * LP#262287 (Arnold SyntaxWarning: name 'manage' is assigned to before
+               global declaration)
+  * LP#263931 (Status subsystem crashes when there are custom status page
+               preferences)
+  * LP#264226 (AttributeError: 'NoneType' object has no attribute 'save')
+  * LP#264690 (report template loads deprecated javascript which slows down
+               page loading)
+  * LP#264318 (Make NAV use PySNMPv2 on Ubuntu Hardy)
+  * LP#264731 (unrecognizedCDP report fails on PostgreSQL 8.3)
+  * LP#258271 (unwanted static option in prefix in edit db)
+  * LP#260330 (Error in 3.4.2.sql)
+  * LP#258282 (smsd only logs to stderr before forking)
+  * LP#258283 (smsd runs happily along with no configured dispatchers)
+  * LP#264274 (Status preference page reloads every 30 seconds)
+
+Version 3.4.2
+(released 01 August 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database. If you are         ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * SF#1805509 (EditDB says: Unsupported SNMP protocol version: 0)
+  * SF#2023345 (Errors in manage.sql)
+    - This fix requires manual intervention; must run SQL script
+      doc/sql/upgrades/3.4.2.sql
+  * SF#2031154 (Report pages load unnormally slow)
+  * Various small fixes to the Netmap beta/preview.
+
+Version 3.4.1
+(released 15  July 2008)
+
+ Bugfixes:
+
+  * SF#1967784 (Cheetah 2.0.1 errors on some templates in NAV 3.4)
+  * SF#1967947 (Building NAV 3.4.0 for packaging fails on Netmap)
+  * SF#1990664 (IP Device info crashes)
+  * SF#1991654 (Many PHP errors in AlertProfiles under PHP5)
+  * SF#1992863 (Arnold presents wrong ports when detentioning)
+  * SF#2008627 (IP scope matrix crashes in NAV 3.4)
+  * SF#2014809 (UnicodeDecodeError in IP Device Info)
+  * SF#2016635 (Status page crashes under PostgreSQL 8.3)
+  * SF#2017947 (Maintenance engine crashes under PostgreSQL 8.3)
+  * SF#2018505 (Register device RMA crashes)
+  * SF#2018579 (Messages RSS feed crashes)
+
+ Also includes various small updates to the Netmap preview version.
+
+
 Version 3.4.0
 (released 16 May 2008)
 

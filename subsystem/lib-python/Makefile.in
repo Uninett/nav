@@ -47,6 +47,10 @@ install-lib: $(pathmodule)
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
 	done
+	django_templates=`find .nav/django/templates -name '*.html'`;\
+	for file in $$django_templates; do\
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; \
+	done
 
 install-bin:
 	cd bin; \

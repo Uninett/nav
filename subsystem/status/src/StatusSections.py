@@ -156,7 +156,7 @@ class ServiceSectionBox(SectionBox):
                 now() - ah.start_time AS downtime, s.up, s.serviceid, n.netboxid
             FROM alerthist AS ah, netbox AS n, service AS s
             WHERE ah.netboxid = n.netboxid
-                AND ah.subid = s.serviceid
+                AND ah.subid = s.serviceid::text
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'serviceState'"""
  
@@ -210,7 +210,7 @@ class ServiceSectionBox(SectionBox):
                 n.netboxid
             FROM alerthist AS ah, netbox AS n, service AS s
             WHERE ah.netboxid = n.netboxid
-                AND ah.subid = s.serviceid
+                AND ah.subid = s.serviceid::text
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'maintenanceState'"""
         database.execute(sql)
@@ -319,7 +319,7 @@ class ServiceSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
-        # FIXME: The handler list should be dynamic (see editdb.py for example)
+        # FIXME: The handler list should be dynamic (see seeddb.py for example)
         optionsList = [(FILTER_ALL_SELECTED,'All')]
         filterSelects.append((controlBaseName + '_' + 'handler',\
             [(FILTER_ALL_SELECTED, 'All', True),
@@ -399,7 +399,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
             FROM alerthist AS ah NATURAL JOIN alerthistvar AS ahv,
                 netbox AS n, service AS s
             WHERE ah.netboxid = n.netboxid
-                AND ah.subid = s.serviceid
+                AND ah.subid = s.serviceid::text
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'maintenanceState'
                 AND ahv.var = 'maint_taskid'"""
@@ -450,7 +450,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 now() - ah.start_time AS downtime, s.up, s.serviceid,
                 n.netboxid
             FROM alerthist AS ah, netbox AS n, service AS s
-            WHERE ah.netboxid = n.netboxid
+            WHERE ah.netboxid = n.netboxid::text
                 AND ah.subid = s.serviceid
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'serviceState'"""
@@ -586,7 +586,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
-        # FIXME: The handler list should be dynamic (see editdb.py for example)
+        # FIXME: The handler list should be dynamic (see seeddb.py for example)
         optionsList = [(FILTER_ALL_SELECTED,'All')]
         filterSelects.append((controlBaseName + '_' + 'handler',\
             [(FILTER_ALL_SELECTED, 'All', True),
@@ -1141,7 +1141,7 @@ class ModuleSectionBox(SectionBox):
                     n.netboxid
                 FROM alerthist AS ah, netbox AS n, alerttype AS at, module AS m
                 WHERE ah.netboxid = n.netboxid
-                    AND ah.subid = m.moduleid
+                    AND ah.subid = m.moduleid::text
                     AND ah.end_time = 'infinity'
                     AND ah.eventtypeid = 'moduleState'
                     AND ah.alerttypeid = at.alerttypeid
@@ -1790,17 +1790,23 @@ class ModuleHistoryBox(SectionBox):
  
     def fill(self):
 
-        sql = "SELECT netbox.sysname,module.module," +\
-              "alerthist.start_time,alerthist.end_time,netbox.netboxid,"+\
-              "alerttype.alerttype,module.moduleid FROM netbox,"+\
-              "module,alerthist LEFT JOIN alerttype using(alerttypeid) "+\
-              "WHERE alerthist.netboxid = netbox.netboxid AND "+\
-              "alerthist.subid=module.moduleid AND " +\
-              "alerthist.eventtypeid='moduleState' AND " +\
-              "(alerttype.alerttype='moduleDown' OR " +\
-              "alerttype.alerttype='moduleUp') AND " +\
-              "date(start_time) = '%s' " %(self.date,)
-            
+        sql = """
+            SELECT
+                netbox.sysname, module.module, alerthist.start_time,
+                alerthist.end_time, netbox.netboxid, alerttype.alerttype,
+                module.moduleid
+            FROM netbox, module, alerthist
+            LEFT JOIN alerttype using(alerttypeid)
+            WHERE
+                alerthist.netboxid = netbox.netboxid AND
+                alerthist.subid = module.moduleid::text AND
+                alerthist.eventtypeid = 'moduleState' AND
+                (
+                  alerttype.alerttype = 'moduleDown' OR
+                  alerttype.alerttype = 'moduleUp'
+                ) AND
+                date(start_time) = '%s' """ % (self.date,)
+
         if self.moduleid:
             sql += " AND module.moduleid='%s'" % (self.moduleid,)
 

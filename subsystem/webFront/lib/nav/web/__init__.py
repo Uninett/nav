@@ -99,7 +99,7 @@ def cleanuphandler(req):
         conn.commit()
     # Also make sure the session data is fully persisted
     try:
-        req.session
+        req.session.save
     except:
         pass
     else:

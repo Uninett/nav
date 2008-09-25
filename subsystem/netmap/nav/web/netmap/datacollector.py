@@ -58,7 +58,7 @@ SELECT DISTINCT ON (swport.swportid, to_swport)
         connection.descr AS to_module_descr,
         rrd.path || '/' || rrd.filename AS rrdfile,
         CASE
-          WHEN rrd.value = swport.swportid THEN 'n'
+          WHEN rrd.value::integer = swport.swportid THEN 'n'
           ELSE 'y'
         END AS reversed,
         netident,
@@ -84,7 +84,7 @@ FROM netbox
     ON (connection.to_swport = to_swportid)
     LEFT JOIN swportvlan USING(swportid)
     LEFT JOIN vlan USING (vlanid)
-  LEFT JOIN (SELECT path, filename, value FROM rrd_file) AS rrd ON (rrd.value = swport.swportid OR rrd.value = connection.to_swport)
+  LEFT JOIN (SELECT path, filename, value FROM rrd_file) AS rrd ON (rrd.value::integer = swport.swportid OR rrd.value::integer = connection.to_swport)
 
   UNION
 
@@ -105,7 +105,7 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
         connection.descr AS to_module_descr,
         rrd.path || '/' || rrd.filename AS rrdfile,
         CASE
-                WHEN rrd.value = gwport.gwportid THEN 'n'
+                WHEN rrd.value::integer = gwport.gwportid THEN 'n'
                 ELSE 'y'
         END AS reversed,
         netident,
@@ -133,7 +133,7 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
     ON (gwportprefix.prefixid = connection.prefixid AND connection.sysname != netbox.sysname)
     LEFT JOIN prefix ON (prefix.prefixid = gwportprefix.prefixid)
     LEFT JOIN vlan USING (vlanid)
-   LEFT JOIN (SELECT path, filename, value FROM rrd_file) AS rrd ON (rrd.value = gwport.gwportid OR rrd.value = connection.to_gwport)
+   LEFT JOIN (SELECT path, filename, value FROM rrd_file) AS rrd ON (rrd.value::integer = gwport.gwportid OR rrd.value::integer = connection.to_gwport)
 """
 
     db_cursor.execute(query)
@@ -144,15 +144,15 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
         if data[0] == -1:
             if res['reversed'] == 'y':
                 if res['is_gwport'] == 1:
-                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'gwport' AND value = %s""" % res['from_portid'])
+                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'gwport' AND value::integer = %s""" % res['from_portid'])
                 else:
-                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'swport' AND value = %s""" % res['from_portid'])
+                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'swport' AND value::integer = %s""" % res['from_portid'])
                 res['reversed'] = 'n'
             else:
                 if res['is_gwport'] == 1:
-                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'gwport' AND value = %s""" % res['to_portid'])
+                    db_cursor.execute("""SELECT path || '/' || filename FROM rrd_file WHERE key = 'gwport' AND value::integer = %s""" % res['to_portid'])
                 else:
-                    db_cursor.execute("""SELECT path || '/' || filename AS file FROM rrd_file WHERE key = 'swport' AND value = %s""" % res['to_portid'])
+                    db_cursor.execute("""SELECT path || '/' || filename AS file FROM rrd_file WHERE key = 'swport' AND value::integer = %s""" % res['to_portid'])
             new_rrd = db_cursor.fetchone()
             if new_rrd:
                 data = get_rrd_link_load(new_rrd[0])
@@ -168,7 +168,8 @@ SELECT DISTINCT ON (gwport.gwportid, to_gwport)
         JOIN room using (roomid)
         JOIN location USING (locationid)
         JOIN type USING (typeid)
-        LEFT JOIN (SELECT netboxid,path,filename FROM rrd_file NATURAL JOIN rrd_datasource WHERE descr = 'cpu5min') AS rrd USING (netboxid)"""
+        LEFT JOIN (SELECT netboxid,path,filename FROM rrd_file NATURAL JOIN rrd_datasource WHERE descr = 'cpu5min') AS rrd USING (netboxid)
+        LEFT JOIN netmap_position USING (sysname)"""
     db_cursor.execute(query)
     netboxes = db_cursor.dictfetchall()
     for netbox in netboxes:

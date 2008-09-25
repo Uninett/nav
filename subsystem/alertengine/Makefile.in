@@ -44,7 +44,7 @@ WEBNAME =
 # Files
 INITFILES = alertengine
 BINS = alertengine.py
-LIBS = $(wildcard nav/alertengine/*.py)
+LIBS = $(wildcard nav/alertengine/*py nav/alertengine/*/*.py)
 CONFFILES = alertengine.conf
 TOOLS =
 TEMPLATES =
@@ -60,7 +60,7 @@ web:
 $(TEMPLATES): %.py: %.tmpl
 	$(CHEETAH) compile $<
 
-install: all install-lib install-bin install-conf install-web
+install: all install-lib install-bin install-conf
 
 install-lib: lib $(TEMPLATES)
 	for file in $(LIBS) $(TEMPLATES); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
@@ -78,10 +78,6 @@ install-conf: conf
 			$(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
 		fi \
 	done
-
-install-web: web
-	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done

@@ -39,12 +39,13 @@ public class MainView {
     private boolean prepared = false;
 
     private Logger log = Logger.getLogger("netmap");
-    private Node largest = null;
-    private NetmapGrouping ng;
+    private int currentFontSize = 80;
+
+	private prefuse.action.assignment.FontAction fontAction;
 
     @SuppressWarnings(value = "unchecked")
     public void prepare() {
-        this.prepared = false;
+        prepared = false;
 
         // Index most frequently used fields.
         try {
@@ -56,6 +57,27 @@ public class MainView {
         // Attach graph to visualization
         no.uninett.nav.netmap.Main.getVis().reset();
         no.uninett.nav.netmap.Main.getVis().addGraph("graph", Main.getGraph());
+
+	// See if we have stored position-data about the nodes
+	System.out.println("Checking for saved positions");
+	Iterator pos_iter = no.uninett.nav.netmap.Main.getVis().items("graph.nodes");
+	while (pos_iter.hasNext()) {
+		VisualItem node = (VisualItem) pos_iter.next();
+		if (node.canGetString("position") && node.getString("position") != null && !node.getString("position").equals("")){
+			System.out.println("Found position data for " + node.getString("sysname"));
+			String[] pos = node.getString("position").split("x");
+			try {
+				double xpos = Double.parseDouble(pos[0]);
+				double ypos = Double.parseDouble(pos[1]);
+				node.setX(xpos);
+				node.setY(ypos);
+				System.out.println("\t " + xpos + " x " + ypos);
+			} catch (Exception e) {
+				 Logger.global.log(java.util.logging.Level.WARNING, "Could not set positional data for " +
+				 	node.getString("sysname") + "\n" + e.getMessage());
+			}
+		}
+	}
 
 
         prefuse.render.LabelRenderer nodeRenderer = new prefuse.render.LabelRenderer("sysname", "image");
@@ -72,14 +94,13 @@ public class MainView {
         prefuse.action.ItemAction nodeColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.FILLCOLOR, prefuse.util.ColorLib.rgb(255, 0, 0));
         prefuse.action.ItemAction textColor = new prefuse.action.assignment.ColorAction("graph.nodes", prefuse.visual.VisualItem.TEXTCOLOR, prefuse.util.ColorLib.rgb(0, 0, 0));
 
-        prefuse.action.assignment.FontAction fontAction = new prefuse.action.assignment.FontAction();
-        fontAction.setDefaultFont(new java.awt.Font("Serif", 1, 80));
+        fontAction = new prefuse.action.assignment.FontAction();
+        fontAction.setDefaultFont(new java.awt.Font("Serif", 1, currentFontSize));
 
         // create an action list containing all color assignments
         prefuse.action.ActionList color = new prefuse.action.ActionList();
 
         color.add(new NetmapTextColorAction());
-
 
         prefuse.action.ActionList layout = new prefuse.action.ActionList(prefuse.activity.Activity.INFINITY);
 
@@ -91,7 +112,7 @@ public class MainView {
         // Set up some basic forces. Seems to work well with the NTNU-routers at least.
         // Ohh, the black magic variables
         prefuse.util.force.NBodyForce nbf = new prefuse.util.force.NBodyForce();
-        nbf.setParameter(0, -1000.0F);
+        nbf.setParameter(0, -5000.0F);
         nbf.setParameter(1, 4700.0F);
         nbf.setParameter(2, -10.0F);
         prefuse.util.force.SpringForce sf = new prefuse.util.force.SpringForce();
@@ -136,22 +157,29 @@ public class MainView {
         no.uninett.nav.netmap.Main.getVis().run("layout");
         no.uninett.nav.netmap.Main.getVis().run("zoomAction");
         no.uninett.nav.netmap.Main.getVis().run("repaint");
-        this.prepared = true;
+        prepared = true;
     }
 
     public void filterNodes(ArrayList<String> categories, ArrayList<String> linktypes, boolean show_strays) {
-	    this.cancelActions();
+	    cancelActions();
 
 	    ArrayList<String> def_types = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableCategories());
-	    ArrayList<String> link_type = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableLinkTypes());
-	    if (categories != null) {
+		 ArrayList<String> link_type = new ArrayList<String>();
+		 try {
+	    	link_type = new ArrayList<String>(no.uninett.nav.netmap.Main.getResourceHandler().getAvailableLinkTypes());
+	    } catch (Exception e){}
+		 if (categories != null) {
 		    for (String cat : categories) {
-			    if (def_types.contains(cat)) def_types.remove(cat);
+			    if (def_types.contains(cat)) {
+					def_types.remove(cat);
+				}
 		    }
 	    }
 	    if (linktypes != null){
 		    for (String type : linktypes){
-			    if (link_type.contains(type)) link_type.remove(type);
+			    if (link_type.contains(type)) {
+					link_type.remove(type);
+				}
 		    }
 	    }
 
@@ -219,15 +247,27 @@ public class MainView {
 
 	    }
 
-	    this.runActions();
-	    this.prepared = true;
+	    runActions();
+	    prepared = true;
     }
     public boolean isPrepared(){
-        return this.prepared;
+        return prepared;
     }
     public void setFont(java.awt.Font font){
 	    no.uninett.nav.netmap.Main.getVis().cancel("font");
 	    ((prefuse.action.assignment.FontAction)no.uninett.nav.netmap.Main.getVis().getAction("font")).setDefaultFont(font);
 	    no.uninett.nav.netmap.Main.getVis().run("font");
     }
+    public void increaseFontSize(){
+	currentFontSize += 4;
+        setFont(new java.awt.Font("Serif", 1, currentFontSize));
+    }
+    public void decreaseFontSize(){
+	if (currentFontSize < 10) {
+		return;
+	}
+	currentFontSize -= 4;
+        setFont(new java.awt.Font("Serif", 1, currentFontSize));
+    }
+
 }

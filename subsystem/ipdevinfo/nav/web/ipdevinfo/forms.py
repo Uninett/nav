@@ -26,7 +26,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
-from django import newforms as forms
+from django import forms
 
 class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label='IP or hostname')

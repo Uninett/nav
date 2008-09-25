@@ -1,0 +1,35 @@
+{% if time_period %}
+    <h3>Edit time period</h3>
+{% else %}
+    <h3>Add new time period</h3>
+{% endif %}
+
+<div class="formcontainer">
+    {{ time_period_form.non_field_errors }}
+    {{ time_period_form.start.errors }}
+    {{ time_period_form.valid_during.errors }}
+    <p>
+        Time period from {{ time_period_form.start }}
+        for
+        {% if time_period %}
+            {{ time_period.get_valid_during_display }}
+        {% else %}
+            {{ time_period_form.valid_during }}
+        {% endif %}
+
+        {{ time_period_form.profile }}
+        {{ time_period_form.id }}
+    </p>
+    <p>
+        {{ time_period_form.start.help_text }}
+    </p>
+    <p>
+        <button type="submit">
+        {% if time_period %}
+            Save
+        {% else %}
+            Add
+        {% endif %}
+        </button>
+    </p>
+</div>

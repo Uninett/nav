@@ -52,8 +52,10 @@ $displaySectionBoxes($history)
 #end def
 
 #def additionalMeta
-## Refresh every 30 seconds
-<meta http-equiv="refresh" content="30" />
+    #if $status
+    ## Refresh every 30 seconds if on status page
+    <meta http-equiv="refresh" content="30" />
+    #end if
 #end def
 
 #def additionalCSS

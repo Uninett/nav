@@ -35,7 +35,7 @@ _subsystems = {
     'devbrowser': '/browse',
     'report': '/report',
     'rrd': '/browse/rrd',
-    'editdb': '/editdb',
+    'seeddb': '/seeddb',
     'maintenance':'/maintenance',
 }
 
@@ -137,7 +137,7 @@ def createUrl(object=None, id=None, division=None,
             url += "new?netbox=%s" % id
         elif division == 'service':
             url += "new?service=%s" % id
-    elif subsystem == 'editdb':
+    elif subsystem == 'seeddb':
         if object:
             id = object._getID()[0]
         url += '%s/edit/%s' % (division, id)

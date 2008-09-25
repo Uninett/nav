@@ -36,11 +36,8 @@ import prefuse.visual.VisualItem;
 
 public class NetmapZoomAction extends GroupAction {
 
-    public void run(double arg) {
-        double x_min = 0;
-        double x_max = 0;
-        double y_min = 0;
-        double y_max = 0;
+    @Override
+	public void run(double arg) {
         Display display = no.uninett.nav.netmap.Main.getDisplay();
         
         if (!display.isTranformInProgress()) {
@@ -60,7 +57,7 @@ public class NetmapZoomAction extends GroupAction {
 
                 GraphicsLib.expand(r, 1000 + (int) (1/display.getScale()));
                 DisplayLib.fitViewToBounds(display, r, 200);
-                this.setEnabled(false);
+                setEnabled(false);
             }
         }
     }

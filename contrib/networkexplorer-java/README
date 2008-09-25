@@ -1,0 +1,88 @@
+This directory contains the old Java-based Network Explorer that was a
+part of NAV releases prior to 3.5.0.
+
+Dependencies
+============
+You need to install the Tomcat Servlet container, preferably version 5
+or newer.  Other than that, the Java requirements are the same as for
+NAV itself.
+
+
+Overview
+========
+Network Explorer consists of two components:
+
+1. navAdmin is a Java servlet, which runs in the Tomcat servlet
+   container.  This is the component responsible for the web user
+   interface that is the Network Explorer.
+
+2. pyproxy is a mod_python request handler.  A NAV user's browser
+   sends its requests for the Network Explorer to Apache; these
+   requests are in turn forwarded by pyproxy to the Tomcat servlet
+   container, which listens to a port on the localhost.  The navAdmin
+   servlet answers these requests, and the pyproxy handler relays the
+   answers back to the user.
+
+
+How to build
+============
+Make sure you've already built and installed NAV.
+
+To build the navAdmin servlet:
+
+  ant -Dcatalina.home=/path/to/tomcat/home \
+      -Dnav.javalib=/usr/local/nav/lib/java dist
+
+The paths configured for catalina.home and nav.javalib vary depending
+on your OS and configuration.  For Debian, the home of the tomcat5.5
+package is /usr/share/tomcat5.5/, while the Debian nav package places
+the NAV java libraries in /usr/lib/nav/java/ .
+
+
+How to install
+==============
+
+Installing the vPServer servlet
+-------------------------------
+Assuming your Tomcat's webapps directory is
+/var/lib/tomcat5.5/webapps:
+
+  cp dist/navAdmin.war /var/lib/tomcat5.5/webapps/
+
+Make sure Tomcat's security settings allow the servlet to access NAV's
+configuration files and binaries.  The easiest way to do this is to
+not enable its security manager at all (the "-security" startup
+option).  The Debian package provides the TOMCAT_SEURITY option in
+/etc/default/tomcat5.5 to modify this setting.
+
+Now, restart Tomcat to make sure the servlet is deployed.
+
+
+Installing pyproxy
+------------------
+pyproxy is part of the trafficmap contrib, which should be found in
+contrib/trafficmap.  Assuming your NAV python libraries are in
+/usr/local/nav/lib/python/, do the following to install this Python
+package:
+
+  cp -r ../trafficmap/pyproxy /usr/local/nav/lib/python/nav/web/
+
+Then create the necessary directory structure and Apache config to
+have the proxy respond to the /navAdmin URI.  Assuming your NAV
+webroot directory is /usr/local/nav/apache/webroot/, do this:
+
+  TARGET=/usr/local/nav/apache/webroot/navAdmin
+  # make target directory
+  mkdir $TARGET
+  # Copy the htaccess file which tells Apache/mod_python to use the
+  # pyproxy for this directory
+  cp htaccess $TARGET/.htaccess
+
+
+Installing the tool file
+------------------------
+For easy access to Network Explorer, install the navAdmin.tool file in
+the NAV toolbox.  This is typically located in
+/usr/local/nav/apache/tools/ .
+
+Don't forget to setup permissions in the user admin panel.

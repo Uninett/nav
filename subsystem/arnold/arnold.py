@@ -37,9 +37,6 @@ import nav.buildconf
 import nav.arnold
 from nav.db import getConnection
 
-# Temp
-from pysnmp import v1, v2c, asn1, role
-
 # Paths
 configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 logfile = nav.buildconf.localstatedir + "/log/arnold/arnold.log"
