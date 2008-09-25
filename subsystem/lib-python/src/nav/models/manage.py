@@ -359,7 +359,7 @@ class Room(models.Model):
         db_table = 'room'
 
     def __unicode__(self):
-        return u'%s (%s, %s)' % (self.id, self.description, self.location)
+        return u'%s (%s)' % (self.id, self.description)
 
 class Location(models.Model):
     """From MetaNAV: The location table defines a group of rooms; i.e. a
