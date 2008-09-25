@@ -1,0 +1,42 @@
+##
+## Makefile for lib-perl
+##
+SHELL = @SHELL@
+INSTALL = @INSTALL@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+sysconfdir = @sysconfdir@
+localstatedir = @localstatedir@
+initdir = @initdir@
+
+top_srcdir = @top_srcdir@
+perllibdir = @perllibdir@
+pathmodule = src/NAV/Path.pm
+
+export
+.PHONY: all install install-lib clean distclean
+
+all: $(pathmodule)
+
+$(pathmodule): $(pathmodule).source
+	$(top_srcdir)/tools/expand.pl $(pathmodule).source > $(pathmodule)
+
+install: install-lib
+
+install-lib: $(pathmodule)
+	cd src; \
+	installable=`find . -name '*.pm'`; \
+	for file in $$installable; do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)/$(perllibdir)/$$file || exit 1; \
+	done
+clean:
+	backups=`find src -name '*~'`; \
+	rm -f $$backups
+	rm -f *~
+	rm -f $(pathmodule)
+
+distclean: clean
+	rm -f Makefile

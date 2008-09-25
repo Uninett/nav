@@ -269,6 +269,18 @@ table.toolbox4cols tr td {
 	width: 15em;
 }
 
+/* Highlight classes */
+/* Colors from colorbrewer.org, see LICENSE for more information */
+.highlight {
+	background: #FFF7BC;
+}
+.highlight .highlight {
+	background: #FEE391;
+}
+.highlight .highlight .highlight {
+	background: #FEC44F;
+}
+
 /* Messages */
 .messages {
 	font-size: 1.2em;
