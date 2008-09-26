@@ -8,6 +8,19 @@ to the release notes of the in-between versions before reading any
 further.
 
 
+Netmap vs. Traffic Map
+======================
+
+The Traffic Map has been superseded by the Netmap.  Netmap does not
+require a Java servlet backend, and in combination with a rewrite of
+Network Explorer this means Tomcat is no longer needed for a NAV
+installation.
+
+If, for any reason, you really miss the old Traffic Map, you can find
+it as a contrib under contrib/trafficmap/.  Refer to
+contrib/trafficmap/README for installation instructions.
+
+
 Upgrading from NAV 3.4
 ======================
 
