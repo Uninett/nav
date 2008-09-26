@@ -1,0 +1,38 @@
+===========================
+ Release notes for NAV 3.5
+===========================
+Please report bugs at https://bugs.launchpad.net/nav
+
+If you are upgrading from versions of NAV older than 3.4, please refer
+to the release notes of the in-between versions before reading any
+further.
+
+
+Upgrading from NAV 3.4
+======================
+
+Database changes
+----------------
+Whereas NAV 3.4 used four separate PostgreSQL databases (manage,
+navprofiles, logger and arnold) to store its data, NAV 3.5 uses a
+single database.
+
+Before running the normal SQL upgrade procedure (i.e. SQL scripts from
+doc/sql/upgrades/), you MUST merge your four existing NAV databases
+into a single nav database.  The shell script doc/sql/mergedb.sh can
+help you with this.  Se doc/sql/upgrades/README for more information.
+
+
+Dependency changes
+------------------
+The following dependencies are new to NAV 3.5:
+
+* python-django >= 1.0 (http://www.djangoproject.com)
+* psycopg2 (in addition to psycopg1, 
+  http://www.initd.org/pub/software/psycopg/)
+
+The following are no longer dependencies in NAV 3.5:
+
+* Tomcat
+* PHP
+* The perl modules DBD::Pg and SNMP_Session
