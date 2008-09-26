@@ -32,7 +32,6 @@ subdirs = src \
 	subsystem/alertprofiles \
 	subsystem/arnold \
 	subsystem/dbTools \
-	subsystem/devBrowser \
 	subsystem/deviceManagement \
 	subsystem/ipdevinfo \
 	subsystem/ipinfo \

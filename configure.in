@@ -77,7 +77,6 @@ AC_OUTPUT(Makefile
 	subsystem/arnold/images/Makefile
 	subsystem/arnold/lib/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/devBrowser/Makefile
 	subsystem/deviceManagement/Makefile
 	subsystem/ipdevinfo/Makefile
 	subsystem/ipinfo/Makefile
