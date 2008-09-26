@@ -37,7 +37,7 @@ except:
 import forgetHTML as html
 from nav import natsort
 from nav.db import manage
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 import re
 
 _directions = {

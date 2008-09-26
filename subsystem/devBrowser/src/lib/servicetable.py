@@ -42,7 +42,7 @@ from nav.db import manage
 from nav.errors import *
 from nav import db
 from nav.web import tableview
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 from nav.rrd import presenter
 
 _serviceStates = {

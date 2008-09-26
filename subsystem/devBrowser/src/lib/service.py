@@ -39,7 +39,7 @@ import forgetHTML as html
 from nav import db
 from nav.db import manage
 from nav.web.devBrowser import servicetable
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 from nav.web.tableview import TableView
 from nav.errors import *
 import random
