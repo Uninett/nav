@@ -21,7 +21,6 @@ following line:
 
 PythonHeaderParserHandler nav.web.noauth
 
-FIXME: This appears to only work in apache config, not from .htaccess, wtf?
 """
 __author__ = 'Morten Brekkevold (morten.brekkevold@uninett.no)'
 __copyright__ = '2008 UNINETT AS'
