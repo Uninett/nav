@@ -174,8 +174,8 @@ $status
 #if not $box[4]
   #if $numberdown < $numberOfBoxesShown
     <tr class="$rowcycler">
-    #if shouldShow("/browse/$box[1]", $user)
-      <td><a href="/browse/$box[1]">$box[1]</a></td>
+    #if shouldShow("/ipdevinfo/$box[1]/", $user)
+      <td><a href="/ipdevinfo/$box[1]/">$box[1]</a></td>
     #else
       <td>$box[1]</td>
     #end if
