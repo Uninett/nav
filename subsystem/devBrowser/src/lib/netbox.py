@@ -44,10 +44,10 @@ from mx import DateTime
 
 import nav.db
 from nav.db import manage
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 from nav.errors import *
 from nav.rrd import presenter
-from nav.web import tableview
+from nav.web.devBrowser import tableview
 import module
 from nav.web.devBrowser.servicetable import ServiceTable
 from nav.event import EventQ, Event

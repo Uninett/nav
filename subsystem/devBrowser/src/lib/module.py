@@ -35,7 +35,7 @@ try:
 except:
     pass
 from nav.db import manage
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 from nav import util
 import forgetHTML as html
 #import warnings

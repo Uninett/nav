@@ -32,7 +32,6 @@ subdirs = src \
 	subsystem/alertprofiles \
 	subsystem/arnold \
 	subsystem/dbTools \
-	subsystem/devBrowser \
 	subsystem/deviceManagement \
 	subsystem/ipdevinfo \
 	subsystem/ipinfo \
@@ -54,7 +53,7 @@ subdirs = src \
 	subsystem/status \
 	subsystem/thresholdMon \
 	subsystem/useradmin \
-	subsystem/webFront
+	subsystem/webfront
 
 # Make sure we export make variables to the environment
 export

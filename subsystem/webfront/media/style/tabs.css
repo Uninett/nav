@@ -37,7 +37,6 @@
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	padding-right: 0.2em; /* Remove when forgetHTML is dead! */
 }
 .tabs ul li a {
 	background: #dae1e6;

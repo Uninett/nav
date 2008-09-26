@@ -101,8 +101,12 @@ def search(request):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def ipdev_details(request, name=None, addr=None):
+def ipdev_details(request, name=None, addr=None, netbox_id=None):
     """Show detailed view of one IP device"""
+
+    if netbox_id is not None:
+        netbox = get_object_or_404(Netbox, id=netbox_id)
+        return HttpResponseRedirect(netbox.get_absolute_url())
 
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
