@@ -1,9 +1,9 @@
 What?
 =====
-This directory contains the source code for the webFront framework.  This
+This directory contains the source code for the webfront framework.  This
 includes source for the Cheetah templates used by the framework.
 
-The python module nav.web stems from the webFront framework.
+The python module nav.web stems from the webfront framework.
 
 
 Directories contained herein
@@ -13,7 +13,8 @@ lib/       - Modules that are to be placed in the python library directory.
 bin/       - Executable python scripts to be placed in the NAV binary
              directory.
 config/    - Example configuration files for web site customization.
-templates/ - Cheetah template sources for the webfront framework.  These are to
-	     be compiled by "cheetah compile" and the output placed under the
-             NAV python library (nav/web/templates/).
+templates/ - Cheetah template sources for the webfront framework.  These
+	     are to be compiled by "cheetah compile" and the output placed
+	     under the NAV python library (nav/web/templates/).
+media/     - Static files like images, stylesheets and JavaScript files.
 

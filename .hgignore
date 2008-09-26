@@ -35,7 +35,7 @@ subsystem/statemon/pping
 subsystem/statemon/pping.conf
 subsystem/statemon/servicemon
 subsystem/statemon/servicemon.conf
-subsystem/webFront/config/webfront.conf
+subsystem/webfront/config/webfront/webfront.conf
 
 
 syntax: regexp

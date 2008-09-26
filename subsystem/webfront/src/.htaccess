@@ -1,7 +1,6 @@
 SetHandler python-program
 PythonHandler mod_python.publisher
 PythonDebug On
-                                                                                       
 PythonHeaderParserHandler nav.web
 PythonCleanupHandler nav.web
 
