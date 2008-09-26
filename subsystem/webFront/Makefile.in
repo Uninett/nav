@@ -10,7 +10,7 @@ sysconfdir = @sysconfdir@
 
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
-djangotmpldir = ${libdir}/templates
+djangotmpldir = @djangotmpldir@
 
 top_srcdir = @top_srcdir@
 
