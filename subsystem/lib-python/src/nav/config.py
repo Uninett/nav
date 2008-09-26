@@ -52,7 +52,7 @@ def readConfig(filename, splitChar='='):
     file.close()
     return configuration
 
-def getconfig(configfile, defaults = None):
+def getconfig(configfile, defaults=None):
     """
     Read whole config from file.
 

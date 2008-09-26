@@ -95,5 +95,5 @@ running `make` as described above.
 If both libraries are located in /usr/share/java/, then something like this
 should be appropriate::
 
-  export CLASSPATH=/usr/share/java/servletapi.jar:/usr/share/java/libsnmp.jar
+export CLASSPATH=/usr/share/java/servlet-api.jar:/usr/share/java/libsnmp-1.4.jar
 
