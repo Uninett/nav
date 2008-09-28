@@ -41,11 +41,12 @@ Dependency changes
 The following dependencies are new to NAV 3.5:
 
 * python-django >= 1.0 (http://www.djangoproject.com)
-* psycopg2 (in addition to psycopg1, 
+* psycopg2 (in addition to psycopg1,
   http://www.initd.org/pub/software/psycopg/)
 
 The following are no longer dependencies in NAV 3.5:
 
 * Tomcat
 * PHP
-* The perl modules DBD::Pg and SNMP_Session
+* The Perl modules DBD::Pg and SNMP_Session
+* The Python module forgetHTML
