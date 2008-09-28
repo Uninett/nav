@@ -30,9 +30,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 
+from nav.config import readConfig
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.django.shortcuts import render_to_response, object_list
-
 from nav.web.templates.RrdViewerTemplate import RrdViewerTemplate
 
 def rrd_details(request, datasource_id):
@@ -40,10 +40,9 @@ def rrd_details(request, datasource_id):
 
     # TODO
 
-    return render_to_response(IpDevInfoTemplate,
+    return render_to_response(RrdViewerTemplate,
         'ipdevinfo/rrd-graph.html',
         {
-
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -51,8 +50,14 @@ def rrd_details(request, datasource_id):
 def rrd_image(request, rrdfile_id):
     """Return the graph image of an RRD file"""
 
-    # TODO
+    # Check that rrdfile_id exists
     rrdfile = get_object_or_404(RrdFile, id=rrdfile_id)
 
-    file = File(open(rrdfile.get_file_path()))
+    # Get file name
+    config = readConfig('rrdviewer.conf')
+    file_name = '%s%s%s' % (
+        config['file_prefix'], rrdfile.id, config['file_suffix'])
+
+    # Return file content
+    file = File(open(file_name))
     return HttpResponse(file.read(), mimetype='image/gif')
