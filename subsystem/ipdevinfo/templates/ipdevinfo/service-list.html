@@ -3,16 +3,16 @@
 {% block content %}
 
 {% if service_list %}
-<table class="listtable">
-    <caption>
-        {% if handler %}
-            Services with handler {{ handler }}
-        {% else %}
-            All services
-        {% endif %}
-    </caption>
-    {% include "ipdevinfo/service-list-table.html" %}
-</table>
+    <table class="listtable">
+        <caption>
+            {% if handler %}
+                Services with handler {{ handler }}
+            {% else %}
+                All services
+            {% endif %}
+        </caption>
+        {% include "ipdevinfo/service-list-table.html" %}
+    </table>
 {% else %}
     {% if handler %}
         <p>No services with handler "{{ handler }}" found.</p>

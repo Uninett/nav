@@ -3,8 +3,10 @@
 {% block content %}
 
 <table class="vertitable">
-    <caption>Module {{ module.module_number }}
-    at {{ module.netbox.get_short_sysname }}</caption>
+    <caption>
+        Module {{ module.module_number }}<br />
+        at {{ module.netbox.get_short_sysname }}
+    </caption>
     <tr>
         <th>At IP device</th>
         <td><a href="{{ module.netbox.get_absolute_url }}">
@@ -21,11 +23,11 @@
     <tr>
         <th>Status</th>
         <td>
-        {% ifequal module.up module.UP_UP %}
-            Up
-        {% else %}
-            Down for {{ down.down_since|timesince }}
-        {% endifequal %}
+            {% ifequal module.up module.UP_UP %}
+                Up
+            {% else %}
+                Down for {{ down.down_since|timesince }}
+            {% endifequal %}
         </td>
     </tr>
     <tr>

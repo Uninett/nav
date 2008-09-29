@@ -64,35 +64,35 @@
                     N/A
                 {% endif %}
             {% endwith %}
-            </td>
+        </td>
     </tr>
 {% if netbox.category.is_sw or netbox.category.is_edge %}
     <tr>
         {% with netbox.get_uplinks as uplinks %}
-        <th>Uplink{{ uplinks|pluralize }}</th>
-        <td>
-            {% if uplinks %}
-                {% if uplinks|length_is:1 %}
-                    From <a href="{{ uplinks.0.this.get_absolute_url }}">
-                        {{ uplinks.0.this }}</a><br />
-                    To <a href="{{ uplinks.0.other.get_absolute_url }}">
-                        {{ uplinks.0.other }}</a>
+            <th>Uplink{{ uplinks|pluralize }}</th>
+            <td>
+                {% if uplinks %}
+                    {% if uplinks|length_is:1 %}
+                        From <a href="{{ uplinks.0.this.get_absolute_url }}">
+                            {{ uplinks.0.this }}</a><br />
+                        To <a href="{{ uplinks.0.other.get_absolute_url }}">
+                            {{ uplinks.0.other }}</a>
+                    {% else %}
+                        <ul>
+                        {% for uplink in uplinks %}
+                            <li>
+                                From <a href="{{ uplink.this.get_absolute_url }}">
+                                    {{ uplink.this }}</a><br />
+                                To <a href="{{ uplink.other.get_absolute_url }}">
+                                    {{ uplink.other }}</a>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
                 {% else %}
-                    <ul>
-                    {% for uplink in uplinks %}
-                        <li>
-                            From <a href="{{ uplink.this.get_absolute_url }}">
-                                {{ uplink.this }}</a><br />
-                            To <a href="{{ uplink.other.get_absolute_url }}">
-                                {{ uplink.other }}</a>
-                        </li>
-                    {% endfor %}
-                    </ul>
+                    N/A
                 {% endif %}
-            {% else %}
-                N/A
-            {% endif %}
-        </td>
+            </td>
         {% endwith %}
     </tr>
 {% endif %}
@@ -129,27 +129,27 @@
         <th>Availability</th>
         <td>
             {% with stats.availability as a %}
-            <a href="#FIXME-link-to-rrd-view">
-                {% if a.day %}
-                    {{ stats.availability.day|floatformat:2 }}%
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last day</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if a.week %}
-                    {{ stats.availability.week|floatformat:2 }}%
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last week</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if a.month %}
-                    {{ stats.availability.month|floatformat:2 }}%
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last month</a>
+                <a href="#FIXME-link-to-rrd-view">
+                    {% if a.day %}
+                        {{ stats.availability.day|floatformat:2 }}%
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last day</a>,
+                <a href="#FIXME-link-to-rrd-view">
+                    {% if a.week %}
+                        {{ stats.availability.week|floatformat:2 }}%
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last week</a>,
+                <a href="#FIXME-link-to-rrd-view">
+                    {% if a.month %}
+                        {{ stats.availability.month|floatformat:2 }}%
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last month</a>
             {% endwith %}
         </td>
     </tr>
@@ -157,27 +157,27 @@
         <th>Response time</th>
         <td>
             {% with stats.response_time as rt %}
-            <a href="#FIXME-link-to-rrd-view">
-                {% if rt.day %}
-                    {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last day</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if rt.week %}
-                    {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last week</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if rt.month %}
-                    {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last month</a>
+                <a href="#FIXME-link-to-rrd-view">
+                    {% if rt.day %}
+                        {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last day</a>,
+                <a href="#FIXME-link-to-rrd-view">
+                    {% if rt.week %}
+                        {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last week</a>,
+                <a href="#FIXME-link-to-rrd-view">
+                    {% if rt.month %}
+                        {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last month</a>
             {% endwith %}
         </td>
     </tr>
@@ -299,16 +299,16 @@
     <tfoot>
         <tr>
             <th colspan="4">
-            {% if alert_info.is_more_alerts %}
-                Showing {{ alert_info.alerts|length }} of
-                {{ alert_info.count }} alerts, see
-                <a href="{% url devicemanagement-history-netbox netbox.id %}">
-                Device History</a> for all
-            {% else %}
-                {{ alert_info.alerts|length }}
-                alert{{ alert_info.alerts|length|pluralize }} found, see
-                <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
-            {% endif %}
+                {% if alert_info.is_more_alerts %}
+                    Showing {{ alert_info.alerts|length }} of
+                    {{ alert_info.count }} alerts, see
+                    <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                    Device History</a> for all
+                {% else %}
+                    {{ alert_info.alerts|length }}
+                    alert{{ alert_info.alerts|length|pluralize }} found, see
+                    <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+                {% endif %}
             </th>
         </tr>
     </tfoot>
@@ -316,24 +316,24 @@
     <tbody>
     {% if alert_info.count %}
         {% for a in alert_info.alerts %}
-        <tr class="{% cycle oddrow,evenrow %}">
-            <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
-            <td>{{ a.alert.start_time|date|default:"N/A" }}
-                {{ a.alert.start_time|time }}</td>
-            {% if a.alert.is_open %}
-                <td class="status_down">Unresolved</td>
-            {% else %}
-                <td>{{ a.alert.end_time|date|default:"N/A" }}
-                    {{ a.alert.end_time|time }}</td>
-            {% endif %}
-            <td>
+            <tr class="{% cycle oddrow,evenrow %}">
+                <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
+                <td>{{ a.alert.start_time|date|default:"N/A" }}
+                    {{ a.alert.start_time|time }}</td>
                 {% if a.alert.is_open %}
-                    {{ a.alert.start_time|timesince }}
+                    <td class="status_down">Unresolved</td>
                 {% else %}
-                    {{ a.alert.start_time|timesince:a.alert.end_time }}
+                    <td>{{ a.alert.end_time|date|default:"N/A" }}
+                        {{ a.alert.end_time|time }}</td>
                 {% endif %}
-            </td>
-        </tr>
+                <td>
+                    {% if a.alert.is_open %}
+                        {{ a.alert.start_time|timesince }}
+                    {% else %}
+                        {{ a.alert.start_time|timesince:a.alert.end_time }}
+                    {% endif %}
+                </td>
+            </tr>
         {% endfor %}
     {% else %}
         <tr>
@@ -355,7 +355,7 @@
 <table class="listtable">
     <caption>Services at {{ netbox.get_short_sysname }}</caption>
     {% with netbox.service_set.all as service_list %}
-    {% include "ipdevinfo/service-list-table.html" %}
+        {% include "ipdevinfo/service-list-table.html" %}
     {% endwith %}
 </table>
 </div>
@@ -371,45 +371,45 @@
     <div class="tabs">
         <ul>
             {% if netbox.get_swports.count %}
-            <li{% ifequal port_view.perspective 'swportstatus' %} class="tabactive"{% endifequal %}>
-                <a href="?view=swportstatus#ports">Switch port status</a>
-            </li>
-            <li{% ifequal port_view.perspective 'swportactive' %} class="tabactive"{% endifequal %}>
-                <a href="?view=swportactive#ports">Switch port activity</a>
-            </li>
+                <li{% ifequal port_view.perspective 'swportstatus' %} class="tabactive"{% endifequal %}>
+                    <a href="?view=swportstatus#ports">Switch port status</a>
+                </li>
+                <li{% ifequal port_view.perspective 'swportactive' %} class="tabactive"{% endifequal %}>
+                    <a href="?view=swportactive#ports">Switch port activity</a>
+                </li>
             {% endif %}
             {% if netbox.get_gwports.count %}
-            <li{% ifequal port_view.perspective 'gwportstatus' %} class="tabactive"{% endifequal %}>
-                <a href="?view=gwportstatus#ports">Router port status</a>
-            </li>
+                <li{% ifequal port_view.perspective 'gwportstatus' %} class="tabactive"{% endifequal %}>
+                    <a href="?view=gwportstatus#ports">Router port status</a>
+                </li>
             {% endif %}
         </ul>
     </div>
 
     <div class="tabcontent">
-    {% ifequal port_view.perspective 'swportactive' %}
-        <form action="" method="get">
-            <input type="hidden" name="view" value="swportactive" />
-            <p>
-                Activity based on CAM records since
-                {{ port_view.activity_interval_start|date }}.
-                {{ activity_interval_form.interval.label }}:
-                {{ activity_interval_form.interval }}
-                <button type="submit">Recheck activity</button>
-                {% if not port_view.activity_complete_data %}
-                    <em>
-                        Warning: CAM data is only available for
-                        {{ port_view.activity_data_interval }}
-                        day{{ port_view.activity_data_interval|pluralize }}.
-                    </em>
-                {% endif %}
-            </p>
-        </form>
-    {% endifequal %}
+        {% ifequal port_view.perspective 'swportactive' %}
+            <form action="" method="get">
+                <input type="hidden" name="view" value="swportactive" />
+                <p>
+                    Activity based on CAM records since
+                    {{ port_view.activity_interval_start|date }}.
+                    {{ activity_interval_form.interval.label }}:
+                    {{ activity_interval_form.interval }}
+                    <button type="submit">Recheck activity</button>
+                    {% if not port_view.activity_complete_data %}
+                        <em>
+                            Warning: CAM data is only available for {{
+                            port_view.activity_data_interval }}
+                            day{{ port_view.activity_data_interval|pluralize }}.
+                        </em>
+                    {% endif %}
+                </p>
+            </form>
+        {% endifequal %}
 
-    {% for module in port_view.modules %}
-        {% include "ipdevinfo/module-port-view.html" %}
-    {% endfor %}
+        {% for module in port_view.modules %}
+            {% include "ipdevinfo/module-port-view.html" %}
+        {% endfor %}
     </div>
 
     {% include "ipdevinfo/port-legend.html" %}

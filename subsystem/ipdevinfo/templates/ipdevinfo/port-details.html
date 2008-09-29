@@ -143,18 +143,18 @@
     <tr>
         <th>Prefixes</th>
         <td>
-        {% if port.gwportprefix_set.all %}
-            <ul>
-            {% for gwprefix in port.gwportprefix_set.all %}
-                <li>
-                    <a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
-                    {{ gwprefix.gw_ip}}/{{ gwprefix.prefix.get_prefix_length }}</a>
-                </li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            N/A
-        {% endif %}
+            {% if port.gwportprefix_set.all %}
+                <ul>
+                {% for gwprefix in port.gwportprefix_set.all %}
+                    <li>
+                        <a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
+                        {{ gwprefix.gw_ip}}/{{ gwprefix.prefix.get_prefix_length }}</a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                N/A
+            {% endif %}
         </td>
     </tr>
 {% endifequal %}
