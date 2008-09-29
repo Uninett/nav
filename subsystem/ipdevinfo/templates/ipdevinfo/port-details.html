@@ -160,8 +160,17 @@
 {% endifequal %}
 </table>
 
-<h3>Statistics</h3>
+{% with port.get_rrd_data_sources as dss %}
+    {% if dss|length %}
+        <h3>Statistics</h3>
 
-<p>FIXME: Add statistics.</p>
+        <ul>
+        {% for ds in dss %}
+            <li><a href="{{ ds.get_absolute_url }}">
+                {{ ds.description }}</a></li>
+        {% endfor %}
+        </ul>
+     {% endif %}
+{% endwith %}
 
 {% endblock %}

@@ -419,13 +419,18 @@
 
 
 {% if netbox %}
-<h3>Statistics</h3>
+    {% with netbox.get_rrd_data_sources as dss %}
+        {% if dss|length %}
+            <h3>Statistics</h3>
 
-<ul>
-{% for ds in netbox.get_rrd_data_sources %}
-    <li><a href="{{ ds.get_absolute_url }}">{{ ds.description }}</a></li>
-{% endfor %}
-</ul>
+            <ul>
+            {% for ds in dss %}
+                <li><a href="{{ ds.get_absolute_url }}">
+                    {{ ds.description }}</a></li>
+            {% endfor %}
+            </ul>
+         {% endif %}
+    {% endwith %}
 {% endif %}
 
 {% endblock %}

@@ -626,6 +626,14 @@ class GwPort(models.Model):
     def get_interface_display(self):
         return to_ifname_style(self.interface)
 
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(
+                rrd_file__key='gwport', rrd_file__value=str(self.id)
+            ).order_by('description')
+
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
@@ -848,6 +856,14 @@ class SwPort(models.Model):
                 dt.datetime.now() - last_cam_entry_end_time
 
         return self.time_since_activity_cache[interval]
+
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(
+                rrd_file__key='swport', rrd_file__value=str(self.id)
+            ).order_by('description')
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
