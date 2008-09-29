@@ -6,11 +6,6 @@
  * every change you make to the database initialization scripts.  It
  * will eventually become the update script for the next release.
  *
-<<<<<<< /home/jorabra/nav/nav-jorabra-report/doc/sql/upgrades/trunk.sql
- * Also, if you are keeping your installation in sync with the default
- * branch, you should watch this file for changes and run them when
- * updating (check the diffs!)
-=======
  * *************** NB NB NB NB NB NB NB ***************
  *
  * This upgrade scripts assumes you have merged your NAV databases
@@ -23,7 +18,6 @@
  * If you are keeping your installation in sync with the default
  * branch, you should watch this file for changes and run them when
  * updating (check the diffs!)
->>>>>>> /tmp/trunk.sql~other.0Ghp-z
  *
  * Connect to PostgreSQL as the postgres superuser or the nav database user
  * like this:
