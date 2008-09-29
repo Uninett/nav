@@ -29,34 +29,40 @@ from django.core.files import File
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
+from django.template import RequestContext
 
 from nav.config import readConfig
-from nav.models.rrd import RrdFile, RrdDataSource
 from nav.django.shortcuts import render_to_response, object_list
+from nav.models.rrd import RrdFile, RrdDataSource
+from nav.rrd import presenter
 from nav.web.templates.RrdViewerTemplate import RrdViewerTemplate
 
-def rrd_details(request, datasource_id):
+def rrd_details(request, rrddatasource_id, time_frame='week'):
     """Show the RRD graph corresponding to the given datasource ID"""
 
-    # TODO
+    # Get data source
+    rrddatasource = get_object_or_404(RrdDataSource, id=rrddatasource_id)
+
+    # Play along with the very legacy nav.rrd.presenter
+    presenter_page = presenter.page()
+    presentation = presenter.presentation(tf=time_frame, ds=rrddatasource.id)
+    presenter_page.presentations.append(presentation)
 
     return render_to_response(RrdViewerTemplate,
-        'ipdevinfo/rrd-graph.html',
+        'rrdviewer/rrd-details.html',
         {
+            'rrddatasource': rrddatasource,
+            'presenter_page': presenter_page,
         },
-        context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+        context_instance=RequestContext(request))
 
 def rrd_image(request, rrdfile_id):
     """Return the graph image of an RRD file"""
 
-    # Check that rrdfile_id exists
-    rrdfile = get_object_or_404(RrdFile, id=rrdfile_id)
-
     # Get file name
-    config = readConfig('rrdviewer.conf')
+    config = readConfig('rrdviewer/rrdviewer.conf')
     file_name = '%s%s%s' % (
-        config['file_prefix'], rrdfile.id, config['file_suffix'])
+        config['file_prefix'], rrdfile_id, config['file_suffix'])
 
     # Return file content
     file = File(open(file_name))

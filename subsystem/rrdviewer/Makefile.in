@@ -46,8 +46,9 @@ WEBNAME = rrd
 INITFILES =
 BINS =
 LIBS = $(wildcard nav/django/urls/*.py nav/web/rrdviewer/*.py)
-CONFFILES =
-TOOLS = 
+CONFFILES_SRC = $(wildcard config/rrdviewer/*.conf)
+CONFFILES = $(CONFFILES_SRC:config/%=%)
+TOOLS =
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
@@ -82,7 +83,7 @@ install-conf: conf
 		if [ -f "$$target" ]; then \
 			echo "Skipping installation of config file $$file"; \
 		else \
-			$(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+			$(INSTALL) -v -D -m 644 config/$$file $$target || exit 1; \
 		fi \
 	done
 
