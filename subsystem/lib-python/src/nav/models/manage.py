@@ -35,6 +35,7 @@ import time
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import Q
 
 import nav.natsort
 
@@ -249,9 +250,12 @@ class Netbox(models.Model):
         """Returns all relevant RRD data sources"""
 
         from nav.models.rrd import RrdDataSource
-        return RrdDataSource.objects.filter(rrd_file__netbox=self).exclude(
-            rrd_file__subsystem__name__in=('pping', 'serviceping'),
-            rrd_file__key__in=('swport', 'gwport')).order_by('description')
+        return RrdDataSource.objects.filter(rrd_file__netbox=self
+            ).exclude(
+                Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
+                Q(rrd_file__key__isnull=False,
+                    rrd_file__key__in=('swport', 'gwport'))
+            ).order_by('description')
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
