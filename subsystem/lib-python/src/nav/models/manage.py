@@ -29,6 +29,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 import datetime as dt
+import IPy
 import time
 
 from django.conf import settings
@@ -644,6 +645,10 @@ class Prefix(models.Model):
             return u'%s (vlan %s)' % (self.net_address, self.vlan)
         else:
             return self.net_address
+
+    def get_prefix_length(self):
+        ip = IPy.IP(self.net_address)
+        return ip.prefixlen()
 
 class Vlan(models.Model):
     """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
