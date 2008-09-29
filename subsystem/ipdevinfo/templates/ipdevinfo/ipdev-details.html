@@ -50,7 +50,8 @@
     </tr>
     <tr>
         <th>IP address</th>
-        <td>{{ netbox.ip }}</td>
+        <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
+            {{ netbox.ip }}</a></td>
     </tr>
     <tr>
         <th>Prefix</th>
