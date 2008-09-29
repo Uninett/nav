@@ -162,6 +162,12 @@ Network Administration Visualized</a></h1>
 
         </td>
         <td class="spacer"></td>
+        <td class="entry">
+            <form action="/ipdevinfo/" method="get">
+                <input id="id_query" type="text" name="query" maxlength="100" size="12" value="IP or hostname" onclick="this.value = (this.value == 'IP or hostname' ? '' : this.value )" />
+                <button type="submit">Search</button>
+            </form>
+        </td>
 #set $separate = False
 #for $link in $user.preferences.navbar
 #if shouldShow($link.uri, $user)
