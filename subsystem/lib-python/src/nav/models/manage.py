@@ -53,6 +53,9 @@ LINK_CHOICES = (
 def to_ifname_style(interface):
     """Filter interface names from ifDescr to ifName style"""
 
+    if not interface:
+        return interface
+
     filters = (
         ('Vlan', 'Vl'),
         ('TenGigabitEthernet', 'Te'),
@@ -596,7 +599,7 @@ class GwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.interface or self.ifindex
+        name = self.get_interface_display or self.ifindex
         return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
@@ -761,7 +764,7 @@ class SwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.interface or self.ifindex or self.port
+        name = self.get_interface_display() or self.ifindex or self.port
         return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
