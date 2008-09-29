@@ -205,10 +205,16 @@ class Netbox(models.Model):
         for swport in self.connected_to_swport.all():
             if swport.swportvlan_set.filter(
                 direction=SwPortVlan.DIRECTION_DOWN).count():
-                result.append(swport)
+                result.append({
+                    'other': swport,
+                    'this': swport.to_swport,
+                })
 
         for gwport in self.connected_to_gwport.all():
-            result.append(gwport)
+            result.append({
+                'other': gwport,
+                'this': gwport.to_swport,
+            })
 
         return result
 

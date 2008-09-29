@@ -72,13 +72,19 @@
         <td>
             {% if uplinks %}
                 {% if uplinks|length_is:1 %}
-                    <a href="{{ uplinks.0.get_absolute_url }}">
-                        {{ uplinks.0 }}</a>
+                    From <a href="{{ uplinks.0.this.get_absolute_url }}">
+                        {{ uplinks.0.this }}</a><br />
+                    To <a href="{{ uplinks.0.other.get_absolute_url }}">
+                        {{ uplinks.0.other }}</a>
                 {% else %}
                     <ul>
                     {% for uplink in uplinks %}
-                        <li><a href="{{ uplink.get_absolute_url }}">
-                            {{ uplink }}</a></li>
+                        <li>
+                            From <a href="{{ uplink.this.get_absolute_url }}">
+                                {{ uplink.this }}</a><br />
+                            To <a href="{{ uplink.other.get_absolute_url }}">
+                                {{ uplink.other }}</a>
+                        </li>
                     {% endfor %}
                     </ul>
                 {% endif %}
