@@ -139,25 +139,27 @@
         </td>
     </tr>
 {% endifequal %}
+{% ifequal port_type 'gwport' %}
+    <tr>
+        <th>Prefixes</th>
+        <td>
+            <ul>
+            {% if port.gwportprefix_set.all %}
+                {% for gwprefix in port.gwportprefix_set.all %}
+                    <li><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
+                        {{ gwprefix.prefix.net_address }}</a></li>
+                {% endfor %}
+            {% else %}
+            <li>No prefixes found.</li>
+            {% endif %}
+            </ul>
+        </td>
+    </tr>
+{% endifequal %}
 </table>
 
 <h3>Statistics</h3>
 
 <p>FIXME: Add statistics.</p>
-
-{% ifequal port_type 'gwport' %}
-<h3>Prefixes</h3>
-
-<ul>
-    {% if port.gwportprefix_set.all %}
-        {% for gwprefix in port.gwportprefix_set.all %}
-            <li><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
-                {{ gwprefix.prefix.net_address }}</a></li>
-        {% endfor %}
-    {% else %}
-    <li>No prefixes found.</li>
-    {% endif %}
-</ul>
-{% endifequal %}
 
 {% endblock %}
