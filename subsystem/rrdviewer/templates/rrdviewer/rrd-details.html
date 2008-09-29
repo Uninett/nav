@@ -1,0 +1,29 @@
+{% extends "rrdviewer/base.html" %}
+
+{% block content %}
+
+{% with rrddatasource.rrd_file.netbox as netbox %}
+    <h3>{{ rrddatasource.description }} for
+        <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a></h3>
+{% endwith %}
+
+{% for image in presenter_page.presentations %}
+    <div class="rrd-image"><img src="{{ image.graphUrl }}" /></div>
+{% endfor %}
+
+<h3>Time frame</h3>
+
+<ul>
+    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"year" %}">
+        Year</a></li>
+    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"month" %}">
+        Month</a></li>
+    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"week" %}">
+        Week</a></li>
+    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"day" %}">
+        Day</a></li>
+    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"hour" %}">
+        Hour</a></li>
+</ul>
+
+{% endblock %}
