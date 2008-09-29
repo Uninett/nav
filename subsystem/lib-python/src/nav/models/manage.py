@@ -116,7 +116,7 @@ class Netbox(models.Model):
         ordering = ('sysname',)
 
     def __unicode__(self):
-        return self.sysname
+        return self.get_short_sysname()
 
     def get_absolute_url(self):
         kwargs={
