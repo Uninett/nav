@@ -5,11 +5,15 @@
 <div id="ipdevinfo">
 <table class="vertitable">
 {% if netbox %}
-    <caption>IP Device: {{ netbox.get_short_sysname }}</caption>
+    <caption>
+        IP Device: {{ netbox.get_short_sysname }}
+    </caption>
+
     <tr>
         <th>Full sysname</th>
         <td>{{ netbox.sysname }}</td>
     </tr>
+
     <tr>
         <th>Type</th>
         <td>
@@ -21,38 +25,46 @@
             {% endif %}
         </td>
     </tr>
+
     <tr>
         <th>Category</th>
         <td><a href="{% url report-netbox-category netbox.category.id %}">
             {{ netbox.category }}</a></td>
     </tr>
+
     <tr>
         <th>Function</th>
         <td>{{ netbox.get_function|default:"N/A" }}</td>
     </tr>
+
     <tr>
         <th>Organization</th>
         <td><a href="{% url report-organization-organization netbox.organization.id %}">
             {{ netbox.organization }}</a></td>
     </tr>
+
     <tr>
         <th>Room</th>
         <td><a href="{% url report-netbox-room netbox.room.id %}">
             {{ netbox.room }}</a></td>
     </tr>
+
     <tr>
         <th>Serial number</th>
         <td>{{ netbox.device.serial|default:"N/A" }}</td>
     </tr>
+
     <tr>
         <th>Software</th>
         <td>{{ netbox.device.software_version|default:"N/A" }}</td>
     </tr>
+
     <tr>
         <th>IP address</th>
         <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
             {{ netbox.ip }}</a></td>
     </tr>
+
     <tr>
         <th>Prefix</th>
         <td>
@@ -66,6 +78,7 @@
             {% endwith %}
         </td>
     </tr>
+
 {% if netbox.category.is_sw or netbox.category.is_edge %}
     <tr>
         {% with netbox.get_uplinks as uplinks %}
@@ -96,16 +109,19 @@
         {% endwith %}
     </tr>
 {% endif %}
+
     <tr>
         <th># of modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
             {{ netbox.module_set.count }}</a></td>
     </tr>
+
     <tr>
         <th># of switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
             {{ netbox.get_swports.count }}</a></td>
     </tr>
+
     <tr>
         <th># of router ports</th>
         <td><a href="{% url report-gwport-netbox netbox.id %}">
@@ -115,6 +131,7 @@
     <tr>
         <th colspan="2">Status</th>
     </tr>
+
     <tr>
         <th>Uptime</th>
         <td>
@@ -124,6 +141,7 @@
             {% endifequal %}
         </td>
     </tr>
+
 {% with netbox.get_availability as stats %}
     <tr>
         <th>Availability</th>
@@ -153,6 +171,7 @@
             {% endwith %}
         </td>
     </tr>
+
     <tr>
         <th>Response time</th>
         <td>
@@ -182,15 +201,38 @@
         </td>
     </tr>
 {% endwith %}
+
     <tr>
         <th>First discovered</th>
         <td>{{ netbox.discovered|date|default:"N/A" }}
             {{ netbox.discovered|time }}</td>
     </tr>
+
     <tr>
         <th>Last updated</th>
         <td>{{ netbox.last_updated|date|default:"N/A" }}
             {{ netbox.last_updated|time }}</td>
+    </tr>
+
+    <tr>
+        <th colspan="2">Statistics</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            {% with netbox.get_rrd_data_sources as dss %}
+                {% if dss|length %}
+                    <ul>
+                    {% for ds in dss %}
+                        <li><a href="{{ ds.get_absolute_url }}">
+                            {{ ds.description }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
     </tr>
 
     <tr>
@@ -415,22 +457,6 @@
     {% include "ipdevinfo/port-legend.html" %}
 </div>
 
-{% endif %}
-
-
-{% if netbox %}
-    {% with netbox.get_rrd_data_sources as dss %}
-        {% if dss|length %}
-            <h3>Statistics</h3>
-
-            <ul>
-            {% for ds in dss %}
-                <li><a href="{{ ds.get_absolute_url }}">
-                    {{ ds.description }}</a></li>
-            {% endfor %}
-            </ul>
-         {% endif %}
-    {% endwith %}
 {% endif %}
 
 {% endblock %}
