@@ -54,7 +54,16 @@
     </tr>
     <tr>
         <th>Prefix</th>
-        <td>{{ netbox.get_filtered_prefix|default:"N/A" }}</td>
+        <td>
+            {% with netbox.get_filtered_prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+            </td>
     </tr>
     <tr>
         {% with netbox.get_uplinks as uplinks %}
