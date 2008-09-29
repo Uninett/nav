@@ -52,21 +52,24 @@
         <td>{{ service.version|default:"N/A" }}</td>
         {% with service.get_statistics as stats %}
         {% with stats.availability as a %}
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
             {% if a.day %}
                 {{ a.day|floatformat:2 }}%
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
             {% if a.week %}
                 {{ a.week|floatformat:2 }}%
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
             {% if a.month %}
                 {{ a.month|floatformat:2 }}%
             {% else %}
@@ -75,21 +78,24 @@
             </a></td>
         {% endwith %}
         {% with stats.response_time as rt %}
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
             {% if rt.day %}
                 {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
             {% if rt.week %}
                 {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
             {% if rt.month %}
                  {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
