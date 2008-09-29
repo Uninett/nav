@@ -430,6 +430,24 @@ class Category(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
+    def is_gw(self):
+        return self.id == 'GW'
+
+    def is_gsw(self):
+        return self.id == 'GSW'
+
+    def is_sw(self):
+        return self.id == 'SW'
+
+    def is_edge(self):
+        return self.id == 'EDGE'
+
+    def is_srv(self):
+        return self.id == 'SRV'
+
+    def is_other(self):
+        return self.id == 'OTHER'
+
 class Subcategory(models.Model):
     """From MetaNAV: The subcat table defines subcategories within a category.
     A category may have many subcategories. A subcategory belong to one and

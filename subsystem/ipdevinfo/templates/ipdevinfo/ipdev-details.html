@@ -66,6 +66,7 @@
             {% endwith %}
             </td>
     </tr>
+{% if netbox.category.is_sw or netbox.category.is_edge %}
     <tr>
         {% with netbox.get_uplinks as uplinks %}
         <th>Uplink{{ uplinks|pluralize }}</th>
@@ -94,6 +95,7 @@
         </td>
         {% endwith %}
     </tr>
+{% endif %}
     <tr>
         <th># of modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
