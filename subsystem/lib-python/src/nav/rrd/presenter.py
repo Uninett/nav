@@ -472,7 +472,7 @@ class presentation:
                 unitStrings.append(unitmap.get(unit, unit))
             params.insert(1, '/'.join(unitStrings))
         id = self.genImage(*params)
-        return '/browse/rrd/graph?id=%s' % str(id)
+        return '/rrd/image=%s/' % str(id)
 
     def genImage (self,*rrd_params):
         conf = nav.config.readConfig(configfile)
