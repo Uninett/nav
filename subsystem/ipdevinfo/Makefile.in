@@ -101,7 +101,7 @@ uninstall:
 
 clean:
 	find -name *.pyc -print0 | xargs -0 rm -f
-	for file in $(TEMPLATES); do rm -f $$file; done
+	for file in $(TEMPLATES); do rm -f $$file $$file.bak; done
 
 distclean: clean
 	find -name \*~ -print0 | xargs -0 rm -f
