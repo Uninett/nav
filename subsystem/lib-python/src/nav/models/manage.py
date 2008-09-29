@@ -612,7 +612,7 @@ class GwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.get_interface_display or self.ifindex
+        name = self.get_interface_display() or self.ifindex
         return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
