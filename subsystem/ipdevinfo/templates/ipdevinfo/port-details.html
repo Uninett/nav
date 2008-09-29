@@ -76,6 +76,7 @@
         </td>
     </tr>
 {% endifequal %}
+{% if port.module.netbox.category.is_sw or port.module.netbox.category.is_edge %}
     <tr>
         <th>To IP device</th>
         <td>
@@ -98,6 +99,7 @@
             {% endif %}
         </td>
     </tr>
+{% endif %}
 {% ifequal port_type 'swport' %}
     <tr>
         <th>Patched to</th>
