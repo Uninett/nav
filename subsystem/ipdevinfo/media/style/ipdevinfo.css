@@ -26,6 +26,7 @@
 /* Search field */
 #ipdevinfosearch {
 	float: right;
+	margin-left: 1em;
 }
 #ipdevinfosearch form {
 	margin: 0;
@@ -34,18 +35,13 @@
 	width: 100%;
 }
 
-/* Host info table, recent alerts table */
-#hostinfo, #alerts {
+/* Left-floating tables */
+#ipdevinfo, #hostinfo, #alerts {
 	float: left;
-	margin-right: 1em;
 	display: inline;
 }
-
-/* IP Device info table */
-#ipdevinfo {
-	float: left;
-	margin-right: 1em;
-	display: inline;
+#hostinfo, #alerts {
+	margin-left: 1em;
 }
 
 /* Used for pushing the rest of the content below the host

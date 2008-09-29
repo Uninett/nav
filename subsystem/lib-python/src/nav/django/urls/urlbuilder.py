@@ -44,7 +44,7 @@ def get_urlpatterns():
     urlpatterns = patterns('',
         # Subsystem: Device History
         url(r'^devicemanagement/$', dummy, name='devicemanagement'),
-        url(r'^devicemanagement/\?box=(?P<netbox_id>\d+)&history=1$',
+        url(r'^devicemanagement/\?view_netbox=(?P<netbox_id>\d+)$',
             dummy, name='devicemanagement-history-netbox'),
 
         # Subsystem: IP Info

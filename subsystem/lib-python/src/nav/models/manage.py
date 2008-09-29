@@ -116,7 +116,7 @@ class Netbox(models.Model):
         ordering = ('sysname',)
 
     def __unicode__(self):
-        return self.sysname
+        return self.get_short_sysname()
 
     def get_absolute_url(self):
         kwargs={
@@ -205,10 +205,16 @@ class Netbox(models.Model):
         for swport in self.connected_to_swport.all():
             if swport.swportvlan_set.filter(
                 direction=SwPortVlan.DIRECTION_DOWN).count():
-                result.append(swport)
+                result.append({
+                    'other': swport,
+                    'this': swport.to_swport,
+                })
 
         for gwport in self.connected_to_gwport.all():
-            result.append(gwport)
+            result.append({
+                'other': gwport,
+                'this': gwport.to_swport,
+            })
 
         return result
 
@@ -424,6 +430,24 @@ class Category(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
+    def is_gw(self):
+        return self.id == 'GW'
+
+    def is_gsw(self):
+        return self.id == 'GSW'
+
+    def is_sw(self):
+        return self.id == 'SW'
+
+    def is_edge(self):
+        return self.id == 'EDGE'
+
+    def is_srv(self):
+        return self.id == 'SRV'
+
+    def is_other(self):
+        return self.id == 'OTHER'
+
 class Subcategory(models.Model):
     """From MetaNAV: The subcat table defines subcategories within a category.
     A category may have many subcategories. A subcategory belong to one and
@@ -481,7 +505,7 @@ class NetboxType(models.Model):
         unique_together = (('vendor', 'name'),)
 
     def __unicode__(self):
-        return u'%s (%s, from %s)' % (self.name, self.description, self.vendor)
+        return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
 
 #######################################################################
 ### Device management
@@ -762,6 +786,10 @@ class SwPort(models.Model):
         vlans.sort()
         return vlans
 
+    def get_last_cam_record(self):
+        return self.module.netbox.cam_set.filter(ifindex=self.ifindex).latest(
+            'end_time')
+
     def get_active_time(self, interval):
         """
         Time since last CAM activity on port, looking at CAM entries
@@ -786,7 +814,7 @@ class SwPort(models.Model):
             # Use .values() to avoid creating additional objects we do not need
             last_cam_entry_end_time = self.module.netbox.cam_set.filter(
                 ifindex=self.ifindex, end_time__gt=min_time).order_by(
-                'end_time').values('end_time')[0]['end_time']
+                '-end_time').values('end_time')[0]['end_time']
         except (Cam.DoesNotExist, IndexError):
             # Inactive/not in use
             return None

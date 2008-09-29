@@ -50,25 +50,42 @@
     </tr>
     <tr>
         <th>IP address</th>
-        <td>{{ netbox.ip }}</td>
+        <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
+            {{ netbox.ip }}</a></td>
     </tr>
     <tr>
         <th>Prefix</th>
-        <td>{{ netbox.get_filtered_prefix|default:"N/A" }}</td>
+        <td>
+            {% with netbox.get_filtered_prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+            </td>
     </tr>
+{% if netbox.category.is_sw or netbox.category.is_edge %}
     <tr>
         {% with netbox.get_uplinks as uplinks %}
         <th>Uplink{{ uplinks|pluralize }}</th>
         <td>
             {% if uplinks %}
                 {% if uplinks|length_is:1 %}
-                    <a href="{{ uplinks.0.get_absolute_url }}">
-                        {{ uplinks.0 }}</a>
+                    From <a href="{{ uplinks.0.this.get_absolute_url }}">
+                        {{ uplinks.0.this }}</a><br />
+                    To <a href="{{ uplinks.0.other.get_absolute_url }}">
+                        {{ uplinks.0.other }}</a>
                 {% else %}
                     <ul>
                     {% for uplink in uplinks %}
-                        <li><a href="{{ uplink.get_absolute_url }}">
-                            {{ uplink }}</a></li>
+                        <li>
+                            From <a href="{{ uplink.this.get_absolute_url }}">
+                                {{ uplink.this }}</a><br />
+                            To <a href="{{ uplink.other.get_absolute_url }}">
+                                {{ uplink.other }}</a>
+                        </li>
                     {% endfor %}
                     </ul>
                 {% endif %}
@@ -78,6 +95,7 @@
         </td>
         {% endwith %}
     </tr>
+{% endif %}
     <tr>
         <th># of modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">

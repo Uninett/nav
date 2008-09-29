@@ -1,10 +1,11 @@
 <thead>
     <tr>
         <th rowspan="2">Status</th>
-    {% if show_ipdev_info %}
-        <th rowspan="2">IP Device</th>
-    {% endif %}
+        {% if show_ipdev_info %}
+            <th rowspan="2">IP Device</th>
+        {% endif %}
         <th rowspan="2">Handler</th>
+        <th rowspan="2">Version</th>
         <th colspan="3">Availability</th>
         <th colspan="3">Response time</th>
         <th rowspan="2">Actions</th>
@@ -42,12 +43,13 @@
     <tr class="{% cycle oddrow,evenrow %}">
         <td class="status_{{ service.get_up_display }}">
             {{ service.get_up_display|capfirst }}</td>
-    {% if show_ipdev_info %}
-        <td><a href="{{ service.netbox.get_absolute_url }}">
-            {{ service.netbox.get_short_sysname }}</a></td>
-    {% endif %}
+        {% if show_ipdev_info %}
+            <td><a href="{{ service.netbox.get_absolute_url }}">
+                {{ service.netbox.get_short_sysname }}</a></td>
+        {% endif %}
         <td><a href="{% url ipdevinfo-service-list-handler service.handler %}">
             {{ service.handler }}</a></td>
+        <td>{{ service.version|default:"N/A" }}</td>
         {% with service.get_statistics as stats %}
         {% with stats.availability as a %}
         <td class="numeric"><a href="#FIXME-link-to-rrd-view">
