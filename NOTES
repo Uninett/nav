@@ -50,3 +50,4 @@ The following are no longer dependencies in NAV 3.5:
 * PHP
 * The Perl modules DBD::Pg and SNMP_Session
 * The Python module forgetHTML
+
