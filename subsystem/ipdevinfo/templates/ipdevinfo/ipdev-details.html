@@ -421,7 +421,11 @@
 {% if netbox %}
 <h3>Statistics</h3>
 
-<p>FIXME</p>
+<ul>
+{% for ds in netbox.get_rrd_data_sources %}
+    <li><a href="{{ ds.get_absolute_url }}">{{ ds.description }}</a></li>
+{% endfor %}
+</ul>
 {% endif %}
 
 {% endblock %}

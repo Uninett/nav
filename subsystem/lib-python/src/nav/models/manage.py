@@ -245,6 +245,14 @@ class Netbox(models.Model):
         else:
             return self.sysname
 
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(rrd_file__netbox=self).exclude(
+            rrd_file__subsystem__name__in=('pping', 'serviceping'),
+            rrd_file__key__in=('swport', 'gwport')).order_by('description')
+
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
