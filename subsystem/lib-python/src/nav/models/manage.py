@@ -597,7 +597,7 @@ class GwPort(models.Model):
 
     def __unicode__(self):
         name = self.interface or self.ifindex
-        return u'%s, at module %s' % (name, self.module)
+        return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -762,7 +762,7 @@ class SwPort(models.Model):
 
     def __unicode__(self):
         name = self.interface or self.ifindex or self.port
-        return u'%s, at module %s' % (name, self.module)
+        return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
         kwargs={
