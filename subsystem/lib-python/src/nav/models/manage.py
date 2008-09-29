@@ -481,7 +481,7 @@ class NetboxType(models.Model):
         unique_together = (('vendor', 'name'),)
 
     def __unicode__(self):
-        return u'%s (%s, from %s)' % (self.name, self.description, self.vendor)
+        return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
 
 #######################################################################
 ### Device management
