@@ -786,6 +786,10 @@ class SwPort(models.Model):
         vlans.sort()
         return vlans
 
+    def get_last_cam_record(self):
+        return self.module.netbox.cam_set.filter(ifindex=self.ifindex).latest(
+            'end_time')
+
     def get_active_time(self, interval):
         """
         Time since last CAM activity on port, looking at CAM entries
@@ -810,7 +814,7 @@ class SwPort(models.Model):
             # Use .values() to avoid creating additional objects we do not need
             last_cam_entry_end_time = self.module.netbox.cam_set.filter(
                 ifindex=self.ifindex, end_time__gt=min_time).order_by(
-                'end_time').values('end_time')[0]['end_time']
+                '-end_time').values('end_time')[0]['end_time']
         except (Cam.DoesNotExist, IndexError):
             # Inactive/not in use
             return None

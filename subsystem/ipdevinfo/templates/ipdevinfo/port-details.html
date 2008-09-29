@@ -118,16 +118,13 @@
     <tr>
         <th>Last CAM record</th>
         <td>
-            {% if time_since_last_cam %}
-                {% ifequal time_since_last_cam.days 0 %}
-                    Today
+            {% with port.get_last_cam_record.end_time|timesince as time_since %}
+                {% if time_since %}
+                    {{ time_since }} ago
                 {% else %}
-                    {{ time_since_last_cam.days }}
-                    day{{ time_since_last_cam.days|pluralize }} ago
-                {% endifequal %}
-            {% else %}
-                More than {{ time_since_last_cam_max.days }} days ago
-            {% endif %}
+                    Today
+                {% endif %}
+            {% endwith %}<br />
         </td>
     </tr>
     <tr>
