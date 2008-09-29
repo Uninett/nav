@@ -33,6 +33,7 @@ from django.template import RequestContext
 
 from nav.config import readConfig
 from nav.django.shortcuts import render_to_response, object_list
+from nav.models.manage import SwPort, GwPort
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
 from nav.web.templates.RrdViewerTemplate import RrdViewerTemplate
@@ -43,6 +44,14 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
     # Get data source
     rrddatasource = get_object_or_404(RrdDataSource, id=rrddatasource_id)
 
+    # Get related port
+    if rrddatasource.rrd_file.key == 'swport':
+        port = get_object_or_404(SwPort, id=rrddatasource.rrd_file.value)
+    elif rrddatasource.rrd_file.key == 'gwport':
+        port = get_object_or_404(GwPort, id=rrddatasource.rrd_file.value)
+    else:
+        port = None
+
     # Play along with the very legacy nav.rrd.presenter
     presenter_page = presenter.page()
     presentation = presenter.presentation(tf=time_frame, ds=rrddatasource.id)
@@ -52,6 +61,7 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
         'rrdviewer/rrd-details.html',
         {
             'rrddatasource': rrddatasource,
+            'port': port,
             'presenter_page': presenter_page,
         },
         context_instance=RequestContext(request))

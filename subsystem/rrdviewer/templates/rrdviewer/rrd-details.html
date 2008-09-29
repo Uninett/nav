@@ -2,10 +2,16 @@
 
 {% block content %}
 
-{% with rrddatasource.rrd_file.netbox as netbox %}
-    <h3>{{ rrddatasource.description }} for
-        <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a></h3>
-{% endwith %}
+<h3>
+    {{ rrddatasource.description }} for
+    {% if port %}
+        <a href="{{ port.get_absolute_url }}">{{ port }}</a>
+    {% else %}
+        {% with rrddatasource.rrd_file.netbox as netbox %}
+            <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+        {% endwith %}
+    {% endif %}
+</h3>
 
 {% for image in presenter_page.presentations %}
     <div class="rrd-image"><img src="{{ image.graphUrl }}" /></div>
