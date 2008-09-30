@@ -648,7 +648,7 @@ CREATE TABLE AccountOrg (
        CONSTRAINT accountorg_account_id_fkey
                   FOREIGN KEY(account_id) REFERENCES Account(id)
                   ON DELETE CASCADE
-                  ON UPDATE CASCADE
+                  ON UPDATE CASCADE,
        CONSTRAINT accountorg_organization_id_fkey
                   FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
 		  ON DELETE CASCADE
