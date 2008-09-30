@@ -109,7 +109,7 @@ class PrivilegeForm(forms.ModelForm):
         exclude = ('group',)
 
 class OrganizationAddForm(forms.Form):
-    organization = forms.models.ModelChoiceField(Organization.objects.all(), required=True)
+    organization = forms.models.ModelChoiceField(Organization.objects.all().order_by('id'), required=True)
 
 class GroupAddForm(forms.Form):
     group= forms.models.ModelChoiceField(AccountGroup.objects.all(), required=True)
