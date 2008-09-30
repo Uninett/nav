@@ -83,6 +83,10 @@ class Hash(object):
 
     def update(self, password):
         """Update the hash with a new password."""
+
+        if isinstance(password, unicode):
+            password = password.encode('utf-8')
+
         hasher = known_methods[self.method].new(password + self.salt)
         self.digest = hasher.digest()
 

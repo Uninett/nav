@@ -67,8 +67,8 @@ CREATE TABLE Account (
 CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
         BEGIN
                 IF NEW.id >= 1000 THEN
-                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 2);
-                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 3);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (2, NEW.id);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (3, NEW.id);
                 END IF; RETURN NULL;
         END;
 $group_membership$ LANGUAGE plpgsql;
@@ -248,24 +248,6 @@ CREATE TABLE alertpreference (
         ON DELETE SET NULL
         ON UPDATE CASCADE
 );
-
--- Trigger function to copy the preference row of the default user
--- whenever a new account is inserted.  I would like to insert a
--- composite row variable, but couldn't find any way to do so, so this
--- function needs to be updated whenever the schema of the preference
--- table is updated!  We don't attach the trigger until after we
--- insert some default accounts and privileges (further down in this
--- script)
-CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
-  DECLARE
-    pref alertpreference%ROWTYPE;
-  BEGIN
-    SELECT INTO pref * FROM alertpreference WHERE accountid = 0;
-    pref.accountid := NEW.id;
-    INSERT INTO alertpreference (accountid, activeprofile, lastsentday, lastsentweek)
-      VALUES (pref.accountid, pref.activeprofile, pref.lastsentday, pref.lastsentweek);
-    RETURN NEW;
-  END' LANGUAGE 'plpgsql';
 
 /*
 -- 8 TIMEPERIOD
@@ -663,10 +645,14 @@ CREATE TABLE AccountOrg (
 
        CONSTRAINT accountorg_pkey PRIMARY KEY(id),
        CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id),
-       CONSTRAINT accountorg_accountid_fkey
+       CONSTRAINT accountorg_account_id_fkey
                   FOREIGN KEY(account_id) REFERENCES Account(id)
                   ON DELETE CASCADE
-                  ON UPDATE CASCADE
+                  ON UPDATE CASCADE,
+       CONSTRAINT accountorg_organization_id_fkey
+                  FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
@@ -765,10 +751,6 @@ INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (0,2); --
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); -- add admin to Administrators
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
-
--- Default preference rows are now inserted, so we create the trigger
--- on the account table
-CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
 
 -- NAVBAR PREFERENCES
 
