@@ -26,6 +26,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 
 from django.core.files import File
+from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
@@ -38,8 +39,15 @@ from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
 from nav.web.templates.RrdViewerTemplate import RrdViewerTemplate
 
+def rrd_index(request):
+    """Redirect to the IP Device Info search page"""
+
+    return HttpResponseRedirect(reverse('ipdevinfo-search'))
+
 def rrd_details(request, rrddatasource_id, time_frame='week'):
     """Show the RRD graph corresponding to the given datasource ID"""
+
+    errors = []
 
     # Get data source
     rrddatasource = get_object_or_404(RrdDataSource, id=rrddatasource_id)
@@ -52,15 +60,25 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
     else:
         port = None
 
-    # Play along with the very legacy nav.rrd.presenter
-    presenter_page = presenter.page()
-    presentation = presenter.presentation(tf=time_frame, ds=rrddatasource.id)
-    presenter_page.presentations.append(presentation)
+    # Check if RRD file exists
+    fs = FileSystemStorage(location=rrddatasource.rrd_file.path)
+    if not fs.exists(rrddatasource.rrd_file.get_file_path()):
+        errors.append('Cannot find the RRD file "%s".' %
+            rrddatasource.rrd_file.get_file_path())
+        presenter_page = None
+    else:
+        # Play along with the very legacy nav.rrd.presenter
+        presenter_page = presenter.page()
+        presentation = presenter.presentation(
+            tf=time_frame, ds=rrddatasource.id)
+        presenter_page.presentations.append(presentation)
 
     return render_to_response(RrdViewerTemplate,
         'rrdviewer/rrd-details.html',
         {
+            'errors': errors,
             'rrddatasource': rrddatasource,
+            'time_frame': time_frame,
             'port': port,
             'presenter_page': presenter_page,
         },
