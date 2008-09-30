@@ -1,0 +1,157 @@
+#encoding UTF-8
+
+#extends nav.web.templates.MatrixTemplate
+
+#block address_box
+	<p>
+	<form>
+	#if $show_unused_addresses is True
+		#set $loc = "/report/matrix?scope=" + $start_net.strNormal + "&show_unused_addresses=False"
+		<input type="checkbox" onclick="window.location='$loc'; return true;" checked> Show unused addresses
+	#else
+		#set $loc = "/report/matrix?scope=" + $start_net.strNormal + "&show_unused_addresses=True"
+		<input type="checkbox" onclick="window.location='$loc'; return true;"> Show unused addresses
+	#end if
+	<br><br>
+	</form>
+	</p>
+#end block
+		
+#def $netlink($ip,$append_term_and_prefix=False)
+	##Returns a link to a site that will list all sub
+	#set $nip = $MetaIP($ip).getTreeNet()
+	#if $append_term_and_prefix
+		<a href="/report/matrix?scope=$ip.strNormal">$ip.strNormal</a>
+	#else
+		<a href="/report/prefix?host(netaddr)=$nip%&op_host(netaddr)=like">$nip</a>
+	#end if
+#end def	
+
+#def $matrixlink($nybble,$ip)
+	#set $meta = $MetaIP($ip)
+	<a href="/report/prefix?prefixid=$meta.prefixid">.$nybble/$ip.prefixlen</a>#slurp
+	<a href="/machinetracker/?prefixid=$meta.prefixid" title="$meta.active_ip_cnt/$meta.max_ip_cnt">($meta.usage_percent%)</a>#slurp
+#end def
+
+#def $supernetMatrixlink($ip)
+	#set $meta = $MetaIP($ip)
+	<a href="/machinetracker/?prefixid=$meta.prefixid" title="$meta.active_ip_cnt/$meta.max_ip_cnt">($meta.usage_percent%)</a>#slurp
+#end def
+
+#def $printNetsInRange($net1,$net2,$depth)
+	#if $show_unused_addresses is False
+		#return
+	#end if
+	##print blank rows if empty nets
+	#if $net1.prefixlen == $net2.prefixlen
+		#set $diff = $netDiff($net1,$net2)
+		#if $len($diff) > 1
+			#for $net in $diff[1:]
+				<tr>#slurp
+				<td>$printDepth($depth) $netlink($net)</td>#slurp
+				<td colspan="$len($column_headings)">&nbsp;</td>#slurp
+				</tr>
+			#end for
+		#end if
+	#end if
+#end def
+
+#def writeRemainingBlankNets($ip,$depth)
+	#if $show_unused_addresses is False
+		#return
+	#end if
+
+	#set $tTree = $tree
+	#set $subtree = $getSubtree($tTree,$ip)
+	#set $matrix_net_prefixlen = $matrix_nets.keys[0].prefixlen
+	#set $nets = $generateMatrixNets($ip)
+
+	#for $net in $nets
+		#set $overlap = False
+		#for $subnet in $subtree.keys
+			#if $subnet.overlaps($net) == 1
+				#set $overlap = True
+				#continue
+			#end if
+		#end for
+
+		#if $overlap or $search($subtree,$net)
+			#continue
+		#else
+			<tr>#slurp
+			<td>$printDepth($depth) $netlink($net)</td>#slurp
+			<td colspan="$len($column_headings)">&nbsp;</td>#slurp
+			</tr>
+		#end if
+	#end for
+#end def
+
+#def $writeSubnets($net,$depth)
+	#set $nodes = $sort_nets_by_address($net.keys)
+	#set $lastnet = None
+	#for $subnet in $nodes
+		#if $lastnet is None
+			#set $lastnet = $subnet
+		#end if
+
+		#if $matrix_nets.has_key($subnet)
+			$printNetsInRange($lastnet,$subnet,$depth)
+			#set $lastnet = $subnet
+
+			<tr>
+			<td>$printDepth($depth) $netlink($subnet)</td>
+				
+			#set $host_nybbles_map = $getLastbitsIpMap($matrix_nets[$subnet].keys)
+			#set $next_header_idx = -1
+
+			#if $has_too_small_nets($subnet)
+				<td colspan="$len($column_headings)" style="background-color:$loadColor(0,'large'); text-align:center;">Too many small nets</td>
+			
+			#elif $host_nybbles_map is None ##i.e. there exist a net with no subnets <==> net spans whole row
+				#set $ip = $IP($subnet)
+				#set $meta = $MetaIP($ip)
+				<td colspan="$len($column_headings)" style="background-color:$loadColor($meta.usage_percent,$meta.nettype); text-align:center;">#slurp
+				$matrixlink(0,$ip)#slurp
+				</td>
+
+			#else ##the net exists and have subnets
+				#for $i in $column_headings
+					#if $column_headings.index($i) < $next_header_idx
+						#continue
+					#end if
+
+					#set $i = $i.lower()
+					#if $host_nybbles_map.has_key($i)
+						#set $ip = $host_nybbles_map[$i]
+						#set $meta = $MetaIP($ip)
+						<td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.nettype); text-align:center;">#slurp
+						$matrixlink($i,$ip)#slurp
+						</td>
+
+						#set $next_header_idx = $column_headings.index($i.upper)+$int($colspan($ip))
+					#else
+						<td colspan="1">&nbsp;</td>
+					#end if
+				#end for
+			#end if
+			</tr>
+
+		#else ##matrix_nets does not have key (ie. super node in the tree)
+			#if $lastnet.prefixlen < $matrix_nets.keys[0].prefixlen
+				#set $mnets = $generateMatrixNets($lastnet)
+				#set $subnet_extended = $IP("/".join([$subnet.net.strNormal,$str($matrix_nets.keys[0].prefixlen)]))
+				$printNetsInRange($mnets[-1],$subnet_extended,$depth)
+			#end if
+			#set $lastnet = $subnet
+			#set $meta = $MetaIP($subnet)
+			<tr>
+			<td>$printDepth($depth) $netlink($subnet,$append_term_and_prefix=True)</td>
+			<td colspan="$len($column_headings)" style="background-color:$loadColor($meta.usage_percent,$meta.nettype); text-align:center;">#slurp
+			$supernetMatrixlink($subnet)#slurp
+			</td>
+			</tr>
+			$writeSubnets($net[$subnet],$depth+1)
+			$writeRemainingBlankNets($subnet,$depth+1)
+		#end if
+	#end for
+#end def

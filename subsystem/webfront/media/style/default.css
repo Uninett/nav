@@ -119,6 +119,9 @@ img {
 .status {
 	color: #0b0;
 }
+td.padded-left {
+	padding-left: 30px;
+}
 
 /* Header section */
 div#header {
