@@ -78,6 +78,7 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
         {
             'errors': errors,
             'rrddatasource': rrddatasource,
+            'time_frame': time_frame,
             'port': port,
             'presenter_page': presenter_page,
         },

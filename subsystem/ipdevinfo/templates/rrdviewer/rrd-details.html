@@ -4,7 +4,7 @@
 
 {% if presenter_page %}
     <h3>
-        {{ rrddatasource.description }} for
+        {{ rrddatasource.description }} at
         {% if port %}
             <a href="{{ port.get_absolute_url }}">{{ port }}</a>
         {% else %}
@@ -12,6 +12,7 @@
                 <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
             {% endwith %}
         {% endif %}
+        for the last {{ time_frame }}
     </h3>
 
     {% for image in presenter_page.presentations %}
