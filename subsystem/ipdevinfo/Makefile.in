@@ -80,7 +80,7 @@ install-conf: conf
 		if [ -f "$$target" ]; then \
 			echo "Skipping installation of config file $$file"; \
 		else \
-			$(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+			$(INSTALL) -v -D -m 644 config/$$file $$target || exit 1; \
 		fi \
 	done
 
