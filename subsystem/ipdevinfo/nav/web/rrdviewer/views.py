@@ -38,6 +38,11 @@ from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
 from nav.web.templates.RrdViewerTemplate import RrdViewerTemplate
 
+def rrd_index(request):
+    """Redirect to the IP Device Info search page"""
+
+    return HttpResponseRedirect(reverse('ipdevinfo-search'))
+
 def rrd_details(request, rrddatasource_id, time_frame='week'):
     """Show the RRD graph corresponding to the given datasource ID"""
 

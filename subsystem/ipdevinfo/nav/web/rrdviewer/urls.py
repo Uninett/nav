@@ -31,6 +31,8 @@ from nav.web.rrdviewer.views import *
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
+    url(r'^$', rrd_index,
+        name='rrdviewer-index'),
     url(r'^ds=(?P<rrddatasource_id>\d+)/$', rrd_details,
         name='rrdviewer-rrd-by-ds'),
     url(r'^ds=(?P<rrddatasource_id>\d+)/tf=(?P<time_frame>\w+)/$', rrd_details,
