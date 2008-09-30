@@ -21,20 +21,17 @@
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
+"""Django URL configuration"""
+
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 
 from django.conf.urls.defaults import *
 
-from nav.web.rrdviewer.views import *
-
-# The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
-    url(r'^ds=(?P<rrddatasource_id>\d+)/$', rrd_details,
-        name='rrdviewer-rrd-by-ds'),
-    url(r'^ds=(?P<rrddatasource_id>\d+)/tf=(?P<time_frame>\w+)/$', rrd_details,
-        name='rrdviewer-rrd-by-ds-tf'),
-    url(r'^image=(?P<rrdfile_id>\d+)/$', rrd_image,
-        name='rrdviewer-rrd-image'),
-)
+def get_urlpatterns():
+    urlpatterns = patterns('',
+        # Give the rrd namespace to the RRD Viewer subsystem
+        (r'^rrd/', include('nav.web.rrdviewer.urls')),
+    )
+    return urlpatterns

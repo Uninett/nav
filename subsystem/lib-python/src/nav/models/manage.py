@@ -29,11 +29,13 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 import datetime as dt
+import IPy
 import time
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import Q
 
 import nav.natsort
 
@@ -52,6 +54,9 @@ LINK_CHOICES = (
 
 def to_ifname_style(interface):
     """Filter interface names from ifDescr to ifName style"""
+
+    if not interface:
+        return interface
 
     filters = (
         ('Vlan', 'Vl'),
@@ -240,6 +245,17 @@ class Netbox(models.Model):
             return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
         else:
             return self.sysname
+
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(rrd_file__netbox=self
+            ).exclude(
+                Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
+                Q(rrd_file__key__isnull=False,
+                    rrd_file__key__in=('swport', 'gwport'))
+            ).order_by('description')
 
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
@@ -596,8 +612,8 @@ class GwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.interface or self.ifindex
-        return u'%s, at module %s' % (name, self.module)
+        name = self.get_interface_display() or self.ifindex
+        return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -609,6 +625,14 @@ class GwPort(models.Model):
 
     def get_interface_display(self):
         return to_ifname_style(self.interface)
+
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(
+                rrd_file__key='gwport', rrd_file__value=str(self.id)
+            ).order_by('description')
 
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
@@ -641,6 +665,10 @@ class Prefix(models.Model):
             return u'%s (vlan %s)' % (self.net_address, self.vlan)
         else:
             return self.net_address
+
+    def get_prefix_length(self):
+        ip = IPy.IP(self.net_address)
+        return ip.prefixlen()
 
 class Vlan(models.Model):
     """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
@@ -761,8 +789,8 @@ class SwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.interface or self.ifindex or self.port
-        return u'%s, at module %s' % (name, self.module)
+        name = self.get_interface_display() or self.ifindex or self.port
+        return u'%s at %s' % (name, self.module.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -828,6 +856,14 @@ class SwPort(models.Model):
                 dt.datetime.now() - last_cam_entry_end_time
 
         return self.time_since_activity_cache[interval]
+
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(
+                rrd_file__key='swport', rrd_file__value=str(self.id)
+            ).order_by('description')
 
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
