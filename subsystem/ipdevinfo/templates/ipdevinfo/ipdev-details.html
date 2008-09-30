@@ -408,8 +408,6 @@
 {% if netbox and netbox.module_set.count %}
 
 <div id="ports">
-    <h3>Port view</h3>
-
     <div class="tabs">
         <ul>
             {% if netbox.get_swports.count %}
@@ -432,7 +430,7 @@
         {% ifequal port_view.perspective 'swportactive' %}
             <form action="" method="get">
                 <input type="hidden" name="view" value="swportactive" />
-                <p>
+                <p class="infobox">
                     Activity based on CAM records since
                     {{ port_view.activity_interval_start|date }}.
                     {{ activity_interval_form.interval.label }}:
@@ -452,9 +450,9 @@
         {% for module in port_view.modules %}
             {% include "ipdevinfo/module-port-view.html" %}
         {% endfor %}
-    </div>
 
-    {% include "ipdevinfo/port-legend.html" %}
+        {% include "ipdevinfo/port-legend.html" %}
+    </div>
 </div>
 
 {% endif %}

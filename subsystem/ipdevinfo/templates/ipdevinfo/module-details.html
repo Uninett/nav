@@ -53,7 +53,7 @@
     <h3>Switch port activity</h3>
     {% with swportactive_view as module %}
         <form action="" method="get">
-            <p>
+            <p class="infobox">
                 Activity based on CAM records since
                 {{ module.activity_interval_start|date }}.
                 {{ activity_interval_form.interval.label }}:
