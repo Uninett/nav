@@ -1,0 +1,66 @@
+{% if errors %}
+<ul class="error">
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}
+<form action="" method="post" id="searchForm">
+<table class="boxes">
+	<tr>
+		<th colspan="2">Search</th>
+	</tr>
+	<tr>
+		<td>Type:</td>
+		<td>
+			<select name="lookup_field">
+				<option value="sysname">Sysname</option>
+				<option value="ip">IP</option>
+				<option value="mac">MAC</option>
+				<option value="port">Port Description</option>
+				<option value="vlan">Vlan</option>
+				<option value="room">Room</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Query:</td>
+		<td><input type="text" name="query" id="search" /></td>
+	</tr>
+	<tr>
+		<td>Search exact (no substring):</td>
+		<td><input type="checkbox" name="exact" id="search" /></td>
+	</tr>
+	<tr>
+		<td>Hide ports with no description:</td>
+		<td><input type="checkbox" name="hide" id="search" /></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+            <input type="submit" value="Search" />
+        </td>
+	</tr>
+</table>
+</form>
+
+<div class="networktree">
+	<dl id="tree" class="routers">
+	<dt>Routers:</dt>
+	{% for router in routers %}
+		<dd id="router-{{ router.id }}">
+		{% if router.has_children %}
+			<img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigators"/>
+		{% else %}
+			<img src="/images/networkexplorer/end.gif" class="tree-navigators"/>
+		{% endif %}
+			<a target="_blank" href="/ipdevinfo/{{router}}">{{router}}</a>
+		</dd>
+	{% endfor %}
+	<dl>
+</div>
+
+{% endblock %}
+
+{% include "networkexplorer/debug.html" %}
