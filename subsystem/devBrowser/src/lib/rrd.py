@@ -40,7 +40,7 @@ import os
 from nav.web.TreeSelect import TreeSelect, Option, Select, UpdateableSelect
 from nav.rrd import presenter
 import forgetHTML as html
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 from nav.errors import *
 from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate

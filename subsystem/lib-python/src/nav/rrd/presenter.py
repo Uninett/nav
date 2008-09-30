@@ -49,7 +49,6 @@ Quick example:
 configfile = 'rrdBrowser.conf'
 import nav.db
 import nav.config
-from nav.web import urlbuilder
 import time
 import rrdtool
 import random
@@ -473,9 +472,7 @@ class presentation:
                 unitStrings.append(unitmap.get(unit, unit))
             params.insert(1, '/'.join(unitStrings))
         id = self.genImage(*params)
-        #raise str(params)
-        #return '/browse/rrd/graph?id=%s' % id
-        return urlbuilder.createUrl(subsystem='rrd', division='graph', id=id)
+        return '/rrd/image=%s/' % str(id)
 
     def genImage (self,*rrd_params):
         conf = nav.config.readConfig(configfile)

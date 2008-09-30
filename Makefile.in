@@ -15,6 +15,7 @@ webroot = @webroot@
 initdir = @initdir@
 localstatedir = @localstatedir@
 tooldir = @tooldir@
+datarootdir = @datarootdir@
 docdir = @docdir@
 crondir = @crondir@
 
@@ -27,33 +28,32 @@ VERSION=$(shell cat VERSION)
 PACKAGE=$(NAME)-$(VERSION)
 
 subdirs = src \
-	subsystem/lib-perl \
-	subsystem/lib-python \
-	subsystem/alertEngine \
+	subsystem/alertengine \
 	subsystem/alertprofiles \
 	subsystem/arnold \
 	subsystem/dbTools \
-	subsystem/devBrowser \
 	subsystem/deviceManagement \
-	subsystem/seeddb \
-	subsystem/ipinfo \
 	subsystem/ipdevinfo \
+	subsystem/ipinfo \
 	subsystem/l2trace \
+	subsystem/lib-perl \
+	subsystem/lib-python \
 	subsystem/logger \
 	subsystem/machinetracker \
 	subsystem/maintenance \
 	subsystem/messages \
+	subsystem/netmap \
 	subsystem/report \
+	subsystem/seeddb \
 	subsystem/smsd \
 	subsystem/snmptrapd \
 	subsystem/startstop \
-	subsystem/statemon \
 	subsystem/statTools \
+	subsystem/statemon \
 	subsystem/status \
 	subsystem/thresholdMon \
-	subsystem/netmap \
-	subsystem/networkexplorer \
-	subsystem/webFront
+	subsystem/useradmin \
+	subsystem/webfront
 
 # Make sure we export make variables to the environment
 export

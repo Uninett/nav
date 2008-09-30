@@ -1,0 +1,4 @@
+<a href="http://www.uninett.no/">UNINETT</a><br />
+<a href="http://www.ntnu.no/">NTNU</a><br />
+<a href="http://metanav.uninett.no/">MetaNAV</a><br />
+<a href="http://launchpad.net/nav">NAV at LaunchPad</a><br />

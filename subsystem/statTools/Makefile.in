@@ -12,13 +12,14 @@ sysconfdir = @sysconfdir@
 
 webroot = @webroot@
 tooldir = @tooldir@
+datarootdir = @datarootdir@
 docdir = @docdir@
 crondir = @crondir@
 libdir = @libdir@
 pythonlibdir = @pythonlibdir@
 
-binaries = cleanrrds.pl filloiddb.pl makecricketconfig.pl
-conffiles = cricketoids.txt cricket-views.conf
+binaries = cleanrrds.pl makecricketconfig.pl
+conffiles = cricket-views.conf
 tool = stats.tool
 libfiles = $(wildcard nav/*.py nav/rrd/*.py)
 

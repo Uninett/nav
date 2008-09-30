@@ -31,7 +31,7 @@ import IPy
 from IPy import IP
 
 import nav.path
-from nav.web.templates.MatrixIpv4Template import MatrixIpv4Template
+from nav.web.templates.MatrixIPv4Template import MatrixIPv4Template
 from nav.report import utils, IPtools, IPtree, metaIP
 from nav.report.IPtools import netDiff
 from nav.report.matrix import Matrix
@@ -51,7 +51,7 @@ class MatrixIPv4(Matrix):
         self.show_unused_addresses = show_unused_addresses
 
     def getTemplateResponse(self):
-        template = MatrixIpv4Template()
+        template = MatrixIPv4Template()
         template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 
         #functions and classes

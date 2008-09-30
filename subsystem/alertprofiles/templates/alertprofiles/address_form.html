@@ -1,0 +1,9 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-address-save %}{% endblock %}
+
+{% block headercontent %}
+    {{ detail_id|yesno:"Edit,New" }} address
+{% endblock %}
+
+{% block filter_content %}{% endblock %}

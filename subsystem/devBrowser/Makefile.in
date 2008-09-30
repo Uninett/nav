@@ -38,7 +38,7 @@ WEBLIB=$(pythonlibdir)/nav/web
 WEBNAME=browse
 
 WEBDIR=$(webroot)/$(WEBNAME)
-WEBLIBS=netbox.py module.py port.py service.py servicetable.py dispatcher.py rrd.py
+WEBLIBS=netbox.py module.py port.py service.py servicetable.py dispatcher.py rrd.py urlbuilder.py tableview.py
 
 conffiles = devbrowser.conf
 

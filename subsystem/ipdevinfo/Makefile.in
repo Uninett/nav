@@ -20,7 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
-# ID: $Id$
 #
 
 # Programs
@@ -40,19 +39,19 @@ pythonlibdir = @pythonlibdir@
 djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 
-# Names
-WEBNAME = ipdevinfo
-
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/ipdevinfo/*.py)
-CONFFILES =
+LIBS = $(wildcard nav/django/urls/*.py nav/web/*/*.py)
+CONFFILES_SRC = $(wildcard config/*/*.conf)
+CONFFILES = $(CONFFILES_SRC:config/%=%)
 TOOLS = ipdevinfo.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
 DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
+MEDIA_SRC = $(wildcard media/*/*)
+MEDIA = $(MEDIA_SRC:media/%=%)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
@@ -87,18 +86,22 @@ install-conf: conf
 
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/ipdevinfo/.htaccess
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/rrd/.htaccess
+	for file in $(MEDIA); do $(INSTALL) -v -D -m 644 media/$$file $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(LIBS); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in $(DJANGO_TEMPLATES); do rm -rf $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
 	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
+	rm -rf $(DESTDIR)$(webroot)/ipdevinfo/
+	rm -rf $(DESTDIR)$(webroot)/rrd/
+	for file in $(MEDIA); do rm -rf $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 clean:
 	find -name *.pyc -print0 | xargs -0 rm -f
-	for file in $(TEMPLATES); do rm -f $$file; done
+	for file in $(TEMPLATES); do rm -f $$file $$file.bak; done
 
 distclean: clean
 	find -name \*~ -print0 | xargs -0 rm -f

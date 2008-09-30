@@ -1,0 +1,86 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<table class="listtable">
+    <caption>
+        Groups<br />
+        <span class="subtitle">Choose a group to set it's permissions</span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            {# if not selected_group #}
+            <th>Description</th>
+            {# endif #}
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for group in groups %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>
+                <a href="{% url alertprofiles-permissions-detail group.id %}">{{ group.name }}</a>
+            </td>
+            {# if not selected_group #}
+            <td>{{ group.description }}</td>
+            {# endif #}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if selected_group %}
+<form action="{% url alertprofiles-permissions-save %}" method="post">
+<table class="listtable">
+    <caption>
+        Permissions for {{ selected_group.name }}<br />
+        <span class="subtitle">Choose which alerts this group can
+        receive</span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for fg in filtergroups %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
+            {% for perm in permissions %}
+                {% ifequal perm.id fg.id %}
+                checked="checked"
+                {% endifequal %}
+            {% endfor %}
+                /></td>
+            <td><label for="filterid_{{ fg.id }}">{{ fg.name }}</label></td>
+            <td>{{ fg.description }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div>
+    <input type="hidden" name="group" value="{{ selected_group.id }}" />
+    <button type="submit">Save</button>
+</div>
+</form>
+{% endif %}
+
+<div class="infobox">
+    <p>
+        Here you can set which filter groups the different user groups are
+        allowed to receive alerts for.
+    </p>
+    <p>
+        Denying a user group to receive alerts from a certain filter group will
+        not hide that filter group from the interface, so the users of that
+        user group can still add the filter group to their profiles. They
+        still won't receive any alerts that matches that filter group though.
+    </p>
+</div>
+
+{% endblock %}

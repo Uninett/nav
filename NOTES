@@ -1,95 +1,53 @@
 ===========================
- Release notes for NAV 3.4
+ Release notes for NAV 3.5
 ===========================
 Please report bugs at https://bugs.launchpad.net/nav
 
-If you are upgrading from versions of NAV older than 3.3.3, please refer to the
-release notes of the in-between versions before reading any further.
+If you are upgrading from versions of NAV older than 3.4, please refer
+to the release notes of the in-between versions before reading any
+further.
 
 
-Netmap
-======
-
-NAV 3.4 comes with a preview of the Traffic Map replacement, called
-Netmap.  This tool is not feature complete yet, but we hope you will
-test it and provide us with feedback.  Is the new tool useful?  What
-could we do differently?
-
-For more information and user documentation for Netmap, please refer
-to http://metanav.uninett.no/netmap .
-
-
-IP Device Info
-==============
-
-The IP Device Center and IP Info tools are being rewritten from
-scratch as a new subsystem called IP Device Info, with radically
-improved response times over the old IP Device Center.  A preview of
-this new tool is included in NAV 3.4, in parallel with the old tools.
-
-To try out this new tool, you will need to install an SVN version of
-Django, a Python web framework.  The minimum required version is SVN
-revision 7189 of Django.  You can get the latest trunk revision using
-svn thus:
-
-  svn co http://code.djangoproject.com/svn/django/trunk/
-
-You will also need python-psycopg2 in addition to python-psycopg
-(version 1).  If you need to install from source, it can be found
-here:
-
-  http://www.initd.org/pub/software/psycopg/
-
-For more information about Django in general, please refer to
-http://www.djangoproject.com/ .
-
-
-Upgrading to NAV 3.4.2
-======================
-NAV 3.4.2 contains fixes to a database schema problem that affects
-machine tracker history.  If either one of the two following cases
-apply to you, you will need to manually run the SQL upgrade script to
-fix these problems:
-
- 1. You installed NAV 3.4 from scratch (not as an upgrade), creating a
-    new database.
- 
-   or
- 
- 2. You are running PostgreSQL 8.3 or newer.
-
-See doc/sql/upgrade/3.4.2.sql for more details on running the script.
-
-If you installed NAV from a Debian binary package, the upgrade process
-should have automatically run this upgrade script for you.
-
-
-Upgrading from NAV 3.3
+Netmap vs. Traffic Map
 ======================
 
-Arnold
-------
-Arnold, the port blocking system, has been reimplemented in Python,
-and now has support for changing vlans on switch ports, in addition to
-the usual port blocking.  It's config files and scripts have changed
-names; if you've set up a cron job running t1000.pl or other jobs
-calling the old Perl scripts, these will need to be updated.  You
-should also check the new config files if you have made local changes
-to the old ones.
+The Traffic Map has been superseded by the Netmap.  Netmap does not
+require a Java servlet backend, and in combination with a rewrite of
+Network Explorer this means Tomcat is no longer needed for a NAV
+installation.
 
-LDAP
-----
-If you have been using NAV's LDAP authentication ability, please
-update your webfront.conf file.  The config has changed slightly, now
-allowing for TLS connections, attribute configuration and required
-group memberships; i.e. you can now require LDAP users to be members
-of a specific LDAP group to be allowed to log in to NAV at all.  This
-removes the requirement to have a separate sub-tree of NAV user
-objects in your official LDAP directory.
+If, for any reason, you really miss the old Traffic Map, you can find
+it as a contrib under contrib/trafficmap/.  Refer to
+contrib/trafficmap/README for installation instructions.
+
+
+Upgrading from NAV 3.4
+======================
+
+Database changes
+----------------
+Whereas NAV 3.4 used four separate PostgreSQL databases (manage,
+navprofiles, logger and arnold) to store its data, NAV 3.5 uses a
+single database.
+
+Before running the normal SQL upgrade procedure (i.e. SQL scripts from
+doc/sql/upgrades/), you MUST merge your four existing NAV databases
+into a single nav database.  The shell script doc/sql/mergedb.sh can
+help you with this.  Se doc/sql/upgrades/README for more information.
+
 
 Dependency changes
 ------------------
-Please note that NAV now requires Java 1.5 to compile.  Also note that
-if you wish to test the new IP Device Info preview, you will need to
-install Django and psycopg2, as mentioned earlier in the release
-notes.
+The following dependencies are new to NAV 3.5:
+
+* python-django >= 1.0 (http://www.djangoproject.com)
+* psycopg2 (in addition to psycopg1,
+  http://www.initd.org/pub/software/psycopg/)
+
+The following are no longer dependencies in NAV 3.5:
+
+* Tomcat
+* PHP
+* The Perl modules DBD::Pg and SNMP_Session
+* The Python module forgetHTML
+

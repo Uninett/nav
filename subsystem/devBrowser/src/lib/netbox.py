@@ -44,10 +44,10 @@ from mx import DateTime
 
 import nav.db
 from nav.db import manage
-from nav.web import urlbuilder
+from nav.web.devBrowser import urlbuilder
 from nav.errors import *
 from nav.rrd import presenter
-from nav.web import tableview
+from nav.web.devBrowser import tableview
 import module
 from nav.web.devBrowser.servicetable import ServiceTable
 from nav.event import EventQ, Event
@@ -577,7 +577,7 @@ class NetboxInfo(manage.Netbox):
         div.append(table)
         if moreAlerts:
             div.append(html.Emphasis(html.Small("More alerts exists for this time frame.")))
-        div.append(html.Division('See <a href="/devicemanagement/?box=%d&history=1">Device History</a> for more details.' % self.netboxid.netboxid))
+        div.append(html.Division('See <a href="/devicemanagement/?view_netbox=%d&history=1">Device History</a> for more details.' % self.netboxid.netboxid))
         return div
 
     def showServices(self, sort):
@@ -855,6 +855,6 @@ class NetboxInfo(manage.Netbox):
         actions.append('[%s]' % urlbuilder.createLink(self.netboxid,
                                                       subsystem='maintenance',
                                                       content='Schedule maintenance'))
-        actions.append('[<a href="/devicemanagement/?box=%d&history=1">Device history</a>]'
+        actions.append('[<a href="/devicemanagement/?view_netbox=%d&history=1">Device history</a>]'
                        % self.netboxid.netboxid)
         return actions

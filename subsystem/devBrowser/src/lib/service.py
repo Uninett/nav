@@ -21,11 +21,11 @@
 #
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland <stain@itea.ntnu.no>
-# 
+#
 
 """Service monitor view.
-A view of services monitored for a specific netbox, 
-lists of services monitored at all, services of a 
+A view of services monitored for a specific netbox,
+lists of services monitored at all, services of a
 specific type, etc.
 
 Shows current status, parameters, uptime statistics, etc.
@@ -37,10 +37,10 @@ except:
     pass
 import forgetHTML as html
 from nav import db
-from nav.db import manage 
+from nav.db import manage
 from nav.web.devBrowser import servicetable
-from nav.web import urlbuilder
-from nav.web.tableview import TableView
+from nav.web.devBrowser import urlbuilder
+from nav.web.devBrowser.tableview import TableView
 from nav.errors import *
 import random
 import time
@@ -72,22 +72,22 @@ def process(request):
     if args[0] == '':
         request['templatePath'].append(('Services', None))
         return showIndex()
-    else:    
-        request['templatePath'].append(('Services', 
+    else:
+        request['templatePath'].append(('Services',
                urlbuilder.createUrl(division="service")))
 
     if args[0] == 'all':
         request['templatePath'].append(('All', None))
 
         return showAll(request,sort)
-        
+
     if args[0] == 'allMatrix':
-        request['templatePath'].append(('All matrix', None)) 
+        request['templatePath'].append(('All matrix', None))
         return showAllMatrix(request,sort)
-    
+
     # else...
     handler = args[0]
-    request['templatePath'].append((handler, None)) 
+    request['templatePath'].append((handler, None))
     return getNetboxes(handler, sort)
 
 def getServices(netbox):
@@ -100,26 +100,26 @@ def showIndex(showAll=0):
     conn = db.getConnection('default')
     curs = conn.cursor()
     # We'll do this manually to do it alot quicker (and smoother)
-    curs.execute("""SELECT handler, count(serviceid) 
-                    FROM service 
-                    GROUP BY handler 
+    curs.execute("""SELECT handler, count(serviceid)
+                    FROM service
+                    GROUP BY handler
                     ORDER BY handler""")
     for (handler, count) in curs.fetchall():
-            link = html.Anchor(handler, href=handler)         
+            link = html.Anchor(handler, href=handler)
             line = html.Division(link)
             line.append(' (%s)' % count)
             result.append(line)
-    result.append(html.Paragraph(html.Anchor("Show all", href="all")))        
-    result.append(html.Paragraph(html.Anchor("Show matrix", href="allMatrix")))        
+    result.append(html.Paragraph(html.Anchor("Show all", href="all")))
+    result.append(html.Paragraph(html.Anchor("Show matrix", href="allMatrix")))
     return result
 
 def showAllMatrix(request, sort):
     conn = db.getConnection('default')
     curs = conn.cursor()
     curs.execute("""SELECT DISTINCT handler
-                    FROM service 
+                    FROM service
                     ORDER BY handler""")
-    handlers = [handler for (handler,) in curs.fetchall()]                
+    handlers = [handler for (handler,) in curs.fetchall()]
     netboxes = {}
     for service in manage.Service.getAll():
         netbox = service.netbox
@@ -128,11 +128,11 @@ def showAllMatrix(request, sort):
             netboxes[netbox.sysname] = netbox
             netbox.services = {}
         netbox.services[service.handler] = service
-    
+
     # Convert to a list, sorted by sysname
     netboxes = netboxes.items()
     netboxes.sort()
-    
+
     # ok, generate HTML
     result = TableView('Netbox', sortBy=sort, *handlers)
     for (_, netbox) in netboxes:
@@ -144,13 +144,13 @@ def showAllMatrix(request, sort):
             state = html.TableCell()
             if not service:
                 state.append('')
-            else:    
-                state.append(getServiceState(service))    
+            else:
+                state.append(getServiceState(service))
                 state['class'] = service.up
-            row.append(state)    
-        result.add(*row)          
+            row.append(state)
+        result.add(*row)
     result.sort()
-    return result            
+    return result
 
 def showAll(request, sort):
     result = html.Division()
@@ -168,14 +168,14 @@ def showAll(request, sort):
         end = time.time() - start
         result.append("Sorted in %s seconds, " %  end)
         result.append("last updated %s" % time.strftime("%H:%M:%S"))
-    except "NotFound":    
+    except "NotFound":
         table = servicetable.ServiceTable(sort=sort)
         result.append(table.html)
         end = time.time() - start
         result.append("Generated in %s seconds" %  end)
         request['session']['servicetable'] = (table, time.time())
     return result
-    
+
 def getNetboxes(servicename, sort):
     result = html.Division()
     result.append(html.Header("All servers running %s" % servicename, level=1))

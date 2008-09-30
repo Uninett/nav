@@ -1,0 +1,146 @@
+/* Subsystem stylesheet for NAV
+ *
+ * Copyright 2003-2004 Norwegian University of Science and Technology
+ * Copyright 2006-2008 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV)
+ *
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
+ */
+
+/* Search field */
+#ipdevinfosearch {
+	float: right;
+	margin-left: 1em;
+}
+#ipdevinfosearch form {
+	margin: 0;
+}
+#ipdevinfosearch button {
+	width: 100%;
+}
+
+/* Left-floating tables */
+#ipdevinfo, #hostinfo, #alerts {
+	float: left;
+	display: inline;
+}
+#hostinfo, #alerts {
+	margin-left: 1em;
+}
+
+/* Used for pushing the rest of the content below the host
+ * and IP Device info tables. */
+hr.floatclear {
+	clear: both;
+	visibility: hidden;
+}
+
+/* Port view */
+.module {
+	border: 0px;
+}
+.module td {
+	line-height: 1.5em;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.port {
+	background: white;
+	border: 1px solid #666;
+}
+.port a {
+	color: black;
+	display: block;
+	padding: 0.3em 0.5em;
+	text-align: center;
+	text-decoration: none;
+	vertical-align: middle;
+}
+
+/* Port legend box */
+#portlegend table th, #portlegend table td {
+	padding: 0.3em;
+}
+#portlegend table td {
+	padding-right: 1em;
+}
+#portlegend table td .port {
+	margin-right: 0.5em;
+	padding: 0.2em;
+}
+
+/* Speed legend */
+.passive {
+	background: #ccc;
+}
+.disabled {
+	background: #c99;
+}
+.Mb10 {
+	background: #deebf7;
+}
+.Mb100 {
+	background: #c6dbef;
+}
+.Mb1000 {
+	background: #aecae1;
+}
+.Mb10000 {
+	background: #8baed6;
+}
+
+/* Frame legend */
+.hduplex {
+	border: 1px dashed #666;
+}
+.fduplex {
+	border: 1px solid #666;
+}
+.trunk {
+	border: 3px double #666;
+}
+.blocked {
+	text-decoration: line-through;
+}
+
+/* Activity legend */
+.inactive {
+	border: 1px dashed #666;
+}
+.active {
+	border: 1px dashed #333;
+}
+.link {
+	border: 1px solid #666;
+}
+
+/* Service table */
+.status_up {
+	background: #91cf60;
+	color: black;
+}
+.status_down {
+	background: #fc8d59;
+	color: black;
+}
+.status_shadow {
+	background: #fee090;
+	color: black;
+}

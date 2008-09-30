@@ -51,7 +51,7 @@
 		</copy>
     		<mkdir dir="${DESTDIR}${tooldir}"/>
 		<copy file="htaccess" tofile="${DESTDIR}${instdir}/.htaccess"/>
-		<copy file="Netmap.tool" todir="${DESTDIR}${tooldir}"/>
+		<copy file="netmap.tool" todir="${DESTDIR}${tooldir}"/>
 	</target>
 
 	<target name="uninstall">

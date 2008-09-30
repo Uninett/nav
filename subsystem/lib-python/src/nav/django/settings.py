@@ -32,21 +32,19 @@ from nav.config import readConfig
 import nav.buildconf
 import nav.path
 
-if 'DJANGO_DEBUG' in readConfig('nav.conf') \
-    and readConfig('nav.conf')['DJANGO_DEBUG'] == "True":
-    DEBUG = True
-else:
-    DEBUG = False
+nav_config = readConfig('nav.conf')
+db_config = readConfig('db.conf')
+
+DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
 
 # Admins
 ADMINS = (
-    ('NAV Administrator', readConfig('nav.conf')['ADMIN_MAIL']),
+    ('NAV Administrator', nav_config['ADMIN_MAIL']),
 )
 MANAGERS = ADMINS
 
 # Database / ORM configuration
-db_config = readConfig('db.conf')
 DATABASE_ENGINE = 'postgresql_psycopg2'
 DATABASE_NAME = db_config['db_nav']
 DATABASE_USER = db_config['script_django']
@@ -65,7 +63,16 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
 )
 
+# Email sending
+DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
+
 # Date formatting
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
+
+TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
+DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
+
+# Report subsystems Django cache setting.
+CACHE_BACKEND = 'file:///tmp/nav_report_cache'	

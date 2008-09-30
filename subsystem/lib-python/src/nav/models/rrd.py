@@ -29,6 +29,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 from django.db import models
+from django.core.urlresolvers import reverse
 
 from nav.models.event import Subsystem
 from nav.models.manage import Netbox
@@ -50,6 +51,9 @@ class RrdFile(models.Model):
         db_table = 'rrd_file'
 
     def __unicode__(self):
+        return u'%s/%s' % (self.path, self.filename)
+
+    def get_file_path(self):
         return u'%s/%s' % (self.path, self.filename)
 
 class RrdDataSource(models.Model):
@@ -99,3 +103,8 @@ class RrdDataSource(models.Model):
     def __unicode__(self):
         return u'%s (%s), for RRD file %s' % (
             self.name, self.description, self.rrd_file)
+
+    def get_absolute_url(self):
+        return reverse('rrdviewer-rrd-by-ds', kwargs={
+            'rrddatasource_id': self.id,
+        })
