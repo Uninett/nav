@@ -51,3 +51,23 @@ The following are no longer dependencies in NAV 3.5:
 * The Perl modules DBD::Pg and SNMP_Session
 * The Python module forgetHTML
 
+
+Files to remove
+---------------
+These files and directories should be removed from your installation
+after the upgrade:
+
+apache/tools/editdb.tool
+apache/tools/vlanPlot.tool
+apache/tools/navAdmin.tool
+apache/webroot/editdb/
+apache/webroot/js/editdbTemplate.js
+apache/webroot/style/editdbTemplate.css
+apache/webroot/images/toolbox/tools/editdb.png
+lib/python/nav/web/templates/editdbTemplate.py
+
+You should rename etc/editdb.conf to etc/seeddb.conf if you have any
+local changes to editdb.conf.
+
+These files and directories are all prefixed with /usr/local/nav/ in a
+default configuration, but your mileage may vary.
