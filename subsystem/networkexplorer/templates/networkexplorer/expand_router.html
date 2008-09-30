@@ -17,7 +17,7 @@
             {% if gwport.to_swport.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}
              {{ gwport.to_netbox.sysname }}
         {% endif %}
-	{% with gwport.prefixes as prefix_list %}
+	{% with gwport.prefixes|dictsort:"display_addr" as prefix_list %}
 	{% if prefix_list %}
         <dl>
 			<dt class="prefix">Prefixes:</dt>

@@ -52,6 +52,8 @@ from nav.web.templates.NetworkExplorerTemplate import NetworkExplorerTemplate
 
 import nav.natsort
 
+from search import *
+
 def index(request):
     """Basic view of the network"""
 
@@ -85,7 +87,8 @@ def expand_router(request):
             prefix.display_addr = prefix.gw_ip + netmask
             gwport.prefixes.append(prefix)
 
-            for vlan in prefix.prefix.vlan.swportvlan_set.exclude(vlan__net_type='static'):
+            vlans = prefix.prefix.vlan.swportvlan_set.exclude(vlan__net_type='static').filter(swport__module__netbox=gwport.module.netbox)
+            for vlan in vlans:
                 if vlan.swport.swportblocked_set.filter(vlan=vlan.vlan.vlan).count() < 1:
                     gwport.has_children = True
 
@@ -119,14 +122,16 @@ def expand_gwport(request):
     sys.stderr.flush()
     vlans = []
     foreign_netboxes = []
-    prefixes = gwport.gwportprefix_set.all()
+    prefixes = gwport.gwportprefix_set.all().exclude(prefix__vlan__net_type='static')
     sys.stderr.write("- Found %s gwportprefixes\n" % len(prefixes))
     sys.stderr.flush()
     for prefix in prefixes:
         sys.stderr.write("-- Scanning prefix %s\n" % prefix)
         sys.stderr.flush()
-        for vlan in prefix.prefix.vlan.swportvlan_set.all()\
-            .filter(swport__module__netbox=gwport.module.netbox).order_by('swport__interface'):
+        for vlan in prefix.prefix.vlan.swportvlan_set.all().filter(
+                        swport__module__netbox=gwport.module.netbox
+                        ).order_by('swport__interface'):
+
             sys.stderr.write("--- Checking vlan %s\n" % vlan)
             sys.stderr.flush()
             # Check if port is spanningtreeblocked
@@ -267,139 +272,6 @@ def expand_swport(request):
             'active_hosts': hosts_behind_port,
         })
 
-def sysname_search(sysname):
-    """
-    Searches the database for any connections to the sysname
-    """
-    router_matches = []
-    gwport_matches = []
-    swport_matches = []
-
-    # Sysname-search
-    routers = Netbox.objects.filter(sysname__icontains=sysname, category__in=['GW','GSW'])
-    netboxes = Netbox.objects.filter(sysname__icontains=sysname)
-
-    for router in routers:
-        router_matches.append(router.id)
-
-    for gwport in GwPort.objects.all().filter(module__netbox__in=netboxes):
-        gwport_matches.append(gwport.id)
-
-    local_swports = SwPort.objects.all().filter(module__netbox__in=netboxes)
-    for swport in local_swports:
-        swport_matches.append(swport.id)
-
-    gwports = GwPort.objects.all().filter(
-        Q(to_netbox__in=netboxes) |
-        Q(to_swport__module__netbox__in=routers))
-    for gwport in gwports:
-        router_matches.append(gwport.module.netbox.id)
-        gwport_matches.append(gwport.id)
-
-    swports = SwPort.objects.all().filter(
-        Q(to_netbox__in=netboxes) |
-        Q(to_swport__in=local_swports))
-    for swport in swports:
-        router_matches.append(swport.module.netbox.id)
-        swport_matches.append(swport.id)
-        # Find path from swport to gwport (and the router)
-        for swportvlan in swport.swportvlan_set.all():
-            if swport.swportblocked_set.filter(vlan=swportvlan.vlan.vlan).count() > 0:
-                continue
-            for prefix in swportvlan.vlan.prefix_set.all():
-                for gwportprefix in prefix.gwportprefix_set.all():
-                    gwport_matches.append(gwportprefix.gwport.id)
-                    router_matches.append(gwportprefix.gwport.module.netbox.id)
-    return (router_matches, gwport_matches, swport_matches)
-
-def ip_search(ip):
-    """
-    Searches the database for anything related to the ip
-
-    Returns a list of (routers, gwports, swports)
-    """
-
-    router_matches = []
-    gwport_matches = []
-    swport_matches = []
-
-    netboxes = Netbox.objects.filter(ip__contains=request.REQUEST['query'])
-
-    # Add matching routers
-    router_matches.extend([netbox.id for netbox in netboxes.filter(category__in=['GW','GSW'])])
-
-    # Find a way to a router from all non-router netboxes
-    for netbox in netboxes.exclude(category__in=['GW','GSW']):
-        gwport_matches.extend([gwport.id for gwport in GwPort.objects.filter(to_netbox=netbox)])
-        for swport in SwPort.objects.filter(to_netbox=netbox):
-            router_matches.append(swport.module.netbox.id)
-            swport_matches.append(swport.id)
-            # Find path from swport to gwport (and the router)
-            for swportvlan in swport.swportvlan_set.all():
-                if swport.swportblocked_set.filter(vlan=swportvlan.vlan).count() > 0:
-                    continue
-                for prefix in swportvlan.vlan.prefix_set.all():
-                    for gwportprefix in prefix.gwportprefix_set.all():
-                        gwport_matches.append(gwportprefix.gwport.id)
-                        router_matches.append(gwportprefix.gwport.module.netbox.id)
-    for gwportprefix in GwPortPrefix.objects.filter(gw_ip__contains=request.REQUEST['query']):
-        gwport_matches.append(gwportprefix.gwport.id)
-        router_matches.append(gwportprefix.gwport.module.netbox.id)
-
-    # TODO: Search ARP-records for the ip
-
-    return (router_matches, gwport_matches, swport_matches)
-
-def arp_search(ip, mac):
-    """
-    """
-
-    router_matches = []
-    gwport_matches = []
-    swport_matches = []
-
-    if ip:
-        arp_entries = Arp.objects.filter(ip__icontains=ip, end_time__gt=datetime.datetime.max)
-        for arp in arp_entries:
-            if arp.sysname:
-                result = sysname_search(arp.sysname)
-                router_matches.extend(result[0])
-                gwport_matches.extend(result[1])
-                swport_matches.extend(result[2])
-    if mac:
-        arp_entries = Arp.objects.filter(mac__icontains=mac, end_time__gt=datetime.datetime.max)
-        for arp in arp_entries:
-            if arp.sysname:
-                result = sysname_search(arp.sysname)
-                router_matches.extend(result[0])
-                gwport_matches.extend(result[1])
-                swport_matches.extend(result[2])
-            if arp.ip:
-                result = ip_search(arp.ip)
-                router_matches.extend(result[0])
-                gwport_matches.extend(result[1])
-                swport_matches.extend(result[2])
-
-    return (router_matches, gwport_matches, swport_matches)
-
-
-def mac_search(mac):
-    """
-    """
-
-    router_matches = []
-    gwport_matches = []
-    swport_matches = []
-
-    cam_entries = Cam.objects.filter(mac__icontains=mac, end_time__gt=datetime.datetime.max)
-    for cam in cam_entries:
-        if cam.netbox:
-            result = sysname_search(cam.netbox.sysname)
-            router_matches = result[0]
-            gwport_matches = result[1]
-            swport_matches = result[2]
-        else:
-            arp_search
 
 def search(request):
     """
@@ -429,6 +301,24 @@ def search(request):
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
+    
+    if request.REQUEST['lookup_field'] == 'room':
+        result = room_search(request.REQUEST['query'])
+        router_matches = result[0]
+        gwport_matches = result[1]
+        swport_matches = result[2]
+    
+    if request.REQUEST['lookup_field'] == 'vlan':
+        result = vlan_search(request.REQUEST['query'])
+        router_matches = result[0]
+        gwport_matches = result[1]
+        swport_matches = result[2]
+    
+    if request.REQUEST['lookup_field'] == 'port':
+        result = portname_search(request.REQUEST['query'])
+        router_matches = result[0]
+        gwport_matches = result[1]
+        swport_matches = result[2]
 
 
     # A bit ugly hack to remove duplicates, but simplejson doesnt seem to support sets
@@ -440,18 +330,21 @@ def search(request):
     routers = []
     for router in router_matches:
         req = FakeRequest()
-        req.REQUEST['netboxid'] = router
-        routers.append([router, expand_router(req).content])
+        req.REQUEST['netboxid'] = router.id
+        routers.append([router.id, expand_router(req).content])
+
     gwports = []
     for gwport in gwport_matches:
         req = FakeRequest()
-        req.REQUEST['gwportid'] = gwport
-        gwports.append([gwport, expand_gwport(req).content])
+        req.REQUEST['gwportid'] = gwport.id
+        gwports.append([gwport.id, expand_gwport(req).content])
+
     swports = []
     for swport in swport_matches:
         req = FakeRequest()
-        req.REQUEST['swportid'] = swport
-        swports.append([swport, expand_swport(req).content])
+        req.REQUEST['swportid'] = swport.id
+        swports.append([swport.id, expand_swport(req).content])
+
     return HttpResponse(simplejson.dumps({'routers': routers, 'gwports': gwports, 'swports': swports}))
 
 class FakeRequest:

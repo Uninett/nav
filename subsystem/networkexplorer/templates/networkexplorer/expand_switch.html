@@ -12,14 +12,33 @@
    <img src="/images/networkexplorer/vertical-bound.gif">
 {% endif %}
 {% endif %}
-<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.module.netbox.sysname }}">{{ swportvlan.swport.module.netbox.sysname }}</a> [{{ swportvlan.swport.interface }}]
+<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.module.netbox.sysname }}">{{ swportvlan.swport.module.netbox.sysname }}</a>
+[{{ swportvlan.swport.interface }}]
+
+{% if swportvlan.swport.portname %}
+({{ swportvlan.swport.portname }})
+{% endif %}
+
 {% if swportvlan.swport.to_netbox %}
-    {% if swportvlan.swport.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.to_netbox }}">{{ swportvlan.swport.to_netbox }}</a>
+    {% if swportvlan.swport.trunk %}
+      <abbr title="trunk port">⇉</abbr>
+    {% else %}
+      <abbr title="non-trunk port">→</abbr>
+    {% endif %}
+    <a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.to_netbox }}">{{ swportvlan.swport.to_netbox }}</a>
 {% else %}
     {% if swportvlan.swport.to_swport %}
-        {% if swportvlan.swport.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.to_swport.module.netbox }}">{{ swportvlan.swport.to_swport.module.netbox }}</a>
+        {% if swportvlan.swport.trunk %}
+	  <abbr title="trunk port">⇉</abbr>
+	{% else %}
+	  <abbr title="non-trunk port">→</abbr>
+	{% endif %}
+	<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.to_swport.module.netbox }}">{{ swportvlan.swport.to_swport.module.netbox }}</a>
     {% else %}
-        {% if swportvlan.swport.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %} {{ swportvlan.swport.port_name }}
+        ({{ swportvlan.swport.port_name }})
+    	{% if swportvlan.swport.trunk %}
+      	<abbr title="trunk port">(trunk)</abbr>
+    	{% endif %}
     {% endif %}
 {% endif %}
 </dd>
