@@ -4,7 +4,7 @@
 
 <table class="vertitable">
     <caption>Module {{ module.module_number }}
-    at {{ module.netbox.sysname }}</caption>
+    at {{ module.netbox.get_short_sysname }}</caption>
     <tr>
         <th>At IP device</th>
         <td><a href="{{ module.netbox.get_absolute_url }}">

@@ -82,10 +82,10 @@ SET search_path TO radius;
 CREATE INDEX radiusacct_active_user_idx ON radiusacct (UserName) WHERE AcctStopTime IS NULL;
 -- and for common statistic queries:
 CREATE INDEX radiusacct_start_user_index ON radiusacct (AcctStartTime, lower(UserName));
-CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, UserName);
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
 
 CREATE INDEX radiuslog_time_index ON radiuslog(time);
-CREATE INDEX radiuslog_username_index ON radiuslog(UserName);
+CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
 
 -- Reset the search path
 RESET search_path;

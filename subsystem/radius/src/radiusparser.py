@@ -391,7 +391,7 @@ def parse_line(line):
     if m:
         return m
     else:
-        #DEV We want to ignore some freeradius sql-errors as well
+        #We want to ignore some freeradius sql-errors as well
         m = ignore_rlmsql.search(line)
         if m:
             #unknown.append(line)

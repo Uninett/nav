@@ -2,17 +2,6 @@
 
 {% block content %}
 
-<h3>Filter on handler</h3>
-
-<ul>
-    <li><a href="{% url ipdevinfo-service-list-all %}">
-        All handlers</a></li>
-    {% for h in handler_list %}
-    <li><a href="{% url ipdevinfo-service-list-handler h.handler %}">
-        Handler: {{ h.handler }}</a></li>
-    {% endfor %}
-</ul>
-
 {% if service_list %}
 <table class="listtable">
     <caption>
@@ -31,5 +20,16 @@
         <p>No services found.</p>
     {% endif %}
 {% endif %}
+
+<h3>Filter on handler</h3>
+
+<ul>
+    <li><a href="{% url ipdevinfo-service-list-all %}">
+        All handlers</a></li>
+    {% for h in handler_list %}
+    <li><a href="{% url ipdevinfo-service-list-handler h.handler %}">
+        Handler: {{ h.handler }}</a></li>
+    {% endfor %}
+</ul>
 
 {% endblock %}

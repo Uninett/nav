@@ -23,7 +23,6 @@ To run NAV, these software packages are required:
 
  * Apache2
  * mod_python
- * mod_php >= 4
  * Cricket
  * PostgreSQL >= 8.0
  * rrdtool
@@ -32,11 +31,6 @@ To run NAV, these software packages are required:
  * Java 2 SDK >= 1.5.0
  * Perl >= 5.6.0
  * Python >= 2.4.0
-
-The following PHP extensions are required:
-
- * php-gd
- * php-pgsql
 
 The following Perl modules are required:
 
@@ -101,5 +95,5 @@ running `make` as described above.
 If both libraries are located in /usr/share/java/, then something like this
 should be appropriate::
 
-  export CLASSPATH=/usr/share/java/servletapi.jar:/usr/share/java/libsnmp.jar
+export CLASSPATH=/usr/share/java/servlet-api.jar:/usr/share/java/libsnmp-1.4.jar
 

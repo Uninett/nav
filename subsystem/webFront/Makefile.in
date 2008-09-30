@@ -10,10 +10,7 @@ sysconfdir = @sysconfdir@
 
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
-tooldir = @tooldir@
 djangotmpldir = ${libdir}/templates
-
-tools = useradmin.tool
 
 top_srcdir = @top_srcdir@
 
@@ -53,9 +50,6 @@ install-web: install-images
 	installable=`find . -name '*.py' -or -name '.htaccess' -or -name '*.html' -or -name '*.css' -or -name '*.js'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
-	done
-	for file in $(tools); do \
-	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; \
 	done
 
 install-images:

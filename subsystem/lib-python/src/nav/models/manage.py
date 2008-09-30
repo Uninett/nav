@@ -31,6 +31,7 @@ __id__ = "$Id$"
 import datetime as dt
 import time
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 
@@ -217,6 +218,23 @@ class Netbox(models.Model):
         except NetboxInfo.DoesNotExist:
             return None
 
+    def get_filtered_prefix(self):
+        if self.prefix.vlan.net_type.description in (
+            'scope', 'private', 'reserved'):
+            return None
+        else:
+            return self.prefix
+
+    def get_short_sysname(self):
+        """Returns sysname without the domain suffix if specified in the
+        DOMAIN_SUFFIX setting in nav.conf"""
+
+        if (settings.DOMAIN_SUFFIX is not None
+            and self.sysname.endswith(settings.DOMAIN_SUFFIX)):
+            return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
+        else:
+            return self.sysname
+
 class NetboxInfo(models.Model):
     """From MetaNAV: The netboxinfo table is the place to store additional info
     on a netbox."""
@@ -359,7 +377,7 @@ class Room(models.Model):
         db_table = 'room'
 
     def __unicode__(self):
-        return u'%s (%s, %s)' % (self.id, self.description, self.location)
+        return u'%s (%s)' % (self.id, self.description)
 
 class Location(models.Model):
     """From MetaNAV: The location table defines a group of rooms; i.e. a

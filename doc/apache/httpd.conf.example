@@ -36,16 +36,12 @@ LoadModule access_module      libexec/mod_access.so
 LoadModule auth_module        libexec/mod_auth.so
 LoadModule rewrite_module     libexec/mod_rewrite.so
 LoadModule ssl_module         libexec/libssl.so
-LoadModule php4_module        libexec/libphp4.so
 LoadModule python_module      libexec/mod_python.so
 
 #
 # MIME and type related config
 #
 DefaultType text/plain
-
-AddType application/x-httpd-php .php
-AddType application/x-httpd-php-source .phps
 
 #
 # Some server specifics
@@ -137,7 +133,7 @@ AccessFileName .htaccess
 
 <Directory /usr/local/nav/apache/webroot>
     Options Indexes FollowSymLinks MultiViews ExecCGI
-    DirectoryIndex index.html index.php index.cgi
+    DirectoryIndex index.html index.cgi
 
     AllowOverride All
 </Directory>

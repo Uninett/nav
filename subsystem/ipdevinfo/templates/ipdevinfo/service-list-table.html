@@ -3,7 +3,6 @@
         <th rowspan="2">Status</th>
     {% if show_ipdev_info %}
         <th rowspan="2">IP Device</th>
-        <th rowspan="2">Organization</th>
     {% endif %}
         <th rowspan="2">Handler</th>
         <th colspan="3">Availability</th>
@@ -45,9 +44,7 @@
             {{ service.get_up_display|capfirst }}</td>
     {% if show_ipdev_info %}
         <td><a href="{{ service.netbox.get_absolute_url }}">
-            {{ service.netbox.sysname }}</a></td>
-        <td><a href="{% url report-organization-organization service.netbox.organization.id %}">
-            {{ service.netbox.organization }}</td>
+            {{ service.netbox.get_short_sysname }}</a></td>
     {% endif %}
         <td><a href="{% url ipdevinfo-service-list-handler service.handler %}">
             {{ service.handler }}</a></td>
