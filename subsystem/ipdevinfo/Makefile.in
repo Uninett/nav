@@ -39,14 +39,12 @@ pythonlibdir = @pythonlibdir@
 djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 
-# Names
-WEBNAME = ipdevinfo
-
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/django/urls/ipdevinfo.py nav/web/ipdevinfo/*.py)
-CONFFILES =
+LIBS = $(wildcard nav/django/urls/*.py nav/web/*/*.py)
+CONFFILES_SRC = $(wildcard config/*/*.conf)
+CONFFILES = $(CONFFILES_SRC:config/%=%)
 TOOLS = ipdevinfo.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
@@ -88,7 +86,8 @@ install-conf: conf
 
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/ipdevinfo/.htaccess
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/rrd/.htaccess
 	for file in $(MEDIA); do $(INSTALL) -v -D -m 644 media/$$file $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 uninstall:
@@ -96,7 +95,8 @@ uninstall:
 	for file in $(LIBS); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in $(DJANGO_TEMPLATES); do rm -rf $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
 	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
+	rm -rf $(DESTDIR)$(webroot)/ipdevinfo/
+	rm -rf $(DESTDIR)$(webroot)/rrd/
 	for file in $(MEDIA); do rm -rf $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 clean:
