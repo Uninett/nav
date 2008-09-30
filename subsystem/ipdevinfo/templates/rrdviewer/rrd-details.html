@@ -2,34 +2,36 @@
 
 {% block content %}
 
-<h3>
-    {{ rrddatasource.description }} for
-    {% if port %}
-        <a href="{{ port.get_absolute_url }}">{{ port }}</a>
-    {% else %}
-        {% with rrddatasource.rrd_file.netbox as netbox %}
-            <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
-        {% endwith %}
-    {% endif %}
-</h3>
+{% if presenter_page %}
+    <h3>
+        {{ rrddatasource.description }} for
+        {% if port %}
+            <a href="{{ port.get_absolute_url }}">{{ port }}</a>
+        {% else %}
+            {% with rrddatasource.rrd_file.netbox as netbox %}
+                <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+            {% endwith %}
+        {% endif %}
+    </h3>
 
-{% for image in presenter_page.presentations %}
-    <div class="rrd-image"><img src="{{ image.graphUrl }}" /></div>
-{% endfor %}
+    {% for image in presenter_page.presentations %}
+        <div class="rrd-image"><img src="{{ image.graphUrl }}" /></div>
+    {% endfor %}
 
-<h3>Time frame</h3>
+    <h3>Time frame</h3>
 
-<ul>
-    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"year" %}">
-        Year</a></li>
-    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"month" %}">
-        Month</a></li>
-    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"week" %}">
-        Week</a></li>
-    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"day" %}">
-        Day</a></li>
-    <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"hour" %}">
-        Hour</a></li>
-</ul>
+    <ul>
+        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"year" %}">
+            Year</a></li>
+        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"month" %}">
+            Month</a></li>
+        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"week" %}">
+            Week</a></li>
+        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"day" %}">
+            Day</a></li>
+        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"hour" %}">
+            Hour</a></li>
+    </ul>
+{% endif %}
 
 {% endblock %}
