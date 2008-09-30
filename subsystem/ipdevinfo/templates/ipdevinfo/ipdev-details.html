@@ -296,7 +296,7 @@
     <tbody>
     {% if host_info.addresses %}
         {% for address in host_info.addresses %}
-        <tr>
+        <tr class="{% cycle oddrow,evenrow %}">
             <td>
                 <a href="{% url ipdevinfo-details-by-addr address.addr %}">
                     {{ address.addr }}</a>
