@@ -93,7 +93,7 @@ install-web: install-media
 
 install-media:
 	@cd media; \
-	installable=`find . -name '.htaccess' -or -name '*.png' -or -name '*.gif' -or -name '*.css' -or -name '*.js'`; \
+	installable=`find . -name '.htaccess' -or -name '*.png' -or -name '*.gif' -or -name '*.jpg' -or -name '*.css' -or -name '*.js'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done
