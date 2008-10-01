@@ -75,7 +75,8 @@ install-bin:
 	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file || exit 1; done
 
 install-conf:
-	@for file in $(CONFFILES); do \
+	@cd config; \
+	for file in $(CONFFILES); do \
 		target=$(DESTDIR)$(sysconfdir)/$$file; \
 		if [ -f "$$target" ]; then \
 			echo "Skipping installation of config file $$file"; \
