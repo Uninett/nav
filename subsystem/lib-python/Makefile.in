@@ -16,7 +16,7 @@ djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 initdir = @initdir@
 VERSION = @VERSION@
-pathmodule = src/nav/buildconf.py
+pathmodule = nav/buildconf.py
 
 
 .PHONY: all install install-lib install-bin clean distclean
@@ -41,13 +41,11 @@ $(pathmodule): Makefile
 install: install-lib install-bin
 
 install-lib: $(pathmodule)
-	@cd src; \
-	installable=`find . -name '*.py'`; \
+	@installable=`find nav -name '*.py'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
 	done
-	@cd src; \
-	django_templates=`find nav/django/templates -name '*.html'`;\
+	@django_templates=`find nav/django/templates -name '*.html'`;\
 	for file in $$django_templates; do\
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; \
 	done
