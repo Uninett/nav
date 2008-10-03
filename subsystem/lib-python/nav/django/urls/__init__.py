@@ -31,7 +31,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 import os
 __all__ = []
 for file_name in os.listdir(os.path.dirname(__file__)):
-    if file_name.endswith('.py') and file_name != os.path.basename(__file__):
+    if file_name.endswith('.py') and not file_name.startswith('__init__'):
         module_name = file_name.replace('.py', '')
         __all__.append(module_name)
 from nav.django.urls import *
