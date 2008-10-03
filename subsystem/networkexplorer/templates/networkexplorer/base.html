@@ -8,40 +8,38 @@
 
 {% block content %}
 <form action="" method="post" id="searchForm">
-<table class="boxes">
-	<tr>
-		<th colspan="2">Search</th>
-	</tr>
-	<tr>
-		<td>Type:</td>
-		<td>
-			<select name="lookup_field">
-				<option value="sysname">Sysname</option>
-				<option value="ip">IP</option>
-				<option value="mac">MAC</option>
-				<option value="port">Port Description</option>
-				<option value="vlan">Vlan</option>
-				<option value="room">Room</option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td>Query:</td>
-		<td><input type="text" name="query" id="search" /></td>
-	</tr>
-	<tr>
-		<td>Search exact (no substring):</td>
-		<td><input type="checkbox" name="exact" id="search" /></td>
-	</tr>
-	<tr>
-		<td>Hide ports with no description:</td>
-		<td><input type="checkbox" name="hide" id="search" /></td>
-	</tr>
-	<tr>
-		<td colspan="2">
-            <input type="submit" value="Search" />
+<table class="vertitable">
+    <caption>Search</caption>
+
+    <tr>
+        <th>Type</th>
+        <td>
+            <select name="lookup_field">
+                <option value="sysname">Sysname</option>
+                <option value="ip">IP</option>
+                <option value="mac">MAC</option>
+                <option value="port">Port Description</option>
+                <option value="vlan">Vlan</option>
+                <option value="room">Room</option>
+            </select>
         </td>
-	</tr>
+    </tr>
+    <tr>
+        <th>Query</th>
+        <td><input type="text" name="query" id="search" /></td>
+    </tr>
+    <tr>
+        <th>Search exact (no substring)</th>
+        <td><input type="checkbox" name="exact" id="search" /></td>
+    </tr>
+    <tr>
+        <th>Hide ports with no description</th>
+        <td><input type="checkbox" name="hide" id="search" /></td>
+    </tr>
+    <tr>
+        <th></th>
+        <td><input type="submit" value="Search" /></td>
+    </tr>
 </table>
 </form>
 
