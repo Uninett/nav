@@ -53,8 +53,6 @@ TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
 DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
-MEDIA_SRC = $(wildcard media/*/*)
-MEDIA = $(MEDIA_SRC:media/%=%)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
@@ -90,7 +88,7 @@ install-conf: conf
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
 	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
-	for file in $(MEDIA); do $(INSTALL) -v -D -m 644 media/$$file $(DESTDIR)$(webroot)/$$file || exit 1; done
+	cd media; for file in `find . -type f`; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
