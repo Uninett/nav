@@ -1,5 +1,5 @@
-name=NetworkExplorer (beta)
+name=Network Explorer
 uri=/networkexplorer/
-icon=/images/toolbox/tools/ipinfo.png
-description=Beta version of the future replacement for NetworkExplorer.
-priority=0
+icon=/images/toolbox/network-explorer.png
+description=Explore the network topology as it expands from each router port.
+priority=94
