@@ -46,7 +46,7 @@ WEBNAME = networkexplorer
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/networkexplorer/*.py)
+LIBS = $(wildcard nav/django/urls/*.py nav/web/networkexplorer/*.py)
 CONFFILES =
 TOOLS = networkexplorer.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
