@@ -505,6 +505,10 @@ UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';
 INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
 VALUES (3, 2, '^/ipdevinfo/?');
 
+-- Allow anonymous users to visit the new /userinfo tool.
+INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
+VALUES (2, 2, E'^/userinfo/?');
+
 
 ------------------------------------------------------------------------------
 -- netmap helper tables
