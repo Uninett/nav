@@ -127,6 +127,9 @@ class controller:
             self.getCheckers()
 
             wait=self._looptime - (time.time() - start)
+            if wait <= 0:
+                debug.debug("System clock has drifted backwards, resetting loop delay", 2)
+                wait = self._looptime
             if self._checkers:
                 pause=wait/(len(self._checkers)*2)
             else:
