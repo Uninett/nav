@@ -1,10 +1,7 @@
 /*
  *
- * This preliminary SQL script is designed to upgrade your NAV
- * database from version 3.4 to the current trunk revision (i.e. the
- * tip of the default development branch).  Please update this with
- * every change you make to the database initialization scripts.  It
- * will eventually become the update script for the next release.
+ * This SQL script is designed to upgrade your NAV database from
+ * version 3.4 to 3.5.
  *
  * *************** NB NB NB NB NB NB NB ***************
  *
@@ -15,16 +12,15 @@
  *
  * *************** NB NB NB NB NB NB NB ***************
  *
- * If you are keeping your installation in sync with the default
- * branch, you should watch this file for changes and run them when
- * updating (check the diffs!)
- *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
+ * Connect to PostgreSQL and run this script as the nav database owner
  * like this:
  *
- *  psql -f trunk.sql nav <username>
+ *  psql -f 3.5.0b1.sql <db_name> <username>
  *
 */
+
+BEGIN;
+SET client_min_messages TO warning;
 
 -- Rename logger tables to avoid naming confusion with manage schema.
 ALTER TABLE logger.message RENAME TO log_message;
@@ -519,3 +515,6 @@ sysname VARCHAR PRIMARY KEY NOT NULL,
 xpos double precision NOT NULL,
 ypos double precision NOT NULL
 );
+
+COMMIT;
+
