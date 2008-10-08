@@ -118,7 +118,7 @@ class EventQueueVar(models.Model):
     events."""
 
     event_queue = models.ForeignKey('EventQueue', db_column='eventqid',
-        related_name='variables')
+        related_name='variables', primary_key=True)
     variable = models.CharField(db_column='var', max_length=-1)
     value = models.TextField(db_column='val')
 
