@@ -42,13 +42,10 @@ class History:
         self.end_time = kwargs.pop('end_time', date.today())
         self.types = kwargs.pop('types', None)
 
+        self.history = {'location': [], 'room': [], 'netbox': [], 'module': []}
+
         for key in kwargs.keys():
             raise TypeError('__init__() got an unexpected keyword argument %s' % key)
-
-        self.types = [type for type in self.types if type and type.isdigit()]
-
-        if len(self.types) == 0:
-            self.types = AlertType.objects.all().values_list('pk', flat=True)
 
         self.time_limit = [
             Q(start_time__lte=self.end_time),
@@ -72,7 +69,6 @@ class History:
         alert_history = AlertHistory.objects.filter(
             Q(alerthistoryvariable__variable='locationid'),
             Q(alerthistoryvariable__value__in=self.selection['location']),
-            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={
@@ -82,6 +78,11 @@ class History:
             tables=['location'],
             where=['location.locationid=alerthistvar.val']
         ).order_by('location_name', '-start_time', '-end_time')
+
+        if self.types['event']:
+            alert_history = alert_history.filter(event_type__in=self.types['event'])
+        if self.types['alert']:
+            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
         history = {}
         for a in alert_history:
@@ -94,7 +95,6 @@ class History:
         alert_history = AlertHistory.objects.filter(
             Q(alerthistoryvariable__variable='roomid'),
             Q(alerthistoryvariable__value__in=self.selection['room']),
-            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={
@@ -104,6 +104,11 @@ class History:
            tables=['room'],
            where=['room.roomid=alerthistvar.val']
         ).order_by('alerthistoryvariable__value', '-start_time', '-end_time')
+
+        if self.types['event']:
+            alert_history = alert_history.filter(event_type__in=self.types['event'])
+        if self.types['alert']:
+            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
         history = {}
         for a in alert_history:
@@ -120,7 +125,6 @@ class History:
     def _get_netbox_history(self):
         alert_history = AlertHistory.objects.filter(
             Q(device__netbox__id__in=self.selection['netbox']),
-            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={
@@ -130,6 +134,11 @@ class History:
             tables=['netbox'],
             where=['netbox.deviceid=device.deviceid']
         ).order_by('-start_time')
+
+        if self.types['event']:
+            alert_history = alert_history.filter(event_type__in=self.types['event'])
+        if self.types['alert']:
+            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
         history = {}
         for a in alert_history:
@@ -141,13 +150,17 @@ class History:
     def _get_module_history(self):
         alert_history = AlertHistory.objects.filter(
             Q(device__module__id__in=self.selection['module']),
-            Q(alert_type__in=self.types),
             *self.time_limit
         ).extra(
             select={'module': 'module.moduleid'},
             tables=['module'],
             where=['module.deviceid=device.deviceid']
         ).order_by('-start_time')
+
+        if self.types['event']:
+            alert_history = alert_history.filter(event_type__in=self.types['event'])
+        if self.types['alert']:
+            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
         history = {}
         for a in alert_history:

@@ -4,10 +4,12 @@
     {% include "devicehistory/history_view_filter.html" %}
 
     {% for type, section in history.items %}
-        <h3>{{ type|capfirst }}</h3>
-        <p>Found {{ section|length }} device with history in the specified period.</p>
-
         {% for key, elements in section.items %}
+        {% if forloop.first %}
+            <h3>{{ type|capfirst }}</h3>
+            <p>Found {{ section|length }} device{{ section|length|pluralize }} with history in the specified period.</p>
+        {% endif %}
+
         <table class="listtable">
             <caption>
                 {{ elements.description }}<br />

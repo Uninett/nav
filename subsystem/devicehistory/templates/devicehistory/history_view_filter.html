@@ -1,3 +1,4 @@
+{% load filters %}
 <form action="" method="post">
     {% for type, elements in selection.items %}
         {% for id in elements %}
@@ -20,12 +21,15 @@
                 <option value="all">All</option>
                 {% for e in event_type %}
                     <optgroup label="{{ e.id }}">
+                        <option value="e_{{ e.id }}"
+                        {% if e.id|in_list:selected_types.event %}
+                        selected="selected"
+                        {% endif %}>All {{ e.id }}</option>
                     {% for a in e.alerttype_set.all %}
-                        {% ifequal a.id selected_type %}
-                            <option value="{{ a.id }}" selected="selected">{{ a.name }}</option>
-                        {% else %}
-                            <option value="{{ a.id }}">{{ a.name }}</option>
-                        {% endifequal %}
+                        <option value="a_{{ a.id }}" 
+                        {% if a.id|stringformat:"s"|in_list:selected_types.alert %}
+                            selected="selected"
+                        {% endif %}>{{ a.name }}</option>
                     {% endfor %}
                     </optgroup>
                 {% endfor %}

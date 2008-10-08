@@ -46,8 +46,8 @@ from nav.web.devicehistory.utils.error import RegisterEvent
 DeviceQuickSelect_kwargs = {
     'button': 'View %s history',
     'module': True,
-    'netbox_multiple': False,
-    'module_multiple': False,
+    'netbox_multiple': True,
+    'module_multiple': True,
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
 DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_kwargs)
@@ -67,9 +67,22 @@ def devicehistory_view(request):
     if not request.method == 'POST':
         pass
 
+    # Default dates are a little hackish.
+    # from_date defaults to one week in the past.
+    # to_date defaults to tomorrow, which means "everything untill tomorrow
+    # starts". Setting it to today will not display the alerts for today.
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    to_date = request.POST.get('to_date', date.today())
-    type = request.POST.get('type', None)
+    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
+    types = request.POST.getlist('type')
+
+    selected_types = {'event': [], 'alert': []}
+    for type in types:
+        if type.find('_') != -1:
+            splitted = type.split('_')
+            if splitted[0] == 'e':
+                selected_types['event'].append(splitted[1])
+            else:
+                selected_types['alert'].append(splitted[1])
 
     # FIXME check that date is a valid "yyyy-mm-dd" string
 
@@ -78,7 +91,7 @@ def devicehistory_view(request):
         'selection': selection,
         'start_time': from_date,
         'end_time': to_date,
-        'types': [type],
+        'types': selected_types,
     }
     history = History(**params)
 
@@ -86,8 +99,8 @@ def devicehistory_view(request):
         'active': {'devicehistory': True},
         'history': history.history,
         'selection': selection,
-        'selected_type': type,
-        'event_type': EventType.objects.all().order_by('id'),
+        'selected_types': selected_types,
+        'event_type': EventType.objects.all().select_related('alerttype').order_by('id'),
         'from_date': from_date,
         'to_date': to_date,
     }
