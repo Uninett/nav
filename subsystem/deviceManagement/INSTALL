@@ -5,7 +5,7 @@ Dependencies
 
 Imports forgetSQL
 
-Imports urlbuilder, TreeSelect and SearchBox from nav.web
+Imports TreeSelect and SearchBox from nav.web
 
 All other imports are either python builtins or modules located in
 the devicemanagement directory.

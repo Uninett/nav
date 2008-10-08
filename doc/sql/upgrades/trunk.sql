@@ -85,6 +85,9 @@ DROP TABLE logg;
 DROP TABLE alertengine;
 DROP SEQUENCE logg_id_seq;
 
+-- Remove copy_default_preferences trigger
+DROP TRIGGER insert_account ON account;
+DROP FUNCTION copy_default_preferences();
 
 -- We wan't english names for everything so here goes:
 ALTER TABLE accountingroup RENAME TO accountgroup_accounts;
@@ -222,11 +225,18 @@ ALTER TABLE accountorg ADD COLUMN id integer NOT NULL
 	CONSTRAINT accountorg_pkey PRIMARY KEY;
 ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id);
 ALTER TABLE accountorg DROP CONSTRAINT account_exists;
-ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_fkey
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_account_id_fkey
 	FOREIGN KEY(account_id) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
+-- Delete bougs accountorg entries before adding foreign key constraint
+DELETE FROM accountorg WHERE organization_id NOT IN (SELECT orgid FROM org);
+
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_organization_id_fkey
+	FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
 
 CREATE SEQUENCE profiles.accountproperty_id_seq;
 ALTER TABLE accountproperty ADD COLUMN id integer NOT NULL
@@ -467,11 +477,11 @@ CREATE VIEW profiles.accountingroup AS (
 DELETE FROM privilege WHERE privilegename = 'report_access';
 
 -- Ensure that users are part of everyone and authenticated groups
-CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
+CREATE OR REPLACE FUNCTION profiles.group_membership() RETURNS trigger AS $group_membership$
         BEGIN
                 IF NEW.id >= 1000 THEN
-                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 2);
-                        INSERT INTO accountgroup_accounts VALUES (NEW.id, 3);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (2, NEW.id);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (3, NEW.id);
                 END IF; RETURN NULL;
         END;
 $group_membership$ LANGUAGE plpgsql;
@@ -494,3 +504,18 @@ UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';
 -- Allow authenticated users to visit ipdevinfo
 INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
 VALUES (3, 2, '^/ipdevinfo/?');
+
+-- Allow anonymous users to visit the new /userinfo tool.
+INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
+VALUES (2, 2, E'^/userinfo/?');
+
+
+------------------------------------------------------------------------------
+-- netmap helper tables
+------------------------------------------------------------------------------
+
+CREATE TABLE netmap_position(
+sysname VARCHAR PRIMARY KEY NOT NULL,
+xpos double precision NOT NULL,
+ypos double precision NOT NULL
+);

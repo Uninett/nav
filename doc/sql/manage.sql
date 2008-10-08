@@ -871,3 +871,13 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
+
+------------------------------------------------------------------------------
+-- netmap helper tables
+------------------------------------------------------------------------------
+
+CREATE TABLE netmap_position(
+sysname VARCHAR PRIMARY KEY NOT NULL,
+xpos double precision NOT NULL,
+ypos double precision NOT NULL
+);

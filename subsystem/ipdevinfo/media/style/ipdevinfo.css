@@ -26,6 +26,7 @@
 /* Search field */
 #ipdevinfosearch {
 	float: right;
+	margin-left: 1em;
 }
 #ipdevinfosearch form {
 	margin: 0;
@@ -34,18 +35,13 @@
 	width: 100%;
 }
 
-/* Host info table, recent alerts table */
-#hostinfo, #alerts {
+/* Left-floating tables */
+#ipdevinfo, #hostinfo, #alerts {
 	float: left;
-	margin-right: 1em;
 	display: inline;
 }
-
-/* IP Device info table */
-#ipdevinfo {
-	float: left;
-	margin-right: 1em;
-	display: inline;
+#hostinfo, #alerts {
+	margin-left: 1em;
 }
 
 /* Used for pushing the rest of the content below the host
@@ -55,24 +51,12 @@ hr.floatclear {
 	visibility: hidden;
 }
 
+/* Port view */
 .module {
-	background: #eee;
-	border: 1px solid #999;
-	line-height: 2em;
-	margin-top: 1em;
-	position: relative;
+	border: 0px;
 }
-.module h3 {
-	float: left;
-	margin: 0;
-	padding: 0.2em 0.5em;
-	text-align: center;
-}
-.module table {
-	border-collapse: separate;
-	border-spacing: 2px;
-}
-.module table td {
+.module td {
+	line-height: 1.5em;
 	text-align: center;
 	vertical-align: middle;
 }
@@ -91,9 +75,6 @@ hr.floatclear {
 }
 
 /* Port legend box */
-#portlegend {
-	margin-top: 1em;
-}
 #portlegend table th, #portlegend table td {
 	padding: 0.3em;
 }
@@ -148,63 +129,6 @@ hr.floatclear {
 }
 .link {
 	border: 1px solid #666;
-}
-
-/* Alerts */
-div.alerts {
-	border: 1px solid #999;
-	float: right;
-	padding: 1em;
-	background-color: #eee;
-	width: auto;
-}
-div.alerts table {
-	border: 1px solid #999;
-	border-collapse: separate;
-	margin: 1em 0;
-}
-div.alerts th {
-	font-weight: bold;
-	padding: 0.3em;
-}
-div.alerts td {
-	border-right: 1px solid #999;
-	padding: 0.3em;
-}
-div.alerts .stillDown {
-	background: #ebb;
-}
-
-/* Statistics */
-table#rrdgraphs {
-	padding: 0;
-	border-collapse: collapse;
-}
-table#rrdgraphs td {
-	margin: 0;
-	padding: 0.2em;
-}
-table#rrdgraphs tr:first-child td.col2 {
-	background-color: white;
-	border: none;
-	display: none;
-}
-table#rrdgraphs td.actionselecttop,
-table#rrdgraphs td.actionselectbottom,
-table#rrdgraphs td.col2 {
-	background-color: #ccf;
-	border-left: 1px solid black;
-	border-right: 1px solid black;
-	border-top: none;
-	border-right: none;
-}
-table#rrdgraphs td.actionselecttop {
-	text-align: right;
-	border: 1px solid black;
-}
-table#rrdgraphs td.actionselectbottom {
-	text-align: right;
-	border: 1px solid black;
 }
 
 /* Service table */

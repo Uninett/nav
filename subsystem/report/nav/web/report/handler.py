@@ -26,23 +26,38 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
-from mod_python import apache,util
 
-import re,string,copy,urllib
-import os.path, nav.path
-from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
-from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
-from nav.web.URI import URI
-from nav.web import redirect
-#from nav.report.matrix import Matrix
-from nav.report.generator import Generator,ReportList
+from IPy import IP
+from mod_python import apache, util
+from operator import itemgetter
+import copy
+import os.path
+import psycopg
+import re
+import string
+import urllib
+import os
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+from django.core.cache import cache
+
+from IPy import IP
+from nav import db
+from nav.report.IPtree import getMaxLeaf, buildTree
+from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
-from nav.report.IPtree import getMaxLeaf,buildTree
 from nav.report.metaIP import MetaIP
-from IPy import IP
+from nav.web import redirect
+from nav.web import state
+from nav.web.URI import URI
+from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
+from nav.web.templates.ReportListTemplate import ReportListTemplate
+from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
+import nav.path
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
+configFileLocal = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
@@ -50,12 +65,16 @@ def handler(req):
     args = req.args
     nuri = URI(uri)
 
-    remo = [] # these arguments and their friends will be deleted
 
+    # These arguments and their friends will be deleted
+    remo = []     
+
+    # Finding empty values
     for key,val in nuri.args.items():
-        if val == "" or key=="r4g3n53nd":
+        if val == "":
             remo.append(key)
 
+    # Deleting empty values
     for r in remo:
         if nuri.args.has_key(r):
             del(nuri.args[r])
@@ -63,36 +82,28 @@ def handler(req):
             del(nuri.args["op_"+r])
         if nuri.args.has_key("not_"+r):
             del(nuri.args["not_"+r])
-
+    
     if len(remo):
         # Redirect if any arguments were removed
         redirect(req, nuri.make())
 
-    r = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
-    reportName = r.group(1)
+
+    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
+    
+    if match:
+        reportName = match.group(1)
+    else:
+        reportName = "report"
+
 
     if reportName == "report" or reportName == "index":
 
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
-        list = []
         page.path = [("Home", "/"), ("Report", False)]
         page.title = "Report - Index"
-        if req.args and req.args.find("sort=alnum")>-1:
-            sortby = "<a href=\"index\">Logical order</a> | Alphabetical order"
-            list.sort()
-        else:
-            sortby = "Logical order | <a href=\"index?sort=alnum\">Alphabetical order</a>"
-
-        w = "<ul>"
-        for (description,key) in list:
-            w += "<li><a href="+key+">"+description+"</a></li>"
-        w += "</ul>"
-
-        #req.write(w+sortby)
         page.content = lambda:file(frontFile).read()
-        #lambda:w+sortby
         req.write(page.respond())
         return apache.OK
 
@@ -101,7 +112,7 @@ def handler(req):
         req.content_type = "text/html"
         req.send_http_header()
 
-        ## parameterdict
+        ## Parameterdictionary
         argsdict = {}
         if req.args:
             reqargsplit = urllib.unquote_plus(req.args).split("&")
@@ -115,13 +126,11 @@ def handler(req):
             scope = IP(argsdict["scope"])
         else:
             # Find all scopes in database.
-            from nav import db
-            import psycopg
             connection = db.getConnection('webfront','manage')
             database = connection.cursor()
-            database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
-
+            database.execute("SELECT netaddr FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
             databasescopes = database.fetchall()
+            
             if len(databasescopes) == 1:
                 # If there is a single scope in the db, display that
                 scope = IP(databasescopes[0][0])
@@ -136,6 +145,7 @@ def handler(req):
 
                 req.write(page.respond())
                 return apache.OK
+
         # If a single scope has been selected, display that.
         if scope is not None:
             show_unused_addresses = True
@@ -153,30 +163,75 @@ def handler(req):
             if scope.version() == 6:
                 end_net = getMaxLeaf(tree)
                 matrix = MatrixIPv6(scope,end_net=end_net)
+
             elif scope.version() == 4:
                 end_net = None
+
                 if scope.prefixlen() < 24:
                     end_net = IP("/".join([scope.net().strNormal(),"27"]))
                     matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+
                 else:
                     max_leaf = getMaxLeaf(tree)
                     bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-
                     matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+
             else:
                 raise UnknownNetworkTypeException, "version: " + str(scope.version())
             req.write(matrix.getTemplateResponse())
-
+            
             # Invalidating the MetaIP cache to get rid of processed data.
             MetaIP.invalidateCache()
 
+    elif reportName == "reportlist":
+        page = ReportListTemplate()
+        req.content_type = "text/html"
+        req.send_http_header()
+
+        # Default config
+        report_list = ReportList(configFile).getReportList()
+        map(itemgetter(2), report_list)
+        report_list = sorted(report_list, key=itemgetter(2))
+        # Local config
+        report_list_local = ReportList(configFileLocal).getReportList()
+        map(itemgetter(2), report_list_local)
+        report_list_local = sorted(report_list_local, key=itemgetter(2))
+
+        name = "Report List"
+        name_link = "reportlist"
+        page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)]
+        page.title = "Report - " + name
+        page.report_list = report_list
+        page.report_list_local = report_list_local
+
+        req.write(page.respond())
 
     else:
         page = ReportTemplate()
         req.content_type = "text/html"
         req.send_http_header()
+
         gen = Generator()
-        (report,contents,neg,operator,adv) = gen.makeReport(reportName,configFile,uri)
+        
+        report = contents = neg = operator = adv = dbresult = None
+
+        # Deleting offset and limit variables from uri so that we would know if
+        # it's the same dbresult asked for.
+        nuri.setArguments(['offset', 'limit'], '')
+        for key,val in nuri.args.items():
+            if val == "":
+                del nuri.args[key]
+
+        uri_strip = nuri.make()
+
+        if cache.get('report') and cache.get('report')[0] == uri_strip:
+            dbresult_cache = cache.get('report')[6]
+            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, dbresult_cache)
+
+        else:
+            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, None)
+            cache.set('report', (uri_strip, report, contents, neg, operator, adv, dbresult))
+
 
         page.report = report
         page.contents = contents
@@ -223,19 +278,5 @@ def handler(req):
         req.write(page.respond())
 
     return apache.OK
-
-def selectoptiondraw(name,elementlist,elementdict,selectedvalue="",descriptiondict=None):
-    ret = '<select name="%s">'%name
-    for element in elementlist:
-        if element == selectedvalue:
-            selected = " selected"
-        else:
-            selected = ""
-        description = ""
-        if descriptiondict.has_key(element):
-            description = ' title="%s"' %(descriptiondict[element])
-        ret += '<option value="%s"%s%s>%s</option>'%(element,description,selected,elementdict[element])
-    ret+= '</selected>'
-    return ret
 
 class UnknownNetworkTypeException(Exception): pass

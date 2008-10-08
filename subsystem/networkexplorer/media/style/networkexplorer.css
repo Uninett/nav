@@ -1,0 +1,52 @@
+
+.search {
+	float: left;
+	clear: both;
+}
+.networktree {
+	clear: both;
+}
+.gwport_match {
+	font-weight: bold;
+	background: #ddd;
+}
+.gwport_match * {
+	font-weight: normal;
+	background: #fff;
+}
+.swport_match {
+	font-weight: bold;
+	background: #ccc;
+}
+
+.prefix {
+	font-weight: normal;
+	font-family: monospace;
+	font-size: 90%;
+	background: #fff;
+	padding-left: 25px;
+}
+
+
+dl, dt, dd {
+	padding-left: 1em;
+	background-image: url('/images/networkexplorer/vertical.gif');
+	background-repeat: repeat-y;
+}
+
+.tree-navigators {
+	background-image: url('/images/networkexplorer/vertical.gif');
+	background-repeat: repeat-y;
+	}
+#tree > dl, dt, dd {
+	background-image: none;
+}
+
+.routers  {
+	background-image: none;
+}
+
+dt dt dt {
+    font-weight: bold;
+}
+

@@ -36,8 +36,6 @@ import mx.DateTime,re,nav.db.manage
 from mod_python import util,apache
 from nav.web.templates.StatusTemplate import StatusTemplate
 
-from nav.web import urlbuilder
-
 from StatusPrefs import *
 from StatusSections import *
 

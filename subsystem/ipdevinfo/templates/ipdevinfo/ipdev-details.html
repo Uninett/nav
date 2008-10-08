@@ -5,118 +5,15 @@
 <div id="ipdevinfo">
 <table class="vertitable">
 {% if netbox %}
-    <caption>IP Device: {{ netbox.sysname }}</caption>
+    <caption>
+        IP Device: {{ netbox.get_short_sysname }}
+    </caption>
+
     <tr>
-        <th>Status</th>
-        <td>{{ netbox.get_up_display|capfirst }}</td>
+        <th>Full sysname</th>
+        <td>{{ netbox.sysname }}</td>
     </tr>
-{% with netbox.get_availability as stats %}
-    <tr>
-        <th>Availability</th>
-        <td>
-            {% with stats.availability as a %}
-            <a href="#FIXME-link-to-rrd-view">
-                {% if a.day %}
-                    {{ stats.availability.day|floatformat:2 }}%
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last day</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if a.week %}
-                    {{ stats.availability.week|floatformat:2 }}%
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last week</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if a.month %}
-                    {{ stats.availability.month|floatformat:2 }}%
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last month</a>
-            {% endwith %}
-        </td>
-    </tr>
-    <tr>
-        <th>Response time</th>
-        <td>
-            {% with stats.response_time as rt %}
-            <a href="#FIXME-link-to-rrd-view">
-                {% if rt.day %}
-                    {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last day</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if rt.week %}
-                    {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last week</a>,
-            <a href="#FIXME-link-to-rrd-view">
-                {% if rt.month %}
-                    {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
-                {% else %}
-                    (N/A)
-                {% endif %}
-                last month</a>
-            {% endwith %}
-        </td>
-    </tr>
-{% endwith %}
-    <tr>
-        <th>Uptime</th>
-        <td>
-        {% ifequal netbox.up netbox.UP_UP %}
-            {{ netbox.up_since|timesince }}
-        {% else %}
-            None
-        {% endifequal %}
-        </td>
-    </tr>
-    <tr>
-        <th>IP address</th>
-        <td>{{ netbox.ip }}</td>
-    </tr>
-    <tr>
-        <th>Prefix</th>
-        <td>{{ netbox.prefix }}</td>
-    </tr>
-    <tr>
-        <th>Uplink</th>
-        <td>
-            {% with netbox.get_uplinks as uplinks %}
-                {% if uplinks %}
-                    {% if uplinks|length_is:1 %}
-                        <a href="{{ uplinks.0.get_absolute_url }}">
-                            {{ uplinks.0 }}</a>
-                    {% else %}
-                        <ul>
-                        {% for uplink in uplinks %}
-                            <li><a href="{{ uplink.get_absolute_url }}">
-                                {{ uplink }}</a></li>
-                        {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% else %}
-                    N/A
-                {% endif %}
-            {% endwith %}
-        </td>
-    </tr>
-    <tr>
-        <th>Category</th>
-        <td><a href="{% url report-netbox-category netbox.category.id %}">
-            {{ netbox.category }}</a></td>
-    </tr>
-    <tr>
-        <th>Function</th>
-        <td>{{ netbox.get_function|default:"N/A" }}</td>
-    </tr>
+
     <tr>
         <th>Type</th>
         <td>
@@ -128,51 +25,221 @@
             {% endif %}
         </td>
     </tr>
+
+    <tr>
+        <th>Category</th>
+        <td><a href="{% url report-netbox-category netbox.category.id %}">
+            {{ netbox.category }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Function</th>
+        <td>{{ netbox.get_function|default:"N/A" }}</td>
+    </tr>
+
     <tr>
         <th>Organization</th>
         <td><a href="{% url report-organization-organization netbox.organization.id %}">
             {{ netbox.organization }}</a></td>
     </tr>
+
     <tr>
         <th>Room</th>
         <td><a href="{% url report-netbox-room netbox.room.id %}">
             {{ netbox.room }}</a></td>
     </tr>
-    <tr>
-        <th>Software</th>
-        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
-    </tr>
+
     <tr>
         <th>Serial number</th>
         <td>{{ netbox.device.serial|default:"N/A" }}</td>
     </tr>
+
+    <tr>
+        <th>Software</th>
+        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>IP address</th>
+        <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
+            {{ netbox.ip }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Prefix</th>
+        <td>
+            {% with netbox.get_filtered_prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+
+{% if netbox.category.is_sw or netbox.category.is_edge %}
+    <tr>
+        {% with netbox.get_uplinks as uplinks %}
+            <th>Uplink{{ uplinks|pluralize }}</th>
+            <td>
+                {% if uplinks %}
+                    {% if uplinks|length_is:1 %}
+                        From <a href="{{ uplinks.0.this.get_absolute_url }}">
+                            {{ uplinks.0.this }}</a><br />
+                        To <a href="{{ uplinks.0.other.get_absolute_url }}">
+                            {{ uplinks.0.other }}</a>
+                    {% else %}
+                        <ul>
+                        {% for uplink in uplinks %}
+                            <li>
+                                From <a href="{{ uplink.this.get_absolute_url }}">
+                                    {{ uplink.this }}</a><br />
+                                To <a href="{{ uplink.other.get_absolute_url }}">
+                                    {{ uplink.other }}</a>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        {% endwith %}
+    </tr>
+{% endif %}
+
     <tr>
         <th># of modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
             {{ netbox.module_set.count }}</a></td>
     </tr>
+
     <tr>
         <th># of switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
             {{ netbox.get_swports.count }}</a></td>
     </tr>
+
     <tr>
         <th># of router ports</th>
         <td><a href="{% url report-gwport-netbox netbox.id %}">
             {{ netbox.get_gwports.count }}</a></td>
     </tr>
+
+    <tr>
+        <th colspan="2">Status</th>
+    </tr>
+
+    <tr>
+        <th>Uptime</th>
+        <td>
+            {{ netbox.get_up_display|capfirst }}
+            {% ifequal netbox.up netbox.UP_UP %}
+                for {{ netbox.up_since|timesince }}
+            {% endifequal %}
+        </td>
+    </tr>
+
+{% with netbox.get_availability as stats %}
+    <tr>
+        <th>Availability</th>
+        <td>
+            {% with stats.availability as a %}
+                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
+                    {% if a.day %}
+                        {{ a.day|floatformat:2 }}%
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last day</a>,
+                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
+                    {% if a.week %}
+                        {{ a.week|floatformat:2 }}%
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last week</a>,
+                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
+                    {% if a.month %}
+                        {{ a.month|floatformat:2 }}%
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last month</a>
+            {% endwith %}
+        </td>
+    </tr>
+
+    <tr>
+        <th>Response time</th>
+        <td>
+            {% with stats.response_time as rt %}
+                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
+                    {% if rt.day %}
+                        {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last day</a>,
+                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
+                    {% if rt.week %}
+                        {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last week</a>,
+                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
+                    {% if rt.month %}
+                        {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+                    {% else %}
+                        (N/A)
+                    {% endif %}
+                    last month</a>
+            {% endwith %}
+        </td>
+    </tr>
+{% endwith %}
+
     <tr>
         <th>First discovered</th>
         <td>{{ netbox.discovered|date|default:"N/A" }}
             {{ netbox.discovered|time }}</td>
     </tr>
+
     <tr>
         <th>Last updated</th>
         <td>{{ netbox.last_updated|date|default:"N/A" }}
             {{ netbox.last_updated|time }}</td>
     </tr>
+
     <tr>
-        <th>Actions</th>
+        <th colspan="2">Statistics</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            {% with netbox.get_rrd_data_sources as dss %}
+                {% if dss|length %}
+                    <ul>
+                    {% for ds in dss %}
+                        <li><a href="{{ ds.get_absolute_url }}">
+                            {{ ds.description }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+
+    <tr>
+        <th colspan="2">Actions</th>
+    </tr>
+    <tr>
+        <th></th>
         <td>
             <ul>
                 <li><a href="{% url seeddb-edit-object "netbox",netbox.id %}">
@@ -229,7 +296,7 @@
     <tbody>
     {% if host_info.addresses %}
         {% for address in host_info.addresses %}
-        <tr>
+        <tr class="{% cycle oddrow,evenrow %}">
             <td>
                 <a href="{% url ipdevinfo-details-by-addr address.addr %}">
                     {{ address.addr }}</a>
@@ -274,16 +341,16 @@
     <tfoot>
         <tr>
             <th colspan="4">
-            {% if alert_info.is_more_alerts %}
-                Showing {{ alert_info.alerts|length }} of
-                {{ alert_info.count }} alerts, see
-                <a href="{% url devicemanagement-history-netbox netbox.id %}">
-                Device History</a> for all
-            {% else %}
-                {{ alert_info.alerts|length }}
-                alert{{ alert_info.alerts|length|pluralize }} found, see
-                <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
-            {% endif %}
+                {% if alert_info.is_more_alerts %}
+                    Showing {{ alert_info.alerts|length }} of
+                    {{ alert_info.count }} alerts, see
+                    <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                    Device History</a> for all
+                {% else %}
+                    {{ alert_info.alerts|length }}
+                    alert{{ alert_info.alerts|length|pluralize }} found, see
+                    <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+                {% endif %}
             </th>
         </tr>
     </tfoot>
@@ -291,24 +358,24 @@
     <tbody>
     {% if alert_info.count %}
         {% for a in alert_info.alerts %}
-        <tr class="{% cycle oddrow,evenrow %}">
-            <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
-            <td>{{ a.alert.start_time|date|default:"N/A" }}
-                {{ a.alert.start_time|time }}</td>
-            {% if a.alert.is_open %}
-                <td class="status_down">Unresolved</td>
-            {% else %}
-                <td>{{ a.alert.end_time|date|default:"N/A" }}
-                    {{ a.alert.end_time|time }}</td>
-            {% endif %}
-            <td>
+            <tr class="{% cycle oddrow,evenrow %}">
+                <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
+                <td>{{ a.alert.start_time|date|default:"N/A" }}
+                    {{ a.alert.start_time|time }}</td>
                 {% if a.alert.is_open %}
-                    {{ a.alert.start_time|timesince }}
+                    <td class="status_down">Unresolved</td>
                 {% else %}
-                    {{ a.alert.start_time|timesince:a.alert.end_time }}
+                    <td>{{ a.alert.end_time|date|default:"N/A" }}
+                        {{ a.alert.end_time|time }}</td>
                 {% endif %}
-            </td>
-        </tr>
+                <td>
+                    {% if a.alert.is_open %}
+                        {{ a.alert.start_time|timesince }}
+                    {% else %}
+                        {{ a.alert.start_time|timesince:a.alert.end_time }}
+                    {% endif %}
+                </td>
+            </tr>
         {% endfor %}
     {% else %}
         <tr>
@@ -328,9 +395,9 @@
 
 <div id="services">
 <table class="listtable">
-    <caption>Services at {{ netbox.sysname }}</caption>
+    <caption>Services at {{ netbox.get_short_sysname }}</caption>
     {% with netbox.service_set.all as service_list %}
-    {% include "ipdevinfo/service-list-table.html" %}
+        {% include "ipdevinfo/service-list-table.html" %}
     {% endwith %}
 </table>
 </div>
@@ -341,62 +408,53 @@
 {% if netbox and netbox.module_set.count %}
 
 <div id="ports">
-    <h3>Port view</h3>
-
     <div class="tabs">
         <ul>
             {% if netbox.get_swports.count %}
-            <li{% ifequal port_view.perspective 'swportstatus' %} class="tabactive"{% endifequal %}>
-                <a href="?view=swportstatus#ports">Switch port status</a>
-            </li>
-            <li{% ifequal port_view.perspective 'swportactive' %} class="tabactive"{% endifequal %}>
-                <a href="?view=swportactive#ports">Switch port activity</a>
-            </li>
+                <li{% ifequal port_view.perspective 'swportstatus' %} class="tabactive"{% endifequal %}>
+                    <a href="?view=swportstatus#ports">Switch port status</a>
+                </li>
+                <li{% ifequal port_view.perspective 'swportactive' %} class="tabactive"{% endifequal %}>
+                    <a href="?view=swportactive#ports">Switch port activity</a>
+                </li>
             {% endif %}
             {% if netbox.get_gwports.count %}
-            <li{% ifequal port_view.perspective 'gwportstatus' %} class="tabactive"{% endifequal %}>
-                <a href="?view=gwportstatus#ports">Router port status</a>
-            </li>
+                <li{% ifequal port_view.perspective 'gwportstatus' %} class="tabactive"{% endifequal %}>
+                    <a href="?view=gwportstatus#ports">Router port status</a>
+                </li>
             {% endif %}
         </ul>
     </div>
 
     <div class="tabcontent">
-    {% ifequal port_view.perspective 'swportactive' %}
-        <form action="" method="get">
-            <input type="hidden" name="view" value="swportactive" />
-            <p>
-                Activity based on CAM records since
-                {{ port_view.activity_interval_start|date }}.
-                {{ activity_interval_form.interval.label }}:
-                {{ activity_interval_form.interval }}
-                <button type="submit">Recheck activity</button>
-                {% if not port_view.activity_complete_data %}
-                    <em>
-                        Warning: CAM data is only available for
-                        {{ port_view.activity_data_interval }}
-                        day{{ port_view.activity_data_interval|pluralize }}.
-                    </em>
-                {% endif %}
-            </p>
-        </form>
-    {% endifequal %}
+        {% ifequal port_view.perspective 'swportactive' %}
+            <form action="" method="get">
+                <input type="hidden" name="view" value="swportactive" />
+                <p class="infobox">
+                    Activity based on CAM records since
+                    {{ port_view.activity_interval_start|date }}.
+                    {{ activity_interval_form.interval.label }}:
+                    {{ activity_interval_form.interval }}
+                    <button type="submit">Recheck activity</button>
+                    {% if not port_view.activity_complete_data %}
+                        <em>
+                            Warning: CAM data is only available for {{
+                            port_view.activity_data_interval }}
+                            day{{ port_view.activity_data_interval|pluralize }}.
+                        </em>
+                    {% endif %}
+                </p>
+            </form>
+        {% endifequal %}
 
-    {% for module in port_view.modules %}
-        {% include "ipdevinfo/module-port-view.html" %}
-    {% endfor %}
+        {% for module in port_view.modules %}
+            {% include "ipdevinfo/module-port-view.html" %}
+        {% endfor %}
+
+        {% include "ipdevinfo/port-legend.html" %}
     </div>
-
-    {% include "ipdevinfo/port-legend.html" %}
 </div>
 
-{% endif %}
-
-
-{% if netbox %}
-<h3>Statistics</h3>
-
-<p>FIXME</p>
 {% endif %}
 
 {% endblock %}
