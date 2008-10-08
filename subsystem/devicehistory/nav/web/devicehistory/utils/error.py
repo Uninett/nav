@@ -29,88 +29,145 @@ __id__ = "$Id$"
 from django.db.models import Q
 
 from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import EventQueue, EventQueueVar
+from nav.models.event import EventQueue, EventQueueVar, EventType, Subsystem
+from nav.web.message import new_message, Messages
 
-class RegisterEvent:
-    STATE_NONE = 'x'
-    STATE_START = 's'
-    STATE_END = 'e'
+STATE_NONE = 'x'
+STATE_START = 's'
+STATE_END = 'e'
 
+_ = lambda a: a
+
+def register_error_events(request, **kwargs):
     events = []
-    eventq_data = {}
-    evenqvar_data = {}
+    messages = Messages(request)
+    username = request._req.session['user'].login
 
-    def __init__(self, **kwargs):
-        self.selection = kwargs.pop('selection', [])
-        self.comment = kwargs.pop('comment', None)
-        self.username = request._reg['user'].login
+    selection = kwargs.pop('selection', [])
+    comment = kwargs.pop('comment', None)
 
-        self.source = kwargs.pop('source', 'deviceManagement')
-        self.target = kwargs.pop('target', 'eventEngine')
-        self.severity = kwargs.pop('severity', 0)
-        self.state = kwargs.pop('state', self.STATE_NONE)
-        self.event_type = kwargs.pop('event_type', 'deviceNotice')
-        self.alert_type = kwargs.pop('alert_type', 'deviceError')
+    source = kwargs.pop('source', 'deviceManagement')
+    target = kwargs.pop('target', 'eventEngine')
+    severity = kwargs.pop('severity', 0)
+    state = kwargs.pop('state', STATE_NONE)
+    event_type = kwargs.pop('event_type', 'deviceNotice')
+    alert_type = kwargs.pop('alert_type', 'deviceError')
 
-        for key in kwargs.keys():
-            raise TypeError('__init__() got an unexpected keyword argument %s' % key)
+    for key in kwargs.keys():
+        raise TypeError('register_error_events() got an unexpected keyword argument %s' % key)
 
-        self.eventq_data = {
-            'source': self.source,
-            'target': self.target,
-            'device': None,
-            'netbox': None,
-            'subid': None,
-            'event_type': self.event_type,
-            'state': self.state,
-            'severity': self.severity,
-        }
+    eventq_data = {
+        'source': Subsystem.objects.get(name=source),
+        'target': Subsystem.objects.get(name=target),
+        'device': None,
+        'netbox': None,
+        'subid': None,
+        'event_type': EventType.objects.get(id=event_type),
+        'state': state,
+        'severity': severity,
+    }
 
-        self.eventqvar_data = {
-            'alerttype': self.alert_type,
-            'comment': self.comment,
-            'username': self.username,
-        }
+    eventqvar_data = {
+        'alerttype': alert_type,
+        'comment': comment,
+        'username': username,
+    }
 
-        if 'location' in self.selection and len(self.selection['location']) > 0:
-            self._register_location_error()
-        if 'room' in self.selection and len(self.selection['room']) > 0:
-            self._register_room_error()
-        if 'netbox' in self.selection and len(self.selection['netbox']) > 0:
-            self._register_netbox_error()
-        if 'module' in self.selection and len(self.selection['module']) > 0:
-            self._register_module_error()
-
-    def _register_location_error(self):
+    if 'location' in selection and len(selection['location']) > 0:
         for dev in selection['location']:
-            eventqvar_data = self.evetqvar_data
-            eventqvar_data['unittype'] = 'location'
-            eventqvar_data['locationid'] = dev
+            var_data = eventqvar_data
+            var_data['unittype'] = 'location'
+            var_data['locationid'] = dev
 
-            self._register_error(self.eventq_data, eventqvar_data)
+            events.append({
+                'meta': {
+                    'type': 'location',
+                    'name': dev,
+                },
+                'eventq_data': eventq_data,
+                'eventqvar_data': var_data,
+            })
+    if 'room' in selection and len(selection['room']) > 0:
+        rooms = Room.objects.select_related(
+            'location'
+        ).filter(id__in=selection['room'])
+        for room in rooms:
+            var_data = eventqvar_data
+            var_data['unittype'] = 'room'
+            var_data['roomid'] = room.id
+            var_data['locationid'] = room.location.id
 
-    def _register_room_error(self):
-        for dev in selection['room']:
-            eventqvar_data = self.evetqvar_data
-            eventqvar_data['unittype'] = 'room'
-            eventqvar_data['locationid'] = dev
-
-            self._register_error(self.eventq_data, eventqvar_data)
-
-    def _register_netbox_error(self):
-        boxes = Netbox.objects.filter(id__in=selection['netbox'])
+            events.append({
+                'meta': {
+                    'type': 'room',
+                    'name': room,
+                },
+                'eventq_data': eventq_data,
+                'eventqvar_data': var_data,
+            })
+    if 'netbox' in selection and len(selection['netbox']) > 0:
+        boxes = Netbox.objects.select_related(
+            'device', 'room', 'room__location'
+        ).filter(id__in=selection['netbox'])
         for netbox in boxes:
-            eventq_data = self.eventq_data
-            eventq_data['netbox'] = netbox.id
-            eventq_data['device'] = netbox.device.id
+            data = eventq_data
+            data['netbox'] = netbox
+            data['device'] = netbox.device
 
-            eventqvar_data = self.eventqvar_data
+            var_data = eventqvar_data
+            var_data['unittype'] = 'netbox'
+            var_data['roomid'] = netbox.room.id
+            var_data['locationid'] = netbox.room.location.id
 
-    def _register_module_error(self):
-        pass
+            events.append({
+                'meta': {
+                    'type': 'box',
+                    'name': netbox,
+                },
+                'eventq_data': data,
+                'eventqvar_data': var_data,
+            })
+    if 'module' in selection and len(selection['module']) > 0:
+        modules = Module.objects.select_related(
+            'device', 'netbox', 'netbox__room', 'netbox__room__location'
+        ).filter(id__in=selection['module'])
+        for module in modules:
+            data = eventq_data
+            data['subid'] = module.id
+            data['netbox'] = module.netbox
+            data['device'] = module.device
 
-    def _register_error(self, evetq_data, eventqvar_data):
-        self.events.append(EventQueue.create(**eventq_data))
-        for key, value in eventqvar_data.items():
-            EventQueueVar.create(
-                event_queue=event.id, variable=key, value=value)
+            var_data = eventqvar_data
+            var_data['unittype'] = 'module'
+            var_data['roomid'] = module.netbox.room.id
+            var_data['locationid'] = module.netbox.room.location.id
+
+            events.append({
+                'meta': {
+                    'type': 'module',
+                    'name': module,
+                },
+                'eventq_data': data,
+                'eventqvar_data': var_data
+            })
+
+    for event in events:
+        new_event = EventQueue(**event['eventq_data'])
+        new_event.save()
+        for key in event['eventqvar_data']:
+            event_vars = EventQueueVar(
+                event_queue=new_event,
+                variable=key,
+                value=event['eventqvar_data'][key]
+            )
+            event_vars.save()
+        raise Exception(i)
+        messages.append({
+            'message': _('Registered error on %(type)s %(device)s.') % {
+                'type': event['meta']['type'],
+                'device': event['meta']['name'],
+            },
+            'type': Messages.SUCCESS,
+        })
+
+    messages.save()

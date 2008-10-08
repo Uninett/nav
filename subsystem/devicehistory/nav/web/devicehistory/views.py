@@ -34,6 +34,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
+from nav.django.context_processors import account_processor
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType, EventType
@@ -41,18 +42,25 @@ from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
 from nav.web.devicehistory.utils.history import History
-from nav.web.devicehistory.utils.error import RegisterEvent
+from nav.web.devicehistory.utils.error import register_error_events
 
-DeviceQuickSelect_kwargs = {
+DeviceQuickSelect_view_history_kwargs = {
     'button': 'View %s history',
     'module': True,
     'netbox_multiple': True,
     'module_multiple': True,
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
-DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_kwargs)
+DeviceQuickSelect_post_error_kwargs = {
+    'button': 'Add %s error event',
+    'module': True,
+    'netbox_multiple': True,
+    'module_multiple': True,
+    'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
+}
 
 def devicehistory_search(request):
+    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     info_dict = {
         'active': {'devicehistory': True},
         'quickselect': DeviceQuickSelect,
@@ -61,9 +69,14 @@ def devicehistory_search(request):
        DeviceHistoryTemplate,
        'devicehistory/history_search.html',
        info_dict,
+        RequestContext(
+            request,
+            processors=[account_processor]
+        )
    );
 
 def devicehistory_view(request):
+    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     if not request.method == 'POST':
         pass
 
@@ -108,9 +121,14 @@ def devicehistory_view(request):
         DeviceHistoryTemplate,
         'devicehistory/history_view.html',
         info_dict,
+        RequestContext(
+            request,
+            processors=[account_processor]
+        )
     )
 
 def error_form(request):
+    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
     if request.method == 'POST':
         return register_error(request)
 
@@ -122,10 +140,17 @@ def error_form(request):
         DeviceHistoryTemplate,
         'devicehistory/register_error.html',
         info_dict,
+        RequestContext(
+            request,
+            processors=[account_processor]
+        )
     );
 
 def register_error(request):
+    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
     selection = DeviceQuickSelect.handle_post(request)
     error_comment = request.POST.get('error_comment', None)
+    
+    register_error_events(request, selection=selection, comment=error_comment)
 
-    events = RegisterError(selection=selection, comment=error_comment)
+    return HttpResponseRedirect(reverse('devicehistory-registererror'))
