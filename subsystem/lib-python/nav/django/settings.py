@@ -52,6 +52,8 @@ DATABASE_PASSWORD = db_config['userpw_%s' % DATABASE_USER]
 DATABASE_HOST = db_config['dbhost']
 DATABASE_PORT = db_config['dbport']
 
+INSTALLED_APPS = ('nav.django',)
+
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 
