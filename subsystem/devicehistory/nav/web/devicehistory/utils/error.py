@@ -57,7 +57,7 @@ class RegisterEvent:
 
         self.eventq_data = {
             'source': self.source,
-            'target': self.target
+            'target': self.target,
             'device': None,
             'netbox': None,
             'subid': None,
