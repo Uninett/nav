@@ -3,8 +3,10 @@
 {% block content %}
 
 <table class="vertitable">
-    <caption>Module {{ module.module_number }}
-    at {{ module.netbox.sysname }}</caption>
+    <caption>
+        Module {{ module.module_number }}<br />
+        at {{ module.netbox.get_short_sysname }}
+    </caption>
     <tr>
         <th>At IP device</th>
         <td><a href="{{ module.netbox.get_absolute_url }}">
@@ -21,11 +23,11 @@
     <tr>
         <th>Status</th>
         <td>
-        {% ifequal module.up module.UP_UP %}
-            Up
-        {% else %}
-            Down for {{ down.down_since|timesince }}
-        {% endifequal %}
+            {% ifequal module.up module.UP_UP %}
+                Up
+            {% else %}
+                Down for {{ down.down_since|timesince }}
+            {% endifequal %}
         </td>
     </tr>
     <tr>
@@ -40,20 +42,41 @@
     </tr>
 </table>
 
-{% if module.get_swports.count %}
-<h3>Switch port status</h3>
-
-{% include "ipdevinfo/module-swport-status.html" %}
-
-<h3>Switch port activity</h3>
-
-{% include "ipdevinfo/module-swport-active.html" %}
+{% if swportstatus_view.ports|length %}
+    <h3>Switch port status</h3>
+    {% with swportstatus_view as module %}
+        {% include "ipdevinfo/module-port-view.html" %}
+    {% endwith %}
 {% endif %}
 
-{% if module.get_gwports.count %}
-<h3>Router port status</h3>
+{% if swportactive_view.ports|length %}
+    <h3>Switch port activity</h3>
+    {% with swportactive_view as module %}
+        <form action="" method="get">
+            <p class="infobox">
+                Activity based on CAM records since
+                {{ module.activity_interval_start|date }}.
+                {{ activity_interval_form.interval.label }}:
+                {{ activity_interval_form.interval }}
+                <button type="submit">Recheck activity</button>
+                {% if not module.activity_complete_data %}
+                    <em>
+                        Warning: CAM data is only available for
+                        {{ module.activity_data_interval }}
+                        day{{ module.activity_data_interval|pluralize }}.
+                    </em>
+                {% endif %}
+            </p>
+        </form>
+        {% include "ipdevinfo/module-port-view.html" %}
+    {% endwith %}
+{% endif %}
 
-{% include "ipdevinfo/module-gwport-status.html" %}
+{% if gwportstatus_view.ports|length %}
+    <h3>Router port status</h3>
+    {% with gwportstatus_view as module %}
+        {% include "ipdevinfo/module-port-view.html" %}
+    {% endwith %}
 {% endif %}
 
 {% include "ipdevinfo/port-legend.html" %}

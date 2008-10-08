@@ -16,9 +16,10 @@ djangotmpldir = @djangotmpldir@
 webroot = @webroot@
 initdir = @initdir@
 VERSION = @VERSION@
-pathmodule = src/nav/buildconf.py
+pathmodule = nav/buildconf.py
 
-config = rrdBrowser.conf
+DJANGO_TEMPLATES_SRC = $(wildcard templates/* templates/*/*)
+DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
 
 .PHONY: all install install-lib install-bin clean distclean
 
@@ -39,32 +40,20 @@ $(pathmodule): Makefile
 	@echo "djangotmpldir=\"$(djangotmpldir)\"" >> $(pathmodule)
 	@echo "VERSION=\"$(VERSION)\"" >> $(pathmodule)
 
-install: install-lib install-bin install-conf
+install: install-lib install-bin
 
 install-lib: $(pathmodule)
-	@cd src; \
-	installable=`find . -name '*.py'`; \
+	@installable=`find nav -name '*.py'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
 	done
-	django_templates=`find .nav/django/templates -name '*.html'`;\
-	for file in $$django_templates; do\
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; \
+	@for file in $(DJANGO_TEMPLATES); do \
+	  $(INSTALL) -v -D -m 644 templates/$$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; \
 	done
 
 install-bin:
-	cd bin; \
+	@cd bin; \
 	$(INSTALL) -v -D -m 755 hasPrivilege.py $(DESTDIR)$(bindir)/hasPrivilege.py
-
-install-conf:
-	for file in $(config); do                              \
-	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
-	  if [ -f "$$target" ]; then                           \
-	    echo Skipping installation of config file $$file;  \
-	  else                                                 \
-	    $(INSTALL) -v -D -m 644 $$file $$target;           \
-	  fi                                                   \
-	done
 
 clean:
 	backups=`find src -name '*~'`; \

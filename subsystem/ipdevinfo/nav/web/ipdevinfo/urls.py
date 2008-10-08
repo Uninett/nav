@@ -24,7 +24,6 @@
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 from django.conf.urls.defaults import *
 
@@ -51,6 +50,8 @@ urlpatterns = patterns('',
         name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
         name='ipdevinfo-details-by-addr'),
+    url(r'^id=(?P<netbox_id>\d+)/$', ipdev_details,
+        name='ipdevinfo-details-by-id'),
 
     # Module details
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/$',

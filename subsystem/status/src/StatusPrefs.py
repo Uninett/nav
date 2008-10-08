@@ -31,7 +31,11 @@ Contains classes for the status preferences page
 
 import psycopg, cPickle, re, nav.db
 import copy
+import logging
+
 from StatusSections import *
+
+logger = logging.getLogger('nav.web.status.StatusPrefs')
 
 #################################################
 ## Constants
@@ -288,7 +292,7 @@ class HandleStatusPrefs:
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
-        data = psycopg.QuotedString(cPickle.dumps(prefs))
+        data = psycopg.QuotedString(cPickle.dumps(prefs.sections))
 
         sql = "SELECT property FROM accountproperty " + \
               "WHERE accountid='%s' " % (self.req.session['user'].id,) + \
@@ -315,36 +319,46 @@ class HandleStatusPrefs:
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
-        sql = "SELECT value FROM accountproperty WHERE accountid=%s \
-        and property='%s'" % (req.session['user'].id,cls.STATUS_PROPERTY)
-        database.execute(sql)
-
-        data = database.fetchone()        
+        # Attempt to load custom prefs from the user's profile,
+        # fallback to admin users's custom prefs if none are found,
+        # finally fall back to hardcoded defaults from this module.
+        sql = "SELECT value FROM accountproperty WHERE accountid=%s " \
+              "and property=%s" 
+        for uid in (accountid, ADMIN_USER_ID):
+            database.execute(sql, (uid, cls.STATUS_PROPERTY))
+            data = database.fetchone()
+            if data:
+                break
         if data:
             (data,) = data
-            prefs = cPickle.loads(data)
-        else:
-            # No prefs for this user in the database
-            # Load default prefs from admin user
-            sql = "SELECT value FROM accountproperty WHERE accountid=%s \
-            and property='%s'" % (ADMIN_USER_ID,cls.STATUS_PROPERTY)
-            database.execute(sql)
-            data = database.fetchone()        
-            if data:
-                (data,) = data
-                prefs = cPickle.loads(data)
+            prefs = StatusPrefs()
+            try:
+                prefs.sections = cPickle.loads(data)
+            except (AssertionError, ImportError), exc:
+                # Unpickle failed, probably because of mod_python's
+                # import behaviour and the user having saved status
+                # prefs in an older version of NAV/mod_python.
+                # Instead of attempting to fix the users's prefs, we
+                # return the hardcoded defaults and log this incident.
+                logger.warning("Ignoring faulty statusprefs for user %s", 
+                               req.session['user'].login)
+                logger.debug("The unpickle exception was: ", exc_info=True)
             else:
-                # No system default prefs found (admin users prefs)
-                # load from DEFAULT_STATUSPREFS variable
-                data = DEFAULT_STATUSPREFS
-                prefs = StatusPrefs()
-                prefs.sections = copy.deepcopy(data)
+                # Although we expect the pickle to be a list, it might
+                # be that we successfully unpickled an old StatusPrefs
+                # object.  If so, we return the unpickled object
+                # as-is.
+                if isinstance(prefs.sections, StatusPrefs):
+                    return prefs.sections
+                else:
+                    return prefs
 
-            # No prefs stored in the database for this user,
-            # load the default prefs from a file
-            #fh = file(DEFAULT_PREFS_FILENAME,'r')
-            #prefs = cPickle.load(fh)
-        
+        # No system default prefs found (admin users prefs)
+        # load from DEFAULT_STATUSPREFS variable
+        data = DEFAULT_STATUSPREFS
+        prefs = StatusPrefs()
+        prefs.sections = copy.deepcopy(data)
+
         return prefs
     loadPrefs = classmethod(loadPrefs)
 
@@ -355,7 +369,7 @@ class HandleStatusPrefs:
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
-        data = psycopg.QuotedString(cPickle.dumps(prefs))
+        data = psycopg.QuotedString(cPickle.dumps(prefs.sections))
 
         sql = "SELECT property FROM accountproperty " + \
               "WHERE accountid='%s' " % (ADMIN_USER_ID,) + \

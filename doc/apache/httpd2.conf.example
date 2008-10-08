@@ -101,7 +101,7 @@ Listen 80
     UserDir disable
 </IfModule>
 
-DirectoryIndex index.html index.html.var index.php index.cgi
+DirectoryIndex index.html index.html.var index.cgi
 AccessFileName .htaccess
 
 <Files ~ "^\.ht">
@@ -221,11 +221,6 @@ BrowserMatch "^WebDrive" redirect-carefully
 
 
 LoadModule python_module modules/mod_python.so
-LoadModule php4_module modules/libphp4.so
-
-# Unless mod_php was compiled with Apache 2 filter support, this is
-# the way to associate php files with mod_php:
-AddType application/x-httpd-php .php
 
 
 #

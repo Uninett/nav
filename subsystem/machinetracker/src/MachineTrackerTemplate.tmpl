@@ -127,11 +127,17 @@ $default_table_CSS
     <tbody>
   #for $row in $table
     <tr class="$rowcycler">
-	<td><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a></td>
+	<td>
+        #if $row.current_sysname
+            <a href="/ipdevinfo/$row.current_sysname/" title="Browse this switch (IP device)">$row.switch</a>
+        #else
+            $row.switch
+        #end if
+        </td>
 	<td style="text-align: center;">$row.module</td>
         <td style="text-align: center;"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a>
-	#if $row.port
-            (<a href="/ipdevinfo/$row.switch/module=$row.module/swport=$row.port/">details</a>)</td>
+	#if $row.current_sysname and $row.module and $row.port
+            (<a href="/ipdevinfo/$row.current_sysname/module=$row.module/swport=$row.port/">details</a>)</td>
 	#end if
 	<td>$row.start_time</td>
 	<td>$row.end_time</td>
@@ -311,6 +317,9 @@ $makeMenu($menu, $current)
     of interface names.  Historical search results will still contain port
     numbers instead of interface names, as historical port number data cannot
     be accurately mapped to interface names.</li>
+    <li>Checking the &quot;inactive&quot; checkbox will have no effect
+    when searching IPv6 address ranges.  The output would be huge
+    (about <em>10<sup>19</sup></em> resulting rows for a /64 subnet).</li>
 </ul>
 #end if
 

@@ -38,16 +38,13 @@ tooldir = @tooldir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
-# Names
-WEBNAME = mysms
-
 # Files
 INITFILES = smsd
 BINS = smsd.py
-LIBS = $(wildcard nav/smsd/*.py nav/web/mysms/*.py)
+LIBS = $(wildcard nav/smsd/*.py)
 CONFFILES = smsd.conf
 TOOLS =
-TEMPLATES = nav/web/templates/MySMSTemplate.py
+TEMPLATES =
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
@@ -81,7 +78,6 @@ install-conf: conf
 
 install-web: web
 	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
-	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done

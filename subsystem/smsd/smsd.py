@@ -41,7 +41,6 @@ __copyright__ = "Copyright 2006-2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 
-import ConfigParser
 import getopt
 import logging
 import logging.handlers
@@ -59,6 +58,7 @@ import nav.logs
 import nav.path
 import nav.smsd.navdbqueue
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
+from nav.config import getconfig
 # Dispatchers are imported later according to config
 
 
@@ -106,7 +106,7 @@ def main(args):
     }
 
     # Read config file
-    config = getconfig(defaults)
+    config = getconfig(configfile, defaults)
 
     # Set variables
     username = config['main']['username']
@@ -263,33 +263,6 @@ def signalhandler(signum, _):
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
         logger.info("Log files reopened.")
-
-def getconfig(defaults = None):
-    """
-    Read whole config from file.
-
-    Arguments:
-        ``defaults'' are passed on to configparser before reading config.
-
-    Returns:
-        Returns a dict, with sections names as keys and a dict for each
-        section as values.
-    """
-
-    config = ConfigParser.RawConfigParser(defaults)
-    config.read(configfile)
-
-    sections = config.sections()
-    configdict = {}
-
-    for section in sections:
-        configsection = config.items(section)
-        sectiondict = {}
-        for opt, val in configsection:
-            sectiondict[opt] = val
-        configdict[section] = sectiondict
-
-    return configdict
 
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""

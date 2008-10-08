@@ -1,0 +1,42 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Filters
+{% endblock %}
+
+{% block theadcols %}
+    <th></th>
+    <th>
+    {% ifequal order_by "name" %}
+        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-name">
+        Name</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=name">
+        Name</a>
+        {% ifequal order_by "-name" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>Owner</th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for filter in object_list %}
+        {% if forloop.counter|divisibleby:"2" %}
+        <tr class="evenrow">
+        {% else %}
+        <tr class="oddrow">
+        {% endif %}
+            <td>
+                <input name="filter" value="{{ filter.id }}"
+                type="checkbox"
+                {% if not admin and not filter.owner %}disabled="disabled" {% endif %}/>
+            </td>
+            <td><a href="{% url alertprofiles-filters-detail filter.id %}">
+                {{ filter.name }}</a></td>
+            <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}

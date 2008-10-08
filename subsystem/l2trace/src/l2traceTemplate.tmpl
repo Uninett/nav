@@ -93,13 +93,13 @@
     #end if
 
     #if $row.hostOk
-        <td><a href="/ipinfo/?ip=$row.ipaddr" title="IP info">$row.ipaddr</a></td>
+        <td><a href="/ipdevinfo/ip=$row.ipaddr/" title="IP Device Info">$row.ipaddr</a></td>
     #else
         <td>$row.ipaddr</td>
     #end if
 
     #if $row.netboxid
-        <td><a href="/browse/?netbox=$row.ipaddr" title="Device browser">$row.sysname</a></td>
+        <td><a href="/ipdevinfo/$row.sysname/" title="IP Device Info">$row.sysname</a></td>
     #else
         <td>$row.sysname</td>
     #end if

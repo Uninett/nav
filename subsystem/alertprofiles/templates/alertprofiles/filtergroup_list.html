@@ -1,0 +1,55 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Filter groups
+{% endblock %}
+
+{% block theadcols %}
+    <th></th>
+    <th>
+    {% ifequal order_by "name" %}
+        <a href="{% url alertprofiles-filtergroups %}?page={{ page_obj.number }}&amp;order_by=-name">
+            Name</a>
+        <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-filtergroups %}?page={{ page_obj.number }}&amp;order_by=name">
+            Name</a>
+        {% ifequal order_by "-name" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+        Owner
+    </th>
+    <th>
+    {% ifequal order_by "description" %}
+        <a href="{% url alertprofiles-filtergroups %}?page={{ page }}&amp;order_by=-description">
+            Description</a>
+            <span class="sort">&darr;</span>
+    {% else %}
+        <a href="{% url alertprofiles-filtergroups %}?page={{ page }}&amp;order_by=description">
+            Description</a>
+        {% ifequal order_by "-description" %}
+            <span class="sort">&uarr;</span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for filter in object_list %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td>
+                <input name="filter_group" value="{{ filter.id }}"
+                type="checkbox"
+                {% if not admin and not filter.owner %}disabled="disabled"{% endif %}
+                />
+            </td>
+            <td><a href="{% url alertprofiles-filtergroups-detail filter.id %}">
+                {{ filter.name }}</a></td>
+            <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
+            <td>{{ filter.description }}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}

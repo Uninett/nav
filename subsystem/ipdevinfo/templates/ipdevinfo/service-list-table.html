@@ -1,11 +1,11 @@
 <thead>
     <tr>
         <th rowspan="2">Status</th>
-    {% if show_ipdev_info %}
-        <th rowspan="2">IP Device</th>
-        <th rowspan="2">Organization</th>
-    {% endif %}
+        {% if show_ipdev_info %}
+            <th rowspan="2">IP Device</th>
+        {% endif %}
         <th rowspan="2">Handler</th>
+        <th rowspan="2">Version</th>
         <th colspan="3">Availability</th>
         <th colspan="3">Response time</th>
         <th rowspan="2">Actions</th>
@@ -43,31 +43,33 @@
     <tr class="{% cycle oddrow,evenrow %}">
         <td class="status_{{ service.get_up_display }}">
             {{ service.get_up_display|capfirst }}</td>
-    {% if show_ipdev_info %}
-        <td><a href="{{ service.netbox.get_absolute_url }}">
-            {{ service.netbox.sysname }}</a></td>
-        <td><a href="{% url report-organization-organization service.netbox.organization.id %}">
-            {{ service.netbox.organization }}</td>
-    {% endif %}
+        {% if show_ipdev_info %}
+            <td><a href="{{ service.netbox.get_absolute_url }}">
+                {{ service.netbox.get_short_sysname }}</a></td>
+        {% endif %}
         <td><a href="{% url ipdevinfo-service-list-handler service.handler %}">
             {{ service.handler }}</a></td>
+        <td>{{ service.version|default:"N/A" }}</td>
         {% with service.get_statistics as stats %}
         {% with stats.availability as a %}
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
             {% if a.day %}
                 {{ a.day|floatformat:2 }}%
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
             {% if a.week %}
                 {{ a.week|floatformat:2 }}%
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
             {% if a.month %}
                 {{ a.month|floatformat:2 }}%
             {% else %}
@@ -76,21 +78,24 @@
             </a></td>
         {% endwith %}
         {% with stats.response_time as rt %}
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
             {% if rt.day %}
                 {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
             {% if rt.week %}
                 {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
                 N/A
             {% endif %}
             </a></td>
-        <td class="numeric"><a href="#FIXME-link-to-rrd-view">
+        <td class="numeric">
+            <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
             {% if rt.month %}
                  {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
             {% else %}
@@ -100,10 +105,11 @@
         {% endwith %}
         {% endwith %}
         <td>
-            <a href="{% url editdb-edit-object "service",service.id %}">
+            <a href="{% url seeddb-edit-object "service",service.id %}">
                 Edit</a>,
             <a href="{% url maintenance-new-service service.id %}">
                 schedule maintenance</a>
         </td>
+    </tr>
     {% endfor %}
 </tbody>

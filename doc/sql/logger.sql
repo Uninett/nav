@@ -10,11 +10,11 @@ CREATE TABLE priority (
 );
 
 --------------------------------------------------------
--- message_type
+-- log_message_type
 -- Types of messages, ala syslog
 --------------------------------------------------------
 
-CREATE TABLE message_type (
+CREATE TABLE log_message_type (
   type SERIAL PRIMARY KEY NOT NULL,
   priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE,
   facility VARCHAR NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE log_message (
   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
   origin INTEGER NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
   newpriority INTEGER REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL, -- for overlagring av defaultverdier
-  type INTEGER NOT NULL REFERENCES message_type (type) ON UPDATE CASCADE ON DELETE SET NULL,
+  type INTEGER NOT NULL REFERENCES log_message_type (type) ON UPDATE CASCADE ON DELETE SET NULL,
   message VARCHAR
 );
 

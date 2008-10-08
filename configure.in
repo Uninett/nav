@@ -62,60 +62,61 @@ fi
 
 AC_OUTPUT(Makefile
 	doc/Makefile
+	src/Makefile
 	src/build.properties
+	src/eventEngine/eventEngine.sh
 	src/eventEngine/eventengine
+	src/getBoksMacs/getBoksMacs.sh
 	src/getDeviceData/getDeviceData
 	src/getDeviceData/getDeviceData.sh
-	src/eventEngine/eventEngine.sh
 	src/networkDiscovery/networkDiscovery.sh
-	src/getBoksMacs/getBoksMacs.sh
-	src/Makefile
+	subsystem/alertengine/Makefile
+	subsystem/alertengine/alertengine
+	subsystem/alertprofiles/Makefile
+	subsystem/arnold/Makefile
+	subsystem/arnold/images/Makefile
+	subsystem/arnold/lib/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/pyproxy/Makefile
-	subsystem/lib-perl/Makefile
-	subsystem/lib-python/Makefile
-	subsystem/webFront/Makefile
-	subsystem/webFront/lib/nav/web/templates/Makefile
-	subsystem/devBrowser/Makefile
+	subsystem/devicehistory/Makefile
+	subsystem/deviceManagement/Makefile
+	subsystem/ipdevinfo/Makefile
 	subsystem/ipinfo/Makefile
 	subsystem/ipinfo/templates/Makefile
+	subsystem/l2trace/Makefile
+	subsystem/l2trace/src/Makefile
+	subsystem/lib-perl/Makefile
+	subsystem/lib-python/Makefile
+	subsystem/logger/Makefile
+	subsystem/logger/bin/Makefile
+	subsystem/logger/conf/Makefile
+	subsystem/logger/src/Makefile
+	subsystem/logger/templates/Makefile
+	subsystem/machinetracker/Makefile
+	subsystem/machinetracker/src/Makefile
+	subsystem/maintenance/Makefile
+	subsystem/messages/Makefile
+	subsystem/netmap/Makefile
+	subsystem/networkexplorer/Makefile
+	subsystem/report/Makefile
+	subsystem/seeddb/Makefile
+	subsystem/seeddb/src/Makefile
+	subsystem/smsd/Makefile
+	subsystem/smsd/smsd
+	subsystem/snmptrapd/Makefile
+	subsystem/snmptrapd/snmptrapd
+	subsystem/startstop/Makefile
+	subsystem/startstop/functions
+	subsystem/statTools/Makefile
+	subsystem/statTools/sortedStats/Makefile
 	subsystem/statemon/Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
-	subsystem/editdb/Makefile
-	subsystem/editdb/src/Makefile
 	subsystem/status/Makefile
 	subsystem/status/src/Makefile
-	subsystem/maintenance/Makefile
-	subsystem/messages/Makefile
-	subsystem/l2trace/Makefile
-	subsystem/l2trace/src/Makefile
-	subsystem/logger/src/Makefile
-	subsystem/logger/templates/Makefile
-	subsystem/logger/bin/Makefile
-	subsystem/logger/conf/Makefile
-	subsystem/logger/Makefile
-	subsystem/devicehistory/Makefile
-	subsystem/machinetracker/src/Makefile
-	subsystem/machinetracker/Makefile
-	subsystem/report/Makefile
-	subsystem/alertprofiles/Makefile
-	subsystem/alertEngine/Makefile
-	subsystem/alertEngine/alertengine
 	subsystem/thresholdMon/Makefile
-	subsystem/smsd/Makefile
-	subsystem/smsd/smsd
-	subsystem/startstop/Makefile
-	subsystem/startstop/functions
-	subsystem/arnold/Makefile
-	subsystem/arnold/lib/Makefile
-	subsystem/arnold/images/Makefile
-	subsystem/snmptrapd/Makefile
-	subsystem/snmptrapd/snmptrapd
-	subsystem/statTools/Makefile
-	subsystem/statTools/sortedStats/Makefile
-	subsystem/ipdevinfo/Makefile
-	subsystem/netmap/Makefile)
+	subsystem/useradmin/Makefile
+	subsystem/webfront/Makefile
+)
 
 echo
 echo "Now run 'make' to build NAV"

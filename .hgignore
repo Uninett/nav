@@ -16,6 +16,7 @@ autom4te.cache
 
 # Generated init.d files etc. which probably should have a common file
 # extension so they easier could be ignored
+src/Util/src/no/ntnu/nav/Path.java
 src/build.properties
 src/eventEngine/eventEngine.sh
 src/eventEngine/eventengine
@@ -23,13 +24,18 @@ src/getBoksMacs/getBoksMacs.sh
 src/getDeviceData/getDeviceData
 src/getDeviceData/getDeviceData.sh
 src/networkDiscovery/networkDiscovery.sh
-subsystem/alertEngine/alertengine
-subsystem/lib-python/src/nav/buildconf.py
+subsystem/alertengine/alertengine
+subsystem/lib-perl/src/NAV/Path.pm
+subsystem/lib-python/nav/buildconf.py
+subsystem/logger/conf/logger.conf
 subsystem/smsd/smsd
 subsystem/snmptrapd/snmptrapd
 subsystem/startstop/functions
 subsystem/statemon/pping
+subsystem/statemon/pping.conf
 subsystem/statemon/servicemon
+subsystem/statemon/servicemon.conf
+subsystem/webfront/config/webfront/webfront.conf
 
 
 syntax: regexp

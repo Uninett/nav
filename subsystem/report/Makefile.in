@@ -38,8 +38,6 @@ tooldir = @tooldir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
-#tool = report.tool
-
 # Names
 WEBNAME = report
 NAME = report
@@ -51,6 +49,8 @@ LIBS = $(wildcard nav/*.py nav/report/*.py nav/web/report/*.py)
 CONFFILES = $(wildcard etc/*.conf etc/front.html)
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
+JSLIBS = $(wildcard nav/web/js/*)
+CSS = $(wildcard nav/web/style/*)
 TOOLS = report.tool
 #BINS =
 
@@ -60,7 +60,7 @@ TOOLS = report.tool
 all: lib bin conf web
 lib: $(TEMPLATES)
 bin:
-conf:
+conf: $(CONFFILES)
 web:
 
 $(TEMPLATES): %.py: %.tmpl
@@ -70,7 +70,10 @@ install: all install-lib install-bin install-conf install-web
 
 install-lib: lib $(TEMPLATES)
 	for file in $(LIBS) $(TEMPLATES); do \
-	    $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
+		$(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
+	done
+	for file in $(JSLIBS); do \
+		$(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/js/`basename $$file` || exit 1; \
 	done
 
 install-bin: bin $(INITFILES)
@@ -92,11 +95,18 @@ install-web: web
 		$(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; \
 	done
 	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
+	for file in $(CSS); do \
+		$(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/style/`basename $$file` || exit 1; \
+	done
 
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(LIBS); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
+	for file in $(TEMPLATES); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in $(CONFFILES); do rm -f $(DESTDIR)$(sysconfdir)/$(NAME)/`basename $$file` || exit 1; done
+	for file in $(JSLIBS); do rm -f $(DESTDIR)$(webroot)/js/`basename $$file` || exit 1; done
+	for file in $(CSS); do rm -f $(DESTDIR)$(webroot)/style/`basename $$file` || exit 1; done
 	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
 
 clean:

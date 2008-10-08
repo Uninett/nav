@@ -63,8 +63,7 @@ path to your non-threaded edition of Python.
 
 Some tips if you wish to configure Apache from scratch:
 
-- You need both mod_php4 and mod_python, and we strongly recommend
-  mod_ssl.
+- You need mod_python, and we strongly recommend mod_ssl.
 - Your document root should be /usr/local/nav/apache/webroot/.
 - .htaccess files below that directory should be allowed to override
   everything from the Apache configuration.
@@ -73,32 +72,6 @@ Some tips if you wish to configure Apache from scratch:
   is sent to and from the web server unencrypted (including
   passwords).  You can accomplish this by using a RewriteRule to have
   your web server redirect all http requests to https urls.
-
-
-Configuring Tomcat
-==================
-NAV comes with two Java servlets, Network Explorer and vlanPlot (the
-interactive traffic map).  The Tomcat servlet engine is the
-recommended container for these servlets.  A Python module will
-forward Apache requests to these to servlets directly to a Tomcat
-server running on the local host.
-
-You need to install and configure Tomcat on your NAV host, and make
-sure the two servlets (.war files) are in its webapps directory.
-The Python forwarding module will expect to find the Tomcat server
-listening on port 8080 (which is the Tomcat configuration default).
-
-Also, these servlets may use large amounts of memory while processing
-some requests (especially if your port count is high, such as it is at
-NTNU); therefore it is recommended to increase the amount of memory
-available to the Java Virtual Machine running the Tomcat server.  The
-Sun JVM usually reserves a maxium of 64MB for a Java program, but this
-can be changed using the -Xmx<size> option of java.  This can be
-passed through to the JVM when starting Tomcat, e.g.:
-
-  JAVA_OPTS="-Xmx128M" ./startup.sh
-
-This should start Tomcat with a maximum heap memory size of 128MB.
 
 
 
@@ -189,11 +162,11 @@ Seeding your database
 =====================
 Seeding the database is no longer a process of maintaining text files
 containg information on your network equipment.  All seeding of the
-database is now done through the web interface, using the editdb tool,
+database is now done through the web interface, using the seeddb tool,
 which operates directly on the contents of the NAVdb. Open the web
-interface toolbox and select editdb.
+interface toolbox and select Seed Database.
 
-Fortunately for you, editdb has the ability to bulk import data from
+Fortunately for you, seeddb has the ability to bulk import data from
 text files that are mostly the same format as the old seed text files
 of NAV v2.
 
@@ -203,7 +176,7 @@ Tips for bulk importing:
   bulk import the seed files in the following order: Locations, Rooms,
   Vendors, Types, Organizations, User categories, Boxes, Services.
   The format of each bulk import type is documented in the bulk import
-  forms of editdb.
+  forms of seeddb.
 
 - When bulk importing boxes, it is a good idea to split the seed files
   into smaller pieces.  Bulk importing triggers a burst of SNMP
@@ -212,7 +185,7 @@ Tips for bulk importing:
 
 - Some vendors and types are already defined in the initial
   database. Before importing these, you can check which ones exist by
-  looking at /editdb/vendor/list and /editdb/type/list
+  looking at /seeddb/vendor/list and /seeddb/type/list
 
 - If you are trying to import a nested organizational structure, it
   may be neccesary to import the organization file several times.
