@@ -41,6 +41,7 @@ from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
 from nav.web.devicehistory.utils.history import History
+from nav.web.devicehistory.utils.error import RegisterEvent
 
 DeviceQuickSelect_kwargs = {
     'button': 'View %s history',
@@ -114,8 +115,4 @@ def register_error(request):
     selection = DeviceQuickSelect.handle_post(request)
     error_comment = request.POST.get('error_comment', None)
 
-    events = []
-    for type, devices in selection:
-        pass
-
-    eventq = EventQueue()
+    events = RegisterError(selection=selection, comment=error_comment)
