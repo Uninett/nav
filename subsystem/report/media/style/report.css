@@ -3,3 +3,11 @@ p.listdescr {
 	color: #555753;
 	padding-bottom: 15px
 }
+
+table.listtable caption {
+	text-align: center;
+}
+
+table.listtable tbody.footer tr th {
+	text-align: center;
+}
