@@ -13,7 +13,6 @@ To build NAV, you need at least the following:
  * Perl >= 5.6.0
  * Python >= 2.4.0
  * Java 2 SDK >= 1.5.0
- * Tomcat >= 4 (or compatible Java Servlet API)
  * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
  * Cheetah Templates
 
@@ -27,16 +26,13 @@ To run NAV, these software packages are required:
  * PostgreSQL >= 8.0
  * rrdtool
  * Cheetah Templates
- * Tomcat >= 4 (or compatible Java Servlet Container)
  * Java 2 SDK >= 1.5.0
  * Perl >= 5.6.0
  * Python >= 2.4.0
 
 The following Perl modules are required:
 
- * DBD::Pg
  * Pg
- * SNMP_Session (with SNMP_util, BER)
 
 The following Java librares are required:
 
@@ -47,7 +43,6 @@ The following python modules are required:
 
  * django (>= 1.0)
  * egenix-mxdatetime
- * forgethtml
  * forgetsql
  * ipy
  * ldap
@@ -83,17 +78,16 @@ the files installed in a physically different location (a temporary build
 directory) than what you configured the package for.  In this case, you should
 specify this build directory by adding "DESTDIR=/your/build/directory" to "make
 install" command. You should also have a look at whatever .spec files you can
-find below the packages/ directory. 
+find below the packages/ directory.
 
 Java libraries
 --------------
-Before building, you must make sure that the JavaSNMP (from drexel.edu) and the
-Java Servlet API are both available on your JVM's CLASSPATH.  If they are not,
-you need to explicitly add them to the CLASSPATH environment variable before
-running `make` as described above.
+Before building, you must make sure that the JavaSNMP (from drexel.edu) is
+available on your JVM's CLASSPATH. If it is not, you need to explicitly add it
+to the CLASSPATH environment variable before running `make` as described above.
 
-If both libraries are located in /usr/share/java/, then something like this
-should be appropriate::
+If the library is located in /usr/share/java/, then something like this should
+be appropriate:
 
-  export CLASSPATH=/usr/share/java/servletapi.jar:/usr/share/java/libsnmp.jar
+  export CLASSPATH=/usr/share/java/libsnmp-1.4.jar
 

@@ -100,8 +100,8 @@ def account_detail(request, account_id=None):
             if group_form.is_valid():
                 group = group_form.cleaned_data['group']
 
-                if group.is_admin_group() and account.is_default_account():
-                    new_message(request, 'Default user may not be added to admin group.', type=Messages.ERROR)
+                if (group.is_admin_group() or group.is_protected_group()) and account.is_default_account():
+                    new_message(request, 'Default user may not be added to "%s" group.' % group, type=Messages.ERROR)
                 else:
                     try:
                         account.accountgroup_set.get(id=group.id)

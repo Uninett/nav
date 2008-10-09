@@ -12,6 +12,7 @@ sysconfdir = @sysconfdir@
 
 webroot = @webroot@
 tooldir = @tooldir@
+datarootdir = @datarootdir@
 docdir = @docdir@
 crondir = @crondir@
 libdir = @libdir@

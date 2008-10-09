@@ -45,17 +45,13 @@ urlpatterns = patterns('',
     url(r'^service/matrix/$', service_matrix,
         name='ipdevinfo-service-matrix'),
 
-    # RRD viewer
-    url(r'^rrd/ds=(?P<rrddatasource_id>\d+)/$', rrd_details,
-        name='ipdevinfo-rrd-by-ds'),
-    url(r'^rrd/image/(?P<rrdfile_id>\d+)$', rrd_image,
-        name='ipdevinfo-rrd-image'),
-
     # IP Device details
     url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
         name='ipdevinfo-details-by-addr'),
+    url(r'^id=(?P<netbox_id>\d+)/$', ipdev_details,
+        name='ipdevinfo-details-by-id'),
 
     # Module details
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/$',

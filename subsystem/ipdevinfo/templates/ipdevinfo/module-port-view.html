@@ -1,9 +1,8 @@
 {% with module.ports as ports %}
 {% if ports|length %}
-<div class="module">
-<h3><a href="{{ module.object.get_absolute_url }}">
-    {{ module.object.module_number }}</a></h3>
-<table>
+<table class="listtable module">
+    <caption><a href="{{ module.object.get_absolute_url }}">
+        Module {{ module.object.module_number }}</a></caption>
     <tr>
     {% for port in ports %}
         <td class="{{ port.class }}" style="{{ port.style }}" title="{{ port.title }}">
@@ -22,6 +21,5 @@
     {% endfor %}
     </tr>
 </table>
-</div>
 {% endif %}
 {% endwith %}

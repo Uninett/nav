@@ -230,7 +230,7 @@ def handler(req):
 
         else:
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, None)
-            cache.set('report', (uri_strip, report, contents, neg, operator, adv, dbresult), 15 * 60)
+            cache.set('report', (uri_strip, report, contents, neg, operator, adv, dbresult))
 
 
         page.report = report

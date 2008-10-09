@@ -32,8 +32,9 @@ services down, etc.) on the status and history page
 #################################################
 ## Imports
 
-import nav.db.manage,mx.DateTime,nav
-from nav.web import urlbuilder
+import nav.db.manage
+import mx.DateTime
+import nav
 
 #################################################
 ## Constants
@@ -141,7 +142,7 @@ class ServiceSectionBox(SectionBox):
         self.historyLink = []
         self.historyLink.append((BASEPATH + 'history/?type=services',
                                  'history'))
-        self.historyLink.append(('/browse/service/allMatrix',
+        self.historyLink.append(('/ipdevinfo/service/matrix/',
                                  'service status'))
         self.filterSettings = filterSettings
 
@@ -255,12 +256,13 @@ class ServiceSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,style))
 
             # Handler
-            row.append((line[HANDLER],urlbuilder.createUrl(id=line[HANDLER],
-                        division='service'),None,style))
+            row.append((line[HANDLER],
+                        '/ipdevinfo/service/handler=%s/' % line[HANDLER],
+                        None,style))
  
             # Start
             row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
@@ -382,7 +384,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
         self.historyLink = []
         self.historyLink.append(('/maintenance/calendar',
                                  'maintenance schedule'))
-        self.historyLink.append(('/browse/service/allMatrix',
+        self.historyLink.append(('/ipdevinfo/service/matrix/',
                                  'service status'))
         self.filterSettings = filterSettings
 
@@ -496,14 +498,12 @@ class ServiceMaintenanceSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],
-                                             division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None, style))
 
             # Handler
             row.append((line[HANDLER],
-                        urlbuilder.createUrl(id=line[HANDLER],
-                                             division='service'),
+                        '/ipdevinfo/service/handler=%s/' % line[HANDLER],
                         None, style))
  
             if line[UP] == 'y':
@@ -767,9 +767,8 @@ class NetboxSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
-                        None,
-                        style))
+                        '/ipdevinfo/%s/' % line[SYSNAME],
+                        None, style))
 
             # Ip
             row.append((line[IP],None,None,style))
@@ -989,7 +988,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID], division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None, style))
 
             # Ip
@@ -1220,7 +1219,7 @@ class ModuleSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,
                         style))
 
@@ -1431,7 +1430,7 @@ class ThresholdSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,style))
 
             # Description
@@ -1594,7 +1593,7 @@ class NetboxHistoryBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,style))
 
             # IP
@@ -1716,7 +1715,7 @@ class ServiceHistoryBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,style))
 
             # Handler
@@ -1844,7 +1843,7 @@ class ModuleHistoryBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,style))
 
             # Handler
@@ -1985,7 +1984,7 @@ class ThresholdHistoryBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        '/ipdevinfo/%s/' % line[SYSNAME],
                         None,style))
 
             # Handler

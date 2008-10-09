@@ -1,0 +1,239 @@
+#encoding UTF-8
+## $Id$
+##
+## Copyright 2003-2005 Norwegian University of Science and Technology
+## Copyright 2006 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Authors: Magnar Sveen <magnars@idi.ntnu.no>
+##          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##
+##
+##
+## Every other template extends this one. It contains the header-information,
+## NAV-logo and navigation-bar.
+##
+## The content-block should be replaced by all templates. CSS or JavaScript
+## can be added by replacing the additionalCSS or additionalJavaScript blocks
+## with a <link> tag refering to the new stylesheet or script file.
+##
+## To use without making a separate template, do this:
+##
+##   import MainTemplate from foo.bar.MainTemplate
+##   page = MainTemplate()
+##   page.content = lambda: "<h1>Foo</h1>Bar"
+##
+## The navbar is built according to the users preferences, with data in this
+## form:
+##
+## $user
+##   +-- preferences
+##        +-- hidelogo                 :: boolean: should the navlogo be hidden?
+##        +-- navbar                   :: array of links
+##        |    +-- name                ::
+##        |    +-- uri                 ::
+##        +-- qlink1                   :: array of links
+##        |    +-- name                ::
+##        |    +-- uri                 ::
+##        +-- qlink2                   :: array of links
+##             +-- name                ::
+##             +-- uri                 ::
+##
+## The template uses images in $imagefolder/main/, where $imagefolder
+## defaults to "/images".
+##
+##
+#from nav.web import shouldShow, cycler
+#import nav.buildconf
+##
+#attr $imagefolder = "/images"
+#attr $bodyOnLoad = ""
+#attr $title = ""
+#attr $path = False
+##
+#set global $rowcycler = cycler.cycler('evenrow', 'oddrow')
+#set global $cellcycler = cycler.cycler('evencell', 'oddcell')
+##
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+#def additionalMeta
+#end def additionalMeta
+$additionalMeta()
+
+#if $title
+    #set $title = "NAV - " + $title
+#else
+    #set $title = "NAV"
+#end if
+    <title>$title</title>
+#def standardCSS
+    <link rel="stylesheet" type="text/css" href="/style/reset.css" />
+    <link rel="stylesheet" type="text/css" href="/style/default.css" />
+#end def standardCSS
+$standardCSS()
+#def default_table_CSS
+    <link rel="stylesheet" type="text/css" href="/style/table.css" />
+#end def default_table_CSS
+#def default_form_CSS
+    <link rel="stylesheet" type="text/css" href="/style/form.css" />
+#end def default_form_CSS
+#def default_tabs_CSS
+    <link rel="stylesheet" type="text/css" href="/style/tabs.css" />
+#end def default_tabs_CSS
+#def default_calendar_CSS
+    <link rel="stylesheet" type="text/css" href="/style/calendar.css" />
+#end def default_calendar_CSS
+#def default_treeselect_CSS
+    <link rel="stylesheet" type="text/css" href="/style/treeselect.css" />
+#end def default_treeselect_CSS
+#def default_quickselect_CSS
+    <link rel="stylesheet" type="text/css" href="/style/quickselect.css" />
+#end def default_treeselect_CSS
+#def additionalCSS
+#end def additionalCSS
+$additionalCSS()
+    <script type="text/javascript" src="/js/default.js"></script>
+#def additionalJavaScript
+#end def additionalJavaScript
+$additionalJavaScript()
+#def additionalHead
+#end def additionalHead
+$additionalHead()
+</head>
+
+<body $bodyOnLoad>
+
+<div id="header">
+
+<div id="navlogo">
+<h1><a href="/">
+<img src="$imagefolder/main/navlogo-141x50.png" width="141" height="50" alt="NAV" />
+Network Administration Visualized</a></h1>
+</div>
+
+<div id="navbar">
+<table>
+    <tr>
+        <td>
+
+<div id="navpath">
+#if $path
+    #set $separate = False
+    #for $step in $path
+        #if $separate
+    &gt;
+        #end if
+        #if $step[1]
+    <a href="$step[1]">$step[0]</a>
+        #else
+    $step[0]
+        #end if
+        #set $separate = True
+    #end for
+#else
+    #set $separate = False
+    <p class="error"> No current path is set! Find out how here:</p>
+    <pre>template.path = [("Home", "/"), ("Status", False)]</pre>
+#end if
+</div> <!-- navpath end -->
+
+        </td>
+        <td class="spacer"></td>
+        <td class="entry">
+            <form action="/ipdevinfo/" method="get">
+                <input id="id_query" type="text" name="query" maxlength="100" size="12" value="IP or hostname" onclick="this.value = (this.value == 'IP or hostname' ? '' : this.value )" />
+                <button type="submit">Search</button>
+            </form>
+        </td>
+#set $separate = False
+#for $link in $user.preferences.navbar
+#if shouldShow($link.uri, $user)
+        <td class="entry"><a class="navbar" href="$link.uri">$link.name</a></td>
+  #set $separate = True
+#end if
+#end for
+#if $user.preferences.qlink1
+        <td class="list">
+            <select onchange="return jump(this);">
+                <option style="color: #669" selected="selected"> Quicklink #1 </option>
+  #for $link in $user.preferences.qlink1
+  #if shouldShow($link.uri, $user)
+                <option value="$link.uri"> $link.name </option>
+  #end if
+  #end for
+            </select>
+        </td>
+#end if
+#if $user.preferences.qlink2
+        <td class="list">
+            <select onchange="return jump(this);">
+                <option style="color: #669" selected="selected"> Quicklink #2 </option>
+  #for $link in $user.preferences.qlink2
+  #if shouldShow($link.uri, $user)
+                <option value="$link.uri"> $link.name </option>
+  #end if
+  #end for
+            </select>
+        </td>
+#end if
+#if $user.id > 0
+        <td class="entry"><a class="navbar" href="/index/logout">Logout $user.login</a></td>
+#else
+        <td class="entry"><a class="navbar" href="/index/login">Login</a></td>
+#end if
+    </tr>
+</table>
+</div> <!-- navbar end -->
+
+</div> <!-- header end -->
+
+<div id="navbody">
+
+#def content
+<h2>This space intentionally left blank</h2>
+<p>$user.name / $user.id</p>
+#end def content
+$content()
+
+#set $version = $nav.buildconf.VERSION
+<div id="footer">
+<hr />
+<p>
+    <a href="/about/">Network Administration Visualized</a> $version<br />
+#if $user.id == 0
+    You are not logged in
+#else
+    You are logged in as <a href="/userinfo">$user.name</a>
+#end if
+</p>
+
+</div>
+
+</div> <!-- navbody end -->
+
+</body>
+</html>
+

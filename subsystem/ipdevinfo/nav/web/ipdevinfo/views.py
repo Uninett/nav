@@ -29,18 +29,17 @@ import IPy
 import re
 import datetime as dt
 
-from django.core.files import File
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
-from nav.models.manage import Netbox, Module, SwPort, GwPort
+from nav.django.shortcuts import render_to_response, object_list
 from nav.models.cabling import Cabling, Patch
 from nav.models.event import AlertHistory
+from nav.models.manage import Netbox, Module, SwPort, GwPort
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.service import Service
-from nav.django.shortcuts import render_to_response, object_list
 
 from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
@@ -102,8 +101,12 @@ def search(request):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def ipdev_details(request, name=None, addr=None):
+def ipdev_details(request, name=None, addr=None, netbox_id=None):
     """Show detailed view of one IP device"""
+
+    if netbox_id is not None:
+        netbox = get_object_or_404(Netbox, id=netbox_id)
+        return HttpResponseRedirect(netbox.get_absolute_url())
 
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
@@ -130,12 +133,12 @@ def ipdev_details(request, name=None, addr=None):
 
         # Lookup the reverse and add it to host_info['addresses']
         for addr in unique_addresses:
-                this = {'addr': addr}
-                try:
-                    this['name'] = socket.gethostbyaddr(addr)[0]
-                except socket.herror, (errno, errstr):
-                    this['error'] = errstr
-                host_info['addresses'].append(this)
+            this = {'addr': addr}
+            try:
+                this['name'] = socket.gethostbyaddr(addr)[0]
+            except socket.herror, (errno, errstr):
+                this['error'] = errstr
+            host_info['addresses'].append(this)
 
         return host_info
 
@@ -144,15 +147,16 @@ def ipdev_details(request, name=None, addr=None):
 
         # Prefetch related objects as to reduce number of database queries
         netboxes = Netbox.objects.select_related(depth=2)
+        netbox = None
 
         if name is not None:
             try:
-                return netboxes.get(sysname=name)
+                netbox = netboxes.get(sysname=name)
             except Netbox.DoesNotExist:
                 pass
         elif addr is not None:
             try:
-                return netboxes.get(ip=addr)
+                netbox = netboxes.get(ip=addr)
             except Netbox.DoesNotExist:
                 pass
         elif host_info is not None:
@@ -164,8 +168,7 @@ def ipdev_details(request, name=None, addr=None):
                     except Netbox.DoesNotExist:
                         pass
 
-        # All lookups failed
-        return None
+        return netbox
 
     def get_recent_alerts(netbox, days_back=7, max_num_alerts=15):
         """Returns the most recents alerts related to a netbox"""
@@ -183,18 +186,22 @@ def ipdev_details(request, name=None, addr=None):
         for alert in raw_alerts:
             if alert.source.name == 'serviceping':
                 try:
-                    type = Service.objects.get(id=alert.subid).handler
+                    alert_type = Service.objects.get(id=alert.subid).handler
                 except Service.DoesNotExist:
-                    type = '%s (%d)' % (alert.event_type, alert.subid)
+                    alert_type = '%s (%d)' % (alert.event_type, alert.subid)
             else:
-                type = '%s' % alert.event_type
+                alert_type = '%s' % alert.event_type
 
             try:
                 message = alert.messages.filter(type='sms')[0].message
             except IndexError:
                 message = None
 
-            alerts.append({'alert': alert, 'type': type, 'message': message})
+            alerts.append({
+                'alert': alert,
+                'type': alert_type,
+                'message': message,
+            })
 
         return {
             'days_back': days_back,
@@ -426,7 +433,7 @@ def service_matrix(request):
             matrix_dict[service.netbox.id] = {
                 'sysname': service.netbox.sysname,
                 'netbox': service.netbox,
-                'services': [None for handler in handler_list],
+                'services': [None for _ in handler_list],
             }
         index = handler_list.index(service.handler)
         matrix_dict[service.netbox.id]['services'][index] = service
@@ -441,28 +448,3 @@ def service_matrix(request):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
-
-def rrd_details(request, datasource_id):
-    """Show the RRD graph corresponding to the given datasource ID"""
-
-    # TODO
-
-    return render_to_response(IpDevInfoTemplate,
-        'ipdevinfo/rrd-graph.html',
-        {
-
-        },
-        context_instance=RequestContext(request,
-            processors=[search_form_processor]))
-
-def rrd_image(request, rrdfile_id):
-    """Return the graph image of an RRD file"""
-
-    # TODO
-    try:
-        rrdfile = RrdFile.objects.get(id=rrdfile_id)
-    except RrdFile.DoesNotExist:
-        raise Http404
-
-    file = File(open(rrdfile.get_file_path()))
-    return HttpResponse(file.read(), mimetype='image/gif')
