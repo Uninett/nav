@@ -31,21 +31,64 @@ from datetime import date
 from django.db.models import Q
 
 from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType
+from nav.models.event import AlertHistory, AlertHistoryVariable, AlertHistoryMessage, AlertType
+
+def get_messages(alert):
+    # Regular messages
+    msgs = AlertHistoryMessage.objects.filter(
+        alert_history=alert,
+        type='sms',
+        language='en',
+    )
+    msgs_list = [m.message for m in msgs]
+
+    # User submitted errormesssages do not end up in alerthismsg, rather they
+    # end up in the value column of alerthistvar with key 'comment'. Usernames
+    # get the key 'username'
+    try:
+        row = AlertHistoryVariable.objects.filter(
+            alert_history=alert,
+            variable='comment'
+        )[0]
+    except IndexError:
+        pass
+    else:
+        msgs_list.append(row.value)
+    try:
+        row = AlertHistoryVariable.objects.filter(
+            alert_history=alert,
+            variable='username'
+        )[0]
+    except IndexError:
+        pass
+    else:
+        msgs_list.append('User %s posted this alert.' % row.value)
+
+    return msgs_list
 
 class History:
-    history = {}
+    locations = []
+    rooms = []
+    netboxes = []
+    modules = []
+
+    start_time = []
+    end_time = []
+    types = []
 
     def __init__(self, **kwargs):
-        self.selection = kwargs.pop('selection', [])
+        selection = kwargs.pop('selection', [])
         self.start_time = kwargs.pop('start_time', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
         self.end_time = kwargs.pop('end_time', date.today())
         self.types = kwargs.pop('types', None)
 
-        self.history = {'location': [], 'room': [], 'netbox': [], 'module': []}
-
         for key in kwargs.keys():
             raise TypeError('__init__() got an unexpected keyword argument %s' % key)
+
+        self.locations = selection.get('location', [])
+        self.rooms = selection.get('room', [])
+        self.netboxes = selection.get('netbox', [])
+        self.modules = selection.get('module', [])
 
         self.time_limit = [
             Q(start_time__lte=self.end_time),
@@ -56,19 +99,10 @@ class History:
             Q(start_time__gte=self.start_time)
         ]
 
-        if 'location' in self.selection and len(self.selection['location']) > 0:
-            self._get_location_history()
-        if 'room' in self.selection and len(self.selection['room']) > 0:
-            self._get_room_history()
-        if 'netbox' in self.selection and len(self.selection['netbox']) > 0:
-            self._get_netbox_history()
-        if 'module' in self.selection and len(self.selection['module']) > 0:
-            self._get_module_history()
-
-    def _get_location_history(self):
+    def get_location_history(self):
         alert_history = AlertHistory.objects.filter(
             Q(alerthistoryvariable__variable='locationid'),
-            Q(alerthistoryvariable__value__in=self.selection['location']),
+            Q(alerthistoryvariable__value__in=self.locations),
             *self.time_limit
         ).extra(
             select={
@@ -87,14 +121,20 @@ class History:
         history = {}
         for a in alert_history:
             if a.location_id not in history:
-                history[a.location_id] = DeviceList(description=a.location_name)
-            history[a.location_id].append(Alert(alert=a))
-        self.history['location'] = history
+                history[a.location_id] = {
+                    'description': a.location_name,
+                    'alerts': []
+                }
+            history[a.location_id]['alerts'].append({
+                'alert': a,
+                'messages': get_messages(alert=a),
+            })
+        return history
 
-    def _get_room_history(self):
+    def get_room_history(self):
         alert_history = AlertHistory.objects.filter(
             Q(alerthistoryvariable__variable='roomid'),
-            Q(alerthistoryvariable__value__in=self.selection['room']),
+            Q(alerthistoryvariable__value__in=self.rooms),
             *self.time_limit
         ).extra(
             select={
@@ -117,14 +157,21 @@ class History:
                     a.room_id = unicode(a.room_id)
                 if not isinstance(a.room_descr, unicode):
                     a.room_descr = unicode(a.room_descr)
-                descr = a.room_id + ' (' + a.room_descr + ')'
-                history[a.room_id] = DeviceList(description=descr)
-            history[a.room_id].append(Alert(alert=a))
-        self.history['room'] = history
+                history[a.room_id] = {
+                    'description': a.room_id + ' (' + a.room_descr + ')',
+                    'alerts': []
+                }
 
-    def _get_netbox_history(self):
+            history[a.room_id]['alerts'].append({
+                'alert': a,
+                'messages': get_messages(alert=a),
+            })
+
+        return history
+
+    def get_netbox_history(self):
         alert_history = AlertHistory.objects.filter(
-            Q(device__netbox__id__in=self.selection['netbox']),
+            Q(device__netbox__id__in=self.netboxes),
             *self.time_limit
         ).extra(
             select={
@@ -143,18 +190,28 @@ class History:
         history = {}
         for a in alert_history:
             if a.netbox_id not in history:
-                history[a.netbox_id] = DeviceList(description=a.netbox_name)
-            history[a.netbox_id].append(Alert(alert=a))
-        self.history['netbox'] = history
+                history[a.netbox_id] = {
+                    'description': a.netbox_name,
+                    'alerts': []
+                }
+            history[a.netbox_id]['alerts'].append({
+                'alert': a,
+                'messages': get_messages(alert=a),
+            })
 
-    def _get_module_history(self):
+        return history
+
+    def get_module_history(self):
         alert_history = AlertHistory.objects.filter(
-            Q(device__module__id__in=self.selection['module']),
+            Q(device__module__id__in=self.modules),
             *self.time_limit
         ).extra(
-            select={'module': 'module.moduleid'},
-            tables=['module'],
-            where=['module.deviceid=device.deviceid']
+            select={
+                'module': 'module.module',
+                'netbox_name': 'netbox.sysname',
+            },
+            tables=['module', 'netbox'],
+            where=['module.deviceid=device.deviceid', 'netbox.netboxid=module.netboxid']
         ).order_by('-start_time')
 
         if self.types['event']:
@@ -165,26 +222,13 @@ class History:
         history = {}
         for a in alert_history:
             if a.module not in history:
-                history[a.module] = DeviceList(description=Netbox.objects.get(module=a.module))
-            history[a.module].append(Alert(alert=a))
-        self.history['module'] = history
+                history[a.module] = {
+                    'description': u'Module %i in %s' %  (a.module, a.netbox_name),
+                    'alerts': []
+                }
+            history[a.module]['alerts'].append({
+                'alert': a,
+                'messages': get_messages(alert=a),
+            })
 
-
-class DeviceList(list):
-    description = None
-
-    def __init__(self, *args, **kwargs):
-        self.description = kwargs.pop('description', None)
-        super(DeviceList, self).__init__(*args, **kwargs)
-
-class Alert:
-    alert = None
-    messages = []
-
-    def __init__(self, **kwargs):
-        self.alert = kwargs.pop('alert', None)
-
-        for key in kwargs.keys():
-            raise TypeError('__init__() got an unexpected keyword argument %s' % key)
-
-        self.messages = self.alert.messages.filter(type='sms', language='en')
+        return history
