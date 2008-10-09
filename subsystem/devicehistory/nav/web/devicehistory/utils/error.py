@@ -46,7 +46,7 @@ def register_error_events(request, **kwargs):
     selection = kwargs.pop('selection', [])
     comment = kwargs.pop('comment', None)
 
-    source = kwargs.pop('source', 'deviceManagement')
+    source = kwargs.pop('source', 'devicehistory')
     target = kwargs.pop('target', 'eventEngine')
     severity = kwargs.pop('severity', 0)
     state = kwargs.pop('state', STATE_NONE)
