@@ -190,12 +190,12 @@ def handler(req):
 
         # Default config
         report_list = ReportList(configFile).getReportList()
-        map(itemgetter(2), report_list)
-        report_list = sorted(report_list, key=itemgetter(2))
+        map(itemgetter(1), report_list)
+        report_list = sorted(report_list, key=itemgetter(1))
         # Local config
         report_list_local = ReportList(configFileLocal).getReportList()
-        map(itemgetter(2), report_list_local)
-        report_list_local = sorted(report_list_local, key=itemgetter(2))
+        map(itemgetter(1), report_list_local)
+        report_list_local = sorted(report_list_local, key=itemgetter(1))
 
         name = "Report List"
         name_link = "reportlist"
