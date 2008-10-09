@@ -11,3 +11,8 @@ table.listtable caption {
 table.listtable tbody.footer tr th {
 	text-align: center;
 }
+
+table.listtable caption span.small_subtitle {
+	font-size: 0.6em;
+	font-weight: normal;
+}

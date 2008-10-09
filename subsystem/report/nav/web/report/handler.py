@@ -30,13 +30,14 @@
 from IPy import IP
 from mod_python import apache, util
 from operator import itemgetter
+from time import localtime, strftime
 import copy
+import os
 import os.path
 import psycopg
 import re
 import string
 import urllib
-import os
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 from django.core.cache import cache
@@ -213,7 +214,8 @@ def handler(req):
 
         gen = Generator()
         
-        report = contents = neg = operator = adv = dbresult = None
+        # Initiating variables used when caching
+        report = contents = neg = operator = adv = dbresult = result_time = None
 
         # Deleting offset and limit variables from uri so that we would know if
         # it's the same dbresult asked for.
@@ -226,16 +228,19 @@ def handler(req):
         username = req.session['user'].login
         cache_name = 'report_' + username
 
+
         if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
             dbresult_cache = cache.get(cache_name)[6]
+            result_time = cache.get(cache_name)[7]
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, dbresult_cache)
 
         else:
+            result_time = strftime("%H:%M:%S", localtime())
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, None)
-            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult))
+            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time))
 
 
-
+        page.result_time = result_time
         page.report = report
         page.contents = contents
         page.operator = operator
