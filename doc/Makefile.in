@@ -12,6 +12,7 @@ INSTALL = @INSTALL@
 # File lists
 
 docfiles = $(wildcard sql/*.sql) \
+           $(wildcard sql/*.sh) \
            $(wildcard sql/upgrades/*.sql) \
            sql/README \
            sql/upgrades/README \
