@@ -161,7 +161,6 @@ def register_error_events(request, **kwargs):
                 value=event['eventqvar_data'][key]
             )
             event_vars.save()
-        raise Exception(i)
         messages.append({
             'message': _('Registered error on %(type)s %(device)s.') % {
                 'type': event['meta']['type'],
