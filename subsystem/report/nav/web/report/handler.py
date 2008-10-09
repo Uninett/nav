@@ -223,14 +223,17 @@ def handler(req):
                 del nuri.args[key]
 
         uri_strip = nuri.make()
+        username = req.session['user'].login
+        cache_name = 'report_' + username
 
-        if cache.get('report') and cache.get('report')[0] == uri_strip:
-            dbresult_cache = cache.get('report')[6]
+        if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
+            dbresult_cache = cache.get(cache_name)[6]
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, dbresult_cache)
 
         else:
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, None)
-            cache.set('report', (uri_strip, report, contents, neg, operator, adv, dbresult))
+            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult))
+
 
 
         page.report = report
@@ -240,7 +243,7 @@ def handler(req):
 
         namename = ""
         if report:
-            namename = report.header
+            namename = report.title
             if not namename:
                 namename = reportName
             namelink = "/report/"+reportName
