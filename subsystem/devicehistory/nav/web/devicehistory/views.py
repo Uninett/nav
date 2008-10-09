@@ -47,15 +47,11 @@ from nav.web.devicehistory.utils.error import register_error_events
 DeviceQuickSelect_view_history_kwargs = {
     'button': 'View %s history',
     'module': True,
-    'netbox_multiple': True,
-    'module_multiple': True,
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
 DeviceQuickSelect_post_error_kwargs = {
     'button': 'Add %s error event',
     'module': True,
-    'netbox_multiple': True,
-    'module_multiple': True,
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
 
@@ -110,7 +106,12 @@ def devicehistory_view(request):
 
     info_dict = {
         'active': {'devicehistory': True},
-        'history': history.history,
+        'history': {
+            'location': history.get_location_history(),
+            'room': history.get_room_history(),
+            'netbox': history.get_netbox_history(),
+            'module': history.get_module_history(),
+        },
         'selection': selection,
         'selected_types': selected_types,
         'event_type': EventType.objects.all().select_related('alerttype').order_by('id'),

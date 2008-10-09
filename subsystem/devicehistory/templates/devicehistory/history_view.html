@@ -13,7 +13,7 @@
         <table class="listtable">
             <caption>
                 {{ elements.description }}<br />
-                <span class="subtitle">{{ elements|length }} entries</span>
+                <span class="subtitle">{{ elements.alerts|length }} entries</span>
             </caption>
 
             <thead>
@@ -27,16 +27,16 @@
             </thead>
 
             <tbody>
-            {% for e in elements %}
+            {% for a in elements.alerts %}
                 <tr class="{% cycle "oddrow" "evenrow" %}">
-                    <td>{{ e.alert.start_time }}</td>
-                    <td>{{ e.alert.end_time }}</td>
-                    <td>{{ e.alert.event_type.id }}</td>
-                    <td>{{ e.alert.alert_type.name }}</td>
+                    <td>{{ a.alert.start_time }}</td>
+                    <td>{{ a.alert.end_time }}</td>
+                    <td>{{ a.alert.event_type.id }}</td>
+                    <td>{{ a.alert.alert_type.name }}</td>
                     <td>
                         <ul>
-                        {% for m in e.messages %}
-                            <li>{{ m.message }}</li>
+                        {% for m in a.messages %}
+                            <li>{{ m }}</li>
                         {% endfor %}
                         </ul>
                     </td>
@@ -46,7 +46,7 @@
 
             <tfoot>
                 <tr>
-                    <th colspan="0">{{ elements|length }} entries</th>
+                    <th colspan="0">{{ elements.alerts|length }} entries</th>
                 </tr>
             </tfoot>
         </table>
