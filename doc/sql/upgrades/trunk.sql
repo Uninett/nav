@@ -519,3 +519,13 @@ sysname VARCHAR PRIMARY KEY NOT NULL,
 xpos double precision NOT NULL,
 ypos double precision NOT NULL
 );
+
+
+--
+-- DeviceHistory rewrite 
+-- Django needs an id field for every table.
+--
+CREATE SEQUENCE manage.eventqvar_id_seq;
+ALTER TABLE eventqvar ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('eventqvar_id_seq')
+	CONSTRAINT eventqvar_pkey PRIMARY KEY;

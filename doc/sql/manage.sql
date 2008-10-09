@@ -591,12 +591,18 @@ CREATE TABLE eventq (
   severity INT4 NOT NULL DEFAULT '50'
 );
 
+CREATE SEQUENCE eventqvar_id_seq:
 CREATE TABLE eventqvar (
+  id integer NOT NULL DEFAULT nextval('eventqvar_id_seq'),
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
-  UNIQUE(eventqid, var) -- only one val per var per event
+
+  CONSTRAINT eventqvar_pkey PRIMARY KEY(id),
+  CONSTRAINT eventqvar_eventqid_key UNIQUE(eventqid, var) -- only one val per var per event
 );
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE eventqvar_id_seq OWNED BY eventqvar.id;
 
 
 
