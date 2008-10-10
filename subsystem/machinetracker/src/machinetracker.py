@@ -317,24 +317,33 @@ class IPSQLQuery(MachineTrackerSQLQuery):
         if nonActive:
             addr_range = ip_range(self.ip_from, self.ip_to)
         else:
-            addr_range = (IPy.IP(r[0]) for r in self.result)
+            # Get IP list from result and remove dupes
+            addr_range = set(r[0] for r in self.result)
+            addr_range = list(IPy.IP(ip) for ip in addr_range)
+            addr_range.sort()
 
-        result_map = dict([(IPy.IP(r[0]), r) for r in self.result])
+        def in_result(ip_addr):
+            """Verify that the next result row, if any, is for ip_addr"""
+            return len(self.result) > 0 and \
+                   IPy.IP(self.result[0][0]) == ip_addr
 
         lastKey = None
         for addr in addr_range:
-            if addr in result_map:
-                # Address is active (i.e. part of arp result)
-                ipaddr, mac, start, end = result_map[addr]
-                key = (ipaddr, mac)
-                if active:
-                    if key == lastKey:
-                        yield ResultRow(None, None, None, None, None,
-                                        start, end, dns)
-                    else:
-                        lastKey = key
-                        yield ResultRow(ipaddr, mac, None, None, None,
-                                        start, end, dns)
+            if in_result(addr):
+                # Consume all result records for this IP address
+                # This loop assumes the result is sorted by IP,MAC
+                while in_result(addr):
+                    # Address is active (i.e. part of arp result)
+                    ipaddr, mac, start, end = self.result.pop(0)
+                    key = (ipaddr, mac)
+                    if active:
+                        if key == lastKey:
+                            yield ResultRow(None, None, None, None, None,
+                                            start, end, dns)
+                        else:
+                            lastKey = key
+                            yield ResultRow(ipaddr, mac, None, None, None,
+                                            start, end, dns)
             elif nonActive:
                 yield ResultRow(addr, None, None, None, None,
                                 None, None, dns)
