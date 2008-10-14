@@ -58,7 +58,7 @@ $(function(){
 				data_node.children().select("dl").not("img").show();
 				
 				// Change tree-icon to collapsed
-				$(router.children().select('img:first')).attr('src', '/images/networkexplorer/collapse.gif');
+				$(router.children().select("img[src$='expand.gif']")).attr('src', '/images/networkexplorer/collapse.gif');
 
 				// If we only have router-matches, we move to first result
 				if (!moved && num_gwports == 0){
@@ -93,7 +93,7 @@ $(function(){
 				$(data_node.children().select('.expand')).attr('src', '/images/networkexplorer/collapse.gif');
 				
 				// If we gwport-matches, we move to first result
-				if (!moved){
+				if (!moved && num_swports == 0){
 					document.location = '#gwport-' + _gwport[0];
 					moved = true;
 				}
@@ -116,6 +116,11 @@ $(function(){
             	data_node.data("loaded", "true");
             	data_node.children().select("dl").not("img").show();
             	$(swport.children().select('img:first')).attr('src', '/images/networkexplorer/collapse.gif');
+				
+				if (!moved){
+					document.location = '#swport-' + _swport[0];
+					moved = true;
+				}
         	});
     	
 		// Done parsing all data.
