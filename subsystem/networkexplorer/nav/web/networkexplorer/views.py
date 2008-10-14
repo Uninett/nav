@@ -297,7 +297,7 @@ def search(request):
         swport_matches = result[2]
 
     if request.REQUEST['lookup_field'] == 'mac':
-        result = mac_search(request.REQUEST['query'])
+        result = mac_search(str(request.REQUEST['query']).replace('%3A', ':'))
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
