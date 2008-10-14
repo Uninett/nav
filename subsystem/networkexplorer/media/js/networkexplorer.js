@@ -2,6 +2,12 @@
 	JavaScript functions for NetworkExplorer
 **/
 
+$(document).ready(
+	function() {
+			$('#working').css('visibility', 'hidden');
+	}
+);
+
 /* Search-handler  */
 
 $(function(){
@@ -14,7 +20,7 @@ $(function(){
 				parameters[this.name] = escape($(this).val());
         	});
 
-    $('#working').toggle(); 
+	$('#working').css('visibility', 'visible');
     var moved = false;
 	
     $.getJSON('/networkexplorer/search', parameters,
@@ -24,43 +30,100 @@ $(function(){
 		var num_gwports = data.gwports.length;
 		var num_swports = data.swports.length;
 
+		// We dont want to bring the server down by requesting to much in parallel
 		$.ajaxSetup({
 				  async: false
 		});
 
+		//
+		// Process all the router matches
+		// 
 		$.each(data.routers,
-			function(i, router){
-				$('#router-'+ router[0]).css('font-weigth', 'bold');
-				$($('#router-'+ router[0]).children().select('img')).parent('dd').append(router[1]);
-				$($('#router-'+ router[0]).children().select('img')).parent('dd').data("loaded", "true");
-				$($('#router-'+ router[0]).children().select('img')).parent('dd').children().select("dl").not("img").show();
-				        $($('#router-'+ router[0]).children().select('img:first')).attr('src', '/images/networkexplorer/collapse.gif');
-			if (!moved){
-				document.location = '#router-' + router[0];
-				moved = true;
-			}
-			});
-		$.each(data.gwports,function(i,gwport){
-		    var element = $('#gwport-' + gwport[0]);
-			var element_parent = $(element.children().select('img')).parent('dd');
-			element.addClass('highlight');
-			element_parent.append(gwport[1]);
-			element_parent.data("loaded","true");
-			element_parent.children().select("dl").not("img").show();
-             		$(element.children().select('.expand')).attr('src', '/images/networkexplorer/collapse.gif');
-		});
-        
-        $.each(data.swports, function(i, swport){
-            $('#swport-'+ swport[0]).addClass('highlight');
-            $('#swport-'+ swport[0]).children().addClass('service_match');
-            $($('#swport-'+ swport[0]).children().select('img')).parent('dd').append(swport[1]);
-            $($('#swport-'+ swport[0]).children().select('img')).parent('dd').data("loaded", "true");
-            $($('#swport-'+ swport[0]).children().select('img')).parent('dd').children().select("dl").not("img").show();
-            $($('#swport-'+ swport[0]).children().select('img:first')).attr('src', '/images/networkexplorer/collapse.gif');
-        });
-    });
+			function(i, _router){
+				
+				var router = $('#router-' + _router[0]);
+				var data_node = $(router.children().select('img')).parent('dd');
+				var data = _router[1];
+				
+				// Show off the result
+				router.css('font-weigth', 'bold');
 
-        $('#working').toggle(); 
+				// Append the data under the router-node
+				data_node.append(data);
+
+				// We make sure we dont ask for this node from the server again
+				data_node.data("loaded", "true");
+
+				// Show the children of the node
+				data_node.children().select("dl").not("img").show();
+				
+				// Change tree-icon to collapsed
+				$(router.children().select('img:first')).attr('src', '/images/networkexplorer/collapse.gif');
+
+				// If we only have router-matches, we move to first result
+				if (!moved && num_gwports == 0){
+					document.location = '#router-' + _router[0];
+					moved = true;
+				}
+			});
+		
+		//
+		// Process all the gwport matches
+		//
+		$.each(data.gwports,
+			function(i, _gwport){
+		  
+		 		var gwport = $('#gwport-' + _gwport[0]);
+				var data_node = $(gwport.children().select('img')).parent('dd');
+				var data = _gwport[1];
+
+				// Show off the search result
+				gwport.addClass('highlight');
+
+				// Append the data under the gwport-node
+				data_node.append(data);
+
+				// We dont want to load this node again from the server
+				data_node.data("loaded","true");
+
+				// Show the newly added children
+				data_node.children().select("dl").not("img").show();
+             	
+				// Set the tree-icon
+				$(data_node.children().select('.expand')).attr('src', '/images/networkexplorer/collapse.gif');
+				
+				// If we gwport-matches, we move to first result
+				if (!moved){
+					document.location = '#gwport-' + _gwport[0];
+					moved = true;
+				}
+			});
+
+		//
+		// Process all the swport matches
+		//
+        $.each(data.swports,
+			function(i, _swport){
+				
+				var swport = $('#swport-' + _swport[0]);
+				var data_node = $(swport.children().select('img').parent('dd'));
+				var data = _swport[1];
+
+            	swport.addClass('highlight');
+            	swport.children().addClass('service_match'); // TODO: Misleading name
+
+            	data_node.append(data);
+            	data_node.data("loaded", "true");
+            	data_node.children().select("dl").not("img").show();
+            	$(swport.children().select('img:first')).attr('src', '/images/networkexplorer/collapse.gif');
+        	});
+    	
+		// Done parsing all data.
+
+		});
+
+		$('#working').css('visibility', 'hidden');
+
         return false;
     });
 });
