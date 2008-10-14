@@ -42,6 +42,7 @@ from django.db.models import Q
 import datetime
 import socket
 import sys
+from urllib import unquote
 
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.cabling import Cabling, Patch
@@ -297,7 +298,7 @@ def search(request):
         swport_matches = result[2]
 
     if request.REQUEST['lookup_field'] == 'mac':
-        result = mac_search(str(request.REQUEST['query']).replace('%3A', ':'))
+        result = mac_search(unquote(request.REQUEST['query']))
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
