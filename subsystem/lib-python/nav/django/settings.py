@@ -74,5 +74,6 @@ DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 
-# Report subsystems Django cache setting.
-CACHE_BACKEND = 'file:///tmp/nav_report_cache'	
+# Cache backend. Used only for report subsystem in NAV 3.5.
+# FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
+CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	

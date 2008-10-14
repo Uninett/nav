@@ -43,6 +43,7 @@ subdirs = src \
 	subsystem/maintenance \
 	subsystem/messages \
 	subsystem/netmap \
+	subsystem/networkexplorer \
 	subsystem/report \
 	subsystem/seeddb \
 	subsystem/smsd \

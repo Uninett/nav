@@ -504,3 +504,18 @@ UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';
 -- Allow authenticated users to visit ipdevinfo
 INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
 VALUES (3, 2, '^/ipdevinfo/?');
+
+-- Allow anonymous users to visit the new /userinfo tool.
+INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
+VALUES (2, 2, E'^/userinfo/?');
+
+
+------------------------------------------------------------------------------
+-- netmap helper tables
+------------------------------------------------------------------------------
+
+CREATE TABLE netmap_position(
+sysname VARCHAR PRIMARY KEY NOT NULL,
+xpos double precision NOT NULL,
+ypos double precision NOT NULL
+);
