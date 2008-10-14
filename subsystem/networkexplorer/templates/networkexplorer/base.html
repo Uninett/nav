@@ -31,11 +31,11 @@
 	</tr>
 	<tr>
 		<td>Search exact (no substring):</td>
-		<td><input type="checkbox" name="exact" id="search" /></td>
+		<td><input type="checkbox" name="exact" /></td>
 	</tr>
 	<tr>
 		<td>Hide ports with no description:</td>
-		<td><input type="checkbox" name="hide" id="search" /></td>
+		<td><input type="checkbox" name="hide" /></td>
 	</tr>
 	<tr>
 		<td colspan="2">
@@ -51,14 +51,14 @@
 	{% for router in routers %}
 		<dd id="router-{{ router.id }}">
 		{% if router.has_children %}
-			<img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigators"/>
+			<img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigators" alt=""/>
 		{% else %}
-			<img src="/images/networkexplorer/end.gif" class="tree-navigators"/>
+			<img src="/images/networkexplorer/end.gif" class="tree-navigators" alt=""/>
 		{% endif %}
 			<a target="_blank" href="/ipdevinfo/{{router}}">{{router}}</a>
 		</dd>
 	{% endfor %}
-	<dl>
+	</dl>
 </div>
 
 {% endblock %}
