@@ -193,7 +193,7 @@ class _RunQueue:
         self.awaitWork.notifyAll()
         self.numThreadsWaiting=0
         self.lock.release()
-	debug("Waiting for threads to terminate...")
+        debug("Waiting for threads to terminate...")
         for i in self.workers:
             i.join()
         debug("All threads have finished")
