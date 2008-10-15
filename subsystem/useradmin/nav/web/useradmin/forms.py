@@ -76,7 +76,7 @@ class AccountForm(forms.ModelForm):
         exclude = ('password', 'ext_sync', 'organizations')
 
 class ChangePasswordForm(forms.Form):
-    old_password = forms.CharField(label='Old password', min_length=8, widget=forms.widgets.PasswordInput)
+    old_password = forms.CharField(label='Old password', widget=forms.widgets.PasswordInput)
     new_password1 = forms.CharField(label='New password', min_length=8, widget=forms.widgets.PasswordInput)
     new_password2 = forms.CharField(label='Repeat password', min_length=8, widget=forms.widgets.PasswordInput, required=False)
 
