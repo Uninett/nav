@@ -461,6 +461,11 @@ CREATE TABLE profiles.alertsender (
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
 
+-- Alert senders
+INSERT INTO alertsender VALUES (1, 'Email', 'email');
+INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
+
 -- ACCOUNTINGROUP
 -- View for compability with older code that thinks accountgroup_accounts is
 -- still called accountingroup.
