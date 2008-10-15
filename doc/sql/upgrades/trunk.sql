@@ -10,9 +10,8 @@
  *
  * This upgrade scripts assumes you have merged your NAV databases
  * into a single, multi-namespaced database.  If you haven't, please
- * read the instructions in doc/sql/migrate.sql, and use that script
- * to merge your databases first.  Only then should you use this
- * script.
+ * read the instructions in doc/sql/upgrades/README .  A helper script
+ * exists to help you merge your databases: doc/sql/mergedb.sh .
  *
  * *************** NB NB NB NB NB NB NB ***************
  *
@@ -29,10 +28,42 @@
 
 -- Rename logger tables to avoid naming confusion with manage schema.
 ALTER TABLE logger.message RENAME TO log_message;
-ALTER TABLE logger.message_id_seq RENAME TO log_message_id_seq;
 
-ALTER TABLE logger.type RENAME TO message_type;
-ALTER TABLE logger.type_type_seq RENAME TO message_type_type_seq;
+ALTER TABLE logger.message_id_seq RENAME TO log_message_id_seq;
+ALTER INDEX logger.message_pkey RENAME TO log_message_pkey;
+ALTER INDEX logger.message_origin_btree RENAME TO log_message_origin_btree;
+ALTER INDEX logger.message_time_btree RENAME TO log_message_time_btree;
+ALTER INDEX logger.message_type_btree RENAME TO log_message_type_btree;
+
+ALTER TABLE logger.type RENAME TO log_message_type;
+ALTER TABLE logger.type_type_seq RENAME TO log_message_type_type_seq;
+ALTER INDEX logger.type_pkey RENAME TO log_message_type_pkey;
+ALTER INDEX logger.type_priority_key RENAME TO log_message_type_priority_key;
+
+-- In lack of an ALTER TABLE RENAME CONSTRAINT in pg8.1 we drop and
+-- re-create constraints.  Do this to make sure constraints are named
+-- according to the table name changes above.
+ALTER TABLE logger.log_message DROP CONSTRAINT message_newpriority_fkey;
+ALTER TABLE logger.log_message DROP CONSTRAINT message_origin_fkey;
+ALTER TABLE logger.log_message DROP CONSTRAINT message_type_fkey;
+ALTER TABLE logger.log_message ADD CONSTRAINT log_message_newpriority_fkey
+  FOREIGN KEY (newpriority) REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE logger.log_message ADD CONSTRAINT log_message_origin_fkey
+  FOREIGN KEY (origin) REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE logger.log_message ADD CONSTRAINT log_message_type_fkey
+  FOREIGN KEY (type) REFERENCES log_message_type (type) ON UPDATE CASCADE ON DELETE SET NULL;
+
+ALTER TABLE logger.log_message_type DROP CONSTRAINT type_priority_fkey;
+ALTER TABLE logger.log_message_type ADD CONSTRAINT type_priority_fkey
+  FOREIGN KEY (priority) REFERENCES priority(priority) ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- combined index for quick lookups when expiring old records.
+CREATE INDEX log_message_expiration_btree ON logger.log_message USING btree(newpriority, time);
+
+-- Drop obsolete vlanPlot tables
+DROP TABLE vp_netbox_xy;
+DROP TABLE vp_netbox_grp;
+DROP TABLE vp_netbox_grp_info;
 
 -- Add closed flag to alertq
 ALTER TABLE alertq ADD closed BOOLEAN;
@@ -54,6 +85,9 @@ DROP TABLE logg;
 DROP TABLE alertengine;
 DROP SEQUENCE logg_id_seq;
 
+-- Remove copy_default_preferences trigger
+DROP TRIGGER insert_account ON account;
+DROP FUNCTION copy_default_preferences();
 
 -- We wan't english names for everything so here goes:
 ALTER TABLE accountingroup RENAME TO accountgroup_accounts;
@@ -135,6 +169,9 @@ ALTER TABLE accountalertqueue RENAME time TO insertion_time;
 ALTER TABLE filtergroup RENAME descr TO description;
 ALTER TABLE matchfield RENAME descr TO description;
 
+ALTER TABLE accountorg RENAME orgid TO organization_id;
+ALTER TABLE accountorg RENAME accountid TO account_id;
+
 -- Rename sequences so they match with the new english table names
 -- NOTE Internally a sequence has a column named 'sequence_name' which keeps
 -- the name of the sequence. This value will not be changed when renaming
@@ -186,7 +223,20 @@ CREATE SEQUENCE profiles.accountorg_id_seq;
 ALTER TABLE accountorg ADD COLUMN id integer NOT NULL
 	DEFAULT nextval('accountorg_id_seq')
 	CONSTRAINT accountorg_pkey PRIMARY KEY;
-ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid);
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id);
+ALTER TABLE accountorg DROP CONSTRAINT account_exists;
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_account_id_fkey
+	FOREIGN KEY(account_id) REFERENCES account(id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+-- Delete bougs accountorg entries before adding foreign key constraint
+DELETE FROM accountorg WHERE organization_id NOT IN (SELECT orgid FROM org);
+
+ALTER TABLE accountorg ADD CONSTRAINT accountorg_organization_id_fkey
+	FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
 
 CREATE SEQUENCE profiles.accountproperty_id_seq;
 ALTER TABLE accountproperty ADD COLUMN id integer NOT NULL
@@ -383,15 +433,8 @@ ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_fkey
 	FOREIGN KEY(accountid) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-
 ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_navbarlinkid_fkey
 	FOREIGN KEY(navbarlinkid) REFERENCES navbarlink(id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
-
-ALTER TABLE accountorg DROP CONSTRAINT account_exists;
-ALTER TABLE accountorg ADD CONSTRAINT accountorg_accountid_fkey
-	FOREIGN KEY(accountid) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
@@ -401,12 +444,78 @@ ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_accountgr
 	FOREIGN KEY (accountgroupid) REFERENCES accountgroup(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-
 ALTER TABLE accountgroupprivilege ADD CONSTRAINT accountgroupprivilege_privilegeid_fkey
 	FOREIGN KEY (privilegeid) REFERENCES privilege
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
--- Both old IP Device Center and new IP Device Info does lots of selects on cam
--- with netboxid and ifindex in the where clause
-CREATE INDEX cam_netboxid_ifindex_btree ON cam USING btree (netboxid, ifindex);
+-- FIXME
+CREATE SEQUENCE profiles.alertsender_id_seq START 1000;
+CREATE TABLE profiles.alertsender (
+	id integer NOT NULL DEFAULT nextval('alertsender_id_seq'),
+	name varchar(100) NOT NULL,
+	handler varchar(100) NOT NULL,
+
+	CONSTRAINT alertsender_unique_name UNIQUE(name),
+	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
+	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
+);
+
+-- ACCOUNTINGROUP
+-- View for compability with older code that thinks accountgroup_accounts is
+-- still called accountingroup.
+CREATE VIEW profiles.accountingroup AS (
+    SELECT
+        accountgroup_accounts.account_id AS accountid,
+        accountgroup_accounts.accountgroup_id AS groupid
+    FROM
+        accountgroup_accounts
+);
+
+
+-- report_access is not used by any systems so time to purge it from the db.
+DELETE FROM privilege WHERE privilegename = 'report_access';
+
+-- Ensure that users are part of everyone and authenticated groups
+CREATE OR REPLACE FUNCTION profiles.group_membership() RETURNS trigger AS $group_membership$
+        BEGIN
+                IF NEW.id >= 1000 THEN
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (2, NEW.id);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (3, NEW.id);
+                END IF; RETURN NULL;
+        END;
+$group_membership$ LANGUAGE plpgsql;
+
+CREATE TRIGGER group_membership AFTER INSERT ON account
+        FOR EACH ROW EXECUTE PROCEDURE group_membership();
+
+-- Add all users to "Everyone" and "Authenticated users" 
+INSERT INTO accountgroup_accounts SELECT account.id, 2 FROM account WHERE account.id >= 1000 AND account.id NOT IN (SELECT account.id FROM accountgroup_accounts WHERE accountgroup_id = 2);
+INSERT INTO accountgroup_accounts SELECT account.id, 3 FROM account WHERE account.id >= 1000 AND account.id NOT IN (SELECT account.id FROM accountgroup_accounts WHERE accountgroup_id = 3);
+
+INSERT INTO accountgroup_accounts VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts VALUES (1,3); -- add admin to Authenticated users
+
+-- Update navbar links
+UPDATE navbarlink SET uri = '/userinfo/' WHERE uri = '/index/userinfo';
+UPDATE navbarlink SET uri = '/useradmin/' WHERE uri = '/useradmin/index';
+
+-- Allow authenticated users to visit ipdevinfo
+INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
+VALUES (3, 2, '^/ipdevinfo/?');
+
+-- Allow anonymous users to visit the new /userinfo tool.
+INSERT INTO accountgroupprivilege (accountgroupid, privilegeid, target)
+VALUES (2, 2, E'^/userinfo/?');
+
+
+------------------------------------------------------------------------------
+-- netmap helper tables
+------------------------------------------------------------------------------
+
+CREATE TABLE netmap_position(
+sysname VARCHAR PRIMARY KEY NOT NULL,
+xpos double precision NOT NULL,
+ypos double precision NOT NULL
+);

@@ -863,9 +863,9 @@ class HandlerNettinfo
 
 		// Add sysname links
 		{
-			String sysnameLink = "/browse/";
-			parentSysname = "<a target=\"_new\" href=\""+sysnameLink+parentSysname+"\">"+parentSysname+"</a>";
-			if (sysname.length() > 0) sysname = "<a target=\"_new\" href=\""+sysnameLink+sysname+"\">"+sysname+"</a>";
+			String sysnameLink = "/ipdevinfo/";
+			parentSysname = "<a target=\"_new\" href=\""+sysnameLink+parentSysname+"/\">"+parentSysname+"</a>";
+			if (sysname.length() > 0) sysname = "<a target=\"_new\" href=\""+sysnameLink+sysname+"/\">"+sysname+"</a>";
 		}
 
 		// Evt. modul/port

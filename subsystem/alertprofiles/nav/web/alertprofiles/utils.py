@@ -129,6 +129,8 @@ def read_time_period_templates():
 def alert_subscriptions_table(periods):
     weekday_subscriptions = []
     weekend_subscriptions = []
+    shared_class_id = 0
+
     for p in periods:
         # TimePeriod is a model.
         # We transform it to a dictionary so we can add additinal information
@@ -140,9 +142,18 @@ def alert_subscriptions_table(periods):
             'start': p.start,
             'end': None,
             'valid_during': p.get_valid_during_display(),
+            'class': None,
         }
         valid_during = p.valid_during
         alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
+
+        # This little snippet magically assigns a class to shared time periods
+        # so they appear with the same highlight color.
+        if valid_during == TimePeriod.ALL_WEEK:
+            period['class'] = 'shared' + unicode(shared_class_id)
+            shared_class_id += 1
+            if shared_class_id > 7:
+                shared_class_id = 0
 
         # For usability we change 'all days' periods to one weekdays and one
         # weekends period.

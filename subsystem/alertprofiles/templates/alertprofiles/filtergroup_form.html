@@ -38,7 +38,7 @@
                 {% if f.include %}
                     {{ f.positive|yesno:"Add,Add inverse" }}
                 {% else %}
-                    {{ f.positive|yesno:"Substract,And" }}
+                    {{ f.positive|yesno:"Subtract,And" }}
                 {% endif %}
             </td>
             <td>{{ f.filter }}</td>
@@ -58,13 +58,12 @@
 
 {% block addexpression %}
     {% if owner %}
-    <div class="infobox">
-        <h4>Add another filter to this filter group</h4>
-
+    <h3>Add filter</h3>
+    <div class="formcontainer">
         <label for="select_operation">Use operation</label>
         <select name="operator" id="select_operation">
             <option value="11">Add</option>
-            <option value="01">Substract</option>
+            <option value="01">Subtract</option>
             <option value="00">And</option>
             <option value="10">Add inverse</option>
         </select>
@@ -86,7 +85,7 @@
             these operators affect the filters added.
         </p>
         <p>
-            Not e that priority affects how the final set will be, as each
+            Notice that priority affects how the final set will be, as each
             filter is checked according to it's priority, ie: number 1 first,
             then number two and so on.
         </p>
@@ -128,7 +127,7 @@
                     <td>0</td>
                     <td>Complement of set.<br />Adds the oposite of whats
                     matched.  Ie: with a filter that checks for severity &gt;
-                    70, using this operator will check for severity &lt;
+                    70, using this operator will check for severity &lt;=
                     70.</td>
                 </tr>
             </tbody>

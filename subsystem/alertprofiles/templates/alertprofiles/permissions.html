@@ -35,8 +35,8 @@
 <table class="listtable">
     <caption>
         Permissions for {{ selected_group.name }}<br />
-        <span class="subtitle">Choose which alerts this group will
-        recieve</span>
+        <span class="subtitle">Choose which alerts this group can
+        receive</span>
     </caption>
 
     <thead>
@@ -72,20 +72,14 @@
 
 <div class="infobox">
     <p>
-        Here you can choose which groups are able to recieve which alerts.
+        Here you can set which filter groups the different user groups are
+        allowed to receive alerts for.
     </p>
     <p>
-        Permissions are set by filter groups, so if one wants to deny a certain
-        group to recieve alerts about a certain match field, one must deny the
-        group to recieve alerts from <em>all</em> filter groups that uses a
-        filter that uses that particular match field. In other words: if you
-        have a lot of custom filter groups, that kind of granular control can
-        be hard.
-    </p>
-    <p>
-        Denying a group to recieve alerts from a certain filter group will not
-        hide the option to add that filter group to one users profile, even
-        though the user won't be able to recieve alerts from it.
+        Denying a user group to receive alerts from a certain filter group will
+        not hide that filter group from the interface, so the users of that
+        user group can still add the filter group to their profiles. They
+        still won't receive any alerts that matches that filter group though.
     </p>
 </div>
 

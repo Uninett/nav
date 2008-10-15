@@ -27,16 +27,19 @@
             <td>{{ e.match_field }}</td>
             {% endif %}
             <td>{{ e.get_operator_display }}</td>
+            {% ifequal e.operator 11 %}
+            <td>{{ e.value|unordered_list }}</td>
+            {% else %}
             <td>{{ e.value }}</td>
+            {% endifequal %}
         </tr>
     {% endfor %}
 {% endblock %}
 
 {% block addexpression %}
     {% if owner %}
-    <div class="infobox">
-        <h4>Add another expression to this filter</h4>
-
+    <h3>Add another expression to this filter</h3>
+    <div class="formcontainer">
         <label for="select_matchfield">Expression</label>
         <select name="matchfield" id="select_matchfield">
         {% for m in matchfields %}
@@ -47,4 +50,12 @@
         {{ block.super }}
     </div>
     {% endif%}
+
+    <div class="infobox">
+        <p>
+            Expressions are ANDed together.<br />
+            This means that an alert must match all the above expressions to match
+            this filter.
+        </p>
+    </div>
 {% endblock %}

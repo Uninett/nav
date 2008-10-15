@@ -63,6 +63,19 @@ CREATE TABLE Account (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE account_id_seq OWNED BY account.id;
 
+-- Trigger that ensures that users are a part of the groups everyone and authenticated users
+CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
+        BEGIN
+                IF NEW.id >= 1000 THEN
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (2, NEW.id);
+                        INSERT INTO accountgroup_accounts (accountgroup_id, account_id) VALUES (3, NEW.id);
+                END IF; RETURN NULL;
+        END;
+$group_membership$ LANGUAGE plpgsql;
+
+CREATE TRIGGER group_membership AFTER INSERT ON account
+        FOR EACH ROW EXECUTE PROCEDURE group_membership();
+
 
 /*
 -- 2 ACCOUNTGROUP
@@ -104,6 +117,17 @@ CREATE TABLE accountgroup_accounts (
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+
+-- ACCOUNTINGROUP
+-- View for compability with older code that thinks accountgroup_accounts is
+-- still called accountingroup.
+CREATE VIEW accountingroup AS (
+    SELECT
+        accountgroup_accounts.account_id AS accountid,
+        accountgroup_accounts.accountgroup_id AS groupid
+    FROM
+        accountgroup_accounts
+);
 
 
 /*
@@ -225,24 +249,6 @@ CREATE TABLE alertpreference (
         ON UPDATE CASCADE
 );
 
--- Trigger function to copy the preference row of the default user
--- whenever a new account is inserted.  I would like to insert a
--- composite row variable, but couldn't find any way to do so, so this
--- function needs to be updated whenever the schema of the preference
--- table is updated!  We don't attach the trigger until after we
--- insert some default accounts and privileges (further down in this
--- script)
-CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
-  DECLARE
-    pref alertpreference%ROWTYPE;
-  BEGIN
-    SELECT INTO pref * FROM alertpreference WHERE accountid = 0;
-    pref.accountid := NEW.id;
-    INSERT INTO alertpreference (accountid, activeprofile, lastsentday, lastsentweek)
-      VALUES (pref.accountid, pref.activeprofile, pref.lastsentday, pref.lastsentweek);
-    RETURN NEW;
-  END' LANGUAGE 'plpgsql';
-
 /*
 -- 8 TIMEPERIOD
 
@@ -318,7 +324,7 @@ CREATE TABLE alertsubscription (
 	time_period_id integer NOT NULL,
 	filter_group_id integer NOT NULL,
 	subscription_type integer,
-	ingnore_closed_alerts boolean,
+	ignore_closed_alerts boolean,
 
 	CONSTRAINT alertsubscription_pkey PRIMARY KEY(id),
 	CONSTRAINT alertsubscription_alert_address_id_key
@@ -554,8 +560,8 @@ QUEUE Description
 CREATE TABLE accountalertqueue (
     id serial,
     account_id integer,
-    addrid integer,
     alert_id integer,
+    subscription_id integer,
     insertion_time timestamp NOT NULL,
 
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
@@ -563,10 +569,10 @@ CREATE TABLE accountalertqueue (
     	FOREIGN KEY(account_id) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE,
-    CONSTRAINT accountalertqueue_addrid_fkey
-    	FOREIGN KEY(addrid) REFERENCES alertaddress(id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE
+    CONSTRAINT accountalertqueue_subscription_fkey
+	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
+	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
+	-- ON DELETE CASCADE -- FIXME
 );
 
 /*
@@ -634,15 +640,19 @@ server.
 CREATE SEQUENCE accountorg_id_seq;
 CREATE TABLE AccountOrg (
        id integer NOT NULL DEFAULT nextval('accountorg_id_seq'),
-       accountid integer NOT NULL,
-       orgid varchar(30) NOT NULL,
+       account_id integer NOT NULL,
+       organization_id varchar(30) NOT NULL,
 
        CONSTRAINT accountorg_pkey PRIMARY KEY(id),
-       CONSTRAINT accountorg_accountid_key UNIQUE(accountid, orgid),
-       CONSTRAINT accountorg_accountid_fkey
-                  FOREIGN KEY(accountid) REFERENCES Account(id)
+       CONSTRAINT accountorg_accountid_key UNIQUE(account_id, organization_id),
+       CONSTRAINT accountorg_account_id_fkey
+                  FOREIGN KEY(account_id) REFERENCES Account(id)
                   ON DELETE CASCADE
-                  ON UPDATE CASCADE
+                  ON UPDATE CASCADE,
+       CONSTRAINT accountorg_organization_id_fkey
+                  FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
@@ -727,7 +737,7 @@ CREATE VIEW PrivilegeByGroup AS (
 -- Accounts and Accountgroups
 
 INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', 'Full access to everything');
-INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
+INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Everyone', 'Unauthenticated and authenticated users');
 INSERT INTO AccountGroup (id, name, descr) VALUES (3, 'Authenticated users', 'Any authenticated user (logged in)');
 
 -- Some default example groups
@@ -737,19 +747,17 @@ INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS al
 INSERT INTO Account (id, login, name, password) VALUES (0, 'default', 'Default User', '');
 INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', '{sha1}s3F6XX/D$L3vU8Rs2bTJ4zArBLVIPbh7cN9Q=');
 
-INSERT INTO alertpreference (accountid) VALUES (1);
-INSERT INTO alertpreference (accountid) VALUES (0);
-
--- Default preference rows are now inserted, so we create the trigger
--- on the account table
-CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (0,2); -- add default to Everyone
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); -- add admin to Administrators
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
+INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
 
 -- NAVBAR PREFERENCES
 
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (1, 0, 'Preferences', '/preferences');
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/toolbox');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/index');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/index/userinfo');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/userinfo/');
 
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
@@ -766,7 +774,6 @@ INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 4, 'na
 -- INSERT INTO Privilege VALUES (1, 'empty_privilege');
 INSERT INTO Privilege VALUES (2, 'web_access');
 INSERT INTO Privilege VALUES (3, 'alert_by');
-INSERT INTO Privilege VALUES (4, 'report_access');
 
 /*
   Set some default web_access privileges
@@ -780,12 +787,13 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/alertprofiles/wap/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/$');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/toolbox\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/index(.py)?/(index|login|logout|userinfo|passwd)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/index(.py)?/(index|login|logout|passwd)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/userinfo/?');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/messages/(active|historic|planned|view|rss)\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/maintenance/(calendar|active|historic|planned|view)\\b');
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
@@ -798,7 +806,7 @@ INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber');
 
 
 -- Matchfields
-/*
+/* 
 Matchfield.Datatype
 	string:  0
 	integer: 1

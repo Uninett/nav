@@ -19,5 +19,9 @@ Library (http://tango.freedesktop.org/) or other public domain collections.
 Most of these are licensed under the Creative Commons Attribution Share-Alike
 license (http://creativecommons.org/licenses/by-sa/2.5/).
 
-See the file INSTALL for installation instructions.
+This product includes color specifications and designs developed by Cynthia
+Brewer (http://colorbrewer.org/). These color schemes are Copyright (c) 2002
+Cynthia Brewer, Mark Harrower, and The Pennsylvania State University and are
+licensed under the Apache License v2.0.
 
+See the file INSTALL for installation instructions.

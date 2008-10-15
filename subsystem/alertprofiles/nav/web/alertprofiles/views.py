@@ -39,7 +39,10 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q
 
-from nav.models.profiles import *
+from nav.models.profiles import Account, AccountGroup, AccountProperty, \
+    AlertAddress, AlertPreference, AlertProfile, TimePeriod, \
+    AlertSubscription, FilterGroupContent, Operator, Expression, \
+    Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
 from nav.django.shortcuts import render_to_response, object_list
 from nav.django.context_processors import account_processor
@@ -62,7 +65,6 @@ PAGINATE_BY = 25
 
 def overview(request):
     account = get_account(request)
-    active = {'overview': True}
 
     # Get information about user
     groups = account.accountgroup_set.all()
@@ -99,7 +101,7 @@ def overview(request):
     )
 
     info_dict = {
-            'active': active,
+            'active': {'overview': True},
             'groups': groups,
             'active_profile': active_profile,
             'sms_privilege': sms_privilege,
@@ -337,6 +339,13 @@ def profile_remove(request):
         active_profile = AlertPreference.objects.get(account=account).active_profile
         profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('profile'))
 
+        if len(profiles) == 0:
+            new_message(
+                request,
+                _('No profiles were selected.'),
+                Messages.NOTICE)
+            HttpResponseRedirect(reverse('alertprofiles-profile'))
+
         elements = []
         for p in profiles:
             warnings = []
@@ -550,27 +559,33 @@ def profile_time_period_remove(request):
     else:
         account = get_account(request)
         time_periods = TimePeriod.objects.filter(pk__in=request.POST.getlist('period'))
+        profile = AlertProfile.objects.get(pk=request.POST.get('profile'))
         try:
             active_profile = AlertPreference.objects.get(account=account).active_profile
         except:
             pass
+        else:
+            if profile == active_profile:
+                new_message(
+                    request,
+                    _('''Time periods are used in profile %(profile)s,
+                    which is the current active profile.''') % {
+                        'profile': profile.name,
+                    },
+                    Messages.WARNING
+                )
+
+        if len(time_periods) == 0:
+            new_message(
+                request,
+                _('No time periods were selected.'),
+                Messages.NOTICE
+            )
+            return HttpResponseRedirect(
+                reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
         elements = []
-        first = True
         for t in time_periods:
-            if first:
-                # We only check profile once and assume it's the same for all.
-                profile = t.profile
-                first = False
-                if t.profile == active_profile:
-                    new_message(
-                        request,
-                        _('''Time periods are used in profile %(profile)s,
-                        which is the current active profile.''') % {
-                            'profile': t.profile.name,
-                        },
-                        Messages.WARNING
-                    )
             if t.profile.account != account:
                 # Even though we assume profile is the same for GUI-stuff, we
                 # can't do that when it comes to permissions.
@@ -768,7 +783,7 @@ def profile_time_period_subscription_remove(request):
 
         AlertSubscription.objects.filter(pk__in=subscriptions).delete()
 
-        new_message(request, _('Remved alert subscriptions'), Messages.SUCCESS)
+        new_message(request, _('Removed alert subscriptions.'), Messages.SUCCESS)
         return HttpResponseRedirect(reverse(
             'alertprofiles-profile-timeperiod-setup',
             args=(period.id,)
@@ -785,6 +800,14 @@ def profile_time_period_subscription_remove(request):
 
         if period.profile.account != account:
             return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+
+        if len(subscriptions) == 0:
+            new_message(
+                request,
+                _('No alert subscriptions were selected.'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(
+                reverse('alertprofiles-profile-timeperiod-setup', args=(period.id,)))
 
         # Make tuples, (id, description_string) for the confirmation page
         elements = []
@@ -1011,6 +1034,13 @@ def address_remove(request):
     else:
         addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('address'))
 
+        if len(addresses) == 0:
+            new_message(
+                request,
+                _('No addresses were selected'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(reverse('alertprofiles-address'))
+
         elements = []
         for a in addresses:
             if a.account != account:
@@ -1083,9 +1113,12 @@ def language_save(request):
 
     # Try to fetch language property. If it doesn't exist we must make it.
     try:
-        language = AccountProperty.objects.get(account=account, property='language')
-    except AccountGroup.DoesNotExist:
-        language = AccountProperty(account=account, property='language')
+        language = AccountProperty.objects.get(
+            account=account,
+            property='language'
+        )
+    except AccountProperty.DoesNotExist:
+        language = AccountProperty(account=account, property='language', value='en')
 
     value = request.POST.get('value')
     language.value = value
@@ -1205,7 +1238,9 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         # Get all matchfields (many-to-many connection by table Expression)
         expressions = Expression.objects.filter(filter=filter_id)
 
-        page_name = filter.name
+        for e in expressions:
+            if e.operator == Operator.IN:
+                e.value = e.value.split("|")
 
         # Check if filter is used by any filter groups
         filter_groups = FilterGroupContent.objects.filter(filter=filter)
@@ -1221,6 +1256,8 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 },
                 Messages.WARNING
             )
+
+        page_name = filter.name
 
     # If no form is supplied we must make one
     if not filter_form:
@@ -1330,6 +1367,13 @@ def filter_remove(request):
 
         if not account_owns_filters(get_account(request), *filters):
             return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+
+        if len(filters) == 0:
+            new_message(
+                request,
+                _('No filters were selected.'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
         elements = []
         for f in filters:
@@ -1502,6 +1546,14 @@ def filter_removeexpression(request):
         if not account_owns_filters(get_account(request), filter):
             return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
 
+        if len(expressions) == 0:
+            new_message(
+                request,
+                _('No expressions were selected'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(
+                reverse('alertprofiles-filters-detail', args=(filter.id,)))
+
         elements = []
         for e in expressions:
             description = _(u'''Expression, %(match_field)s %(operator)s
@@ -1512,21 +1564,10 @@ def filter_removeexpression(request):
                 'filter': e.filter.name,
             }
 
-            warnings = []
-            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter__expression=e)
-            for fg in filter_groups:
-                warnings.append({
-                    'message': u'''Used in filter group %(name)s. Deleting this
-                        expression will alter how that filter group works.''' % {
-                            'name': fg.name
-                        },
-                    'link': reverse('alertprofiles-filtergroups-detail', args=(fg.id,)),
-                })
-
             elements.append({
                 'id': e.id,
                 'description': description,
-                'warnings': warnings,
+                'warnings': [],
             })
 
         info_dict = {
@@ -1644,9 +1685,9 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
 
         page_name = filtergroup.name
 
-        subscriptions = AlertSubscription.objects.filter(filter_group=filtergroup)
-        time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
-        profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+        profiles = AlertProfile.objects.filter(
+            timeperiod__alertsubscription__filter_group=filtergroup
+        ).distinct()
         if len(profiles) > 0:
             names = ', '.join([p.name for p in profiles])
             new_message(
@@ -1765,6 +1806,13 @@ def filtergroup_remove(request):
 
         if not account_owns_filters(get_account(request), *filter_groups):
             return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+
+        if len(filter_groups) == 0:
+            new_message(
+                request,
+                _('No filter groups were selected.'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
 
         elements = []
         for fg in filter_groups:
@@ -1939,6 +1987,14 @@ def filtergroup_removefilter(request):
                 Messages.WARNING
             )
 
+        if len(filter_group_content) == 0:
+            new_message(
+                request,
+                _('No filters were selected.'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(
+                reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,)))
+
         elements = []
         for f in filter_group_content:
             warnings = []
@@ -1955,7 +2011,7 @@ def filtergroup_removefilter(request):
 
         info_dict = {
                 'form_action': reverse('alertprofiles-filtergroups-removefilter'),
-                'active': {'filters': True},
+                'active': {'filtergroups': True},
                 'subsection': {'detail': filter_group.id},
                 'elements': elements,
                 'perform_on': filter_group.id,
@@ -2067,6 +2123,13 @@ def matchfield_list(request):
     if order_by not in valid_ordering:
         order_by = 'name'
 
+    new_message(
+        request,
+        _('''Editing matchfields is black magic. Don't do it unless you know
+        exacly what you are doing.'''),
+        Messages.NOTICE,
+    )
+
     # Get all matchfields aka. filter variables
     matchfields = MatchField.objects.all().order_by(order_by)
     info_dict = {
@@ -2133,6 +2196,13 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         subsection = {'detail': matchfield_id}
     else:
         subsection = {'new': True}
+
+    new_message(
+        request,
+        _('''Editing matchfields is black magic. Don't do it unless you know
+        exacly what you are doing.'''),
+        Messages.NOTICE,
+    )
 
     info_dict = {
             'active': active,
@@ -2219,28 +2289,44 @@ def matchfield_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
     else:
-        matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('matchfield'))
-        expressions = Expression.objects.filter(match_field__in=matchfields).order_by('match_field__name')
+        matchfields = MatchField.objects.select_related(
+            'expression'
+        ).filter(pk__in=request.POST.getlist('matchfield'))
 
-        if len(expressions) > 0:
-            messages = Messages(request)
+        if len(matchfields) == 0:
+            new_message(
+                request,
+                _('No matchfields were selected'),
+                Messages.NOTICE)
+            return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
+
+        elements = []
+        for m in matchfields:
+            expressions = m.expression_set.all()
+            warnings = []
             for e in expressions:
-                messages.append({
-                    'message': _('''Match field %(match_field)s is used in
-                        filter %(filter)s. Deleting this match field will alter how
-                        the filter works.''') % {
-                            'match_field': e.match_field.name,
-                            'filter': e.filter.name,
-                        },
-                    'type': Messages.WARNING
+                warnings.append({
+                    'message': 'Used in filter %(filter)s.' % {'filter': e.filter.name},
+                    'link': reverse('alertprofiles-filters-detail', args=(e.filter.id,)),
                 })
-            messages.save()
+            elements.append({
+                'id': m.id,
+                'description': m.name,
+                'warnings': warnings,
+            })
+
+        new_message(
+            request,
+            _('''It is strongly recomended that one do not remove one of the
+            default match fields that comes preinstalled with NAV.'''),
+            Messages.NOTICE
+        )
 
         info_dict = {
                 'form_action': reverse('alertprofiles-matchfields-remove'),
                 'active': {'matchfields': True},
                 'subsection': {'list': True},
-                'elements': [{'id': m.id,'description': m.name} for m in matchfields],
+                'elements': elements,
                 'perform_on': None,
             }
         return render_to_response(

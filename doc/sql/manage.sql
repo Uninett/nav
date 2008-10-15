@@ -672,7 +672,8 @@ CREATE TABLE alertq (
   alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   value INT4 NOT NULL,
-  severity INT4 NOT NULL
+  severity INT4 NOT NULL,
+  closed BOOLEAN
 );
 
 CREATE TABLE alertqmsg (
@@ -870,3 +871,13 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
+
+------------------------------------------------------------------------------
+-- netmap helper tables
+------------------------------------------------------------------------------
+
+CREATE TABLE netmap_position(
+sysname VARCHAR PRIMARY KEY NOT NULL,
+xpos double precision NOT NULL,
+ypos double precision NOT NULL
+);

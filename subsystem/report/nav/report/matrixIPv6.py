@@ -31,7 +31,7 @@ import nav.path
 from nav.report import utils, IPtools, metaIP
 from nav.report.matrix import Matrix
 from nav.report.colorconfig import ColorConfig
-from nav.web.templates.MatrixIpv6Template import MatrixIpv6Template
+from nav.web.templates.MatrixIPv6Template import MatrixIPv6Template
 
 configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 
@@ -46,7 +46,7 @@ class MatrixIPv6(Matrix):
         self.column_headings = ["%X" % i for i in range(0,16)]
 
     def getTemplateResponse(self):
-        template = MatrixIpv6Template()
+        template = MatrixIPv6Template()
         template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 
         #functions and classes

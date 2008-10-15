@@ -29,7 +29,9 @@ __id__ = "$Id$"
 from django import forms
 from django.db.models import Q
 
-from nav.models.profiles import MatchField, Filter, Expression, Operator, FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, AccountProperty
+from nav.models.profiles import MatchField, Filter, Expression, Operator, \
+    FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, \
+    AccountProperty
 
 _ = lambda a: a
 

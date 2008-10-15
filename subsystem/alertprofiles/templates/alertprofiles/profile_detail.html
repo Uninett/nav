@@ -37,13 +37,12 @@
 <form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
     {% include "alertprofiles/timeperiods.html" %}
     <p>
+        <input type="hidden" name="profile" value="{{ detail_id }}" />
         <button type="submit">Delete selected</button>
     </p>
 </form>
 {% endblock %}
 
 {% block addexpression %}
-    <div class="infobox">
     {% include "alertprofiles/timeperiod_form.html" %}
-    </div>
 {% endblock %}

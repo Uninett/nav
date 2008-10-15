@@ -1,26 +1,16 @@
 {% block paginator %}
 {% if page_obj %}
-    {% ifnotequal page_obj.number 1 %}
-        <a href="{{ page_link }}?page=1&amp;order_by={{ order_by }}">
-            &lt;&lt; First
-        </a>
-    {% endifnotequal %}
     {% if page_obj.has_previous %}
-        <a href="{{ page_link }}?page={{ page_obj.previous_page_number }}&amp;order_by={{ order_by }}">
-            &lt; Previous
-        </a>
+        <a href="{{ page_link }}?page={{ page_obj.previous_page_number }}&amp;order_by={{ order_by }}"
+        title="Previous page"
+        >&lt;&lt;</a>
     {% endif %}
     Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of
-    {{ paginator.count }} rows.
+    {{ paginator.count }}.
     {% if page_obj.has_next %}
-        <a href="{{ page_link }}?page={{ page_obj.next_page_number }}&amp;order_by={{ order_by }}">
-            Next &gt;
-        </a>
+        <a href="{{ page_link }}?page={{ page_obj.next_page_number }}&amp;order_by={{ order_by }}"
+        title="Next page"
+        >&gt;&gt;</a>
     {% endif %}
-    {% ifnotequal page_obj.number paginator.num_pages %}
-        <a href="{{ page_link }}?page={{ paginator.num_pages }}&amp;order_by={{ order_by }}">
-            Last &gt;&gt;
-        </a>
-    {% endifnotequal %}
 {% endif %}
 {% endblock %}

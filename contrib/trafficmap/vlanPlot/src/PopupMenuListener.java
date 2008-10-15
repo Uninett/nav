@@ -60,7 +60,7 @@ class PopupMenuListener implements ActionListener
 		String cmd = ae.getActionCommand();
 		PopupMenus activeMenu = com.getActiveMenu();
 		String nettelName = activeMenu.getFullNettelName();
-		String url = Input.rootURL + "/browse/";
+		String url = Input.rootURL + "/ipdevinfo/";
 
 		if (cmd.equals(Net.gwMenuText[0] ))
 		{

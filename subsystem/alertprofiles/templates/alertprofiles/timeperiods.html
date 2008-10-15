@@ -1,3 +1,4 @@
+<div id="timeperiods_table_container">
 {% for type in alert_subscriptions %}
 <table class="listtable">
     <caption>
@@ -6,9 +7,7 @@
 
     <thead>
         <tr>
-            {% if active.profile %}
             <th></th>
-            {% endif %}
             <th>Valid during</th>
             <th>Subscriptions</th>
         </tr>
@@ -16,12 +15,17 @@
 
     <tbody>
     {% for a in type.subscriptions %}
-        <tr class="{% cycle oddrow,evenrow %} {% ifequal a.time_period.valid_during 'all days' %}all {{ a.time_period.id }}{% endifequal %}">
+        <tr class="{% cycle oddrow,evenrow %}
+            {% ifequal a.time_period.valid_during 'all days' %}
+            all_days_period period_{{ a.time_period.id }}
+            {% endifequal %}">
             {# The same time period may appear in both tables, so we need to #}
             {# identify by both the parent loops counter and the time_periods id. #}
+            <td class="{{ a.time_period.class }}">
             {% if active.profile %}
-            <td><input type="checkbox" name="period" id="id_period_weekday_{{ a.time_period.id }}" value="{{ a.time_period.id }}" class="all_day_checkbox_{{ a.time_period.id }}" /></td>
+                <input type="checkbox" name="period" id="id_period_weekday_{{ a.time_period.id }}" value="{{ a.time_period.id }}" class="all_day_checkbox_{{ a.time_period.id }}" />
             {% endif %}
+            </td>
             <td><a href="{% url alertprofiles-profile-timeperiod  a.time_period.id %}">
                 {{ a.time_period.start }} - {{ a.time_period.end }},
                 {{ a.time_period.valid_during }}
@@ -48,3 +52,4 @@
     </tbody>
 </table>
 {% endfor %}
+</div>
