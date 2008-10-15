@@ -78,6 +78,9 @@ class Account(models.Model):
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
 
+    # FIXME get this from setting.
+    MIN_PASSWD_LENGTH = 8
+
     login = models.CharField(unique=True)
     name = models.CharField()
     password = models.CharField()
