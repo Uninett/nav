@@ -1,7 +1,6 @@
-/* Subsystem JavaScripts for NAV
+/* Subsystem JavaScript for NAV
  *
- * Copyright 2003-2004 Norwegian University of Science and Technology
- * Copyright 2006-2008 UNINETT AS
+ * Copyright 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -19,71 +18,27 @@
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Stian Søiland <stain@itea.ntnu.no>
- *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
- *          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
+ * Authors: Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
  */
 
-function changeDisplay(elementId, setTo) {
-	if (document.getElementById) {
-		// DOM
-		var theElement = document.getElementById(elementId);
-	} else {
-		if (document.all) {
-			// Proprietary DOM
-			var theElement = document.all[elementId];
-		} else {
-			// Create an object to prevent errors further on
-			var theElement = new Object();
-		}
-	}
-	if (!theElement) {
-		/* The page has not loaded or the browser claims to support
-		document.getElementById or document.all but cannot actually
-		use either */
-		return;
-	}
-	// Reference the style ...
-	if (theElement.style) {
-		theElement = theElement.style;
-	}
-	if (typeof(theElement.display) == 'undefined' &&
-	 !(window.ScriptEngine && ScriptEngine().indexOf('InScript') + 1 )) {
-		// The browser does not allow us to change the display style
-		// Alert something sensible (not what I have here ...)
-		window.alert('Your browser is crap');
-		return;
-	}
-	// Change the display style
-	theElement.display = setTo;
-}
 
-function findLinkById() {
-	for (var i=0; i<document.links.length; i++) {
-		if (document.links[i].id == id) return i;
-	}
-	return -1;
-}
+$(document).ready(function() {
+	// Handle the case when javascript is enabled.
+	$('#adv').attr('value', '');
+	$('#advSLOpen').attr('href', '#');
+	$('#advSLClose').attr('href', '#');
 
-function changeLinkHref(id, newHref) {
-	if (document.links.length > 0) {
-		if (document.getElementById) {
-			document.getElementById(id).href = newHref;
-		}
-		else if (document.all) {
-			document.all[id].href = newHref;
-		}
-		else {
-			var index = findLinkById(id);
-			if (index > -1)
-				document.links[index].href = newHref;
-		}
-	}
-}
 
-function init() {
-	changeLinkHref('advSLOpen', '#');
-	changeLinkHref('advSLClose', '#');
-}
+	// Toggle showing link and search form.
+	$('a#advSLOpen').click(function() {
+		$('#advsearchblock').toggle();
+		$('#advsearchlink').toggle();
+		return false;
+	});
 
-window.onload = init;
+	$('a#advSLClose').click(function() {
+		$('#advsearchblock').toggle();
+		$('#advsearchlink').toggle();
+		return false;
+	});
+});
