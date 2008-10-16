@@ -59,12 +59,12 @@ class Host:
     def __init__(self, ip):
         self.rnd = random.randint(0,2**16-1)
         self.certain = 0
-         self.ip = ip
-         self.pkt = icmp.Packet()
-         self.pkt.type = icmp.ICMP_ECHO
-         self.pkt.id = os.getpid() % 65536
-         self.pkt.seq = 0
-         self.replies = circbuf.CircBuf()
+        self.ip = ip
+        self.pkt = icmp.Packet()
+        self.pkt.type = icmp.ICMP_ECHO
+        self.pkt.id = os.getpid() % 65536
+        self.pkt.seq = 0
+        self.replies = circbuf.CircBuf()
 
     def makePacket(self, pingstring=PINGSTRING):
         self.pkt.data = pingstring
