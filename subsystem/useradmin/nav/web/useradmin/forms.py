@@ -37,8 +37,8 @@ class AccountGroupForm(forms.ModelForm):
         fields = ('name', 'description')
 
 class AccountForm(forms.ModelForm):
-    password1 = forms.CharField(label='New password', min_length=8, widget=forms.widgets.PasswordInput)
-    password2 = forms.CharField(label='Repeat password', min_length=8, widget=forms.widgets.PasswordInput, required=False)
+    password1 = forms.CharField(label='New password', min_length=Account.MIN_PASSWD_LENGTH, widget=forms.widgets.PasswordInput)
+    password2 = forms.CharField(label='Repeat password', min_length=Account.MIN_PASSWD_LENGTH, widget=forms.widgets.PasswordInput, required=False)
 
     def __init__(self, *args, **kwargs):
         super(AccountForm, self).__init__(*args, **kwargs)
@@ -76,9 +76,9 @@ class AccountForm(forms.ModelForm):
         exclude = ('password', 'ext_sync', 'organizations')
 
 class ChangePasswordForm(forms.Form):
-    old_password = forms.CharField(label='Old password', min_length=8, widget=forms.widgets.PasswordInput)
-    new_password1 = forms.CharField(label='New password', min_length=8, widget=forms.widgets.PasswordInput)
-    new_password2 = forms.CharField(label='Repeat password', min_length=8, widget=forms.widgets.PasswordInput, required=False)
+    old_password = forms.CharField(label='Old password', widget=forms.widgets.PasswordInput)
+    new_password1 = forms.CharField(label='New password', min_length=Account.MIN_PASSWD_LENGTH, widget=forms.widgets.PasswordInput)
+    new_password2 = forms.CharField(label='Repeat password', min_length=Account.MIN_PASSWD_LENGTH, widget=forms.widgets.PasswordInput, required=False)
 
     def clean_password1(self):
         password1 = self.data.get('new_password1')
