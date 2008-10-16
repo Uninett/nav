@@ -70,6 +70,7 @@
 #end block additionalCSS
 
 #block additionalJavaScript
+    <script type="text/javascript" src="/js/jquery.js"></script>
     <script type="text/javascript" src="/js/report.js"></script>
 #end block additionalJavaScript
 
@@ -81,7 +82,7 @@
     $advSearch
 #else
 <div id="advsearchlink">
-    <p><a id="advSLOpen" href="${old_uri}adv=1" onClick="changeDisplay('advsearchlink', 'none'); changeDisplay('advsearchblock', 'block'); return false">Advanced Search</a></p>
+    <p><a id="advSLOpen" href="${old_uri}adv=1">Advanced Search</a></p>
 </div>
 #end if
 
@@ -89,7 +90,7 @@
 <div id="advsearchblock" style="display: none">
 #block advSearch
     <h3>Advanced Search</h3>
-    <p><a id="advSLClose" href="${old_uri}adv=" onClick="changeDisplay('advsearchlink', 'block'); changeDisplay('advsearchblock', 'none'); return false">Close Advanced Search</a></p>
+    <p><a id="advSLClose" href="${old_uri}adv=">Close Advanced Search</a></p>
 
     <div class="infobox" style="float: right">
         <h4>Operator usage</h4>
@@ -106,7 +107,7 @@
     </div>
 
     <form action="" method="get" name="advsearch">
-        <input type="hidden" name="adv" value="1"/>
+        <input id="adv" type="hidden" name="adv" value="1"/>
 
         <table class="vertitable">
 
