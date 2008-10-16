@@ -57,14 +57,15 @@ from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
 import nav.path
 
-configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
-configFileLocal = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
+config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
+config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
     uri = req.unparsed_uri
     args = req.args
     nuri = URI(uri)
+
 
 
     # These arguments and their friends will be deleted
@@ -190,11 +191,11 @@ def handler(req):
         req.send_http_header()
 
         # Default config
-        report_list = ReportList(configFile).getReportList()
+        report_list = ReportList(config_file_package).getReportList()
         map(itemgetter(1), report_list)
         report_list = sorted(report_list, key=itemgetter(1))
         # Local config
-        report_list_local = ReportList(configFileLocal).getReportList()
+        report_list_local = ReportList(config_file_local).getReportList()
         map(itemgetter(1), report_list_local)
         report_list_local = sorted(report_list_local, key=itemgetter(1))
 
@@ -228,16 +229,20 @@ def handler(req):
         username = req.session['user'].login
         cache_name = 'report_' + username
 
+        mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
 
-        if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
+        # Caching 
+        # Checks if cache exists for this user, that cached report is the one
+        # requested and that config files are unchanged
+        if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip and cache.get(cache_name)[8] == mtime_config:
             dbresult_cache = cache.get(cache_name)[6]
             result_time = cache.get(cache_name)[7]
-            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, dbresult_cache)
+            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, config_file_package, config_file_local, uri, dbresult_cache)
 
         else:
             result_time = strftime("%H:%M:%S", localtime())
-            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, configFile, configFileLocal, uri, None)
-            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time))
+            (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, config_file_package, config_file_local, uri, None)
+            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time, mtime_config))
 
 
         page.result_time = result_time
