@@ -343,7 +343,7 @@ class Module(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports()
-        interface_names = [p.interface for p in ports]
+        interface_names = [p.get_identifier_string() for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -356,7 +356,7 @@ class Module(models.Model):
         """Returns swports naturally sorted by interface name"""
 
         ports = self.get_swports()
-        interface_names = [p.interface for p in ports]
+        interface_names = [p.get_identifier_string() for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -612,8 +612,7 @@ class GwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.get_interface_display() or self.ifindex
-        return u'%s at %s' % (name, self.module.netbox)
+        return u'%s at %s' % (self.get_identifier_string(), self.module.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -625,6 +624,14 @@ class GwPort(models.Model):
 
     def get_interface_display(self):
         return to_ifname_style(self.interface)
+
+    def get_identifier_string(self):
+        if self.get_interface_display() is not None:
+            return self.get_interface_display()
+        elif self.ifindex is not None:
+            return str(self.ifindex)
+        else:
+            return 'N/A'
 
     def get_rrd_data_sources(self):
         """Returns all relevant RRD data sources"""
@@ -789,8 +796,7 @@ class SwPort(models.Model):
         unique_together = (('module', 'ifindex'),)
 
     def __unicode__(self):
-        name = self.get_interface_display() or self.ifindex or self.port
-        return u'%s at %s' % (name, self.module.netbox)
+        return u'%s at %s' % (self.get_identifier_string(), self.module.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -802,6 +808,16 @@ class SwPort(models.Model):
 
     def get_interface_display(self):
         return to_ifname_style(self.interface)
+
+    def get_identifier_string(self):
+        if self.get_interface_display() is not None:
+            return self.get_interface_display()
+        elif self.ifindex is not None:
+            return str(self.ifindex)
+        elif self.port is not None:
+            return str(self.port)
+        else:
+            return 'N/A'
 
     def get_vlan_numbers(self):
         """List of VLAN numbers related to the port"""
