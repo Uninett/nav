@@ -57,7 +57,7 @@ class email(dispatcher):
                 email.send(fail_silently=False)
                 logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, address.address, type))
             else:
-                logger.info('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
+                logger.debug('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
 
         except SMTPException, e:
             # Reraise as DispatcherException so that we can catch it further up

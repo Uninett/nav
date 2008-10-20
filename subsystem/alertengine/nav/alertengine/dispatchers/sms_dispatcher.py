@@ -52,7 +52,7 @@ class sms(dispatcher):
 
                 logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
             else:
-                logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
+                logger.debug('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
         else:
             logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
 
