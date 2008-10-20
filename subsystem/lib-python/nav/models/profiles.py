@@ -910,11 +910,11 @@ class AccountAlertQueue(models.Model):
             sender  = address.type_id
 
             if sender is not None:
-                raise Exception("Invalid sender set for address %s, " +
-                      "please check that %s is in profiles.alertsender" % (address, sender)
+                raise Exception("Invalid sender set for address %s, " + \
+                      "please check that %s is in profiles.alertsender" % (address, sender))
             else:
-                raise Exception("No sender set for address %s, " +
-                      "this might be due to a failed db upgrade from 3.4 to 3.5" % (address)
+                raise Exception("No sender set for address %s, " + \
+                      "this might be due to a failed db upgrade from 3.4 to 3.5" % (address))
 
         if sent:
             self.delete()

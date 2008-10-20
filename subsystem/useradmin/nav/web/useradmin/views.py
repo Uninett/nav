@@ -360,6 +360,7 @@ def userinfo(request):
                 new_message(request, 'Old password is incorrect.', type=Messages.ERROR)
             else:
                 account.set_password(password_form.cleaned_data['new_password1'])
+                account.save()
                 new_message(request, 'Your password has been changed.', type=Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('userinfo'))
 
