@@ -7,7 +7,7 @@
     {% for port in ports %}
         <td class="{{ port.class }}" style="{{ port.style }}" title="{{ port.title }}">
             <a href="{{ port.object.get_absolute_url }}">
-                {{ port.object.get_interface_display }}</a>
+                {{ port.object.get_identifier_string }}</a>
         </td>
         {% if ports|length|divisibleby:12 %}
             {% if forloop.counter|divisibleby:12 %}</tr><tr>{% endif %}
