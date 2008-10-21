@@ -192,7 +192,7 @@ class AccountGroup(models.Model):
 class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True)
     property = models.CharField()
     value = models.CharField()
 
@@ -856,7 +856,7 @@ class SMSQueue(models.Model):
         (IGNORED, _('ignored')),
     )
 
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True)
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
     message = models.CharField(max_length=145, db_column='msg')
@@ -881,9 +881,9 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     '''Defines which alerts should be keept around and sent at a later time'''
 
-    account = models.ForeignKey('Account')
-    subscription = models.ForeignKey('AlertSubscription')
-    alert = models.ForeignKey('AlertQueue')
+    account = models.ForeignKey('Account', null=True)
+    subscription = models.ForeignKey('AlertSubscription', null=True)
+    alert = models.ForeignKey('AlertQueue', null=True)
     insertion_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
