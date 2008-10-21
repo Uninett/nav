@@ -62,9 +62,9 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
 
     for port in SwPort.objects.filter(to_swport=swport).exclude(to_swport__in=scanned).select_related(depth=5):
         scanned.append(port)
-        
+
         found_swports.append(port)
-        
+
         recurs_found = search_expand_swport(swport=port, scanned=scanned)
         found_gwports.extend(recurs_found[0])
         found_swports.extend(recurs_found[1])
