@@ -1173,8 +1173,6 @@ def filter_list(request):
         order_by = 'name'
 
     # Get all public filters, and private filters belonging to this user only
-    # NOTE We would like to order by owner first, but then filters with no
-    # owner won't show up.
     filters = Filter.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)
         ).order_by(order_by)
@@ -1606,8 +1604,6 @@ def filtergroup_list(request):
 
     # Get all public filtergroups, and private filtergroups belonging to this
     # user only
-    # NOTE We would like to order by owner first, but then filters with no
-    # owner won't show up.
     filtergroups = FilterGroup.objects.filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
         ).order_by(order_by)
