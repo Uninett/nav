@@ -663,6 +663,9 @@ def profile_time_period_setup(request, time_period_id=None):
         'active': {'profile': True},
         'subsection': {'detail': profile.id, 'subscriptions': time_period.id},
         'editing': editing,
+        'num_addresses': AlertAddress.objects.filter(account=account).count(),
+        'num_filter_groups': FilterGroup.objects.filter(
+            Q(owner=account) | Q(owner__isnull=True)).count(),
     }
     return render_to_response(
         AlertProfilesTemplate,
@@ -743,6 +746,9 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         },
         'subscription': subscription,
         'editing': True,
+        'num_addresses': AlertAddress.objects.filter(account=account).count(),
+        'num_filter_groups': FilterGroup.objects.filter(
+            Q(owner=account) | Q(owner__isnull=True)).count(),
     }
     return render_to_response(
         AlertProfilesTemplate,
