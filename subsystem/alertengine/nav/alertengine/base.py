@@ -64,7 +64,7 @@ def check_alerts(debug=False):
     # Get all alerts that aren't in alert queue due to subscription
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
 
-    logger.info('Starting alertengine run, checking %d new alerts' % len(new_alerts))
+    logger.debug('Starting alertengine run, checking %d new alerts' % len(new_alerts))
 
     if len(new_alerts):
         # Build datastructure that contains accounts and corresponding
@@ -90,32 +90,34 @@ def check_alerts(debug=False):
 
         # Check all acounts against all their active subscriptions
         for account, alertsubscriptions, permissions in accounts:
-            logger.debug("Cheking alerts for account '%s'" % account)
+            logger.debug("Cheking new alerts for account '%s'" % account)
 
             for alert in new_alerts:
                 for alertsubscription, filtergroupcontents in alertsubscriptions:
                     # Check if alert matches, and if user has permission
                     if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
-                        sent = False
+                        queued = False
+
                         for permission in permissions:
                             if check_alert_against_filtergroupcontents(alert, permission, type='permission check'):
+                                logger.debug("Matched permission subscription %d" % alertsubscription.id)
 
                                 # Allways queue alert so that we have it incase of
                                 # failed send.
                                 AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
 
-                                sent = True
+                                queued = True
                                 break;
 
-                        if not sent:
-                            logger.warn('alert %d not: sent to %s due to lacking permissions' % (alert.id, account))
+                        if not queued:
+                            logger.info('alert %d not: queued to %s due to lacking permissions' % (alert.id, account))
                     else:
-                        logger.info('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
+                        logger.debug('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
     # Get all queued alerts.
     queued_alerts = AccountAlertQueue.objects.all()
 
-    logger.info('Checking %d queued alerts' % len(queued_alerts))
+    logger.debug('Checking %d queued alerts' % len(queued_alerts))
 
     # We want to keep track of wether or not any weekly or daily messages have
     # been sent so that we can update the state of the users
@@ -131,7 +133,7 @@ def check_alerts(debug=False):
                 logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
                 continue
 
-            logger.info('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
+            logger.debug('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
 
             if subscription.type == AlertSubscription.NOW:
                 if queued_alert.send():
@@ -235,10 +237,10 @@ def check_alerts(debug=False):
 
         if not debug:
             to_delete = AlertQueue.objects.filter(id__in=[a.id for a in new_alerts]).exclude(id__in=alerts_in_account_queues)
-            logger.info('Deleted following alerts from alert queue: %s' % ([a.id for a in to_delete]))
+            logger.debug('Deleted following alerts from alert queue: %s' % ([a.id for a in to_delete]))
             to_delete.delete()
         else:
-            logger.info('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
+            logger.debug('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
     logger.info('Finished alertengine run, sent %d alerts, %d user queued alerts left in queue' % (num_sent_alerts, len(alerts_in_account_queues)))
 
@@ -248,6 +250,10 @@ def check_alerts(debug=False):
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
+
+    if filtergroupcontents == []:
+        logger.debug("Emtpy filtergroup")
+        return False
 
     # Allways assume that the match will fail
     matches = False
@@ -272,4 +278,5 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='ma
 
         if original_macthes == matches:
             logger.debug('alert %d: unaffected by filter %d in %s' % (alert.id, content.filter.id, type))
+
     return matches

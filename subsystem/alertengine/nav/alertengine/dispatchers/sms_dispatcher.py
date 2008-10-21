@@ -29,6 +29,8 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 
 import logging
 
+from django.db import transaction, DatabaseError, IntegrityError
+
 from nav.models.profiles import SMSQueue
 from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
@@ -37,15 +39,20 @@ logger = logging.getLogger('nav.alertengine.dispatchers.sms')
 class sms(dispatcher):
     '''Simple dispatcher that adds alerts to SMSQueue for smsd to handle'''
 
+    @transaction.commit_on_success
     def send(self, address, alert, language='en', type='unknown'):
         if address.account.has_perm('alerttype', 'sms'):
             message = alert.messages.get(language=language, type='sms').message
 
             if not address.DEBUG_MODE:
-                SMSQueue.objects.create(account=address.account, message=message, severity=alert.severity, phone=address.address)
-                logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.adress, type))
+                try:
+                    SMSQueue.objects.create(account=address.account, message=message, severity=alert.severity, phone=address.address)
+                except [DatabaseError, IntegrityError], e:
+                    raise DispatcherException("Could't add sms to queue: %s" % e)
+
+                logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
             else:
-                logger.info('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.adress, type))
+                logger.debug('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
         else:
             logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
 
