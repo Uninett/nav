@@ -856,7 +856,6 @@ class SMSQueue(models.Model):
         (IGNORED, _('ignored')),
     )
 
-    id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
