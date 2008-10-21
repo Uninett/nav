@@ -567,7 +567,7 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups.'''
 
-    owner = models.ForeignKey('Account')
+    owner = models.ForeignKey('Account', null=True)
     name = models.CharField()
 
     class Meta:
@@ -653,7 +653,7 @@ class Filter(models.Model):
 class FilterGroup(models.Model):
     '''A set of filters group contents that an account can subscribe to or be given permission to'''
 
-    owner = models.ForeignKey('Account')
+    owner = models.ForeignKey('Account', null=True)
     name = models.CharField()
     description = models.CharField()
 
