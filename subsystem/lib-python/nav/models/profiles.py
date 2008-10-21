@@ -78,6 +78,9 @@ class Account(models.Model):
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
 
+    # FIXME get this from setting.
+    MIN_PASSWD_LENGTH = 8
+
     login = models.CharField(unique=True)
     name = models.CharField()
     password = models.CharField()
@@ -853,7 +856,6 @@ class SMSQueue(models.Model):
         (IGNORED, _('ignored')),
     )
 
-    id = models.IntegerField(primary_key=True)
     account = models.ForeignKey('Account', db_column='accountid')
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
@@ -900,7 +902,18 @@ class AccountAlertQueue(models.Model):
 
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
-        sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+        try:
+            sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+        except AlertSender.DoesNotExist, e:
+            address = self.subscription.alert_address
+            sender  = address.type_id
+
+            if sender is not None:
+                raise Exception("Invalid sender set for address %s, " + \
+                      "please check that %s is in profiles.alertsender" % (address, sender))
+            else:
+                raise Exception("No sender set for address %s, " + \
+                      "this might be due to a failed db upgrade from 3.4 to 3.5" % (address))
 
         if sent:
             self.delete()
