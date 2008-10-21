@@ -151,7 +151,7 @@ def register_error(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
     selection = DeviceQuickSelect.handle_post(request)
     error_comment = request.POST.get('error_comment', None)
-    
+
     register_error_events(request, selection=selection, comment=error_comment)
 
     return HttpResponseRedirect(reverse('devicehistory-registererror'))
