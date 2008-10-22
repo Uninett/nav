@@ -173,7 +173,7 @@ public class ArpHandler implements DataHandler {
 	}
 
 	private Integer doLivePrefixSearch(InetAddress prefixAddress) {
-		String sql = "SELECT prefixid FROM prefix WHERE netaddr >> '" + prefixAddress.getHostAddress() + "'";
+		String sql = "SELECT prefixid FROM prefix LEFT JOIN vlan USING (vlanid) WHERE nettype NOT IN ('reserved', 'scope', 'static') AND netaddr >> '" + prefixAddress.getHostAddress() + "'";
 		int closestPrefixId = -1;
 		try {
 			ResultSet rs = Database.query(sql);
@@ -231,7 +231,7 @@ public class ArpHandler implements DataHandler {
 		if(sortedPrefixList == null)
 			sortedPrefixList = new ArrayList<NavIP>();
 		
-		String sql = "SELECT prefixid,host(netaddr) AS ip, masklen(netaddr) AS prefixlength from prefix";
+		String sql = "SELECT prefixid,host(netaddr) AS ip, masklen(netaddr) AS prefixlength FROM prefix LEFT JOIN vlan USING (vlanid) WHERE nettype NOT IN ('reserved', 'scope', 'static')";
 		prefixCache.clear();
 		sortedPrefixList.clear();
 		
