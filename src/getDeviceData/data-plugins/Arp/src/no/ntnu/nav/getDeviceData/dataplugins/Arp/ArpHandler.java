@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import no.ntnu.nav.Database.Database;
 import no.ntnu.nav.getDeviceData.Netbox;
@@ -36,7 +37,6 @@ public class ArpHandler implements DataHandler {
 	
 	private static Map<NavIP,Integer> prefixCache = null;
 	private static long previousCacheSync;
-	private static List<NavIP> sortedPrefixList = null; //sorted on prefixlength
 
 	public DataContainer dataContainerFactory() {
 		return new ArpContainer(this);
@@ -127,7 +127,7 @@ public class ArpHandler implements DataHandler {
 		if(System.currentTimeMillis() - previousCacheSync >= PREFIX_CACHE_SYNC_INTERVAL)
 			syncPrefixCache();
 
-
+		int insertCounter = 0;
 		for(InetAddress ip: ipMacMap.keySet()) {
 			if(ipMacMap.get(ip) == null || ipMacMap.get(ip).equals("")) { //this has been observed on some responses from cInetNetToMediaPhysAddress
 				Log.e("ARPHandler", "IP address not bound to any MAC. Box: " + nb.getSysname() + ", IP: " +
@@ -139,10 +139,15 @@ public class ArpHandler implements DataHandler {
 
 			NavIP thisIp = new NavIP(ip,128);
 
-			for(NavIP nip: sortedPrefixList) {
-				if(Util.isSubnet(nip, thisIp)) {
-					Integer cacheHit = prefixCache.get(nip);
-					prefixid = cacheHit.intValue();
+			for(Map.Entry<NavIP,Integer> entry: prefixCache.entrySet()) {
+				if(Util.isSubnet(entry.getKey(), thisIp)) {
+					Integer cacheHit = entry.getValue();
+					if (cacheHit == null) {
+						Log.e("ARP_INSERT", "Got empty prefixid from cache for " + entry.getKey().getPrefixAddress() + "/" + entry.getKey().getPrefixLength() + ". Cache size is " + prefixCache.size());
+					} else {
+						prefixid = cacheHit.intValue();
+					}
+
 				}
 			}
 
@@ -164,12 +169,13 @@ public class ArpHandler implements DataHandler {
 						"start_time","NOW()"
 				};
 				Database.insert("arp",fieldValues);
-
+				insertCounter += 1;
 
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
+		Log.d("ARP_INSERT", "Inserted " + insertCounter + " new ARP entries.");
 	}
 
 	private Integer doLivePrefixSearch(InetAddress prefixAddress) {
@@ -225,15 +231,21 @@ public class ArpHandler implements DataHandler {
 		}
 	}
 	
+	/**
+	 * <p>(Re)Populates the ArpHandler's prefix cache.</p>
+	 * 
+	 * <p>The prefixCache class variable is created as a ConcurrentHashMap 
+	 * instance.  This is to ensure that other threads can safely iterate
+	 * the map while this method is updating it; the map is most likely 
+	 * iterated many times between each call to this method.</p>
+	 */
 	public synchronized static void syncPrefixCache() {
+		Log.d("SYNC_PREFIX_CACHE", "Synchronizing prefix cache");
 		if(prefixCache == null)
-			prefixCache = new HashMap<NavIP, Integer>();
-		if(sortedPrefixList == null)
-			sortedPrefixList = new ArrayList<NavIP>();
+			prefixCache = new ConcurrentHashMap<NavIP, Integer>();
 		
 		String sql = "SELECT prefixid,host(netaddr) AS ip, masklen(netaddr) AS prefixlength FROM prefix LEFT JOIN vlan USING (vlanid) WHERE nettype NOT IN ('reserved', 'scope', 'static')";
-		prefixCache.clear();
-		sortedPrefixList.clear();
+		HashMap tmpPrefixCache = new HashMap<NavIP, Integer>();
 		
 		try {
 			ResultSet rs = Database.query(sql);
@@ -242,15 +254,18 @@ public class ArpHandler implements DataHandler {
 				String ip = rs.getString("ip");
 				int prefixLength = rs.getInt("prefixlength");
 				NavIP nip = new NavIP(ip,prefixLength);
-				prefixCache.put(nip, prefixid);		
-				sortedPrefixList.add(nip);
+				tmpPrefixCache.put(nip, prefixid);		
 			}
-			Collections.sort(sortedPrefixList);
+
+			prefixCache.clear();
+			prefixCache.putAll(tmpPrefixCache);
+
 			previousCacheSync = System.currentTimeMillis();
 		} catch (SQLException e) {
-			Log.e("ARPLogger", "An error occured while synchronizing the prefix cache");
+			Log.e("SYNC_PREFIX_CACHE", "An error occured while synchronizing the prefix cache");
 			e.printStackTrace();
 		}
+		Log.d("SYNC_PREFIX_CACHE", "Loaded " + prefixCache.size() + " prefixes from database");
 	}
 
 }
