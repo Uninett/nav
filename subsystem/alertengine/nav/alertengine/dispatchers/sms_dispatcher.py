@@ -50,7 +50,7 @@ class sms(dispatcher):
                 except [DatabaseError, IntegrityError], e:
                     raise DispatcherException("Could't add sms to queue: %s" % e)
 
-                logger.debug('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
+                logger.info('alert %d: added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
             else:
                 logger.debug('alert %d: In testing mode, would have added message to sms queue for user %s at %s due to %s subscription' % (alert.id, address.account, address.address, type))
         else:
