@@ -63,10 +63,11 @@ def check_alerts(debug=False):
 
     # Get all alerts that aren't in alert queue due to subscription
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
+    num_new_alerts = len(new_alerts)
 
-    logger.debug('Starting alertengine run, checking %d new alerts' % len(new_alerts))
+    logger.debug('Starting alertengine run, checking %d new alerts' % num_new_alerts)
 
-    if len(new_alerts):
+    if num_new_alerts:
         # Build datastructure that contains accounts and corresponding
         # filtergroupcontent_set so that we don't redo db queries to much
         for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
@@ -133,7 +134,7 @@ def check_alerts(debug=False):
                 logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
                 continue
 
-            logger.debug('stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
+            logger.debug('Stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
 
             if subscription.type == AlertSubscription.NOW:
                 if queued_alert.send():
@@ -219,7 +220,7 @@ def check_alerts(debug=False):
                             num_failed_sends += 1
 
             else:
-                logger.error('account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
+                logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
@@ -242,10 +243,11 @@ def check_alerts(debug=False):
         else:
             logger.debug('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
-    logger.info('Finished alertengine run, sent %d alerts, %d user queued alerts left in queue' % (num_sent_alerts, len(alerts_in_account_queues)))
+    logger.info('Got %d new alerts, sent %d alerts, %d queued alerts, %d failed sends',
+        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_failed_sends)
 
     if num_failed_sends:
-        logger.warning('Send %d alerts failed, trying again on next run.' % (num_failed_sends))
+        logger.warning('Send %d alerts failed, trying again on next run.', num_failed_sends)
 
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
