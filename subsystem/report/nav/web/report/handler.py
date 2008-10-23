@@ -227,14 +227,13 @@ def handler(req):
 
         uri_strip = nuri.make()
         username = req.session['user'].login
-        cache_name = 'report_' + username
-
         mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
+        cache_name = 'report_' + username + '_' + str(mtime_config)
 
         # Caching 
         # Checks if cache exists for this user, that cached report is the one
         # requested and that config files are unchanged
-        if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip and cache.get(cache_name)[8] == mtime_config:
+        if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
             dbresult_cache = cache.get(cache_name)[6]
             result_time = cache.get(cache_name)[7]
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, config_file_package, config_file_local, uri, dbresult_cache)
@@ -242,7 +241,7 @@ def handler(req):
         else:
             result_time = strftime("%H:%M:%S", localtime())
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, config_file_package, config_file_local, uri, None)
-            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time, mtime_config))
+            cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time))
 
 
         page.result_time = result_time
