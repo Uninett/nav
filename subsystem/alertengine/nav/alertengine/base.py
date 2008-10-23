@@ -65,6 +65,8 @@ def check_alerts(debug=False):
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
     num_new_alerts = len(new_alerts)
 
+    num_total_alerts = AlertQueue.objects.count()
+
     logger.debug('Starting alertengine run, checking %d new alerts' % num_new_alerts)
 
     if num_new_alerts:
@@ -106,12 +108,13 @@ def check_alerts(debug=False):
                                 # Allways queue alert so that we have it incase of
                                 # failed send.
                                 AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
+                                logger.info('alert %d queued for %s' % (alert.id, account))
 
                                 queued = True
                                 break;
 
                         if not queued:
-                            logger.info('alert %d not: queued to %s due to lacking permissions' % (alert.id, account))
+                            logger.warning('alert %d not queued to %s due to lacking permissions' % (alert.id, account))
                     else:
                         logger.debug('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
 
@@ -230,21 +233,23 @@ def check_alerts(debug=False):
         for account in sent_weekly:
             account.alertpreference.last_sent_weekly = now
 
+    # Get id's of alerts that have been queued for users.
     alerts_in_account_queues = [a.alert_id for a in AccountAlertQueue.objects.all()]
 
     # Delete handeled alerts that are not in an AccountAlertQueue
     if new_alerts:
-        # Get id's of alerts that have been queued for users.
 
         if not debug:
             to_delete = AlertQueue.objects.filter(id__in=[a.id for a in new_alerts]).exclude(id__in=alerts_in_account_queues)
-            logger.debug('Deleted following alerts from alert queue: %s' % ([a.id for a in to_delete]))
+            logger.debug('Deleted following alerts from alert queue: %s', [a.id for a in to_delete])
             to_delete.delete()
         else:
             logger.debug('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
-    logger.info('Got %d new alerts, sent %d alerts, %d queued alerts, %d failed sends',
-        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_failed_sends)
+    num_deleted = num_total_alerts - AlertQueue.objects.count()
+
+    logger.info('Got %d new alerts, sent %d alerts, %d queued alerts, %d alerts deleted, %d failed sends',
+        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends)
 
     if num_failed_sends:
         logger.warning('Send %d alerts failed, trying again on next run.', num_failed_sends)
