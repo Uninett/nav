@@ -31,11 +31,10 @@ __id__ = "$Id$"
 import logging
 import os
 import sys
-import traceback
 from datetime import datetime
 import md5
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 
 import nav.path
@@ -251,14 +250,14 @@ class AlertAddress(models.Model):
             lang = 'en'
 
         try:
-            self.type.send(self, alert, language=lang, type=type)
+            # Wrap all send methods in commit on success
+            transaction.commit_on_success(self.type.send)(self, alert, language=lang, type=type)
         except DispatcherException, e:
-            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
             return False
 
         except Exception, e:
-            logger.critical('Unhandeled error from %s: %s' %
-                (self.type, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+            logger.exception('Unhandeled error from %s' % self.type)
             return False
 
         return True
