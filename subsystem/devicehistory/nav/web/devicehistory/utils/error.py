@@ -21,11 +21,18 @@
 # Authors: Magnus Motzfeldt Eide <magnus.eide@uninett.no>
 #
 
+# FIXME
+# Errors should not be registered on locations and rooms.
+# Either:
+#	- remove support for those
+#	- post alerts on every device found under that room/location
+
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
 __id__ = "$Id$"
 
+from django.db import transaction
 from django.db.models import Q
 
 from nav.models.manage import Room, Location, Netbox, Module
@@ -38,6 +45,7 @@ STATE_END = 'e'
 
 _ = lambda a: a
 
+@transaction.commit_on_success
 def register_error_events(request, **kwargs):
     messages = Messages(request)
 
