@@ -91,16 +91,20 @@ class History:
         self.modules = selection.get('module', [])
 
         self.time_limit = [
-            Q(start_time__lte=self.end_time),
+            Q(start_time__lte=self.end_time) &
             (
                 Q(end_time__gte=self.start_time) |
-                Q(end_time__isnull=True)
-            ),
-            Q(start_time__gte=self.start_time)
+                (
+                    Q(end_time__isnull=True) &
+                    Q(start_time__gte=self.start_time)
+                )
+            )
         ]
 
     def get_location_history(self):
-        alert_history = AlertHistory.objects.filter(
+        alert_history = AlertHistory.objects.select_related(
+            'event_type', 'alert_type'
+        ).filter(
             Q(alerthistoryvariable__variable='locationid'),
             Q(alerthistoryvariable__value__in=self.locations),
             *self.time_limit
@@ -132,7 +136,9 @@ class History:
         return history
 
     def get_room_history(self):
-        alert_history = AlertHistory.objects.filter(
+        alert_history = AlertHistory.objects.select_related(
+            'event_type', 'alert_type'
+        ).filter(
             Q(alerthistoryvariable__variable='roomid'),
             Q(alerthistoryvariable__value__in=self.rooms),
             *self.time_limit
@@ -170,7 +176,9 @@ class History:
         return history
 
     def get_netbox_history(self):
-        alert_history = AlertHistory.objects.filter(
+        alert_history = AlertHistory.objects.select_related(
+            'event_type', 'alert_type'
+        ).filter(
             Q(device__netbox__id__in=self.netboxes),
             *self.time_limit
         ).extra(
@@ -202,7 +210,9 @@ class History:
         return history
 
     def get_module_history(self):
-        alert_history = AlertHistory.objects.filter(
+        alert_history = AlertHistory.objects.select_related(
+            'event_type', 'alert_type'
+        ).filter(
             Q(device__module__id__in=self.modules),
             *self.time_limit
         ).extra(
