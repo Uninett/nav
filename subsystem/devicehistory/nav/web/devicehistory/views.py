@@ -51,6 +51,8 @@ DeviceQuickSelect_view_history_kwargs = {
 }
 DeviceQuickSelect_post_error_kwargs = {
     'button': 'Add %s error event',
+    'location': False,
+    'room': False,
     'module': True,
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
