@@ -284,15 +284,20 @@ def search(request):
     router_matches = []
     gwport_matches = []
     swport_matches = []
+        
+    if request.REQUEST.get('exact', None) == 'on':
+        exact = True
+    else:
+        exact = False
 
     if request.REQUEST['lookup_field'] == 'sysname':
-        result = sysname_search(request.REQUEST['query'])
+        result = sysname_search(request.REQUEST['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
 
     if request.REQUEST['lookup_field'] == 'ip':
-        result = ip_search(request.REQUEST['query'])
+        result = ip_search(request.REQUEST['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
@@ -304,19 +309,19 @@ def search(request):
         swport_matches = result[2]
     
     if request.REQUEST['lookup_field'] == 'room':
-        result = room_search(request.REQUEST['query'])
+        result = room_search(request.REQUEST['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
     
     if request.REQUEST['lookup_field'] == 'vlan':
-        result = vlan_search(request.REQUEST['query'])
+        result = vlan_search(request.REQUEST['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
     
     if request.REQUEST['lookup_field'] == 'port':
-        result = portname_search(request.REQUEST['query'])
+        result = portname_search(request.REQUEST['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
@@ -326,6 +331,14 @@ def search(request):
     router_matches = list(set(router_matches))
     gwport_matches = list(set(gwport_matches))
     swport_matches = list(set(swport_matches))
+
+    if request.REQUEST.get('hide', False):
+        for gwport in gwport_matches:
+            if not gwport.port_name:
+                gwport_matches.remove(gwport)
+        for swport in swport_matches:
+            if not swport.port_name:
+                swport_matches.remove(swport)
 
     # Get the html up-front
     routers = []
