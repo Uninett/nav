@@ -1,3 +1,19 @@
+Version 3.4.4
+(released 29 October 2008)
+
+ Bugfixes:
+
+  * LP#263931 regression (Status subsystem crashes when there are custom 
+              status page preferences)
+  * LP#273030 (getDeviceData crashes with ConcurrentModificationException)
+  * LP#273866 (servicemon potentially crashes during NTP clock adjustments)
+  * LP#277569 (Duplicate result rows in Machine Tracker)
+  * LP#280145 (getDeviceData and eventEngine stop working after PostgreSQL
+               disconnect)
+  * LP#283102 (ARP records are wrongly associated with
+               scope/static/reserved prefixes)
+
+
 Version 3.4.3
 (released 16 September 2008)
 
