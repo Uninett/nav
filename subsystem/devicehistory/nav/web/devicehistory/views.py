@@ -114,7 +114,7 @@ def devicehistory_view(request):
         },
         'selection': selection,
         'selected_types': selected_types,
-        'event_type': EventType.objects.all().select_related('alerttype').order_by('id'),
+        'event_type': EventType.objects.all().order_by('id'),
         'from_date': from_date,
         'to_date': to_date,
     }
