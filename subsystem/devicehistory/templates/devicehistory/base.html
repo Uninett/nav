@@ -27,3 +27,7 @@
     {% block tabcontent %}
     {% endblock %}
 </div>
+
+{% if debug %}
+{% include "devicehistory/debug.html" %}
+{% endif %}
