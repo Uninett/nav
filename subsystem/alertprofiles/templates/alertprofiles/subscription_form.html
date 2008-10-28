@@ -52,14 +52,34 @@
     <form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
         <h3>{{ editing|yesno:"Edit,Add new" }} subscription</h3>
         <div class="formcontainer">
-                {{ form.non_field_errors }}
-                Watch {{ form.filter_group }},
-                send alerts to {{ form.alert_address }} {{ form.type }}
-                <p>
-                    {{ form.time_period }}
-                    {{ form.id }}
-                    <button type="submit">{{ editing|yesno:"Save,Add" }}</button>
-                </p>
+        {% if not num_addresses %}
+            <p class="error">
+                There are no available alert addresses.<br />
+                You can go and
+                <a href="{% url alertprofiles-address-new %}">add your first address</a>
+                to fix this problem.
+            </p>
+        {% endif %}
+        {% if not num_filter_groups %}
+            <p class="error">
+                There are no available filter groups.<br />
+                You can go and
+                <a href="{% url alertprofiles-filtergroups-new %}">add your first filter group</a>
+                to fix this problem.
+            </p>
+        {% endif %}
+
+            {{ form.non_field_errors }}
+            {{ form.filter_group.errors }}
+            {{ form.alert_address.errors }}
+            {{ form.type.errors }}
+            Watch {{ form.filter_group }},
+            send alerts to {{ form.alert_address }} {{ form.type }}
+            <p>
+                {{ form.time_period }}
+                {{ form.id }}
+                <button type="submit">{{ editing|yesno:"Save,Add" }}</button>
+            </p>
         </div>
     </form>
 </div>

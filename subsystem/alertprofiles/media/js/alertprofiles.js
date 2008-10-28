@@ -55,11 +55,10 @@ $(function() {
 		// The last class is "hilight", the second last is the
 		// "shared_period" class
 		var shared_id = $(this).parents("tr").attr('class').split(' ').slice(-2, -1);
-		var checked = $(this).attr('checked');
-		if (checked == undefined) {
-			$("tr." + shared_id + " input").removeAttr('checked');
-		} else {
+		if ($(this).attr('checked')) {
 			$("tr." + shared_id + " input").attr('checked', 'checked');
+		} else {
+			$("tr." + shared_id + " input").removeAttr('checked');
 		}
 	}
 	$("#timeperiods_table_container tr.all_days_period input").click(checkMultiple);
