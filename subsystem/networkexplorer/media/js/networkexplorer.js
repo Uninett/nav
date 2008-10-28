@@ -17,7 +17,16 @@ $(function(){
 		var parameters = {};
 		$(':input', this).each(
 			function(){
-				parameters[this.name] = escape($(this).val());
+                if (this.type == "checkbox"){
+                    if (this.checked){
+                    console.debug(this.checked);
+                        parameters[this.name] = "on";
+                    } else {
+                        parameters[this.name] = "off";
+                    }
+                } else {
+                    parameters[this.name] = escape($(this).val());
+                }
 			});
 
 	$('#searchForm').fadeTo("normal", 0.25);
