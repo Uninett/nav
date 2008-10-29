@@ -176,14 +176,12 @@ public class MibIISw implements DeviceHandler
 					Map.Entry me = (Map.Entry)it.next();
 					String module = (String)me.getKey();
 					List ifindexList = (List)me.getValue();
-					sSnmp.onlyAskModule(module);
 					boolean down = true;
 					int cnt = 0;
 					for (Iterator ifIt = ifindexList.iterator(); ifIt.hasNext() && down && cnt++ < 5;) {
 						String ifindex = (String)ifIt.next();
-						String ifindexOid = sSnmp.extractIfIndexOID(ifindex);
 						try {
-							String askOid = (ifindexMap != null && ifindexMap.containsKey(ifindexOid) ? baseOidAlt + "." + ifindexMap.get(ifindexOid) + ".1" : baseOid + "." + ifindexOid);
+							String askOid = (ifindexMap != null && ifindexMap.containsKey(ifindex) ? baseOidAlt + "." + ifindexMap.get(ifindex) + ".1" : baseOid + "." + ifindex);
 							List l = sSnmp.getNext(askOid, 1, false, false);
 							if (l != null && !l.isEmpty()) {
 								// We got a response
@@ -196,7 +194,6 @@ public class MibIISw implements DeviceHandler
 							// Assume the module is down
 							mmc.moduleDown(nb, module);
 							Log.i("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
-							sSnmp.ignoreModule(module);
 							break;
 						}
 					}
@@ -204,14 +201,12 @@ public class MibIISw implements DeviceHandler
 						// Assume down
 						mmc.moduleDown(nb, module);
 						Log.d("MODULE_MON", "Module " + module + " on " + nb.getSysname() + " returned no values");						
-						sSnmp.ignoreModule(module);
 						List oidL = new ArrayList();
 						oidL.add("moduleMon");
 						if (baseOidAlt != null) oidL.add("3cPS40PortState");
 						mmc.rescheduleNetbox(nb, module, oidL);
 					}
 				}
-				sSnmp.onlyAskModule(null);
 				mmc.commit();
 			} else {
 				Log.w("MODULE_MON", "Netbox " + nb.getSysname() + ", type " + nb.getType() + " does not support the moduleMon OID, skipping");

@@ -61,7 +61,7 @@ public class OidTester
 		Map tmp = new HashMap();
 		for (; netboxIt.hasNext();) {
 			NetboxImpl nb = (NetboxImpl)netboxIt.next();
-			sSnmp = SimpleSnmp.simpleSnmpFactory(nb.getTypeT().getVendor(), nb.getTypeT().getTypename());
+			sSnmp = SimpleSnmp.simpleSnmpFactory();
 			doTest(nb, snmpoid, sSnmp, tmp, true);
 			sSnmp.destroy();
 		}
