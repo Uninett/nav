@@ -139,12 +139,12 @@ def register_error_events(request, **kwargs):
                     value=eventqvar_data[key]
                 )
 
-                messages.append({
-                    'message': _('Registered error on %(type)s %(device)s.') % {
-                        'type': type,
-                        'device': device,
-                    },
-                    'type': Messages.SUCCESS,
-                })
+            messages.append({
+                'message': _('Registered error on %(type)s %(device)s.') % {
+                    'type': type,
+                    'device': device,
+                },
+                'type': Messages.SUCCESS,
+            })
 
     messages.save()
