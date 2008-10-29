@@ -197,7 +197,7 @@ public class QueryBoks extends Thread
 				continue;
 			}
 
-			sSnmp = SimpleSnmp.simpleSnmpFactory(bd.vendor, bd.boksType);
+			sSnmp = SimpleSnmp.simpleSnmpFactory();
 			sSnmp.setHost(ip);
 			sSnmp.setCs_ro(cs_ro);
 
@@ -817,9 +817,7 @@ public class QueryBoks extends Thread
 				}
 
 				// Hent macadresser på dette vlan
-				sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_VALUE);
 				List macVlan = sSnmp.getAll(getOid("macPortEntry"));
-				sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_OID);
 
 				Map portIndexMap = null;
 				if (macVlan == null) {
@@ -846,9 +844,7 @@ public class QueryBoks extends Thread
 						
 				// Hent mapping mellom ifIndex og intern portindex
 				if (portIndexMap == null) {
-					sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_BOTH);
 					portIndexMap = sSnmp.getAllMap(getOid("basePortIfIndex"));
-					sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_OID);
 				}
 
 				if (portIndexMap != null) {
