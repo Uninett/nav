@@ -42,7 +42,7 @@ urlpatterns = patterns('',
     url(r'^registererror/$', error_form,
         name='devicehistory-registererror'),
 
-    url(r'^module/$', 'module',
+    url(r'^delete_module/$', delete_module,
         name='devicehistory-module'),
 )
 

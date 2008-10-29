@@ -169,3 +169,35 @@ def register_error(request):
     register_error_events(request, selection=selection, comment=error_comment)
 
     return HttpResponseRedirect(reverse('devicehistory-registererror'))
+
+def delete_module(request):
+    modules = AlertHistory.objects.extra(
+        select={
+            'module': 'module.module',
+            'module_description': 'module.descr',
+            'netbox_name': 'netbox.sysname',
+            'downtime': 'NOW() - alerthist.start_time',
+        },
+        tables=[
+            'device',
+            'module',
+            'netbox',
+        ],
+        where=[
+            'device.deviceid=alerthist.deviceid',
+            'module.deviceid=device.deviceid',
+            'netbox.netboxid=module.netboxid',
+            'module.up=\'n\'',
+            'alerthist.end_time=\'infinity\'',
+            'alerthist.eventtypeid=\'moduleState\'',
+        ]
+    ).order_by('start_time')
+
+    info_dict = {
+        'modules': modules,
+    }
+    return render_to_response(
+        DeviceHistoryTemplate,
+        'devicehistory/delete_module.html',
+        info_dict,
+    )
