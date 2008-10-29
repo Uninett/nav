@@ -663,6 +663,9 @@ def profile_time_period_setup(request, time_period_id=None):
         'active': {'profile': True},
         'subsection': {'detail': profile.id, 'subscriptions': time_period.id},
         'editing': editing,
+        'num_addresses': AlertAddress.objects.filter(account=account).count(),
+        'num_filter_groups': FilterGroup.objects.filter(
+            Q(owner=account) | Q(owner__isnull=True)).count(),
     }
     return render_to_response(
         AlertProfilesTemplate,
@@ -743,6 +746,9 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         },
         'subscription': subscription,
         'editing': True,
+        'num_addresses': AlertAddress.objects.filter(account=account).count(),
+        'num_filter_groups': FilterGroup.objects.filter(
+            Q(owner=account) | Q(owner__isnull=True)).count(),
     }
     return render_to_response(
         AlertProfilesTemplate,
@@ -1173,8 +1179,6 @@ def filter_list(request):
         order_by = 'name'
 
     # Get all public filters, and private filters belonging to this user only
-    # NOTE We would like to order by owner first, but then filters with no
-    # owner won't show up.
     filters = Filter.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)
         ).order_by(order_by)
@@ -1606,8 +1610,6 @@ def filtergroup_list(request):
 
     # Get all public filtergroups, and private filtergroups belonging to this
     # user only
-    # NOTE We would like to order by owner first, but then filters with no
-    # owner won't show up.
     filtergroups = FilterGroup.objects.filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
         ).order_by(order_by)

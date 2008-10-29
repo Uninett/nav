@@ -72,8 +72,6 @@ public class SimpleSnmp
 
 	private Map cache = new HashMap();
 
-	protected Set ignoredModules = new HashSet();
-
 	/**
 	 * Construct an empty SimpleSnmp class.
 	 */
@@ -88,21 +86,25 @@ public class SimpleSnmp
 	}
 
 	public static SimpleSnmp simpleSnmpFactory() {
-		return simpleSnmpFactory(null, null);
-	}
-
-	public static SimpleSnmp simpleSnmpFactory(String host, String cs_ro, String baseOid) {
-		return simpleSnmpFactory(null, null, host, cs_ro, baseOid);
-	}
-
-	public static SimpleSnmp simpleSnmpFactory(String vendor, String type) {
-		if ("hp".equals(vendor)) return new SimpleSnmpHP();
 		return new SimpleSnmp();
 	}
 
-	public static SimpleSnmp simpleSnmpFactory(String vendor, String type, String host, String cs_ro, String baseOid) {
-		if ("hp".equals(vendor)) return new SimpleSnmpHP(host, cs_ro, baseOid);
+	public static SimpleSnmp simpleSnmpFactory(String host, String cs_ro, String baseOid) {
 		return new SimpleSnmp(host, cs_ro, baseOid);
+	}
+
+	/**
+	 * @deprecated SimpleSnmp no longer perform special handling for different types or vendors
+	 */
+	public static SimpleSnmp simpleSnmpFactory(String vendor, String type) {
+		return SimpleSnmp.simpleSnmpFactory();
+	}
+
+	/**
+	 * @deprecated SimpleSnmp no longer perform special handling for different types or vendors
+	 */
+	public static SimpleSnmp simpleSnmpFactory(String vendor, String type, String host, String cs_ro, String baseOid) {
+		return SimpleSnmp.simpleSnmpFactory(vendor, type, host, cs_ro, baseOid);
 	}
 
 	public void setHost(String host) { if (!this.host.equals(host)) valid=false; this.host = host; }
@@ -196,6 +198,7 @@ public class SimpleSnmp
 	 * information is only respected if this class is subclassed; the
 	 * default is to do nothing.
 	 *
+	 * @deprecated This no longer does anything.
 	 * @param module The number of the module to ask; use null to again ask all modules
 	 */
 	public void onlyAskModule(String module) {
@@ -209,10 +212,10 @@ public class SimpleSnmp
 	 * that this information is only respected if this class is
 	 * subclassed; the default is to do nothing.
 	 *
+	 * @deprecated This no longer does anything.
 	 * @param module The number of the module to ignore.
 	 */
 	public void ignoreModule(String module) {
-		ignoredModules.add(module);
 	}
 
 	/**
@@ -220,6 +223,8 @@ public class SimpleSnmp
 	 * both, or there is no ifindex. This is important for certain
 	 * types, e.g. HP, which need to treat the ifindex special due to
 	 * unit stacking.
+	 *
+	 * @deprecated This no longer does anything.
 	 */
 	public void setIfindexIs(int ifindexIs) {
 		
@@ -463,6 +468,8 @@ public class SimpleSnmp
 	 * Get the ifIndex from the String array. Subclasses can override
 	 * this to do special processing; the default is just to return the
 	 * first element.
+	 *
+	 * @deprecated This method is unnecessary.
 	 */
 	protected String convertToIfIndex(String[] s) {
 		return convertToIfIndex(s, 0);
@@ -473,6 +480,7 @@ public class SimpleSnmp
 	 * this to do special processing; the default is just to return the
 	 * <i>i</i>th element.
 	 *
+	 * @deprecated This method is unnecessary.
 	 * @param idx Index in string array of the ifindex to be converted
 	 */
 	protected String convertToIfIndex(String[] s, int idx) {
@@ -483,6 +491,8 @@ public class SimpleSnmp
 	 * Extract the OID part of the ifindex; this value should be
 	 * suitable for adding to an OID for collecting data for a specific
 	 * ifindex.
+	 *
+	 * @deprecated This method is unnecessary.
 	 */
 	public String extractIfIndexOID(String ifindex) {
 		return ifindex;
@@ -490,6 +500,8 @@ public class SimpleSnmp
 
 	/**
 	 * Remove any module-specific parts from the sysname.
+	 *
+	 * @deprecated This method is unnecessary.
 	 */
 	public String extractSysname(String sysname, String module) {
 		return sysname;

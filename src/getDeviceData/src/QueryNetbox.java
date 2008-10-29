@@ -717,7 +717,7 @@ public class QueryNetbox extends Thread
 					OidTester oidTester = new OidTester();
 					if (oidUpdObj instanceof NetboxImpl) {
 						nb = (NetboxImpl)oidUpdObj;
-						sSnmp = SimpleSnmp.simpleSnmpFactory(nb.getTypeT().getVendor(), nb.getType());
+						sSnmp = SimpleSnmp.simpleSnmpFactory();
 						sSnmp.setHost(nb.getIp());
 						sSnmp.setCs_ro(nb.getCommunityRo());
 						sSnmp.checkSnmpVersion();
@@ -752,7 +752,7 @@ public class QueryNetbox extends Thread
 
 				Log.setNetbox(sysName);
 
-				sSnmp = SimpleSnmp.simpleSnmpFactory(vendor, type);
+				sSnmp = SimpleSnmp.simpleSnmpFactory();
 				//System.err.println("Created sSnmp: " + sSnmp);
 				sSnmp.setHost(ip);
 				sSnmp.setCs_ro(cs_ro);
