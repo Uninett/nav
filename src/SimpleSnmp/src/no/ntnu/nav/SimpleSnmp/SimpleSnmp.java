@@ -88,21 +88,25 @@ public class SimpleSnmp
 	}
 
 	public static SimpleSnmp simpleSnmpFactory() {
-		return simpleSnmpFactory(null, null);
-	}
-
-	public static SimpleSnmp simpleSnmpFactory(String host, String cs_ro, String baseOid) {
-		return simpleSnmpFactory(null, null, host, cs_ro, baseOid);
-	}
-
-	public static SimpleSnmp simpleSnmpFactory(String vendor, String type) {
-		if ("hp".equals(vendor)) return new SimpleSnmpHP();
 		return new SimpleSnmp();
 	}
 
-	public static SimpleSnmp simpleSnmpFactory(String vendor, String type, String host, String cs_ro, String baseOid) {
-		if ("hp".equals(vendor)) return new SimpleSnmpHP(host, cs_ro, baseOid);
+	public static SimpleSnmp simpleSnmpFactory(String host, String cs_ro, String baseOid) {
 		return new SimpleSnmp(host, cs_ro, baseOid);
+	}
+
+	/**
+	 * @deprecated SimpleSnmp no longer perform special handling for different types or vendors
+	 */
+	public static SimpleSnmp simpleSnmpFactory(String vendor, String type) {
+		return SimpleSnmp.simpleSnmpFactory();
+	}
+
+	/**
+	 * @deprecated SimpleSnmp no longer perform special handling for different types or vendors
+	 */
+	public static SimpleSnmp simpleSnmpFactory(String vendor, String type, String host, String cs_ro, String baseOid) {
+		return SimpleSnmp.simpleSnmpFactory(vendor, type, host, cs_ro, baseOid);
 	}
 
 	public void setHost(String host) { if (!this.host.equals(host)) valid=false; this.host = host; }
