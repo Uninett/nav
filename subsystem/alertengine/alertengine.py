@@ -48,7 +48,6 @@ import signal
 import socket
 import sys
 import time
-import traceback
 
 import nav.config
 import nav.daemon
@@ -161,10 +160,10 @@ def main(args):
 
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
-            logger.debug('Traceback: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
+            logger.debug('', exc_info=True)
             connection.close()
         except Exception, e:
-            logger.critical('Unhandeled error: %s' % ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)))
+            logger.critical('Unhandeled error: %s' % e, exc_info=True)
             raise e
 
         # Devel only

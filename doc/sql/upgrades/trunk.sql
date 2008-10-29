@@ -17,3 +17,20 @@
  *
 */
 
+-- Alert senders
+INSERT INTO alertsender VALUES (1, 'Email', 'email');
+INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
+
+-- Fix for LP#285331 Duplicate RRD file references
+-- Delete oldest entries if there are duplicate rrd file references
+DELETE FROM rrd_file 
+WHERE rrd_fileid IN (SELECT b.rrd_fileid
+                     FROM rrd_file a
+                     JOIN rrd_file b ON (a.path = b.path AND 
+                                         a.filename=b.filename AND 
+                                         a.rrd_fileid > b.rrd_fileid)
+		     );
+
+-- Modify rrd_file to prevent duplicate path/filename entries
+ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename);

@@ -31,11 +31,10 @@ __id__ = "$Id$"
 import logging
 import os
 import sys
-import traceback
 from datetime import datetime
 import md5
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 
 import nav.path
@@ -77,6 +76,9 @@ class Account(models.Model):
 
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
+
+    # FIXME get this from setting.
+    MIN_PASSWD_LENGTH = 8
 
     login = models.CharField(unique=True)
     name = models.CharField()
@@ -189,7 +191,7 @@ class AccountGroup(models.Model):
 class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True)
     property = models.CharField()
     value = models.CharField()
 
@@ -248,14 +250,14 @@ class AlertAddress(models.Model):
             lang = 'en'
 
         try:
-            self.type.send(self, alert, language=lang, type=type)
+            # Wrap all send methods in commit on success
+            transaction.commit_on_success(self.type.send)(self, alert, language=lang, type=type)
         except DispatcherException, e:
-            logger.critical('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
             return False
 
         except Exception, e:
-            logger.critical('Unhandeled error from %s: %s' %
-                (self.type, ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))))
+            logger.exception('Unhandeled error from %s' % self.type)
             return False
 
         return True
@@ -564,7 +566,7 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups.'''
 
-    owner = models.ForeignKey('Account')
+    owner = models.ForeignKey('Account', null=True)
     name = models.CharField()
 
     class Meta:
@@ -650,7 +652,7 @@ class Filter(models.Model):
 class FilterGroup(models.Model):
     '''A set of filters group contents that an account can subscribe to or be given permission to'''
 
-    owner = models.ForeignKey('Account')
+    owner = models.ForeignKey('Account', null=True)
     name = models.CharField()
     description = models.CharField()
 
@@ -853,8 +855,7 @@ class SMSQueue(models.Model):
         (IGNORED, _('ignored')),
     )
 
-    id = models.IntegerField(primary_key=True)
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True)
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
     message = models.CharField(max_length=145, db_column='msg')
@@ -879,9 +880,9 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     '''Defines which alerts should be keept around and sent at a later time'''
 
-    account = models.ForeignKey('Account')
-    subscription = models.ForeignKey('AlertSubscription')
-    alert = models.ForeignKey('AlertQueue')
+    account = models.ForeignKey('Account', null=True)
+    subscription = models.ForeignKey('AlertSubscription', null=True)
+    alert = models.ForeignKey('AlertQueue', null=True)
     insertion_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -900,7 +901,18 @@ class AccountAlertQueue(models.Model):
 
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
-        sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+        try:
+            sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+        except AlertSender.DoesNotExist, e:
+            address = self.subscription.alert_address
+            sender  = address.type_id
+
+            if sender is not None:
+                raise Exception("Invalid sender set for address %s, " + \
+                      "please check that %s is in profiles.alertsender" % (address, sender))
+            else:
+                raise Exception("No sender set for address %s, " + \
+                      "this might be due to a failed db upgrade from 3.4 to 3.5" % (address))
 
         if sent:
             self.delete()

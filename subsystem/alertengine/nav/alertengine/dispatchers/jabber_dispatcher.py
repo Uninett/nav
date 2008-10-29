@@ -108,10 +108,11 @@ class jabber(dispatcher):
 
         try:
             id = self.client.send(xmpp.protocol.Message(address.address, message.message, typ='chat'))
-            logger.debug('Send message with jabber id %s' % id)
+            logger.info('alert %d sent by jabber to %s due to %s subscription' % (alert.id, address.address, type))
+            logger.debug('Sent message with jabber id %s' % id)
         except (xmpp.protocol.StreamError, IOError), e:
             if retry:
-                logger.warn('Retrying...')
+                logger.warn('Sending jabber message failed, retrying once.')
                 self.connect()
                 self.send(address, alert, language, type, False, e)
             else:

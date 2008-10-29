@@ -24,7 +24,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *
  * <p>
  * <ui>
- *  <li>ifSerial</li>
  *  <li>hpFwVer</li>
  *  <li>hpSwVer</li>
  *  <li>hpPortType</li>
@@ -43,7 +42,6 @@ public class HP implements DeviceHandler
 	public static final int HANDLE_PRI_HP = -22;
 
 	private static String[] canHandleOids = {
-		"ifSerial",
 		"hpFwVer",
 		"hpSwVer",
 		"hpPortType",
@@ -231,62 +229,12 @@ public class HP implements DeviceHandler
 		String vlanOid = "1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.1";
 		*/
 
-		// We always want the serial as well as the port type (since we
-		// don't use ifIndex)
-		if (!nb.canGetOid("ifSerial") ||
-				!nb.canGetOid("hpPortType")) {
+		// This plugin only serves a point if it can extract HP specific port info
+		if (!nb.canGetOid("hpPortType")) {
 			return;
 		}
 
 		List l;
-
-		// Which module is the commander
-		String moduleWithIP = "0";
-		List memberList = sSnmp.getAll(nb.getOid("hpStackStatsMemberOperStatus"));
-		if (memberList != null) {
-			for (Iterator it = memberList.iterator(); it.hasNext();) {
-				String[] s = (String[])it.next();
-				String module;
-				if (s.length < 4) {
-					Log.e("PROCESS_HP", "Missing 4th element from SimpleSnmp response");
-					module = s[0];
-				} else {
-					module = s[3];
-				}
-				int status = Integer.parseInt(s[1]);
-				if (status == 12) {
-					// Commander
-					moduleWithIP = module;
-					NetboxInfo.put(nb.getNetboxidS(), null, "ModuleWithIP", moduleWithIP);
-					break;
-				}
-			}
-		} else {
-			String moduleWithIPL = NetboxInfo.getSingleton(nb.getNetboxidS(), null, "ModuleWithIP");
-			if (moduleWithIPL != null) moduleWithIP = moduleWithIPL;
-		}
-
-		// Module data
-		l = sSnmp.getNext(nb.getOid("ifSerial"), 1, true, false);
-		if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
-				String[] s = (String[])it.next();
-				// Assume only one module if info is missing
-				String module = (s.length >= 3 ? s[2] : "0");
-
-				if (s.length < 3 && "hp2524".equals(nb.getType())) {
-					Log.e("PROCESS_HP", "Missing 3rd element from ifSerial (" + nb.getType() + ")");
-				}
-				
-				if (moduleWithIP.equals(module) && nc.netboxDataFactory(nb).getSerial() == null) {
-					nc.netboxDataFactory(nb).setSerial(s[1]);
-				}
-				int moduleNum = Integer.parseInt(module);
-				mc.moduleFactory(moduleNum);
-				sc.swModuleFactory(moduleNum).setSerial(s[1]);
-				Log.d("PROCESS_HP", "Module: " + module + " Serial: " + s[1]);
-			}
-		}
 
 		l = sSnmp.getNext(nb.getOid("hpFwVer"), 1, true, false);
 		if (l != null) {
