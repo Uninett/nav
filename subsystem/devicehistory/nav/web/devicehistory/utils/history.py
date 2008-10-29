@@ -105,8 +105,7 @@ class History:
         alert_history = AlertHistory.objects.select_related(
             'event_type', 'alert_type'
         ).filter(
-            Q(alerthistoryvariable__variable='locationid'),
-            Q(alerthistoryvariable__value__in=self.locations),
+            Q(device__netbox__room__location__id__in=self.locations),
             *self.time_limit
         ).extra(
             select={
@@ -114,7 +113,7 @@ class History:
                 'location_name': 'location.descr',
             },
             tables=['location'],
-            where=['location.locationid=alerthistvar.val']
+            where=['location.locationid=room.locationid']
         ).order_by('location_name', '-start_time', '-end_time')
 
         if self.types['event']:
@@ -139,8 +138,7 @@ class History:
         alert_history = AlertHistory.objects.select_related(
             'event_type', 'alert_type'
         ).filter(
-            Q(alerthistoryvariable__variable='roomid'),
-            Q(alerthistoryvariable__value__in=self.rooms),
+            Q(device__netbox__room__id__in=self.rooms),
             *self.time_limit
         ).extra(
             select={
@@ -148,7 +146,7 @@ class History:
                 'room_descr': 'room.descr',
            },
            tables=['room'],
-           where=['room.roomid=alerthistvar.val']
+           where=['room.roomid=netbox.roomid']
         ).order_by('alerthistoryvariable__value', '-start_time', '-end_time')
 
         if self.types['event']:
