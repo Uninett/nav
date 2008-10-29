@@ -75,16 +75,15 @@ def devicehistory_search(request):
 
 def devicehistory_view(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-    if not request.method == 'POST':
-        pass
 
     # Default dates are a little hackish.
     # from_date defaults to one week in the past.
     # to_date defaults to tomorrow, which means "everything untill tomorrow
     # starts". Setting it to today will not display the alerts for today.
-    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
-    types = request.POST.getlist('type')
+    from_date = request.GET.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
+    to_date = request.GET.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
+    types = request.GET.getlist('type')
+    expand_message = int(request.GET.get('expand', 0))
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -106,6 +105,17 @@ def devicehistory_view(request):
     }
     history = History(**params)
 
+    # We want to re-use this request in some of the links.
+    # This little double-loop builds a string that is easy to add to links.
+    filter_string = ''
+    for key in request.GET:
+        if key != 'expand':
+            for value in request.GET.getlist(key):
+                if not filter_string:
+                    filter_string = '?%s=%s' % (key,value)
+                else:
+                    filter_string += '&%s=%s' % (key,value)
+
     info_dict = {
         'active': {'devicehistory': True},
         'history': {
@@ -119,6 +129,8 @@ def devicehistory_view(request):
         'event_type': EventType.objects.all().order_by('id'),
         'from_date': from_date,
         'to_date': to_date,
+        'filter_string': filter_string,
+        'expand_message': expand_message,
     }
     return render_to_response(
         DeviceHistoryTemplate,

@@ -1,4 +1,5 @@
 {% extends "devicehistory/base.html" %}
+{% load filters %}
 
 {% block tabcontent %}
     {% include "devicehistory/history_view_filter.html" %}
@@ -36,7 +37,19 @@
                     <td>
                         <ul>
                         {% for m in a.messages %}
-                            <li>{{ m }}</li>
+                            <li>
+                                {{ m.short }}
+                            {% ifequal expand_message m.id %}
+                                <a href="{% url devicehistory-view %}{{ filter_string }}">
+                                    [hide e-mail]</a>
+                                <ul class="email_message">
+                                    <li>{{ m.long|linebreaksbr}}</li>
+                                </ul>
+                            {% else %}
+                                <a href="{% url devicehistory-view %}{{ filter_string }}&amp;expand={{ m.id }}">
+                                    [show e-mail]</a>
+                            {% endifequal %}
+                            </li>
                         {% endfor %}
                         </ul>
                     </td>

@@ -34,15 +34,19 @@ from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryVariable, AlertHistoryMessage, AlertType
 
 def get_messages(alert):
-    # Regular messages
+    messages = []
     msgs = AlertHistoryMessage.objects.filter(
         alert_history=alert,
-        type='sms',
         language='en',
     )
-    msgs_list = [m.message for m in msgs]
-
-    return msgs_list
+    for m in msgs.filter(type='sms'):
+        long_message = msgs.filter(alert_history=m.alert_history, type='email')[0]
+        messages.append({
+            'id': m.id,
+            'short': m.message,
+            'long': long_message.message,
+        })
+    return messages
 
 class History:
     locations = []

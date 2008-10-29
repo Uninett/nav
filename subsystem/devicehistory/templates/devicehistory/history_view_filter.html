@@ -1,5 +1,5 @@
 {% load filters %}
-<form action="" method="post">
+<form action="{% url devicehistory-view %}" method="get">
     {% for type, elements in selection.items %}
         {% for id in elements %}
             <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
