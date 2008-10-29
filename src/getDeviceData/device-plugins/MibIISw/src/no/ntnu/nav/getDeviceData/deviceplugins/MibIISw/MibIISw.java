@@ -171,42 +171,6 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 			String baseOid = nb.getOid("moduleMon");
-			String hpMemberStatusOid = nb.getOid("hpStackStatsMemberOperStatus");
-			if (hpMemberStatusOid != null) {
-				Set modulesUp = new HashSet();
-				Map moduleStatus = new HashMap();
-				sSnmp.onlyAskModule("0");
-				List statusList = sSnmp.getAll(hpMemberStatusOid);
-				sSnmp.onlyAskModule(null);
-				for (Iterator it = statusList.iterator(); it.hasNext();) {
-					String[] s = (String[])it.next();
-					String module;
-					if (s.length < 4) {
-						System.err.println("Error in ModuleMon, module not found!");
-						module = s[0];
-					} else {
-						module = s[3];
-					}
-					int status = Integer.parseInt(s[1]);
-					moduleStatus.put(module, ""+status);
-					if (status == 10 || status == 12) {
-						// Up
-						modulesUp.add(module);
-					}
-				}
-				for (Iterator it = mmc.getModuleSet(netboxid).iterator(); it.hasNext();) {
-					String module = (String)it.next();
-					if (modulesUp.contains(module)) {
-						mmc.moduleUp(nb, module);
-					} else {
-						mmc.moduleDown(nb, module);
-						Log.d("MODULE_MON", "HP Module " + module + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");
-						sSnmp.ignoreModule(module);
-						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
-					}
-				}
-				mmc.commit();
-			} else
 			if (baseOid != null) {
 				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
 					Map.Entry me = (Map.Entry)it.next();
@@ -244,7 +208,6 @@ public class MibIISw implements DeviceHandler
 						List oidL = new ArrayList();
 						oidL.add("moduleMon");
 						if (baseOidAlt != null) oidL.add("3cPS40PortState");
-						if (hpMemberStatusOid != null) oidL.add("hpStackStatsMemberOperStatus");
 						mmc.rescheduleNetbox(nb, module, oidL);
 					}
 				}
