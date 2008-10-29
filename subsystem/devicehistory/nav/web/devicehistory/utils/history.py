@@ -42,28 +42,6 @@ def get_messages(alert):
     )
     msgs_list = [m.message for m in msgs]
 
-    # User submitted errormesssages do not end up in alerthismsg, rather they
-    # end up in the value column of alerthistvar with key 'comment'. Usernames
-    # get the key 'username'
-    try:
-        row = AlertHistoryVariable.objects.filter(
-            alert_history=alert,
-            variable='comment'
-        )[0]
-    except IndexError:
-        pass
-    else:
-        msgs_list.append(row.value)
-    try:
-        row = AlertHistoryVariable.objects.filter(
-            alert_history=alert,
-            variable='username'
-        )[0]
-    except IndexError:
-        pass
-    else:
-        msgs_list.append('User %s posted this alert.' % row.value)
-
     return msgs_list
 
 class History:
