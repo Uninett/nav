@@ -76,7 +76,7 @@ class QuickSelect:
         #
         # This little if/else makes sure we can use both.
         if hasattr(request, 'REQUEST'):
-            form = request.POST
+            form = request.REQUEST
         else:
             form = request.form
 
