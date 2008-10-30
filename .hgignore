@@ -26,7 +26,7 @@ src/getDeviceData/getDeviceData.sh
 src/networkDiscovery/networkDiscovery.sh
 subsystem/alertengine/alertengine
 subsystem/lib-perl/src/NAV/Path.pm
-subsystem/lib-python/src/nav/buildconf.py
+subsystem/lib-python/nav/buildconf.py
 subsystem/logger/conf/logger.conf
 subsystem/smsd/smsd
 subsystem/snmptrapd/snmptrapd
@@ -35,7 +35,7 @@ subsystem/statemon/pping
 subsystem/statemon/pping.conf
 subsystem/statemon/servicemon
 subsystem/statemon/servicemon.conf
-subsystem/webFront/config/webfront.conf
+subsystem/webfront/config/webfront/webfront.conf
 
 
 syntax: regexp

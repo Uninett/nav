@@ -5,7 +5,7 @@
 # This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV SMS Daemon.
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006, 2008 UNINETT AS
 # Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 ####################
@@ -15,6 +15,7 @@ sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
 localstatedir=@localstatedir@
+user=@nav_user@
 SMSD=${bindir}/smsd.py
 
 # Source function library.
@@ -24,15 +25,15 @@ SMSD=${bindir}/smsd.py
 
 case "$1" in
 	start)
-		# Start daemons (it will switch to an unprivileged user itself)
+		# Start daemon
 		echo -n "Starting smsd: "
-		daemon $SMSD
+		daemon "su - ${user} -c $SMSD"
 		rc=$?
 		echo
 		exit $rc
 		;;
 	stop)
-		# Stop daemons.
+		# Stop daemon.
 		echo -n "Shutting down smsd: "
 		if killproc smsd; then
 		    echo

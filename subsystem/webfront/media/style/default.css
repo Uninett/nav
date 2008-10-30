@@ -1,0 +1,314 @@
+/* Default stylesheet for NAV
+ *
+ * Copyright 2003-2005 Norwegian University of Science and Technology
+ * Copyright 2006 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV)
+ *
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Authors: Magnar Sveen <magnars@idi.ntnu.no>
+ *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ */
+
+/* Block elements */
+
+body {
+	background-color: white;
+	color: black;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px; /* Global default. Adjust relatively with % and em elsewhere. */
+	padding: 1em;
+}
+
+h1, h2, h3, h4 {
+	font-family: Arial, Helvetica, sans-serif;
+}
+h1 {
+	font-size: 1.8em;
+	margin-top: 0.5em;
+	margin-bottom: 0.2em;
+}
+h2 {
+	font-size: 1.6em;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+h3 {
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-top: 0.5em;
+	margin-bottom: 0.1em;
+}
+h4 {
+	font-weight: bold;
+	margin-top: 0.3em;
+	margin-bottom: 0.1em;
+}
+
+p, ol, ul, form {
+	margin: 0.5em 0;
+}
+ol {
+	list-style: decimal outside;
+}
+ul {
+	list-style: square outside;
+}
+li {
+	margin-left: 1.5em;
+	margin-bottom: 0.3em;
+}
+
+/* Inline elements */
+
+a {
+	color: #2d5a86;
+	text-decoration: none;
+}
+a:visited {
+	color: #2d5a86;
+	text-decoration: none;
+}
+a:hover {
+	color: black;
+	text-decoration: underline;
+}
+a:active {
+	color: #69C;
+	text-decoration: none;
+}
+a.navbar {
+	color: black;
+}
+
+a.navbar:visited {
+	color: black;
+	text-decoration: none;
+}
+a.navbar:hover {
+	color: #2d5a86;
+	text-decoration: none;
+}
+a.navbar:active {
+	color: #47A;
+	text-decoration: none;
+}
+em {
+	font-style: italic;
+}
+img {
+	vertical-align: middle;
+}
+
+.error {
+	color: red;
+}
+.status {
+	color: #0b0;
+}
+td.padded-left {
+	padding-left: 30px;
+}
+
+/* Header section */
+div#header {
+}
+
+/* NAV logo */
+div#navlogo h1 {
+	font-size: 1.8em;
+	line-height: 50px;
+	margin: 0;
+	margin-bottom: 0.5em;
+	text-align: right;
+}
+div#navlogo h1 img {
+	float: left;
+	margin-right: 1em;
+}
+div#navlogo h1 a {
+	color: black;
+	text-decoration: none;
+}
+div#navlogo h1 a:hover {
+	text-decoration: none;
+}
+
+
+/* Menu bar */
+div#navbar {
+	background: #eee;
+	border: 1px solid #999;
+	color: black;
+	margin: 0.5em 0;
+}
+div#navbar table {
+	width: 100%;
+}
+div#navbar table td {
+	padding: 0.1em 0.5em;
+	white-space: nowrap;
+}
+div#navbar table td.spacer {
+	text-align: right;
+	width: 100%;
+}
+
+/* Breadcrumbs path */
+div#navpath {
+	padding: 0.5em 0;
+}
+
+/* Content section */
+div#navbody {
+}
+
+/* Footer section */
+div#footer {
+	clear: both;
+	font-size: 0.8em;
+	text-align: center;
+}
+div#footer hr {
+	background: #999;
+	border: 0;
+	height: 1px;
+}
+
+/* Generic tables */
+.oddrow {
+	background-color: #eee;
+}
+.evenrow {
+	background-color: white;
+}
+.numeric {
+	text-align: right;
+}
+
+/* Infobox */
+.infobox {
+	background: #eee;
+	padding: 0.5em;
+	border: 1px solid #999;
+	-moz-border-radius: 1em;
+}
+
+/* Boxes (front page, quick search, etc) */
+div.boxes {
+	float: right;
+	width: 15em;
+	overflow: hidden;
+}
+div.boxes table {
+	background: white;
+	border-collapse: separate;
+	width: 100%;
+	margin-bottom: 1em;
+}
+div.boxes table th {
+	background: #567899;
+	border-bottom: 2px solid white;
+	color: white;
+	font-weight: bolder;
+	padding: 0.5em;
+	text-align: center;
+}
+div.boxes table td {
+	background: white;
+	color: black;
+	border: 1px solid #999;
+	padding: 0.3em 0.5em;
+}
+
+/* FIXME: Ugly! Can't be a p, as the default config puts a h2 inside it. */
+div.welcome {
+	margin-bottom: 1em;
+}
+
+/* Toolbox */
+table.toolbox {
+	border-collapse: separate;
+	border-spacing: 2px;
+	margin: 0.5em 0;
+}
+table.toolbox tr td {
+	border: 1px solid #999;
+	padding: 0.5em 1em;
+	vertical-align: top;
+}
+table.toolbox tr td h2 {
+	line-height: 40px;
+	margin: 0;
+}
+table.toolbox tr td h2 img {
+	float: right;
+	margin-left: 0.5em;
+}
+table.toolbox tr td h2 a {
+	color: black;
+}
+table.toolbox tr td p {
+	text-align: justify;
+}
+
+table.toolbox3cols tr td {
+	width: 20em;
+}
+table.toolbox4cols tr td {
+	width: 15em;
+}
+
+/* Highlight classes */
+/* Colors from colorbrewer.org, see LICENSE for more information */
+.highlight {
+	background: #FFF7BC;
+}
+.highlight .highlight {
+	background: #FEE391;
+}
+.highlight .highlight .highlight {
+	background: #FEC44F;
+}
+
+/* Messages */
+.messages {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+.messages {
+	background: #eeeeec;
+	padding: 0.5em;
+	border: 1px solid #BABDB6;
+	-moz-border-radius: 1em;
+}
+
+.messages .success {
+	color: #4E9A06; 
+}
+
+.messages .notice {
+	color: black;
+}
+
+.messages .warning {
+  color: #CE5C00;
+}
+
+.messages .error, .errorlist {
+  color: #A40000;
+}

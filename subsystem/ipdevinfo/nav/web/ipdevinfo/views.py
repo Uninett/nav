@@ -101,8 +101,12 @@ def search(request):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def ipdev_details(request, name=None, addr=None):
+def ipdev_details(request, name=None, addr=None, netbox_id=None):
     """Show detailed view of one IP device"""
+
+    if netbox_id is not None:
+        netbox = get_object_or_404(Netbox, id=netbox_id)
+        return HttpResponseRedirect(netbox.get_absolute_url())
 
     def get_host_info(host):
         """Lookup information about host in DNS etc."""
@@ -379,16 +383,11 @@ def port_details(request, netbox_sysname, module_number, port_type,
         port = get_object_or_404(ports, module__netbox__sysname=netbox_sysname,
             module__module_number=module_number, interface=port_name)
 
-    time_since_last_cam_max = dt.timedelta(days=30)
-    time_since_last_cam = port.get_active_time(time_since_last_cam_max.days)
-
     return render_to_response(IpDevInfoTemplate,
         'ipdevinfo/port-details.html',
         {
             'port_type': port_type,
             'port': port,
-            'time_since_last_cam_max': time_since_last_cam_max,
-            'time_since_last_cam': time_since_last_cam,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))

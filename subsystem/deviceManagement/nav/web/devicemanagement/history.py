@@ -38,7 +38,6 @@ import re
 
 import nav.db
 import nav.db.manage
-from nav.web import urlbuilder
 from nav.web.templates.deviceManagementTemplate import deviceManagementTemplate
 
 from nav.web.devicemanagement.constants import *
@@ -505,14 +504,13 @@ class History:
         self.getHistory()
 
         if self.netboxId:
-            self.url = urlbuilder.createUrl(id=netboxId,division='netbox')
             self.sysname = dtTables.Netbox(netboxId).sysname
+            self.url = '/ipdevinfo/%s/' % self.sysname
         if self.moduleId:
             module = dtTables.Module(moduleId)
             self.module = module.module
             self.sysname = module.netbox.sysname
-            self.url = urlbuilder.createUrl(id=module.netbox.netboxid,
-            division='netbox')
+            self.url = '/ipdevinfo/%s/%s/' % (self.sysname, self.module)
 
     def addEvent(self,sort_key, e, modulehist=False):
         if not modulehist:
@@ -521,7 +519,6 @@ class History:
             self.moduleevents.append((sort_key,e))
 
     def getHistory(self):
-        # This should be replaced by urlbuilder stuff:
         HISTORYPATH = BASEPATH + 'history/device/'
         if self.deviceId:
             # Display the history for a device

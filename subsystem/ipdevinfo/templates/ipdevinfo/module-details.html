@@ -3,8 +3,10 @@
 {% block content %}
 
 <table class="vertitable">
-    <caption>Module {{ module.module_number }}
-    at {{ module.netbox.get_short_sysname }}</caption>
+    <caption>
+        Module {{ module.module_number }}<br />
+        at {{ module.netbox.get_short_sysname }}
+    </caption>
     <tr>
         <th>At IP device</th>
         <td><a href="{{ module.netbox.get_absolute_url }}">
@@ -21,11 +23,11 @@
     <tr>
         <th>Status</th>
         <td>
-        {% ifequal module.up module.UP_UP %}
-            Up
-        {% else %}
-            Down for {{ down.down_since|timesince }}
-        {% endifequal %}
+            {% ifequal module.up module.UP_UP %}
+                Up
+            {% else %}
+                Down for {{ down.down_since|timesince }}
+            {% endifequal %}
         </td>
     </tr>
     <tr>
@@ -51,7 +53,7 @@
     <h3>Switch port activity</h3>
     {% with swportactive_view as module %}
         <form action="" method="get">
-            <p>
+            <p class="infobox">
                 Activity based on CAM records since
                 {{ module.activity_interval_start|date }}.
                 {{ activity_interval_form.interval.label }}:

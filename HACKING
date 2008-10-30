@@ -197,15 +197,15 @@ The NAV web interface makes extensive use of Cheetah templates for
 generating its HTML output, see http://www.cheetahtemplate.org/ .
 
 Most of the existing Cheetah templates are to be found in
-subsystem/webFront/templates, although some of NAV's subsystems store
-their templates along with their code in their respective subsystem
-subdirectories.  The compiled templates should be placed in the
+subsystem/webfront/nav/web/templates, although some of NAV's subsystems
+store their templates along with their code in their respective subsystem
+subdirectories. The compiled templates should be placed in the
 nav.web.templates package.
 
 If you are making a new web module for NAV, your module's Cheetah
 template should subclass MainTemplate.tmpl found in
-subsystem/webFront/templates/.  See other templates for code examples
-of how to inherit from this template.
+subsystem/webfront/nav/web/templates/. See other templates for code
+examples of how to inherit from this template.
 
 Database connections in the web interface
 -----------------------------------------

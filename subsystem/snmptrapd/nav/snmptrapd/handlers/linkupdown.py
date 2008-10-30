@@ -60,36 +60,6 @@ def handleTrap(trap, config=None):
 
             module = '0'
 
-            # If this is a hp-device we need to create the ifindex
-            # according to NAV-standard.
-            if res['vendorid'] == 'hp':
-                community = trap.community
-
-                # Community in traps from HP-equipment comes in the
-                # format sw@[number] where number is the stackmember. 
-
-                if community.find('@') >= 0:
-                    try:
-                        logger.debug("Moduleinfo %s" %community)
-                        module = re.search('\@sw(\d+)', community).groups()[0]
-                    except Exception, e:
-                        # Didn't find a match for module, can't handle trap
-                        logger.debug("No match for module, returning")
-                        return False
-                
-                    # Get correct deviceid
-                    deviceq = """SELECT deviceid
-                                 FROM module
-                                 WHERE netboxid=%s
-                                   AND module=%s"""
-                    c.execute(deviceq, (netboxid, module))
-                    r = c.dictfetchone()
-                    deviceid = r['deviceid']
-
-                # Ugly hack to find nav's ifindex
-                ifindex = "%s%02d" %(str(int(module) + 1), int(ifindex))
-
-                
         except Exception, why:
             logger.error("Error when querying database: %s" %why)
 

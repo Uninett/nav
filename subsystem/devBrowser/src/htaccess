@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler nav.web.devBrowser.dispatcher
-DirectoryIndex index

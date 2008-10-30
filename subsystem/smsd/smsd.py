@@ -106,7 +106,7 @@ def main(args):
     }
 
     # Read config file
-    config = getconfig(defaults)
+    config = getconfig(configfile, defaults)
 
     # Set variables
     username = config['main']['username']
