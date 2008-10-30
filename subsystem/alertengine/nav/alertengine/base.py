@@ -128,7 +128,6 @@ def check_alerts(debug=False):
                     del filtergroupcontents
                 del alert
             del account
-            del alertsubscription
             del permissions
 
     # Get all queued alerts.
