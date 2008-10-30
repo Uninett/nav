@@ -30,10 +30,11 @@ __license__ = "GPL"
 __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 __id__ = "$Id$"
 
+import gc
 import logging
 from datetime import datetime
 
-from django.db import transaction
+from django.db import transaction, reset_queries
 
 from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress, FilterGroup
 from nav.models.event import AlertQueue
@@ -91,6 +92,12 @@ def check_alerts(debug=False):
 
                     accounts.append( (account, tmp, permissions) )
 
+                # Clean up varibales
+                del current_alertsubscriptions
+                del permissions
+                del account
+                del tmp
+
         # Check all acounts against all their active subscriptions
         for account, alertsubscriptions, permissions in accounts:
             logger.debug("Cheking new alerts for account '%s'" % account)
@@ -117,6 +124,13 @@ def check_alerts(debug=False):
                             logger.warning('alert %d not queued to %s due to lacking permissions' % (alert.id, account))
                     else:
                         logger.debug('alert %d: did not match the alertsubscription %d of user %s' % (alert.id, alertsubscription.id, account))
+
+                    del alertsubscription
+                    del filtergroupcontents
+            del alert
+        del account
+        del alertsubscription
+        del permissions
 
     # Get all queued alerts.
     queued_alerts = AccountAlertQueue.objects.all()
@@ -225,6 +239,8 @@ def check_alerts(debug=False):
             else:
                 logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
+            del queued_alert
+
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
         for account in sent_daily:
@@ -254,6 +270,11 @@ def check_alerts(debug=False):
     if num_failed_sends:
         logger.warning('Send %d alerts failed, trying again on next run.', num_failed_sends)
 
+    del new_alerts
+    del queued_alerts
+
+    reset_queries()
+    gc.collect()
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
