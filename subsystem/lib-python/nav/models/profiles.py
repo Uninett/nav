@@ -191,7 +191,7 @@ class AccountGroup(models.Model):
 class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True)
     property = models.CharField()
     value = models.CharField()
 
@@ -566,7 +566,7 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups.'''
 
-    owner = models.ForeignKey('Account')
+    owner = models.ForeignKey('Account', null=True)
     name = models.CharField()
 
     class Meta:
@@ -652,7 +652,7 @@ class Filter(models.Model):
 class FilterGroup(models.Model):
     '''A set of filters group contents that an account can subscribe to or be given permission to'''
 
-    owner = models.ForeignKey('Account')
+    owner = models.ForeignKey('Account', null=True)
     name = models.CharField()
     description = models.CharField()
 
@@ -855,7 +855,7 @@ class SMSQueue(models.Model):
         (IGNORED, _('ignored')),
     )
 
-    account = models.ForeignKey('Account', db_column='accountid')
+    account = models.ForeignKey('Account', db_column='accountid', null=True)
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
     message = models.CharField(max_length=145, db_column='msg')
@@ -880,9 +880,9 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     '''Defines which alerts should be keept around and sent at a later time'''
 
-    account = models.ForeignKey('Account')
-    subscription = models.ForeignKey('AlertSubscription')
-    alert = models.ForeignKey('AlertQueue')
+    account = models.ForeignKey('Account', null=True)
+    subscription = models.ForeignKey('AlertSubscription', null=True)
+    alert = models.ForeignKey('AlertQueue', null=True)
     insertion_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:

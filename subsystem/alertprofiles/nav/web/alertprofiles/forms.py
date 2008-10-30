@@ -146,9 +146,17 @@ class AlertSubscriptionForm(forms.ModelForm):
 
             self.fields['alert_address'] = forms.ChoiceField(
                     choices=address_choices,
+                    error_messages={
+                        'required': 'Alert address is a required field.',
+                        'invalid_choice': 'The selected alert address is a invalid choice.',
+                    }
                 )
             self.fields['filter_group'] = forms.ChoiceField(
                     choices=filter_group_choices,
+                    error_messages={
+                        'required': 'Filter group is a required field.',
+                        'invalid_choice': 'The selected filter group is a invalid choice.',
+                    }
                 )
 
     def clean(self):

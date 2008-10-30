@@ -515,7 +515,8 @@ CREATE TABLE rrd_file (
   subsystem VARCHAR REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid  INT REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   key       VARCHAR,
-  value     VARCHAR
+  value     VARCHAR,
+  CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename)
 );
 
 -- Each datasource for each rrdfile is registered here. We need the name and
