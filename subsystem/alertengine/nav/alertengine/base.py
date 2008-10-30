@@ -262,7 +262,7 @@ def check_alerts(debug=False):
 
     num_deleted = num_total_alerts - AlertQueue.objects.count()
 
-    logger.info('Got %d new alerts, sent %d alerts, %d queued alerts, %d alerts deleted, %d failed sends',
+    logger.info('Got %d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s)',
         num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends)
 
     if num_failed_sends:
