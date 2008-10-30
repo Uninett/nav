@@ -91,12 +91,11 @@ def check_alerts(debug=False):
                         permissions.append(filtergroup.filtergroupcontent_set.all())
 
                     accounts.append( (account, tmp, permissions) )
+                    del permissions
 
-                # Clean up varibales
-                del current_alertsubscriptions
-                del permissions
-                del account
                 del tmp
+                del current_alertsubscriptions
+                del account
 
         # Check all acounts against all their active subscriptions
         for account, alertsubscriptions, permissions in accounts:
@@ -127,10 +126,10 @@ def check_alerts(debug=False):
 
                     del alertsubscription
                     del filtergroupcontents
-            del alert
-        del account
-        del alertsubscription
-        del permissions
+                del alert
+            del account
+            del alertsubscription
+            del permissions
 
     # Get all queued alerts.
     queued_alerts = AccountAlertQueue.objects.all()
