@@ -57,7 +57,6 @@ def check_alerts(debug=False):
         AlertAddress.DEBUG_MODE = True
 
     now = datetime.now()
-    accounts = []
     num_sent_alerts = 0
     num_failed_sends = 0
 
@@ -117,6 +116,8 @@ def check_alerts(debug=False):
 
 @transaction.commit_on_success
 def handle_new_alerts(new_alerts):
+    accounts = []
+
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
