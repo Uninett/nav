@@ -44,6 +44,7 @@ subdirs = src \
 	subsystem/messages \
 	subsystem/netmap \
 	subsystem/networkexplorer \
+	subsystem/radius \
 	subsystem/report \
 	subsystem/seeddb \
 	subsystem/smsd \

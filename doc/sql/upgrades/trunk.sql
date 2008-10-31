@@ -8,7 +8,8 @@
  *
  * If you are keeping your installation in sync with the default branch, you
  * should watch this file for changes and run them when updating (check the
- * diffs!)
+ * diffs!).  We also recommend running navschema.py on each schema upgrade,
+ * to ensure that your database's search path is alway up to date.
  *
  * Connect to PostgreSQL as the postgres superuser or the nav database user
  * like this:
@@ -35,6 +36,56 @@ WHERE rrd_fileid IN (SELECT b.rrd_fileid
 -- Modify rrd_file to prevent duplicate path/filename entries
 ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename);
 
+-- Tables and indices for new radius accounting subsystem
+CREATE SCHEMA radius;
+SET search_path TO radius;
+
+CREATE TABLE radiusacct (
+        RadAcctId               BIGSERIAL PRIMARY KEY,
+        AcctSessionId           VARCHAR(96) NOT NULL,
+        AcctUniqueId            VARCHAR(32) NOT NULL,
+        UserName                VARCHAR(70),
+        Realm                   VARCHAR(24),
+        NASIPAddress            INET NOT NULL,
+        NASPortType             VARCHAR(32),
+        CiscoNASPort            VARCHAR(32),
+        AcctStartTime           TIMESTAMP,
+        AcctStopTime            TIMESTAMP,
+        AcctSessionTime         BIGINT,
+        AcctInputOctets         BIGINT,
+        AcctOutputOctets        BIGINT,
+        CalledStationId         VARCHAR(50),
+        CallingStationId        VARCHAR(50),
+        AcctTerminateCause      VARCHAR(32),
+        FramedProtocol          VARCHAR(32),
+        FramedIPAddress         INET,
+        AcctStartDelay          BIGINT,
+        AcctStopDelay           BIGINT
+);
+
+CREATE TABLE radiuslog (
+        ID                      BIGSERIAL PRIMARY KEY,
+        Time                    TIMESTAMP with time zone,
+        Type                    VARCHAR(10),
+        Message                 VARCHAR(200),
+        Status                  VARCHAR(65),
+        UserName                VARCHAR(70),
+        Client                  VARCHAR(65),
+        Port                    VARCHAR(8)
+        );
+
+
+-- For use by onoff-, update-, stop- and simul_* queries
+CREATE INDEX radiusacct_active_user_idx ON radiusacct (UserName) WHERE AcctStopTime IS NULL;
+-- and for common statistic queries:
+CREATE INDEX radiusacct_start_user_index ON radiusacct (AcctStartTime, lower(UserName));
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, UserName);
+
+CREATE INDEX radiuslog_time_index ON radiuslog(time);
+CREATE INDEX radiuslog_username_index ON radiuslog(UserName);
+
+RESET search_path;
+
 ------------------------------------------------------------------------------
 -- simple schema version check table
 ------------------------------------------------------------------------------
@@ -50,3 +101,4 @@ INSERT INTO nav_schema_version (version) VALUES ('default');
 -- Ensure only a single row will ever exist in this table.
 CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
     DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();
+
