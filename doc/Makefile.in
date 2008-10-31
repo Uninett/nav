@@ -31,5 +31,5 @@ install:
 	done
 	@for file in $(binfiles); do \
 	  targetname=$$(basename $$file) ; \
-	  $(INSTALL) -v -m 644 -D $$file $(DESTDIR)$(bindir)/$$targetname || exit 1; \
+	  $(INSTALL) -v -m 755 -D $$file $(DESTDIR)$(bindir)/$$targetname || exit 1; \
 	done
