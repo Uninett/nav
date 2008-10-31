@@ -238,6 +238,7 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return '%s by %s' % (self.address, self.type.name)
 
+    @transaction.commit_manually
     def send(self, alert, type=_('now'), dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types
 
@@ -251,13 +252,19 @@ class AlertAddress(models.Model):
 
         try:
             # Wrap all send methods in commit on success
-            transaction.commit_on_success(self.type.send)(self, alert, language=lang, type=type)
+            if self.type.send(self, alert, language=lang, type=type):
+                transaction.commit()
+            else:
+                transaction.rollback()
+
         except DispatcherException, e:
             logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            transaction.rollback()
             return False
 
         except Exception, e:
             logger.exception('Unhandeled error from %s' % self.type)
+            transaction.rollback()
             return False
 
         return True

@@ -39,7 +39,10 @@ Performing the schema upgrade
  
      psql -f <upgrade-script.sql> nav <username>
 
-4. If everything looks OK, start NAV again by issuing the command "nav
+4. Run the navschema.py program.  See the notes below about namespaces
+   and search paths if you want to know why.
+
+5. If everything looks OK, start NAV again by issuing the command "nav
    start" and then start the Apache and Tomcat web servers.
 
 
@@ -67,3 +70,15 @@ then loaded into separate namespaces in the new database.
 On most systems, the script should be run by the postgres shell
 account (via su or sudo) to achieve superuser access in PostgreSQL.
 For detailed info on usage of the script, run it with the -h option.
+
+
+Making sure all namespaces are in the NAV database search path
+--------------------------------------------------------------
+To ensure that all NAV tables can be easily found by NAV processes,
+all the namespaces in the NAV database must be on the database's
+configured search path.
+
+Updating the search_path without overwriting local changes isn't
+easily done with SQL, so we've created the navschema.py program to
+take care of this.  We recommend running this program after each NAV
+upgrade to ensure the search path is properly up-to-date.
