@@ -86,6 +86,7 @@ CREATE SCHEMA manage;
 CREATE SCHEMA profiles;
 CREATE SCHEMA logger;
 CREATE SCHEMA arnold;
+CREATE SCHEMA radius;
 
 -- Now, initialize the database
 SET search_path = manage;
