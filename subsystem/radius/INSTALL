@@ -1,15 +1,16 @@
 Author:         Roger Kristiansen <roger.kristiansen@gmail.com>
-		Kai Bjørnenak <kai.bjornenak@cc.uit.no>
+                Kai Bjørnenak <kai.bjornenak@cc.uit.no>
 
 Date:           Aug. 4, 2005
 
-Changelog: 	Sep. 18, 2005 
-		Mar. 30, 2006 - This module originally
+Changelog:      Sep. 18, 2005 
+                Mar. 30, 2006 - This module originally
                 intended to be a Radius accounting module. Updated
                 docs to reflect that it is now made into a more
                 generic Radius module.
-		Aug 6, 2008 - Some updates to reflect changes done
-		in the module.
+                Aug 6, 2008 - Some updates to reflect changes done
+                in the module.
+                Oct 31, 2008 - Some updates to fit in with NAV 3.5.
 
 If you find errors or unclear instructions in this file, please notify the
 author, and a attempt at fixing it will be made.
@@ -17,7 +18,7 @@ author, and a attempt at fixing it will be made.
 
 Table of contents:
 
-0. Enviroment and testing
+0. Environment and testing
 1. Installing the accounting module
     Step 1: Configuring freeradius
     Step 2: Configuring your switches
@@ -34,7 +35,7 @@ Table of contents:
 --------------------------------------------------------------------------------
 
 
-0. Enviroment and testing
+0. Environment and testing
 #########################
 
 The module has been tested and run on the following:
@@ -64,7 +65,7 @@ server          - Hostname to your server running the PostgreSQL DB
 login           - The name of the user you granted INSERT and UPDATE 
                   privilege to on the radius accounting table.
 password        - Password.
-radius_db       - This should be set to "manage" for a standard NAV install
+radius_db       - This will be "nav" for a typical NAV install
 acct_table1     - Should be set to "radiusacct"
 acct_table2     - Same as above. Freeradius lets you log Start and Stop 
                   packets to different tables, but we don't make use of this.
@@ -73,14 +74,14 @@ The accounting queries in this file also needs to be replaced, since we have
 messed around a bit with the default setup of the table. Replace them with 
 these:
 
-	accounting_onoff_query = "UPDATE ${acct_table1} \
-		SET AcctStopTime = (now() - '%{Acct-Delay-Time:-0}'::interval), \
-		AcctSessionTime = (EXTRACT(EPOCH FROM(now()::timestamp with time zone - AcctStartTime::timestamp with time zone - '%{Acct-Delay-Time:-0}'::interval)))::BIGINT, \
-		AcctTerminateCause='%{Acct-Terminate-Cause}', AcctStopDelay = '%{Acct-Delay-Time:-0}' \
-		WHERE AcctSessionTime IS NULL AND AcctStopTime IS NULL AND NASIPAddress= '%{NAS-IP-Address}' AND AcctStartTime <= now()"
+        accounting_onoff_query = "UPDATE ${acct_table1} \
+                SET AcctStopTime = (now() - '%{Acct-Delay-Time:-0}'::interval), \
+                AcctSessionTime = (EXTRACT(EPOCH FROM(now()::timestamp with time zone - AcctStartTime::timestamp with time zone - '%{Acct-Delay-Time:-0}'::interval)))::BIGINT, \
+                AcctTerminateCause='%{Acct-Terminate-Cause}', AcctStopDelay = '%{Acct-Delay-Time:-0}' \
+                WHERE AcctSessionTime IS NULL AND AcctStopTime IS NULL AND NASIPAddress= '%{NAS-IP-Address}' AND AcctStartTime <= now()"
 
 
-	accounting_update_query = "UPDATE ${acct_table1} \
+        accounting_update_query = "UPDATE ${acct_table1} \
                 SET FramedIPAddress = NULLIF('%{Framed-IP-Address}', '')::inet, \
                 AcctSessionTime = (EXTRACT(EPOCH FROM(now()::timestamp with time zone - AcctStartTime::timestamp with time zone - '%{Acct-Delay-Time:-0}'::interval)))::BIGINT, \
                 AcctInputOctets = (('%{Acct-Input-Gigawords:-0}'::bigint << 32) + '%{Acct-Input-Octets:-0}'::bigint), \
@@ -249,17 +250,21 @@ have chosen a different name than the default.
 #####################################
 
 You probably don't want the entries in the error log table or the
-accounting log table accumulating forever, so to delete them
-automatically, enter the navcron crontab ('crontab -u navcron -e'),
-and make two entries executing radiuslog_clean.py and navclean.py on
-regular intervals. ie:
+accounting log table accumulating forever.  To arrange for periodic
+deletion of old records, create a cron snippet in NAV's etc/cron.d/
+directory called "radiusclean" and add the following lines to it:
 
-50 5 * * 6 /path/to/navclean.py --radius -E "3 months" -f
 
-45 5 * * 6 /path/to/radius/src/radiuslog_clean.py -E '1 month'
+50 5 * * 6 /path/to/navclean.py --radiusacct -E "3 months" -f
+45 5 * * 6 /path/to/navclean.py --radiuslog  -E "1 month" -f
 
-This will run the scripts once a week, deleting all entries older than
-three and one month respectively. Feel free to change the intervals to
+To insert the cron snippet into navcron's crontab, run:
+
+  sudo nav start radiusclean
+
+This will run the navclean.py program once a week, deleting all radius
+accounting entries older than three months and all radius error log
+entries older than one month.  Feel free to change the intervals to
 something you think is suitable for your organization.
 
 
