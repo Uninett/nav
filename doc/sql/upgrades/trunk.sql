@@ -85,3 +85,20 @@ CREATE INDEX radiuslog_time_index ON radiuslog(time);
 CREATE INDEX radiuslog_username_index ON radiuslog(UserName);
 
 RESET search_path;
+
+------------------------------------------------------------------------------
+-- simple schema version check table
+------------------------------------------------------------------------------
+CREATE TABLE manage.nav_schema_version (
+    version VARCHAR NOT NULL,
+    time TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- FIXME: Insert default as version name.  This should be updated on
+-- each NAV release branch.
+INSERT INTO nav_schema_version (version) VALUES ('default');
+
+-- Ensure only a single row will ever exist in this table.
+CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
+    DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();
+
