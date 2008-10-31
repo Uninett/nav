@@ -25,6 +25,7 @@ def verify_search_path():
         'profiles',
         'logger',
         'arnold',
+        'radius',
         ]
     add_schemas = []
 
