@@ -1,3 +1,57 @@
+Version 3.5.0b2
+(released 31 October 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * Radius accounting module added.  Enables NAV to store accounting logs from
+    FreeRADIUS servers in the database, and search this data in the web
+    interface.
+
+  * HP SwitchStack support removed.  This functionality would cause much grief
+    for those who have non-SwitchStack devices from HP.  See release NOTES for
+    more information about migrating to this version if you monitor HP
+    devices.
+
+  * The report tool now displays the timestamp of report results.  This
+    enables the user to see whether the results are retrieved live or from the
+    report cache.  The cache is now also invalidated immediately if the report
+    configuration files are changed.
+
+ Bugfixes:
+
+  * LP#273030 (getDeviceData crashes with ConcurrentModificationException)
+  * LP#276225 (Local reports crash)
+  * LP#276230 (Report name missing from automated report list)
+  * LP#276246 (Report's advanced search form cannot be closed)
+  * LP#277569 (Duplicate result rows in Machine Tracker)
+  * LP#280145 (getDeviceData and eventEngine stop working after PostgreSQL
+               disconnect)
+  * LP#283102 (ARP records are wrongly associated with scope/static/reserved
+               prefixes)
+  * LP#284939 (AlertEngine resends alerts over and over)
+  * LP#284950 (AlertEngine re-sends SMS messages indefinitely)
+  * LP#284952 (AlertEngine logs are too verbose at loglevel INFO)
+  * LP#285328 (ipdevinfo crashes with TypeError traceback)
+  * LP#285331 (Duplicate RRD file references)
+  * LP#286309 (Add new subscription should check for missing alertaddres and
+               filtergroups)
+  * LP#287434 (DEFAULT_FROM_EMAIL setting missing from nav.conf example)
+  * LP#289823 (AlertEngine idles in transactions)
+  * LP#289825 (AlertEngine eats RAM)
+
+ 
 Version 3.5.0b1
 (released 07 October 2008)
 
