@@ -29,7 +29,6 @@ from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
 
 from nav import auth
-from nav.config import readConfig
 
 from mod_python import apache, util, Cookie
 from mod_python.util import FieldStorage
@@ -44,7 +43,6 @@ def handler(req):
     connection = nav.db.getConnection('netmapserver', 'manage')
     db = connection.cursor()
 
-    conf = readConfig('nav.conf')
 
     try:
         if req.is_https():
@@ -139,7 +137,6 @@ def handler(req):
         page = Netmap()
         page.sessionID = cookies['nav_sessid']
         page.baseURL = baseURL[:-1]
-        page.domain_suffix = conf.get('DOMAIN_SUFFIX', None)
         if auth.hasPrivilege(req.session['user'], None, None):
             page.is_admin = "True"
         else:

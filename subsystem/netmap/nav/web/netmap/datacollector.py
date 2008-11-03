@@ -26,7 +26,12 @@ import nav
 import rrdtool
 import cgi
 
+from nav.config import readConfig
+
 log = unbuffered()
+    
+conf = readConfig('nav.conf')
+domain_suffix = conf.get('DOMAIN_SUFFIX', None)
 
 def getData(db_cursor = None):
     """Returns a dictionary containing the netboxes with their modules, ports and connections"""
@@ -233,6 +238,8 @@ ORDER BY from_sysname, sysname, swport.speed DESC
                 netbox['load'] = 'unknown'
         else:
             netbox['load'] = 'unknown'
+        if netbox['sysname'].endswith(domain_suffix):
+            netbox['sysname'] = netbox['sysname'][0:len(netbox['sysname'])-len(domain_suffix)]
 
 
 
