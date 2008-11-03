@@ -1,0 +1,3 @@
+SetHandler python-program
+PythonHandler radius
+DirectoryIndex radius.py

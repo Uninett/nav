@@ -856,9 +856,6 @@ sub makeinterfaceTargets {
 	    my $id = $params[0];
 	    my $ifindex = $params[1];
 	    my $interface = $params[2];
-	    if ($vendor eq 'hp') {
-		$ifindex =~ s/^\d0?(.*)/$1/;
-	    }
 
 	    # Some interfaces exists more than once in the database, lets skip them
 	    next if $ifindexhash{$ifindex};

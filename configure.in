@@ -96,6 +96,8 @@ AC_OUTPUT(Makefile
 	subsystem/messages/Makefile
 	subsystem/netmap/Makefile
 	subsystem/networkexplorer/Makefile
+	subsystem/radius/src/Makefile
+        subsystem/radius/Makefile
 	subsystem/report/Makefile
 	subsystem/seeddb/Makefile
 	subsystem/seeddb/src/Makefile

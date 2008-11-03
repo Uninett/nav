@@ -708,22 +708,6 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
     # 3 - testing (no operational packets can be passed)
     oid = '.1.3.6.1.2.1.2.2.1.7'
 
-    # We need to check for hp as they don't use the normal ifindex
-    # notation
-    if vendorid == 'hp':
-        # Ensure that module is a string
-        module = str(module)
-        if int(module) > 0:
-            community = community + "@sw" + module
-
-        # Use the last parts of the ifindex as real ifindex. Check
-        # number of modules to see how many characters to grab.
-        if int(module) <= 9:
-            ifindex = int(str(ifindex)[1:])
-        else:
-            ifindex = int(str(ifindex)[2:])
-
-
     ifindex = str(ifindex)
     query = oid + '.' + ifindex
 
@@ -806,41 +790,6 @@ def changePortVlan(ip, ifindex, vlan):
 
         oid = "1.3.6.1.2.1.17.7.1.4.5.1.1"
         type = 'u'
-
-        # Because we have a very strange way of storing ifindexes for
-        # hp-devices we need to do some magic here.
-
-        # We need the module to give the snmpset query to the correct
-        # community
-        q = """SELECT module FROM netbox
-        LEFT JOIN module USING (netboxid)
-        LEFT JOIN swport USING (moduleid)
-        WHERE ip = %s AND ifindex = %s
-        """
-
-        try:
-            c.execute(q, (ip, ifindex))
-        except nav.db.driver.ProgrammingError, e:
-            raise DbError, e
-
-        module = c.fetchone()[0]
-
-        # Set community based on module
-        if module > 0:
-            rw = rw + "@sw" + str(module)
-            ro = ro + "@sw" + str(module)
-
-            #print "ro set to %s, rw set to %s" %(ro, rw)
-
-
-        # We assume that the module is the first part of the ifindex
-        # and the "real" ifindex the rest.
-
-        if module <= 9:
-            ifindex = int(str(ifindex)[1:])
-        else:
-            ifindex = int(str(ifindex)[2:])
-
 
     else:
 

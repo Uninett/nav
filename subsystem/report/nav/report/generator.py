@@ -172,16 +172,16 @@ class ConfigParser:
         reResultLocal = reportRe.search(self.configLocal)
 
         if reResult:
-            if reResultLocal:
-                # Local report config overloads default report config.
-                self.parseConfiguration(reResult.group(1))
-                self.parseConfiguration(reResultLocal.group(1))
-                return 1
-
             self.parseConfiguration(reResult.group(1))
-            return 1
+        if reResultLocal:
+            # Local report config overloads default report config.
+            self.parseConfiguration(reResultLocal.group(1))
+
+        if reResult or reResultLocal:
+            return True
+        
         else:
-            return 0
+            return False
 
 
     def parseConfiguration(self,reportConfig):

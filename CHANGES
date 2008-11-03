@@ -1,3 +1,82 @@
+Version 3.5.0b1
+(released 07 October 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes substantial changes to the NAV database. If  ##
+## you are upgrading from a previous release you also need to      ##
+## upgrade your database schema. For information on how to upgrade ##
+## the database schema, please take a look in                      ##
+## doc/sql/upgrades/README . See also the release NOTES for more   ##
+## upgrade info.                                                   ##
+##                                                                 ##
+#####################################################################
+
+ Launchpad.net has replaced SourceForge.net as NAV's project site
+ provider.  All bug/feature number references from here on are
+ prefixed with 'LP#'.
+
+ New features and improvements:
+
+  * The four NAV databases are merged into a single database.
+
+  * IP Device Center is replaced by IP Device Info, written from
+    scratch using Django.
+  
+  * Alert Profiles, user admin, user info and network explorer web
+    tools rewritten from scratch using Python/Django.
+
+  * AlertEngine har been rewritten from scratch using Python.
+
+  * Netmap replaces the old Traffic Map solution.
+
+  * Tomcat and PHP are no longer needed by NAV.
+
+  * The report tool now supports local site reports using
+    report.local.conf, while the report.conf distributed with NAV can
+    be kept untouched.
+
+  * Reports can now be configured to display column sum totals.
+
+  * All available reports can now be listed, so they'll be available
+    even if someone forgot to update the front.html configuration
+    file.
+
+  * More flexible location/room/device lookups and selects in the
+    maintenance and device management interfaces.
+
+  * LP#258331 (Warn user when port activity interval is larger than
+               the actual data set)
+  * LP#258340 (Additional information on switch ports)
+  * LP#263610 (List more info about SRVs)
+  * LP#263897 (Add a duplex mismatch report)
+  * LP#263899 (Add a spanning tree blocked ports report)
+
+ Bugfixes:
+
+  * LP#262301 (Machine tracker links to ipdevinfo using wrong sysname
+               for old records)
+  * LP#258304 (Bug in color legend, browse/activity port view)
+
+
+Version 3.4.4
+(released 29 October 2008)
+
+ Bugfixes:
+
+  * LP#263931 regression (Status subsystem crashes when there are custom 
+              status page preferences)
+  * LP#273030 (getDeviceData crashes with ConcurrentModificationException)
+  * LP#273866 (servicemon potentially crashes during NTP clock adjustments)
+  * LP#277569 (Duplicate result rows in Machine Tracker)
+  * LP#280145 (getDeviceData and eventEngine stop working after PostgreSQL
+               disconnect)
+  * LP#283102 (ARP records are wrongly associated with
+               scope/static/reserved prefixes)
+
+
 Version 3.4.3
 (released 16 September 2008)
 

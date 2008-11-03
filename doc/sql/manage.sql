@@ -515,7 +515,8 @@ CREATE TABLE rrd_file (
   subsystem VARCHAR REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid  INT REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   key       VARCHAR,
-  value     VARCHAR
+  value     VARCHAR,
+  CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename)
 );
 
 -- Each datasource for each rrdfile is registered here. We need the name and
@@ -881,3 +882,19 @@ sysname VARCHAR PRIMARY KEY NOT NULL,
 xpos double precision NOT NULL,
 ypos double precision NOT NULL
 );
+
+------------------------------------------------------------------------------
+-- simple schema version check table
+------------------------------------------------------------------------------
+CREATE TABLE nav_schema_version (
+    version VARCHAR NOT NULL,
+    time TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- FIXME: Insert default as version name.  This should be updated on
+-- each NAV release branch.
+INSERT INTO nav_schema_version (version) VALUES ('default');
+
+-- Ensure only a single row will ever exist in this table.
+CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
+    DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();

@@ -156,7 +156,15 @@ def main(args):
     logger.info('Starting alertengine loop.')
     while True:
         try:
+            if hasattr(connection.connection, 'set_isolation_level'):
+                logger.debug('Restoreing isolation level')
+                connection.connection.set_isolation_level(1)
+
             check_alerts(debug=opttest)
+
+            if hasattr(connection.connection, 'set_isolation_level'):
+                logger.debug('Reducing isolation level')
+                connection.connection.set_isolation_level(0)
 
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
