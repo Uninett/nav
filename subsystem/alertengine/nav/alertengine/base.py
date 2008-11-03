@@ -299,7 +299,7 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
         del queued_alert
-        del queued_alerts
+    del queued_alerts
 
     return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends)
 
