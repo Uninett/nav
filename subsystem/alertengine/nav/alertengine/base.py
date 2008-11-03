@@ -57,8 +57,6 @@ def check_alerts(debug=False):
         AlertAddress.DEBUG_MODE = True
 
     now = datetime.now()
-    num_sent_alerts = 0
-    num_failed_sends = 0
 
     # Get all alerts that aren't in alert queue due to subscription
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
@@ -77,9 +75,9 @@ def check_alerts(debug=False):
     logger.debug('Checking %d queued alerts' % len(queued_alerts))
 
     if len(queued_alerts):
-        sent_daily, sent_weekly = handle_queued_alerts(queued_alerts, now)
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = handle_queued_alerts(queued_alerts, now)
     else:
-        sent_daily, sent_weekly = [], []
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = [], [], 0, 0
 
     # Update the when the user last recieved daily or weekly alerts.
     # FIXME is last sent ever updated?
@@ -192,6 +190,9 @@ def handle_queued_alerts(queued_alerts, now=None):
     sent_weekly = []
     sent_daily = []
 
+    num_sent_alerts = 0
+    num_failed_sends = 0
+
     for queued_alert in queued_alerts:
         try:
             subscription = queued_alert.subscription
@@ -290,7 +291,7 @@ def handle_queued_alerts(queued_alerts, now=None):
         del queued_alert
         del queued_alerts
 
-        return (sent_daily, sent_weekly)
+    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends)
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
