@@ -36,7 +36,8 @@ from datetime import datetime
 
 from django.db import transaction, reset_queries
 
-from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress, FilterGroup
+from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, \
+        AlertSubscription, AlertAddress, FilterGroup, AlertPreference
 from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
@@ -80,13 +81,10 @@ def check_alerts(debug=False):
         sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = [], [], 0, 0
 
     # Update the when the user last recieved daily or weekly alerts.
-    # FIXME is last sent ever updated?
     if sent_daily:
-        for account in sent_daily:
-            account.alertpreference.last_sent_day = now
+        AlertPreference.objects.filter(account__in=sent_daily).update(last_sent_day=now)
     if sent_weekly:
-        for account in sent_weekly:
-            account.alertpreference.last_sent_weekly = now
+        AlertPreference.objects.filter(account__in=sent_weekly).update(last_sent_week=now)
 
     # Get id's of alerts that have been queued for users.
     alerts_in_account_queues = [a.alert_id for a in AccountAlertQueue.objects.all()]
