@@ -78,6 +78,8 @@ def check_alerts(debug=False):
 
     if len(queued_alerts):
         sent_daily, sent_weekly = handle_queued_alerts(queued_alerts, now)
+    else:
+        sent_daily, sent_weekly = [], []
 
     # Update the when the user last recieved daily or weekly alerts.
     # FIXME is last sent ever updated?
