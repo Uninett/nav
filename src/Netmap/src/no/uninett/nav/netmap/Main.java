@@ -119,8 +119,6 @@ public class Main extends JPrefuseApplet {
             this.setSize(new java.awt.Dimension(800, 600));
         }
 
-      
-
         m_resourceHandler = new ResourceHandler();
         try {
             availableCategories = m_resourceHandler.getAvailableCategories();
@@ -323,6 +321,11 @@ public class Main extends JPrefuseApplet {
 
         log.setLevel(Level.ALL);
         log.entering("Main", "main");
+
+	if (!prepared){
+		System.out.print("Not prepared. waiting");
+		while(!prepared){}
+	}
 
         m_vis = new Visualization();
         m_display = new prefuse.Display();
