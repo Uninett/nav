@@ -169,7 +169,7 @@ the job.
 Also add a line saying 'sql' to the accounting{} section. We have put it last,
 but we have also seen people recommending it being put between 'unix' and 
 'radutmp', although the reason was unclear. We've experienced no known 
-problems by putting it last. :]
+problems by putting it last.
 
 
 .-----------------------------------.
@@ -217,8 +217,8 @@ Restart freeradius, and you should be good to go.
 Edit the variables at the top of
 /path/to/radius_module/src/radiusparser.py to reflect the hostname of
 the nav database server, the username and password you want for
-connecting to the database, and the path to the Freeradius error log
-file.
+connecting to the database, and the path to the Freeradius log file,
+'radius.log'.
 
 Copy the script to a location of your choice on the server where the
 radius.log is accessible as part of the file system. Create a cron job
