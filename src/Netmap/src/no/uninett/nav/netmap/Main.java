@@ -414,13 +414,10 @@ public class Main extends JPrefuseApplet {
     static public String bwToString(String bandwidth){
 	    try {
 		    Double bw = Double.parseDouble(bandwidth);
-		    if (bw < 1024){
-			    return String.format("%.2f", bw) + "Kbit/s";
+		    if (bw > 1024){
+			    return String.format("%.2f", (bw/(100000))) + "Gbit/s";
 		    }
-		    if (bw > 1048576){
-			    return String.format("%.3f", (bw/(1024*1024))) + "Gbit/s";
-		    }
-		    return String.format("%.2f", (bw/1024)) + "Mbit/s";
+		    return String.format("%.2f", (bw/100)) + "Mbit/s";
 
 	    } catch(Exception e){
 		    return "unknown";
