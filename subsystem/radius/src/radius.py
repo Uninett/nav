@@ -323,6 +323,10 @@ class AcctSearchForm:
             # Leading or trailing whitespace is probably in there by 
             # mistake, so remove it.
             self.searchstring = self.searchstring.strip()
+        else:
+            # An empty Searchstring is no good
+            raise EmptySearchstringWarning
+
 
         if self.timestamp:
             # Leading or trailing whitespace is probably in there by 
@@ -969,3 +973,7 @@ class DaysSyntaxWarning(UserInputSyntaxWarning):
 class HoursSyntaxWarning(UserInputSyntaxWarning):
     def __str__(self):
         return "The hour field can only contain integer or float numbers"
+
+class EmptySearchstringWarning(UserInputSyntaxWarning):
+    def __str__(self): 
+        return "Searchstring can not be empty"
