@@ -255,6 +255,8 @@ def do_delete_module(request):
         )
         return HttpResponseRedirect(reverse('devicehistory-module'))
 
+    # FIXME should there be posted an event, telling the event/alert system
+    # that this module is now deleted?
     modules = Module.objects.filter(id__in=[id for module in history])
 
     new_message(
