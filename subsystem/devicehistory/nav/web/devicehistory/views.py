@@ -38,6 +38,7 @@ from nav.django.context_processors import account_processor
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType, EventType
+from nav.web.message import new_message, Messages
 from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
@@ -57,6 +58,8 @@ DeviceQuickSelect_post_error_kwargs = {
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
 
+_ = lambda a: a
+
 def devicehistory_search(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     info_dict = {
@@ -64,14 +67,14 @@ def devicehistory_search(request):
         'quickselect': DeviceQuickSelect,
     }
     return render_to_response(
-       DeviceHistoryTemplate,
-       'devicehistory/history_search.html',
-       info_dict,
+        DeviceHistoryTemplate,
+        'devicehistory/history_search.html',
+        info_dict,
         RequestContext(
             request,
             processors=[account_processor]
         )
-   );
+    );
 
 def devicehistory_view(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
@@ -171,8 +174,16 @@ def register_error(request):
     return HttpResponseRedirect(reverse('devicehistory-registererror'))
 
 def delete_module(request):
+    params = []
+    confirm_deletion = False
+    if request.method == 'POST':
+        module_ids = request.POST.getlist('module')
+        params.append('module.moduleid IN (%s)' % ",".join([id for id in module_ids]))
+        confirm_deletion = True
+
     modules = AlertHistory.objects.extra(
         select={
+            'module_id': 'module.moduleid',
             'module': 'module.module',
             'module_description': 'module.descr',
             'netbox_name': 'netbox.sysname',
@@ -190,14 +201,68 @@ def delete_module(request):
             'module.up=\'n\'',
             'alerthist.end_time=\'infinity\'',
             'alerthist.eventtypeid=\'moduleState\'',
-        ]
+        ] + params
     ).order_by('start_time')
 
     info_dict = {
+        'active': {'module': True},
+        'confirm_delete': confirm_deletion,
         'modules': modules,
     }
     return render_to_response(
         DeviceHistoryTemplate,
         'devicehistory/delete_module.html',
         info_dict,
+        RequestContext(
+            request,
+            processors=[account_processor]
+        )
     )
+
+def do_delete_module(request):
+    if request.method != 'POST' or not request.POST.get('confirm_delete', False):
+        return HttpResponseRedirect(reverse('devicehistory-module'))
+
+    module_ids = request.POST.getlist('module')
+    params = [
+        'module.moduleid IN (%s)' % ",".join([id for id in module_ids])
+    ]
+
+    history = AlertHistory.objects.extra(
+        select={
+            'module': 'module.moduleid',
+        },
+        tables=[
+            'device',
+            'module',
+            'netbox',
+        ],
+        where=[
+            'device.deviceid=alerthist.deviceid',
+            'module.deviceid=device.deviceid',
+            'netbox.netboxid=module.netboxid',
+            'module.up=\'n\'',
+            'alerthist.end_time=\'infinity\'',
+            'alerthist.eventtypeid=\'moduleState\'',
+        ] + params
+    )
+
+    if history.count() == 0:
+        new_message(
+            request,
+            _('No modules selected'),
+            Messages.NOTICE
+        )
+        return HttpResponseRedirect(reverse('devicehistory-module'))
+
+    modules = Module.objects.filter(id__in=[id for module in history])
+
+    new_message(
+        request,
+        _('Deleted selected modules.'),
+        Messages.SUCCESS,
+    )
+
+    modules.delete()
+
+    return HttpResponseRedirect(reverse('devicehistory-module'))

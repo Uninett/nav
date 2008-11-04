@@ -44,5 +44,8 @@ urlpatterns = patterns('',
 
     url(r'^delete_module/$', delete_module,
         name='devicehistory-module'),
+
+    url(r'^do_delete_module/$', do_delete_module,
+        name='devicehistory-do_delete_module'),
 )
 
