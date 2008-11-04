@@ -36,7 +36,8 @@ from datetime import datetime
 
 from django.db import transaction, reset_queries
 
-from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, AlertSubscription, AlertAddress, FilterGroup
+from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, \
+        AlertSubscription, AlertAddress, FilterGroup, AlertPreference
 from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
@@ -57,8 +58,6 @@ def check_alerts(debug=False):
         AlertAddress.DEBUG_MODE = True
 
     now = datetime.now()
-    num_sent_alerts = 0
-    num_failed_sends = 0
 
     # Get all alerts that aren't in alert queue due to subscription
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
@@ -77,18 +76,15 @@ def check_alerts(debug=False):
     logger.debug('Checking %d queued alerts' % len(queued_alerts))
 
     if len(queued_alerts):
-        sent_daily, sent_weekly = handle_queued_alerts(queued_alerts, now)
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = handle_queued_alerts(queued_alerts, now)
     else:
-        sent_daily, sent_weekly = [], []
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = [], [], 0, 0
 
     # Update the when the user last recieved daily or weekly alerts.
-    # FIXME is last sent ever updated?
     if sent_daily:
-        for account in sent_daily:
-            account.alertpreference.last_sent_day = now
+        AlertPreference.objects.filter(account__in=sent_daily).update(last_sent_day=now)
     if sent_weekly:
-        for account in sent_weekly:
-            account.alertpreference.last_sent_weekly = now
+        AlertPreference.objects.filter(account__in=sent_weekly).update(last_sent_week=now)
 
     # Get id's of alerts that have been queued for users.
     alerts_in_account_queues = [a.alert_id for a in AccountAlertQueue.objects.all()]
@@ -104,7 +100,7 @@ def check_alerts(debug=False):
 
     num_deleted = num_total_alerts - AlertQueue.objects.count()
 
-    logger.info('Got %d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s)',
+    logger.info('%d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s)',
         num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends)
 
     if num_failed_sends:
@@ -192,6 +188,9 @@ def handle_queued_alerts(queued_alerts, now=None):
     sent_weekly = []
     sent_daily = []
 
+    num_sent_alerts = 0
+    num_failed_sends = 0
+
     for queued_alert in queued_alerts:
         try:
             subscription = queued_alert.subscription
@@ -199,7 +198,7 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
             continue
 
-        logger.debug('Stored alert %d: Checking if we should send alert to %s due to %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
+        logger.debug('Stored alert %d: Checking %s %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
 
         if subscription.type == AlertSubscription.NOW:
             if queued_alert.send():
@@ -215,9 +214,14 @@ def handle_queued_alerts(queued_alerts, now=None):
             # past the daily time and the alert was added to the queue before
             # this time
 
-            logger.debug('Tests: last sent %s, daily time %s, insertion time %s' % (last_sent.date() < now.date(), daily_time < now.time(), queued_alert.insertion_time.time() < daily_time))
+            last_sent_test = last_sent.date() < now.date()
+            daily_time_test = daily_time < now.time()
+            insertion_time_test = queued_alert.insertion_time.time() < daily_time
 
-            if last_sent.date() < now.date() and daily_time < now.time() and queued_alert.insertion_time.time() < daily_time:
+            logger.debug('Tests: last sent %s, daily time %s, insertion time %s' % \
+                    (last_sent_test, daily_time_test, insertion_time_test))
+
+            if last_sent_test and daily_time_test and insertion_time_test:
                 if queued_alert.send():
                     num_sent_alerts += 1
                     sent_daily.append(queued_alert.account)
@@ -232,9 +236,16 @@ def handle_queued_alerts(queued_alerts, now=None):
             # Check that we are at the correct weekday, and that the last sent
             # time is less than today, and that alert was inserted before the
             # weekly time.
-            logger.debug('Tests: weekday %s, last sent %s, weekly time %s, insertion time %s' % (weekly_day == now.weekday(), last_sent.date() < now.date(), weekly_time < now.time(), queued_alert.insertion_time.time() < weekly_time))
 
-            if weekly_day == now.weekday() and last_sent.date() < now.date() and weekly_time < now.time() and queued_alert.insertion_time.time() < weekly_time:
+            weekday_test = weekly_day == now.weekday()
+            last_sent_test = last_sent.date() < now.date()
+            weekly_time_test = weekly_time < now.time()
+            insertion_time_test = queued_alert.insertion_time.time() < weekly_time
+
+            logger.debug('Tests: weekday %s, last sent %s, weekly time %s, insertion time %s' % \
+                    (weekday_test, last_sent_test, weekly_time_test, insertion_time_test))
+
+            if weekday_test and last_sent_test and weekly_time_test and insertion_time_test:
                 if queued_alert.send():
                     num_sent_alerts += 1
                     sent_weekly.append(queued_alert.account)
@@ -288,9 +299,9 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
         del queued_alert
-        del queued_alerts
+    del queued_alerts
 
-        return (sent_daily, sent_weekly)
+    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends)
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
