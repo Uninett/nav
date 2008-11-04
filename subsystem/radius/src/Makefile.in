@@ -16,15 +16,21 @@ templates = AcctChartsTemplate.py AcctDetailTemplate.py AcctSearchTemplate.py \
 LogDetailTemplate.py LogTemplate.py
 
 files = radius.py radiuslib.py radius_config.py .htaccess
+binfiles = radiusparser.py
 
-.PHONY: all install install-lib install-web clean distclean
+.PHONY: all install install-bin install-lib install-web clean distclean
 
 all: $(templates)
 
 $(templates): %.py: %.tmpl
 	$(CHEETAH) compile $<
 
-install: install-lib install-web
+install: install-lib install-web install-bin
+
+install-bin:
+	for file in $(binfiles); do \
+	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
 
 install-lib: $(templates)
 	for file in $(templates); do \

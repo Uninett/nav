@@ -24,6 +24,13 @@
 #          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
 #
 
+"""Radius error log parser.
+
+This program was written to run on a radius server, not on the NAV
+server.  It has been written to not require any NAV libraries.
+
+It will require psycopg, a PostgreSQL driver for Python.
+"""
 
 import psycopg
 import sys
@@ -34,22 +41,24 @@ from time import mktime, strptime
 import glob
 import datetime
 
+# Configuration settings.
+# Update these for your setup.
+dbhost    = ""    # Hostname where the nav-database runs
+dbport    = 5432  # Port the PostgreSQL database listens to
+dbname    = "nav" # Name of the NAV database
+dbuser    = "nav" # Username for the nav-database, usually 'nav'
+dbpasswd  = ""    # Password for nav-user
+db_radiuslog_table = "radiuslog"
 
+radius_logfile = "" # Location of the freeradius-logfile to parse
+my_logfile = "./radiusparser.log" # Location of this program's debug log file
 
 def main(args):
 
-    # Config
-    host    = "" # Hostname where the nav-database runs
-    dbname  = "manage"
-    user    = "" # Username for the nav-database, usually 'nav'
-    passwd  = "" # Password for nav-user
-    db_radiuslog_table = "radiuslog"
-
-    logfile = "" # Location of the freeradius-logfile to parse
-
-
     try:
-         connection = psycopg.connect("host=%s dbname=%s user=%s password=%s" % (host, dbname, user, passwd))
+        db_params = (dbhost, dbport, dbname, dbuser, dbpasswd)
+        connection = psycopg.connect("host=%s port=%s dbname=%s user=%s "
+                                     "password=%s" % db_params)
     except psycopg.OperationalError, e:
         print "An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1])
         sys.exit(1)
@@ -57,8 +66,8 @@ def main(args):
     connection.autocommit(True)
     database = connection.cursor()
 
-    # Start "tail -f" on logfile
-    t = Tail(logfile, only_new=True)
+    # Start "tail -f" on radius_logfile
+    t = Tail(radius_logfile, only_new=True)
     t.nextline()
 
 
@@ -66,14 +75,14 @@ def main(args):
     type = 0
     message = 0
     status = 0
-    user = 0
+    dbuser = 0
     client = 0
     port = 0
 
     try:
       
         # Open DEBUG Logfile.
-        f = file("/usr/local/scripts/radiusparser.log", 'w+')
+        f = file(my_logfile, 'w+')
         f.write("\n\n\n\n****************** Script restarted *****************\n")
        
         for line in t:

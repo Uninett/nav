@@ -8,7 +8,8 @@
  *
  * If you are keeping your installation in sync with the default branch, you
  * should watch this file for changes and run them when updating (check the
- * diffs!)
+ * diffs!).  We also recommend running navschema.py on each schema upgrade,
+ * to ensure that your database's search path is alway up to date.
  *
  * Connect to PostgreSQL as the postgres superuser or the nav database user
  * like this:
@@ -36,7 +37,7 @@ WHERE rrd_fileid IN (SELECT b.rrd_fileid
 ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename);
 
 -- Tables and indices for new radius accounting subsystem
-
+CREATE SCHEMA radius;
 SET search_path TO radius;
 
 CREATE TABLE radiusacct (
@@ -84,3 +85,20 @@ CREATE INDEX radiuslog_time_index ON radiuslog(time);
 CREATE INDEX radiuslog_username_index ON radiuslog(UserName);
 
 RESET search_path;
+
+------------------------------------------------------------------------------
+-- simple schema version check table
+------------------------------------------------------------------------------
+CREATE TABLE manage.nav_schema_version (
+    version VARCHAR NOT NULL,
+    time TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- FIXME: Insert default as version name.  This should be updated on
+-- each NAV release branch.
+INSERT INTO nav_schema_version (version) VALUES ('default');
+
+-- Ensure only a single row will ever exist in this table.
+CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
+    DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();
+
