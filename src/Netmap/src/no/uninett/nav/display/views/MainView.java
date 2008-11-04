@@ -164,15 +164,19 @@ public class MainView {
 	    cancelActions();
 
 	    ArrayList<String> def_types = new ArrayList<String>(no.uninett.nav.netmap.Main.getAvailableCategories());
-		 ArrayList<String> link_type = new ArrayList<String>();
-		 try {
-	    	link_type = new ArrayList<String>(no.uninett.nav.netmap.Main.getResourceHandler().getAvailableLinkTypes());
-	    } catch (Exception e){}
-		 if (categories != null) {
+	    ArrayList<String> link_type = new ArrayList<String>();
+	    try {
+		    link_type.add("2");
+		    link_type.add("3");
+	    } catch (Exception e){
+	    	    e.printStackTrace();
+		    return;
+	    }
+	    if (categories != null) {
 		    for (String cat : categories) {
 			    if (def_types.contains(cat)) {
-					def_types.remove(cat);
-				}
+				    def_types.remove(cat);
+			    }
 		    }
 	    }
 	    if (linktypes != null){
@@ -192,7 +196,7 @@ public class MainView {
 	    String pred_string = "";
 
 	    for (String ntype : link_type) {
-		    pred_string += (" nettype = \'" + ntype + "\' OR");
+		    pred_string += (" layer = \'" + ntype + "\' OR");
 			if (ntype.equals("unknown")){
 				pred_string += " nettype =\'\' OR";
 			}

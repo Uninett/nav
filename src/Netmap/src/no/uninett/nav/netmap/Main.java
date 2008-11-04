@@ -53,11 +53,10 @@ import prefuse.visual.VisualItem;
 
 public class Main extends JPrefuseApplet {
 
+    private static ActionListener catFilter;
     private static AppletContext appletContext;
     private static ArrayList<String> availableCategories;
     private static ArrayList<String> availableLinkTypes;
-    private static String[] Layer3_LinkTypes = new String[] {"core","elink","link"};
-    private static String[] Layer2_LinkTypes = new String[] {"lan"};
     private static Graph m_graph;
     private static Logger log = Logger.getAnonymousLogger();
     private static MainView m_view;
@@ -66,7 +65,6 @@ public class Main extends JPrefuseApplet {
     private static URL baseURL;
     private static Visualization m_vis;
     private static prefuse.Display m_display;
-    private static ActionListener catFilter;
     private boolean prepared = false;
 
     private javax.swing.JCheckBoxMenuItem allLinktypes;
@@ -160,14 +158,10 @@ public class Main extends JPrefuseApplet {
                 for (Component c : linkMenu.getMenuComponents()) {
                     if (((JCheckBox) c).isSelected()) {
 			if (((JCheckBox) c).getText().equals("Layer 3")){
-				for (String type : Layer3_LinkTypes){
-					wantedLinkTypes.add(type);
-				}
+					wantedLinkTypes.add("3");
 			}
 			if (((JCheckBox) c).getText().equals("Layer 2")){
-				for (String type : Layer2_LinkTypes){
-					wantedLinkTypes.add(type);
-				}
+					wantedLinkTypes.add("2");
 			}
                     }
                 }
@@ -431,16 +425,6 @@ public class Main extends JPrefuseApplet {
 	    } catch(Exception e){
 		    return "unknown";
 	    }
-    }
-    public static ArrayList getAllLinkTypes(){
-	    ArrayList<String> ret = new ArrayList<String>();
-	    for (String type : Layer2_LinkTypes) {
-			ret.add(type);
-		}
-	    for (String type : Layer3_LinkTypes) {
-			ret.add(type);
-		}
-	    return ret;
     }
 
     public boolean sendPositionData(){
