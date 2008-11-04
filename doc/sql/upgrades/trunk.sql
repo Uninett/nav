@@ -34,3 +34,26 @@ WHERE rrd_fileid IN (SELECT b.rrd_fileid
 
 -- Modify rrd_file to prevent duplicate path/filename entries
 ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename);
+
+-- Remove floating devices.
+-- Devices that don't have a serial and no connected modules or netboxes.
+-- Triggers on delete on module and netbox.
+CREATE OR REPLACE FUNCTION manage.remove_floating_devices() RETURNS TRIGGER AS '
+    BEGIN
+        DELETE FROM device WHERE
+            deviceid NOT IN (SELECT deviceid FROM netbox) AND
+            deviceid NOT IN (SELECT deviceid FROM module) AND
+            serial IS NULL;
+        RETURN NULL;
+        END;
+    ' language 'plpgsql';
+
+CREATE TRIGGER trig_module_delete_prune_devices
+    AFTER DELETE ON module
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE remove_floating_devices();
+
+CREATE TRIGGER trig_netbox_delete_prune_devices
+    AFTER DELETE ON netbox
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE remove_floating_devices();
