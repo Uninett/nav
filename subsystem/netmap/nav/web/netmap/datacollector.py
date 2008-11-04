@@ -43,7 +43,7 @@ def getData(db_cursor = None):
     connections = {}
 
     layer_2_query = """
-SELECT gwportid,speed, ifindex, interface, sysname, netbox.netboxid, conn.*, nettype, netident, path || filename AS rrdfile,
+SELECT gwportid,speed, ifindex, interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
 2 AS layer, NULL AS from_swportid
 FROM gwportprefix
   JOIN (
@@ -88,7 +88,7 @@ swport_netbox.netboxid AS netboxid,
 swport.ifindex AS ifindex,
 
 3 AS layer,
-path || filename AS rrdfile,
+path ||'/'|| filename AS rrdfile,
 nettype, netident,
 NULL AS gwportid,
 NULL AS from_gwportid,
@@ -123,7 +123,7 @@ swport.to_swportid AS to_swportid,
 3 AS layer,
 foo.*,
 vlan.*,
-path || filename AS rrdfile,
+path ||'/'|| filename AS rrdfile,
 NULL AS gwportid,
 NULL AS from_gwportid,
 NULL AS from_swportid
@@ -169,7 +169,7 @@ netbox.netboxid AS from_netboxid,
 3 AS layer,
 conn.*,
 vlan.*,
-path || filename AS rrdfile,
+path ||'/'|| filename AS rrdfile,
 NULL AS gwportid,
 NULL AS from_gwportid,
 NULL AS to_swportid
@@ -233,7 +233,7 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     for netbox in netboxes:
         if netbox['rrd']:
             try:
-                netbox['load'] = rrdtool.fetch(netbox['rrd'], 'AVERAGE', '-r 5m', '-s -10m')[2][0][1]
+                netbox['load'] = rrdtool.fetch(netbox['rrd'], 'AVERAGE', '-s -10min')[2][0][1]
             except:
                 netbox['load'] = 'unknown'
         else:
@@ -252,7 +252,7 @@ def get_rrd_link_load(rrdfile):
     if not rrdfile:
         return (-1,-1)
     try:
-        data = rrdtool.fetch(rrdfile, 'AVERAGE', '-r 5m','-s -10m')[2][0]
+        data = rrdtool.fetch(rrdfile, 'AVERAGE', '-s -10min')[2][0]
         return ((data[1])/1024.0, (data[0])/1024.0)
     except:
         return (-1,-1)

@@ -46,8 +46,8 @@ public class NetmapEdgeRender extends EdgeRenderer {
 				net_load_in = Double.parseDouble(ei.getString("link_load_in"));
 				net_load_out = Double.parseDouble(ei.getString("link_load_out"));
 			} catch (Exception e) {
-				in_color = ColorLib.getGrayscale(0);
-				out_color = ColorLib.getGrayscale(0);
+				in_color = ColorLib.getColor(ColorLib.rgb(200, 200, 200));
+				out_color = ColorLib.getColor(ColorLib.rgb(200, 200, 200));
 			}
 			if (net_load_in != -1 && net_load_out != -1) {
 
@@ -99,8 +99,8 @@ public class NetmapEdgeRender extends EdgeRenderer {
 				}
 
 			} else {
-				in_color = ColorLib.getGrayscale(0);
-				out_color = ColorLib.getGrayscale(0);
+				in_color = ColorLib.getColor(ColorLib.rgb(200, 200, 200));
+				out_color = ColorLib.getColor(ColorLib.rgb(200, 200, 200));
 			}
 
 			VisualItem item1 = ei.getSourceItem();
