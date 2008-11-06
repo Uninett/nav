@@ -11,9 +11,9 @@ if test -z "$PYTHON"; then
 else
   if ! ${PYTHON} -c '
 import sys
-if not hasattr(sys, "version_info") or sys.version_info < (2,3,0):
+if not hasattr(sys, "version_info") or sys.version_info < (2,4,0):
   sys.exit(1)'; then
-    AC_MSG_WARN([Your python version is too old for NAV, we require at least version 2.3.0])
+    AC_MSG_WARN([Your python version is too old for NAV, we require at least version 2.4.0])
   fi
 fi
 AC_PATH_PROG(CHEETAH,cheetah)
