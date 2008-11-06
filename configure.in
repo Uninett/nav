@@ -40,6 +40,8 @@ AC_SUBST(tooldir)
 AC_SUBST(docdir)
 AC_SUBST(crondir)
 AC_SUBST(VERSION)
+dnl The location of the cricket binaries
+AC_SUBST(CRICKETDIR)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
@@ -57,6 +59,9 @@ VERSION=`cat VERSION`
 if $GREP -q devel VERSION && ! test -z "$HG" && test -e .hg
 then
 	VERSION=`$HG identify -i`
+fi
+if test -z "$CRICKETDIR"; then
+	CRICKETDIR='${prefix}/cricket/cricket'
 fi
 
 
@@ -107,6 +112,7 @@ AC_OUTPUT(Makefile
 	subsystem/snmptrapd/snmptrapd
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
+	subsystem/statTools/cricket.cron
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/statemon/Makefile
