@@ -31,10 +31,10 @@ public class NetmapEdgeRender extends EdgeRenderer {
 	private int medHighLevel = 4096*1024;
 
 	public NetmapEdgeRender() {
-		setEdgeType(Constants.EDGE_TYPE_LINE);
+		setEdgeType(Constants.EDGE_TYPE_CURVE);
 	}
 
-	@Override
+    @Override
 		public void render(Graphics2D g, VisualItem item) {
 
 			EdgeItem ei = (EdgeItem) item;
@@ -119,17 +119,17 @@ public class NetmapEdgeRender extends EdgeRenderer {
 			// Get the proper width
 			if (capacity != -1) {
 				if (capacity < 10) {
-					item.setSize(10.0);
-					stroke = new BasicStroke(10);
+					item.setSize(5.0);
+					stroke = new BasicStroke(5);
 				} else if (capacity < 100) {
 					item.setSize(20.0);
 					stroke = new BasicStroke(20);
 				} else if (capacity < 1000) {
-					item.setSize(40.0);
-					stroke = new BasicStroke(40);
+					item.setSize(50.0);
+					stroke = new BasicStroke(50);
 				} else {
-					item.setSize(60.0);
-					stroke = new BasicStroke(60);
+					item.setSize(80.0);
+					stroke = new BasicStroke(80);
 				}
 			}
 			g.setStroke(stroke);

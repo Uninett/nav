@@ -29,7 +29,7 @@ import cgi
 from nav.config import readConfig
 
 log = unbuffered()
-    
+
 conf = readConfig('nav.conf')
 domain_suffix = conf.get('DOMAIN_SUFFIX', None)
 
@@ -42,9 +42,9 @@ def getData(db_cursor = None):
     netboxes = {}
     connections = {}
 
-    layer_2_query = """
-SELECT gwportid,speed, ifindex, interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
-2 AS layer, NULL AS from_swportid, vlan.*
+    layer_3_query = """
+SELECT DISTINCT ON (sysname, from_sysname) gwportprefixcount.count,gwport.gwportid,speed, ifindex, interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
+3 AS layer, NULL AS from_swportid, vlan.*
 FROM gwportprefix
   JOIN (
      SELECT DISTINCT ON (gwportprefix.prefixid)
@@ -55,7 +55,6 @@ FROM gwportprefix
        sysname AS from_sysname,
        speed AS from_speed,
        netboxid AS from_netboxid
-
        FROM gwport
        JOIN module USING (moduleid)
        JOIN netbox USING (netboxid)
@@ -63,15 +62,17 @@ FROM gwportprefix
        ) AS conn USING (prefixid)
   JOIN gwport USING (gwportid)
   JOIN module USING (moduleid)
+  JOIN ( SELECT gwportid, COUNT(*) AS count FROM gwportprefix GROUP BY gwportid ) AS gwportprefixcount ON (gwportprefix.gwportid = gwport.gwportid)
   JOIN netbox USING (netboxid)
   LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
   LEFT JOIN vlan USING (vlanid)
   LEFT JOIN rrd_file ON (key='gwport' AND value=conn.from_gwportid::varchar)
-WHERE gwportid <> from_gwportid
-ORDER BY sysname, speed DESC
+WHERE gwport.gwportid <> from_gwportid AND vlan.nettype NOT IN ('static', 'lan') AND gwportprefixcount.count = 2
+ORDER BY sysname,from_sysname, netaddr ASC, speed DESC
+
 """
 
-    layer_3_query_1 = """
+    layer_2_query_1 = """
 SELECT DISTINCT ON (swport.swportid)
 gwport.gwportid AS from_gwportid,
 gwport.speed,
@@ -87,7 +88,7 @@ swport_netbox.sysname AS sysname,
 swport_netbox.netboxid AS netboxid,
 swport.ifindex AS ifindex,
 
-3 AS layer,
+2 AS layer,
 path ||'/'|| filename AS rrdfile,
 nettype, netident,
 NULL AS gwportid,
@@ -98,7 +99,7 @@ vlan.*
 FROM gwport
  JOIN module ON (gwport.moduleid = module.moduleid)
  JOIN netbox USING (netboxid)
- 
+
  LEFT JOIN gwportprefix ON (gwportprefix.gwportid = gwport.gwportid)
  LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
  LEFT JOIN vlan USING (vlanid)
@@ -112,7 +113,7 @@ FROM gwport
  WHERE gwport.to_swportid IS NOT NULL AND gwport.to_swportid = swport.swportid AND swport_module.moduleid = swport.moduleid
     """
 
-    layer_3_query_2 = """
+    layer_2_query_2 = """
 SELECT DISTINCT ON (from_sysname, sysname)
 swport.swportid AS from_swportid,
 swport.speed,
@@ -121,14 +122,13 @@ swport.interface AS from_interface,
 netbox.sysname AS from_sysname,
 netbox.netboxid AS from_netboxid,
 swport.to_swportid AS to_swportid,
-3 AS layer,
+2 AS layer,
 foo.*,
 vlan.*,
 path ||'/'|| filename AS rrdfile,
 NULL AS gwportid,
 NULL AS from_gwportid,
 NULL AS from_swportid
-
 
 FROM swport
  JOIN module ON (swport.moduleid = module.moduleid)
@@ -158,7 +158,7 @@ LEFT JOIN rrd_file  ON (key='swport' AND value=swport.swportid::varchar)
 ORDER BY from_sysname, sysname, swport.speed DESC
     """
 
-    layer_3_query_3 = """
+    layer_2_query_3 = """
 SELECT DISTINCT ON (from_sysname, sysname)
 
 swport.swportid AS from_swportid,
@@ -167,7 +167,7 @@ swport.ifindex AS from_ifindex,
 swport.interface AS from_interface,
 netbox.sysname AS from_sysname,
 netbox.netboxid AS from_netboxid,
-3 AS layer,
+2 AS layer,
 conn.*,
 vlan.*,
 path ||'/'|| filename AS rrdfile,
@@ -186,22 +186,20 @@ FROM swport
 FROM netbox
    ) AS conn ON (conn.netboxid = to_netboxid)
 
-
 LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
 LEFT JOIN vlan USING (vlanid)
-
 LEFT JOIN rrd_file  ON (key='swport' AND value=swport.swportid::varchar)
 
 ORDER BY from_sysname, sysname, swport.speed DESC
     """
 
-    db_cursor.execute(layer_2_query)
+    db_cursor.execute(layer_3_query)
     results = db_cursor.dictfetchall()
-    db_cursor.execute(layer_3_query_1)
+    db_cursor.execute(layer_2_query_1)
     results.extend(db_cursor.dictfetchall())
-    db_cursor.execute(layer_3_query_2)
+    db_cursor.execute(layer_2_query_2)
     results.extend(db_cursor.dictfetchall())
-    db_cursor.execute(layer_3_query_3)
+    db_cursor.execute(layer_2_query_3)
     results.extend(db_cursor.dictfetchall())
     for res in results:
         if res['rrdfile']:
@@ -210,8 +208,8 @@ ORDER BY from_sysname, sysname, swport.speed DESC
         else:
             res['load'] = (-1,-1)
 
-        connection_id = "%s%s-%s%s" % (res['sysname'],res['interface'], res['from_sysname'], res['from_interface'])
-        connection_rid = "%s%s-%s%s" % (res['from_sysname'], res['from_interface'], res['sysname'], res['interface'])
+        connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
+        connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
         if connection_id not in connections and connection_rid not in connections:
             connections[connection_id] = res
         else:
@@ -222,13 +220,14 @@ ORDER BY from_sysname, sysname, swport.speed DESC
 
 
     query = """
-        SELECT DISTINCT ON (netboxid) *,  path || '/' || filename AS rrd
+        SELECT DISTINCT ON (netboxid) *,location.descr AS location,room.descr AS room,  path || '/' || filename AS rrd
         FROM netbox
         LEFT JOIN room using (roomid)
         LEFT JOIN location USING (locationid)
         LEFT JOIN type USING (typeid)
         LEFT JOIN (SELECT netboxid,path,filename FROM rrd_file NATURAL JOIN rrd_datasource WHERE descr = 'cpu5min') AS rrd USING (netboxid)
-        LEFT JOIN netmap_position USING (sysname)"""
+        LEFT JOIN netmap_position USING (sysname)
+        """
     db_cursor.execute(query)
     netboxes = db_cursor.dictfetchall()
     for netbox in netboxes:

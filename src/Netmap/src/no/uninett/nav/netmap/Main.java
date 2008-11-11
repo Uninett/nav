@@ -352,6 +352,7 @@ public class Main extends JPrefuseApplet {
 
             JSearchPanel jsp = new JSearchPanel(m_vis, "graph.nodes", Visualization.SEARCH_ITEMS, new String[]{"sysname","ip","room"}, true, true);
             jsp.setLabelText("  Search: ");
+            jsp.setToolTipText("Search for ipdevices using their sysname, ip, room or location");
             jsp.setEnabled(true);
             menuBar.add(jsp);
 
