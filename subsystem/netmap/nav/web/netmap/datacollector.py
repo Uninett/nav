@@ -44,7 +44,7 @@ def getData(db_cursor = None):
 
     layer_2_query = """
 SELECT gwportid,speed, ifindex, interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
-2 AS layer, NULL AS from_swportid
+2 AS layer, NULL AS from_swportid, vlan.*
 FROM gwportprefix
   JOIN (
      SELECT DISTINCT ON (gwportprefix.prefixid)
@@ -92,7 +92,8 @@ path ||'/'|| filename AS rrdfile,
 nettype, netident,
 NULL AS gwportid,
 NULL AS from_gwportid,
-NULL AS from_swportid
+NULL AS from_swportid,
+vlan.*
 
 FROM gwport
  JOIN module ON (gwport.moduleid = module.moduleid)
@@ -209,8 +210,8 @@ ORDER BY from_sysname, sysname, swport.speed DESC
         else:
             res['load'] = (-1,-1)
 
-        connection_id = "%s-%s" % (res['sysname'], res['from_sysname'])
-        connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
+        connection_id = "%s%s-%s%s" % (res['sysname'],res['interface'], res['from_sysname'], res['from_interface'])
+        connection_rid = "%s%s-%s%s" % (res['from_sysname'], res['from_interface'], res['sysname'], res['interface'])
         if connection_id not in connections and connection_rid not in connections:
             connections[connection_id] = res
         else:
