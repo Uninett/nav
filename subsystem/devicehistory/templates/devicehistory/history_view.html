@@ -30,25 +30,15 @@
             <tbody>
             {% for a in elements.alerts %}
                 <tr class="{% cycle "oddrow" "evenrow" %}">
-                    <td>{{ a.alert.start_time }}</td>
-                    <td>{{ a.alert.end_time }}</td>
-                    <td>{{ a.alert.event_type.id }}</td>
-                    <td>{{ a.alert.alert_type.name }}</td>
+                    <td>{{ a.start_time }}</td>
+                    <td>{{ a.end_time }}</td>
+                    <td>{{ a.event_type.id }}</td>
+                    <td>{{ a.alert_type.name }}</td>
                     <td>
                         <ul>
-                        {% for m in a.messages %}
+                        {% for m in a.extra_messages %}
                             <li>
-                                {{ m.short }}
-                            {% ifequal expand_message m.id %}
-                                <a href="{% url devicehistory-view %}{{ filter_string }}">
-                                    [hide e-mail]</a>
-                                <ul class="email_message">
-                                    <li>{{ m.long|linebreaksbr}}</li>
-                                </ul>
-                            {% else %}
-                                <a href="{% url devicehistory-view %}{{ filter_string }}&amp;expand={{ m.id }}">
-                                    [show e-mail]</a>
-                            {% endifequal %}
+                                {{ m.message }}
                             </li>
                         {% endfor %}
                         </ul>

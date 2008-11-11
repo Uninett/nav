@@ -33,21 +33,6 @@ from django.db.models import Q
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryVariable, AlertHistoryMessage, AlertType
 
-def get_messages(alert):
-    messages = []
-    msgs = AlertHistoryMessage.objects.filter(
-        alert_history=alert,
-        language='en',
-    )
-    for m in msgs.filter(type='sms'):
-        long_message = msgs.filter(alert_history=m.alert_history, type='email')[0]
-        messages.append({
-            'id': m.id,
-            'short': m.message,
-            'long': long_message.message,
-        })
-    return messages
-
 class History:
     locations = []
     rooms = []
@@ -103,17 +88,24 @@ class History:
         if self.types['alert']:
             alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
+        msgs = AlertHistoryMessage.objects.filter(
+            alert_history__in=alert_history,
+            language='en',
+            type='sms',
+        )
+
         history = {}
         for a in alert_history:
+            a.extra_messages = []
+            for m in msgs:
+                if m.alert_history_id == a.id:
+                    a.extra_messages.append(m)
             if a.location_id not in history:
                 history[a.location_id] = {
                     'description': a.location_name,
                     'alerts': []
                 }
-            history[a.location_id]['alerts'].append({
-                'alert': a,
-                'messages': get_messages(alert=a),
-            })
+            history[a.location_id]['alerts'].append(a)
         return history
 
     def get_room_history(self):
@@ -136,8 +128,18 @@ class History:
         if self.types['alert']:
             alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
+        msgs = AlertHistoryMessage.objects.filter(
+            alert_history__in=alert_history,
+            language='en',
+            type='sms',
+        )
+
         history = {}
         for a in alert_history:
+            a.extra_messages = []
+            for m in msgs:
+                if m.alert_history_id == a.id:
+                    a.extra_messages.append(m)
             if a.room_id not in history:
                 if not isinstance(a.room_id, unicode):
                     a.room_id = unicode(a.room_id)
@@ -148,10 +150,7 @@ class History:
                     'alerts': []
                 }
 
-            history[a.room_id]['alerts'].append({
-                'alert': a,
-                'messages': get_messages(alert=a),
-            })
+            history[a.room_id]['alerts'].append(a)
 
         return history
 
@@ -175,18 +174,24 @@ class History:
         if self.types['alert']:
             alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
+        msgs = AlertHistoryMessage.objects.filter(
+            alert_history__in=alert_history,
+            language='en',
+            type='sms',
+        )
+
         history = {}
         for a in alert_history:
+            a.extra_messages = []
+            for m in msgs:
+                if m.alert_history_id == a.id:
+                    a.extra_messages.append(m)
             if a.netbox_id not in history:
                 history[a.netbox_id] = {
                     'description': a.netbox_name,
                     'alerts': []
                 }
-            history[a.netbox_id]['alerts'].append({
-                'alert': a,
-                'messages': get_messages(alert=a),
-            })
-
+            history[a.netbox_id]['alerts'].append(a)
         return history
 
     def get_module_history(self):
@@ -209,16 +214,22 @@ class History:
         if self.types['alert']:
             alert_history = alert_history.filter(alert_type__in=self.types['alert'])
 
+        msgs = AlertHistoryMessage.objects.filter(
+            alert_history__in=alert_history,
+            language='en',
+            type='sms',
+        )
+
         history = {}
         for a in alert_history:
+            a.extra_messages = []
+            for m in msgs:
+                if m.alert_history_id == a.id:
+                    a.extra_messages.append(m)
             if a.module not in history:
                 history[a.module] = {
                     'description': u'Module %i in %s' %  (a.module, a.netbox_name),
                     'alerts': []
                 }
-            history[a.module]['alerts'].append({
-                'alert': a,
-                'messages': get_messages(alert=a),
-            })
-
+            history[a.module]['alerts'].append(a)
         return history
