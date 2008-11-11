@@ -119,6 +119,15 @@ def devicehistory_view(request):
                 else:
                     filter_string += '&%s=%s' % (key,value)
 
+    alert_types = AlertType.objects.select_related(
+        'event_type'
+    ).all().order_by('event_type__id', 'name')
+    event_types = {}
+    for a in alert_types:
+        if a.event_type.id not in event_types:
+            event_types[a.event_type.id] = []
+        event_types[a.event_type.id].append(a)
+
     info_dict = {
         'active': {'devicehistory': True},
         'history': {
@@ -129,7 +138,7 @@ def devicehistory_view(request):
         },
         'selection': selection,
         'selected_types': selected_types,
-        'event_type': EventType.objects.all().order_by('id'),
+        'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
         'filter_string': filter_string,

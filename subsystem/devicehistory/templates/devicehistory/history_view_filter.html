@@ -19,13 +19,13 @@
             <td>
                 <select name="type">
                 <option value="all">All</option>
-                {% for e in event_type %}
-                    <optgroup label="{{ e.id }}">
-                        <option value="e_{{ e.id }}"
+                {% for e,alert_types in event_type.items %}
+                    <optgroup label="{{ e }}">
+                        <option value="e_{{ e }}"
                         {% if e.id|in_list:selected_types.event %}
                         selected="selected"
-                        {% endif %}>All {{ e.id }}</option>
-                    {% for a in e.alerttype_set.all %}
+                        {% endif %}>All {{ e }}</option>
+                    {% for a in alert_types %}
                         <option value="a_{{ a.id }}" 
                         {% if a.id|stringformat:"s"|in_list:selected_types.alert %}
                             selected="selected"
