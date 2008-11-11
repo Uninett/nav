@@ -100,27 +100,34 @@ def _get_swportstatus_title(swport):
     """Title for the swportstatus port view"""
 
     title = []
+
     if swport.interface:
         title.append(swport.interface)
+
     if swport.link == swport.LINK_UP and swport.speed:
         title.append('%d Mbit' % swport.speed)
+    elif swport.link == swport.LINK_DOWN_ADM:
+        title.append('disabled')
+    elif swport.link != swport.LINK_UP:
+        title.append('not active')
+
+    if swport.duplex:
+        title.append(swport.get_duplex_display())
+
+    if swport.get_vlan_numbers():
+        title.append('vlan ' + ','.join(map(str, swport.get_vlan_numbers())))
+
+    if swport.trunk:
+        title.append('trunk')
+
+    if swport.port_name:
+        title.append('"%s"' % swport.port_name)
+
     try:
         if swport.to_netbox:
             title.append('-> %s' % swport.to_netbox)
     except Netbox.DoesNotExist:
         pass
-    if swport.port_name:
-        title.append('"%s"' % swport.port_name)
-    if swport.link == swport.LINK_DOWN_ADM:
-        title.append('disabled')
-    elif swport.link != swport.LINK_UP:
-        title.append('not active')
-    if swport.trunk:
-        title.append('trunk')
-    if swport.duplex:
-        title.append(swport.get_duplex_display())
-    if swport.get_vlan_numbers():
-        title.append('vlan ' + ','.join(map(str, swport.get_vlan_numbers())))
 
     # XXX: This causes a DB query per port
     blocked_vlans = [str(block.vlan)
@@ -208,16 +215,20 @@ def _get_gwportstatus_title(gwport):
     """Title for the gwportstatus port view"""
 
     title = []
+
     if gwport.interface:
         title.append(gwport.interface)
+
     if gwport.speed:
         title.append('%d Mbit' % gwport.speed)
+
+    if gwport.port_name:
+        title.append('"%s"' % gwport.port_name)
+
     try:
         if gwport.to_netbox:
             title.append('-> %s' % gwport.to_netbox)
     except Netbox.DoesNotExist:
         pass
-    if gwport.port_name:
-        title.append('"%s"' % gwport.port_name)
-    return ', '.join(title)
 
+    return ', '.join(title)
