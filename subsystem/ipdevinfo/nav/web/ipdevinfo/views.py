@@ -186,8 +186,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         # still open
         lowest_end_time = dt.datetime.now() - dt.timedelta(days=days_back)
 
-        qs = netbox.alerthistory_set.filter(
-            end_time__gt=lowest_end_time).order_by('-start_time')
+        filter_stateful = Q(end_time__gt=lowest_end_time)
+        filter_stateless = (Q(end_time__isnull=True)
+            & Q(start_time__gt=lowest_end_time))
+        qs = netbox.alerthistory_set.filter(filter_stateful | filter_stateless
+            ).order_by('-start_time')
         count = qs.count()
         raw_alerts = qs[:max_num_alerts]
 
