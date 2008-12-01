@@ -63,7 +63,7 @@ def check_alerts(debug=False):
     new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
     num_new_alerts = len(new_alerts)
 
-    num_total_alerts = AlertQueue.objects.count()
+    initial_alerts = AlertQueue.objects.values_list('id', flat=True)
 
     logger.debug('Starting alertengine run, checking %d new alerts' % num_new_alerts)
 
@@ -87,7 +87,7 @@ def check_alerts(debug=False):
         AlertPreference.objects.filter(account__in=sent_weekly).update(last_sent_week=now)
 
     # Get id's of alerts that have been queued for users.
-    alerts_in_account_queues = [a.alert_id for a in AccountAlertQueue.objects.all()]
+    alerts_in_account_queues = AccountAlertQueue.objects.values_list('alert_id', flat=True)
 
     # Delete handeled alerts that are not in an AccountAlertQueue
     if num_new_alerts:
@@ -98,7 +98,7 @@ def check_alerts(debug=False):
         else:
             logger.debug('In testing mode: would have deleted following alerts from alert queue: %s' % ([a.id for a in new_alerts]))
 
-    num_deleted = num_total_alerts - AlertQueue.objects.count()
+    num_deleted = len(initial_alerts) - AlertQueue.objects.filter(id__in=initial_alerts).count()
 
     logger.info('%d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s)',
         num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends)
@@ -106,6 +106,7 @@ def check_alerts(debug=False):
     if num_failed_sends:
         logger.warning('Send %d alerts failed, trying again on next run.', num_failed_sends)
 
+    del initial_alerts
     del new_alerts
     del queued_alerts
 
