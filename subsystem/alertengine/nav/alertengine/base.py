@@ -37,7 +37,7 @@ from datetime import datetime
 from django.db import transaction, reset_queries
 
 from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, \
-        AlertSubscription, AlertAddress, FilterGroup, AlertPreference
+        AlertSubscription, AlertAddress, FilterGroup, AlertPreference, TimePeriod
 from nav.models.event import AlertQueue
 
 logger = logging.getLogger('nav.alertengine')
@@ -275,9 +275,9 @@ def handle_queued_alerts(queued_alerts, now=None):
                 # timeperiod that loops.
 
                 if datetime.now().isoweekday() in [6,7]:
-                    valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKENDS]
+                    valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
                 else:
-                    valid_during = [TimePeriod.ALL_WEEK,TimePeriod.WEEKDAYS]
+                    valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
 
                 only_one_time_period = active_profile.timperiod_set.filter(valid_during__in=valid_during).count() == 1
 
