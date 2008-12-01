@@ -279,7 +279,7 @@ def handle_queued_alerts(queued_alerts, now=None):
                 else:
                     valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
 
-                only_one_time_period = active_profile.timperiod_set.filter(valid_during__in=valid_during).count() == 1
+                only_one_time_period = active_profile.timeperiod_set.filter(valid_during__in=valid_during).count() == 1
 
                 logger.debug('Tests: only one time period %s, insertion time %s' % (only_one_time_period, insertion_time.time() < queued_alert_time_period.start))
 
