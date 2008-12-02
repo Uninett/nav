@@ -74,7 +74,7 @@ ALTER TABLE alertq ADD closed BOOLEAN;
 --   them by default
 -- * Delete "old" alerts that where keept for debuging
 
-DELETE FROM alertq WHERE alertqid <= (SELECT lastalertqid FROM alertengine LIMIT 2);
+DELETE FROM alertq WHERE alertqid <= (SELECT lastalertqid FROM alertengine LIMIT 1);
 
 -- Drop some unused tables
 DROP TABLE defaultutstyr;
