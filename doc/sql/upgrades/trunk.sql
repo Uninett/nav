@@ -30,6 +30,6 @@ ALTER TABLE manage.alertq ADD CONSTRAINT alertq_alerthistid_fkey
   ON DELETE SET NULL;
 
 -- Remove this field which was added in an earlier 3.5 beta.
-ALTER TALBE manage.alertq DROP closed;
+ALTER TABLE manage.alertq DROP closed;
 
 COMMIT;
