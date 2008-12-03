@@ -72,6 +72,9 @@ ALTER TABLE alertq ADD closed BOOLEAN;
 -- * Drop keys and re-add them with new name.
 -- * Explicitly name keys/indexes/sequences. Use what Postgres would have named
 --   them by default
+-- * Delete "old" alerts that where keept for debuging
+
+DELETE FROM alertq WHERE alertqid <= (SELECT lastalertqid FROM alertengine LIMIT 1);
 
 -- Drop some unused tables
 DROP TABLE defaultutstyr;

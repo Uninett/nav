@@ -19,5 +19,24 @@
 */
 
 BEGIN;
--- Insert schema changes here.
+
+-- Add alerthistid foreign key so that we can use alerthistory in
+-- alertengine at a latter point in time.
+ALTER TABLE manage.alertq ADD alerthistid integer NULL;
+ALTER TABLE manage.alertq ADD CONSTRAINT alertq_alerthistid_fkey
+  FOREIGN KEY (alerthistid)
+  REFERENCES manage.alerthist (alerthistid)
+  ON UPDATE CASCADE
+  ON DELETE SET NULL;
+
+-- Remove this field which was added in an earlier 3.5 beta.
+ALTER TABLE manage.alertq DROP closed;
+
+-- Update two radius indexes
+DROP INDEX radiusacct_stop_user_index;
++CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
+
+DROP INDEX radiuslog_username_index;
+CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
+
 COMMIT;

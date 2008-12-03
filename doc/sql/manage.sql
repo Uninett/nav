@@ -661,42 +661,6 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceHwUpgrade','Hardware upgrade on device.');
 
-
-CREATE TABLE alertq (
-  alertqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
-  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid VARCHAR,
-  time TIMESTAMP NOT NULL,
-  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL,
-  value INT4 NOT NULL,
-  severity INT4 NOT NULL,
-  closed BOOLEAN
-);
-
-CREATE TABLE alertqmsg (
-  id SERIAL,
-  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  msgtype VARCHAR NOT NULL,
-  language VARCHAR NOT NULL,
-  msg TEXT NOT NULL,
-  PRIMARY KEY(id),
-  UNIQUE(alertqid, msgtype, language)
-);
-
-CREATE TABLE alertqvar (
-  id SERIAL,
-  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR NOT NULL,
-  val TEXT NOT NULL,
-  PRIMARY KEY(id),
-  UNIQUE(alertqid, var) -- only one val per var per event
-);
-
-
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -739,6 +703,44 @@ CREATE TABLE alerthistvar (
   PRIMARY KEY(id),
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
+
+
+CREATE TABLE alertq (
+  alertqid SERIAL PRIMARY KEY,
+  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  subid VARCHAR,
+  time TIMESTAMP NOT NULL,
+  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL,
+  value INT4 NOT NULL,
+  severity INT4 NOT NULL,
+  alerthistid INTEGER NULL,
+  CONSTRAINT alertq_alerthistid_fkey FOREIGN KEY (alerthistid) REFERENCES alerthist (alerthistid)
+             ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE alertqmsg (
+  id SERIAL,
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  msgtype VARCHAR NOT NULL,
+  language VARCHAR NOT NULL,
+  msg TEXT NOT NULL,
+  PRIMARY KEY(id),
+  UNIQUE(alertqid, msgtype, language)
+);
+
+CREATE TABLE alertqvar (
+  id SERIAL,
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR NOT NULL,
+  val TEXT NOT NULL,
+  PRIMARY KEY(id),
+  UNIQUE(alertqid, var) -- only one val per var per event
+);
+
 
 ------------------------------------------------------------------------------
 -- servicemon tables

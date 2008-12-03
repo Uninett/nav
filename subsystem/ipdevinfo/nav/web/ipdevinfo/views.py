@@ -29,8 +29,10 @@ import IPy
 import re
 import datetime as dt
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 
@@ -77,7 +79,14 @@ def search(request):
                 return HttpResponseRedirect(reverse('ipdevinfo-details-by-addr',
                         kwargs={'addr': query}))
         elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
-            netboxes = Netbox.objects.filter(sysname__icontains=query)
+            # Check perfect match first
+            filter = Q(sysname=query)
+            if settings.DOMAIN_SUFFIX is not None:
+                filter |= Q(sysname='%s%s' % (query, settings.DOMAIN_SUFFIX))
+            netboxes = Netbox.objects.filter(filter)
+            if len(netboxes) != 1:
+                # No exact match, search for matches in substrings
+                netboxes = Netbox.objects.filter(sysname__icontains=query)
             if len(netboxes) == 0:
                 # Could not find IP device, redirect to host detail view
                 return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
@@ -177,8 +186,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         # still open
         lowest_end_time = dt.datetime.now() - dt.timedelta(days=days_back)
 
-        qs = netbox.alerthistory_set.filter(
-            end_time__gt=lowest_end_time).order_by('-start_time')
+        filter_stateful = Q(end_time__gt=lowest_end_time)
+        filter_stateless = (Q(end_time__isnull=True)
+            & Q(start_time__gt=lowest_end_time))
+        qs = netbox.alerthistory_set.filter(filter_stateful | filter_stateless
+            ).order_by('-start_time')
         count = qs.count()
         raw_alerts = qs[:max_num_alerts]
 
