@@ -32,4 +32,11 @@ ALTER TABLE manage.alertq ADD CONSTRAINT alertq_alerthistid_fkey
 -- Remove this field which was added in an earlier 3.5 beta.
 ALTER TABLE manage.alertq DROP closed;
 
+-- Update two radius indexes
+DROP INDEX radiusacct_stop_user_index;
++CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
+
+DROP INDEX radiuslog_username_index;
+CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
+
 COMMIT;
