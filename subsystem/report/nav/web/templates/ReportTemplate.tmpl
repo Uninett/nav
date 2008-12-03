@@ -112,41 +112,44 @@
         <table class="vertitable">
 
 #set $counter = 0
-#for $a in $report.form
 
-            <tr>
-                <th><label for="adv${counter}">$a.title</label></th>
-                <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
+#if $varExists('report.form')
+    #for $a in $report.form
 
-    #if $neg.has_key($a.raw)
-     checked="1"#slurp
-    #end if
-    >
+                <tr>
+                    <th><label for="adv${counter}">$a.title</label></th>
+                    <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
 
-                </td>
-                <td><label for="not_adv${counter}">not</label></td>
-                <td>
+        #if $neg.has_key($a.raw)
+         checked="1"#slurp
+        #end if
+        >
 
-    #if $operator.has_key($a.raw)
-        $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
-    #else
-        $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
-    #end if
+                    </td>
+                    <td><label for="not_adv${counter}">not</label></td>
+                    <td>
 
-                </td>
-                <td>
-                    <input type="text" name="$a.raw" id="adv${counter}"#slurp
+        #if $operator.has_key($a.raw)
+            $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
+        #else
+            $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
+        #end if
 
-    #if $contents.has_key($a.raw)
-     value="$contents[$a.raw]"#slurp
-    #end if
-    >
+                    </td>
+                    <td>
+                        <input type="text" name="$a.raw" id="adv${counter}"#slurp
 
-                </td>
-            </tr>
+        #if $contents.has_key($a.raw)
+         value="$contents[$a.raw]"#slurp
+        #end if
+        >
 
-    #set $counter += 1
-#end for
+                    </td>
+                </tr>
+
+        #set $counter += 1
+    #end for
+#end if
 
             <tr>
                 <th></th>
