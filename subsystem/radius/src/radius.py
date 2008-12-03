@@ -223,19 +223,24 @@ def handler(req):
             page.form.checkInput()
 
             if args.get("send"):
-                query = AcctSearchQuery(
-                            page.form.searchstring, 
-                            page.form.searchtype, 
-                            page.form.nasporttype, 
-                            page.form.timemode, 
-                            page.form.timestamp, 
-                            page.form.timestampslack, 
-                            page.form.days, 
-                            page.form.userdns, 
-                            page.form.nasdns, 
-                            page.form.sortfield, 
-                            page.form.sortorder
-                                )
+                if page.form.searchstring:
+                    query = AcctSearchQuery(
+                        page.form.searchstring, 
+                        page.form.searchtype, 
+                        page.form.nasporttype, 
+                        page.form.timemode, 
+                        page.form.timestamp, 
+                        page.form.timestampslack, 
+                        page.form.days, 
+                        page.form.userdns, 
+                        page.form.nasdns, 
+                        page.form.sortfield, 
+                        page.form.sortorder
+                        )
+                else: 
+                    # Need a non-empty searchstring
+                    raise EmptySearchstringWarning
+
                 page.search = query
                 page.search.loadTable()
         
@@ -301,7 +306,6 @@ class AcctSearchForm:
         """
         Set attributes
         """
-
         self.searchstring = searchstring 
         self.searchtype = searchtype
         self.nasporttype = nasporttype
@@ -318,12 +322,13 @@ class AcctSearchForm:
         """
         Verify that the input has correct format.
         """
-
         if self.searchstring:
             # Leading or trailing whitespace is probably in there by 
             # mistake, so remove it.
             self.searchstring = self.searchstring.strip()
-
+        if self.searchtype == "iprange":
+            if not re.match("^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$", self.searchstring):
+                raise IPRangeSyntaxWarning
         if self.timestamp:
             # Leading or trailing whitespace is probably in there by 
             # mistake, so remove it.
@@ -969,3 +974,11 @@ class DaysSyntaxWarning(UserInputSyntaxWarning):
 class HoursSyntaxWarning(UserInputSyntaxWarning):
     def __str__(self):
         return "The hour field can only contain integer or float numbers"
+
+class EmptySearchstringWarning(UserInputSyntaxWarning):
+    def __str__(self): 
+        return "Searchstring can not be empty"
+
+class IPRangeSyntaxWarning(UserInputSyntaxWarning):
+    def __str__(self):
+        return "IP-range should be in CIDR format xxx.xxx.xxx.xxx/xx"
