@@ -20,6 +20,14 @@ If, for any reason, you really miss the old Traffic Map, you can find
 it as a contrib under contrib/trafficmap/.  Refer to
 contrib/trafficmap/README for installation instructions.
 
+Jabber alerts
+=============
+The newly rewritten AlertEngine includes support for dispatching
+alerts using Jabber.  Edit alertengine.conf to configure NAV's Jabber
+ID and password.  The Jabber alert plugin will not register for a new
+account, so you must create the account referred to by the JID setting
+before attempting to use Jabber alerts.
+
 
 Upgrading from NAV 3.4
 ======================
@@ -34,6 +42,26 @@ Before running the normal SQL upgrade procedure (i.e. SQL scripts from
 doc/sql/upgrades/), you MUST merge your four existing NAV databases
 into a single nav database.  The shell script doc/sql/mergedb.sh can
 help you with this.  Se doc/sql/upgrades/README for more information.
+
+
+Removed HP SwitchStack support
+------------------------------
+Support for HP SwitchStacks has been removed from NAV.  The support
+was implemented in a hackish way, and disrupted support for any HP
+devices that weren't SwitchStacks.
+
+If you do monitor HP equipment with NAV, you will likely find some
+problems with HP data collected by your old NAV version.  You may
+experience that HP modules are reported as down, statistics for
+existing interfaces may cease to be updated, and NAV may register
+duplicate interfaces on your HP devices.
+
+These problems can be resolved by making NAV forget about all
+previously registered modules on HP devices, and let it rediscover
+them from scratch.  An SQL script is provided to do just that.
+
+This script can be found as doc/sql/upgrades/3.5.0b2-hpfix.sql.
+Please refer to the instructions in the comments in that file.
 
 
 Dependency changes
@@ -65,9 +93,29 @@ apache/webroot/js/editdbTemplate.js
 apache/webroot/style/editdbTemplate.css
 apache/webroot/images/toolbox/tools/editdb.png
 lib/python/nav/web/templates/editdbTemplate.py
+etc/alertengine.cfg
 
 You should rename etc/editdb.conf to etc/seeddb.conf if you have any
 local changes to editdb.conf.
 
 These files and directories are all prefixed with /usr/local/nav/ in a
 default configuration, but your mileage may vary.
+
+
+Configuration changes
+---------------------
+A jabber message class has been added to alertmsg.conf, so don't
+forget to update this config file with changes from the package if you
+want to use Jabber alerts.
+
+You can now add local reports and changes to existing reports in the
+report.local.conf file.  This means you will not have to sew together
+any upstream report changes with your own changes to report.conf.
+
+nav.conf has been updated with at least two more options.
+DEFAULT_FROM_EMAIL configures what email address is used as the
+originating address for email alerts (this was previously configured
+in alertengine.cfg).  More parts of NAV are being implemented using
+Django, so a DJANGO_DEBUG setting has been added to nav.conf.  This is
+a True/False setting which controls whether Django will output debug
+information when errors occur.

@@ -1,0 +1,407 @@
+#encoding UTF-8
+##
+## Copyright 2008 University of Tromsø 
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
+##          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
+##
+
+
+#extends nav.web.templates.MainTemplate
+#from mod_python import apache
+#from radiuslib import HostCache
+#from radiuslib import makeTimeHumanReadable, makeBytesHumanReadable
+#from radiuslib import showStopTime
+#from radiuslib import makeSearchURL
+#from radiuslib import getSortOrder 
+#from radius_config import ACCT_DBFIELDSDESCRIPTIONS
+#import nav.auth, nav.web, nav.path
+#import os
+
+
+#block additionalCSS
+$default_table_CSS
+$default_tabs_CSS
+##<style>
+##<link rel="stylesheet" type="text/css" href="/style/machinetracker.css" />
+##</style>
+#end block additionalCSS
+
+
+## Path displayed at the top of the web page
+#attr $path =  [("Home", "/"), ("Radius", "/radius/")]
+
+#block content
+$makeMenu($menu, $current)
+
+<div class="tabcontent">
+
+#if $error:
+<div id="error">
+    <font style="color: #FF0000">Search failed: $error</font>
+</div>
+#end if
+
+## Set default values for fields where user has not entered values
+#if $form.timestamp
+    #set $timestamp = $form.timestamp
+#else
+    #set $timestamp = "YYYY-MM-DD hh:mm"
+#end if
+
+#if $form.days
+    #set $days = $form.days
+#else
+    #set $days = "0.5"
+#end if
+
+## makeMenu from the Machinetracker template
+#def $makeMenu($menu, $current = False)
+<div class="tabs">
+<ul>
+#for $item in $menu:
+    #if $item.link == $current:
+    <li class="tabactive"><a href="$item.link">$item.text</a></li>
+    #else:
+    <li><a href="$item.link">$item.text</a></li>
+    #end if
+#end for
+</ul>
+</div>
+#end def
+
+## The main search form
+<div id="forms">
+    <form id="search" action="" method="get">
+        <table border="0" cellspacing="5" style="font-size: 13px;">
+            <tr> 
+            <td valign="bottom">Search for:</td>
+            <td><input type="text" name="searchstring" size="15" value="$form.searchstring"></td>
+            <td> as </td>
+            <td>
+                <select name=searchtype>
+                    <option value="username" $setSelectItem($form.searchtype, "username", output="selected", default=True)>Username</option>
+                    <option value="framedipaddress" $setSelectItem($form.searchtype, "framedipaddress", output="selected")>User Hostname/IP Address</option>
+                    <option value="nasipaddress" $setSelectItem($form.searchtype, "nasipaddress", output="selected")>NAS Hostname/IP Address</option>
+		    <option value="iprange" $setSelectItem($form.searchtype, "iprange", output="selected")>IP-range</option>
+                </select>
+            </td>
+            </tr>
+            <tr>
+            <td>Port Type:</td>
+            <td colspan="3">
+                <select name="nasporttype">
+                    <option value="" $setSelectItem($form.nasporttype, "", output="selected", default="True")>All</option>
+                    <option value="dot1x" $setSelectItem($form.nasporttype, "dot1x", output="selected")>.1x</option>
+                    <option value="isdn" $setSelectItem($form.nasporttype, "isdn", output="selected")>ISDN</option>
+                    <option value="modem" $setSelectItem($form.nasporttype, "modem", output="selected")>Modem</option>
+                    <option value="vpn" $setSelectItem($form.nasporttype, "vpn", output="selected")>VPN</option>
+                </select>
+            </td>
+            </tr>
+            <tr>
+            <td>Time: </td>
+            <td colspan="4">
+                <input type="radio" name="timemode" value="days" $setSelectItem($form.timemode, "days", output="checked", default=True)> last <input type="text" name="days" size="3" value="$days"> day(s)
+            </td>
+            </tr>
+            <tr>
+            <td></td>
+            <td colspan="4">
+                <input type="radio" name="timemode" value="timestamp" $setSelectItem($form.timemode, "timestamp", output="checked")>
+                <input type="text" name="timestamp" size="18" value="$timestamp">
+                <label> +/- </label>
+                <input type="text" name="timestampslack" size="3" value="$form.timestampslack"><label>minutes</label>
+            </td>
+            </tr>
+            <tr>
+            <td></td>
+            <td>
+                <input type="radio" name="timemode" value="" $setSelectItem($form.timemode, "", output="checked")><label>All</label>
+            </td>
+            </tr>
+            <tr>
+            <td valign="top">DNS Lookup:</td>
+            <td colspan="4">
+                <input type="checkbox" name="userdns" value="userdns" $setSelectItem($form.userdns, "userdns", output="checked")><label>User IP</label>
+                <br>
+                <input type="checkbox" name="nasdns" value="nasdns" $setSelectItem($form.nasdns, "nasdns", output="checked")><label>NAS IP</label>
+            </td> 
+            </tr>
+            <tr>
+            <td></td>
+            <td colspan="2">
+                <input type="hidden" name="sortfield" value="acctstarttime">
+                <input type="hidden" name="sortorder" value="DESC">
+                <input type="submit" name="send" value="Search">  <input type="reset" value="Clear">
+            </td>
+
+        </table>
+    </form>
+</div>
+
+#def tableTitle($title, $hits, $columnCount)
+  #set $columnCount += 1
+    
+    <table class="listtable">
+        <caption>
+		 $title<br />
+		 <span class="subtitle">$hits hits</span>
+	</caption>
+			    
+#end def
+
+
+#def tableHeader($rowCount, $columns, $sort=None)
+  #set $rowCount = $rowCount + 1
+  <thead>
+    <tr>
+      #for $column in $columns
+      
+        ## Columns can be strings or (title, sortkey) tuples
+        
+        #if type($column) == type('')
+          ##<th>$ACCT_DBFIELDSDESCRIPTIONS[$column]</th>
+	    #if $column == 'framedipaddress' and $form.userdns
+	      <th>Framed IP/Hostname</th>
+	    #elif $column == 'nasipaddress' and $form.nasdns
+	      <th>NAS Hostname</th>
+	    #else
+	      <th>$ACCT_DBFIELDSDESCRIPTIONS[$column]</th>
+	    #end if
+        #else
+          #set $title, $key = $column
+            #if $key == $sort
+              <th><a href="?sort=-$key">$title</a></th>
+            #else
+              <th><a href="?sort=$key">$title</a></th>
+            #end if
+        #end if
+      #end for
+    </tr>
+  </thead>
+  <tbody>
+#end def
+
+
+#def resultTable($table,$columns)
+    #set $columnCount = len($columns)
+
+    $tableTitle("Search results", len($table), $columnCount)
+    $tableHeader(len($table), $columns)
+
+    #set sessionstats = {}
+    #set hostCache = $HostCache()
+
+    #set $rowtype = "evenrow"
+    #for $row in $table
+        #if $row.username
+            #if $rowtype == "evenrow"
+                #set $rowtype = "oddrow"
+            #else
+                #set $rowtype = "evenrow"
+            #end if
+        #end if
+
+        ## Add current session to sessionstats dictionary if it isn't already
+        ## there. If it is, we drop it. This is done because sometimes the
+        ## session gets logged twice, but we don't want it to get counted
+        ## twice in the summary.
+        #set tmp = $row.acctuniqueid
+
+        #if not sessionstats.has_key($row.acctuniqueid) and $row.acctsessiontime
+            #set sessionstats[$tmp] = ($row.acctsessiontime, $row.acctinputoctets, $row.acctoutputoctets)    
+        #end if
+
+        ## Address lookup
+        #set $framedipaddress = $row.framedipaddress
+        #set $nasipaddress = $row.nasipaddress
+
+        #if $form.userdns
+            #set $framedipaddress = hostCache.lookupIPAddress($row.framedipaddress)
+        #end if
+        #if $form.nasdns
+            #set $nasipaddress = hostCache.lookupIPAddress($row.nasipaddress)
+        #end if
+
+
+        ## One row of the search result table
+        <tr class="$rowtype">
+            <td nowrap><a href="$makeSearchURL("", {"searchstring": $row.username, "searchtype": "username"} , $form)" title="Limit search to this user only">$row.username</a> &nbsp;&nbsp;</td>
+            ##<td nowrap><a href="$makeSearchURL("", {"searchstring": $row.realm, "searchtype": "realm"}, $form)" title="Limit search to this realm only">$row.realm &nbsp;&nbsp;</td>
+            <td nowrap><a href="$makeSearchURL("", {"searchstring": $framedipaddress, "searchtype": "framedipaddress"}, $form)" title="Limit search to this user IP address only">$framedipaddress</a> &nbsp;&nbsp;</td>
+            <td nowrap><a href="$makeSearchURL("", {"searchstring": $nasipaddress, "searchtype": "nasipaddress"}, $form)" title="Limit search to this NAS IP address only">$nasipaddress</a> &nbsp;&nbsp;</td>
+            <td nowrap>$row.acctstarttime &nbsp;</td>
+            <td nowrap>$showStopTime($row.acctstarttime, $row.acctstoptime, $row.acctsessiontime) &nbsp;</td>
+            <td nowrap align="right">$makeTimeHumanReadable($row.acctsessiontime) &nbsp;</td>
+            <td nowrap><a href="acctdetail?acctuniqueid=$row.acctuniqueid" title="View all available information on this session">$row.acctuniqueid</a></td>
+        </tr>
+    #end for
+</table>
+
+    ## Sum up sent/recv data and online time 
+    #set totaltime = 0
+    #set totalsentdata = 0
+    #set totalrecvdata = 0
+
+    #for stats in sessionstats.values()
+        #if stats[0]
+            #set $totaltime += stats[0]
+        #end if 
+        
+        #if $stats[1]
+            #set $totalsentdata += stats[1]
+        #end if
+        
+        #if $stats[2]
+            #set $totalrecvdata += stats[2]
+        #end if
+    #end for
+
+    ## Display summary if sessiontime > 0. If it isn't, we don't have any
+    ## transfers to report either.
+    #if $totaltime
+       $infoBox("summary", 
+                    data={"time": $totaltime, 
+                            "tx": $totalsentdata, 
+                            "rx": $totalrecvdata}
+                )
+    #end if
+
+#end def
+
+
+#def infoBox(contents="help", data="")
+<div class="infobox">
+
+    #if contents=="help"
+<h5>Radius accounting search hints and information</h5>
+<ul>
+    <li>Username search allows wildcard searching, e.g. you can search for
+        &quot;<tt>dat3*</tt>&quot;. Please note that the more letters of the
+        username you include, the faster the search will be. A search for
+        &quot;<tt>*</tt>&quot;, for example, will really test your
+        patience.</li>
+    
+    <li>You can search for switch port on any particular switch by typing
+        the switch hostname/ip address followed by a colon and the name
+        of the switch port. Eg. switch.domain.com:FastEther0/2
+    <li>In the search results, you will probably notice some things that      
+        might seem a bit weird at first: 
+
+        <li class="sub">
+        You will see that some search results do not contain a timestamp in
+        the Stop field. This occurs when 1) the session is still active,
+        or 2) no explicit Stop message has been received by freeradius. 
+        You will have to check the Duration field to see which one it is.
+        </li> 
+
+        <li class="sub">
+        Sometimes the displayed session duration does not equal the difference 
+        between stop and start time. This occurs if the registered start time
+        was actually not an explicit Start message, but the first sign of life 
+        (an Alive message) we got for this session. The Stop message always,
+        as far as I know, contain the length of the session, and so when we
+        have a Stop message this session length is being used during a search
+        for a specific time interval.
+        </li> 
+    </li>
+    <li>Please notice that we only know the amount of data transferred for
+        sessions where an explicit Stop message has been received. All transfer
+        statistics should therefore be taken with a rather big scoop of salt, 
+        since the numbers don't include currently active sessions and since we 
+        have no way of making sure at which point in the session the transfers 
+        took place.
+    </li>
+    <li>Search type IP-range takes input in CIDR form, example:
+    169.254.0.0/16
+    </li>
+
+</ul>
+
+
+    ## Sum of session times, uploads and downloads. 
+    #elif contents == "summary" and data['time'] 
+
+<h5>Search summary</h5>
+<p>
+<table border="0" cellspacing="2" style="font-size: 13px;">
+    <tr>
+    <td width="150">Total online time:</td> <td>$makeTimeHumanReadable(data['time'])</td>
+    </tr><tr>
+    <td>Total data sent:</td><td>$makeBytesHumanReadable(data['tx'])</td>
+    </tr><tr>
+    <td>Total received data:</td><td>$makeBytesHumanReadable(data['rx'])</td>
+    </tr><tr>
+    <td>Total traffic: &nbsp;&nbsp;</td><td>$makeBytesHumanReadable(data['tx']+data['rx'])</td>
+    </tr>
+</table>
+</p>
+    #end if
+
+</div>
+#end def 
+
+
+<div id="main">
+
+#if $search:
+        $resultTable($search.table, $dbfields)
+#else:
+        $infoBox()
+#end if
+
+</div> <!-- end main -->
+</div> <!-- end radius -->
+</div> <!-- end tabcontent -->
+#end block content
+
+
+
+
+
+
+#block helperFunctions
+
+
+## setSelectItem() 
+##
+## Set checkboxes/radiobuttons/dropdown lists etc. to according to certain
+## criteria
+##
+## Keyword arguments:
+## $selectValue   - Typically the value we get from a form element.
+## $currentField  - The element (radiobutton/checkbox/whatever tag) this
+##                  function is injected into in this instance. 
+## $output        - What we want printed out if this is the element we want to
+##                  be selected
+## $default       - Should this element be selected by default, if $checkValue 
+##                  doesn't contain anything?
+##
+
+#def $setSelectItem($selectValue, $currentField, $output, $default=False)
+        #if ($str($selectValue).lower() == $str($currentField).lower()) or $default == True:
+                $output#slurp 
+        #end if
+#end def
+
+
+#end block
+

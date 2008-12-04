@@ -146,58 +146,66 @@
     <tr>
         <th>Availability</th>
         <td>
-            {% with stats.availability as a %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
-                    {% if a.day %}
-                        {{ a.day|floatformat:2 }}%
-                    {% else %}
-                        (N/A)
-                    {% endif %}
-                    last day</a>,
-                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
-                    {% if a.week %}
-                        {{ a.week|floatformat:2 }}%
-                    {% else %}
-                        (N/A)
-                    {% endif %}
-                    last week</a>,
-                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
-                    {% if a.month %}
-                        {{ a.month|floatformat:2 }}%
-                    {% else %}
-                        (N/A)
-                    {% endif %}
-                    last month</a>
-            {% endwith %}
+            {% if stats %}
+                {% with stats.availability as a %}
+                    <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
+                        {% if a.day %}
+                            {{ a.day|floatformat:2 }}%
+                        {% else %}
+                            (N/A)
+                        {% endif %}
+                        last day</a>,
+                    <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
+                        {% if a.week %}
+                            {{ a.week|floatformat:2 }}%
+                        {% else %}
+                            (N/A)
+                        {% endif %}
+                        last week</a>,
+                    <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
+                        {% if a.month %}
+                            {{ a.month|floatformat:2 }}%
+                        {% else %}
+                            (N/A)
+                        {% endif %}
+                        last month</a>
+                {% endwith %}
+            {% else %}
+                N/A
+            {% endif %}
         </td>
     </tr>
 
     <tr>
         <th>Response time</th>
         <td>
-            {% with stats.response_time as rt %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
-                    {% if rt.day %}
-                        {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
-                    {% else %}
-                        (N/A)
-                    {% endif %}
-                    last day</a>,
-                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
-                    {% if rt.week %}
-                        {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
-                    {% else %}
-                        (N/A)
-                    {% endif %}
-                    last week</a>,
-                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
-                    {% if rt.month %}
-                        {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
-                    {% else %}
-                        (N/A)
-                    {% endif %}
-                    last month</a>
-            {% endwith %}
+            {% if stats %}
+                {% with stats.response_time as rt %}
+                    <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
+                        {% if rt.day %}
+                            {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+                        {% else %}
+                            (N/A)
+                        {% endif %}
+                        last day</a>,
+                    <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
+                        {% if rt.week %}
+                            {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+                        {% else %}
+                            (N/A)
+                        {% endif %}
+                        last week</a>,
+                    <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
+                        {% if rt.month %}
+                            {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+                        {% else %}
+                            (N/A)
+                        {% endif %}
+                        last month</a>
+                {% endwith %}
+            {% else %}
+                N/A
+            {% endif %}
         </td>
     </tr>
 {% endwith %}

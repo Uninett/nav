@@ -65,7 +65,7 @@ Installing NAV
 ==============
 To install NAV, do the following::
 
-  ./configure
+  ./configure CRICKETDIR=/path/to/cricket/binaries
   make
   make install
 
@@ -79,6 +79,13 @@ directory) than what you configured the package for.  In this case, you should
 specify this build directory by adding "DESTDIR=/your/build/directory" to "make
 install" command. You should also have a look at whatever .spec files you can
 find below the packages/ directory.
+
+If you omit the CRICKETDIR variable, which specifies the path to your Cricket
+installation's binaries, it will be assumed that these can be found in
+${prefix}/cricket/cricket, i.e.  /usr/local/nav/cricket/cricket if all default
+values are unchanged.  A typical value for a Debian install is
+/usr/share/cricket .
+
 
 Java libraries
 --------------
