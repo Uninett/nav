@@ -1,0 +1,112 @@
+#encoding UTF-8
+##
+## Copyright 2008 University of Tromsø 
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+## RadiusChartsTemplate.tmpl
+##
+## Author: Roger Kristiansen <roger.kristiansen@gmail.com>
+##
+
+#extends nav.web.templates.MainTemplate
+#from radiuslib import HostCache
+#from radiuslib import makeTimeHumanReadable, makeBytesHumanReadable, showStopTime
+#from radius_config import ACCT_DBFIELDSDESCRIPTIONS
+
+## Path displayed at the top of the page
+#attr $path =  [("Home", "/"), ("Radius", "/radius/")]
+
+#block content
+
+<div id="radius" style="font-size: 13px;">
+
+#set $row = $detailQuery.table
+
+## Print out all details
+<div id="results" style="font-size: 13px;">
+<br>
+    <table class="sessioninfo">
+        #for $field in $dbfields 
+        <tr>
+            <th class="col0">
+               $ACCT_DBFIELDSDESCRIPTIONS[$field]
+            </th>
+            <td class="col1">
+                $editInfo($row, $field)
+            </td>
+        </tr>
+        #end for
+     </table>
+</div>
+
+</div> <!-- end radius -->
+
+#end block content
+
+
+#block helperFunctions
+
+## editInfo()
+##
+## If we need to add or change some information in one of the fields
+## we wish to display, do it here.
+##
+## Argument keywords:
+## $key - the fieldname in the database
+##
+
+#def editInfo($row, $currentField)
+    #set $data = $row[$currentField];
+
+    ## Do DNS lookup on ip-addresses
+    #if $currentField == "nasipaddress" or $currentField == "framedipaddress" and $data
+        #set $data = "%s (%s)" % ($data, $HostCache().lookupIPAddress($data))
+    #end if
+
+    #if $currentField == "acctstoptime"
+        #set data = $showStopTime($row["acctstarttime"], $data, $row["acctsessiontime"])
+    #end if 
+
+    ## Translate sessiontime into days, hours, minutes
+    #if $currentField == "acctsessiontime" and $data
+        #set $data = $makeTimeHumanReadable($data)        
+    #end if
+
+    ## Translate transferred octets into TB/GB/MB/KB
+    #if ($currentField == "acctoutputoctets" or $currentField == "acctinputoctets")
+        #set $data = $makeBytesHumanReadable($data)
+    #end if
+
+    #return $data
+#end def
+
+#end block helperFunctions
+
+
+
+
+
+#block additionalCSS
+$default_table_CSS
+$default_tabs_CSS
+<style>    
+th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
+td.col1 { padding-left: 5px; }
+table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }
+</style>
+#end block additionalCSS

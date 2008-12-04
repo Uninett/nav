@@ -26,15 +26,19 @@
 
 package no.ntnu.nav.Database;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -79,6 +83,8 @@ public class Database
 	private static Map dbDescrs = Collections.synchronizedMap(new HashMap()); // Maps user-supplied connection identifier to DB descr
 
 	private static Map statementMap = Collections.synchronizedMap(new IdentityHashMap()); // Used for freeing not autoclose statements
+
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss yyyy");
 
 	private static class DBDescr {
 		private int dbDriver;
@@ -769,7 +775,6 @@ public class Database
 	public static ResultSet query(String statement, boolean keepOpen) throws SQLException
 	{
 		// Try to execute. If we get a SocketException, wait and try again
-		//boolean firstTry = true;
 		while (true) {
 			try {
 				Statement st = getStatement(null, !keepOpen);
@@ -779,44 +784,7 @@ public class Database
 				}
 				return rs;
 			} catch (Exception e) {
-				e.printStackTrace(System.err);
-				if (e instanceof SQLException) {
-					SQLException sqle = (SQLException)e;
-					String msg = sqle.getMessage();
-					if (msg.indexOf("broken the connection") < 0 &&
-						msg.indexOf("SocketException") < 0 &&
-						msg.indexOf("Connection is closed") < 0) {
-						System.err.println("SQLException for update statement: " + statement);
-						throw sqle;
-					}
-				}
-				DBDescr db = getDBDescr(null);
-				synchronized (db) {
-
-					if (db.verifyConnection()) continue;
-					//System.out.println("Verify failed...");
-					if (db.reconnect()) continue;
-
-					// That didn't work; log error
-					String msg = e.getMessage();
-					int idx;
-					if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
-
-					Log.e("DATABASE-QUERY", "Got Exception; database is probably down: " + msg);
-
-					if (db.getReturnOnReconnectFail()) {
-						throw new SQLException("Got Exception; database is probably down: " + msg);
-					}
-
-					while (!db.verifyConnection()) {
-						try {
-							Thread.sleep(DEFAULT_RECONNECT_WAIT_TIME);
-							//System.out.println("Done sleeping, reconnect..");
-							db.reconnect();
-						} catch (InterruptedException ie) {
-						}
-					}
-				}
+				handleStatementException(e, statement, "DATABASE-QUERY");
 			}
 		}
 	}
@@ -1029,48 +997,114 @@ public class Database
 				Statement stUpdate = getUpdateStatement(null);
 				return stUpdate.executeUpdate(statement);
 			} catch (Exception e) {
-				e.printStackTrace(System.err);
-				if (e instanceof SQLException) {
-					SQLException sqle = (SQLException)e;
-					String msg = sqle.getMessage();
-					if (msg.indexOf("broken the connection") < 0 &&
-						msg.indexOf("SocketException") < 0 &&
-						msg.indexOf("Connection is closed") < 0) {
-						System.err.println("SQLException for update statement: " + statement);
-						throw sqle;
-					}
-				}
-				DBDescr db = getDBDescr(null);
-				synchronized (db) {
-
-					if (db.verifyConnection()) continue;
-					//System.out.println("Verify failed...");
-					if (db.reconnect()) continue;
-
-					// That didn't work; log error
-					String msg = e.getMessage();
-					int idx;
-					if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
-
-					Log.e("DATABASE-UPDATE", "Got Exception; database is probably down: " + msg);
-
-					if (db.getReturnOnReconnectFail()) {
-						throw new SQLException("Got Exception; database is probably down: " + msg);
-					}
-
-					while (!db.verifyConnection()) {
-						try {
-							Thread.sleep(DEFAULT_RECONNECT_WAIT_TIME);
-							//System.out.println("Done sleeping, reconnect..");
-							db.reconnect();
-						} catch (InterruptedException ie) {
-						}
-					}
-				}
+				handleStatementException(e, statement, "DATABASE-UPDATE");
 			}
 		}
 	}
 
+	/**
+	 * <p>Handle an exception thrown during the execution of an SQL statement,
+	 * attempting to reconnect to the database if necessary.</p>
+	 * 
+	 * <p>If the exception is an SQLException, attempts to check whether it
+	 * was caused by a loss of the database connection.  It checks the
+	 * exception chain to find the root cause of the exception.  If no
+	 * exception chain is available (not all JDBC drivers can be guaranteed to
+	 * create one), exception message parsing is used as the fallback.</p>
+	 * 
+	 * <p>If the SQLException cannot be determined to come from a loss of db
+	 * connection, its details are logged and it is re-thrown.</p>
+	 * 
+	 * <p>If the Exception was not an SQLException, it is logged, and then 
+	 * chained to an SQLException which is thrown.</p>
+	 * 
+	 * @param exception The exception that was caught by the caller.
+	 * @param statement The statement that was being executed.
+	 * @param subroutine The subroutine name to use when logging.
+	 * @throws SQLException
+	 */
+	private static void handleStatementException(Exception exception, String statement, String subroutine) throws SQLException
+	{
+		if (exception instanceof SQLException) {
+			SQLException sqlException = (SQLException) exception;
+			Throwable cause = sqlException.getCause();
+
+			// Log useful details about this exception
+			Log.e(subroutine, "Statement caused SQLException: " + statement);
+			Log.e(subroutine, "Exception details: " + sqlException);
+			Log.d(subroutine, "Exception cause: " + cause);
+			Log.d(subroutine, "Exception error code: " + sqlException.getErrorCode());
+			Log.d(subroutine, "Exception SQLState: " + sqlException.getSQLState());
+			Log.d(subroutine, "Next exception in chain: " + sqlException.getNextException());
+
+			/* 
+			 * PostgreSQL's JDBC driver may be compiled without exception 
+			 * chaining, in which case checking the root cause of the
+			 * exception using the getCause() call is futile.  We fall back to
+			 * looking for substrings in the error message.
+			 */
+			boolean lostConnection;
+			if (cause != null) {
+				lostConnection = cause instanceof SocketException || cause instanceof IOException;
+			} else {
+				String msg = sqlException.getMessage();
+				lostConnection = msg.indexOf("SocketException") >= 0 || msg.indexOf("IOException") >= 0;
+			}
+
+			if (lostConnection) {
+				DBDescr db = getDBDescr(null);
+				synchronized (db) {
+					// Reconnect database loop
+					while (!db.verifyConnection()) {
+						Log.w(subroutine, "Database is not connected.");
+						try {
+							if (!db.reconnect()) {
+								Log.e(subroutine, "Database reconnect failed");
+								if (db.getReturnOnReconnectFail()) {
+									SQLException sqle = new SQLException("Database appears to be down");
+									sqle.initCause(sqlException);
+									throw sqle;
+								} else {
+									Log.w(subroutine, "Attempting to reconnect in " + DEFAULT_RECONNECT_WAIT_TIME + " ms");
+									Thread.sleep(DEFAULT_RECONNECT_WAIT_TIME);
+								}
+							} else {
+								Log.i(subroutine, "Reconnected lost database connection");
+							}
+						} catch (InterruptedException ie) {
+						}
+					}
+				}
+			} else {
+				/* If we couldn't determine that the exception was due to loss
+				 * of connectivity, we just log it and throw it back up.
+				 */
+				logStackTrace("SQLException thrown while processing statement: " + statement, sqlException);
+				throw sqlException;
+			}
+		} else {
+			// Unknown exceptions are wrapped in an SQLException and thrown
+			logStackTrace("Unhandled exception thrown while running statement: " + statement, exception);
+			SQLException newException = new SQLException("Got unexpected Exception during SQL query");
+			newException.initCause(exception);
+			throw newException;
+		}
+	}
+
+	/**
+	 * Quickly log a stacktrace to stderr, with associated message.
+	 * @param message An optional message to log.
+	 * @param t A throwable whose associated stacktrace will be logged.
+	 */
+	private static void logStackTrace(String message, Throwable t)
+	{
+	 	System.err.println(dateFormat.format(new GregorianCalendar().getTime()));
+		if (message != null && message.length() > 0) {
+			System.err.println(message);
+		}
+		t.printStackTrace(System.err);
+	}
+	
 	/**
 	 * <p> Return all columns from the current row in rs in a HashMap
 	 * </p>

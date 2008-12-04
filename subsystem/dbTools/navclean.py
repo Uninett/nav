@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2004 Norwegian University of Science and Technology
 #
@@ -26,13 +26,15 @@
 #
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
-"""Delete old arp and cam records from the NAV database.
+"""Delete old arp, cam or radius accounting records from the NAV database.
 
 Usage: navclean.py [options...]
 
-Unless options are given, the number of expired ARP/CAM records will
-be printed.  The default expiry limit is 6 months.  To actually delete
-the expired records, add the -f option.
+Unless options are given, the number of expired records will be printed
+The default expiry limit is 6 months. The -e and -E sets a common expiry
+date for all tables. If you want different expiry dates for each table,
+you need to run navclean more than once. To actually delete the expired
+records, add the -f option.
 
 Available options are:
 
@@ -44,8 +46,13 @@ Available options are:
   -E <interval> -- Set a different expiry date using PostgreSQL
                    interval syntax.  E.g.: '30 days', '4 weeks', '6
                    months'
+  --arp         -- Delete from ARP table
+  --cam         -- Delete from CAM table
+  --radiusacct  -- Delete from radius accounting table
+  --radiuslog   -- Delete from radius error log table
+
 """
-__id__ = "$Id$"
+__id__ = "$Id: navclean.py 2875 2004-07-14 09:51:24Z mortenv $"
 
 import sys
 import getopt
@@ -54,13 +61,18 @@ import psycopg
 
 def main(args):
     """ Main execution function."""
-    global quiet, force, expiry
+    global quiet, force, tables, radiusAcctTable
     quiet = False
     force = False
     expiry = "NOW() - interval '6 months'"
-    
+    radiusAcct = False
+    radiusAcctTable = "radiusacct"
+    radiusLogTable = "radiuslog"
+ 
+    tables = []
+   
     try:
-        opts, args = getopt.getopt(args, 'hqfe:E:', ['help'])
+        opts, args = getopt.getopt(args, 'hqfe:E:', ['help', 'arp', 'cam', 'radiusacct', 'radiuslog'])
     except getopt.GetoptError, error:
         print >> sys.stderr, error
         usage()
@@ -78,42 +90,67 @@ def main(args):
             expiry = nav.db.escape(val)
         if opt == '-E':
             expiry = "NOW() - interval %s" % nav.db.escape(val)
-            
+        if opt == '--arp':
+            tables.append("arp")
+        if opt == '--cam':
+            tables.append("cam")
+        if opt == '--radiusacct':
+            tables.append("radiusacct")
+        if opt == '--radiuslog':
+            tables.append("radiuslog")
+
     cx = nav.db.getConnection('default', 'manage')
     # Perform deletions inside a transaction, so that we may rollback
     # if -n was specified on command line.
     cx.autocommit(0)
     cursor = cx.cursor()
-
-    selector = "WHERE end_time < %s" % expiry
     sumtotal = 0
 
-    for table in ('arp', 'cam'):
+
+    arpCamSelector = "WHERE end_time < %s" % expiry
+    radiusAcctSelector = """WHERE (acctstoptime < %s) 
+                    OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < %s)
+                    OR (acctstarttime < %s AND (acctstarttime + (acctsessiontime * interval '1 sec')) IS NULL)
+""" % (expiry, expiry, expiry)
+    radiusLogSelector = "WHERE time < %s" % expiry
+
+    for table in tables:
+        if table == "arp" or table == "cam":
+            selector = arpCamSelector
+        if table == radiusAcctTable:
+            selector = radiusAcctSelector
+        if table == radiusLogTable:
+            selector = radiusLogSelector
+
         sql = 'DELETE FROM %s %s' % (table, selector)
+        
         try:
             cursor.execute(sql)
             if not quiet:
                 print "%s contains %s expired records." % (table, cursor.rowcount)
             sumtotal += cursor.rowcount
+
         except psycopg.ProgrammingError, e:
             print >> sys.stderr, "The PostgreSQL backend produced a ProgrammingError.\n" + \
                   "Most likely, your expiry specification is invalid: %s" % expiry;
             cx.rollback()
             sys.exit(1)
 
+
     if not force:
         cx.rollback()
         sumtotal = 0
     else:
         cx.commit()
+
         if not quiet and sumtotal > 0:
-            print "Expired records deleted."
+            print "Expired ARP/CAM/Radius Acccounting records deleted."
 
     if not quiet and sumtotal == 0: print "None deleted."
-        
+
     cx.close()
-    
-    
+
+
 def usage():
     """ Print a usage screen to stderr."""
     print >> sys.stderr, __doc__

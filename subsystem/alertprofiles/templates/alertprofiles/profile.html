@@ -14,12 +14,16 @@
             {% ifequal order_by "name" %}
                 <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
                 Name</a>
-                <span class="sort">&darr;</span>
+                <span class="sort">
+                    <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+                </span>
             {% else %}
                 <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
                 Name</a>
                 {% ifequal order_by "-name" %}
-                    <span class="sort">&uarr;</span>
+                <span class="sort">
+                    <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                </span>
                 {% endifequal %}
             {% endifequal %}
             </th>

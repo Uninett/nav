@@ -49,8 +49,8 @@ LIBS = $(wildcard nav/*.py nav/report/*.py nav/web/report/*.py)
 CONFFILES = $(wildcard etc/*.conf etc/front.html)
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
-JSLIBS = $(wildcard nav/web/js/*)
-CSS = $(wildcard nav/web/style/*)
+JSLIBS = $(wildcard media/js/*)
+CSS = $(wildcard media/style/*)
 TOOLS = report.tool
 #BINS =
 

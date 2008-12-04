@@ -40,7 +40,7 @@ top_srcdir = @top_srcdir@
 
 # Files
 INITFILES =
-BINS =
+BINS = navTemplate.py
 LIBS = $(wildcard nav/web/*.py) nav/web/templates/__init__.py
 CONFFILES_SRC = $(wildcard config/webfront/*.txt config/webfront/*.conf) config/webfront/webfront.conf
 CONFFILES = $(CONFFILES_SRC:config/%=%)
@@ -71,7 +71,7 @@ install-lib: $(TEMPLATES)
 	for file in $(DJANGO_TEMPLATES); do $(INSTALL) -v -D -m 644 templates/$$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
 
 install-bin:
-	for file in $(BINS); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; done
+	cd bin; for file in $(BINS); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file || exit 1; done
 
 install-conf:

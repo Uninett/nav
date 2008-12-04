@@ -112,35 +112,25 @@ class ReportList:
         for rep in list:
             configtext = rep[1]
             rep = rep[0]
-
+            
             configParser.parseConfiguration(configtext)
             report = configParser.configuration
-            if report.header and report.description:
-                r = ReportListElement(rep,report.header,report.description)
-                self.reports.append(r.getReportListElement())
+
+            if report.title != '' and report.description != '':
+                self.reports.append((rep, report.title, report.description))
+            
+            elif report.title != '':
+                self.reports.append((rep, report.title, None))
+
+            elif report.description != '':
+                self.reports.append((rep, rep, report.description))
+
             else:
-                r = ReportListElement(rep,None,None)
-                self.reports.append(r.getReportListElement())
+                self.reports.append((rep, rep, None))
 
     def getReportList(self):
         return self.reports
 
-
-class ReportListElement:
-
-    def __init__(self,key,description,title=""):
-
-        self.key = key
-        self.title = title
-        self.description = description
-
-    def getReportListElement(self):
-
-        if self.title and self.description:
-            return (self.title,self.key,self.description)
-
-        else:
-            return (self.key,self.key,self.key)
 
 
 class ConfigParser:
@@ -214,8 +204,8 @@ class ConfigParser:
 
             if key == "sql" or key == "query":
                 config.setQuery(value)
-            elif key == "overskrift" or key == "header" or key == "title":
-                config.header = value
+            elif key == "title":
+                config.title = value
             elif key == "order_by" or key == "sort":
                 config.orderBy = string.split(value,",") + config.orderBy
             elif key == "skjul" or key == "hidden" or key == "hide":
@@ -273,8 +263,8 @@ class ArgumentParser:
             if key == "sql" or key == "query":
                 #error("Access to make SQL-querys permitted")
                 pass
-            elif key == "overskrift" or key == "header":
-                config.header = value
+            elif key == "title":
+                config.title = value
             elif key == "order_by" or key == "sort":
                 config.orderBy = string.split(value,",") + config.orderBy
             elif key == "skjul" or key == "hidden" or key == "hide":
@@ -425,7 +415,7 @@ class ReportConfig:
     def __init__(self):
         self.orig_sql = ""
         self.sql = None
-        self.header = ""
+        self.title = ""
         self.description = ""
         self.orderBy = []
         self.hidden = []
