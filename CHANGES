@@ -1,3 +1,47 @@
+Version 3.5.0b3
+(release 04 December 2008)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#285360 (netmap: interfaces swapped in popup view)
+  * LP#285361 (netmap: use domain_suffix for shorter names)
+  * LP#286922 (Netmap displays layer 2 links as layer 3 links)
+  * LP#291551 (Alerts queued for daily dispatch are never sent)
+  * LP#293519 (Radius accounting log search crashes on blank username
+               or iprange)
+  * LP#293531 (ipdevinfo does not redirect directly to ipdevice when
+               domain_suffix is not given)
+  * LP#293624 (AlertEngine crashes with UnboundLocalError for local
+               variable 'num_sent_alerts')
+  * LP#294075 (Alter the popup text order on ports in ipdevinfo)
+  * LP#294191 (Useradmin and Userinfo gives Page not found (404))
+  * LP#294578 (AlertEngine crashes with UnboundLocalError for local
+               variable 'queued_alerts')
+  * LP#294590 ("connected to" missing from GSW port details in ipdevinfo)
+  * LP#298034 (ipdevinfo crash on missing availability stats)
+  * LP#298039 (3.5 sql upgrade script does not flush old alerts from db)
+  * LP#299851 (Cannot view public filters and filter groups)
+  * LP#300449 (Make metanav and launchpad links more accessible)
+  * LP#302412 (Add link from alert queue to alerts table)
+  * LP#303967 (AlertEngine crash: global name 'TimePeriod' is not defined)
+  * LP#303969 (AlertEngine crash: AlertEngine crash: object has no
+               attribute 'timperiod_set')
+  * LP#303977 (navTemplate.py missing from NAV 3.5 betas)
+  * LP#305159 (Report advanced search form cannot be opened)
+
+
 Version 3.5.0b2
 (released 03 November 2008)
 
