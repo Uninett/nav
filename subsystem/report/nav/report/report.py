@@ -67,7 +67,7 @@ class Report:
 
         self.address = self.stripPath(path)
 
-        self.header = configuration.header
+        self.title = configuration.title
         self.hide = configuration.hidden
         self.extra = configuration.extra
 

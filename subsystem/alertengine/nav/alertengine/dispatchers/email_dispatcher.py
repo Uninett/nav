@@ -55,7 +55,7 @@ class email(dispatcher):
             if not address.DEBUG_MODE:
                 email = EmailMessage(subject=subject, body=message, to=[address.address])
                 email.send(fail_silently=False)
-                logger.info('alert %d: Sending email to %s due to %s subscription' % (alert.id, address.address, type))
+                logger.info('alert %d sent by email to %s due to %s subscription' % (alert.id, address.address, type))
             else:
                 logger.debug('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
 

@@ -47,7 +47,7 @@ USERINFO = userinfo
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/*.py nav/web/*/*.py)
+LIBS = $(wildcard nav/*.py nav/web/*/*.py nav/django/urls/*py)
 CONFFILES =
 TOOLS = useradmin.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)

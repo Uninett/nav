@@ -126,7 +126,9 @@
     	       classpath="${lucene.lib}"
            debug="${debug}"
            deprecation="${deprecation}"
-           optimize="${optimize}"/>
+           optimize="${optimize}"
+	   target="1.5"
+	   />
   </target>
 
   <!-- =================================================================== -->
