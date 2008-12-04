@@ -18,87 +18,25 @@
  *
 */
 
--- Alert senders
-INSERT INTO alertsender VALUES (1, 'Email', 'email');
-INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
-INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
+BEGIN;
 
--- Fix for LP#285331 Duplicate RRD file references
--- Delete oldest entries if there are duplicate rrd file references
-DELETE FROM rrd_file 
-WHERE rrd_fileid IN (SELECT b.rrd_fileid
-                     FROM rrd_file a
-                     JOIN rrd_file b ON (a.path = b.path AND 
-                                         a.filename=b.filename AND 
-                                         a.rrd_fileid > b.rrd_fileid)
-		     );
+-- Add alerthistid foreign key so that we can use alerthistory in
+-- alertengine at a latter point in time.
+ALTER TABLE manage.alertq ADD alerthistid integer NULL;
+ALTER TABLE manage.alertq ADD CONSTRAINT alertq_alerthistid_fkey
+  FOREIGN KEY (alerthistid)
+  REFERENCES manage.alerthist (alerthistid)
+  ON UPDATE CASCADE
+  ON DELETE SET NULL;
 
--- Modify rrd_file to prevent duplicate path/filename entries
-ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename);
+-- Remove this field which was added in an earlier 3.5 beta.
+ALTER TABLE manage.alertq DROP closed;
 
--- Tables and indices for new radius accounting subsystem
-CREATE SCHEMA radius;
-SET search_path TO radius;
+-- Update two radius indexes
+DROP INDEX radiusacct_stop_user_index;
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
 
-CREATE TABLE radiusacct (
-        RadAcctId               BIGSERIAL PRIMARY KEY,
-        AcctSessionId           VARCHAR(96) NOT NULL,
-        AcctUniqueId            VARCHAR(32) NOT NULL,
-        UserName                VARCHAR(70),
-        Realm                   VARCHAR(24),
-        NASIPAddress            INET NOT NULL,
-        NASPortType             VARCHAR(32),
-        CiscoNASPort            VARCHAR(32),
-        AcctStartTime           TIMESTAMP,
-        AcctStopTime            TIMESTAMP,
-        AcctSessionTime         BIGINT,
-        AcctInputOctets         BIGINT,
-        AcctOutputOctets        BIGINT,
-        CalledStationId         VARCHAR(50),
-        CallingStationId        VARCHAR(50),
-        AcctTerminateCause      VARCHAR(32),
-        FramedProtocol          VARCHAR(32),
-        FramedIPAddress         INET,
-        AcctStartDelay          BIGINT,
-        AcctStopDelay           BIGINT
-);
+DROP INDEX radiuslog_username_index;
+CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
 
-CREATE TABLE radiuslog (
-        ID                      BIGSERIAL PRIMARY KEY,
-        Time                    TIMESTAMP with time zone,
-        Type                    VARCHAR(10),
-        Message                 VARCHAR(200),
-        Status                  VARCHAR(65),
-        UserName                VARCHAR(70),
-        Client                  VARCHAR(65),
-        Port                    VARCHAR(8)
-        );
-
-
--- For use by onoff-, update-, stop- and simul_* queries
-CREATE INDEX radiusacct_active_user_idx ON radiusacct (UserName) WHERE AcctStopTime IS NULL;
--- and for common statistic queries:
-CREATE INDEX radiusacct_start_user_index ON radiusacct (AcctStartTime, lower(UserName));
-CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, UserName);
-
-CREATE INDEX radiuslog_time_index ON radiuslog(time);
-CREATE INDEX radiuslog_username_index ON radiuslog(UserName);
-
-RESET search_path;
-
-------------------------------------------------------------------------------
--- simple schema version check table
-------------------------------------------------------------------------------
-CREATE TABLE manage.nav_schema_version (
-    version VARCHAR NOT NULL,
-    time TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- FIXME: Insert default as version name.  This should be updated on
--- each NAV release branch.
-INSERT INTO nav_schema_version (version) VALUES ('default');
-
--- Ensure only a single row will ever exist in this table.
-CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
-    DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();
-
+COMMIT;

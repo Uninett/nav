@@ -30,7 +30,6 @@ from nav.web.netmap.datacollector import *
 
 from nav import auth
 
-
 from mod_python import apache, util, Cookie
 from mod_python.util import FieldStorage
 
@@ -43,6 +42,7 @@ def handler(req):
 
     connection = nav.db.getConnection('netmapserver', 'manage')
     db = connection.cursor()
+
 
     try:
         if req.is_https():

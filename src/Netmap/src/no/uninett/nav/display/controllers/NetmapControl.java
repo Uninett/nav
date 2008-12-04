@@ -74,17 +74,17 @@ public class NetmapControl extends ControlAdapter {
 		    	cap = Double.parseDouble(item.getString("link_capacity"));
 			in = Double.parseDouble(item.getString("link_load_in"));
 			out = Double.parseDouble(item.getString("link_load_out"));
-			in = ((in/1024)/cap)*100;
-			out = ((out/1024)/cap)*100;
+			in = ((in/1024)/cap)*1000;
+			out = ((out/1024)/cap)*1000;
 			} catch (Exception exception){}
 		    t.add(new linkTooltip(
 					    item.getString("from_sysname") + " -> " + item.getString("to_sysname"),
-					    item.getString("to_interface") + " -> " + item.getString("from_interface"),
+					    item.getString("from_interface") + " -> " + item.getString("to_interface"),
 					    item.getString("netident"),
 					    item.getString("nettype"),
 					    item.getString("link_capacity"),
-					    "In: " + Main.bwToString(item.getString("link_load_in")) + "(" + String.format("%.2f", in) +"%) " +
-					    "Out: " + Main.bwToString(item.getString("link_load_out")) + "(" + String.format("%.2f", out) + "%)"
+					    "In: " + Main.bwToString(item.getString("link_load_in")) + "  (" + String.format("%.1f", in) +"%) " +
+					    "Out: " + Main.bwToString(item.getString("link_load_out")) + "  (" + String.format("%.1f", out) + "%)"
 					 ));
 	    }
 

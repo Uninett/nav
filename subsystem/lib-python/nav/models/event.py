@@ -158,7 +158,6 @@ class AlertQueue(models.Model):
         default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
-    closed = models.BooleanField()
 
     class Meta:
         db_table = 'alertq'
@@ -232,7 +231,7 @@ class AlertHistory(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     subid = models.CharField(max_length=-1)
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
         null=True)

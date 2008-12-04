@@ -1,6 +1,0 @@
-## info: Runs the cricket collector, and a nightly makecricketconfig run.
-CRICKETDIR=/usr/local/nav/cricket
-
-*/5 * * * * $CRICKETDIR/cricket/collect-subtrees normal 
-12 5 * * * $BINDIR/makecricketconfig.pl
-0 5 * * * $BINDIR/cleanrrds.pl -d -p /usr/local/nav/cricket/cricket-data/

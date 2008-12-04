@@ -48,8 +48,12 @@
 <key id="to_interface" for="edge" attr.name="to_interface" attr.type="string"/>
 <key id="from_sysname" for="edge" attr.name="from_sysname" attr.type="string"/>
 <key id="to_sysname" for="edge" attr.name="to_sysname" attr.type="string"/>
+<key id="from_portid" for="edge" attr.name="from_portid" attr.type="string"/>
+<key id="to_portid" for="edge" attr.name="to_portid" attr.type="string"/>
 <key id="nettype" for="edge" attr.name="nettype" attr.type="string"/>
 <key id="netident" for="edge" attr.name="netident" attr.type="string"/>
+<key id="layer" for="edge" attr.name="layer" attr.type="string"/>
+<key id="vlan" for="edge" attr.name="vlan" attr.type="string"/>
 
 <graph id="main" edgedefault="directed">
 	#for $box in $netboxes
@@ -60,17 +64,17 @@
 		<data key="type">$box.descr</data>
 		<data key="room">$box.roomid</data>
 		<data key="up">$box.up</data>
-		<data key="location">$box.descr</data>
+		<data key="location">$box.location</data>
 		<data key="cpuload">$box.load</data>
-        <data key="image">$baseURL/applet/media/${box.catid}.png</data>
+        <data key="image">../../../applet/media/${box.catid}.png</data>
         #if $box.xpos and $box.ypos
             <data key="position">$box.xpos x $box.ypos</data>
         #end if
     </node>
 	#end for
     #set $a = 0
-    #for $conn in $connections
-    <edge id="$a" source="$conn.netboxid" target="$conn.to_netboxid">
+    #for $conn in $connections.values()
+    <edge id="$a" source="$conn.from_netboxid" target="$conn.netboxid">
     <data key="link_capacity">$conn.speed</data>
 #if $conn.load
      <data key="link_load_in">$conn.load[0]</data>
@@ -80,11 +84,23 @@
      <data key="link_load_out">-1</data>
 #end if
      <data key="from_interface">$conn.from_interface</data>
-     <data key="to_interface">$conn.to_interface</data>
+     <data key="to_interface">$conn.interface</data>
      <data key="from_sysname">$conn.from_sysname</data>
-     <data key="to_sysname">$conn.to_sysname</data>
+     <data key="to_sysname">$conn.sysname</data>
+#if $conn.from_gwportid
+     <data key="from_portid">$conn.from_gwportid</data>
+#else
+     <data key="from_portid">$conn.from_swportid</data>
+#end if
+#if $conn.gwportid
+     <data key="to_portid">$conn.gwportid</data>
+#else
+     <data key="to_portid">$conn.swportid</data>
+#end if
      <data key="nettype">$conn.nettype</data>
      <data key="netident">$conn.netident</data>
+     <data key="layer">$conn.layer</data>
+     <data key="vlan">$conn.vlan</data>
     </edge>
     #set $a = $a +1
     #end for
