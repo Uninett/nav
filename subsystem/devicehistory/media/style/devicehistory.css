@@ -1,3 +1,8 @@
+.listtable ul {
+	margin: 0;
+	padding: 0;
+}
+
 ul.email_message li {
 		list-style-type: none;
 		border: 1px solid #729FCF;
