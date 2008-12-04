@@ -16,12 +16,12 @@
     <tbody>
     {% for a in type.subscriptions %}
         <tr class="{% cycle oddrow,evenrow %}
-            {% ifequal a.time_period.valid_during 'all days' %}
+            {% ifequal a.time_period.get_valid_during_display 'all days' %}
             all_days_period period_{{ a.time_period.id }}
             {% endifequal %}">
             {# The same time period may appear in both tables, so we need to #}
             {# identify by both the parent loops counter and the time_periods id. #}
-            <td class="{{ a.time_period.class }}">
+            <td class="{{ a.time_period.css_class }}">
             {% if active.profile %}
                 <input type="checkbox" name="period" id="id_period_weekday_{{ a.time_period.id }}" value="{{ a.time_period.id }}" class="all_day_checkbox_{{ a.time_period.id }}" />
             {% endif %}

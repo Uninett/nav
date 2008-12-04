@@ -175,7 +175,11 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         try:
             profile = AlertProfile.objects.get(pk=profile_id, account=account)
         except AlertProfile.DoesNotExist:
-            new_message(request, _('The requested profile does not exist.'), Messages.ERROR)
+            new_message(
+                request,
+                _('The requested profile does not exist.'),
+                Messages.ERROR
+            )
             return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
         detail_id = profile.id
@@ -642,7 +646,9 @@ def profile_time_period_setup(request, time_period_id=None):
     account = get_account(request)
 
     time_period = TimePeriod.objects.get(pk=time_period_id)
-    subscriptions = AlertSubscription.objects.filter(time_period=time_period).order_by('alert_address', 'filter_group')
+    subscriptions = AlertSubscription.objects.select_related(
+        'alert_address', 'filter_group'
+    ).filter(time_period=time_period).order_by('alert_address', 'filter_group')
     profile = time_period.profile
 
     if account != profile.account:
@@ -882,7 +888,9 @@ def address_list(request):
     if order_by not in valid_ordering:
         order_by = 'address'
 
-    address = AlertAddress.objects.filter(account=account.pk).order_by(order_by)
+    address = AlertAddress.objects.select_related(
+        'type'
+    ).filter(account=account.pk).order_by(order_by)
 
     info_dict = {
             'active': {'address': True},
@@ -1179,9 +1187,11 @@ def filter_list(request):
         order_by = 'name'
 
     # Get all public filters, and private filters belonging to this user only
-    filters = Filter.objects.filter(
-            Q(owner=account) | Q(owner__isnull=True)
-        ).order_by(order_by)
+    filters = Filter.objects.select_related(
+        'owner'
+    ).filter(
+        Q(owner=account) | Q(owner__isnull=True)
+    ).order_by(order_by)
 
     active = {'filters': True}
     info_dict = {
@@ -1221,7 +1231,10 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         try:
             filter = Filter.objects.get(pk=filter_id)
         except Filter.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter does not exist.'))
+            return alertprofiles_response_not_found(
+                request,
+                _('Requested filter does not exist.')
+            )
         else:
             owner = filter.owner
             if not owner:
@@ -1243,7 +1256,9 @@ def filter_show_form(request, filter_id=None, filter_form=None):
 
         matchfields = MatchField.objects.all().order_by('name')
         # Get all matchfields (many-to-many connection by table Expression)
-        expressions = Expression.objects.filter(filter=filter_id)
+        expressions = Expression.objects.select_related(
+            'match_field'
+        ).filter(filter=filter_id).order_by('match_field__name')
 
         for e in expressions:
             if e.operator == Operator.IN:
@@ -1613,9 +1628,11 @@ def filtergroup_list(request):
 
     # Get all public filtergroups, and private filtergroups belonging to this
     # user only
-    filtergroups = FilterGroup.objects.filter(
+    filtergroups = FilterGroup.objects.select_related(
+        'owner'
+    ).filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
-        ).order_by(order_by)
+    ).order_by(order_by)
 
     active = {'filtergroups': True}
     info_dict = {
@@ -1678,15 +1695,16 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
                     'You do not have access to the requested filter group.'
                 )
 
-        filtergroupcontent = FilterGroupContent.objects.filter(
-                filter_group=filtergroup.id
-            ).order_by('priority')
-        # NOTE We would like to order by owner first, but then filters with no
-        # owner won't show up.
+        filtergroupcontent = FilterGroupContent.objects.select_related(
+            'filter'
+        ).filter(
+            filter_group=filtergroup.id
+        ).order_by('priority')
+
         filters = Filter.objects.filter(
-                ~Q(pk__in=[f.filter.id for f in filtergroupcontent]),
-                Q(owner__exact=account.pk) | Q(owner__isnull=True)
-            ).order_by('name')
+            ~Q(pk__in=[f.filter.id for f in filtergroupcontent]),
+            Q(owner__exact=account.pk) | Q(owner__isnull=True)
+        ).order_by('owner', 'name')
 
         page_name = filtergroup.name
 
