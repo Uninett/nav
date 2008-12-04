@@ -34,7 +34,7 @@ ALTER TABLE manage.alertq DROP closed;
 
 -- Update two radius indexes
 DROP INDEX radiusacct_stop_user_index;
-+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
 
 DROP INDEX radiuslog_username_index;
 CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
