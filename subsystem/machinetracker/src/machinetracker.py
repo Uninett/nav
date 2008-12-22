@@ -234,7 +234,7 @@ class ResultRow:
             self.end_time = None
 
         if dns:
-            self.dnsname = hostname(ipaddr)
+            self.dnsname = hostname(ipaddr) or "--"
         else:
             self.dnsname = ""
 
@@ -355,22 +355,82 @@ class IPSQLQuery(MachineTrackerSQLQuery):
 
 class SwPortSQLQuery(MACSQLQuery):
 
-    def __init__(self, ip, module, port, days=7):
+    def __init__(self, search_string, module, port, days=7):
         MACSQLQuery.__init__(self, mac=None, days=days)
 
-        # If ip is an IP address, get hostname. Logic? But of course!
-        try:
-            IPy.IP(ip)
-            ip = hostname(ip)
-        except ValueError:
-            pass
+        # Try to expand the search string into multiple search
+        # critera, i.e. names, ip addresses and netboxid references
+        criteria = SwPortSQLQuery.expand_criteria(search_string)
 
         self.order_by = "cam.sysname, module, port, mac, start_time DESC"
-        self.where.append("cam.sysname ILIKE '%s%%'" % ip)
+        self.where.append("(%s)" % criteria)
         if module and module != "*":
             self.where.append("module = '%s'" % module)
         if port and port != "*":
             self.where.append("port = '%s'" % port)
+
+
+    @staticmethod
+    def expand_criteria(search_string):
+        """Create SQL search criteria from a search string.
+
+        Constructs Machine Tracker switch search criteria by
+        attempting DNS reverse lookups and netbox table lookups.
+        Returns a string suitable for inclusion in an SQL WHERE
+        clause.
+        """
+        try:
+            ip = IPy.IP(search_string)
+            # search string was actually an IP, do a reverse DNS lookup
+            name = hostname(search_string)
+        except ValueError:
+            ip = None
+            name = None
+
+        netboxes = SwPortSQLQuery.netbox_lookup(search_string, name, ip)
+        netboxids = []
+        names = []
+        for netboxid, sysname, ipaddr in netboxes:
+            netboxids.append(str(netboxid))
+            names.append(sysname)
+            names.append(ipaddr)
+
+        criteria = []
+        criteria.append("cam.sysname ILIKE %s" %
+                        db.escape(search_string + "%"))
+        if netboxids:
+            criteria.append("cam.netboxid IN (%s)" % ",".join(netboxids))
+        if names:
+            criteria.append("cam.sysname IN (%s)" % \
+                            ",".join([db.escape(n) for n in names]))
+
+        return " OR ".join(criteria)
+
+    @staticmethod
+    def netbox_lookup(substring, sysname, ip):
+        """Look up netbox records that match any of the three criteria.
+
+        Return value is a list of tuples, each tuple containing a
+        netboxid, sysname and ip column from the netbox table.
+        """
+        sql = """SELECT netboxid, sysname, ip
+                 FROM netbox
+                 WHERE """
+        criteria = []
+        if substring:
+            criteria.append("sysname ILIKE %s" % db.escape(substring + "%"))
+        if sysname:
+            criteria.append("sysname = %s" % db.escape(sysname))
+        if ip:
+            criteria.append("ip = %s" % db.escape(str(ip)))
+
+        sql += " OR ".join(criteria)
+        logger.debug("Netbox lookup SQL: %s", sql)
+        database.execute(sql)
+        result = database.fetchall()
+        logger.debug("Netbox lookup result: %r", result)
+        return result
+
 
 class MachineTrackerForm:
 
@@ -422,5 +482,5 @@ def hostname(ip):
         try:
             hostCache[ip] = gethostbyaddr(str(ip))[0]
         except herror:
-            hostCache[ip] = "--"
+            return None
     return hostCache[ip]
