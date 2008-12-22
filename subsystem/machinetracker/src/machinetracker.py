@@ -45,12 +45,15 @@ from nav.web.URI import URI
 from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate
 
 logger = logging.getLogger("nav.web.machinetracker")
-connection = db.getConnection('webfront', 'manage')
-database = connection.cursor()
+connection = None
+database = None
 
 def handler(req):
-    global hostCache
+    global hostCache, connection, database
     hostCache = {}
+
+    connection = db.getConnection('webfront', 'manage')
+    database = connection.cursor()
 
     args = URI(req.unparsed_uri)
 
