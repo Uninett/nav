@@ -20,15 +20,11 @@
         <tr>
             <th></th>
             <td>
-                <button type="submit">
-                {% block buttoncontent %}
                 {% if detail_id %}
-                    Save changes
+                    <input type="submit" value="Save changes" />
                 {% else %}
-                    Save new
+                    <input type="submit" value="Save new" />
                 {% endif %}
-                {% endblock %}
-                </button>
             </td>
         </tr>
         {% endif %}
@@ -79,7 +75,7 @@
     {% block addexpression %}
         <p>
             <input type="hidden" name="id" value="{{ detail_id }}" />
-            <button type="submit">Add</button>
+            <input type="submit" value="Add" />
         </p>
     {% endblock addexpression %}
     </form>

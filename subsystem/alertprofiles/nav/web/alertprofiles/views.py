@@ -317,6 +317,14 @@ def profile_remove(request):
         new_message(request, _('There was no post-data'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
+    post = request.POST.copy()
+    for data in post:
+        if data.find("=") != -1:
+            attr, value = data.split("=")
+            del post[data]
+            post[attr] = value
+    request.POST = post
+
     if request.POST.get('activate'):
         return profile_activate(request)
     if request.POST.get('deactivate'):
