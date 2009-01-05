@@ -1950,14 +1950,28 @@ def filtergroup_addfilter(request):
             reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,))
         )
 
-def filtergroup_removefilter(request):
+def filtergroup_remove_or_move_filter(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
 
-    # Check if we are deleting or moving filters
+    post = request.POST.copy()
+    for name in post:
+        if name.find("=") != -1:
+            attribute, value = name.split("=")
+            del post[name]
+            post[attribute] = value
+    request.POST = post
+
     if request.POST.get('moveup') or request.POST.get('movedown'):
         return filtergroup_movefilter(request)
+    else:
+        return filtergroup_removefilter(request)
+
+def filtergroup_removefilter(request):
+    if not request.method == 'POST':
+        new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
+        return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
 
     # We are deleting filters. Show confirmation page or remove?
     if request.POST.get('confirm'):
@@ -2098,7 +2112,10 @@ def filtergroup_movefilter(request):
     try:
         filter = FilterGroupContent.objects.get(pk=filter_id)
     except FilterGroupContent.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested filter group content does not exist.'))
+        return alertprofiles_response_not_found(
+            request,
+            _('Requested filter group content does not exist.')
+        )
 
     # Make sure content is ordered correct
     last_priority = order_filter_group_content(filter_group)

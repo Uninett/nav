@@ -113,7 +113,7 @@ urlpatterns = patterns('',
         name='alertprofiles-filtergroups-remove'),
     url(r'^filter-groups/add-filter/$', filtergroup_addfilter,
         name='alertprofiles-filtergroups-addfilter'),
-    url(r'^filter-groups/remove-filter/$', filtergroup_removefilter,
+    url(r'^filter-groups/remove-filter/$', filtergroup_remove_or_move_filter,
         name='alertprofiles-filtergroups-removefilter'),
 
     # Filter variables (aka. matchfields)

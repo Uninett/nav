@@ -66,7 +66,7 @@
             {% block expressions_extra_fields %}
             <p>
                 <input type="hidden" name="id" value="{{ detail_id }}" />
-                <button type="submit">Delete selected</button>
+                <input type="submit" name="delete" value="Delete selected" />
             </p>
             {% endblock %}
         {% endif %}

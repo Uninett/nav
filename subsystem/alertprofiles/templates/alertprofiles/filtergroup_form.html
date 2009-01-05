@@ -44,12 +44,12 @@
             <td>{{ f.filter }}</td>
             <td>
                 {% if not forloop.first %}
-                <button type="submit" name="moveup" value="{{ f.id }}">Move up</button>
+                <input type="submit" name="moveup={{ f.id }}" value="Move up" />
                 {% endif %}
             </td>
             <td>
                 {% if not forloop.last %}
-                <button type="submit" name="movedown" value="{{ f.id }}">Move down</button>
+                <input type="submit" name="movedown={{ f.id }}" value="Move down" />
                 {% endif %}
             </td>
         </tr>
