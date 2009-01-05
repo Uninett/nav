@@ -35,7 +35,7 @@
                 {% if a.alert_subscriptions %}
                     {% for b in a.alert_subscriptions %}
                     <li>
-                        Watch <em><a href="{% url alertprofiles-filtergroups-detail b.filter_group.id %}">{{ b.filter_group.name }}</a></em>,
+                        Watch <em><a href="{% url alertprofiles-filter_groups-detail b.filter_group.id %}">{{ b.filter_group.name }}</a></em>,
                         send to <em><a href="{% url alertprofiles-address-detail b.alert_address.id %}">{{ b.alert_address.address }}</a></em>,
                         {{ b.get_type_display }}.
                     </li>

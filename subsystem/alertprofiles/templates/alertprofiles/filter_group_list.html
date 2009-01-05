@@ -8,13 +8,13 @@
     <th></th>
     <th>
     {% ifequal order_by "name" %}
-        <a href="{% url alertprofiles-filtergroups %}?page={{ page_obj.number }}&amp;order_by=-name">
+        <a href="{% url alertprofiles-filter_groups %}?page={{ page_obj.number }}&amp;order_by=-name">
             Name</a>
         <span class="sort">
             <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
-        <a href="{% url alertprofiles-filtergroups %}?page={{ page_obj.number }}&amp;order_by=name">
+        <a href="{% url alertprofiles-filter_groups %}?page={{ page_obj.number }}&amp;order_by=name">
             Name</a>
         {% ifequal order_by "-name" %}
         <span class="sort">
@@ -25,13 +25,13 @@
     </th>
     <th>
     {% ifequal order_by "owner" %}
-        <a href="{% url alertprofiles-filtergroups %}?page={{ page}}&amp;order_by=-owner">
+        <a href="{% url alertprofiles-filter_groups %}?page={{ page}}&amp;order_by=-owner">
             Owner</a>
         <span class="sort">
             <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
-        <a href="{% url alertprofiles-filtergroups %}?page={{ page}}&amp;order_by=owner">
+        <a href="{% url alertprofiles-filter_groups %}?page={{ page}}&amp;order_by=owner">
             Owner</a>
         {% ifequal order_by "-owner" %}
         <span class="sort">
@@ -42,13 +42,13 @@
     </th>
     <th>
     {% ifequal order_by "description" %}
-        <a href="{% url alertprofiles-filtergroups %}?page={{ page }}&amp;order_by=-description">
+        <a href="{% url alertprofiles-filter_groups %}?page={{ page }}&amp;order_by=-description">
             Description</a>
         <span class="sort">
             <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
-        <a href="{% url alertprofiles-filtergroups %}?page={{ page }}&amp;order_by=description">
+        <a href="{% url alertprofiles-filter_groups %}?page={{ page }}&amp;order_by=description">
             Description</a>
         {% ifequal order_by "-description" %}
         <span class="sort">
@@ -68,7 +68,7 @@
                 {% if not admin and not filter.owner %}disabled="disabled"{% endif %}
                 />
             </td>
-            <td><a href="{% url alertprofiles-filtergroups-detail filter.id %}">
+            <td><a href="{% url alertprofiles-filter_groups-detail filter.id %}">
                 {{ filter.name }}</a></td>
             <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
             <td>{{ filter.description }}</td>
