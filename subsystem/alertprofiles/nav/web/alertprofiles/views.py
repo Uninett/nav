@@ -2073,7 +2073,7 @@ def filtergroup_movefilter(request):
     else:
         # No sensible input, just return to where we came from
         return HttpResponseRedirect(
-                reverse('alertprofiels-filtergroups-detail', args=(filter_group_id,))
+                reverse('alertprofiles-filtergroups-detail', args=(filter_group_id,))
             )
 
     filter = None
