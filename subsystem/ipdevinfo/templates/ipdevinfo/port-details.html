@@ -3,57 +3,71 @@
 {% block content %}
 
 <table class="vertitable">
-    <caption>Interface {{ port.interface }}
-    at {{ port.module.netbox.sysname }}</caption>
+    <caption>
+        Interface {{ port.interface }}<br />
+        at {{ port.module.netbox.get_short_sysname }}
+    </caption>
+
     <tr>
         <th>At IP device</th>
         <td><a href="{{ port.module.netbox.get_absolute_url }}">
             {{ port.module.netbox }}</a></td>
     </tr>
+
+    <tr>
+        <th>Interface</th>
+        <td>{{ port.interface }}</td>
+    </tr>
+
     <tr>
         <th>At module</th>
         <td><a href="{{ port.module.get_absolute_url }}">
             Module {{ port.module.module_number }}</a></td>
     </tr>
-    <tr>
-        <th>Interface</th>
-        <td>{{ port.interface }}</td>
-    </tr>
-    <tr>
-        <th>IfIndex</th>
-        <td>{{ port.ifindex }}</td>
-    </tr>
+
 {% ifequal port_type 'swport' %}
     <tr>
         <th>Port</th>
         <td>{{ port.port }}</td>
     </tr>
 {% endifequal %}
+
     <tr>
         <th>Port name</th>
         <td>{{ port.port_name }}</td>
     </tr>
+
+    <tr>
+        <th>IfIndex</th>
+        <td>{{ port.ifindex }}</td>
+    </tr>
+
     <tr>
         <th>Link</th>
         <td>{{ port.get_link_display|capfirst }}</td>
     </tr>
+
     <tr>
         <th>Speed</th>
         <td>{{ port.speed }} Mbit</td>
     </tr>
+
 {% ifequal port_type 'swport' %}
     <tr>
         <th>Duplex</th>
         <td>{{ port.get_duplex_display|capfirst }}</td>
     </tr>
+
     <tr>
         <th>Trunk</th>
         <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
     </tr>
+
     <tr>
         <th>Configured VLAN</th>
         <td>{{ port.vlan|default:"N/A" }}</td>
     </tr>
+
     <tr>
         <th>Detected VLANs</th>
         <td>
@@ -76,6 +90,7 @@
         </td>
     </tr>
 {% endifequal %}
+
     <tr>
         <th>To IP device</th>
         <td>
@@ -87,6 +102,7 @@
             {% endif %}
         </td>
     </tr>
+
     <tr>
         <th>To switch port</th>
         <td>
@@ -98,6 +114,7 @@
             {% endif %}
         </td>
     </tr>
+
 {% ifequal port_type 'swport' %}
     <tr>
         <th>Patched to</th>
@@ -115,25 +132,71 @@
             {% endif %}
         </td>
     </tr>
+
     <tr>
         <th>Last CAM record</th>
         <td>
-            {% with port.get_active_time.days as days_ago %}
-                {% if days_ago %}
-                    {% ifequal days_ago 0 %}
-                        Today
-                    {% else %}
-                        {{ days_ago }} day{{ days_ago|pluralize }} ago
-                    {% endifequal %}
+            {% with port.get_last_cam_record.end_time|timesince as time_since %}
+                {% if time_since %}
+                    {{ time_since }} ago
                 {% else %}
-                    More than {{ port.CAM_ACTIVITY_NUM_DAYS_TO_SEARCH }}
-                    days ago
+                    Today
+                {% endif %}
+            {% endwith %}<br />
+        </td>
+    </tr>
+{% endifequal %}
+
+{% ifequal port_type 'gwport' %}
+    <tr>
+        <th colspan="2">Prefixes</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            {% if port.gwportprefix_set.all %}
+                <ul>
+                {% for gwprefix in port.gwportprefix_set.all %}
+                    <li>
+                        <a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
+                        {{ gwprefix.gw_ip}}/{{ gwprefix.prefix.get_prefix_length }}</a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+{% endifequal %}
+
+    <tr>
+        <th colspan="2">Statistics</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            {% with port.get_rrd_data_sources as dss %}
+                {% if dss|length %}
+                    <ul>
+                    {% for ds in dss %}
+                        <li><a href="{{ ds.get_absolute_url }}">
+                            {{ ds.description }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
                 {% endif %}
             {% endwith %}
         </td>
     </tr>
+
+{% ifequal port_type 'swport' %}
     <tr>
-        <th>Actions</th>
+        <th colspan="2">Actions</th>
+    </tr>
+    <tr>
+        <th></th>
         <td>
             <ul>
                 <li><a href="{% url machinetracker-swport port.module.netbox.sysname,port.module.module_number,port.interface %}">
@@ -143,24 +206,5 @@
     </tr>
 {% endifequal %}
 </table>
-
-<h3>Statistics</h3>
-
-<p>FIXME: Add statistics.</p>
-
-{% ifequal port_type 'gwport' %}
-<h3>Prefixes</h3>
-
-<ul>
-    {% if port.gwportprefix_set.all %}
-        {% for gwprefix in port.gwportprefix_set.all %}
-            <li><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
-                {{ gwprefix.prefix.net_address }}</a></li>
-        {% endfor %}
-    {% else %}
-    <li>No prefixes found.</li>
-    {% endif %}
-</ul>
-{% endifequal %}
 
 {% endblock %}

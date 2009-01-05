@@ -11,9 +11,9 @@ if test -z "$PYTHON"; then
 else
   if ! ${PYTHON} -c '
 import sys
-if not hasattr(sys, "version_info") or sys.version_info < (2,3,0):
+if not hasattr(sys, "version_info") or sys.version_info < (2,4,0):
   sys.exit(1)'; then
-    AC_MSG_WARN([Your python version is too old for NAV, we require at least version 2.3.0])
+    AC_MSG_WARN([Your python version is too old for NAV, we require at least version 2.4.0])
   fi
 fi
 AC_PATH_PROG(CHEETAH,cheetah)
@@ -40,6 +40,8 @@ AC_SUBST(tooldir)
 AC_SUBST(docdir)
 AC_SUBST(crondir)
 AC_SUBST(VERSION)
+dnl The location of the cricket binaries
+AC_SUBST(CRICKETDIR)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
@@ -58,64 +60,70 @@ if $GREP -q devel VERSION && ! test -z "$HG" && test -e .hg
 then
 	VERSION=`$HG identify -i`
 fi
+if test -z "$CRICKETDIR"; then
+	CRICKETDIR='${prefix}/cricket/cricket'
+fi
 
 
 AC_OUTPUT(Makefile
 	doc/Makefile
+	src/Makefile
 	src/build.properties
+	src/eventEngine/eventEngine.sh
 	src/eventEngine/eventengine
+	src/getBoksMacs/getBoksMacs.sh
 	src/getDeviceData/getDeviceData
 	src/getDeviceData/getDeviceData.sh
-	src/eventEngine/eventEngine.sh
 	src/networkDiscovery/networkDiscovery.sh
-	src/getBoksMacs/getBoksMacs.sh
-	src/Makefile
+	subsystem/alertengine/Makefile
+	subsystem/alertengine/alertengine
+	subsystem/alertprofiles/Makefile
+	subsystem/arnold/Makefile
+	subsystem/arnold/images/Makefile
+	subsystem/arnold/lib/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/lib-perl/Makefile
-	subsystem/lib-python/Makefile
-	subsystem/webFront/Makefile
-	subsystem/webFront/lib/nav/web/templates/Makefile
-	subsystem/devBrowser/Makefile
+	subsystem/deviceManagement/Makefile
+	subsystem/ipdevinfo/Makefile
 	subsystem/ipinfo/Makefile
 	subsystem/ipinfo/templates/Makefile
+	subsystem/l2trace/Makefile
+	subsystem/l2trace/src/Makefile
+	subsystem/lib-perl/Makefile
+	subsystem/lib-python/Makefile
+	subsystem/logger/Makefile
+	subsystem/logger/bin/Makefile
+	subsystem/logger/conf/Makefile
+	subsystem/logger/src/Makefile
+	subsystem/logger/templates/Makefile
+	subsystem/machinetracker/Makefile
+	subsystem/machinetracker/src/Makefile
+	subsystem/maintenance/Makefile
+	subsystem/messages/Makefile
+	subsystem/netmap/Makefile
+	subsystem/networkexplorer/Makefile
+	subsystem/radius/src/Makefile
+        subsystem/radius/Makefile
+	subsystem/report/Makefile
+	subsystem/seeddb/Makefile
+	subsystem/seeddb/src/Makefile
+	subsystem/smsd/Makefile
+	subsystem/smsd/smsd
+	subsystem/snmptrapd/Makefile
+	subsystem/snmptrapd/snmptrapd
+	subsystem/startstop/Makefile
+	subsystem/startstop/functions
+	subsystem/statTools/cricket.cron
+	subsystem/statTools/Makefile
+	subsystem/statTools/sortedStats/Makefile
 	subsystem/statemon/Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
-	subsystem/seeddb/Makefile
-	subsystem/seeddb/src/Makefile
 	subsystem/status/Makefile
 	subsystem/status/src/Makefile
-	subsystem/maintenance/Makefile
-	subsystem/messages/Makefile
-	subsystem/l2trace/Makefile
-	subsystem/l2trace/src/Makefile
-	subsystem/logger/src/Makefile
-	subsystem/logger/templates/Makefile
-	subsystem/logger/bin/Makefile
-	subsystem/logger/conf/Makefile
-	subsystem/logger/Makefile
-	subsystem/deviceManagement/Makefile
-	subsystem/machinetracker/src/Makefile
-	subsystem/machinetracker/Makefile
-	subsystem/report/Makefile
-	subsystem/alertprofiles/Makefile
-	subsystem/alertengine/Makefile
-	subsystem/alertengine/alertengine
 	subsystem/thresholdMon/Makefile
-	subsystem/smsd/Makefile
-	subsystem/smsd/smsd
-	subsystem/startstop/Makefile
-	subsystem/startstop/functions
-	subsystem/arnold/Makefile
-	subsystem/arnold/lib/Makefile
-	subsystem/arnold/images/Makefile
-	subsystem/snmptrapd/Makefile
-	subsystem/snmptrapd/snmptrapd
-	subsystem/statTools/Makefile
-	subsystem/statTools/sortedStats/Makefile
-	subsystem/ipdevinfo/Makefile
 	subsystem/useradmin/Makefile
-	subsystem/netmap/Makefile)
+	subsystem/webfront/Makefile
+)
 
 echo
 echo "Now run 'make' to build NAV"

@@ -79,9 +79,9 @@ A rough guide to the source tree:
   reasons).
 
 * subsystem/
-  Source code to the rest of NAV - a lot of Python, some Perl and a
-  smudge of PHP :( NAV is loosely divided into subsystems, and each
-  one of these has its own subdirectory in here.
+  Source code to the rest of NAV - a lot of Python. NAV is loosely
+  divided into subsystems, and each one of these has its own
+  subdirectory in here.
 
 * subsystem/lib-python/
   Python libraries & APIs.  Please check what's already there before
@@ -99,7 +99,7 @@ A rough guide to the source tree:
 Development languages
 =====================
 For historic reasons, NAV today is made up of several programming
-languages - these are Python, Java, Perl and PHP.  Although this is
+languages - these are Python, Java and Perl. Although this is
 unfortunate in many ways, no-one has been willing to invest in the
 time needed to rewrite stuff to reduce the number of languages.
 
@@ -109,10 +109,8 @@ subsystems, use the language that subsystem was written in.
 When writing entirely new subsystems, the following rules apply:
 
 * If your subsystem is a new tool for the web interface, use Python.
-  The web interface is built using mod_python, with the exception of
-  Alert Profiles (which no-one wanted to rewrite from PHP to Python).
-  Also, the integration with Cricket uses Cricket's web front-end,
-  which is Perl CGI.
+  The web interface is built using mod_python. Also, the integration with
+  Cricket uses Cricket's web front-end, which is Perl CGI.
 
 * If your subsystem is a new back-end tool/daemon, please use Python.
   The Python API created for NAV is more complete than for any of the
@@ -199,15 +197,15 @@ The NAV web interface makes extensive use of Cheetah templates for
 generating its HTML output, see http://www.cheetahtemplate.org/ .
 
 Most of the existing Cheetah templates are to be found in
-subsystem/webFront/templates, although some of NAV's subsystems store
-their templates along with their code in their respective subsystem
-subdirectories.  The compiled templates should be placed in the
+subsystem/webfront/nav/web/templates, although some of NAV's subsystems
+store their templates along with their code in their respective subsystem
+subdirectories. The compiled templates should be placed in the
 nav.web.templates package.
 
 If you are making a new web module for NAV, your module's Cheetah
 template should subclass MainTemplate.tmpl found in
-subsystem/webFront/templates/.  See other templates for code examples
-of how to inherit from this template.
+subsystem/webfront/nav/web/templates/. See other templates for code
+examples of how to inherit from this template.
 
 Database connections in the web interface
 -----------------------------------------

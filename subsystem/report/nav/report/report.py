@@ -21,9 +21,11 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
 import re
+import string
 
 from nav.web.URI import URI
 
@@ -52,16 +54,20 @@ class Report:
         - path          : the address of the requested page
         """
 
-        self.formatted = database.result
         self.rowcount = database.rowcount
         self.sums = database.sums
 
-        self.limit = self.setLimit(configuration.limit)
-        self.offset = self.setOffset(configuration.offset)
+        # Store values as integers
+        self.limit = int(str((self.setLimit(configuration.limit))))
+        self.offset = int(str(self.setOffset(configuration.offset)))
+
+        # Slice the result according to offset and limit
+        self.formatted = database.result[self.offset:self.limit+self.offset]
+        self.dbresult = database.result
 
         self.address = self.stripPath(path)
 
-        self.header = configuration.header
+        self.title = configuration.title
         self.hide = configuration.hidden
         self.extra = configuration.extra
 
@@ -251,7 +257,26 @@ class Report:
 
             ## change if the name exist in the overrider hash
             if sum.has_key(title):
-                thisSum.setSum(str(sum[title]))
+                
+                ## Summmarize the results for a given title
+                part_sum = 0
+                for a in self.formatted: 
+                    if a[footer] != None:
+                        part_sum += int(str(a[footer]))
+                
+                total_sum = 0
+                for a in self.dbresult: 
+                    if a[footer] != None:
+                        total_sum += int(str(a[footer]))
+
+                if part_sum == total_sum:
+                    thisSum.setSum(str(part_sum))
+                
+                elif sum[title] == 0:
+                    thisSum.setSum("0")
+                
+                else:
+                    thisSum.setSum(str(part_sum) + "/" + str(total_sum))
 
             footers.append(thisSum)
 

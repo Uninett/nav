@@ -13,12 +13,16 @@
     {% ifequal order_by "address" %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-address">
         Address</a>
-        <span class="sort">&darr;</span>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+        </span>
     {% else %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=address">
         Address</a>
         {% ifequal order_by "-address" %}
-            <span class="sort">&uarr;</span>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+        </span>
         {% endifequal %}
     {% endifequal %}
     </th>
@@ -26,12 +30,16 @@
     {% ifequal order_by "type" %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-type">
         Type</a>
-        <span class="sort">&darr;</span>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+        </span>
     {% else %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=type">
         Type</a>
         {% ifequal order_by "-type" %}
-            <span class="sort">&uarr;</span>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+        </span>
         {% endifequal %}
     {% endifequal %}
     </th>

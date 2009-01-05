@@ -36,7 +36,7 @@
 #def linked($key, $value)
   #set $link = ''
   #if $key == 'navreg'
-    #set $link = '/browse/' + $value
+    #set $link = '/ipdevinfo/' + $value + '/'
   #elif $key == 'arp'
     #set $link = '/machinetracker/?from_ip=' + str($info['ip']) + '&to_ip=&aip=on&days=7&send=Search'
   #elif $key == 'email'

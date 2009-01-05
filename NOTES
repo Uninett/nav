@@ -1,107 +1,121 @@
 ===========================
- Release notes for NAV 3.4
+ Release notes for NAV 3.5
 ===========================
 Please report bugs at https://bugs.launchpad.net/nav
 
-If you are upgrading from versions of NAV older than 3.3.3, please refer to the
-release notes of the in-between versions before reading any further.
+If you are upgrading from versions of NAV older than 3.4, please refer
+to the release notes of the in-between versions before reading any
+further.
 
 
-Netmap
-======
-
-NAV 3.4 comes with a preview of the Traffic Map replacement, called
-Netmap.  This tool is not feature complete yet, but we hope you will
-test it and provide us with feedback.  Is the new tool useful?  What
-could we do differently?
-
-For more information and user documentation for Netmap, please refer
-to http://metanav.uninett.no/netmap .
-
-
-IP Device Info
-==============
-
-The IP Device Center and IP Info tools are being rewritten from
-scratch as a new subsystem called IP Device Info, with radically
-improved response times over the old IP Device Center.  A preview of
-this new tool is included in NAV 3.4, in parallel with the old tools.
-
-To try out this new tool, you will need to install an SVN version of
-Django, a Python web framework.  The minimum required version is SVN
-revision 7189 of Django.  You can get the latest trunk revision using
-svn thus:
-
-  svn co http://code.djangoproject.com/svn/django/trunk/
-
-You will also need python-psycopg2 in addition to python-psycopg
-(version 1).  If you need to install from source, it can be found
-here:
-
-  http://www.initd.org/pub/software/psycopg/
-
-For more information about Django in general, please refer to
-http://www.djangoproject.com/ .
-
-Upgrading to NAV 3.4.3
-======================
-NAV 3.4.2 contained fixes to a database schema problem that affects
-machine tracker history.
-
-Unfortunately, a bug in the SQL upgrade script prevented it from
-working correctly.  3.4.3 fixes the bugs in the script, and the same
-rules for upgrading to 3.4.3 apply as for 3.4.2.
-
-If either one of the two following cases apply to you, you will need
-to manually run the SQL upgrade script to fix these problems:
-
- 1. You installed NAV 3.4 from scratch (not as an upgrade), creating a
-    new database.
- 
-   or
- 
- 2. You are running PostgreSQL 8.3 or newer.
-
-The upgrade script is located as doc/sql/upgrades/3.4.2.sql - see the
-comments inside the script for more information on how to run it (It
-won't hurt to run it even if you don't need to).
-
-If you installed NAV from a Debian binary package, the upgrade process
-should have automatically run this upgrade script for you.
-
-This version fixes a problem with the way users' status page
-preferences are stored, which would cause problems under mod_python >=
-3.3.1 (and possibly earlier versions).  After the upgrade, any user
-who has set up his/her own custom preferences for the status page will
-need to do so over again.
-
-
-Upgrading from NAV 3.3
+Netmap vs. Traffic Map
 ======================
 
-Arnold
-------
-Arnold, the port blocking system, has been reimplemented in Python,
-and now has support for changing vlans on switch ports, in addition to
-the usual port blocking.  It's config files and scripts have changed
-names; if you've set up a cron job running t1000.pl or other jobs
-calling the old Perl scripts, these will need to be updated.  You
-should also check the new config files if you have made local changes
-to the old ones.
+The Traffic Map has been superseded by the Netmap.  Netmap does not
+require a Java servlet backend, and in combination with a rewrite of
+Network Explorer this means Tomcat is no longer needed for a NAV
+installation.
 
-LDAP
-----
-If you have been using NAV's LDAP authentication ability, please
-update your webfront.conf file.  The config has changed slightly, now
-allowing for TLS connections, attribute configuration and required
-group memberships; i.e. you can now require LDAP users to be members
-of a specific LDAP group to be allowed to log in to NAV at all.  This
-removes the requirement to have a separate sub-tree of NAV user
-objects in your official LDAP directory.
+If, for any reason, you really miss the old Traffic Map, you can find
+it as a contrib under contrib/trafficmap/.  Refer to
+contrib/trafficmap/README for installation instructions.
+
+Jabber alerts
+=============
+The newly rewritten AlertEngine includes support for dispatching
+alerts using Jabber.  Edit alertengine.conf to configure NAV's Jabber
+ID and password.  The Jabber alert plugin will not register for a new
+account, so you must create the account referred to by the JID setting
+before attempting to use Jabber alerts.
+
+
+Upgrading from NAV 3.4
+======================
+
+Database changes
+----------------
+Whereas NAV 3.4 used four separate PostgreSQL databases (manage,
+navprofiles, logger and arnold) to store its data, NAV 3.5 uses a
+single database.
+
+Before running the normal SQL upgrade procedure (i.e. SQL scripts from
+doc/sql/upgrades/), you MUST merge your four existing NAV databases
+into a single nav database.  The shell script doc/sql/mergedb.sh can
+help you with this.  Se doc/sql/upgrades/README for more information.
+
+
+Removed HP SwitchStack support
+------------------------------
+Support for HP SwitchStacks has been removed from NAV.  The support
+was implemented in a hackish way, and disrupted support for any HP
+devices that weren't SwitchStacks.
+
+If you do monitor HP equipment with NAV, you will likely find some
+problems with HP data collected by your old NAV version.  You may
+experience that HP modules are reported as down, statistics for
+existing interfaces may cease to be updated, and NAV may register
+duplicate interfaces on your HP devices.
+
+These problems can be resolved by making NAV forget about all
+previously registered modules on HP devices, and let it rediscover
+them from scratch.  An SQL script is provided to do just that.
+
+This script can be found as doc/sql/upgrades/3.5.0b2-hpfix.sql.
+Please refer to the instructions in the comments in that file.
+
 
 Dependency changes
 ------------------
-Please note that NAV now requires Java 1.5 to compile.  Also note that
-if you wish to test the new IP Device Info preview, you will need to
-install Django and psycopg2, as mentioned earlier in the release
-notes.
+The following dependencies are new to NAV 3.5:
+
+* python-django >= 1.0 (http://www.djangoproject.com)
+* psycopg2 (in addition to psycopg1,
+  http://www.initd.org/pub/software/psycopg/)
+
+The following are no longer dependencies in NAV 3.5:
+
+* Tomcat
+* PHP
+* The Perl modules DBD::Pg and SNMP_Session
+* The Python module forgetHTML
+
+
+Files to remove
+---------------
+These files and directories should be removed from your installation
+after the upgrade:
+
+apache/tools/editdb.tool
+apache/tools/vlanPlot.tool
+apache/tools/navAdmin.tool
+apache/webroot/editdb/
+apache/webroot/js/editdbTemplate.js
+apache/webroot/style/editdbTemplate.css
+apache/webroot/images/toolbox/tools/editdb.png
+lib/python/nav/web/templates/editdbTemplate.py
+etc/alertengine.cfg
+
+You should rename etc/editdb.conf to etc/seeddb.conf if you have any
+local changes to editdb.conf.
+
+These files and directories are all prefixed with /usr/local/nav/ in a
+default configuration, but your mileage may vary.
+
+
+Configuration changes
+---------------------
+A jabber message class has been added to alertmsg.conf, so don't
+forget to update this config file with changes from the package if you
+want to use Jabber alerts.
+
+You can now add local reports and changes to existing reports in the
+report.local.conf file.  This means you will not have to sew together
+any upstream report changes with your own changes to report.conf.
+
+nav.conf has been updated with at least two more options.
+DEFAULT_FROM_EMAIL configures what email address is used as the
+originating address for email alerts (this was previously configured
+in alertengine.cfg).  More parts of NAV are being implemented using
+Django, so a DJANGO_DEBUG setting has been added to nav.conf.  This is
+a True/False setting which controls whether Django will output debug
+information when errors occur.

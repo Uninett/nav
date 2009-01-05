@@ -25,6 +25,7 @@ indexes.sql      - Creates auxiliary indexes for all namespaces in the nav
 mergedb.sh       - Merges the four NAV databases from NAV 3.4 into a single
                    database, as required by an upgrade to NAV 3.5.
 
+navschema.py     - Verifies and configures the NAV database if necessary.
 
 How to create the database from scratch
 =======================================

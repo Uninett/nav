@@ -83,7 +83,7 @@ EOF
 
     for db in manage navprofiles logger arnold; do
         echo Dumping $db...
-        /usr/lib/postgresql/8.1/bin/pg_dump -f "$dumplocation/$db-dump.sql" --schema=public \
+        pg_dump -f "$dumplocation/$db-dump.sql" --schema=public \
 	    --no-owner --verbose --no-acl $db || exit 1
     done
 fi
@@ -123,7 +123,8 @@ CREATE SCHEMA public;
 ALTER SCHEMA public RENAME TO arnold;
 CREATE SCHEMA public;
 
-ALTER DATABASE $newnavdb SET search_path = manage,profiles,logger,arnold;
+CREATE SCHEMA radius;
+ALTER DATABASE $newnavdb SET search_path = manage,profiles,logger,arnold,radius;
 EOF
 
 echo "---"
@@ -136,6 +137,6 @@ Your old NAV databases were not dropped, in case you still want them
 for something.  You can delete them manually when they are no longer
 needed, by issuing this command as the postgres superuser:
 
-  for db in manage navprofiles logger arnold; do dropdb $db; done
+  for db in manage navprofiles logger arnold; do dropdb \$db; done
 
 EOF

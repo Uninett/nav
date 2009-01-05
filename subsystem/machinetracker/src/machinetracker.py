@@ -45,12 +45,15 @@ from nav.web.URI import URI
 from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate
 
 logger = logging.getLogger("nav.web.machinetracker")
-connection = db.getConnection('webfront', 'manage')
-database = connection.cursor()
+connection = None
+database = None
 
 def handler(req):
-    global hostCache
+    global hostCache, connection, database
     hostCache = {}
+
+    connection = db.getConnection('webfront', 'manage')
+    database = connection.cursor()
 
     args = URI(req.unparsed_uri)
 
@@ -234,7 +237,7 @@ class ResultRow:
             self.end_time = None
 
         if dns:
-            self.dnsname = hostname(ipaddr)
+            self.dnsname = hostname(ipaddr) or "--"
         else:
             self.dnsname = ""
 
@@ -321,24 +324,33 @@ class IPSQLQuery(MachineTrackerSQLQuery):
         if nonActive:
             addr_range = ip_range(self.ip_from, self.ip_to)
         else:
-            addr_range = (IPy.IP(r[0]) for r in self.result)
+            # Get IP list from result and remove dupes
+            addr_range = set(r[0] for r in self.result)
+            addr_range = list(IPy.IP(ip) for ip in addr_range)
+            addr_range.sort()
 
-        result_map = dict([(IPy.IP(r[0]), r) for r in self.result])
+        def in_result(ip_addr):
+            """Verify that the next result row, if any, is for ip_addr"""
+            return len(self.result) > 0 and \
+                   IPy.IP(self.result[0][0]) == ip_addr
 
         lastKey = None
         for addr in addr_range:
-            if addr in result_map:
-                # Address is active (i.e. part of arp result)
-                ipaddr, mac, start, end = result_map[addr]
-                key = (ipaddr, mac)
-                if active:
-                    if key == lastKey:
-                        yield ResultRow(None, None, None, None, None,
-                                        start, end, dns)
-                    else:
-                        lastKey = key
-                        yield ResultRow(ipaddr, mac, None, None, None,
-                                        start, end, dns)
+            if in_result(addr):
+                # Consume all result records for this IP address
+                # This loop assumes the result is sorted by IP,MAC
+                while in_result(addr):
+                    # Address is active (i.e. part of arp result)
+                    ipaddr, mac, start, end = self.result.pop(0)
+                    key = (ipaddr, mac)
+                    if active:
+                        if key == lastKey:
+                            yield ResultRow(None, None, None, None, None,
+                                            start, end, dns)
+                        else:
+                            lastKey = key
+                            yield ResultRow(ipaddr, mac, None, None, None,
+                                            start, end, dns)
             elif nonActive:
                 yield ResultRow(addr, None, None, None, None,
                                 None, None, dns)
@@ -346,22 +358,82 @@ class IPSQLQuery(MachineTrackerSQLQuery):
 
 class SwPortSQLQuery(MACSQLQuery):
 
-    def __init__(self, ip, module, port, days=7):
+    def __init__(self, search_string, module, port, days=7):
         MACSQLQuery.__init__(self, mac=None, days=days)
 
-        # If ip is an IP address, get hostname. Logic? But of course!
-        try:
-            IPy.IP(ip)
-            ip = hostname(ip)
-        except ValueError:
-            pass
+        # Try to expand the search string into multiple search
+        # critera, i.e. names, ip addresses and netboxid references
+        criteria = SwPortSQLQuery.expand_criteria(search_string)
 
         self.order_by = "cam.sysname, module, port, mac, start_time DESC"
-        self.where.append("cam.sysname ILIKE '%s%%'" % ip)
+        self.where.append("(%s)" % criteria)
         if module and module != "*":
             self.where.append("module = '%s'" % module)
         if port and port != "*":
             self.where.append("port = '%s'" % port)
+
+
+    @staticmethod
+    def expand_criteria(search_string):
+        """Create SQL search criteria from a search string.
+
+        Constructs Machine Tracker switch search criteria by
+        attempting DNS reverse lookups and netbox table lookups.
+        Returns a string suitable for inclusion in an SQL WHERE
+        clause.
+        """
+        try:
+            ip = IPy.IP(search_string)
+            # search string was actually an IP, do a reverse DNS lookup
+            name = hostname(search_string)
+        except ValueError:
+            ip = None
+            name = None
+
+        netboxes = SwPortSQLQuery.netbox_lookup(search_string, name, ip)
+        netboxids = []
+        names = []
+        for netboxid, sysname, ipaddr in netboxes:
+            netboxids.append(str(netboxid))
+            names.append(sysname)
+            names.append(ipaddr)
+
+        criteria = []
+        criteria.append("cam.sysname ILIKE %s" %
+                        db.escape(search_string + "%"))
+        if netboxids:
+            criteria.append("cam.netboxid IN (%s)" % ",".join(netboxids))
+        if names:
+            criteria.append("cam.sysname IN (%s)" % \
+                            ",".join([db.escape(n) for n in names]))
+
+        return " OR ".join(criteria)
+
+    @staticmethod
+    def netbox_lookup(substring, sysname, ip):
+        """Look up netbox records that match any of the three criteria.
+
+        Return value is a list of tuples, each tuple containing a
+        netboxid, sysname and ip column from the netbox table.
+        """
+        sql = """SELECT netboxid, sysname, ip
+                 FROM netbox
+                 WHERE """
+        criteria = []
+        if substring:
+            criteria.append("sysname ILIKE %s" % db.escape(substring + "%"))
+        if sysname:
+            criteria.append("sysname = %s" % db.escape(sysname))
+        if ip:
+            criteria.append("ip = %s" % db.escape(str(ip)))
+
+        sql += " OR ".join(criteria)
+        logger.debug("Netbox lookup SQL: %s", sql)
+        database.execute(sql)
+        result = database.fetchall()
+        logger.debug("Netbox lookup result: %r", result)
+        return result
+
 
 class MachineTrackerForm:
 
@@ -413,5 +485,5 @@ def hostname(ip):
         try:
             hostCache[ip] = gethostbyaddr(str(ip))[0]
         except herror:
-            hostCache[ip] = "--"
+            return None
     return hostCache[ip]

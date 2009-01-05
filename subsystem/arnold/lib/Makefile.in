@@ -9,7 +9,6 @@ libdir = @libdir@
 sysconfdir = @sysconfdir@
 
 pythonlibdir = @pythonlibdir@
-perllibdir = @perllibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 tooldir = @tooldir@

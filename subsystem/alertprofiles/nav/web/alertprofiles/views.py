@@ -663,6 +663,9 @@ def profile_time_period_setup(request, time_period_id=None):
         'active': {'profile': True},
         'subsection': {'detail': profile.id, 'subscriptions': time_period.id},
         'editing': editing,
+        'num_addresses': AlertAddress.objects.filter(account=account).count(),
+        'num_filter_groups': FilterGroup.objects.filter(
+            Q(owner=account) | Q(owner__isnull=True)).count(),
     }
     return render_to_response(
         AlertProfilesTemplate,
@@ -743,6 +746,9 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         },
         'subscription': subscription,
         'editing': True,
+        'num_addresses': AlertAddress.objects.filter(account=account).count(),
+        'num_filter_groups': FilterGroup.objects.filter(
+            Q(owner=account) | Q(owner__isnull=True)).count(),
     }
     return render_to_response(
         AlertProfilesTemplate,
@@ -1173,8 +1179,6 @@ def filter_list(request):
         order_by = 'name'
 
     # Get all public filters, and private filters belonging to this user only
-    # NOTE We would like to order by owner first, but then filters with no
-    # owner won't show up.
     filters = Filter.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)
         ).order_by(order_by)
@@ -1216,23 +1220,26 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     if filter_id:
         try:
             filter = Filter.objects.get(pk=filter_id)
-            owner = filter.owner
         except Filter.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested filter does not exist.'))
-        except Account.DoesNotExist:
-            new_message(
-                request,
-                _('''%(filter)s is a public filter and may be used by
-                    other users than you.''') % {
-                        'filter': filter.name,
-                    },
-                Messages.WARNING,
-            )
-            if not admin:
-                is_owner = False
         else:
-            if owner != account:
-                return alertprofiles_response_forbidden(request, _('You do not have acccess to the requested filter.'))
+            owner = filter.owner
+            if not owner:
+                new_message(
+                    request,
+                    _('''%(filter)s is a public filter and may be used by
+                        other users than you.''') % {
+                            'filter': filter.name,
+                        },
+                    Messages.WARNING,
+                )
+                if not admin:
+                    is_owner = False
+            elif owner != account:
+                return alertprofiles_response_forbidden(
+                    request,
+                    _('You do not have acccess to the requested filter.')
+                )
 
         matchfields = MatchField.objects.all().order_by('name')
         # Get all matchfields (many-to-many connection by table Expression)
@@ -1606,8 +1613,6 @@ def filtergroup_list(request):
 
     # Get all public filtergroups, and private filtergroups belonging to this
     # user only
-    # NOTE We would like to order by owner first, but then filters with no
-    # owner won't show up.
     filtergroups = FilterGroup.objects.filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
         ).order_by(order_by)
@@ -1652,22 +1657,22 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
     if filter_group_id:
         try:
             filtergroup = FilterGroup.objects.get(pk=filter_group_id)
-            owner = filtergroup.owner
         except FilterGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
-        except Account.DoesNotExist:
-            new_message(
-                request,
-                _('''%(fg)s is a public filter group and may be used by other
-                users than you.''') % {
-                    'fg': filtergroup.name,
-                },
-                Messages.WARNING
-            )
-            if not admin:
-                is_owner = False
         else:
-            if filtergroup.owner != account:
+            owner = filtergroup.owner
+            if not owner:
+                new_message(
+                    request,
+                    _('''%(fg)s is a public filter group and may be used by other
+                    users than you.''') % {
+                        'fg': filtergroup.name,
+                    },
+                    Messages.WARNING
+                )
+                if not admin:
+                    is_owner = False
+            elif owner != account:
                 return alertprofiles_response_forbidden(
                     request,
                     'You do not have access to the requested filter group.'
@@ -2068,7 +2073,7 @@ def filtergroup_movefilter(request):
     else:
         # No sensible input, just return to where we came from
         return HttpResponseRedirect(
-                reverse('alertprofiels-filtergroups-detail', args=(filter_group_id,))
+                reverse('alertprofiles-filtergroups-detail', args=(filter_group_id,))
             )
 
     filter = None

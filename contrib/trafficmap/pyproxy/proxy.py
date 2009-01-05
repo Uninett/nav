@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 #
 # Copyright 2004 Norwegian University of Science and Technology
 #
@@ -22,22 +22,16 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-import os
 import sys
-import time
-import warnings
 import traceback
 import httplib
-import forgetHTML as html
 from mod_python import apache
 
-
-import nav.web
 from nav.web.templates.DeviceBrowserTemplate import DeviceBrowserTemplate
 
 
-SERVERBASE='localhost'
-SERVERPORT=8080
+SERVERBASE = 'localhost'
+SERVERPORT = 8080
 
 def handler(req):
     remotecookie = req.session.get('navadmin-cookie')
@@ -58,12 +52,16 @@ def handler(req):
         response = doRequest(proxyreq, req.method, remotecookie, query=postdata,
                              user=user, session=req.session.id)
     except Exception, e:
-        remoteanswer = html.Division()
-        remoteanswer.append(html.Header("Could not connect to servlet", 2))
         trace = traceback.format_exception(*sys.exc_info())
-        message = "".join(trace)
-        remoteanswer.append(html.Pre(message, _class="warning"))
-        remoteanwser = str(remoteanswer)
+        remoteanswer = """
+            <div>
+                <h2>%(header)s</h2>
+                <pre class="warning">%(trace)s</pre>
+            </div>
+        """ % {
+            'header': 'Could not connect to servlet',
+            'trace': ''.join(trace),
+        }
         req.content_type = "text/html"
     
     else:
@@ -118,7 +116,7 @@ def doRequest(path, method, cookie, query='', user=None, session=None):
         headers.update({'x-authenticated-user': user})
     if session is not None:
         headers.update({'x-session': session})        
-    headers['Cookie']=cookie
+    headers['Cookie'] = cookie
     request.request(method, path, query, headers)
     response = request.getresponse()
     return response

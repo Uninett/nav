@@ -1,6 +1,6 @@
 #encoding UTF-8
 ## $Id: ReportTemplate.tmpl 4148 2007-08-21 08:47:53Z jodal $
-##  
+##
 ## Copyright 2003-2005 Norwegian University of Science and Technology
 ## Copyright 2008 UNINETT AS
 ##
@@ -62,13 +62,15 @@
 ##   page.report = fillReportWithData()
 ##
 
-#extends MainTemplate
+#extends nav.web.templates.MainTemplate
 
 #block additionalCSS
-$default_table_CSS()
+    $default_table_CSS()
+    <link rel="stylesheet" href="/style/report.css" type="text/css" /> 
 #end block additionalCSS
 
 #block additionalJavaScript
+    <script type="text/javascript" src="/js/jquery.js"></script>
     <script type="text/javascript" src="/js/report.js"></script>
 #end block additionalJavaScript
 
@@ -77,182 +79,242 @@ $default_table_CSS()
 <h2>Report</h2>
 
 #if $search>0
-$advSearch
+    $advSearch
 #else
 <div id="advsearchlink">
-<p><a id="advSLOpenJS" href="#" onClick="showHideElement('advsearchblock', 'advsearchlink'); return false" style="display: none">Advanced Search</a></p>
-<p><a id="advSLOpen" href="${old_uri}adv=1">Advanced Search</a></p>
+    <p><a id="advSLOpen" href="${old_uri}adv=1">Advanced Search</a></p>
 </div>
 #end if
 
 ## Advanced search block start
 <div id="advsearchblock" style="display: none">
 #block advSearch
-<h3>Advanced Search</h3>
-<p><a id="advSLCloseJS" href="#" onClick="showHideElement('advsearchblock', 'advsearchlink'); return false" style="display: none">Close Advanced Search</a></p>
-<p><a id="advSLClose" href="${old_uri}adv=">Close Advanced Search</a></p>
+    <h3>Advanced Search</h3>
+    <p><a id="advSLClose" href="${old_uri}adv=">Close Advanced Search</a></p>
 
-<div class="infobox" style="float: right">
-<h4>Operator usage</h4>
+    <div class="infobox" style="float: right">
+        <h4>Operator usage</h4>
 
-<ul>
-    <li>= - "equals", enter null for empty string</li>
-    <li>~ - case insensitive search, use * as wildcard</li>
-    <li>[:] - "between", takes two colon-separated arguments</li>
-    <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
-</ul>
+        <ul>
+            <li>= - "equals", enter null for empty string</li>
+            <li>~ - case insensitive search, use * as wildcard</li>
+            <li>[:] - "between", takes two colon-separated arguments</li>
+            <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
+        </ul>
 
-<p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
+        <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
+        <p>All these operators may be negated by clicking the "not" checkbox.</p>
+    </div>
 
-<p>All these operators may be negated by clicking the "not" checkbox.</p>
-</div>
+    <form action="" method="get" name="advsearch">
+        <input id="adv" type="hidden" name="adv" value="1"/>
 
-<form action="" method="get" name="advsearch">
-<input type="hidden" name="adv" value="1"/>
-
-<table class="vertitable">
+        <table class="vertitable">
 
 #set $counter = 0
 #for $a in $report.form
-<tr>
-    <th><label for="adv${counter}">$a.title</label></th>
-    <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
-#if $neg.has_key($a.raw)
- checked="1"#slurp
-#end if
->
-    </td>
-    <td><label for="not_adv${counter}">not</label></td>
-    <td>
-#if $operator.has_key($a.raw)
-$selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
-#else
-$selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
-#end if
-    </td>
-    <td>
-        <input type="text" name="$a.raw" id="adv${counter}"#slurp
-#if $contents.has_key($a.raw)
- value="$contents[$a.raw]"#slurp
-#end if
->
-    </td>
-</tr>
-#set $counter += 1
+
+            <tr>
+                <th><label for="adv${counter}">$a.title</label></th>
+                <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
+
+    #if $neg.has_key($a.raw)
+     checked="1"#slurp
+    #end if
+    >
+
+                </td>
+                <td><label for="not_adv${counter}">not</label></td>
+                <td>
+
+    #if $operator.has_key($a.raw)
+        $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
+    #else
+        $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
+    #end if
+
+                </td>
+                <td>
+                    <input type="text" name="$a.raw" id="adv${counter}"#slurp
+
+    #if $contents.has_key($a.raw)
+     value="$contents[$a.raw]"#slurp
+    #end if
+    >
+
+                </td>
+            </tr>
+
+    #set $counter += 1
 #end for
 
-<tr>
-    <th></th>
-    <td colspan="4">
-        <button type="submit" name="r4g3n53nd">Search</button>
-    </td>
-</tr>
-</table>
+            <tr>
+                <th></th>
+                <td colspan="4">
+                    <button type="submit" name="r4g3n53nd">Search</button>
+                </td>
+            </tr>
+        </table>
+    </form>
 
-</form>
 #end block advSearch
+
 </div>
-## Advanced search end
+
+## Advanced search block end
+
+
 ## ----------------------------------------------------------------------- REPORT ---- ##
 #if $report
-#set $rowcount = len($report.table.rows) + 1
-#set $columncount = len($report.table.header.cells)
+    #set $rowcount = len($report.table.rows) + 1
+    #set $columncount = len($report.table.header.cells)
 
-  <table class="listtable reporttable">
+<table class="listtable reporttable">
 
 ## --- TITLE ROW ---- ##
     <caption>
-#if $report.navigator.previous
+
+    #if $report.navigator.previous
+
         <span class="previous">
         <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
         </span>
-#end if
-        $report.header
-#if $report.navigator.next
+
+    #end if
+
+    $report.title
+
+    #if $report.navigator.next
+
         <span class="next">
         <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
         </span>
-#end if
+
+    #end if
+
+        <br /><span class="small_subtitle">Result generated $result_time</span>
         <br /><span class="subtitle">$report.navigator.view</span>
     </caption>
 
 ## --- HEADER ROW ---- ##
     <thead>
-    <tr>
-#for $cell in $report.table.header.cells
-#if $cell.uri
-        <th><a class="navbar" href="$cell.uri" title="$cell.explanation">$cell.text</a></th>
-#else
-        <th><a class="navbar" title="$cell.explanation">$cell.text</a></th>
-#end if
-#end for
-    </tr>
+        <tr>
+
+    #for $cell in $report.table.header.cells
+        #if $cell.uri
+
+            <th><a class="navbar" href="$cell.uri" title="$cell.explanation">$cell.text</a></th>
+
+        #else
+
+            <th><a class="navbar" title="$cell.explanation">$cell.text</a></th>
+
+        #end if
+    #end for
+
+        </tr>
     </thead>
 
 ## --- DATA ROWS ---- ##
     <tbody>
-#for $row in $report.table.rows
-    <tr class="$rowcycler">
-#for $cell in $row.cells
-        <td class="$cellcycler">
-#if $cell.uri
-            <a href="$cell.uri">$cell.text</a>
-#else
-            $cell.text
-#end if
-        </td>
-#end for
-    </tr>
-#end for
+
+    #for $row in $report.table.rows
+
+        <tr class="$rowcycler">
+
+        #for $cell in $row.cells
+
+            <td class="$cellcycler">
+
+            #if $cell.uri
+
+                <a href="$cell.uri">$cell.text</a>
+
+            #else
+                $cell.text
+            #end if
+
+            </td>
+
+        #end for
+
+        </tr>
+
+    #end for
+
     </tbody>
 
 ## --- FOOTER ---- ##
-#if $report.table.footer
-#set $cols = len($report.table.header.cells)
-    <tr class="tablesum">
-#for $cell in $report.table.footer.cells
-        <th>$cell.sum</th>
-#end for
-    </tr>
-#end if
+    #if $report.table.footer
+        #set $cols = len($report.table.header.cells)
+
+        <tr class="tablesum">
+
+        #for $cell in $report.table.footer.cells
+
+            <th>$cell.sum</th>
+
+        #end for
+
+        </tr>
+
+    #end if
 
 ## --- FOOTER NAVIGATION ---- ##
     <tbody class="footer">
-    <tr>
-        <th colspan="0">
-#if $report.navigator.previous
-            <span class="previous">
-            <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
-            </span>
-#end if
-            <span>$report.navigator.view</span>
-#if $report.navigator.next
-            <span class="next">
-            <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
-            </span>
-#end if
-        </th>
-    </tr>
+        <tr>
+            <th colspan="0">
+
+    #if $report.navigator.previous
+
+                <span class="previous">
+                    <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
+                </span>
+
+    #end if
+
+                <span>$report.navigator.view</span>
+
+    #if $report.navigator.next
+
+                <span class="next">
+                    <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
+                </span>
+
+    #end if
+
+            </th>
+        </tr>
     </tbody>
 </table>
+
 #else
+
 <p class="error">No results found!</p>
+
 #end if
 #end block content
 
 #def selectoptiondraw($name, $elementlist, $elementdict, $selected="", $descriptiondict=None)
+
 <select name="$name">
-#for $element in $elementlist
+
+    #for $element in $elementlist
+
     <option value="$element"#slurp
-#if $element == $selected
- selected="1"#slurp
-#end if
-#if $descriptiondict.has_key($element)
- title="$descriptiondict[$element]"#slurp
-#end if
->#slurp
-$elementdict[$element]#slurp
-</option>
-#end for
+        #if $element == $selected
+            selected="1"#slurp
+        #end if
+        #if $descriptiondict.has_key($element)
+            title="$descriptiondict[$element]"#slurp
+        #end if
+        >#slurp
+        $elementdict[$element]#slurp
+
+    </option>
+
+    #end for
+
 </select>
+
 #end def
