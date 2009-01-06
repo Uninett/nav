@@ -23,37 +23,48 @@
 ## Author: Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 ##
 
-
-#extends nav.web.templates.MainTemplate
-
-#block additionalCSS
-    <link rel="stylesheet" href="/style/report.css" type="text/css" /> 
-#end block additionalCSS
+#extends ReportTemplate
 
 #block content
 
-<h2>Report List</h2>
+<h2>Report list</h2>
 
 #if $report_list_local
-<h3>Local reports</h3>
-<ul>
+<table class="listtable vertitablefull">
+    <caption>Local reports</caption>
+    <thead>
+        <tr>
+            <th style="width: 30%">Name</th>
+            <th style="width: 70%">Desciption</th>
+        </tr>
+    </thead>
+    <tbody>
     #for $report in $report_list_local
-    <li>
-        <a href="/report/$report[0]">$report[1]</a>
-        <p class="listdescr">$report[2]</p>
-    </li>
+        <tr class="$rowcycler">
+            <td><a href="/report/$report[0]">$report[1]</a></td>
+            <td>$report[2]</td>
+        </tr>
     #end for
-</ul>
+    </tbody>
+</table>
 #end if
 
-<h3>Default reports</h3>
-<ul>
-#for $report in $report_list
-    <li>
-        <a href="/report/$report[0]">$report[1]</a>
-        <p class="listdescr">$report[2]</p>
-    </li>
-#end for
-</ul>
+<table class="listtable vertitablefull">
+    <caption>Default reports</caption>
+    <thead>
+        <tr>
+            <th style="width: 30%">Name</th>
+            <th style="width: 70%">Desciption</th>
+        </tr>
+    </thead>
+    <tbody>
+    #for $report in $report_list
+        <tr class="$rowcycler">
+            <td><a href="/report/$report[0]">$report[1]</a></td>
+            <td>$report[2]</td>
+        </tr>
+    #end for
+    </tbody>
+</table>
 
 #end block content
