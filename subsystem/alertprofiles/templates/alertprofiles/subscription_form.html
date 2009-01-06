@@ -41,7 +41,7 @@
     </table>
     <p>
         <input type="hidden" name="id" value="{{ time_period.id }}" />
-        <button type="submit">Delete selected</button>
+        <input type="submit" value="Delete selected" />
     </p>
 </form>
 {% endif %}
@@ -64,7 +64,7 @@
             <p class="error">
                 There are no available filter groups.<br />
                 You can go and
-                <a href="{% url alertprofiles-filtergroups-new %}">add your first filter group</a>
+                <a href="{% url alertprofiles-filter_groups-new %}">add your first filter group</a>
                 to fix this problem.
             </p>
         {% endif %}
@@ -78,7 +78,7 @@
             <p>
                 {{ form.time_period }}
                 {{ form.id }}
-                <button type="submit">{{ editing|yesno:"Save,Add" }}</button>
+                <input type="submit" value="{{ editing|yesno:"Save,Add" }}" />
             </p>
         </div>
     </form>

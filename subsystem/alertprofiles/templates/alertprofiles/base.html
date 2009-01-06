@@ -10,8 +10,8 @@
         <li class="{{ active.profile|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-profile %}">Profiles</a>
         </li>
-        <li class="{{ active.filtergroups|yesno:"tabactive," }}">
-            <a href="{% url alertprofiles-filtergroups %}">Filter groups</a>
+        <li class="{{ active.filter_groups|yesno:"tabactive," }}">
+            <a href="{% url alertprofiles-filter_groups %}">Filter groups</a>
         </li>
         <li class="{{ active.filters|yesno:"tabactive," }}">
             <a href="{% url alertprofiles-filters %}">Filters</a>
