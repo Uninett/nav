@@ -119,9 +119,6 @@ img {
 .status {
 	color: #0b0;
 }
-td.padded-left {
-	padding-left: 30px;
-}
 
 /* Header section */
 div#header {
@@ -311,4 +308,27 @@ table.toolbox4cols tr td {
 
 .messages .error, .errorlist {
   color: #A40000;
+}
+
+/* Report */
+
+.float-list {
+    float: left;
+    verical-align: top;
+	padding-left: 2em;
+}
+.float-forms {
+    float: left;
+    margin-bottom: 1em;
+}
+.float-forms form div i {
+    color: gray;
+}
+.float-forms form {
+	padding: 0.7em 1em;
+}
+.float-forms p {
+    color: gray;
+    font-size: 85%;
+    text-align: center;
 }
