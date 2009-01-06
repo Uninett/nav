@@ -83,6 +83,11 @@ class QuickSelect:
             submit = 'submit_%s' % field
             key = field
 
+            if hasattr(request, 'form'):
+                form = request.form
+            else:
+                form = request.REQUEST
+
             if field == 'location':
                 # Hack to work around noscript XSS protection that triggers on
                 # location
@@ -90,19 +95,19 @@ class QuickSelect:
                 submit = submit.replace('location', 'loc')
 
             if getattr(self, field):
-                if submit in request.form and key in request.form:
-                    result[field] = request.form.getlist(key)
-                elif 'add_%s' % key in request.form:
-                    result[field] = request.form.getlist('add_%s' % key)
-                elif 'view_%s' % key in request.form:
-                    result[field] = request.form.getlist('view_%s' % key)
+                if submit in form and key in form:
+                    result[field] = form.getlist(key)
+                elif 'add_%s' % key in form:
+                    result[field] = form.getlist('add_%s' % key)
+                elif 'view_%s' % key in form:
+                    result[field] = form.getlist('view_%s' % key)
                 elif key != field:
                     # Extra check that allows add_loc in addtion to
                     # add_location
-                    if 'add_%s' % field in request.form:
-                         result[field] = request.form.getlist('add_%s' % field)
-                    elif 'view_%s' % field in request.form:
-                         result[field] = request.form.getlist('view_%s' % field)
+                    if 'add_%s' % field in form:
+                         result[field] = form.getlist('add_%s' % field)
+                    elif 'view_%s' % field in form:
+                         result[field] = form.getlist('view_%s' % field)
 
                 if not getattr(self, '%s_multi' % field):
                     # Limit to first element if multi is not set.

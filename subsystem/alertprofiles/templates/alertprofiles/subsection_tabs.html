@@ -8,8 +8,8 @@
         {% if active.filters %}
             {% include "alertprofiles/filter_tab.html" %}
         {% else %}
-            {% if active.filtergroups %}
-                {% include "alertprofiles/filtergroup_tab.html" %}
+            {% if active.filter_groups %}
+                {% include "alertprofiles/filter_group_tab.html" %}
             {% else %}
                 {% if active.matchfields %}
                     {% include "alertprofiles/matchfield_tab.html" %}

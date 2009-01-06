@@ -48,9 +48,9 @@
     </thead>
 
     <tbody>
-    {% for fg in filtergroups %}
+    {% for fg in filter_groups %}
         <tr class="{% cycle oddrow,evenrow %}">
-            <td><input type="checkbox" name="filtergroup" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
+            <td><input type="checkbox" name="filter_group" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
             {% for perm in permissions %}
                 {% ifequal perm.id fg.id %}
                 checked="checked"
@@ -65,7 +65,7 @@
 </table>
 <div>
     <input type="hidden" name="group" value="{{ selected_group.id }}" />
-    <button type="submit">Save</button>
+    <input type="submit" value="save" />
 </div>
 </form>
 {% endif %}

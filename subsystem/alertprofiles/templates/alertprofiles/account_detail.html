@@ -19,8 +19,8 @@
             <th>Alerts you have permissions to recieve</th>
             <td>
                 <ul>
-                {% for filtergroup in filter_groups %}
-                    <li>{{ filtergroup.name }}<br />{{ filtergroup.description }}</li>
+                {% for filter_group in filter_groups %}
+                    <li>{{ filter_group.name }}<br />{{ filter_group.description }}</li>
                 {% endfor %}
                 </ul>
             </td>
@@ -39,7 +39,7 @@
                 <form action="{% url alertprofiles-language-save %}" method="post">
                     {{ language_form.value }}
                     {{ language_form.property }}
-                    <button type="submit">Save changes</button>
+                    <input type="submit" value="Save changes" />
                 </form>
             </td>
     </tbody>

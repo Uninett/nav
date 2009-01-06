@@ -53,6 +53,7 @@ import nav.config
 import nav.daemon
 import nav.logs
 import nav.path
+import nav.db
 
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
@@ -156,21 +157,31 @@ def main(args):
     logger.info('Starting alertengine loop.')
     while True:
         try:
-            if hasattr(connection.connection, 'set_isolation_level'):
-                logger.debug('Restoreing isolation level')
+            # Changing the isolation level is done to prevent idle transactions
+            # between runs. Isolation level 0 = autocommit and level 1 = read
+            # commited.
+            if connection.connection and not connection.connection.closed:
                 connection.connection.set_isolation_level(1)
 
             check_alerts(debug=opttest)
 
-            if hasattr(connection.connection, 'set_isolation_level'):
-                logger.debug('Reducing isolation level')
+            if connection.connection and not connection.connection.closed:
                 connection.connection.set_isolation_level(0)
+
+            # nav.db connections are currently not in autocommit mode, and
+            # since the current auth code uses legacy db connections we need to
+            # be sure that we end all and any transactions so that we don't
+            # idle.
+            conns = [v.object for v in nav.db._connectionCache.values()]
+            for conn in conns:
+                conn.commit()
 
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
             logger.debug('', exc_info=True)
             logger.debug(connection.queries[-1]['sql'])
             connection.close()
+
         except Exception, e:
             logger.critical('Unhandeled error: %s' % e, exc_info=True)
             raise e
