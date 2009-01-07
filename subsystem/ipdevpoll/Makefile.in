@@ -42,10 +42,10 @@ webroot = @webroot@
 WEBNAME =
 
 # Files
-INITFILES = ipdevpoll
-BINS = ipdevpoll.py
+INITFILES = #ipdevpoll
+BINS = ipdevpolld
 LIBS = $(wildcard nav/ipdevpoll/*py nav/ipdevpoll/*/*.py)
-CONFFILES = ipdevpoll.conf
+CONFFILES = #ipdevpoll.conf
 TOOLS =
 TEMPLATES =
 
