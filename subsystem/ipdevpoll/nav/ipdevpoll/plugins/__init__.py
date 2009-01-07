@@ -21,6 +21,7 @@ def import_plugins():
     plugin registry, using the register function in this module.
 
     """
+    global plugin_registry
 
     names = (
         'nav.ipdevpoll.plugins.iftable',
@@ -36,7 +37,6 @@ def import_plugins():
                 '%d classes in plugin registry',
                 len(names), len(plugin_registry))
 
-    global plugin_registry
     plugin_registry = topological_sort(plugin_registry)
 
 def register(plugin_class):
