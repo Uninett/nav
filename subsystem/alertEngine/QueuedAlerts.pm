@@ -53,7 +53,15 @@ sub collectInfo()
     my $this=shift;
 
     #get queued alerts
-    my $queue=$this->{dbh_user}->selectall_arrayref("select q.accountid,q.addrid,q.alertid,(now()-p.lastsentday>='24 hours' and now()>=b.tid) as day, (now()-p.lastsentweek>='7 days' and extract(day from now())>=b.ukedag and now()>=b.uketid) as week, now()-q.time>=p.queuelength as max, date_trunc('day',age(q.time)) from queue q, preference p,brukerprofil b where q.accountid=p.accountid and b.accountid=q.accountid  and b.id=p.activeprofile");
+    my $queue=$this->{dbh_user}->selectall_arrayref(q{
+        SELECT q.accountid, q.addrid, q.alertid,
+            (NOW() - p.lastsentday >= '24 hours' AND CURRENT_TIME >= b.tid) AS day,
+            (NOW() - p.lastsentweek >= '7 days' AND EXTRACT(DAY FROM NOW()) >= b.ukedag AND CURRENT_TIME >= b.uketid) AS week,
+            (NOW() - q.time >= p.queuelength) AS max,
+            DATE_TRUNC('day',AGE(q.time))
+        FROM queue q, preference p, brukerprofil b
+        WHERE q.accountid = p.accountid and b.accountid = q.accountid  and b.id = p.activeprofile
+    });
 
     $this->{log}->printlog("QueuedAlerts","collectInfo",$Log::debugging, "collecting info about queued alerts");
 
