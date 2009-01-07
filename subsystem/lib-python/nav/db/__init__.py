@@ -78,7 +78,7 @@ class ConnectionObject(nav.CacheableObject):
 def escape(string):
     return str(psycopg.QuotedString(string))
 
-def get_connection_parameters(script_name='default'):
+def get_connection_parameters(script_name='default', database='nav'):
     """Return a tuple of database connection parameters.
 
     The parameters are read from db.conf, using script_name as a
@@ -93,7 +93,7 @@ def get_connection_parameters(script_name='default'):
     dbhost = conf['dbhost']
     dbport   = conf['dbport']
     dbname = conf['db_%s' % database]
-    user   = conf['script_%s' % scriptName]
+    user   = conf['script_%s' % script_name]
     pw     = conf['userpw_%s' % user]
     return (dbhost, dbport, dbname, user, pw)
 
