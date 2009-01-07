@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # $Id$
 #
 # Copyright 2003 Norwegian University of Science and Technology
@@ -78,6 +78,41 @@ class ConnectionObject(nav.CacheableObject):
 def escape(string):
     return str(psycopg.QuotedString(string))
 
+def get_connection_parameters(script_name='default'):
+    """Return a tuple of database connection parameters.
+
+    The parameters are read from db.conf, using script_name as a
+    lookup key to find the database user to log in as.
+
+    Returns a tuple containing the following elements:
+  
+    (dbhost, dbport, dbname, user, password)
+    """
+    # Get the config setup for the requested connection
+    conf = config.readConfig('db.conf')
+    dbhost = conf['dbhost']
+    dbport   = conf['dbport']
+    dbname = conf['db_%s' % database]
+    user   = conf['script_%s' % scriptName]
+    pw     = conf['userpw_%s' % user]
+    return (dbhost, dbport, dbname, user, pw)
+
+def get_connection_string(db_params=None, script_name='default'):
+    """Return a psycopg connection string.
+
+      db_params -- A tuple of db connection parameters.  If omitted,
+                   get_connection_parameters is called to get this
+                   data, with script_name as its argument.
+
+      script_name -- Script name to use for looking up connection
+                     info, if dbparams is supplied.
+
+    """
+    if not db_params:
+        db_params = get_connection_parameters(script_name)
+    conn_string = "host=%s port=%s dbname=%s user=%s password=%s" % db_params
+    return conn_string
+
 def getConnection(scriptName, database='manage'):
     """
     Returns an open database connection, as configured in db.conf for
@@ -88,12 +123,7 @@ def getConnection(scriptName, database='manage'):
     import nav
     global _connectionCache
 
-    # Get the config setup for the requested connection
-    conf = config.readConfig('db.conf')
-    port   = conf['dbport']
-    dbname = conf['db_%s' % database]
-    user   = conf['script_%s' % scriptName]
-    pw     = conf['userpw_%s' % user]
+    (dbhost, port, dbname, user, pw) = get_connection_parameters()
     cacheKey = (dbname, user)
 
     # First, invalidate any dead connections.  Return a connection
@@ -102,9 +132,8 @@ def getConnection(scriptName, database='manage'):
     try:
         connection = _connectionCache[cacheKey].object
     except KeyError:
-        connection = psycopg.connect('host=%s port=%s dbname=%s user=%s '
-                                     'password=%s' % (conf['dbhost'], port,
-                                                      dbname, user, pw))
+        connection = psycopg.connect(get_connection_string(
+                (dbhost, port, dbname, user, pw))
         logger.debug("Opened a new database connection, dbname=%s, user=%s" %
                       (dbname, user))
         connection.autocommit(0)
