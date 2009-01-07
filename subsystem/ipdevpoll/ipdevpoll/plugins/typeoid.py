@@ -54,10 +54,14 @@ class TypeOid(Plugin):
         if sysobjectid in Type.by_sysobjectid:
             typ = Type.by_sysobjectid[sysobjectid]
             self.logger.debug("Type is %s", typ)
+            if typ.typeid != self.netbox.typeid:
+                self.logger.warning("Netbox has changed type")
         else:
-            self.logger.warning("Type is unknown, sysobjectid: %s",
-                                sysobjectid)
-
+            last_known = Type.all[self.netbox.typeid]
+            self.logger.warning("Type is unknown, sysobjectid: %s.  "
+                                "Last known type is: %s",
+                                sysobjectid, last_known)
+        
         self.deferred.callback(True)
         return result
 

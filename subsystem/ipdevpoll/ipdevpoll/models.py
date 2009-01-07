@@ -46,11 +46,12 @@ class Netbox(object):
     # Netbox instance store, key=netboxid
     all = {}
 
-    def __init__(self, netboxid, ip, sysname, community, snmp_version, 
+    def __init__(self, netboxid, ip, sysname, typeid, community, snmp_version, 
                  uptodate):
         self.netboxid = netboxid
         self.ip = ip
         self.sysname = sysname
+        self.typeid = typeid
         self.community = community
         self.snmp_version = snmp_version
         self.uptodate = uptodate
@@ -66,10 +67,11 @@ class Netbox(object):
                                  repr(self.sysname))
 
     def __repr__(self):
-        return '%s(%s,%s,%s,%s,%s,%s)' % (
+        return '%s(%s,%s,%s,%s,%s,%s,%s)' % (
             self.__class__.__name__, 
             repr(self.ip),
             repr(self.sysname),
+            repr(self.typeid),
             repr(self.community),
             repr(self.snmp_version),
             repr(self.uptodate),
@@ -83,7 +85,7 @@ class Netbox(object):
         logger = ipdevpoll.get_class_logger(cls)
         # FIXME: This SQL selects only a subset of netboxes for testing
         sql = """
-              SELECT netboxid, ip, sysname, ro, snmp_version, uptodate 
+              SELECT netboxid, ip, sysname, typeid, ro, snmp_version, uptodate
               FROM netbox 
               WHERE ro IS NOT NULL
                 AND up='y'
