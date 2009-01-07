@@ -133,7 +133,7 @@ def getConnection(scriptName, database='manage'):
         connection = _connectionCache[cacheKey].object
     except KeyError:
         connection = psycopg.connect(get_connection_string(
-                (dbhost, port, dbname, user, pw))
+                (dbhost, port, dbname, user, pw)))
         logger.debug("Opened a new database connection, dbname=%s, user=%s" %
                       (dbname, user))
         connection.autocommit(0)
