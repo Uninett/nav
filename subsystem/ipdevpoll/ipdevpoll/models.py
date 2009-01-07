@@ -4,59 +4,205 @@ To perform its polling duties, the ipdevpoll system must know what
 netboxes to poll, what type netboxes are and what vendors they come
 from, and finally, what snmpoids we want to poll.
 
-To not interfere with the asynchronous nature of the polling, the data
-contained in these models is read from the database and cached in
-memory at periodic intervals, possibly by a separate thread.
+The model classes use Twisted's adbapi to utilize asynchronous
+database queries.  The needed data is read from the database and
+cached as instances in dictionaries in each model class.
+
+Periodic reloads are scheduled through the reactor.
 """
 __author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
+import logging
+
 from pysnmp.asn1.oid import OID
 
+from twisted.internet import reactor, defer, task
 from twistedsnmp import snmpprotocol, agentproxy
 
-from nav.db import getConnection
 import ipdevpoll
-
-def _load_helper(cls, sql):
-    """Runs the sql query and yield instances of cls for each resulting row.
-
-    The supplied SQL query must return a number of columns that can be
-    mapped directly as arguments to the cls class constructor.
-
-    """
-    conn = getConnection('default')
-    cursor = conn.cursor()
-    cursor.execute(sql)
-    for row in cursor.fetchall():
-        yield cls(*row)
+from ipdevpoll.db import get_db_pool
 
 def load_models():
-    """Loads all models into their respective caches"""
-    Netbox.load()
-    Type.load()
-    SnmpOid.load()
-    NetboxSnmpOid.load()
+    """Load, create and cache all model instances.
 
-class Netbox(object):
+    Returns a deferred, whose result is a True value when all models
+    have been loaded successfully.
+
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("load_models: Loading models from database")
+    models_to_load = (Netbox, Type, SnmpOid, NetboxSnmpOid)
+    receipts = [True]*len(models_to_load)
+    deferred = defer.Deferred()
+
+    def callback(result):
+        """Callback to pop receipts off the stack."""
+        receipts.pop()
+        if len(receipts) == 0:
+            # Fire callbacks of our own deferred when all load methods
+            # have finished
+            deferred.callback(True)
+
+    for model in models_to_load:
+        model.load().addCallback(callback)
+
+    # Return our own deferred
+    return deferred
+
+def loop_load_models():
+    """Run load_models in five minute intervals.
+    
+    The first call to load_models is run immediately, and its deferred
+    is returned by this function (useful for initiating first poll
+    runs after first model loading is complete).
+    """
+    deferred = load_models()
+    loop = task.LoopingCall(load_models)
+    loop.start(5*60.0, now=False)
+    return deferred
+    
+
+class _MetaModel(type):
+
+    """Model metaclass.
+
+    This metaclass makes sure all model classes are initialized with
+    separate "all" dictionary attributes.
+
+    """
+
+    def __init__(cls, name, bases, dict):
+        super(_MetaModel, cls).__init__(name, bases, dict)
+        cls.all = {}
+
+
+class _Model(object):
+    """Abstract base class for models defined in this module.
+
+    A model class inheriting this class must define two class
+    attributes:
+
+      fields        -- a tuple of strings that will be used as
+                       instance attributes for the model class.
+
+      refresh_query -- an SQL query that produces rows that are
+                       suitable for populating an instance of the
+                       model class.  The columns returned by the query
+                       must match the ordering as the fields tuple.
+    
+    All instances created in the class method "load" will be placed in
+    a dictionary class attribute called "all".  The key to each
+    instance is the first attribute listed in the fields tuple.  If
+    you wish to override this behavior, you should override the
+    add_to_cache instance method and write your own logic for this.
+
+    """
+    __metaclass__ = _MetaModel
+
+    def __init__(self, *args):
+        """Initialize an instance.
+
+        Arguments must match the number and order of the class'
+        attribute "fields".
+
+        """
+        if len(args) != len(self.__class__.fields):
+            raise Exception("Hell")
+
+        for name, value in zip(self.__class__.fields, args):
+            setattr(self, name, value)
+
+    def __repr__(self):
+        values = [repr(getattr(self, name)) for name in self.__class__.fields]
+        s = "%s(%s)" % (self.__class__.__name__,
+                        ",".join(values))
+        return s
+        
+
+    def __cmp__(self, other):
+        """Compare this instance to other.
+
+        Will compare instances as tuples of instance attributes, as
+        defined by the class attribute "fields".
+
+        """
+        my_values = [getattr(self, name) for name in self.__class__.fields]
+        other_values = [getattr(other, name) for name in self.__class__.fields]
+        return cmp(my_values, other_values)
+
+    def add_to_cache(self):
+        """Add this instance to the class' cache dictionary "all".
+
+        Uses the first attribute listed in the class' fields tuple as
+        the dictionary key.  Override this method if this is not
+        suitable, or you need multiple caches using different keys.
+
+        """
+        key_field = self.__class__.fields[0]
+        key = getattr(self, key_field)
+        self.__class__.all[key] = self
+
+    @classmethod
+    def load(cls):
+        """Run the class' refresh_query against the database.
+
+        Returns a deferred as returned by Twisted's
+        ConnectionPool.runQuery method.  The internal classmethod
+        _load_result is attached as the first callback, to load the
+        results into the class cache.
+
+        """
+        deferred = get_db_pool().runQuery(cls.refresh_query)
+        deferred.addCallback(cls._load_result)
+        return deferred
+
+    @classmethod
+    def _load_result(cls, result):
+        """Callback method to receive database results and make instances.
+
+        The class cache cls.all is cleared and then an instance is
+        created for each result row.  The instance is added to the
+        class cache via the instance method add_to_cache.
+
+        """
+        logger = ipdevpoll.get_class_logger(cls)
+        # Count entries for debugging purposes
+        counter = 0
+        cls.all.clear()
+        for row in result:
+            instance = cls(*row)
+            instance.add_to_cache()
+            counter += 1
+        logger.debug('_load_result: Loaded %d %s instances from database', 
+                     counter, cls.__name__)
+        
+
+class Netbox(_Model):
 
     """A device with an IP address."""
 
-    # Netbox instance store, key=netboxid
-    all = {}
+    fields = (
+        'netboxid',
+        'ip',
+        'sysname',
+        'typeid',
+        'community',
+        'snmp_version',
+        'uptodate',
+        )
+    refresh_query = """
+        SELECT netboxid, ip, sysname, typeid, ro, snmp_version, uptodate
+        FROM netbox 
+        WHERE ro IS NOT NULL AND
+              up='y'
+          AND roomid IN ('teknobyen', 'kaupangen')
+        ORDER BY netboxid
+        """
 
-    def __init__(self, netboxid, ip, sysname, typeid, community, snmp_version, 
-                 uptodate):
-        self.netboxid = netboxid
-        self.ip = ip
-        self.sysname = sysname
-        self.typeid = typeid
-        self.community = community
-        self.snmp_version = snmp_version
-        self.uptodate = uptodate
-
-        self.oidkeys = {}
+    def __init__(self, *args):
+        super(Netbox, self).__init__(*args)
         self.proxy = None
         self.logger = ipdevpoll.get_instance_logger(self,
                                                     "[%s]" % self.sysname)
@@ -66,38 +212,43 @@ class Netbox(object):
                                  repr(self.netboxid), repr(self.ip),
                                  repr(self.sysname))
 
-    def __repr__(self):
-        return '%s(%s,%s,%s,%s,%s,%s,%s)' % (
-            self.__class__.__name__, 
-            repr(self.ip),
-            repr(self.sysname),
-            repr(self.typeid),
-            repr(self.community),
-            repr(self.snmp_version),
-            repr(self.uptodate),
-            )
-
     @classmethod
-    def load(cls):
-        """Load netbox information from database and populate the Netbox.all
-        dictionary with corresponding Netbox instances.
+    def _load_result(cls, result):
+        """Callback to receive the results of a Netbox database query and
+        update the instance cache.
+
         """
         logger = ipdevpoll.get_class_logger(cls)
-        # FIXME: This SQL selects only a subset of netboxes for testing
-        sql = """
-              SELECT netboxid, ip, sysname, typeid, ro, snmp_version, uptodate
-              FROM netbox 
-              WHERE ro IS NOT NULL
-                AND up='y'
-                AND roomid IN ('teknobyen', 'kaupangen')
-              ORDER BY netboxid
-              """
-        # Count entries for debugging purposes
-        counter = 0
-        for netbox in _load_helper(cls, sql):
-            cls.all[netbox.netboxid] = netbox
-            counter += 1
-        logger.debug('load: Loaded %d netboxes from database', counter)
+        # Initialize various logging counters
+        load_counter = new_counter = changed_counter = 0
+        # Load new netboxes, changed netboxes and exsisting unchanged
+        # netboxes into temp_dict.
+        temp_dict = {}
+        for row in result:
+            netbox = cls(*row)
+            load_counter += 1
+            if netbox.netboxid not in cls.all:
+                temp_dict[netbox.netboxid] = netbox
+                new_counter += 1
+            else:
+                old_netbox = cls.all[netbox.netboxid]
+                if netbox != old_netbox:
+                    temp_dict[netbox.netboxid] = netbox
+                    changed_counter += 1
+                else:
+                    temp_dict[netbox.netboxid] = old_netbox
+        # Then clear and update Netbox.all with the contents of
+        # temp_dict, thus removing instances that no longer exist.
+        cls.all.clear()
+        cls.all.update(temp_dict)
+        # FIXME: We may need to give notice to other parts of the
+        # system which netboxes have been removed.  Either that, or
+        # other parts should use weak references to netbox objects so
+        # that they'll notice that the objects are gone.
+
+        logger.debug('_load_result: Loaded %d netboxes from database, '
+                     '%d new, %d changed', 
+                     load_counter, new_counter, changed_counter)
 
     def get_proxy(self):
         """Return SNMP agent proxy to communicate with this netbox."""
@@ -151,63 +302,38 @@ class Netbox(object):
         """Verify that a given oidkey is supported by this netbox and return a
         boolean value.
         """
-        return key in self.oidkeys
+        return (self.netboxid, key) in NetboxSnmpOid.all
 
     def is_supported_all_oids(self, keys):
         """Verify that all oidkeys in the keys list are supported by this
         netbox and return a boolean value.
         """
-        return all(key in self.oidkeys for key in keys)
+        return all((self.netboxid, key) in NetboxSnmpOid.all for key in keys)
 
 
-class Type(object):
+class Type(_Model):
 
     """A device type with a sysObjectID"""
 
-    all = {}
     by_sysobjectid = {}
-
-    def __init__(self, typeid, vendor, name, sysobjectid, community_indexing,
-                 interval, description):
-        self.typeid = typeid
-        self.vendor = vendor
-        self.name = name
-        self.sysobjectid = sysobjectid
-        self.community_indexing = community_indexing
-        self.interval = interval
-        self.description = description
-
-    def __repr__(self):
-        return "%s(%s,%s,%s,%s,%s,%s,%s)" % (
-            self.__class__.__name__,
-            repr(self.typeid),
-            repr(self.vendor),
-            repr(self.name),
-            repr(self.sysobjectid),
-            repr(self.community_indexing),
-            repr(self.interval),
-            repr(self.description),
-            )
-
-    @classmethod
-    def load(cls):
-        """Load type rows from the database and popule the Type.all dictionary
-        with corresponding Type instances.
-
+    fields = (
+        'typeid',
+        'vendor',
+        'name',
+        'sysobjectid',
+        'community_indexing',
+        'interval',
+        'description',
+        )
+    refresh_query = """
+        SELECT typeid, vendorid, typename, sysobjectid, cs_at_vlan, 
+               frequency, descr
+        FROM "type"
         """
-        logger = ipdevpoll.get_class_logger(cls)
-        sql = """
-              SELECT typeid, vendorid, typename, sysobjectid, cs_at_vlan, 
-                     frequency, descr
-              FROM "type"
-              """
-        # Count entries for debugging purposes
-        counter = 0
-        for typ in _load_helper(cls, sql):
-            cls.all[typ.typeid] = typ
-            cls.by_sysobjectid[ OID( typ.sysobjectid ) ] = typ
-            counter += 1
-        logger.debug('load: Loaded %d types from database', counter)
+
+    def add_to_cache(self):
+        self.__class__.all[self.typeid] = self
+        self.__class__.by_sysobjectid[ OID( self.sysobjectid ) ] = self
 
 
 class Vendor(object):
@@ -217,114 +343,56 @@ class Vendor(object):
     pass
 
 
-class NetboxSnmpOid(object):
+class NetboxSnmpOid(_Model):
 
     """A Netbox OID profile entry with interval schedule."""
 
-    # NetboxSnmpOid instance store, key=oidkey
-    all = {}
-
-    def __init__(self, netboxid, oidkey, interval):
-        self.netboxid = netboxid
-        self.oidkey = oidkey
-        self.interval = interval
-
-    def __repr__(self):
-        return '%s(%s,%s,%s)' % (
-            self.__class__.__name__,
-            repr(self.netboxid),
-            repr(self.oidkey),
-            repr(self.interval),
-            )
-
-    @classmethod
-    def load(cls):
-        """Load all netboxsnmpoid rows from the database and populate the
-        NetboxSnmpOid.all dictionary with corresponding NetboxSnmpOid
-        instances.
-
+    fields = (
+        'netboxid',
+        'oidkey',
+        'interval',
+        )
+    refresh_query = """
+        SELECT netboxid, oidkey, frequency
+        FROM netboxsnmpoid
+        JOIN snmpoid USING (snmpoidid)
         """
-        logger = ipdevpoll.get_class_logger(cls)
-        sql = """
-              SELECT netboxid, oidkey, frequency
-              FROM netboxsnmpoid
-              JOIN snmpoid USING (snmpoidid)
-              """
-        # Count entries for debugging purposes
-        counter = 0
-        for ns in _load_helper(cls, sql):
-            # Load into internal instance store
-            key = (ns.netboxid, ns.oidkey)
-            cls.all[key] = ns
+    def add_to_cache(self):
+        key = (self.netboxid, self.oidkey)
+        self.__class__.all[key] = self
 
-            # Add mapping from Netboxes
-            if ns.netboxid in Netbox.all:
-                netbox = Netbox.all[ns.netboxid]
-                netbox.oidkeys[ns.oidkey] = ns
-
-            # Add mapping from SnmpOids
-            if ns.oidkey in SnmpOid.all:
-                snmpoid = SnmpOid.all[ns.oidkey]
-                snmpoid.netboxes[ns.netboxid] = ns
-            counter += 1
-        logger.debug('load: Loaded %d netboxsnmpoids from database', counter)
-
-class SnmpOid(object):
+class SnmpOid(_Model):
 
     """A pollable SNMP OID"""
 
-    # SnmpOid instance store, key=oidkey
-    all = {}
+    fields = (
+        'snmpoidid',
+        'oidkey',
+        'snmpoid',
+        'getnext',
+        'decodehex',
+        'match_regex',
+        'default_interval',
+        'uptodate',
+        'mib',
+        )
+    refresh_query = """
+        SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex,
+               match_regex, defaultfreq, uptodate, mib
+        FROM snmpoid
+        """
 
-    def __init__(self, snmpoidid, oidkey, snmpoid, getnext, decodehex,
-                 match_regex, default_interval, uptodate, mib):
-        self.snmpoidid = snmpoidid
-        self.oidkey = oidkey
-        self.snmpoid = OID(snmpoid)
-        self.getnext = getnext
-        self.decodehex = decodehex
-        self.match_regex = match_regex
-        self.default_interval = default_interval
-        self.uptodate = uptodate
-        self.mib = mib
-
-        self.netboxes = {}
+    def __init__(self, *args):
+        super(SnmpOid, self).__init__(*args)
+        if isinstance(self.snmpoid, basestring):
+            self.snmpoid = OID(self.snmpoid)
 
     def __str__(self):
         return '%s(%s,%s,%s)' % (
             self.__class__.__name__,
             repr(self.snmpoidid), repr(self.oidkey), repr(self.snmpoid),
             ) 
-    
-    def __repr__(self):
-        return '%s(%s,%s,%s)' % (
-            self.__class__.__name__,
-            repr(self.snmpoidid),
-            repr(self.oidkey),
-            repr(self.snmpoid),
-            repr(self.getnext),
-            repr(self.decodehex),
-            repr(self.match_regex),
-            repr(self.default_interval),
-            repr(self.uptodate),
-            repr(self.mib),
-            )
 
-    @classmethod
-    def load(cls):
-        """Load all SnmpOid rows from the database and populate the
-        SnmpOid.all dictionary with corresponding SnmpOid instances.
+    def add_to_cache(self):
+        self.__class__.all[self.oidkey] = self
 
-        """
-        logger = ipdevpoll.get_class_logger(cls)
-        sql = """
-              SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex,
-                     match_regex, defaultfreq, uptodate, mib
-              FROM snmpoid
-              """
-        # Count entries for debugging purposes
-        counter = 0
-        for snmpoid in _load_helper(cls, sql):
-            cls.all[snmpoid.oidkey] = snmpoid
-            counter += 1
-        logger.debug('load: Loaded %d snmpoids from database', counter)
