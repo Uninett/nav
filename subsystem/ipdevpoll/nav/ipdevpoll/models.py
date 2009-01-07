@@ -21,8 +21,8 @@ from pysnmp.asn1.oid import OID
 from twisted.internet import reactor, defer, task
 from twistedsnmp import snmpprotocol, agentproxy
 
-import ipdevpoll
-from ipdevpoll.db import get_db_pool
+from nav import ipdevpoll
+from nav.ipdevpoll.db import get_db_pool
 
 def load_models():
     """Load, create and cache all model instances.

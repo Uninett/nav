@@ -13,9 +13,9 @@ from optparse import OptionParser
 
 from twisted.internet import reactor
 
-from ipdevpoll.models import loop_load_models, Netbox
-from ipdevpoll.snmpoid import Schedule
-from ipdevpoll.plugins import import_plugins
+from nav.ipdevpoll.models import loop_load_models, Netbox
+from nav.ipdevpoll.snmpoid import Schedule
+from nav.ipdevpoll.plugins import import_plugins
 
 from nav import buildconf
 

@@ -13,11 +13,13 @@ __license__ = "GPLv2"
 
 import logging
 import pprint
+
 from twisted.internet import defer
 from twisted.python.failure import Failure
-from ipdevpoll import Plugin, FatalPluginError
-from ipdevpoll.models import Type, OID
-from ipdevpoll.plugins import register
+
+from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll.models import Type, OID
+from nav.ipdevpoll.plugins import register
 
 class TypeOid(Plugin):
     def __init__(self, netbox):

@@ -14,8 +14,8 @@ from twisted.internet import defer
 #from twisted.python.failure import Failure
 from twisted.names import client, dns
 
-from ipdevpoll import Plugin
-from ipdevpoll.plugins import register
+from nav.ipdevpoll import Plugin
+from nav.ipdevpoll.plugins import register
 
 class DnsName(Plugin):
 

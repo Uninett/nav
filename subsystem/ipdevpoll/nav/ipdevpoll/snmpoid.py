@@ -7,10 +7,10 @@ import logging
 
 from twisted.internet import reactor, defer, task
 
-import ipdevpoll
-from ipdevpoll.plugins import plugin_registry
+from nav import ipdevpoll
+from nav.ipdevpoll.plugins import plugin_registry
 
-logger = logging.getLogger('ipdevpoll.snmpoid')
+logger = logging.getLogger('nav.ipdevpoll.snmpoid')
 
 
 class RunHandler(object):

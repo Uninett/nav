@@ -21,10 +21,10 @@ def import_plugins():
     """
     global logger
     names = (
-        'ipdevpoll.plugins.iftable',
-        'ipdevpoll.plugins.typeoid',
-        'ipdevpoll.plugins.dnsname',
-        #'ipdevpoll.plugins.test',
+        'nav.ipdevpoll.plugins.iftable',
+        'nav.ipdevpoll.plugins.typeoid',
+        'nav.ipdevpoll.plugins.dnsname',
+        #'nav.ipdevpoll.plugins.test',
         )
     for plug in names:
         logger.debug('Importing plugin module %s', plug)

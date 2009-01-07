@@ -9,11 +9,14 @@ __license__ = "GPLv2"
 
 import logging
 import pprint
+
 from pysnmp.asn1.oid import OID
+
 from twisted.internet import defer
 from twisted.python.failure import Failure
-from ipdevpoll import Plugin, FatalPluginError
-from ipdevpoll.plugins import register
+
+from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll.plugins import register
 
 class Interfaces(Plugin):
     def __init__(self, netbox):

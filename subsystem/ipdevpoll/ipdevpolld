@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Start the ipdevpoll daemon
-from ipdevpoll.daemon import *
+from nav.ipdevpoll.daemon import *
 
 if __name__ == '__main__':
     main()
