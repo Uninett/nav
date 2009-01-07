@@ -1,0 +1,55 @@
+<div id="timeperiods_table_container">
+{% for type in alert_subscriptions %}
+<table class="listtable">
+    <caption>
+        {{ type.title }}
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Valid during</th>
+            <th>Subscriptions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for a in type.subscriptions %}
+        <tr class="{% cycle oddrow,evenrow %}
+            {% ifequal a.time_period.get_valid_during_display 'all days' %}
+            all_days_period period_{{ a.time_period.id }}
+            {% endifequal %}">
+            {# The same time period may appear in both tables, so we need to #}
+            {# identify by both the parent loops counter and the time_periods id. #}
+            <td class="{{ a.time_period.css_class }}">
+            {% if active.profile %}
+                <input type="checkbox" name="period" id="id_period_weekday_{{ a.time_period.id }}" value="{{ a.time_period.id }}" class="all_day_checkbox_{{ a.time_period.id }}" />
+            {% endif %}
+            </td>
+            <td><a href="{% url alertprofiles-profile-timeperiod  a.time_period.id %}">
+                {{ a.time_period.start }} - {{ a.time_period.end }},
+                {{ a.time_period.valid_during }}
+            </a></td>
+            <td>
+                <ul>
+                {% if a.alert_subscriptions %}
+                    {% for b in a.alert_subscriptions %}
+                    <li>
+                        Watch <em><a href="{% url alertprofiles-filter_groups-detail b.filter_group.id %}">{{ b.filter_group.name }}</a></em>,
+                        send to <em><a href="{% url alertprofiles-address-detail b.alert_address.id %}">{{ b.alert_address.address }}</a></em>,
+                        {{ b.get_type_display }}.
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li><em>No subscriptions watched in this time period.</em></li>
+                {% endif %}
+                    <li><a href="{% url alertprofiles-profile-timeperiod-setup a.time_period.id %}"
+                        >Edit subscriptions</a></li>
+                </ul>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+</div>

@@ -1,0 +1,48 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-profile-save %}{% endblock %}
+{% block url_add_expression %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
+
+{% block headercontent %}
+    {% if detail_id %}
+       Profile details 
+    {% else %}
+        New profile
+    {% endif %}
+{% endblock %}
+
+{% block form_additional_fields %}
+{% if time_period_templates %}
+<tr>
+    <th>
+        <label for="id_template">Choose a template for time periods:</label>
+    </th>
+    <td>
+        <select name="template" id="id_template">
+            <option value="">No template</option>
+            {% for key, template in time_period_templates.items %}
+                <option value="{{ key }}">{{ template.main.description }}</option>
+            {% endfor %}
+        </select>
+    </td>
+</tr>
+{% endif %}
+{% endblock %}
+
+{% block expressions_caption_content  %}
+    Time periods
+{% endblock %}
+
+{% block expressions %}
+<form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
+    {% include "alertprofiles/timeperiods.html" %}
+    <p>
+        <input type="hidden" name="profile" value="{{ detail_id }}" />
+        <input type="submit" value="Delete selected" />
+    </p>
+</form>
+{% endblock %}
+
+{% block addexpression %}
+    {% include "alertprofiles/timeperiod_form.html" %}
+{% endblock %}

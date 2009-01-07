@@ -31,14 +31,12 @@ from optparse import OptionParser
 import ConfigParser
 import logging
 import os, sys, re
+import getpass
 
 # NAV libraries
 import nav.buildconf
 import nav.arnold
 from nav.db import getConnection
-
-# Temp
-from pysnmp import v1, v2c, asn1, role
 
 # Paths
 configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
@@ -185,11 +183,11 @@ must be set if state is quarantine")
         res = ""
         if opts.state == 'enable':
             for id in args:
-                logger.info("Running openPort (%s, %s)" %(id, os.getlogin()))
+                logger.info("Running openPort (%s, %s)" %(id, getpass.getuser()))
 
                 # Open port
                 try:
-                    nav.arnold.openPort(id, os.getlogin())
+                    nav.arnold.openPort(id, getpass.getuser())
                 except (nav.arnold.NoDatabaseInformationError,
                         nav.arnold.DbError,
                         nav.arnold.ChangePortStatusError), why:
@@ -297,7 +295,7 @@ must be set if state is quarantine")
                                              opts.autoenable, 0,
                                              opts.determined,
                                              opts.reason, opts.comment,
-                                             os.getlogin(), 'block')
+                                             getpass.getuser(), 'block')
                     except (nav.arnold.ChangePortStatusError,
                             nav.arnold.AlreadyBlockedError,
                             nav.arnold.FileError,
@@ -313,7 +311,7 @@ must be set if state is quarantine")
                                              opts.autoenable, 0,
                                              opts.determined,
                                              opts.reason, opts.comment,
-                                             os.getlogin(), 'quarantine',
+                                             getpass.getuser(), 'quarantine',
                                              opts.vlan)
                     except (nav.arnold.ChangePortVlanError,
                             nav.arnold.AlreadyBlockedError,
@@ -385,7 +383,7 @@ def handleFile(file, opts):
                 determined = opts.determined
                 reason = opts.reason
                 comment = opts.comment
-                username = os.getlogin()
+                username = getpass.getuser()
 
                 if opts.state == 'disable':
 

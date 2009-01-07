@@ -1,0 +1,56 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+
+{% block top_links %}
+{% endblock %}
+
+<form action="{{ form_action }}" method="post">
+
+<table class="listtable">
+
+    <caption>
+    {% block captioncontent %}
+    {% endblock %}
+        <br />
+        <span class="subtitle">
+        {% include "alertprofiles/paginator.html" %}
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+        {% block theadcols %}
+            <th></th>
+            <th>Name</th>
+        {% endblock %}
+        </tr>
+    </thead>
+
+    <tbody>
+    {% block tbodycontent %}
+    {% endblock %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="0">
+                {% include "alertprofiles/paginator.html" %}
+            </th>
+        </tr>
+    </tfoot>
+
+</table>
+
+<div>
+    {% block additional_fields %}
+    {% endblock %}
+    <input type="submit" value="Delete selected" />
+</div>
+
+</form>
+
+{% block bottom_links %}
+{% endblock %}
+
+{% endblock %}

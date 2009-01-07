@@ -1,0 +1,2 @@
+SetHandler none
+PythonHeaderParserHandler nav.web.noauth

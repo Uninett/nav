@@ -5,15 +5,6 @@
 <table class="toolbox toolbox4cols"><tr>
 
 <td>
-    <form action="../browse/">
-        <div>IP Device Center</div>
-        <input type="text" name="netbox" size="15" />
-        <input type="submit" value="Find" />
-        <div><i>IP/sysname</i></div>
-    </form>
-</td>
-
-<td>
     <form action="netbox">
         <input type="hidden" name="op_roomid" value="like" />
         <div>Room search</div>
@@ -75,13 +66,11 @@
     </form>
 </td>
 
-<td></td>
-
 </tr></table>
 
 <table><tr><td valign="top">
 
-<h3>Collected information</h2>
+<h3>Collected information</h3>
 
 <ul>
     <li><a href="netbox">All IP Devices</a></li>
@@ -97,9 +86,10 @@
             <li><a href="swport?op_b1.catid=in&amp;b1.catid=SW,GSW">Core switch ports</a></li>
             <li><a href="swport?b1.catid=SW&amp;s1.trunk=t">Trunked core switch ports</a></li>
             <li><a href="swporttrunk?b1.catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
+            <li><a href="stpblock">STP blocked switch ports</a></li>
         </ul>
     </li>
-    <li><a href="netbox?catid=EDGE">Edge Switches and Hubs (who uses those anyway?)</a>
+    <li><a href="netbox?catid=EDGE">Edge Switches and Hubs</a>
         <ul>
             <li><a href="swporttrunk?b1.catid=EDGE">Edge switch ports</a></li>
         </ul>
@@ -108,22 +98,23 @@
 
     <li><a href="srv">Servers</a>
         <ul>
-            <li><a href="servicemon">Services</a></li>
-            <li><a href="/browse/service/allMatrix">Services - graphical view</a></li>
+            <li><a href="/ipdevinfo/service/">Service list</a></li>
+            <li><a href="/ipdevinfo/service/matrix/">Service matrix</a></li>
         </ul>
     </li>
     <li><a href="netbox?catid=OTHER">Other devices</a></li>
     <li><a href="modules">Modules</a></li>
     <li><a href="mem">Memory</a></li>
     <li><a href="unrecognizedCDP">Unrecognized CDP neighbours</a></li>
+    <li><a href="duplexmismatch">Duplex mismatches</a></li>
 </ul>
 
-</td><td valign="top">
+</td><td valign="top" class="padded-left">
 
 <h3>Manually updated information</h3>
 
 <ul>
-    <li><a href="../editdb/"><i>[Edit database]</i></a></li>
+    <li><a href="/seeddb/"><i>[Seed database]</i></a></li>
     <li><a href="type">Equipment types</a></li>
     <li><a href="room">Rooms</a></li>
     <li><a href="location">Locations</a></li>
@@ -132,5 +123,10 @@
     <li><a href="vendor">Vendors</a></li>
     <li><a href="product">Products</a></li>
 </ul>
+
+<h3>Automatically generated information</h3>
+
+<ul>
+    <li><a href="reportlist">Report List</a></li>
 
 </td></tr></table>

@@ -1,0 +1,18 @@
+p.listdescr {
+	font-style: italic;
+	color: #555753;
+	padding-bottom: 15px
+}
+
+table.listtable caption {
+	text-align: center;
+}
+
+table.listtable tbody.footer tr th {
+	text-align: center;
+}
+
+table.listtable caption span.small_subtitle {
+	font-size: 0.6em;
+	font-weight: normal;
+}

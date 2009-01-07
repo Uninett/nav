@@ -1,43 +1,114 @@
-SHELL = @SHELL@
+#! /usr/bin/env make
+# -*- coding: UTF-8 -*-
+#
+# Copyright 2007 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+# ID: $Id$
+#
+
+# Programs
 INSTALL = @INSTALL@
 CHEETAH = @CHEETAH@
 
+# Paths
 prefix = @prefix@
-exec_prefix = @exec_prefix@
-libdir = @libdir@
-sysconfdir = @sysconfdir@
 bindir = @bindir@
-
-webroot = @webroot@
+libdir = @libdir@
+exec_prefix = @exec_prefix@
+sysconfdir = @sysconfdir@
+initdir = @initdir@
+localstatedir = @localstatedir@
 tooldir = @tooldir@
+pythonlibdir = @pythonlibdir@
+djangotmpldir = @djangotmpldir@
+webroot = @webroot@
 
-top_srcdir = @top_srcdir@
+# Names
+WEBNAME = alertprofiles
 
-# Just grab all files, except SVN administrative areas, and a few
-# other source tree-only files.
-files = $(shell find -type f -and -not \( -iregex '.*\.svn.*' -or -name 'INSTALL' -or -name 'Makefile' -or -name 'Makefile.in' -or -name '*~' -or -name '*.tool' -or -name '*.source' \) )
-tool = alertprofiles.tool
+# Files
+INITFILES =
+BINS =
+LIBS = $(wildcard nav/django/urls/alertprofiles.py nav/web/alertprofiles/*.py)
+CONFFILES_SRC = $(wildcard config/*/*)
+CONFFILES = $(CONFFILES_SRC:config/%=%)
+TOOLS = alertprofiles.tool
+TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
+TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
+DJANGO_TEMPLATES_SRC = $(wildcard templates/*/*)
+DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
+MEDIA_SRC = $(wildcard media/*/*)
+MEDIA = $(MEDIA_SRC:media/%=%)
+IMAGES_SRC = $(wildcard images/*/*)
+IMAGES = $(IMAGES_SRC:images/%=%)
 
-export
-.PHONY: all install
+.PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 
-all: config.php
+all: lib bin conf web
+lib: $(TEMPLATES)
+bin:
+conf:
+web:
 
-config.php: config.php.source
-	$(top_srcdir)/tools/expand.pl config.php.source > config.php
+$(TEMPLATES): %.py: %.tmpl
+	$(CHEETAH) compile $<
 
-print:
-	@echo Files
-	@echo $(files)
+install: all install-lib install-bin install-conf install-web
 
-install:
-	for file in $(files); do \
-	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)/$(webroot)/alertprofiles/$$file || exit 1; \
+install-lib: lib $(TEMPLATES)
+	for file in $(LIBS) $(TEMPLATES); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in $(DJANGO_TEMPLATES); do $(INSTALL) -v -D -m 644 templates/$$file $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
+
+install-bin: bin
+	for file in $(BINS); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; done
+	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file	|| exit 1; done
+
+install-conf: conf
+	@for file in $(CONFFILES); do \
+		target=$(DESTDIR)$(sysconfdir)/$$file; \
+		if [ -f "$$target" ]; then \
+			echo "Skipping installation of config file $$file"; \
+		else \
+			$(INSTALL) -v -D -m 644 config/$$file $$target || exit 1; \
+		fi \
 	done
-	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
+
+install-web: web
+	for file in $(TOOLS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; done
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/$(WEBNAME)/.htaccess
+	for file in $(MEDIA); do $(INSTALL) -v -D -m 644 media/$$file $(DESTDIR)$(webroot)/$$file || exit 1; done
+	for file in $(IMAGES); do $(INSTALL) -v -D -m 644 images/$$file $(DESTDIR)$(webroot)/images/$$file || exit 1; done
+
+uninstall:
+	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file || exit 1; done
+	for file in $(LIBS); do rm -f $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in $(DJANGO_TEMPLATES); do rm -rf $(DESTDIR)$(djangotmpldir)/$$file || exit 1; done
+	for file in $(TOOLS); do rm -f $(DESTDIR)$(tooldir)/$$file || exit 1; done
+	rm -rf $(DESTDIR)$(webroot)/$(WEBNAME)/
+	for file in $(MEDIA); do rm -rf $(DESTDIR)$(webroot)/$$file || exit 1; done
 
 clean:
-	find -name '*~' -print0 | xargs --null rm -f
+	find -name *.pyc -print0 | xargs -0 rm -f
+	for file in $(TEMPLATES); do rm -f $$file; done
 
 distclean: clean
+	find -name \*~ -print0 | xargs -0 rm -f
 	rm -f Makefile
+

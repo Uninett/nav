@@ -30,6 +30,7 @@ import os
 import sys
 import logging
 import ConfigParser
+import getpass
 
 # import nav-libraries
 import nav.arnold
@@ -113,7 +114,7 @@ def main():
 
         # Open port
         try:
-            nav.arnold.openPort(row['identityid'], os.getlogin(),
+            nav.arnold.openPort(row['identityid'], getpass.getuser(),
                                 eventcomment="Opened automatically by \
                                 autoenable")
             logger.info("Opening %s %s:%s for %s" %(

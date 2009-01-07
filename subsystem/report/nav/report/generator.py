@@ -25,14 +25,13 @@
 #          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
-import re,string
-from urlparse import urlsplit
-from urllib import unquote_plus
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
+from urllib import unquote_plus
+from urlparse import urlsplit
 import nav.db
+import re,string
 
-# TODO: remove "hei" from code. It's, as far as I can see, not in any use.
 
 class Generator:
     """
@@ -44,15 +43,15 @@ class Generator:
         self.config = None
         self.answer = None
         self.sql = ""
-        self.hei = ""
 
-    def makeReport(self,reportName,configFile,uri):
+    def makeReport(self,reportName,configFile,configFileLocal,uri,dbresult):
         """
         Makes a report
 
-        - reportName : the name of the report that will be represented
-        - configFile : the configuration file where the definittion resides
-        - uri        : the request from the user as a uri
+        - reportName      : the name of the report that will be represented
+        - configFile      : the configuration file where the definition resides
+        - configFileLocal : the local configuration file where changes to the default definition resides
+        - uri             : the request from the user as a uri
 
         returns a formatted report object instance or 0
         """
@@ -60,94 +59,96 @@ class Generator:
         parsed_uri = urlsplit(uri)
         args = parsed_uri[3]
 
-        configParser = ConfigParser(configFile)
-        config = configParser.configuration
+        configParser = ConfigParser(configFile,configFileLocal)
         parseOK = configParser.parseReport(reportName)
+
+        config = configParser.configuration
 
         adv = 0
         if parseOK:
             argumentParser = ArgumentParser(config)
             argumentHash = argumentParser.parseArguments(args)
+
             if argumentHash.has_key("adv"):
                 if argumentHash["adv"]:
                     adv = 1
                 del argumentHash["adv"]
+
             (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
 
-            answer = DatabaseResult(config)
-            #self.hei = answer.error
-            self.sql = answer.sql
+            # Check if there exists a database result for the query
+            if dbresult != None:
+                formatted = Report(config,dbresult,uri)
+                formatted.titlebar = reportName + " - report - NAV"
 
-            formatted = Report(config,answer,uri)
-            formatted.titlebar = reportName + " - report - NAV"
+                return (formatted,contents,neg,operator,adv,None)
 
-            return (formatted,contents,neg,operator,adv)
+            else:
+                answer = DatabaseResult(config)
+                self.sql = answer.sql
+
+                formatted = Report(config,answer,uri)
+                formatted.titlebar = reportName + " - report - NAV"
+
+                return (formatted,contents,neg,operator,adv,answer)
 
         else:
-
-            return (0,None,None,None,adv)
+            return (0,None,None,None,adv,None)
 
 
 
 class ReportList:
 
-    def __init__(self,configurationFile):
+    def __init__(self,configFile):
 
         self.reports = []
 
         reportRe = re.compile("^\s*(\S+)\s*\{(.*?)\}$",re.M|re.S|re.I)
-        fileContents = file(configurationFile).read()
+        fileContents = file(configFile).read()
         list = reportRe.findall(fileContents)
 
-        configParser = ConfigParser(configurationFile)
+        configParser = ConfigParser(configFile,None)
 
         for rep in list:
             configtext = rep[1]
             rep = rep[0]
-
-            #configParser.parseReport(rep)
+            
             configParser.parseConfiguration(configtext)
             report = configParser.configuration
-            #raise KeyError, report.header
-            if report.header:
-                r = ReportListElement(rep,report.header)
-                self.reports.append(r.getReportListElement())
+
+            if report.title != '' and report.description != '':
+                self.reports.append((rep, report.title, report.description))
+            
+            elif report.title != '':
+                self.reports.append((rep, report.title, None))
+
+            elif report.description != '':
+                self.reports.append((rep, rep, report.description))
+
             else:
-                r = ReportListElement(rep)
-                self.reports.append(r.getReportListElement())
+                self.reports.append((rep, rep, None))
 
     def getReportList(self):
         return self.reports
 
 
-class ReportListElement:
-
-    def __init__(self,key,title=""):
-
-        self.key = key
-        self.title = title
-
-    def getReportListElement(self):
-
-        if self.title:
-            return (self.title,self.key)
-
-        else:
-            return (self.key,self.key)
-
 
 class ConfigParser:
     """
-    Loads a configuration file, parses the contents, and returns the results as a ReportConfig object instance
+    Loads the configuration files, parses the contents - the local
+    configuration the default, and returns the results as a ReportConfig object
+    instance
     """
 
-    def __init__(self,configFile):
+    def __init__(self,configFile,configFileLocal):
         """
-        Loads the configuration file
+        Loads the configuration files
         """
 
         self.configFile = configFile
+        self.configFileLocal = configFileLocal
         self.config = None
+        self.configLocal = None
         self.configuration = ReportConfig()
 
 
@@ -156,7 +157,7 @@ class ConfigParser:
         Parses the configuration file and returns a Report object
         according to the reportName.
 
-        - reportName : the name of the report, tells which part of configuration file to use when making a ReportConfig
+        - reportName : the name of the report, tells which part of configuration files to use when making a ReportConfig
 
         returns 1 when there was a report with that name, 0 otherwise
 
@@ -165,26 +166,34 @@ class ConfigParser:
 
         if self.config is None:
             self.config = file(self.configFile).read()
+            self.configLocal = file(self.configFileLocal).read()
         reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$",re.M|re.S|re.I)
         reResult = reportRe.search(self.config)
+        reResultLocal = reportRe.search(self.configLocal)
 
         if reResult:
             self.parseConfiguration(reResult.group(1))
-            return 1
+        if reResultLocal:
+            # Local report config overloads default report config.
+            self.parseConfiguration(reResultLocal.group(1))
+
+        if reResult or reResultLocal:
+            return True
+        
         else:
-            return 0
+            return False
 
 
-    def parseConfiguration(self,reportConfiguration):
+    def parseConfiguration(self,reportConfig):
         """
         Parses the right portion of the configuration and builds a ReportConfig object, stone by stone.
 
-        - reportConfiguration : the part of the configuration to build the configuration from
+        - reportConfig : the part of the configuration to build the configuration from
 
         """
 
         configurationRe = re.compile("^\s*\$(\S*)\s*\=\s*\"(.*?)\"\;?",re.M|re.S)
-        reResult = configurationRe.findall(reportConfiguration)
+        reResult = configurationRe.findall(reportConfig)
 
         config = self.configuration
 
@@ -195,8 +204,8 @@ class ConfigParser:
 
             if key == "sql" or key == "query":
                 config.setQuery(value)
-            elif key == "overskrift" or key == "header" or key == "title":
-                config.header = value
+            elif key == "title":
+                config.title = value
             elif key == "order_by" or key == "sort":
                 config.orderBy = string.split(value,",") + config.orderBy
             elif key == "skjul" or key == "hidden" or key == "hide":
@@ -205,6 +214,8 @@ class ConfigParser:
                 config.extra.extend(string.split(value,","))
             elif key == "sum" or key == "total":
                 config.sum.extend(string.split(value,","))
+            elif key == "description":
+                config.description = value
             else:
                 reObject = re.compile("^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
                 reResult = reObject.search(key)
@@ -231,7 +242,6 @@ class ArgumentParser:
         """
 
         self.configuration = configuration
-        self.hei = ""
 
     def parseQuery(self,query):
         """
@@ -253,8 +263,8 @@ class ArgumentParser:
             if key == "sql" or key == "query":
                 #error("Access to make SQL-querys permitted")
                 pass
-            elif key == "overskrift" or key == "header":
-                config.header = value
+            elif key == "title":
+                config.title = value
             elif key == "order_by" or key == "sort":
                 config.orderBy = string.split(value,",") + config.orderBy
             elif key == "skjul" or key == "hidden" or key == "hide":
@@ -288,7 +298,7 @@ class ArgumentParser:
                         reResult = None
 
                 if not reResult:
-                    if value and not key == "r4g3n53nd":
+                    if value:
                         fields[unquote_plus(key)] = unquote_plus(value)
 
         for key,value in fields.items():
@@ -405,7 +415,8 @@ class ReportConfig:
     def __init__(self):
         self.orig_sql = ""
         self.sql = None
-        self.header = ""
+        self.title = ""
+        self.description = ""
         self.orderBy = []
         self.hidden = []
         self.extra = []
@@ -437,25 +448,7 @@ class ReportConfig:
         self.sql_offset = self.parse_offset(sql)
 
     def makeSQL(self):
-        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring() + self.orderstring() + self.limitoffsetstring()
-        return sql
-
-    def makeTotalSQL(self):
-        #select = self.sql_select_orig[0]
-
-        #skulle gjerne begrenset dette søket, så det ikke tok sånn tid, ved å bruke select deklarert rett over i selectstring().
-        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring()
-        return sql
-
-    def makeSumSQL(self):
-        ## jukser her! count != sum --> ikke nå lenger
-
-        sum = []
-        for s in self.sum:
-            s = "sum("+s+")"
-            sum.append(s)
-            #sumString = string.join(self.sum,",")
-        sql = self.selectstring(sum) + self.fromstring() + self.wherestring()# + self.groupstring()
+        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring() + self.orderstring()
         return sql
 
     def fromstring(self):
@@ -495,23 +488,6 @@ class ReportConfig:
             return " ORDER BY " + string.join(sort,",")
         else:
             return ""
-
-    def limitoffsetstring(self):
-        if self.offset:
-            offset = self.offset
-        elif self.sql_offset:
-            offset = sql_offset
-        else:
-            offset = "0"
-
-        if self.limit:
-            limit = self.limit
-        elif self.sql_limit:
-            limit = self.sql_limit
-        else:
-            limit = "1000"
-        return " LIMIT " + limit + " OFFSET " + offset
-
 
     def rstrip(self,string):
         """Returns the last \w-portion of the string"""

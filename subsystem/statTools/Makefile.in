@@ -12,19 +12,23 @@ sysconfdir = @sysconfdir@
 
 webroot = @webroot@
 tooldir = @tooldir@
+datarootdir = @datarootdir@
 docdir = @docdir@
 crondir = @crondir@
+libdir = @libdir@
+pythonlibdir = @pythonlibdir@
 
-binaries = cleanrrds.pl filloiddb.pl makecricketconfig.pl
-conffiles = cricketoids.txt cricket-views.conf
+binaries = cleanrrds.pl makecricketconfig.pl
+conffiles = cricket-views.conf
 tool = stats.tool
+libfiles = $(wildcard nav/*.py nav/rrd/*.py)
 
 .PHONY: all install install-lib install-bin install-conf install-web clean distclean install-doc install-cron
 
 all: 
 	$(MAKE) -C sortedStats $@
 
-install: install-bin install-conf install-web install-cron install-doc
+install: install-bin install-conf install-web install-cron install-doc install-lib
 	$(MAKE) -C sortedStats $@
 
 install-bin:
@@ -44,6 +48,11 @@ install-conf:
 
 install-web:
 	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
+
+install-lib:
+	@for file in $(libfiles); do 					             \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
+	done
 
 install-doc:
 	documentation=`find cricket -type f -not -path '*/.svn/*' -not -name '*~'`; \

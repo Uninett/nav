@@ -4,17 +4,22 @@
 SHELL = @SHELL@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
 docdir = @docdir@
+bindir = @bindir@
 
 INSTALL = @INSTALL@
 
 # File lists
 
 docfiles = $(wildcard sql/*.sql) \
+           $(wildcard sql/*.sh) \
            $(wildcard sql/upgrades/*.sql) \
            sql/README \
            sql/upgrades/README \
            getting-started.txt
+
+binfiles = sql/navschema.py
 
 .PHONY: all install
 
@@ -23,4 +28,8 @@ all:
 install:
 	@for file in $(docfiles); do \
 	  $(INSTALL) -v -m 644 -D $$file $(DESTDIR)$(docdir)/$$file || exit 1; \
+	done
+	@for file in $(binfiles); do \
+	  targetname=$$(basename $$file) ; \
+	  $(INSTALL) -v -m 755 -D $$file $(DESTDIR)$(bindir)/$$targetname || exit 1; \
 	done

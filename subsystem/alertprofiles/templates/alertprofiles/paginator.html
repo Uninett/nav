@@ -1,0 +1,16 @@
+{% block paginator %}
+{% if page_obj %}
+    {% if page_obj.has_previous %}
+        <a href="{{ page_link }}?page={{ page_obj.previous_page_number }}&amp;order_by={{ order_by }}"
+        title="Previous page"
+        ><img src="/images/alertprofiles/go-previous.png" alt="Previous page" /></a>
+    {% endif %}
+    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of
+    {{ paginator.count }}.
+    {% if page_obj.has_next %}
+        <a href="{{ page_link }}?page={{ page_obj.next_page_number }}&amp;order_by={{ order_by }}"
+        title="Next page"
+        ><img src="/images/alertprofiles/go-next.png" alt="Next page" /></a>
+    {% endif %}
+{% endif %}
+{% endblock %}

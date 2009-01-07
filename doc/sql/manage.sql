@@ -359,12 +359,6 @@ CREATE TABLE swportblocked (
   PRIMARY KEY(swportid, vlan)
 );
 
-CREATE TABLE alertengine (
-	lastalertqid integer
-);
-
-INSERT INTO alertengine (lastalertqid) values(0);
-
 CREATE TABLE cabling (
   cablingid SERIAL PRIMARY KEY,
   roomid VARCHAR(30) NOT NULL REFERENCES room ON UPDATE CASCADE ON DELETE CASCADE,
@@ -485,36 +479,6 @@ CREATE VIEW allowedvlan_both AS
   (select  swport.swportid,to_swportid as swportid2,allowedvlan from swport join allowedvlan
     on (swport.to_swportid=allowedvlan.swportid) ORDER BY allowedvlan);
 
--------- vlanPlot tables ------
-CREATE TABLE vp_netbox_grp_info (
-  vp_netbox_grp_infoid SERIAL PRIMARY KEY,
-  name VARCHAR NOT NULL,
-  hideicons BOOL NOT NULL DEFAULT false,
-  iconname VARCHAR,
-  x INT4 NOT NULL DEFAULT '0',
-  y INT4 NOT NULL DEFAULT '0'
-);
--- Default network
-INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',false);
-
-CREATE TABLE vp_netbox_grp (
-  vp_netbox_grp_infoid INT4 REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
-  pnetboxid INT4 NOT NULL,
-  UNIQUE(vp_netbox_grp_infoid, pnetboxid)
-);
-
-CREATE TABLE vp_netbox_xy (
-  vp_netbox_xyid SERIAL PRIMARY KEY, 
-  pnetboxid INT4 NOT NULL,
-  x INT4 NOT NULL,
-  y INT4 NOT NULL,
-  vp_netbox_grp_infoid INT4 NOT NULL REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
-  UNIQUE(pnetboxid, vp_netbox_grp_infoid)
-);
-
-
--------- vlanPlot end ------
-
 ------------------------------------------------------------------------------
 -- rrd metadb tables
 ------------------------------------------------------------------------------
@@ -551,7 +515,8 @@ CREATE TABLE rrd_file (
   subsystem VARCHAR REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid  INT REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   key       VARCHAR,
-  value     VARCHAR
+  value     VARCHAR,
+  CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename)
 );
 
 -- Each datasource for each rrdfile is registered here. We need the name and
@@ -696,41 +661,6 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceHwUpgrade','Hardware upgrade on device.');
 
-
-CREATE TABLE alertq (
-  alertqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
-  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid VARCHAR,
-  time TIMESTAMP NOT NULL,
-  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL,
-  value INT4 NOT NULL,
-  severity INT4 NOT NULL
-);
-
-CREATE TABLE alertqmsg (
-  id SERIAL,
-  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  msgtype VARCHAR NOT NULL,
-  language VARCHAR NOT NULL,
-  msg TEXT NOT NULL,
-  PRIMARY KEY(id),
-  UNIQUE(alertqid, msgtype, language)
-);
-
-CREATE TABLE alertqvar (
-  id SERIAL,
-  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR NOT NULL,
-  val TEXT NOT NULL,
-  PRIMARY KEY(id),
-  UNIQUE(alertqid, var) -- only one val per var per event
-);
-
-
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -773,6 +703,44 @@ CREATE TABLE alerthistvar (
   PRIMARY KEY(id),
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
+
+
+CREATE TABLE alertq (
+  alertqid SERIAL PRIMARY KEY,
+  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  subid VARCHAR,
+  time TIMESTAMP NOT NULL,
+  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL,
+  value INT4 NOT NULL,
+  severity INT4 NOT NULL,
+  alerthistid INTEGER NULL,
+  CONSTRAINT alertq_alerthistid_fkey FOREIGN KEY (alerthistid) REFERENCES alerthist (alerthistid)
+             ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE alertqmsg (
+  id SERIAL,
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  msgtype VARCHAR NOT NULL,
+  language VARCHAR NOT NULL,
+  msg TEXT NOT NULL,
+  PRIMARY KEY(id),
+  UNIQUE(alertqid, msgtype, language)
+);
+
+CREATE TABLE alertqvar (
+  id SERIAL,
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR NOT NULL,
+  val TEXT NOT NULL,
+  PRIMARY KEY(id),
+  UNIQUE(alertqid, var) -- only one val per var per event
+);
+
 
 ------------------------------------------------------------------------------
 -- servicemon tables
@@ -906,3 +874,29 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
+
+------------------------------------------------------------------------------
+-- netmap helper tables
+------------------------------------------------------------------------------
+
+CREATE TABLE netmap_position(
+sysname VARCHAR PRIMARY KEY NOT NULL,
+xpos double precision NOT NULL,
+ypos double precision NOT NULL
+);
+
+------------------------------------------------------------------------------
+-- simple schema version check table
+------------------------------------------------------------------------------
+CREATE TABLE nav_schema_version (
+    version VARCHAR NOT NULL,
+    time TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- FIXME: Insert default as version name.  This should be updated on
+-- each NAV release branch.
+INSERT INTO nav_schema_version (version) VALUES ('default');
+
+-- Ensure only a single row will ever exist in this table.
+CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
+    DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();

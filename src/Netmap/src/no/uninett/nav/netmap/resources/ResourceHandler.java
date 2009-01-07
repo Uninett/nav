@@ -1,6 +1,9 @@
 package no.uninett.nav.netmap.resources;
 
 import java.io.DataInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringBufferInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,7 +21,7 @@ public class ResourceHandler extends Thread {
     private HashMap allocated_resources;
 
     public ResourceHandler() {
-        this.allocated_resources = new HashMap();
+        allocated_resources = new HashMap();
 
         // We trust all certificates
         TrustManager[] trustAllCerts = new TrustManager[]{
@@ -92,9 +95,10 @@ public class ResourceHandler extends Thread {
 
     public prefuse.data.Graph getGraphFromURL(URL url) throws DataIOException {
 
+	System.out.println("Fetching GraphML from " + url.toString());
         // First see if we have the graph in our cache
-        if (this.allocated_resources.containsKey(url.toString())) {
-            return (prefuse.data.Graph) this.allocated_resources.get(url);
+        if (allocated_resources.containsKey(url.toString())) {
+            return (prefuse.data.Graph) allocated_resources.get(url);
         }
 
         HttpURLConnection conn;
@@ -104,24 +108,37 @@ public class ResourceHandler extends Thread {
             throw new DataIOException(ex.fillInStackTrace());
         }
         conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
+	System.out.println("with cookie: " + conn.getRequestProperty("Cookie"));
         prefuse.data.Graph ret = null;
 
         try {
+	    InputStreamReader dis = new InputStreamReader(conn.getInputStream(), "UTF-8");
+	    String s_graph = "";
+	    int s;
+	    while ((s = dis.read()) != -1){
+		s_graph = s_graph + (char)s;
+	    }
+	    System.out.println("---");
+	    System.out.println(s_graph);
+	    System.out.println("---");
+
             prefuse.data.io.GraphMLReader reader = new prefuse.data.io.GraphMLReader();
 
             try {
-                ret = reader.readGraph(conn.getInputStream());
-            } catch (IOException e) {
+                ret = reader.readGraph(
+		  new StringBufferInputStream(s_graph)
+		);
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new DataIOException(e.fillInStackTrace());
             }
 
-        } catch (DataIOException e) {
+        } catch (Exception e) {
 
-            throw e;
+            throw new DataIOException(e.fillInStackTrace());
         }
 
-        this.allocated_resources.put(url.toString(), ret);
+        allocated_resources.put(url.toString(), ret);
 
         return ret;
     }

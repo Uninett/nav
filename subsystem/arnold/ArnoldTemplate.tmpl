@@ -28,7 +28,7 @@
 
 
 #block additionalJavaScript
-    <script type="text/javascript" src="/js/report.js"></script>
+    <script type="text/javascript" src="/js/jquery.js"></script>
     <script type="text/javascript" src="/js/arnold.js"></script>
 
 #end block additionalJavaScript
@@ -413,8 +413,8 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     <tr>
       <th>Choose method</th>
       <td>
-        <input type='radio' name='detainmentgroup' value='block' onclick="changeDisplay('quarantinedropdown', 'none')" $blockdetention>Block
-        <input type='radio' name='detainmentgroup' value='quarantine' onclick="changeDisplay('quarantinedropdown', 'table-row')" $quarantinedetention >Quarantine
+        <input type="radio" name="detainmentgroup" value="block" onclick="\$('#quarantinedropdown').hide();" $blockdetention >Block
+        <input type="radio" name="detainmentgroup" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention >Quarantine
       </td>
     </tr>
 
@@ -578,8 +578,8 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     <tr>
         <th>Detainmenttype</th>
         <td>
-            <input type='radio' name='detainmenttype' value='disable' onClick="changeDisplay('quarantinedropdown','none')" $blockdetention>Block
-            <input type='radio' name='detainmenttype' value='quarantine' onClick="changeDisplay('quarantinedropdown','table-row')" $quarantinedetention>Quarantine
+            <input type="radio" name="detainmenttype" value="disable" onclick="\$('#quarantinedropdown').hide();" $blockdetention >Block
+            <input type="radio" name="detainmenttype" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention >Quarantine
         </td>
     </tr>
 

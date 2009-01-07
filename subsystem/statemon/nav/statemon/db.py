@@ -36,6 +36,8 @@ import checkermap
 import psycopg
 import Queue
 import time
+import atexit
+
 from event import Event
 from service import Service
 from debug import debug
@@ -69,13 +71,15 @@ class _db(threading.Thread):
             self.db = \
                     psycopg.connect("host = %s user = %s dbname = %s password = %s"
                                     % (host, user, dbname, passwd))
+            atexit.register(self.db.close)
+
             debug("Successfully (re)connected to NAVdb")
             self.db.autocommit(0)
         except Exception, e:
             debug("Couldn't connect to db.", 2)
             debug(str(e),2)
             self.db=None
-    
+
     def cursor(self):
         try:
             cursor = self.db.cursor()

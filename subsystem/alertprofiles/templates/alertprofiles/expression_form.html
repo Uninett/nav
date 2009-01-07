@@ -1,0 +1,120 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<h3>
+    Add expression
+</h3>
+
+<form action="{% url alertprofiles-filters-saveexpression %}" method="post">
+<table class="vertitable">
+    <tbody>
+        <tr>
+            <th>Filter</th>
+            <td>{{ filter.name }}{{ form.filter }}</td>
+        </tr>
+        <tr>
+            <th>Match field</th>
+            <td>{{ matchfield.name }}{{ form.match_field }}</td>
+        </tr>
+        <tr>
+            <th><label for="id_operator">{{ form.operator.label }}</label><div id="kake"></div></th>
+            <td>{{ form.operator }}</td>
+        </tr>
+        <tr>
+            <th>
+                <label for="id_value">{{ form.value.label }}</label><br />
+            </th>
+            <td>
+                {% if list_limited %}
+                <p>
+                    There are more available options than the list_limit
+                    permits to show.<br />
+                </p>
+                <p>
+                    Showing {{ matchfield.list_limit }} of
+                    {{ form.number_of_choices }} available options.
+                </p>
+                {% endif %}
+                <div>
+                {{ form.value }}
+                </div>
+                <div>
+                    {# FIXME it's not good practice to trust stuff in the database #}
+                    {% if matchfield.value_help %}
+                        {{ matchfield.value_help|safe }}
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th></th>
+            <td><input type="submit" value="Save" /></td>
+        </tr>
+    </tbody>
+</table>
+</form>
+
+<div class="infobox">
+    <h3>
+        Operators
+    </h3>
+    <p>
+        Below is a table with short descriptions for each available operator.
+        Note that for lists, only "equals" and "in" makes sense, but an admin
+        can, if he/she wishes, make every operator available for any
+        matchfield, even the ones that allows for list selection.
+    </p>
+    <table>
+        <tbody>
+            <tr>
+                <th>Equals</th>
+                <td>Exact match</td>
+            </tr>
+            <tr>
+                <th>Is greater</th>
+                <td>Match field value must be greater than entered value.</td>
+            </tr>
+            <tr>
+                <th>Is greater or equal</th>
+                <td>Match field value must be greater than or equal entered value.</td>
+            </tr>
+            <tr>
+                <th>Is less</th>
+                <td>Match field value must be less than entered value.</td>
+            </tr>
+            <tr>
+                <th>Is less or equal</th>
+                <td>Match field value must be less than or equal entered value.</td>
+            </tr>
+            <tr>
+                <th>Not equals</th>
+                <td>Oposite of equals. Match field value and entered value must not be the same.</td>
+            </tr>
+            <tr>
+                <th>Starts with</th>
+                <td>Match field value must start with entered value. Will also return true if match field and entered value are the same.</td>
+            </tr>
+            <tr>
+                <th>Ends with</th>
+                <td>Match field value must end with entered value. Will also return true if match field and entered value are the same.</td>
+            </tr>
+            <tr>
+                <th>Contains</th>
+                <td>Somewhere in the match field value the entered value must appear. Will also return true if match field and entered value are the same.</td>
+            </tr>
+            <tr>
+                <th>Regexp</th>
+                <td>Enter a regular expression to compare against the match field value.</td>
+            </tr>
+            <tr>
+                <th>Wildcard</th>
+                <td>Same as equals, except you can use wildcards (? or *) to denote "anything goes here".</td>
+            </tr>
+            <tr>
+                <th>In</th>
+                <td>Match field value must be one of the selected values. For lists, just select multiple values, for text fields you can separate the different values with space.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

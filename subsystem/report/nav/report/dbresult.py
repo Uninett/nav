@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# $Id: DatabaseResult.py 3425 2006-06-08 13:07:54Z mortenv $
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,6 +21,7 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
 #
 
 from nav import db
@@ -33,7 +34,8 @@ class DatabaseResult:
 
     def __init__(self,reportConfig):
         """
-        Does everything in the constructor. queries and returnes the values from the database, according to the configuration
+        Does everything in the constructor. queries and returnes the values
+        from the database, according to the configuration
 
         - reportConfig : the configuration to use when
         """
@@ -45,38 +47,24 @@ class DatabaseResult:
         self.sums = {}
         self.error = ""
 
-        connection = db.getConnection('webfront','manage')
+        connection = db.getConnection('default')
 
         database = connection.cursor()
 
         self.sql = reportConfig.makeSQL()
-        #print self.sql
         sql = reportConfig.orig_sql
         self.originalSQL = sql
 
+        ## Make a dictionary of which columns to summarize
+        self.sums = dict([(sum_key, '') for sum_key in reportConfig.sum])
+
         try:
             database.execute(self.sql)
-            go_on = 1
-            #print self.sql
             self.result = database.fetchall()
 
-            ## total count of the rows returned
-            totalSQL = reportConfig.makeTotalSQL()
-            database.execute(totalSQL)
-            self.rowcount = database.rowcount
-
-            ## handling of the "sum" option
-            if self.sums:
-                sumsql = reportConfig.makeSumSQL()
-                database.execute(sumsql)
-                sums = database.fetchone()
-
-            ## coherce the results from the databasequery to the field-labels
-                if sums:
-                    for sum in reportConfig.sum:
-                        self.sums[sum] = sums[reportConfig.sum.index(sum)]
-
+            ## Total count of the rows returned - no need for SQL query.
+            self.rowcount = len(self.result)
 
         except psycopg.ProgrammingError,p:
             #raise ProblemExistBetweenKeyboardAndChairException
-            self.error = "Configuration error! The report generator is not able to do such things."+str(p)
+            self.error = "Configuration error! The report generator is not able to do such things. " + str(p)

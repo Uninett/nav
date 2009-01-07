@@ -1,0 +1,62 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Filters
+{% endblock %}
+
+{% block theadcols %}
+    <th></th>
+    <th>
+    {% ifequal order_by "name" %}
+        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-name">
+        Name</a>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+        </span>
+    {% else %}
+        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=name">
+        Name</a>
+        {% ifequal order_by "-name" %}
+        <span class="sort">
+            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+        </span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "owner" %}
+        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-owner">
+            Owner</a>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+        </span>
+    {% else %}
+        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=owner">
+            Owner</a>
+        {% ifequal order_by "-owner" %}
+        <span class="sort">
+            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+        </span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for filter in object_list %}
+        {% if forloop.counter|divisibleby:"2" %}
+        <tr class="evenrow">
+        {% else %}
+        <tr class="oddrow">
+        {% endif %}
+            <td>
+                <input name="filter" value="{{ filter.id }}"
+                type="checkbox"
+                {% if not admin and not filter.owner %}disabled="disabled" {% endif %}/>
+            </td>
+            <td><a href="{% url alertprofiles-filters-detail filter.id %}">
+                {{ filter.name }}</a></td>
+            <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}

@@ -67,10 +67,25 @@ CREATE INDEX account_idx ON Account(login);
 --------------------------------------------
 SET search_path TO logger;
 
-CREATE INDEX message_type_btree ON message USING btree (type);
-CREATE INDEX message_origin_btree ON message USING btree (origin);
-CREATE INDEX message_time_btree ON message USING btree (time);
+CREATE INDEX log_message_type_btree ON log_message USING btree (type);
+CREATE INDEX log_message_origin_btree ON log_message USING btree (origin);
+CREATE INDEX log_message_time_btree ON log_message USING btree (time);
 
+-- combined index for quick lookups when expiring old records.
+CREATE INDEX log_message_expiration_btree ON log_message USING btree(newpriority, time);
+--------------------------------------------
+-- Create lookup indexes on radius tables --
+--------------------------------------------
+SET search_path TO radius;
+
+-- For use by onoff-, update-, stop- and simul_* queries
+CREATE INDEX radiusacct_active_user_idx ON radiusacct (UserName) WHERE AcctStopTime IS NULL;
+-- and for common statistic queries:
+CREATE INDEX radiusacct_start_user_index ON radiusacct (AcctStartTime, lower(UserName));
+CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
+
+CREATE INDEX radiuslog_time_index ON radiuslog(time);
+CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
 
 -- Reset the search path
 RESET search_path;
