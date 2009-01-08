@@ -49,22 +49,6 @@ class Plugin(object):
         """
         raise NotImplemented
 
-    def order(self, queue):
-        """Manipulate this plugin's order on the queue.
-
-        The RunHandler may offer a plugin a chance to manipulate the
-        list of plugin instances to run, by calling this method with
-        the plugin list as its argument.
-
-        When a plugin knows it needs to be run before or after a
-        specific other plugin, it can check for that plugin's presence
-        in the queue list, and if found, alter its own position in the
-        list accordingly.
-
-        """
-        # By default do nothing here
-        pass
-
     def name(self):
         """Return the class name of this instance."""
         return self.__class__.__name__
