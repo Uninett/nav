@@ -6,7 +6,7 @@ __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
 import logging
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser, NoOptionError
 
 import nav.path
 from nav.errors import GeneralException
@@ -20,8 +20,11 @@ def get_jobs():
     config.read('jobs.conf') # FIXME use nav.path
 
     for section in config.sections():
-        interval = config.get(section, 'interval')
-        plugins = config.get(section, 'plugins').split()
+        try:
+            interval = config.get(section, 'interval')
+            plugins = config.get(section, 'plugins').split()
+        except NoOptionError:
+            continue
 
         interval = get_time(interval)
 
