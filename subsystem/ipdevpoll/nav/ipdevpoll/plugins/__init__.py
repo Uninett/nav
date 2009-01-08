@@ -3,7 +3,6 @@
 This package contains plugins submodules as distributed with NAV.
 
 """
-__author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 

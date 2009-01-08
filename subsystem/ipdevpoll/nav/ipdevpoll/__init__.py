@@ -11,7 +11,6 @@ Modules:
   snmpoid -- snmpoid based poll run scheduling
 
 """
-__author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 

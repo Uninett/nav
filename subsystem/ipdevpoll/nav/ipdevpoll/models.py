@@ -10,7 +10,6 @@ cached as instances in dictionaries in each model class.
 
 Periodic reloads are scheduled through the reactor.
 """
-__author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 

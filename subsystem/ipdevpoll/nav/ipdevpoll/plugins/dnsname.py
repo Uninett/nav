@@ -4,7 +4,6 @@ ipdevpoll plugin to perform reverse DNS lookups on netbox IP addresses.
 Will generate events if there are mismatches between device sysname
 and dnsname.
 """
-__author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 

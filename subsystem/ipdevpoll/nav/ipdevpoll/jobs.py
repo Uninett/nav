@@ -1,7 +1,6 @@
 """
 FIXME
 """
-__author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
