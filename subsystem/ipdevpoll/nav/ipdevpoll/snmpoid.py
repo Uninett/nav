@@ -112,9 +112,8 @@ class RunHandler(object):
             self.logger.error("Aborting poll run due to unknown error in "
                               "plugin %s\n%s",
                               self.current_plugin, failure.getTraceback())
-        # Release the proxy (i.e. release the listening UDP port so we
-        # don't hold on to resources unnecessarily)
-        self.netbox.release_proxy()
+
+        # FIXME why is this commented out?
         #self.deferred.errback(err)
         #return self.deferred
 
@@ -124,9 +123,6 @@ class RunHandler(object):
         This is called after successful poll run.
 
         """
-        # Release the proxy (i.e. release the listening UDP port so we
-        # don't hold on to resources unnecessarily)
-        self.netbox.release_proxy()
         self.logger.info("Polling run done")
         # Fire the callback chain
         self.deferred.callback(self)

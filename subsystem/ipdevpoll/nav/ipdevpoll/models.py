@@ -270,18 +270,6 @@ class Netbox(_Model):
                               self.sysname, self.proxy)
         return self.proxy
 
-    def release_proxy(self):
-        """Release the SNMP agent proxy.
-
-        Should be called when the proxy is no longer needed.
-        Ports are not closed when this is called as we use a port pool
-        """
-
-        del self.proxy
-        self.proxy = None
-
-        self.logger.debug("AgentProxy deleted for %s", self.sysname)
-
     def get_table(self, oidkey):
         """Retrieve an SNMP table from the given oidkey and return a
         deferred.
