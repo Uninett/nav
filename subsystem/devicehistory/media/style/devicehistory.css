@@ -3,6 +3,18 @@
 	padding: 0;
 }
 
+.location_wrapper {
+	padding-left: 2em;
+}
+
+.location_wrapper + h2 {
+	margin-top: 3em;
+}
+
+.tabcontent + h3 {
+	margin-top: 2em;
+}
+
 ul.email_message li {
 		list-style-type: none;
 		border: 1px solid #729FCF;

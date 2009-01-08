@@ -37,7 +37,7 @@ from django.template import RequestContext
 from nav.django.context_processors import account_processor
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import AlertHistory, AlertHistoryVariable, AlertType, EventType
+from nav.models.event import AlertHistory, AlertHistoryMessage, AlertHistoryVariable, AlertType, EventType
 from nav.web.message import new_message, Messages
 from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
@@ -86,7 +86,6 @@ def devicehistory_view(request):
     from_date = request.GET.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
     to_date = request.GET.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
     types = request.GET.getlist('type')
-    expand_message = int(request.GET.get('expand', 0))
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -100,24 +99,117 @@ def devicehistory_view(request):
     # FIXME check that date is a valid "yyyy-mm-dd" string
 
     selection = DeviceQuickSelect.handle_post(request)
-    params = {
-        'selection': selection,
-        'start_time': from_date,
-        'end_time': to_date,
-        'types': selected_types,
-    }
-    history = History(**params)
+
+    # Fetch history for selected items.
+    # Also fetches additional info about location, room, netbox and module.
+    alert_history = AlertHistory.objects.select_related(
+        'event_type', 'alert_type', 'device'
+    ).filter(
+        Q(device__netbox__room__location__id__in=selection['location']) |
+        Q(device__netbox__room__id__in=selection['room']) | 
+        Q(device__netbox__id__in=selection['netbox']) |
+        Q(device__module__id__in=selection['module']),
+        Q(start_time__lte=to_date) &
+        (
+            Q(end_time__gte=from_date) |
+            (
+                Q(end_time__isnull=True) &
+                Q(start_time__gte=from_date)
+            )
+        )
+    ).extra(
+        select={
+            'location_id': 'location.locationid',
+            'location_name': 'location.descr',
+            'room_id': 'room.roomid',
+            'room_descr': 'room.descr',
+            'netbox_id': 'netbox.netboxid',
+            'netbox_name': 'netbox.sysname',
+            'module_name': 'module.module',
+        },
+        tables=[
+            'location',
+        ],
+        where=[
+            '''(
+               room.locationid = location.locationid AND
+               netbox.roomid = room.roomid AND
+               netbox.deviceid = device.deviceid
+            )'''
+        ],
+    )
+
+    # Fetch related messages
+    msgs = AlertHistoryMessage.objects.filter(
+        alert_history__in=alert_history,
+        language='en',
+        type='sms',
+    )
+
+    history = {}
+    for a in alert_history:
+        loc_id = a.location_name
+        room_id = a.room_id
+        room_descr = a.room_descr
+        device_serial = a.device.serial
+        box_id = a.netbox_id
+        module_name = a.module_name
+
+        if loc_id not in history:
+            history[loc_id] = {
+                'description': a.location_name,
+                'rooms': {},
+            }
+        if room_id not in history[loc_id]['rooms']:
+            if not isinstance(room_id, unicode):
+                room_id = unicode(room_id)
+            if not isinstance(room_descr, unicode):
+                room_descr = unicode(room_descr)
+            history[loc_id]['rooms'][room_id] = {
+                'description': room_id + u' (' + room_descr + u')',
+                'netboxes': {},
+                'devices': {},
+            }
+        if device_serial not in history[loc_id]['rooms'][room_id]['devices']:
+            history[loc_id]['rooms'][room_id]['devices'][device_serial] = {
+                'description': device_serial,
+                'alerts': []
+            }
+        if box_id not in history[loc_id]['rooms'][room_id]['netboxes']:
+            history[loc_id]['rooms'][room_id]['netboxes'][box_id] = {
+                'description': a.netbox_name,
+                'modules': {},
+                'alerts': []
+            }
+        if module_name not in history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules']:
+            history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules'][module_name] = {
+                'description': module_name,
+                'alerts': []
+            }
+
+        alert_messages = []
+        for m in msgs:
+            if m.alert_history_id == a.id:
+                alert_messages.append(m)
+
+        a.extra_messages = alert_messages
+
+        if a.device.serial:
+            history[loc_id]['rooms'][room_id]['devices'][device_serial]['alerts'].append(a)
+        if a.netbox_id:
+            history[loc_id]['rooms'][room_id]['netboxes'][box_id]['alerts'].append(a)
+        if a.module_name:
+            history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules'][module_name]['alerts'].append(a)
 
     # We want to re-use this request in some of the links.
     # This little double-loop builds a string that is easy to add to links.
     filter_string = ''
     for key in request.GET:
-        if key != 'expand':
-            for value in request.GET.getlist(key):
-                if not filter_string:
-                    filter_string = '?%s=%s' % (key,value)
-                else:
-                    filter_string += '&%s=%s' % (key,value)
+        for value in request.GET.getlist(key):
+            if not filter_string:
+                filter_string = '?%s=%s' % (key,value)
+            else:
+                filter_string += '&%s=%s' % (key,value)
 
     alert_types = AlertType.objects.select_related(
         'event_type'
@@ -130,19 +222,19 @@ def devicehistory_view(request):
 
     info_dict = {
         'active': {'devicehistory': True},
-        'history': {
-            'location': history.get_location_history(),
-            'room': history.get_room_history(),
-            'netbox': history.get_netbox_history(),
-            'module': history.get_module_history(),
-        },
+        'history': history,
+#        'history': {
+#            'location': history.get_location_history(),
+#            'room': history.get_room_history(),
+#            'netbox': history.get_netbox_history(),
+#            'module': history.get_module_history(),
+#        },
         'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
         'filter_string': filter_string,
-        'expand_message': expand_message,
     }
     return render_to_response(
         DeviceHistoryTemplate,

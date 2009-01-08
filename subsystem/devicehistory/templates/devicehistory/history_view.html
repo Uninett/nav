@@ -4,55 +4,71 @@
 {% block tabcontent %}
     {% include "devicehistory/history_view_filter.html" %}
 
-    {% for type, section in history.items %}
-        {% for key, elements in section.items %}
-        {% if forloop.first %}
-            <h3>{{ type|capfirst }}</h3>
-            <p>Found {{ section|length }} device{{ section|length|pluralize }} with history in the specified period.</p>
-        {% endif %}
+    {% for location_id, location in history.items %}
+        <h2>{{ location.description }}</h2>
 
-        <table class="listtable">
-            <caption>
-                {{ elements.description }}<br />
-                <span class="subtitle">{{ elements.alerts|length }} entries</span>
-            </caption>
+        <div class="location_wrapper">
+        {% for room_id, room in location.rooms.items %}
+            <h3>{{ room.description }}</h3>
 
-            <thead>
-                <tr>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Event type</th>
-                    <th>Alert type</th>
-                    <th>Message</th>
-                </tr>
-            </thead>
+            <div class="tabs">
+                <ul>
+                    <li><a href="">View as netboxes</a></li>
+                    <li><a href="">View as modules</a></li>
+                    <li><a href="">View as devices</a></li>
+                </ul>
+            </div>
+            <div class="tabcontent">
 
-            <tbody>
-            {% for a in elements.alerts %}
-                <tr class="{% cycle "oddrow" "evenrow" %}">
-                    <td>{{ a.start_time }}</td>
-                    <td>{{ a.end_time }}</td>
-                    <td>{{ a.event_type.id }}</td>
-                    <td>{{ a.alert_type.name }}</td>
-                    <td>
-                        <ul>
-                        {% for m in a.extra_messages %}
-                            <li>
-                                {{ m.message }}
-                            </li>
-                        {% endfor %}
-                        </ul>
-                    </td>
-                </tr>
+            {% for box_id, box in room.netboxes.items %}
+            <table class="listtable reporttable">
+                <caption>
+                    {{ box.description }}<br />
+                    <span class="subtitle">{{ box.alerts|length }} entries</span>
+                </caption>
+
+                <thead>
+                    <tr>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Device</th>
+                        <th>Event type</th>
+                        <th>Alert type</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for a in box.alerts %}
+                    <tr class="{% cycle "oddrow" "evenrow" %}">
+                        <td>{{ a.start_time }}</td>
+                        <td>{{ a.end_time }}</td>
+                        <td>{{ a.device.serial }}</td>
+                        <td>{{ a.event_type.id }}</td>
+                        <td>{{ a.alert_type.name }}</td>
+                        <td>
+                            <ul>
+                            {% for m in a.extra_messages %}
+                                <li>
+                                    {{ m.message }}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th colspan="0">{{ elements.alerts|length }} entries</th>
+                    </tr>
+                </tfoot>
+            </table>
             {% endfor %}
-            </tbody>
-
-            <tfoot>
-                <tr>
-                    <th colspan="0">{{ elements.alerts|length }} entries</th>
-                </tr>
-            </tfoot>
-        </table>
+            </div>
         {% endfor %}
+        </div>
     {% endfor %}
+
 {% endblock %}

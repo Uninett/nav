@@ -70,7 +70,7 @@ class History:
 
     def get_location_history(self):
         alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type'
+            'event_type', 'alert_type', 'device'
         ).filter(
             Q(device__netbox__room__location__id__in=self.locations),
             *self.time_limit
@@ -110,7 +110,7 @@ class History:
 
     def get_room_history(self):
         alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type'
+            'event_type', 'alert_type', 'device'
         ).filter(
             Q(device__netbox__room__id__in=self.rooms),
             *self.time_limit
@@ -156,7 +156,7 @@ class History:
 
     def get_netbox_history(self):
         alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type'
+            'event_type', 'alert_type', 'device'
         ).filter(
             Q(device__netbox__id__in=self.netboxes),
             *self.time_limit
@@ -196,7 +196,7 @@ class History:
 
     def get_module_history(self):
         alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type'
+            'event_type', 'alert_type', 'device'
         ).filter(
             Q(device__module__id__in=self.modules),
             *self.time_limit
@@ -240,18 +240,18 @@ class History:
         ).filter(id__in=self.netboxes)
         modules = Module.objects.select_related(
             'device'
-        ).filter(id__in=self.netboxes)
+        ).filter(id__in=self.modules)
 
         devices = []
         for box in netboxes,modules:
             for d in box:
-                if d not in devices:
-                    devices.append(d)
+                if d.device.serial and d.device not in devices:
+                    devices.append(d.device)
 
         alert_history = AlertHistory.objects.select_related(
             'event_type', 'alert_type', 'device'
         ).filter(
-            Q(device__serial__in=devices),
+            Q(device__in=devices),
             *self.time_limit
         ).order_by('-start_time')
 
