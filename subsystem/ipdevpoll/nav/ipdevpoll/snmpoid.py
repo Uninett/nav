@@ -22,36 +22,65 @@ class RunHandler(object):
 
     """
 
-    def __init__(self, netbox):
+    def __init__(self, netbox, plugins=None):
         self.netbox = netbox
-        self.logger = ipdevpoll.get_instance_logger(self, 
+        self.logger = ipdevpoll.get_instance_logger(self,
                                                   "[%s]" % netbox.sysname)
 
+        self.plugins = set(plugins) or set()
+        self.plugin_iterator = iter([])
+
     def find_plugins(self):
-        """Populate and sort the interal plugin list."""
-        self.plugins = []
+        """Populate and sort the interal plugin list.""" # FIXME update docstring
+
+        plugins = []
+
+        if self.plugins:
+            # Check for invalid plugins
+            valid_plugins = set()
+
+            for plugin_class in plugin_registry:
+                plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
+                valid_plugins.add(plugin_name)
+
+            for plugin_name in self.plugins:
+                if plugin_name not in valid_plugins:
+                    logger.warning('Invalid plugin %s', plugin_name)
+
+        # plugin registry should allready be topologicaly sorted
         for plugin_class in plugin_registry:
+            plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
+
+            # If the handler has a subset of plugins set skip those that don't
+            # apply
+            if self.plugins and plugin_name not in self.plugins:
+                logger.debug('Skipping plugin %s', plugin_name)
+                continue
+
+            # Check if plugin can even handle the netbox
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox)
-                self.plugins.append(plugin)
+                plugins.append(plugin)
 
-        if not self.plugins:
+            # FIXME what do we do when a dependency breaks down due to
+            # can_handle failing for a dependency of some other plugin?
+               
+        if not plugins:
             self.logger.warning("No plugins for this run")
             return
 
-        # Sort plugin instances according to their intrinsic
-        # comparison methods
-        self.plugins.sort()
-        self.logger.debug("Plugins to call: %s", 
-                          ",".join([p.name() for p in self.plugins]))
+        self.logger.debug("Plugins to call: %s",
+                          ",".join([p.name() for p in plugins]))
+
+        self.plugin_iterator = iter(plugins)
 
     def run(self):
         """Start a polling run against a netbox and retun a deferred."""
+
         self.logger.info("Starting polling run")
         self.find_plugins()
-        self.plugin_iterator = iter(self.plugins)
         self.deferred = defer.Deferred()
-        
+
         # Hop on to the first plugin
         self._nextplugin()
         return self.deferred
@@ -115,7 +144,7 @@ class Schedule(object):
 
     ip_map = {}
     """A map of ip addresses there are currently active RunHandlers for.
-    
+
     Scheduling will not allow simultaineous runs against the same IP
     address, so as to not overload the SNMP agent at that address.
 
@@ -124,18 +153,21 @@ class Schedule(object):
     INTERVAL = 10.0 # seconds
 
 
-    def __init__(self, netbox):
+    def __init__(self, netbox, interval=None, plugins=None):
         self.netbox = netbox
         self.logger = ipdevpoll.get_class_logger(self.__class__)
+
+        self.plugins = plugins or []
+        self.interval = interval or self.INTERVAL
 
     def start(self):
         """Start polling schedule."""
         return self._do_poll()
 
     def _reschedule(self, dummy=None):
-        self.delayed = reactor.callLater(self.INTERVAL, self._do_poll)
+        self.delayed = reactor.callLater(self.interval, self._do_poll)
         self.logger.debug("Rescheduling polling for %s in %s seconds",
-                          self.netbox.sysname, self.INTERVAL)
+                          self.netbox.sysname, self.interval)
         return dummy
 
     def _map_cleanup(self, handler):
@@ -161,7 +193,7 @@ class Schedule(object):
             other_handler.deferred.addCallback(self._do_poll)
         else:
             # We're ok to start a polling run.
-            handler = RunHandler(self.netbox)
+            handler = RunHandler(self.netbox, plugins=self.plugins)
             Schedule.ip_map[ip] = handler
             deferred = handler.run()
             # Make sure to remove from map and reschedule next run as

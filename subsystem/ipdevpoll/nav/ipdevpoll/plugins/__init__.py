@@ -37,13 +37,20 @@ def import_plugins():
                 '%d classes in plugin registry',
                 len(names), len(plugin_registry))
 
+    # Pre sort all plugins
     plugin_registry = topological_sort(plugin_registry)
 
 def register(plugin_class):
     """Register a class in the plugin registry."""
-    plugin_registry.append(plugin_class)
-    logger.debug("Registered class in plugin registry: %s.%s",
-                 plugin_class.__module__, plugin_class.__name__)
+
+    plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
+
+    if plugin_class in plugin_registry:
+        logger.debug("Plugin already registered: %s", plugin_name)
+    else:
+        plugin_registry.append(plugin_class)
+        logger.debug("Registered class in plugin registry: %s", plugin_name)
+
     return plugin_class
 
 def topological_sort(plugins):
@@ -75,6 +82,9 @@ def topological_sort(plugins):
             try:
                 vertices[plugin] = [name_map[n] for n in plugin.dependencies]
             except KeyError:
+                # We could try and auto import missing plugins, however this
+                # complexity is probably more trouble than what it is worth.
+
                 raise GeneralException('Dependency "%s" for %s is not met' %
                     (n, plugin))
 
