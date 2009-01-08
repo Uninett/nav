@@ -233,3 +233,49 @@ class History:
                 }
             history[a.module]['alerts'].append(a)
         return history
+
+    def get_device_history(self):
+        netboxes = Netbox.objects.select_related(
+            'device'
+        ).filter(id__in=self.netboxes)
+        modules = Module.objects.select_related(
+            'device'
+        ).filter(id__in=self.netboxes)
+
+        devices = []
+        for box in netboxes,modules:
+            for d in box:
+                if d not in devices:
+                    devices.append(d)
+
+        alert_history = AlertHistory.objects.select_related(
+            'event_type', 'alert_type', 'device'
+        ).filter(
+            Q(device__serial__in=devices),
+            *self.time_limit
+        ).order_by('-start_time')
+
+        if self.types['event']:
+            alert_history = alert_history.filter(event_type__in=self.types['event'])
+        if self.types['alert']:
+            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
+
+        msgs = AlertHistoryMessage.objects.filter(
+            alert_history__in=alert_history,
+            language='en',
+            type='sms',
+        )
+
+        history = {}
+        for a in alert_history:
+            a.extra_messages = []
+            for m in msgs:
+                if m.alert_history_id == a.id:
+                    a.extra_messages.append(m)
+            if a.device.serial not in history:
+                history[a.device.serial] = {
+                    'description': a.device.serial,
+                    'alerts': [],
+                }
+            history[a.device.serial]['alerts'].append(a)
+        return history
