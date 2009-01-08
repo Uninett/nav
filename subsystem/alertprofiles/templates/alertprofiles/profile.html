@@ -40,29 +40,27 @@
             <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
             <td><a href="{% url alertprofiles-profile-detail profile.id %}">
                 {{ profile.name }}</a></td>
-            <td>
             {% ifequal profile.id active_profile.id %}
+            <td>
                 Active
             </td>
             <td>
-                <button type="submit" name="deactivate" value="{{ profile.id }}">
-                    Click to deactivate
-                </button>
+                <input type="submit" name="deactivate={{ profile.id }}" value="Click to deactivate" />
+            </td>
             {% else %}
+            <td>
                 Inactive
             </td>
             <td>
-                <button type="submit" name="activate" value="{{ profile.id }}">
-                    Click to activate
-                </button>
-            {% endifequal %}
+                <input type="submit" name="activate={{ profile.id }}" value="Click to activate" />
             </td>
+            {% endifequal %}
         </tr>
     {% endfor %}
     </tbody>
 </table>
 <p>
-    <button type="submit" name="remove">Remove selected</button>
+    <input type="submit" name="remove" value="Remove selected" />
 </p>
 </form>
 

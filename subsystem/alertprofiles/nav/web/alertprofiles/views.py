@@ -24,7 +24,7 @@
 # TODO Check that functions that should require permission do require
 # permission
 
-# TODO Filter/filtergroups have owners, check that the account that performs
+# TODO Filter/filter_groups have owners, check that the account that performs
 # the operation is the owner
 
 __copyright__ = "Copyright 2007-2008 UNINETT AS"
@@ -175,7 +175,11 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         try:
             profile = AlertProfile.objects.get(pk=profile_id, account=account)
         except AlertProfile.DoesNotExist:
-            new_message(request, _('The requested profile does not exist.'), Messages.ERROR)
+            new_message(
+                request,
+                _('The requested profile does not exist.'),
+                Messages.ERROR
+            )
             return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
         detail_id = profile.id
@@ -312,6 +316,14 @@ def profile_remove(request):
     if not request.method == 'POST':
         new_message(request, _('There was no post-data'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
+
+    post = request.POST.copy()
+    for data in post:
+        if data.find("=") != -1:
+            attr, value = data.split("=")
+            del post[data]
+            post[attr] = value
+    request.POST = post
 
     if request.POST.get('activate'):
         return profile_activate(request)
@@ -642,7 +654,9 @@ def profile_time_period_setup(request, time_period_id=None):
     account = get_account(request)
 
     time_period = TimePeriod.objects.get(pk=time_period_id)
-    subscriptions = AlertSubscription.objects.filter(time_period=time_period).order_by('alert_address', 'filter_group')
+    subscriptions = AlertSubscription.objects.select_related(
+        'alert_address', 'filter_group'
+    ).filter(time_period=time_period).order_by('alert_address', 'filter_group')
     profile = time_period.profile
 
     if account != profile.account:
@@ -882,7 +896,9 @@ def address_list(request):
     if order_by not in valid_ordering:
         order_by = 'address'
 
-    address = AlertAddress.objects.filter(account=account.pk).order_by(order_by)
+    address = AlertAddress.objects.select_related(
+        'type'
+    ).filter(account=account.pk).order_by(order_by)
 
     info_dict = {
             'active': {'address': True},
@@ -1179,9 +1195,11 @@ def filter_list(request):
         order_by = 'name'
 
     # Get all public filters, and private filters belonging to this user only
-    filters = Filter.objects.filter(
-            Q(owner=account) | Q(owner__isnull=True)
-        ).order_by(order_by)
+    filters = Filter.objects.select_related(
+        'owner'
+    ).filter(
+        Q(owner=account) | Q(owner__isnull=True)
+    ).order_by(order_by)
 
     active = {'filters': True}
     info_dict = {
@@ -1221,7 +1239,10 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         try:
             filter = Filter.objects.get(pk=filter_id)
         except Filter.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter does not exist.'))
+            return alertprofiles_response_not_found(
+                request,
+                _('Requested filter does not exist.')
+            )
         else:
             owner = filter.owner
             if not owner:
@@ -1243,7 +1264,9 @@ def filter_show_form(request, filter_id=None, filter_form=None):
 
         matchfields = MatchField.objects.all().order_by('name')
         # Get all matchfields (many-to-many connection by table Expression)
-        expressions = Expression.objects.filter(filter=filter_id)
+        expressions = Expression.objects.select_related(
+            'match_field'
+        ).filter(filter=filter_id).order_by('match_field__name')
 
         for e in expressions:
             if e.operator == Operator.IN:
@@ -1391,11 +1414,11 @@ def filter_remove(request):
                 warnings.append({'message': u'''This filter is public. Deleting
                     it will make it unavailable for all users of this system.'''})
 
-            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter=f)
+            filter_groups = FilterGroup.objects.filter(filter_groupcontent__filter=f)
             for fg in filter_groups:
                 warnings.append({
                     'message': u'Used in filter group %(name)s.' % {'name': fg.name},
-                    'link': reverse('alertprofiles-filtergroups-detail', args=(fg.id,)),
+                    'link': reverse('alertprofiles-filter_groups-detail', args=(fg.id,)),
                 })
 
             elements.append({
@@ -1599,7 +1622,7 @@ def filter_removeexpression(request):
                 ]
             )
 
-def filtergroup_list(request):
+def filter_group_list(request):
     account = get_account(request)
     admin = is_admin(account)
 
@@ -1611,28 +1634,30 @@ def filtergroup_list(request):
     if order_by not in valid_ordering:
         order_by = 'name'
 
-    # Get all public filtergroups, and private filtergroups belonging to this
+    # Get all public filter_groups, and private filter_groups belonging to this
     # user only
-    filtergroups = FilterGroup.objects.filter(
+    filter_groups = FilterGroup.objects.select_related(
+        'owner'
+    ).filter(
             Q(owner__exact=account.pk) | Q(owner__isnull=True)
-        ).order_by(order_by)
+    ).order_by(order_by)
 
-    active = {'filtergroups': True}
+    active = {'filter_groups': True}
     info_dict = {
             'active': active,
             'subsection': {'list': True},
             'admin': admin,
-            'form_action': reverse('alertprofiles-filtergroups-remove'),
-            'page_link': reverse('alertprofiles-filtergroups'),
+            'form_action': reverse('alertprofiles-filter_groups-remove'),
+            'page_link': reverse('alertprofiles-filter_groups'),
             'order_by': order_by,
         }
     return object_list(
             AlertProfilesTemplate,
             request,
-            queryset=filtergroups,
+            queryset=filter_groups,
             paginate_by=PAGINATE_BY,
             page=page,
-            template_name='alertprofiles/filtergroup_list.html',
+            template_name='alertprofiles/filter_group_list.html',
             extra_context=info_dict,
             context_processors=[account_processor],
             path=BASE_PATH+[
@@ -1640,33 +1665,33 @@ def filtergroup_list(request):
             ]
         )
 
-def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None):
+def filter_group_show_form(request, filter_group_id=None, filter_group_form=None):
     '''Convenience method for showing the filter group form'''
-    active = {'filtergroups': True}
+    active = {'filter_groups': True}
     page_name = 'New filter group'
     account = get_account(request)
     admin = is_admin(account)
     is_owner = True
 
-    filtergroup = None
-    filtergroupcontent = None
+    filter_group = None
+    filter_groupcontent = None
     filters = None
 
     # If id is supplied we can assume that this is a already saved filter
     # group, and we can fetch it and get it's content and available filters
     if filter_group_id:
         try:
-            filtergroup = FilterGroup.objects.get(pk=filter_group_id)
+            filter_group = FilterGroup.objects.get(pk=filter_group_id)
         except FilterGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
         else:
-            owner = filtergroup.owner
+            owner = filter_group.owner
             if not owner:
                 new_message(
                     request,
                     _('''%(fg)s is a public filter group and may be used by other
                     users than you.''') % {
-                        'fg': filtergroup.name,
+                        'fg': filter_group.name,
                     },
                     Messages.WARNING
                 )
@@ -1678,20 +1703,21 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
                     'You do not have access to the requested filter group.'
                 )
 
-        filtergroupcontent = FilterGroupContent.objects.filter(
-                filter_group=filtergroup.id
-            ).order_by('priority')
-        # NOTE We would like to order by owner first, but then filters with no
-        # owner won't show up.
-        filters = Filter.objects.filter(
-                ~Q(pk__in=[f.filter.id for f in filtergroupcontent]),
-                Q(owner__exact=account.pk) | Q(owner__isnull=True)
-            ).order_by('name')
+        filter_groupcontent = FilterGroupContent.objects.select_related(
+            'filter'
+        ).filter(
+            filter_group=filter_group.id
+        ).order_by('priority')
 
-        page_name = filtergroup.name
+        filters = Filter.objects.filter(
+            ~Q(pk__in=[f.filter.id for f in filter_groupcontent]),
+            Q(owner__exact=account.pk) | Q(owner__isnull=True)
+        ).order_by('owner', 'name')
+
+        page_name = filter_group.name
 
         profiles = AlertProfile.objects.filter(
-            timeperiod__alertsubscription__filter_group=filtergroup
+            timeperiod__alertsubscription__filter_group=filter_group
         ).distinct()
         if len(profiles) > 0:
             names = ', '.join([p.name for p in profiles])
@@ -1707,7 +1733,7 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
     # If no form is supplied we must make it
     if not filter_group_form:
         if filter_group_id:
-            filter_group_form = FilterGroupForm(instance=filtergroup, admin=admin, is_owner=is_owner)
+            filter_group_form = FilterGroupForm(instance=filter_group, admin=admin, is_owner=is_owner)
         else:
             filter_group_form = FilterGroupForm(initial={'owner': account}, admin=admin, is_owner=is_owner)
 
@@ -1722,31 +1748,31 @@ def filtergroup_show_form(request, filter_group_id=None, filter_group_form=None)
             'admin': admin,
             'owner': is_owner,
             'detail_id': filter_group_id,
-            'filter_group_content': filtergroupcontent,
+            'filter_group_content': filter_groupcontent,
             'filters': filters,
             'form': filter_group_form,
         }
     return render_to_response(
             AlertProfilesTemplate,
-            'alertprofiles/filtergroup_form.html',
+            'alertprofiles/filter_group_form.html',
             info_dict,
             RequestContext(
                 request,
                 processors=[account_processor]
             ),
             path=BASE_PATH+[
-                ('Filter groups', reverse('alertprofiles-filtergroups')),
+                ('Filter groups', reverse('alertprofiles-filter_groups')),
                 (page_name, None),
             ]
         )
 
-def filtergroup_detail(request, filter_group_id=None):
-    return filtergroup_show_form(request, filter_group_id)
+def filter_group_detail(request, filter_group_id=None):
+    return filter_group_show_form(request, filter_group_id)
 
-def filtergroup_save(request):
+def filter_group_save(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
+        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     (account, admin, owner) = resolve_account_admin_and_owner(request)
     filter_group = None
@@ -1765,7 +1791,7 @@ def filtergroup_save(request):
 
     if not form.is_valid():
         detail_id = request.POST.get('id') or None
-        return filtergroup_show_form(request, detail_id, form)
+        return filter_group_show_form(request, detail_id, form)
 
     if request.POST.get('id'):
         filter_group.name = request.POST.get('name')
@@ -1784,9 +1810,9 @@ def filtergroup_save(request):
         _('Saved filter group %(name)s') % {'name': filter_group.name},
         Messages.SUCCESS
     )
-    return HttpResponseRedirect(reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,)))
 
-def filtergroup_remove(request):
+def filter_group_remove(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
@@ -1805,7 +1831,7 @@ def filtergroup_remove(request):
             _('Removed filter groups: %(names)s') % {'names': names},
             Messages.SUCCESS
         )
-        return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
+        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
     else:
         filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filter_group'))
 
@@ -1817,7 +1843,7 @@ def filtergroup_remove(request):
                 request,
                 _('No filter groups were selected.'),
                 Messages.NOTICE)
-            return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
+            return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
         elements = []
         for fg in filter_groups:
@@ -1849,8 +1875,8 @@ def filtergroup_remove(request):
 
 
         info_dict = {
-                'form_action': reverse('alertprofiles-filtergroups-remove'),
-                'active': {'filtergroups': True},
+                'form_action': reverse('alertprofiles-filter_groups-remove'),
+                'active': {'filter_groups': True},
                 'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
@@ -1869,10 +1895,10 @@ def filtergroup_remove(request):
                 ]
             )
 
-def filtergroup_addfilter(request):
+def filter_group_addfilter(request):
     if not request.method == 'POST' or not request.POST.get('id') or not request.POST.get('filter'):
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
+        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     account = get_account(request)
     filter_group = None
@@ -1894,7 +1920,7 @@ def filtergroup_addfilter(request):
 
     if not operator or len(operator) != 2:
         return HttpResponseRedirect(
-                reverse('alertprofiles-filtergroups-detail', attrs=(filter.id,))
+                reverse('alertprofiles-filter_groups-detail', attrs=(filter.id,))
             )
 
     # Operator is sent by POST data as a "bitfield" (it's really a string
@@ -1908,7 +1934,7 @@ def filtergroup_addfilter(request):
         positive = True
 
     # 'priority' is the order filters are considered when there's an alert.
-    # We want to add new filters to filtergroupcontent with priority
+    # We want to add new filters to filter_groupcontent with priority
     # incremented by one. Also double check that previously added filters
     # are ordered correctly, ie priority increments by one for each filter.
     last_priority = order_filter_group_content(filter_group)
@@ -1929,17 +1955,31 @@ def filtergroup_addfilter(request):
         Messages.SUCCESS
     )
     return HttpResponseRedirect(
-            reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,))
+            reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
         )
 
-def filtergroup_removefilter(request):
+def filter_group_remove_or_move_filter(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
+        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
-    # Check if we are deleting or moving filters
+    post = request.POST.copy()
+    for name in post:
+        if name.find("=") != -1:
+            attribute, value = name.split("=")
+            del post[name]
+            post[attribute] = value
+    request.POST = post
+
     if request.POST.get('moveup') or request.POST.get('movedown'):
-        return filtergroup_movefilter(request)
+        return filter_group_movefilter(request)
+    else:
+        return filter_group_removefilter(request)
+
+def filter_group_removefilter(request):
+    if not request.method == 'POST':
+        new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
+        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     # We are deleting filters. Show confirmation page or remove?
     if request.POST.get('confirm'):
@@ -1965,7 +2005,7 @@ def filtergroup_removefilter(request):
             Messages.SUCCESS
         )
         return HttpResponseRedirect(
-                reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,))
+                reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
             )
     else:
         filter_group = None
@@ -1998,7 +2038,7 @@ def filtergroup_removefilter(request):
                 _('No filters were selected.'),
                 Messages.NOTICE)
             return HttpResponseRedirect(
-                reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,)))
+                reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,)))
 
         elements = []
         for f in filter_group_content:
@@ -2015,8 +2055,8 @@ def filtergroup_removefilter(request):
             })
 
         info_dict = {
-                'form_action': reverse('alertprofiles-filtergroups-removefilter'),
-                'active': {'filtergroups': True},
+                'form_action': reverse('alertprofiles-filter_groups-removefilter'),
+                'active': {'filter_groups': True},
                 'subsection': {'detail': filter_group.id},
                 'elements': elements,
                 'perform_on': filter_group.id,
@@ -2030,19 +2070,19 @@ def filtergroup_removefilter(request):
                     processors=[account_processor]
                 ),
                 path=BASE_PATH+[
-                    ('Filter groups', reverse('alertprofiles-filtergroups')),
+                    ('Filter groups', reverse('alertprofiles-filter_groups')),
                     (
                         filter_group.name,
-                        reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,))
+                        reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
                     ),
                     ('Remove filters', None),
                 ]
             )
 
-def filtergroup_movefilter(request):
+def filter_group_movefilter(request):
     if not request.method == 'POST':
         new_message(request, _('Required post-data were not supplied.'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filtergroups'))
+        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     account = get_account(request)
 
@@ -2073,14 +2113,17 @@ def filtergroup_movefilter(request):
     else:
         # No sensible input, just return to where we came from
         return HttpResponseRedirect(
-                reverse('alertprofiels-filtergroups-detail', args=(filter_group_id,))
+                reverse('alertprofiles-filter_groups-detail', args=(filter_group_id,))
             )
 
     filter = None
     try:
         filter = FilterGroupContent.objects.get(pk=filter_id)
     except FilterGroupContent.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested filter group content does not exist.'))
+        return alertprofiles_response_not_found(
+            request,
+            _('Requested filter group content does not exist.')
+        )
 
     # Make sure content is ordered correct
     last_priority = order_filter_group_content(filter_group)
@@ -2093,7 +2136,7 @@ def filtergroup_movefilter(request):
                 )[0:1].get()
     except FilterGroupContent.DoesNotExist:
         return HttpResponseRedirect(
-                reverse('alertprofiles-filtergroups-detail', args=(filter_group.id,))
+                reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
             )
 
     new_priority = other_filter.priority
@@ -2113,7 +2156,7 @@ def filtergroup_movefilter(request):
     )
 
     return HttpResponseRedirect(
-            reverse('alertprofiles-filtergroups-detail', args=(filter_group_id,))
+            reverse('alertprofiles-filter_groups-detail', args=(filter_group_id,))
         )
 
 def matchfield_list(request):
@@ -2356,22 +2399,22 @@ def permission_list(request, group_id=None):
     groups = AccountGroup.objects.all().order_by('name')
 
     selected_group = None
-    filtergroups = None
+    filter_groups = None
     permissions = None
     if group_id:
-        filtergroups = FilterGroup.objects.filter(owner__isnull=True).order_by('name')
+        filter_groups = FilterGroup.objects.filter(owner__isnull=True).order_by('name')
         try:
             selected_group = groups.get(pk=group_id)
         except AccountGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
 
-        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
+        permissions = AccountGroup.objects.get(pk=group_id).filter_group_set.all()
 
     active = {'permissions': True}
     info_dict = {
             'groups': groups,
             'selected_group': selected_group,
-            'filtergroups': filtergroups,
+            'filter_groups': filter_groups,
             'permissions': permissions,
             'active': active,
         }
@@ -2404,9 +2447,9 @@ def permissions_save(request):
     except AccountGroup.DoesNotExist:
         return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
 
-    filtergroups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filtergroup'))
+    filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filter_group'))
 
-    group.filtergroup_set = filtergroups
+    group.filter_group_set = filter_groups
 
     new_message(
         request,

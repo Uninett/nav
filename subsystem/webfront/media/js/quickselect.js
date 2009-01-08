@@ -29,6 +29,9 @@ $(function() {
         var spinner    = $('<img src="/images/main/process-working.gif" alt="" style="vertical-align: middle; visibility: hidden;"/>');
         var timeout    = null;
 
+        var selects = quickselect.find('select');
+        var selects_clone = selects.clone()
+
         function do_search(value) {
             /*
              * Search code that does OR search in optgroup and options.
@@ -40,23 +43,33 @@ $(function() {
 
             quickselect.find('label').removeClass('highlight');
 
-            if (keywords[0] == '') {
-                // Show all options when our search is empty
-                quickselect.find("option:hidden,optgroup:hidden").show();
+            // Search on clone of select and replace selects children with
+            // cloned children
+            for (var j = 0; j < selects.length; j++) {
+                var select = selects.eq(j);
+                var clone  = selects_clone.eq(j).clone();
 
-            } else {
-                // Hide all options an show the ones that match our keywords.
-                quickselect.find("option,optgroup").hide();
+                if (keywords[0] == '') {
+                    // Show all options when our search is empty
+                    select.children().remove();
+                    select.append(clone.children());
 
-                for (var i = 0; i < keywords.length; i++) {
-                    if(keywords[i]) {
-                        // Show options and its parents if it contains a keyword
-                        quickselect.find("option:contains('" + keywords[i] + "')").show().parents('optgroup').show();
-                        quickselect.find("optgroup[label*='" + keywords[i] + "']").show().find('option').show();
+                } else {
+                    for (var i = 0; i < keywords.length; i++) {
+                        if(keywords[i]) {
+                            // Show options and its parents if it contains a keyword
+                            clone.find("option:contains('" + keywords[i] + "')").addClass('keep').parents('optgroup').addClass('keep');
+                            clone.find("optgroup[label*='" + keywords[i] + "']").addClass('keep').find('option').addClass('keep');
+                        }
                     }
+
+                    clone.find(":not(.keep)").remove();
+                    select.children().remove();
+                    select.append(clone.children());
+
+
+                    select.find('option:visible').parents('select').siblings('label').addClass('highlight');
                 }
-                quickselect.find(':hidden option').removeAttr('selected');
-                quickselect.find('option:visible').parents('select').siblings('label').addClass('highlight');
             }
             spinner.css('visibility', 'hidden');
         };
@@ -78,8 +91,6 @@ $(function() {
             }
         }
         search.find('.search').keyup(handler).click(handler);
-
-        var selects = quickselect.find('select');
 
         // Collapse and selects that we dont want to show
         quickselect.find('.collapse').children().not('label').hide()

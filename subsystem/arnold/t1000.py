@@ -31,6 +31,7 @@ import os
 import sys
 import logging
 import ConfigParser
+import getpass
 
 # import nav-libraries
 import nav.arnold
@@ -173,7 +174,7 @@ def main():
             autoenablestep = arnoldc.fetchone()[0]
             logger.debug("Setting autoenablestep to %s" %autoenablestep)
 
-            username = os.getlogin()
+            username = getpass.getuser()
             comment = "Detained automatically when switching ports"
 
 

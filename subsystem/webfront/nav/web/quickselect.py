@@ -92,6 +92,11 @@ class QuickSelect:
             submit = 'submit_%s' % field
             key = field
 
+            if hasattr(request, 'form'):
+                form = request.form
+            else:
+                form = request.REQUEST
+
             if field == 'location':
                 # Hack to work around noscript XSS protection that triggers on
                 # location
