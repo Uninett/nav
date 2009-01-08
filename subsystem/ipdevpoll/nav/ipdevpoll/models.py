@@ -21,8 +21,11 @@ from pysnmp.asn1.oid import OID
 from twisted.internet import reactor, defer, task
 from twistedsnmp import snmpprotocol, agentproxy
 
+from nav.util import round_robin
 from nav import ipdevpoll
 from nav.ipdevpoll.db import get_db_pool
+
+ports = round_robin([snmpprotocol.port() for i in range(10)])
 
 def load_models():
     """Load, create and cache all model instances.
@@ -252,9 +255,11 @@ class Netbox(_Model):
 
     def get_proxy(self):
         """Return SNMP agent proxy to communicate with this netbox."""
+
         if not self.proxy:
             # choose random port in range 25000 to 30000
-            port = snmpprotocol.port()
+            port = ports.next()
+
             self.proxy = agentproxy.AgentProxy(
                 self.ip, 161,
                 community = self.community,
@@ -268,11 +273,14 @@ class Netbox(_Model):
     def release_proxy(self):
         """Release the SNMP agent proxy.
 
-        Should be called when the proxy is no longer needed, and the
-        corresponding UDP port can be freed.
+        Should be called when the proxy is no longer needed.
+        Ports are not closed when this is called as we use a port pool
         """
+
         del self.proxy
         self.proxy = None
+
+        self.logger.debug("AgentProxy deleted for %s", self.sysname)
 
     def get_table(self, oidkey):
         """Retrieve an SNMP table from the given oidkey and return a

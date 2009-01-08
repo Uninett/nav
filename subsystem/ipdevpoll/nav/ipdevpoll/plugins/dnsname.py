@@ -14,8 +14,11 @@ from twisted.internet import defer
 #from twisted.python.failure import Failure
 from twisted.names import client, dns
 
+from nav.util import round_robin
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.plugins import register
+
+resolvers = round_robin([client.Resolver('/etc/resolve.conf') for i in range(3)])
 
 class DnsName(Plugin):
 
@@ -36,7 +39,7 @@ class DnsName(Plugin):
         ip = IP(self.netbox.ip)
         self.logger.debug("Doing DNS PTR lookup for %s", ip.reverseName())
         # Use the OS configured DNS resolver method
-        resolver = client.Resolver('/etc/resolv.conf')
+        resolver = resolvers.next()
         df = resolver.lookupPointer( ip.reverseName() )
         df.addCallback(self.got_result)
         df.addErrback(self.got_failure)
