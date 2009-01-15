@@ -34,6 +34,8 @@ from optparse import OptionParser
 from nav.db import getConnection
 import ConfigParser
 import logging
+import signal
+import select
 
 # Import PySNMP modules
 # Make sure Ubuntu/Debian picks the correct pysnmp API version:
@@ -45,6 +47,7 @@ from pysnmp import role
 from nav import daemon
 import nav.buildconf
 from nav.errors import GeneralException
+import nav.logs
 
 # Paths
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
@@ -177,6 +180,14 @@ def main():
             server.close()
             sys.exit(1)
 
+        # Daemonized; reopen log files
+        nav.logs.reopen_log_files()
+        logger.debug('Daemonization complete; reopened log files.')
+
+        # Reopen log files on SIGHUP
+        logger.debug('Adding signal handler for reopening log files on SIGHUP.')
+        signal.signal(signal.SIGHUP, hup_handler)
+
         logger.info("Snmptrapd started, listening on port %s" %port)
         try:
             listen(server, community)
@@ -200,7 +211,14 @@ def listen (server, community):
     # Listen for SNMP messages from remote SNMP managers
     while 1:
         # Receive a request message
-        (question, src) = server.receive()
+        try:
+            (question, src) = server.receive()
+        except select.error, why:
+            # resume loop if a signal interrupted the receive operation
+            if why.args[0] == 4 # error 4 = system call interrupted
+                continue
+            else:
+                raise why
         if question is None:
             continue
         
@@ -396,6 +414,13 @@ class SNMPTrap:
 
         return text
 
+
+def hup_handler(signum, _):
+    """Signal handler to close and reopen log file(s) on HUP."""
+    if signum == signal.SIGHUP:
+        logger.info("SIGHUP received; reopening log files.")
+        nav.logs.reopen_log_files()
+        logger.info("Log files reopened.")
 
 
 if __name__ == '__main__':
