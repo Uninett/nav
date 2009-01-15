@@ -172,12 +172,16 @@ def main():
         try:
             logger.debug("Going into daemon mode...")
             daemon.daemonize(pidfile)
-            logger.info("Snmptrapd started, listening on port %s" %port)
-            listen(server, community)
         except daemon.DaemonError, why:
             logger.error("Could not daemonize: " %why)
             server.close()
             sys.exit(1)
+
+        logger.info("Snmptrapd started, listening on port %s" %port)
+        try:
+            listen(server, community)
+        except Exception, why:
+            logger.critical("Fatal exception ocurred", exc_info=True)
 
     else:
         # Start listening and exit cleanly if interrupted.
