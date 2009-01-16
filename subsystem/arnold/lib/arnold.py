@@ -951,7 +951,7 @@ def changeSwportStatus(action, swportid):
 
     try:
         changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
-                         row['module'], row['port'])
+                         row['module'], row['port'], row['ifindex'])
     except ChangePortStatusError:
         raise ChangePortStatusError
 
