@@ -215,22 +215,31 @@ def listen (server, community):
             (question, src) = server.receive()
         except select.error, why:
             # resume loop if a signal interrupted the receive operation
-            if why.args[0] == 4 # error 4 = system call interrupted
+            if why.args[0] == 4: # error 4 = system call interrupted
                 continue
             else:
                 raise why
         if question is None:
             continue
         
-        # Decode request of any version
-        (req, rest) = v2c.decode(question)
+        try:
+            # Decode request of any version
+            (req, rest) = v2c.decode(question)
 
-        # Decode BER encoded Object IDs.
-        oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
-                                       req['encoded_oids']))
-        
-        # Decode BER encoded values associated with Object IDs.
-        vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
+            # Decode BER encoded Object IDs.
+            oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
+                                           req['encoded_oids']))
+
+            # Decode BER encoded values associated with Object IDs.
+            vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
+
+        except Exception, why:
+            # We must not die because of any malformed packets; log
+            # and ignore any exception
+            logger.exception("Exception while decoding snmp trap packet from "
+                             "%r, ignoring trap", src)
+            logger.debug("Packet content: %r", question)
+            continue
 
         agent = None
         type = None
