@@ -215,7 +215,7 @@ def listen (server, community):
             (question, src) = server.receive()
         except select.error, why:
             # resume loop if a signal interrupted the receive operation
-            if why.args[0] == 4 # error 4 = system call interrupted
+            if why.args[0] == 4: # error 4 = system call interrupted
                 continue
             else:
                 raise why
