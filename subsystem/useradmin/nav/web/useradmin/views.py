@@ -346,6 +346,9 @@ def group_privilege_remove(request, group_id, privilege_id):
 def userinfo(request):
     account = get_account(request)
 
+    if account.is_default_account():
+        return render_to_response(UserAdmin, 'useradmin/not-logged-in.html', {}, UserAdminContext(request))
+
     if account.ext_sync:
         password_form = None
     else:

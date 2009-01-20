@@ -1,8 +1,8 @@
 {% extends "alertprofiles/base_detail.html" %}
 
-{% block url_edit %}{% url alertprofiles-filtergroups-save %}{% endblock %}
-{% block url_remove_expression %}{% url alertprofiles-filtergroups-removefilter %}{% endblock %}
-{% block url_add_expression %}{% url alertprofiles-filtergroups-addfilter %}{% endblock %}
+{% block url_edit %}{% url alertprofiles-filter_groups-save %}{% endblock %}
+{% block url_remove_expression %}{% url alertprofiles-filter_groups-removefilter %}{% endblock %}
+{% block url_add_expression %}{% url alertprofiles-filter_groups-addfilter %}{% endblock %}
 
 {% block headercontent %}
     {% if detail_id %}
@@ -44,12 +44,12 @@
             <td>{{ f.filter }}</td>
             <td>
                 {% if not forloop.first %}
-                <button type="submit" name="moveup" value="{{ f.id }}">Move up</button>
+                <input type="submit" name="moveup={{ f.id }}" value="Move up" />
                 {% endif %}
             </td>
             <td>
                 {% if not forloop.last %}
-                <button type="submit" name="movedown" value="{{ f.id }}">Move down</button>
+                <input type="submit" name="movedown={{ f.id }}" value="Move down" />
                 {% endif %}
             </td>
         </tr>

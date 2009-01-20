@@ -24,12 +24,6 @@
         {{ time_period_form.start.help_text }}
     </p>
     <p>
-        <button type="submit">
-        {% if time_period %}
-            Save
-        {% else %}
-            Add
-        {% endif %}
-        </button>
+        <input type="submit" value="{{ time_period|yesno:"Save,Add" }}" />
     </p>
 </div>

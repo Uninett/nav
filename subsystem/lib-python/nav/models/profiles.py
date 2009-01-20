@@ -252,10 +252,8 @@ class AlertAddress(models.Model):
 
         try:
             # Wrap all send methods in commit on success
-            if self.type.send(self, alert, language=lang, type=type):
-                transaction.commit()
-            else:
-                transaction.rollback()
+            self.type.send(self, alert, language=lang, type=type)
+            transaction.commit()
 
         except DispatcherException, e:
             logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))

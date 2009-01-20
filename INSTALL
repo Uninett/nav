@@ -50,6 +50,7 @@ The following python modules are required:
  * psycopg2
  * pysnmp2
  * rrd
+ * pyrad
 
 
 Recommended add-ons

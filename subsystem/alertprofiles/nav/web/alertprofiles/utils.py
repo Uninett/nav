@@ -130,26 +130,24 @@ def alert_subscriptions_table(periods):
     weekend_subscriptions = []
     shared_class_id = 0
 
+    alert_subscriptions = AlertSubscription.objects.select_related(
+        'time_period', 'filter_group', 'alert_address'
+    ).filter(
+        time_period__in=periods
+    )
+
     for p in periods:
-        # TimePeriod is a model.
-        # We transform it to a dictionary so we can add additinal information
-        # to it, such as end_time (which does not really exist, it's just the
-        # start time for the next period.
-        period = {
-            'id': p.id,
-            'profile': p.profile,
-            'start': p.start,
-            'end': None,
-            'valid_during': p.get_valid_during_display(),
-            'class': None,
-        }
         valid_during = p.valid_during
-        alert_subscriptions = AlertSubscription.objects.filter(time_period=p)
+
+        subscriptions = []
+        for s in alert_subscriptions:
+            if s.time_period == p:
+                subscriptions.append(s)
 
         # This little snippet magically assigns a class to shared time periods
         # so they appear with the same highlight color.
         if valid_during == TimePeriod.ALL_WEEK:
-            period['class'] = 'shared' + unicode(shared_class_id)
+            p.css_class = 'shared' + unicode(shared_class_id)
             shared_class_id += 1
             if shared_class_id > 7:
                 shared_class_id = 0
@@ -161,13 +159,13 @@ def alert_subscriptions_table(periods):
         # them don't apply to both.
         if valid_during in (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK):
             weekday_subscriptions.append({
-                'time_period': period.copy(),
-                'alert_subscriptions': alert_subscriptions,
+                'time_period': p,
+                'alert_subscriptions': subscriptions,
             })
         if valid_during in (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK):
             weekend_subscriptions.append({
-                'time_period': period,
-                'alert_subscriptions': alert_subscriptions,
+                'time_period': p,
+                'alert_subscriptions': subscriptions,
             })
 
     subscriptions = [
@@ -182,9 +180,9 @@ def alert_subscriptions_table(periods):
         subscription = type['subscriptions']
         for i, s in enumerate(subscription):
             if i < len(subscription) - 1:
-                end_time = subscription[i+1]['time_period']['start']
+                end_time = subscription[i+1]['time_period'].start
             else:
-                end_time = subscription[0]['time_period']['start']
-            s['time_period']['end'] = end_time
+                end_time = subscription[0]['time_period'].start
+            s['time_period'].end = end_time
 
     return subscriptions
