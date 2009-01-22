@@ -1,3 +1,23 @@
+Version 3.5.0
+(released 22 January 2009)
+
+  * LP#294191 (Useradmin and Userinfo gives Page not found (404))
+  * LP#300649 (snmptrapd logs crash as normal exit)
+  * LP#300657 (snmptrapd crashes while parsing a trap)
+  * LP#302740 (autoenable in Arnold is not working)
+  * LP#303120 (Machine Tracker switch search by IP address produces
+               erroneous results)
+  * LP#308943 (Quarantine VLAN dropdown list does not appear)
+  * LP#309287 (Attempt to move or delete filter in filter group
+               crashes Alert Profiles)
+  * LP#309290 (Attempt to confirm filter expression deletion does not
+               work)
+  * LP#309703 (Freetext search in maintenance does not work with IE)
+  * LP#315380 (No SMS alerts sent in NAV 3.5.0b3)
+  * LP#316281 (snmptrapd crashes on SIGHUP signal)
+  * LP#317028 (Undocumented dependency to pyrad)
+  * LP#317413 (Missing argument to changePortStatus in arnold library)
+
 Version 3.5.0b3
 (release 04 December 2008)
 
