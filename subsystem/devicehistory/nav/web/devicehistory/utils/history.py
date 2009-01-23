@@ -33,6 +33,50 @@ from django.db.models import Q
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryVariable, AlertHistoryMessage, AlertType
 
+GROUP_BY_LOCATION = 'group_by_locations'
+GROUP_BY_ROOM = 'group_by_room'
+GROUP_BY_NETBOX_AND_MODULE = 'group_by_netbox_and_module'
+GROUP_BY_NETBOX = 'group_by_netbox'
+GROUP_BY_MODULE = 'group_by_module'
+GROUP_BY_DEVICE = 'group_by_device'
+
+def get_history(**kwargs):
+    location_ids = kwargs.pop('locations', [])
+    room_ids = kwargs.pop('rooms', [])
+    netbox_ids = kwargs.pop('netboxes', [])
+    module_ids = kwargs.pop('modules', [])
+    device_ids = kwargs.pop('devices', [])
+
+    start_time = kwargs.pop('start_time', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
+    end_time = kwargs.pop('end_time', date.today())
+    types = kwargs.pop('types', None)
+    group_by = kwargs.pop('group_by', GROUP_BY_NETBOX_AND_MODULE)
+
+    for key in kwargs.keys():
+        raise TypeError('__init__() got an unexpected keyword argument %s' % key)
+
+    time_limit = [
+        Q(start_time__lte=self.end_time) &
+        (
+            Q(end_time__gte=self.start_time) |
+            (
+                Q(end_time__isnull=True) &
+                Q(start_time__gte=self.start_time)
+            )
+        )
+    ]
+    
+    def location_history():
+
+    def room_history():
+
+    def netbox_history():
+
+    def module_history():
+
+    def device_history():
+
+
 class History:
     locations = []
     rooms = []
