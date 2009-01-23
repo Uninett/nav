@@ -34,6 +34,8 @@ from optparse import OptionParser
 from nav.db import getConnection
 import ConfigParser
 import logging
+import signal
+import select
 
 # Import PySNMP modules
 # Make sure Ubuntu/Debian picks the correct pysnmp API version:
@@ -45,6 +47,7 @@ from pysnmp import role
 from nav import daemon
 import nav.buildconf
 from nav.errors import GeneralException
+import nav.logs
 
 # Paths
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
@@ -172,12 +175,24 @@ def main():
         try:
             logger.debug("Going into daemon mode...")
             daemon.daemonize(pidfile)
-            logger.info("Snmptrapd started, listening on port %s" %port)
-            listen(server, community)
         except daemon.DaemonError, why:
             logger.error("Could not daemonize: " %why)
             server.close()
             sys.exit(1)
+
+        # Daemonized; reopen log files
+        nav.logs.reopen_log_files()
+        logger.debug('Daemonization complete; reopened log files.')
+
+        # Reopen log files on SIGHUP
+        logger.debug('Adding signal handler for reopening log files on SIGHUP.')
+        signal.signal(signal.SIGHUP, hup_handler)
+
+        logger.info("Snmptrapd started, listening on port %s" %port)
+        try:
+            listen(server, community)
+        except Exception, why:
+            logger.critical("Fatal exception ocurred", exc_info=True)
 
     else:
         # Start listening and exit cleanly if interrupted.
@@ -196,19 +211,35 @@ def listen (server, community):
     # Listen for SNMP messages from remote SNMP managers
     while 1:
         # Receive a request message
-        (question, src) = server.receive()
+        try:
+            (question, src) = server.receive()
+        except select.error, why:
+            # resume loop if a signal interrupted the receive operation
+            if why.args[0] == 4: # error 4 = system call interrupted
+                continue
+            else:
+                raise why
         if question is None:
             continue
         
-        # Decode request of any version
-        (req, rest) = v2c.decode(question)
+        try:
+            # Decode request of any version
+            (req, rest) = v2c.decode(question)
 
-        # Decode BER encoded Object IDs.
-        oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
-                                       req['encoded_oids']))
-        
-        # Decode BER encoded values associated with Object IDs.
-        vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
+            # Decode BER encoded Object IDs.
+            oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
+                                           req['encoded_oids']))
+
+            # Decode BER encoded values associated with Object IDs.
+            vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
+
+        except Exception, why:
+            # We must not die because of any malformed packets; log
+            # and ignore any exception
+            logger.exception("Exception while decoding snmp trap packet from "
+                             "%r, ignoring trap", src)
+            logger.debug("Packet content: %r", question)
+            continue
 
         agent = None
         type = None
@@ -392,6 +423,13 @@ class SNMPTrap:
 
         return text
 
+
+def hup_handler(signum, _):
+    """Signal handler to close and reopen log file(s) on HUP."""
+    if signum == signal.SIGHUP:
+        logger.info("SIGHUP received; reopening log files.")
+        nav.logs.reopen_log_files()
+        logger.info("Log files reopened.")
 
 
 if __name__ == '__main__':
