@@ -1,0 +1,13 @@
+{% extends "devicehistory/history_view_locations.html" %}
+{% block location_wrapper %}
+    <h2>{{ location.description }}</h2>
+    {% for room_id, room in location.rooms.items %}
+        <div class="room_wrapper">
+        {% block room_wrapper %}
+            {% with room as device %}
+                {% include "devicehistory/history_table.html" %}
+            {% endwith %}
+        {% endblock %}
+        </div>
+    {% endfor %}
+{% endblock %}

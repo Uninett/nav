@@ -1,0 +1,54 @@
+<table class="listtable reporttable">
+    <caption>
+        {{ device.description }}<br />
+        <span class="subtitle">{{ device.alerts|length }} entries</span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Start</th>
+            <th>End</th>
+            {% ifequal group_by "devices" %}
+            <th>Netbox</th>
+            <th>Module</th>
+            {% else %}
+            <th>Device</th>
+            {% endifequal %}
+            <th>Event type</th>
+            <th>Alert type</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for a in device.alerts %}
+        <tr class="{% cycle "oddrow" "evenrow" %}">
+            <td>{{ a.start_time }}</td>
+            <td>{{ a.end_time }}</td>
+            {% ifequal group_by "devices" %}
+            <td>{{ a.netbox_name }}</td>
+            <td>{{ a.module_name }}</td>
+            {% else %}
+            <td>{{ a.device.serial }} (ID {{ a.device.id }})</td>
+            {% endifequal %}
+            <td>{{ a.event_type.id }}</td>
+            <td>{{ a.alert_type.name }}</td>
+            <td>
+                <ul>
+                {% for m in a.extra_messages %}
+                    <li>
+                        {{ m.message }}
+                    </li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="0">{{ device.alerts|length }} entries</th>
+        </tr>
+    </tfoot>
+</table>

@@ -62,9 +62,35 @@ _ = lambda a: a
 
 def devicehistory_search(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
+    from_date = request.GET.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
+    to_date = request.GET.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
+    types = request.GET.getlist('type')
+
+    selected_types = {'event': [], 'alert': []}
+    for type in types:
+        if type.find('_') != -1:
+            splitted = type.split('_')
+            if splitted[0] == 'e':
+                selected_types['event'].append(splitted[1])
+            else:
+                selected_types['alert'].append(splitted[1])
+
+    alert_types = AlertType.objects.select_related(
+        'event_type'
+    ).all().order_by('event_type__id', 'name')
+    event_types = {}
+    for a in alert_types:
+        if a.event_type.id not in event_types:
+            event_types[a.event_type.id] = []
+        event_types[a.event_type.id].append(a)
+
     info_dict = {
         'active': {'devicehistory': True},
         'quickselect': DeviceQuickSelect,
+        'selected_types': selected_types,
+        'event_type': event_types,
+        'from_date': from_date,
+        'to_date': to_date,
     }
     return render_to_response(
         DeviceHistoryTemplate,
@@ -86,6 +112,7 @@ def devicehistory_view(request):
     from_date = request.GET.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
     to_date = request.GET.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
     types = request.GET.getlist('type')
+    group_by = request.GET.get('group_by', 'box_and_modules')
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -106,9 +133,9 @@ def devicehistory_view(request):
         'event_type', 'alert_type', 'device'
     ).filter(
         Q(device__netbox__room__location__id__in=selection['location']) |
-        Q(device__netbox__room__id__in=selection['room']) | 
+        Q(device__netbox__room__id__in=selection['room']) |
         Q(device__netbox__id__in=selection['netbox']) |
-        Q(device__module__id__in=selection['module']),
+        Q(device__netbox__module__id__in=selection['module']),
         Q(start_time__lte=to_date) &
         (
             Q(end_time__gte=from_date) |
@@ -126,6 +153,7 @@ def devicehistory_view(request):
             'netbox_id': 'netbox.netboxid',
             'netbox_name': 'netbox.sysname',
             'module_name': 'module.module',
+            'module_descr': 'module.descr',
         },
         tables=[
             'location',
@@ -137,7 +165,7 @@ def devicehistory_view(request):
                netbox.deviceid = device.deviceid
             )'''
         ],
-    )
+    ).order_by('-start_time', '-end_time')
 
     # Fetch related messages
     msgs = AlertHistoryMessage.objects.filter(
@@ -151,7 +179,7 @@ def devicehistory_view(request):
         loc_id = a.location_name
         room_id = a.room_id
         room_descr = a.room_descr
-        device_serial = a.device.serial
+        device_id = a.device.id
         box_id = a.netbox_id
         module_name = a.module_name
 
@@ -159,6 +187,7 @@ def devicehistory_view(request):
             history[loc_id] = {
                 'description': a.location_name,
                 'rooms': {},
+                'alerts': [],
             }
         if room_id not in history[loc_id]['rooms']:
             if not isinstance(room_id, unicode):
@@ -169,22 +198,23 @@ def devicehistory_view(request):
                 'description': room_id + u' (' + room_descr + u')',
                 'netboxes': {},
                 'devices': {},
+                'alerts': [],
             }
-        if device_serial not in history[loc_id]['rooms'][room_id]['devices']:
-            history[loc_id]['rooms'][room_id]['devices'][device_serial] = {
-                'description': device_serial,
-                'alerts': []
+        if device_id and device_id not in history[loc_id]['rooms'][room_id]['devices']:
+            history[loc_id]['rooms'][room_id]['devices'][device_id] = {
+                'description': u'%s (ID %s)' % (a.device.serial, device_id),
+                'alerts': [],
             }
         if box_id not in history[loc_id]['rooms'][room_id]['netboxes']:
             history[loc_id]['rooms'][room_id]['netboxes'][box_id] = {
                 'description': a.netbox_name,
                 'modules': {},
-                'alerts': []
+                'alerts': [],
             }
-        if module_name not in history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules']:
+        if module_name and module_name not in history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules']:
             history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules'][module_name] = {
-                'description': module_name,
-                'alerts': []
+                'description': u'Module %s in %s (%s)' % (module_name, a.netbox_name, a.module_descr),
+                'alerts': [],
             }
 
         alert_messages = []
@@ -194,8 +224,12 @@ def devicehistory_view(request):
 
         a.extra_messages = alert_messages
 
-        if a.device.serial:
-            history[loc_id]['rooms'][room_id]['devices'][device_serial]['alerts'].append(a)
+        if a.location_id:
+            history[loc_id]['alerts'].append(a)
+        if a.room_id:
+            history[loc_id]['rooms'][room_id]['alerts'].append(a)
+        if a.device.id:
+            history[loc_id]['rooms'][room_id]['devices'][device_id]['alerts'].append(a)
         if a.netbox_id:
             history[loc_id]['rooms'][room_id]['netboxes'][box_id]['alerts'].append(a)
         if a.module_name:
@@ -220,25 +254,36 @@ def devicehistory_view(request):
             event_types[a.event_type.id] = []
         event_types[a.event_type.id].append(a)
 
+    template = 'history_view_'
+    if group_by == 'locations':
+        template += 'locations.html'
+    elif group_by == 'rooms':
+        template += 'rooms.html'
+    elif group_by == 'box_and_modules':
+        template += 'netboxes_and_modules.html'
+    elif group_by == 'boxes':
+        template += 'netboxes.html'
+    elif group_by == 'modules':
+        template += 'modules.html'
+    elif group_by == 'devices':
+        template += 'devices.html'
+    else:
+        template = 'history_view.html'
+
     info_dict = {
         'active': {'devicehistory': True},
         'history': history,
-#        'history': {
-#            'location': history.get_location_history(),
-#            'room': history.get_room_history(),
-#            'netbox': history.get_netbox_history(),
-#            'module': history.get_module_history(),
-#        },
         'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
+        'group_by': group_by,
         'filter_string': filter_string,
     }
     return render_to_response(
         DeviceHistoryTemplate,
-        'devicehistory/history_view.html',
+        'devicehistory/%s' % (template),
         info_dict,
         RequestContext(
             request,

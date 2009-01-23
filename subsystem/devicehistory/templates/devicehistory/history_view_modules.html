@@ -1,0 +1,11 @@
+{% extends "devicehistory/history_view_netboxes.html" %}
+{% block netbox_wrapper %}
+    <h3>{{ room.description }}</h3>
+    {% for module_id, module in box.modules.items %}
+        <div class="module_wrapper">
+        {% with module as device %}
+            {% include "devicehistory/history_table.html" %}
+        {% endwith %}
+        </div>
+    {% endfor %}
+{% endblock %}

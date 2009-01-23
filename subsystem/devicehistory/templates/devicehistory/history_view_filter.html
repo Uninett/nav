@@ -1,44 +1,60 @@
 {% load filters %}
-<form action="{% url devicehistory-view %}" method="get">
-    {% for type, elements in selection.items %}
-        {% for id in elements %}
-            <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
+<tr>
+    <th>From:</th>
+    <td><input type="text" name="from_date" value="{{ from_date }}" /></td>
+</tr>
+<tr>
+    <th>To:</th>
+    <td><input type="text" name="to_date" value="{{ to_date }}" /></td>
+</tr>
+<tr>
+    <th>Type:</th>
+    <td>
+        <select name="type">
+        <option value="all">All</option>
+        {% for e,alert_types in event_type.items %}
+            <optgroup label="{{ e }}">
+                <option value="e_{{ e }}"
+                {% if e.id|in_list:selected_types.event %}
+                selected="selected"
+                {% endif %}>All {{ e }}</option>
+            {% for a in alert_types %}
+                <option value="a_{{ a.id }}" 
+                {% if a.id|stringformat:"s"|in_list:selected_types.alert %}
+                    selected="selected"
+                {% endif %}>{{ a.name }}</option>
+            {% endfor %}
+            </optgroup>
         {% endfor %}
-    {% endfor %}
-    <table class="vertitable">
-        <tr>
-            <th>From:</th>
-            <td><input type="text" name="from_date" value="{{ from_date }}" /></td>
-        </tr>
-        <tr>
-            <th>To:</th>
-            <td><input type="text" name="to_date" value="{{ to_date }}" /></td>
-        </tr>
-        <tr>
-            <th>Type:</th>
-            <td>
-                <select name="type">
-                <option value="all">All</option>
-                {% for e,alert_types in event_type.items %}
-                    <optgroup label="{{ e }}">
-                        <option value="e_{{ e }}"
-                        {% if e.id|in_list:selected_types.event %}
-                        selected="selected"
-                        {% endif %}>All {{ e }}</option>
-                    {% for a in alert_types %}
-                        <option value="a_{{ a.id }}" 
-                        {% if a.id|stringformat:"s"|in_list:selected_types.alert %}
-                            selected="selected"
-                        {% endif %}>{{ a.name }}</option>
-                    {% endfor %}
-                    </optgroup>
-                {% endfor %}
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <th></th>
-            <td><button type="submit">Filter</button></td>
-        </tr>
-    </table>
-</form>
+        </select>
+    </td>
+</tr>
+<tr>
+    <th>Group by:</th>
+    <td>
+        <label><input type="radio" name="group_by" value="locations"
+            {% ifequal group_by "locations" %}
+            checked="checked"
+            {% endifequal %} />Locations</label><br />
+        <label><input type="radio" name="group_by" value="rooms"
+            {% ifequal group_by "rooms" %}
+            checked="checked"
+            {% endifequal %} />Rooms</label><br />
+        <label><input type="radio" name="group_by" value="box_and_modules"
+            {% ifequal group_by "box_and_modules" %}
+            checked="checked"
+            {% endifequal %} />Netboxes and modules</label><br />
+        <label><input type="radio" name="group_by" value="boxes" 
+            {% ifequal group_by "boxes" %}
+            checked="checked"
+            {% endifequal %} />Netboxes</label><br />
+        <label><input type="radio" name="group_by" value="modules" 
+            {% ifequal group_by "modules" %}
+            checked="checked"
+            {% endifequal %} />Modules</label><br />
+        <label><input type="radio" name="group_by" value="devices" 
+            {% ifequal group_by "devices" %}
+            checked="checked"
+            {% endifequal %} />Devices</label>
+    </td>
+</tr>

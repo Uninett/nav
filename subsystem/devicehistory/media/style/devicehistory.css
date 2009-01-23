@@ -4,6 +4,7 @@
 }
 
 .location_wrapper {
+	border-left: 1px dashed black;
 	padding-left: 2em;
 }
 
@@ -11,8 +12,21 @@
 	margin-top: 3em;
 }
 
-.tabcontent + h3 {
+.room_wrapper {
+		padding-left: 1em;
+		border-left: 1px dashed black;
+}
+
+.room_wrapper + h3 {
 	margin-top: 2em;
+}
+
+.module_wrapper {
+	padding-left: 2em;
+}
+
+.module_wrapper table caption {
+	background-color: #acf;
 }
 
 ul.email_message li {

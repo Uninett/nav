@@ -2,73 +2,22 @@
 {% load filters %}
 
 {% block tabcontent %}
-    {% include "devicehistory/history_view_filter.html" %}
-
-    {% for location_id, location in history.items %}
-        <h2>{{ location.description }}</h2>
-
-        <div class="location_wrapper">
-        {% for room_id, room in location.rooms.items %}
-            <h3>{{ room.description }}</h3>
-
-            <div class="tabs">
-                <ul>
-                    <li><a href="">View as netboxes</a></li>
-                    <li><a href="">View as modules</a></li>
-                    <li><a href="">View as devices</a></li>
-                </ul>
-            </div>
-            <div class="tabcontent">
-
-            {% for box_id, box in room.netboxes.items %}
-            <table class="listtable reporttable">
-                <caption>
-                    {{ box.description }}<br />
-                    <span class="subtitle">{{ box.alerts|length }} entries</span>
-                </caption>
-
-                <thead>
-                    <tr>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Device</th>
-                        <th>Event type</th>
-                        <th>Alert type</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                {% for a in box.alerts %}
-                    <tr class="{% cycle "oddrow" "evenrow" %}">
-                        <td>{{ a.start_time }}</td>
-                        <td>{{ a.end_time }}</td>
-                        <td>{{ a.device.serial }}</td>
-                        <td>{{ a.event_type.id }}</td>
-                        <td>{{ a.alert_type.name }}</td>
-                        <td>
-                            <ul>
-                            {% for m in a.extra_messages %}
-                                <li>
-                                    {{ m.message }}
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-
-                <tfoot>
-                    <tr>
-                        <th colspan="0">{{ elements.alerts|length }} entries</th>
-                    </tr>
-                </tfoot>
-            </table>
+    <form action="{% url devicehistory-view %}" method="get">
+        {% for type, elements in selection.items %}
+            {% for id in elements %}
+                <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
             {% endfor %}
-            </div>
         {% endfor %}
-        </div>
-    {% endfor %}
+        <table class="vertitable">
+            {% include "devicehistory/history_view_filter.html" %}
+            <tr>
+                <th></th>
+                <td><button type="submit">Filter</button></td>
+            </tr>
+        </table>
+    </form>
+
+    {% block history %}
+    {% endblock %}
 
 {% endblock %}
