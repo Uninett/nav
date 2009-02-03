@@ -84,7 +84,8 @@ public class NetmapControl extends ControlAdapter {
 					    item.getString("nettype"),
 					    item.getString("link_capacity"),
 					    "In: " + Main.bwToString(item.getString("link_load_in")) + "  (" + String.format("%.1f", in) +"%) " +
-					    "Out: " + Main.bwToString(item.getString("link_load_out")) + "  (" + String.format("%.1f", out) + "%)"
+					    "Out: " + Main.bwToString(item.getString("link_load_out")) + "  (" + String.format("%.1f", out) + "%)",
+                        item.getString("ipdevinfolink")
 					 ));
 	    }
 
