@@ -17,7 +17,48 @@
         </table>
     </form>
 
-    {% block history %}
-    {% endblock %}
+    <table class="listtable reporttable">
+        <caption>
+            History
+        </caption>
+
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Room</th>
+                <th>Netbox</th>
+                <th>Module</th>
+                <th>Device</th>
+                <th>Start time</th>
+                <th>End time</th>
+                <th>Event type</th>
+                <th>Alert type</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+        {% for h in history %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td>{{ h.location_name }}</td>
+                <td>{{ h.room_descr }}</td>
+                <td>{{ h.netbox_name }}</td>
+                <td>{{ h.module_name }}</td>
+                <td>{{ h.device.serial }}</td>
+                <td>{{ h.start_time }}</td>
+                <td>{{ h.end_time }}</td>
+                <td>{{ h.event_type.id }}</td>
+                <td>{{ h.alert_type.name }}</td>
+                <td>
+                    <ul>
+                    {% for m in h.extra_messages %}
+                        <li>{{ m }}</li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}

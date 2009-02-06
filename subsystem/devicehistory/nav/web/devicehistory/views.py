@@ -146,14 +146,10 @@ def devicehistory_view(request):
         *type_filter
     ).extra(
         select={
-            'location_id': 'location.locationid',
             'location_name': 'location.descr',
-            'room_id': 'room.roomid',
             'room_descr': 'room.descr',
-            'netbox_id': 'netbox.netboxid',
             'netbox_name': 'netbox.sysname',
             'module_name': 'module.module',
-            'module_descr': 'module.descr',
         },
         tables=[
             'location',
@@ -165,75 +161,27 @@ def devicehistory_view(request):
                netbox.deviceid = device.deviceid
             )'''
         ],
-    ).order_by('-start_time', '-end_time')
+    ).order_by(
+        'location_name',
+        'room_descr',
+        'netbox_name',
+        'module_name',
+        '-start_time',
+        '-end_time'
+    )
 
     # Fetch related messages
     msgs = AlertHistoryMessage.objects.filter(
         alert_history__in=alert_history,
         language='en',
         type='sms',
-    )
+    ).values('alert_history', 'message')
 
-    history = {}
     for a in alert_history:
-        loc_id = a.location_name
-        room_id = a.room_id
-        room_descr = a.room_descr
-        device_id = a.device.id
-        box_id = a.netbox_id
-        module_name = a.module_name
-
-        if loc_id not in history:
-            history[loc_id] = {
-                'description': a.location_name,
-                'rooms': {},
-                'alerts': [],
-            }
-        if room_id not in history[loc_id]['rooms']:
-            if not isinstance(room_id, unicode):
-                room_id = unicode(room_id)
-            if not isinstance(room_descr, unicode):
-                room_descr = unicode(room_descr)
-            history[loc_id]['rooms'][room_id] = {
-                'description': room_id + u' (' + room_descr + u')',
-                'netboxes': {},
-                'devices': {},
-                'alerts': [],
-            }
-        if device_id and device_id not in history[loc_id]['rooms'][room_id]['devices']:
-            history[loc_id]['rooms'][room_id]['devices'][device_id] = {
-                'description': u'%s (ID %s)' % (a.device.serial, device_id),
-                'alerts': [],
-            }
-        if box_id not in history[loc_id]['rooms'][room_id]['netboxes']:
-            history[loc_id]['rooms'][room_id]['netboxes'][box_id] = {
-                'description': a.netbox_name,
-                'modules': {},
-                'alerts': [],
-            }
-        if module_name and module_name not in history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules']:
-            history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules'][module_name] = {
-                'description': u'Module %s in %s (%s)' % (module_name, a.netbox_name, a.module_descr),
-                'alerts': [],
-            }
-
-        alert_messages = []
+        a.extra_messages = []
         for m in msgs:
-            if m.alert_history_id == a.id:
-                alert_messages.append(m)
-
-        a.extra_messages = alert_messages
-
-        if a.location_id:
-            history[loc_id]['alerts'].append(a)
-        if a.room_id:
-            history[loc_id]['rooms'][room_id]['alerts'].append(a)
-        if a.device.id:
-            history[loc_id]['rooms'][room_id]['devices'][device_id]['alerts'].append(a)
-        if a.netbox_id:
-            history[loc_id]['rooms'][room_id]['netboxes'][box_id]['alerts'].append(a)
-        if a.module_name:
-            history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules'][module_name]['alerts'].append(a)
+            if a.id == m['alert_history']:
+                a.extra_messages.append(m['message'])
 
     alert_types = AlertType.objects.select_related(
         'event_type'
@@ -244,25 +192,9 @@ def devicehistory_view(request):
             event_types[a.event_type.id] = []
         event_types[a.event_type.id].append(a)
 
-    template = 'history_view_'
-    if group_by == 'locations':
-        template += 'locations.html'
-    elif group_by == 'rooms':
-        template += 'rooms.html'
-    elif group_by == 'box_and_modules':
-        template += 'netboxes_and_modules.html'
-    elif group_by == 'boxes':
-        template += 'netboxes.html'
-    elif group_by == 'modules':
-        template += 'modules.html'
-    elif group_by == 'devices':
-        template += 'devices.html'
-    else:
-        template = 'history_view.html'
-
     info_dict = {
         'active': {'devicehistory': True},
-        'history': history,
+        'history': alert_history,
         'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
@@ -272,7 +204,7 @@ def devicehistory_view(request):
     }
     return render_to_response(
         DeviceHistoryTemplate,
-        'devicehistory/%s' % (template),
+        'devicehistory/history_view.html',
         info_dict,
         RequestContext(
             request,
