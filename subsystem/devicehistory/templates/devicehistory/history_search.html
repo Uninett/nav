@@ -5,7 +5,7 @@
     quicksearch to search for a (partial) serialnumber, hostname, IP or
     room.</p>
 
-    <form action="{% url devicehistory-view %}" method="get">
+    <form action="{% url devicehistory-view %}" method="post">
         <table class="vertitable">
             {% include "devicehistory/history_view_filter.html" %}
         </table>

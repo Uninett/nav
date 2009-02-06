@@ -56,14 +56,19 @@ def get_history(**kwargs):
     ]
     
     def location_history():
+        pass
 
     def room_history():
+        pass
 
     def netbox_history():
+        pass
 
     def module_history():
+        pass
 
     def device_history():
+        pass
 
 
 class History:

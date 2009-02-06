@@ -7,13 +7,17 @@
             {% include "devicehistory/history_table.html" %}
         {% endwith %}
 
+        {% if box.modules.values|length_is:"0" %}
+        {% else %}
+        <h4>Modules in {{ box.description }}</h4>
+        <div class="module_wrapper">
         {% for module_id, module in box.modules.items %}
-            <div class="module_wrapper">
             {% with module as device %}
                 {% include "devicehistory/history_table.html" %}
             {% endwith %}
-            </div>
         {% endfor %}
+        </div>
+        {% endif %}
 
         </div>
     {% endfor %}

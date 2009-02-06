@@ -47,13 +47,22 @@ DeviceQuickSelect_post_error_kwargs = {
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
 
+
+# Often used timelimits, in seconds:
+ONE_DAY = 24 * 3600
+ONE_WEEK = 7 * ONE_DAY
+
 _ = lambda a: a
+
+# NOTE:
+# Search is using POST instead of GET, which would be more correct, because of
+# constraints in IE that limits the length of an URL to around 2000 characters.
 
 def devicehistory_search(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-    from_date = request.GET.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    to_date = request.GET.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
-    types = request.GET.getlist('type')
+    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
+    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
+    types = request.POST.getlist('type')
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -93,15 +102,10 @@ def devicehistory_search(request):
 
 def devicehistory_view(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-
-    # Default dates are a little hackish.
-    # from_date defaults to one week in the past.
-    # to_date defaults to tomorrow, which means "everything untill tomorrow
-    # starts". Setting it to today will not display the alerts for today.
-    from_date = request.GET.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    to_date = request.GET.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
-    types = request.GET.getlist('type')
-    group_by = request.GET.get('group_by', 'box_and_modules')
+    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
+    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
+    types = request.POST.getlist('type')
+    group_by = request.POST.get('group_by', 'box_and_modules')
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -111,6 +115,12 @@ def devicehistory_view(request):
                 selected_types['event'].append(splitted[1])
             else:
                 selected_types['alert'].append(splitted[1])
+
+    type_filter = []
+    if selected_types['event']:
+        type_filter.append(Q(event_type__in=selected_types['event']))
+    if selected_types['alert']:
+        type_filter.append(Q(alert_type__in=selected_types['alert']))
 
     # FIXME check that date is a valid "yyyy-mm-dd" string
 
@@ -132,7 +142,8 @@ def devicehistory_view(request):
                 Q(end_time__isnull=True) &
                 Q(start_time__gte=from_date)
             )
-        )
+        ),
+        *type_filter
     ).extra(
         select={
             'location_id': 'location.locationid',
@@ -224,16 +235,6 @@ def devicehistory_view(request):
         if a.module_name:
             history[loc_id]['rooms'][room_id]['netboxes'][box_id]['modules'][module_name]['alerts'].append(a)
 
-    # We want to re-use this request in some of the links.
-    # This little double-loop builds a string that is easy to add to links.
-    filter_string = ''
-    for key in request.GET:
-        for value in request.GET.getlist(key):
-            if not filter_string:
-                filter_string = '?%s=%s' % (key,value)
-            else:
-                filter_string += '&%s=%s' % (key,value)
-
     alert_types = AlertType.objects.select_related(
         'event_type'
     ).all().order_by('event_type__id', 'name')
@@ -268,7 +269,6 @@ def devicehistory_view(request):
         'from_date': from_date,
         'to_date': to_date,
         'group_by': group_by,
-        'filter_string': filter_string,
     }
     return render_to_response(
         DeviceHistoryTemplate,

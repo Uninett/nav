@@ -2,7 +2,7 @@
 {% load filters %}
 
 {% block tabcontent %}
-    <form action="{% url devicehistory-view %}" method="get">
+    <form action="{% url devicehistory-view %}" method="post">
         {% for type, elements in selection.items %}
             {% for id in elements %}
                 <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
