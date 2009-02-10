@@ -105,7 +105,7 @@ def devicehistory_view(request):
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.getlist('type')
-    group_by = request.POST.get('group_by', 'box_and_modules')
+    group_by = request.POST.get('group_by', 'location')
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -121,6 +121,30 @@ def devicehistory_view(request):
         type_filter.append(Q(event_type__in=selected_types['event']))
     if selected_types['alert']:
         type_filter.append(Q(alert_type__in=selected_types['alert']))
+
+    if group_by == "box_and_modules":
+        order_by = [
+            'netbox_name',
+            'module_name',
+            'device',
+        ]
+    elif group_by == "device":
+        order_by = [
+            'device',
+        ]
+    elif group_by == "time":
+        order_by = []
+    else:
+        order_by = [
+            'location_name',
+            'room_descr',
+            'netbox_name',
+            'module_name',
+            'device',
+        ]
+
+    order_by.append('-start_time')
+    order_by.append('-end_time')
 
     # FIXME check that date is a valid "yyyy-mm-dd" string
 
@@ -162,12 +186,7 @@ def devicehistory_view(request):
             )'''
         ],
     ).order_by(
-        'location_name',
-        'room_descr',
-        'netbox_name',
-        'module_name',
-        '-start_time',
-        '-end_time'
+        *order_by
     )
 
     # Fetch related messages

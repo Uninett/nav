@@ -32,29 +32,21 @@
 <tr>
     <th>Group by:</th>
     <td>
-        <label><input type="radio" name="group_by" value="locations"
-            {% ifequal group_by "locations" %}
+        <label><input type="radio" name="group_by" value="location"
+            {% ifequal group_by "location" %}
             checked="checked"
-            {% endifequal %} />Locations</label><br />
-        <label><input type="radio" name="group_by" value="rooms"
-            {% ifequal group_by "rooms" %}
-            checked="checked"
-            {% endifequal %} />Rooms</label><br />
+            {% endifequal %} />Location, room, box and time</label><br />
         <label><input type="radio" name="group_by" value="box_and_modules"
             {% ifequal group_by "box_and_modules" %}
             checked="checked"
-            {% endifequal %} />Netboxes and modules</label><br />
-        <label><input type="radio" name="group_by" value="boxes" 
-            {% ifequal group_by "boxes" %}
-            checked="checked"
-            {% endifequal %} />Netboxes</label><br />
-        <label><input type="radio" name="group_by" value="modules" 
-            {% ifequal group_by "modules" %}
-            checked="checked"
-            {% endifequal %} />Modules</label><br />
-        <label><input type="radio" name="group_by" value="devices" 
+            {% endifequal %} />Netbox, module and time</label><br />
+        <label><input type="radio" name="group_by" value="device"
             {% ifequal group_by "devices" %}
             checked="checked"
-            {% endifequal %} />Devices</label>
+            {% endifequal %} />Device and time</label><br />
+        <label><input type="radio" name="group_by" value="datetime"
+            {% ifequal group_by "datetime" %}
+            checked="checked"
+            {% endifequal %} />Time</label>
     </td>
 </tr>
