@@ -50,3 +50,17 @@
             {% endifequal %} />Time</label>
     </td>
 </tr>
+<tr>
+    <th>Page:</th>
+    <td>
+        <select name="page">
+            {% for page in history.paginator.page_range %}
+            <option value="{{ page }}"
+            {% ifequal page history.number %}
+            selected="selected"
+            {% endifequal %}
+            >{{ page }}</option>
+            {% endfor %}
+        </select>
+    </td>
+</tr>

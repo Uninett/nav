@@ -36,9 +36,9 @@
                 <th>Message</th>
             </tr>
         </thead>
-        
+
         <tbody>
-        {% for h in history %}
+        {% for h in history.object_list %}
             <tr class="{% cycle 'oddrow' 'evenrow' %}">
                 <td>{{ h.location_name }}</td>
                 <td>{{ h.room_descr }}</td>

@@ -17,6 +17,7 @@
 
 import time
 from datetime import date
+from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
@@ -51,6 +52,8 @@ DeviceQuickSelect_post_error_kwargs = {
 # Often used timelimits, in seconds:
 ONE_DAY = 24 * 3600
 ONE_WEEK = 7 * ONE_DAY
+
+HISTORY_PER_PAGE = 100
 
 _ = lambda a: a
 
@@ -106,6 +109,10 @@ def devicehistory_view(request):
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.getlist('type')
     group_by = request.POST.get('group_by', 'location')
+    try:
+        page = int(request.POST.get('page', '1'))
+    except ValueError:
+        page = 1
 
     selected_types = {'event': [], 'alert': []}
     for type in types:
@@ -189,14 +196,21 @@ def devicehistory_view(request):
         *order_by
     )
 
+    paginator = Paginator(alert_history, HISTORY_PER_PAGE)
+
+    try:
+        history = paginator.page(page)
+    except (EmptyPage, InvalidPage):
+        history = paginator.page(paginator.num_pages)
+
     # Fetch related messages
     msgs = AlertHistoryMessage.objects.filter(
-        alert_history__in=alert_history,
+        alert_history__in=[h.id for h in history.object_list],
         language='en',
         type='sms',
     ).values('alert_history', 'message')
 
-    for a in alert_history:
+    for a in history.object_list:
         a.extra_messages = []
         for m in msgs:
             if a.id == m['alert_history']:
@@ -213,7 +227,7 @@ def devicehistory_view(request):
 
     info_dict = {
         'active': {'devicehistory': True},
-        'history': alert_history,
+        'history': history,
         'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
