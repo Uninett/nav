@@ -23,8 +23,11 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-from nav.statemon.abstractChecker import AbstractChecker, Event
+from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon import Socket
+from nav.event import Event
+
+
 class PostgresqlChecker(AbstractChecker):
 	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get('port', 5432)
