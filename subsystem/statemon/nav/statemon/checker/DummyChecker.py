@@ -23,8 +23,10 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.event import Event
 
-from nav.statemon.abstractChecker import AbstractChecker, Event
+
 class DummyChecker(AbstractChecker):
 	def __init__(self,*args):
 		AbstractChecker.__init__(self,'dummy',*args)
