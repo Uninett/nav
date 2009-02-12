@@ -25,7 +25,7 @@
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon import Socket
-from nav.event import Event
+from nav.statemon.event import Event
 
 
 class PostgresqlChecker(AbstractChecker):
