@@ -24,7 +24,7 @@
 #
 
 from nav.statemon.abstractChecker import AbstractChecker
-from nav.event import Event
+from nav.statemon.event import Event
 
 
 class DummyChecker(AbstractChecker):
