@@ -17,9 +17,11 @@
         </table>
     </form>
 
+    {% for group_name, group in history.grouped_history.items %}
     <table class="listtable reporttable">
         <caption>
-            History
+            {{ group_name }}<br />
+            <span class="subtitle">{{ group|length }} items.</span>
         </caption>
 
         <thead>
@@ -28,7 +30,7 @@
                 <th>Room</th>
                 <th>Netbox</th>
                 <th>Module</th>
-                <th>Device</th>
+                <th>Serial</th>
                 <th>Start time</th>
                 <th>End time</th>
                 <th>Event type</th>
@@ -38,7 +40,7 @@
         </thead>
 
         <tbody>
-        {% for h in history.object_list %}
+        {% for h in group %}
             <tr class="{% cycle 'oddrow' 'evenrow' %}">
                 <td>{{ h.location_name }}</td>
                 <td>{{ h.room_descr }}</td>
@@ -46,7 +48,13 @@
                 <td>{{ h.module_name }}</td>
                 <td>{{ h.device.serial }}</td>
                 <td>{{ h.start_time }}</td>
-                <td>{{ h.end_time }}</td>
+                <td>
+                    {% if h.is_open %}
+                    Unresolved
+                    {% else %}
+                    {{ h.end_time }}
+                    {% endif %}
+                </td>
                 <td>{{ h.event_type.id }}</td>
                 <td>{{ h.alert_type.name }}</td>
                 <td>
@@ -59,6 +67,15 @@
             </tr>
         {% endfor %}
         </tbody>
+
+        <tfoot>
+            <tr>
+                <th colspan="10">
+                    {{ group|length }} items.
+                </th>
+            </tr>
+        </tfoot>
     </table>
+    {% endfor %}
 
 {% endblock %}

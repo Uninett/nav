@@ -23,6 +23,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext
+from django.utils.datastructures import SortedDict
 
 from nav.django.context_processors import account_processor
 from nav.django.shortcuts import render_to_response, object_list
@@ -86,7 +87,7 @@ def devicehistory_search(request):
         event_types[a.event_type.id].append(a)
 
     info_dict = {
-        'active': {'devicehistory': True},
+        'active': {'devicesearch': True},
         'quickselect': DeviceQuickSelect,
         'selected_types': selected_types,
         'event_type': event_types,
@@ -108,7 +109,7 @@ def devicehistory_view(request):
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.getlist('type')
-    group_by = request.POST.get('group_by', 'location')
+    group_by = request.POST.get('group_by', 'netbox')
     try:
         page = int(request.POST.get('page', '1'))
     except ValueError:
@@ -129,29 +130,21 @@ def devicehistory_view(request):
     if selected_types['alert']:
         type_filter.append(Q(alert_type__in=selected_types['alert']))
 
-    if group_by == "box_and_modules":
-        order_by = [
-            'netbox_name',
-            'module_name',
-            'device',
-        ]
+    if group_by == "location":
+        order_by = ["location_name"]
+    elif group_by == "room":
+        order_by = ["room_descr"]
+    elif group_by == "module":
+        order_by = ["module_name"]
     elif group_by == "device":
-        order_by = [
-            'device',
-        ]
-    elif group_by == "time":
+        order_by = ["device"]
+    elif group_by == "datetime":
         order_by = []
     else:
-        order_by = [
-            'location_name',
-            'room_descr',
-            'netbox_name',
-            'module_name',
-            'device',
-        ]
+        order_by = ["netbox"]
 
-    order_by.append('-start_time')
-    order_by.append('-end_time')
+    order_by.append("-start_time")
+    order_by.append("-end_time")
 
     # FIXME check that date is a valid "yyyy-mm-dd" string
 
@@ -192,9 +185,7 @@ def devicehistory_view(request):
                netbox.deviceid = device.deviceid
             )'''
         ],
-    ).order_by(
-        *order_by
-    )
+    ).order_by(*order_by)
 
     paginator = Paginator(alert_history, HISTORY_PER_PAGE)
 
@@ -210,11 +201,31 @@ def devicehistory_view(request):
         type='sms',
     ).values('alert_history', 'message')
 
+    grouped_history = SortedDict()
     for a in history.object_list:
         a.extra_messages = []
         for m in msgs:
             if a.id == m['alert_history']:
                 a.extra_messages.append(m['message'])
+
+        if group_by == "location":
+            key = a.location_name
+        elif group_by == "room":
+            key = a.room_descr
+        elif group_by == "module":
+            key = a.module_name
+        elif group_by == "device":
+            key = a.device.serial
+        elif group_by == "datetime":
+            key = a.start_time
+        else:
+            key = a.netbox_name
+
+        if not grouped_history.has_key(key):
+            grouped_history[key] = []
+        grouped_history[key].append(a)
+    history.grouped_history = grouped_history
+
 
     alert_types = AlertType.objects.select_related(
         'event_type'

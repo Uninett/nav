@@ -35,19 +35,27 @@
         <label><input type="radio" name="group_by" value="location"
             {% ifequal group_by "location" %}
             checked="checked"
-            {% endifequal %} />Location, room, box and time</label><br />
-        <label><input type="radio" name="group_by" value="box_and_modules"
-            {% ifequal group_by "box_and_modules" %}
+            {% endifequal %} />Location</label><br />
+        <label><input type="radio" name="group_by" value="room"
+            {% ifequal group_by "room" %}
             checked="checked"
-            {% endifequal %} />Netbox, module and time</label><br />
+            {% endifequal %} />Room</label><br />
+        <label><input type="radio" name="group_by" value="netbox"
+            {% ifequal group_by "netbox" %}
+            checked="checked"
+            {% endifequal %} />Netbox</label><br />
+        <label><input type="radio" name="group_by" value="module"
+            {% ifequal group_by "module" %}
+            checked="checked"
+            {% endifequal %} />Module</label><br />
         <label><input type="radio" name="group_by" value="device"
-            {% ifequal group_by "devices" %}
+            {% ifequal group_by "device" %}
             checked="checked"
-            {% endifequal %} />Device and time</label><br />
+            {% endifequal %} />Device serial</label><br />
         <label><input type="radio" name="group_by" value="datetime"
             {% ifequal group_by "datetime" %}
             checked="checked"
-            {% endifequal %} />Time</label>
+            {% endifequal %} />Date and time</label>
     </td>
 </tr>
 <tr>

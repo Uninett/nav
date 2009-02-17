@@ -6,9 +6,6 @@
     room.</p>
 
     <form action="{% url devicehistory-view %}" method="post">
-        <table class="vertitable">
-            {% include "devicehistory/history_view_filter.html" %}
-        </table>
         {{ quickselect|safe }}
     </form>
 {% endblock %}
