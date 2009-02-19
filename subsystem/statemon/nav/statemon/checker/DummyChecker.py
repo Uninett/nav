@@ -23,6 +23,7 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
+import time
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
