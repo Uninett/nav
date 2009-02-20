@@ -250,6 +250,15 @@ class AlertAddress(models.Model):
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
+        if not (self.address or '').strip():
+            logger.error(('Ignoring alert %d (%s: %s)! Account %s does not have a address set for the ' + \
+                  'alertaddress with id %d, this needs to be fixed before the user ' + \
+                  'will recieve any alerts.') % (alert.id, alert, alert.netbox, self.account, self.id))
+
+            transaction.commit()
+
+            return True
+
         if self.type.is_blacklisted():
             logger.warning('Not sending alert %s to %s as handler %s is blacklisted' % (alert.id, self.address, self.type))
             transaction.rollback()
