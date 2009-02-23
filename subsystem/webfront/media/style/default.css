@@ -315,7 +315,7 @@ table.toolbox4cols tr td {
 .float-list {
     float: left;
     verical-align: top;
-	padding-left: 2em;
+    padding-left: 2em;
 }
 .float-forms {
     float: left;
@@ -325,10 +325,27 @@ table.toolbox4cols tr td {
     color: gray;
 }
 .float-forms form {
-	padding: 0.7em 1em;
+    padding: 0.7em 1em;
 }
 .float-forms p {
     color: gray;
     font-size: 85%;
     text-align: center;
+}
+
+/* Generic */
+
+.float-left {
+    float: left;
+    padding: 0.7em 1em;
+}
+.float-right {
+    float: right;
+    padding: 0.7em 1em;
+}
+.float-clear {
+    clear: both;
+}
+.float-clear-right {
+    clear: right;
 }
