@@ -46,6 +46,7 @@ class DatabaseResult:
         self.rowcount = 0
         self.sums = {}
         self.error = ""
+        self.hidden = []
 
         connection = db.getConnection('default')
 
