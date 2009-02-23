@@ -39,3 +39,7 @@ ul.email_message li {
 		margin: 0;
 		padding: 0.2em;
 }
+
+.hidden {
+	display:none;
+}

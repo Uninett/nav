@@ -59,8 +59,12 @@
                 <td>{{ h.alert_type.name }}</td>
                 <td>
                     <ul>
-                    {% for m in h.extra_messages %}
-                        <li>{{ m }}</li>
+                    {% for state,m in h.extra_messages.items %}
+                        <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">{{ m.sms }}
+                            <ul class="email_message" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                <li>{{ m.email|linebreaks }}</li>
+                            </ul>
+                        </li>
                     {% endfor %}
                     </ul>
                 </td>

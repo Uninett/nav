@@ -198,15 +198,20 @@ def devicehistory_view(request):
     msgs = AlertHistoryMessage.objects.filter(
         alert_history__in=[h.id for h in history.object_list],
         language='en',
-        type='sms',
-    ).values('alert_history', 'message')
+    ).values('alert_history', 'message', 'type', 'state')
 
     grouped_history = SortedDict()
     for a in history.object_list:
-        a.extra_messages = []
+        a.extra_messages = {}
         for m in msgs:
             if a.id == m['alert_history']:
-                a.extra_messages.append(m['message'])
+                if not a.extra_messages.has_key(m['state']):
+                    a.extra_messages[m['state']] = {
+                        'sms': None,
+                        'email': None,
+                        'jabber': None,
+                    }
+                a.extra_messages[m['state']][m['type']] = m['message']
 
         if group_by == "location":
             key = a.location_name
