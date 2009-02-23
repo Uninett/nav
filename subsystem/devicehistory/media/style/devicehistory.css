@@ -40,16 +40,20 @@ ul.email_message li {
 	padding: 0.2em;
 }
 
-li span {
+li.sms_message {
+	clear: both;
+}
+
+li.sms_message span {
 	float: left;
 }
 
-li .expand_link {
+li.sms_message .expand_link {
 	margin-left: 20px;
 	display: block;
 	float: right;
 }
 
-li ul {
+li.sms_message ul {
 	clear: both;
 }
