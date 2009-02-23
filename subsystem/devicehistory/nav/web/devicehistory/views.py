@@ -68,8 +68,8 @@ _ = lambda a: a
 
 def devicehistory_search(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
+    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
+    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.getlist('type')
 
     selected_types = get_selected_types(types)
