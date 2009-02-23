@@ -222,7 +222,7 @@ def devicehistory_view(request):
         elif group_by == "device":
             key = a.device.serial
         elif group_by == "datetime":
-            key = a.start_time
+            key = a.start_time.date().isoformat()
         else:
             key = a.netbox_name
 
