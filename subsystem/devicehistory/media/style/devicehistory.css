@@ -13,8 +13,8 @@
 }
 
 .room_wrapper {
-		padding-left: 1em;
-		border-left: 1px dashed black;
+	padding-left: 1em;
+	border-left: 1px dashed black;
 }
 
 .room_wrapper + h3 {
@@ -33,13 +33,23 @@
 }
 
 ul.email_message li {
-		list-style-type: none;
-		border: 1px solid #729FCF;
-		background-color: #acf;
-		margin: 0;
-		padding: 0.2em;
+	list-style-type: none;
+	border: 1px solid #729FCF;
+	background-color: #acf;
+	margin: 0;
+	padding: 0.2em;
 }
 
-.hidden {
-	display:none;
+li span {
+	float: left;
+}
+
+li .expand_link {
+	margin-left: 20px;
+	display: block;
+	float: right;
+}
+
+li ul {
+	clear: both;
 }

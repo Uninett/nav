@@ -60,7 +60,8 @@
                 <td>
                     <ul>
                     {% for state,m in h.extra_messages.items %}
-                        <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">{{ m.sms }}
+                        <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                            <span>{{ m.sms }}</span>
                             <ul class="email_message" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                                 <li>{{ m.email|linebreaks }}</li>
                             </ul>
