@@ -309,9 +309,9 @@ def handler(req):
             page.descriptions = None
 
             if adv:
-                page.search = True
+                page.adv_block = True
             else:
-                page.search = False
+                page.adv_block = False
 
             if report:
 
