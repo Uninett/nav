@@ -20,4 +20,10 @@
 
 BEGIN;
 -- Insert schema changes here.
+
+ALTER TABLE org DROP CONSTRAINT "$1";
+ALTER TABLE org ADD CONSTRAINT org_parent_fkey 
+                               FOREIGN KEY (parent) REFERENCES org (orgid)
+                               ON UPDATE CASCADE;
+
 COMMIT;
