@@ -25,20 +25,20 @@
 $(document).ready(function() {
 	// Handle the case when javascript is enabled.
 	$('#adv').attr('value', '');
-	$('#advSLOpen').attr('href', '#');
-	$('#advSLClose').attr('href', '#');
+	$('#advBlockOpen').attr('href', '#');
+	$('#advBlockClose').attr('href', '#');
 
 
-	// Toggle showing link and search form.
-	$('a#advSLOpen').click(function() {
-		$('#advsearchblock').toggle();
-		$('#advsearchlink').toggle();
+	// Toggle showing link and advanced options block.
+	$('a#advBlockOpen').click(function() {
+		$('#advblock').toggle();
+		$('#advlink').toggle();
 		return false;
 	});
 
-	$('a#advSLClose').click(function() {
-		$('#advsearchblock').toggle();
-		$('#advsearchlink').toggle();
+	$('a#advBlockClose').click(function() {
+		$('#advblock').toggle();
+		$('#advlink').toggle();
 		return false;
 	});
 });
