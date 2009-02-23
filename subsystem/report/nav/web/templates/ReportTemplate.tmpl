@@ -78,38 +78,25 @@
 
 <h2>Report</h2>
 
-#if $search>0
-    $advSearch
+#if $adv_block>0
+    $advBlock
 #else
-<div id="advsearchlink">
-    <p><a id="advSLOpen" href="${old_uri}adv=1">Advanced Search</a></p>
+<div id="advlink">
+    <p><a id="advBlockOpen" href="${old_uri}adv=1">Advanced Options</a></p>
 </div>
 #end if
 
-## Advanced search block start
-<div id="advsearchblock" style="display: none">
-#block advSearch
+## Advanced Option block start
+<div id="advblock" style="display: none">
+#block advBlock
+    <p><a id="advBlockClose" href="${old_uri}adv=">Close Advanced Options</a></p>
     <h3>Advanced Search</h3>
-    <p><a id="advSLClose" href="${old_uri}adv=">Close Advanced Search</a></p>
 
-    <div class="infobox" style="float: right">
-        <h4>Operator usage</h4>
-
-        <ul>
-            <li>= - "equals", enter null for empty string</li>
-            <li>~ - case insensitive search, use * as wildcard</li>
-            <li>[:] - "between", takes two colon-separated arguments</li>
-            <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
-        </ul>
-
-        <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
-        <p>All these operators may be negated by clicking the "not" checkbox.</p>
-    </div>
-
-    <form action="" method="get" name="advsearch">
+    ## Advanced search box
+    <form action="" method="get" name="advblock">
         <input id="adv" type="hidden" name="adv" value="1"/>
 
-        <table class="vertitable">
+        <table class="vertitable float-left">
 
 #set $counter = 0
 
@@ -154,17 +141,46 @@
             <tr>
                 <th></th>
                 <td colspan="4">
-                    <button type="submit" name="r4g3n53nd">Search</button>
+                    <button type="submit">Search</button>
                 </td>
             </tr>
         </table>
     </form>
 
-#end block advSearch
+    <div class="float-left">
+        ## Infobox
+        <div class="infobox">
+            <h4>Operator usage</h4>
+
+            <ul>
+                <li>= - "equals", enter null for empty string</li>
+                <li>~ - case insensitive search, use * as wildcard</li>
+                <li>[:] - "between", takes two colon-separated arguments</li>
+                <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
+            </ul>
+
+            <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
+            <p>All these operators may be negated by clicking the "not" checkbox.</p>
+        </div>
+
+
+        ## CSV Export form
+        <h3>CSV Export</h3>
+        <form action="" method=="get" name="export">
+            <select name="export">
+#for $delim in $delimiters
+                <option value="$delim">$delim</option>
+#end for
+            </select>
+            <button type="submit">Export</button>
+        </form>
+    </div>
+
+#end block advBlock
 
 </div>
 
-## Advanced search block end
+## Advanced Option block end
 
 
 ## ----------------------------------------------------------------------- REPORT ---- ##
@@ -172,7 +188,7 @@
     #set $rowcount = len($report.table.rows) + 1
     #set $columncount = len($report.table.header.cells)
 
-<table class="listtable reporttable">
+<table class="listtable reporttable float-clear">
 
 ## --- TITLE ROW ---- ##
     <caption>
