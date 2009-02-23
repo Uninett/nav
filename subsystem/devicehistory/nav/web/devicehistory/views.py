@@ -91,7 +91,7 @@ def devicehistory_search(request):
             request,
             processors=[account_processor]
         )
-    );
+    )
 
 def devicehistory_view(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
@@ -163,7 +163,7 @@ def error_form(request):
             request,
             processors=[account_processor]
         )
-    );
+    )
 
 def register_error(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
