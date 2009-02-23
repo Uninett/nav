@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# $Id: Generator.py 3839 2007-01-29 15:53:21Z mortenv $
 #
 # Copyright 2003-2005 Norwegian University of Science and Technology
 # Copyright 2008 UNINETT AS
@@ -41,7 +40,7 @@ class Generator:
     def __init__(self):
 
         self.config = None
-        self.answer = None
+        self.dbresult = None
         self.sql = ""
 
     def makeReport(self,reportName,configFile,configFileLocal,uri,dbresult):
@@ -68,6 +67,10 @@ class Generator:
         if parseOK:
             argumentParser = ArgumentParser(config)
             argumentHash = argumentParser.parseArguments(args)
+            
+            # Remove non-query arguments
+            if argumentHash.has_key("export"):
+                del argumentHash["export"]
 
             if argumentHash.has_key("adv"):
                 if argumentHash["adv"]:
@@ -84,13 +87,13 @@ class Generator:
                 return (formatted,contents,neg,operator,adv,None)
 
             else:
-                answer = DatabaseResult(config)
-                self.sql = answer.sql
+                dbresult = DatabaseResult(config)
+                self.sql = dbresult.sql
 
-                formatted = Report(config,answer,uri)
+                formatted = Report(config,dbresult,uri)
                 formatted.titlebar = reportName + " - report - NAV"
 
-                return (formatted,contents,neg,operator,adv,answer)
+                return (formatted,contents,neg,operator,adv,dbresult)
 
         else:
             return (0,None,None,None,adv,None)
