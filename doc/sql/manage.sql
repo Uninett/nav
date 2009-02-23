@@ -34,12 +34,14 @@ CREATE TABLE status (
 
 CREATE TABLE org (
   orgid VARCHAR(30) PRIMARY KEY,
-  parent VARCHAR(30) REFERENCES org (orgid),
+  parent VARCHAR(30),
   descr VARCHAR,
   contact VARCHAR,
   opt1 VARCHAR,
   opt2 VARCHAR,
-  opt3 VARCHAR
+  opt3 VARCHAR,
+  CONSTRAINT org_parent_fkey FOREIGN KEY (parent) REFERENCES org (orgid)
+             ON UPDATE CASCADE
 );
 
 

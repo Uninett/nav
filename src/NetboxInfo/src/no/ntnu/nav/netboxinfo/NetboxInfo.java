@@ -390,7 +390,7 @@ public class NetboxInfo {
 					valIt.remove();
 
 					String[] set = {
-						"val", newVal
+						"val", Database.addSlashes(newVal)
 					};
 					String[] where = {
 						"netboxinfoid", netboxinfoid
