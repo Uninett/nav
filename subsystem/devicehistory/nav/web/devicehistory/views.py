@@ -72,23 +72,8 @@ def devicehistory_search(request):
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + 24 * 60 * 60))
     types = request.POST.getlist('type')
 
-    selected_types = {'event': [], 'alert': []}
-    for type in types:
-        if type.find('_') != -1:
-            splitted = type.split('_')
-            if splitted[0] == 'e':
-                selected_types['event'].append(splitted[1])
-            else:
-                selected_types['alert'].append(splitted[1])
-
-    alert_types = AlertType.objects.select_related(
-        'event_type'
-    ).all().order_by('event_type__id', 'name')
-    event_types = {}
-    for a in alert_types:
-        if a.event_type.id not in event_types:
-            event_types[a.event_type.id] = []
-        event_types[a.event_type.id].append(a)
+    selected_types = get_selected_types(types)
+    event_types = get_event_and_alert_types()
 
     info_dict = {
         'active': {'devicesearch': True},
