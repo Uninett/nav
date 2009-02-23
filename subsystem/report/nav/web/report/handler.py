@@ -32,6 +32,7 @@ from mod_python import apache, util
 from operator import itemgetter
 from time import localtime, strftime
 import copy
+import csv
 import os
 import os.path
 import psycopg
@@ -65,33 +66,43 @@ def handler(req):
     uri = req.unparsed_uri
     args = req.args
     nuri = URI(uri)
+    export = None
 
 
+    ### Section which handles input arguments
 
     # These arguments and their friends will be deleted
-    remo = []     
+    remove = []
 
-    # Finding empty values
+    # Finding empty values and 'export' key
     for key,val in nuri.args.items():
         if val == "":
-            remo.append(key)
+            remove.append(key)
+        if key == "export":
+            val = urllib.unquote(val)
+            # Remember to match against 'page.delimiters'
+            match = re.search("(\,|\;|\:|\|)", val)
+            if match:
+                export = match.group(0)
+            else:
+                remove.append(key)
+
 
     # Deleting empty values
-    for r in remo:
+    for r in remove:
         if nuri.args.has_key(r):
             del(nuri.args[r])
         if nuri.args.has_key("op_"+r):
             del(nuri.args["op_"+r])
         if nuri.args.has_key("not_"+r):
             del(nuri.args["not_"+r])
-    
-    if len(remo):
-        # Redirect if any arguments were removed
+
+    # Redirect if any arguments were removed
+    if len(remove):
         redirect(req, nuri.make())
 
-
     match = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
-    
+
     if match:
         reportName = match.group(1)
     else:
@@ -209,18 +220,16 @@ def handler(req):
         req.write(page.respond())
 
     else:
-        page = ReportTemplate()
-        req.content_type = "text/html"
-        req.send_http_header()
+        page = None
 
         gen = Generator()
-        
+
         # Initiating variables used when caching
         report = contents = neg = operator = adv = dbresult = result_time = None
 
-        # Deleting offset and limit variables from uri so that we would know if
-        # it's the same dbresult asked for.
-        nuri.setArguments(['offset', 'limit'], '')
+        # Deleting meta variables from uri to help identifying if the report
+        # asked for is in the cache or not.
+        nuri.setArguments(['offset', 'limit', 'export'], '')
         for key,val in nuri.args.items():
             if val == "":
                 del nuri.args[key]
@@ -230,64 +239,97 @@ def handler(req):
         mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
         cache_name = 'report_' + username + '_' + str(mtime_config)
 
-        # Caching 
+        # Caching
         # Checks if cache exists for this user, that cached report is the one
         # requested and that config files are unchanged
         if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
             dbresult_cache = cache.get(cache_name)[6]
             result_time = cache.get(cache_name)[7]
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, config_file_package, config_file_local, uri, dbresult_cache)
+            dbresult = dbresult_cache
 
-        else:
+        else: # Report not in cache, fetch it from DB
             result_time = strftime("%H:%M:%S", localtime())
             (report, contents, neg, operator, adv, dbresult) = gen.makeReport(reportName, config_file_package, config_file_local, uri, None)
             cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time))
 
 
-        page.result_time = result_time
-        page.report = report
-        page.contents = contents
-        page.operator = operator
-        page.neg = neg
+        if export:
+            req.content_type = "text/x-csv"
+            req.headers_out["Content-Type"] = "application/force-download"
+            req.headers_out["Content-Disposition"] = "attachment; filename=report-%s-%s.csv" % (reportName, strftime("%Y%m%d", localtime()))
+            req.send_http_header()
+            writer = csv.writer(req, delimiter=export)
+            rows = []
 
-        namename = ""
-        if report:
-            namename = report.title
-            if not namename:
-                namename = reportName
-            namelink = "/report/"+reportName
+            # Make a list of headers
+            header_row = []
+            for cell in report.table.header.cells:
+                header_row.append(cell.text)
+            writer.writerow(header_row)
+
+            # Make a list of lists containing each cell. Considers the 'hidden' option from the config.
+            for row in report.table.rows:
+                tmp_row = []
+                for cell in row.cells:
+                    tmp_row.append(cell.text)
+                rows.append(tmp_row)
+
+            writer.writerows(rows)
+            req.write("")
 
         else:
-            namename = "Error"
-            namelink = False
+            req.content_type = "text/html"
+            req.send_http_header()
+            page = ReportTemplate()
+            page.result_time = result_time
+            page.report = report
+            page.contents = contents
+            page.operator = operator
+            page.neg = neg
 
-        page.path = [("Home", "/"), ("Report", "/report/"), (namename,namelink)]
-        page.title = "Report - "+namename
-        old_uri = req.unparsed_uri
-        page.old_uri = old_uri
+            namename = ""
+            if report:
+                namename = report.title
+                if not namename:
+                    namename = reportName
+                namelink = "/report/"+reportName
 
-        page.operators = None
-        page.operatorlist = None
-        page.descriptions = None
-
-        if adv:
-            page.search = True
-        else:
-            page.search = False
-
-        if report:
-
-            if old_uri.find("?")>0:
-                old_uri += "&"
             else:
-                old_uri += "?"
+                namename = "Error"
+                namelink = False
+
+            page.path = [("Home", "/"), ("Report", "/report/"), (namename,namelink)]
+            page.title = "Report - "+namename
+            old_uri = req.unparsed_uri
             page.old_uri = old_uri
 
-            page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
-            page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
-            page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
+            page.operators = None
+            page.operatorlist = None
+            page.descriptions = None
 
-        req.write(page.respond())
+            if adv:
+                page.search = True
+            else:
+                page.search = False
+
+            if report:
+
+                if old_uri.find("?")>0:
+                    old_uri += "&"
+                else:
+                    old_uri += "?"
+                page.old_uri = old_uri
+
+                #### A maintainable list of variables sent to template
+                # Searching
+                page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
+                page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
+                page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
+                # CSV Export dialects/delimiters
+                page.delimiters = (",", ";", ":", "|")
+
+            req.write(page.respond())
 
     return apache.OK
 
