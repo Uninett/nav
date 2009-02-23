@@ -15,305 +15,133 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import time
-from datetime import date
 from django.db.models import Q
+from django.utils.datastructures import SortedDict
 
-from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import AlertHistory, AlertHistoryVariable, AlertHistoryMessage, AlertType
+from nav.models.event import AlertHistory, AlertHistoryMessage
 
-GROUP_BY_LOCATION = 'group_by_locations'
-GROUP_BY_ROOM = 'group_by_room'
-GROUP_BY_NETBOX_AND_MODULE = 'group_by_netbox_and_module'
-GROUP_BY_NETBOX = 'group_by_netbox'
-GROUP_BY_MODULE = 'group_by_module'
-GROUP_BY_DEVICE = 'group_by_device'
+def get_selected_types(types):
+    selected_types = {'event': [], 'alert': []}
+    for type in types:
+        if type.find('_') != -1:
+            splitted = type.split('_')
+            if splitted[0] == 'e':
+                selected_types['event'].append(splitted[1])
+            else:
+                selected_types['alert'].append(splitted[1])
+    return selected_types
 
-def get_history(**kwargs):
-    location_ids = kwargs.pop('locations', [])
-    room_ids = kwargs.pop('rooms', [])
-    netbox_ids = kwargs.pop('netboxes', [])
-    module_ids = kwargs.pop('modules', [])
-    device_ids = kwargs.pop('devices', [])
+def fetch_history(selection, from_date, to_date, selected_types=[], order_by=None):
+    def type_query_filter(selected_types):
+        type_filter = []
+        if selected_types['event']:
+            type_filter.append(Q(event_type__in=selected_types['event']))
+        if selected_types['alert']:
+            type_filter.append(Q(alert_type__in=selected_types['alert']))
+        return type_filter
 
-    start_time = kwargs.pop('start_time', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-    end_time = kwargs.pop('end_time', date.today())
-    types = kwargs.pop('types', None)
-    group_by = kwargs.pop('group_by', GROUP_BY_NETBOX_AND_MODULE)
+    def choose_ordering(group_by):
+        if group_by == "location":
+            order_by = ["location_name"]
+        elif group_by == "room":
+            order_by = ["room_descr"]
+        elif group_by == "module":
+            order_by = ["module_name"]
+        elif group_by == "device":
+            order_by = ["device"]
+        elif group_by == "datetime":
+            order_by = []
+        else:
+            order_by = ["netbox"]
+        order_by.append("-start_time")
+        order_by.append("-end_time")
+        return order_by
 
-    for key in kwargs.keys():
-        raise TypeError('__init__() got an unexpected keyword argument %s' % key)
+    type_filter = type_query_filter(selected_types)
+    order_by = choose_ordering(order_by)
 
-    time_limit = [
-        Q(start_time__lte=self.end_time) &
+    alert_history = AlertHistory.objects.select_related(
+        'event_type', 'alert_type', 'device'
+    ).filter(
+        Q(device__netbox__room__location__id__in=selection['location']) |
+        Q(device__netbox__room__id__in=selection['room']) |
+        Q(device__netbox__id__in=selection['netbox']) |
+        Q(device__netbox__module__id__in=selection['module']),
+        Q(start_time__lte=to_date) &
         (
-            Q(end_time__gte=self.start_time) |
+            Q(end_time__gte=from_date) |
             (
                 Q(end_time__isnull=True) &
-                Q(start_time__gte=self.start_time)
+                Q(start_time__gte=from_date)
             )
-        )
-    ]
-    
-    def location_history():
-        pass
+        ),
+        *type_filter
+    ).extra(
+        select={
+            'location_name': 'location.descr',
+            'room_descr': 'room.descr',
+            'netbox_name': 'netbox.sysname',
+            'module_name': 'module.module',
+        },
+        tables=[
+            'location',
+        ],
+        where=[
+            '''(
+               room.locationid = location.locationid AND
+               netbox.roomid = room.roomid AND
+               netbox.deviceid = device.deviceid
+            )'''
+        ],
+    ).order_by(*order_by)
+    return alert_history
 
-    def room_history():
-        pass
+def get_page(paginator, page):
+    try:
+        history = paginator.page(page)
+    except (EmptyPage, InvalidPage):
+        history = paginator.page(paginator.num_pages)
+    return history
 
-    def netbox_history():
-        pass
+def get_messages_for_history(alert_history):
+    msgs = AlertHistoryMessage.objects.filter(
+        alert_history__in=[h.id for h in alert_history],
+        language='en',
+    ).values('alert_history', 'message', 'type', 'state')
+    return msgs
 
-    def module_history():
-        pass
+def group_history_and_messages(history, messages, group_by=None):
+    def get_grouping_key(a, group_by):
+        if group_by == "location":
+            key = a.location_name
+        elif group_by == "room":
+            key = a.room_descr
+        elif group_by == "module":
+            key = a.module_name
+        elif group_by == "device":
+            key = a.device.serial
+        elif group_by == "datetime":
+            key = a.start_time.date().isoformat()
+        else:
+            key = a.netbox_name
+        return key
 
-    def device_history():
-        pass
+    grouped_history = SortedDict()
+    for a in history:
+        a.extra_messages = {}
+        for m in messages:
+            if a.id == m['alert_history']:
+                if not a.extra_messages.has_key(m['state']):
+                    a.extra_messages[m['state']] = {
+                        'sms': None,
+                        'email': None,
+                        'jabber': None,
+                    }
+                a.extra_messages[m['state']][m['type']] = m['message']
 
+        key = get_grouping_key(a, group_by)
 
-class History:
-    locations = []
-    rooms = []
-    netboxes = []
-    modules = []
-
-    start_time = []
-    end_time = []
-    types = []
-
-    def __init__(self, **kwargs):
-        selection = kwargs.pop('selection', [])
-        self.start_time = kwargs.pop('start_time', date.fromtimestamp(time.time() - 7 * 24 * 60 * 60))
-        self.end_time = kwargs.pop('end_time', date.today())
-        self.types = kwargs.pop('types', None)
-
-        for key in kwargs.keys():
-            raise TypeError('__init__() got an unexpected keyword argument %s' % key)
-
-        self.locations = selection.get('location', [])
-        self.rooms = selection.get('room', [])
-        self.netboxes = selection.get('netbox', [])
-        self.modules = selection.get('module', [])
-
-        self.time_limit = [
-            Q(start_time__lte=self.end_time) &
-            (
-                Q(end_time__gte=self.start_time) |
-                (
-                    Q(end_time__isnull=True) &
-                    Q(start_time__gte=self.start_time)
-                )
-            )
-        ]
-
-    def get_location_history(self):
-        alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type', 'device'
-        ).filter(
-            Q(device__netbox__room__location__id__in=self.locations),
-            *self.time_limit
-        ).extra(
-            select={
-                'location_id': 'location.locationid',
-                'location_name': 'location.descr',
-            },
-            tables=['location'],
-            where=['location.locationid=room.locationid']
-        ).order_by('location_name', '-start_time', '-end_time')
-
-        if self.types['event']:
-            alert_history = alert_history.filter(event_type__in=self.types['event'])
-        if self.types['alert']:
-            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
-
-        msgs = AlertHistoryMessage.objects.filter(
-            alert_history__in=alert_history,
-            language='en',
-            type='sms',
-        )
-
-        history = {}
-        for a in alert_history:
-            a.extra_messages = []
-            for m in msgs:
-                if m.alert_history_id == a.id:
-                    a.extra_messages.append(m)
-            if a.location_id not in history:
-                history[a.location_id] = {
-                    'description': a.location_name,
-                    'alerts': []
-                }
-            history[a.location_id]['alerts'].append(a)
-        return history
-
-    def get_room_history(self):
-        alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type', 'device'
-        ).filter(
-            Q(device__netbox__room__id__in=self.rooms),
-            *self.time_limit
-        ).extra(
-            select={
-                'room_id': 'room.roomid',
-                'room_descr': 'room.descr',
-           },
-           tables=['room'],
-           where=['room.roomid=netbox.roomid']
-        ).order_by('alerthistoryvariable__value', '-start_time', '-end_time')
-
-        if self.types['event']:
-            alert_history = alert_history.filter(event_type__in=self.types['event'])
-        if self.types['alert']:
-            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
-
-        msgs = AlertHistoryMessage.objects.filter(
-            alert_history__in=alert_history,
-            language='en',
-            type='sms',
-        )
-
-        history = {}
-        for a in alert_history:
-            a.extra_messages = []
-            for m in msgs:
-                if m.alert_history_id == a.id:
-                    a.extra_messages.append(m)
-            if a.room_id not in history:
-                if not isinstance(a.room_id, unicode):
-                    a.room_id = unicode(a.room_id)
-                if not isinstance(a.room_descr, unicode):
-                    a.room_descr = unicode(a.room_descr)
-                history[a.room_id] = {
-                    'description': a.room_id + ' (' + a.room_descr + ')',
-                    'alerts': []
-                }
-
-            history[a.room_id]['alerts'].append(a)
-
-        return history
-
-    def get_netbox_history(self):
-        alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type', 'device'
-        ).filter(
-            Q(device__netbox__id__in=self.netboxes),
-            *self.time_limit
-        ).extra(
-            select={
-                'netbox_id': 'netbox.netboxid',
-                'netbox_name': 'netbox.sysname',
-            },
-            tables=['netbox'],
-            where=['netbox.deviceid=device.deviceid']
-        ).order_by('-start_time')
-
-        if self.types['event']:
-            alert_history = alert_history.filter(event_type__in=self.types['event'])
-        if self.types['alert']:
-            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
-
-        msgs = AlertHistoryMessage.objects.filter(
-            alert_history__in=alert_history,
-            language='en',
-            type='sms',
-        )
-
-        history = {}
-        for a in alert_history:
-            a.extra_messages = []
-            for m in msgs:
-                if m.alert_history_id == a.id:
-                    a.extra_messages.append(m)
-            if a.netbox_id not in history:
-                history[a.netbox_id] = {
-                    'description': a.netbox_name,
-                    'alerts': []
-                }
-            history[a.netbox_id]['alerts'].append(a)
-        return history
-
-    def get_module_history(self):
-        alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type', 'device'
-        ).filter(
-            Q(device__module__id__in=self.modules),
-            *self.time_limit
-        ).extra(
-            select={
-                'module': 'module.module',
-                'netbox_name': 'netbox.sysname',
-            },
-            tables=['module', 'netbox'],
-            where=['module.deviceid=device.deviceid', 'netbox.netboxid=module.netboxid']
-        ).order_by('-start_time')
-
-        if self.types['event']:
-            alert_history = alert_history.filter(event_type__in=self.types['event'])
-        if self.types['alert']:
-            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
-
-        msgs = AlertHistoryMessage.objects.filter(
-            alert_history__in=alert_history,
-            language='en',
-            type='sms',
-        )
-
-        history = {}
-        for a in alert_history:
-            a.extra_messages = []
-            for m in msgs:
-                if m.alert_history_id == a.id:
-                    a.extra_messages.append(m)
-            if a.module not in history:
-                history[a.module] = {
-                    'description': u'Module %i in %s' %  (a.module, a.netbox_name),
-                    'alerts': []
-                }
-            history[a.module]['alerts'].append(a)
-        return history
-
-    def get_device_history(self):
-        netboxes = Netbox.objects.select_related(
-            'device'
-        ).filter(id__in=self.netboxes)
-        modules = Module.objects.select_related(
-            'device'
-        ).filter(id__in=self.modules)
-
-        devices = []
-        for box in netboxes,modules:
-            for d in box:
-                if d.device.serial and d.device not in devices:
-                    devices.append(d.device)
-
-        alert_history = AlertHistory.objects.select_related(
-            'event_type', 'alert_type', 'device'
-        ).filter(
-            Q(device__in=devices),
-            *self.time_limit
-        ).order_by('-start_time')
-
-        if self.types['event']:
-            alert_history = alert_history.filter(event_type__in=self.types['event'])
-        if self.types['alert']:
-            alert_history = alert_history.filter(alert_type__in=self.types['alert'])
-
-        msgs = AlertHistoryMessage.objects.filter(
-            alert_history__in=alert_history,
-            language='en',
-            type='sms',
-        )
-
-        history = {}
-        for a in alert_history:
-            a.extra_messages = []
-            for m in msgs:
-                if m.alert_history_id == a.id:
-                    a.extra_messages.append(m)
-            if a.device.serial not in history:
-                history[a.device.serial] = {
-                    'description': a.device.serial,
-                    'alerts': [],
-                }
-            history[a.device.serial]['alerts'].append(a)
-        return history
+        if not grouped_history.has_key(key):
+            grouped_history[key] = []
+        grouped_history[key].append(a)
+    return grouped_history

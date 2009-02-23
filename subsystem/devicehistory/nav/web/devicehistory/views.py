@@ -28,12 +28,16 @@ from django.utils.datastructures import SortedDict
 from nav.django.context_processors import account_processor
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
-from nav.models.event import AlertHistory, AlertHistoryMessage, AlertHistoryVariable, AlertType, EventType
+from nav.models.event import AlertHistory, AlertHistoryMessage, \
+    AlertHistoryVariable, AlertType, EventType
 from nav.web.message import new_message, Messages
 from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
-from nav.web.devicehistory.utils.history import History
+from nav.web.devicehistory.utils import get_event_and_alert_types
+from nav.web.devicehistory.utils.history import get_selected_types, \
+    fetch_history, get_page, get_messages_for_history, \
+    group_history_and_messages
 from nav.web.devicehistory.utils.error import register_error_events
 
 DeviceQuickSelect_view_history_kwargs = {
@@ -110,140 +114,36 @@ def devicehistory_view(request):
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.getlist('type')
     group_by = request.POST.get('group_by', 'netbox')
+
+    selection = DeviceQuickSelect.handle_post(request)
+    selected_types = get_selected_types(types)
+    event_types = get_event_and_alert_types()
+
     try:
         page = int(request.POST.get('page', '1'))
     except ValueError:
         page = 1
 
-    selected_types = {'event': [], 'alert': []}
-    for type in types:
-        if type.find('_') != -1:
-            splitted = type.split('_')
-            if splitted[0] == 'e':
-                selected_types['event'].append(splitted[1])
-            else:
-                selected_types['alert'].append(splitted[1])
-
-    type_filter = []
-    if selected_types['event']:
-        type_filter.append(Q(event_type__in=selected_types['event']))
-    if selected_types['alert']:
-        type_filter.append(Q(alert_type__in=selected_types['alert']))
-
-    if group_by == "location":
-        order_by = ["location_name"]
-    elif group_by == "room":
-        order_by = ["room_descr"]
-    elif group_by == "module":
-        order_by = ["module_name"]
-    elif group_by == "device":
-        order_by = ["device"]
-    elif group_by == "datetime":
-        order_by = []
-    else:
-        order_by = ["netbox"]
-
-    order_by.append("-start_time")
-    order_by.append("-end_time")
-
-    # FIXME check that date is a valid "yyyy-mm-dd" string
-
-    selection = DeviceQuickSelect.handle_post(request)
-
-    # Fetch history for selected items.
-    # Also fetches additional info about location, room, netbox and module.
-    alert_history = AlertHistory.objects.select_related(
-        'event_type', 'alert_type', 'device'
-    ).filter(
-        Q(device__netbox__room__location__id__in=selection['location']) |
-        Q(device__netbox__room__id__in=selection['room']) |
-        Q(device__netbox__id__in=selection['netbox']) |
-        Q(device__netbox__module__id__in=selection['module']),
-        Q(start_time__lte=to_date) &
-        (
-            Q(end_time__gte=from_date) |
-            (
-                Q(end_time__isnull=True) &
-                Q(start_time__gte=from_date)
-            )
-        ),
-        *type_filter
-    ).extra(
-        select={
-            'location_name': 'location.descr',
-            'room_descr': 'room.descr',
-            'netbox_name': 'netbox.sysname',
-            'module_name': 'module.module',
-        },
-        tables=[
-            'location',
-        ],
-        where=[
-            '''(
-               room.locationid = location.locationid AND
-               netbox.roomid = room.roomid AND
-               netbox.deviceid = device.deviceid
-            )'''
-        ],
-    ).order_by(*order_by)
-
-    paginator = Paginator(alert_history, HISTORY_PER_PAGE)
-
-    try:
-        history = paginator.page(page)
-    except (EmptyPage, InvalidPage):
-        history = paginator.page(paginator.num_pages)
-
-    # Fetch related messages
-    msgs = AlertHistoryMessage.objects.filter(
-        alert_history__in=[h.id for h in history.object_list],
-        language='en',
-    ).values('alert_history', 'message', 'type', 'state')
-
-    grouped_history = SortedDict()
-    for a in history.object_list:
-        a.extra_messages = {}
-        for m in msgs:
-            if a.id == m['alert_history']:
-                if not a.extra_messages.has_key(m['state']):
-                    a.extra_messages[m['state']] = {
-                        'sms': None,
-                        'email': None,
-                        'jabber': None,
-                    }
-                a.extra_messages[m['state']][m['type']] = m['message']
-
-        if group_by == "location":
-            key = a.location_name
-        elif group_by == "room":
-            key = a.room_descr
-        elif group_by == "module":
-            key = a.module_name
-        elif group_by == "device":
-            key = a.device.serial
-        elif group_by == "datetime":
-            key = a.start_time.date().isoformat()
-        else:
-            key = a.netbox_name
-
-        if not grouped_history.has_key(key):
-            grouped_history[key] = []
-        grouped_history[key].append(a)
-    history.grouped_history = grouped_history
-
-
-    alert_types = AlertType.objects.select_related(
-        'event_type'
-    ).all().order_by('event_type__id', 'name')
-    event_types = {}
-    for a in alert_types:
-        if a.event_type.id not in event_types:
-            event_types[a.event_type.id] = []
-        event_types[a.event_type.id].append(a)
+    alert_history = fetch_history(
+        selection,
+        from_date,
+        to_date,
+        selected_types,
+        group_by
+    )
+    paginated_history = Paginator(alert_history, HISTORY_PER_PAGE)
+    this_page = get_page(paginated_history, page)
+    messages = get_messages_for_history(this_page.object_list)
+    grouped_history = group_history_and_messages(
+        this_page.object_list,
+        messages,
+        group_by
+    )
+    this_page.grouped_history = grouped_history
 
     info_dict = {
         'active': {'devicehistory': True},
-        'history': history,
+        'history': this_page,
         'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
