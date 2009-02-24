@@ -286,6 +286,8 @@ public class Main extends JPrefuseApplet {
             decreaseFontSizeButton.addActionListener(decreaseFontSizeHandler);
             freezeMenu.add(decreaseFontSizeButton);
 
+            /* COMMENTED OUT FOR 3.5.1 */
+            /*
             try {
                 if (getParameter("is_admin").equals("True")){
                     saveLayoutButton = new javax.swing.JButton("Save layout");
@@ -294,7 +296,7 @@ public class Main extends JPrefuseApplet {
                 }
             } catch (Exception e){
                 System.out.println("NOTICE: Could not get is_admin-parameter");
-            }
+            }*/
 
             menuBar.add(freezeMenu);
 
