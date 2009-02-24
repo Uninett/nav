@@ -167,6 +167,7 @@
         ## CSV Export form
         <h3>CSV Export</h3>
         <form action="" method=="get" name="export">
+            <label for="export">Delimiter: </label>
             <select name="export">
 #for $delim in $delimiters
                 <option value="$delim">$delim</option>
