@@ -160,7 +160,7 @@ def handle_new_alerts(new_alerts):
                             # Allways queue alert so that we have it incase of
                             # failed send.
                             AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
-                            logger.info('alert %d queued for %s' % (alert.id, account))
+                            logger.info('alert %d queued for %s due to subscription %d' % (alert.id, account, alertsubscription.id))
 
                             queued = True
                             break;

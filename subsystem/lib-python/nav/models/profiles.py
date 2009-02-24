@@ -250,8 +250,22 @@ class AlertAddress(models.Model):
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
+        if not (self.address or '').strip():
+            logger.error(('Ignoring alert %d (%s: %s)! Account %s does not have a address set for the ' + \
+                  'alertaddress with id %d, this needs to be fixed before the user ' + \
+                  'will recieve any alerts.') % (alert.id, alert, alert.netbox, self.account, self.id))
+
+            transaction.commit()
+
+            return True
+
+        if self.type.is_blacklisted():
+            logger.warning('Not sending alert %s to %s as handler %s is blacklisted' % (alert.id, self.address, self.type))
+            transaction.rollback()
+
+            return False
+
         try:
-            # Wrap all send methods in commit on success
             self.type.send(self, alert, language=lang, type=type)
             transaction.commit()
 
@@ -261,8 +275,9 @@ class AlertAddress(models.Model):
             return False
 
         except Exception, e:
-            logger.exception('Unhandeled error from %s' % self.type)
+            logger.exception('Unhandeled error from %s (the handler has been blacklisted)' % self.type)
             transaction.rollback()
+            self.type.blacklist()
             return False
 
         return True
@@ -270,6 +285,8 @@ class AlertAddress(models.Model):
 class AlertSender(models.Model):
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
+
+    _blacklist = set()
 
     def __unicode__(self):
         return self.name
@@ -288,6 +305,12 @@ class AlertSender(models.Model):
 
         # Delegate sending of message
         return self.handler_instance.send(*args, **kwargs)
+
+    def blacklist(self):
+        self.__class__._blacklist.add(self.handler)
+
+    def is_blacklisted(self):
+        return self.handler in self.__class__._blacklist
 
     class Meta:
         db_table = 'alertsender'
