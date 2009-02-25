@@ -356,6 +356,7 @@ def trapHandler(trap):
     """Handle a trap"""
 
     traplogger.info(trap.trapText())
+    connection = getConnection('default')
 
     for mod in handlermodules:
         logger.debug("Giving trap to %s" %str(mod))
@@ -366,6 +367,10 @@ def trapHandler(trap):
         except Exception, why:
             logger.exception("Error when handling trap with %s: %s"
                              %(mod.__name__, why))
+        # Assuming that the handler used the same connection as this
+        # function, we rollback any uncommitted changes.  This is to
+        # avoid idling in transactions.
+        connection.rollback()
 
 
 def verifySubsystem ():
