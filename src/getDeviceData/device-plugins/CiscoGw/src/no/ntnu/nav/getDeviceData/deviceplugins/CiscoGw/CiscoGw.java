@@ -599,7 +599,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					}
 				}
 
-				String pattern = "Vlan(\\d+).*";
+				String pattern = "[Vv][Ll][Aa][Nn](\\d+).*";
 				if (interf.matches(pattern)) {
 					Matcher m = Pattern.compile(pattern).matcher(interf);
 					m.matches();
