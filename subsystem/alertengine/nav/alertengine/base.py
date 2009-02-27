@@ -40,8 +40,6 @@ from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, 
         AlertSubscription, AlertAddress, FilterGroup, AlertPreference, TimePeriod
 from nav.models.event import AlertQueue
 
-logger = logging.getLogger('nav.alertengine')
-
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
 
@@ -52,6 +50,8 @@ def check_alerts(debug=False):
     # corresponding objects, however it seems better to keep all of this logic
     # in one place. Despite this some the simpler logic has been offloaded to
     # the models themselves.
+
+    logger = logging.getLogger('nav.alertengine.check_alerts')
 
     # Try to avoid spamming people when running tests
     if debug:
@@ -115,6 +115,7 @@ def check_alerts(debug=False):
 
 @transaction.commit_on_success
 def handle_new_alerts(new_alerts):
+    logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
     # Build datastructure that contains accounts and corresponding
@@ -180,6 +181,8 @@ def handle_new_alerts(new_alerts):
     gc.collect()
 
 def handle_queued_alerts(queued_alerts, now=None):
+    logger = logging.getLogger('nav.alertengine.handle_queued_alerts')
+
     if not now:
         now = datetime.now()
 
@@ -306,6 +309,8 @@ def handle_queued_alerts(queued_alerts, now=None):
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
+
+    logger = logging.getLogger('nav.alertengine.check_alert_against_filtergroupcontents')
 
     if filtergroupcontents == []:
         logger.debug("Emtpy filtergroup")
