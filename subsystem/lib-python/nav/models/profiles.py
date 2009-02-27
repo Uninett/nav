@@ -269,7 +269,7 @@ class AlertAddress(models.Model):
             self.type.send(self, alert, language=lang)
             transaction.commit()
 
-            logger.info('alert %d sent by %s to %s due to %s subscription %d' % (alert.id, self.type, address.address,
+            logger.info('alert %d sent by %s to %s due to %s subscription %d' % (alert.id, self.type, self.address,
                     subscription.get_type_display(), subscription.id))
 
         except DispatcherException, e:
@@ -619,7 +619,7 @@ class Filter(models.Model):
 
         Running alertengine in debug mode will print the dicts to the logs.'''
 
-        logger = logger.getLogger('nav.alertengine.filter.check')
+        logger = logging.getLogger('nav.alertengine.filter.check')
 
         filter = {}
         exclude = {}
