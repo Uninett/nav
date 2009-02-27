@@ -392,11 +392,13 @@ class AlertProfile(models.Model):
             if not active_timeperiod or (tp.start <= now.time()):
                 active_timeperiod = tp
 
-        logger.debug("Active timeperiod for alertprofile %d is %s" % (self.id, active_timeperiod or tp))
+        active_timeperiod = active_timeperiod or tp
+
+        logger.debug("Active timeperiod for alertprofile %d is %s (%d)" % (self.id, active_timeperiod, active_timeperiod.id))
 
         # Return the active timeperiod we found or the last one we checked as
         # timeperiods looparound midnight.
-        return active_timeperiod or tp
+        return active_timeperiod
 
 class TimePeriod(models.Model):
     '''Defines TimerPeriods and which part of the week they are valid'''

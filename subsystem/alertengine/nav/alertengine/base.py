@@ -202,7 +202,7 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
             continue
 
-        logger.debug('Stored alert %d: Checking %s %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
+        logger.debug('Stored alert %d: Checking %s %s subscription %d' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display(), subscription.id) )
 
         if subscription.type == AlertSubscription.NOW:
             if queued_alert.send():
