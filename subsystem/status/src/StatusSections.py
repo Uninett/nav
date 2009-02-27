@@ -453,7 +453,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 n.netboxid
             FROM alerthist AS ah, netbox AS n, service AS s
             WHERE ah.netboxid = n.netboxid::text
-                AND ah.subid = s.serviceid
+                AND ah.subid = s.serviceid::text
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'serviceState'"""
         sql = sql + where_clause + " ORDER BY now()-start_time"
@@ -1348,7 +1348,7 @@ class ThresholdSectionBox(SectionBox):
               "alerthist.eventtypeid='thresholdState' AND " +\
               "alerthist.alerttypeid=alerttype.alerttypeid AND " +\
     	      "alerttype.alerttype='exceededThreshold' AND " +\
-	          "alerthist.subid=rrd_datasource.rrd_datasourceid  "
+	          "alerthist.subid=rrd_datasource.rrd_datasourceid::text  "
  
         # parse filter settings
         where_clause = ''
@@ -1674,7 +1674,7 @@ class ServiceHistoryBox(SectionBox):
               "alerttype.alerttype,service.serviceid FROM netbox,"+\
               "service,alerthist LEFT JOIN alerttype using(alerttypeid) "+\
               "WHERE alerthist.netboxid = netbox.netboxid AND "+\
-              "alerthist.subid=service.serviceid AND " +\
+              "alerthist.subid=service.serviceid::text AND " +\
               "alerthist.eventtypeid='serviceState' AND " +\
               "date(start_time) = '%s' " %(self.date,)
             
@@ -1925,7 +1925,7 @@ class ThresholdHistoryBox(SectionBox):
               "FROM netbox,rrd_datasource,"+\
               "alerthist LEFT JOIN alerttype using(alerttypeid) "+\
               "WHERE alerthist.netboxid = netbox.netboxid AND "+\
-              "alerthist.subid=rrd_datasource.rrd_datasourceid AND " +\
+              "alerthist.subid=rrd_datasource.rrd_datasourceid::text AND " +\
               "alerthist.eventtypeid='thresholdState' AND " +\
               "(alerttype.alerttype='exceededThreshold' OR " +\
               "alerttype.alerttype='belowThreshold') AND " +\
