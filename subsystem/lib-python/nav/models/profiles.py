@@ -237,7 +237,7 @@ class AlertAddress(models.Model):
         return '%s by %s' % (self.address, self.type.name)
 
     @transaction.commit_manually
-    def send(self, alert, type=_('now'), dispatcher={}):
+    def send(self, alert, subscription, dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types
 
            Return value should indicate if message was sent'''
@@ -266,8 +266,11 @@ class AlertAddress(models.Model):
             return False
 
         try:
-            self.type.send(self, alert, language=lang, type=type)
+            self.type.send(self, alert, language=lang)
             transaction.commit()
+
+            logger.info('alert %d sent by %s to %s due to %s subscription %d' % (alert.id, self.type, address.address,
+                    subscription.get_type_display(), subscription.id))
 
         except DispatcherException, e:
             logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
@@ -938,7 +941,7 @@ class AccountAlertQueue(models.Model):
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
         try:
-            sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+            sent = self.subscription.alert_address.send(self.alert, self.subscription)
         except AlertSender.DoesNotExist, e:
             address = self.subscription.alert_address
             sender  = address.type_id
