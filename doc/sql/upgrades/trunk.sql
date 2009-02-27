@@ -26,4 +26,7 @@ ALTER TABLE org ADD CONSTRAINT org_parent_fkey
                                FOREIGN KEY (parent) REFERENCES org (orgid)
                                ON UPDATE CASCADE;
 
+-- Index to speed up ipdevinfo queries for the first cam entry from a box
+CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
+
 COMMIT;
