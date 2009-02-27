@@ -49,8 +49,6 @@ from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
     Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
-logger = logging.getLogger('nav.alertengine')
-
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
 # This should be the authorative source as to which models alertengine supports.
@@ -244,6 +242,8 @@ class AlertAddress(models.Model):
 
            Return value should indicate if message was sent'''
 
+        logger = logging.getLogger('nav.alertengine.alertaddress.send')
+
         # Determine the right language for the user.
         try:
             lang = self.account.accountproperty_set.get(property='language').value or 'en'
@@ -372,6 +372,8 @@ class AlertProfile(models.Model):
         # Could have been done with a ModelManager, but the logic
         # is somewhat tricky to do with the django ORM.
 
+        logger = logging.getLogger('nav.alertengine.alertprofile.get_active_timeperiod')
+
         now = datetime.now()
 
         # Limit our query to the correct type of time periods
@@ -386,6 +388,8 @@ class AlertProfile(models.Model):
         for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
             if not active_timeperiod or (tp.start <= now.time()):
                 active_timeperiod = tp
+
+        logger.debug("Active timeperiod for alertprofile %d is %s" % (self.id, active_timeperiod or tp))
 
         # Return the active timeperiod we found or the last one we checked as
         # timeperiods looparound midnight.
@@ -611,6 +615,8 @@ class Filter(models.Model):
         only need to know if something matched.
 
         Running alertengine in debug mode will print the dicts to the logs.'''
+
+        logger = logger.getLogger('nav.alertengine.filter.check')
 
         filter = {}
         exclude = {}
@@ -854,6 +860,8 @@ class MatchField(models.Model):
         return self.name
 
     def get_lookup_mapping(self):
+        logger = logging.getLogger('nav.alertengine.matchfield.get_lookup_mapping')
+
         try:
             foreign_lookup = self.FOREIGN_MAP[self.value_id.split('.')[0]]
             value = self.VALUE_MAP[self.value_id]
