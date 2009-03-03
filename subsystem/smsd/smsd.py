@@ -191,6 +191,8 @@ def main(args):
     # Reopen log files on SIGHUP
     logger.debug('Adding signal handler for reopening log files on SIGHUP.')
     signal.signal(signal.SIGHUP, signalhandler)
+    # Exit on SIGTERM
+    signal.signal(signal.SIGTERM, signalhandler)
 
     # Initialize queue
     # NOTE: If we're initalizing a queue with a DB connection before
@@ -255,7 +257,8 @@ def main(args):
 
 def signalhandler(signum, _):
     """
-    Signal handler to close and reopen log file(s) on HUP.
+    Signal handler to close and reopen log file(s) on HUP
+    and exit on KILL.
     """
 
     if signum == signal.SIGHUP:
@@ -263,6 +266,9 @@ def signalhandler(signum, _):
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
         logger.info("Log files reopened.")
+    elif signum == signal.SIGTERM:
+        logger.warn('SIGTERM received: Shutting down.')
+        sys.exit(0)
 
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""
