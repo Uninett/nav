@@ -34,6 +34,7 @@ import time
 from threading import Thread
 from time import sleep
 
+from nav.errors import ConfigurationError
 from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
 logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
@@ -82,7 +83,11 @@ class jabber(dispatcher):
         logger.debug('stopping thread loop')
 
     def connect(self):
-        self.jid = xmpp.protocol.JID(self.config['jid'])
+        try:
+            self.jid = xmpp.protocol.JID(self.config['jid'])
+        except KeyError:
+            raise ConfigurationError('Jabber config is missing "jid" entry')
+
         self.client = xmpp.Client(self.jid.getDomain())
 
         con = self.client.connect()
@@ -92,7 +97,10 @@ class jabber(dispatcher):
 
         logger.debug('Connected with %s' % con)
 
-        auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource() or 'alertengine')
+        try:
+            auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource() or 'alertengine')
+        except KeyError:
+            raise ConfigurationError('Jabber config is missing "password" entry')
 
         if not auth:
             raise DispatcherException('Could not authenticate with jabber server')
@@ -100,7 +108,7 @@ class jabber(dispatcher):
         self.client.RegisterHandler('presence',self.presence_handler)
         self.client.sendInitPresence()
 
-    def send(self, address, alert, language='en', type='unknown', retry=True, retry_reason=None):
+    def send(self, address, alert, language='en', retry=True, retry_reason=None):
         message = alert.messages.get(language=language, type='jabber')
 
         if not self.client.isConnected():
@@ -108,12 +116,11 @@ class jabber(dispatcher):
 
         try:
             id = self.client.send(xmpp.protocol.Message(address.address, message.message, typ='chat'))
-            logger.info('alert %d sent by jabber to %s due to %s subscription' % (alert.id, address.address, type))
             logger.debug('Sent message with jabber id %s' % id)
         except (xmpp.protocol.StreamError, IOError), e:
             if retry:
-                logger.warn('Sending jabber message failed, retrying once.')
+                logger.warning('Sending jabber message failed, retrying once.')
                 self.connect()
-                self.send(address, alert, language, type, False, e)
+                self.send(address, alert, language, retry=False, retry_reason=e)
             else:
                 raise DispatcherException("Couldn't send message due to: '%s', reason for retry: '%s'" % (e, retry_reason))

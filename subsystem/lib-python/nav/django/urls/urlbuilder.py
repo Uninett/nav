@@ -70,7 +70,7 @@ def get_urlpatterns():
         # Naming convention: report-<result>-<query>
         url(r'^report/org$',
             dummy, name='report-organization-all'),
-        url(r'^report/org\?orgid=(?P<organization_id>[\w\d._-]+)$',
+        url(r'^report/org\?orgid=(?P<organization_id>[^&]+)$',
             dummy, name='report-organization-organization'),
 
         url(r'^report/type$',
@@ -80,7 +80,7 @@ def get_urlpatterns():
 
         url(r'^report/netbox$',
             dummy, name='report-netbox-all'),
-        url(r'^report/netbox\?roomid=(?P<room_id>[\w\d._-]+)$',
+        url(r'^report/netbox\?roomid=(?P<room_id>[^&]+)$',
             dummy, name='report-netbox-room'),
         url(r'^report/netbox\?catid=(?P<category_id>[\w\d._-]+)$',
             dummy, name='report-netbox-category'),

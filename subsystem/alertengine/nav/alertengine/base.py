@@ -40,8 +40,6 @@ from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, 
         AlertSubscription, AlertAddress, FilterGroup, AlertPreference, TimePeriod
 from nav.models.event import AlertQueue
 
-logger = logging.getLogger('nav.alertengine')
-
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
 
@@ -52,6 +50,8 @@ def check_alerts(debug=False):
     # corresponding objects, however it seems better to keep all of this logic
     # in one place. Despite this some the simpler logic has been offloaded to
     # the models themselves.
+
+    logger = logging.getLogger('nav.alertengine.check_alerts')
 
     # Try to avoid spamming people when running tests
     if debug:
@@ -115,6 +115,7 @@ def check_alerts(debug=False):
 
 @transaction.commit_on_success
 def handle_new_alerts(new_alerts):
+    logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
     # Build datastructure that contains accounts and corresponding
@@ -160,7 +161,7 @@ def handle_new_alerts(new_alerts):
                             # Allways queue alert so that we have it incase of
                             # failed send.
                             AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
-                            logger.info('alert %d queued for %s' % (alert.id, account))
+                            logger.info('alert %d queued for %s due to subscription %d' % (alert.id, account, alertsubscription.id))
 
                             queued = True
                             break;
@@ -180,6 +181,8 @@ def handle_new_alerts(new_alerts):
     gc.collect()
 
 def handle_queued_alerts(queued_alerts, now=None):
+    logger = logging.getLogger('nav.alertengine.handle_queued_alerts')
+
     if not now:
         now = datetime.now()
 
@@ -199,7 +202,7 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('account queued alert %d does not have subscription, probably a legacy table row' % queued_alert.id)
             continue
 
-        logger.debug('Stored alert %d: Checking %s %s subscription' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display()) )
+        logger.debug('Stored alert %d: Checking %s %s subscription %d' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display(), subscription.id) )
 
         if subscription.type == AlertSubscription.NOW:
             if queued_alert.send():
@@ -306,6 +309,8 @@ def handle_queued_alerts(queued_alerts, now=None):
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
+
+    logger = logging.getLogger('nav.alertengine.check_alert_against_filtergroupcontents')
 
     if filtergroupcontents == []:
         logger.debug("Emtpy filtergroup")

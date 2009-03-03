@@ -51,6 +51,10 @@ class SmtpChecker(AbstractChecker):
         ip,port = self.getAddress()
         s = SMTP(self.getTimeout())
         code,msg = s.connect(ip,port)
+        try:
+            s.quit()
+        except smtplib.SMTPException:
+            pass
         if code != 220:
             return Event.DOWN,msg
         try:
