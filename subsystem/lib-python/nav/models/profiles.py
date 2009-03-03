@@ -387,17 +387,23 @@ class AlertProfile(models.Model):
 
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
-        tp = None
-        for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
-            if not active_timeperiod or (tp.start <= now.time()):
-                active_timeperiod = tp
+        timeperiods = list(self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'))
+        # If the current time is before the start of the first time
+        # period, the active time period is the last one (i.e. from
+        # the day before)
+        if len(timeperiods) > 0 and timeperiods[0].start > now.time():
+            active_timeperiod = timeperiods[-1]
+        else:
+            for tp in timeperiods:
+                if tp.start <= now.time():
+                    active_timeperiod = tp
 
-        active_timeperiod = active_timeperiod or tp
+        if active_timeperiod:
+            logger.debug("Active timeperiod for alertprofile %d is %s (%d)", self.id, 
+                         active_timeperiod, active_timeperiod.id)
+        else:
+            logger.debug("No active timeperiod for alertprofile %d", self.id)
 
-        logger.debug("Active timeperiod for alertprofile %d is %s (%d)" % (self.id, active_timeperiod, active_timeperiod.id))
-
-        # Return the active timeperiod we found or the last one we checked as
-        # timeperiods looparound midnight.
         return active_timeperiod
 
 class TimePeriod(models.Model):
