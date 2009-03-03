@@ -89,8 +89,8 @@ class OracleChecker(AbstractChecker):
         return Event.UP, "Oracle " + version
 
 def getRequiredArgs():
-	"""
-	Returns a list of required arguments
-	"""
-	requiredArgs = []
-	return requiredArgs
+    """
+    Returns a list of required arguments
+    """
+    requiredArgs = []
+    return requiredArgs
