@@ -16,9 +16,10 @@
 #
 
 import time
-from datetime import date
+from datetime import date, datetime
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
+from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
@@ -182,33 +183,39 @@ def delete_module(request):
         params.append('module.moduleid IN (%s)' % ",".join([id for id in module_ids]))
         confirm_deletion = True
 
-    modules = AlertHistory.objects.extra(
-        select={
-            'module_id': 'module.moduleid',
-            'module': 'module.module',
-            'module_description': 'module.descr',
-            'netbox_name': 'netbox.sysname',
-            'downtime': 'NOW() - alerthist.start_time',
-        },
-        tables=[
-            'device',
-            'module',
-            'netbox',
-        ],
-        where=[
-            'device.deviceid=alerthist.deviceid',
-            'module.deviceid=device.deviceid',
-            'netbox.netboxid=module.netboxid',
-            'module.up=\'n\'',
-            'alerthist.end_time=\'infinity\'',
-            'alerthist.eventtypeid=\'moduleState\'',
-        ] + params
-    ).order_by('start_time')
+    cursor = connection.cursor()
+    cursor.execute("""SELECT
+            sysname,
+            moduleid,
+            module.descr AS descr,
+            start_time,
+            NOW() - start_time AS downtime
+        FROM module
+        INNER JOIN netbox ON (module.netboxid = netbox.netboxid)
+        LEFT OUTER JOIN alerthist ON (
+            module.deviceid = alerthist.deviceid OR
+            module.netboxid = alerthist.netboxid
+        )
+        WHERE
+            module.up = 'n' AND
+            alerthist.end_time = 'infinity' AND
+            alerthist.eventtypeid = 'moduleState'""")
+
+    rows = cursor.fetchall()
+    result = []
+    for row in rows:
+        result.append({
+            'sysname': row[0],
+            'moduleid': row[1],
+            'descr': row[2],
+            'start_time': row[3],
+            'downtime': row[4],
+        })
 
     info_dict = {
         'active': {'module': True},
         'confirm_delete': confirm_deletion,
-        'modules': modules,
+        'modules': result
     }
     return render_to_response(
         DeviceHistoryTemplate,
