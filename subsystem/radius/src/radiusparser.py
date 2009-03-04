@@ -75,7 +75,7 @@ def main(args):
     type = 0
     message = 0
     status = 0
-    dbuser = 0
+    user = 0
     client = 0
     port = 0
 
