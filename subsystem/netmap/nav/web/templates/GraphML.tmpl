@@ -54,6 +54,7 @@
 <key id="netident" for="edge" attr.name="netident" attr.type="string"/>
 <key id="layer" for="edge" attr.name="layer" attr.type="string"/>
 <key id="vlan" for="edge" attr.name="vlan" attr.type="string"/>
+<key id="ipdevinfolink" for="edge" attr.name="ipdevinfolink" attr.type="string"/>
 
 <graph id="main" edgedefault="directed">
 	#for $box in $netboxes
@@ -101,6 +102,7 @@
      <data key="netident">$conn.netident</data>
      <data key="layer">$conn.layer</data>
      <data key="vlan">$conn.vlan</data>
+     <data key="ipdevinfolink">$conn.ipdevinfo_link</data>
     </edge>
     #set $a = $a +1
     #end for

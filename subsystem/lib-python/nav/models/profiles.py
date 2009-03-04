@@ -49,8 +49,6 @@ from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
     Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
-logger = logging.getLogger('nav.alertengine')
-
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
 # This should be the authorative source as to which models alertengine supports.
@@ -239,10 +237,12 @@ class AlertAddress(models.Model):
         return '%s by %s' % (self.address, self.type.name)
 
     @transaction.commit_manually
-    def send(self, alert, type=_('now'), dispatcher={}):
+    def send(self, alert, subscription, dispatcher={}):
         '''Handles sending of alerts to with defined alert notification types
 
            Return value should indicate if message was sent'''
+
+        logger = logging.getLogger('nav.alertengine.alertaddress.send')
 
         # Determine the right language for the user.
         try:
@@ -250,10 +250,27 @@ class AlertAddress(models.Model):
         except AccountProperty.DoesNotExist:
             lang = 'en'
 
-        try:
-            # Wrap all send methods in commit on success
-            self.type.send(self, alert, language=lang, type=type)
+        if not (self.address or '').strip():
+            logger.error(('Ignoring alert %d (%s: %s)! Account %s does not have a address set for the ' + \
+                  'alertaddress with id %d, this needs to be fixed before the user ' + \
+                  'will recieve any alerts.') % (alert.id, alert, alert.netbox, self.account, self.id))
+
             transaction.commit()
+
+            return True
+
+        if self.type.is_blacklisted():
+            logger.warning('Not sending alert %s to %s as handler %s is blacklisted' % (alert.id, self.address, self.type))
+            transaction.rollback()
+
+            return False
+
+        try:
+            self.type.send(self, alert, language=lang)
+            transaction.commit()
+
+            logger.info('alert %d sent by %s to %s due to %s subscription %d' % (alert.id, self.type, self.address,
+                    subscription.get_type_display(), subscription.id))
 
         except DispatcherException, e:
             logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
@@ -261,8 +278,9 @@ class AlertAddress(models.Model):
             return False
 
         except Exception, e:
-            logger.exception('Unhandeled error from %s' % self.type)
+            logger.exception('Unhandeled error from %s (the handler has been blacklisted)' % self.type)
             transaction.rollback()
+            self.type.blacklist()
             return False
 
         return True
@@ -270,6 +288,8 @@ class AlertAddress(models.Model):
 class AlertSender(models.Model):
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
+
+    _blacklist = set()
 
     def __unicode__(self):
         return self.name
@@ -288,6 +308,12 @@ class AlertSender(models.Model):
 
         # Delegate sending of message
         return self.handler_instance.send(*args, **kwargs)
+
+    def blacklist(self):
+        self.__class__._blacklist.add(self.handler)
+
+    def is_blacklisted(self):
+        return self.handler in self.__class__._blacklist
 
     class Meta:
         db_table = 'alertsender'
@@ -349,6 +375,8 @@ class AlertProfile(models.Model):
         # Could have been done with a ModelManager, but the logic
         # is somewhat tricky to do with the django ORM.
 
+        logger = logging.getLogger('nav.alertengine.alertprofile.get_active_timeperiod')
+
         now = datetime.now()
 
         # Limit our query to the correct type of time periods
@@ -359,14 +387,24 @@ class AlertProfile(models.Model):
 
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
-        tp = None
-        for tp in self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'):
-            if not active_timeperiod or (tp.start <= now.time()):
-                active_timeperiod = tp
+        timeperiods = list(self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start'))
+        # If the current time is before the start of the first time
+        # period, the active time period is the last one (i.e. from
+        # the day before)
+        if len(timeperiods) > 0 and timeperiods[0].start > now.time():
+            active_timeperiod = timeperiods[-1]
+        else:
+            for tp in timeperiods:
+                if tp.start <= now.time():
+                    active_timeperiod = tp
 
-        # Return the active timeperiod we found or the last one we checked as
-        # timeperiods looparound midnight.
-        return active_timeperiod or tp
+        if active_timeperiod:
+            logger.debug("Active timeperiod for alertprofile %d is %s (%d)", self.id, 
+                         active_timeperiod, active_timeperiod.id)
+        else:
+            logger.debug("No active timeperiod for alertprofile %d", self.id)
+
+        return active_timeperiod
 
 class TimePeriod(models.Model):
     '''Defines TimerPeriods and which part of the week they are valid'''
@@ -588,6 +626,8 @@ class Filter(models.Model):
         only need to know if something matched.
 
         Running alertengine in debug mode will print the dicts to the logs.'''
+
+        logger = logging.getLogger('nav.alertengine.filter.check')
 
         filter = {}
         exclude = {}
@@ -831,6 +871,8 @@ class MatchField(models.Model):
         return self.name
 
     def get_lookup_mapping(self):
+        logger = logging.getLogger('nav.alertengine.matchfield.get_lookup_mapping')
+
         try:
             foreign_lookup = self.FOREIGN_MAP[self.value_id.split('.')[0]]
             value = self.VALUE_MAP[self.value_id]
@@ -907,7 +949,7 @@ class AccountAlertQueue(models.Model):
     def send(self):
         '''Sends the alert in question to the address in the subscription'''
         try:
-            sent = self.subscription.alert_address.send(self.alert, type=self.subscription.get_type_display())
+            sent = self.subscription.alert_address.send(self.alert, self.subscription)
         except AlertSender.DoesNotExist, e:
             address = self.subscription.alert_address
             sender  = address.type_id

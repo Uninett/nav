@@ -131,7 +131,7 @@ def handler(req):
 
     elif path == '/':
         cookies = Cookie.get_cookies(req)
-        if not cookies['nav_sessid']:
+        if not cookies.get('nav_sessid', None):
             return apache.HTTP_UNAUTHORIZED
 
         page = Netmap()

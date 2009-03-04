@@ -35,6 +35,8 @@ CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
+-- Index to speed up ipdevinfo queries for the first cam entry from a box
+CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
 CREATE INDEX rrd_file_value ON rrd_file(value);
 

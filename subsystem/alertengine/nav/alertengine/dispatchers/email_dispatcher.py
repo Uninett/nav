@@ -37,7 +37,7 @@ from nav.alertengine.dispatchers import dispatcher, DispatcherException
 logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
 class email(dispatcher):
-    def send(self, address, alert, language='en', type='unknown'):
+    def send(self, address, alert, language='en'):
         message = alert.messages.get(language=language, type='email').message
 
         # Extract the subject
@@ -55,9 +55,8 @@ class email(dispatcher):
             if not address.DEBUG_MODE:
                 email = EmailMessage(subject=subject, body=message, to=[address.address])
                 email.send(fail_silently=False)
-                logger.info('alert %d sent by email to %s due to %s subscription' % (alert.id, address.address, type))
             else:
-                logger.debug('alert %d: In testing mode, would have sent email to %s due to %s subscription' % (alert.id, address.address, type))
+                logger.debug('alert %d: In testing mode, would have sent email to %s' % (alert.id, address.address))
 
         except SMTPException, e:
             # Reraise as DispatcherException so that we can catch it further up

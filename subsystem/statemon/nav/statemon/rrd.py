@@ -21,7 +21,7 @@
 #
 # $Id: $
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#          Erik Gorset	<erikgors@stud.ntnu.no>
+#          Erik Gorset  <erikgors@stud.ntnu.no>
 #
 """
 Module for creating and updating rrd-objects
@@ -34,76 +34,76 @@ import db
 import config
 
 try:
-	import nav.path
-	RRDDIR = nav.path.localstatedir + '/rrd'
+    import nav.path
+    RRDDIR = nav.path.localstatedir + '/rrd'
 except:
-	# Not properly installed
-	RRDDIR = '/var/rrd'
+    # Not properly installed
+    RRDDIR = '/var/rrd'
 database = db.db(config.dbconf())
 
 def create(filename, netboxid, serviceid=None, handler=""):
-	step = 300
-	
-	if RRDDIR and not os.path.exists(RRDDIR):
-		os.mkdir(RRDDIR)
-	tupleFromHell = ('%s' % (os.path.join(RRDDIR,filename)),
-			 '-s %s' % step,
-			 'DS:STATUS:GAUGE:600:0:1',
-			 'DS:RESPONSETIME:GAUGE:600:0:300',
-			 'RRA:AVERAGE:0.5:1:288',
-			 'RRA:AVERAGE:0.5:6:336',
-			 'RRA:AVERAGE:0.5:12:720',
-			 'RRA:MAX:0.5:12:720',
-			 'RRA:AVERAGE:0.5:288:365',
-			 'RRA:MAX:0.5:288:365',
-			 'RRA:AVERAGE:0.5:288:1095',
-			 'RRA:MAX:0.5:288:1095')
-	rrd.create(*tupleFromHell)
-	debug("Created rrd file %s" % filename)
+    step = 300
+    
+    if RRDDIR and not os.path.exists(RRDDIR):
+        os.mkdir(RRDDIR)
+    tupleFromHell = ('%s' % (os.path.join(RRDDIR,filename)),
+             '-s %s' % step,
+             'DS:STATUS:GAUGE:600:0:1',
+             'DS:RESPONSETIME:GAUGE:600:0:300',
+             'RRA:AVERAGE:0.5:1:288',
+             'RRA:AVERAGE:0.5:6:336',
+             'RRA:AVERAGE:0.5:12:720',
+             'RRA:MAX:0.5:12:720',
+             'RRA:AVERAGE:0.5:288:365',
+             'RRA:MAX:0.5:288:365',
+             'RRA:AVERAGE:0.5:288:1095',
+             'RRA:MAX:0.5:288:1095')
+    rrd.create(*tupleFromHell)
+    debug("Created rrd file %s" % filename)
 
-	# a bit ugly...
-	if serviceid:
-		key="serviceid"
-		val=serviceid
-		subsystem = "serviceping"
-		statusdescr = "%s availability" % handler
-		responsedescr = "%s responsetime" % handler
-		unit = '-100%'
-	else:
-		key=""
-		val=""
-		subsystem= "pping"
-		statusdescr = "Packet loss"
-		responsedescr = "Roundtrip time"
-		unit = '100%'
-	rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid,
-					  subsystem, key, val)
-	database.registerDS(rrd_fileid, "RESPONSETIME",
-			    responsedescr, "GAUGE", "s")
+    # a bit ugly...
+    if serviceid:
+        key="serviceid"
+        val=serviceid
+        subsystem = "serviceping"
+        statusdescr = "%s availability" % handler
+        responsedescr = "%s responsetime" % handler
+        unit = '-100%'
+    else:
+        key=""
+        val=""
+        subsystem= "pping"
+        statusdescr = "Packet loss"
+        responsedescr = "Roundtrip time"
+        unit = '100%'
+    rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid,
+                      subsystem, key, val)
+    database.registerDS(rrd_fileid, "RESPONSETIME",
+                responsedescr, "GAUGE", "s")
 
-	database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
+    database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
 
 def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
-	"""
-	time: 'N' or time.time()
-	status: 'UP' or 'DOWN' (from Event.status)
-	responsetime: 0-300 or '' (undef)
-	"""
-	if serviceid:
-		filename = '%s.%s.rrd' % (sysname, serviceid)
-		# typically ludvig.ntnu.no.54.rrd
-	else:
-		filename = '%s.rrd' % (sysname)
-		# typically ludvig.ntnu.no.rrd
-	
-	os.path.exists(os.path.join(RRDDIR, filename)) or \
-		       create(filename, netboxid, serviceid,handler)
-	if status == event.Event.UP:
-		rrdstatus = 0
-	else:
-		rrdstatus = 1
-	
-	rrdParam = (os.path.join(RRDDIR,filename),
-		    '%s:%i:%s' % (time, rrdstatus, responsetime))
-	rrd.update(*rrdParam)
-	debug("Updated %s" % filename, 7)
+    """
+    time: 'N' or time.time()
+    status: 'UP' or 'DOWN' (from Event.status)
+    responsetime: 0-300 or '' (undef)
+    """
+    if serviceid:
+        filename = '%s.%s.rrd' % (sysname, serviceid)
+        # typically ludvig.ntnu.no.54.rrd
+    else:
+        filename = '%s.rrd' % (sysname)
+        # typically ludvig.ntnu.no.rrd
+    
+    os.path.exists(os.path.join(RRDDIR, filename)) or \
+               create(filename, netboxid, serviceid,handler)
+    if status == event.Event.UP:
+        rrdstatus = 0
+    else:
+        rrdstatus = 1
+    
+    rrdParam = (os.path.join(RRDDIR,filename),
+            '%s:%i:%s' % (time, rrdstatus, responsetime))
+    rrd.update(*rrdParam)
+    debug("Updated %s" % filename, 7)
