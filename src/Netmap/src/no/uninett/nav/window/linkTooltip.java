@@ -1,7 +1,10 @@
 
 package no.uninett.nav.window;
 
+import java.applet.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.net.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -19,13 +22,16 @@ public class linkTooltip extends JPanel {
 	private JLabel netidentValue;
 	private JLabel nettypeLabel;
 	private JLabel nettypeValue;
+	private JButton ipdevinfoLink;
+    private String ipdevinfo_link;
 
 	public linkTooltip() {
 		initComponents();
 	}
 
 	public linkTooltip(String link, String interfaces, String netident, String nettype,
-		String capacity, String load){
+
+		String capacity, String load, String ipdevinfolink){
 		initComponents();
 
 		capacityValue.setText(capacity);
@@ -34,7 +40,22 @@ public class linkTooltip extends JPanel {
 		loadValue.setText(load);
 		netidentValue.setText(netident);
 		nettypeValue.setText(nettype);
+        ipdevinfo_link = ipdevinfolink;
 	}
+
+    private ActionListener linkClickHandler = new ActionListener() {
+		public void actionPerformed(ActionEvent arg){
+			try {
+				AppletContext ac = no.uninett.nav.netmap.Main._getAppletContext();
+				String path = no.uninett.nav.netmap.Main.getBaseURL().toString();
+				path = path.substring(0,path.length()-7);
+				URL url = new URL(path + "/ipdevinfo/netbox/module=0/" + ipdevinfo_link);
+				ac.showDocument(url, "_blank");
+			} catch (Exception e){
+				System.out.println("Could not open link with error" + e.getMessage());
+			}
+		}
+	};
 
 	private void initComponents() {
 		capacityLabel = new JLabel();
@@ -49,6 +70,8 @@ public class linkTooltip extends JPanel {
 		netidentValue = new JLabel();
 		nettypeLabel = new JLabel();
 		nettypeValue = new JLabel();
+        ipdevinfoLink = new JButton("View in IP Device Info");
+		ipdevinfoLink.addActionListener(linkClickHandler);
 
 		setBorder(new LineBorder(new Color(33, 33, 33), 1, true));
 
@@ -121,6 +144,9 @@ public class linkTooltip extends JPanel {
 
 		loadValue.setText("text");
 		add(loadValue, new GridBagConstraints(1, 5, 1, 1, 0.0, 0.0,
+			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+			new Insets(0, 10, 0, 10), 0, 0));
+        add(ipdevinfoLink, new GridBagConstraints(1, 6, 1, 1, 0.0, 0.0,
 			GridBagConstraints.CENTER, GridBagConstraints.BOTH,
 			new Insets(0, 10, 0, 10), 0, 0));
 	}

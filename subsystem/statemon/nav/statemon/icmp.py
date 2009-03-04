@@ -44,81 +44,79 @@ class Packet:
     """
 
     def __init__(self, packet=None, cksum=1):
-	if packet:
-	    self.__disassemble(packet, cksum)
-	else:
-	    self.type = 0
-	    self.code = 0
-	    self.cksum = 0
-	    self.id = 0
-	    self.seq = 0
-	    self.data = ''
+        if packet:
+            self.__disassemble(packet, cksum)
+        else:
+            self.type = 0
+            self.code = 0
+            self.cksum = 0
+            self.id = 0
+            self.seq = 0
+            self.data = ''
 
     def __repr__(self):
-	return "<ICMP packet %d %d %d %d>" % (self.type, self.code,
-					      self.id, self.seq)
+        return "<ICMP packet %d %d %d %d>" % (self.type, self.code,
+                                              self.id, self.seq)
 
     def assemble(self, cksum=1):
-	idseq = struct.pack('HH', self.id, self.seq)
-	packet = chr(self.type) + chr(self.code) + '\000\000' + idseq \
-		 + self.data
-	if cksum:
-	    self.cksum = inet.cksum(packet)
-	    packet = chr(self.type) + chr(self.code) \
-		     + struct.pack('H', self.cksum) + idseq + self.data
-	# Don't need to do any byte-swapping, because idseq is
-	# appplication defined and others are single byte values.
-	self.__packet = packet
-	return self.__packet
+        idseq = struct.pack('HH', self.id, self.seq)
+        packet = chr(self.type) + chr(self.code) + '\000\000' + idseq \
+                 + self.data
+        if cksum:
+            self.cksum = inet.cksum(packet)
+            packet = chr(self.type) + chr(self.code) \
+                     + struct.pack('H', self.cksum) + idseq + self.data
+        # Don't need to do any byte-swapping, because idseq is
+        # appplication defined and others are single byte values.
+        self.__packet = packet
+        return self.__packet
 
     def __disassemble(self, packet, cksum=1):
-	if cksum:
-	    our_cksum = inet.cksum(packet)
-	    if our_cksum != 0:
-		raise ValueError, packet
+        if cksum:
+            our_cksum = inet.cksum(packet)
+            if our_cksum != 0:
+                raise ValueError, packet
 
-	self.type = ord(packet[0])
-	self.code = ord(packet[1])
-	elts = struct.unpack('HHH', packet[2:8])
-	[self.cksum, self.id, self.seq] = map(lambda x:x & 0xffff, elts)
-	self.data = packet[8:]
+        self.type = ord(packet[0])
+        self.code = ord(packet[1])
+        elts = struct.unpack('HHH', packet[2:8])
+        [self.cksum, self.id, self.seq] = map(lambda x:x & 0xffff, elts)
+        self.data = packet[8:]
 
     def __compute_cksum(self):
-	"Use inet.cksum instead"
-	packet = self.packet
-	if len(packet) & 1:
-	    packet = packet + '\0'
-	words = array.array('H', packet)
-	sum = 0
-	for word in words:
-	    sum = sum + (word & 0xffff)
-	hi = sum >> 16
-	lo = sum & 0xffff
-	sum = hi + lo
-	sum = sum + (sum >> 16)
-	return (~sum) & 0xffff
-	
+        "Use inet.cksum instead"
+        packet = self.packet
+        if len(packet) & 1:
+            packet = packet + '\0'
+        words = array.array('H', packet)
+        sum = 0
+        for word in words:
+            sum = sum + (word & 0xffff)
+        hi = sum >> 16
+        lo = sum & 0xffff
+        sum = hi + lo
+        sum = sum + (sum >> 16)
+        return (~sum) & 0xffff
+        
 
 class TimeExceeded(Packet):
     
     def __init__(self, packet=None, cksum=1):
-	Packet.__init__(self, packet, cksum)
-	if packet:
-	    if self.type != ICMP_TIMXCEED:
-		raise ValueError, "supplied packet of wrong type"
-	else:
-	    self.type = ICMP_TIMXCEED
-	    self.id = self.seq = 0
+        Packet.__init__(self, packet, cksum)
+        if packet:
+            if self.type != ICMP_TIMXCEED:
+                raise ValueError, "supplied packet of wrong type"
+        else:
+            self.type = ICMP_TIMXCEED
+            self.id = self.seq = 0
 
 class Unreachable(Packet):
     
     def __init__(self, packet=None, cksum=1):
-	Packet.__init__(self, packet, cksum)
-	if packet:
-	    if self.type != ICMP_UNREACH:
-		raise ValueError, "supplied packet of wrong type"
-	else:
-	    self.type = ICMP_UNREACH
-	    self.id = self.seq = 0
-
-	
+        Packet.__init__(self, packet, cksum)
+        if packet:
+            if self.type != ICMP_UNREACH:
+                raise ValueError, "supplied packet of wrong type"
+        else:
+            self.type = ICMP_UNREACH
+            self.id = self.seq = 0
