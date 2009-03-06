@@ -200,7 +200,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
                 try:
                     alert_type = Service.objects.get(id=alert.subid).handler
                 except Service.DoesNotExist:
-                    alert_type = '%s (%d)' % (alert.event_type, alert.subid)
+                    alert_type = '%s (%s)' % (alert.event_type, alert.subid)
             else:
                 alert_type = '%s' % alert.event_type
 

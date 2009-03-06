@@ -118,6 +118,19 @@ def handle_new_alerts(new_alerts):
     logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
+    def subscription_sort_key(subscription):
+        """Return a key to sort alertsubscriptions in a prioritized order."""
+        sort_order = [
+            AlertSubscription.NOW,
+            AlertSubscription.NEXT,
+            AlertSubscription.DAILY,
+            AlertSubscription.WEEKLY,
+            ]
+        try:
+            return sort_order.index(subscription.type)
+        except ValueError:
+            return subscription.type
+
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
@@ -126,7 +139,8 @@ def handle_new_alerts(new_alerts):
             if not time_period:
                 continue
 
-            current_alertsubscriptions = time_period.alertsubscription_set.all()
+            current_alertsubscriptions = sorted(time_period.alertsubscription_set.all(),
+                                                key = subscription_sort_key)
 
             tmp = []
             for alertsubscription in current_alertsubscriptions:
@@ -144,6 +158,9 @@ def handle_new_alerts(new_alerts):
             del current_alertsubscriptions
             del account
 
+    # Remember which alerts are sent where to avoid duplicates
+    dupemap = set()
+
     # Check all acounts against all their active subscriptions
     for account, alertsubscriptions, permissions in accounts:
         logger.debug("Cheking new alerts for account '%s'" % account)
@@ -158,10 +175,13 @@ def handle_new_alerts(new_alerts):
                         if check_alert_against_filtergroupcontents(alert, permission, type='permission check'):
                             logger.debug("Matched permission subscription %d" % alertsubscription.id)
 
-                            # Allways queue alert so that we have it incase of
-                            # failed send.
-                            AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
-                            logger.info('alert %d queued for %s due to subscription %d' % (alert.id, account, alertsubscription.id))
+                            # Queue all alerts, avoiding duplicates. The individual users' queues will be processed later.
+                            if (alert.id, alertsubscription.alert_address_id) not in dupemap:
+                                AccountAlertQueue.objects.get_or_create(account=account, alert=alert, subscription=alertsubscription)
+                                dupemap.add((alert.id, alertsubscription.alert_address_id))
+                                logger.info('alert %d queued for %s due to subscription %d' % (alert.id, account, alertsubscription.id))
+                            else:
+                                logger.debug('alert %d was already queued for %s (address %s)', alert.id, account, alertsubscription.alert_address_id)
 
                             queued = True
                             break;
