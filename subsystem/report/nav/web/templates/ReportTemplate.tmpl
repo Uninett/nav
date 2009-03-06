@@ -1,28 +1,19 @@
 #encoding UTF-8
-## $Id: ReportTemplate.tmpl 4148 2007-08-21 08:47:53Z jodal $
 ##
-## Copyright 2003-2005 Norwegian University of Science and Technology
-## Copyright 2008 UNINETT AS
+## Copyright (C) 2003-2005 Norwegian University of Science and Technology
+## Copyright (C) 2007-2008 UNINETT AS
 ##
-## This file is part of Network Administration Visualized (NAV)
+## This file is part of Network Administration Visualized (NAV).
 ##
-## NAV is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2 of the License, or
-## (at your option) any later version.
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
 ##
-## NAV is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with NAV; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-##
-##
-## Author: Magnar Sveen <magnars@idi.ntnu.no>
-##         Jørgen Abrahamsen <jorgen.abrahamsen@uninett.no>
+## This program is distributed in the hope that it will be useful, but WITHOUT ANY
+## WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+## PARTICULAR PURPOSE. See the GNU General Public License for more details.
+## You should have received a copy of the GNU General Public License along with
+## NAV. If not, see <http://www.gnu.org/licenses/>.
 ##
 
 ##
@@ -62,6 +53,7 @@
 ##   page.report = fillReportWithData()
 ##
 
+
 #extends nav.web.templates.MainTemplate
 
 #block additionalCSS
@@ -78,90 +70,110 @@
 
 <h2>Report</h2>
 
-#if $search>0
-    $advSearch
+#if $adv_block>0
+    $advBlock
 #else
-<div id="advsearchlink">
-    <p><a id="advSLOpen" href="${old_uri}adv=1">Advanced Search</a></p>
+<div id="advlink">
+    <p><a id="advBlockOpen" href="${old_uri}adv=1">Advanced Options</a></p>
 </div>
 #end if
 
-## Advanced search block start
-<div id="advsearchblock" style="display: none">
-#block advSearch
+## Advanced Option block start
+<div id="advblock" style="display: none">
+#block advBlock
+    <p><a id="advBlockClose" href="${old_uri}adv=">Close Advanced Options</a></p>
     <h3>Advanced Search</h3>
-    <p><a id="advSLClose" href="${old_uri}adv=">Close Advanced Search</a></p>
 
-    <div class="infobox" style="float: right">
-        <h4>Operator usage</h4>
-
-        <ul>
-            <li>= - "equals", enter null for empty string</li>
-            <li>~ - case insensitive search, use * as wildcard</li>
-            <li>[:] - "between", takes two colon-separated arguments</li>
-            <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
-        </ul>
-
-        <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
-        <p>All these operators may be negated by clicking the "not" checkbox.</p>
-    </div>
-
-    <form action="" method="get" name="advsearch">
+    ## Advanced search box
+    <form action="" method="get" name="advblock">
         <input id="adv" type="hidden" name="adv" value="1"/>
 
-        <table class="vertitable">
+        <table class="vertitable float-left">
 
 #set $counter = 0
-#for $a in $report.form
 
-            <tr>
-                <th><label for="adv${counter}">$a.title</label></th>
-                <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
+#if $varExists('report.form')
+    #for $a in $report.form
 
-    #if $neg.has_key($a.raw)
-     checked="1"#slurp
-    #end if
-    >
+                <tr>
+                    <th><label for="adv${counter}">$a.title</label></th>
+                    <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
 
-                </td>
-                <td><label for="not_adv${counter}">not</label></td>
-                <td>
+        #if $neg.has_key($a.raw)
+         checked="1"#slurp
+        #end if
+        >
 
-    #if $operator.has_key($a.raw)
-        $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
-    #else
-        $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
-    #end if
+                    </td>
+                    <td><label for="not_adv${counter}">not</label></td>
+                    <td>
 
-                </td>
-                <td>
-                    <input type="text" name="$a.raw" id="adv${counter}"#slurp
+        #if $operator.has_key($a.raw)
+            $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
+        #else
+            $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
+        #end if
 
-    #if $contents.has_key($a.raw)
-     value="$contents[$a.raw]"#slurp
-    #end if
-    >
+                    </td>
+                    <td>
+                        <input type="text" name="$a.raw" id="adv${counter}"#slurp
 
-                </td>
-            </tr>
+        #if $contents.has_key($a.raw)
+         value="$contents[$a.raw]"#slurp
+        #end if
+        >
 
-    #set $counter += 1
-#end for
+                    </td>
+                </tr>
+
+        #set $counter += 1
+    #end for
+#end if
 
             <tr>
                 <th></th>
                 <td colspan="4">
-                    <button type="submit" name="r4g3n53nd">Search</button>
+                    <button type="submit">Search</button>
                 </td>
             </tr>
         </table>
     </form>
 
-#end block advSearch
+    <div class="float-left">
+        ## Infobox
+        <div class="infobox">
+            <h4>Operator usage</h4>
+
+            <ul>
+                <li>= - "equals", enter null for empty string</li>
+                <li>~ - case insensitive search, use * as wildcard</li>
+                <li>[:] - "between", takes two colon-separated arguments</li>
+                <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
+            </ul>
+
+            <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
+            <p>All these operators may be negated by clicking the "not" checkbox.</p>
+        </div>
+
+
+        ## CSV Export form
+        <h3>CSV Export</h3>
+        <form action="" method=="get" name="export">
+            <label for="export">Delimiter: </label>
+            <select name="export">
+#for $delim in $delimiters
+                <option value="$delim">$delim</option>
+#end for
+            </select>
+            <button type="submit">Export</button>
+        </form>
+    </div>
+
+#end block advBlock
 
 </div>
 
-## Advanced search block end
+## Advanced Option block end
 
 
 ## ----------------------------------------------------------------------- REPORT ---- ##
@@ -169,7 +181,7 @@
     #set $rowcount = len($report.table.rows) + 1
     #set $columncount = len($report.table.header.cells)
 
-<table class="listtable reporttable">
+<table class="listtable reporttable float-clear">
 
 ## --- TITLE ROW ---- ##
     <caption>
@@ -192,7 +204,6 @@
 
     #end if
 
-        <br /><span class="small_subtitle">Result generated $result_time</span>
         <br /><span class="subtitle">$report.navigator.view</span>
     </caption>
 
@@ -287,6 +298,8 @@
         </tr>
     </tbody>
 </table>
+
+<p>Result generated $result_time</p>
 
 #else
 
