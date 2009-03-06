@@ -118,6 +118,19 @@ def handle_new_alerts(new_alerts):
     logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
+    def subscription_sort_key(subscription):
+        """Return a key to sort alertsubscriptions in a prioritized order."""
+        sort_order = [
+            AlertSubscription.NOW,
+            AlertSubscription.NEXT,
+            AlertSubscription.DAILY,
+            AlertSubscription.WEEKLY,
+            ]
+        try:
+            return sort_order.index(subscription.type)
+        except ValueError:
+            return subscription.type
+
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
@@ -126,7 +139,8 @@ def handle_new_alerts(new_alerts):
             if not time_period:
                 continue
 
-            current_alertsubscriptions = time_period.alertsubscription_set.all()
+            current_alertsubscriptions = sorted(time_period.alertsubscription_set.all(),
+                                                key = subscription_sort_key)
 
             tmp = []
             for alertsubscription in current_alertsubscriptions:
