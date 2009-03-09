@@ -1,3 +1,35 @@
+Version 3.5.1
+(released 09 March 2009)
+
+Bugfixes:
+
+  * LP#285362 (netmap: link to ipdevinfo port view on links)
+  * LP#290192 (getBoksMacs syntax error SQLExceptions)
+  * LP#322328 (Netmap backend fails when nav session id is missing)
+  * LP#323087 (Parsing of VLAN routing interfaces is case sensitive)
+  * LP#328451 (snmptrapd idles in db transactions)
+  * LP#328544 (a hyphen in the organisation name results in an exception in
+               useradmin)
+  * LP#328959 (AlertEngine errormail storm on empty alert address)
+  * LP#330058 (TypeError in IP Device Info)
+  * LP#330062 (NullPointer and DataIOExceptions from Netmap)
+  * LP#330425 (Undocumented dependency to python-xmpp)
+  * LP#330426 (AlertEngine mailbombs admin on plugin failure)
+  * LP#330436 (AlertEngine Jabber plugin crashes on missing config)
+  * LP#330464 (Alerts sent outside of timeperiod)
+  * LP#330513 (NameErrors in t1000.py)
+  * LP#330914 (ipdevinfo crashes when room or org id contains spaces)
+  * LP#330981 (SMTP service checker effectively DOSes SMTP server)
+  * LP#335326 (Multiple simultaneous servicemon processes)
+  * LP#335412 (Missing port number results in no Cricket stats for port)
+  * LP#335462 (Status page crashes under PostgreSQL 8.3)
+  * LP#335474 (Duplicate alerts sent to same address)
+  * LP#337220 (smsd and snmptrapd don't clean up their pidfiles)
+  * LP#337694 (radiusparser crash with UnboundLocalError)
+  * LP#338254 (AlertEngine crashes when profile with queued alerts is
+               deactivated)
+
+
 Version 3.5.0
 (released 22 January 2009)
 
