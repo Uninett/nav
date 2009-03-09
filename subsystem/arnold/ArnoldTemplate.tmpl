@@ -736,8 +736,13 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
       <td>$candidate['mac']</td>
       <td>$candidate['dns']</td>
       <td>$candidate['netbios']</td>
+      #if $candidate.has_key('sysname')
       <td>$candidate['sysname']</td>
       <td>$candidate['module']:$candidate['port']</td>
+      #else 
+      <td>N/A</td>
+      <td>Port does not exist</td>
+      #end if
       <td><input type="checkbox" name="identityid$candidate['identityid']" value="$candidate['identityid']" checked>
     </tr>
     #end for
@@ -759,4 +764,5 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
 $default_tabs_CSS()
 $default_table_CSS()
 #end def
+
 
