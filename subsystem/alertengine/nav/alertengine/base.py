@@ -224,6 +224,18 @@ def handle_queued_alerts(queued_alerts, now=None):
 
         logger.debug('Stored alert %d: Checking %s %s subscription %d' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display(), subscription.id) )
 
+        try:
+            subscription.time_period.profile.alertpreference
+        except AlertPreference.DoesNotExist:
+            logger.info('Sending alert %d right away the users profile has been disabled' % queued_alert.alert_id)
+
+            if queued_alert.send():
+                num_sent_alerts += 1
+            else:
+                num_failed_sends += 1
+
+            continue
+
         if subscription.type == AlertSubscription.NOW:
             if queued_alert.send():
                 num_sent_alerts += 1
