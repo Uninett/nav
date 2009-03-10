@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+
 <div class="tabs">
     {% block tabs %}
     <ul>
@@ -56,6 +60,4 @@
 
 </div>
 
-{% if debug %}
-{% include "alertprofiles/debug.html" %}
-{% endif %}
+{% endblock main_content %}
