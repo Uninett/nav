@@ -92,6 +92,8 @@ def handler(req):
 
     page.path = [("Home","/"), ("Arnold", "/arnold")]
 
+    page.output = args.get('output') or ""
+
     if section == 'predefined':
         sort = args.get('sort') or 'blocktitle'
         page.head = 'List of current predefined detentions'
@@ -108,7 +110,6 @@ def handler(req):
 
     elif section == 'blockedports':
         sort = args.get('sort') or 'ip'
-        page.output = args.get('output') or ""
         page.head = "List of detained ports"
         printBlocked(cur,page,sort, section)
         page.path.append(("Detained ports", False))
@@ -141,7 +142,6 @@ def handler(req):
     elif section == 'manualdetain':
         sort = args.get('sort') or 'ip'
         page.head = "Manual Detention"
-        page.output = args.get('output') or ""
         page.defaultdetention = config.get('arnoldweb','defaultdetention')
         printManualDetention(cur, page)
         page.path.append(("Manual Detention", False))        
@@ -342,6 +342,19 @@ def handler(req):
                     logger.error(e)
                 
             else:
+                # Check that this quarantinevlan does not already exist.
+                checkexistence = """
+                SELECT * FROM quarantine_vlans WHERE vlan = %s
+                """
+                try:
+                    cur.execute(checkexistence, (vlan,))
+                except Exception, e:
+                    logger.error(e)
+                    redirect(req, 'addquarantinevlan')
+
+                if cur.rowcount > 0:
+                    redirect(req,'addquarantinevlan?output=Quarantine vlan already exists.')
+                
                 q = """
                 INSERT INTO quarantine_vlans (description, vlan)
                 VALUES (%s, %s)
