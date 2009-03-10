@@ -431,6 +431,19 @@ public class MibIISw implements DeviceHandler
 			}
 		}
 
+		// Set port numbers from basePortIfIndex (dot1dBasePortIfIndex from BRIDGE-MIB)
+		List basePortList = sSnmp.getAll(nb.getOid("basePortIfIndex"), true);
+		if (basePortList != null) {
+			for (Iterator it = basePortList.iterator(); it.hasNext();) {
+				String[] s = (String[]) it.next();
+				Integer basePort = Integer.valueOf(s[0]);
+				String ifIndex = s[1];
+
+				Swport swp = sc.swportFactory(ifIndex);
+				swp.setPort(basePort);
+			}
+		}
+
 
 
 

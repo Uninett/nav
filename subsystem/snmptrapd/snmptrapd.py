@@ -186,7 +186,9 @@ def main():
 
         # Reopen log files on SIGHUP
         logger.debug('Adding signal handler for reopening log files on SIGHUP.')
-        signal.signal(signal.SIGHUP, hup_handler)
+        signal.signal(signal.SIGHUP, signal_handler)
+        # Exit on SIGTERM
+        signal.signal(signal.SIGTERM, signal_handler)
 
         logger.info("Snmptrapd started, listening on port %s" %port)
         try:
@@ -429,13 +431,15 @@ class SNMPTrap:
         return text
 
 
-def hup_handler(signum, _):
-    """Signal handler to close and reopen log file(s) on HUP."""
+def signal_handler(signum, _):
+    """Signal handler to close and reopen log file(s) on HUP and exit on TERM."""
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
         logger.info("Log files reopened.")
-
+    elif signum == signal.SIGTERM:
+        logger.warn('SIGTERM received: Shutting down.')
+        sys.exit(0)
 
 if __name__ == '__main__':
     main()
