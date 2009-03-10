@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+
 {% if errors %}
 <ul class="error">
     {% for error in errors %}
@@ -64,4 +68,4 @@
 
 {% endblock %}
 
-{% include "networkexplorer/debug.html" %}
+{% endblock %}
