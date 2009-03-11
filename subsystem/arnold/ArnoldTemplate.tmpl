@@ -73,6 +73,9 @@ $printMenu($buttons, $buttonnames, $action)
 #elif $action == 'addreason'
   $printAddreason($blockreasons)
 
+#elif $action == 'deletereason'
+  $deleteReason($reason)
+
 #elif $action == 'history'
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
@@ -101,11 +104,18 @@ $printMenu($buttons, $buttonnames, $action)
   $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
 
   <p><a href='addPredefined'>Add new predefined detention</a></p>
+
+#elif $action == 'deletepredefined'
+  $deletePredefined($predefined)
+
 #elif $action == 'addPredefined'
   $addBlocktype($blockreasons, $quarantines)
 
 #elif $action == 'addquarantinevlan'
   $addQuarantineVlan($quarantines)
+
+#elif $action == 'deletequarantinevlan'
+  $deleteQuarantineVlan($quarantine)
 
 #elif $action == 'printError'
   <p class="error">$error</p>
@@ -284,6 +294,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
       <th>Reason</th>
       <th>Description</th>
       <th>&nbsp;</th>
+      <th>&nbsp;</th>
     </tr>
   </thead>
 
@@ -293,6 +304,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
       <td class="$cellcycler">$listitem['name']</td>
       <td class="$cellcycler">$listitem['comment']</td>
       <td class="$cellcycler"><a href="addreason?reasonid=$listitem['reasonid']&name=$listitem['name']&comment=$listitem['comment']">Edit</a></td>
+      <td class="$cellcycler"><a href="deletereason?reasonid=$listitem['reasonid']">Delete</a></td>
     </tr>
     #end for
   </tbody>
@@ -329,6 +341,35 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 #end def
 
+##################################################
+#def deleteReason($reason)
+##################################################
+
+<p>Do you really want to delete detentionreason "$reason['name']"</p>
+<p><b>Remember:</b> Any <a href="predefined">predefined detentions</a> that use this detentionreason will be deleted!</p>
+<form action="dodeletereason" method="post">
+<input type="submit" value="Yes">
+<input type="hidden" name="reasonid" value="$reason['blocked_reasonid']">
+<input type="hidden" name="reasonname" value="$reason['name']">
+<a href="addreason"><input type="button" value="No"></a>
+</form>
+
+#end def
+
+##################################################
+#def deletePredefined($predefined)
+##################################################
+
+<p>Do you really want to delete predefined detention "$predefined['blocktitle']"</p>
+<form action="dodeletepredefined" method="post">
+<input type="submit" value="Yes">
+<input type="hidden" name="predefinedid" value="$predefined['blockid']">
+<input type="hidden" name="predefinedtitle" value="$predefined['blocktitle']">
+<a href="predefined"><input type="button" value="No"></a>
+</form>
+
+#end def
+
 
 ##################################################
 #def addQuarantineVlan($quarantines)
@@ -343,6 +384,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
       <th>Vlan</th>
       <th>Description</th>
       <th>&nbsp;</th>
+      <th>&nbsp;</th>
     </tr>
   </thead>
 
@@ -352,6 +394,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
       <td class="$cellcycler">$listitem['vlan']</td>
       <td class="$cellcycler">$listitem['description']</td>
       <td class="$cellcycler"><a href="addquarantinevlan?quarantineid=$listitem['quarantineid']&vlan=$listitem['vlan']&description=$listitem['description']">Edit</a></td>
+      <td class="$cellcycler"><a href="deletequarantinevlan?quarantineid=$listitem['quarantineid']">Delete</a></td>
     </tr>
     #end for
   </tbody>
@@ -390,6 +433,21 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 #end def
 
+
+##################################################
+#def deleteQuarantineVlan($quarantine)
+##################################################
+
+<p>Do you really want to delete quarantinevlan $quarantine['vlan'] - $quarantine['description']</p>
+<p><b>Remember:</b> Any <a href="predefined">predefined detentions</a> that use this vlan will be deleted!</p>
+<form action="dodeletequarantinevlan" method="post">
+<input type="submit" value="Yes">
+<input type="hidden" name="vlanid" value="$quarantine['quarantineid']">
+<input type="hidden" name="vlan" value="$quarantine['vlan']">
+<a href="addquarantinevlan"><input type="button" value="No"></a>
+</form>
+
+#end def
 
 ##################################################
 #def printManualDetain($reasons, $quarantines)
@@ -543,7 +601,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 #def addBlocktype($blockreasons, $quarantines)
 ##################################################
 
-<h3>Add blocktype</h3>
+<h3>Add predefined detention</h3>
 
 #set $blockdetention = 'checked'
 #set $quarantinedetention = ''
@@ -688,7 +746,7 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
 #if $blockinfo['blockid']
             <button type="submit">Save changes</button>
 #else
-            <button type="submit">Add blocktype</button>
+            <button type="submit">Add predefined detention</button>
 #end if
         </td>
     </tr>
