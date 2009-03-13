@@ -33,6 +33,7 @@ import getopt
 import time
 import pwd
 
+import nav.daemon
 from nav.statemon import rrd
 from nav.statemon import megaping
 from nav.statemon import db
@@ -216,6 +217,19 @@ def start(nofork):
     a daemon.
     """
     conf = config.pingconf()
+    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/pping.pid")
+
+    # Already running?
+    try:
+        nav.daemon.justme(pidfilename)
+    except nav.daemon.AlreadyRunningError, e:
+        otherpid = file(pidfilename, "r").read().strip()
+        os.sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
+        os.sys.exit(1)
+    except nav.daemon.DaemonError, e:
+        os.sys.stderr.write("%s\n" % e)
+        os.sys.exit(1)
+        
     if not nofork:
         pid=os.fork()
         if pid > 0:
@@ -242,7 +256,6 @@ def start(nofork):
         os.sys.stdout = open(logfile,"a")
         os.sys.stderr = open(logfile,"a")
 
-    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/pping.pid")
     pidfile = open(pidfilename, 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()
