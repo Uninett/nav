@@ -252,7 +252,7 @@ def handle_queued_alerts(queued_alerts, now=None):
 
             last_sent_test = last_sent.date() < now.date()
             daily_time_test = daily_time < now.time()
-            insertion_time_test = queued_alert.insertion_time.time() < daily_time
+            insertion_time_test = queued_alert.insertion_time < datetime.combine(now.date(), daily_time)
 
             logger.debug('Tests: last sent %s, daily time %s, insertion time %s' % \
                     (last_sent_test, daily_time_test, insertion_time_test))
@@ -276,7 +276,7 @@ def handle_queued_alerts(queued_alerts, now=None):
             weekday_test = weekly_day == now.weekday()
             last_sent_test = last_sent.date() < now.date()
             weekly_time_test = weekly_time < now.time()
-            insertion_time_test = queued_alert.insertion_time.time() < weekly_time
+            insertion_time_test = queued_alert.insertion_time < datetime.combine(now.date(), weekly_time)
 
             logger.debug('Tests: weekday %s, last sent %s, weekly time %s, insertion time %s' % \
                     (weekday_test, last_sent_test, weekly_time_test, insertion_time_test))
