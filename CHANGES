@@ -1,3 +1,25 @@
+Version 3.5.2
+(released 17 March 2009)
+
+ Security fixes:
+
+  * LP#340516 (XSS on login-page)
+  * LP#340542 (Possible XSS in Arnold)
+
+ Bugfixes:
+
+  * LP#285349 (ranked stat should include router ports)
+  * LP#285352 (ranked stat sysuptime does not provide link to cricket)
+  * LP#319590 (Cannot delete quarantine vlans in Arnold)
+  * LP#319594 (Duplicate quarantine vlans can be registered in Arnold)
+  * LP#334789 (Arnold crash when enabling missing port)
+  * LP#341099 (Most alerts queued for daily or weekly dispatch are
+               never dispatched)
+  * LP#341561 (Servicemon crashes when service checker init fails)
+  * LP#341617 (DummyChecker crashes servicemon in NAV 3.5.1)
+  * LP#341619 (PostgreSQLChecker crashes servicemon in NAV 3.5.1)
+  * LP#341733 (Multiple simultaneous pping processes)
+
 Version 3.5.1
 (released 09 March 2009)
 
