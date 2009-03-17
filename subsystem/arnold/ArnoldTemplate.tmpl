@@ -45,7 +45,11 @@ $printMenu($buttons, $buttonnames, $action)
 
 <div class="tabcontent">
 #if $output
-  <b>$output</b>
+  <b>
+  #filter WebSafe
+    $output
+  #end filter
+  </b>
 #end if
 
 #if $action == 'search'
