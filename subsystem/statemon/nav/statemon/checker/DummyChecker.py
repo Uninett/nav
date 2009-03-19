@@ -29,8 +29,8 @@ from nav.statemon.event import Event
 
 
 class DummyChecker(AbstractChecker):
-    def __init__(self,*args):
-        AbstractChecker.__init__(self,'dummy',*args)
+    def __init__(self,*args, **kwargs):
+        AbstractChecker.__init__(self,'dummy',*args, **kwargs)
     def execute(self):
         import random
         time.sleep(random.random()*10)
