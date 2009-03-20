@@ -33,7 +33,6 @@ from django.template import RequestContext
 
 from nav.web.message import new_message, Messages
 from nav.django.shortcuts import render_to_response, object_list
-from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 
 def _alertprofiles_response(request, status_code=200):
