@@ -38,21 +38,20 @@ from nav.django.utils import get_account
 from nav.web.message import new_message, Messages
 from nav.web.templates.UserAdmin import UserAdmin
 from nav.web.useradmin.forms import *
-from nav.django.context_processors import account_processor
 
 # FIXME make this global
 class UserAdminContext(RequestContext):
     def __init__(self, *args, **kwargs):
-        if 'processors' not in kwargs:
-            kwargs['processors'] = [account_processor]
+        # account_processor is in the settings file.
+        # if 'processors' not in kwargs:
+        #     kwargs['processors'] = [account_processor]
         super(UserAdminContext, self).__init__(*args, **kwargs)
 
 def account_list(request):
     return object_list(UserAdmin, request, Account.objects.all(),
                         template_object_name='account',
                         template_name='useradmin/account_list.html',
-                        extra_context={'active': {'account_list': 1}},
-                        context_processors=[account_processor])
+                        extra_context={'active': {'account_list': 1}})
 
 def account_detail(request, account_id=None):
     try:
@@ -224,8 +223,7 @@ def group_list(request):
     return object_list(UserAdmin, request, AccountGroup.objects.all(),
                         template_object_name='group',
                         template_name='useradmin/group_list.html',
-                        extra_context={'active': {'group_list': True}},
-                        context_processors=[account_processor])
+                        extra_context={'active': {'group_list': True}})
 
 def group_detail(request, group_id=None):
     try:
