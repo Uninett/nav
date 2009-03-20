@@ -111,32 +111,11 @@ public class ResourceHandler extends Thread {
             prefuse.data.Graph ret = null;
 
             try {
-                    InputStreamReader dis = new InputStreamReader(conn.getInputStream(), "UTF-8");
-                    String s_graph = "";
-                    StringBuffer buffer = new StringBuffer();
-                    Reader in = new BufferedReader(dis);
-                    int ch;
-                    while ((ch = in.read()) > -1) {
-                            buffer.append((char)ch);
-                    }
-                    in.close();
-                    s_graph = buffer.toString();
-
-
-                    prefuse.data.io.GraphMLReader reader = new prefuse.data.io.GraphMLReader();
-
-                    try {
-                            ret = reader.readGraph(
-                                            new ByteArrayInputStream(s_graph.getBytes())
-                                            );
-                    } catch (Exception e) {
-                            e.printStackTrace();
-                            throw new DataIOException(e.fillInStackTrace());
-                    }
-
+            	prefuse.data.io.GraphMLReader reader = new prefuse.data.io.GraphMLReader();
+            	ret = reader.readGraph(conn.getInputStream());
             } catch (Exception e) {
-
-                    throw new DataIOException(e.fillInStackTrace());
+            	e.printStackTrace();
+            	throw new DataIOException(e.fillInStackTrace());
             }
 
             allocated_resources.put(url.toString(), ret);
