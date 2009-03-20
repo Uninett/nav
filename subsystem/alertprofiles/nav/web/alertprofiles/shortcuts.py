@@ -44,7 +44,6 @@ def _alertprofiles_response(request, status_code=200):
         None,
         context_instance=RequestContext(
             request,
-            processors=[account_processor]
         ),
     )
 
