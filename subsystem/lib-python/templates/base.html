@@ -3,6 +3,8 @@
 
 {% block base_debug %}
     {% if debug %}
-        {% include "debug.html" %}
+        {% if not account.is_default_account %}
+            {% include "debug.html" %}
+        {% endif %}
     {% endif %}
 {% endblock %}
