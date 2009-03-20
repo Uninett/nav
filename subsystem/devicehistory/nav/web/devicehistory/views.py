@@ -140,13 +140,15 @@ def devicehistory_view(request):
         RequestContext(request)
     )
 
-def error_form(request):
+def error_form(request, confirm=False):
+    if confirm:
+        DeviceQuickSelect_post_error_kwargs['button'] = 'Confirm %s error event'
+
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
-    if request.method == 'POST':
-        return register_error(request)
 
     info_dict = {
         'active': {'error': True},
+        'confirm': confirm,
         'quickselect': DeviceQuickSelect,
     }
     return render_to_response(
@@ -160,6 +162,16 @@ def register_error(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
     selection = DeviceQuickSelect.handle_post(request)
     error_comment = request.POST.get('error_comment', None)
+    confirmed = request.POST.get('confirm', False)
+
+    if not error_comment and not confirmed:
+        # FIXME Objects are unselected when returning to error_form
+        new_message(
+            request,
+            _("There's no error message supplied. Are you sure you want to continue?"),
+            Messages.WARNING,
+        )
+        return error_form(request, True)
 
     register_error_events(request, selection=selection, comment=error_comment)
 

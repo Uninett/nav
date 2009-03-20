@@ -32,6 +32,9 @@ urlpatterns = patterns('',
     url(r'^registererror/$', error_form,
         name='devicehistory-registererror'),
 
+    url(r'^do_registererror/$', register_error,
+        name='devicehistory-do-registererror'),
+
     url(r'^delete_module/$', delete_module,
         name='devicehistory-module'),
 
