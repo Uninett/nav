@@ -26,7 +26,6 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 from django.utils.datastructures import SortedDict
 
-from nav.django.context_processors import account_processor
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryMessage, \
@@ -88,10 +87,7 @@ def devicehistory_search(request):
         DeviceHistoryTemplate,
         'devicehistory/history_search.html',
         info_dict,
-        RequestContext(
-            request,
-            processors=[account_processor]
-        )
+        RequestContext(request)
     )
 
 def devicehistory_view(request):
@@ -141,10 +137,7 @@ def devicehistory_view(request):
         DeviceHistoryTemplate,
         'devicehistory/history_view.html',
         info_dict,
-        RequestContext(
-            request,
-            processors=[account_processor]
-        )
+        RequestContext(request)
     )
 
 def error_form(request):
@@ -160,10 +153,7 @@ def error_form(request):
         DeviceHistoryTemplate,
         'devicehistory/register_error.html',
         info_dict,
-        RequestContext(
-            request,
-            processors=[account_processor]
-        )
+        RequestContext(request)
     )
 
 def register_error(request):
@@ -221,10 +211,7 @@ def delete_module(request):
         DeviceHistoryTemplate,
         'devicehistory/delete_module.html',
         info_dict,
-        RequestContext(
-            request,
-            processors=[account_processor]
-        )
+        RequestContext(request)
     )
 
 def do_delete_module(request):
