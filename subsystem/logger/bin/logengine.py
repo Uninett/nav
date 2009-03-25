@@ -94,16 +94,22 @@ def get_exception_dicts(config):
 
     return (exceptionorigin,exceptiontype,exceptiontypeorigin)
 
-# Example of typical log line to match the following regexp:
+# Examples of typical log lines that must be matched by the following
+# regexp:
+
 # Feb  8 12:58:40 158.38.0.51 316371: Feb  8 12:58:39.873 MET: %SEC-6-IPACCESSLOGDP: list 112 permitted icmp 158.38.60.10 -> 158.38.12.5 (0/0), 1 packet
+# Mar 20 10:27:26 sw_1 607977: Mar 20 2009 10:20:06: %SEC-6-IPACCESSLOGP: list fraVLAN800 denied tcp x.x.x.x(1380) -> y.y.y.y(80), 2 packets
+# Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up
+
 typicalmatchRe = re.compile(
     """
     ^
     (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+        # server month and date
     (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+    # server hour/min/second
     (?P<origin>\S+)                                    # origin
-    \W+ (?:(\d{4}) | .*) \s+ \W*                       # message counter (4 digits? wtf?)
+    \W+ (?:(\d{4}) | .*?) \s+ \W*                      # year/msg counter/garbage
     (?P<month>\w+) \s+ (?P<day>\d+) \s+                # origin month and date
+    ((?P<year>\d{4}) \s+ )?                            # origin year, if present
     (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)     # origin hour/minute/second
     .* %                                               # eat chars until % appears
     (?P<type>.*?) :                                    # message type
@@ -131,7 +137,10 @@ def createMessage(line):
     if match:
         origin = match.group('origin')
         month = find_month(match.group('month'))
-        year = find_year(month)
+        if 'year' in match.groupdict() and match.group('year'):
+            year = int(match.group('year'))
+        else:
+            year = find_year(month)
         day = int(match.group('day'))
         hour = int(match.group('hour'))
         minute = int(match.group('min'))
