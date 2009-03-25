@@ -38,6 +38,8 @@ import os
 import os.path
 import atexit
 import nav
+import nav.logs
+import logging
 from mx import DateTime
 from nav import db
 from nav import daemon
@@ -52,6 +54,8 @@ if config.has_option("paths", "charset"):
 else:
     logfile_charset = "ISO-8859-1"
 
+logging.basicConfig()
+logger = logging.getLogger('logengine')
 connection = db.getConnection('logger','logger')
 database = connection.cursor()
 
@@ -196,6 +200,7 @@ def find_month(textual):
 
 
 if __name__ == '__main__':
+    nav.logs.setLogLevels()
     # Create a pidfile and delete it automagically when the process exits.
     # Although we're not a daemon, we do want to prevent multiple simultaineous
     # logengine processes.
@@ -285,7 +290,12 @@ if __name__ == '__main__':
         for line in fcon:
             # Make sure the data is encoded as UTF-8 before we begin work on it
             line = line.decode(logfile_charset).encode("UTF-8")
-            message = createMessage(line)
+            try:
+                message = createMessage(line)
+            except Exception, e:
+                logger.exception("Unhandled exception during message parse: %s",
+                                 line)
+                continue
             if message:
 
                 ## check origin (host)
