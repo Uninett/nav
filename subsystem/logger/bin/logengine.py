@@ -92,71 +92,61 @@ def get_exception_dicts(config):
 
 # Example of typical log line to match the following regexp:
 # Feb  8 12:58:40 158.38.0.51 316371: Feb  8 12:58:39.873 MET: %SEC-6-IPACCESSLOGDP: list 112 permitted icmp 158.38.60.10 -> 158.38.12.5 (0/0), 1 packet
-typicalmatchRe = re.compile("^(\w+)\s+(\d+)\s+(\d+)\:(\d+):\d+\W+(\S+)"
-                            "\W+(?:(\d{4})|.*)\s+\W*(\w+)\s+(\d+)\s+(\d+):"
-                            "(\d+):(\d+).*%(.*?):\s*(.*)$")
-notsotypicalmatchRe = re.compile("(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\W+"
-                                 "(\S+\.\w+).*\W(\w+\ ??\w*-(\d)-?\w*):"
-                                 "\s*(.*)$")
+typicalmatchRe = re.compile(
+    """
+    ^
+    (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+        # server month and date
+    (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+    # server hour/min/second
+    (?P<origin>\S+)                                    # origin
+    \W+ (?:(\d{4}) | .*) \s+ \W*                       # message counter (4 digits? wtf?)
+    (?P<month>\w+) \s+ (?P<day>\d+) \s+                # origin month and date
+    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)     # origin hour/minute/second
+    .* %                                               # eat chars until % appears
+    (?P<type>.*?) :                                    # message type
+    \s* (?P<description>.*)                            # message (without leading spaces)
+    $
+    """, re.VERBOSE)
+
+# WTF is a "not so typical match"?
+notsotypicalmatchRe = re.compile(
+    """
+    (?P<month>\w+) \s+ (?P<day>\d+) \s+
+    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+) \W+
+    (?P<origin>\S+ \. \w+) .* \W
+    (?P<type>\w+ \ ?? \w* - (?P<priority>\d) -? \w*) :
+    \s* (?P<description>.*)
+    $
+    """, re.VERBOSE)
+
 typematchRe = re.compile("\w+-\d+-?\S*:")
 def createMessage(line):
 
     typicalmatch = typicalmatchRe.search(line)
-
-    if typicalmatch:
-        servmonth = find_month(typicalmatch.group(1))
-        servyear = find_year(servmonth)
-        servday = int(typicalmatch.group(2))
-        servhour = int(typicalmatch.group(3))
-        servmin = int(typicalmatch.group(4))
-        origin = typicalmatch.group(5)
-        month = find_month(typicalmatch.group(7))
+    match = typicalmatch or notsotypicalmatchRe.search(line)
+    
+    if match:
+        origin = match.group('origin')
+        month = find_month(match.group('month'))
         year = find_year(month)
-        day = int(typicalmatch.group(8))
-        hour = int(typicalmatch.group(9))
-        min = int(typicalmatch.group(10))
-        type = typicalmatch.group(12)
-        description = typicalmatch.group(13)
+        day = int(match.group('day'))
+        hour = int(match.group('hour'))
+        minute = int(match.group('min'))
+        msgtype = match.group('type')
+        description = match.group('description')
 
-        # does no control of clocks, using servtime
-        servtime = DateTime.DateTime(servyear,servmonth,servday,servhour,servmin)
-        oritime = DateTime.DateTime(year,month,day,hour,min)
+        timestamp = DateTime.DateTime(year,month,day,hour,minute)
 
-        #trust that this time is correct
-        servtime = oritime
-
-        return Message(servtime, origin, type, description)
-
-        #print oritime+DateTime.DateTimeDelta(5)
+        return Message(timestamp, origin, msgtype, description)
 
     else:
-        notsotypicalmatch = notsotypicalmatchRe.search(line)
-        if notsotypicalmatch:
-            month = find_month(notsotypicalmatch.group(1))
-            year = find_year(month)
-            day = int(notsotypicalmatch.group(2))
-            hour = int(notsotypicalmatch.group(3))
-            min = int(notsotypicalmatch.group(4))
-            origin = notsotypicalmatch.group(6)
-            type = notsotypicalmatch.group(7)
-            priority = int(notsotypicalmatch.group(8))
-            description = notsotypicalmatch.group(9)
+        # if this message shows sign of cisco format, put it in the error log
+        typematch = typematchRe.search(line)
+        if typematch:
+            database.execute("INSERT INTO errorerror (message) "
+                             "VALUES (%s)", (line,))
+            connection.commit()
 
-            servtime = DateTime.DateTime(year,month,day,hour,min)
-            
-            return Message(servtime, origin, type, description)
-            #raise "this is a defined message, but it has no handler"
-        
-        else:
-            # if this message shows sign of cisco format, put it in the error log
-            typematch = typematchRe.search(line)
-            if typematch:
-                database.execute("INSERT INTO errorerror (message) "
-                                 "VALUES (%s)", (line,))
-                connection.commit()
-            #raise "this is an undefined message"+line
-
-            return
+        return
 
 
     
