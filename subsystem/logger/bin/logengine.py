@@ -1,30 +1,36 @@
 #!/usr/bin/env python
-# -*- coding: ISO-8859-1 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
-# Copyright 2007 UNINETT AS
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2007, 2009 UNINETT AS
+# 
+# This file is part of Network Administration Visualized (NAV).
+# 
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# This file is part of Network Administration Visualized (NAV)
-#
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: main.py 2774 2004-06-04 18:50:41Z gartmann $
-# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
-#
+"""logengine.py inserts Cisco syslog messages into the NAV database.
 
+This program takes no arguments; its operation is configured in the
+file logger.conf.
+
+Syslog messages will be read from the configured file, parsed and
+inserted into structured NAV database tables.  Messages that cannot be
+parsed as Cisco syslog messages are ignored.
+
+The syslog file is truncated upon the exit of this program.  If you
+wish to keep a copy of the syslog messages on file, you should
+configure your syslog daemon to log the messages to two separate
+files, one of which this program will have exclusive access to.
+
+"""
 
 ## The structure in this file is not good, but understandable. It is easy
 ## to see that this file is converted from procedure oriented perl code.
@@ -37,14 +43,17 @@ import sys
 import os
 import os.path
 import atexit
+import logging
+from ConfigParser import ConfigParser
+
+from mx import DateTime
+
 import nav
 import nav.logs
-import logging
-from mx import DateTime
 from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
-from ConfigParser import ConfigParser
+
 
 config = ConfigParser()
 config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
