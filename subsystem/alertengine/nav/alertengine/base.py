@@ -104,7 +104,7 @@ def check_alerts(debug=False):
         num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends)
 
     if num_failed_sends:
-        logger.warning('Send %d alerts failed, trying again on next run.', num_failed_sends)
+        logger.warning('Send %d alerts failed.', num_failed_sends)
 
     del initial_alerts
     del new_alerts
