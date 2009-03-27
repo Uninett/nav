@@ -68,47 +68,69 @@ def topological_sort(plugins):
     '''
 
     sorted_plugins = []
-    all_plugins = set(plugins)
-    vertices = {}
-    name_map = {}
 
-    for plugin in all_plugins:
-        name_map['%s.%s' % (plugin.__module__, plugin.__name__)] = plugin
-
-    # Populate vertices: {child: [parent1, parent2, ...]}
-    for plugin in all_plugins:
-        if hasattr(plugin, 'dependencies') and plugin.dependencies:
-            try:
-                vertices[plugin] = [name_map[n] for n in plugin.dependencies]
-            except KeyError:
-                # We could try and auto import missing plugins, however this
-                # complexity is probably more trouble than what it is worth.
-
-                raise GeneralException('Dependency "%s" for %s is not met' %
-                    (n, plugin))
-
-    # Plugins without any dependencies
-    safe_plugins = all_plugins.difference(set(vertices.keys()))
+    vertices = _find_vertices(plugins)
+    safe_plugins = _find_safe_plugins(vertices)
 
     while safe_plugins:
-        # Remove one of the plugins without any dependencies
         plugin = safe_plugins.pop()
-
-        # Add it to the sorted list and remove it from the all_plugins set
         sorted_plugins.append(plugin)
-        all_plugins.remove(plugin)
 
-        for k,i in vertices.items():
-            # Delete any vertices with the plugin in question
-            if plugin in i:
-                i.remove(plugin)
-            if not i:
-                del vertices[k]
-
-            # Update list of safe_plugins based on new vertices data
-            safe_plugins = safe_plugins.union(all_plugins.difference(set(vertices.keys())))
+        for child,parents in vertices.items():
+            _remove_plugin_from_parents(child, parents, plugin)
+            _update_safe_plugins(child, parents, safe_plugins)
+            _remove_empty_vertices(child, parents, vertices)
 
     if vertices:
         raise GeneralException('Found at least on cycle in graph')
-    else:
-        return sorted_plugins
+
+    return sorted_plugins
+
+def _find_vertices(plugins):
+    vertices = {}
+    name_map = _get_name_map(plugins)
+
+    # Populate vertices: {child: [parent1, parent2, ...]}
+    for plugin in plugins:
+        vertices[plugin] = _get_dependencies(plugin, name_map)
+
+    return vertices
+
+def _find_safe_plugins(vertices):
+    safe_plugins = set()
+
+    for child,parents in vertices.items():
+        _update_safe_plugins(child, parents, safe_plugins)
+        _remove_empty_vertices(child, parents, vertices)
+
+    return safe_plugins
+
+def _get_name_map(plugins):
+    name_map = lambda plugin: ('%s.%s' % (plugin.__module__, plugin.__name__), plugin)
+
+    return dict(map(name_map, plugins ))
+
+def _get_dependencies(plugin, name_map):
+    if not hasattr(plugin, 'dependencies'):
+        return []
+
+    try:
+        return [name_map[n] for n in plugin.dependencies]
+    except KeyError:
+        # We could try and auto import missing plugins, however this
+        # complexity is probably more trouble than what it is worth.
+
+        raise GeneralException('Dependency "%s" for %s is not met' %
+            (n, plugin))
+
+def _remove_plugin_from_parents(child, parents, plugin):
+    if plugin in parents:
+        parents.remove(plugin)
+
+def _update_safe_plugins(child, parents, safe_plugins):
+    if not parents:
+        safe_plugins.add(child)
+
+def _remove_empty_vertices(child, parents, vertices):
+    if not parents:
+        del vertices[child]
