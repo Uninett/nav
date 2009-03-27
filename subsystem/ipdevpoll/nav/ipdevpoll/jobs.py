@@ -5,27 +5,20 @@ __copyright__ = "Copyright 2008 UNINETT AS"
 __license__ = "GPLv2"
 
 import logging
-from ConfigParser import ConfigParser, NoOptionError
 
 import nav.path
+from nav.config import getconfig
 from nav.errors import GeneralException
 
 logger = logging.getLogger(__name__)
 
 def get_jobs():
-    jobs =  {}
+    config = getconfig('jobs.conf', configfolder=nav.path.sysconfdir)
+    jobs = {}
 
-    config = ConfigParser()
-    config.read('jobs.conf') # FIXME use nav.path
-
-    for section in config.sections():
-        try:
-            interval = config.get(section, 'interval')
-            plugins = config.get(section, 'plugins').split()
-        except NoOptionError:
-            continue
-
-        interval = get_time(interval)
+    for section,settings in config.items():
+        interval = parse_time(settings.get('interval', ''))
+        plugins  = parse_plugins(settings.get('plugins', ''))
 
         if interval and plugins:
             jobs[section] = (interval, plugins)
@@ -36,8 +29,11 @@ def get_jobs():
 
     return jobs
 
-def get_time(value):
+def parse_time(value):
     value = value.strip()
+
+    if value == '':
+        return 0
 
     if value.isdigit():
         return int(value)
@@ -54,3 +50,9 @@ def get_time(value):
         return value
 
     raise GeneralException('Invalid time format: %s%s' % (value, unit))
+
+def parse_plugins(value):
+    if value:
+        return value.split()
+
+    return []
