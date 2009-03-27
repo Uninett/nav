@@ -105,7 +105,7 @@ def get_connection_string(db_params=None, script_name='default'):
     conn_string = "host=%s port=%s dbname=%s user=%s password=%s" % db_params
     return conn_string
 
-def getConnection(scriptName, database='manage'):
+def getConnection(scriptName, database='nav'):
     """
     Returns an open database connection, as configured in db.conf for
     the given scriptName.  Connections are cached, so that future
@@ -115,7 +115,8 @@ def getConnection(scriptName, database='manage'):
     import nav
     global _connectionCache
 
-    (dbhost, port, dbname, user, pw) = get_connection_parameters()
+    (dbhost, port, dbname, user, pw) = \
+             get_connection_parameters(scriptName, database)
     cacheKey = (dbname, user)
 
     # First, invalidate any dead connections.  Return a connection
