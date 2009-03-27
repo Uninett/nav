@@ -52,7 +52,7 @@ def readConfig(filename, splitChar='='):
     file.close()
     return configuration
 
-def getconfig(configfile, defaults=None):
+def getconfig(configfile, defaults=None, configfolder=None):
     """
     Read whole config from file.
 
@@ -64,6 +64,9 @@ def getconfig(configfile, defaults=None):
         Returns a dict, with sections names as keys and a dict for each
         section as values.
     """
+
+    if configfolder:
+        file = os.path.join(configfolder, configfile)
 
     config = ConfigParser.RawConfigParser(defaults)
     config.read(configfile)
