@@ -21,7 +21,7 @@
 #
 # $Id: checkermap.py,v 1.1 2003/06/19 12:51:14 magnun Exp $
 # Authors: Magnus Nordseth <magnun@stud.ntnu.no>
-#	   Erik Gorset	<erikgors@stud.ntnu.no>
+#          Erik Gorset  <erikgors@stud.ntnu.no>
 #
 import os, re, debug
 from debug import debug

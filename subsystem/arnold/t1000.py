@@ -148,7 +148,7 @@ def main():
 
             try:
                 sw = nav.arnold.findSwportIDinfo(row['swportid'])
-            except (DbError, PortNotFoundError), why:
+            except (nav.arnold.DbError, nav.arnold.PortNotFoundError), why:
                 logger.error(why)
                 continue
 

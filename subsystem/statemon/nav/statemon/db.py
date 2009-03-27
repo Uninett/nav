@@ -37,6 +37,7 @@ import psycopg
 import Queue
 import time
 import atexit
+import traceback
 
 from event import Event
 from service import Service
@@ -237,14 +238,23 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
                      'args':property.get(serviceid,{}),
                      'version':version
                      }
+
+            kwargs = {}
             if useDbStatus:
                 if up == 'y':
                     up=Event.UP
                 else:
                     up=Event.DOWN
-                newChecker = checker(service, status=up)
-            else:
-                newChecker = checker(service)
+                kwargs['status'] = up
+
+            try:
+                newChecker = checker(service, **kwargs)
+            except Exception, why:
+                debug("Checker %s (%s) failed to init. This checker will "
+                      "remain DISABLED:\n%s" % (handler, checker,
+                                                traceback.format_exc()), 2)
+                continue
+
             if onlyactive and not active:
                 continue
             else:

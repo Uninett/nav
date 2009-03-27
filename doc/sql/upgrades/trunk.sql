@@ -19,24 +19,14 @@
 */
 
 BEGIN;
+-- Insert schema changes here.
 
--- Add alerthistid foreign key so that we can use alerthistory in
--- alertengine at a latter point in time.
-ALTER TABLE manage.alertq ADD alerthistid integer NULL;
-ALTER TABLE manage.alertq ADD CONSTRAINT alertq_alerthistid_fkey
-  FOREIGN KEY (alerthistid)
-  REFERENCES manage.alerthist (alerthistid)
-  ON UPDATE CASCADE
-  ON DELETE SET NULL;
+ALTER TABLE org DROP CONSTRAINT "$1";
+ALTER TABLE org ADD CONSTRAINT org_parent_fkey 
+                               FOREIGN KEY (parent) REFERENCES org (orgid)
+                               ON UPDATE CASCADE;
 
--- Remove this field which was added in an earlier 3.5 beta.
-ALTER TABLE manage.alertq DROP closed;
-
--- Update two radius indexes
-DROP INDEX radiusacct_stop_user_index;
-CREATE INDEX radiusacct_stop_user_index ON radiusacct (AcctStopTime, lower(UserName));
-
-DROP INDEX radiuslog_username_index;
-CREATE INDEX radiuslog_username_index ON radiuslog(lower(UserName));
+-- Index to speed up ipdevinfo queries for the first cam entry from a box
+CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
 COMMIT;

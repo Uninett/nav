@@ -91,9 +91,8 @@ swport.ifindex AS ifindex,
 2 AS layer,
 path ||'/'|| filename AS rrdfile,
 nettype, netident,
-NULL AS gwportid,
-NULL AS from_gwportid,
 NULL AS from_swportid,
+NULL AS gwportid,
 vlan.*
 
 FROM gwport
@@ -127,8 +126,7 @@ foo.*,
 vlan.*,
 path ||'/'|| filename AS rrdfile,
 NULL AS gwportid,
-NULL AS from_gwportid,
-NULL AS from_swportid
+NULL AS from_gwportid
 
 FROM swport
  JOIN module ON (swport.moduleid = module.moduleid)
@@ -195,18 +193,37 @@ ORDER BY from_sysname, sysname, swport.speed DESC
 
     db_cursor.execute(layer_3_query)
     results = db_cursor.dictfetchall()
+    for res in results:
+        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
+            assert False, str(res)
     db_cursor.execute(layer_2_query_1)
     results.extend(db_cursor.dictfetchall())
+    for res in results:
+        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
+            assert False, str(res)
     db_cursor.execute(layer_2_query_2)
     results.extend(db_cursor.dictfetchall())
+    for res in results:
+        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
+            assert False, str(res)
     db_cursor.execute(layer_2_query_3)
     results.extend(db_cursor.dictfetchall())
     for res in results:
+        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
+            assert False, str(res)
+        if 'from_swportid' not in res and 'from_gwportid' not in res:
+            assert False, str(res)
         if res['rrdfile']:
             data = get_rrd_link_load(res['rrdfile'])
             res['load'] = (data[0],data[1])
         else:
             res['load'] = (-1,-1)
+        if 'from_swportid' in res and res['from_swportid']:
+            res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
+        elif 'from_gwportid' in res and res['from_gwportid']:
+            res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
+        else:
+            assert False, str(res)
 
         connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
         connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
@@ -240,10 +257,6 @@ ORDER BY from_sysname, sysname, swport.speed DESC
             netbox['load'] = 'unknown'
         if netbox['sysname'].endswith(domain_suffix):
             netbox['sysname'] = netbox['sysname'][0:len(netbox['sysname'])-len(domain_suffix)]
-
-
-
-
 
     return (netboxes, connections)
 

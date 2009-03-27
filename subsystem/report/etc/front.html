@@ -1,10 +1,6 @@
 <h2>Reports</h2>
 
-<p>Use * as wildcard for all search fields.</p>
-
-<table class="toolbox toolbox4cols"><tr>
-
-<td>
+<div class="infobox float-forms">
     <form action="netbox">
         <input type="hidden" name="op_roomid" value="like" />
         <div>Room search</div>
@@ -12,9 +8,7 @@
         <input type="submit" value="Find" />
         <div><i>room</i></div>
     </form>
-</td>
 
-<td>
     <form action="device">
         <div>Device search</div>
         <input type="text" name="serial" size="15" />
@@ -22,9 +16,7 @@
         <input type="submit" value="Find" />
         <div><i>serial number</i></div>
     </form>
-</td>
 
-<td>
     <form action="swporttrunk">
         <input type="hidden" name="op_vlan.vlan" value="like" />
         <div>Switchports with VLAN</div>
@@ -32,11 +24,8 @@
         <input type="submit" value="Find" />
         <div><i>vlan number</i></div>
     </form>
-</td>
 
-</tr><tr>
 
-<td>
     <form action="netbox">
         <input type="hidden" name="op_sysname" value="like" />
         <div>IP Device report</div>
@@ -44,9 +33,7 @@
         <input type="submit" value="Find" />
         <div><i>sysname</i></div>
     </form>
-</td>
 
-<td>
     <form action="swport">
         <input type="hidden" name="op_s1.portname" value="like" />
         <div>Portname search</div>
@@ -54,9 +41,7 @@
         <input type="submit" value="Find" />
         <div><i>text</i></div>
     </form>
-</td>
 
-<td>
     <form action="prefix">
         <input type="hidden" name="op_netident" value="like" />
         <div>Prefix search</div>
@@ -64,12 +49,13 @@
         <input type="submit" value="Find" />
         <div><i>text</i></div>
     </form>
-</td>
 
-</tr></table>
+    <hr>
+    <p>Use * as wildcard for all search fields.</p>
+</div>
 
-<table><tr><td valign="top">
 
+<div class="float-list">
 <h3>Collected information</h3>
 
 <ul>
@@ -108,9 +94,9 @@
     <li><a href="unrecognizedCDP">Unrecognized CDP neighbours</a></li>
     <li><a href="duplexmismatch">Duplex mismatches</a></li>
 </ul>
+</div>
 
-</td><td valign="top" class="padded-left">
-
+<div class="float-list">
 <h3>Manually updated information</h3>
 
 <ul>
@@ -123,10 +109,12 @@
     <li><a href="vendor">Vendors</a></li>
     <li><a href="product">Products</a></li>
 </ul>
+</div>
 
+<div class="float-list">
 <h3>Automatically generated information</h3>
 
 <ul>
     <li><a href="reportlist">Report List</a></li>
-
-</td></tr></table>
+</ul>
+</div>

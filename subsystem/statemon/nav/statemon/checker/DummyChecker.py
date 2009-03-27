@@ -23,20 +23,23 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
+import time
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
 
-from nav.statemon.abstractChecker import AbstractChecker, Event
+
 class DummyChecker(AbstractChecker):
-	def __init__(self,*args):
-		AbstractChecker.__init__(self,'dummy',*args)
-	def execute(self):
-		import random
-		time.sleep(random.random()*10)
-		return Event.UP,'OK'
+    def __init__(self,*args, **kwargs):
+        AbstractChecker.__init__(self,'dummy',*args, **kwargs)
+    def execute(self):
+        import random
+        time.sleep(random.random()*10)
+        return Event.UP,'OK'
 
 def getRequiredArgs():
-	"""
-	Returns a list of required arguments
-	"""
-	requiredArgs = []
-	return requiredArgs
-								
+    """
+    Returns a list of required arguments
+    """
+    requiredArgs = []
+    return requiredArgs
+

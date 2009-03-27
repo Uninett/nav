@@ -1,0 +1,10 @@
+{% block base_content %}
+{% endblock %}
+
+{% block base_debug %}
+    {% if debug %}
+        {% if not account.is_default_account %}
+            {% include "debug.html" %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -53,7 +53,7 @@ def get_bug_title(bug_id):
     """Retrieve the title of a launchpad bug report."""
     for line in get_bug_details(bug_id):
         if line.startswith('title:'):
-            title = line.split(':')[1]
+            title = line.split(':', 1)[1]
             return title.strip()
 
 def bugfix_format(bug_id):
