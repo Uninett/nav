@@ -100,7 +100,7 @@ class AbstractChecker:
         self.setTimestamp(0)
         timeout = self.getArgs().get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
         self.setTimeout(int(timeout))
-        self.db=db.db(config.dbconf())
+        self.db=db.db()
         # self.alerter=mailAlert.mailAlert()
         debug("New checker instance for %s:%s " % (self.getSysname(), self.getType()),6)
         self.runcount=0

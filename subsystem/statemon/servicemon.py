@@ -60,7 +60,7 @@ class controller:
         self._checkers=[]
         self._looptime=int(self.conf.get("checkinterval",60))
         debug.debug("Setting checkinterval=%i"% self._looptime)
-        self.db=db.db(config.dbconf("db.conf"))
+        self.db=db.db()
         debug.debug("Reading database config")
         debug.debug("Setting up runqueue")
         self._runqueue=RunQueue.RunQueue(controller=self)
