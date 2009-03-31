@@ -84,8 +84,21 @@ def get_connection_parameters(script_name='default', database='nav'):
     conf = config.readConfig('db.conf')
     dbhost = conf['dbhost']
     dbport   = conf['dbport']
-    dbname = conf['db_%s' % database]
-    user   = conf['script_%s' % script_name]
+
+    db_option = 'db_%s' % database
+    if db_option not in conf:
+        logger.debug("connection parameter for database %s doesn't exist, "
+                     "reverting to default 'db_nav'", database)
+        db_option = 'db_nav'
+    dbname = conf[db_option]
+
+    user_option = 'script_%s' % script_name
+    if user_option not in conf:
+        logger.debug("connection parameter for script %s doesn't exist, "
+                     "reverting to default", script_name)
+        user_option = 'script_default'
+    user   = conf[user_option]
+
     pw     = conf['userpw_%s' % user]
     return (dbhost, dbport, dbname, user, pw)
 
@@ -127,8 +140,8 @@ def getConnection(scriptName, database='nav'):
     except KeyError:
         connection = psycopg.connect(get_connection_string(
                 (dbhost, port, dbname, user, pw)))
-        logger.debug("Opened a new database connection, dbname=%s, user=%s" %
-                      (dbname, user))
+        logger.debug("Opened a new database connection, scriptName=%s, "
+                     "dbname=%s, user=%s", scriptName, dbname, user)
         connection.autocommit(0)
         connection.set_isolation_level(1)
         connObject = ConnectionObject(connection, cacheKey)
