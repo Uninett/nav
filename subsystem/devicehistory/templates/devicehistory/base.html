@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block base_content %}
 <div class="tabs">
     {% block tabs %}
     <ul>
@@ -31,8 +34,6 @@
 
     {% block tabcontent %}
     {% endblock %}
-</div>
 
-{% if debug %}
-{% include "devicehistory/debug.html" %}
-{% endif %}
+</div>
+{% endblock %}
