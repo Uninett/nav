@@ -45,6 +45,8 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 import logging
 import os
 
+from nav.models.event import AlertQueueMessage
+
 logger = logging.getLogger('nav.alertengine.dispatchers')
 
 class dispatcher:
@@ -55,5 +57,14 @@ class dispatcher:
     def send(alert, address, language='en'):
         raise NotImplementedError
 
+    def get_message(self, alert, language, message_type):
+        try:
+            return alert.messages.get(language=language, type=message_type).message
+        except AlertQueueMessage.DoesNotExist:
+            raise FatalDispatcherException("Could not find message with lang=%s and type=%s" % (language, message_type))
+
 class DispatcherException(Exception):
+    pass
+
+class FatalDispatcherException(DispatcherException):
     pass

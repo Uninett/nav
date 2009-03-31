@@ -42,7 +42,7 @@ import nav.pwhash
 from nav.db.navprofiles import Account as OldAccount
 from nav.auth import hasPrivilege
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DispatcherException
+from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
@@ -272,9 +272,17 @@ class AlertAddress(models.Model):
             logger.info('alert %d sent by %s to %s due to %s subscription %d' % (alert.id, self.type, self.address,
                     subscription.get_type_display(), subscription.id))
 
+        except FatalDispatcherException, e:
+            logger.error('%s raised a FatalDispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            alert.delete()
+            transaction.commit()
+
+            return False
+
         except DispatcherException, e:
             logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
             transaction.rollback()
+
             return False
 
         except Exception, e:

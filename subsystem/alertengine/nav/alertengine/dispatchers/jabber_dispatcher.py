@@ -109,13 +109,13 @@ class jabber(dispatcher):
         self.client.sendInitPresence()
 
     def send(self, address, alert, language='en', retry=True, retry_reason=None):
-        message = alert.messages.get(language=language, type='jabber')
+        message = self.get_message(alert, language, 'jabber')
 
         if not self.client.isConnected():
             self.connect()
 
         try:
-            id = self.client.send(xmpp.protocol.Message(address.address, message.message, typ='chat'))
+            id = self.client.send(xmpp.protocol.Message(address.address, message, typ='chat'))
             logger.debug('Sent message with jabber id %s' % id)
         except (xmpp.protocol.StreamError, IOError), e:
             if retry:
