@@ -12,7 +12,6 @@ import no.ntnu.nav.Path;
  */
 
 class testNetboxInfo {
-	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getDeviceData";
 
 	public static void main(String[] args) throws Exception {
@@ -61,14 +60,7 @@ class testNetboxInfo {
 	}
 
 	private static boolean connectDb() throws Exception {
-		ConfigParser dbCp;
-		try {
-			dbCp = new ConfigParser(dbConfigFile);
-		} catch (IOException e) {
-			errl("Error, could not read config file: " + dbConfigFile);
-			return false;
-		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(scriptName, "nav")) {
 			errl("Error, could not connect to database!");
 			return false;
 		}
