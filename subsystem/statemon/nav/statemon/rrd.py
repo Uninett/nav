@@ -39,7 +39,7 @@ try:
 except:
     # Not properly installed
     RRDDIR = '/var/rrd'
-database = db.db(config.dbconf())
+database = db.db()
 
 def create(filename, netboxid, serviceid=None, handler=""):
     step = 300

@@ -1,30 +1,36 @@
 #!/usr/bin/env python
-# -*- coding: ISO-8859-1 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
-# Copyright 2007 UNINETT AS
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2007, 2009 UNINETT AS
+# 
+# This file is part of Network Administration Visualized (NAV).
+# 
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# This file is part of Network Administration Visualized (NAV)
-#
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: main.py 2774 2004-06-04 18:50:41Z gartmann $
-# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
-#
+"""logengine.py inserts Cisco syslog messages into the NAV database.
 
+This program takes no arguments; its operation is configured in the
+file logger.conf.
+
+Syslog messages will be read from the configured file, parsed and
+inserted into structured NAV database tables.  Messages that cannot be
+parsed as Cisco syslog messages are ignored.
+
+The syslog file is truncated upon the exit of this program.  If you
+wish to keep a copy of the syslog messages on file, you should
+configure your syslog daemon to log the messages to two separate
+files, one of which this program will have exclusive access to.
+
+"""
 
 ## The structure in this file is not good, but understandable. It is easy
 ## to see that this file is converted from procedure oriented perl code.
@@ -37,12 +43,17 @@ import sys
 import os
 import os.path
 import atexit
-import nav
+import logging
+from ConfigParser import ConfigParser
+
 from mx import DateTime
+
+import nav
+import nav.logs
 from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
-from ConfigParser import ConfigParser
+
 
 config = ConfigParser()
 config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
@@ -52,6 +63,8 @@ if config.has_option("paths", "charset"):
 else:
     logfile_charset = "ISO-8859-1"
 
+logging.basicConfig()
+logger = logging.getLogger('logengine')
 connection = db.getConnection('logger','logger')
 database = connection.cursor()
 
@@ -90,73 +103,72 @@ def get_exception_dicts(config):
 
     return (exceptionorigin,exceptiontype,exceptiontypeorigin)
 
-# Example of typical log line to match the following regexp:
+# Examples of typical log lines that must be matched by the following
+# regexp:
+
 # Feb  8 12:58:40 158.38.0.51 316371: Feb  8 12:58:39.873 MET: %SEC-6-IPACCESSLOGDP: list 112 permitted icmp 158.38.60.10 -> 158.38.12.5 (0/0), 1 packet
-typicalmatchRe = re.compile("^(\w+)\s+(\d+)\s+(\d+)\:(\d+):\d+\W+(\S+)"
-                            "\W+(?:(\d{4})|.*)\s+\W*(\w+)\s+(\d+)\s+(\d+):"
-                            "(\d+):(\d+).*%(.*?):\s*(.*)$")
-notsotypicalmatchRe = re.compile("(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\W+"
-                                 "(\S+\.\w+).*\W(\w+\ ??\w*-(\d)-?\w*):"
-                                 "\s*(.*)$")
+# Mar 20 10:27:26 sw_1 607977: Mar 20 2009 10:20:06: %SEC-6-IPACCESSLOGP: list fraVLAN800 denied tcp x.x.x.x(1380) -> y.y.y.y(80), 2 packets
+# Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up
+
+typicalmatchRe = re.compile(
+    """
+    ^
+    (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+        # server month and date
+    (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+    # server hour/min/second
+    (?P<origin>\S+)                                    # origin
+    \W+ (?:(\d{4}) | .*?) \s+ \W*                      # year/msg counter/garbage
+    (?P<month>\w+) \s+ (?P<day>\d+) \s+                # origin month and date
+    ((?P<year>\d{4}) \s+ )?                            # origin year, if present
+    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)     # origin hour/minute/second
+    .* %                                               # eat chars until % appears
+    (?P<type>.*?) :                                    # message type
+    \s* (?P<description>.*)                            # message (without leading spaces)
+    $
+    """, re.VERBOSE)
+
+# WTF is a "not so typical match"?
+notsotypicalmatchRe = re.compile(
+    """
+    (?P<month>\w+) \s+ (?P<day>\d+) \s+
+    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+) \W+
+    (?P<origin>\S+ \. \w+) .* \W
+    (?P<type>\w+ \ ?? \w* - (?P<priority>\d) -? \w*) :
+    \s* (?P<description>.*)
+    $
+    """, re.VERBOSE)
+
 typematchRe = re.compile("\w+-\d+-?\S*:")
 def createMessage(line):
 
     typicalmatch = typicalmatchRe.search(line)
+    match = typicalmatch or notsotypicalmatchRe.search(line)
+    
+    if match:
+        origin = match.group('origin')
+        month = find_month(match.group('month'))
+        if 'year' in match.groupdict() and match.group('year'):
+            year = int(match.group('year'))
+        else:
+            year = find_year(month)
+        day = int(match.group('day'))
+        hour = int(match.group('hour'))
+        minute = int(match.group('min'))
+        msgtype = match.group('type')
+        description = match.group('description')
 
-    if typicalmatch:
-        servmonth = find_month(typicalmatch.group(1))
-        servyear = find_year(servmonth)
-        servday = int(typicalmatch.group(2))
-        servhour = int(typicalmatch.group(3))
-        servmin = int(typicalmatch.group(4))
-        origin = typicalmatch.group(5)
-        month = find_month(typicalmatch.group(7))
-        year = find_year(month)
-        day = int(typicalmatch.group(8))
-        hour = int(typicalmatch.group(9))
-        min = int(typicalmatch.group(10))
-        type = typicalmatch.group(12)
-        description = typicalmatch.group(13)
+        timestamp = DateTime.DateTime(year,month,day,hour,minute)
 
-        # does no control of clocks, using servtime
-        servtime = DateTime.DateTime(servyear,servmonth,servday,servhour,servmin)
-        oritime = DateTime.DateTime(year,month,day,hour,min)
-
-        #trust that this time is correct
-        servtime = oritime
-
-        return Message(servtime, origin, type, description)
-
-        #print oritime+DateTime.DateTimeDelta(5)
+        return Message(timestamp, origin, msgtype, description)
 
     else:
-        notsotypicalmatch = notsotypicalmatchRe.search(line)
-        if notsotypicalmatch:
-            month = find_month(notsotypicalmatch.group(1))
-            year = find_year(month)
-            day = int(notsotypicalmatch.group(2))
-            hour = int(notsotypicalmatch.group(3))
-            min = int(notsotypicalmatch.group(4))
-            origin = notsotypicalmatch.group(6)
-            type = notsotypicalmatch.group(7)
-            priority = int(notsotypicalmatch.group(8))
-            description = notsotypicalmatch.group(9)
+        # if this message shows sign of cisco format, put it in the error log
+        typematch = typematchRe.search(line)
+        if typematch:
+            database.execute("INSERT INTO errorerror (message) "
+                             "VALUES (%s)", (line,))
+            connection.commit()
 
-            servtime = DateTime.DateTime(year,month,day,hour,min)
-            
-            return Message(servtime, origin, type, description)
-            #raise "this is a defined message, but it has no handler"
-        
-        else:
-            # if this message shows sign of cisco format, put it in the error log
-            typematch = typematchRe.search(line)
-            if typematch:
-                database.execute("INSERT INTO errorerror (message) "
-                                 "VALUES (%s)", (line,))
-                connection.commit()
-            #raise "this is an undefined message"+line
-
-            return
+        return
 
 
     
@@ -206,6 +218,7 @@ def find_month(textual):
 
 
 if __name__ == '__main__':
+    nav.logs.setLogLevels()
     # Create a pidfile and delete it automagically when the process exits.
     # Although we're not a daemon, we do want to prevent multiple simultaineous
     # logengine processes.
@@ -295,7 +308,12 @@ if __name__ == '__main__':
         for line in fcon:
             # Make sure the data is encoded as UTF-8 before we begin work on it
             line = line.decode(logfile_charset).encode("UTF-8")
-            message = createMessage(line)
+            try:
+                message = createMessage(line)
+            except Exception, e:
+                logger.exception("Unhandled exception during message parse: %s",
+                                 line)
+                continue
             if message:
 
                 ## check origin (host)

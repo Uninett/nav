@@ -29,6 +29,7 @@ __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
 from mod_python import apache
+from mod_python.util import FieldStorage
 import re
 import nav, nav.path
 from nav import web, db
@@ -71,7 +72,7 @@ def handler(req):
     args = URI(req.unparsed_uri)
 
     page = ArnoldTemplate()
-
+    fs = FieldStorage(req) # contains get and post variables
 
     # Page path is used for quick navigation
     page.path = [("Home","/"), ("Arnold", False)]
@@ -92,11 +93,29 @@ def handler(req):
 
     page.path = [("Home","/"), ("Arnold", "/arnold")]
 
+    page.output = args.get('output') or ""
+
     if section == 'predefined':
         sort = args.get('sort') or 'blocktitle'
         page.head = 'List of current predefined detentions'
         printBlocks(cur, page, sort, section)
         page.path.append(("Predefined Detentions", False))
+
+    elif section == 'deletepredefined':
+        page.head = "Delete predefined detention"
+        page.blockid = args.get('blockid') or 0
+        printDeletePredefined(cur, page)
+        page.path.append(("Delete predefined detention", False))
+
+    elif section == 'dodeletepredefined':
+        if fs.has_key('predefinedid'):
+            q = """DELETE FROM block WHERE blockid=%s"""
+            cur.execute(q, (fs['predefinedid'], ))
+            
+            redirect(req, 'predefined?output=Predefined detention %s deleted.'
+                     %fs['predefinedtitle'])
+        else:
+            redirect(req, 'predefined?output=Error: No postvariable')
 
     elif section == 'history':
         sort = args.get('sort') or 'ip'
@@ -108,7 +127,6 @@ def handler(req):
 
     elif section == 'blockedports':
         sort = args.get('sort') or 'ip'
-        page.output = args.get('output') or ""
         page.head = "List of detained ports"
         printBlocked(cur,page,sort, section)
         page.path.append(("Detained ports", False))
@@ -130,6 +148,22 @@ def handler(req):
         printDetentionreasons(cur, page, section)
         page.path.append(("Add detentionreason", False))
 
+    elif section == 'deletereason':
+        page.head = "Delete detentionreason"
+        page.reasonid = args.get('reasonid') or 0
+        printDeleteReason(cur, page)
+        page.path.append(("Delete detentionreason", False))
+
+    elif section == 'dodeletereason':
+        if fs.has_key('reasonid'):
+            q = """DELETE FROM blocked_reason WHERE blocked_reasonid=%s"""
+            cur.execute(q, (fs['reasonid'], ))
+            
+            redirect(req, 'addreason?output=Detentionreason %s deleted.'
+                     %fs['reasonname'])
+        else:
+            redirect(req, 'addreason?output=Error: No postvariable')
+
     elif section == 'addquarantinevlan':
         page.head = "Add quarantine vlan"
         page.quarantineid = args.get('quarantineid') or 0
@@ -138,10 +172,25 @@ def handler(req):
         printAddQuarantine(cur, page)
         page.path.append(("Add quarantine vlan", False))
 
+    elif section == 'deletequarantinevlan':
+        page.head = "Delete quarantine vlan"
+        page.quarantineid = args.get('quarantineid') or 0
+        printDeleteQuarantine(cur, page)
+        page.path.append(("Delete quarantine vlan", False))
+
+    elif section == 'dodeletequarantinevlan':
+        if fs.has_key('vlanid'):
+            q = """DELETE FROM quarantine_vlans WHERE quarantineid=%s"""
+            cur.execute(q, (fs['vlanid'], ))
+            
+            redirect(req, 'addquarantinevlan?output=Quarantinevlan %s deleted.'
+                     %fs['vlan'])
+        else:
+            redirect(req, 'addquarantinevlan?output=Error: No postvariable')
+
     elif section == 'manualdetain':
         sort = args.get('sort') or 'ip'
         page.head = "Manual Detention"
-        page.output = args.get('output') or ""
         page.defaultdetention = config.get('arnoldweb','defaultdetention')
         printManualDetention(cur, page)
         page.path.append(("Manual Detention", False))        
@@ -342,6 +391,19 @@ def handler(req):
                     logger.error(e)
                 
             else:
+                # Check that this quarantinevlan does not already exist.
+                checkexistence = """
+                SELECT * FROM quarantine_vlans WHERE vlan = %s
+                """
+                try:
+                    cur.execute(checkexistence, (vlan,))
+                except Exception, e:
+                    logger.error(e)
+                    redirect(req, 'addquarantinevlan')
+
+                if cur.rowcount > 0:
+                    redirect(req,'addquarantinevlan?output=Quarantine vlan already exists.')
+                
                 q = """
                 INSERT INTO quarantine_vlans (description, vlan)
                 VALUES (%s, %s)
@@ -680,16 +742,20 @@ def printBlocks(cur, page, sort, section):
 
     reconnect()
     
-    page.headersList = ['blockid', 'blocktitle', 'blockdesc', 'active', 'edit']
+    page.headersList = ['blockid', 'blocktitle', 'blockdesc', 'active',
+                        'edit','delete']
     page.headers = {'blockid': 'ID', 'blocktitle': 'Title',
                     'blockdesc': 'Description', 'active': 'Active',
-                    'edit':'&nbsp;'}
+                    'edit':'&nbsp;', 'delete':'&nbsp;'}
 
     cur.execute("SELECT * FROM block ORDER BY " + sort)
     list = cur.dictfetchall()
 
     for element in list:
         element['edit'] = "<a href='addPredefined?blockid=%s'>Edit</a>" \
+                          %element['blockid']
+        element['delete'] = \
+                          "<a href='deletepredefined?blockid=%s'>Delete</a>" \
                           %element['blockid']
         if element['active'] == 'y':
             element['active'] = 'Yes'
@@ -702,6 +768,16 @@ def printBlocks(cur, page, sort, section):
     page.sort = 1
     page.list = list
     page.section = section
+
+
+############################################################
+def printDeletePredefined(cur, page):
+
+    q = """
+    SELECT * FROM block WHERE blockid = %s
+    """
+    cur.execute(q, (page.blockid, ))
+    page.predefined = cur.dictfetchone()
 
 
 ############################################################
@@ -801,6 +877,17 @@ def printDetentionreasons(cur, page, section):
 
 
 ############################################################
+def printDeleteReason(cur, page):
+
+    q = """
+    SELECT * FROM blocked_reason WHERE blocked_reasonid = %s
+    """
+    cur.execute(q, (page.reasonid, ))
+    page.reason = cur.dictfetchone()
+
+
+
+############################################################
 def printManualDetention(cur, page):
 
     reconnect()
@@ -871,6 +958,15 @@ def printAddQuarantine(cur, page):
     page.headertext = "Current quarantinevlans"
     page.quarantines = quarantines
     page.sort = 0
+
+############################################################
+def printDeleteQuarantine(cur, page):
+
+    q = """
+    SELECT * FROM quarantine_vlans WHERE quarantineid = %s
+    """
+    cur.execute(q, (page.quarantineid, ))
+    page.quarantine = cur.dictfetchone()
 
 
 ############################################################

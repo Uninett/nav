@@ -68,7 +68,6 @@ import no.ntnu.nav.event.EventQ;
 
 class networkDiscovery
 {
-	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);;
 	public static final String scriptName = "networkDiscovery";
 
 	private static String debugParam;
@@ -95,13 +94,7 @@ class networkDiscovery
 		String configFile = args[0];
 		ConfigParser cp, dbCp;
 
-		try {
-			dbCp = new ConfigParser(dbConfigFile);
-		} catch (IOException e) {
-			nu.outl("Error, could not read database config file: " + dbConfigFile);
-			return;
-		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(scriptName, "nav")) {
 			nu.outl("Error, could not connect to database!");
 			return;
 		}

@@ -29,9 +29,8 @@ from nav.statemon.event import Event
 
 
 class PostgresqlChecker(AbstractChecker):
-    def __init__(self, serviceid, boksid, ip, args, version):
-        port = args.get('port', 5432)
-        AbstractChecker.__init__(self,'postgresql',serviceid, boksid, (ip,port), args, version)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self,'postgresql', service,  port=5432, **kwargs)
     def execute(self):
         args = self.getArgs()
         s = Socket.Socket(self.getTimeout())

@@ -2382,7 +2382,7 @@ def permission_list(request, group_id=None):
         except AccountGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
 
-        permissions = AccountGroup.objects.get(pk=group_id).filter_group_set.all()
+        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
 
     active = {'permissions': True}
     info_dict = {
@@ -2422,7 +2422,7 @@ def permissions_save(request):
 
     filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filter_group'))
 
-    group.filter_group_set = filter_groups
+    group.filtergroup_set = filter_groups
 
     new_message(
         request,

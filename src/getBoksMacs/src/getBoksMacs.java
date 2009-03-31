@@ -46,7 +46,6 @@ import no.ntnu.nav.Path;
 
 class getBoksMacs
 {
-	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String configFile = (Path.sysconfdir + "/getBoksMacs.conf").replace('/', File.separatorChar);
 	public static final String watchMacsFile = (Path.sysconfdir + "/watchMacs.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getBoksMacs";
@@ -134,7 +133,7 @@ class getBoksMacs
 		Log.i("INIT", "============ getBoksData starting ============");
 		Log.i("INIT", "Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
 
-		ConfigParser cp, dbCp;
+		ConfigParser cp;
 		try {
 			if (cf == null) cf = configFile;
 			cp = new ConfigParser(cf);
@@ -142,13 +141,7 @@ class getBoksMacs
 			Log.e("INIT", "Could not read config file: " + cf);
 			return;
 		}
-		try {
-			dbCp = new ConfigParser(dbConfigFile);
-		} catch (IOException e) {
-			Log.e("INIT", "Could not read config file: " + dbConfigFile);
-			return;
-		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(scriptName, "nav")) {
 			Log.e("INIT", "Could not connect to database!");
 			return;
 		}

@@ -18,11 +18,11 @@
 """Django configuration wrapper around the NAV configuration files"""
 
 from nav.config import readConfig
+from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
 
 nav_config = readConfig('nav.conf')
-db_config = readConfig('db.conf')
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
@@ -35,11 +35,8 @@ MANAGERS = ADMINS
 
 # Database / ORM configuration
 DATABASE_ENGINE = 'postgresql_psycopg2'
-DATABASE_NAME = db_config['db_nav']
-DATABASE_USER = db_config['script_django']
-DATABASE_PASSWORD = db_config['userpw_%s' % DATABASE_USER]
-DATABASE_HOST = db_config['dbhost']
-DATABASE_PORT = db_config['dbport']
+(DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER,
+ DATABASE_PASSWORD) = get_connection_parameters('django')
 
 INSTALLED_APPS = ('nav.django',)
 

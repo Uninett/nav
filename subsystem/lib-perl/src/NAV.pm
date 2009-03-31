@@ -63,15 +63,15 @@ sub connection {
 
     my %hash = &config("$NAV::Path::sysconfdir/db.conf");
 			
-    my $db_user = $hash{'script_'.$myself};
+    my $db_user = $hash{'script_'.$myself} || $hash{'script_default'};
     unless ($db_user) {
-	die "No database configuration for $myself in db.conf";
+	die "No database configuration for $myself or default in db.conf";
     }
     my $db_passwd = $hash{'userpw_'.$db_user};
     unless($db_passwd){
 	die "No password found for user $db_user in db.conf";
     }
-    my $db_db = $hash{'db_'.$mydb};
+    my $db_db = $hash{'db_'.$mydb} || $hash{'db_nav'};
     my $db_host = $hash{'dbhost'};
     my $db_port = $hash{'dbport'};
 						    
