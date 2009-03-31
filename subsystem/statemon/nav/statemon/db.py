@@ -43,10 +43,11 @@ from event import Event
 from service import Service
 from debug import debug
 
+from nav.db import get_connection_string
 
-def db(conf):
+def db():
     if _db._instance is None:
-        _db._instance=_db(conf)
+        _db._instance=_db()
 
     return _db._instance
 
@@ -55,9 +56,8 @@ class dbError(Exception):
 
 class _db(threading.Thread):
     _instance=None
-    def __init__(self, conf):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.conf = conf
         self.setDaemon(1)
         self.queue = Queue.Queue()
         self._hostsToPing = []
@@ -65,13 +65,8 @@ class _db(threading.Thread):
 
     def connect(self):
         try:
-            host = self.conf['dbhost']
-            user = self.conf['script_servicemon']
-            passwd = self.conf['userpw_%s'%user]
-            dbname = self.conf['db_nav']
-            self.db = \
-                    psycopg.connect("host = %s user = %s dbname = %s password = %s"
-                                    % (host, user, dbname, passwd))
+            conn_str = get_connection_string(script_name='servicemon')
+            self.db = psycopg.connect(conn_str)
             atexit.register(self.db.close)
 
             debug("Successfully (re)connected to NAVdb")

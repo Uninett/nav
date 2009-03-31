@@ -54,8 +54,7 @@ class pinger:
         self._looptime=int(self.config.get("checkinterval",60))
         debug.debug("Setting checkinterval=%i" %self._looptime)
         self._debuglevel=0
-        self.dbconf=config.dbconf()
-        self.db=db.db(self.dbconf)
+        self.db=db.db()
         sock = kwargs.get("socket",None)
         self.pinger=megaping.MegaPing(sock)
         self._nrping = int(self.config.get("nrping" ,3))
