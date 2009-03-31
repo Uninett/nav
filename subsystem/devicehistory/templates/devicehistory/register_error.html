@@ -9,12 +9,11 @@
     <form action="{% url devicehistory-do-registererror %}" method="post">
         <div>
             <label>Error comment<br />
-                <textarea name="error_comment" rows="5" cols="70"></textarea>
+                <textarea name="error_comment" rows="5" cols="70">{{ error_comment }}</textarea>
             </label>
         </div>
+        {% block devices %}
         {{ quickselect|safe }}
-        {% if confirm %}
-            <input type="hidden" name="confirm" value="yes" />
-        {% endif %}
+        {% endblock %}
     </form>
 {% endblock %}

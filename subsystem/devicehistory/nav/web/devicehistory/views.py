@@ -140,38 +140,67 @@ def devicehistory_view(request):
         RequestContext(request)
     )
 
-def error_form(request, confirm=False):
-    if confirm:
-        DeviceQuickSelect_post_error_kwargs['button'] = 'Confirm %s error event'
-
+def error_form(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
+    error_comment = request.POST.get('error_comment', "")
 
-    info_dict = {
-        'active': {'error': True},
-        'confirm': confirm,
-        'quickselect': DeviceQuickSelect,
-    }
     return render_to_response(
         DeviceHistoryTemplate,
         'devicehistory/register_error.html',
-        info_dict,
+        {
+            'active': {'error': True},
+            'confirm': False,
+            'quickselect': DeviceQuickSelect,
+            'error_comment': error_comment,
+        },
+        RequestContext(request)
+    )
+
+def confirm_error_form(request):
+    selection = {
+        'netbox': request.POST.getlist('netbox'),
+        'module': request.POST.getlist('module'),
+    }
+
+    netbox = Netbox.objects.select_related(
+        'netbox'
+    ).filter(id__in=selection['netbox'])
+    module = Module.objects.filter(id__in=selection['module'])
+
+    return render_to_response(
+        DeviceHistoryTemplate,
+        'devicehistory/confirm_error.html',
+        {
+            'active': {'error': True},
+            'confirm': True,
+            'netbox': netbox,
+            'module': module,
+        },
         RequestContext(request)
     )
 
 def register_error(request):
-    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
-    selection = DeviceQuickSelect.handle_post(request)
+    selection = {
+        'netbox': request.POST.getlist('netbox'),
+        'module': request.POST.getlist('module'),
+    }
     error_comment = request.POST.get('error_comment', None)
     confirmed = request.POST.get('confirm', False)
 
+    if not selection['netbox'] and not selection['module']:
+        new_message(
+            request,
+            _("No devices selected."),
+            Messages.WARNING
+        )
+        return error_form(request)
     if not error_comment and not confirmed:
-        # FIXME Objects are unselected when returning to error_form
         new_message(
             request,
             _("There's no error message supplied. Are you sure you want to continue?"),
             Messages.WARNING,
         )
-        return error_form(request, True)
+        return confirm_error_form(request)
 
     register_error_events(request, selection=selection, comment=error_comment)
 
