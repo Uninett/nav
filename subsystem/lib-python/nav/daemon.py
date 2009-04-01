@@ -50,6 +50,7 @@ import logging
 import os
 import pwd
 import sys
+import time
 import nav.logs
 
 nav.logs.setLogLevels()
@@ -360,4 +361,27 @@ def daemonexit(pidfile):
 
     logger.debug("pidfile (%s) removed.", pidfile)
     return True
+
+def safesleep(delay):
+    """Hackish workaround to protect against Linux kernel bug in time.sleep().
+
+    The bug will sometimes cause a call to time.sleep(1) to raise an
+    exception.  If a daemon doesn't handle this exception, it will
+    likely die.  Replacing calls to time.sleep(), where the argument
+    could possibly become the value 1, with this function in daemon
+    programs makes sure this exception is ignored if caught.
+    
+    See http://www.tummy.com/journals/entries/jafo_20070110_154659
+    and https://bugs.launchpad.net/nav/+bug/352316
+
+    """
+    try:
+        time.sleep(delay)
+    except IOError, e:
+        if e.errno == 514:
+            logger.exception("Ignoring possible Linux kernel bug in "
+                             "time.sleep(): IOError=514. See LP#352316")
+            pass
+        else:
+            raise
 

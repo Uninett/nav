@@ -36,8 +36,7 @@ import circbuf
 import config
 from debug import debug
 
-# Do we really need this?
-# from netbox import Netbox
+from nav.daemon import safesleep as sleep
 
 # From our friend:
 import ip
@@ -262,7 +261,7 @@ class MegaPing:
                 mySocket.sendto(packet, (host.ip, 0))
             except Exception, e:
                 debug("Failed to ping %s [%s]" % (host.ip, str(e)), 5)
-            time.sleep(self._delay)
+            sleep(self._delay)
         self._senderFinished = time.time()
 
     def results(self):

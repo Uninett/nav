@@ -2,7 +2,7 @@ import popen2
 import select
 import signal
 import os
-import time
+from nav.daemon import safesleep as sleep
 
 class Timeout(Exception):
     pass
@@ -20,7 +20,7 @@ class Executer:
             if not r:
                 # Things timed out. Kill the child
                 os.kill(self.instance.pid, signal.SIGTERM)
-                time.sleep(1)
+                sleep(1)
                 try:
                     pid, sts = os.waitpid(self.instance.pid, os.WNOHANG)
                     os.kill(self.instance.pid, 9)
