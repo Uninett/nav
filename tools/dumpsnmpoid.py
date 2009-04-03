@@ -31,7 +31,7 @@ known."""
 
 import sys
 import os
-import psycopg
+import psycopg2
 import time
 
 def main(args):
@@ -41,7 +41,7 @@ def main(args):
     dbuser = os.getenv('PGUSER') or 'postgres'
     dbpasswd = os.getenv('PGPASSWORD')
 
-    connection = psycopg.connect(
+    connection = psycopg2.connect(
         'host=%s port=%s dbname=%s user=%s password=%s' %
         (dbhost, dbport, dbname, dbuser, dbpasswd))
     cursor = connection.cursor()
@@ -60,7 +60,7 @@ def main(args):
             if col is None:
                 newrow.append('NULL')
             else:
-                newrow.append(str(psycopg.QuotedString(str(col))))
+                newrow.append(str(psycopg2.QuotedString(str(col))))
         print "DELETE FROM snmpoid WHERE oidkey=%s;" % newrow[0]
         print "INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource,",
         print "getnext, match_regex, decodehex, oidname, mib)"

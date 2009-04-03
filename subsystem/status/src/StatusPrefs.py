@@ -29,7 +29,7 @@ Contains classes for the status preferences page
 #################################################
 ## Imports
 
-import psycopg, cPickle, re, nav.db
+import psycopg2, cPickle, re, nav.db
 import copy
 import logging
 
@@ -292,7 +292,7 @@ class HandleStatusPrefs:
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
-        data = psycopg.QuotedString(cPickle.dumps(prefs.sections))
+        data = psycopg2.QuotedString(cPickle.dumps(prefs.sections))
 
         sql = "SELECT property FROM accountproperty " + \
               "WHERE accountid='%s' " % (self.req.session['user'].id,) + \
@@ -369,7 +369,7 @@ class HandleStatusPrefs:
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
-        data = psycopg.QuotedString(cPickle.dumps(prefs.sections))
+        data = psycopg2.QuotedString(cPickle.dumps(prefs.sections))
 
         sql = "SELECT property FROM accountproperty " + \
               "WHERE accountid='%s' " % (ADMIN_USER_ID,) + \

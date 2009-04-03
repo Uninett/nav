@@ -21,7 +21,6 @@
 # Authors: Kristian Klette <klette@samfundet.no>
 
 import sys
-import psycopg
 import nav.db
 import datetime
 

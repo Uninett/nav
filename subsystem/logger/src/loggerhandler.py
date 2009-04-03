@@ -27,7 +27,6 @@ from mod_python import apache,util
 import os
 import nav
 from nav import db
-import psycopg
 import re
 from mx import DateTime
 from ConfigParser import ConfigParser

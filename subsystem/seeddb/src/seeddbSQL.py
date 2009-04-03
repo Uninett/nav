@@ -22,7 +22,7 @@
 #
 # Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 #
-import nav.db,psycopg
+import nav.db,psycopg2
 
 UPDATE_ENTRY = 'update_entry'
 # REQ_TRUE: a required field
@@ -73,7 +73,7 @@ def addEntryBulk(data,table):
         sqllist.append(sql)
     try:
         executeSQL(sqllist)
-    except psycopg.IntegrityError:
+    except psycopg2.IntegrityError:
         pass
 
 def addEntry(req,templatebox,table,unique=None):
@@ -104,7 +104,7 @@ def addEntry(req,templatebox,table,unique=None):
     sqllist = [sql]
     try:
         executeSQL(sqllist)
-    except psycopg.IntegrityError,e:
+    except psycopg2.IntegrityError,e:
         if type(unique) is list:
             error = 'There already exists an entry with '
             first = True
@@ -225,7 +225,7 @@ def updateEntry(req,templatebox,table,idfield,staticid=False,
         sqllist.append(sql)
     try:
         executeSQL(sqllist)
-    except psycopg.IntegrityError:
+    except psycopg2.IntegrityError:
         # assume idfield = the unique field
         if type(unique) is list:
             error = 'There already exists an entry with '

@@ -455,7 +455,7 @@ class makeCricketConfig (threading.Thread):
 
                 try: 
                     c.execute(query)
-                except psycopg.ProgrammingError, e:
+                except psycopg2.ProgrammingError, e:
                     print "ProgrammingError %s" %(e)
 
                 # Get id of newly inserted tuple
@@ -479,7 +479,7 @@ class makeCricketConfig (threading.Thread):
 
                     try:
                         c.execute(dsq)
-                    except psycopg.ProgrammingError, e:
+                    except psycopg2.ProgrammingError, e:
                         print "ProgrammingError %s" %(e)
 
                     conn.commit()
