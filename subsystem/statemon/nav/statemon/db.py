@@ -70,7 +70,8 @@ class _db(threading.Thread):
             atexit.register(self.db.close)
 
             debug("Successfully (re)connected to NAVdb")
-            self.db.autocommit(0)
+            # Set transaction isolation level to READ COMMITTED
+            self.db.set_isolation_level(1)
         except Exception, e:
             debug("Couldn't connect to db.", 2)
             debug(str(e),2)

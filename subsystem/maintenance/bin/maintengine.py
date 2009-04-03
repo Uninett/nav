@@ -55,7 +55,6 @@ debug = False
 boxesOffMaintenance = []
 
 dbconn = nav.db.getConnection('eventEngine', 'manage')
-dbconn.autocommit(0)
 # Make sure isolation level is "read committed", not "serialized"
 dbconn.set_isolation_level(1)
 db = dbconn.cursor()

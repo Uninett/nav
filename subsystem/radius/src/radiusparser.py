@@ -63,7 +63,7 @@ def main(args):
         print "An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1])
         sys.exit(1)
 
-    connection.autocommit(True)
+    connection.set_isolation_level(0)
     database = connection.cursor()
 
     # Start "tail -f" on radius_logfile

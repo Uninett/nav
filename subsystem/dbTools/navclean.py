@@ -100,9 +100,6 @@ def main(args):
             tables.append("radiuslog")
 
     cx = nav.db.getConnection('default', 'manage')
-    # Perform deletions inside a transaction, so that we may rollback
-    # if -n was specified on command line.
-    cx.autocommit(0)
     cursor = cx.cursor()
     sumtotal = 0
 

@@ -21,6 +21,7 @@ Provides common database functionality for NAV.
 import atexit
 import time
 import psycopg2
+import psycopg2.extensions
 import nav
 from nav import config
 import logging
@@ -68,7 +69,7 @@ class ConnectionObject(nav.CacheableObject):
         return 1
 
 def escape(string):
-    return str(psycopg2.QuotedString(string))
+    return str(psycopg2.extensions.QuotedString(string))
 
 def get_connection_parameters(script_name='default', database='nav'):
     """Return a tuple of database connection parameters.
@@ -142,7 +143,7 @@ def getConnection(scriptName, database='nav'):
                 (dbhost, port, dbname, user, pw)))
         logger.debug("Opened a new database connection, scriptName=%s, "
                      "dbname=%s, user=%s", scriptName, dbname, user)
-        connection.autocommit(0)
+        # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
         connObject = ConnectionObject(connection, cacheKey)
         _connectionCache.cache(connObject)

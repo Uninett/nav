@@ -81,7 +81,6 @@ class EventQ:
         # Make sure the connection doesn't autocommit: Posting an event
         # consists of several SQL statements that should go into a single
         # transaction.
-        conn.autocommit(0)
         conn.set_isolation_level(1)
         return conn
     _getConnection = classmethod(_getConnection)
