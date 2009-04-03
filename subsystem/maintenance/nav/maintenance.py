@@ -34,6 +34,8 @@ __id__ = "$Id:$"
 
 import logging
 import time
+import psycopg2.extras
+
 import nav.db
 
 logger = logging.getLogger('nav.maintenance')
@@ -53,7 +55,7 @@ def getTasks(where = False, order = 'maint_end DESC'):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     select = """SELECT maint_taskid, maint_start, maint_end,
         maint_end - maint_start AS interval,
@@ -70,7 +72,7 @@ def getTasks(where = False, order = 'maint_end DESC'):
     logger.debug("getTask() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    results = db.dictfetchall()
+    results = db.fetchall()
 
     # Attach components belonging to this message
     for i, result in enumerate(results):
@@ -116,7 +118,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     if taskid:
         sql = """UPDATE maint_task SET
@@ -155,7 +157,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
     db.execute(sql, data)
     if not taskid:
         db.execute("SELECT CURRVAL('maint_task_maint_taskid_seq')")
-        taskid = db.dictfetchone()['currval']
+        taskid = db.fetchone()['currval']
     logger.debug("setTask() number of results: %d", db.rowcount)
 
     return taskid
@@ -174,7 +176,7 @@ def getComponents(taskid):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT key, value
         FROM maint_component
@@ -187,7 +189,7 @@ def getComponents(taskid):
     logger.debug("getComponents() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    results = db.dictfetchall()
+    results = db.fetchall()
 
     # Attach information about the components
     for i, result in enumerate(results):
@@ -321,7 +323,7 @@ def getLocation(locationid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT l.locationid, l.descr AS locationdescr
         FROM location l
@@ -333,7 +335,7 @@ def getLocation(locationid):
     logger.debug("getLocation() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
     return result[0]
 
@@ -354,7 +356,7 @@ def getRoom(roomid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT
             r.roomid, r.descr AS roomdescr,
@@ -369,7 +371,7 @@ def getRoom(roomid):
     logger.debug("getRoom() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
     return result[0]
 
@@ -390,7 +392,7 @@ def getNetbox(netboxid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT
             n.netboxid, n.sysname, n.ip,
@@ -407,7 +409,7 @@ def getNetbox(netboxid):
     logger.debug("getNetbox() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
     return result[0]
 
@@ -428,7 +430,7 @@ def getService(serviceid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT
             s.serviceid, s.handler,
@@ -447,7 +449,7 @@ def getService(serviceid):
     logger.debug("getService() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
     return result[0]
 

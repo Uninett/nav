@@ -34,6 +34,7 @@ import re
 import nav.db
 import sys # temp
 import time
+import psycopg2.extras
 
 starttime = time.time()
 
@@ -222,7 +223,7 @@ class makeCricketConfig (threading.Thread):
             t = open(navfile, 'a')
             t.write(disclaimer)
             
-            c = conn.cursor()
+            c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
             c.execute(query)
             print "T%s: Executing %s" %(self.id, query)
@@ -233,7 +234,7 @@ class makeCricketConfig (threading.Thread):
             # ro - read only community (or read write - who cares?)
             # descr - description
             # targetname is optional
-            for row in c.dictfetchall():
+            for row in c.fetchall():
                 print "T%s: Writing target for %s (%s)" %(self.id, row['target'], row['netboxid'])
                 t.write("target \"" + row['target'] + "\"\n")
                 if row.has_key('displayname'):
@@ -273,10 +274,10 @@ class makeCricketConfig (threading.Thread):
         print "T%s: Running createInterfaces" %(self.id)
         
         # Execute query from user
-        c = conn.cursor()
+        c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         c.execute(query)
 
-        for row in c.dictfetchall():
+        for row in c.fetchall():
             checkdir = thispath + "/" + row['sysname']
             if os.path.isdir(checkdir):
                 navfile = checkdir + "/" + targetfile
@@ -302,7 +303,7 @@ class makeCricketConfig (threading.Thread):
         currenttarget = ""
         workingdir = ""
 
-        for row in c.dictfetchall():
+        for row in c.fetchall():
             # for each row, check if this is another sysname than the previous one
             if currenttarget != row['sysname']:
                 print "T%s: Target changed from %s to %s." %(self.id, currenttarget, row['sysname'])
@@ -362,7 +363,7 @@ class makeCricketConfig (threading.Thread):
         ttfile = thispath + "/" + targettypesfile
         try:
             t = open(ttfile, 'a')
-            c = conn.cursor()
+            c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
             print "T%s: Opened file %s successfully for writing." %(self.id, ttfile)
             t.write(disclaimer)
@@ -385,7 +386,7 @@ class makeCricketConfig (threading.Thread):
                     t.write("targetType " + targetlist[entry] + "\n")
 
                     dss = []
-                    for row in c.dictfetchall():
+                    for row in c.fetchall():
                         dboid = row['snmpoid']
                         #print "T%s: Got %s from database." %(self.id, dboid)
 

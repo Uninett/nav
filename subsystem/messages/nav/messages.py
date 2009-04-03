@@ -34,6 +34,7 @@ __id__ = "$Id:$"
 
 import logging
 import time
+import psycopg2.extras
 import nav.db
 
 logger = logging.getLogger('nav.messages')
@@ -54,7 +55,7 @@ def getMsgs(where = False, order = 'publish_start DESC'):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     select = """SELECT
         messageid, title, description, tech_description,
@@ -79,7 +80,7 @@ def getMsgs(where = False, order = 'publish_start DESC'):
     logger.debug("getMsgs() number of results: %d", db.rowcount)
     if not db.rowcount:
         return []
-    results = db.dictfetchall()
+    results = db.fetchall()
 
     # Attach tasks connected to this message
     for i, result in enumerate(results):
@@ -125,7 +126,7 @@ def setMsg(msgid, title, description, tech_description, publish_start,
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     if msgid:
         sql = """UPDATE message SET
@@ -164,7 +165,7 @@ def setMsg(msgid, title, description, tech_description, publish_start,
     db.execute(sql, data)
     if not msgid:
         db.execute("SELECT CURRVAL('message_messageid_seq')")
-        msgid = db.dictfetchone()['currval']
+        msgid = db.fetchone()['currval']
     logger.debug("setMsg() number of results: %d", db.rowcount)
 
     return msgid
@@ -183,7 +184,7 @@ def getMsgTasks(msgid):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT maint_taskid, maint_start, maint_end, description,
         author, state
@@ -197,7 +198,7 @@ def getMsgTasks(msgid):
     logger.debug("getMsgTasks() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
     return result
 
 def setMsgTask(msgid, taskid):

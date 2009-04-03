@@ -192,22 +192,22 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     """
 
     db_cursor.execute(layer_3_query)
-    results = db_cursor.dictfetchall()
+    results = db_cursor.fetchall()
     for res in results:
         if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
             assert False, str(res)
     db_cursor.execute(layer_2_query_1)
-    results.extend(db_cursor.dictfetchall())
+    results.extend(db_cursor.fetchall())
     for res in results:
         if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
             assert False, str(res)
     db_cursor.execute(layer_2_query_2)
-    results.extend(db_cursor.dictfetchall())
+    results.extend(db_cursor.fetchall())
     for res in results:
         if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
             assert False, str(res)
     db_cursor.execute(layer_2_query_3)
-    results.extend(db_cursor.dictfetchall())
+    results.extend(db_cursor.fetchall())
     for res in results:
         if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
             assert False, str(res)
@@ -246,7 +246,7 @@ ORDER BY from_sysname, sysname, swport.speed DESC
         LEFT JOIN netmap_position USING (sysname)
         """
     db_cursor.execute(query)
-    netboxes = db_cursor.dictfetchall()
+    netboxes = db_cursor.fetchall()
     for netbox in netboxes:
         if netbox['rrd']:
             try:

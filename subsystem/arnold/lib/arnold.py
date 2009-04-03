@@ -39,6 +39,7 @@ import email.Header
 import email.Charset
 import commands
 from IPy import IP
+import psycopg2.extras
 
 import nav.buildconf
 import nav.bitvector
@@ -173,7 +174,7 @@ def findIdInformation(id, limit):
     # Get data from database based on id
     if type in ['IP','MAC']:
 
-        c = conn.cursor()
+        c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         query = ""
 
         if type == 'IP':
@@ -216,7 +217,7 @@ def findIdInformation(id, limit):
             raise DbError, e
 
         if c.rowcount > 0:
-            result = c.dictfetchall()
+            result = c.fetchall()
 
             # Walk through result replacing DateTime(infinity) with
             # string "Still Active". Else the date showing will be
@@ -255,7 +256,7 @@ def findSwportinfo(netboxid, ifindex, module):
 
     # Connect to database
     conn = getConnection('default')
-    c = conn.cursor()
+    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     try:
         query = """SELECT * FROM netbox
@@ -272,7 +273,7 @@ def findSwportinfo(netboxid, ifindex, module):
         raise DbError, e
 
     if c.rowcount > 0:
-        result = c.dictfetchone()
+        result = c.fetchone()
         
         return result
     else:
@@ -294,7 +295,7 @@ def findSwportIDinfo(swportid):
 
     # Connect to database
     conn = getConnection('default')
-    c = conn.cursor()
+    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Get switch-information
     swquery = """SELECT * FROM netbox
@@ -310,7 +311,7 @@ def findSwportIDinfo(swportid):
         raise DbError, why
 
     if c.rowcount > 0:
-        return c.dictfetchone()
+        return c.fetchone()
     else:
         raise PortNotFoundError, swportid
 
@@ -373,7 +374,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
     # Connect to database
     arnolddb = getConnection('default', 'arnold')
-    c = arnolddb.cursor()
+    c = arnolddb.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     logger.info("blockPort: Trying to %s %s" %(type, id['ip']))
         
@@ -426,7 +427,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         logger.error("blockPort: Error in sql: %s, %s" %(query, why))
         raise DbError, why
 
-    res = c.dictfetchone()
+    res = c.fetchone()
 
 
     # if yes and active: do nothing, raise AlreadyBlockedError
@@ -602,8 +603,8 @@ def openPort(id, username, eventcomment=""):
     conn = getConnection('default')
     arnolddb = getConnection('default', 'arnold')
 
-    carnold = arnolddb.cursor()
-    cmanage = conn.cursor()
+    carnold = arnolddb.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cmanage = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Find identityidinformation
     query = """SELECT * FROM identity WHERE identityid = %s"""
@@ -612,7 +613,7 @@ def openPort(id, username, eventcomment=""):
     if carnold.rowcount <= 0:
         raise NoDatabaseInformationError, id
 
-    identityrow = carnold.dictfetchone()
+    identityrow = carnold.fetchone()
 
     # Fetch info for this swportid
     swportidquery = """SELECT * FROM netbox
@@ -625,7 +626,7 @@ def openPort(id, username, eventcomment=""):
 
     # If port exists, enable it with SNMP
     if cmanage.rowcount > 0:
-        row = cmanage.dictfetchone()
+        row = cmanage.fetchone()
         status = identityrow['blocked_status']
 
         if status == 'disabled':
@@ -883,7 +884,7 @@ def changeSwportStatus(action, swportid):
 
     # Connect to database
     conn = getConnection('default')
-    c = conn.cursor()
+    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     query = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
@@ -896,7 +897,7 @@ def changeSwportStatus(action, swportid):
     except nav.db.driver.ProgrammingError, why:
         raise DbError, why
 
-    row = c.dictfetchone()
+    row = c.fetchone()
 
     try:
         changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
@@ -978,7 +979,7 @@ def getReasons():
     """
 
     conn = nav.db.getConnection('default', 'arnold')
-    c = conn.cursor()
+    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     query = "SELECT * FROM blocked_reason ORDER BY blocked_reasonid"
     try:
@@ -986,7 +987,7 @@ def getReasons():
     except nav.db.driver.ProgrammingError, why:
         raise DbError, why
 
-    return c.dictfetchall()
+    return c.fetchall()
 
 
 ###############################################################################

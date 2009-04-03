@@ -50,6 +50,7 @@ import warnings
 import operator
 from mx import DateTime
 from os import path
+import psycopg2.extras
 
 unitmap = {'s'   : 'Seconds',
            '%'   : 'Percent',
@@ -59,9 +60,10 @@ unitmap = {'s'   : 'Seconds',
 class rrd_file:
     """Class representing an rrd-file"""
     def __init__(self,rrd_fileid):
-        cursor = nav.db.getConnection('rrdpresenter').cursor()
+        cursor = nav.db.getConnection('rrdpresenter').cursor(
+            cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("select * from rrd_file natural join netbox where rrd_fileid=%s"% rrd_fileid)
-        result = cursor.dictfetchone()
+        result = cursor.fetchone()
         self.path     = result['path']
         self.filename = result['filename']
         self.netboxid = result['netboxid']
@@ -79,9 +81,10 @@ class datasource:
     Can perform simple calculations on the datasource"""
 
     def __init__(self,rrd_datasourceid,linetype='LINE2'):
-        cursor = nav.db.getConnection('rrdpresenter').cursor()    
+        cursor = nav.db.getConnection('rrdpresenter').cursor(
+            cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("select * from rrd_datasource where rrd_datasourceid=%s"% rrd_datasourceid)
-        result = cursor.dictfetchone()
+        result = cursor.fetchone()
         self.name     = result['name']
         self.descr    = result['descr']
         self.dstype   = result['dstype']

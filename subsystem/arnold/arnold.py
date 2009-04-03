@@ -33,6 +33,8 @@ import logging
 import os, sys, re
 import getpass
 
+import psycopg2.extras
+
 # NAV libraries
 import nav.buildconf
 import nav.arnold
@@ -143,7 +145,7 @@ must be set if state is quarantine")
 
     elif opts.listblocked:
         conn = getConnection('default', 'arnold')
-        c = conn.cursor()
+        c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         q = """SELECT identityid, mac, ip, netbios, blocked_status AS status
         FROM identity
@@ -158,7 +160,7 @@ must be set if state is quarantine")
             sys.exit(1)
             
         if c.rowcount > 0:
-            rows = c.dictfetchall()
+            rows = c.fetchall()
             format = "%-4s %-15s %-17s %-16s %s"
             print format  %('ID','IP','MAC', 'NETBIOS','STATUS')
             for row in rows:
