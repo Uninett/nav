@@ -42,6 +42,7 @@ except:
     pass
 
 import nav.daemon
+from nav.daemon import safesleep as sleep
 from nav.statemon import RunQueue
 from nav.statemon import abstractChecker
 from nav.statemon import config
@@ -60,7 +61,7 @@ class controller:
         self._checkers=[]
         self._looptime=int(self.conf.get("checkinterval",60))
         debug.debug("Setting checkinterval=%i"% self._looptime)
-        self.db=db.db(config.dbconf("db.conf"))
+        self.db=db.db()
         debug.debug("Reading database config")
         debug.debug("Setting up runqueue")
         self._runqueue=RunQueue.RunQueue(controller=self)
@@ -137,7 +138,7 @@ class controller:
                 pause=0
             for checker in self._checkers:
                 self._runqueue.enq(checker)
-                time.sleep(pause)
+                sleep(pause)
 
             # self.createStatusFile()
 
@@ -153,9 +154,9 @@ class controller:
             if wait <= 0:
                 debug.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait,2)
                 wait %= self._looptime
-                time.sleep(wait)
+                sleep(wait)
             else:
-                time.sleep(wait)
+                sleep(wait)
 
 
     def signalhandler(self, signum, frame):

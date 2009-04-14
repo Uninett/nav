@@ -23,17 +23,16 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-import time
+from nav.daemon import safesleep as sleep
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-
 
 class DummyChecker(AbstractChecker):
     def __init__(self,*args, **kwargs):
         AbstractChecker.__init__(self,'dummy',*args, **kwargs)
     def execute(self):
         import random
-        time.sleep(random.random()*10)
+        sleep(random.random()*10)
         return Event.UP,'OK'
 
 def getRequiredArgs():

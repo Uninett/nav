@@ -40,8 +40,8 @@ class sms(dispatcher):
     '''Simple dispatcher that adds alerts to SMSQueue for smsd to handle'''
 
     def send(self, address, alert, language='en'):
-        if address.account.has_perm('alerttype', 'sms'):
-            message = alert.messages.get(language=language, type='sms').message
+        if address.account.has_perm('alert_by', 'sms'):
+            message = self.get_message(alert, language, 'sms')
 
             if not address.DEBUG_MODE:
                 try:

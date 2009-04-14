@@ -56,7 +56,6 @@ import no.ntnu.nav.logger.Log;
 class getDeviceData
 {
 	public static final String navConfigFile = (Path.sysconfdir + "/nav.conf").replace('/', File.separatorChar);
-	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String configFile = (Path.sysconfdir + "/getDeviceData.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getDeviceData";
 	public static final String logFile = (Path.localstatedir + "/log/getDeviceData.log").replace('/', File.separatorChar);
@@ -130,13 +129,7 @@ class getDeviceData
 			Log.e("INIT", "Could not read config file: " + navConfigFile);
 			return;
 		}
-		try {
-			dbCp = new ConfigParser(dbConfigFile);
-		} catch (IOException e) {
-			Log.e("INIT", "Could not read config file: " + dbConfigFile);
-			return;
-		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(scriptName, "nav")) {
 			Log.e("INIT", "Could not connect to database!");
 			return;
 		}

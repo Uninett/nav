@@ -377,10 +377,12 @@
                         {{ a.alert.end_time|time }}</td>
                 {% endif %}
                 <td>
-                    {% if a.alert.is_open %}
-                        {{ a.alert.start_time|timesince }}
-                    {% else %}
-                        {{ a.alert.start_time|timesince:a.alert.end_time }}
+                    {% if a.alert.is_stateful %}
+                        {% if a.alert.is_open %}
+                            {{ a.alert.start_time|timesince }}
+                        {% else %}
+                            {{ a.alert.start_time|timesince:a.alert.end_time }}
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>

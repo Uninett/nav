@@ -49,10 +49,7 @@ import no.ntnu.nav.Path;
 
 class eventEngine
 {
-	//public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
-	//public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
 	public static final String navConfigFile = (Path.sysconfdir + "/nav.conf").replace('/', File.separatorChar);
-	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String configFile = (Path.sysconfdir + "/eventEngine.conf").replace('/', File.separatorChar);
 	public static final String alertmsgFile = (Path.sysconfdir + "/alertmsg.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "eventEngine";
@@ -92,14 +89,7 @@ class eventEngine
 			Log.e("INIT", "Could not read config file: " + navConfigFile);
 			return;
 		}
-		ConfigParser dbCp;
-		try {
-			dbCp = new ConfigParser(dbConfigFile);
-		} catch (IOException e) {
-			System.err.println("Error, could not read config file: " + dbConfigFile);
-			return;
-		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(scriptName, "nav")) {
 			System.err.println("Error, could not connect to database!");
 			return;
 		}
