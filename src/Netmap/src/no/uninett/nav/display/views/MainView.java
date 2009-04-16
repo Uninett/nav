@@ -22,12 +22,10 @@
  */
 package no.uninett.nav.display.views;
 
-import no.uninett.nav.display.views.actions.NetmapTextColorAction;
-import no.uninett.nav.display.views.layouts.NetmapGrouping;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
-import no.uninett.nav.netmap.Main;
+
 import prefuse.action.animate.VisibilityAnimator;
 import prefuse.data.Node;
 import prefuse.visual.NodeItem;
@@ -35,6 +33,11 @@ import prefuse.visual.EdgeItem;
 import prefuse.visual.VisualItem;
 import prefuse.visual.tuple.TableEdgeItem;
 import prefuse.util.ui.JForcePanel;
+
+import no.uninett.nav.netmap.Main;
+import no.uninett.nav.display.views.NodeRenderer;
+import no.uninett.nav.display.views.actions.NetmapTextColorAction;
+import no.uninett.nav.display.views.layouts.NetmapGrouping;
 
 public class MainView {
     private boolean prepared = false;
@@ -83,7 +86,7 @@ public class MainView {
             }
 
 
-            prefuse.render.LabelRenderer nodeRenderer = new prefuse.render.LabelRenderer("sysname", "image");
+            NodeRenderer nodeRenderer = new NodeRenderer("sysname", "image");
             nodeRenderer.setRenderType(prefuse.render.AbstractShapeRenderer.RENDER_TYPE_DRAW);
             nodeRenderer.setImagePosition(prefuse.Constants.TOP);
             nodeRenderer.setMaxImageDimensions(300,300);
