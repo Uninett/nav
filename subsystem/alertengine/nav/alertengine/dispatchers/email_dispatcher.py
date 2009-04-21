@@ -38,7 +38,7 @@ logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
 class email(dispatcher):
     def send(self, address, alert, language='en'):
-        message = alert.messages.get(language=language, type='email').message
+        message = self.get_message(alert, language, 'email')
 
         # Extract the subject
         subject = message.splitlines(1)[0].lstrip('Subject:').strip()
