@@ -20,6 +20,18 @@ import nav.db
 from nav.errors import GeneralException
 from UserDict import UserDict
 
+from nav.models.event import EventType, AlertType
+# hackish workaround for the fact that the nav.django package will
+# shadow the system-wide django package inside the nav package.  This
+# relies upon the above import to have loaded the real django module
+# into sys.modules.  Python 2.5's absolute import feature would have
+# really helped here, but we are still to remain 2.4 compatible.
+import sys
+if 'django.db' in sys.modules:
+    transaction = sys.modules['django.db'].transaction
+else:
+    from django.db import transaction
+
 class Event(UserDict):
     """Represents a single event on or off the queue.
 
@@ -197,3 +209,58 @@ class EventIncompleteError(GeneralException):
 class EventNotPostedError(GeneralException):
     "Cannot perform this operation on an unposted event"
     pass
+
+@transaction.commit_manually
+def create_type_hierarchy(hierarchy):
+    """Create an event/alert type hierarchy in the database.
+    
+    If the hierarchy already exists, nothing is done.
+    
+    hierarchy -- A structure like this:
+      { (event_type_name, description, stateful) :
+        [(alert_type_name, description), ...]
+      }
+    
+    Returns: The number of objects created.  A return value of 0
+    indicates that all the objects already exist.
+    
+    This function uses the Django ORM for database access, thus it is
+    not async-safe.
+    
+    Usage example:
+    
+    >>> h = {('apState', 'Access point assocation/disassociation events', True):
+    ...      [('apUp', 'AP associated with controller'),
+    ...       ('apDown', 'AP disassociated from controller'),
+    ...      ]}
+    >>> create_type_hierarchy(h)
+    3
+    >>>
+    
+    """
+    created_count = 0
+    
+    for event_type, alert_types in hierarchy.items():
+        event_type_name, event_descr, stateful = event_type
+        if stateful not in ('y', 'n'):
+            # Parse the stateful var as a boolean
+            stateful = stateful and 'y' or 'n'
+        
+        try:
+            etype = EventType.objects.get(id=event_type_name)
+        except EventType.DoesNotExist:
+            etype = EventType(id=event_type_name, description=event_descr,
+                              stateful=stateful)
+            etype.save()
+            created_count += 1
+        
+        for alert_type_name, alert_descr in alert_types:
+            atype, created = AlertType.objects.get_or_create(
+                name=alert_type_name, event_type=etype)
+            if created:
+                atype.description=alert_descr
+                atype.save()
+                created_count += 1
+
+    transaction.commit()
+    return created_count
