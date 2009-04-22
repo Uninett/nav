@@ -49,7 +49,7 @@ class ConnectionObject(nav.CacheableObject):
             if self.ping():
                 self.lastValidated = time.time()
                 return False
-        except (psycopg2.ProgrammingError, psycopg.OperationalError):
+        except (psycopg2.ProgrammingError, psycopg2.OperationalError):
             logger.debug('Invalid connection object (%s), age=%s' % (repr(self.key), self.age()))
             self.object.close()
             return True
