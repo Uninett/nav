@@ -44,7 +44,7 @@ WEBNAME =
 # Files
 INITFILES = #ipdevpoll
 BINS = ipdevpolld
-LIBS = $(wildcard nav/ipdevpoll/*py nav/ipdevpoll/*/*.py)
+LIBS = $(wildcard nav/ipdevpoll/*py nav/ipdevpoll/*/*.py nav/mibs/*.py nav/*.py)
 CONFFILES = #ipdevpoll.conf
 TOOLS =
 TEMPLATES =
