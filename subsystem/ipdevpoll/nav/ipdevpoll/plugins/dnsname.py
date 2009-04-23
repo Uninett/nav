@@ -17,7 +17,7 @@ from nav.util import round_robin
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.plugins import register
 
-resolvers = round_robin([client.Resolver('/etc/resolve.conf') for i in range(3)])
+resolvers = round_robin([client.Resolver('/etc/resolv.conf') for i in range(3)])
 
 class DnsName(Plugin):
 
