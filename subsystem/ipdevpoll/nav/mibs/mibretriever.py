@@ -143,9 +143,11 @@ class MibRetrieverMaker(type):
     """
     # TODO: extract enumerations from mib typedefs and add as useful
     #       data structures.
-    # TODO: Create a global registry of MIB classes, enabling lookups
-    #       by MIB name.
-    
+
+    # MIB module registry.  Maps MIB module names to classes created
+    # from this metaclass.
+    modules = {}
+
     def __init__(cls, name, bases, dct):
         try:
             mib = dct['mib']
@@ -165,6 +167,8 @@ class MibRetrieverMaker(type):
         MibRetrieverMaker.__make_table_getters(cls)
         cls.tables = dict((t.table.name, t)
                           for t in MibTableDescriptor.build_all(mib))
+
+        MibRetrieverMaker.modules[ mib['moduleName'] ] = cls
 
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.

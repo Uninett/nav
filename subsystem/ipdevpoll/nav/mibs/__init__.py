@@ -31,6 +31,7 @@ class IpMib(mibretriever.MibRetriever):
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
 
+modules = mibretriever.MibRetrieverMaker.modules
 
 def test(host, community='public', mib=IfMib, tablename='ifTable'):
     import logging
