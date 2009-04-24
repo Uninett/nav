@@ -221,7 +221,13 @@ class EventImpl implements Event, Alert
 		// Add time
 		addVar("time", getTimeS());
 
-		return AlertmsgParser.formatMsgs(eventtypeid, alerttype, state, varMap);
+		Iterator msgList = AlertmsgParser.formatMsgs(eventtypeid, alerttype, state, varMap);
+		if (!msgList.hasNext()) {
+			// No appropriate templates found in alertmsg file, just dump alert data as alert message text
+			Log.i("EVENT_IMPL", "GET_MSGS", "Creating crude detail dump as messages for this alert");
+			msgList = AlertmsgParser.dumpMsgs(eventtypeid, alerttype, state, varMap);
+		}
+		return msgList;
 	}
 
 	public void addEvent (Event e) { eventList.add(e); }
@@ -320,6 +326,59 @@ class AlertmsgParser
 		return true;
 	}
 
+	/**
+	 * <p>Dump alert details as alert messages.</p>
+	 * 
+	 * <p>When an alert template is missing, this method can be used to
+	 * create messages with crude alert details.  Messages are generated
+	 * for the languages Norwegian and English for the medias email, sms
+	 * and jabber.  Note that the message text will be in English even
+	 * though the language is specified as Norwegian.</p>
+	 * 
+	 * @see #formatMsgs(String, String, int, Map)
+	 * @param eventtypeid The event type id of the alert.
+	 * @param alerttype The alert type of the alert.
+	 * @param state The alert state (STATE_NONE, STATE_START or STATE_END)
+	 * @param varMap An alert variable map.
+	 * @return A message iterator.
+	 */
+	public static Iterator dumpMsgs(String eventtypeid, String alerttype, int state, Map varMap)
+	{
+		List msgDumps = new ArrayList();
+		StringBuffer msg = new StringBuffer("");
+		String sysname = (String) (varMap.containsKey("sysname") ? varMap.get("sysname") : "device# " + varMap.get("deviceid"));
+		String stateString = "none";
+		switch (state) {
+			case EventImpl.STATE_START: stateString = "start"; break;
+			case EventImpl.STATE_END: stateString = "end"; break;
+		}
+
+		msg.append(eventtypeid + " (" + alerttype + "/" + stateString + ") ");
+		msg.append("for " + sysname + "\n");
+
+		msgDumps.add(new String[] { "sms", "en", msg.toString() + "(missing template)" });
+		msgDumps.add(new String[] { "sms", "no", msg.toString() + "(missing template)" });
+
+		msg.append("Missing message template for event type=" + eventtypeid + ", ");
+		msg.append("alert type=" + alerttype + ", state=" + stateString + "\n");
+		msg.append("Alert dump follows:\n\n");
+		
+		for (Iterator it=varMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry entry = (Map.Entry) it.next();
+			msg.append(entry.getKey().toString() + "=" + entry.getValue().toString() + "\n");
+		}
+
+		msgDumps.add(new String[] { "jabber", "en", msg.toString() });
+		msgDumps.add(new String[] { "jabber", "no", msg.toString() });
+
+		// First line is used as email subject:
+		msg.insert(0, "Subject: ");
+		msgDumps.add(new String[] { "email", "en", msg.toString() });
+		msgDumps.add(new String[] { "email", "no", msg.toString() });
+
+		return msgDumps.iterator();
+	}
+	
 	public static Iterator formatMsgs(String eventtypeid, String alerttype, int state, Map varMap)
 	{
 		Log.setDefaultSubsystem("ALTERTMSG_PARSER");
@@ -341,7 +400,7 @@ class AlertmsgParser
 
 		Map m = (Map)eventtypeidMap.get(eventtypeid);
 		if (m == null) {
-			Log.d("FORMAT_MSGS", "Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
+			Log.w("FORMAT_MSGS", "Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
 			return l.iterator();
 		}
 
@@ -349,11 +408,11 @@ class AlertmsgParser
 		List msgList = (List)m.get(alerttype);
 		if (msgList == null) {
 			String s = state==Event.STATE_NONE?"":state==Event.STATE_START?"Start":"End";
-			Log.d("FORMAT_MSGS", "Alerttype: " + alerttype + " not found in alertmsg file! Trying default"+s);
+			Log.w("FORMAT_MSGS", "Alerttype: " + alerttype + " not found in alertmsg file! Trying default"+s);
 
 			msgList = (List)m.get("default"+s);
 			if (msgList == null) {
-				Log.d("FORMAT_MSGS", "Alerttype: default"+s+" not found in alertmsg file! Giving up. " + m);
+				Log.w("FORMAT_MSGS", "Alerttype: default"+s+" not found in alertmsg file! Giving up. " + m);
 				return l.iterator();
 			}
 		}

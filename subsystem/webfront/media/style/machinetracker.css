@@ -43,4 +43,5 @@ div.infobox {
 	border: 1px solid #ccc;
 	padding: 0.5em;
 	-moz-border-radius: 12px;
+	margin-bottom: 1.0em;
 }
