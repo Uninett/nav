@@ -23,6 +23,7 @@ import logging
 from nav.smidumps.itw_mib import MIB 
 
 import nav.event
+from nav.db import getConnection
 
 logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
@@ -60,6 +61,17 @@ EVENTTYPES = {'weathergoose_temperature':
 
 def handleTrap(trap, config=None):
     """ This function is called from snmptrapd """
+
+    conn = getConnection('default')
+    cur = conn.cursor()
+    cur.execute("SELECT netboxid, sysname, roomid FROM netbox WHERE ip = %s",
+                (trap.agent,))
+
+    if cur.rowcount < 1:
+        logger.error("Could not find trapagent %s in database." %trap.agent)
+        return False
+
+    netboxid, sysname, roomid = cur.fetchone()
 
     # Initialize event-variables
     source = "snmptrapd"
@@ -116,13 +128,15 @@ def handleTrap(trap, config=None):
         return False
 
     # Create and populate event
-    e = nav.event.Event(source=source, target=target, eventtypeid=eventtypeid,
-                        state=state)
+    e = nav.event.Event(source=source, target=target, netboxid=netboxid,
+                        eventtypeid=eventtypeid, state=state)
     e['alerttype'] = alerttype
     e['triptype'] = triptype
     e['climatedescr'] = climatedescr
     e['climatevalue'] = climatevalue
     e['goosename'] = name
+    e['sysname'] = sysname
+    e['room'] = roomid
 
     logger.debug(e)
 
