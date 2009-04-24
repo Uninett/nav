@@ -1,31 +1,36 @@
+# -*- coding: utf-8 -*-
 #
-# Copyright 2005 Norwegian University of Science and Technology
+# Copyright (C) 2005 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id$
-# Authors: Morten Vold <morten.vold@ntnu.no>
-#
-"""Simple API to interface with NAVs event queue.
-"""
+"""Simple API to interface with NAVs event queue."""
+
 import nav.db
 from nav.errors import GeneralException
 from UserDict import UserDict
+
+from nav.models.event import EventType, AlertType
+# hackish workaround for the fact that the nav.django package will
+# shadow the system-wide django package inside the nav package.  This
+# relies upon the above import to have loaded the real django module
+# into sys.modules.  Python 2.5's absolute import feature would have
+# really helped here, but we are still to remain 2.4 compatible.
+import sys
+if 'django.db' in sys.modules:
+    transaction = sys.modules['django.db'].transaction
+else:
+    from django.db import transaction
 
 class Event(UserDict):
     """Represents a single event on or off the queue.
@@ -205,3 +210,58 @@ class EventIncompleteError(GeneralException):
 class EventNotPostedError(GeneralException):
     "Cannot perform this operation on an unposted event"
     pass
+
+@transaction.commit_manually
+def create_type_hierarchy(hierarchy):
+    """Create an event/alert type hierarchy in the database.
+    
+    If the hierarchy already exists, nothing is done.
+    
+    hierarchy -- A structure like this:
+      { (event_type_name, description, stateful) :
+        [(alert_type_name, description), ...]
+      }
+    
+    Returns: The number of objects created.  A return value of 0
+    indicates that all the objects already exist.
+    
+    This function uses the Django ORM for database access, thus it is
+    not async-safe.
+    
+    Usage example:
+    
+    >>> h = {('apState', 'Access point assocation/disassociation events', True):
+    ...      [('apUp', 'AP associated with controller'),
+    ...       ('apDown', 'AP disassociated from controller'),
+    ...      ]}
+    >>> create_type_hierarchy(h)
+    3
+    >>>
+    
+    """
+    created_count = 0
+    
+    for event_type, alert_types in hierarchy.items():
+        event_type_name, event_descr, stateful = event_type
+        if stateful not in ('y', 'n'):
+            # Parse the stateful var as a boolean
+            stateful = stateful and 'y' or 'n'
+        
+        try:
+            etype = EventType.objects.get(id=event_type_name)
+        except EventType.DoesNotExist:
+            etype = EventType(id=event_type_name, description=event_descr,
+                              stateful=stateful)
+            etype.save()
+            created_count += 1
+        
+        for alert_type_name, alert_descr in alert_types:
+            atype, created = AlertType.objects.get_or_create(
+                name=alert_type_name, event_type=etype)
+            if created:
+                atype.description=alert_descr
+                atype.save()
+                created_count += 1
+
+    transaction.commit()
+    return created_count

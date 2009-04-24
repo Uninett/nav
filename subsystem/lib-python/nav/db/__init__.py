@@ -1,27 +1,19 @@
 # -*- coding: utf-8 -*-
-# $Id$
 #
-# Copyright 2003 Norwegian University of Science and Technology
-# Copyright 2006-2008 UNINETT AS
+# Copyright (C) 2003 Norwegian University of Science and Technology
+# Copyright (C) 2006-2009 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 Provides common database functionality for NAV.
@@ -92,8 +84,21 @@ def get_connection_parameters(script_name='default', database='nav'):
     conf = config.readConfig('db.conf')
     dbhost = conf['dbhost']
     dbport   = conf['dbport']
-    dbname = conf['db_%s' % database]
-    user   = conf['script_%s' % script_name]
+
+    db_option = 'db_%s' % database
+    if db_option not in conf:
+        logger.debug("connection parameter for database %s doesn't exist, "
+                     "reverting to default 'db_nav'", database)
+        db_option = 'db_nav'
+    dbname = conf[db_option]
+
+    user_option = 'script_%s' % script_name
+    if user_option not in conf:
+        logger.debug("connection parameter for script %s doesn't exist, "
+                     "reverting to default", script_name)
+        user_option = 'script_default'
+    user   = conf[user_option]
+
     pw     = conf['userpw_%s' % user]
     return (dbhost, dbport, dbname, user, pw)
 
@@ -113,7 +118,7 @@ def get_connection_string(db_params=None, script_name='default'):
     conn_string = "host=%s port=%s dbname=%s user=%s password=%s" % db_params
     return conn_string
 
-def getConnection(scriptName, database='manage'):
+def getConnection(scriptName, database='nav'):
     """
     Returns an open database connection, as configured in db.conf for
     the given scriptName.  Connections are cached, so that future
@@ -123,7 +128,8 @@ def getConnection(scriptName, database='manage'):
     import nav
     global _connectionCache
 
-    (dbhost, port, dbname, user, pw) = get_connection_parameters()
+    (dbhost, port, dbname, user, pw) = \
+             get_connection_parameters(scriptName, database)
     cacheKey = (dbname, user)
 
     # First, invalidate any dead connections.  Return a connection
@@ -134,8 +140,8 @@ def getConnection(scriptName, database='manage'):
     except KeyError:
         connection = psycopg.connect(get_connection_string(
                 (dbhost, port, dbname, user, pw)))
-        logger.debug("Opened a new database connection, dbname=%s, user=%s" %
-                      (dbname, user))
+        logger.debug("Opened a new database connection, scriptName=%s, "
+                     "dbname=%s, user=%s", scriptName, dbname, user)
         connection.autocommit(0)
         connection.set_isolation_level(1)
         connObject = ConnectionObject(connection, cacheKey)

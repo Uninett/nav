@@ -26,6 +26,7 @@
 
 package no.ntnu.nav.Database;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.Connection;
@@ -46,6 +47,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import no.ntnu.nav.Path;
+import no.ntnu.nav.ConfigParser.ConfigParser;
 import no.ntnu.nav.logger.Log;
 
 /**
@@ -633,6 +636,68 @@ public class Database
 	private Database() {
 	}
 
+	/**
+	 * <p>Return a set of connection parameters from db.conf, given a script
+	 * and database name.
+	 * </p>
+	 * 
+	 * <p>If the given script name isn't found in db.conf, the script name 
+	 * &quot;default&quot; will be assumed.</p>
+	 * 
+	 * @param scriptName Script name, to find a matching db user name from db.conf
+	 * @param database Database name. Not a real database name, but the name of a db_* parameter from db.conf.
+	 * @return A String array with PostgreSQL connection parameters in the following order: server name, server port, database name, user name, password.  If there were errors reading the config file, a null value is returned.
+	 */
+	public static String[] getConnectionParameters(String scriptName, String database) {
+		String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
+		ConfigParser dbConfig;
+
+		try {
+			dbConfig = new ConfigParser(dbConfigFile);
+		} catch (IOException e) {
+			Log.e("DATABASE-PARAMETERS", "Could not read config file: " + dbConfigFile);
+			return null;
+		}
+		String dbhost = dbConfig.get("dbhost");
+		String dbport = dbConfig.get("dbport");
+		String dbname = dbConfig.get("db_"+database);
+		if (dbname == null) {
+			Log.d("DATABASE-PARAMETERS", "Connection parameters for db_" + database + " not found, trying db_nav instead");
+			dbname = dbConfig.get("db_nav");
+		}
+		String username = dbConfig.get("script_"+scriptName);
+		if (username == null) {
+			Log.d("DATABASE-PARAMETERS", "Connection parameters for scriptname " + scriptName + " not found, using default instead");
+			username = dbConfig.get("script_default");
+		}
+		String password = dbConfig.get("userpw_"+username);
+
+		String[] params = {dbhost, dbport, dbname, username, password};
+		return params;
+	}
+
+	/**
+	 * <p> Open a connection to the database, based on configuration 
+	 * parameters from the db.conf configuration file.</p>
+	 * 
+	 * @see #openConnection(String, String, String, String, String)
+	 * @see #getConnectionParameters(String, String)
+	 *  
+	 * @param scriptName Script name, to find a matching db user name from db.conf
+	 * @param database Database name. Not a real database name, but the name of a db_* parameter from db.conf.
+	 * @return true if connection was opened successfully; false otherwise
+	 */
+	public static boolean openConnection(String scriptName, String database) {
+		String[] params = getConnectionParameters(scriptName, database);
+		for (int i=0; i<params.length; i++) {
+			if (params[i] == null) {
+				Log.e("DATABASE-OPENCONNECTION", "Missing connection parameters, cannot connect to database");
+				return false;
+			}
+		}
+		return openConnection(params[0], params[1], params[2], params[3], params[4]);
+	}
+	
 	public static boolean openConnection(String serverName, String serverPort, String dbName, String user, String pw) {
 		return openConnection(null, DEFAULT_DRIVER, serverName, serverPort, dbName, user, pw);
 	}

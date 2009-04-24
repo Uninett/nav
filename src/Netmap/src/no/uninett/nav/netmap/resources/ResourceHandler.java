@@ -1,10 +1,6 @@
 package no.uninett.nav.netmap.resources;
 
-import java.io.DataInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringBufferInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,7 +20,7 @@ public class ResourceHandler extends Thread {
         allocated_resources = new HashMap();
 
         // We trust all certificates
-        TrustManager[] trustAllCerts = new TrustManager[]{
+        /*TrustManager[] trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
 
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -48,7 +44,7 @@ public class ResourceHandler extends Thread {
         } catch (Exception e) {
             System.out.println("Failed to create SSL-socket");
             e.printStackTrace();
-        }
+        }*/
     }
 
     public ArrayList<String> getAvailableCategories() throws Exception {
@@ -61,6 +57,7 @@ public class ResourceHandler extends Thread {
         conn = (HttpURLConnection) url.openConnection();
 
         conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
+        conn.setRequestProperty("Accept-Charset", "utf-8");
 
         DataInputStream dis = new DataInputStream(conn.getInputStream());
         String cats = dis.readLine();
@@ -82,6 +79,7 @@ public class ResourceHandler extends Thread {
         conn = (HttpURLConnection) url.openConnection();
 
         conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
+        conn.setRequestProperty("Accept-Charset", "utf-8");
 
         DataInputStream dis = new DataInputStream(conn.getInputStream());
         String types = dis.readLine();
@@ -95,51 +93,33 @@ public class ResourceHandler extends Thread {
 
     public prefuse.data.Graph getGraphFromURL(URL url) throws DataIOException {
 
-	System.out.println("Fetching GraphML from " + url.toString());
-        // First see if we have the graph in our cache
-        if (allocated_resources.containsKey(url.toString())) {
-            return (prefuse.data.Graph) allocated_resources.get(url);
-        }
-
-        HttpURLConnection conn;
-        try {
-            conn = (HttpURLConnection) url.openConnection();
-        } catch (IOException ex) {
-            throw new DataIOException(ex.fillInStackTrace());
-        }
-        conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
-	System.out.println("with cookie: " + conn.getRequestProperty("Cookie"));
-        prefuse.data.Graph ret = null;
-
-        try {
-	    InputStreamReader dis = new InputStreamReader(conn.getInputStream(), "UTF-8");
-	    String s_graph = "";
-	    int s;
-	    while ((s = dis.read()) != -1){
-		s_graph = s_graph + (char)s;
-	    }
-	    System.out.println("---");
-	    System.out.println(s_graph);
-	    System.out.println("---");
-
-            prefuse.data.io.GraphMLReader reader = new prefuse.data.io.GraphMLReader();
-
-            try {
-                ret = reader.readGraph(
-		  new StringBufferInputStream(s_graph)
-		);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new DataIOException(e.fillInStackTrace());
+            System.out.println("Fetching GraphML from " + url.toString());
+            // First see if we have the graph in our cache
+            if (allocated_resources.containsKey(url.toString())) {
+                    return (prefuse.data.Graph) allocated_resources.get(url);
             }
 
-        } catch (Exception e) {
+            HttpURLConnection conn;
+            try {
+                    conn = (HttpURLConnection) url.openConnection();
+            } catch (IOException ex) {
+                    throw new DataIOException(ex.fillInStackTrace());
+            }
+            conn.setRequestProperty("Cookie", no.uninett.nav.netmap.Main.getSessionID());
+            conn.setRequestProperty("Accept-Charset", "utf-8");
+            System.out.println("with cookie: " + conn.getRequestProperty("Cookie"));
+            prefuse.data.Graph ret = null;
 
-            throw new DataIOException(e.fillInStackTrace());
-        }
+            try {
+            	prefuse.data.io.GraphMLReader reader = new prefuse.data.io.GraphMLReader();
+            	ret = reader.readGraph(conn.getInputStream());
+            } catch (Exception e) {
+            	e.printStackTrace();
+            	throw new DataIOException(e.fillInStackTrace());
+            }
 
-        allocated_resources.put(url.toString(), ret);
+            allocated_resources.put(url.toString(), ret);
 
-        return ret;
+            return ret;
     }
 }

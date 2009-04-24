@@ -33,6 +33,8 @@ import getopt
 import time
 import pwd
 
+import nav.daemon
+from nav.daemon import safesleep as sleep
 from nav.statemon import rrd
 from nav.statemon import megaping
 from nav.statemon import db
@@ -53,8 +55,7 @@ class pinger:
         self._looptime=int(self.config.get("checkinterval",60))
         debug.debug("Setting checkinterval=%i" %self._looptime)
         self._debuglevel=0
-        self.dbconf=config.dbconf()
-        self.db=db.db(self.dbconf)
+        self.db=db.db()
         sock = kwargs.get("socket",None)
         self.pinger=megaping.MegaPing(sock)
         self._nrping = int(self.config.get("nrping" ,3))
@@ -178,7 +179,7 @@ class pinger:
                 wait=abs(self._looptime + wait)
                 debug.debug("Check lasted longer than looptime. "
                             "Delaying next check for %03.3f secs" % wait,2)
-            time.sleep(wait)
+            sleep(wait)
 
     def signalhandler(self, signum, frame):
         if signum == signal.SIGTERM:
@@ -216,6 +217,19 @@ def start(nofork):
     a daemon.
     """
     conf = config.pingconf()
+    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/pping.pid")
+
+    # Already running?
+    try:
+        nav.daemon.justme(pidfilename)
+    except nav.daemon.AlreadyRunningError, e:
+        otherpid = file(pidfilename, "r").read().strip()
+        os.sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
+        os.sys.exit(1)
+    except nav.daemon.DaemonError, e:
+        os.sys.stderr.write("%s\n" % e)
+        os.sys.exit(1)
+        
     if not nofork:
         pid=os.fork()
         if pid > 0:
@@ -242,7 +256,6 @@ def start(nofork):
         os.sys.stdout = open(logfile,"a")
         os.sys.stderr = open(logfile,"a")
 
-    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/pping.pid")
     pidfile = open(pidfilename, 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()

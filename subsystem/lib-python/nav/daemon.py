@@ -1,29 +1,20 @@
-#! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2006-2008 UNINETT AS
+# Copyright (C) 2006-2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
-#
-
-"""
-Help functions for daemonizing a process
+"""Help functions for daemonizing a process.
 
 The normal usage sequence for the functions is:
     1. switchuser(username)
@@ -40,16 +31,13 @@ All exceptions raised subclasses DaemonError.
 
 """
 
-__copyright__ = "Copyright 2006-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-
 import atexit
 import grp
 import logging
 import os
 import pwd
 import sys
+import time
 import nav.logs
 
 nav.logs.setLogLevels()
@@ -360,4 +348,27 @@ def daemonexit(pidfile):
 
     logger.debug("pidfile (%s) removed.", pidfile)
     return True
+
+def safesleep(delay):
+    """Hackish workaround to protect against Linux kernel bug in time.sleep().
+
+    The bug will sometimes cause a call to time.sleep(1) to raise an
+    exception.  If a daemon doesn't handle this exception, it will
+    likely die.  Replacing calls to time.sleep(), where the argument
+    could possibly become the value 1, with this function in daemon
+    programs makes sure this exception is ignored if caught.
+    
+    See http://www.tummy.com/journals/entries/jafo_20070110_154659
+    and https://bugs.launchpad.net/nav/+bug/352316
+
+    """
+    try:
+        time.sleep(delay)
+    except IOError, e:
+        if e.errno == 514:
+            logger.exception("Ignoring possible Linux kernel bug in "
+                             "time.sleep(): IOError=514. See LP#352316")
+            pass
+        else:
+            raise
 

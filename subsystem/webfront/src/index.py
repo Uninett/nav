@@ -32,6 +32,7 @@ import nav, nav.path
 from nav import web
 from nav.web import ldapAuth
 import logging
+import cgi
 
 logger = logging.getLogger("nav.web.index")
 
@@ -116,6 +117,7 @@ def login(req, login='', password='', origin=''):
     Handles the login page
     """
     req.content_type = 'text/html'
+    origin = cgi.escape(origin)
     if login:
         # The user is attempting to log in, and we want to be sure
         # that any existing Account objects in this session are

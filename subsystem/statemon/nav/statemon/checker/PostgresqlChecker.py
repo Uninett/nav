@@ -23,23 +23,25 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-from nav.statemon.abstractChecker import AbstractChecker, Event
+from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon import Socket
+from nav.statemon.event import Event
+
+
 class PostgresqlChecker(AbstractChecker):
-	def __init__(self, serviceid, boksid, ip, args, version):
-		port = args.get('port', 5432)
-		AbstractChecker.__init__(self,'postgresql',serviceid, boksid, (ip,port), args, version)
-	def execute(self):
-		args = self.getArgs()
-		s = Socket.Socket(self.getTimeout())
-		s.connect(self.getAddress())
-		s.close()
-		return Event.UP,'alive'
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self,'postgresql', service,  port=5432, **kwargs)
+    def execute(self):
+        args = self.getArgs()
+        s = Socket.Socket(self.getTimeout())
+        s.connect(self.getAddress())
+        s.close()
+        return Event.UP,'alive'
 
 def getRequiredArgs():
-	"""
-	Returns a list of required arguments
-	"""
-	requiredArgs = []
-	return requiredArgs
-								
+    """
+    Returns a list of required arguments
+    """
+    requiredArgs = []
+    return requiredArgs
+

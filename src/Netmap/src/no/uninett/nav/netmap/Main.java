@@ -51,6 +51,8 @@ import prefuse.util.ui.JPrefuseApplet;
 import prefuse.util.ui.JSearchPanel;
 import prefuse.visual.VisualItem;
 
+import no.uninett.nav.window.*;
+
 public class Main extends JPrefuseApplet {
 
     private static ActionListener catFilter;
@@ -72,6 +74,7 @@ public class Main extends JPrefuseApplet {
     private javax.swing.JButton increaseFontSizeButton;
     private javax.swing.JButton decreaseFontSizeButton;
     private javax.swing.JButton saveLayoutButton;
+    private javax.swing.JButton showLegendButton;
     private javax.swing.JMenu categoryMenu;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenu freezeMenu;
@@ -134,6 +137,7 @@ public class Main extends JPrefuseApplet {
             visMenu = new javax.swing.JMenu();
             hideOrphanNetboxes = new javax.swing.JCheckBoxMenuItem();
             useRelativeSpeeds = new javax.swing.JCheckBoxMenuItem();
+            showLegendButton = new javax.swing.JButton();
 
             freezeMenu = new javax.swing.JMenu();
             freezeCheckbox = new javax.swing.JCheckBoxMenuItem();
@@ -208,6 +212,12 @@ public class Main extends JPrefuseApplet {
                     }
                 }
             };
+            ActionListener showLegendHandler = new ActionListener() {
+                public void actionPerformed(ActionEvent arg0){
+                    legendFrame legend = new legendFrame();
+                    legend.setVisible(true);
+                }
+            };
 
             /*
              * Clear and add available checkboxes according
@@ -257,6 +267,9 @@ public class Main extends JPrefuseApplet {
             useRelativeSpeeds.setText("Show load based on relative usage");
             useRelativeSpeeds.setToolTipText("Calculate load-color using the line capacity");
             visMenu.add(useRelativeSpeeds);
+            showLegendButton.setText("Show legend");
+            showLegendButton.addActionListener(showLegendHandler);
+            visMenu.add(showLegendButton);
             menuBar.add(visMenu);
 
             freezeMenu.setText("Actions");
@@ -273,6 +286,8 @@ public class Main extends JPrefuseApplet {
             decreaseFontSizeButton.addActionListener(decreaseFontSizeHandler);
             freezeMenu.add(decreaseFontSizeButton);
 
+            /* COMMENTED OUT FOR 3.5.1 */
+            /*
             try {
                 if (getParameter("is_admin").equals("True")){
                     saveLayoutButton = new javax.swing.JButton("Save layout");
@@ -281,7 +296,7 @@ public class Main extends JPrefuseApplet {
                 }
             } catch (Exception e){
                 System.out.println("NOTICE: Could not get is_admin-parameter");
-            }
+            }*/
 
             menuBar.add(freezeMenu);
 

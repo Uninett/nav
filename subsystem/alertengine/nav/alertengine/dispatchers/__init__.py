@@ -25,15 +25,13 @@ The dispatchers package contains all the methods that alertengine can use to
 send out alerts. Adding new messaging channels is a simple matter of writting
 a new subclass of ``dispatcher'' overriding send with the following:
 
-    def send(self, address, alert, language='en', type='unknown'):
+    def send(self, address, alert, language='en'):
 
 address - the alertaddress object that is "sending" the alert
   alert - the alertqueue object that we want to send out an notification about
-   type - the subscription type that caused the sending of the message, mainly
-          for log messages
 
 The address to send to is `address.address`. To get the message we want to send
-simply call `alert.messages.get(language=language, type='your_message_type'
+simply call `alert.messages.get(language=language, type='your_message_type')`
 
 For your dispatchers logging please use `logging.getlogger('nav.alertengine.dispatchers.your_dispatcher')`
 and try to use sensible log messages, look at the modules that ship with NAV
@@ -47,6 +45,8 @@ __author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 import logging
 import os
 
+from nav.models.event import AlertQueueMessage
+
 logger = logging.getLogger('nav.alertengine.dispatchers')
 
 class dispatcher:
@@ -54,8 +54,17 @@ class dispatcher:
     def __init__(self, config={}):
         self.config = config
 
-    def send(alert, address, language='en', type='unknow'):
+    def send(alert, address, language='en'):
         raise NotImplementedError
 
+    def get_message(self, alert, language, message_type):
+        try:
+            return alert.messages.get(language=language, type=message_type).message
+        except AlertQueueMessage.DoesNotExist:
+            raise FatalDispatcherException("Could not find message with lang=%s and type=%s" % (language, message_type))
+
 class DispatcherException(Exception):
+    pass
+
+class FatalDispatcherException(DispatcherException):
     pass

@@ -79,6 +79,11 @@ The following are no longer dependencies in NAV 3.5:
 * The Perl modules DBD::Pg and SNMP_Session
 * The Python module forgetHTML
 
+A dependency to the python module pyrad was previously undocumented.
+This module is required if you wish to monitor radius servers using
+NAV's service monitor.  The module can be found at
+http://www.wiggy.net/code/pyrad/ .
+
 
 Files to remove
 ---------------

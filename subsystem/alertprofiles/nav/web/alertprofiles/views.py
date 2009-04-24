@@ -45,7 +45,6 @@ from nav.models.profiles import Account, AccountGroup, AccountProperty, \
     Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
 from nav.django.shortcuts import render_to_response, object_list
-from nav.django.context_processors import account_processor
 from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 from nav.web.message import new_message, Messages
 
@@ -115,7 +114,6 @@ def overview(request):
             info_dict,
             RequestContext(
                 request,
-                processors=[account_processor]
             ),
             path=[
                 ('Home', '/'),
@@ -160,7 +158,6 @@ def profile(request):
             page=page,
             template_name='alertprofiles/profile.html',
             extra_context=info_dict,
-            context_processors=[account_processor],
             path=BASE_PATH+[('Profiles', None)]
         )
 
@@ -217,7 +214,6 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         info_dict,
         RequestContext(
             request,
-            processors=[account_processor]
         ),
         path=BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
@@ -396,7 +392,6 @@ def profile_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
@@ -481,7 +476,6 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         info_dict,
         RequestContext(
             request,
-            processors=[account_processor]
         ),
         path=BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
@@ -636,7 +630,6 @@ def profile_time_period_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
@@ -687,7 +680,6 @@ def profile_time_period_setup(request, time_period_id=None):
         info_dict,
         RequestContext(
             request,
-            processors=[account_processor]
         ),
         path=BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
@@ -770,7 +762,6 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         info_dict,
         RequestContext(
             request,
-            processors=[account_processor]
         ),
         path=BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
@@ -872,7 +863,6 @@ def profile_time_period_subscription_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
@@ -915,7 +905,6 @@ def address_list(request):
             page=page,
             template_name='alertprofiles/address_list.html',
             extra_context=info_dict,
-            context_processors=[account_processor],
             path=BASE_PATH+[('Address', None)]
         )
 
@@ -965,7 +954,6 @@ def address_show_form(request, address_id=None, address_form=None):
         info_dict,
         RequestContext(
             request,
-            processors=[account_processor]
         ),
         path=BASE_PATH+[
             ('Address', reverse('alertprofiles-address')),
@@ -1117,7 +1105,6 @@ def address_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Address', reverse('alertprofiles-address')),
@@ -1178,7 +1165,6 @@ def sms_list(request):
         page=page,
         template_name='alertprofiles/sms_list.html',
         extra_context=info_dict,
-        context_processors=[account_processor],
         path=BASE_PATH+[('SMS', None)]
     )
 
@@ -1218,7 +1204,6 @@ def filter_list(request):
             page=page,
             template_name='alertprofiles/filter_list.html',
             extra_context=info_dict,
-            context_processors=[account_processor],
             path=BASE_PATH+[('Filters', None)]
         )
 
@@ -1316,7 +1301,6 @@ def filter_show_form(request, filter_id=None, filter_form=None):
             },
             RequestContext(
                 request,
-                processors=[account_processor]
             ),
             path=BASE_PATH+[
                 ('Filters', reverse('alertprofiles-filters')),
@@ -1440,7 +1424,6 @@ def filter_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
@@ -1491,7 +1474,6 @@ def filter_addexpression(request):
             info_dict,
             RequestContext(
                 request,
-                processors=[account_processor]
             ),
             path=BASE_PATH+[
                 ('Filters', reverse('alertprofiles-filters')),
@@ -1613,7 +1595,6 @@ def filter_removeexpression(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
@@ -1659,7 +1640,6 @@ def filter_group_list(request):
             page=page,
             template_name='alertprofiles/filter_group_list.html',
             extra_context=info_dict,
-            context_processors=[account_processor],
             path=BASE_PATH+[
                 ('Filter groups', None)
             ]
@@ -1758,7 +1738,6 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
             info_dict,
             RequestContext(
                 request,
-                processors=[account_processor]
             ),
             path=BASE_PATH+[
                 ('Filter groups', reverse('alertprofiles-filter_groups')),
@@ -1887,7 +1866,6 @@ def filter_group_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Filter groups', reverse('alertprofiles-filters')),
@@ -2067,7 +2045,6 @@ def filter_group_removefilter(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Filter groups', reverse('alertprofiles-filter_groups')),
@@ -2194,7 +2171,6 @@ def matchfield_list(request):
             page=page,
             template_name='alertprofiles/matchfield_list.html',
             extra_context=info_dict,
-            context_processors=[account_processor],
             path=BASE_PATH+[
                 ('Matchfields', None),
             ]
@@ -2266,7 +2242,6 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
             info_dict,
             RequestContext(
                 request,
-                processors=[account_processor]
             ),
             path=BASE_PATH+[
                 ('Matchfields', reverse('alertprofiles-matchfields')),
@@ -2383,7 +2358,6 @@ def matchfield_remove(request):
                 info_dict,
                 RequestContext(
                     request,
-                    processors=[account_processor]
                 ),
                 path=BASE_PATH+[
                     ('Matchfields', reverse('alertprofiles-matchfields')),
@@ -2408,7 +2382,7 @@ def permission_list(request, group_id=None):
         except AccountGroup.DoesNotExist:
             return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
 
-        permissions = AccountGroup.objects.get(pk=group_id).filter_group_set.all()
+        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
 
     active = {'permissions': True}
     info_dict = {
@@ -2425,7 +2399,6 @@ def permission_list(request, group_id=None):
             info_dict,
             RequestContext(
                 request,
-                processors=[account_processor]
             ),
             path=BASE_PATH+[
                 ('Permissions', None),
@@ -2449,7 +2422,7 @@ def permissions_save(request):
 
     filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filter_group'))
 
-    group.filter_group_set = filter_groups
+    group.filtergroup_set = filter_groups
 
     new_message(
         request,

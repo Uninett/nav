@@ -50,6 +50,8 @@ The following python modules are required:
  * psycopg2
  * pysnmp2
  * rrd
+ * pyrad
+ * xmpp (optional)
 
 
 Recommended add-ons
@@ -59,6 +61,8 @@ in alert profiles, you will need to install the Gammu and python-gammu
 packages.  The SMS damon can use plugins to dispatch SMS'es through other
 means, but using Gammu as an SMS dispatcher is the default.
 
+If you wish to use the Jabber plugin for alertengine, the python module xmpp is
+required.
 
 
 Installing NAV

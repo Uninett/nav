@@ -1,18 +1,11 @@
-p.listdescr {
-	font-style: italic;
-	color: #555753;
-	padding-bottom: 15px
-}
-
+/* Overloading classes from table.css */
 table.listtable caption {
 	text-align: center;
 }
-
-table.listtable tbody.footer tr th {
+table.listtable tbody.footer tr th, table.listtable tbody tr.tablesum th {
 	text-align: center;
 }
 
-table.listtable caption span.small_subtitle {
-	font-size: 0.6em;
-	font-weight: normal;
+table.vertitablefull {
+	width: 70em;
 }
