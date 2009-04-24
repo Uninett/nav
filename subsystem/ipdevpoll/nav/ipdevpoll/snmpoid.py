@@ -47,7 +47,6 @@ class RunHandler(object):
                 if plugin_name not in valid_plugins:
                     logger.warning('Invalid plugin %s', plugin_name)
 
-        # plugin registry should allready be topologicaly sorted
         for plugin_class in plugin_registry:
             plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
 
@@ -64,7 +63,7 @@ class RunHandler(object):
 
             # FIXME what do we do when a dependency breaks down due to
             # can_handle failing for a dependency of some other plugin?
-               
+
         if not plugins:
             self.logger.warning("No plugins for this run")
             return
