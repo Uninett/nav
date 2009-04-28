@@ -199,6 +199,28 @@ class AccountProperty(models.Model):
     def __unicode__(self):
         return '%s=%s' % (self.property, self.value)
 
+class AccountNavbar(models.Model):
+    account = models.ForeignKey('Account', db_column='accountid')
+    navbarlink = models.ForeignKey('NavbarLink', db_column='navbarlinkid')
+    positions = models.CharField()
+
+    class Meta:
+        db_table = u'accountnavbar'
+
+    def __unicode__(self):
+        return '%s in %s' % (self.navbarlink.name, self.positions)
+
+class NavbarLink(models.Model):
+    account = models.ForeignKey('Account', db_column='accountid')
+    name = models.CharField()
+    uri = models.CharField()
+
+    class Meta:
+        db_table = u'navbarlink'
+
+    def __unicode__(self):
+        return '%s=%s' % (self.name, self.uri)
+
 class Privilege(models.Model):
     group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
     type = models.ForeignKey('PrivilegeType', db_column='privilegeid')

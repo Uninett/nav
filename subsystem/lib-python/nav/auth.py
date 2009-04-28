@@ -21,6 +21,8 @@ from nav.db import navprofiles
 import re
 import logging
 
+from nav.models.profiles import Account
+
 logger = logging.getLogger('nav.auth')
 
 ADMINGROUP = 1
