@@ -29,7 +29,7 @@ follows the mod_python.publisher paradigm.
 from mod_python import apache
 import os, os.path, sys
 
-from nav.django.profiles import Account
+from nav.models.profiles import Account
 import nav, nav.path
 from nav import web
 from nav.web import ldapAuth

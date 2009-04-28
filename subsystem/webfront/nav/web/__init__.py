@@ -38,6 +38,8 @@ import cgi
 import logging
 import nav.logs
 
+from nav.models.profiles import Account
+
 logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront', 'webfront.conf'))
@@ -83,9 +85,9 @@ def headerparserhandler(req):
         # Delete any existing Authorization headers
         logger.debug("Request already had an Authorization header, removing it")
         del req.headers_in[authHeader]
-    if user.id > 0:
+    if user['id'] > 0:
         # Only fake the header if we're not the public user
-        basicCookie = base64.encodestring(user.login + ':').strip()
+        basicCookie = base64.encodestring(user['login'] + ':').strip()
         req.headers_in.add(authHeader, 'Basic ' + basicCookie)
 
     return apache.OK
@@ -134,7 +136,8 @@ def shouldShow(link, user):
     link and allowed. Internal links are checked using nav.auth.hasPrivilege.
     """
     startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
-    return startsWithHTTP or nav.auth.hasPrivilege(user, 'web_access', link)
+    #FIXME handle Account.DoesNotExist
+    return startsWithHTTP or Account.objects.get(id=user['id']).has_perm('web_access', link)
 
 def escape(s):
     """Replace special characters '&', '<' and '>' by SGML entities.
