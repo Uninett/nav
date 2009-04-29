@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,10 +22,12 @@ Contains classes for the status preferences page
 #################################################
 ## Imports
 
-import psycopg2, cPickle, re, nav.db
+import cPickle
+import re
 import copy
 import logging
 
+import nav.db
 from StatusSections import *
 
 logger = logging.getLogger('nav.web.status.StatusPrefs')
@@ -277,32 +280,43 @@ class HandleStatusPrefs:
             self.addSectionBox(typeId,settings,controlBaseName)
         return
 
-    def savePrefs(self):
-        " Pickles and saves the preferences "
+    def savePrefs(self, accountid=None):
+        """Pickles and saves the preferences.
+
+        If the accountid parameter is omitted, the currently logged in
+        user's preferences are saved.  If set, the preferences will be
+        saved for the given account id.
+
+        """
+        if accountid is None:
+            accountid = self.req.session['user'].id
+
         prefs = self.getPrefs()
                 
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
-        data = psycopg2.QuotedString(cPickle.dumps(prefs.sections))
+        data = cPickle.dumps(prefs.sections)
+        sqlParams = {
+            'id': accountid,
+            'property': self.STATUS_PROPERTY,
+            'data': data,
+            }
 
         sql = "SELECT property FROM accountproperty " + \
-              "WHERE accountid='%s' " % (self.req.session['user'].id,) + \
-              "AND property='%s'" % (self.STATUS_PROPERTY,)
-        database.execute(sql)
+              "WHERE accountid=%(id)s AND property=%(property)s"
+        database.execute(sql, sqlParams)
         result = database.fetchall()
+
         if result:
-            # Prefs exists, update
-            sql = "UPDATE accountproperty SET value=%s WHERE accountid=%s and \
-            property='%s'" % \
-            (data,self.req.session['user'].id,self.STATUS_PROPERTY)
+            # Prefs exist, update
+            sql = "UPDATE accountproperty SET value=%(data)s " + \
+                  "WHERE accountid=%(id)s AND property=%(property)s"
         else:
             # No prefs previously saved
-
-            sql = "INSERT INTO accountproperty (accountid,property,value) \
-            VALUES (%s,'%s',%s)" % \
-            (self.req.session['user'].id,self.STATUS_PROPERTY,data)
-        database.execute(sql)
+            sql = "INSERT INTO accountproperty (accountid,property,value)" + \
+                  " VALUES (%(id)s, %(property)s, %(data)s)"
+        database.execute(sql, sqlParams)
         connection.commit()
 
     def loadPrefs(cls,req):
@@ -355,32 +369,8 @@ class HandleStatusPrefs:
     loadPrefs = classmethod(loadPrefs)
 
     def saveDefaultPrefs(self):
-        " Saves current prefs as default preferences in a file "
-        prefs = self.getPrefs()
-
-        connection = nav.db.getConnection('status', 'navprofile')
-        database = connection.cursor()
-
-        data = psycopg2.QuotedString(cPickle.dumps(prefs.sections))
-
-        sql = "SELECT property FROM accountproperty " + \
-              "WHERE accountid='%s' " % (ADMIN_USER_ID,) + \
-              "AND property='%s'" % (self.STATUS_PROPERTY,)
-        database.execute(sql)
-        result = database.fetchall()
-        if result:
-            # Prefs exists, update
-            sql = "UPDATE accountproperty SET value=%s WHERE accountid=%s and \
-            property='%s'" % \
-            (data,ADMIN_USER_ID,self.STATUS_PROPERTY)
-        else:
-            # No prefs previously saved
-
-            sql = "INSERT INTO accountproperty (accountid,property,value) \
-            VALUES (%s,'%s',%s)" % \
-            (ADMIN_USER_ID,self.STATUS_PROPERTY,data)
-        database.execute(sql)
-        connection.commit()
+        " Saves current prefs as default preferences "
+        return self.savePrefs(accountid=ADMIN_USER_ID)
 
 class EditSectionBox:
     """
