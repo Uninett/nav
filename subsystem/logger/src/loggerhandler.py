@@ -28,7 +28,8 @@ import os
 import nav
 from nav import db
 import re
-from mx import DateTime
+import time
+import datetime
 from ConfigParser import ConfigParser
 from nav.web.templates.LoggerTemplate import LoggerTemplate
 
@@ -45,14 +46,16 @@ def handler(req):
     req.form = util.FieldStorage(req,keep_blank_values)
 
     if req.form.has_key("tfrom") and req.form["tfrom"]:
-        tfrom = DateTime.strptime(req.form["tfrom"], DATEFORMAT)
+        tfrom = datetime.datetime(
+            *(time.strptime(req.form["tfrom"], DATEFORMAT)[0:6]))
     else:
-        tfrom = DateTime.now() - DateTime.oneDay
+        tfrom = datetime.datetime.now() - datetime.timedelta(days=1)
 
     if req.form.has_key("tto") and req.form["tto"]:
-        tto = DateTime.strptime(req.form["tto"], DATEFORMAT)
+        tto = datetime.datetime(
+            *(time.strptime(req.form["tto"], DATEFORMAT)[0:6]))
     else:
-        tto = DateTime.now()
+        tto = datetime.datetime.now()
 
     database.execute("select origin, name from origin order by origin")
     origins = []
