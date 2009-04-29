@@ -34,7 +34,7 @@ __id__ = "$Id:$"
 
 import time
 from mod_python import apache, util
-import mx.DateTime
+import datetime
 
 import nav.db
 import nav.messages
@@ -90,7 +90,7 @@ def handler(req):
                 + '/messages/view?id=' + str(page.msgs[i]['messageid'])
             page.msgs[i]['guid'] = page.msgs[i]['link']
         if page.pubDate == 0:
-            page.pubDate = mx.DateTime.now()
+            page.pubDate = datetime.datetime.now()
 
         # Done, output the page
         req.content_type = 'text/xml'
