@@ -312,9 +312,9 @@ def handler(req):
                     msgid = False
 
                 # Update/Insert message
-                msgid = nav.messages.setMsg(msgid, title, description,
-                    tech_description, publish_start, publish_end, author,
-                    replaces_messageid)
+                msgid = nav.messages.setMsg(msgid, str(title),
+                    str(description), str(tech_description), publish_start,
+                    publish_end, author, replaces_messageid)
 
                 # For updates, remove all existing task connections
                 if section == 'edit':
