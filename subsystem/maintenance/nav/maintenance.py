@@ -72,7 +72,7 @@ def getTasks(where = False, order = 'maint_end DESC'):
     logger.debug("getTask() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    results = db.fetchall()
+    results = [dict(row) for row in db.fetchall()]
 
     # Attach components belonging to this message
     for i, result in enumerate(results):
@@ -189,7 +189,7 @@ def getComponents(taskid):
     logger.debug("getComponents() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    results = db.fetchall()
+    results = [dict(row) for row in db.fetchall()]
 
     # Attach information about the components
     for i, result in enumerate(results):
@@ -337,7 +337,7 @@ def getLocation(locationid):
         return False
     result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def getRoom(roomid):
     """
@@ -373,7 +373,7 @@ def getRoom(roomid):
         return False
     result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def getNetbox(netboxid):
     """
@@ -411,7 +411,7 @@ def getNetbox(netboxid):
         return False
     result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def getService(serviceid):
     """
@@ -451,7 +451,7 @@ def getService(serviceid):
         return False
     result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def cancelTask(taskid):
     """
