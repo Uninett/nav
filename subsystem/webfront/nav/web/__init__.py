@@ -146,7 +146,11 @@ def escape(s):
         return ''
 
 def loginit():
-    """Initialize a logging setup for the web interface"""
+    """Initialize a logging setup for the web interface.
+
+    All logging is directed to stderr, which should end up in Apache's
+    error log.
+    """
     global _loginited
     try:
         # Make sure we don't initialize logging setup several times (in case
@@ -158,12 +162,14 @@ def loginit():
     
     root = logging.getLogger('')
 
-    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s")
-    logfile = os.path.join(nav.path.localstatedir, 'log', 'webfront.log')
+    # Attempt to mimic Apache's standard log time format
+    formatter = logging.Formatter(
+        "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s",
+        "%a %b %d %H:%M:%S %Y")
     try:
-        handler = logging.FileHandler(logfile)
+        handler = logging.StreamHandler(sys.stderr)
     except IOError, e:
-        # Most likely, we were denied access to the log file.
+        # Something went terribly wrong. Maybe stderr is closed?
         # We silently ignore it and log nothing :-P
         pass
     else:
