@@ -166,9 +166,9 @@ class presentation:
         returnList = []
         for datasource in self.datasources:
             try:
-                raw = rrdtool.fetch(datasource.fullPath(),
-                                    'AVERAGE','-s '+self.fromTime,
-                                    '-e '+self.toTime)
+                raw = rrdtool.fetch(str(datasource.fullPath()),
+                                    'AVERAGE','-s ' + str(self.fromTime),
+                                    '-e ' + str(self.toTime))
 
                 returnDict = {}
                 returnDict['start']  = raw[0][0]
@@ -228,18 +228,19 @@ class presentation:
         (zero).
         """
         rrdvalues = []
-        rrdstart = "-s %s" %self.fromTime
-        rrdend = "-e %s" %self.toTime
+        rrdstart = str("-s %s" % self.fromTime)
+        rrdend = str("-e %s" % self.toTime)
 
         for datasource in self.datasources:
             # The variablename (after def) is not important, it just
             # needs to be the same in the DEF and PRINT. We use
             # datasource.name.
 
-            rrddef = "DEF:%s=%s:%s:AVERAGE" %(datasource.name,
-                                              datasource.fullPath(),
-                                              datasource.name)
-            rrdprint = "PRINT:%s:AVERAGE:%%lf" %(datasource.name)
+            rrddef = str("DEF:%s=%s:%s:AVERAGE" % (datasource.name,
+                                                   datasource.fullPath(),
+                                                   datasource.name)
+                         )
+            rrdprint = str("PRINT:%s:AVERAGE:%%lf" % (datasource.name))
 
             try:
                 # rrdtool.graph returns a tuple where the third
@@ -421,7 +422,7 @@ class presentation:
             params += [virtual]
             params += [linetype+':v_'+rrd_variable+color[index % len(color)]+':'+''+legend+'']
 
-            a = rrdtool.info(rrd_filename)
+            a = rrdtool.info(str(rrd_filename))
             # HVA I HELVETE SKJER HER!?!?!??!?!
             if self.showmax and 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))] :
                 legend += ' - MAX'
@@ -474,7 +475,7 @@ class presentation:
         imagefilename = conf['fileprefix'] + id + conf['filesuffix']
         rrd_params = (imagefilename,) + rrd_params
         try:
-            size = rrdtool.graph(*rrd_params)
+            size = rrdtool.graph(*[str(s) for s in rrd_params])
         except rrdtool.error, err:
             pass
         deadline = 60*10
