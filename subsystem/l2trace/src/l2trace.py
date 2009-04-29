@@ -34,7 +34,6 @@ if 'apache' not in globals():
     except ImportError:
         apache = None
 from pprint import pprint,pformat
-from mx import DateTime
 from socket import gethostbyaddr,gethostbyname,herror
 import re
 import psycopg2.extras

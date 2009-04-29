@@ -48,7 +48,6 @@ import glob
 import os
 import warnings
 import operator
-from mx import DateTime
 from os import path
 import psycopg2.extras
 

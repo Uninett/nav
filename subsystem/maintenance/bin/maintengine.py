@@ -42,7 +42,6 @@ import sys
 import nav.db
 import nav.event
 import nav.logs
-from mx import DateTime
 
 logfile = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
 logformat = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
