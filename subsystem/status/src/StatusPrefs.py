@@ -339,7 +339,7 @@ class HandleStatusPrefs:
             (data,) = data
             prefs = StatusPrefs()
             try:
-                prefs.sections = cPickle.loads(data)
+                prefs.sections = cPickle.loads(str(data))
             except (AssertionError, ImportError), exc:
                 # Unpickle failed, probably because of mod_python's
                 # import behaviour and the user having saved status
