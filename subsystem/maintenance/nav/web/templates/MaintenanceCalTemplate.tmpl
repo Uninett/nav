@@ -89,11 +89,11 @@
                     #else
             $task.description</a>
                     #end if
-                    #if int($task.interval.strftime('%d')) > 0
-                        #set $interval = int($task.interval.strftime('%d'))
+                    #if $task.interval.days > 0
+                        #set $interval = $task.interval.days
             ($(interval)d)
                     #else
-                        #set $interval = int($task.interval.strftime('%H'))
+                        #set $interval = $task.interval.seconds / 3600
             ($(interval)h)
                     #end if
             <br />
