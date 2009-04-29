@@ -137,9 +137,9 @@ def setMsg(msgid, title, description, tech_description, publish_start,
                 publish_end = %(publish_end)s,
                 author = %(author)s,
                 last_changed = now(),
-                replaces_message = %(replaces_message)d
+                replaces_message = %(replaces_message)s
             WHERE
-                messageid = %(messageid)d"""
+                messageid = %(messageid)s"""
     else:
         sql = """INSERT INTO message (
                 title, description, tech_description, publish_start,
@@ -147,7 +147,7 @@ def setMsg(msgid, title, description, tech_description, publish_start,
             ) VALUES (
                 %(title)s, %(description)s, %(tech_description)s,
                 %(publish_start)s, %(publish_end)s, %(author)s,
-                %(replaces_message)d
+                %(replaces_message)s
             )"""
 
     data = {
@@ -223,7 +223,7 @@ def setMsgTask(msgid, taskid):
     # Check if message and task is already linked
     sql = """SELECT messageid, maint_taskid
         FROM message_to_maint_task
-        WHERE messageid = %(messageid)d AND maint_taskid = %(maint_taskid)d"""
+        WHERE messageid = %(messageid)s AND maint_taskid = %(maint_taskid)s"""
     logger.debug("setMsgTask() #1 query: %s", sql % data)
     db.execute(sql, data)
     logger.debug("setMsgTask() #1 number of results: %d", db.rowcount)
@@ -234,7 +234,7 @@ def setMsgTask(msgid, taskid):
         sql = """INSERT INTO message_to_maint_task (
                 messageid, maint_taskid
             ) VALUES (
-                %(messageid)d, %(maint_taskid)d
+                %(messageid)s, %(maint_taskid)s
             )"""
 
         logger.debug("setMsgTask() #2 query: %s", sql % data)
@@ -259,7 +259,7 @@ def removeMsgTasks(msgid):
     db = dbconn.cursor()
 
     data = {'messageid': msgid}
-    sql = "DELETE FROM message_to_maint_task WHERE messageid = %(messageid)d"
+    sql = "DELETE FROM message_to_maint_task WHERE messageid = %(messageid)s"
 
     logger.debug("removeMsgTasks() query: %s", sql % data)
     db.execute(sql, data)
@@ -286,7 +286,7 @@ def expireMsg(msgid):
     db = dbconn.cursor()
 
     sql = """UPDATE message SET publish_end = now()
-        WHERE messageid = %(messageid)d"""
+        WHERE messageid = %(messageid)s"""
 
     data = {'messageid': msgid}
 
