@@ -128,7 +128,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
                 author = %(author)s,
                 state = %(state)s
             WHERE
-                maint_taskid = %(maint_taskid)d"""
+                maint_taskid = %(maint_taskid)s"""
     else:
         sql = """INSERT INTO maint_task (
                 maint_start,
@@ -148,7 +148,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
         'maint_taskid': taskid,
         'maint_start': time.strftime('%Y-%m-%d %H:%M:%S', maint_start),
         'maint_end': time.strftime('%Y-%m-%d %H:%M:%S', maint_end),
-        'description': description,
+        'description': str(description),
         'author': author,
         'state': state
     }
@@ -180,7 +180,7 @@ def getComponents(taskid):
 
     sql = """SELECT key, value
         FROM maint_component
-        WHERE maint_taskid = %(maint_taskid)d
+        WHERE maint_taskid = %(maint_taskid)s
         ORDER BY key, value"""
     data = {'maint_taskid': taskid}
 
@@ -220,7 +220,7 @@ def setComponents(taskid, components):
 
     # Remove old components
     sql = """DELETE FROM maint_component
-        WHERE maint_taskid = %(maint_taskid)d"""
+        WHERE maint_taskid = %(maint_taskid)s"""
     data = { 'maint_taskid': taskid }
     logger.debug("setComponents() query: %s", sql % data)
     db.execute(sql, data)
@@ -232,7 +232,7 @@ def setComponents(taskid, components):
             key,
             value
         ) VALUES (
-            %(maint_taskid)d,
+            %(maint_taskid)s,
             %(key)s,
             %(value)s
         )"""
@@ -401,7 +401,7 @@ def getNetbox(netboxid):
         FROM netbox n
             JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
-        WHERE netboxid = %(netboxid)d"""
+        WHERE netboxid = %(netboxid)s"""
     data = {'netboxid': int(netboxid)}
 
     logger.debug("getNetbox() query: %s", sql % data)
@@ -441,7 +441,7 @@ def getService(serviceid):
             JOIN netbox n ON (s.netboxid = n.netboxid)
             JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
-        WHERE s.serviceid = %(serviceid)d"""
+        WHERE s.serviceid = %(serviceid)s"""
     data = {'serviceid': int(serviceid)}
 
     logger.debug("getService() query: %s", sql % data)
@@ -469,7 +469,7 @@ def cancelTask(taskid):
     db = dbconn.cursor()
 
     sql = """UPDATE maint_task SET state = 'canceled'
-        WHERE maint_taskid = %(maint_taskid)d"""
+        WHERE maint_taskid = %(maint_taskid)s"""
 
     data = {'maint_taskid': taskid}
 
