@@ -80,7 +80,7 @@ def getMsgs(where = False, order = 'publish_start DESC'):
     logger.debug("getMsgs() number of results: %d", db.rowcount)
     if not db.rowcount:
         return []
-    results = db.fetchall()
+    results = [dict(row) for row in db.fetchall()]
 
     # Attach tasks connected to this message
     for i, result in enumerate(results):
@@ -198,7 +198,7 @@ def getMsgTasks(msgid):
     logger.debug("getMsgTasks() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.fetchall()
+    result = [dict(row) for row in db.fetchall()]
     return result
 
 def setMsgTask(msgid, taskid):
