@@ -71,7 +71,7 @@ public class QueryBoks extends Thread
 	// Denne inneholder alle "boksid:ifindex" fra swport som er trunk-porter
 	//public static HashSet boksIfindexTrunkSet;
 
-	// Mengde av vlan som må sjekkes på Cisco-boksene
+	// The set of VLANs who possibly have separate BRIDGE-MIB instances on Cisco devices
 	public static Map vlanBoksid;
 
 	// Hvilke porter det står en GW|SW|EDGE bak, som gitt i swp_boks-tabellen
@@ -645,7 +645,53 @@ public class QueryBoks extends Thread
 		return null;
 	}
 
+	/**
+	 * <p>Return a set of VLANs with separate BRIDGE-MIB instances.</p>
+	 * 
+	 * <p>Will look at ENTITY-MIB's entLogicalTable.  Every entity whose type
+	 * column matches BRIDGE-MIB::dot1dBridge will have its description column
+	 * parsed for a VLAN id, which is added to the list.</p>
+	 * 
+	 * <p>Each BRIDGE-MIB instance will be listed with a separate SNMP
+	 * community in the entLogicalTable, but these will not be reflected 
+	 * in the result.</p>
+	 * 
+	 * <p>FIXME: The community for each instance should really be returned, 
+	 * so that the calling function won't have to guesstimate the correct
+	 * community (as for Cisco, it's always "community@vlan".</p>
+	 * 
+	 * @return An Set of VLAN id String objects 
+	 * @throws TimeoutException
+	 */
+	private Set<String> getBridgeMibInstances() throws TimeoutException {
+		String dot1dBridge = "1.3.6.1.2.1.17";
+		String entLogicalEntry = "1.3.6.1.2.1.47.1.2.1.1";
+		String entLogicalType = entLogicalEntry + ".3";
+		String entLogicalDescr = entLogicalEntry + ".2";
 
+		Set<String> vlans = new HashSet();
+		Map<String, String> typeMap = sSnmp.getAllMap(entLogicalType);
+		Map<String, String> descrMap = sSnmp.getAllMap(entLogicalDescr, true);
+		
+		for (Map.Entry<String, String> typeEntry: typeMap.entrySet()) {
+			String index = typeEntry.getKey();
+			String entType = typeEntry.getValue();
+			
+			if (entType.equals(dot1dBridge) && descrMap.containsKey(index)) {
+				String descr = descrMap.get(index);
+				if (descr.startsWith("vlan")) {
+					// The text following "vlan" is the vlan number
+					String vlan = descr.substring(4);
+					vlans.add(vlan);
+				} else {
+					Log.d("BRIDGEMIB_INSTANCES", "Unrecognized BRIDGE-MIB instance description: " + descr);
+				}
+			}
+		}
+
+		Log.d("BRIDGEMIB_INSTANCES", vlans.size() + "/" + typeMap.size() + " logical entities are useable BRIDGE-MIB instances");
+		return vlans;
+	}
 	
 	private List processMacEntry(String netboxid, String ip, String cs_ro, String type, boolean csAtVlan) throws TimeoutException {
 		List l = new ArrayList();
@@ -658,16 +704,18 @@ public class QueryBoks extends Thread
 		int activeVlanCnt=0;
 		int unitVlanCnt=0;
 
-		Set vlanSet;
-		if (csAtVlan) {
-			vlanSet = (Set)vlanBoksid.get(netboxid);
-			if (vlanSet == null) {
-				Log.d("PROCESS_MAC", "Missing vlanSet for netboxid: " + netboxid + ", aborting");
-				return l;
+		Set vlanSet = getBridgeMibInstances();
+		if (vlanSet == null || vlanSet.size() == 0) {
+			if (csAtVlan) {
+				vlanSet = (Set)vlanBoksid.get(netboxid);
+				if (vlanSet == null || vlanSet.size() == 0) {
+					Log.d("PROCESS_MAC", "Missing vlanSet for netboxid: " + netboxid + ", aborting");
+					return l;
+				}
+			} else {
+				vlanSet = new HashSet();
+				vlanSet.add("");
 			}
-		} else {
-			vlanSet = new HashSet();
-			vlanSet.add("");
 		}
 
 		// Så vi ikke venter så lenge dersom vi ikke får svar fra et vlan
