@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="data-plugins/Arp/src"/>
+	<classpathentry kind="src" path="data-plugins/Device/src"/>
+	<classpathentry kind="src" path="data-plugins/Gwport/src"/>
+	<classpathentry kind="src" path="data-plugins/Mem/src"/>
+	<classpathentry kind="src" path="data-plugins/Module/src"/>
+	<classpathentry kind="src" path="data-plugins/ModuleMon/src"/>
+	<classpathentry kind="src" path="data-plugins/Netbox/src"/>
+	<classpathentry kind="src" path="data-plugins/NetboxInfo/src"/>
+	<classpathentry kind="src" path="data-plugins/Swport/src"/>
+	<classpathentry kind="src" path="device-plugins/3Com/src"/>
+	<classpathentry kind="src" path="device-plugins/ARPLogger/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoGw/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoModule/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoSw1900/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoSwCAT/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoSwCL3addon/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoSwIOS/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoSwIOSaddon/src"/>
+	<classpathentry kind="src" path="device-plugins/CiscoSwMenu/src"/>
+	<classpathentry kind="src" path="device-plugins/DeviceMem/src"/>
+	<classpathentry kind="src" path="device-plugins/DNSCheck/src"/>
+	<classpathentry kind="src" path="device-plugins/GetVlanFromInterface/src"/>
+	<classpathentry kind="src" path="device-plugins/HP/src"/>
+	<classpathentry kind="src" path="device-plugins/MibIISw/src"/>
+	<classpathentry kind="src" path="device-plugins/Server/src"/>
+	<classpathentry kind="src" path="device-plugins/StaticRoutes/src"/>
+	<classpathentry kind="src" path="device-plugins/Typeoid/src"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV ConfigParser"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV Database"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV Event"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV Logger"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV NetboxInfo"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV SimpleSnmp"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NAV Util"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>
