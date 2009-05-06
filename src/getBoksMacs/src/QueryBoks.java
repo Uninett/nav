@@ -693,6 +693,39 @@ public class QueryBoks extends Thread
 		return vlans;
 	}
 	
+	/**
+	 * <p>Return the set of operational VLANs from CISCO-VTP-MIB.</p>
+	 * 
+	 * <p>Multiple VTP domains are ignored.</p>
+	 *  
+	 * @return A Set of VLAN id String objects.
+	 * @throws TimeoutException
+	 */
+	private Set<String> getOperationalVTPVlans() throws TimeoutException {
+		String vtpVlanEntry = "1.3.6.1.2.1.47.1.2.1.1.1";
+		String vtpVlanState = vtpVlanEntry + ".2";
+		Set<String> vlans = new HashSet();
+
+		Map<String,String> states = sSnmp.getAllMap(vtpVlanState);
+		
+		for (Map.Entry<String, String> stateEntry: states.entrySet()) {
+			String index = stateEntry.getKey();
+			int state = Integer.parseInt(stateEntry.getValue());
+			
+			// Add operational VLANs to the set.  We ignore multiple 
+			// management domains, as we don't know what to do with those atm.
+			if (state == 1) { // 1=operational
+				String[] indexParts = index.split("\\.", 2);
+				//int vtpDomain = Integer.parseInt(indexParts[0]);
+				String vlan = indexParts[1];
+				vlans.add(vlan);
+			}
+		}
+
+		Log.d("VTP_VLANS", vlans.size() + "/" + states.size() + " VTP VLANs are operational");
+		return vlans;
+	}
+
 	private List processMacEntry(String netboxid, String ip, String cs_ro, String type, boolean csAtVlan) throws TimeoutException {
 		List l = new ArrayList();
 
@@ -704,7 +737,17 @@ public class QueryBoks extends Thread
 		int activeVlanCnt=0;
 		int unitVlanCnt=0;
 
+		// Find multiple BRIDGE-MIB instances
+		// First, the standard ENTITY-MIB way:
 		Set vlanSet = getBridgeMibInstances();
+		
+		// If we found nothing, try the proprietary Cisco way:
+		if (vlanSet == null || vlanSet.size() == 0) {
+			vlanSet = getOperationalVTPVlans();
+		}
+		
+		// If we still have nothing, revert to the legacy method of checking
+		// the database contents:
 		if (vlanSet == null || vlanSet.size() == 0) {
 			if (csAtVlan) {
 				vlanSet = (Set)vlanBoksid.get(netboxid);
@@ -713,6 +756,8 @@ public class QueryBoks extends Thread
 					return l;
 				}
 			} else {
+				// If everything came up empty, there is only a single
+				// BRIDGE-MIB instance.
 				vlanSet = new HashSet();
 				vlanSet.add("");
 			}
