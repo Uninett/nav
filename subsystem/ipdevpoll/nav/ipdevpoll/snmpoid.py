@@ -52,7 +52,7 @@ class RunHandler(object):
             # Check for invalid plugins
             valid_plugins = set()
 
-            for plugin_class in plugin_registry:
+            for plugin_class in plugin_registry.values():
                 plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
                 valid_plugins.add(plugin_name)
 
@@ -60,7 +60,7 @@ class RunHandler(object):
                 if plugin_name not in valid_plugins:
                     logger.warning('Invalid plugin %s', plugin_name)
 
-        for plugin_class in plugin_registry:
+        for plugin_class in plugin_registry.values():
             plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
 
             # If the handler has a subset of plugins set skip those that don't

@@ -29,7 +29,6 @@ from twisted.internet import defer
 from twisted.python.failure import Failure
 
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll.plugins import register
 
 class Interfaces(Plugin):
     def __init__(self, netbox):
@@ -63,4 +62,3 @@ class Interfaces(Plugin):
         self.deferred.callback(True)
         return result
 
-register(Interfaces)

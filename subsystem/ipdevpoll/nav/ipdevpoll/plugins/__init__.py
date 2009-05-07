@@ -24,41 +24,35 @@ import logging
 
 from nav.errors import GeneralException
 
-logger = logging.getLogger('ipdevpoll.plugins')
-plugin_registry = [] # We don't use a set as ordering will matter
+logger = logging.getLogger(__name__)
+plugin_registry = {}
+
+class PluginImportError(GeneralException):
+    """Failed to import plugin"""
 
 def import_plugins():
-    """Import all know plugin modules.
-
-    Each module is responsible for registering its classes in the
-    plugin registry, using the register function in this module.
-
-    """
+    """Import all configured plugins into the plugin registry."""
+    from nav.ipdevpoll.config import ipdevpoll_conf
     global plugin_registry
+    
+    plugin_counter = 0
+    for alias in ipdevpoll_conf.options('plugins'):
+        full_class_name = ipdevpoll_conf.get('plugins', alias)
+        module_name = '.'.join(full_class_name.split('.')[:-1])
+        class_name = full_class_name.split('.')[-1]
 
-    names = (
-        'nav.ipdevpoll.plugins.iftable',
-        'nav.ipdevpoll.plugins.typeoid',
-        'nav.ipdevpoll.plugins.dnsname',
-        #'nav.ipdevpoll.plugins.test',
-        )
-    for plug in names:
-        logger.debug('Importing plugin module %s', plug)
-        __import__(plug)
+        logger.debug('Importing plugin %s=%s', alias, full_class_name)
+        try:
+            module_ = __import__(module_name, fromlist=[module_name])
+            class_ = getattr(module_, class_name)
+        except (ImportError, AttributeError), error:
+            logger.exception("Failed to import plugin %s", full_class_name)
+            raise PluginImportError(error)
 
-    logger.info('Imported %d plugin modules, '
+        plugin_registry[alias] = class_
+        plugin_counter += 1
+
+    logger.info('Imported %d plugin classes, '
                 '%d classes in plugin registry',
-                len(names), len(plugin_registry))
+                plugin_counter, len(plugin_registry))
 
-def register(plugin_class):
-    """Register a class in the plugin registry."""
-
-    plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
-
-    if plugin_class in plugin_registry:
-        logger.debug("Plugin already registered: %s", plugin_name)
-    else:
-        plugin_registry.append(plugin_class)
-        logger.debug("Registered class in plugin registry: %s", plugin_name)
-
-    return plugin_class

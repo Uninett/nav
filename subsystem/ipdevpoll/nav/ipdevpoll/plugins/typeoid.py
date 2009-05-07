@@ -32,7 +32,6 @@ from twisted.python.failure import Failure
 
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll.models import Type, OID
-from nav.ipdevpoll.plugins import register
 
 class TypeOid(Plugin):
     def __init__(self, netbox):
@@ -80,4 +79,3 @@ class TypeOid(Plugin):
         self.deferred.callback(True)
         return result
 
-register(TypeOid)
