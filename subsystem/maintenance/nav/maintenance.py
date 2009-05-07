@@ -34,6 +34,8 @@ __id__ = "$Id:$"
 
 import logging
 import time
+import psycopg2.extras
+
 import nav.db
 
 logger = logging.getLogger('nav.maintenance')
@@ -53,7 +55,7 @@ def getTasks(where = False, order = 'maint_end DESC'):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     select = """SELECT maint_taskid, maint_start, maint_end,
         maint_end - maint_start AS interval,
@@ -70,7 +72,7 @@ def getTasks(where = False, order = 'maint_end DESC'):
     logger.debug("getTask() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    results = db.dictfetchall()
+    results = [dict(row) for row in db.fetchall()]
 
     # Attach components belonging to this message
     for i, result in enumerate(results):
@@ -116,7 +118,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     if taskid:
         sql = """UPDATE maint_task SET
@@ -126,7 +128,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
                 author = %(author)s,
                 state = %(state)s
             WHERE
-                maint_taskid = %(maint_taskid)d"""
+                maint_taskid = %(maint_taskid)s"""
     else:
         sql = """INSERT INTO maint_task (
                 maint_start,
@@ -146,7 +148,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
         'maint_taskid': taskid,
         'maint_start': time.strftime('%Y-%m-%d %H:%M:%S', maint_start),
         'maint_end': time.strftime('%Y-%m-%d %H:%M:%S', maint_end),
-        'description': description,
+        'description': str(description),
         'author': author,
         'state': state
     }
@@ -155,7 +157,7 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
     db.execute(sql, data)
     if not taskid:
         db.execute("SELECT CURRVAL('maint_task_maint_taskid_seq')")
-        taskid = db.dictfetchone()['currval']
+        taskid = db.fetchone()['currval']
     logger.debug("setTask() number of results: %d", db.rowcount)
 
     return taskid
@@ -174,11 +176,11 @@ def getComponents(taskid):
     """
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT key, value
         FROM maint_component
-        WHERE maint_taskid = %(maint_taskid)d
+        WHERE maint_taskid = %(maint_taskid)s
         ORDER BY key, value"""
     data = {'maint_taskid': taskid}
 
@@ -187,7 +189,7 @@ def getComponents(taskid):
     logger.debug("getComponents() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    results = db.dictfetchall()
+    results = [dict(row) for row in db.fetchall()]
 
     # Attach information about the components
     for i, result in enumerate(results):
@@ -218,7 +220,7 @@ def setComponents(taskid, components):
 
     # Remove old components
     sql = """DELETE FROM maint_component
-        WHERE maint_taskid = %(maint_taskid)d"""
+        WHERE maint_taskid = %(maint_taskid)s"""
     data = { 'maint_taskid': taskid }
     logger.debug("setComponents() query: %s", sql % data)
     db.execute(sql, data)
@@ -230,7 +232,7 @@ def setComponents(taskid, components):
             key,
             value
         ) VALUES (
-            %(maint_taskid)d,
+            %(maint_taskid)s,
             %(key)s,
             %(value)s
         )"""
@@ -321,7 +323,7 @@ def getLocation(locationid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT l.locationid, l.descr AS locationdescr
         FROM location l
@@ -333,9 +335,9 @@ def getLocation(locationid):
     logger.debug("getLocation() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def getRoom(roomid):
     """
@@ -354,7 +356,7 @@ def getRoom(roomid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT
             r.roomid, r.descr AS roomdescr,
@@ -369,9 +371,9 @@ def getRoom(roomid):
     logger.debug("getRoom() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def getNetbox(netboxid):
     """
@@ -390,7 +392,7 @@ def getNetbox(netboxid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT
             n.netboxid, n.sysname, n.ip,
@@ -399,7 +401,7 @@ def getNetbox(netboxid):
         FROM netbox n
             JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
-        WHERE netboxid = %(netboxid)d"""
+        WHERE netboxid = %(netboxid)s"""
     data = {'netboxid': int(netboxid)}
 
     logger.debug("getNetbox() query: %s", sql % data)
@@ -407,9 +409,9 @@ def getNetbox(netboxid):
     logger.debug("getNetbox() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def getService(serviceid):
     """
@@ -428,7 +430,7 @@ def getService(serviceid):
         return False
 
     dbconn = nav.db.getConnection('webfront', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     sql = """SELECT
             s.serviceid, s.handler,
@@ -439,7 +441,7 @@ def getService(serviceid):
             JOIN netbox n ON (s.netboxid = n.netboxid)
             JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
-        WHERE s.serviceid = %(serviceid)d"""
+        WHERE s.serviceid = %(serviceid)s"""
     data = {'serviceid': int(serviceid)}
 
     logger.debug("getService() query: %s", sql % data)
@@ -447,9 +449,9 @@ def getService(serviceid):
     logger.debug("getService() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    result = db.fetchall()
 
-    return result[0]
+    return dict(result[0])
 
 def cancelTask(taskid):
     """
@@ -467,7 +469,7 @@ def cancelTask(taskid):
     db = dbconn.cursor()
 
     sql = """UPDATE maint_task SET state = 'canceled'
-        WHERE maint_taskid = %(maint_taskid)d"""
+        WHERE maint_taskid = %(maint_taskid)s"""
 
     data = {'maint_taskid': taskid}
 

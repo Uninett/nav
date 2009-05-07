@@ -32,7 +32,7 @@ server.  It has been written to not require any NAV libraries.
 It will require psycopg, a PostgreSQL driver for Python.
 """
 
-import psycopg
+import psycopg2
 import sys
 import os
 
@@ -57,13 +57,13 @@ def main(args):
 
     try:
         db_params = (dbhost, dbport, dbname, dbuser, dbpasswd)
-        connection = psycopg.connect("host=%s port=%s dbname=%s user=%s "
+        connection = psycopg2.connect("host=%s port=%s dbname=%s user=%s "
                                      "password=%s" % db_params)
-    except psycopg.OperationalError, e:
+    except psycopg2.OperationalError, e:
         print "An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1])
         sys.exit(1)
 
-    connection.autocommit(True)
+    connection.set_isolation_level(0)
     database = connection.cursor()
 
     # Start "tail -f" on radius_logfile
@@ -144,7 +144,7 @@ def main(args):
                     sqlParameters = (row.time, row.type, row.message, row.status, row.user, row.client, row.port)
                     try:
                         database.execute(sqlQuery, sqlParameters)
-                    except psycopg.ProgrammingError, e:
+                    except psycopg2.ProgrammingError, e:
                         # Write error to log
                         f.write("Query failed:\n")
                         f.write(str(e) + "\n\n\n")

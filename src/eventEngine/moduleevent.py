@@ -32,7 +32,6 @@ import os
 import nav
 import sys
 from nav import db
-import psycopg
 import re
 
 connection = db.getConnection('getDeviceData','manage')

@@ -33,6 +33,7 @@ import ConfigParser
 import sys, re, os
 import getpass
 import logging
+import psycopg2.extras
 
 # NAV-libraries
 from nav.db import getConnection
@@ -81,7 +82,7 @@ def main():
 
     # Connect to arnold-database
     aconn = getConnection('default', 'arnold')
-    acur = aconn.cursor()
+    acur = aconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
     # Get options from commandline
@@ -100,7 +101,7 @@ Pipe in id's to block or use the -f option to specify file"""
         format = "%3s %-3s %s"
         print format  %("ID", "Act", "Title")
         acur.execute("SELECT * FROM block ORDER BY blockid")
-        for row in acur.dictfetchall():
+        for row in acur.fetchall():
             print format %(row['blockid'], row['active'], row['blocktitle'])
 
         sys.exit()
@@ -127,7 +128,7 @@ Pipe in id's to block or use the -f option to specify file"""
         logger.debug("Exited due to no such id in database: %s" %opts.blockid)
         sys.exit()
 
-    blockinfo = acur.dictfetchone()
+    blockinfo = acur.fetchone()
 
 
     # If this predefined detention is not active, print that and exit.
@@ -252,7 +253,7 @@ Pipe in id's to block or use the -f option to specify file"""
         print "Sending mail"
         logger.debug("Grouping contacts and ip-addresses")
         manageconn = getConnection('default')
-        managecur = manageconn.cursor()
+        managecur = manageconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         # Send mail to contact address for all ip-addresses that were detained
 
@@ -280,7 +281,7 @@ Pipe in id's to block or use the -f option to specify file"""
 
             # For each contact that matches this address, add the ip,
             # dns and netbios name to the contact.
-            for orgdict in managecur.dictfetchall():
+            for orgdict in managecur.fetchall():
                 email = orgdict['contact']
                 if not email:
                     print "Field contact is empty in database"

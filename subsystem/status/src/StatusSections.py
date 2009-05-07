@@ -33,7 +33,7 @@ services down, etc.) on the status and history page
 ## Imports
 
 import nav.db.manage
-import mx.DateTime
+import datetime
 import nav
 
 #################################################
@@ -41,7 +41,21 @@ import nav
 
 FILTER_ALL_SELECTED = 'all_selected_tkn'
 BASEPATH = '/status/'
-INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
+INFINITY = datetime.datetime.max
+
+#################################################
+## functions
+
+def delta_to_dhm(delta):
+    """Convert a datetime.timedelta object into a tuple (days,hours,minutes).
+
+    TODO: This should probably be moved to nav.util or something.
+    
+    """
+    hours = delta.seconds / 3600
+    remainder = delta.seconds % 3600
+    minutes = remainder > 0 and remainder / 60 or 0
+    return (delta.days, hours, minutes)
 
 #################################################
 ## Classes
@@ -269,11 +283,7 @@ class ServiceSectionBox(SectionBox):
                         None, None, style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
             row.append((downTime,None,None,style))
 
             # History link
@@ -518,11 +528,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 row.append((starttime.strftime('%Y-%m-%d %H:%M'),
                             None, None, style))
                 # Downtime
-                downtime = '%dd, %dh, %dmin' % (
-                    downtime.absvalues()[0],
-                    int(downtime.strftime('%H')),
-                    int(downtime.strftime('%M')),
-                )
+                downtime = '%dd, %dh, %dmin' % delta_to_dhm(downtime)
                 row.append((downtime, None, None, style))
 
             # Wrench icon
@@ -778,11 +784,7 @@ class NetboxSectionBox(SectionBox):
                         None, None, style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
 
             row.append((downTime,None,None,style))
 
@@ -1015,11 +1017,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
 
                 # Downtime
                 if downtime:
-                    downtime = '%dd %dh %dmin' % (
-                        downtime.absvalues()[0],
-                        int(downtime.strftime('%H')),
-                        int(downtime.strftime('%M')),
-                    )
+                    downtime = '%dd %dh %dmin' % delta_to_dhm(downtime)
                 else:
                     downtime = 'N/A'
                 row.append((downtime, None, None, style))
@@ -1234,11 +1232,7 @@ class ModuleSectionBox(SectionBox):
                         None,None,style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
 
             row.append((downTime,None,None,style))
 
@@ -1441,11 +1435,7 @@ class ThresholdSectionBox(SectionBox):
                         None, None, style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
             row.append((downTime,None,None,style))
 
             # History link
@@ -1580,7 +1570,7 @@ class NetboxHistoryBox(SectionBox):
         for tmpline in result:
             # Must insert downtime
             if not tmpline[TO] or tmpline[TO]==INFINITY:
-                downTime = mx.DateTime.now() - tmpline[FROM]
+                downTime = datetime.datetime.now() - tmpline[FROM]
             else:
                 downTime = tmpline[TO] - tmpline[FROM]
             line = list(tmpline[0:4]) + [downTime] + list(tmpline[4:6])
@@ -1612,11 +1602,7 @@ class NetboxHistoryBox(SectionBox):
                            None, None, style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
             row.append((downTime,None,None,style))
 
             # boxState
@@ -1703,7 +1689,7 @@ class ServiceHistoryBox(SectionBox):
         for tmpline in result:
             # Must insert downtime
             if not tmpline[TO] or tmpline[TO]==INFINITY:
-                downTime = mx.DateTime.now() - tmpline[FROM]
+                downTime = datetime.datetime.now() - tmpline[FROM]
             else:
                 downTime = tmpline[TO] - tmpline[FROM]
             line = list(tmpline[0:4]) + [downTime] + list(tmpline[4:7])
@@ -1734,11 +1720,7 @@ class ServiceHistoryBox(SectionBox):
                            None, None, style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
             row.append((downTime,None,None,style))
 
             # History
@@ -1831,7 +1813,7 @@ class ModuleHistoryBox(SectionBox):
         for tmpline in result:
             # Must insert downtime
             if not tmpline[TO] or tmpline[TO]==INFINITY:
-                downTime = mx.DateTime.now() - tmpline[FROM]
+                downTime = datetime.datetime.now() - tmpline[FROM]
             else:
                 downTime = tmpline[TO] - tmpline[FROM]
             line = list(tmpline[0:4]) + [downTime] + list(tmpline[4:7])
@@ -1862,11 +1844,7 @@ class ModuleHistoryBox(SectionBox):
                            None, None, style))
 
             # Downtime
-            downTime = '%dd %dh %dmin' % (
-                line[DOWNTIME].absvalues()[0],
-                int(line[DOWNTIME].strftime('%H')),
-                int(line[DOWNTIME].strftime('%M')),
-            )
+            downTime = '%dd %dh %dmin' % delta_to_dhm(line[DOWNTIME])
             row.append((downTime,None,None,style))
 
             # History
@@ -1972,7 +1950,7 @@ class ThresholdHistoryBox(SectionBox):
             line = list(tmpline[0:1]) + [descr] + list(tmpline[1:10])
             # Must insert duration
             if not line[TO] or line[TO]==INFINITY:
-                duration = mx.DateTime.now() - line[FROM]
+                duration = datetime.datetime.now() - line[FROM]
             else:
                 duration = line[TO] - line[FROM]
             line = list(line[0:4]) + [duration] + list(line[4:10])
@@ -2003,9 +1981,7 @@ class ThresholdHistoryBox(SectionBox):
                            None, None, style))
 
             # Duration
-            duration = str(line[DURATION].absvalues()[0]) + ' d, ' + \
-                           line[DURATION].strftime('%H') + ' h, ' +\
-                           line[DURATION].strftime('%M') + ' min'
+            duration = '%dd %dh %dmin' % delta_to_dhm(line[DURATION])
             row.append((duration,None,None,style))
 
             # History

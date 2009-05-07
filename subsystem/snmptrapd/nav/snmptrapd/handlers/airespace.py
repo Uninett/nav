@@ -3,6 +3,8 @@ NAV snmptrapd handler plugin to handle AP assocation traps from a Cisco
 Wireless LAN Controller.
 """
 import logging
+import psycopg2.extras
+
 import nav.errors
 logger = logging.getLogger('nav.snmptrapd.airespace')
 import nav.db
@@ -20,7 +22,7 @@ def handleTrap(trap, config=None):
     """
 
     db = nav.db.getConnection('default')
-    c = db.cursor()
+    c = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Define oids. Visit
     # http://tools.cisco.com/Support/SNMP/do/BrowseOID.do for more
@@ -57,7 +59,7 @@ def handleTrap(trap, config=None):
         query = "SELECT * FROM netbox WHERE ip = '%s'" %(trap.src)
         c.execute(query)
         if (c.rowcount > 0):
-            res = c.dictfetchone()
+            res = c.fetchone()
             netboxid = res['netboxid']
             deviceid = res['deviceid']
         else:

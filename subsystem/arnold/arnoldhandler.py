@@ -40,6 +40,7 @@ from urllib import unquote_plus
 from IPy import IP
 import nav.arnold
 
+import psycopg2.extras
 import ConfigParser
 import logging
 logger = logging.getLogger('nav.arnoldhandler')
@@ -62,7 +63,7 @@ conn = db.getConnection('arnold', 'arnold');
 def handler(req):
 
     # getConnection('subsystem','database')
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     arnoldhome = nav.path.bindir
 
@@ -217,12 +218,12 @@ def handler(req):
         # more than one load a new page where the user can choose
         # which ones to open.
 
-        managec = manage.cursor()
+        managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         # Find mac-address of this identityid
         q = "SELECT * FROM identity WHERE identityid = %s"
         cur.execute(q, (id,))
-        row = cur.dictfetchone()
+        row = cur.fetchone()
 
         # Select all identities where this mac is the cause of block
         q = """SELECT * FROM identity
@@ -232,7 +233,7 @@ def handler(req):
 
         if cur.rowcount > 1:
             # Get switchinformation from database
-            blockedports = cur.dictfetchall()
+            blockedports = cur.fetchall()
             for element in blockedports:
                 q = """
                 SELECT sysname, module, port FROM netbox
@@ -249,7 +250,7 @@ def handler(req):
                     continue
                 
                 if managec.rowcount > 0:
-                    element.update(managec.dictfetchone())
+                    element.update(managec.fetchone())
             
             page.blockedports = blockedports
             page.head = ""
@@ -580,7 +581,7 @@ def printHistory(cur, page, sort, section, days):
         WHERE lastchanged > current_date - interval '%s days'  ORDER BY %s
         """ %(days, sort)
         cur.execute(query)
-        list = cur.dictfetchall()
+        list = cur.fetchall()
     except nav.db.driver.ProgrammingError, e:
         list = {}
 
@@ -619,9 +620,9 @@ def printBlocked(cur, page, sort, section):
     page.headertext = "List of ports currently detained"
     page.hitstext = "ports detained"
     
-    list = cur.dictfetchall()
+    list = cur.fetchall()
     
-    managec = manage.cursor()
+    managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     for item in list:
         item['lastchanged'] = item['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
@@ -635,7 +636,7 @@ def printBlocked(cur, page, sort, section):
         WHERE swportid = %s"""
 
         managec.execute(managequery, (item['swportid'], ))
-        managelist = managec.dictfetchone()
+        managelist = managec.fetchone()
 
         if managec.rowcount > 0:
             item['sysname'] = managelist['sysname']
@@ -706,7 +707,7 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
         
         try:
             cur.execute(q, (searchtext,))
-            searchresults = cur.dictfetchall()
+            searchresults = cur.fetchall()
             numresults = cur.rowcount
             
             if numresults == 0:
@@ -749,7 +750,7 @@ def printBlocks(cur, page, sort, section):
                     'edit':'&nbsp;', 'delete':'&nbsp;'}
 
     cur.execute("SELECT * FROM block ORDER BY " + sort)
-    list = cur.dictfetchall()
+    list = cur.fetchall()
 
     for element in list:
         element['edit'] = "<a href='addPredefined?blockid=%s'>Edit</a>" \
@@ -777,7 +778,7 @@ def printDeletePredefined(cur, page):
     SELECT * FROM block WHERE blockid = %s
     """
     cur.execute(q, (page.blockid, ))
-    page.predefined = cur.dictfetchone()
+    page.predefined = cur.fetchone()
 
 
 ############################################################
@@ -793,14 +794,14 @@ def showDetails (cur, page, section, id):
 
 
     # Connect to manage-database to fetch switchport-information
-    managec = manage.cursor()
+    managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     q = """SELECT ip, dns, netbios, mac, swportid, lastchanged, starttime,
     mail, blocked_status AS status, autoenable, tovlan
     FROM identity WHERE identityid = %s
     """
     cur.execute(q, (id,))
-    list = cur.dictfetchall()
+    list = cur.fetchall()
 
     q = """
     SELECT * FROM netbox
@@ -809,7 +810,7 @@ def showDetails (cur, page, section, id):
     WHERE swportid=%s
     """
     managec.execute(q, (list[0]['swportid'], ))
-    managerow = managec.dictfetchone()
+    managerow = managec.fetchone()
 
     for entry in list:
         if managec.rowcount <= 0:
@@ -847,7 +848,7 @@ def showDetails (cur, page, section, id):
     page.headersList2 = ['eventtime','action','name','comment','username']
     page.headers2 = {'eventtime':'Eventtime', 'action':'Action',
                      'name':'Reason', 'comment':'Comment', 'username':'User'}
-    list2 = cur.dictfetchall()
+    list2 = cur.fetchall()
 
     for entry in list2:
         entry['name'] = entry['name'] or "&nbsp;"
@@ -872,7 +873,7 @@ def printDetentionreasons(cur, page, section):
     FROM blocked_reason ORDER BY reasonid
     """
     cur.execute(q);
-    page.blockreasons = cur.dictfetchall()
+    page.blockreasons = cur.fetchall()
     page.headertext = "Existing reasons for detention"
 
 
@@ -883,7 +884,7 @@ def printDeleteReason(cur, page):
     SELECT * FROM blocked_reason WHERE blocked_reasonid = %s
     """
     cur.execute(q, (page.reasonid, ))
-    page.reason = cur.dictfetchone()
+    page.reason = cur.fetchone()
 
 
 
@@ -896,14 +897,14 @@ def printManualDetention(cur, page):
     SELECT blocked_reasonid AS id, name FROM blocked_reason ORDER BY name
     """
     cur.execute(q);
-    page.reasons = cur.dictfetchall()
+    page.reasons = cur.fetchall()
 
     q = """
     SELECT * FROM quarantine_vlans ORDER BY vlan
     """
     cur.execute(q);
 
-    page.quarantines = cur.dictfetchall()
+    page.quarantines = cur.fetchall()
 
 
 ############################################################
@@ -916,13 +917,13 @@ def printAddpredefined (cur, page, id):
     FROM blocked_reason ORDER BY name
     """
     cur.execute(q);
-    page.blockreasons = cur.dictfetchall()
+    page.blockreasons = cur.fetchall()
 
     q = """
     SELECT * FROM quarantine_vlans ORDER BY vlan
     """
     cur.execute(q);
-    page.quarantines = cur.dictfetchall()
+    page.quarantines = cur.fetchall()
 
     # Initialise blockinfo-dict
 
@@ -934,7 +935,7 @@ def printAddpredefined (cur, page, id):
 
     if id:
         cur.execute("SELECT * FROM block WHERE blockid=%s" %id)
-        blockinfo = cur.dictfetchone()
+        blockinfo = cur.fetchone()
         blockinfo['lastedited'] = blockinfo['lastedited'].strftime('%Y-%m-%d %k:%M:%S')
 
     page.blockinfo = blockinfo
@@ -949,7 +950,7 @@ def printAddQuarantine(cur, page):
     SELECT * FROM quarantine_vlans ORDER BY vlan
     """
     cur.execute(q)
-    quarantines = cur.dictfetchall()
+    quarantines = cur.fetchall()
     page.quarantineheaderslist = ['vlan','description','edit']
     page.quarantineheaders = {'vlan':'Vlan', 'description': 'Description',
                               'edit':'Edit'}
@@ -966,7 +967,7 @@ def printDeleteQuarantine(cur, page):
     SELECT * FROM quarantine_vlans WHERE quarantineid = %s
     """
     cur.execute(q, (page.quarantineid, ))
-    page.quarantine = cur.dictfetchone()
+    page.quarantine = cur.fetchone()
 
 
 ############################################################

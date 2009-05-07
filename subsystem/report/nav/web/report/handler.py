@@ -26,7 +26,6 @@ import copy
 import csv
 import os
 import os.path
-import psycopg
 import re
 import string
 import urllib
