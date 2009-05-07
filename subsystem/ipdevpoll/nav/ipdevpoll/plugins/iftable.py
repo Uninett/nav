@@ -23,11 +23,10 @@ Just a prototype, will only log info, not store it in NAVdb.
 import logging
 import pprint
 
-from pysnmp.asn1.oid import OID
-
 from twisted.internet import defer
 from twisted.python.failure import Failure
 
+from nav.mibs import IfMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 
 class Interfaces(Plugin):
@@ -37,12 +36,20 @@ class Interfaces(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        return netbox.is_supported_oid("ifDescr")
+        return True
 
     def handle(self):
-        self.logger.debug("Collecting ifDescr")
-        df = self.netbox.get_table("ifDescr")
-        df.addCallback(self.got_results)
+        self.logger.debug("Collecting ifTable columns")
+        self.ifmib = IfMib(self.netbox.get_proxy())
+        df = self.ifmib.retrieve_table_columns('ifTable',
+            ['ifDescr',
+             'ifType',
+             'ifSpeed',
+             'ifPhysAddress',
+             'ifAdminStatus',
+             'ifOperStatus',
+             ])
+        df.addCallback(self.got_iftable)
         df.addErrback(self.error)
         return self.deferred
 
@@ -55,10 +62,30 @@ class Interfaces(Plugin):
         failure = Failure(exc)
         self.deferred.errback(failure)
 
-    def got_results(self, result):
-        ifdescrs = result.values()[0]
-        self.logger.debug("Found %d interfaces", len(ifdescrs))
+    def got_iftable(self, result):
+        self.iftable = result
+        self.logger.debug("Found %d interfaces", len(result))
         #self.logger.debug('Results: %s', pprint.pformat(result))
+        self.logger.debug("Collecting ifXTable columns")
+        df = self.ifmib.retrieve_table_columns('ifXTable',
+            ['ifName',
+             'ifHighSpeed',
+             'ifConnectorPresent',
+             'ifAlias',
+             ])
+        df.addCallback(self.got_ifxtable)
+        df.addErrback(self.error)
+        return result
+
+    def got_ifxtable(self, result):
+        for key in result.keys():
+            if key in self.iftable:
+                self.iftable[key].update(result[key])
+            else:
+                self.iftable[key] = result.key()
+
+        self.logger.debug('Full table: %s', pprint.pformat(self.iftable))
+        # Now save stuff to containers and signal our exit
         self.deferred.callback(True)
         return result
 
