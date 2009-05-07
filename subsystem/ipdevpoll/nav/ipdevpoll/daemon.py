@@ -27,7 +27,7 @@ from optparse import OptionParser
 from twisted.internet import reactor
 
 from nav.ipdevpoll.models import loop_load_models, Netbox
-from nav.ipdevpoll.snmpoid import Schedule
+from nav.ipdevpoll.schedule import Schedule
 from nav.ipdevpoll.plugins import import_plugins
 from nav.ipdevpoll.jobs import get_jobs
 
@@ -40,8 +40,8 @@ def start_polling(result=None):
     """
 
     for netbox in Netbox.all.values():
-        for interval,plugins in get_jobs().values():
-            Schedule(netbox, interval, plugins).start()
+        for jobname,(interval,plugins) in get_jobs().items():
+            Schedule(jobname, netbox, interval, plugins).start()
 
 def run_poller():
     """Load plugins, set up data caching and polling schedules."""

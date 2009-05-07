@@ -38,9 +38,6 @@ def get_jobs():
             jobs[section] = (interval, plugins)
             logger.debug("Registered job in registry: %s", section)
 
-    # FIXME add dependencies of plugins to array (possibly switch to a set
-    # while we are at it.
-
     return jobs
 
 def parse_time(value):

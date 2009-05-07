@@ -14,7 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Handle scheduling of poll runs according to the NAV snmpoid database."""
+"""Handle scheduling of polling jobs."""
 
 import logging
 
@@ -23,62 +23,54 @@ from twisted.internet import reactor, defer, task
 from nav import ipdevpoll
 from nav.ipdevpoll.plugins import plugin_registry
 
-logger = logging.getLogger('nav.ipdevpoll.snmpoid')
+logger = logging.getLogger(__name__)
 
 
-class RunHandler(object):
+class JobHandler(object):
 
-    """Handles a single polling run against a single netbox.
+    """Handles a single polling job against a single netbox.
 
-    The responsibility of finding matching plugins and executing them
-    in a proper sequence is the responsibility of this class.
+    An instance of this class performs a polling job, as described by
+    a job specification in the config file, for a single netbox.  It
+    will handle the dispatch of polling plugins, and contain state
+    information for the job.
 
     """
 
-    def __init__(self, netbox, plugins=None):
+    def __init__(self, name, netbox, plugins=None):
+        self.name = name
         self.netbox = netbox
-        self.logger = ipdevpoll.get_instance_logger(self,
-                                                  "[%s]" % netbox.sysname)
+        self.logger = \
+            ipdevpoll.get_instance_logger(self, "%s.[%s]" % 
+                                          (self.name, netbox.sysname))
 
-        self.plugins = set(plugins) or set()
+        self.plugins = plugins or []
+        self.logger.debug("Job %r initialized with plugins: %r",
+                          self.name, self.plugins)
         self.plugin_iterator = iter([])
 
     def find_plugins(self):
-        """Populate and sort the interal plugin list.""" # FIXME update docstring
+        """Populate the internal plugin list with plugin class instances."""
 
         plugins = []
 
-        if self.plugins:
-            # Check for invalid plugins
-            valid_plugins = set()
-
-            for plugin_class in plugin_registry.values():
-                plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
-                valid_plugins.add(plugin_name)
-
-            for plugin_name in self.plugins:
-                if plugin_name not in valid_plugins:
-                    logger.warning('Invalid plugin %s', plugin_name)
-
-        for plugin_class in plugin_registry.values():
-            plugin_name = '.'.join([plugin_class.__module__, plugin_class.__name__])
-
-            # If the handler has a subset of plugins set skip those that don't
-            # apply
-            if self.plugins and plugin_name not in self.plugins:
-                logger.debug('Skipping plugin %s', plugin_name)
+        for plugin_name in self.plugins:
+            if plugin_name not in plugin_registry:
+                self.logger.error("A non-existant plugin %r is configured "
+                                  "for job %r", plugin_name, self.name)
                 continue
+            plugin_class = plugin_registry[plugin_name]
 
-            # Check if plugin can even handle the netbox
+            # Check if plugin wants to handle the netbox at all
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox)
                 plugins.append(plugin)
-
-            # FIXME what do we do when a dependency breaks down due to
-            # can_handle failing for a dependency of some other plugin?
+            else:
+                self.logger.debug("Plugin %s wouldn't handle %s",
+                                  plugin_name, self.netbox.sysname)
 
         if not plugins:
-            self.logger.warning("No plugins for this run")
+            self.logger.warning("No plugins for this job")
             return
 
         self.logger.debug("Plugins to call: %s",
@@ -119,7 +111,7 @@ class RunHandler(object):
                               self.current_plugin, failure.getErrorMessage())
         else:
             # For unknown failures we dump a traceback.  The
-            # RunHandler will eat all plugin errors to protect the
+            # JobHandler will eat all plugin errors to protect the
             # daemon process.
             self.logger.error("Aborting poll run due to unknown error in "
                               "plugin %s\n%s",
@@ -146,24 +138,27 @@ class Schedule(object):
     """Netbox polling schedule handler.
 
     Does not employ task.LoopingCall because we want to reschedule at
-    the end of each RunHandler, not run the handler at fixed times.
+    the end of each JobHandler, not run the handler at fixed times.
 
     """
 
     ip_map = {}
-    """A map of ip addresses there are currently active RunHandlers for.
+    """A map of ip addresses there are currently active JobHandlers for.
 
     Scheduling will not allow simultaineous runs against the same IP
     address, so as to not overload the SNMP agent at that address.
 
-    key: value  -->  str(ip): RunHandler instance
+    key: value  -->  str(ip): JobHandler instance
     """
-    INTERVAL = 10.0 # seconds
+    INTERVAL = 3600.0 # seconds
 
 
-    def __init__(self, netbox, interval=None, plugins=None):
+    def __init__(self, jobname, netbox, interval=None, plugins=None):
+        self.jobname = jobname
         self.netbox = netbox
-        self.logger = ipdevpoll.get_class_logger(self.__class__)
+        self.logger = \
+            ipdevpoll.get_instance_logger(self, "%s.[%s]" % 
+                                          (self.jobname, netbox.sysname))
 
         self.plugins = plugins or []
         self.interval = interval or self.INTERVAL
@@ -174,8 +169,8 @@ class Schedule(object):
 
     def _reschedule(self, dummy=None):
         self.delayed = reactor.callLater(self.interval, self._do_poll)
-        self.logger.debug("Rescheduling polling for %s in %s seconds",
-                          self.netbox.sysname, self.interval)
+        self.logger.debug("Rescheduling job %r for %s in %s seconds",
+                          self.jobname, self.netbox.sysname, self.interval)
         return dummy
 
     def _map_cleanup(self, handler):
@@ -201,7 +196,7 @@ class Schedule(object):
             other_handler.deferred.addCallback(self._do_poll)
         else:
             # We're ok to start a polling run.
-            handler = RunHandler(self.netbox, plugins=self.plugins)
+            handler = JobHandler(self.jobname, self.netbox, plugins=self.plugins)
             Schedule.ip_map[ip] = handler
             deferred = handler.run()
             # Make sure to remove from map and reschedule next run as

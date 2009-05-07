@@ -44,7 +44,7 @@ class TypeOid(Plugin):
 
     @classmethod
     def can_handle(self, netbox):
-        return netbox.is_supported_oid("typeoid")
+        return True
 
     def handle(self):
         self.logger.debug("Collecting sysObjectId")
