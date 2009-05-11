@@ -54,7 +54,7 @@ class DcChecker(AbstractChecker):
             
             p.wait()
         except OSError, msg:
-            return Event.DOWN, 'cound not run rpcclient: %s' % msg
+            return Event.DOWN, 'could not run rpcclient: %s' % msg
 
         if p.returncode != 0:
             errline = p.stdout.readline()

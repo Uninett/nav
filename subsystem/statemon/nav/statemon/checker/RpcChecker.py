@@ -67,7 +67,7 @@ class RpcChecker(AbstractChecker):
                                      stderr=subprocess.PIPE)
                 p.wait()
             except OSError, msg:
-                return Event.DOWN, 'cound not run rpcinfo: %s' % msg
+                return Event.DOWN, 'could not run rpcinfo: %s' % msg
 
             output = p.stdout.read()
             if 'ready' in output:
