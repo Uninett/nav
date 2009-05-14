@@ -1,3 +1,11 @@
+Version 3.5.4
+(released 14 May 2009)
+
+Regressions:
+
+  * LP#376430 (Web login fails under Python >= 2.5)
+
+
 Version 3.5.3
 (released 13 May 2009)
 
