@@ -1,3 +1,39 @@
+Version 3.5.3
+(released 13 May 2009)
+
+New feature:
+
+  * getBoksMacs (the camlogger) will attempt to retrieve the list of active
+    VLANs on a Cisco device directly, to ensure it has an updated and accurate
+    list of separate forwarding databases.  This should mostly solve the
+    problem described in the currently last question of the NAV FAQ.
+
+Bugfixes:
+
+  * LP#276248 (Small css rendering bug in MachineTracker)
+  * LP#324769 (netmap: lines do not terminate on the router)
+  * LP#338638 (DC service checker doesn't work)
+  * LP#338649 (DNS service checker doesn't work)
+  * LP#338715 (RPC service checker doesn't work)
+  * LP#338725 (SMB service checker doesn't work)
+  * LP#341575 (ipdevinfo service list crashes)
+  * LP#344140 (dnsMismatch shown as Downtime in IP Device Info)
+  * LP#345783 (IP Device Availability shown as N/A, should be 100%)
+  * LP#345853 (DataIOExceptions from Netmap when using Windows)
+  * LP#347226 (AlertEngine mailbombs: AlertQueueMessage matching query does
+               not exist)
+  * LP#347776 (logengine crash on log messages with years in their timestamps)
+  * LP#348853 (AttributeError on Alert Profiles permissions page)
+  * LP#348892 (AlertEngine fails to confirm SMS privilege for non-admin users)
+  * LP#351499 (Advanced search in reports crashes in Internet Explorer)
+  * LP#352236 ("Delete selected" button on My SMS page, but there's nothing to
+               delete.)
+  * LP#352316 (Servicemon dies without a trace)
+  * LP#353121 (No alert information when alerttype is missing from
+               alertmsg.conf)
+  * LP#366032 (Service availability shown as N/A, should be 100%)
+
+
 Version 3.5.2
 (released 17 March 2009)
 

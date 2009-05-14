@@ -18,8 +18,14 @@
 
 import os
 import random
-import sha
-import md5
+# support Python 2.4 and 2.6.  2.6 deprecates
+# the sha1 and md5 modules, merging them into hashlib
+try:
+    import hashlib as sha
+    import hashlib as md5
+except ImportError:
+    import sha
+    import md5
 import base64
 import re
 import nav.errors

@@ -32,6 +32,7 @@ import logging
 from django.db import DatabaseError, IntegrityError
 
 from nav.models.profiles import SMSQueue
+from nav.models.event import AlertQueueMessage
 from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
 logger = logging.getLogger('nav.alertengine.dispatchers.sms')
@@ -53,3 +54,16 @@ class sms(dispatcher):
         else:
             logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
 
+    def get_fallback_message(self, alert, language, message_type):
+        try:
+            return alert.messages.get(language='en', type=message_type).message
+        except AlertQueueMessage.DoesNotExist:
+            pass
+
+        try:
+            message = alert.messages.get(language='en', type='email').message
+            return message.split('\n')[0]
+        except AlertQueueMessage.DoesNotExist:
+            pass
+
+        return '%s: No sms message for %d' % (alert.netbox, alert.id)
