@@ -28,17 +28,17 @@ import random
 # support Python 2.4 and 2.6.  2.6 deprecates
 # the sha1 and md5 modules, merging them into hashlib
 try:
-    import hashlib as sha
-    import hashlib as md5
+    from hashlib import sha1
+    from hashlib import md5
 except ImportError:
-    import sha
-    import md5
+    from sha import sha as sha1
+    from md5 import md5
 import base64
 import re
 import nav.errors
 
 known_methods = {
-    'sha1': sha,
+    'sha1': sha1,
     'md5': md5
     }
 
@@ -93,7 +93,7 @@ class Hash(object):
         if isinstance(password, unicode):
             password = password.encode('utf-8')
 
-        hasher = known_methods[self.method].new(password + self.salt)
+        hasher = known_methods[self.method](password + self.salt)
         self.digest = hasher.digest()
 
     def set_hash(self, hash):
