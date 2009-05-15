@@ -290,22 +290,65 @@ CREATE TABLE mem (
 );
 
 
-CREATE TABLE swport (
-  swportid SERIAL PRIMARY KEY,
-  moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
+-- New consolidated interface table
+-- See MIB-II, IF-MIB, RFC 1229
+CREATE TABLE interface (
+  interfaceid SERIAL NOT NULL,
+  netboxid INT4 NOT NULL,
+  moduleid INT4,
   ifindex INT4 NOT NULL,
-  port INT4,
-  interface VARCHAR,
-  link CHAR(1) CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
+  ifname VARCHAR,
+  ifdescr VARCHAR,
+  iftype INT4,
   speed DOUBLE PRECISION,
-  duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
+  ifphysaddress MACADDR,
+  ifadminstatus INT4, -- 1=up, 2=down, 3=testing
+  ifoperstatus INT4,  -- 1=up, 2=down, 3=testing, 4=unknown, 5=dormant, 6=notPresent, 7=lowerLayerDown
+  iflastchange INT4,
+  ifconnectorpresent BOOLEAN,
+  ifpromiscuousmode BOOLEAN,
+  ifalias VARCHAR,
+
+  -- non IF-MIB values
   media VARCHAR,
-  vlan INT,
-  trunk BOOL,
-  portname VARCHAR,
-  to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
-  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
-  UNIQUE(moduleid, ifindex)
+  vlan INT4,
+  trunk BOOLEAN,
+  duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
+
+  to_netboxid INT4, 
+  to_interfaceid INT4, 
+
+  gone_since TIMESTAMP,
+  
+  CONSTRAINT interface_pkey PRIMARY KEY (interfaceid),
+  CONSTRAINT interface_netboxid_fkey 
+             FOREIGN KEY (netboxid)
+             REFERENCES netbox (netboxid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT interface_moduleid_fkey 
+             FOREIGN KEY (moduleid)
+             REFERENCES module (moduleid)
+             ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT interface_to_netboxid_fkey 
+             FOREIGN KEY (to_netboxid) 
+             REFERENCES netbox (netboxid)
+             ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT interface_to_interfaceid_fkey 
+             FOREIGN KEY (to_interfaceid) 
+             REFERENCES interface (interfaceid)
+             ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT interface_interfaceid_netboxid_unique
+             UNIQUE (interfaceid, netboxid)
+);
+
+-- this should be populated with entries parsed from 
+-- http://www.iana.org/assignments/ianaiftype-mib
+CREATE TABLE iana_iftype (
+  iftype INT4 NOT NULL,
+  name VARCHAR NOT NULL,
+  descr VARCHAR,
+
+  CONSTRAINT iftype_pkey PRIMARY KEY (iftype)
 );
 
 CREATE TABLE swp_netbox (
@@ -313,52 +356,51 @@ CREATE TABLE swp_netbox (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   ifindex INT4 NOT NULL,
   to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
+  to_interfaceid INT4 REFERENCES interface (interfaceid) ON UPDATE CASCADE ON DELETE SET NULL,
   misscnt INT4 NOT NULL DEFAULT '0',
   UNIQUE(netboxid, ifindex, to_netboxid)
 );
 
-CREATE TABLE gwport (
-  gwportid SERIAL PRIMARY KEY,
-  moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
-  ifindex INT4 NOT NULL,
-  link CHAR(1) CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
-  masterindex INT4,
-  interface VARCHAR,
-  speed DOUBLE PRECISION NOT NULL,
-  metric INT4,
-  portname VARCHAR,
-  to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
-  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
-  UNIQUE(moduleid, ifindex)
-);
-
 CREATE TABLE gwportprefix (
-  gwportid INT4 NOT NULL REFERENCES gwport ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   prefixid INT4 NOT NULL REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
   gwip INET NOT NULL,
   hsrp BOOL NOT NULL DEFAULT false,
   UNIQUE(gwip)
 );
 
+-- Routing protocol attributes
+CREATE TABLE rproto_attr (
+  id SERIAL NOT NULL,
+  interfaceid INT4 NOT NULL,
+  protoname VARCHAR NOT NULL, -- bgp/ospf/isis
+  metric INT4,
+
+  CONSTRAINT rproto_attr_pkey 
+             PRIMARY KEY (id),
+  CONSTRAINT rproto_attr_interfaceid_fkey
+             FOREIGN KEY (interfaceid)
+             REFERENCES interface (interfaceid)
+);
+
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
-  swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   vlanid INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, n=down, x=undefined?
-  UNIQUE (swportid, vlanid)
+  UNIQUE (interfaceid, vlanid)
 );
 
 CREATE TABLE swportallowedvlan (
-  swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL PRIMARY KEY REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring VARCHAR
 );
 
 
 CREATE TABLE swportblocked (
-  swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
-  PRIMARY KEY(swportid, vlan)
+  PRIMARY KEY(interfaceid, vlan)
 );
 
 CREATE TABLE cabling (
@@ -373,10 +415,10 @@ UNIQUE(roomid,jack));
 
 CREATE TABLE patch (
   patchid SERIAL PRIMARY KEY,
-  swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   cablingid INT4 NOT NULL REFERENCES cabling ON UPDATE CASCADE ON DELETE CASCADE,
   split VARCHAR NOT NULL DEFAULT 'no',
-UNIQUE(swportid,cablingid));
+UNIQUE(interfaceid,cablingid));
 
 
 ------------------------------------------------------------------
@@ -434,7 +476,7 @@ UNION DISTINCT
  FROM arp
  JOIN gwportprefix gwp ON
   (arp.ip=gwp.gwip AND (hsrp=true OR (SELECT COUNT(*) FROM gwportprefix WHERE gwp.prefixid=gwportprefix.prefixid AND hsrp=true) = 0))
- JOIN gwport USING(gwportid)
+ JOIN interface USING (interfaceid)
  JOIN module USING (moduleid)
  WHERE arp.end_time='infinity');
 
@@ -470,16 +512,16 @@ INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
 DELETE FROM range WHERE num >= 1000;
 
 CREATE VIEW allowedvlan AS
-  (SELECT swportid,num AS allowedvlan FROM swportallowedvlan CROSS JOIN range
+  (SELECT interfaceid,num AS allowedvlan FROM swportallowedvlan CROSS JOIN range
     WHERE num < length(decode(hexstring,'hex'))*8 AND (CASE WHEN length(hexstring)=256
     THEN get_bit(decode(hexstring,'hex'),(num/8)*8+7-(num%8))
     ELSE get_bit(decode(hexstring,'hex'),(length(decode(hexstring,'hex'))*8-num+7>>3<<3)-8+(num%8))
     END)=1);
 
 CREATE VIEW allowedvlan_both AS
-  (select swportid,swportid as swportid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
-  (select  swport.swportid,to_swportid as swportid2,allowedvlan from swport join allowedvlan
-    on (swport.to_swportid=allowedvlan.swportid) ORDER BY allowedvlan);
+  (select interfaceid,interfaceid as interfaceid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
+  (select  interface.interfaceid,to_interfaceid as interfaceid2,allowedvlan from interface join allowedvlan
+    on (interface.to_interfaceid=allowedvlan.interfaceid) ORDER BY allowedvlan);
 
 ------------------------------------------------------------------------------
 -- rrd metadb tables
