@@ -261,5 +261,56 @@ CREATE OR REPLACE VIEW manage.allowedvlan_both AS
 DROP TABLE gwport;
 DROP TABLE swport;
 
+-- View to mimic old swport table
+CREATE VIEW manage.swport AS (
+  SELECT 
+    interfaceid AS swportid,
+    moduleid,
+    ifindex,
+    NULL::INT4 AS port,
+    ifdescr AS interface,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link,
+    speed,
+    duplex,
+    media,
+    vlan,
+    trunk,
+    ifalias AS portname,
+    to_netboxid,
+    to_interfaceid AS to_swportid
+  FROM interface
+  WHERE interfaceid NOT IN (SELECT interfaceid FROM gwportprefix)
+);
+
+-- View to mimic old gwport table
+CREATE VIEW manage.gwport AS (
+  SELECT 
+    i.interfaceid AS gwportid,
+    moduleid,
+    ifindex,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link,
+    NULL::INT4 AS masterindex,
+    ifdescr AS interface,
+    speed,
+    metric,
+    ifalias AS portname,
+    to_netboxid,
+    to_interfaceid AS to_swportid
+  FROM interface i
+  JOIN gwportprefix gwpfx ON (i.interfaceid=gwpfx.interfaceid)
+  LEFT JOIN rproto_attr ra ON (i.interfaceid=ra.interfaceid AND ra.protoname='ospf')
+);
 
 COMMIT;
