@@ -29,7 +29,6 @@ from twisted.names import client, dns
 
 from nav.util import round_robin
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll.plugins import register
 
 resolvers = round_robin([client.Resolver('/etc/resolv.conf') for i in range(3)])
 
@@ -102,4 +101,3 @@ class DnsName(Plugin):
         self.deferred.callback(True)
         return dns_name
 
-register(DnsName)
