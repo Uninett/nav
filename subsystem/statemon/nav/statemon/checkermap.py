@@ -23,13 +23,17 @@
 # Authors: Magnus Nordseth <magnun@stud.ntnu.no>
 #          Erik Gorset  <erikgors@stud.ntnu.no>
 #
-import os, re, debug
+import os
+import sys
+import re
+import debug
 from debug import debug
+
 checkers = {}
 dirty = []  # store failed imports here
 checkerdir = os.path.join(os.path.dirname(__file__), "checker")
-if checkerdir not in os.sys.path:
-    os.sys.path.append(checkerdir)
+if checkerdir not in sys.path:
+    sys.path.append(checkerdir)
 def register(key, module):
     if not key in checkers.keys():
         debug("Registering checker %s from module %s" % (key, module))

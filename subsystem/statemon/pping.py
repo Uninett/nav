@@ -28,6 +28,7 @@ Pings multiple hosts in parallel
 """
 
 import os
+import sys
 import signal
 import getopt
 import time
@@ -184,15 +185,15 @@ class pinger:
     def signalhandler(self, signum, frame):
         if signum == signal.SIGTERM:
             debug.debug("Caught SIGTERM. Exiting.",1)
-            os.sys.exit(0)
+            sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
             logfile=self.config.get("logfile", "pping.log")
             debug.debug("Caught SIGHUP. Reopening logfile...")
-            os.sys.stdout.close()
-            os.sys.stderr.close()
-            os.sys.stdout = open(logfile,'a')
-            os.sys.stderr = open(logfile,'a')
+            sys.stdout.close()
+            sys.stderr.close()
+            sys.stdout = open(logfile,'a')
+            sys.stderr = open(logfile,'a')
             debug.debug("Reopened logfile: %s" % logfile)
         else:
             debug.debug( "Caught %s. Resuming operation." % (signum),2)
@@ -209,7 +210,7 @@ def help():
     -v  --version   Display version and exit
 
     Written by Stian Søiland and Magnus Nordseth, 2002
-    """  % os.path.basename(os.sys.argv[0])
+    """  % os.path.basename(sys.argv[0])
 
 def start(nofork):
     """
@@ -224,18 +225,18 @@ def start(nofork):
         nav.daemon.justme(pidfilename)
     except nav.daemon.AlreadyRunningError, e:
         otherpid = file(pidfilename, "r").read().strip()
-        os.sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
-        os.sys.exit(1)
+        sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
+        sys.exit(1)
     except nav.daemon.DaemonError, e:
-        os.sys.stderr.write("%s\n" % e)
-        os.sys.exit(1)
+        sys.stderr.write("%s\n" % e)
+        sys.exit(1)
         
     if not nofork:
         nav.daemon.daemonize(pidfilename)
     
         logfile = conf.get("logfile","pping.log")
-        os.sys.stdout = open(logfile,"a")
-        os.sys.stderr = open(logfile,"a")
+        sys.stdout = open(logfile,"a")
+        sys.stderr = open(logfile,"a")
 
     myPinger=pinger(socket=sock)
     myPinger.main()
@@ -249,25 +250,25 @@ def setUser():
 if __name__=="__main__":
     nofork=0
     try:
-        opts, args = getopt.getopt(os.sys.argv[1:],
+        opts, args = getopt.getopt(sys.argv[1:],
                                    "hnv",
                                    ["help","nofork", "version"])
         for opt, val in opts:
             if opt in ("-h","--help"):
                 help()
-                os.sys.exit()
+                sys.exit(0)
             elif opt in ("-n","--nofork"):
                 nofork=1
             elif opt in ("-v","--version"):
                 print __version__
-                os.sys.exit(0)
+                sys.exit(0)
                 
     except (getopt.error):
         help()
-        os.sys.exit(2)
+        sys.exit(2)
     if os.getuid() != 0:
         print "Must be started as root"
-        os.exit(0)
+        sys.exit(1)
     sock = megaping.makeSocket()
     setUser()
     start(nofork)
