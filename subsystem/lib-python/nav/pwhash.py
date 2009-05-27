@@ -28,7 +28,7 @@ except ImportError:
     from md5 import md5
 import base64
 import re
-import nav.errors
+import errors
 
 known_methods = {
     'sha1': sha1,
@@ -109,9 +109,9 @@ class Hash(object):
                                    password=password)
         return self == otherhash
 
-class InvalidHashStringError(nav.errors.GeneralException):
+class InvalidHashStringError(errors.GeneralException):
     "Invalid hash string"
 
-class UnknownHashMethodError(nav.errors.GeneralException):
+class UnknownHashMethodError(errors.GeneralException):
     "Unknown hash method"
 
