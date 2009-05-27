@@ -231,34 +231,11 @@ def start(nofork):
         os.sys.exit(1)
         
     if not nofork:
-        pid=os.fork()
-        if pid > 0:
-            os.sys.exit()
-
-        # Decouple from parent environment
-        os.chdir('/') # In case the cwd we started in is removed
-        os.setsid()
-
-        # Do second fork
-        # (prevent us from accidentally reacquiring a controlling terminal)
-        pid=os.fork()
-        if pid > 0:
-            os.sys.exit()
-
-        # Close the underlying OS file descriptors
-        os.sys.stdout.flush()
-        os.sys.stderr.flush()
-        os.close(os.sys.stdin.fileno())
-        os.close(os.sys.stdout.fileno())
-        os.close(os.sys.stderr.fileno())
-
+        nav.daemon.daemonize(pidfilename)
+    
         logfile = conf.get("logfile","pping.log")
         os.sys.stdout = open(logfile,"a")
         os.sys.stderr = open(logfile,"a")
-
-    pidfile = open(pidfilename, 'w')
-    pidfile.write(str(os.getpid()))
-    pidfile.close()
 
     myPinger=pinger(socket=sock)
     myPinger.main()
@@ -267,17 +244,7 @@ def start(nofork):
 def setUser():
     conf = config.pingconf()
     username = conf.get("user", "nobody")
-    try:
-        uid = pwd.getpwnam(username)[2]
-        gid = pwd.getpwnam(username)[3]
-    except KeyError:
-        print "User %s not found" % username
-        print "Exiting"
-        os.sys.exit()
-    os.setegid(gid)
-    os.seteuid(uid)
-    # Make things read/write for user and group
-    os.umask(0002)
+    nav.daemon.switchuser(username)
 
 if __name__=="__main__":
     nofork=0

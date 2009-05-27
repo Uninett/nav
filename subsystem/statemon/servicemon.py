@@ -177,7 +177,7 @@ class controller:
             debug.debug( "Caught %s. Resuming operation." % (signum))
 
 
-def start(nofork):
+def start(fork):
     """
     Forks a new prosess, letting the service run as
     a daemon.
@@ -195,41 +195,16 @@ def start(nofork):
     except nav.daemon.DaemonError, e:
         os.sys.stderr.write("%s\n" % e)
         os.sys.exit(1)
-        
+
     if fork:
-        pid=os.fork()
-        if pid > 0:
-            os.sys.exit()
-
-        # Decouple from parent environment
-        os.chdir('/') # In case the cwd we started in is removed
-        os.setsid()
-
-        # Do second fork
-        # (prevent us from accidentally reacquiring a controlling terminal)
-        pid=os.fork()
-        if pid > 0:
-            os.sys.exit()
-
-        # Close the underlying OS file descriptors
-        os.sys.stdout.flush()
-        os.sys.stderr.flush()
-        os.close(os.sys.stdin.fileno())
-        os.close(os.sys.stdout.fileno())
-        os.close(os.sys.stderr.fileno())
+        nav.daemon.daemonize(pidfilename)
 
         logfile = conf.get('logfile','servicemon.log')
         os.sys.stdout = open(logfile,'a')
         os.sys.stderr = open(logfile,'a')
 
-        pidfile = open(pidfilename, 'w')
-        pidfile.write(str(os.getpid()))
-        pidfile.close()
-
     myController=controller(fork=fork)
     myController.main()
-                
-
 
 
 def help():
