@@ -27,6 +27,7 @@
 This program controls the service monitoring in NAV.
 """
 import os
+import sys
 import types
 import time
 import getopt
@@ -163,21 +164,21 @@ class controller:
         if signum == signal.SIGTERM:
             debug.debug( "Caught SIGTERM. Exiting.")
             self._runqueue.terminate()
-            os.sys.exit(0)
+            sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
             logfile=self.conf.get("logfile", "servicemon.log")
             debug.debug("Caught SIGHUP. Reopening logfile...")
-            os.sys.stdout.close()
-            os.sys.stderr.close()
-            os.sys.stdout = open(logfile,'a')
-            os.sys.stderr = open(logfile,'a')
+            sys.stdout.close()
+            sys.stderr.close()
+            sys.stdout = open(logfile,'a')
+            sys.stderr = open(logfile,'a')
             debug.debug("Reopened logfile: %s" % logfile)
         else:
             debug.debug( "Caught %s. Resuming operation." % (signum))
 
 
-def start(nofork):
+def start(fork):
     """
     Forks a new prosess, letting the service run as
     a daemon.
@@ -190,46 +191,21 @@ def start(nofork):
         nav.daemon.justme(pidfilename)
     except nav.daemon.AlreadyRunningError, e:
         otherpid = file(pidfilename, "r").read().strip()
-        os.sys.stderr.write("servicemon is already running (pid: %s)\n" % otherpid)
-        os.sys.exit(1)
+        sys.stderr.write("servicemon is already running (pid: %s)\n" % otherpid)
+        sys.exit(1)
     except nav.daemon.DaemonError, e:
-        os.sys.stderr.write("%s\n" % e)
-        os.sys.exit(1)
-        
+        sys.stderr.write("%s\n" % e)
+        sys.exit(1)
+
     if fork:
-        pid=os.fork()
-        if pid > 0:
-            os.sys.exit()
-
-        # Decouple from parent environment
-        os.chdir('/') # In case the cwd we started in is removed
-        os.setsid()
-
-        # Do second fork
-        # (prevent us from accidentally reacquiring a controlling terminal)
-        pid=os.fork()
-        if pid > 0:
-            os.sys.exit()
-
-        # Close the underlying OS file descriptors
-        os.sys.stdout.flush()
-        os.sys.stderr.flush()
-        os.close(os.sys.stdin.fileno())
-        os.close(os.sys.stdout.fileno())
-        os.close(os.sys.stderr.fileno())
+        nav.daemon.daemonize(pidfilename)
 
         logfile = conf.get('logfile','servicemon.log')
-        os.sys.stdout = open(logfile,'a')
-        os.sys.stderr = open(logfile,'a')
-
-        pidfile = open(pidfilename, 'w')
-        pidfile.write(str(os.getpid()))
-        pidfile.close()
+        sys.stdout = open(logfile,'a')
+        sys.stderr = open(logfile,'a')
 
     myController=controller(fork=fork)
     myController.main()
-                
-
 
 
 def help():
@@ -243,33 +219,33 @@ def help():
 
 Written by Erik Gorset and Magnus Nordseth, 2002
 
-    """  % os.path.basename(os.sys.argv[0])
+    """  % os.path.basename(sys.argv[0])
 
 
 if __name__=='__main__':
     # chdir into own dir
-    #mydir, myname = os.path.split(os.sys.argv[0])
+    #mydir, myname = os.path.split(sys.argv[0])
     #os.chdir(mydir)
     # Make sure our files are readable for all 
     os.umask(0002)
                                   
     try:
-        opts, args = getopt.getopt(os.sys.argv[1:], 'hnv', ['help','nofork', 'version'])
+        opts, args = getopt.getopt(sys.argv[1:], 'hnv', ['help','nofork', 'version'])
         fork=1
 
         for opt, val in opts:
             if opt in ('-h','--help'):
                 help()
-                os.sys.exit()
+                sys.exit(0)
             elif opt in ('-n','--nofork'):
                 fork=0
             elif opt in ('-v','--version'):
                 print __version__
-                os.sys.exit(0)
+                sys.exit(0)
                 
 
     except (getopt.error):
         help()
-        os.sys.exit(2)
+        sys.exit(2)
                                
     start(fork)
