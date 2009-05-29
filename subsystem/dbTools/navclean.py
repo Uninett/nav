@@ -57,7 +57,7 @@ __id__ = "$Id: navclean.py 2875 2004-07-14 09:51:24Z mortenv $"
 import sys
 import getopt
 import nav.db
-import psycopg
+import psycopg2
 
 def main(args):
     """ Main execution function."""
@@ -100,9 +100,6 @@ def main(args):
             tables.append("radiuslog")
 
     cx = nav.db.getConnection('default', 'manage')
-    # Perform deletions inside a transaction, so that we may rollback
-    # if -n was specified on command line.
-    cx.autocommit(0)
     cursor = cx.cursor()
     sumtotal = 0
 
@@ -130,7 +127,7 @@ def main(args):
                 print "%s contains %s expired records." % (table, cursor.rowcount)
             sumtotal += cursor.rowcount
 
-        except psycopg.ProgrammingError, e:
+        except psycopg2.ProgrammingError, e:
             print >> sys.stderr, "The PostgreSQL backend produced a ProgrammingError.\n" + \
                   "Most likely, your expiry specification is invalid: %s" % expiry;
             cx.rollback()

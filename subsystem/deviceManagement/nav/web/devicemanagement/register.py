@@ -30,7 +30,7 @@ Register page of Device Management
 
 ### Imports
 
-import psycopg
+import psycopg2
 
 try:
     from mod_python import util
@@ -74,7 +74,7 @@ def register(req,path):
                         deviceid = insertFields(fields,'device',sequence)
                         page.messages.append("Added device with serial '" +\
                                              serial + "'")
-                    except psycopg.IntegrityError:
+                    except psycopg2.IntegrityError:
                         page.errors.append("A device with serial '" +\
                                              serial + "' already exists")
                     # Send device active start event

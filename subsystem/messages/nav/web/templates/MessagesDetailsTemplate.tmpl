@@ -24,7 +24,7 @@
 ##
 
 #extends MessagesTemplate
-#import mx.DateTime
+#import datetime
 
 #block tabcontent
 
@@ -77,13 +77,13 @@
 #if $authorized
     #if $msg.publish_end
     <tr>
-        #if $msg.publish_end > mx.DateTime.now()
+        #if $msg.publish_end > datetime.datetime.now()
         <th>Expires</th>
         #else
         <th>Expired</th>
         #end if
         <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M') 
-        #if $msg.publish_end > mx.DateTime.now()
+        #if $msg.publish_end > datetime.datetime.now()
             | <a href="expire?id=$msg.messageid">Expire now</a>
         #end if
         </td>

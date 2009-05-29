@@ -20,13 +20,14 @@ Provides common database functionality for NAV.
 """
 import atexit
 import time
-import psycopg
+import psycopg2
+import psycopg2.extensions
 import nav
 from nav import config
 import logging
 
 logger = logging.getLogger('nav.db')
-driver = psycopg
+driver = psycopg2
 _connectionCache = nav.ObjectCache()
 
 class ConnectionObject(nav.CacheableObject):
@@ -48,11 +49,11 @@ class ConnectionObject(nav.CacheableObject):
             if self.ping():
                 self.lastValidated = time.time()
                 return False
-        except (psycopg.ProgrammingError, psycopg.OperationalError):
+        except (psycopg2.ProgrammingError, psycopg2.OperationalError):
             logger.debug('Invalid connection object (%s), age=%s' % (repr(self.key), self.age()))
             self.object.close()
             return True
-        except psycopg.InterfaceError:
+        except psycopg2.InterfaceError:
             logger.debug('Connection may already be closed (%s)' % repr(self.key))
             return True
 
@@ -68,7 +69,7 @@ class ConnectionObject(nav.CacheableObject):
         return 1
 
 def escape(string):
-    return str(psycopg.QuotedString(string))
+    return str(psycopg2.extensions.QuotedString(string))
 
 def get_connection_parameters(script_name='default', database='nav'):
     """Return a tuple of database connection parameters.
@@ -138,11 +139,11 @@ def getConnection(scriptName, database='nav'):
     try:
         connection = _connectionCache[cacheKey].object
     except KeyError:
-        connection = psycopg.connect(get_connection_string(
+        connection = psycopg2.connect(get_connection_string(
                 (dbhost, port, dbname, user, pw)))
         logger.debug("Opened a new database connection, scriptName=%s, "
                      "dbname=%s, user=%s", scriptName, dbname, user)
-        connection.autocommit(0)
+        # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
         connObject = ConnectionObject(connection, cacheKey)
         _connectionCache.cache(connObject)
@@ -154,7 +155,7 @@ def closeConnections():
     for connection in _connectionCache.values():
         try:
             connection.object.close()
-        except psycopg.InterfaceError:
+        except psycopg2.InterfaceError:
             pass
 
 ###### Initialization ######
