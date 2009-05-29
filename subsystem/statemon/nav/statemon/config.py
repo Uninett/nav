@@ -30,6 +30,7 @@ instance created.
 """
 
 import os
+import sys
 import re
 from debug import debug
 
@@ -55,7 +56,7 @@ class Conf(dict):
 
         if self._configfile is None:
             #debug("Failed to open %s" % self._file)
-            os.sys.exit(0)
+            sys.exit(0)
         self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
         self.parsefile()
         self._configfile.close()

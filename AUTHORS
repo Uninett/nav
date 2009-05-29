@@ -1,0 +1,148 @@
+Network Administration Visualized list of authors
+=================================================
+
+This file tries to list everyone that has contributed to NAV, in the
+form of code, documentation or packaging.
+
+Currently active contributors
+-----------------------------
+
+* Vidar Faltinsen <vidar.faltinsen at uninett.no> 
+  Founded the project in 1999.  He doesn't code, but he knows his way
+  around a network, and has been a NAV mentor for all these years -
+  producing documentation and offering keen insight into the problem
+  domain.
+
+* John-Magne Bredal <john.m.bredal at ntnu.no>
+  Joined in 2000, and is instrumental in anything related to Cricket,
+  end user detentions (Arnold), threshold monitoring and snmp trap
+  processing.
+
+* Morten Brekkevold (formerly Vold) <morten.brekkevold at uninett.no>
+  Joined in 2002 to make NAV useable outside of NTNU.  Has been
+  hacking and improving bits and pieces of NAV ever since.  The
+  project's opinionated know-it-all, working as the current project
+  lead, after taking over for Vidar Faltinsen.
+
+* Morten Werner Forsbring <werner at debian.org>
+  Packaging NAV for Debian since 2004.
+
+* Kristian Klette <kristian.klette at uninett.no>
+  Joined in 2007 to work on Netmap, a dynamic replacement for the old
+  Traffic Map applet.
+
+* Jørgen Abrahamsen <jorgen.abrahamsen at uninett.no>
+  Joined in 2008, and has mainly contributed by adding features and
+  fixing bugs in existing code.
+
+* Magnus Motzfeldt Eide <magnus.eide at uninett.no>
+  Joined in 2008, and began rewriting the old PHP-based Alert Profiles
+  interface in Python/Django.  Has since been involved with
+  code maintenance and smaller rewrites of existing code.
+
+* Thomas Adamcik <thomas.adamcik at uninett.no>
+  Joined in 2008, and rewrote the Perl-based Alert Engine in Python.
+  Also rewrote the user admin panel to a Django-based solution.
+
+Contributors to the 3.5 series
+------------------------------
+* Stein Magnus Jodal <stein.magnus.jodal at uninett.no>, 2006-2008
+
+  Rewrote the SMS daemon from Perl to Python for NAV 3.2.  During the
+  next couple of series releases, he cleaned up the entire web
+  interface, defined new policies for how to code web interfaces in
+  NAV, and rewrote several web tools.  Introduced Django to NAV 3.5,
+  using it to rewrite the creaky IP Device Browser to the IP Device
+  Info tool.
+
+* Erlend Midttun <erlend.midttun at ntnu.no>
+
+The University of Tromsø has been an active contributor to the 3.5
+release, with the radius accounting log tool, and have also pledged to
+maintain NAV's service monitoring code:
+
+* Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
+* Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
+* Roger Kristiansen
+
+Contributors to earlier releases
+--------------------------------
+As this list is being compiled 10 years after the birth of NAV,
+current email addresses are missing for many of the earliest
+contributors.
+
+* Jostein Gogstad <jostein.gogstad at idi.ntnu.no>
+  2007, implemented support for collecting IPv6 prefixes and
+  neighboring caches, and matrix display of IPv6 subnets.
+
+* Kristian Eide <kreide at gmail.com>
+  Active 2000-2005.  Wrote the first Traffic Map applet.  Instrumental
+  in the redesign of NAV for version 3, for which he wrote the
+  getDeviceData SNMP collection engine, the camlogger, the event
+  engine, the topology discovery mechanisms and the network explorer
+  and l2trace web tools.
+
+* Gro-Anita Vindheim <gro-anita.vindheim at ntnu.no>
+  Active 1999-2001 and 2003-2005.  Wrote live.pl, the original pinger,
+  and several other parts of NAV 2.  Maintenance on SQL reports, NAV
+  v2->v3 migration helper scripts.
+
+* Magnar Sveen, 2003-2004
+  Designed the new web interface for NAV 3 and wrote much of the
+  surrounding toolbox and user preferences code.
+
+* Hans Jørgen Hoel, 2003-2004
+  Wrote the SeedDB (formerly EditDB) and the original Device
+  Management web tools. Partly involved in event engine's handling of
+  device lifecycle events.
+
+* Arne Øslebø <arne.oslebo at uninett.no>
+  Active 2002-2004.  Wrote the first Alert Engine in Perl.
+
+* Andreas Åkre Solberg <andreas.solberg at uninett.no>
+  Active 2002-2004.  Wrote the first Alert Profiles web interface in
+  PHP, and parts of the first Alert Engine.
+
+This dynamic duo wrote most of NAV's service monitor and parallel
+pinger:
+
+* Stian Søiland, 2002-2004
+* Magnus Thanem Nordseth, 2002-2004
+
+* Sigurd Gartmann, 2001-2004
+  Wrote the SNMP collector for NAV 2, the report system and the syslog
+  analyzer.
+
+* Arve Vanvik, 2004
+  Oracle plugin for the service monitor.
+
+* Erlend Mjåvatten, 2003
+  Wrote the original rrd browser and supporting libraries.
+
+* Bjørn Ove Grøtan, 2003
+  Wrote the original message&maintenance (emotd) web tool, and
+  contributed initial code for LDAP authentication.
+
+* Daniel Sandvold, 2002
+
+* Erik Gorset, 2002
+  Wrote parts of the service monitor and parallel pinger.
+
+* Knut-Helge Vindheim <knut-helge.vindheim at ntnu.no>, 1999-2002
+  Maintenance on various NAV 2 parts: The SMS daemon, SNMP collection
+  scripts, database backup system.  For the most part, Knut-Helge has
+  contributed invaluable insights into the operation of a large campus
+  network.
+
+* Trygve Lunheim, 1999-2000
+  The original introduction of MRTG/Cricket integration.
+
+* Stig Venås, 1999
+  Wrote the original arp cache collector (arplogger.pl), which
+  remained mostly unchanged in NAV for 9 years.
+
+These guys were apparently involved in projects that were precursors
+to NAV (such as the first attempt at building a topology graph):
+
+* Eric Sandnes, 1999
+* Tor-Arne Kvaløy, 1999
