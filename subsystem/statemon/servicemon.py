@@ -167,13 +167,12 @@ class controller:
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
-            logfile=self.conf.get("logfile", "servicemon.log")
+            logfile_path = self.conf.get("logfile", "servicemon.log")
             debug.debug("Caught SIGHUP. Reopening logfile...")
-            sys.stdout.close()
-            sys.stderr.close()
-            sys.stdout = open(logfile,'a')
-            sys.stderr = open(logfile,'a')
-            debug.debug("Reopened logfile: %s" % logfile)
+            logfile = file(logfile_path, 'a')
+            nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
+
+            debug.debug("Reopened logfile: %s" % logfile_path)
         else:
             debug.debug( "Caught %s. Resuming operation." % (signum))
 
@@ -198,11 +197,9 @@ def start(fork):
         sys.exit(1)
 
     if fork:
-        nav.daemon.daemonize(pidfilename)
-
-        logfile = conf.get('logfile','servicemon.log')
-        sys.stdout = open(logfile,'a')
-        sys.stderr = open(logfile,'a')
+        logfile_path = conf.get('logfile','servicemon.log')
+        logfile = file(logfile_path, 'a')
+        nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
     myController=controller(fork=fork)
     myController.main()

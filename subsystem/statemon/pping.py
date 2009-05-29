@@ -188,13 +188,12 @@ class pinger:
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
-            logfile=self.config.get("logfile", "pping.log")
+            logfile_path = self.config.get("logfile", "pping.log")
             debug.debug("Caught SIGHUP. Reopening logfile...")
-            sys.stdout.close()
-            sys.stderr.close()
-            sys.stdout = open(logfile,'a')
-            sys.stderr = open(logfile,'a')
-            debug.debug("Reopened logfile: %s" % logfile)
+            logfile = file(logfile_path,'a')
+            nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
+
+            debug.debug("Reopened logfile: %s" % logfile_path)
         else:
             debug.debug( "Caught %s. Resuming operation." % (signum),2)
 
@@ -232,11 +231,9 @@ def start(nofork):
         sys.exit(1)
         
     if not nofork:
-        nav.daemon.daemonize(pidfilename)
-    
-        logfile = conf.get("logfile","pping.log")
-        sys.stdout = open(logfile,"a")
-        sys.stderr = open(logfile,"a")
+        logfile_path = conf.get("logfile","pping.log")
+        logfile = file(logfile_path,"a")
+        nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
     myPinger=pinger(socket=sock)
     myPinger.main()
