@@ -233,7 +233,7 @@ def handler(req):
 
         if cur.rowcount > 1:
             # Get switchinformation from database
-            blockedports = cur.fetchall()
+            blockedports = [dict(row) for row in cur.fetchall()]
             for element in blockedports:
                 q = """
                 SELECT sysname, module, port FROM netbox
@@ -581,7 +581,7 @@ def printHistory(cur, page, sort, section, days):
         WHERE lastchanged > current_date - interval '%s days'  ORDER BY %s
         """ %(days, sort)
         cur.execute(query)
-        list = cur.fetchall()
+        list = [dict(row) for row in cur.fetchall()]
     except nav.db.driver.ProgrammingError, e:
         list = {}
 
@@ -620,7 +620,7 @@ def printBlocked(cur, page, sort, section):
     page.headertext = "List of ports currently detained"
     page.hitstext = "ports detained"
     
-    list = cur.fetchall()
+    list = [dict(row) for row in cur.fetchall()]
     
     managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -707,7 +707,7 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
         
         try:
             cur.execute(q, (searchtext,))
-            searchresults = cur.fetchall()
+            searchresults = [dict(row) for row in cur.fetchall()]
             numresults = cur.rowcount
             
             if numresults == 0:
@@ -750,7 +750,7 @@ def printBlocks(cur, page, sort, section):
                     'edit':'&nbsp;', 'delete':'&nbsp;'}
 
     cur.execute("SELECT * FROM block ORDER BY " + sort)
-    list = cur.fetchall()
+    list = [dict(row) for row in cur.fetchall()]
 
     for element in list:
         element['edit'] = "<a href='addPredefined?blockid=%s'>Edit</a>" \
@@ -801,7 +801,7 @@ def showDetails (cur, page, section, id):
     FROM identity WHERE identityid = %s
     """
     cur.execute(q, (id,))
-    list = cur.fetchall()
+    list = [dict(row) for row in cur.fetchall()]
 
     q = """
     SELECT * FROM netbox
@@ -848,7 +848,7 @@ def showDetails (cur, page, section, id):
     page.headersList2 = ['eventtime','action','name','comment','username']
     page.headers2 = {'eventtime':'Eventtime', 'action':'Action',
                      'name':'Reason', 'comment':'Comment', 'username':'User'}
-    list2 = cur.fetchall()
+    list2 = [dict(row) for row in cur.fetchall()]
 
     for entry in list2:
         entry['name'] = entry['name'] or "&nbsp;"
@@ -935,7 +935,7 @@ def printAddpredefined (cur, page, id):
 
     if id:
         cur.execute("SELECT * FROM block WHERE blockid=%s" %id)
-        blockinfo = cur.fetchone()
+        blockinfo = dict(cur.fetchone())
         blockinfo['lastedited'] = blockinfo['lastedited'].strftime('%Y-%m-%d %k:%M:%S')
 
     page.blockinfo = blockinfo
