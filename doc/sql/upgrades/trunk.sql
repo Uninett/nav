@@ -210,19 +210,19 @@ INSERT INTO rproto_attr
 -- Now begins the arduous task of replacing all foreign keys referring
 -- to gwport and swport
 ALTER TABLE swp_netbox RENAME COLUMN to_swportid TO to_interfaceid;
-ALTER TABLE swp_netbox DROP CONSTRAINT "$3";
+ALTER TABLE swp_netbox DROP CONSTRAINT swp_netbox_to_swportid_fkey;
 ALTER TABLE swp_netbox ADD CONSTRAINT swp_netbox_to_interfaceid_fkey 
                                       FOREIGN KEY (to_interfaceid) REFERENCES interface(interfaceid)
                                       ON UPDATE CASCADE ON DELETE SET NULL;
                
 ALTER TABLE gwportprefix RENAME COLUMN gwportid TO interfaceid;
-ALTER TABLE gwportprefix DROP CONSTRAINT "$1";
+ALTER TABLE gwportprefix DROP CONSTRAINT gwportprefix_gwportid_fkey;
 ALTER TABLE gwportprefix ADD CONSTRAINT gwportprefix_interfaceid_fkey 
                                         FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
                                         ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE swportvlan RENAME COLUMN swportid TO interfaceid;
-ALTER TABLE swportvlan DROP CONSTRAINT "$1";
+ALTER TABLE swportvlan DROP CONSTRAINT swportvlan_swportid_fkey;
 ALTER TABLE swportvlan ADD CONSTRAINT swportvlan_interfaceid_fkey 
                                       FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
                                       ON UPDATE CASCADE ON DELETE CASCADE;
@@ -230,19 +230,19 @@ ALTER TABLE swportvlan_swportid_key RENAME TO swportvlan_interfaceid_key;
 ALTER TABLE swportvlan_swportid_btree RENAME TO swportvlan_interfaceid_btree;
 
 ALTER TABLE swportallowedvlan RENAME COLUMN swportid TO interfaceid;
-ALTER TABLE swportallowedvlan DROP CONSTRAINT "$1";
+ALTER TABLE swportallowedvlan DROP CONSTRAINT swportallowedvlan_swportid_fkey;
 ALTER TABLE swportallowedvlan ADD CONSTRAINT swportallowedvlan_interfaceid_fkey
                                              FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
                                              ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE swportblocked RENAME COLUMN swportid TO interfaceid;
-ALTER TABLE swportblocked DROP CONSTRAINT "$1";
+ALTER TABLE swportblocked DROP CONSTRAINT swportblocked_swportid_fkey;
 ALTER TABLE swportblocked ADD CONSTRAINT swportblocked_interfaceid_fkey
                                          FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
                                          ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE patch RENAME COLUMN swportid TO interfaceid;
-ALTER TABLE patch DROP CONSTRAINT "$1";
+ALTER TABLE patch DROP CONSTRAINT patch_swportid_fkey;
 ALTER TABLE patch ADD CONSTRAINT patch_interfaceid_fkey 
 	                         FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
                                  ON UPDATE CASCADE ON DELETE CASCADE;
