@@ -56,8 +56,9 @@ install-bin:
 	$(INSTALL) -v -D -m 755 hasPrivilege.py $(DESTDIR)$(bindir)/hasPrivilege.py
 
 clean:
-	backups=`find src -name '*~'`; \
-	rm -f $$backups
+	backups=`find nav -name '*~'`; \
+	compiled_modules=`find nav -name '*.pyc'`; \
+	rm -f $$backups $$compiled_modules
 	rm -f *~
 	rm -f $(pathmodule)
 

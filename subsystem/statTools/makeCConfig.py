@@ -303,7 +303,7 @@ class makeCricketConfig (threading.Thread):
         currenttarget = ""
         workingdir = ""
 
-        for row in c.fetchall():
+        for row in [dict(r) for r in c.fetchall()]:
             # for each row, check if this is another sysname than the previous one
             if currenttarget != row['sysname']:
                 print "T%s: Target changed from %s to %s." %(self.id, currenttarget, row['sysname'])

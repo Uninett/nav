@@ -174,7 +174,8 @@ def main():
         # Daemonize and listen for traps        
         try:
             logger.debug("Going into daemon mode...")
-            daemon.daemonize(pidfile)
+            daemon.daemonize(pidfile,
+                             stderr=nav.logs.get_logfile_from_logger())
         except daemon.DaemonError, why:
             logger.error("Could not daemonize: " %why)
             server.close()
@@ -436,6 +437,7 @@ def signal_handler(signum, _):
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
+        daemon.redirect_std_fds(stderr=nav.logs.get_logfile_from_logger())
         logger.info("Log files reopened.")
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down.')

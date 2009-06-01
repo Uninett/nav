@@ -217,7 +217,7 @@ def findIdInformation(id, limit):
             raise DbError, e
 
         if c.rowcount > 0:
-            result = c.fetchall()
+            result = [dict(row) for row in c.fetchall()]
 
             # Walk through result replacing DateTime(infinity) with
             # string "Still Active". Else the date showing will be
@@ -273,7 +273,7 @@ def findSwportinfo(netboxid, ifindex, module):
         raise DbError, e
 
     if c.rowcount > 0:
-        result = c.fetchone()
+        result = dict(c.fetchone())
         
         return result
     else:
@@ -311,7 +311,7 @@ def findSwportIDinfo(swportid):
         raise DbError, why
 
     if c.rowcount > 0:
-        return c.fetchone()
+        return dict(c.fetchone())
     else:
         raise PortNotFoundError, swportid
 
@@ -987,7 +987,7 @@ def getReasons():
     except nav.db.driver.ProgrammingError, why:
         raise DbError, why
 
-    return c.fetchall()
+    return [dict(row) for row in c.fetchall()]
 
 
 ###############################################################################
