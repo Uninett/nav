@@ -569,7 +569,7 @@ CREATE TABLE accountalertqueue (
     	FOREIGN KEY(account_id) REFERENCES account(id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE,
-    CONSTRAINT accountalertqueue_subscription_fkey
+    CONSTRAINT accountalertqueue_subscription_id_fkey
 	FOREIGN KEY (subscription_id) REFERENCES alertsubscription(id)
 	-- ON UPDATE CASCADE -- FIXME is CASCADE right here?
 	-- ON DELETE CASCADE -- FIXME
