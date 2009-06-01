@@ -44,9 +44,10 @@ else:
 from nav.web.templates.IPInfo import IPInfo
 import nav.db
 import config
+import psycopg2.extras
 
 conn = nav.db.getConnection('default')
-cursor = conn.cursor()
+cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 def handler(req):
     """mod_python handler"""
@@ -159,7 +160,7 @@ class IPInformation(UserDict):
         if 'mac' in self:
           cursor.execute(sql, (str(self['mac']),))
           if cursor.rowcount > 0:
-              self.update(cursor.dictfetchone())
+              self.update(cursor.fetchone())
 
     def fetchPrefixInfo(self):
         sql = """SELECT netaddr as subnet,
@@ -176,7 +177,7 @@ class IPInformation(UserDict):
                    AND nettype <> 'scope'"""
         cursor.execute(sql, (str(self['ip']),))
         if cursor.rowcount > 0:
-            self.update(cursor.dictfetchone())
+            self.update(cursor.fetchone())
 
 class TargetError(Exception):
     pass

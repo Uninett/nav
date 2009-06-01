@@ -1399,7 +1399,7 @@ class seeddbPage:
         sql += ')'
         try:
             executeSQL([sql])
-        except psycopg.IntegrityError, e:
+        except psycopg2.IntegrityError, e:
             rollbackSQL()
             if type(self.unique) is list:
                 error = 'There already exists an entry with '
@@ -1505,7 +1505,7 @@ class seeddbPage:
             sql += ' WHERE ' + self.tableIdKey + "='" + id + "'"
             try:
                 executeSQL([sql])
-            except psycopg.IntegrityError:
+            except psycopg2.IntegrityError:
                 # Assumes tableIdKey = the unique field
                 rollbackSQL()
                 if type(self.unique) is list:
@@ -1615,7 +1615,7 @@ class seeddbPage:
                 deleteEntry([id],self.tableName,self.tableIdKey)
                 status.messages.append("Deleted %s: %s" % \
                                            (self.singular,deletedName))
-            except psycopg.IntegrityError:
+            except psycopg2.IntegrityError:
                 # Got integrity error while deleting, must check what
                 # dependencies are blocking.  But firstly, we roll back the
                 # failed transaction.
@@ -3290,7 +3290,7 @@ class pagePatch(seeddbPage):
                     patchId = addEntryFields(fields,self.tableName,
                                              (self.tableIdKey,self.sequence))
                     action = 'list'
-                except psycopg.IntegrityError,e:
+                except psycopg2.IntegrityError,e:
                     error = 'There already exists a patch from this jack ' +\
                             'to that port'
 
@@ -3355,7 +3355,7 @@ class pagePatch(seeddbPage):
                 updateEntryFields(fields,self.tableName,self.tableIdKey,
                                   selected[0])
                 action = 'list'
-            except psycopg.IntegrityError,e:
+            except psycopg2.IntegrityError,e:
                 error = 'There already exists a patch from this swport ' +\
                         'to that jack'
                 action = 'edit'
@@ -3541,12 +3541,12 @@ class pagePrefix(seeddbPage):
                   'vlanid': vlanid}
         try:
             addEntryFields(fields,'prefix')
-        except psycopg.ProgrammingError:
+        except psycopg2.ProgrammingError:
             # Invalid cidr
             error = 'Invalid CIDR'
             # Remove vlan entry
             deleteEntry([vlanid],'vlan','vlanid')
-        except psycopg.IntegrityError:
+        except psycopg2.IntegrityError:
             # Already existing cidr
             error = 'Prefix already exists in database'
             deleteEntry([vlanid],'vlan','vlanid')
@@ -6341,7 +6341,7 @@ class bulkdefPrefix:
                     status = BULK_STATUS_YELLOW_ERROR
                     remark = "CIDR already present in database."
             
-            except psycopg.ProgrammingError:
+            except psycopg2.ProgrammingError:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid CIDR '" + data + "'"
         if field == 'nettype':

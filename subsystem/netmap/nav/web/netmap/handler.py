@@ -21,9 +21,9 @@
 # Authors: Kristian Klette <klette@samfundet.no>
 
 import sys
-import psycopg
 import nav.db
 import datetime
+import psycopg2.extras
 
 from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
@@ -41,7 +41,7 @@ def handler(req):
     path = req.filename[req.filename.rfind('/'):]
 
     connection = nav.db.getConnection('netmapserver', 'manage')
-    db = connection.cursor()
+    db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
     try:

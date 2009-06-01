@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006, 2007 UNINETT AS
+# Copyright (C) 2006, 2007, 2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -71,4 +71,27 @@ def reopen_log_files():
                     mylog.debug("Reopened " + h.baseFilename)
         except AttributeError:
             pass
+
+def get_logfile_from_logger(logger=logging.root):
+    """Return the file object of the first FileHandler of a given logger.
+
+    This can be used as shorthand for redirecting the low-level stderr
+    file descriptor to a log file after daemonization.
+
+    Example usage:
+        nav.daemon.daemonize('/var/run/nav/mydaemon.pid',
+                             stderr=get_logfile_from_logger())
+
+    Arguments:
+        ``logger'' the logger object whose first FileHandler's file will be
+                   returned.  If omitted, the root logger is searched for a
+                   FileHandler.
+
+    Returns:
+        A file object, or None if no FileHandlers were found.
+
+    """
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            return handler.stream
 

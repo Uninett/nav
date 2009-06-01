@@ -46,13 +46,14 @@ The following python modules are required:
  * forgetsql
  * ipy
  * ldap
- * psycopg
- * psycopg2
+ * psycopg2 >= 2.0.8
  * pysnmp2
  * rrd
  * pyrad
  * xmpp (optional)
 
+psycopg2 should be at least version 2.0.8: Earlier versions have bugs that will
+cause some NAV programs to crash.
 
 Recommended add-ons
 -------------------
