@@ -54,12 +54,12 @@ class Interfaces(Plugin):
         return self.deferred
 
     def error(self, failure):
-        failure.trap(defer.TimeoutError)
-        # Handle TimeoutErrors
-        self.logger.error(failure.getErrorMessage())
-        # Report this failure to the waiting plugin manager (RunHandler)
-        exc = FatalPluginError("Cannot continue due to device timeouts")
-        failure = Failure(exc)
+        if failure.check(defer.TimeoutError):
+            # Transform TimeoutErrors to something else
+            self.logger.error(failure.getErrorMessage())
+            # Report this failure to the waiting plugin manager (RunHandler)
+            exc = FatalPluginError("Cannot continue due to device timeouts")
+            failure = Failure(exc)
         self.deferred.errback(failure)
 
     def got_iftable(self, result):
