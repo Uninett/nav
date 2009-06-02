@@ -249,6 +249,17 @@ ALTER TABLE patch ADD CONSTRAINT patch_interfaceid_fkey
                                  ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE patch_swportid_key RENAME TO patch_interfaceid_key;
 
+-- Update tables that may reference swport/gwport without proper referential integrity
+UPDATE rrd_file
+SET key='interface', value=map.new_id::text 
+FROM swport_map AS map
+WHERE rrd_file.key = 'swport' AND rrd_file.value::integer = map.swportid;
+
+UPDATE rrd_file
+SET key='interface', value=map.new_id::text 
+FROM gwport_map AS map
+WHERE rrd_file.key = 'gwport' AND rrd_file.value::integer = map.gwportid;
+
 -- Recreate views that depend on swport or gwport
 CREATE OR REPLACE VIEW manage.netboxmac AS  
 (SELECT DISTINCT ON (mac) netbox.netboxid, arp.mac
