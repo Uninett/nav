@@ -70,6 +70,7 @@ CREATE TABLE manage.interface (
   ifalias VARCHAR,
 
   -- non IF-MIB values
+  baseport INT4,
   media VARCHAR,
   vlan INT4,
   trunk BOOLEAN,

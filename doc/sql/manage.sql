@@ -310,6 +310,8 @@ CREATE TABLE interface (
   ifalias VARCHAR,
 
   -- non IF-MIB values
+  baseport INT4,  -- baseport number from BRIDGE-MIB, if any. 
+                  -- A non-null value should be a good indicator that this is a switch port.
   media VARCHAR,
   vlan INT4,
   trunk BOOLEAN,
