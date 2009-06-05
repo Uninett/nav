@@ -22,7 +22,7 @@
 # $Id$
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
-import os
+import subprocess
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 class RpcChecker(AbstractChecker):
@@ -57,14 +57,25 @@ class RpcChecker(AbstractChecker):
             protocol = mapper.get(service, '')
             if not protocol:
                 return Event.DOWN, "Unknown argument: [%s], can only check %s" % (service, str(mapper.keys()))
-            output = os.popen('/usr/sbin/rpcinfo -%s %s %s 2>/dev/null' % (protocol,ip,service))
-            output = output.read()
-            if output.find("ready"):
+
+            try:
+                p = subprocess.Popen(['rpcinfo',
+                                      '-'+protocol,
+                                      ip,
+                                      service],
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+                p.wait()
+            except OSError, msg:
+                return Event.DOWN, 'could not run rpcinfo: %s' % msg
+
+            output = p.stdout.read()
+            if 'ready' in output:
                 continue
-            if outut.find("not available"):
-                return Event.DOWN, "%s not avail" % service
+            if 'not available' in output:
+                return Event.DOWN, '%s not available' % service
             if not output:
-                return Event.DOWN,'timeout'
+                return Event.DOWN, 'rpcinfo timed out'
 
         return Event.UP, "Ok"
 

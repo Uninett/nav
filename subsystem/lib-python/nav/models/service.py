@@ -68,7 +68,7 @@ class Service(models.Model):
             rrd = presenter.presentation()
             rrd.timeLast(time_frame)
             rrd.addDs(rds.id)
-            value = rrd.average()
+            value = rrd.average(onErrorReturn=None, onNanReturn=None)
             if not value:
                 return None
             else:
@@ -99,18 +99,12 @@ class Service(models.Model):
         for time_frame in self.TIME_FRAMES:
             # Availability
             value = average(data_source_status, time_frame)
-            if value is None or value == 0:
-                # average() returns 0 if RRD returns NaN or Error
-                value = None
-            else:
+            if value is not None:
                 value = 100 - (value * 100)
             result['availability'][time_frame] = value
 
             # Response time
             value = average(data_source_response_time, time_frame)
-            if value == 0:
-                # average() returns 0 if RRD returns NaN or Error
-                value = None
             result['response_time'][time_frame] = value
 
         return result

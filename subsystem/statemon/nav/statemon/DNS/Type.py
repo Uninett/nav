@@ -1,3 +1,4 @@
+# -*- coding: ISO8859-1 -*-
 """
  $Id: Type.py,v 1.1 2003/03/26 16:03:58 magnun Exp $
 

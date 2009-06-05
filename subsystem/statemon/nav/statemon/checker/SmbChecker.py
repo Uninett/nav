@@ -23,8 +23,8 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-import os
 import re
+import subprocess
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
@@ -49,23 +49,35 @@ class SmbChecker(AbstractChecker):
         password = args.get('password','')
         workgroup = args.get('workgroup', '')
 
+        args = ['smbclient',
+                '-L', host,
+                '-p', str(port)]
+
         if password and username:
-            s = '-U ' + username + '%' + password
+            args += ['-U', username+'%'+password]
             if workgroup:
-                s += ' -W %s' % workgroup
+                args += ['-W', workgroup]
         else:
-            s = '-N'
+            args += ['-N']
 
+        try:
+            p = subprocess.Popen(args,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            p.wait()
+        except IOEerror, msg:
+            return Event.DOWN, 'could not run smbclient: %s' % msg
 
-        s = os.popen('/usr/bin/smbclient -L %s -p %i %s 2>/dev/null' %
-                 (host,port,s)).read()
-        version = pattern.search(s) and \
-              ' '.join(pattern.search(s).groups())
-        if version:
+        output = p.stdout.read()
+        errput = p.stderr.read()
+
+        match = pattern.search(output) or pattern.search(errput)
+        if match:
+            version = ' '.join(match.groups())
             self.setVersion(version)
-            return Event.UP,'OK'
+            return Event.UP, 'OK'
         else:
-            return Event.DOWN,'error %s' % s.strip().split('\n')[-1]
+            return Event.DOWN, 'error %s' % output.strip().split('\n')[-1]
 
 def getRequiredArgs():
     """

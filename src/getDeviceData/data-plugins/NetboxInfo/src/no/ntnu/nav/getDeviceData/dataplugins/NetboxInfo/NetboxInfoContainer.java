@@ -26,6 +26,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
         
 public class NetboxInfoContainer implements DataContainer {
+	private static final int PRIORITY_NETBOXINFO = PRIORITY_NORMAL;
 
 	private NetboxInfoHandler nih;
 	private Map keyMap = new HashMap();
@@ -128,6 +129,11 @@ public class NetboxInfoContainer implements DataContainer {
 
 	Map getKeyMap() {
 		return keyMap;
+	}
+
+
+	public int getPriority() {
+		return PRIORITY_NETBOXINFO;
 	}
 
 
