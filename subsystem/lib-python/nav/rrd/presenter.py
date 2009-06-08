@@ -289,7 +289,7 @@ class presentation:
             
     def timeLast(self,timeframe='day', value=1):
         """Sets the timeframe of the presentation
-        Currently valid timeframes: year,month,week,hour,day"""
+        Currently valid timeframes: year,month,week,hour,day,minute"""
         self.toTime = 'now'
         if timeframe   == 'year':
             self.fromTime = 'now-%sY' % value
@@ -311,9 +311,13 @@ class presentation:
             self.fromTime = 'now-%sh' % value
             self._timeFrame = 'hour'
             
-        else:
+        elif timeframe == 'day':
             self.fromTime = 'now-%sd' % value
-            self._timeFrame = 'day'            
+            self._timeFrame = 'day'
+        
+        else:
+            self.fromTime = 'now-%smin' % value
+            self._timeFrame = 'minute'
              
     def removeAllDs(self):
         """Removes all datasources from the presentation object"""
