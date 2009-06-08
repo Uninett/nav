@@ -33,7 +33,7 @@ is used at a time.
 
 import threading
 import checkermap
-import psycopg
+import psycopg2
 import Queue
 import time
 import atexit
@@ -66,11 +66,12 @@ class _db(threading.Thread):
     def connect(self):
         try:
             conn_str = get_connection_string(script_name='servicemon')
-            self.db = psycopg.connect(conn_str)
+            self.db = psycopg2.connect(conn_str)
             atexit.register(self.db.close)
 
             debug("Successfully (re)connected to NAVdb")
-            self.db.autocommit(0)
+            # Set transaction isolation level to READ COMMITTED
+            self.db.set_isolation_level(1)
         except Exception, e:
             debug("Couldn't connect to db.", 2)
             debug(str(e),2)
@@ -129,7 +130,7 @@ class _db(threading.Thread):
                     self.db.commit()
                 except:
                     debug("Failed to commit", 2)
-        except psycopg.IntegrityError, e:
+        except psycopg2.IntegrityError, e:
             debug(str(e), 2)
             debug("Throwing away update...", 2)
         except Exception, e:

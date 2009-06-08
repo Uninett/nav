@@ -45,8 +45,7 @@ import os.path
 import atexit
 import logging
 from ConfigParser import ConfigParser
-
-from mx import DateTime
+import datetime
 
 import nav
 import nav.logs
@@ -156,7 +155,7 @@ def createMessage(line):
         msgtype = match.group('type')
         description = match.group('description')
 
-        timestamp = DateTime.DateTime(year,month,day,hour,minute)
+        timestamp = datetime.datetime(year,month,day,hour,minute)
 
         return Message(timestamp, origin, msgtype, description)
 
@@ -201,11 +200,11 @@ class Message:
 
 def find_year(mnd):
 
-    now = DateTime.now().tuple()
-    if mnd==12 and now[1]==1:
-        return now[0]-1
+    now = datetime.datetime.now()
+    if mnd==12 and now.month==1:
+        return now.year-1
     else:
-        return now[0]
+        return now.year
     
 def find_month(textual):
     months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep",

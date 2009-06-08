@@ -179,12 +179,14 @@ def main(args):
 
     # Daemonize
     try:
-        nav.daemon.daemonize(pidfile)
+        nav.daemon.daemonize(pidfile,
+                             stderr=nav.logs.get_logfile_from_logger())
     except nav.daemon.DaemonError, error:
         logger.error(error)
         sys.exit(1)
 
-    # Daemonized; reopen log files
+    # Daemonized; stop logging explicitly to stderr and reopen log files
+    loguninitstderr()
     nav.logs.reopen_log_files()
     logger.debug('Daemonization complete; reopened log files.')
 
@@ -265,6 +267,8 @@ def signalhandler(signum, _):
         global logger
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
+        nav.daemon.redirect_std_fds(
+            stderr=nav.daemon.get_logfile_from_logger())
         logger.info("Log files reopened.")
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down.')
@@ -305,6 +309,13 @@ def loginitstderr(loglevel):
             "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
             % error
         return False
+
+def loguninitstderr():
+    """Remove the stderr StreamHandler from the root logger."""
+    for hdlr in logging.root.handlers:
+        if isinstance(hdlr, logging.StreamHandler) and hdlr.stream is sys.stderr:
+            logging.root.removeHandler(hdlr)
+            return True
 
 def loginitsmtp(loglevel, mailaddr, mailserver):
     """Initalize the logging handler for SMTP."""

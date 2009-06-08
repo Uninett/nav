@@ -31,7 +31,7 @@ Order page with helper classes of Device Management
 ### Imports
 
 import mx.DateTime
-import psycopg
+import psycopg2
 
 try:
     from mod_python import util
@@ -752,7 +752,7 @@ def registerDevices(form,orderid,username,page):
                         event.deviceid = deviceidList[i]
                         event.addVar('username',username)
                         event.post()
-                    except psycopg.IntegrityError:
+                    except psycopg2.IntegrityError:
                         page.errors.append("A device with the serial '%s' " %\
                                            serialList[i] +\
                                            "already exists in the database")

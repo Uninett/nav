@@ -35,6 +35,7 @@ import calendar
 import forgetSQL
 import mx.DateTime
 import re
+import psycopg2.extras
 
 import nav.db
 import nav.db.manage
@@ -74,7 +75,7 @@ def history(req,deviceorderid=None):
     page.widgets = {}
 
     dbconn = nav.db.getConnection('devicemanagement', 'manage')
-    db = dbconn.cursor()
+    db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Get year of first entry in alerthist
     date_options = {}
@@ -83,7 +84,7 @@ def history(req,deviceorderid=None):
         FROM alerthist
     """
     db.execute(sql)
-    row = db.dictfetchall()[0]
+    row = db.fetchall()[0]
     if row['exists']:
         date_options['startyear'] = row['min'].year
 
@@ -880,9 +881,9 @@ FROM
             sql += "OFFSET %s " % (self.limit,)
 
         connection = nav.db.getConnection('devicemanagement','manage')
-        database = connection.cursor()
+        database = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
         database.execute(sql)
-        result = database.dictfetchall()
+        result = database.fetchall()
 
         events = []
         if result:
@@ -904,7 +905,7 @@ SELECT state, var, val
 FROM alerthistvar
 WHERE alerthistid='%s'""" % event.alerthistid
                 database.execute(sql)
-                vars = database.dictfetchall()
+                vars = database.fetchall()
                 if vars:
                     for var in vars:
                         event.addVar(var['var'], var['val'], var['state'])
@@ -916,7 +917,7 @@ FROM alerthistmsg
 WHERE msgtype='sms' AND language='en' AND alerthistid='%s'""" % \
                     event.alerthistid
                 database.execute(sql)
-                msgs = database.dictfetchall()
+                msgs = database.fetchall()
                 if msgs:
                     for msg in msgs:
                         event.addMsg(msg['msg'], msg['state'])

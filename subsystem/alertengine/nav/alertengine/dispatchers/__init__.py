@@ -51,6 +51,7 @@ logger = logging.getLogger('nav.alertengine.dispatchers')
 
 class dispatcher:
     '''Base class for dispatchers'''
+
     def __init__(self, config={}):
         self.config = config
 
@@ -61,10 +62,31 @@ class dispatcher:
         try:
             return alert.messages.get(language=language, type=message_type).message
         except AlertQueueMessage.DoesNotExist:
-            raise FatalDispatcherException("Could not find message with lang=%s and type=%s" % (language, message_type))
+            return self.get_fallback_message(alert, language, message_type)
+
+    def get_fallback_message(self, alert, language, message_type):
+        # Try using longest message in english
+        messages = list(alert.messages.filter(language='en'))
+        messages.sort(key=lambda m: len(m.message))
+
+        if messages:
+            return messages[-1].message
+        else:
+            # Fallback to any message
+            messages = list(alert.messages.all())
+            messages.sort(key=lambda m: len(m.message))
+
+            if messages:
+                return messages[-1].message
+
+        return "%s: No '%s' message for %d" % (alert.netbox, message_type, alert.id)
 
 class DispatcherException(Exception):
+    '''Raised when alert could not be sent temporarily and sending should be
+       retried'''
     pass
 
 class FatalDispatcherException(DispatcherException):
+    '''Raised when alert could not be sent and further attempts at sending
+       should be ditched'''
     pass

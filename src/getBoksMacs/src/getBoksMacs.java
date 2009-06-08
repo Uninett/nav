@@ -275,61 +275,7 @@ class getBoksMacs
 		outl(dumpUsedTime + " ms.");
 
 
-		// Hent alle aktive vlan
-		out("  vlan...");
-		dumpBeginTime = System.currentTimeMillis();
-		// Get VLANs from netbox_vtpvlan and swportvlan, or fall back to using swportallowedvlan
-		{
-			rs = Database.query("SELECT netboxid,vtpvlan FROM netbox_vtpvlan");
-			while (rs.next()) {
-				Set s;
-				String boksid = rs.getString("netboxid");
-				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
-				s.add(new Integer(rs.getInt("vtpvlan")));
-			}
-			Set vtpBoksid = vlanBoksid.keySet();
-			rs = Database.query("SELECT DISTINCT netboxid,vlan.vlan FROM module JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid)");
-			while (rs.next()) {
-				Set s;
-				String boksid = rs.getString("netboxid");
-				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
-				s.add(new Integer(rs.getInt("vlan")));
-			}
-			
-			rs = Database.query("SELECT DISTINCT vlan FROM vlan WHERE vlan IS NOT NULL");
-			List tmp = new ArrayList();
-			while (rs.next()) tmp.add(new Integer(rs.getInt("vlan")));
-			int[] vlanList = new int[tmp.size()];
-			{
-				int i=0;
-				for (Iterator it=tmp.iterator(); it.hasNext(); i++) vlanList[i] = ((Integer)it.next()).intValue();
-			}
-
-			rs = Database.query("SELECT netboxid,hexstring FROM swport JOIN module USING(moduleid) JOIN swportallowedvlan USING (swportid)");
-			while (rs.next()) {
-				String boksid = rs.getString("netboxid");
-				if (!vtpBoksid.contains(boksid)) {
-					Set s;
-					String hexstring = rs.getString("hexstring");
-					if (hexstring == null || hexstring.length() == 0) continue;
-					if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
-					for (int i=0; i < vlanList.length; i++) {
-						if (isAllowedVlan(hexstring, vlanList[i])) {
-							s.add(new Integer(vlanList[i]));
-						}
-					}
-				}
-			}
-		}
-		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");
-		while (rs.next()) {
-			Set s;
-			String boksid = rs.getString("netboxid");
-			if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
-			s.add(new Integer(rs.getInt("vlan")));
-		}
-		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-		outl(dumpUsedTime + " ms.");
+		getActiveVlansFromDB();
 
 
 		// Alt fra swp_boks for duplikatsjekking
@@ -581,6 +527,67 @@ if duplikat
 		System.exit(0);
 
 
+	}
+
+	private static void getActiveVlansFromDB() throws SQLException {
+		long dumpBeginTime;
+		long dumpUsedTime;
+		ResultSet rs;
+		// Hent alle aktive vlan
+		out("  vlan...");
+		dumpBeginTime = System.currentTimeMillis();
+		// Get VLANs from netbox_vtpvlan and swportvlan, or fall back to using swportallowedvlan
+		{
+			rs = Database.query("SELECT netboxid,vtpvlan FROM netbox_vtpvlan");
+			while (rs.next()) {
+				Set s;
+				String boksid = rs.getString("netboxid");
+				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+				s.add(new Integer(rs.getInt("vtpvlan")));
+			}
+			Set vtpBoksid = vlanBoksid.keySet();
+			rs = Database.query("SELECT DISTINCT netboxid,vlan.vlan FROM module JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid)");
+			while (rs.next()) {
+				Set s;
+				String boksid = rs.getString("netboxid");
+				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+				s.add(new Integer(rs.getInt("vlan")));
+			}
+			
+			rs = Database.query("SELECT DISTINCT vlan FROM vlan WHERE vlan IS NOT NULL");
+			List tmp = new ArrayList();
+			while (rs.next()) tmp.add(new Integer(rs.getInt("vlan")));
+			int[] vlanList = new int[tmp.size()];
+			{
+				int i=0;
+				for (Iterator it=tmp.iterator(); it.hasNext(); i++) vlanList[i] = ((Integer)it.next()).intValue();
+			}
+
+			rs = Database.query("SELECT netboxid,hexstring FROM swport JOIN module USING(moduleid) JOIN swportallowedvlan USING (swportid)");
+			while (rs.next()) {
+				String boksid = rs.getString("netboxid");
+				if (!vtpBoksid.contains(boksid)) {
+					Set s;
+					String hexstring = rs.getString("hexstring");
+					if (hexstring == null || hexstring.length() == 0) continue;
+					if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+					for (int i=0; i < vlanList.length; i++) {
+						if (isAllowedVlan(hexstring, vlanList[i])) {
+							s.add(new Integer(vlanList[i]));
+						}
+					}
+				}
+			}
+		}
+		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");
+		while (rs.next()) {
+			Set s;
+			String boksid = rs.getString("netboxid");
+			if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+			s.add(new Integer(rs.getInt("vlan")));
+		}
+		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
+		outl(dumpUsedTime + " ms.");
 	}
 
 	// Lukker records i CAM-tabellen
