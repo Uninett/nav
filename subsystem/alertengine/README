@@ -1,19 +1,31 @@
 What is this?
 =============
-FIXME
+
+This is the AlertEngine daemon, a part of Network Administration
+Visualized.
+
 
 What does it do?
 ================
-FIXME
+
+The AlertEngine is responsible for monitoring the alert queue in NAV's
+database, and dispatching alerts to user's according to the
+subscriptions in their alert profiles.  It currently has the ability
+to dispatch alerts via email, SMS and Jabber.
+
+Much of the subscription profile interpretation logic can be found in
+the profiles Django models, located in
+subsystem/lib-python/nav/models/profiles.py.
 
 Usage
 =====
+
 For more help on usage, run ``alertengine.py --help'' and see the
 alertengine.conf config file.
 
+
 Development
 ===========
+
 All modules and functions are documented with pydoc, and the code is commented
 where required.
-
--- Stein Magnus Jodal <stein.magnus.jodal@uninett.no>, 2007-06-20
