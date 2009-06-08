@@ -16,7 +16,16 @@
 #
 """Storage layer for ipdevpoll"""
 
+import logging
+
+import django.db.models
+
 from nav.models import manage
+from nav import ipdevpoll
+
+# dict structure: { django_model_class: shadow_class }
+shadowed_classes = {}
+
 
 class MetaShadow(type):
     """Metaclass for building storage container classes.
@@ -44,6 +53,8 @@ class MetaShadow(type):
         setattr(cls, '_fields', field_names)
         for f in field_names:
             setattr(cls, f, None)
+
+        shadowed_classes[shadowclass] = cls
 
 class Shadow(object):
     """Base class to shadow Django model classes.
@@ -75,7 +86,13 @@ class Shadow(object):
         as the first argument.  Any keyword arguments will be used to
         initialize the attributes of the container object.
 
+        If an object of a shadowed class is assigned as an attribute's
+        value, the attribute will be changed into a shadowed object.
+        This is to ensure no live Django model objects will live
+        inside the object hierarchy.
+
         """
+        self._logger = ipdevpoll.get_class_logger(self.__class__)
         if args:
             obj = args[0]
             if isinstance(obj, self.__class__.__shadowclass__):
@@ -112,6 +129,17 @@ class Shadow(object):
             self._touched.add(attr)
         except AttributeError:
             pass
+
+        # If the passed value belongs to a shadowed class, replace it
+        # with a shadow object.
+        if value.__class__ in shadowed_classes:
+            shadow = shadowed_classes[value.__class__]
+            value = shadow(value)
+        else:
+            if isinstance(value, django.db.models.Model):
+                self._logger.warning(
+                    "Live model object being added to %r attribute: %r",
+                    value, attr)
         return super(Shadow, self).__setattr__(attr, value)
 
     def get_touched(self):
@@ -123,8 +151,17 @@ class Shadow(object):
         """
         return list(self._touched)
 
+# Shadow classes.  Not all of these will be used to store data, but
+# may be used to retrieve and cache existing database records.
+
 class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
+
+class NetboxType(Shadow):
+    __shadowclass__ = manage.NetboxType
+
+class Vendor(Shadow):
+    __shadowclass__ = manage.Vendor
 
 class Module(Shadow):
     __shadowclass__ = manage.Module
@@ -134,3 +171,15 @@ class Device(Shadow):
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
+
+class Location(Shadow):
+    __shadowclass__ = manage.Location
+
+class Room(Shadow):
+    __shadowclass__ = manage.Room
+
+class Category(Shadow):
+    __shadowclass__ = manage.Category
+
+class Organization(Shadow):
+    __shadowclass__ = manage.Organization
