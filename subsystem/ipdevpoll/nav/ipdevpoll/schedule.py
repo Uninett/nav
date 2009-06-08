@@ -22,6 +22,7 @@ from twisted.internet import reactor, defer, task
 
 from nav import ipdevpoll
 from nav.ipdevpoll.plugins import plugin_registry
+import storage
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class JobHandler(object):
         self.logger.debug("Job %r initialized with plugins: %r",
                           self.name, self.plugins)
         self.plugin_iterator = iter([])
+        self.containers = {}
 
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
@@ -131,6 +133,24 @@ class JobHandler(object):
         # Fire the callback chain
         self.deferred.callback(self)
         return self.deferred
+
+    def container_factory(self, container_class, key):
+        """Container factory function"""
+        if not issubclass(container_class, storage.Shadow):
+            raise ValueError("%s is not a shadow container class" % container_class)
+
+        if container_class not in self.containers or \
+                key not in self.containers[container_class]:
+
+            obj = container_class()
+            if container_class not in self.containers:
+                self.containers[container_class] = {}
+            self.containers[container_class][key] = obj
+
+        else:
+            obj = self.containers[container_class][key]
+
+        return obj
 
 
 class Schedule(object):
