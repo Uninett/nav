@@ -18,7 +18,9 @@
 FIXME
 """
 
+import os
 import logging
+import ConfigParser
 
 import nav.path
 from nav.config import getconfig
@@ -26,13 +28,17 @@ from nav.errors import GeneralException
 
 logger = logging.getLogger(__name__)
 
-def get_jobs():
-    config = getconfig('jobs.conf', configfolder=nav.path.sysconfdir)
+def get_jobs(config=None):
+    if config is None:
+        config = ConfigParser.ConfigParser()
+        config.read([os.path.join(nav.path.sysconfdir, 'jobs.conf'), 'jobs.conf'])
     jobs = {}
 
-    for section,settings in config.items():
-        interval = parse_time(settings.get('interval', ''))
-        plugins  = parse_plugins(settings.get('plugins', ''))
+    for section in config.sections():
+        interval = config.has_option(section, 'interval') and \
+            parse_time(config.get(section, 'interval')) or ''
+        plugins  = config.has_option(section, 'plugins') and \
+            parse_plugins(config.get(section, 'plugins', '')) or ''
 
         if interval and plugins:
             jobs[section] = (interval, plugins)
