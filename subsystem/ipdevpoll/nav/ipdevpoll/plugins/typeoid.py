@@ -34,8 +34,8 @@ from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll.models import Type, OID
 
 class TypeOid(Plugin):
-    def __init__(self, netbox):
-        Plugin.__init__(self, netbox)
+    def __init__(self, *args, **kwargs):
+        Plugin.__init__(self, *args, **kwargs)
         self.deferred = defer.Deferred()
 
     def __cmp__(self, other):

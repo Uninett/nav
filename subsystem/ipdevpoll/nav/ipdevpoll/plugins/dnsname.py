@@ -36,8 +36,8 @@ class DnsName(Plugin):
 
     """Performs reverse DNS lookup on netbox IP address"""
 
-    def __init__(self, netbox):
-        Plugin.__init__(self, netbox)
+    def __init__(self, *args, **kwargs):
+        Plugin.__init__(self, *args, **kwargs)
         self.deferred = defer.Deferred()
 
     @classmethod

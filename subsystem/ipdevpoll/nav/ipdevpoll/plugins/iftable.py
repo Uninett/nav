@@ -30,8 +30,8 @@ from nav.mibs import IfMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 
 class Interfaces(Plugin):
-    def __init__(self, netbox):
-        Plugin.__init__(self, netbox)
+    def __init__(self, *args, **kwargs):
+        Plugin.__init__(self, *args, **kwargs)
         self.deferred = defer.Deferred()
 
     @classmethod

@@ -65,7 +65,7 @@ class JobHandler(object):
 
             # Check if plugin wants to handle the netbox at all
             if plugin_class.can_handle(self.netbox):
-                plugin = plugin_class(self.netbox)
+                plugin = plugin_class(self.netbox, job_handler=self)
                 plugins.append(plugin)
             else:
                 self.logger.debug("Plugin %s wouldn't handle %s",
