@@ -490,8 +490,7 @@ class NetboxType(models.Model):
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = models.CharField(db_column='typename', max_length=-1)
-    sysobject = models.CharField(db_column='sysobjectid',
-        unique=True, max_length=-1)
+    sysobjectid = models.CharField(unique=True, max_length=-1)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
