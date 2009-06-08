@@ -28,7 +28,8 @@
 """Django model to DOT (Graphviz) converter
 by Antonio Cavedoni <antonio@cavedoni.org>
 
-Converted for use in NAV by Thomas Adamcik <thomas.adamcik@uninett.no>
+This version has been modified to specifically work for Network
+Administration Visualized.
 
 Make sure your DJANGO_SETTINGS_MODULE is set to your project or
 place this script in the same directory of the project and call
