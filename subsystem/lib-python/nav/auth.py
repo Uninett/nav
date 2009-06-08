@@ -34,6 +34,14 @@ def hasPrivilege(user, action, target):
     None or an instance of nav.db.navprofiles.Account (e.g. taken from
     req.session['user'])
     """
+    # FIXME This is ugly and probably broke something, but there's not a
+    # pickeled forgetsql object in the session no more.
+    if isinstance(user['login'], unicode):
+        login = str(user['login'])
+    else:
+        login = user['login']
+    user = navprofiles.Account.loadByLogin(login)
+
     if type(user) is navprofiles.Account:
         # Verify that the account object already has cached privilege
         # data; cache them if not.
