@@ -33,14 +33,13 @@ import os
 import sys
 from datetime import datetime
 import md5
+import re
 
 from django.db import models, transaction
 from django.db.models import Q
 
 import nav.path
 import nav.pwhash
-from nav.db.navprofiles import Account as OldAccount
-from nav.auth import hasPrivilege
 from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherException
 
@@ -96,12 +95,24 @@ class Account(models.Model):
         '''Returns the accounts active alert profile'''
         return self.alertpreference.active_profile
 
+    # FIXME Could be prettier
     def has_perm(self, action, target):
         '''Checks user permissions by using legacy NAV hasPrivilege function'''
+        groups = self.accountgroup_set.values_list('id', flat=True)
+        privileges = Privilege.objects.filter(group__in=groups, type__name=action)
 
-        # Simply wrap the hasPrivilege function of non-Django nav.
-        account = OldAccount.loadByLogin(str(self.login))
-        return hasPrivilege(account, action, target)
+        if AccountGroup.ADMIN_GROUP in groups:
+            return True
+        elif privileges.count() == 0:
+            return False
+        elif action == 'web_access':
+            for p in privileges:
+                regexp = re.compile(p.target)
+                if regexp.search(target):
+                    return True
+            return False
+        else:
+            return privileges.filter(target=target).count() > 0
 
     def is_system_account(self):
         return self.id < 1000
