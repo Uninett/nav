@@ -32,6 +32,7 @@ from twisted.python.failure import Failure
 
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll.models import Type, OID
+from nav.mibs import Snmpv2Mib
 
 class TypeOid(Plugin):
     def __init__(self, *args, **kwargs):
@@ -48,7 +49,8 @@ class TypeOid(Plugin):
 
     def handle(self):
         self.logger.debug("Collecting sysObjectId")
-        df = self.netbox.get("typeoid")
+        snmpv2_mib = Snmpv2Mib(self.job_handler.agent)
+        df = snmpv2_mib.get_sysObjectID()
         df.addCallback(self.get_results)
         df.addErrback(self.error)
         return self.deferred
@@ -63,19 +65,11 @@ class TypeOid(Plugin):
         self.deferred.errback(failure)
 
     def get_results(self, result):
-        oid, sysobjectid = result.popitem()
-        sysobjectid = OID(sysobjectid)
-        if sysobjectid in Type.by_sysobjectid:
-            typ = Type.by_sysobjectid[sysobjectid]
-            self.logger.debug("Type is %s", typ)
-            if typ.typeid != self.netbox.typeid:
-                self.logger.warning("Netbox has changed type")
-        else:
-            last_known = Type.all[self.netbox.typeid]
-            self.logger.warning("Type is unknown, sysobjectid: %s.  "
-                                "Last known type is: %s",
-                                sysobjectid, last_known)
+        sysobjectid = result
+        self.logger.debug("sysObjectID is %s" % sysobjectid)
+        if self.netbox.type.sysobjectid != sysobjectid:
+                self.logger.warning("Netbox has changed type from %r",
+                                    self.netbox.type)
         
         self.deferred.callback(True)
         return result
-

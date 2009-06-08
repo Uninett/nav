@@ -26,10 +26,10 @@ from optparse import OptionParser
 
 from twisted.internet import reactor
 
-from nav.ipdevpoll.models import loop_load_models, Netbox
-from nav.ipdevpoll.schedule import Schedule
-from nav.ipdevpoll.plugins import import_plugins
-from nav.ipdevpoll.jobs import get_jobs
+from newmodels import NetboxLoader
+from schedule import Schedule
+from plugins import import_plugins
+from jobs import get_jobs
 
 from nav import buildconf
 
@@ -39,14 +39,16 @@ def start_polling(result=None):
     First time around, all netboxes are polled immediately.
     """
 
-    for netbox in Netbox.all.values():
+    for netbox in netboxes:
         for jobname,(interval,plugins) in get_jobs().items():
             Schedule(jobname, netbox, interval, plugins).start()
 
 def run_poller():
     """Load plugins, set up data caching and polling schedules."""
+    global netboxes
     import_plugins()
-    loop_load_models().addCallback(start_polling)
+    netboxes = NetboxLoader()
+    netboxes.initiate_looping_load().addCallback(start_polling)
 
 def get_parser():
     """Setup and return a command line option parser."""

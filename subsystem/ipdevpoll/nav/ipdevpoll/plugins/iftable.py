@@ -41,7 +41,7 @@ class Interfaces(Plugin):
 
     def handle(self):
         self.logger.debug("Collecting ifTable columns")
-        self.ifmib = IfMib(self.netbox.get_proxy())
+        self.ifmib = IfMib(self.job_handler.agent)
         df = self.ifmib.retrieve_table_columns('ifTable',
             ['ifDescr',
              'ifType',

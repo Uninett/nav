@@ -20,13 +20,15 @@ import logging
 import pprint
 
 from twisted.internet import reactor, defer, task
+from twistedsnmp import snmpprotocol, agentproxy
 
+from nav.util import round_robin
 from nav import ipdevpoll
 from nav.ipdevpoll.plugins import plugin_registry
 import storage
 
 logger = logging.getLogger(__name__)
-
+ports = round_robin([snmpprotocol.port() for i in range(10)])
 
 class JobHandler(object):
 
@@ -51,6 +53,18 @@ class JobHandler(object):
                           self.name, self.plugins)
         self.plugin_iterator = iter([])
         self.containers = {}
+
+        port = ports.next()
+
+        self.agent = agentproxy.AgentProxy(
+            self.netbox.ip, 161,
+            community = self.netbox.read_only,
+            snmpVersion = 'v%s' % self.netbox.snmp_version,
+            protocol = port.protocol,
+        )
+        self.logger.debug("AgentProxy created for %s: %s",
+                          self.netbox.sysname, self.agent)
+
 
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
