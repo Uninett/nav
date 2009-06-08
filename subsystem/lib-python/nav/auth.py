@@ -37,7 +37,7 @@ def hasPrivilege(user, action, target):
     # FIXME This is ugly and probably broke something, but there's not a
     # pickeled forgetsql object in the session no more.
     if isinstance(user['login'], unicode):
-        login = str(user['login'])
+        login = user['login'].encode('utf-8')
     else:
         login = user['login']
     user = navprofiles.Account.loadByLogin(login)
