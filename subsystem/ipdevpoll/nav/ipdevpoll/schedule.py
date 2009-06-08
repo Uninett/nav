@@ -17,6 +17,7 @@
 """Handle scheduling of polling jobs."""
 
 import logging
+import pprint
 
 from twisted.internet import reactor, defer, task
 
@@ -129,7 +130,9 @@ class JobHandler(object):
         This is called after successful poll run.
 
         """
-        self.logger.info("Polling run done")
+        self.logger.info("Job done")
+        self.logger.debug("Containers:\n%s", pprint.pformat(self.containers))
+
         # Fire the callback chain
         self.deferred.callback(self)
         return self.deferred
