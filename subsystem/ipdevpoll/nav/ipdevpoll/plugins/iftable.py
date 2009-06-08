@@ -28,6 +28,7 @@ from twisted.python.failure import Failure
 
 from nav.mibs import IfMib
 from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import storage
 
 class Interfaces(Plugin):
     def __init__(self, *args, **kwargs):
@@ -78,14 +79,42 @@ class Interfaces(Plugin):
         return result
 
     def got_ifxtable(self, result):
+        # Merge the two tables, as they're indexes are the same
         for key in result.keys():
             if key in self.iftable:
                 self.iftable[key].update(result[key])
             else:
                 self.iftable[key] = result.key()
 
-        self.logger.debug('Full table: %s', pprint.pformat(self.iftable))
         # Now save stuff to containers and signal our exit
+        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        netbox.interface_set = []
+        for (ifIndex,),row in self.iftable.items():
+            interface = self.job_handler.container_factory(storage.Interface,
+                                                           key=ifIndex)
+            interface.ifindex = ifIndex
+            interface.ifdescr = row['ifDescr']
+            interface.iftype = row['ifType']
+
+            if row['ifSpeed'] < 2147483647:
+                interface.speed = row['ifSpeed'] / 1000000.0
+            else:
+                interface.speed = float(row['ifHighSpeed'])
+
+            interface.ifphysaddress = binary_mac_to_hex(row['ifPhysAddress'])
+            interface.ifadminstatus = row['ifAdminStatus']
+            interface.ifoperstatus = row['ifOperStatus']
+
+            interface.ifname = row['ifName']
+            interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
+            interface.ifalias = row['ifAlias']
+            
+            netbox.interface_set.append(interface)
+
         self.deferred.callback(True)
         return result
 
+def binary_mac_to_hex(binary_mac):
+    """Convert a binary string MAC address to hex string."""
+    if binary_mac:
+        return ":".join("%02x" % ord(x) for x in binary_mac)
