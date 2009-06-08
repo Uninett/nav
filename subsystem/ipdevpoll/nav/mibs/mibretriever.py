@@ -225,8 +225,17 @@ class MibRetrieverMaker(type):
         node_name -- The name of the scalar node, e.g. ifDescr.
 
         """
+        def result_formatter(result, the_oid):
+            if the_oid in result:
+                return result[the_oid]
+            else:
+                return None
+            
         def getter(self):
-            return self.nodes[node_name].oid
+            the_oid = self.nodes[node_name].oid
+            df = self.agent_proxy.get([the_oid])
+            df.addCallback(result_formatter, the_oid) 
+            return df
         getter.__name__ = node_name
         return getter
 
