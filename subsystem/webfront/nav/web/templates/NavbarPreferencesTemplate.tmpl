@@ -225,7 +225,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
     <tr id="nb-table-$number" class="inactive">
       <td id="nb-cb-$number" nowrap class="inactive" width=0%>
         <input name="$link.id" value="navbar" id="nb-checkbox-$number" type="checkbox" onClick="checkBox(this, 'nb', $number);" class="checkbox" #slurp
-#set $id = "KEY" + str($link._getID()[0])
+#set $id = "KEY" + str($link.id)
 #if $checked.has_key($id) and $checked[$id].count('navbar') then 'checked' else ''# />
       </td>
       <td id="nb-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('nb', $number);">
@@ -250,7 +250,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
     <tr id="ql1-table-$number" class="inactive">
       <td id="ql1-cb-$number" nowrap class="inactive" width=0%>
         <input name="$link.id" value="qlink1" id="ql1-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql1', $number);" class="checkbox" #slurp
-#set $id = "KEY" + str($link._getID()[0])
+#set $id = "KEY" + str($link.id)
 #if $checked.has_key($id) and $checked[$id].count('qlink1') then 'checked' else ''# />
       </td>
       <td id="ql1-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('ql1', $number);">
@@ -277,7 +277,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
     <tr id="ql2-table-$number" class="inactive">
       <td id="ql2-cb-$number" nowrap class="inactive" width=0%>
         <input name="$link.id" value="qlink2" id="ql2-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql2', $number);" class="checkbox" #slurp
-#set $id = "KEY" + str($link._getID()[0])
+#set $id = "KEY" + str($link.id)
 #if $checked.has_key($id) and $checked[$id].count('qlink2') then 'checked' else ''# />
       </td>
       <td id="ql2-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('ql2', $number);">
@@ -308,7 +308,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
     <tr id="nb-table-$number" class="inactive">
       <td id="nb-cb-$number" nowrap class="inactive" width=0%>
         <input name="$link.id" value="navbar" id="nb-checkbox-$number" type="checkbox" onClick="checkBox(this, 'nb', $number);" class="checkbox" #slurp
-#set $id = str($link._getID()[0])
+#set $id = str($link.id)
 #if $checked.has_key("KEY"+$id) and $checked["KEY"+$id].count('navbar') then 'checked' else ''# />
       </td>
       <td id="nb-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('nb', $number);">
@@ -338,7 +338,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
     <tr id="ql1-table-$number" class="inactive">
       <td id="ql1-cb-$number" nowrap class="inactive" width=0%>
         <input name="$link.id" value="qlink1" id="ql1-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql1', $number);" class="checkbox" #slurp
-#set $id = str($link._getID()[0])
+#set $id = str($link.id)
 #if $checked.has_key("KEY" + $id) and $checked["KEY" + $id].count('qlink1') then 'checked' else ''# />
       </td>
       <td nowrap id="ql1-tx-$number" class="inactive" width=100% onclick="clickBox('ql1', $number);">
@@ -368,7 +368,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
     <tr id="ql2-table-$number" class="inactive">
       <td id="ql2-cb-$number" nowrap class="inactive" width=0%>
         <input name="$link.id" value="qlink2" id="ql2-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql2', $number);" class="checkbox" #slurp
-#set $id = str($link._getID()[0])
+#set $id = str($link.id)
 #if $checked.has_key("KEY" + $id) and $checked["KEY" + $id].count('qlink2') then 'checked' else ''# />
       </td>
       <td id="ql2-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('ql2', $number);">

@@ -16,42 +16,49 @@
 #
 from mod_python import apache
 
-import nav
-
-from nav.web.preferences import Preferences, Link
-from nav.db.navprofiles import Account, Accountnavbar, Navbarlink
+from nav.web import redirect
+from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
 def _force_reload_of_user_preferences(req):
   if hasattr(req.session['user'], "preferences"):
-    del req.session['user'].preferences
+    del req.session['user']['preferences']
     req.session.save()
 
 def _find_pref_user():
   from nav.web.templates.MainTemplate import MainTemplate
   user = MainTemplate.user
-  if user.id == 1:
+  if user['id'] == 1:
     # admin changes default user preferences
-    user = Account(0)
+    user = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
   return user
 
 def _find_user_preferences(user, req):
   if not hasattr(user, "preferences"):
     # if user preferences is not loaded, it's time to do so
-    user.preferences = Preferences()
-    conn = nav.db.getConnection('navprofile', 'navprofile')
-    prefs = user.getChildren(Accountnavbar)
+    user['preferences'] = {
+        'navbar': [],
+        'qlink1': [],
+        'qlink2': [],
+    }
+    prefs = AccountNavbar.objects.select_related(
+        'navbarlink'
+    ).filter(account__id=user['id'])
     if not prefs:
       # if user has no preferences set, use default preferences
-      default = Account(0)
-      prefs = default.getChildren(Accountnavbar)
+      prefs = AccountNavbar.objects.select_related(
+        'navbarlink'
+      ).filter(account__id=Account.DEFAULT_ACCOUNT)
     for pref in prefs:
-      link = Navbarlink(pref.navbarlink)
+      link = {
+        'name': pref.navbarlink.name,
+        'uri': pref.navbarlink.uri,
+      }
       if pref.positions.count('navbar'): # does 'positions'-string contain 'navbar'
-        user.preferences.navbar.append(Link(link.name, link.uri))
+        user['preferences']['navbar'].append(link)
       if pref.positions.count('qlink1'): # does 'positions'-string contain 'qlink1'
-        user.preferences.qlink1.append(Link(link.name, link.uri))
+        user['preferences']['qlink1'].append(link)
       if pref.positions.count('qlink2'): # does 'positions'-string contain 'qlink2'
-        user.preferences.qlink2.append(Link(link.name, link.uri))
+        user['preferences']['qlink2'].append(link)
     req.session.save() # remember this to next time
 
 def index(req):
@@ -59,37 +66,44 @@ def index(req):
   template = NavbarPreferencesTemplate()
   template.path = [("Home", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
   template.title = "Navigation preferences"
+
   req.content_type = "text/html"
   req.send_http_header()
+
   user = _find_pref_user()
   if not hasattr(user, "preferences"):
     _find_user_preferences(user, req)
-  default = Account(0)
+
   template.user = user
-  template.homemadelinks = user.getChildren(Navbarlink)
-  if not user.id == default.id:
-    template.defaultlinks = default.getChildren(Navbarlink)
+  template.homemadelinks = NavbarLink.objects.filter(account__id=user['id'])
+  if not user['id'] == Account.DEFAULT_ACCOUNT:
+    template.defaultlinks = NavbarLink.objects.filter(account__id=Account.DEFAULT_ACCOUNT)
   else:
     template.defaultlinks = False
-  accountnavbars = user.getChildren(Accountnavbar)
+
+  accountnavbars = AccountNavbar.objects.filter(account__id=user['id'])
   if not accountnavbars:
     # if user has no preferences set, make them according to default user
-    conn = nav.db.getConnection('navprofile', 'navprofile')
-    for pref in default.getChildren(Accountnavbar):
-      newpref = Accountnavbar()
-      newpref.account = user.id
-      newpref.navbarlink = pref.navbarlink
-      newpref.positions = pref.positions
+    prefs = AccountNavbar.objects.select_related(
+        'navbarlink'
+    ).filter(account__id=Account.DEFAULT_ACCOUNT)
+    for pref in prefs:
+      newpref = AccountNavbar(
+        account_id=user['id'],
+        navbarlink=pref.navbarlink,
+        positions=pref.positions
+      )
       newpref.save()
-    conn.commit()
-    accountnavbars = user.getChildren(Accountnavbar)
+    accountnavbars = AccountNavbar.objects.filter(account__id=user['id'])
+
   checked = {}
   for an in accountnavbars:
-    checked['KEY' + str(an._getID()[1])] = an.positions
+    checked['KEY' + str(an.navbarlink.id)] = an.positions
     if (not checked.has_key('qlink1')) and an.positions.count('qlink1'):
       checked['qlink1'] = True
     if (not checked.has_key('qlink2')) and an.positions.count('qlink2'):
       checked['qlink2'] = True
+
   template.checked = checked
   req.write(template.respond())
   return " "
@@ -102,7 +116,7 @@ def newlink(req):
   req.send_http_header()
   template.link = False
   user = _find_pref_user()
-  if user.id == 0:
+  if user['id'] == 0:
     template.type = "default"
   req.write(template.respond())
   return " "
@@ -113,67 +127,62 @@ def editlink(req, id):
   template.path = [("Home", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
   req.content_type = "text/html"
   req.send_http_header()
-  conn = nav.db.getConnection('navprofile', 'navprofile')
-  template.link = Navbarlink(id)
+  template.link = NavbarLink.objects.get(id=id)
   user = _find_pref_user()
-  if user.id == 0:
+  if user['id'] == 0:
     template.type = "default"
   req.write(template.respond())
   return " "
 
 def deletelink(req, id):
-  conn = nav.db.getConnection('navprofile', 'navprofile')
   user = _find_pref_user()
-  link = Navbarlink(id)
-  if link.account == user.id or link.account.id == user.id:
+  link = NavbarLink.objects.get(id=id)
+  if link.account_id == user['id']:
     link.delete()
     _force_reload_of_user_preferences(req)
-    conn.commit()
-  return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
+  return redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def saveprefs(req):
-  conn = nav.db.getConnection('navprofile', 'navprofile')
   user = _find_pref_user()
   # first delete all preferences
-  for oldpref in user.getChildren(Accountnavbar):
+  prefs = AccountNavbar.objects.filter(account=user['id'])
+  for oldpref in prefs:
     oldpref.delete()
   # then set the new ones
   for key in req.form.keys():
-    newpref = Accountnavbar()
-    newpref.account = user.id
-    newpref.navbarlink = key
-    newpref.positions = str(req.form[key])
+    newpref = AccountNavbar(
+        account_id=user['id'],
+        navbarlink_id=key,
+        positions=str(req.form[key]),
+    )
     newpref.save()
   _force_reload_of_user_preferences(req)
-  conn.commit()
-  return nav.web.redirect(req, "/", seeOther=True)
+  return redirect(req, "/", seeOther=True)
 
 def savenewlink(req, name, url, usein):
-  conn = nav.db.getConnection('navprofile', 'navprofile')
   user = _find_pref_user()
-  newlink = Navbarlink()
-  newlink.account = user.id
-  newlink.name = name
-  newlink.uri = url
+  newlink = NavbarLink(
+    account_id=user['id'],
+    name=name,
+    uri=url,
+  )
   newlink.save()
   if 'navbar qlink1 qlink2'.count(usein):
-    newuse = Accountnavbar()
-    newuse.account = user.id
-    newuse.navbarlink = newlink.id
-    newuse.positions = usein
+    newuse = AccountNavbar(
+        account_id=user['id'],
+        navbarlink=newlink,
+        positions=usein,
+    )
     newuse.save()
   _force_reload_of_user_preferences(req)
-  conn.commit()
-  return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
+  return redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def updatelink(req, id, name, url):
-  conn = nav.db.getConnection('navprofile', 'navprofile')
   user = _find_pref_user()
-  changedlink = Navbarlink(id)
-  if changedlink.account == user.id or changedlink.account.id == user.id:
+  changedlink = NavbarLink.objects.get(id=id)
+  if changedlink.account_id == user['id']:
     changedlink.name = name
     changedlink.uri = url
     changedlink.save()
     _force_reload_of_user_preferences(req)
-    conn.commit()
-  return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
+  return redirect(req, "/preferences/navigation/navigation", seeOther=True)
