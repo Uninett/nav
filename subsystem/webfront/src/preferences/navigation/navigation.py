@@ -157,7 +157,7 @@ def saveprefs(req):
     )
     newpref.save()
   _force_reload_of_user_preferences(req)
-  return redirect(req, "/", seeOther=True)
+  return redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def savenewlink(req, name, url, usein):
   user = _find_pref_user()
