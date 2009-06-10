@@ -22,9 +22,9 @@ from django.conf.urls.defaults import *
 from nav.web.webfront.views import *
 
 urlpatterns = patterns('',
-    url(r'^$', 'index',
+    url(r'^$', index,
         name='webfront-index'),
-    url(r'^index/', 'index',
+    url(r'^index/', index,
         name='webfront-index-index'),
     url(r'^login/', 'login',
         name='webfront-login'),
