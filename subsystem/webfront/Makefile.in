@@ -17,7 +17,7 @@ top_srcdir = @top_srcdir@
 # Files
 INITFILES =
 BINS = navTemplate.py
-LIBS = $(wildcard nav/web/*.py) nav/web/templates/__init__.py
+LIBS = $(wildcard nav/web/*.py nav/django/urls/*.py nav/web/webfront/*.py) nav/web/templates/__init__.py
 CONFFILES_SRC = $(wildcard config/webfront/*.txt config/webfront/*.conf) config/webfront/webfront.conf
 CONFFILES = $(CONFFILES_SRC:config/%=%)
 TOOLS =
@@ -62,8 +62,9 @@ install-conf:
 	done
 
 install-web: install-media
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/.htaccess
 	@cd src; \
-	installable=`find . -name '*.py' -or -name '.htaccess' -or -name '*.html'`; \
+	installable=`find . -name '*.py' -or -name '*.html'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done
