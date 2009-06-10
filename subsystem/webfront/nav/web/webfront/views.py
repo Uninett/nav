@@ -17,12 +17,14 @@
 
 import os
 from ConfigParser import ConfigParser
+from datetime import datetime
 
 from django.template import RequestContext
 
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.models.profiles import Account
+from nav.models.manage import Netbox
 
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down
@@ -46,17 +48,26 @@ def index(request):
     # Read nav-links
     config = ConfigParser()
     config.read(NAV_LINKS_PATH)
-    links = config.items('Links')
+    nav_links = config.items('Links')
+
+    down = boxes_down()
+    num_shadow = 0
+    for box in down:
+        if box.netbox.up == Netbox.UP_SHADOW:
+            num_shadow += 1
 
     return render_to_response(
         DjangoCheetah,
         'webfront/index.html',
         {
+            'date_now': datetime.today(),
             'external_links': external_links,
             'contact_information': contact_information,
             'welcome': welcome,
+            'nav_links': nav_links,
             'current_messages': current_messages(),
-            'boxes_down': boxes_down(),
+            'boxes_down': down,
+            'num_shadow': num_shadow,
         },
         RequestContext(request)
     )

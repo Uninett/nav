@@ -1,7 +1,41 @@
 {% extends "base.html" %}
 
 {% block base_content %}
-{{ welcome|safe }}
+
+<div class="boxes">
+    <table>
+        <tr>
+            <th>NAV Links</th>
+        </tr>
+        <tr>
+            <td>
+                {% for title,link in nav_links %}
+                <a href="{{ link }}">{{ title }}</a><br />
+                {% endfor %}
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>External links</th>
+        </tr>
+        <tr>
+            <td>{{ external_links|safe }}</td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>Contact information</th>
+        </tr>
+        <tr>
+            <td>{{ contact_information|safe }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="welcome">
+    {{ welcome|safe }}
+</div>
 
 <table class="listtable">
     <caption>
@@ -37,6 +71,8 @@
     <caption>
         <a href="/status/">Status now</a><br />
         <span class="subtitle">
+            {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
+            {{ num_shadow }} in shadow.
         </span>
     </caption>
 
@@ -55,7 +91,7 @@
             <td>{{ b.netbox.sysname }}</td>
             <td>{{ b.netbox.ip }}</td>
             <td>{{ b.start_time }}</td>
-            <td>Some time</td>
+            <td>{{ b.start_time|timesince:date_now }}</td>
         </tr>
         {% endfor %}
     </tbody>
