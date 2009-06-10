@@ -26,7 +26,7 @@ urlpatterns = patterns('',
         name='webfront-index'),
     url(r'^index/', 'index',
         name='webfront-index-index'),
-    url(r'^login/', 'login'
+    url(r'^login/', 'login',
         name='webfront-login'),
     url(r'^about/', 'about',
         name='webfront-about'),
