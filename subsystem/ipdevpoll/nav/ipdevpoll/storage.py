@@ -151,6 +151,26 @@ class Shadow(object):
         """
         return list(self._touched)
 
+def shadowify(model):
+    """Return a properly shadowed version of a Django model object.
+
+    If no shadow class exists for the object's class, the original
+    object is returned as-is.
+
+    """
+    cls = model.__class__
+    if cls in shadowed_classes:
+        new_cls = shadowed_classes[cls]
+        model = new_cls(model)
+    return model
+
+def shadowify_queryset(queryset):
+    """Run a Django queryset and transform results to shadow containers."""
+    result = list(queryset)
+    new_list = [shadowify(obj) for obj in result]
+    return new_list
+
+
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
 
