@@ -78,6 +78,7 @@ class Shadow(object):
     """
     __shadowclass__ = None
     __metaclass__ = MetaShadow
+    __lookups__ = []
 
     def __init__(self, *args, **kwargs):
         """Initialize a shadow container.
@@ -151,6 +152,55 @@ class Shadow(object):
         """
         return list(self._touched)
 
+    def get_model(self):
+        """Return a live Django model object based on the data of this one.
+        
+        If this shadow object represents something that is already in
+        the database, the existing database object will be retrieved
+        synchronously, and its attributes modified with the contents
+        of the touched attributes of the shadow object.
+
+        """
+        # Get existing or create new instance
+        model = self.get_existing_model() or self.__shadowclass__()
+
+        # Copy all modified attributes to the empty model object
+        for attr in self._touched:
+            # FIXME Must have some intelligence here.  If the value is
+            # a shadowed object, this too must be transformed into a
+            # model object.
+            value = getattr(self, attr)
+            setattr(model, attr, value)
+        return model
+
+    def get_existing_model(self):
+        """Return an existing live Django model object.
+
+        If the object represented by this shadow already exists in the
+        database, this method will return it from the database.  If
+        such an object doesn't exist, the None value will be returned.
+
+        TODO:  Allow multi-field lookups (fields listed in a tuple)
+        """
+        # Find out which attribute is the primary key, add it to the
+        # list of lookup fields
+        pk_attr = self.__shadowclass__._meta.pk.name
+        lookups = [pk_attr] + self.__lookups__
+        
+        # Try each lookup field and see which one corresponds to
+        # something in the a database, if any
+        for lookup in lookups:
+            value = getattr(self, lookup)
+            if value is not None:
+                kwargs = {lookup: value}
+                try:
+                    model = self.__shadowclass__.objects.get(**kwargs)
+                except self.__shadowclass__.DoesNotExist, e:
+                    pass
+                else:
+                    return model
+
+
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
 
@@ -176,6 +226,7 @@ def shadowify_queryset(queryset):
 
 class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
+    __lookups__ = ['sysname', 'ip']
 
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
