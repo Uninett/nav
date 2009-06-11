@@ -71,3 +71,15 @@ def index(request):
         },
         RequestContext(request)
     )
+
+def about(request):
+    return render_to_response(
+        DjangoCheetah,
+        'webfront/about.html',
+        {},
+        RequestContext(request),
+        path=[
+            ('Home', '/'),
+            ('About', None),
+        ]
+    )
