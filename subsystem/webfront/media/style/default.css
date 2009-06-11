@@ -163,6 +163,39 @@ div#navpath {
 	padding: 0.5em 0;
 }
 
+/* Toolbar */
+div#toolbar {
+	position: relative;
+	margin-bottom: 2em;
+}
+
+div#toolbar div {
+	border: 1px solid #999;
+	background-color: #eee;
+	padding: 0.2em 0;
+}
+
+div#toolbar ul {
+	list-style-type: none;
+}
+
+div#toolbar ul li {
+	margin: 0;
+	padding: 0;
+	display: inline;
+}
+
+div#toolbar a:link .tool_name, div#toolbar a:visited .tool_name {
+	display: none;
+}
+
+div#toolbar a:hover .tool_name, div#toolbar a:active .tool_name {
+	display: block;
+	position: absolute;
+	bottom: 0.3em;
+	left: 0.5em;
+}
+
 /* Content section */
 div#navbody {
 }

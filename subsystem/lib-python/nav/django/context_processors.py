@@ -21,6 +21,7 @@ from django.conf import settings
 
 from nav.django.utils import get_account, is_admin
 from nav.web.message import new_message, Messages
+from nav.web.webfront.utils import tool_list
 
 def debug(request):
     """Returns context variables helpful for debugging.
@@ -55,3 +56,5 @@ def account_processor(request):
         'messages': messages,
     }
 
+def toolbox(request):
+    return {'tools': tool_list(get_account(request))}
