@@ -86,8 +86,17 @@ class Account(models.Model):
     # FIXME Could be prettier
     def has_perm(self, action, target):
         '''Checks user permissions by using legacy NAV hasPrivilege function'''
-        groups = self.accountgroup_set.values_list('id', flat=True)
-        privileges = Privilege.objects.filter(group__in=groups, type__name=action)
+        try:
+            groups = self._cached_groups
+        except AttributeError:
+            groups = self.accountgroup_set.values_list('id', flat=True)
+            self._cached_groups = groups
+
+        try:
+            privileges = self._cached_privileges
+        except AttributeError:
+            privileges = Privilege.objects.filter(group__in=groups, type__name=action)
+            self._cached_privileges = privileges
 
         if AccountGroup.ADMIN_GROUP in groups:
             return True
