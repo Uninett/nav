@@ -274,7 +274,7 @@ class MibRetriever(object):
         super(MibRetriever, self).__init__()
         self.agent_proxy = agent_proxy
 
-    def retrieve_table_column(self, column_name):
+    def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.
 
         Returns a deferred whose result is a dictionary: 
@@ -301,17 +301,19 @@ class MibRetriever(object):
         deferred.addCallback(resultFormatter)
         return deferred
 
-    def retrieve_table_columns(self, table_name, column_names):
-        """Retrieve a subset of a MIB table's columns.
+    def retrieve_columns(self, column_names):
+        """Retrieve a set of table columns.
         
+        The table columns may come from different tables, as long as
+        the table rows are indexed the same way.
+
         Returns a deferred whose result is a dictionary:
   
           { row_index: MibTableResultRow instance }
 
         """
-        table = self.tables[table_name]
         def sortkey(col):
-            return table.column_index[col]
+            return self.nodes[col].oid
         columns = iter(sorted(column_names, key=sortkey))
 
         final_result = {}
@@ -332,7 +334,7 @@ class MibRetriever(object):
             except StopIteration:
                 my_deferred.callback(final_result)
                 return
-            deferred = self.retrieve_table_column(column)
+            deferred = self.retrieve_column(column)
             deferred.addCallback(result_aggregate, column)
             deferred.addCallback(schedule_next)
 
