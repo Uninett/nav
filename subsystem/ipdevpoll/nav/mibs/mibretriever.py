@@ -30,11 +30,14 @@ this to allow asynchronous data retrieval.
 
 """
 
+import logging
 import operator
 from pysnmp.asn1.oid import OID
 from twisted.internet import defer, reactor
 
 from nav.errors import GeneralException
+
+logger = logging.getLogger(__name__)
 
 class MibRetrieverError(GeneralException):
     """MIB retriever error"""
@@ -227,11 +230,16 @@ class MibRetrieverMaker(type):
         """
         def result_formatter(result, the_oid):
             if the_oid in result:
+                logger.debug("%s query result: %r",
+                             node_name, result)
                 return result[the_oid]
             else:
+                logger.debug("%s was not in the result: %r", 
+                             node_name, result)
                 return None
             
         def getter(self):
+            logger.debug("Retrieving scalar value %s", node_name)
             the_oid = self.nodes[node_name].oid
             df = self.agent_proxy.get([the_oid])
             df.addCallback(result_formatter, the_oid) 
