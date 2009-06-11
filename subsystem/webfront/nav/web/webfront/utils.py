@@ -15,10 +15,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 from datetime import datetime
 
 from django.db.models import Q
 
+from nav.web import webfrontConfig
+from nav.config import readConfig
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
@@ -57,3 +60,42 @@ def boxes_down():
         event_type='boxState'
     ).order_by('-start_time')
     return boxes_down
+
+def tool_list(account):
+    def load_tool(filename):
+        if filename[0] != os.sep:
+            filename = os.path.join(os.getcwd(), filename)
+        tool = readConfig(filename)
+        if tool.has_key('priority'):
+            tool['priority'] = int(tool['priority'])
+        else:
+            tool['priority'] = 0
+        return tool
+
+    def compare_tools(x, y):
+        # Do a standard comparison of priority values (to accomplish an
+        # ascendingg sort, we negate the priorities)
+        ret = cmp(-x['priority'], -y['priority'])
+        # If priorities were equal, sort by name instead
+        if not ret:
+            ret = cmp(x['name'].upper(), y['name'].upper())
+        return ret
+
+    paths = {}
+    if webfrontConfig.has_option('toolbox', 'path'):
+        paths = webfrontConfig.get('toolbox', 'path').split(os.pathsep)
+    else:
+        return None
+    
+    list = []
+    for path in paths:
+        if os.access(path, os.F_OK):
+            filelist = os.listdir(path)
+            for filename in filelist:
+                if filename[-5:] == '.tool':
+                    fullpath = os.path.join(path, filename)
+                    tool = load_tool(fullpath)
+                    if account.has_perm('web_access', tool['uri']):
+                        list.append(tool)
+    list.sort(compare_tools)
+    return list

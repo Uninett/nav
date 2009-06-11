@@ -23,11 +23,12 @@ from django.template import RequestContext
 
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
+from nav.django.utils import get_account
 from nav.models.profiles import Account
 from nav.models.manage import Netbox
 
 from nav.web.templates.DjangoCheetah import DjangoCheetah
-from nav.web.webfront.utils import quick_read, current_messages, boxes_down
+from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
@@ -81,5 +82,21 @@ def about(request):
         path=[
             ('Home', '/'),
             ('About', None),
+        ]
+    )
+
+def toolbox(request):
+    account = get_account(request)
+    tools = tool_list(account)
+    return render_to_response(
+        DjangoCheetah,
+        'webfront/toolbox.html',
+        {
+            'tools': tools,
+        },
+        RequestContext(request),
+        path=[
+            ('Home', '/'),
+            ('Toolbox', None),
         ]
     )

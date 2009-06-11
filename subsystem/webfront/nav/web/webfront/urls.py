@@ -30,6 +30,6 @@ urlpatterns = patterns('',
         name='webfront-login'),
     url(r'^about/', about,
         name='webfront-about'),
-    url(r'^toolbox/', 'toolbox',
+    url(r'^toolbox/', toolbox,
         name='webfront-toolbox'),
 )
