@@ -218,8 +218,11 @@ class MibRetrieverMaker(type):
         """Make a get_* method for every scalar MIB node."""
         for node in cls.nodes.values():
             if node.raw_mib_data['nodetype'] == 'scalar':
-                setattr(cls, 'get_%s' % node.name, 
-                        MibRetrieverMaker.__scalar_getter(node.name))
+                method_name = 'get_%s' % node.name
+                # Only create method if a custom one was not present
+                if not hasattr(cls, method_name):
+                    setattr(cls, method_name,
+                            MibRetrieverMaker.__scalar_getter(node.name))
     
     @staticmethod
     def __scalar_getter(node_name):
@@ -292,7 +295,7 @@ class MibRetriever(object):
         """
         node = self.nodes[column_name]
         if node.raw_mib_data['nodetype'] != 'column':
-            raise MibRetrieverError("%s is not a table column" % column_name)
+            logger.debug("%s is not a table column", column_name)
         
         def resultFormatter(result):
             formatted_result = {}
