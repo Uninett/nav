@@ -27,12 +27,13 @@ TODO: If netbox type has changed, NAVdb needs to be updated, an event
 import logging
 import pprint
 
-from twisted.internet import defer
+from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin, FatalPluginError, storage
 from nav.ipdevpoll.models import Type, OID
 from nav.mibs import Snmpv2Mib
+from nav.models import manage
 
 class TypeOid(Plugin):
     def __init__(self, *args, **kwargs):
@@ -47,13 +48,43 @@ class TypeOid(Plugin):
     def can_handle(self, netbox):
         return True
 
+    @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting sysObjectId")
         snmpv2_mib = Snmpv2Mib(self.job_handler.agent)
-        df = snmpv2_mib.get_sysObjectID()
-        df.addCallback(self.get_results)
-        df.addErrback(self.error)
-        return self.deferred
+        thing = defer.waitForDeferred(
+            snmpv2_mib.retrieve_column('sysObjectID'))
+        yield thing
+
+        thing = thing.getResult()
+        # Just pick the first result, there should never really be multiple
+        sysobjectid = str( OID(thing.values()[0]) )
+        # ObjectIDs in the database are stored without the preceding dot.
+        if sysobjectid[0] == '.':
+            sysobjectid = sysobjectid[1:]
+
+        
+        self.logger.debug("sysObjectID is %s", sysobjectid)
+        if self.netbox.type.sysobjectid != str(sysobjectid):
+            self.logger.warning("Netbox has changed type from %r",
+                                self.netbox.type)
+
+        # Look up existing type
+        types = manage.NetboxType.objects.filter(sysobjectid=str(sysobjectid))
+        thing = defer.waitForDeferred(
+            threads.deferToThread(storage.shadowify_queryset, types))
+        yield thing
+        types = thing.getResult()
+
+        # Set the found type
+        if not types:
+            self.logger.warn("sysObjectID %r is unknown to NAV", sysobjectid)
+        else:
+            type_ = types[0]
+            netbox_container = self.job_handler.container_factory(
+                storage.Netbox, key=None)
+            netbox_container.type = type_
+        yield True
 
     def error(self, failure):
         failure.trap(defer.TimeoutError)
@@ -63,13 +94,3 @@ class TypeOid(Plugin):
         exc = FatalPluginError("Cannot continue due to device timeouts")
         failure = Failure(exc)
         self.deferred.errback(failure)
-
-    def get_results(self, result):
-        sysobjectid = result
-        self.logger.debug("sysObjectID is %s" % sysobjectid)
-        if self.netbox.type.sysobjectid != sysobjectid:
-                self.logger.warning("Netbox has changed type from %r",
-                                    self.netbox.type)
-        
-        self.deferred.callback(True)
-        return result
