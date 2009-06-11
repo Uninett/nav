@@ -40,17 +40,21 @@ class Interfaces(Plugin):
         return True
 
     def handle(self):
-        self.logger.debug("Collecting ifTable columns")
+        self.logger.debug("Collecting interface data")
         self.ifmib = IfMib(self.job_handler.agent)
-        df = self.ifmib.retrieve_table_columns('ifTable',
-            ['ifDescr',
-             'ifType',
-             'ifSpeed',
-             'ifPhysAddress',
-             'ifAdminStatus',
-             'ifOperStatus',
-             ])
-        df.addCallback(self.got_iftable)
+        df = self.ifmib.retrieve_columns([
+                'ifDescr',
+                'ifType',
+                'ifSpeed',
+                'ifPhysAddress',
+                'ifAdminStatus',
+                'ifOperStatus',
+                'ifName',
+                'ifHighSpeed',
+                'ifConnectorPresent',
+                'ifAlias',
+                ])
+        df.addCallback(self.got_interfaces)
         df.addErrback(self.error)
         return self.deferred
 
@@ -63,33 +67,13 @@ class Interfaces(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
-    def got_iftable(self, result):
-        self.iftable = result
+    def got_interfaces(self, result):
         self.logger.debug("Found %d interfaces", len(result))
-        #self.logger.debug('Results: %s', pprint.pformat(result))
-        self.logger.debug("Collecting ifXTable columns")
-        df = self.ifmib.retrieve_table_columns('ifXTable',
-            ['ifName',
-             'ifHighSpeed',
-             'ifConnectorPresent',
-             'ifAlias',
-             ])
-        df.addCallback(self.got_ifxtable)
-        df.addErrback(self.error)
-        return result
-
-    def got_ifxtable(self, result):
-        # Merge the two tables, as they're indexes are the same
-        for key in result.keys():
-            if key in self.iftable:
-                self.iftable[key].update(result[key])
-            else:
-                self.iftable[key] = result.key()
 
         # Now save stuff to containers and signal our exit
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
         netbox.interface_set = []
-        for (ifIndex,),row in self.iftable.items():
+        for (ifIndex,),row in result.items():
             interface = self.job_handler.container_factory(storage.Interface,
                                                            key=ifIndex)
             interface.ifindex = ifIndex
