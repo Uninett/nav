@@ -1,5 +1,7 @@
 {% block base_toolbar %}
-    {% include "toolbar.html" %}
+    {% if available_tools %}
+        {% include "toolbar.html" %}
+    {% endif %}
 {% endblock %}
 
 {% block base_content %}

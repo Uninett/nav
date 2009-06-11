@@ -57,4 +57,4 @@ def account_processor(request):
     }
 
 def toolbox(request):
-    return {'tools': tool_list(get_account(request))}
+    return {'available_tools': tool_list(get_account(request))}

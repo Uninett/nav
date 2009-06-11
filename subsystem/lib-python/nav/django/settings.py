@@ -48,7 +48,6 @@ TEMPLATE_DIRS = (
 TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
-    'nav.django.context_processors.toolbox',
 )
 
 # Email sending
