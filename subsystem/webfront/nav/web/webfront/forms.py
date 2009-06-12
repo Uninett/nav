@@ -15,21 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""Django URL configuration for webfront"""
+from django import forms
 
-from django.conf.urls.defaults import *
-
-from nav.web.webfront.views import *
-
-urlpatterns = patterns('',
-    url(r'^$', index,
-        name='webfront-index'),
-    url(r'^index/index/', index,
-        name='webfront-index-index'),
-    url(r'^index/login/', login,
-        name='webfront-login'),
-    url(r'^about/', about,
-        name='webfront-about'),
-    url(r'^toolbox/', toolbox,
-        name='webfront-toolbox'),
-)
+class LoginForm(forms.Form):
+    username = forms.CharField(label='Username')
+    password = forms.CharField(label='Password',
+        widget=forms.widgets.PasswordInput(render_value=False))
