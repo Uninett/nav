@@ -9,7 +9,7 @@
         </tr>
         <tr>
             <td>
-                {% for title,link in nav_links %}
+                {% for title,link in nav_links.items %}
                 <a href="{{ link }}">{{ title }}</a><br />
                 {% endfor %}
             </td>

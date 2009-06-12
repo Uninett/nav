@@ -22,6 +22,7 @@ from datetime import datetime
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
+from nav.config import readConfig
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
@@ -51,9 +52,7 @@ def index(request):
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
     # Read nav-links
-    config = ConfigParser()
-    config.read(NAV_LINKS_PATH)
-    nav_links = config.items('Links')
+    nav_links = readConfig(NAV_LINKS_PATH)
 
     down = boxes_down()
     num_shadow = 0
