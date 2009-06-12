@@ -30,6 +30,7 @@ from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 
 from nav.web import ldapAuth
+from nav.web.state import deleteSessionCookie
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 from nav.web.webfront.forms import LoginForm
 
