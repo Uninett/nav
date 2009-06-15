@@ -130,7 +130,6 @@ class NAVDBQueue(object):
         message is a tuple with the ID, text, and severity of the message.
         """
 
-        messages = []
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
@@ -141,6 +140,35 @@ class NAVDBQueue(object):
             ORDER BY severity DESC, time ASC"""
         db.execute(sql, data)
         result = db.fetchall()
+        # Rollback so we don't have old open transactions which foobars the
+        # usage of now() in setsentstatus()
+        dbconn.rollback()
+
+        return result
+
+    def getmsgs(self, sent = 'N'):
+        """
+        Get all messages with given sent status (normally unsent).
+
+        Returns a list of dictionaries containing messages details of SMS in
+        queue with the specified status.
+        """
+
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        data = { 'sent': sent }
+        sql = """SELECT smsq.id as smsqid, name, msg, time 
+            FROM smsq 
+            JOIN account ON (account.id = smsq.accountid) 
+            WHERE sent = %(sent)s ORDER BY time ASC"""
+        db.execute(sql, data)
+        
+        result = []
+        for (smsqid, name, msg, time) in db.fetchall():
+            result.append({ 'id': smsqid, 'name': name, 'msg': msg, \
+                    'time': time.strftime("%Y-%m-%d %H:%M") })
+
         # Rollback so we don't have old open transactions which foobars the
         # usage of now() in setsentstatus()
         dbconn.rollback()
