@@ -22,23 +22,12 @@ import sys, os, re
 import nav
 import logging
 
+from django.core.handlers.modpython import ModPythonRequest
+
+from nav.web import state, ldapAuth
 from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
 logger = logging.getLogger("nav.web.auth")
-
-def checkAuthorization(user, uri):
-    """
-    Check whether the given user object is authorized to access the
-    specified URI)
-    """
-    # First make sure we are connected to the navprofile database.
-#    conn = db.getConnection('navprofile', 'navprofile')
-#    cursor = conn.cursor()
-
-    # When the connection has been made, we make use of the privilege
-    # system to discover whether the user has access to this uri or
-    # not.
-    return Account.objects.get(id=user['id']).has_perm('web_access', uri)
 
 def redirectToLogin(req):
     """
@@ -47,6 +36,8 @@ def redirectToLogin(req):
     from nav import web
     web.redirect(req, '/index/login?origin=%s' % urllib.quote(req.unparsed_uri), temporary=True)
 
+# FIXME Should probably be refactored out if this file, as it does not directly
+# have anything to do with authentication.
 def _find_user_preferences(user, req):
     if not hasattr(user, "preferences"):
         # if user preferences is not loaded, it's time to do so
@@ -80,37 +71,34 @@ def _find_user_preferences(user, req):
         if req:
             req.session.save() # remember this to next time
 
-def authenticate(req):
-    """
-    Authenticate and authorize the client that sent this request.  If
-    the authenticated (or unauthenticated) user is found to be not
-    authorized to request this URI, we redirect him/her to the login
-    page.
-    """
+def authorize(req):
+    '''Authorize the request from the user.
+    Returns True if the user was authorized, else False.
+    '''
     if not req.session.has_key('user'):
         # If no Account object is registered with this session, we
         # load and register the default Account (which is almost a
         # synonym for Anonymous user)
-        #conn = db.getConnection('navprofile', 'navprofile')
-        #cursor = conn.cursor()
-
-        # FIXME Should we load, or just make a new account object?
-        account = Account.objects.get(id=0)
+        account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
         req.session['user'] = {
             'id': account.id,
             'login': account.login,
             'name': account.name,
         }
+    else:
+        account = Account.objects.get(id=req.session['user']['id'])
 
     user = req.session['user']
     logger.debug("Request for %s authenticated as user=%s", req.unparsed_uri,
                  user['login'])
     _find_user_preferences(user, req)
 
-    if not checkAuthorization(user, req.unparsed_uri):
+    # Now we can check if the user is authorized for this request.
+    authorized = account.has_perm('web_access', req.unparsed_uri)
+    if not authorized:
         logger.warn("User %s denied access to %s", user['login'],
                     req.unparsed_uri)
-        redirectToLogin(req)
+        return False
     else:
         if not user['id'] == 0:
             os.environ['REMOTE_USER'] = user['login']
@@ -118,5 +106,72 @@ def authenticate(req):
             del os.environ['REMOTE_USER']
         return True
 
-# For fun, we give the authenticate function an alternative name.
-authorize = authenticate
+def authenticate(username, password):
+    '''Authenticate username and password against database.
+    Returns account object if user was authenticated, else None.
+    '''
+    # FIXME Log stuff?
+    auth = False
+    account = None
+
+    # Try to find the account in the database. If it's not found we can try
+    # LDAP.
+    try:
+        account = Account.objects.get(login=username)
+    except Account.DoesNotExist:
+        if ldapAuth.available:
+            auth = ldapAuth.authenticate(username, password)
+            # If we authenticated, store the user in database.
+            if auth:
+                name = ldapAuth.getUserName(username)
+                account = Account(
+                    login=username,
+                    name=name,
+                    ext_sync='ldap'
+                )
+                account.set_password(password)
+                account.save()
+
+    if account and not auth:
+        if account.ext_sync == 'ldap' and ldapAuth.available:
+            # Try to authenticate with LDAP if user has specified this.
+            auth = ldapAuth.authenticate(username, password)
+            account.set_password(password)
+            account.save()
+        else:
+            # Authenticate against database
+            auth = account.check_password(password)
+
+    return account
+
+def login(request, account):
+    '''Set user as authenticated in the session object.
+    Will fail if user is not authenticated first.
+    '''
+    # The session is stored in the mod_python request. This little if makes it
+    # possible to pass both django and mod_python requests.
+    if isinstance(request, ModPythonRequest):
+        request = request._req
+
+    # Invalidate old sessions
+    if request.session.has_key('user'):
+        del request.session['user']
+        request.session.save()
+
+    request.session['user'] = {
+        'id': account.id,
+        'login': account.login,
+        'name': account.name,
+    }
+    request.session.save()
+
+def logout(request):
+    '''Removes session object for this user.
+    In effect, this is the same as logging out.
+    '''
+    # The session is stored in the mod_python request. This little if makes it
+    # possible to pass both django and mod_python requests.
+    if isinstance(request, ModPythonRequest):
+        request = request._req
+    del request.session
+    state.deleteSessionCookie(request)

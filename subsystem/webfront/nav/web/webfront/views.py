@@ -16,6 +16,7 @@
 #
 
 import os
+import cgi
 from ConfigParser import ConfigParser
 from datetime import datetime
 
@@ -30,7 +31,7 @@ from nav.models.profiles import Account
 from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 
-from nav.web import ldapAuth
+from nav.web import ldapAuth, auth
 from nav.web.state import deleteSessionCookie
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 from nav.web.webfront.forms import LoginForm
@@ -83,86 +84,52 @@ def login(request):
     from django.shortcuts import render_to_response
     return render_to_response(
         'webfront/login.html',
-        {'form': LoginForm()}
+        {
+            'form': LoginForm(),
+            'origin': cgi.escape(request.GET.get('origin', '').strip()),
+        }
     )
 
 def do_login(request):
     # FIXME Log stuff?
     errors = []
     form = LoginForm(request.POST)
-    auth = False
-    if form.is_valid():
-        # Invalidate old sessions
-        if request._req.session.has_key('user'):
-            del request._req.session['user']
-            request._req.session.save()
+    origin = cgi.escape(request.POST.get('origin', '').strip())
 
+    if form.is_valid():
         username = form.cleaned_data['username']
         password = form.cleaned_data['password']
 
-        # Find account in database, or try ldap if account is not found
-        account = None
         try:
-            account = Account.objects.get(login=username)
-        except Account.DoesNotExist:
-            if ldapAuth.available:
-                try:
-                    auth = ldapAuth.authenticate(username, password)
-                except ldapAuth.Error, e:
-                    errors.append('Error while talking to LDAP server:\n%s' % e)
-                else:
-                    if not auth:
-                        errors.append(Message.ERROR, 'LDAP authentication failed.')
-                    name = ldapAuth.getUserName(username)
-                    account = Account(
-                        login=username,
-                        name=name,
-                        ext_sync='ldap'
-                    )
-                    account.set_password(password)
-                    account.save()
-
-        if account and not auth:
-            if account.ext_sync == 'ldap' and ldapAuth.available:
-                # Try to authenticate with LDAP if user has specified this.
-                try:
-                    auth = ldapAuth.authenticate(username, password)
-                except ldapAuth.Error, e:
-                    errors.append(Message.ERROR, 'Error while talking to LDAP server:\n%s' % e)
-                else:
-                    account.set_password(password)
-                    account.save()
-            else:
-                # Authenticate against database
-                auth = account.check_password(password)
-
-        if auth:
-            # We are authenticated, return user to where he wants to go.
-            request._req.session['user'] = {
-                'id': account.id,
-                'login': account.login,
-                'name': account.name,
-            }
-            request._req.session.save()
-            return HttpResponseRedirect('/')
+            account = auth.authenticate(username, password)
+        except ldapAuth.Error, e:
+            errors.append('Error while talking to LDAP:\n%s' % e)
         else:
-            errors.append('Login failed')
+            if account:
+                try:
+                    auth.login(request, account)
+                except ldapAuth.Error, e:
+                    errors.append('Error while talking to LDAP:\n%s' % e)
+                else:
+                    if not origin:
+                        origin = '/index/index'
+                    return HttpResponseRedirect(origin)
+            else:
+                errors.append('Authentication failed for the specified username and password.')
 
     # Something went wrong. Display login page with errors.
-    form.password = None
     from django.shortcuts import render_to_response
     return render_to_response(
         'webfront/login.html',
         {
             'form': form,
             'errors': errors,
+            'origin': origin,
         }
     )
 
 def logout(request):
-    request._req.session.expire()
-    del request._req.session
-    deleteSessionCookie(request._req)
+    auth.logout(request)
     return HttpResponseRedirect('/')
 
 def about(request):
