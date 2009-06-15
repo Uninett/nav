@@ -1,4 +1,0 @@
-SetHandler python-program
-PythonHandler status
-DirectoryIndex status.py
-
