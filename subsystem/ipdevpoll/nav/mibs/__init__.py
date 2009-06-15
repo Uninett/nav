@@ -31,6 +31,21 @@ class IpMib(mibretriever.MibRetriever):
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
 
+class CiscoCDPMib(mibretriever.MibRetriever):
+    from nav.smidumps.cisco_cdp_mib import MIB as mib
+
+class LLDPMib(mibretriever.MibRetriever):
+    from nav.smidumps.lldp_mib import MIB as mib
+
+class QBridgeMib(mibretriever.MibRetriever):
+    from nav.smidumps.qbridge_mib import MIB as mib
+
+class BridgeMib(mibretriever.MibRetriever):
+    from nav.smidumps.bridge_mib import MIB as mib
+
+class CiscoVTPMib(mibretriever.MibRetriever):
+    from nav.smidumps.cisco_vtp_mib import MIB as mib
+
 modules = mibretriever.MibRetrieverMaker.modules
 
 def test(host, community='public', mib=IfMib, tablename='ifTable'):

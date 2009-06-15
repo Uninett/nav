@@ -27,7 +27,7 @@ import re
 from twisted.internet import defer
 from twisted.python.failure import Failure
 
-from nav.mibs import IfMib
+from nav.mibs import BridgeMib, QBridgeMib, CiscoVTPMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
 
@@ -48,10 +48,7 @@ class Vlans(Plugin):
     def handle(self):
         self.logger.debug("Collecting interface data")
         self.qbridgemib = QBridgeMib(self.job_handler.agent)
-        df = self.qbridgemib.retrieve_columns([
-                'dot1qPvid',
-                'dot1dBasePortIfIndex',
-                ])
+        df = self.qbridgemib.retrieve_column('dot1qPvid')
         df.addCallback(self.got_vlans)
         df.addErrback(self.error)
         return self.deferred
@@ -65,17 +62,60 @@ class Vlans(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
+    def got_ifindexes(self, result):
+        self.logger.debug("Found %d ifindexes", len(result))
+        self.ifIndexes = result
+        self.qbridgemib = QBridgeMib(self.job_handler.agent)
+        df = self.qbridgemib.retrieve_column('dot1qPvid')
+        df.addCallback(self.got_vlans)
+        df.addErrback(self.error)
+        return self.deferred
+
     def got_vlans(self, result):
         self.logger.debug("Found %d vlans", len(result))
 
+        if len(result) == 0:
+            self.logger.debug("No results found. Trying vendor specific MIBs")
+
+            self.ciscovtpmib = CiscoVTPMib(self.job_handler.agent)
+            df = self.ciscovtpmib.retrieve_column('vtpVlanIfIndex')
+            df.addCallback(self.got_cisco_vtp_vlans)
+            df.addErrback(self.error)
+            return self.deferred
         # Now save stuff to containers and signal our exit
-        for (ifIndex,),row in result.items():
+        for (ifIndex,), vlan in result.items():
             interface = self.job_handler.container_factory(storage.Interface,
                                                            key=ifIndex)
+            vlan_obj = self.job_handler.container_factory(storage.Vlan,
+                                                      key=vlan)
+            vlan_obj.vlan = vlan
+            interface.vlan = vlan
 
-            data = self.parse_ifDescr(interface.ifDescr)
+            # See if we can populate the vlan-table somewhat
+            data = self.parse_ifDescr(interface.ifdescr)
             if not data:
-                logger.warning("Interface description %s does not follow NAV guidelines. Unable to parse" % interface.ifDescr)
+                self.logger.warning("Interface description %s does not follow NAV guidelines. Unable to parse" % interface.ifdescr)
+
+        self.deferred.callback(True)
+        return result
+
+    def got_cisco_vtp_vlans(self, result):
+        self.logger.debug("Found %d vlans", len(result))
+
+        # Now save stuff to containers and signal our exit
+        for (_,vlan), ifIndex in result.items():
+            print ifIndex, vlan
+            interface = self.job_handler.container_factory(storage.Interface,
+                                                           key=ifIndex)
+            vlan_obj = self.job_handler.container_factory(storage.Vlan,
+                                                          key=vlan)
+            vlan_obj.vlan = vlan
+            interface.vlan = vlan
+
+            # See if we can populate the vlan-table somewhat
+            #data = self.parse_ifDescr(interface.ifdescr)
+            #if not data:
+            #    self.logger.warning("Interface description %s does not follow NAV guidelines. Unable to parse" % interface.ifdescr)
 
         self.deferred.callback(True)
         return result
@@ -87,6 +127,8 @@ class Vlans(Plugin):
         http://metanav.uninett.no/subnetsandvlans#guide_lines_for_configuring_router_interface_descriptions
         Returns a dictionary with the values
         """
+        if not ifDescr:
+            return None
         type = ifDescr[:ifDescr.find(',')]
         if type not in ('lan','core','link','elink'):
             return None

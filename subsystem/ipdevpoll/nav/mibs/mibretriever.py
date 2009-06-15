@@ -299,6 +299,9 @@ class MibRetriever(object):
         
         def resultFormatter(result):
             formatted_result = {}
+            if node.oid not in result:
+                logger.info("oid not in result. Device did not return valid data on this oid")
+                return {}
             varlist = result[node.oid]
             
             for oid, value in varlist.items():

@@ -254,3 +254,6 @@ class Category(Shadow):
 
 class Organization(Shadow):
     __shadowclass__ = manage.Organization
+
+class Vlan(Shadow):
+    __shadowclass__ = manage.Vlan
