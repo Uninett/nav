@@ -2,13 +2,15 @@
 
 {% block tabcontent %}
 
-{% if not confirm_delete %}
 <p>
+{% if not confirm_delete %}
     Select modules to delete from modules that are down. When deleting a
     module, a choice will be given to either move the device to the inventory
     or to set it as inactive.
-</p>
+{% else %}
+    <h3>Do you really want to delete the selected modules?</h3>
 {% endif %}
+</p>
 
 {% if confirm_delete %}
 <form action="{% url devicehistory-do_delete_module %}" method="post">
@@ -45,16 +47,16 @@
         <tbody>
         {% for m in modules %}
             <tr class="{% cycle oddrow,evenrow %}">
-                <td><input type="checkbox" name="module" value="{{ m.module_id }}"
+                <td><input type="checkbox" name="module" value="{{ m.moduleid }}"
                     {% if confirm_delete %}
                     checked="checked"
                     {% endif %}
                     /></td>
-                <td>{{ m.sysname }}</td>
-                <td>{{ m.moduleid }}</td>
-                <td>{{ m.descr }}</td>
+                <td>{{ m.sysname|default_if_none:"" }}</td>
+                <td>{{ m.module_number }}</td>
+                <td>{{ m.descr|default_if_none:"" }}</td>
                 <td>{{ m.start_time }}</td>
-                <td>{{ m.downtime }}</td>
+                <td>{{ m.start_time|timesince }}</td>
             </tr>
         {% endfor %}
         </tbody>

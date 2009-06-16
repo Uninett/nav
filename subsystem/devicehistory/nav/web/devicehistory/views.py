@@ -207,62 +207,45 @@ def register_error(request):
     return HttpResponseRedirect(reverse('devicehistory-registererror'))
 
 def delete_module(request):
-    params = []
+    params = {}
     confirm_deletion = False
     if request.method == 'POST':
         module_ids = request.POST.getlist('module')
-        params.append('module.moduleid IN (%s)' % ",".join([id for id in module_ids]))
+        params['id__in'] = module_ids
         confirm_deletion = True
 
+    # Find modules that are down.
     modules_down = Module.objects.select_related(
-        'device', 'netbox', 'netbox__device'
+        'device', 'netbox'
     ).filter(
-        up='n'
+        up='n',
+        **params
     )
 
-    history = AlertHistory.objects.filter(
+    # Find all moduleStates with no end time that are related to the modules we
+    # found.
+    history = AlertHistory.objects.select_related(
+        'device', 'netbox'
+    ).filter(
         Q(device__in=[d.device.id for d in modules_down]) |
-        Q(device__in=[d.netbox.device.id for d in modules_down]) |
-        Q(netbox__in=[d.netbox.id for d in modules_down])
+        Q(netbox__in=[d.netbox.id for d in modules_down]),
+        event_type__id='moduleState',
+        alert_type__id=8,
+        end_time__gt=datetime.max
     )
 
-    dsa = []
+    # Sew the results together.
+    result = []
     for a in modules_down:
         for b in history:
-            dsa.append(a)
-            dsa.append(b)
-
-    # Find moduleStates with end_time infinity first?
-    # module.up can be false without a moduleState. We shall not care about
-    # those
-    cursor = connection.cursor()
-    cursor.execute("""SELECT
-            sysname,
-            moduleid,
-            module.descr AS descr,
-            start_time,
-            NOW() - start_time AS downtime
-        FROM module
-        INNER JOIN netbox ON (module.netboxid = netbox.netboxid)
-        LEFT OUTER JOIN alerthist ON (
-            module.deviceid = alerthist.deviceid OR
-            module.netboxid = alerthist.netboxid
-        )
-        WHERE
-            module.up = 'n' AND
-            alerthist.end_time = 'infinity' AND
-            alerthist.eventtypeid = 'moduleState'""")
-
-    rows = cursor.fetchall()
-    result = []
-    for row in rows:
-        result.append({
-            'sysname': row[0],
-            'moduleid': row[1],
-            'descr': row[2],
-            'start_time': row[3],
-            'downtime': row[4],
-        })
+            if a.device.id == b.device.id or a.netbox.id == b.netbox.id:
+                result.append({
+                    'sysname': a.netbox.sysname,
+                    'moduleid': a.id,
+                    'module_number': a.module_number,
+                    'descr': a.description,
+                    'start_time': b.start_time,
+                })
 
     info_dict = {
         'active': {'module': True},
@@ -281,27 +264,26 @@ def do_delete_module(request):
         return HttpResponseRedirect(reverse('devicehistory-module'))
 
     module_ids = request.POST.getlist('module')
-    params = [
-        'module.moduleid IN (%s)' % ",".join([id for id in module_ids])
-    ]
+    params = {'id__in': module_ids}
 
-    history = AlertHistory.objects.extra(
-        select={
-            'module': 'module.moduleid',
-        },
-        tables=[
-            'device',
-            'module',
-            'netbox',
-        ],
-        where=[
-            'device.deviceid=alerthist.deviceid',
-            'module.deviceid=device.deviceid',
-            'netbox.netboxid=module.netboxid',
-            'module.up=\'n\'',
-            'alerthist.end_time=\'infinity\'',
-            'alerthist.eventtypeid=\'moduleState\'',
-        ] + params
+    # Find modules that are down.
+    modules_down = Module.objects.select_related(
+        'device', 'netbox'
+    ).filter(
+        up='n',
+        **params
+    )
+
+    # Find all moduleStates with no end time that are related to the modules we
+    # found. We use it to check that the supplied modules acctually are down.
+    history = AlertHistory.objects.select_related(
+        'device', 'netbox'
+    ).filter(
+        Q(device__in=[d.device.id for d in modules_down]) |
+        Q(netbox__in=[d.netbox.id for d in modules_down]),
+        event_type__id='moduleState',
+        alert_type__id=8,
+        end_time__gt=datetime.max
     )
 
     if history.count() == 0:
@@ -314,7 +296,6 @@ def do_delete_module(request):
 
     # FIXME should there be posted an event, telling the event/alert system
     # that this module is now deleted?
-    modules = Module.objects.filter(id__in=[id for module in history])
 
     new_message(
         request,
@@ -322,6 +303,6 @@ def do_delete_module(request):
         Messages.SUCCESS,
     )
 
-    modules.delete()
+    modules_down.delete()
 
     return HttpResponseRedirect(reverse('devicehistory-module'))
