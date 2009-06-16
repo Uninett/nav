@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2008, 2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,22 +17,34 @@
 #
 """Utility functions for NAV configuration file parsing."""
 
-import os, os.path, nav.path
+import os
 import sys
 import ConfigParser
 
-def readConfig(filename, splitChar='='):
-    """Reads a key=value type config file. If the specified path does
-    not begin at the root, the file is search for in the default NAV
-    configuration directory.  Returns a dictionary of the key/value
-    pairs that were read."""
+import buildconf
 
-    if filename[0] != os.sep:
-        filename = os.path.join(nav.path.sysconfdir, filename)
+def readConfig(config_file, splitChar='='):
+    """Reads a key=value type config file. 
+
+    If the specified path does not begin at the root, the file is
+    searched for in the default NAV configuration directory.  
+
+    Arguments:
+        ``config_file'' the configuration file to read;  either a file name
+                        or an open file object.
+        ``splitChar'' the character used to assign values in the config file.
+
+    Returns:
+        A dictionary of the key/value pairs that were read.
+    """
+
+    if isinstance(config_file, basestring):
+        if config_file[0] != os.sep:
+            config_file = os.path.join(buildconf.sysconfdir, config_file)
+        config_file = file(config_file, 'r')
 
     configuration = {}
-    file = open(filename, 'r')
-    for line in file.readlines():
+    for line in config_file.readlines():
         line = line.strip()
         # Unless the line is a comment, we parse it
         if len(line) and line[0] != '#':
@@ -41,17 +54,20 @@ def readConfig(filename, splitChar='='):
                 value = value.split('#', 1)[0] # Remove end-of-line comments
                 configuration[key.strip()] = value.strip()
             except ValueError:
-                sys.stderr.write("Config file %s has errors.\n" % filename)
+                sys.stderr.write("Config file %s has errors.\n" % 
+                                 config_file.name)
 
-    file.close()
     return configuration
 
+# Really, what value does this function add?  Why not use a
+# ConfigParser directly?
 def getconfig(configfile, defaults=None):
     """
-    Read whole config from file.
+    Read whole config from an INI-style configuration file.
 
     Arguments:
-        ``configfile'' the configfile to open
+        ``configfile'' the configuration file to read, either a name or an 
+                       open file object.
         ``defaults'' are passed on to configparser before reading config.
 
     Returns:
@@ -59,8 +75,11 @@ def getconfig(configfile, defaults=None):
         section as values.
     """
 
+    if isinstance(configfile, basestring):
+        configfile = file(configfile, 'r')
+
     config = ConfigParser.RawConfigParser(defaults)
-    config.read(configfile)
+    config.readfp(configfile)
 
     sections = config.sections()
     configdict = {}

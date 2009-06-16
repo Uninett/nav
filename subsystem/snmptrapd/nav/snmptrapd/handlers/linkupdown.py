@@ -5,6 +5,8 @@ network equipment.
 import logging
 import nav.errors
 import re
+import psycopg2.extras
+
 from nav.db import getConnection
 from nav.event import Event
 
@@ -24,7 +26,7 @@ def handleTrap(trap, config=None):
     accepted.
     """
     db = getConnection('default')
-    c = db.cursor()
+    c = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Linkstate-traps are generictypes. Check for linkup/down and post
     # events on eventq.
@@ -54,7 +56,7 @@ def handleTrap(trap, config=None):
                        WHERE ip = %s"""
             logger.debug(query)
             c.execute(query, (trap.src,))
-            res = c.dictfetchone()
+            res = c.fetchone()
 
             netboxid = res['netboxid']
 
@@ -99,7 +101,7 @@ def handleTrap(trap, config=None):
                          %(ifindex, trap.src))
             return False
         
-        idres = c.dictfetchone()
+        idres = c.fetchone()
 
         # Subid is swportid in this case
         subid = idres['swportid']

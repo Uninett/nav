@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 ####################
 #
-# $Id$
 # This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV Alert Engine daemon.
 #
 # Copyright 2006 UNINETT AS
-# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 ####################
 prefix=@prefix@

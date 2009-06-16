@@ -32,6 +32,8 @@ import logging
 import ConfigParser
 import getpass
 
+import psycopg2.extras
+
 # import nav-libraries
 import nav.arnold
 import nav.db
@@ -79,7 +81,7 @@ def main():
     except nav.db.driver.ProgrammingError, why:
         logger.error("Could not connect to arnolddatabase: %s" %why)
     
-    arnoldc = arnoldconn.cursor()
+    arnoldc = arnoldconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Connect to manage-database
     try:
@@ -104,7 +106,7 @@ def main():
         sys.exit(0)
 
     # For each port that is blocked, try to enable the port.
-    for row in arnoldc.dictfetchall():
+    for row in arnoldc.fetchall():
 
         try:
             swinfo = nav.arnold.findSwportIDinfo(row['swportid'])

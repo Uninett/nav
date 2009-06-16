@@ -30,7 +30,6 @@ exec_prefix=@exec_prefix@
 sysconfdir=@sysconfdir@
 initdir=@initdir@
 BIN=@bindir@/pping.py
-PIDFILE=@localstatedir@/run/pping.pid
 
 # Source function library.
 . ${initdir}/functions
@@ -51,8 +50,6 @@ case "$1" in
 		# Stop daemons.
 		echo -n "Shutting down pping: "
 		if killproc pping.py; then
-		# Make sure the pidfile is gone when stopping normal
-		    rm -f $PIDFILE
 		    echo
 		    exit 0
 		else

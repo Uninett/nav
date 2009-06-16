@@ -30,8 +30,8 @@ Contains the handler for the status pages
 #################################################
 ## Imports
 
-
-import mx.DateTime,re,nav.db.manage
+import datetime
+import re,nav.db.manage
 
 from mod_python import util,apache
 from nav.web.templates.StatusTemplate import StatusTemplate
@@ -49,7 +49,7 @@ HISTORY_TYPE_SERVICES = 'services'
 HISTORY_TYPE_MODULES = 'modules'
 HISTORY_TYPE_THRESHOLD = 'thresholds'
 BASEPATH = '/status/'
-INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
+INFINITY = datetime.datetime.max
 
 #################################################
 ## Default handler
@@ -252,7 +252,7 @@ class HistoryPage:
 
         # Add one section per day
         counter = 1
-        now = mx.DateTime.now()
+        now = datetime.datetime.now()
         for i in range(0,days):
             date = now.strftime('%Y-%m-%d')
             control = str(counter)
@@ -270,7 +270,7 @@ class HistoryPage:
                 args,date,date,selid))
               
             counter += 1
-            now = now - mx.DateTime.oneDay
+            now = now - datetime.timedelta(days=1)
 
         # check http get arguments and sort the lists
         for section in self.sections:

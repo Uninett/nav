@@ -42,7 +42,6 @@ import sys
 import nav.db
 import nav.event
 import nav.logs
-from mx import DateTime
 
 logfile = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
 logformat = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
@@ -55,7 +54,6 @@ debug = False
 boxesOffMaintenance = []
 
 dbconn = nav.db.getConnection('eventEngine', 'manage')
-dbconn.autocommit(0)
 # Make sure isolation level is "read committed", not "serialized"
 dbconn.set_isolation_level(1)
 db = dbconn.cursor()

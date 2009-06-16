@@ -1,37 +1,29 @@
 #! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2008 UNINETT AS
+# Copyright (C) 2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-
 """
 """
-
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
 
 import logging
 
 from django.db import DatabaseError, IntegrityError
 
 from nav.models.profiles import SMSQueue
+from nav.models.event import AlertQueueMessage
 from nav.alertengine.dispatchers import dispatcher, DispatcherException
 
 logger = logging.getLogger('nav.alertengine.dispatchers.sms')
@@ -53,3 +45,16 @@ class sms(dispatcher):
         else:
             logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
 
+    def get_fallback_message(self, alert, language, message_type):
+        try:
+            return alert.messages.get(language='en', type=message_type).message
+        except AlertQueueMessage.DoesNotExist:
+            pass
+
+        try:
+            message = alert.messages.get(language='en', type='email').message
+            return message.split('\n')[0]
+        except AlertQueueMessage.DoesNotExist:
+            pass
+
+        return '%s: No sms message for %d' % (alert.netbox, alert.id)

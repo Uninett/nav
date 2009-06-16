@@ -34,7 +34,6 @@ start = int(time.time())
 date = time.ctime()
 
 import getopt,sys
-import psycopg
 import nav.db.forgotten
 from nav import db
 conn = db.getConnection('thresholdmon','manage')

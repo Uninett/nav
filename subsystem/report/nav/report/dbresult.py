@@ -18,7 +18,7 @@
 """Represents the meta information and result from a database query."""
 
 from nav import db
-import psycopg
+import psycopg2
 
 class DatabaseResult:
     """
@@ -59,6 +59,6 @@ class DatabaseResult:
             ## Total count of the rows returned - no need for SQL query.
             self.rowcount = len(self.result)
 
-        except psycopg.ProgrammingError,p:
+        except psycopg2.ProgrammingError,p:
             #raise ProblemExistBetweenKeyboardAndChairException
             self.error = "Configuration error! The report generator is not able to do such things. " + str(p)
