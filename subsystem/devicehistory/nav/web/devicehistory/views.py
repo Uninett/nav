@@ -214,6 +214,27 @@ def delete_module(request):
         params.append('module.moduleid IN (%s)' % ",".join([id for id in module_ids]))
         confirm_deletion = True
 
+    modules_down = Module.objects.select_related(
+        'device', 'netbox', 'netbox__device'
+    ).filter(
+        up='n'
+    )
+
+    history = AlertHistory.objects.filter(
+        Q(device__in=[d.device.id for d in modules_down]) |
+        Q(device__in=[d.netbox.device.id for d in modules_down]) |
+        Q(netbox__in=[d.netbox.id for d in modules_down])
+    )
+
+    dsa = []
+    for a in modules_down:
+        for b in history:
+            dsa.append(a)
+            dsa.append(b)
+
+    # Find moduleStates with end_time infinity first?
+    # module.up can be false without a moduleState. We shall not care about
+    # those
     cursor = connection.cursor()
     cursor.execute("""SELECT
             sysname,
