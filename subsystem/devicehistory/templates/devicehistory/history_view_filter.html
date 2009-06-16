@@ -15,7 +15,7 @@
         {% for e,alert_types in event_type.items %}
             <optgroup label="{{ e }}">
                 <option value="e_{{ e }}"
-                {% if e.id|in_list:selected_types.event %}
+                {% if e|in_list:selected_types.event %}
                 selected="selected"
                 {% endif %}>All {{ e }}</option>
             {% for a in alert_types %}
