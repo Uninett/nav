@@ -24,6 +24,7 @@
 from django.db import transaction
 from django.db.models import Q
 
+from nav.django.utils import get_account
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import EventQueue, EventQueueVar, EventType, Subsystem
 from nav.web.message import new_message, Messages
@@ -39,7 +40,8 @@ def register_error_events(request, **kwargs):
     messages = Messages(request)
 
     # Get the username of this user.
-    username = request._req.session['user'].login
+    account = get_account(request)
+    username = account.login
 
     # Selection must be a dictionary.
     # Recognized keys are 'location', 'room', 'netbox' and 'module'.
