@@ -298,7 +298,7 @@ def handler(req):
                     page.errors.append('ID of edited message is missing.')
 
             # Get session data
-            author = req.session['user'].login
+            author = req.session['user']['login']
 
             # If any data not okay, form is showed with list of errors on top.
             # There is no need to do anything further here.
@@ -342,7 +342,7 @@ def handler(req):
         page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
     # Check if user is logged in
-    if req.session['user'].id != 0:
+    if req.session['user']['id'] != 0:
         page.authorized = True
     else:
         page.authorized = False

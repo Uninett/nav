@@ -612,12 +612,15 @@ the link to be.
 positions      'navbar', 'qlink1', 'qlink2' or a combination of these.
 
 */
+CREATE SEQUENCE accountnavbar_id_seq;
 CREATE TABLE AccountNavbar (
+    id integer NOT NULL DEFAULT nextval('accountnavbar_id_seq'),
     accountid integer NOT NULL,
     navbarlinkid integer NOT NULL,
     positions varchar,
 
-    CONSTRAINT accountnavbar_pkey PRIMARY KEY (accountid, navbarlinkid),
+    CONSTRAINT accountnavbar_pkey PRIMARY KEY (id),
+    CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid),
     CONSTRAINT accountnavbar_accountid_fkey
                FOREIGN KEY (accountid) REFERENCES Account(id)
                ON DELETE CASCADE

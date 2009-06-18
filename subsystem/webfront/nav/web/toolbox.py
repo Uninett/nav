@@ -19,7 +19,9 @@ This module contains functionality related to the web toolbox.
 """
 from nav import config
 import os, os.path
+
 import nav.auth, nav.web, nav.path
+from nav.models.profiles import Account
 
 def _compareTools(x, y):
     """
@@ -58,9 +60,10 @@ def getToolList():
 def filterToolList(toolList, user):
     """Returns a filtered version of toolList, according to the uri
     privileges of the user."""
+    account = Account.objects.get(login=user['login'])
     newToolList = []
     for tool in toolList:
-        if nav.auth.hasPrivilege(user, 'web_access', tool.uri):
+        if account.has_perm('web_access', tool.uri):
             newToolList.append(tool)
     return newToolList
 
