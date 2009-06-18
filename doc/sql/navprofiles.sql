@@ -713,6 +713,84 @@ CREATE VIEW PrivilegeByGroup AS (
 );
 
 
+/*
+-- statuspref
+
+Stores preferences for the status tool.
+*/
+CREATE SEQUENCE statuspref_id_seq START 1000;
+CREATE TABLE statuspref (
+	id integer NOT NULL DEFAULT nextval('statuspref_id_seq'),
+	name varchar NOT NULL,
+	position integer NOT NULL,
+	type varchar NOT NULL,
+	accountid integer NOT NULL,
+	position integer NOT NULL,
+
+	CONSTRAINT statuspref_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspref_accountid_fkey
+		FOREIGN KEY (accountid) REFERENCES Account(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
+
+CREATE SEQUENCE statuspref_org_id_seq;
+CREATE TABLE statuspref_org (
+	id integer NOT NULL DEFAULT nextval('statuspref_org_id_seq'),
+	statuspref_id integer NOT NULL,
+	org_id varchar NOT NULL,
+
+	CONSTRAINT statuspref_org_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspref_org_statusprefid_key UNIQUE(statuspref_id, org_id),
+	CONSTRAINT statuspref_org_statusprefid_fkey
+		FOREIGN KEY (statuspref_id) REFERENCES statuspref(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT statuspref_org_orgid_fkey
+		FOREIGN KEY (org_id) REFERENCES manage.org(orgid)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
+
+CREATE SEQUENCE statuspref_cat_id_seq;
+CREATE TABLE statuspref_cat (
+	id integer NOT NULL DEFAULT nextval('statuspref_cat_id_seq'),
+	statuspref_id integer NOT NULL,
+	cat_id varchar NOT NULL,
+
+	CONSTRAINT statuspref_cat_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspref_cat_statusprefid_key UNIQUE(statuspref_id, cat_id),
+	CONSTRAINT statuspref_cat_statusprefid_fkey
+		FOREIGN KEY (statuspref_id) REFERENCES statuspref(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT statuspref_cat_catid_fkey
+		FOREIGN KEY (cat_id) REFERENCES manage.cat(catid)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_cat_id_seq OWNED BY statuspref_cat.id;
+
+CREATE SEQUENCE statuspref_services_id_seq;
+CREATE TABLE statuspref_services (
+	id integer NOT NULL DEFAULT nextval('statuspref_services_id_seq'),
+	statuspref_id integer NOT NULL,
+	service_id varchar NOT NULL,
+
+	CONSTRAINT statuspref_services_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspref_services_statusprefid_key UNIQUE(statuspref_id, service_id),
+	CONSTRAINT statuspref_services_statusprefid_fkey
+		FOREIGN KEY (statuspref_id) REFERENCES statuspref(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_services_id_seq OWNED BY statuspref_services.id;
 
 
 
