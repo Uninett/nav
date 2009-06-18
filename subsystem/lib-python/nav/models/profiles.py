@@ -961,3 +961,40 @@ class AccountAlertQueue(models.Model):
             self.delete()
 
         return sent
+
+class StatusPreference(models.Model):
+    '''Preferences for the Status tool'''
+
+    SECTION_NETBOX = 'netbox'
+    SECTION_MODULE = 'module'
+    SECTION_SERVICE = 'service'
+
+    SECTION_CHOICES = (
+        (SECTION_NETBOX, 'IP Devices'),
+        (SECTION_MODULE, 'Modules'),
+        (SECTION_SERVICE, 'Service'),
+    )
+
+    name = models.TextField()
+    position = models.IntegerField(choices=SECTION_CHOICES)
+    type = models.TextField()
+    account = models.ForeignKey('Account', db_column='accountid')
+    organizations = models.ManyToManyField(Organization, db_table='statuspref_org')
+    categories = models.ManyToManyField(Category, db_table='statuspref_cat')
+
+    class Meta:
+        db_table = u'statuspref'
+
+class StatusPreferenceState(models.Model):
+    status_preference = models.ForeignKey(StatusPreference, db_column='statuspref_id')
+    state = models.TextField()
+
+    class Meta:
+        db_table = u'statuspref_state'
+
+class StatusPreferenceServices(models.Model):
+    status_preference = models.ForeignKey(StatusPreference, db_column='statuspref_id')
+    service_id = models.TextField()
+
+    class Meta:
+        db_table = u'statuspref_services'
