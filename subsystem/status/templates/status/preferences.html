@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+{% if messages %}
+<ul class="messages">
+    {% for m in messages %}
+    <li class="{{ m.type }}">{{ m.message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form action="" method="post">
+{{ formset.management_form }}
+<table class="listtable">
+    <caption>
+        Status preferences
+    </caption>
+    {% for form in formset.forms %}
+    <tbody>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Organizations</td>
+            <th>
+                {% if form.categories %}
+                Categories
+                {% else %}
+                Services
+                {% endif %}
+            </th>
+            <th>
+                {% if form.states %}
+                State
+                {% endif %}
+            </th>
+            <th></th>
+            <th></th>
+        </tr>
+        <tr>
+            <td>
+                {{ form.DELETE }}
+            </td>
+            <td>{{ form.type }}{{ form.name }}</td>
+            <td>{{ form.organizations }}</td>
+            <td>
+                {% if form.categories %}
+                {{ form.categories }}
+                {% else %}
+                {{ form.service_choice }}
+                {% endif %}
+            </td>
+            <td>
+                {{ form.state_choice }}
+            </td>
+            <td>
+                {% if not forloop.first %}
+                <input type="submit" name="moveup={{ form.instance.id }}" value="Move up" />
+                {% endif %}
+            </td>
+            <td>
+                {% if not forloop.last %}
+                <input type="submit" name="movedown={{ form.instance.id }}" value="Move down" />
+                {% endif %}
+            </td>
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+</form>
+
+{% endblock %}
