@@ -1023,8 +1023,10 @@ class StatusPreference(models.Model):
     position = models.IntegerField()
     type = models.CharField(choices=SECTION_CHOICES)
     account = models.ForeignKey('Account', db_column='accountid')
-    organizations = models.ManyToManyField(Organization, db_table='statuspreference_organization')
-    categories = models.ManyToManyField(Category, db_table='statuspreference_category')
+    organizations = models.ManyToManyField(
+        Organization, db_table='statuspreference_organization', blank=True)
+    categories = models.ManyToManyField(
+        Category, db_table='statuspreference_category', blank=True)
 
     services = models.TextField(blank=True)
     states = models.TextField(blank=True)
