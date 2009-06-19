@@ -61,7 +61,30 @@ def preferences(request):
     )
 
 def save_preferences(request):
-    pass
+    account = get_account(request)
+    StatusPreferenceFormset = inlineformset_factory(
+        Account,
+        StatusPreference,
+        extra=0,
+        form=SectionForm)
+    formset = StatusPreferenceFormset(request.POST, instance=account)
+    if formset.is_valid():
+        formset.save()
+        new_message(
+            request,
+            'Saved preferences',
+            Messages.SUCCESS
+        )
+        return HttpResponseRedirect(reverse('status-preferences'))
+    else:
+        return render_to_response(
+            StatusTemplate,
+            'status/preferences.html',
+            {
+                'formset': formset,
+            },
+            RequestContext(request)
+        )
 
 def move_section(request):
     account = get_account(request)
