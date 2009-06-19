@@ -1010,33 +1010,25 @@ class StatusPreference(models.Model):
     SECTION_NETBOX = 'netbox'
     SECTION_MODULE = 'module'
     SECTION_SERVICE = 'service'
+    SECTION_THRESHOLD = 'threshold'
 
     SECTION_CHOICES = (
         (SECTION_NETBOX, 'IP Devices'),
         (SECTION_MODULE, 'Modules'),
         (SECTION_SERVICE, 'Service'),
+        (SECTION_THRESHOLD, 'Thresholds exceeded'),
     )
 
     name = models.TextField()
-    position = models.IntegerField(choices=SECTION_CHOICES)
-    type = models.TextField()
+    position = models.IntegerField()
+    type = models.CharField(choices=SECTION_CHOICES)
     account = models.ForeignKey('Account', db_column='accountid')
-    organizations = models.ManyToManyField(Organization, db_table='statuspref_org')
-    categories = models.ManyToManyField(Category, db_table='statuspref_cat')
+    organizations = models.ManyToManyField(Organization, db_table='statuspreference_organization')
+    categories = models.ManyToManyField(Category, db_table='statuspreference_category')
+
+    services = models.TextField(blank=True)
+    states = models.TextField(blank=True)
 
     class Meta:
-        db_table = u'statuspref'
-
-class StatusPreferenceState(models.Model):
-    status_preference = models.ForeignKey(StatusPreference, db_column='statuspref_id')
-    state = models.TextField()
-
-    class Meta:
-        db_table = u'statuspref_state'
-
-class StatusPreferenceServices(models.Model):
-    status_preference = models.ForeignKey(StatusPreference, db_column='statuspref_id')
-    service_id = models.TextField()
-
-    class Meta:
-        db_table = u'statuspref_services'
+        db_table = u'statuspreference'
+        ordering = ('position',)
