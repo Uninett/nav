@@ -721,17 +721,19 @@ CREATE VIEW PrivilegeByGroup AS (
 
 Stores preferences for the status tool.
 */
-CREATE SEQUENCE statuspref_id_seq START 1000;
-CREATE TABLE statuspref (
-	id integer NOT NULL DEFAULT nextval('statuspref_id_seq'),
+CREATE SEQUENCE statuspreference_id_seq START 1000;
+CREATE TABLE statuspreference (
+	id integer NOT NULL DEFAULT nextval('statuspreference_id_seq'),
 	name varchar NOT NULL,
 	position integer NOT NULL,
 	type varchar NOT NULL,
 	accountid integer NOT NULL,
-	position integer NOT NULL,
 
-	CONSTRAINT statuspref_pkey PRIMARY KEY(id),
-	CONSTRAINT statuspref_accountid_fkey
+	services varchar,
+	states varchar,
+
+	CONSTRAINT statuspreference_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_accountid_fkey
 		FOREIGN KEY (accountid) REFERENCES Account(id)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
@@ -739,61 +741,47 @@ CREATE TABLE statuspref (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
 
-CREATE SEQUENCE statuspref_org_id_seq;
-CREATE TABLE statuspref_org (
-	id integer NOT NULL DEFAULT nextval('statuspref_org_id_seq'),
-	statuspref_id integer NOT NULL,
-	org_id varchar NOT NULL,
+CREATE SEQUENCE statuspreference_organization_id_seq;
+CREATE TABLE statuspreference_organization (
+	id integer NOT NULL DEFAULT nextval('statuspreference_organization_id_seq'),
+	statuspreference_id integer NOT NULL,
+	organization_id varchar NOT NULL,
 
-	CONSTRAINT statuspref_org_pkey PRIMARY KEY(id),
-	CONSTRAINT statuspref_org_statusprefid_key UNIQUE(statuspref_id, org_id),
-	CONSTRAINT statuspref_org_statusprefid_fkey
-		FOREIGN KEY (statuspref_id) REFERENCES statuspref(id)
+	CONSTRAINT statuspreference_organization_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_organization_statuspreference_id_key
+		UNIQUE(statuspreference_id, organization_id),
+	CONSTRAINT statuspreference_organization_statuspreference_id_fkey
+		FOREIGN KEY (statuspreference_id) REFERENCES statuspreference(id)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE,
-	CONSTRAINT statuspref_org_orgid_fkey
-		FOREIGN KEY (org_id) REFERENCES manage.org(orgid)
+	CONSTRAINT statuspreference_organization_organization_id_fkey
+		FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
 
-CREATE SEQUENCE statuspref_cat_id_seq;
-CREATE TABLE statuspref_cat (
-	id integer NOT NULL DEFAULT nextval('statuspref_cat_id_seq'),
-	statuspref_id integer NOT NULL,
-	cat_id varchar NOT NULL,
+CREATE SEQUENCE statuspreference_category_id_seq;
+CREATE TABLE statuspreference_category (
+	id integer NOT NULL DEFAULT nextval('statuspreference_category_id_seq'),
+	statuspreference_id integer NOT NULL,
+	category_id varchar NOT NULL,
 
-	CONSTRAINT statuspref_cat_pkey PRIMARY KEY(id),
-	CONSTRAINT statuspref_cat_statusprefid_key UNIQUE(statuspref_id, cat_id),
-	CONSTRAINT statuspref_cat_statusprefid_fkey
-		FOREIGN KEY (statuspref_id) REFERENCES statuspref(id)
+	CONSTRAINT statuspreference_category_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_category_statuspreference_id_key
+		UNIQUE(statuspreference_id, category_id),
+	CONSTRAINT statuspreference_category_statuspreference_id_fkey
+		FOREIGN KEY (statuspreference_id) REFERENCES statuspreference(id)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE,
-	CONSTRAINT statuspref_cat_catid_fkey
-		FOREIGN KEY (cat_id) REFERENCES manage.cat(catid)
+	CONSTRAINT statuspreference_category_category_id_fkey
+		FOREIGN KEY (category_id) REFERENCES manage.cat(catid)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspref_cat_id_seq OWNED BY statuspref_cat.id;
-
-CREATE SEQUENCE statuspref_services_id_seq;
-CREATE TABLE statuspref_services (
-	id integer NOT NULL DEFAULT nextval('statuspref_services_id_seq'),
-	statuspref_id integer NOT NULL,
-	service_id varchar NOT NULL,
-
-	CONSTRAINT statuspref_services_pkey PRIMARY KEY(id),
-	CONSTRAINT statuspref_services_statusprefid_key UNIQUE(statuspref_id, service_id),
-	CONSTRAINT statuspref_services_statusprefid_fkey
-		FOREIGN KEY (statuspref_id) REFERENCES statuspref(id)
-		ON UPDATE CASCADE
-		ON DELETE CASCADE
-);
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspref_services_id_seq OWNED BY statuspref_services.id;
 
 
 
