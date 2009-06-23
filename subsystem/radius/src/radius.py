@@ -76,21 +76,15 @@ def handler(req):
 
 
     menu = []
-    if nav.auth.hasPrivilege(req.session['user'],
-                             "web_access", "/" + baseurl + "/" + "acctsearch"):
-        menu.append({'link': 'acctsearch', 
-                     'text': 'Accounting Log', 
-                     'admin': False})
-    if nav.auth.hasPrivilege(req.session['user'],
-                             "web_access", "/" + baseurl + "/" + "acctcharts"):
-        menu.append({'link': 'acctcharts', 
-                     'text': 'Accounting Charts', 
-                     'admin': False})
-    if nav.auth.hasPrivilege(req.session['user'],
-                             "web_access", "/" + baseurl + "/" + "logsearch"):
-        menu.append({'link': 'logsearch', 
-                     'text': 'Error Log', 
-                     'admin': False})
+    menu.append({'link': 'acctsearch', 
+                 'text': 'Accounting Log', 
+                 'admin': False})
+    menu.append({'link': 'acctcharts', 
+                 'text': 'Accounting Charts', 
+                 'admin': False})
+    menu.append({'link': 'logsearch', 
+                 'text': 'Error Log', 
+                 'admin': False})
 
     page = AcctSearchTemplate()
     page.menu = menu
