@@ -46,7 +46,7 @@ Quick example:
 'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id=348552316' # Returns a link to an image representing the two datasources. This link is valid for about ten minutes
 """
 
-configfile = 'rrdBrowser.conf'
+configfile = 'rrdviewer/rrdviewer.conf'
 import nav.db
 import nav.config
 import time
@@ -477,14 +477,14 @@ class presentation:
     def genImage (self,*rrd_params):
         conf = nav.config.readConfig(configfile)
         id = str(random.randint(1,10**9))
-        imagefilename = conf['fileprefix'] + id + conf['filesuffix']
+        imagefilename = conf['file_prefix'] + id + conf['file_suffix']
         rrd_params = (imagefilename,) + rrd_params
         try:
             size = rrdtool.graph(*rrd_params)
         except rrdtool.error, err:
             pass
         deadline = 60*10
-        for i in glob.glob('/tmp/rrd*'):
+        for i in glob.glob(conf['file_prefix'] + '*'):
             if os.path.getmtime(i) <  (time.time() - deadline):
                 try:
                     os.unlink(i)
@@ -533,7 +533,7 @@ class page:
         
 def graph(req,id):
     conf = nav.config.readConfig(configfile)
-    filename = conf['fileprefix'] + id + conf['filesuffix']
+    filename = conf['file_prefix'] + id + conf['file_suffix']
     req.content_type  = 'image/gif'
     req.send_http_header()
     f = open(filename)
