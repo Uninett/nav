@@ -20,6 +20,7 @@ import re
 from math import pi, sin, cos, tan, sqrt
 
 from django.template import Context, Template
+from django.template.loader import render_to_string
 
 import nav
 from nav.config import readConfig
@@ -599,9 +600,11 @@ def filter_dict(fun, d):
 
 
 def union_dict(*dicts):
-    """Combine all arguments (which should be dictionaries) to a
-    single dictionary. If several dictionaries contain the same key,
-    the last is used.
+    """Combine dictionaries.
+
+    Combines all arguments (which should be dictionaries) to a single
+    dictionary. If several dictionaries contain the same key, the last
+    is used.
 
     """
     result = {}
@@ -749,13 +752,15 @@ def create_places(graph, bounds, viewport_size, limit):
     viewport_size -- a dictionary with keys (width, height), the width
     and height of the user's viewport for the map in pixels.
 
-    limit -- the minimum distance (in pixels, integer) there may be
-    between two points without them being collapsed to one.
+    limit -- the minimum distance (in pixels) there may be between two
+    points without them being collapsed to one.
 
     """
     # TODO may give division by zero with bogus input:
-    lon_scale = float(viewport_size['width'])/(bounds['maxLon']-bounds['minLon'])
-    lat_scale = float(viewport_size['height'])/(bounds['maxLat']-bounds['minLat'])
+    width = bounds['maxLon']-bounds['minLon']
+    height = bounds['maxLat']-bounds['minLat']
+    lon_scale = float(viewport_size['width'])/width
+    lat_scale = float(viewport_size['height'])/height
     def square(x): return x*x
     def distance(n1, n2):
         return sqrt(square((n1.lon-n2.lon)*lon_scale) +
@@ -763,12 +768,17 @@ def create_places(graph, bounds, viewport_size, limit):
     places = []
     for node in graph.nodes.values():
         for place in places:
-            if distance(node, place[0]) < limit:
-                place.append(node)
+            if distance(node, place['position']) < limit:
+                place['rooms'].append(node)
+                place['position'].lon = avg([n.lon for n in place['rooms']])
+                place['position'].lat = avg([n.lat for n in place['rooms']])
                 break
         else:
-            places.append([node])
-    collapse_nodes(graph, places, 'rooms')
+            places.append({'position': Node(None, node.lon, node.lat, None),
+                           'rooms': [node]})
+    collapse_nodes(graph,
+                   [place['rooms'] for place in places],
+                   'rooms')
 
 
 def collapse_nodes(graph, node_sets, subnode_list_name):
@@ -1019,6 +1029,14 @@ def write_json(obj):
 
 
 
+# KML
+
+def make_kml(featurelist):
+    return render_to_string('geomap/geomap-data-kml.xml',
+                            {'features': featurelist})
+
+
+
 # High-level functions
 
 def get_geojson(db, bounds, viewport_size, limit):
@@ -1032,8 +1050,8 @@ def get_geojson(db, bounds, viewport_size, limit):
     viewport_size is a dictionary with keys (width, height), the width
     and height of the user's viewport for the map in pixels.
 
-    limit is the minimum distance (in pixels, integer) there may be
-    between two points without them being collapsed to one.
+    limit is the minimum distance (in pixels) there may be between two
+    points without them being collapsed to one.
 
     Return value: GeoJSON data as a string.
 
@@ -1044,7 +1062,7 @@ def get_geojson(db, bounds, viewport_size, limit):
 
 _formats = {
     'geojson': (make_geojson, 'application/json'),
-#    'kml': (make_kml, 'application/vnd.google-earth.kml+xml')
+    'kml': (make_kml, 'application/vnd.google-earth.kml+xml')
     };
 
 def get_formatted_data(db, format, bounds, viewport_size, limit):
@@ -1058,8 +1076,8 @@ def get_formatted_data(db, format, bounds, viewport_size, limit):
     viewport_size is a dictionary with keys (width, height), the width
     and height of the user's viewport for the map in pixels.
 
-    limit is the minimum distance (in pixels, integer) there may be
-    between two points without them being collapsed to one.
+    limit is the minimum distance (in pixels) there may be between two
+    points without them being collapsed to one.
 
     Return value: GeoJSON data as a string.
 

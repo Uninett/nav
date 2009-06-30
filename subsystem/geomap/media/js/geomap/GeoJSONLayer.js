@@ -74,9 +74,8 @@ GeoJSONLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 	    '&minLon=' + bounds.minLon + '&maxLon=' + bounds.maxLon +
 	    '&minLat=' + bounds.minLat + '&maxLat=' + bounds.maxLat +
 	    '&viewportWidth=' + size.w + '&viewportHeight=' + size.h +
-	    '&limit=' + 40;
+	    '&limit=' + 30;
 	return url;
-	//return this.baseUrl; // TODO
     },
 
     /*
