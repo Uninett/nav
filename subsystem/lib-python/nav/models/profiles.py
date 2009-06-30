@@ -1015,10 +1015,10 @@ class StatusPreference(models.Model):
     SECTION_THRESHOLD = 'threshold'
 
     SECTION_CHOICES = (
-        (SECTION_NETBOX, 'IP Devices'),
+        (SECTION_NETBOX, 'IP Devices down'),
         (SECTION_NETBOX_MAINTENANCE, 'IP Devices on maintenance'),
-        (SECTION_MODULE, 'Modules'),
-        (SECTION_SERVICE, 'Service'),
+        (SECTION_MODULE, 'Modules down'),
+        (SECTION_SERVICE, 'Services down'),
         (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
         (SECTION_THRESHOLD, 'Thresholds exceeded'),
     )
