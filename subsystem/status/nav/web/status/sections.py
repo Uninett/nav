@@ -16,8 +16,20 @@
 #
 """Status sections"""
 
+from datetime import datetime
+
+from django.db.models import Q
+from django.core.urlresolvers import reverse
+
+from nav.models.profiles import StatusPreference
+from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
+from nav.models.manage import Netbox
+
 from nav.web.status.filters import OrganizationFilter, CategoryFilter, \
     StateFilter, ServiceFilter
+
+MAINTENANCE_STATE = 'maintenanceState'
+BOX_STATE = 'boxState'
 
 def get_user_sections(account):
     sections = []
@@ -27,74 +39,174 @@ def get_user_sections(account):
 
     for pref in preferences:
         if pref.type == StatusPreference.SECTION_NETBOX:
-            section.append(NetboxSection(account,
+            sections.append(NetboxSection(
                 name=pref.name,
-                organisations=pref.organisations.values_list('id', flat=True),
+                organizations=pref.organizations.values_list('id', flat=True),
                 categories=pref.categories.values_list('id', flat=True),
-                states=pref.state_set.values_list('state', flat=True)
+                states=pref.states,
+            ))
+        elif pref.type == StatusPreference.SECTION_NETBOX_MAINTENANCE:
+            sections.append(NetboxMaintenanceSection(
+                name=pref.name,
+                organizations=pref.organizations.values_list('id', flat=True),
+                categories=pref.categories.values_list('id', flat=True),
+                states=pref.states,
             ))
         elif pref.type == StatusPreference.SECTION_MODULE:
             pass
-        elif pref.type == Status.SECTION_SERVICE:
+        elif pref.type == StatusPreference.SECTION_SERVICE:
             pass
 
     return sections
 
 class _Section(object):
-    '''Base class for sections. Defines an interface of methods available in
-    all sections.
+    '''Base class for sections.
+
+    Attributes:
+        columns - tuples of the wanted columns. First part gives the displayed
+                  name of the column, while the second defines the field that
+                  are looked up in the database.
+
+        history - the query used to look up the history
     '''
+    columns = []
+    history = None
+
     def __init__(self, **kwargs):
         self.name = kwargs.pop('name')
 
-    def get_name(self):
-        '''Returns a string with the name of the section'''
-        return ''
-
-    def get_columns(self):
-        '''Returns a list of all columns of this section'''
-        return []
-
-    def get_next_row(self):
-        '''Returns the next row'''
-        yield None
-
-    def get_filters(self):
-        '''Returns a list of all filters available'''
-        ret = {}
-        for key, value in self.__dict__.items():
-            if issubclass(value, Filter):
-                ret[key] = value
-        return ret
-
 class NetboxSection(_Section):
-    categories = CategoryFilter()
-    states = StateFilter()
+    columns =  [
+        'Sysname',
+        'IP',
+        'Down since',
+        'Downtime',
+    ]
 
-    def __init__(self,account, **kwargs):
-        self.organisations = OrganizationFilter(account)
-        organisations.set_selected(kwargs.pop('organisations'))
-        categories.set_selected(kwargs.pop('categories'))
-        states.set_selected(kwrags.pop('states'))
+    def __init__(self, **kwargs):
+        self.organizations = kwargs.pop('organizations')
+        self.categories = kwargs.pop('categories')
+        self.states = kwargs.pop('states').split(',')
 
-        super(_Section, self).__init__(**kwargs)
+        super(NetboxSection, self).__init__(**kwargs)
+        self.history = self._history()
+
+    def _history(self):
+        maintenance = self._maintenance()
+        alert_types = self._alerttype()
+
+        netbox_history = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            ~Q(netbox__in=maintenance),
+            Q(netbox__up='n') | Q(netbox__up='s'),
+            alert_type__in=alert_types,
+            end_time__gt=datetime.max,
+            netbox__category__in=self.categories,
+            netbox__organization__in=self.organizations,
+        ).extra(
+            select={'downtime': 'NOW() - start_time'}
+        ).order_by('-start_time', 'end_time')
+
+        history = []
+        for h in netbox_history:
+            row = (
+                (
+                    h.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+                ),
+                (h.netbox.ip, None),
+                (h.start_time, None),
+                (h.downtime, None),
+            )
+            history.append(row)
+        return history
 
     def _maintenance(self):
-        try:
-            return self._maintenance_query
-        except AttributeError:
-            self._maintenance_query = AlertHistory.objects.filter(
-                event_type='mainenanceState',
-                end_time__gt=datetime.max,
-            ).values('pk').query
-            return self._maintenance_query
-
-    def all(self):
-        history = AlertHistory.objects.filter(
-            ~Q(id__in=self._maintenance()),
-            event_type__id='boxState',
+        return AlertHistory.objects.filter(
+            event_type=MAINTENANCE_STATE,
             end_time__gt=datetime.max,
-            netbox__up__in=self.states.filter(),
-            netbox__category__in=self.category.filter(),
-            netbox__organisation__in=self.organisation.filter(),
-        ).order_by('-start_time', 'end_time')
+        ).values('netbox').query
+
+    def _alerttype(self):
+        states = []
+        if 'y' in self.states:
+            states.append('boxUp')
+        if 'n' in self.states:
+            states.append('boxDown')
+        if 's' in self.states:
+            states.append('boxShadow')
+
+        return AlertType.objects.filter(
+            event_type__id=BOX_STATE,
+            name__in=states
+        ).values('pk').query
+
+class NetboxMaintenanceSection(NetboxSection):
+    columns =  [
+        'Sysname',
+        'IP',
+        'Down since',
+        'Downtime',
+    ]
+
+    def _history(self):
+        maintenance = self._maintenance()
+        boxes_down = self._boxes_down()
+
+        history = []
+        for m in maintenance:
+            # Find out if the box is down as well as on maintenance
+            down = boxes_down.get(m.alert_history.netbox.id, None)
+
+            if m.alert_history.netbox.up == 'y':
+                down_since = 'Up'
+                downtime = ''
+            else:
+                if down:
+                   down_since = down['start_time']
+                   downtime = down['downtime']
+                else:
+                    down_since = 'N/A'
+                    downtime = 'N/A'
+
+            row = (
+                (
+                    m.alert_history.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[m.alert_history.netbox.sysname])
+                ),
+                (m.alert_history.netbox.ip, None),
+                (down_since, None),
+                (downtime, None),
+            )
+            history.append(row)
+        return history
+
+    def _maintenance(self):
+        return AlertHistoryVariable.objects.select_related(
+            'alert_history', 'alert_history__netbox'
+        ).filter(
+            alert_history__netbox__category__in=self.categories,
+            alert_history__netbox__organization__in=self.organizations,
+            alert_history__netbox__up__in=self.states,
+            alert_history__end_time__gt=datetime.max,
+            alert_history__event_type=MAINTENANCE_STATE,
+            variable='maint_taskid',
+        ).order_by('-alert_history__start_time')
+
+    def _boxes_down(self):
+        history = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            end_time__gt=datetime.max,
+            event_type=BOX_STATE,
+        ).extra(
+            select={'downtime': 'NOW() - start_time'}
+        ).order_by('-start_time').values(
+            'netbox', 'start_time', 'downtime'
+        )
+
+        ret = {}
+        for h in history:
+            ret[h['netbox']] = h
+        return ret
