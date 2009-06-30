@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+
+{% if messages %}
+<ul class="messages">
+    {% for m in messages %}
+    <li class="{{ m.type }}">{{ m.message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+{% endblock %}

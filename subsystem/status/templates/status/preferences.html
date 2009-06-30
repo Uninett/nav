@@ -1,14 +1,8 @@
-{% extends "base.html" %}
+{% extends "status/base.html" %}
 
-{% block base_content %}
-{% if messages %}
-<ul class="messages">
-    {% for m in messages %}
-    <li class="{{ m.type }}">{{ m.message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+{% block content %}
 
+{% if formset %}
 <form action="" method="post">
 {{ formset.management_form }}
 <table class="listtable">
@@ -88,5 +82,15 @@
     </tfoot>
 </table>
 </form>
+{% endif %}
+
+{% if add_section %}
+<form action="{% url status-preferences-addsection %}" method="post">
+    <div class="info">            
+        {{ add_section.section }}
+        <input type="submit" name="add_section" value="Add section" />
+    </div>
+</form>
+{% endif %}
 
 {% endblock %}
