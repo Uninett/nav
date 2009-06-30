@@ -1008,14 +1008,18 @@ class StatusPreference(models.Model):
     '''Preferences for the Status tool'''
 
     SECTION_NETBOX = 'netbox'
+    SECTION_NETBOX_MAINTENANCE = 'netbox_maintenance'
     SECTION_MODULE = 'module'
     SECTION_SERVICE = 'service'
+    SECTION_SERVICE_MAINTENANCE = 'service_maintenance'
     SECTION_THRESHOLD = 'threshold'
 
     SECTION_CHOICES = (
         (SECTION_NETBOX, 'IP Devices'),
+        (SECTION_NETBOX_MAINTENANCE, 'IP Devices on maintenance'),
         (SECTION_MODULE, 'Modules'),
         (SECTION_SERVICE, 'Service'),
+        (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
         (SECTION_THRESHOLD, 'Thresholds exceeded'),
     )
 
@@ -1024,7 +1028,7 @@ class StatusPreference(models.Model):
     type = models.CharField(choices=SECTION_CHOICES)
     account = models.ForeignKey('Account', db_column='accountid')
     organizations = models.ManyToManyField(
-        Organization, db_table='statuspreference_organization', blank=True)
+        Organization, db_table='statuspreference_organization')
     categories = models.ManyToManyField(
         Category, db_table='statuspreference_category', blank=True)
 
