@@ -48,16 +48,21 @@ class SectionForm(forms.ModelForm):
         choices=StatusPreference.SECTION_CHOICES,
         widget=StatusTypeWidget()
     )
-    position = forms.IntegerField(widget=forms.HiddenInput())
+    position = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    account = forms.IntegerField(required=False)
 
     class Meta:
         model = StatusPreference
 
     def __init__(self, *args, **kwargs):
+        type = kwargs.pop('type', None)
         super(SectionForm, self).__init__(*args, **kwargs)
+
+        if not type:
+            type = self.instance.type
         
         # All section types except threshold let's the user choose state
-        if self.instance.type != StatusPreference.SECTION_THRESHOLD:
+        if type != StatusPreference.SECTION_THRESHOLD:
             selected_states = self.instance.states
             if selected_states:
                 selected_states = selected_states.split(',')
@@ -68,7 +73,7 @@ class SectionForm(forms.ModelForm):
             )
 
         # No categories choice for services, instead it's a service choice
-        if self.instance.type == StatusPreference.SECTION_SERVICE:
+        if type in (StatusPreference.SECTION_SERVICE, StatusPreference.SECTION_SERVICE_MAINTENANCE):
             services = [(s,s) for s in serviceHelper.getCheckers()]
             selected_services = self.instance.services
             if selected_services:
@@ -85,14 +90,7 @@ class SectionForm(forms.ModelForm):
         type = self.cleaned_data.get('type')
         categories = self.cleaned_data.get('categories')
         services = self.cleaned_data.get('service_choice')
-        if type == 'netbox':
-            # Netbox needs categories and should not have services
-            if not categories:
-                raise forms.ValidationError('No categories selected')
-            else:
-                self.cleaned_data['categories'] = categories
-                self.cleaned_data['services'] = ''
-        elif type == 'service':
+        if type == 'service' or type == 'service_maintenance':
             # Service needs service and should not have categories.
             if not services:
                 raise forms.ValidationError('No services selected')
@@ -103,12 +101,34 @@ class SectionForm(forms.ModelForm):
                 # Join the service_choice list and pass it to services.
                 self.cleaned_data['services'] = ",".join(services)
                 self.cleaned_data['categories'] = []
+        else:
+            # Netbox needs categories and should not have services
+            if not categories:
+                raise forms.ValidationError('No categories selected')
+            else:
+                self.cleaned_data['categories'] = categories
+                self.cleaned_data['services'] = ''
 
-        # States are stored as a comma separated string.
-        # Also, the options from the form are in state_choice.
-        #
-        # Join the state_choice list and pass it to states.
-        states = self.cleaned_data.get('state_choice')
-        self.cleaned_data['states'] = ",".join(states)
+        if type != StatusPreference.SECTION_THRESHOLD:
+            # States are stored as a comma separated string.
+            # Also, the options from the form are in state_choice.
+            #
+            # Join the state_choice list and pass it to states.
+            states = self.cleaned_data.get('state_choice')
+            self.cleaned_data['states'] = ",".join(states)
 
         return self.cleaned_data
+
+    def save(self, account=None, position=None, commit=True):
+        # Look away!
+        self.cleaned_data['account'] = account
+        self.cleaned_data['position'] = position
+        # You can look again.
+
+        return super(SectionForm, self).save(commit=commit)
+
+class AddSectionForm(forms.Form):
+    section = forms.ChoiceField(
+        choices=StatusPreference.SECTION_CHOICES,
+        label='Add section',
+    )
