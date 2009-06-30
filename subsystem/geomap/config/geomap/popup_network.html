@@ -1,0 +1,7 @@
+<div class="network-popup">
+<ul>
+{% for net in network.properties.subedges %}
+<li>{{ net.properties.netident }} ({{ net.id }})</li>
+{% endfor %}
+</ul>
+</div>

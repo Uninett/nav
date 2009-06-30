@@ -1,0 +1,51 @@
+##
+## Copyright 2009 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+
+#extends MainTemplate
+
+#attr $title = 'Geomap'
+#attr $path = [("Home", "/"), ("Geomap", "/geomap/")]
+#attr $bodyOnLoad = "onload=\"init('map', 'data')\""
+
+#block content
+<h2>$title</h2>
+
+$content_string
+#end block content
+
+
+#block additionalJavaScript
+<script src="http://www.pvv.ntnu.no/~oysteini/osm/proj4js/proj4js/lib/proj4js-compressed.js"></script>
+<script src="http://www.pvv.ntnu.no/~oysteini/osm/kart8/projdefs/EPSG326xx.js"></script>
+<script src="http://www.pvv.ntnu.no/~oysteini/osm/kart8/projdefs/EPSG327xx.js"></script>
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+ 
+<script src="/js/geomap/util.js"></script>
+<script src="/js/geomap/coordinates.js"></script>
+<script src="/js/geomap/GeoJSONLayer.js"></script>
+<script src="/js/geomap/PopupControl.js"></script>
+<script src="/js/geomap/PositionControl.js"></script>
+<script src="/js/geomap/geomap.js"></script>
+#end block additionalJavaScript
+
+#block additionalCSS
+<link rel="stylesheet" type="text/css" href="/style/geomap.css" />
+#end block additionalCSS

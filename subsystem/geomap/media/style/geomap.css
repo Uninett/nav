@@ -1,0 +1,48 @@
+/*
+#map {
+  position: absolute;
+  border: 1px solid black;
+  margin: 0px; 
+  padding: 0px;
+  left: 2px;
+  right: 2px;
+  top: 150px;
+  bottom: 50px;
+}
+*/
+/*
+#map
+{
+  border: 1px solid black;
+  margin: 0px; 
+  padding: 0px;
+  width: 100%;
+  height: 0.7vh;
+}
+*/
+body
+{
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
+}
+
+/*
+body
+{
+  height: 100%;
+}
+*/
+
+#navbody
+{ 
+  height: 90%;
+}
+
+#map
+{ 
+  height: 90%;
+  width: 100%;
+}

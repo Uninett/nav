@@ -1,0 +1,9 @@
+<div class="place-popup">
+  <ul>
+    {% for room in place.properties.rooms %}
+    {% for box in room.properties.netboxes %}
+    <li>{{ box.properties.sysname }} ({{ box.properties.ip }})</li>
+    {% endfor %}
+    {% endfor %}
+ </ul>
+</div>

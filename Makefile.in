@@ -33,6 +33,7 @@ subdirs = src \
 	subsystem/arnold \
 	subsystem/dbTools \
 	subsystem/deviceManagement \
+	subsystem/geomap \
 	subsystem/ipdevinfo \
 	subsystem/ipinfo \
 	subsystem/l2trace \
