@@ -20,6 +20,7 @@ from django.template import RequestContext
 from django.forms.models import modelformset_factory, inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.db import transaction
 
 from nav.web.templates.StatusTemplate import StatusTemplate
 from nav.django.shortcuts import render_to_response
@@ -28,12 +29,22 @@ from nav.models.profiles import StatusPreference, Account
 from nav.web.message import Messages, new_message
 
 from nav.web.status.sections import get_user_sections
-from nav.web.status.forms import SectionForm
+from nav.web.status.forms import SectionForm, AddSectionForm
 from nav.web.status.utils import extract_post, order_status_preferences
 
 def status(request):
     '''Main status view.'''
-    pass
+    account = get_account(request)
+    sections = get_user_sections(account)
+
+    return render_to_response(
+        StatusTemplate,
+        'status/status.html',
+        {
+            'sections': sections,
+        },
+        RequestContext(request)
+    )
 
 def preferences(request):
     '''Allows user customization of the status page.'''
@@ -56,6 +67,7 @@ def preferences(request):
         'status/preferences.html',
         {
             'formset': formset,
+            'add_section': AddSectionForm(),
         },
         RequestContext(request)
     )
@@ -145,3 +157,43 @@ def move_section(request):
         Messages.SUCCESS
     )
     return HttpResponseRedirect(reverse('status-preferences'))
+
+def add_section(request):
+    account = get_account(request)
+    add_form = None
+    section_form = None
+
+    if request.method == 'POST':
+        if request.POST.get('add_section'):
+            add_form = AddSectionForm(request.POST)
+            if add_form.is_valid():
+                type = add_form.cleaned_data['section']
+
+                add_form = None
+                section_form = SectionForm(initial={
+                    'type': type,
+                }, type=type)
+        else:
+            try:
+                last_position = StatusPreference.objects.filter(
+                    account=account
+                ).order_by('-position')[0].position
+            except IndexError:
+                last_position = 0
+
+            section_form = SectionForm(request.POST, type=request.POST.get('type'))
+            if section_form.is_valid():
+                prefs = section_form.save(account=account, position=last_position+1)
+                return HttpResponseRedirect(reverse('status-preferences'))
+    else:
+        add_form = AddSectionForm()
+
+    return render_to_response(
+        StatusTemplate,
+        'status/add_section.html',
+        {
+            'add_form': add_form,
+            'section_form': section_form,
+        },
+        RequestContext(request)
+    )
