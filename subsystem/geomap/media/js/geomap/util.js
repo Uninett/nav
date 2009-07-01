@@ -80,7 +80,7 @@ function member(elem, arr) {
 
 function copyObject(obj) {
     var cp = {};
-    for (i in obj) {
+    for (var i in obj) {
 	cp[i] = obj[i];
     }
     return cp;
@@ -88,7 +88,7 @@ function copyObject(obj) {
 
 function extend(obj, ext) {
     var res = copyObject(obj);
-    for (i in ext)
+    for (var i in ext)
 	res[i] = ext[i];
     return res;
 }

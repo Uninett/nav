@@ -52,8 +52,59 @@ function init(map_element_id, url) {
     osmaLayer = new OpenLayers.Layer.OSM.Osmarender("Osmarender");
     themap.addLayer(osmaLayer);
 
+    var format = new OpenLayers.Format.GeoJSON({
+	externalProjection: new OpenLayers.Projection('EPSG:4326'),
+	internalProjection: themap.getProjectionObject()
+    });
+
+    netLayerStyle = new OpenLayers.StyleMap({
+	pointRadius: 15,
+	strokeWidth: 10,
+	strokeOpacity: 0.4,
+	fillOpacity: 0.7,
+	fillColor: 'black',
+	strokeColor: 'red',
+	graphicZIndex: 1
+    });
+    netLayerStyle.addUniqueValueRules('default', 'type', {
+	node: {
+	    fillColor: '${color}',//'#ee9900',
+	    strokeColor: 'black',
+	    strokeWidth: 0,
+	    pointRadius: '${size}',
+	    graphicZIndex: 2
+	},
+	edge: {
+	    strokeColor: '${color}',//'#333399',
+	    strokeWidth: '${size}',
+	    graphicZIndex: 1
+	}
+    });
+
+    netLayer = new OpenLayers.Layer.Vector('Networks', {
+	strategies: [new OpenLayers.Strategy.BBOX({resFactor: 1.1})],
+		     //new OpenLayers.Strategy.Cluster()],
+	protocol: new MyHTTPProtocol({
+	    url: url,
+	    params: {
+		format: 'geojson',
+		limit: 30
+	    },
+	    dynamicParams: {
+		viewportWidth: {'function': function() { return themap.getSize().w }},
+		viewportHeight: {'function': function() { return themap.getSize().h }}
+	    },
+	    format: new OpenLayers.Format.GeoJSON()
+	}),
+	styleMap: netLayerStyle,
+	rendererOptions: {zIndexing: true}
+    });
+    themap.addLayer(netLayer);
+
+    /*
     netLayer = new GeoJSONLayer('Networks', url);
     themap.addLayer(netLayer);
+    */
 
     netPopupControl = new PopupControl(netLayer);
     themap.addControl(netPopupControl);

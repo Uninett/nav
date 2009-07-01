@@ -45,10 +45,16 @@ def data(request):
     db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     format = request.GET['format']
-    bounds = {'minLon': float(request.GET['minLon']),
-              'maxLon': float(request.GET['maxLon']),
-              'minLat': float(request.GET['minLat']),
-              'maxLat': float(request.GET['maxLat'])}
+    if request.GET.has_key('bbox'):
+        bbox = request.GET['bbox']
+        bounds = {}
+        (bounds['minLon'], bounds['minLat'],
+         bounds['maxLon'], bounds['maxLat']) = map(float, bbox.split(','))
+    else:
+        bounds = {'minLon': float(request.GET['minLon']),
+                  'maxLon': float(request.GET['maxLon']),
+                  'minLat': float(request.GET['minLat']),
+                  'maxLat': float(request.GET['maxLat'])}
     viewport_size = {'width': int(request.GET['viewportWidth']),
                      'height': int(request.GET['viewportHeight'])}
     limit = int(request.GET['limit'])
