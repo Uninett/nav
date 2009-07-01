@@ -55,6 +55,15 @@ def get_user_sections(account):
         elif pref.type == StatusPreference.SECTION_MODULE:
             pass
         elif pref.type == StatusPreference.SECTION_SERVICE:
+            sections.append(ServiceSection(
+                name=pref.name,
+                organizations=pref.organizations.values_list('id', flat=True),
+                services=pref.services,
+                states=pref.states,
+            ))
+        elif pref.type == StatusPreference.SECTION_SERVICE_MAINTENANCE:
+            pass
+        elif pref.type == StatusPreference.SECTION_THRESHOLD:
             pass
 
     return sections
@@ -74,6 +83,12 @@ class _Section(object):
 
     def __init__(self, **kwargs):
         self.name = kwargs.pop('name')
+        self.organizations = kwargs.pop('organizations')
+        self.categories = kwargs.pop('categories')
+        self.states = kwargs.pop('states').split(',')
+
+    def history(self):
+        return []
 
 class NetboxSection(_Section):
     columns =  [
@@ -83,15 +98,7 @@ class NetboxSection(_Section):
         'Downtime',
     ]
 
-    def __init__(self, **kwargs):
-        self.organizations = kwargs.pop('organizations')
-        self.categories = kwargs.pop('categories')
-        self.states = kwargs.pop('states').split(',')
-
-        super(NetboxSection, self).__init__(**kwargs)
-        self.history = self._history()
-
-    def _history(self):
+    def history(self):
         maintenance = self._maintenance()
         alert_types = self._alerttype()
 
@@ -150,7 +157,7 @@ class NetboxMaintenanceSection(NetboxSection):
         'Downtime',
     ]
 
-    def _history(self):
+    def history(self):
         maintenance = self._maintenance()
         boxes_down = self._boxes_down()
 
@@ -210,3 +217,59 @@ class NetboxMaintenanceSection(NetboxSection):
         for h in history:
             ret[h['netbox']] = h
         return ret
+
+class ServiceSection(_Section):
+    columns = [
+        'Sysname',
+        'Handler',
+        'Down since',
+        'Downtime',
+    ]
+
+    def __init__(self, **kwargs):
+        self.name = kwargs.pop('name')
+        self.organizations = kwargs.pop('organizations')
+        self.services = kwargs.pop('services').split(',')
+        self.states = kwargs.pop('states').split(',')
+
+    def history(self):
+        from django.db import connection, transaction
+
+        # Dropping to raw SQL since we are joining tables that doesn't have
+        # foreign keys, and the fields we are joining are of different types.
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT sysname, handler, start_time, NOW() - start_time AS downtime
+            FROM alerthist
+            INNER JOIN netbox USING (netboxid)
+            INNER JOIN service ON (subid = serviceid::text)
+            WHERE
+                netbox.netboxid NOT IN (
+                    SELECT netboxid
+                    FROM alerthist
+                    WHERE
+                        end_time = 'infinity' AND
+                        eventtypeid = 'maintenanceState'
+                ) AND
+                end_time = 'infinity' AND
+                eventtypeid = 'serviceState' AND
+                orgid IN ('%(organizations)s') AND
+                handler IN ('%(services)s') AND
+                service.up IN ('%(states)s')
+            ORDER BY start_time DESC
+        """ % {
+            'organizations': "','".join(self.organizations),
+            'services': "','".join(self.services),
+            'states': "','".join(self.states),
+        })
+
+        history = []
+        for sysname, handler, start_time, downtime in cursor.fetchall():
+            row = (
+                (sysname, reverse('ipdevinfo-details-by-name', args=[sysname])),
+                (handler, reverse('ipdevinfo-service-list-handler', args=[handler])),
+                (start_time, None),
+                (downtime, None),
+            )
+            history.append(row)
+        return history
