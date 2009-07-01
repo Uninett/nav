@@ -5,7 +5,10 @@
 {% for section in sections %}
 <table class="listtable">
     <caption>
-        {{ section.name }}
+        {{ section.prefs.name }}
+        <span class="subtitle">
+        ({{ section.type_title }})
+        </span>
     </caption>
 
     <thead>
