@@ -23,7 +23,7 @@ from django.core.urlresolvers import reverse
 
 from nav.models.profiles import StatusPreference
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Module
 
 from nav.web.status.filters import OrganizationFilter, CategoryFilter, \
     StateFilter, ServiceFilter
@@ -39,32 +39,17 @@ def get_user_sections(account):
 
     for pref in preferences:
         if pref.type == StatusPreference.SECTION_NETBOX:
-            sections.append(NetboxSection(
-                name=pref.name,
-                organizations=pref.organizations.values_list('id', flat=True),
-                categories=pref.categories.values_list('id', flat=True),
-                states=pref.states,
-            ))
+            sections.append(NetboxSection(prefs=pref))
         elif pref.type == StatusPreference.SECTION_NETBOX_MAINTENANCE:
-            sections.append(NetboxMaintenanceSection(
-                name=pref.name,
-                organizations=pref.organizations.values_list('id', flat=True),
-                categories=pref.categories.values_list('id', flat=True),
-                states=pref.states,
-            ))
+            sections.append(NetboxMaintenanceSection(prefs=pref))
         elif pref.type == StatusPreference.SECTION_MODULE:
-            pass
+            sections.append(ModuleSection(prefs=pref))
         elif pref.type == StatusPreference.SECTION_SERVICE:
-            sections.append(ServiceSection(
-                name=pref.name,
-                organizations=pref.organizations.values_list('id', flat=True),
-                services=pref.services,
-                states=pref.states,
-            ))
+            sections.append(ServiceSection(prefs=pref))
         elif pref.type == StatusPreference.SECTION_SERVICE_MAINTENANCE:
-            pass
+            sections.append(ServiceMaintenanceSection(prefs=pref))
         elif pref.type == StatusPreference.SECTION_THRESHOLD:
-            pass
+            sections.append(ThresholdSection(prefs=pref))
 
     return sections
 
@@ -80,12 +65,18 @@ class _Section(object):
     '''
     columns = []
     history = None
+    type_title = ''
 
-    def __init__(self, **kwargs):
-        self.name = kwargs.pop('name')
-        self.organizations = kwargs.pop('organizations')
-        self.categories = kwargs.pop('categories')
-        self.states = kwargs.pop('states').split(',')
+    def __init__(self, prefs=None):
+        self.prefs = prefs
+        self.categories = self.prefs.categories.values_list('id', flat=True)
+        self.organizations = self.prefs.organizations.values_list('id', flat=True)
+        self.states = self.prefs.states.split(',')
+
+        for key, title in StatusPreference.SECTION_CHOICES:
+            if self.prefs.type == key:
+                self.type_title = title
+                break
 
     def history(self):
         return []
@@ -149,7 +140,7 @@ class NetboxSection(_Section):
             name__in=states
         ).values('pk').query
 
-class NetboxMaintenanceSection(NetboxSection):
+class NetboxMaintenanceSection(_Section):
     columns =  [
         'Sysname',
         'IP',
@@ -226,11 +217,9 @@ class ServiceSection(_Section):
         'Downtime',
     ]
 
-    def __init__(self, **kwargs):
-        self.name = kwargs.pop('name')
-        self.organizations = kwargs.pop('organizations')
-        self.services = kwargs.pop('services').split(',')
-        self.states = kwargs.pop('states').split(',')
+    def __init__(self, prefs=None):
+        super(ServiceSection, self).__init__(prefs=prefs)
+        self.services = self.prefs.services.split(',')
 
     def history(self):
         from django.db import connection, transaction
@@ -258,7 +247,7 @@ class ServiceSection(_Section):
                 service.up IN ('%(states)s')
             ORDER BY start_time DESC
         """ % {
-            'organizations': "','".join(self.organizations),
+            'organizations': "','".join(self.prefs.organizations.values_list('id', flat=True)),
             'services': "','".join(self.services),
             'states': "','".join(self.states),
         })
@@ -268,6 +257,162 @@ class ServiceSection(_Section):
             row = (
                 (sysname, reverse('ipdevinfo-details-by-name', args=[sysname])),
                 (handler, reverse('ipdevinfo-service-list-handler', args=[handler])),
+                (start_time, None),
+                (downtime, None),
+            )
+            history.append(row)
+        return history
+
+class ServiceMaintenanceSection(ServiceSection):
+    def history(self):
+        maintenance = AlertHistoryVariable.objects.select_related(
+            'alert_history', 'alert_history__netbox'
+        ).filter(
+            alert_history__end_time__gt=datetime.max,
+            alert_history__event_type='maintenanceState',
+            variable='maint_taskid',
+        ).extra(
+            select={
+                'downtime': 'NOW() - start_time',
+                'handler': 'service.handler',
+                'up': 'service.up',
+            },
+            tables=['service'],
+            where=['subid = serviceid::text'],
+        ).order_by('-alert_history__start_time')
+
+        service_history = AlertHistory.objects.filter(
+            end_time__gt=datetime.max,
+            event_type='serviceState',
+        ).extra(
+            select={'downtime': 'NOW() - start_time'}
+        ).values('netbox', 'start_time', 'downtime')
+
+        service_down = {}
+        for s in service_history:
+            service_down[s['netbox']] = s
+
+        history = []
+        for m in maintenance:
+            down = service_down.get(m.alert_history.netbox.id, None)
+
+            if m.up == 'y':
+                down_since = 'Up'
+                downtime = ''
+            else:
+                if down:
+                   down_since = down['start_time']
+                   downtime = down['downtime']
+                else:
+                    down_since = 'N/A'
+                    downtime = 'N/A'
+
+            row = (
+                (
+                    m.alert_history.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[m.alert_history.netbox.sysname])
+                ),
+                (m.handler, reverse('ipdevinfo-service-list-handler', args=[m.handler])),
+                (down_since, None),
+                (downtime, None),
+            )
+            history.append(row)
+        return history
+
+class ModuleSection(_Section):
+    columns = [
+        'Sysname',
+        'IP',
+        'Module',
+        'Down since',
+        'Downtime',
+    ]
+
+    def history(self):
+        # Find modules that match the state filter
+        modules_down = Module.objects.filter(
+            up__in=self.states
+        )
+
+        # Try to find history related to the modules that are down
+        module_history = AlertHistory.objects.filter(
+            Q(netbox__in=[netbox for netbox in modules_down]) |
+            Q(device__in=[device for device in modules_down]),
+            end_time__gt=datetime.max,
+            event_type='moduleState',
+            alert_type__name='moduleDown',
+            netbox__organization__in=self.organizations,
+            netbox__category__in=self.categories,
+        ).extra(
+            select={'downtime': 'NOW() - start_time'}
+        ).order_by('-start_time')
+
+        history = []
+        for module in modules_down:
+            for alerthist in module_history:
+                if module.netbox.id == alerthist.netbox.id or module.device.id == alerthist.device.id:
+                    row = (
+                        (
+                            module.netbox.sysname,
+                            reverse('ipdevinfo-details-by-name', args=[module.netbox.sysname])
+                        ),
+                        (module.netbox.ip, None),
+                        (
+                            module.module_number,
+                            reverse('ipdevinfo-module-details', args=[
+                                module.netbox.sysname,
+                                module.module_number
+                            ])
+                        ),
+                        (alerthist.start_time, None),
+                        (alerthist.downtime, None),
+                    )
+                    history.append(row)
+        return history
+
+class ThresholdSection(_Section):
+    columns = [
+        'Sysname',
+        'Description',
+        'Exceeded since',
+        'Time exceeded',
+    ]
+
+    def history(self):
+        thresholds = AlertHistory.objects.filter(
+            end_time__gt=datetime.max,
+            event_type='thresholdState',
+            alert_type__name='exceededThreshold',
+            netbox__organization__in=self.organizations,
+            netbox__category__in=self.categories,
+        ).extra(
+            select={
+                'downtime': 'NOW() - start_time',
+                'rrd_description': 'rrd_datasource.descr',
+                'rrd_units': 'rrd_datasource.units',
+                'rrd_threshold': 'rrd_datasource.threshold',
+            },
+            tables=['rrd_datasource'],
+            where=['subid = rrd_datasource.rrd_datasourceid::text']
+        ).order_by('-start_time')
+
+        history = []
+        for t in thresholds:
+            rrd_description = t.rrd_description
+            if not rrd_description:
+                rrd_description = 'Unknown datasource'
+            description = '%(descr)s exceeded %(threshold)s%(units)s' % {
+                'descr': rrd_description,
+                'threshold': t.rrd_threshold,
+                'units': t.rrd_units,
+            }
+
+            row = (
+                (
+                    t.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[t.netbox.sysname])
+                ),
+                (description, None),
                 (start_time, None),
                 (downtime, None),
             )
