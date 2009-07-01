@@ -252,7 +252,8 @@ ORDER BY from_sysname, sysname, swport.speed DESC
             data = get_rrd_link_load(res['rrdfile'])
             res['load'] = (data[0],data[1])
         else:
-            res['load'] = (-1,-1)
+            res['load'] = ('unknown','unknown')
+        res['load_in'], res['load_out'] = res['load']
         if 'from_swportid' in res and res['from_swportid']:
             res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
         elif 'from_gwportid' in res and res['from_gwportid']:
@@ -299,12 +300,12 @@ def get_rrd_link_load(rrdfile):
     """Returns the ds1 and ds2 fields of an rrd-file (ifInOctets,
     ifOutOctets)"""
     if not rrdfile:
-        return (-1,-1)
+        return ('unknown','unknown')
     try:
         data = rrdtool.fetch(rrdfile, 'AVERAGE', '-s -10min')[2][0]
         return ((data[1])/1024.0, (data[0])/1024.0)
     except:
-        return (-1,-1)
+        return ('unknown','unknown')
 
 
 
@@ -574,7 +575,33 @@ def avg(lst):
     of numbers.
 
     """
+    if len(lst) == 0:
+        return 0
     return float(sum(lst))/len(lst)
+
+
+def weighted_avg(lst):
+    if len(lst) == 0:
+        return 0
+    total = sum(map(lambda (value,weight): value*weight, lst))
+    num = sum(map(lambda (value,weight): weight, lst))
+    return float(total)/num
+
+
+def make_filter(fun):
+    return lambda(lst): filter(fun, lst)
+
+
+def numeric(obj):
+    return isinstance(obj, int) or isinstance(obj, float)
+
+
+number_filter = make_filter(numeric)
+
+
+def compose(*functions):
+    return reduce(lambda f1, f2: lambda x: f1(f2(x)),
+                  functions)
 
 
 def subdict(d, keys):
@@ -599,6 +626,17 @@ def filter_dict(fun, d):
     return subdict(d, filter(lambda key: fun(d[key]), d))
 
 
+def map_dict(fun, d):
+    """Map over a dictionary's values.
+
+    Returns a new dictionary which is like d except that each value is
+    replaced by the result of applying fun to it.
+
+    """
+    return dict(map(lambda (key, value): (key, fun(value)),
+                    d.items()))
+
+
 def union_dict(*dicts):
     """Combine dictionaries.
 
@@ -613,17 +651,42 @@ def union_dict(*dicts):
     return result
 
 
-def concat_list(objs):
+def concat_list(lists):
     """Concatenate a list of lists."""
-    return reduce(lambda a,b: a+b, objs, [])
+    return reduce(lambda a,b: a+b, lists, [])
+
+
+def concat_str(strs):
+    """Concatenate a list of strings."""
+    return reduce(lambda a,b: a+b, strs, '')
 
 
 # graph functions and classes:
 
-def build_graph(db_results):
-    """Make a Graph object based on the dictionaries resulting from
-    get_data.
+aggregate_properties_place = {
+    'load':
+        lambda rooms:
+        weighted_avg(map(lambda room: (room.properties['load'],
+                                       room.properties['num_netboxes']),
+                         rooms)),
+    'num_rooms': len
+    }
 
+aggregate_properties_room = {
+    'name': lambda netboxes: netboxes[0].properties['room'],
+    'load': (compose(avg, number_filter), 'load'),
+    'num_netboxes': len
+    }
+
+aggregate_properties_edge = {
+    'speed': (sum, 'speed'),
+    'load_in': (compose(sum, number_filter), 'load_in'),
+    'load_out': (compose(sum, number_filter), 'load_out')
+    }
+
+
+def build_graph(db_results):
+    """Make a Graph object based on the dictionaries resulting from get_data.
     """
     (netboxes,connections) = db_results
     graph = Graph()
@@ -676,7 +739,7 @@ def simplify(graph, bounds, viewport_size, limit):
     area_filter(graph, bounds)
     create_rooms(graph)
     create_places(graph, bounds, viewport_size, limit)
-    combine_edges(graph)
+    combine_edges(graph, aggregate_properties_edge)
 
 
 def area_filter(graph, bounds):
@@ -729,7 +792,8 @@ def create_rooms(graph):
     collapse_nodes(graph,
                    group(lambda node: node.properties['roomid'],
                          graph.nodes.values()),
-                   'netboxes')
+                   'netboxes',
+                   aggregate_properties_room)
 
 
 def create_places(graph, bounds, viewport_size, limit):
@@ -756,7 +820,14 @@ def create_places(graph, bounds, viewport_size, limit):
     points without them being collapsed to one.
 
     """
-    # TODO may give division by zero with bogus input:
+    # TODO:
+    #
+    # -- This may give division by zero with bogus input (should check
+    #    for zeros -- what should we do then?)
+    #
+    # -- Should take into account that longitudes wrap around. Is
+    #    there any way to detect whether we have a map wider than the
+    #    earth, or do we need an extra parameter?
     width = bounds['maxLon']-bounds['minLon']
     height = bounds['maxLat']-bounds['minLat']
     lon_scale = float(viewport_size['width'])/width
@@ -778,10 +849,12 @@ def create_places(graph, bounds, viewport_size, limit):
                            'rooms': [node]})
     collapse_nodes(graph,
                    [place['rooms'] for place in places],
-                   'rooms')
+                   'rooms',
+                   aggregate_properties_place)
 
 
-def collapse_nodes(graph, node_sets, subnode_list_name):
+def collapse_nodes(graph, node_sets, subnode_list_name,
+                   property_aggregators={}):
     """Collapse sets of nodes to single nodes.
 
     Replaces each set of nodes in node_sets by a single (new) node and
@@ -793,6 +866,12 @@ def collapse_nodes(graph, node_sets, subnode_list_name):
     original nodes; the name of this property is given by
     subnode_list_name.
 
+    Properties from the original nodes may be combined to form
+    aggregate values in the new node.  The property_aggregators
+    argument determines how (and whether) this is done.  Some useful
+    aggregator functions are sum and avg (for numbers) and lambda lst:
+    ', '.join(map(str, lst)).
+
     Arguments:
 
     graph -- a Graph object.  It is destructively modified.
@@ -803,24 +882,52 @@ def collapse_nodes(graph, node_sets, subnode_list_name):
     subnode_list_name -- name for the property containing the original
     nodes a newly created node represents.
 
+    property_aggregators -- describes how to create aggregate
+    properties.  Dictionary with names of properties as keys and
+    aggregator functions as corresponding values.  Each aggregator
+    function should take a single argument, a list.
+
     """
     graph.nodes = {}
     nodehash = {}
     for s in node_sets:
+        properties = aggregate_properties(s, property_aggregators)
+        properties[subnode_list_name] = s
         new_node = Node('cn[%s]' % (';'.join([str(n.id) for n in s])),
                         avg([n.lon for n in s]), avg([n.lat for n in s]),
-                        {subnode_list_name: s})
+                        properties)
         for n in s:
             nodehash[n.id] = new_node
         graph.add_node(new_node)
+    # Now nodehash maps original node ids to new node objects.  Use it
+    # to redirect the edges to the new nodes:
     for edge in graph.edges.values():
         edge.source = nodehash[edge.source.id]
         edge.target = nodehash[edge.target.id]
     graph.edges = filter_dict(lambda edge: edge.source != edge.target,
                               graph.edges)
+
+
+def aggregate_properties(objects, aggregators):
+    def apply_aggregator(aggr):
+        if isinstance(aggr, tuple):
+            fun = aggr[0]
+            property = aggr[1]
+            lst = map(lambda obj: obj.properties[property], objects)
+        else:
+            fun = aggr
+            lst = objects
+        return fun(lst)
+    return map_dict(apply_aggregator, aggregators)
+
+#     return dict(map(lambda (property, aggregator):
+#                         (property,
+#                          aggregator(map(lambda obj: obj.properties[property],
+#                                         objects))),
+#                     aggregators.items()))
     
 
-def combine_edges(graph):
+def combine_edges(graph, property_aggregators={}):
     """Combine edges with the same endpoints.
 
     Replaces the edges in graph with new edge objects, where any set
@@ -842,7 +949,8 @@ def combine_edges(graph):
     for edge in graph.edges.values():
         if edge.id in edge_sets:
             continue
-        eset = list(edges_by_node[edge.source.id] & edges_by_node[edge.target.id])
+        eset = list(edges_by_node[edge.source.id] &
+                    edges_by_node[edge.target.id])
         for e in eset:
             edge_sets[e] = eset
 
@@ -852,7 +960,8 @@ def combine_edges(graph):
             Edge('ce[%s]' % (';'.join([e.id for e in eset])),
                  eset[0].source,
                  eset[0].target,
-                 {'subedges': eset}),
+                 union_dict(aggregate_properties(eset, property_aggregators),
+                            {'subedges': eset})),
         edge_sets.values())
     graph.edges = dict([(e.id,e) for e in edges])
 
