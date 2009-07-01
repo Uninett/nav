@@ -41,6 +41,7 @@ def status(request):
         StatusTemplate,
         'status/status.html',
         {
+            'active': {'status': True},
             'sections': sections,
         },
         RequestContext(request)
@@ -66,6 +67,7 @@ def preferences(request):
         StatusTemplate,
         'status/preferences.html',
         {
+            'active': {'preferences': True},
             'formset': formset,
             'add_section': AddSectionForm(),
         },
