@@ -87,6 +87,7 @@ class NetboxSection(_Section):
         'IP',
         'Down since',
         'Downtime',
+        '',
     ]
 
     def history(self):
@@ -116,6 +117,13 @@ class NetboxSection(_Section):
                 (h.netbox.ip, None),
                 (h.start_time, None),
                 (h.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?view_netbox=%(id)s&type=a_3&group_by=datetime' % {
+                        'id': h.netbox.id,
+                    }
+                ),
             )
             history.append(row)
         return history
@@ -215,6 +223,7 @@ class ServiceSection(_Section):
         'Handler',
         'Down since',
         'Downtime',
+        '',
     ]
 
     def __init__(self, prefs=None):
@@ -228,7 +237,8 @@ class ServiceSection(_Section):
         # foreign keys, and the fields we are joining are of different types.
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT sysname, handler, start_time, NOW() - start_time AS downtime
+            SELECT netbox.netboxid, sysname, handler, start_time,
+                NOW() - start_time AS downtime
             FROM alerthist
             INNER JOIN netbox USING (netboxid)
             INNER JOIN service ON (subid = serviceid::text)
@@ -253,12 +263,19 @@ class ServiceSection(_Section):
         })
 
         history = []
-        for sysname, handler, start_time, downtime in cursor.fetchall():
+        for netboxid, sysname, handler, start_time, downtime in cursor.fetchall():
             row = (
                 (sysname, reverse('ipdevinfo-details-by-name', args=[sysname])),
                 (handler, reverse('ipdevinfo-service-list-handler', args=[handler])),
                 (start_time, None),
                 (downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?view_netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
+                        'id': netboxid,
+                    }
+                )
             )
             history.append(row)
         return history
@@ -413,8 +430,8 @@ class ThresholdSection(_Section):
                     reverse('ipdevinfo-details-by-name', args=[t.netbox.sysname])
                 ),
                 (description, None),
-                (start_time, None),
-                (downtime, None),
+                (t.start_time, None),
+                (t.downtime, None),
             )
             history.append(row)
         return history
