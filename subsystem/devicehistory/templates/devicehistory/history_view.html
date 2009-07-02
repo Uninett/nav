@@ -2,7 +2,7 @@
 {% load filters %}
 
 {% block tabcontent %}
-    <form action="{% url devicehistory-search %}" method="post">
+    <form action="{% url devicehistory-view %}" method="post">
         {% for type, elements in selection.items %}
             {% for id in elements %}
                 <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
@@ -16,8 +16,6 @@
             </tr>
         </table>
     </form>
-
-    {% include "devicehistory/history_view_paginator.html" %}
 
     {% for group_name, group in history.grouped_history.items %}
     <table class="listtable reporttable">
@@ -84,7 +82,5 @@
         </tfoot>
     </table>
     {% endfor %}
-
-    {% include "devicehistory/history_view_paginator.html" %}
 
 {% endblock %}

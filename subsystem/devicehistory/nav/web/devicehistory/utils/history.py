@@ -15,23 +15,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import time
-from datetime import date, datetime
-
-from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.web.quickselect import QuickSelect
-
-DeviceQuickSelect_view_history_kwargs = {
-    'button': 'View %s history',
-    'module': True,
-    'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
-}
-ONE_DAY = 24 * 3600
-ONE_WEEK = 7 * ONE_DAY
 
 def get_selected_types(types):
     selected_types = {'event': [], 'alert': []}
@@ -158,90 +146,3 @@ def group_history_and_messages(history, messages, group_by=None):
             grouped_history[key] = []
         grouped_history[key].append(a)
     return grouped_history
-
-def devicehistory_url_pack(request, data=None):
-    def get_parameters(request):
-        data = {}
-        DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-        data['from_date'] = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
-        data['to_date'] = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
-        data['types'] = request.POST.getlist('type')
-        data['group_by'] = request.POST.get('group_by', 'netbox')
-        data['selection'] = DeviceQuickSelect.handle_post(request)
-        try:
-            data['page'] = int(request.POST.get('page', '1'))
-        except ValueError:
-            data['page'] = 1
-        return data
-
-    # If no data is supplied we try to extract it from POST.
-    if not data and request.method == 'POST':
-        data = get_parameters(request)
-
-    if data:
-        url = '?l=%(location)s&r=%(room)s&n=%(netbox)s&m=%(module)s' % {
-            'location': ",".join(data['selection']['location']),
-            'room': ",".join(data['selection']['room']),
-            'netbox': ",".join(data['selection']['netbox']),
-            'module': ",".join(data['selection']['module']),
-        }
-        url += '&fd=%(from_date)s&td=%(to_date)s&ty=%(types)s&gb=%(group_by)s' % {
-            'from_date': data['from_date'],
-            'to_date': data['to_date'],
-            'types': ",".join(data['types']),
-            'group_by': data['group_by'],
-        }
-        if 'page' in data:
-            url += '&p=%(page)s' % {'page': data['page']}
-    else:
-        url = ''
-
-    return reverse('devicehistory-view') + url
-
-
-def devicehistory_url_unpack(request):
-    location =  []
-    room = []
-    netbox= []
-    module = []
-    if request.GET.get('l', None):
-        location = request.GET.get('l').split(',')
-    if request.GET.get('r', None):
-        room = request.GET.get('r').split(',')
-    if request.GET.get('n', None):
-        netbox = request.GET.get('n').split(',')
-    if request.GET.get('m', None):
-        module = request.GET.get('m').split(',')
-
-    from_date = request.GET.get('fd', '')
-    to_date = request.GET.get('td', '')
-    types = request.GET.get('ty', '').split(',')
-    group_by = request.GET.get('gb', 'netbox')
-    try:
-        page = int(request.GET.get('p', '1'))
-    except ValueError:
-        page = 1
-
-    # In Python 2.5 we can use datetime.strptime().
-    try:
-        from_date = date(*(time.strptime(from_date, "%Y-%m-%d")[0:3]))
-    except ValueError:
-        from_date = date.fromtimestamp(time.time() - ONE_WEEK)
-    try:
-        to_date = date(*(time.strptime(to_date, "%Y-%m-%d")[0:3]))
-    except ValueError:
-        to_date = date.fromtimestamp(time.time() + ONE_DAY)
-
-    return {
-        'selection': {
-            'location': location,
-            'room': room,
-            'netbox': netbox,
-            'module': module,
-        },
-        'from_date': from_date,
-        'to_date': to_date,
-        'types': types,
-        'group_by': group_by,
-        'page': page,
-    }

@@ -37,8 +37,7 @@ from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils import get_event_and_alert_types
 from nav.web.devicehistory.utils.history import get_selected_types, \
     fetch_history, get_page, get_messages_for_history, \
-    group_history_and_messages, devicehistory_url_pack, \
-    devicehistory_url_unpack
+    group_history_and_messages
 from nav.web.devicehistory.utils.error import register_error_events
 
 DeviceQuickSelect_view_history_kwargs = {
@@ -68,9 +67,6 @@ _ = lambda a: a
 # constraints in IE that limits the length of an URL to around 2000 characters.
 
 def devicehistory_search(request):
-    if request.method == 'POST':
-        return HttpResponseRedirect(devicehistory_url_pack(request))
-
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
@@ -95,42 +91,47 @@ def devicehistory_search(request):
     )
 
 def devicehistory_view(request):
-    data = devicehistory_url_unpack(request)
+    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
+    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
+    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
+    types = request.POST.getlist('type')
+    group_by = request.POST.get('group_by', 'netbox')
+    selection = DeviceQuickSelect.handle_post(request)
 
-    selected_types = get_selected_types(data['types'])
+    try:
+        page = int(request.POST.get('page', '1'))
+    except ValueError:
+        page = 1
+
+    selected_types = get_selected_types(types)
     event_types = get_event_and_alert_types()
 
     alert_history = fetch_history(
-        data['selection'],
-        data['from_date'],
-        data['to_date'],
+        selection,
+        from_date,
+        to_date,
         selected_types,
-        data['group_by']
+        group_by
     )
     paginated_history = Paginator(alert_history, HISTORY_PER_PAGE)
-    this_page = get_page(paginated_history, data['page'])
+    this_page = get_page(paginated_history, page)
     messages = get_messages_for_history(this_page.object_list)
     grouped_history = group_history_and_messages(
         this_page.object_list,
         messages,
-        data['group_by']
+        group_by
     )
     this_page.grouped_history = grouped_history
-
-    url_data = data
-    del url_data['page']
-    path = devicehistory_url_pack(request, url_data)
 
     info_dict = {
         'active': {'devicehistory': True},
         'history': this_page,
-        'selection': data['selection'],
+        'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
-        'from_date': data['from_date'],
-        'to_date': data['to_date'],
-        'group_by': data['group_by'],
-        'path': path,
+        'from_date': from_date,
+        'to_date': to_date,
+        'group_by': group_by,
     }
     return render_to_response(
         DeviceHistoryTemplate,
