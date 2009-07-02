@@ -61,6 +61,7 @@ function init(map_element_id, url) {
 	pointRadius: 15,
 	strokeWidth: 10,
 	strokeOpacity: 0.4,
+	strokeLinecap: 'butt',
 	fillOpacity: 0.7,
 	fillColor: 'black',
 	strokeColor: 'red',

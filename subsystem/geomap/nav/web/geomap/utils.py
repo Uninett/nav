@@ -28,10 +28,272 @@ import rrdtool
 import cgi
 
 
+# general utility functions:
+
+def group(property, lst):
+    """Group a list into sublists based on equality of some property.
+
+    Returns a list of sublists of lst, where every item of lst appears
+    in exactly one sublist, and two items are in the same sublist iff
+    the result of applying property (a function) to either of them
+    gives the same result.
+
+    """
+    hash = {}
+    for x in lst:
+        p = property(x)
+        if p in hash:
+            hash[p].append(x)
+        else:
+            hash[p] = [x]
+    return hash.values()
+
+
+def avg(lst):
+    """Return the average of the values in lst.  lst should be a list
+    of numbers.
+
+    """
+    if len(lst) == 0:
+        return 0
+    return float(sum(lst))/len(lst)
+
+
+def weighted_avg(lst):
+    if len(lst) == 0:
+        return 0
+    total = sum(map(lambda (value,weight): value*weight, lst))
+    num = sum(map(lambda (value,weight): weight, lst))
+    return float(total)/num
+
+
+def make_filter(fun):
+    return lambda(lst): filter(fun, lst)
+
+
+def numeric(obj):
+    return isinstance(obj, int) or isinstance(obj, float)
+
+
+number_filter = make_filter(numeric)
+
+
+def compose(*functions):
+    return reduce(lambda f1, f2: lambda x: f1(f2(x)),
+                  functions)
+
+
+def subdict(d, keys):
+    """Restriction of dictionary to some keys.
+
+    d should be a dictionary and keys a list whose items are keys of
+    d.  Returns a new dictionary object.
+
+    """
+    return dict([(k, d[k]) for k in keys])
+
+
+def filter_dict(fun, d):
+    """Filter a dictionary on values.
+
+    Like the built-in filter, except that d is a dictionary, and fun
+    is applied to each value. The result is a new dictionary
+    containing those (key,value) pairs from d for which fun(value) is
+    true.
+
+    """
+    return subdict(d, filter(lambda key: fun(d[key]), d))
+
+
+def map_dict(fun, d):
+    """Map over a dictionary's values.
+
+    Returns a new dictionary which is like d except that each value is
+    replaced by the result of applying fun to it.
+
+    """
+    return dict(map(lambda (key, value): (key, fun(value)),
+                    d.items()))
+
+
+def union_dict(*dicts):
+    """Combine dictionaries.
+
+    Combines all arguments (which should be dictionaries) to a single
+    dictionary. If several dictionaries contain the same key, the last
+    is used.
+
+    """
+    result = {}
+    for d in dicts:
+        result.update(d)
+    return result
+
+
+def concat_list(lists):
+    """Concatenate a list of lists."""
+    return reduce(lambda a,b: a+b, lists, [])
+
+
+def concat_str(strs):
+    """Concatenate a list of strings."""
+    return reduce(lambda a,b: a+b, strs, '')
+
+
+# configuration:
+
+class ConfigurationSyntaxError(Exception):
+    def __init__(self, msg, filename, linenr):
+        self.msg = msg
+        self.filename = filename
+        self.linenr = linenr
+    def __str__(self):
+        return 'Syntax error in configuration file %s on line %d: %s' % \
+            (self.filename, self.linenr, self.msg)
+
+
+def parse_conf(lines, filename):
+    stack = [{'objects': [],
+              'indent': 0}]
+    def line_empty_p(line):
+        return re.match(r'^\s*(#.*)?$', line) is not None
+    def normalize_line(line):
+        line = line.replace('\t', ' '*8)
+        line = line.rstrip()
+        return line
+    def line_indent(line):
+        return len(re.match(r'^ *', line).group(0))
+    def current_frame():
+        return stack[-1]
+    def current_indent():
+        return current_frame()['indent']
+    def current_objlist():
+        return current_frame()['objects']
+    def make_block(line, linenr):
+        return {'type': 'block',
+                'text': line,
+                'objects': [],
+                'linenr': linenr}
+    def make_line(line, linenr):
+        return {'type': 'line',
+                'text': line,
+                'linenr': linenr}
+    def add_line(line, linenr):
+        line = line.lstrip()
+        if line[-1] == ':':
+            obj = make_block(line[:-1], linenr)
+        else:
+            obj = make_line(line, linenr)
+        current_objlist().append(obj)
+    def last_object():
+        if len(current_objlist()) > 0:
+            return current_objlist()[-1]
+        return None
+    def expect_more_indent_p():
+        last = last_object()
+        return (last is not None and last['type'] == 'block' and
+                len(last['objects']) == 0)
+    def current_level():
+        if expect_more_indent_p():
+            return len(stack)
+        return len(stack)-1
+    def push(new_indent):
+        objlist = last_object()['objects']
+        stack.append({'objects': objlist,
+                      'indent': new_indent})
+    def pop(new_indent):
+        while current_indent() > new_indent:
+            stack.pop()
+
+    linenr = 0
+    def error(msg):
+        raise ConfigurationSyntaxError(msg, filename, linenr)
+
+    for linenr in xrange(1, len(lines)+1):
+        line = normalize_line(lines[linenr-1])
+        if line_empty_p(line):
+            continue
+        new_indent = line_indent(line)
+        if expect_more_indent_p() and new_indent > current_indent():
+            push(new_indent)
+        elif expect_more_indent_p():
+            error('Expected more indentation')
+        elif new_indent > current_indent():
+            error('Unexpected increase in indentation')
+        elif new_indent < current_indent():
+            pop(new_indent)
+            if new_indent != current_indent():
+                error('New indentation of %d spaces does not match any ' +
+                      'previous indentation' % new_indent)
+        add_line(line, linenr)
+    if expect_more_indent_p():
+        error('Unexpected end of file (at start of a block)')
+    pop(0)
+    return current_objlist()
+
+
+def parse_conf_file(filename):
+    f = file(filename)
+    lines = f.readlines()
+    f.close()
+    return parse_conf(lines, filename)
+
+
+def interpret_configuration(c, filename):
+    def read_indicator(c_obj):
+        if c_obj['type'] != 'block':
+            return None
+        m = re.match(r'^def indicator\((.*),(.*),(.*)\)$', c_obj['text'])
+        if m is None:
+            print 'not an indicator'
+            return None
+        type = m.group(1).strip()
+        property = m.group(2).strip()
+        name = m.group(2).strip()
+        options = []
+        for sub in c_obj['objects']:
+            if sub['type'] != 'block':
+                raise ConfigurationSyntaxError(
+                    'Illegal indicator syntax (expected a block)',
+                    filename, sub['linenr'])
+            m = re.match(r'^if (.*)$', sub['text'])
+            if m is None:
+                raise ConfigurationSyntaxError(
+                    'Illegal indicator syntax (expected \'if ...\')',
+                    filename, sub['linenr'])
+            test = m.group(1)
+            result = concat_str([o['text'] for o in sub['objects']])
+            value,label = eval(result) # TODO error handling
+            options.append({'test': test,
+                            'value': value,
+                            'label': label})
+        return {'type': type,
+                'property': property,
+                'name': name,
+                'options': options}
+    
+    indicators = []
+    for obj in c:
+        ind = read_indicator(obj)
+        if ind is not None:
+            indicators.append(ind)
+    return {'indicators': indicators}
+
+
+def read_configuration(filename):
+    return interpret_configuration(parse_conf_file(filename),
+                                   filename)
+
+
+_config = read_configuration(os.path.join(nav.path.sysconfdir,
+                                          'geomap/config.py'))
+
+
+
 # database interface:
 
-_conf = readConfig('nav.conf')
-_domain_suffix = _conf.get('DOMAIN_SUFFIX', None)
+_nav_conf = readConfig('nav.conf')
+_domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
 
 
 def get_data(db_cursor = None):
@@ -549,118 +811,6 @@ def utm_str_to_lonlat(utm_str):
 
 
 
-# general utility functions:
-
-def group(property, lst):
-    """Group a list into sublists based on equality of some property.
-
-    Returns a list of sublists of lst, where every item of lst appears
-    in exactly one sublist, and two items are in the same sublist iff
-    the result of applying property (a function) to either of them
-    gives the same result.
-
-    """
-    hash = {}
-    for x in lst:
-        p = property(x)
-        if p in hash:
-            hash[p].append(x)
-        else:
-            hash[p] = [x]
-    return hash.values()
-
-
-def avg(lst):
-    """Return the average of the values in lst.  lst should be a list
-    of numbers.
-
-    """
-    if len(lst) == 0:
-        return 0
-    return float(sum(lst))/len(lst)
-
-
-def weighted_avg(lst):
-    if len(lst) == 0:
-        return 0
-    total = sum(map(lambda (value,weight): value*weight, lst))
-    num = sum(map(lambda (value,weight): weight, lst))
-    return float(total)/num
-
-
-def make_filter(fun):
-    return lambda(lst): filter(fun, lst)
-
-
-def numeric(obj):
-    return isinstance(obj, int) or isinstance(obj, float)
-
-
-number_filter = make_filter(numeric)
-
-
-def compose(*functions):
-    return reduce(lambda f1, f2: lambda x: f1(f2(x)),
-                  functions)
-
-
-def subdict(d, keys):
-    """Restriction of dictionary to some keys.
-
-    d should be a dictionary and keys a list whose items are keys of
-    d.  Returns a new dictionary object.
-
-    """
-    return dict([(k, d[k]) for k in keys])
-
-
-def filter_dict(fun, d):
-    """Filter a dictionary on values.
-
-    Like the built-in filter, except that d is a dictionary, and fun
-    is applied to each value. The result is a new dictionary
-    containing those (key,value) pairs from d for which fun(value) is
-    true.
-
-    """
-    return subdict(d, filter(lambda key: fun(d[key]), d))
-
-
-def map_dict(fun, d):
-    """Map over a dictionary's values.
-
-    Returns a new dictionary which is like d except that each value is
-    replaced by the result of applying fun to it.
-
-    """
-    return dict(map(lambda (key, value): (key, fun(value)),
-                    d.items()))
-
-
-def union_dict(*dicts):
-    """Combine dictionaries.
-
-    Combines all arguments (which should be dictionaries) to a single
-    dictionary. If several dictionaries contain the same key, the last
-    is used.
-
-    """
-    result = {}
-    for d in dicts:
-        result.update(d)
-    return result
-
-
-def concat_list(lists):
-    """Concatenate a list of lists."""
-    return reduce(lambda a,b: a+b, lists, [])
-
-
-def concat_str(strs):
-    """Concatenate a list of strings."""
-    return reduce(lambda a,b: a+b, strs, '')
-
-
 # graph functions and classes:
 
 aggregate_properties_place = {
@@ -669,7 +819,8 @@ aggregate_properties_place = {
         weighted_avg(map(lambda room: (room.properties['load'],
                                        room.properties['num_netboxes']),
                          rooms)),
-    'num_rooms': len
+    'num_rooms': len,
+    'num_netboxes': (sum, 'num_netboxes')
     }
 
 aggregate_properties_room = {
@@ -1032,9 +1183,25 @@ def load_network_popup_template():
             template_from_config('geomap/popup_network.html')
 
 
+def apply_indicator(ind, type, properties):
+    if type == ind['type']:
+        for option in ind['options']:
+            if eval(option['test'], properties):
+                # TODO error handling
+                return {ind['property']: option['value']}
+    return {}
+
+
+def apply_all_indicators(type, properties):
+    return apply(union_dict,
+                 map(lambda ind: apply_indicator(ind, type, properties),
+                     _config['indicators']))
+
+
 def create_node_feature(node):
+    style = apply_all_indicators('node', node.properties)
     return Feature(node.id, 'node', Geometry('Point', [node.lon, node.lat]),
-                   'blue', 12, create_node_popup(node),
+                   style['color'], style['size'], create_node_popup(node),
                    subdict(node.properties, _node_feature_properties))
 
 def create_node_popup(node):
@@ -1044,17 +1211,24 @@ def create_node_popup(node):
 
 def create_edge_features(edge):
     popup = create_edge_popup(edge)
-    properties = subdict(edge.properties, _edge_feature_properties)
-    def make_feature(id_suffix, source_coords, target_coords):
+    def make_feature(id_suffix, source_coords, target_coords, properties):
+        style = apply_all_indicators('edge', properties)
         return Feature(str(edge.id)+id_suffix, 'edge',
                        Geometry('LineString', [source_coords, target_coords]),
-                       'black', 5, popup, properties)
+                       style['color'], style['size'], popup,
+                       subdict(properties, _edge_feature_properties))
+
+    properties = subdict(edge.properties, _edge_feature_properties)
+    properties_forward = union_dict(edge.properties,
+                                    {'load': edge.properties['load_in']})
+    properties_back = union_dict(edge.properties,
+                                 {'load': edge.properties['load_out']})
     source = [edge.source.lon, edge.source.lat]
     middle = [(edge.source.lon+edge.target.lon)/2,
               (edge.source.lat+edge.target.lat)/2]
     target = [edge.target.lon, edge.target.lat]
-    return [make_feature('[1]', source, middle),
-            make_feature('[2]', middle, target)]
+    return [make_feature('[1]', source, middle, properties_forward),
+            make_feature('[2]', middle, target, properties_back)]
 
 def create_edge_popup(edge):
     load_network_popup_template()
