@@ -5,7 +5,7 @@
     quicksearch to search for a (partial) serialnumber, hostname, IP or
     room.</p>
 
-    <form action="{% url devicehistory-view %}" method="post">
+    <form action="{% url devicehistory-search %}" method="post">
         {{ quickselect|safe }}
     </form>
 {% endblock %}
