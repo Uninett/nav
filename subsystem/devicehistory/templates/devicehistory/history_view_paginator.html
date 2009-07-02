@@ -1,0 +1,12 @@
+<div class="paginator">
+    {% for page in history.paginator.page_range %}
+        {% ifequal page history.number %}
+        {{ page }}
+        {% else %}
+        <a href="{{ path }}&p={{ page }}">{{ page }}</a>
+        {% endifequal %}
+        {% if not forloop.last %}
+        |
+        {% endif %}
+    {% endfor %}
+</div>

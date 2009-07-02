@@ -159,31 +159,43 @@ def group_history_and_messages(history, messages, group_by=None):
         grouped_history[key].append(a)
     return grouped_history
 
-def devicehistory_url_pack(request):
-    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.POST.getlist('type')
-    group_by = request.POST.get('group_by', 'netbox')
-    selection = DeviceQuickSelect.handle_post(request)
-    try:
-        page = int(request.POST.get('page', '1'))
-    except ValueError:
-        page = 1
+def devicehistory_url_pack(request, data=None):
+    def get_parameters(request):
+        data = {}
+        DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
+        data['from_date'] = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
+        data['to_date'] = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
+        data['types'] = request.POST.getlist('type')
+        data['group_by'] = request.POST.get('group_by', 'netbox')
+        data['selection'] = DeviceQuickSelect.handle_post(request)
+        try:
+            data['page'] = int(request.POST.get('page', '1'))
+        except ValueError:
+            data['page'] = 1
+        return data
 
-    url = '?l=%(location)s&r=%(room)s&n=%(netbox)s&m=%(module)s' % {
-        'location': ",".join(selection['location']),
-        'room': ",".join(selection['room']),
-        'netbox': ",".join(selection['netbox']),
-        'module': ",".join(selection['module']),
-    }
-    url += '&fd=%(from_date)s&td=%(to_date)s&ty=%(types)s&gb=%(group_by)s&p=%(page)s' % {
-        'from_date': from_date,
-        'to_date': to_date,
-        'types': ",".join(types),
-        'group_by': group_by,
-        'page': page,
-    }
+    # If no data is supplied we try to extract it from POST.
+    if not data and request.method == 'POST':
+        data = get_parameters(request)
+
+    if data:
+        url = '?l=%(location)s&r=%(room)s&n=%(netbox)s&m=%(module)s' % {
+            'location': ",".join(data['selection']['location']),
+            'room': ",".join(data['selection']['room']),
+            'netbox': ",".join(data['selection']['netbox']),
+            'module': ",".join(data['selection']['module']),
+        }
+        url += '&fd=%(from_date)s&td=%(to_date)s&ty=%(types)s&gb=%(group_by)s' % {
+            'from_date': data['from_date'],
+            'to_date': data['to_date'],
+            'types': ",".join(data['types']),
+            'group_by': data['group_by'],
+        }
+        if 'page' in data:
+            url += '&p=%(page)s' % {'page': data['page']}
+    else:
+        url = ''
+
     return reverse('devicehistory-view') + url
 
 
@@ -201,8 +213,8 @@ def devicehistory_url_unpack(request):
     if request.GET.get('m', None):
         module = request.GET.get('m').split(',')
 
-    from_date = request.GET.get('fd', date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.GET.get('td', date.fromtimestamp(time.time() + ONE_DAY))
+    from_date = request.GET.get('fd', '')
+    to_date = request.GET.get('td', '')
     types = request.GET.get('ty', '').split(',')
     group_by = request.GET.get('gb', 'netbox')
     try:
@@ -210,11 +222,15 @@ def devicehistory_url_unpack(request):
     except ValueError:
         page = 1
 
-    # Make datetime objects from our date strings
-    # In Python 2.5 we can use datetime.strptime(), but for now, this is what
-    # we do:
-    from_date = datetime(*(time.strptime(from_date, "%Y-%m-%d")[0:6]))
-    to_date = datetime(*(time.strptime(to_date, "%Y-%m-%d")[0:6]))
+    # In Python 2.5 we can use datetime.strptime().
+    try:
+        from_date = date(*(time.strptime(from_date, "%Y-%m-%d")[0:3]))
+    except ValueError:
+        from_date = date.fromtimestamp(time.time() - ONE_WEEK)
+    try:
+        to_date = date(*(time.strptime(to_date, "%Y-%m-%d")[0:3]))
+    except ValueError:
+        to_date = date.fromtimestamp(time.time() + ONE_DAY)
 
     return {
         'selection': {

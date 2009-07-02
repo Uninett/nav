@@ -117,6 +117,10 @@ def devicehistory_view(request):
     )
     this_page.grouped_history = grouped_history
 
+    url_data = data
+    del url_data['page']
+    path = devicehistory_url_pack(request, url_data)
+
     info_dict = {
         'active': {'devicehistory': True},
         'history': this_page,
@@ -126,6 +130,7 @@ def devicehistory_view(request):
         'from_date': data['from_date'],
         'to_date': data['to_date'],
         'group_by': data['group_by'],
+        'path': path,
     }
     return render_to_response(
         DeviceHistoryTemplate,
