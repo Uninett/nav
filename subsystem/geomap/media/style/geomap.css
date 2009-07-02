@@ -46,3 +46,33 @@ body
   height: 90%;
   width: 100%;
 }
+
+
+#legend td
+{
+  padding: 0 2em 0 0;
+  vertical-align: top;
+}
+
+#legend td td
+{
+  padding: 0.4em 1em 0 0;
+  vertical-align: middle;
+}
+
+#legend .colorbox
+{
+  width: 1em;
+  height: 1em;
+  border: thin solid black;
+}
+
+#legend .edge-size-indicator, #legend .node-size-indicator
+{
+  background-color: black;
+}
+
+#legend .edge-size-indicator
+{
+  width: 80px;
+}

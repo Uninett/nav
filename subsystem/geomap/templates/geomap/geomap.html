@@ -1,5 +1,47 @@
 {% extends "base.html" %}
 
 {% block base_content %}
-<div style="" id="map"></div>
+<div id="map"></div>
+
+<div id="legend">
+  <table>
+    <tr>
+      {% for indicator in config.indicators %}
+      <td>
+	<table>
+	  <tr><th colspan="2">{{ indicator.name }}:</th></tr>
+	  {% for option in indicator.options %}
+	  <tr>
+	    <td>
+	      {% ifequal indicator.property 'color' %}
+	    <div
+	      class="colorbox"
+	      style="background-color: {{ option.value }}">
+	    </div>
+	    {% endifequal %}
+
+	    {% ifequal indicator.property 'size' %}
+	    {% ifequal indicator.type 'node' %}
+	    <!--<span style="font-size: {{ option.value }}em">&#8226;</span>-->
+	    <div
+	      class="node-size-indicator"
+	      style="width: {{ option.value }}px; height: {{ option.value }}px"></div>
+	    {% endifequal %}
+	    {% ifequal indicator.type 'edge' %}
+	    <div
+	      class="edge-size-indicator"
+	      style="height: {{ option.value }}px"></div>
+	    {% endifequal %}
+	    {% endifequal %}
+	    </td>
+
+	    <td>{{ option.label }}</td>
+	  </tr>
+	  {% endfor %}
+	</table>
+      </td>
+      {% endfor %}
+    </tr>
+  </table>
+</div>
 {% endblock %}

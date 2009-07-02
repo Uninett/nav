@@ -6,22 +6,22 @@
 # mode.
 
 def indicator(edge, color, "Link load"):
-    if load == "unknown":
-        ("#333333", "No statistics")
+    if load != load:
+        ("#666666", "No statistics")
     if load/speed < 0.01:
-        ("#3333FF", "0--1 %")
+        ("#0099FF", "0--1 %")
     if load/speed < 0.05:
-        ("#3366FF", "1--5 %")
+        ("#66CCFF", "1--5 %")
     if load/speed < 0.10:
-        ("#33CC99", "5--10 %")
+        ("#99FF00", "5--10 %")
     if load/speed < 0.30:
-        ("#33FF66", "10--30 %")
+        ("#CCFF00", "10--30 %")
     if load/speed < 0.50:
-        ("#33FF33", "30--50 %")
+        ("#FFFF00", "30--50 %")
     if load/speed < 0.70:
-        ("#999933", "50--70 %")
+        ("#FFCC00", "50--70 %")
     if load/speed < 0.90:
-        ("#CC6633", "70--90 %")
+        ("#FF9900", "70--90 %")
     if True:
         ("#FF3333", "90--100 %")
 
@@ -38,12 +38,12 @@ def indicator(edge, size, "Link capacity"):
 
 
 def indicator(node, color, "CPU load"):
-    if load == "unknown":
-        ("#333333", "No statistics")
+    if load != load:
+        ("#666666", "No statistics")
     if load < 0.5:
         ("#33CC33", "0--0.5")
     if load < 1:
-        ("#666633", "0.5--1")
+        ("#FFEF00", "0.5--1")
     if True:
         ("#FF3333", "> 1")
 

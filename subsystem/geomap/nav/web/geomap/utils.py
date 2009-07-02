@@ -24,6 +24,7 @@ from django.template.loader import render_to_string
 
 import nav
 from nav.config import readConfig
+from nav.errors import ConfigurationError
 import rrdtool
 import cgi
 
@@ -67,15 +68,29 @@ def weighted_avg(lst):
     return float(total)/num
 
 
-def make_filter(fun):
-    return lambda(lst): filter(fun, lst)
+def fix(fun, argvalues, argnums=0):
+    if not isinstance(argvalues, list):
+        argvalues = [argvalues]
+    def derived(*args, **kwargs):
+        args = list(args)
+        if isinstance(argnums, int):
+            args[argnums:argnums] = argvalues
+        else:
+            for i in xrange(len(argnums)):
+                args.insert(argnums[i], argvalues[i])
+        return apply(fun, args, kwargs)
+    return derived
 
 
 def numeric(obj):
     return isinstance(obj, int) or isinstance(obj, float)
 
 
-number_filter = make_filter(numeric)
+def float_or_nan(string):
+    try:
+        return float(string)
+    except ValueError:
+        return float('nan')
 
 
 def compose(*functions):
@@ -142,7 +157,7 @@ def concat_str(strs):
 
 # configuration:
 
-class ConfigurationSyntaxError(Exception):
+class ConfigurationSyntaxError(ConfigurationError):
     def __init__(self, msg, filename, linenr):
         self.msg = msg
         self.filename = filename
@@ -249,7 +264,7 @@ def interpret_configuration(c, filename):
             return None
         type = m.group(1).strip()
         property = m.group(2).strip()
-        name = m.group(2).strip()
+        name = eval(m.group(3).strip(), {})
         options = []
         for sub in c_obj['objects']:
             if sub['type'] != 'block':
@@ -287,6 +302,10 @@ def read_configuration(filename):
 
 _config = read_configuration(os.path.join(nav.path.sysconfdir,
                                           'geomap/config.py'))
+
+
+def get_configuration():
+    return _config
 
 
 
@@ -825,14 +844,14 @@ aggregate_properties_place = {
 
 aggregate_properties_room = {
     'name': lambda netboxes: netboxes[0].properties['room'],
-    'load': (compose(avg, number_filter), 'load'),
+    'load': (compose(avg, fix(map, float_or_nan)), 'load'),
     'num_netboxes': len
     }
 
 aggregate_properties_edge = {
     'speed': (sum, 'speed'),
-    'load_in': (compose(sum, number_filter), 'load_in'),
-    'load_out': (compose(sum, number_filter), 'load_out')
+    'load_in': (compose(sum, fix(map, float_or_nan)), 'load_in'),
+    'load_out': (compose(sum, fix(map, float_or_nan)), 'load_out')
     }
 
 
@@ -1304,7 +1323,7 @@ def write_json(obj):
     if isinstance(obj, basestring):
         return '"%s"' % reduce(lambda s,esc: s.replace(esc[0], esc[1]),
                                json_escapes, obj)
-    if isinstance(obj, int) or isinstance(obj, float):
+    if numeric(obj):
         return str(obj)
     if obj == None:
         return 'null'

@@ -19,7 +19,8 @@ from django.http import HttpResponse
 
 from nav.django.shortcuts import render_to_response
 from nav.web.templates.GeomapTemplate import GeomapTemplate
-from nav.web.geomap.utils import get_formatted_data, format_mime_type
+from nav.web.geomap.utils import get_formatted_data, format_mime_type, \
+    get_configuration
 import nav.db
 import psycopg2.extras
 
@@ -27,7 +28,7 @@ import psycopg2.extras
 def geomap(request):
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {},
+                              {'config': get_configuration()},
                               RequestContext(request),
                               path=[('Home', '/'),
                                     ('Geomap', None)])
