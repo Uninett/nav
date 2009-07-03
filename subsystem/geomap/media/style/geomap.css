@@ -20,6 +20,7 @@
   height: 0.7vh;
 }
 */
+/*
 body
 {
   position: absolute;
@@ -28,6 +29,7 @@ body
   right: 0px;
   left: 0px;
 }
+*/
 
 /*
 body
@@ -42,9 +44,14 @@ body
 }
 
 #map
-{ 
-  height: 90%;
-  width: 100%;
+{
+  width: 800px;
+  height: 600px;
+}
+
+#legend
+{
+  margin-top: 10px;
 }
 
 

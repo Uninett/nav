@@ -30,6 +30,10 @@ var netPopupControl;
 var netLayerStyle;
 var posControl;
 
+var mapElemId;
+
+var mapFullscreen = false;
+
 /*
  * Called when the web page which should show the map is
  * loaded. Creates a map with two different OpenStreetMap base layers
@@ -38,6 +42,10 @@ var posControl;
  * map_element_id as id.
  */
 function init(map_element_id, url) {
+    mapElemId = map_element_id;
+    setMapSize();
+    window.onresize = setMapSize;
+
     themap = new OpenLayers.Map(map_element_id, {
         controls:[
 	    new OpenLayers.Control.Navigation(),
@@ -132,5 +140,45 @@ function init(map_element_id, url) {
 	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
 	themap.zoomToExtent(requestedBounds);
     }
+}
+
+function setMapSize() {
+    var mapE = document.getElementById('map')
+
+    if (mapFullscreen) {
+	mapE.style.position = 'absolute';
+	//mapE.style.zIndex = '1';
+	mapE.style.top = '0';
+	mapE.style.bottom = '0';
+	mapE.style.left = '0';
+	mapE.style.right = '0';
+	mapE.style.height = 'auto';
+    } else {
+	var height;
+
+	// several possibilities for preferred height:
+	height =
+	    window.innerHeight + mapE.clientHeight - document.body.clientHeight +
+	    document.getElementById('footer').clientHeight;
+	height =
+	    window.innerHeight + mapE.clientHeight -
+	    document.getElementById('footer').getBoundingClientRect().top;
+	height =
+	    window.innerHeight - mapE.getBoundingClientRect().top - 4;
+	height =
+	    window.innerHeight - mapE.offsetTop - 4;
+
+	mapE.style.position = '';
+	mapE.style.height = height + 'px';
+	mapE.style.width = '100%';
+    }
+    if (themap)
+	themap.updateSize();
+}
+
+function toggleFullscreen() {
+    mapFullscreen = !mapFullscreen;
+    setMapSize();
+    setMapSize();
 }
 
