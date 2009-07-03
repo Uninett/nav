@@ -31,6 +31,9 @@ from nav.web.status.filters import OrganizationFilter, CategoryFilter, \
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
+SERVICE_STATE = 'serviceState'
+MODULE_STATE = 'moduleState'
+THRESHOLD_STATE = 'thresholdState'
 
 def get_user_sections(account):
     sections = []
@@ -245,7 +248,7 @@ class ServiceSection(_Section):
         ).filter(
             ~Q(netbox__in=maintenance),
             end_time__gt=datetime.max,
-            event_type='serviceState',
+            event_type=SERVICE_STATE,
             netbox__organization__in=self.organizations,
         ).extra(
             select={
@@ -294,7 +297,7 @@ class ServiceMaintenanceSection(ServiceSection):
             'alert_history', 'alert_history__netbox'
         ).filter(
             alert_history__end_time__gt=datetime.max,
-            alert_history__event_type='maintenanceState',
+            alert_history__event_type=MAINTENANCE_STATE,
             variable='maint_taskid',
         ).extra(
             select={
@@ -308,7 +311,7 @@ class ServiceMaintenanceSection(ServiceSection):
 
         service_history = AlertHistory.objects.filter(
             end_time__gt=datetime.max,
-            event_type='serviceState',
+            event_type=SERVICE_STATE,
         ).extra(
             select={'downtime': 'NOW() - start_time'}
         ).values('netbox', 'start_time', 'downtime')
@@ -364,7 +367,7 @@ class ModuleSection(_Section):
             Q(netbox__in=[netbox for netbox in modules_down]) |
             Q(device__in=[device for device in modules_down]),
             end_time__gt=datetime.max,
-            event_type='moduleState',
+            event_type=MODULE_STATE,
             alert_type__name='moduleDown',
             netbox__organization__in=self.organizations,
             netbox__category__in=self.categories,
@@ -407,7 +410,7 @@ class ThresholdSection(_Section):
     def fetch_history(self):
         thresholds = AlertHistory.objects.filter(
             end_time__gt=datetime.max,
-            event_type='thresholdState',
+            event_type=THRESHOLD_STATE,
             alert_type__name='exceededThreshold',
             netbox__organization__in=self.organizations,
             netbox__category__in=self.categories,
