@@ -373,52 +373,54 @@ class ModuleSection(_Section):
     ]
 
     def fetch_history(self):
-        # Find modules that match the state filter
-        modules_down = Module.objects.filter(
-            up__in=self.states
-        )
-
-        # Try to find history related to the modules that are down
-        module_history = AlertHistory.objects.filter(
-            Q(netbox__in=[module.netbox.id for module in modules_down]) |
-            Q(device__in=[module.device.id for module in modules_down]),
+        module_history = AlertHistory.objects.select_related(
+            'netbox', 'device'
+        ).filter(
             end_time__gt=datetime.max,
             event_type=MODULE_STATE,
             alert_type__name='moduleDown',
             netbox__organization__in=self.organizations,
             netbox__category__in=self.categories,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={
+                'downtime': 'NOW() - start_time',
+                'module_id': 'module.moduleid',
+                'module_number': 'module.module',
+            },
+            tables=['module'],
+            where=[
+                'alerthist.subid = module.moduleid::text',
+                'module.up IN %s',
+            ],
+            params=[tuple(self.states)]
         ).order_by('-start_time')
 
         history = []
-        for module in modules_down:
-            for alerthist in module_history:
-                if module.netbox.id == alerthist.netbox.id or module.device.id == alerthist.device.id:
-                    row = (
-                        (
-                            module.netbox.sysname,
-                            reverse('ipdevinfo-details-by-name', args=[module.netbox.sysname])
-                        ),
-                        (module.netbox.ip, None),
-                        (
-                            module.module_number,
-                            reverse('ipdevinfo-module-details', args=[
-                                module.netbox.sysname,
-                                module.module_number
-                            ])
-                        ),
-                        (alerthist.start_time, None),
-                        (alerthist.downtime, None),
-                        (
-                            'history',
-                            reverse('devicehistory-view') +\
-                            '?view_module=%(id)s&type=a_8&group_by=datetime' % {
-                                'id': module.id,
-                            }
-                        ),
-                    )
-                    history.append(row)
+        for module in module_history:
+            row = (
+                (
+                    module.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[module.netbox.sysname])
+                ),
+                (module.netbox.ip, None),
+                (
+                    module.module_number,
+                    reverse('ipdevinfo-module-details', args=[
+                        module.netbox.sysname,
+                        module.module_number
+                    ])
+                ),
+                (module.start_time, None),
+                (module.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?view_module=%(id)s&type=a_8&group_by=datetime' % {
+                        'id': module.module_id,
+                    }
+                ),
+            )
+            history.append(row)
         self.history = history
 
 class ThresholdSection(_Section):
@@ -431,7 +433,9 @@ class ThresholdSection(_Section):
     ]
 
     def fetch_history(self):
-        thresholds = AlertHistory.objects.filter(
+        thresholds = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
             end_time__gt=datetime.max,
             event_type=THRESHOLD_STATE,
             alert_type__name='exceededThreshold',
