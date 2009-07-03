@@ -37,6 +37,8 @@ def get_selected_types(types):
 
 def fetch_history(selection, from_date, to_date, selected_types=[], order_by=None):
     def type_query_filter(selected_types):
+        # FIXME Selecting multiple is not accutally possible from the GUI.
+        # Remove option for multiple and make it simpler?
         type_filter = []
         if selected_types['event']:
             type_filter.append(Q(event_type__in=selected_types['event']))
@@ -46,6 +48,10 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
 
     type_filter = type_query_filter(selected_types)
 
+    # Find all netbox ids and device ids that belongs to
+    #   - selected netboxes
+    #   - selected rooms
+    #   - selected locations
     netbox = Netbox.objects.select_related(
         'device'
     ).filter(
@@ -54,11 +60,18 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         Q(room__location__in=selection['location'])
     )
 
+    # Find device ids that belongs to
+    #   - selected netboxes (redundant?)
+    #   - selected devices
     device = Device.objects.filter(
         Q(netbox__in=selection['netbox']) |
         Q(netbox__module__in=selection['module'])
     )
 
+    # Find alert history that belongs to the netbox and device ids we found in
+    # the previous two queries.
+    #
+    # Time limit is done in raw SQL to make sure all parantheses are right.
     history = AlertHistory.objects.select_related(
         'event_type', 'alert_type', 'device',
         'netbox', 'netbox__room', 'netbox__room__location'
@@ -70,16 +83,12 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     ).extra(
         where=[
             '''
-            start_time >= %s AND (
-                (
-                   (end_time IS NULL OR end_time = 'infinity') AND
-                   start_time < %s
-               ) OR
-               end_time < %s
-           )
+            (end_time IS NULL AND start_time >= %s) OR
+            (end_time = 'infinity' AND start_time < %s) OR
+            (end_time >= %s AND start_time < %s)
            '''
         ],
-        params=[from_date, to_date, to_date]
+        params=[from_date, to_date, from_date, to_date]
     ).order_by('-start_time', '-end_time')
 
     return history
