@@ -18,11 +18,14 @@ from django.template import RequestContext
 from django.http import HttpResponse
 
 from nav.django.shortcuts import render_to_response
-from nav.web.templates.GeomapTemplate import GeomapTemplate
-from nav.web.geomap.utils import get_formatted_data, format_mime_type, \
-    get_configuration
 import nav.db
 import psycopg2.extras
+from nav.web.geomap.conf import get_configuration
+from nav.web.geomap.db import get_data
+from nav.web.geomap.graph import build_graph, simplify
+from nav.web.geomap.features import create_features
+from nav.web.geomap.output_formats import format_data, format_mime_type
+from nav.web.templates.GeomapTemplate import GeomapTemplate
 
 
 def geomap(request):
@@ -67,3 +70,28 @@ def data(request):
     response['Content-Type'] = format_mime_type(format)
     response['Content-Type'] = 'text/plain' # TODO remove this
     return response
+
+
+def get_formatted_data(db, format, bounds, viewport_size, limit):
+    """Get formatted output for given conditions.
+
+    db -- a database connection object.
+
+    format -- the name of a format (see output_formats.py)
+
+    bounds -- a dictionary with keys (minLon, maxLon, minLat, maxLat)
+    describing the bounds of the interesting region.
+
+    viewport_size -- a dictionary with keys (width, height), the width
+    and height of the user's viewport for the map in pixels.
+
+    limit -- the minimum distance (in pixels) there may be between two
+    points without them being collapsed to one.
+
+    Return value: formatted data as a string.
+
+    """
+    graph = build_graph(get_data(db))
+    simplify(graph, bounds, viewport_size, limit)
+    features = create_features(graph)
+    return format_data(format, features)
