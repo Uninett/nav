@@ -91,15 +91,18 @@ def devicehistory_search(request):
     )
 
 def devicehistory_view(request):
+    # Using REQUEST so that it is possible to use both POST and GET.
+    # As previously mentioned, we would like to always use GET, but the urls
+    # from the search may become to long, so we use POST in the form instead.
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.POST.getlist('type')
-    group_by = request.POST.get('group_by', 'netbox')
+    from_date = request.REQUEST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
+    to_date = request.REQUEST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
+    types = request.REQUEST.getlist('type')
+    group_by = request.REQUEST.get('group_by', 'netbox')
     selection = DeviceQuickSelect.handle_post(request)
 
     try:
-        page = int(request.POST.get('page', '1'))
+        page = int(request.REQUEST.get('page', '1'))
     except ValueError:
         page = 1
 
