@@ -20,6 +20,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_unicode, smart_str, force_unicode
 
 from nav.models.profiles import StatusPreference
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
@@ -39,17 +40,20 @@ def get_user_sections(account):
 
     for pref in preferences:
         if pref.type == StatusPreference.SECTION_NETBOX:
-            sections.append(NetboxSection(prefs=pref))
+            section = NetboxSection(prefs=pref)
         elif pref.type == StatusPreference.SECTION_NETBOX_MAINTENANCE:
-            sections.append(NetboxMaintenanceSection(prefs=pref))
+            section = NetboxMaintenanceSection(prefs=pref)
         elif pref.type == StatusPreference.SECTION_MODULE:
-            sections.append(ModuleSection(prefs=pref))
+            section = ModuleSection(prefs=pref)
         elif pref.type == StatusPreference.SECTION_SERVICE:
-            sections.append(ServiceSection(prefs=pref))
+            section = ServiceSection(prefs=pref)
         elif pref.type == StatusPreference.SECTION_SERVICE_MAINTENANCE:
-            sections.append(ServiceMaintenanceSection(prefs=pref))
+            section = ServiceMaintenanceSection(prefs=pref)
         elif pref.type == StatusPreference.SECTION_THRESHOLD:
-            sections.append(ThresholdSection(prefs=pref))
+            section = ThresholdSection(prefs=pref)
+
+        section.fetch_history()
+        sections.append(section)
 
     return sections
 
@@ -64,7 +68,7 @@ class _Section(object):
         history - the query used to look up the history
     '''
     columns = []
-    history = None
+    history = []
     type_title = ''
 
     def __init__(self, prefs=None):
@@ -78,8 +82,8 @@ class _Section(object):
                 self.type_title = title
                 break
 
-    def history(self):
-        return []
+    def fetch_history(self):
+        self.history = []
 
 class NetboxSection(_Section):
     columns =  [
@@ -90,7 +94,7 @@ class NetboxSection(_Section):
         '',
     ]
 
-    def history(self):
+    def fetch_history(self):
         maintenance = self._maintenance()
         alert_types = self._alerttype()
 
@@ -126,7 +130,7 @@ class NetboxSection(_Section):
                 ),
             )
             history.append(row)
-        return history
+        self.history = history
 
     def _maintenance(self):
         return AlertHistory.objects.filter(
@@ -156,7 +160,7 @@ class NetboxMaintenanceSection(_Section):
         'Downtime',
     ]
 
-    def history(self):
+    def fetch_history(self):
         maintenance = self._maintenance()
         boxes_down = self._boxes_down()
 
@@ -186,7 +190,7 @@ class NetboxMaintenanceSection(_Section):
                 (downtime, None),
             )
             history.append(row)
-        return history
+        self.history = history
 
     def _maintenance(self):
         return AlertHistoryVariable.objects.select_related(
@@ -230,58 +234,62 @@ class ServiceSection(_Section):
         super(ServiceSection, self).__init__(prefs=prefs)
         self.services = self.prefs.services.split(',')
 
-    def history(self):
-        from django.db import connection, transaction
+    def fetch_history(self):
+        maintenance = AlertHistory.objects.filter(
+            end_time__gt=datetime.max,
+            event_type=MAINTENANCE_STATE,
+        ).values('netbox').query
 
-        # Dropping to raw SQL since we are joining tables that doesn't have
-        # foreign keys, and the fields we are joining are of different types.
-        cursor = connection.cursor()
-        cursor.execute("""
-            SELECT netbox.netboxid, sysname, handler, start_time,
-                NOW() - start_time AS downtime
-            FROM alerthist
-            INNER JOIN netbox USING (netboxid)
-            INNER JOIN service ON (subid = serviceid::text)
-            WHERE
-                netbox.netboxid NOT IN (
-                    SELECT netboxid
-                    FROM alerthist
-                    WHERE
-                        end_time = 'infinity' AND
-                        eventtypeid = 'maintenanceState'
-                ) AND
-                end_time = 'infinity' AND
-                eventtypeid = 'serviceState' AND
-                orgid IN ('%(organizations)s') AND
-                handler IN ('%(services)s') AND
-                service.up IN ('%(states)s')
-            ORDER BY start_time DESC
-        """ % {
-            'organizations': "','".join(self.prefs.organizations.values_list('id', flat=True)),
-            'services': "','".join(self.services),
-            'states': "','".join(self.states),
-        })
+        services = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            ~Q(netbox__in=maintenance),
+            end_time__gt=datetime.max,
+            event_type='serviceState',
+            netbox__organization__in=self.organizations,
+        ).extra(
+            select={
+                'downtime': 'NOW() - start_time',
+                'handler': 'service.handler',
+            },
+            tables=['service'],
+            where=[
+                'alerthist.subid = service.serviceid::text',
+                'service.handler IN %s',
+            ],
+            params=[tuple(self.services)]
+        )
 
         history = []
-        for netboxid, sysname, handler, start_time, downtime in cursor.fetchall():
+        for s in services:
             row = (
-                (sysname, reverse('ipdevinfo-details-by-name', args=[sysname])),
-                (handler, reverse('ipdevinfo-service-list-handler', args=[handler])),
-                (start_time, None),
-                (downtime, None),
+                (
+                    s.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[
+                        s.netbox.sysname
+                    ])
+                ),
+                (
+                    s.handler,
+                    reverse('ipdevinfo-service-list-handler', args=[
+                        s.handler
+                    ])
+                ),
+                (s.start_time, None),
+                (s.downtime, None),
                 (
                     'history',
                     reverse('devicehistory-view') +\
                     '?view_netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
-                        'id': netboxid,
+                        'id': s.netbox.id,
                     }
                 )
             )
             history.append(row)
-        return history
+        self.history = history
 
 class ServiceMaintenanceSection(ServiceSection):
-    def history(self):
+    def fetch_history(self):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
         ).filter(
@@ -334,7 +342,7 @@ class ServiceMaintenanceSection(ServiceSection):
                 (downtime, None),
             )
             history.append(row)
-        return history
+        self.history = history
 
 class ModuleSection(_Section):
     columns = [
@@ -345,7 +353,7 @@ class ModuleSection(_Section):
         'Downtime',
     ]
 
-    def history(self):
+    def fetch_history(self):
         # Find modules that match the state filter
         modules_down = Module.objects.filter(
             up__in=self.states
@@ -385,7 +393,7 @@ class ModuleSection(_Section):
                         (alerthist.downtime, None),
                     )
                     history.append(row)
-        return history
+        self.history = history
 
 class ThresholdSection(_Section):
     columns = [
@@ -393,9 +401,10 @@ class ThresholdSection(_Section):
         'Description',
         'Exceeded since',
         'Time exceeded',
+        '',
     ]
 
-    def history(self):
+    def fetch_history(self):
         thresholds = AlertHistory.objects.filter(
             end_time__gt=datetime.max,
             event_type='thresholdState',
@@ -434,4 +443,4 @@ class ThresholdSection(_Section):
                 (t.downtime, None),
             )
             history.append(row)
-        return history
+        self.history = history
