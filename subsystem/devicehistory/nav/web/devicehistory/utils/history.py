@@ -66,6 +66,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         Q(netbox__in=[n.id for n in netbox]) |
         Q(device__in=[n.device.id for n in netbox]) |
         Q(device__in=[d.id for d in device]),
+        *type_filter
     ).extra(
         where=[
             '''
