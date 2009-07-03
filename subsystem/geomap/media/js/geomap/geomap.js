@@ -38,7 +38,7 @@ var posControl;
  * map_element_id as id.
  */
 function init(map_element_id, url) {
-    themap = new OpenLayers.Map (map_element_id, {
+    themap = new OpenLayers.Map(map_element_id, {
         controls:[
 	    new OpenLayers.Control.Navigation(),
 	    new OpenLayers.Control.PanZoomBar(),
@@ -125,5 +125,12 @@ function init(map_element_id, url) {
     var argsControl = new permalinkControl.argParserClass();
     themap.addControl(permalinkControl);
     themap.addControl(argsControl);
+
+    var parameters = OpenLayers.Util.getParameters();
+    if (parameters.bbox) {
+	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
+	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
+	themap.zoomToExtent(requestedBounds);
+    }
 }
 
