@@ -161,6 +161,7 @@ class NetboxMaintenanceSection(_Section):
         'IP',
         'Down since',
         'Downtime',
+        '',
     ]
 
     def fetch_history(self):
@@ -191,6 +192,13 @@ class NetboxMaintenanceSection(_Section):
                 (m.alert_history.netbox.ip, None),
                 (down_since, None),
                 (downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?view_netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
+                        'id': m.alert_history.netbox.id,
+                    }
+                ),
             )
             history.append(row)
         self.history = history
@@ -343,6 +351,13 @@ class ServiceMaintenanceSection(ServiceSection):
                 (m.handler, reverse('ipdevinfo-service-list-handler', args=[m.handler])),
                 (down_since, None),
                 (downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?view_netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
+                        'id': m.alert_history.netbox.id,
+                    }
+                ),
             )
             history.append(row)
         self.history = history
@@ -354,6 +369,7 @@ class ModuleSection(_Section):
         'Module',
         'Down since',
         'Downtime',
+        '',
     ]
 
     def fetch_history(self):
@@ -394,6 +410,13 @@ class ModuleSection(_Section):
                         ),
                         (alerthist.start_time, None),
                         (alerthist.downtime, None),
+                        (
+                            'history',
+                            reverse('devicehistory-view') +\
+                            '?view_module=%(id)s&type=a_8&group_by=datetime' % {
+                                'id': module.id,
+                            }
+                        ),
                     )
                     history.append(row)
         self.history = history
@@ -444,6 +467,13 @@ class ThresholdSection(_Section):
                 (description, None),
                 (t.start_time, None),
                 (t.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?view_netbox=%(id)s&type=a_14&group_by=datetime' % {
+                        'id': t.netbox.id,
+                    }
+                ),
             )
             history.append(row)
         self.history = history
