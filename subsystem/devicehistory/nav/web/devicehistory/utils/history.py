@@ -83,9 +83,11 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     ).extra(
         where=[
             '''
-            (end_time IS NULL AND start_time >= %s) OR
-            (end_time = 'infinity' AND start_time < %s) OR
-            (end_time >= %s AND start_time < %s)
+            (
+                (end_time IS NULL AND start_time >= %s) OR
+                (end_time = 'infinity' AND start_time < %s) OR
+                (end_time >= %s AND start_time < %s)
+            )
            '''
         ],
         params=[from_date, to_date, from_date, to_date]
