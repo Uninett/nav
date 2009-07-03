@@ -42,9 +42,9 @@
         <tbody>
         {% for h in group %}
             <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                <td>{{ h.location_name }}</td>
-                <td>{{ h.room_descr }}</td>
-                <td>{{ h.netbox_name }}</td>
+                <td>{{ h.netbox.room.location.description }}</td>
+                <td>{{ h.netbox.room.description }}</td>
+                <td>{{ h.netbox.sysname }}</td>
                 <td>{{ h.module_name }}</td>
                 <td>{{ h.device.serial }}</td>
                 <td>{{ h.start_time }}</td>
