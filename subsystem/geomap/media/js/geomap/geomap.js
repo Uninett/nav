@@ -42,6 +42,7 @@ function init(map_element_id, url) {
         controls:[
 	    new OpenLayers.Control.Navigation(),
 	    new OpenLayers.Control.PanZoomBar(),
+	    //new OpenLayers.Control.NavToolbar(),
 	    new OpenLayers.Control.Attribution(),
 	    new OpenLayers.Control.LayerSwitcher()],
         displayProjection: new OpenLayers.Projection("EPSG:4326")
@@ -98,14 +99,16 @@ function init(map_element_id, url) {
 	    format: new OpenLayers.Format.GeoJSON()
 	}),
 	styleMap: netLayerStyle,
-	rendererOptions: {zIndexing: true}
+	rendererOptions: {zIndexing: true},
+	onMapMove: function() {
+	    this.redraw();
+	},
+	setMap: function(map) {
+	    OpenLayers.Layer.Vector.prototype.setMap.apply(this, arguments);
+	    map.events.register('move', this, this.onMapMove);
+	},
     });
     themap.addLayer(netLayer);
-
-    /*
-    netLayer = new GeoJSONLayer('Networks', url);
-    themap.addLayer(netLayer);
-    */
 
     netPopupControl = new PopupControl(netLayer);
     themap.addControl(netPopupControl);

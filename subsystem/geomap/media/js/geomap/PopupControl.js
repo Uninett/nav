@@ -107,8 +107,13 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	var size = new OpenLayers.Size(popupData.size[0], popupData.size[1]);
 	var content = popupData.content;
 	var closable = popupData.closable;
+	var anchor = {'size': new OpenLayers.Size(0,0),
+		      'offset': new OpenLayers.Pixel(0,0)};
 
-	popup = new OpenLayers.Popup(id, pos, size, content, closable);
+	var popupclass = OpenLayers.Popup.AnchoredBubble;
+	popupclass= OpenLayers.Popup.FramedCloud;
+	popup = new popupclass(id, pos, size, content, anchor, closable);
+	popup.autoSize = false;
 	this.popups[id] = popup;
 	return popup;
     },
