@@ -364,8 +364,8 @@ class ModuleSection(_Section):
 
         # Try to find history related to the modules that are down
         module_history = AlertHistory.objects.filter(
-            Q(netbox__in=[netbox for netbox in modules_down]) |
-            Q(device__in=[device for device in modules_down]),
+            Q(netbox__in=[module.netbox.id for module in modules_down]) |
+            Q(device__in=[module.device.id for module in modules_down]),
             end_time__gt=datetime.max,
             event_type=MODULE_STATE,
             alert_type__name='moduleDown',
