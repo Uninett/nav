@@ -781,7 +781,7 @@ CREATE TABLE statuspreference_category (
 		ON DELETE CASCADE
 );
 -- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspref_cat_id_seq OWNED BY statuspref_cat.id;
+-- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
 
 
