@@ -451,16 +451,12 @@ $showBody($body)
             $netboxserial($editbox)
 #elif $editbox.page == 'netboxcategory'
             $netboxcategory($editbox)
-#elif $editbox.page == 'netboxproduct'
-            $netboxproduct($editbox)
 #elif $editbox.page == 'bulk'
             $bulk($editbox)
 #elif $editbox.page == 'usage'
             $usage($editbox)
 #elif $editbox.page == 'service'
             $service($editbox)
-#elif $editbox.page == 'product'
-            $product($editbox)
 #elif $editbox.page == 'prefix'
             $prefix($editbox)
 #elif $editbox.page == 'ric'
@@ -794,30 +790,6 @@ $hiddenfields($editbox.hiddenFields)
             <td>&nbsp;</td>
         </tr>
 </table>
-#end def
-
-## Form for adding or editing a product
-#def product($editbox)
-#set $fields = $editbox.fields
-#if $fields.has_key('productid')
-$input($fields['productid'])
-#end if
-    <table class="header-active">
-        <tr>
-            <th>$heading($fields['vendorid'])</th>
-            <th>$heading($fields['productno'])</th>
-        </tr>
-        <tr>
-            <td>$input($fields['vendorid'])</td>
-            <td>$input($fields['productno'])</td>
-        </tr>
-        <tr>
-            <th colspan="2">$heading($fields['descr'])</th>
-        </tr>
-        <tr>
-            <td colspan="2">$input($fields['descr'],'width: 100%;')</td>
-        </tr>
-    </table>
 #end def
 
 ## Form for adding or editing a container

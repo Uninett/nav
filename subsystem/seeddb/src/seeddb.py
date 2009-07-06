@@ -276,20 +276,13 @@ def index(req,showHelp=False,status=None):
     body.tables.append(Table('Organisation and usage categories','',
                              headings,rows))
 
-    # Table for types, products and vendors
+    # Table for types and vendors
     rows = [['Type',
              'The type describes the type of network device, uniquely ' +\
              'described from the SNMP sysobjectID',
             [BASEPATH + 'type/edit','Add'],
             [BASEPATH + 'type/list','Edit'],
             [BASEPATH + 'bulk/type','Bulk import']],
-            ['Product',
-             'Similar to type, but with focus on the product number and ' +\
-             'description. A product may be a type, it may also be a ' +\
-             'component (i.e. module) within an equipment type',
-            [BASEPATH + 'product/edit','Add'],
-            [BASEPATH + 'product/list','Edit'],
-            [BASEPATH + 'bulk/product','Bulk import']],
             ['Vendor',
              'Register the vendors that manufacture equipment that are ' +\
              'represented in your network.',
@@ -308,7 +301,7 @@ def index(req,showHelp=False,status=None):
             [BASEPATH + 'subcat/list','Edit'],
             [BASEPATH + 'bulk/subcat','Bulk import']],
 ]
-    body.tables.append(Table('Types, products and vendors','',headings,rows))
+    body.tables.append(Table('Types and vendors','',headings,rows))
 
     # Table for vlans and special subnets
     rows = [['Vlan',
@@ -3619,86 +3612,6 @@ class pagePrefix(seeddbPage):
             status.errors.append(error)
         return (status,action,templateform,selected)
 
-class pageProduct(seeddbPage):
-    """ Describes editing of the product table. """
-    
-    basePath = BASEPATH + 'product/'
-    table = nav.db.manage.Product
-    pageName = 'product'
-    tableName = 'product'
-    tableIdKey = 'productid'
-    sequence = 'product_productid_seq'
-    editMultipleAllowed = True
-    editIdAllowed = False
-
-    # Description format used by describe(id)
-    descriptionFormat = [('','vendor.vendorid'),
-                         (', ','productno')]
-
-    # Unique fields (for errormessages from add/update)
-    unique = ['vendorid']
-
-    # Nouns
-    singular = 'product'
-    plural = 'products'
-
-    # Delete dependencies
-    dependencies = []
-
-    pathAdd = EDITPATH + [('Product',basePath+'list'),('Add',False)]
-    pathEdit = EDITPATH + [('Product',basePath+'list'),('Edit',False)]
-    pathDelete = EDITPATH + [('Product',basePath+'list'),('Delete',False)]
-    pathList = EDITPATH + [('Product',False)]
-
-    class listDef(entryList):
-        """ Describes product list view """
-        def __init__(self,req,struct,sort,deleteWhere=None):
-            # Do general init
-            entryList.__init__(self,req,struct,sort,deleteWhere)
-            
-            # Specific init
-            self.defaultSortBy = 1
-
-            # list of (heading text, show sortlink, compare function for sort)
-            self.headingDefinition = [('Select',False,None),
-                                      ('Vendor',True,None),
-                                      ('Productno',True,None),
-                                      ('Description',True,None)]
-
-            self.cellDefinition = [(('productid,vendorid,productno,descr',
-                                     'product',
-                                     None,
-                                     None,
-                                     'vendorid,productno'),
-                                    [(None,None,entryListCell.CHECKBOX,None,None),
-                                     (1,'{p}edit/{id}',None,None,None),
-                                     (2,None,None,None,None),
-                                     (3,None,None,None,None)])]
-
-    class editbox(editbox):
-        """ Describes fields for adding and editing product entries.
-            The template uses this field information to display the form. """
-
-        def __init__(self,page,req=None,editId=None,formData=None):
-            self.page = page.pageName
-            self.table = page.table
-            # Field definitions {field name: [input object, required]}
-            f = {'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
-                              REQ_TRUE,'Vendor',FIELD_STRING],
-                 'productno': [inputText(),REQ_TRUE,'Productno',FIELD_STRING],
-                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING]}
-
-            self.fields = f
-            self.setControlNames()
-
-            if editId:
-                self.editId = editId
-                self.fill()
-
-            if formData:
-                self.formFill(formData)
-
-
 class pageRoom(seeddbPage):
     """ Describes editing of the room table. """
     
@@ -4748,11 +4661,7 @@ class pageVendor(seeddbPage):
     dependencies = [(nav.db.manage.Type,
                     'types',
                     'vendorid',
-                    '/report/type/?vendorid='),
-                    (nav.db.manage.Product,
-                    'products',
-                    'vendorid',
-                    '/report/product/?vendorid=')]
+                    '/report/type/?vendorid=')]
 
     pathAdd = EDITPATH + [('Vendor',basePath+'list'),('Add',False)]
     pathEdit = EDITPATH + [('Vendor',basePath+'list'),('Edit',False)]
@@ -4923,7 +4832,6 @@ pageList = {'cabling': pageCabling,
             'org': pageOrg,
             'patch': pagePatch,
             'prefix': pagePrefix,
-            'product': pageProduct,
             'room': pageRoom,
             'service': pageService,
             'snmpoid': pageSnmpoid,
@@ -4957,7 +4865,6 @@ class editboxBulk(editbox):
                   ('usage','Usage categories'),
                   ('subcat','Subcategories'),
                   ('type','Types'),
-                  ('product','Products'),
                   ('vendor','Vendors'),
                   ('netbox','IP devices'),
                   ('service','Services'),
@@ -5116,7 +5023,6 @@ def bulkImport(req,action):
                'vendor': bulkdefVendor,
                'subcat': bulkdefSubcat,
                'type': bulkdefType,
-               'product': bulkdefProduct,
                'prefix': bulkdefPrefix}
 
     listView = None
@@ -5841,51 +5747,6 @@ class bulkdefType:
                     row['tftp'] = '1'
             else:
                 row['tftp'] = '0'
-        return row
-    preInsert = classmethod(preInsert)
-
-class bulkdefProduct:
-    """ Contains field definitions for bulk importing products. """
-    # number of fields
-    tablename = 'product'
-    table = manage.Product
-    uniqueField = 'productno'
-    enforce_max_fields = True
-    max_num_fields = 3
-    min_num_fields = 2
-
-    process = True
-    onlyProcess = False
-    syntax = '#vendorid:productno[:description]\n'
-
-    postCheck = False
-
-    # list of (fieldname,max length,not null,use field)
-    fields = [('vendorid',15,True,True),
-              ('productno',0,True,True),
-              ('descr',0,False,True)]
-
-    def checkValidity(cls,field,data):
-        """ Checks validity of input fields. """
-        status = BULK_STATUS_OK
-        remark = None
-
-        if field == 'vendorid':
-             try:
-                manage.Vendor(data).load()
-             except forgetSQL.NotFound:
-                status = BULK_STATUS_RED_ERROR
-                remark = "Vendor '" + data + "' not found in database"  
-        return (status,remark)
-    checkValidity = classmethod(checkValidity)
-
-    def preInsert(cls,row):
-        """ Alter fields before inserting. (set correct value for cdp
-            and tftp if anything is input in those fields) """
-        if row.has_key('cdp'):
-            row['cdp'] = '1'
-        if row.has_key('tftp'):
-            row['tftp'] = '1'
         return row
     preInsert = classmethod(preInsert)
 
