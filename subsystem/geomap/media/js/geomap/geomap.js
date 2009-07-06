@@ -42,6 +42,8 @@ var mapFullscreen = false;
  * map_element_id as id.
  */
 function init(map_element_id, url) {
+    var parameters = OpenLayers.Util.getParameters();
+
     mapElemId = map_element_id;
     setMapSize();
     window.onresize = setMapSize;
@@ -98,7 +100,9 @@ function init(map_element_id, url) {
 	    url: url,
 	    params: {
 		format: 'geojson',
-		limit: 30
+		limit: 30,
+		timeStart: parameters['timeStart'],
+		timeEnd: parameters['timeEnd']
 	    },
 	    dynamicParams: {
 		viewportWidth: {'function': function() { return themap.getSize().w }},
@@ -134,7 +138,6 @@ function init(map_element_id, url) {
     themap.addControl(permalinkControl);
     themap.addControl(argsControl);
 
-    var parameters = OpenLayers.Util.getParameters();
     if (parameters.bbox) {
 	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
 	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());

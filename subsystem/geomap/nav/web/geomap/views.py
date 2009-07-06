@@ -62,17 +62,24 @@ def data(request):
     viewport_size = {'width': int(request.GET['viewportWidth']),
                      'height': int(request.GET['viewportHeight'])}
     limit = int(request.GET['limit'])
+    if request.GET.has_key('timeStart') and request.GET.has_key('timeEnd'):
+        time_interval = {'start': request.GET['timeStart'],
+                         'end': request.GET['timeEnd']}
+    else:
+        time_interval = None
 
 #     geojson = get_geojson(db, bounds, viewport_size, limit)
 
-    data = get_formatted_data(db, format, bounds, viewport_size, limit)
+    data = get_formatted_data(db, format, bounds, viewport_size, limit,
+                              time_interval)
     response = HttpResponse(data)
     response['Content-Type'] = format_mime_type(format)
     response['Content-Type'] = 'text/plain' # TODO remove this
     return response
 
 
-def get_formatted_data(db, format, bounds, viewport_size, limit):
+def get_formatted_data(db, format, bounds, viewport_size, limit,
+                       time_interval):
     """Get formatted output for given conditions.
 
     db -- a database connection object.
@@ -88,10 +95,14 @@ def get_formatted_data(db, format, bounds, viewport_size, limit):
     limit -- the minimum distance (in pixels) there may be between two
     points without them being collapsed to one.
 
+    time_interval -- dictionary with keys ('start', 'end'). Values
+    should be strings describing times in the syntax expected by
+    rrdfetch. (see http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html)
+
     Return value: formatted data as a string.
 
     """
-    graph = build_graph(get_data(db))
+    graph = build_graph(get_data(db, time_interval))
     simplify(graph, bounds, viewport_size, limit)
     features = create_features(graph)
     return format_data(format, features)

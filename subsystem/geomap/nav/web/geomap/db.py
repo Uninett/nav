@@ -35,11 +35,15 @@ _nav_conf = readConfig('nav.conf')
 _domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
 
 
-def get_data(db_cursor = None):
+def get_data(db_cursor, time_interval=None):
     """Returns a dictionary containing the netboxes with their modules, ports and connections"""
 
     if not db_cursor:
         raise nav.errors.GeneralException("No db-cursor given")
+
+    if time_interval is None:
+        time_interval = {'start': 'end-10min',
+                         'end': 'now'}
 
     netboxes = {}
     connections = {}
@@ -250,7 +254,7 @@ ORDER BY from_sysname, sysname, swport.speed DESC
         if 'from_swportid' not in res and 'from_gwportid' not in res:
             assert False, str(res)
         if res['rrdfile']:
-            data = get_rrd_link_load(res['rrdfile'])
+            data = get_rrd_link_load(res['rrdfile'], time_interval)
             res['load'] = (data[0],data[1])
         else:
             res['load'] = ('unknown','unknown')
@@ -285,25 +289,54 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     db_cursor.execute(query)
     netboxes = [dict(row) for row in db_cursor.fetchall()]
     for netbox in netboxes:
-        if netbox['rrd']:
-            try:
-                netbox['load'] = rrdtool.fetch(netbox['rrd'], 'AVERAGE', '-s -10min')[2][0][1]
-            except:
-                netbox['load'] = 'unknown'
-        else:
-            netbox['load'] = 'unknown'
+        netbox['load'] = get_rrd_cpu_load(netbox['rrd'], time_interval)
         if netbox['sysname'].endswith(_domain_suffix):
             netbox['sysname'] = netbox['sysname'][0:len(netbox['sysname'])-len(_domain_suffix)]
 
     return (netboxes, connections)
 
-def get_rrd_link_load(rrdfile):
+
+def get_rrd_link_load(rrdfile, time_interval):
     """Returns the ds1 and ds2 fields of an rrd-file (ifInOctets,
     ifOutOctets)"""
     if not rrdfile:
         return ('unknown','unknown')
+    rrdfile = rrd_file_name(rrdfile)
+ #   raise Exception('filename: '+rrdfile)
     try:
-        data = rrdtool.fetch(rrdfile, 'AVERAGE', '-s -10min')[2][0]
-        return ((data[1])/1024.0, (data[0])/1024.0)
-    except:
+        rrd_data = apply(rrdtool.fetch,
+                         [rrdfile, 'AVERAGE'] + rrd_args(time_interval))
+        rrd_data = rrd_data[2][0]
+        rrd_data = (rrd_data[0] or float('nan'), rrd_data[1] or float('nan'))
+        return ((rrd_data[1])/1024.0, (rrd_data[0])/1024.0)
+    except Exception, e:
+#        raise e
         return ('unknown','unknown')
+
+
+def get_rrd_cpu_load(rrdfile, time_interval):
+    if not rrdfile:
+        return 'unknown'
+    f = rrdfile
+    rrdfile = rrd_file_name(rrdfile)
+    rrd_data = None
+    try:
+        rrd_data = apply(rrdtool.fetch,
+                         [rrdfile, 'AVERAGE'] + rrd_args(time_interval))
+        if rrd_data[2][0][1] is None: return 'unknown'
+        return rrd_data[2][0][1]
+    except Exception, e:
+#        raise e
+        return 'unknown'
+
+
+def rrd_file_name(filename):
+    # TODO remove the following line (hack for using teknobyen-vk data
+    # from navdev)
+    filename.replace('/home/nav/cricket-data', '/media/prod-rrd')
+    return str(filename)
+
+
+def rrd_args(time_interval):
+    return ['-s ' + time_interval['start'],
+            '-e ' + time_interval['end']]
