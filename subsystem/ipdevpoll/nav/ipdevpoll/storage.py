@@ -276,3 +276,6 @@ class NetType(Shadow):
 
 class SwPortVlan(Shadow):
     __shadowclass__ = manage.SwPortVlan
+
+class Arp(Shadow):
+    __shadowclass__ = manage.Arp
