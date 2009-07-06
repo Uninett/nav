@@ -166,10 +166,9 @@ class Shadow(object):
 
         # Copy all modified attributes to the empty model object
         for attr in self._touched:
-            # FIXME Must have some intelligence here.  If the value is
-            # a shadowed object, this too must be transformed into a
-            # model object.
             value = getattr(self, attr)
+            if issubclass(value.__class__, Shadow):
+                value = value.get_model()
             setattr(model, attr, value)
         return model
 
@@ -179,20 +178,33 @@ class Shadow(object):
         If the object represented by this shadow already exists in the
         database, this method will return it from the database.  If
         such an object doesn't exist, the None value will be returned.
-
-        TODO:  Allow multi-field lookups (fields listed in a tuple)
         """
         # Find out which attribute is the primary key, add it to the
         # list of lookup fields
         pk_attr = self.__shadowclass__._meta.pk.name
         lookups = [pk_attr] + self.__lookups__
+
+        # If we have the primary key, we can return almost at once
+        # Does not catch DoesNotExist-exception by design.
+        if getattr(self, pk_attr):
+            model = self.__shadowclass__.objects.get(pk=getattr(self, pk_attr))
+            return model
         
         # Try each lookup field and see which one corresponds to
         # something in the a database, if any
         for lookup in lookups:
-            value = getattr(self, lookup)
-            if value is not None:
-                kwargs = {lookup: value}
+            kwargs = None
+            if isinstance(lookup, tuple):
+                kwargs = dict(zip(lookup, map(lambda l: getattr(self, l), lookup)))
+            else: 
+                value = getattr(self, lookup)
+                if value is not None:
+                    kwargs = {lookup: value}
+            if kwargs:
+                # Ensure we only have django models
+                for key, val in kwargs.items():
+                    if issubclass(val.__class__, Shadow):
+                        kwargs[key] = val.get_model()
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
@@ -242,6 +254,7 @@ class Device(Shadow):
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
+    __lookups__ = [('netbox', 'ifname'), ('netbox', 'ifindex')]
 
 class Location(Shadow):
     __shadowclass__ = manage.Location
@@ -257,3 +270,9 @@ class Organization(Shadow):
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
+
+class NetType(Shadow):
+    __shadowclass__ = manage.NetType
+
+class SwPortVlan(Shadow):
+    __shadowclass__ = manage.SwPortVlan
