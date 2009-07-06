@@ -72,7 +72,6 @@ class Interfaces(Plugin):
 
         # Now save stuff to containers and signal our exit
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
-        netbox.interface_set = []
         for (ifIndex,),row in result.items():
             interface = self.job_handler.container_factory(storage.Interface,
                                                            key=ifIndex)
@@ -92,8 +91,8 @@ class Interfaces(Plugin):
             interface.ifname = row['ifName']
             interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
             interface.ifalias = row['ifAlias']
-            
-            netbox.interface_set.append(interface)
+
+            interface.netbox = netbox
 
         self.deferred.callback(True)
         return result
