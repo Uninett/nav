@@ -118,39 +118,13 @@ INSERT INTO cat values ('WLAN','Wireless equipment','t');
 INSERT INTO cat values ('SRV','Server','f');
 INSERT INTO cat values ('OTHER','Other equipment','f');
 
-CREATE TABLE product (
-  productid SERIAL PRIMARY KEY,
-  vendorid VARCHAR(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
-  productno VARCHAR NOT NULL,
-  descr VARCHAR,
-  UNIQUE (vendorid,productno)
-);
-
-CREATE TABLE deviceorder (
-  deviceorderid SERIAL PRIMARY KEY,
-  registered TIMESTAMP NOT NULL DEFAULT now(),
-  ordered DATE,
-  arrived TIMESTAMP DEFAULT 'infinity',
-  ordernumber VARCHAR,
-  comment VARCHAR,
-  retailer VARCHAR,
-  username VARCHAR,
-  orgid VARCHAR(30) REFERENCES org (orgid) ON UPDATE CASCADE ON DELETE SET NULL,
-  productid INTEGER REFERENCES product (productid) ON UPDATE CASCADE ON DELETE SET NULL,
-  updatedby VARCHAR,
-  lastupdated DATE);
-
-
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
-  productid INT4 REFERENCES product ON UPDATE CASCADE ON DELETE SET NULL,
   serial VARCHAR,
   hw_ver VARCHAR,
   fw_ver VARCHAR,
   sw_ver VARCHAR,
-	auto BOOLEAN NOT NULL DEFAULT false,
-  active BOOLEAN NOT NULL DEFAULT false,
-  deviceorderid INT4 REFERENCES deviceorder (deviceorderid) ON DELETE CASCADE,
+  auto BOOLEAN NOT NULL DEFAULT false,
   discovered TIMESTAMP NULL DEFAULT NOW(),
   UNIQUE(serial)
 );
