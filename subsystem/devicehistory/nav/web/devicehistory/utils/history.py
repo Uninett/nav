@@ -65,7 +65,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     #   - selected devices
     device = Device.objects.filter(
         Q(netbox__in=selection['netbox']) |
-        Q(netbox__module__in=selection['module'])
+        Q(module__in=selection['module'])
     )
 
     # Find alert history that belongs to the netbox and device ids we found in
