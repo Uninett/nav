@@ -31,7 +31,8 @@ class Arp(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        if netbox.category.is_gw() or netbox.category.is_gsw():
+        if netbox.category.id == 'GW' or \
+                netbox.category.id == 'GSW':
             return True
         else:
             return False
@@ -44,7 +45,8 @@ class Arp(Plugin):
             'ipNetToMediaNetAddress',
         ])
         df.addCallback(self.got_arp)
-        self.addErrback(self.error)
+        df.addErrback(self.error)
+        return self.deferred
 
     # FIXME Copypasta from vlan plugin
     def error(self, failure):
@@ -74,10 +76,9 @@ class Arp(Plugin):
             return
 
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
-        netbox.arp_set = []
-        for (ifIndex,), row in result.items():
+        for key, row in result.items():
             ip = row['ipNetToMediaNetAddress']
-            mac = row['ipNetToPhysAddress']
+            mac = binary_mac_to_hex(row['ipNetToMediaPhysAddress'])
 
             arp = self.job_handler.container_factory(storage.Arp, key=(
                 ip,
@@ -87,13 +88,19 @@ class Arp(Plugin):
             arp.sysname = netbox.sysname
             arp.ip = ip
             arp.mac = mac
+            arp.netbox = netbox
 
-            netbox.arp_set.append(arp)
-
-        existing_arp = manage.Arp.objects.filter(
-            netbox=netbox,
-            end_time__gt=datetime.max,
-        )
-        df = threads.deferToThread(storage.shadowify_queryset, existing_arp)
-        df.addCallback(timeout_arp)
+        #existing_arp = manage.Arp.objects.filter(
+        #    netbox=netbox,
+        #    end_time__gt=datetime.max,
+        #)
+        #df = threads.deferToThread(storage.shadowify_queryset, existing_arp)
+        #df.addCallback(self.timeout_arp)
+        #df.addErrback(self.error)
+        self.deferred.callback(True)
         return result
+
+def binary_mac_to_hex(binary_mac):
+    """Convert a binary string MAC address to hex string."""
+    if binary_mac:
+        return ":".join("%02x" % ord(x) for x in binary_mac)
