@@ -723,7 +723,7 @@ class Arp(models.Model):
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
     start_time = models.DateTimeField()
-    end_time = DateTimeInfinityField(default='infinity')
+    end_time = DateTimeInfinityField()
 
     class Meta:
         db_table = 'arp'
