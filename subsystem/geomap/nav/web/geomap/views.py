@@ -16,6 +16,7 @@
 
 from django.template import RequestContext
 from django.http import HttpResponse
+from django import forms
 
 from nav.django.shortcuts import render_to_response
 import nav.db
@@ -28,10 +29,25 @@ from nav.web.geomap.output_formats import format_data, format_mime_type
 from nav.web.templates.GeomapTemplate import GeomapTemplate
 
 
+class TimeIntervalForm(forms.Form):
+    interval_size = forms.ChoiceField(
+        [('10min', '10 minutes'),
+         ('1hour', 'Hour'),
+         ('1day', 'Day'),
+         ('1week', 'Week')],
+        required=False)
+    endtime = forms.CharField(required=False, initial='now')
+
+
 def geomap(request):
+    if request.GET.has_key('endtime'):
+        time_interval_form = TimeIntervalForm(request.GET)
+    else:
+        time_interval_form = TimeIntervalForm()
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {'config': get_configuration()},
+                              {'config': get_configuration(),
+                               'time_interval_form': time_interval_form},
                               RequestContext(request),
                               path=[('Home', '/'),
                                     ('Geomap', None)])

@@ -377,6 +377,8 @@ def get_rrd_link_load(rrdfile, time_interval):
     if not rrdfile:
         return ('unknown','unknown')
     rrd_data = read_rrd_data(rrdfile, 'AVERAGE', time_interval, [2, 0])
+    if rrd_data == 'unknown':
+        return ('unknown', 'unknown')
     rrd_data = (rrd_data[0] or float('nan'), rrd_data[1] or float('nan'))
     return ((rrd_data[1])/1024.0, (rrd_data[0])/1024.0)
 
@@ -422,5 +424,33 @@ def rrd_file_name(filename):
 
 
 def rrd_args(time_interval):
-    return ['-s ' + time_interval['start'],
-            '-e ' + time_interval['end']]
+    return ['-s ' + str(time_interval['start']),
+            '-e ' + str(time_interval['end'])]
+
+
+def validate_rrd_time(time):
+    re_time = 'midnight|noon|teatime|\d\d([:.]\d\d)?([ap]m)?'
+    re_day1 = 'yesterday|today|tomorrow'
+    re_day2 = '(January|February|March|April|May|June|July|August|' + \
+        'September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|' + \
+        'Aug|Sep|Oct|Nov|Dec) \d\d?( \d\d(\d\d)?)?'
+    re_day3 = '\d\d/\d\d/\d\d(\d\d)?'
+    re_day4 = '\d\d[.]\d\d[.]\d\d(\d\d)?'
+    re_day5 = '\d\d\d\d\d\d\d\d'
+    re_day6 = 'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|' + \
+        'Mon|Tue|Wed|Thu|Fri|Sat|Sun'
+    re_day = '(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
+        (re_day1, re_day2, re_day3, re_day4, re_day5, re_day6)
+    re_ref = 'now|start|end|(((%s) )?(%s))' % (re_time, re_day)
+
+    re_offset_long = '(year|month|week|day|hour|minute|second)s?'
+    re_offset_short = 'mon|min|sec'
+    re_offset_single = 'y|m|w|d|h|s'
+    re_offset_no_sign = '\d+((%s)|(%s)|(%s))' % \
+        (re_offset_long, re_offset_short, re_offset_single)
+    re_offset = '[+-](%s)([+-]?%s)*' % \
+        (re_offset_no_sign, re_offset_no_sign)
+
+    re_total = '^(%s)|((%s) ?(%s)?)$' % (re_offset, re_ref, re_offset)
+    return re.match(re_total, time) is not None
+

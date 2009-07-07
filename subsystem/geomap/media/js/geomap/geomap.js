@@ -26,6 +26,7 @@ var themap;
 var mapnikLayer;
 var osmaLayer;
 var netLayer;
+var bboxStrategy;
 var netPopupControl;
 var netLayerStyle;
 var posControl;
@@ -93,20 +94,26 @@ function init(map_element_id, url) {
 	}
     });
 
+    bboxStrategy = new OpenLayers.Strategy.BBOX({resFactor: 1.1});
+
     netLayer = new OpenLayers.Layer.Vector('Networks', {
-	strategies: [new OpenLayers.Strategy.BBOX({resFactor: 1.1})],
+	strategies: [bboxStrategy],
 		     //new OpenLayers.Strategy.Cluster()],
 	protocol: new MyHTTPProtocol({
 	    url: url,
 	    params: {
 		format: 'geojson',
 		limit: 30,
-		timeStart: parameters['timeStart'],
-		timeEnd: parameters['timeEnd']
+		//timeStart: parameters['timeStart'],
+		//timeEnd: parameters['timeEnd']
 	    },
 	    dynamicParams: {
-		viewportWidth: {'function': function() { return themap.getSize().w }},
-		viewportHeight: {'function': function() { return themap.getSize().h }}
+		viewportWidth:
+		{'function': function() { return themap.getSize().w }},
+		viewportHeight:
+		{'function': function() { return themap.getSize().h }},
+		timeStart: {'function': getTimeIntervalStart},
+		timeEnd: {'function': getTimeIntervalEnd}
 	    },
 	    format: new OpenLayers.Format.GeoJSON()
 	}),
@@ -143,7 +150,15 @@ function init(map_element_id, url) {
 	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
 	themap.zoomToExtent(requestedBounds);
     }
+
+    setTimeIntervalFormListeners();
 }
+
+
+function updateNetData() {
+    bboxStrategy.triggerRead();
+}
+
 
 function setMapSize() {
     var mapE = document.getElementById('map')
@@ -183,5 +198,65 @@ function toggleFullscreen() {
     mapFullscreen = !mapFullscreen;
     setMapSize();
     setMapSize();
+}
+
+
+function getTimeIntervalStart() {
+    var time = 'end-'+getTimeIntervalLength();
+    /*
+    if (!validate_rrd_time(time))
+	alert('Invalid start time "' + time + '"');
+    */
+    return time;
+}
+
+function getTimeIntervalEnd() {
+    var time = document.getElementById('id_endtime').value;
+    if (!validate_rrd_time(time))
+	alert('Invalid end time "' + time + '"');
+    return time;
+}
+
+function getTimeIntervalLength() {
+    return document.getElementById('id_interval_size').value;
+}
+
+
+function setTimeIntervalFormListeners() {
+    document.getElementById('id_endtime').onchange = updateNetData;
+    document.getElementById('id_interval_size').onchange = updateNetData;
+}
+
+
+function validate_rrd_time(time) {
+    var re_time = 'midnight|noon|teatime|\\d\\d([:.]\\d\\d)?([ap]m)?';
+    var re_day1 = 'yesterday|today|tomorrow';
+    var re_day2 = '(January|February|March|April|May|June|July|August|' +
+	'September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|' +
+        'Aug|Sep|Oct|Nov|Dec) \\d\\d?( \\d\\d(\\d\\d)?)?';
+    var re_day3 = '\\d\\d/\\d\\d/\\d\\d(\\d\\d)?';
+    var re_day4 = '\\d\\d[.]\\d\\d[.]\\d\\d(\\d\\d)?';
+    var re_day5 = '\\d\\d\\d\\d\\d\\d\\d\\d';
+    var re_day6 = 'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|' +
+        'Mon|Tue|Wed|Thu|Fri|Sat|Sun';
+    var re_day = format('(%s)|(%s)|(%s)|(%s)|(%s)|(%s)',
+			re_day1, re_day2, re_day3, re_day4, re_day5, re_day6);
+    re_ref = format('now|start|end|(((%s) )?(%s))', re_time, re_day);
+
+    var re_offset_long = '(year|month|week|day|hour|minute|second)s?';
+    var re_offset_short = 'mon|min|sec';
+    var re_offset_single = 'y|m|w|d|h|s';
+    var re_offset_no_sign =
+	format('\\d+((%s)|(%s)|(%s))',
+	       re_offset_long, re_offset_short, re_offset_single);
+    re_offset =
+	format('[+-](%s)([+-]?%s)*', re_offset_no_sign, re_offset_no_sign);
+
+    re_total_str =
+	format('^(%s)|((%s) ?(%s)?)$', re_offset, re_ref, re_offset);
+
+    var re = new RegExp(re_total_str);
+
+    return re.exec(time) != null;
 }
 
