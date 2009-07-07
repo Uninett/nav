@@ -279,3 +279,4 @@ class SwPortVlan(Shadow):
 
 class Arp(Shadow):
     __shadowclass__ = manage.Arp
+    __lookups__ = ['ip', 'mac']

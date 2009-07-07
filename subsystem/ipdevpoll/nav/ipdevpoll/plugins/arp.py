@@ -16,11 +16,13 @@
 #
 
 import logging
+from datetime import datetime
 
-from twisted.internet import defer
+from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
 from nav.mibs import IpMib
+from nav.models import manage
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
 
@@ -39,12 +41,10 @@ class Arp(Plugin):
 
     def handle(self):
         self.logger.debug("Collecting ARP data")
-        self.ipmib = IpMib(self.job_handler.agent)
-        df = self.ipmib.retrieve_columns([
-            'ipNetToMediaPhysAddress',
-            'ipNetToMediaNetAddress',
-        ])
-        df.addCallback(self.got_arp)
+        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        netbox_from_db = manage.Netbox.objects.get(id=netbox.id)
+        df = threads.deferToThread(storage.shadowify, netbox_from_db)
+        df.addCallback(self.got_netbox)
         df.addErrback(self.error)
         return self.deferred
 
@@ -58,16 +58,16 @@ class Arp(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
-    def timeout_arp(self, result):
-        if storage.Arp in self.job_handler.containers:
-            for arp in result:
-                key = (arp.ip, arp.mac)
-                if not key in self.job_handler.containers[storage.Arp]:
-                    arp.end_time = datetime.today()
-        self.deferred.callback(True)
-        return result
+    def got_netbox(self, result):
+        self.logger.debug('Got netbox: %s' % result.sysname)
+        self.ipmib = IpMib(self.job_handler.agent)
+        df = self.ipmib.retrieve_columns([
+            'ipNetToMediaPhysAddress',
+            'ipNetToMediaNetAddress',
+        ])
+        df.addCallback(self.got_arp, netbox=result)
 
-    def got_arp(self, result):
+    def got_arp(self, result, netbox=None):
         self.logger.debug("Found %d ARP entries" % len(result))
 
         if len(result) == 0:
@@ -75,7 +75,7 @@ class Arp(Plugin):
             self.logger.debug("No ARP entries found. Trying vendor specific MIBs")
             return
 
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        new_arp = {}
         for key, row in result.items():
             ip = row['ipNetToMediaNetAddress']
             mac = binary_mac_to_hex(row['ipNetToMediaPhysAddress'])
@@ -89,14 +89,30 @@ class Arp(Plugin):
             arp.ip = ip
             arp.mac = mac
             arp.netbox = netbox
+            arp.start_time = datetime.utcnow()
+            arp.end_time = datetime.max
 
-        #existing_arp = manage.Arp.objects.filter(
-        #    netbox=netbox,
-        #    end_time__gt=datetime.max,
-        #)
-        #df = threads.deferToThread(storage.shadowify_queryset, existing_arp)
-        #df.addCallback(self.timeout_arp)
-        #df.addErrback(self.error)
+            new_arp[(ip, mac)] = arp
+
+        existing_arp = manage.Arp.objects.filter(
+            netbox__id=netbox.id,
+            end_time=datetime.max,
+        )
+        df = threads.deferToThread(storage.shadowify_queryset, existing_arp)
+        df.addCallback(self.timeout_arp, new_records=new_arp)
+        df.addErrback(self.error)
+        return result
+
+    def timeout_arp(self, result, new_records=None):
+        for row in result:
+            key = (row.ip, row.mac)
+            if key not in new_records:
+                self.logger.debug('%s for %s was not found on netbox' % key)
+                arp = self.job_handler.container_factory(storage.Arp, key=key)
+
+                arp.ip = row.ip
+                arp.mac = row.mac
+                arp.end_time = datetime.utcnow()
         self.deferred.callback(True)
         return result
 
