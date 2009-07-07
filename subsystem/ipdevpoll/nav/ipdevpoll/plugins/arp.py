@@ -44,7 +44,7 @@ class Arp(Plugin):
             'ipNetToMediaNetAddress',
         ])
         df.addCallback(self.got_arp)
-        df.addErrback(self.error)
+        self.addErrback(self.error)
 
     # FIXME Copypasta from vlan plugin
     def error(self, failure):
@@ -56,23 +56,44 @@ class Arp(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
+    def timeout_arp(self, result):
+        if storage.Arp in self.job_handler.containers:
+            for arp in result:
+                key = (arp.ip, arp.mac)
+                if not key in self.job_handler.containers[storage.Arp]:
+                    arp.end_time = datetime.today()
+        self.deferred.callback(True)
+        return result
+
     def got_arp(self, result):
-        self.logger.arp("Found %d ARP entries" % len(result))
+        self.logger.debug("Found %d ARP entries" % len(result))
 
         if len(result) == 0:
             # Do Cisco stuff
+            self.logger.debug("No ARP entries found. Trying vendor specific MIBs")
             return
 
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
         netbox.arp_set = []
         for (ifIndex,), row in result.items():
-            arp = self.job_handler.container_factory(storage.Arp, key=ifIndex)
+            ip = row['ipNetToMediaNetAddress']
+            mac = row['ipNetToPhysAddress']
+
+            arp = self.job_handler.container_factory(storage.Arp, key=(
+                ip,
+                mac,
+            ))
             #arp.prefix = Something
             arp.sysname = netbox.sysname
-            arp.ip = row['ipNetToMediaNetAddress']
-            arp.mac = row['ipNetToPhysAddress']
+            arp.ip = ip
+            arp.mac = mac
 
             netbox.arp_set.append(arp)
 
-        self.deferred.callback(True)
+        existing_arp = manage.Arp.objects.filter(
+            netbox=netbox,
+            end_time__gt=datetime.max,
+        )
+        df = threads.deferToThread(storage.shadowify_queryset, existing_arp)
+        df.addCallback(timeout_arp)
         return result
