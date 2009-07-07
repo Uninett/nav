@@ -18,6 +18,7 @@
 
 import logging
 import pprint
+import time
 
 from twisted.internet import reactor, defer, task, threads
 from twistedsnmp import snmpprotocol, agentproxy
@@ -153,86 +154,77 @@ class JobHandler(object):
         This is called after successful poll run.
 
         """
-        self.logger.info("Job done")
-        #self.logger.debug("Containers:\n%s", pprint.pformat(self.containers))
         self.save_container()
+        self.logger.info("Job done")
+
         # Fire the callback chain
         self.deferred.callback(self)
         return self.deferred
 
+    @defer.deferredGenerator
     def save_container(self):
         """
         Parses the container and finds a sane storage order. We do this
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        dlist = []
-        for instance_class, instances in self.containers.items():
-            for instance in instances.values():
-                if instance in self.storage_queue:
-                    continue
-                d = self.traverse_instance_for_storage(instance, self.storage_queue)
-                d.addCallback(self.append_to_queue)
-                dlist.append(d)
-        dl = defer.DeferredList(dlist)
-        dl.addCallback(self.print_storage_queue)
-    
+
+        # Traverse all the objects in the storage container and generate
+        # the storage queue
+        # Actually save to the database
+        df = threads.deferToThread(self.traverse_all_instances)
+        dw = defer.waitForDeferred(df)
+        yield dw
+
+        df = threads.deferToThread(self.perform_save)
+        df.addCallback(self.log_timed_result, "Storing to database complete")
+        dw = defer.waitForDeferred(df)
+        yield dw
+
+    def log_timed_result(self, res, msg):
+        self.logger.debug(msg + " (%0.3f ms)" % res)
+
     @transaction.commit_manually
     def perform_save(self):
-        
-        d = defer.Deferred()
+        start_time = time.time()
         try:
             self.storage_queue.reverse()
             while self.storage_queue:
                 obj = self.storage_queue.pop()
-                pprint.pprint(obj)
-                print "Saving ", obj
                 obj.get_model().save()
             transaction.commit()
+            end_time = time.time()
+            total_time = (end_time - start_time) * 1000.0
+            return total_time
         except Exception, e:
             self.logger.debug("Caught exception during save. Last object = %s. Exception:\n%s" % (obj, e))
             transaction.rollback()
 
-        return True
-
-
-
-    def print_storage_queue(self, result):
-        self.logger.debug("Storage queue for polling run:\n%s" % pprint.pformat(self.storage_queue))
-        threads.deferToThread(self.perform_save)
-
-    def append_to_queue(self, res):
-        self.storage_queue.extend([r for r in res if r not in self.storage_queue])
+    def traverse_all_instances(self):
+        for instance_class, instances in self.containers.items():
+            for instance in instances.values():
+                if instance in self.storage_queue:
+                    continue
+                self.storage_queue.extend([r for r in self.traverse_instance_for_storage(instance, self.storage_queue) if r not in self.storage_queue])
 
     def traverse_instance_for_storage(self, instance, storage_queue):
-
-        d = defer.Deferred()
-        if instance in storage_queue:
-            d.callback(storage_queue)
-            return d
 
         storage_queue.insert(0, instance)
 
         for field in instance.__class__._fields:
             t = instance.__class__.__shadowclass__._meta.get_field(field)
             if issubclass(t.__class__, django.db.models.fields.related.ForeignKey):
-                #self.logger.debug("Field '%s' is a ForeignKey. Traversing to generate save-queue" % field)
-                #self.logger.debug("\tConnected to class %s" % t.rel.to)
                 if t.rel.to in storage.shadowed_classes:
-                    #self.logger.debug("\tClass %s is shadowed. Trying to find the instance" % t.rel.to)
                     if not storage.shadowed_classes[t.rel.to] in self.containers:
-                        #self.logger.debug("\t\tNo instances were found in container")
                         pass
                     else:
                         # If the foreignkey is not None, then traverse that object as well
                         if not getattr(instance, field):
                             continue
                         if getattr(instance, field) in self.containers[storage.shadowed_classes[t.rel.to]]:
-                            #self.logger.debug("\t Found shadowed instance. Traversing instance")
                             storage_queue = self.traverse_instance_for_storage(obj, storage_queue)
                             break
-        d.callback(storage_queue)
-        return d
+        return storage_queue
 
 
     def container_factory(self, container_class, key):
@@ -325,5 +317,3 @@ class Schedule(object):
             deferred.addCallback(self._map_cleanup)
             deferred.addCallback(self._reschedule)
         return dummy
-
-
