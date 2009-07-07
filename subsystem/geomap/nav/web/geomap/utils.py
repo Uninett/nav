@@ -146,3 +146,22 @@ def concat_str(strs):
     return reduce(lambda a,b: a+b, strs, '')
 
 
+class lazy_dict(dict):
+    unevaluated = None
+
+    def __init__(self, arg, **kwargs):
+        dict.__init__(self, arg, **kwargs)
+        self.unevaluated = {}
+
+    def __getitem__(self, key):
+        if key not in self and key in self.unevaluated:
+            fun = self.unevaluated[key]['fun']
+            args = self.unevaluated[key]['args']
+            self[key] = apply(fun, args)
+            del self.unevaluated[key]
+        return dict.__getitem__(self, key)
+
+    def set_lazy(self, key, fun, *args):
+        if key in self:
+            del self[key]
+        self.unevaluated[key] = {'fun': fun, 'args': args}

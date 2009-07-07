@@ -21,7 +21,7 @@ from nav.django.shortcuts import render_to_response
 import nav.db
 import psycopg2.extras
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import get_data
+from nav.web.geomap.db import get_data, rrd_statistics
 from nav.web.geomap.graph import build_graph, simplify
 from nav.web.geomap.features import create_features
 from nav.web.geomap.output_formats import format_data, format_mime_type
@@ -70,8 +70,11 @@ def data(request):
 
 #     geojson = get_geojson(db, bounds, viewport_size, limit)
 
+    #rrd_statistics['cache'] = 0
+    #rrd_statistics['file'] = 0
     data = get_formatted_data(db, format, bounds, viewport_size, limit,
                               time_interval)
+    #data = ('//cache: %d, file: %d\n' % (rrd_statistics['cache'], rrd_statistics['file'])) + data
     response = HttpResponse(data)
     response['Content-Type'] = format_mime_type(format)
     response['Content-Type'] = 'text/plain' # TODO remove this
@@ -102,7 +105,7 @@ def get_formatted_data(db, format, bounds, viewport_size, limit,
     Return value: formatted data as a string.
 
     """
-    graph = build_graph(get_data(db, time_interval))
+    graph = build_graph(get_data(db, bounds, time_interval))
     simplify(graph, bounds, viewport_size, limit)
     features = create_features(graph)
     return format_data(format, features)

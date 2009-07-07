@@ -25,6 +25,7 @@ from math import sqrt
 from nav.web.geomap.coordinates import utm_str_to_lonlat
 from nav.web.geomap.utils import *
 
+
 aggregate_properties_place = {
     'load':
         lambda rooms:
@@ -56,10 +57,12 @@ def build_graph(db_results):
 
     # fix coordinates (remove when database has (lon,lat)
     # coordinates), and create Node objects:
-    netboxes = filter(lambda n: n['utm'] is not None, netboxes)
+    #netboxes = filter(lambda n: n['utm'] is not None, netboxes)
     for netbox in netboxes:
-        (lon,lat) = utm_str_to_lonlat(netbox['utm'])
-        graph.add_node(Node(netbox['netboxid'], lon, lat, netbox))
+        #(lon,lat) = utm_str_to_lonlat(netbox['utm'])
+        #graph.add_node(Node(netbox['netboxid'], lon, lat, netbox))
+        graph.add_node(Node(netbox['netboxid'], netbox['lon'], netbox['lat'],
+                            netbox))
 
     # create Edge objects:
     for connection in connections.values():
