@@ -191,7 +191,19 @@ class JobHandler(object):
             self.storage_queue.reverse()
             while self.storage_queue:
                 obj = self.storage_queue.pop()
-                obj.get_model().save()
+                if obj.delete:
+                    obj.get_model().delete()
+                else:
+                    try:
+                        # Skip if object exists in database, and no fields
+                        # are touched
+                        if obj.getattr(obj, obj.__shadowclass__._meta.pk.name) \
+                            and not obj.get_touched():
+                            continue
+                    except AttributeError:
+                        pass
+                    obj.get_model().save()
+
             transaction.commit()
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0

@@ -109,6 +109,7 @@ class Shadow(object):
                 setattr(self, key, val)
 
         self._touched = set()
+        self.delete = False
 
     def __repr__(self):
         attrs = [field for field in self._fields
