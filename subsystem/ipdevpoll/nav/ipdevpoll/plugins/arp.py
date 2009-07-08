@@ -98,7 +98,7 @@ class Arp(Plugin):
 
     def timeout_arp(self, result):
         for row in result:
-            ip = IP(row.ip).strNormal()
+            ip = IP(row.ip).strCompressed()
             key = (self.netbox, ip, row.mac)
             if storage.Arp not in self.job_handler.containers or \
                     key not in self.job_handler.containers[storage.Arp]:
@@ -123,7 +123,7 @@ class Arp(Plugin):
 
         for index, mac in result.items():
             ip = index_to_ip(index)
-            ip = ip.strNormal()
+            ip = ip.strCompressed()
             mac = binary_mac_to_hex(mac)
             mac = truncate_mac(mac)
 #            print "row %d %s %s" % (type, ip, mac)
