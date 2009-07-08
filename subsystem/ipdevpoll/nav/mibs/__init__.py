@@ -31,12 +31,6 @@ class IpMib(mibretriever.MibRetriever):
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
 
-class CiscoCDPMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_cdp_mib import MIB as mib
-
-class LLDPMib(mibretriever.MibRetriever):
-    from nav.smidumps.lldp_mib import MIB as mib
-
 class QBridgeMib(mibretriever.MibRetriever):
     from nav.smidumps.qbridge_mib import MIB as mib
 
