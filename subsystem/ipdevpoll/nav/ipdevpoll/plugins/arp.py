@@ -16,21 +16,22 @@
 #
 
 import logging
+from IPy import IP
 from datetime import datetime
 
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs import IpMib
+from nav.mibs import IpMib, Ipv6Mib, CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
 
-class Arp(Plugin):
-    def __init__(self, *args, **kwargs):
-        Plugin.__init__(self, *args, **kwargs)
-        self.deferred = defer.Deferred()
+IP_MIB = 1
+IPV6_MIB = 2
+CISCO_MIB = 3
 
+class Arp(Plugin):
     @classmethod
     def can_handle(cls, netbox):
         if netbox.category.id == 'GW' or \
@@ -39,84 +40,141 @@ class Arp(Plugin):
         else:
             return False
 
+    @defer.deferredGenerator
     def handle(self):
-        self.logger.debug("Collecting ARP data")
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
-        netbox_from_db = manage.Netbox.objects.get(id=netbox.id)
-        df = threads.deferToThread(storage.shadowify, netbox_from_db)
-        df.addCallback(self.got_netbox)
-        df.addErrback(self.error)
-        return self.deferred
+        self.logger.debug("Collecting ARP")
+        try_vendor = False
 
-    # FIXME Copypasta from vlan plugin
-    def error(self, failure):
-        if failure.check(defer.TimeoutError):
-            # Transform TimeoutErrors to something else
-            self.logger.error(failure.getErrorMessage())
-            # Report this failure to the waiting plugin manager (RunHandler)
-            exc = FatalPluginError("Cannot continue due to device timeouts")
-            failure = Failure(exc)
-        self.deferred.errback(failure)
+        # Fetch standard MIBs
+        ip_mib = IpMib(self.job_handler.agent)
+        df = defer.waitForDeferred(
+            ip_mib.retrieve_column('ipNetToMediaPhysAddress'))
+        yield df
+        ip_result = df.getResult()
 
-    def got_netbox(self, result):
-        self.logger.debug('Got netbox: %s' % result.sysname)
-        self.ipmib = IpMib(self.job_handler.agent)
-        df = self.ipmib.retrieve_columns([
-            'ipNetToMediaPhysAddress',
-            'ipNetToMediaNetAddress',
-        ])
-        df.addCallback(self.got_arp, netbox=result)
+        ipv6_mib = Ipv6Mib(self.job_handler.agent)
+        df = defer.waitForDeferred(
+            ipv6_mib.retrieve_column('ipv6NetToMediaPhysAddress'))
+        yield df
+        ip6_result = df.getResult()
 
-    def got_arp(self, result, netbox=None):
-        self.logger.debug("Found %d ARP entries" % len(result))
+        if len(ip_result) > 0:
+            self.logger.debug("Found %d ARP entries" % len(ip_result))
+            self.process_arp(ip_result, type=IP_MIB)
+        else:
+            try_vendor = True
 
-        if len(result) == 0:
-            # Do Cisco stuff
-            self.logger.debug("No ARP entries found. Trying vendor specific MIBs")
+        if len(ip6_result) > 0:
+            self.logger.debug("Found %d NDP entries" % len(ip6_result))
+            self.process_arp(ip6_result, type=IPV6_MIB)
+        else:
+            try_vendor = True
+
+        if try_vendor:
+            # Try Cisco specific MIBs
+            cisco_mib = CiscoIetfIpMib(self.job_handler.agent)
+            thing = defer.waitForDeferred(
+                cisco_mib.retrieve_column('cInetNetToMediaPhysAddress'))
+            yield thing
+            result = thing.getResult()
+            self.logger.debug("Found %d Cisco ARP entries" % len(result))
+            self.process_arp(result, type=CISCO_MIB)
+
+        existing_arp = manage.Arp.objects.filter(
+            netbox__id=self.netbox.id,
+            end_time=datetime.max,
+        )
+        thing = defer.waitForDeferred(
+            threads.deferToThread(storage.shadowify_queryset, existing_arp))
+        yield thing
+        result = thing.getResult()
+
+        if storage.Arp not in self.job_handler.containers:
+            self.logger.warning("No ARP data found on %s." + \
+                "All ARP records for this box will now time out." % self.netbox.sysname)
+        self.timeout_arp(existing_arp)
+
+        yield True
+
+    def timeout_arp(self, result):
+        for row in result:
+            ip = IP(row.ip).strNormal()
+            key = (self.netbox, ip, row.mac)
+            if storage.Arp not in self.job_handler.containers or \
+                    key not in self.job_handler.containers[storage.Arp]:
+                arp = self.job_handler.container_factory(storage.Arp, key=key)
+                arp.ip = ip
+                arp.mac = row.mac
+                arp.netbox = self.netbox
+                arp.sysname = self.netbox.sysname
+                arp.start_time = row.start_time
+                arp.end_time = datetime.utcnow()
+                self.logger.debug('Timeout on %s for %s' % (row.mac, ip))
+
+    def process_arp(self, result, type=IP_MIB):
+        if type == IP_MIB:
+            index_to_ip = ipmib_index_to_ip
+        elif type == IPV6_MIB:
+            index_to_ip = ipv6mib_index_to_ip
+        elif type == CISCO_MIB:
+            index_to_ip = ciscomib_index_to_ip
             return
+        else:
+            raise Exception('Unknown IP type specified')
 
-        new_arp = {}
-        for key, row in result.items():
-            ip = row['ipNetToMediaNetAddress']
-            mac = binary_mac_to_hex(row['ipNetToMediaPhysAddress'])
+        for index, mac in result.items():
+            ip = index_to_ip(index)
+            ip = ip.strNormal()
+            mac = binary_mac_to_hex(mac)
+            mac = truncate_mac(mac)
+#            print "row %d %s %s" % (type, ip, mac)
 
             arp = self.job_handler.container_factory(storage.Arp, key=(
-                ip,
+                self.netbox,
+                unicode(ip),
                 mac,
             ))
             #arp.prefix = Something
-            arp.sysname = netbox.sysname
+            arp.sysname = self.netbox.sysname
             arp.ip = ip
             arp.mac = mac
-            arp.netbox = netbox
+            arp.netbox = self.netbox
             arp.start_time = datetime.utcnow()
             arp.end_time = datetime.max
-
-            new_arp[(ip, mac)] = arp
-
-        existing_arp = manage.Arp.objects.filter(
-            netbox__id=netbox.id,
-            end_time=datetime.max,
-        )
-        df = threads.deferToThread(storage.shadowify_queryset, existing_arp)
-        df.addCallback(self.timeout_arp, new_records=new_arp)
-        df.addErrback(self.error)
-        return result
-
-    def timeout_arp(self, result, new_records=None):
-        for row in result:
-            key = (row.ip, row.mac)
-            if key not in new_records:
-                self.logger.debug('%s for %s was not found on netbox' % key)
-                arp = self.job_handler.container_factory(storage.Arp, key=key)
-
-                arp.ip = row.ip
-                arp.mac = row.mac
-                arp.end_time = datetime.utcnow()
-        self.deferred.callback(True)
-        return result
 
 def binary_mac_to_hex(binary_mac):
     """Convert a binary string MAC address to hex string."""
     if binary_mac:
         return ":".join("%02x" % ord(x) for x in binary_mac)
+
+def truncate_mac(mac):
+    parts = mac.split(':')
+    if len(parts) > 6:
+        mac = ':'.join(parts[:6])
+    return mac
+
+def ipmib_index_to_ip(index):
+    offset = len(index) - 4
+    if offset < 0:
+        raise Exception()
+
+    ip_set = index[offset:]
+    ip = '.'.join(["%d" % part for part in ip_set])
+    return IP(ip)
+
+def ipv6mib_index_to_ip(index):
+    offset = len(index) - 16
+    if offset < 0:
+        raise Exception()
+
+    ip_set = index[offset:]
+    ip_hex = ["%02x" % part for part in ip_set]
+    ip = ':'.join([ip_hex[n] + ip_hex[n+1] for n,v in enumerate(ip_hex) if n % 2 == 0])
+    return IP(ip)
+
+def ciscomib_index_to_ip(index):
+    ifIndex, ip_ver, length = index[0:3]
+    if ip_ver == 1:
+        return ipmib_index_to_ip(index[3:])
+    elif ip_ver == 2:
+        return ipv6mib_index_to_ip(index[3:])
