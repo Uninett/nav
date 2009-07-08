@@ -118,7 +118,6 @@ class Arp(Plugin):
             index_to_ip = ipv6mib_index_to_ip
         elif type == CISCO_MIB:
             index_to_ip = ciscomib_index_to_ip
-            return
         else:
             raise Exception('Unknown IP type specified')
 
