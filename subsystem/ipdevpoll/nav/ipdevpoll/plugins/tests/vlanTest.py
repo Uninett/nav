@@ -26,61 +26,17 @@ class VlansPluginTest(unittest.TestCase):
 
     def setUp(self):
         pass
-    def testIfDescrParser_LAN(self):
-        d = Vlans.parse_ifDescr('lan,math,staff')
-        self.assertEqual(d['organisation'], 'math')
-        self.assertEqual(d['usage'], 'staff')
 
-        d = Vlans.parse_ifDescr('lan,physics,students,campus_dragv,340')
-        self.assertEqual(d['organisation'], 'physics')
-        self.assertEqual(d['usage'], 'students')
-        self.assertEqual(d['comment'], 'campus_dragv')
-        self.assertEqual(d['vlan'], '340')
+    def testPortListParser(self):
+        d = Vlans.vlan_port_list_parser('00 00 01 40 00 00 00 00')
+        self.assertEquals(d, [24,26])
 
-        d = Vlans.parse_ifDescr('lan,math,staff2,campus_lade')
-        self.assertEqual(d['organisation'], 'math')
-        self.assertEqual(d['usage'], 'staff2')
-        self.assertEqual(d['comment'], 'campus_lade')
+        d = Vlans.vlan_port_list_parser('00 00')
+        self.assertEquals(d, [])
 
-        d = Vlans.parse_ifDescr('lan,foo')
-        self.assertEquals(d, None)
+        d = Vlans.vlan_port_list_parser('')
+        self.assertEquals(d, [])
 
-    def testIfDescrParser_LINK(self):
-        d = Vlans.parse_ifDescr('link,mts-gw')
-        self.assertEqual(d['to_router'], 'mts-gw')
-
-        d = Vlans.parse_ifDescr('link,moholt-gw,Tn_20022350,923')
-        self.assertEqual(d['to_router'], 'moholt-gw')
-        self.assertEqual(d['comment'], 'Tn_20022350')
-        self.assertEqual(d['vlan'], '923')
-
-    def testIfDescrParser_CORE(self):
-        d = Vlans.parse_ifDescr('core,it,wlan')
-        self.assertEqual(d['organisation'], 'it')
-        self.assertEqual(d['usage'], 'wlan')
-
-        d = Vlans.parse_ifDescr('core,it,fddi,manring,180')
-        self.assertEqual(d['organisation'], 'it')
-        self.assertEqual(d['usage'], 'fddi')
-        self.assertEqual(d['comment'], 'manring')
-        self.assertEqual(d['vlan'], '180')
-
-        d = Vlans.parse_ifDescr('core,foo')
-        self.assertEquals(d, None)
-
-    def testIfDescrParser_ELINK(self):
-        d = Vlans.parse_ifDescr('elink,trd-gw,uninett')
-        self.assertEqual(d['to_router'], 'trd-gw')
-        self.assertEqual(d['to_organisation'], 'uninett')
-
-        d = Vlans.parse_ifDescr('elink,sintef-gw,sintef,,902')
-        self.assertEqual(d['to_router'], 'sintef-gw')
-        self.assertEqual(d['to_organisation'], 'sintef')
-        self.assertEqual(d['vlan'], '902')
-
-    def testIfDescrParser_INVALID(self):
-        d = Vlans.parse_ifDescr('foobar,bar,baz')
-        self.assertEquals(d, None)
 
 
 if __name__ == '__main__':
