@@ -20,40 +20,91 @@ Just a prototype, will only log info, not store it in NAVdb.
 
 """
 
-import logging
-import pprint
 import re
 
-from twisted.internet import defer
+from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs import BridgeMib, QBridgeMib, CiscoVTPMib
+from nav.mibs import QBridgeMib, CiscoVTPMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
+from nav.models.manage import Interface
 
-LAN_REGEXP = re.compile('([\w-]+),([\w-]+),?([\w-]+)?,?(\d+)?')
-CORE_REGEXP = re.compile('([\w-]+),([\w-]+),?([\w-]+)?,?(\d+)?')
-ELINK_REGEXP = re.compile('([\w-]+),([\w-]+),?([\w-]+)?,?(\d+)?')
-LINK_REGEXP = re.compile('([\w-]+),?([\w-]+)?,?(\d+)?')
+VLAN_REGEXP = re.compile('Vlan(\d+)')
 
 class Vlans(Plugin):
+    """
+    ipdevpoll-plugin for collecting vlan information from monitored
+    equipment.
+
+    Tries to retrieve information with Q-BRIDGE-MIB before trying
+    vendor specific retrieval methods
+    """
     def __init__(self, *args, **kwargs):
         Plugin.__init__(self, *args, **kwargs)
         self.deferred = defer.Deferred()
 
     @classmethod
     def can_handle(cls, netbox):
+        """
+        This plugin handles netboxes
+        """
         return True
 
+    @defer.deferredGenerator
     def handle(self):
-        self.logger.debug("Collecting interface data")
-        self.qbridgemib = QBridgeMib(self.job_handler.agent)
-        df = self.qbridgemib.retrieve_column('dot1qPvid')
-        df.addCallback(self.got_vlans)
-        df.addErrback(self.error)
-        return self.deferred
+        """
+        Plugin entrypoint
+        """
+
+        self.logger.debug("Deriving VLAN information from ifdecsr fields on known interfaces")
+        df = threads.deferToThread(self.get_interfaces)
+        dw = defer.waitForDeferred(df)
+        yield dw
+
+        interfaces = dw.getResult()
+        for interface in interfaces:
+            data = VLAN_REGEXP.findall(interface.ifdescr)
+            if data:
+                if interface.vlan and str(interface.vlan) != str(data[0]):
+                    self.logger.warning("Interface descr does not match assigned vlan" + \
+                        " %s , %s != %s" % (interface, interface.vlan, data[0]))
+                elif not interface.vlan:
+                    interface.vlan = data[0]
+
+        self.logger.debug("Collecting VLAN information from interfaces using SNMP")
+        qbridgemib = QBridgeMib(self.job_handler.agent)
+        df = qbridgemib.retrieve_column('dot1qPvid')
+        dw = defer.waitForDeferred(df)
+        yield dw
+
+        result = dw.getResult()
+
+        if result:
+            result = [(ifindex, vlan) for (ifindex,), vlan in result.items()]
+        else:
+            self.logger.debug("Collecting VLAN information using CISCO-VTP-MIB")
+            ciscovtpmib = CiscoVTPMib(self.job_handler.agent)
+            df = ciscovtpmib.retrieve_column('vtpVlanIfIndex')
+            dw = defer.waitForDeferred(df)
+            yield dw
+            result = dw.getResult()
+
+            if not result:
+                return
+
+            result = [(ifindex, vlan) for (_, vlan), ifindex in result.items()]
+
+        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        for (ifindex, vlan) in result:
+            interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
+            interface.netbox = netbox
+            interface.vlan = vlan
 
     def error(self, failure):
+        """
+        Return a failure to the ipdevpoll-deamon
+        """
         if failure.check(defer.TimeoutError):
             # Transform TimeoutErrors to something else
             self.logger.error(failure.getErrorMessage())
@@ -62,97 +113,24 @@ class Vlans(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
-    def got_ifindexes(self, result):
-        self.logger.debug("Found %d ifindexes", len(result))
-        self.ifIndexes = result
-        self.qbridgemib = QBridgeMib(self.job_handler.agent)
-        df = self.qbridgemib.retrieve_column('dot1qPvid')
-        df.addCallback(self.got_vlans)
-        df.addErrback(self.error)
-        return self.deferred
-
-    def got_vlans(self, result):
-        self.logger.debug("Found %d vlans", len(result))
-
-        if len(result) == 0:
-            self.logger.debug("No results found. Trying vendor specific MIBs")
-
-            self.ciscovtpmib = CiscoVTPMib(self.job_handler.agent)
-            df = self.ciscovtpmib.retrieve_column('vtpVlanIfIndex')
-            df.addCallback(self.got_cisco_vtp_vlans)
-            df.addErrback(self.error)
-            return self.deferred
-        # Now save stuff to containers and signal our exit
-        for (ifIndex,), vlan in result.items():
-            interface = self.job_handler.container_factory(storage.Interface,
-                                                           key=ifIndex)
-            vlan_obj = self.job_handler.container_factory(storage.Vlan,
-                                                      key=vlan)
-            vlan_obj.vlan = vlan
-            interface.vlan = vlan
-
-            # See if we can populate the vlan-table somewhat
-            data = self.parse_ifDescr(interface.ifdescr)
-            if not data:
-                self.logger.warning("Interface description %s does not follow NAV guidelines. Unable to parse" % interface.ifdescr)
-
-        self.deferred.callback(True)
-        return result
-
-    def got_cisco_vtp_vlans(self, result):
-        self.logger.debug("Found %d vlans", len(result))
-
-        # Now save stuff to containers and signal our exit
-        for (_,vlan), ifIndex in result.items():
-            print ifIndex, vlan
-            interface = self.job_handler.container_factory(storage.Interface,
-                                                           key=ifIndex)
-            vlan_obj = self.job_handler.container_factory(storage.Vlan,
-                                                          key=vlan)
-            vlan_obj.vlan = vlan
-            interface.vlan = vlan
-
-            # See if we can populate the vlan-table somewhat
-            #data = self.parse_ifDescr(interface.ifdescr)
-            #if not data:
-            #    self.logger.warning("Interface description %s does not follow NAV guidelines. Unable to parse" % interface.ifdescr)
-
-        self.deferred.callback(True)
-        return result
+    def get_interfaces(self):
+        netbox = self.job_handler.container_factory(storage.Netbox, key=None).get_model()
+        query = Interface.objects.filter(netbox=netbox)
+        return storage.shadowify_queryset(query)
 
     @staticmethod
-    def parse_ifDescr(ifDescr):
+    def vlan_port_list_parser(octet_string):
         """
-        Parses an ifDescr as described in
-        http://metanav.uninett.no/subnetsandvlans#guide_lines_for_configuring_router_interface_descriptions
-        Returns a dictionary with the values
+        Returns a list of ports with the given vlan from
+        Q-BRIDGE-MIB::dot1qVlanCurrentEgressPorts.
+        This provides both tagged and untagged vlans.
         """
-        if not ifDescr:
-            return None
-        type = ifDescr[:ifDescr.find(',')]
-        if type not in ('lan','core','link','elink'):
-            return None
+        if not octet_string:
+            return []
+        ret = []
+        for octet in octet_string.split(' '):
+            ret.append("".join([str((int(octet, 16) >> y) & 1) for y in range(7, -1, -1)]))
+        return [b[0]+1 for b in enumerate([a for a in "".join(ret)]) if b[1] == '1']
 
-        if type == 'lan':
-            data = LAN_REGEXP.findall(ifDescr[4:])
-            if not data:
-                return None
-            return dict(zip(('organisation','usage','comment','vlan'), data[0]))
-        elif type == 'core':
-            data = CORE_REGEXP.findall(ifDescr[5:])
-            if not data:
-                return None
-            return dict(zip(('organisation','usage','comment','vlan'), data[0]))
-        elif type == 'link':
-            data = LINK_REGEXP.findall(ifDescr[5:])
-            if not data:
-                return None
-            return dict(zip(('to_router','comment','vlan'), data[0]))
-        elif type == 'elink':
-            data = ELINK_REGEXP.findall(ifDescr[6:])
-            if not data:
-                return None
-            return dict(zip(('to_router','to_organisation', 'comment','vlan'), data[0]))
 
-        return None
 
