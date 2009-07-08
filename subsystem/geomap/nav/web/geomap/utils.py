@@ -130,7 +130,11 @@ def union_dict(*dicts):
     is used.
 
     """
-    result = {}
+    lazy_p = any(map(lambda d: isinstance(d, lazy_dict), dicts))
+    if lazy_p:
+        result = lazy_dict()
+    else:
+        result = {}
     for d in dicts:
         result.update(d)
     return result
@@ -149,19 +153,123 @@ def concat_str(strs):
 class lazy_dict(dict):
     unevaluated = None
 
-    def __init__(self, arg, **kwargs):
-        dict.__init__(self, arg, **kwargs)
-        self.unevaluated = {}
+    def __init__(self, *args, **kwargs):
+        super(lazy_dict, self).__init__(*args, **kwargs)
+        self.unevaluated = set([])
 
     def __getitem__(self, key):
-        if key not in self and key in self.unevaluated:
-            fun = self.unevaluated[key]['fun']
-            args = self.unevaluated[key]['args']
-            self[key] = apply(fun, args)
-            del self.unevaluated[key]
-        return dict.__getitem__(self, key)
+        if isinstance(key, list):
+            real_key = key[0]
+            val = super(lazy_dict, self).__getitem__(real_key)
+            if real_key in self.unevaluated:
+                return val
+            else:
+                return {'value': val}
+        else:
+            return self.force_and_call(key, '__getitem__', key)
+
+    def copy(self):
+        cp = lazy_dict()
+        for key in self.keys():
+            cp[[key]] = self[[key]]
+        return cp
+
+    def get(self, key, default=None):
+        return self.force_and_call(key, 'get', key, default)
+
+    def items(self):
+        return self.force_and_call(None, 'items')
+
+    def iteritems(self):
+        return self.force_and_call(None, 'iteritems')
+
+    def itervalues(self):
+        return self.force_and_call(None, 'itervalues')
+
+    def pop(self, key, *args):
+        if key in self:
+            self.force(key)
+        return super(lazy_dict, self).pop(key, *args)
+
+    def popitem(self):
+        if len(self.keys()) == 0:
+            raise KeyError('dictionary is empty')
+        key = self.keys()[0]
+        val = self.pop(key)
+        return (key,val)
+
+    #TODO: setdefault
+
+    def update(self, d1, **d2):
+        if isinstance(d1, lazy_dict):
+            for key in d1.keys():
+                self[[key]] = d1[[key]]
+        else:
+            super(lazy_dict, self).update(d1)
+        if len(d2.keys()) > 0:
+            self.update(d2)
+
+    def values(self):
+        return self.force_and_call(None, 'values')
+
+    def __setitem__(self, key, val):
+        if isinstance(key, list):
+            real_key = key[0]
+            if isinstance(val, dict):
+                if val.has_key('value'):
+                    val = val['value']
+                else:
+                    self.unevaluated.add(real_key)
+                super(lazy_dict, self).__setitem__(real_key, val)
+            else:
+                if isinstance(val, tuple):
+                    fun = val[0]
+                    args = val[1:]
+                else:
+                    fun = val
+                    args = []
+                self.set_lazy(real_key, fun, *args)
+        else:
+            super(lazy_dict, self).__setitem__(key, val)
 
     def set_lazy(self, key, fun, *args):
-        if key in self:
-            del self[key]
-        self.unevaluated[key] = {'fun': fun, 'args': args}
+        super(lazy_dict, self).__setitem__(key, {'fun': fun, 'args': args})
+        self.unevaluated.add(key)
+
+    def __repr__(self):
+        return '<lazy_dict %s>' % super(lazy_dict, self).__repr__()
+
+    def force(self, key):
+        if len(self.unevaluated) == 0:
+            return
+        if key is None:
+            self.force(self.keys())
+        elif isinstance(key, list):
+            for k in key:
+                self.force(k)
+        elif key in self.unevaluated:
+            fun = super(lazy_dict, self).__getitem__(key)['fun']
+            args = super(lazy_dict, self).__getitem__(key)['args']
+            val = apply(fun, args)
+            super(lazy_dict, self).__setitem__(key, val)
+            self.unevaluated.remove(key)
+
+    def force_and_call(self, key, method, *args):
+        self.force(key)
+        return type(dict).__getattribute__(dict, method)(self, *args)
+
+
+def map_dict_lazy(fun, d):
+    res = lazy_dict()
+    for key in d:
+        res.set_lazy(key, fun, d[key])
+    return res
+
+
+# 'any' is in the standard library from version 2.5.
+# This code copied from http://docs.python.org/library/functions.html#any
+def any(iterable):
+    for element in iterable:
+        if element:
+            return True
+    return False
