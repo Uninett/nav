@@ -284,7 +284,7 @@ def aggregate_properties(objects, aggregators):
             fun = aggr
             lst = objects
         return fun(lst)
-    return map_dict(apply_aggregator, aggregators)
+    return map_dict_lazy(apply_aggregator, aggregators)
 
 #     return dict(map(lambda (property, aggregator):
 #                         (property,
