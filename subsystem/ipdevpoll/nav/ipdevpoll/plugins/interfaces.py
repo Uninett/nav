@@ -34,10 +34,6 @@ from nav.ipdevpoll import storage
 from nav.models import manage
 
 class Interfaces(Plugin):
-    def __init__(self, *args, **kwargs):
-        Plugin.__init__(self, *args, **kwargs)
-        self.deferred = defer.Deferred()
-
     @classmethod
     def can_handle(cls, netbox):
         return True
@@ -60,7 +56,7 @@ class Interfaces(Plugin):
         df.addCallback(self._got_interfaces)
         df.addCallback(self._check_missing_interfaces)
         df.addErrback(self._error)
-        return self.deferred
+        return df
 
     def _error(self, failure):
         """Errback for SNMP failures."""
@@ -154,7 +150,8 @@ class Interfaces(Plugin):
 
             mark_as_gone(missing_ifindices)
 
-            self.deferred.callback(True)
+            # This should be the end of the deferred chain
+            return True
             
         # pick only the ones not known to be missing already
         queryset = manage.Interface.objects.filter(netbox=self.netbox.id,
@@ -162,6 +159,7 @@ class Interfaces(Plugin):
         deferred = threads.deferToThread(storage.shadowify_queryset, 
                                          queryset)
         deferred.addCallback(do_comparison)
+        return deferred
 
 # FIXME This utility function should probably be someplace else?
 def binary_mac_to_hex(binary_mac):
