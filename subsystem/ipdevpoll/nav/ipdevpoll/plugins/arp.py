@@ -27,6 +27,7 @@ from nav.mibs import IpMib, Ipv6Mib, CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
+from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac
 
 # MIB objects used
 IP_MIB = 'ipNetToMediaPhysAddress'
@@ -177,20 +178,6 @@ class Arp(Plugin):
             arp.start_time = datetime.utcnow()
             arp.end_time = datetime.max
 
-def binary_mac_to_hex(binary_mac):
-    """Convert a binary string MAC address to hex string."""
-    if binary_mac:
-        return ":".join("%02x" % ord(x) for x in binary_mac)
-
-def truncate_mac(mac):
-    """Takes a MAC address on the form xx:xx:xx... of any length and returns
-    the first 6 parts.
-    """
-    parts = mac.split(':')
-    if len(parts) > 6:
-        mac = ':'.join(parts[:6])
-    return mac
-
 def ipmib_index_to_ip(index):
     """The index of ipNetToMediaPhysAddress is 5 parts (5 bytes in raw SNMP,
     represented as a 5-tuple in python).
@@ -247,7 +234,7 @@ def ciscomib_index_to_ip(index):
     elif ip_ver == 3:
         # FIXME IP with zone, what to do?
         return ipmib_index_to_ip(ip[:-1])
-    elif ip_ver = 4:
+    elif ip_ver == 4:
         # FIXME IPv6 with zone, what to do?
         return ipv6mib_index_to_ip(ip[:-1])
     else:

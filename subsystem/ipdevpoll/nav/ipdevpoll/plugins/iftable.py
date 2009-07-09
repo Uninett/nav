@@ -29,6 +29,7 @@ from twisted.python.failure import Failure
 from nav.mibs import IfMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
+from nav.ipdevpoll.utils import binary_mac_to_hex
 
 class Interfaces(Plugin):
     def __init__(self, *args, **kwargs):
@@ -96,8 +97,3 @@ class Interfaces(Plugin):
 
         self.deferred.callback(True)
         return result
-
-def binary_mac_to_hex(binary_mac):
-    """Convert a binary string MAC address to hex string."""
-    if binary_mac:
-        return ":".join("%02x" % ord(x) for x in binary_mac)
