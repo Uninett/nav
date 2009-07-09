@@ -200,6 +200,7 @@ def ipmib_index_to_ip(index):
 
     This function joins those four parts and returns an IP object.
     """
+    # Use the last 4 parts
     offset = len(index) - 4
     if offset < 0:
         raise Exception()
@@ -217,6 +218,7 @@ def ipv6mib_index_to_ip(index):
 
     This function joins those 16 parts and returns an IP object.
     """
+    # Use the last 16 parts
     offset = len(index) - 16
     if offset < 0:
         raise Exception()
@@ -237,7 +239,16 @@ def ciscomib_index_to_ip(index):
     IPv4 address or ipv6mib_index_to_ip if it's a IPv6 address.
     """
     ifIndex, ip_ver, length = index[0:3]
+    ip = index[3:]
     if ip_ver == 1:
-        return ipmib_index_to_ip(index[3:])
+        return ipmib_index_to_ip(ip)
     elif ip_ver == 2:
-        return ipv6mib_index_to_ip(index[3:])
+        return ipv6mib_index_to_ip(ip)
+    elif ip_ver == 3:
+        # FIXME IP with zone, what to do?
+        return ipmib_index_to_ip(ip[:-1])
+    elif ip_ver = 4:
+        # FIXME IPv6 with zone, what to do?
+        return ipv6mib_index_to_ip(ip[:-1])
+    else:
+        raise Exception('Unknown ip version from Cisco MIB.')
