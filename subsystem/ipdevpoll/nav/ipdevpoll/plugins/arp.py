@@ -203,7 +203,7 @@ def ipmib_index_to_ip(index):
     # Use the last 4 parts
     offset = len(index) - 4
     if offset < 0:
-        raise Exception()
+        raise Exception('Number of tuples in IPv4 address given was less than 4.')
 
     ip_set = index[offset:]
     ip = '.'.join(["%d" % part for part in ip_set])
@@ -221,7 +221,7 @@ def ipv6mib_index_to_ip(index):
     # Use the last 16 parts
     offset = len(index) - 16
     if offset < 0:
-        raise Exception()
+        raise Exception('Number of tuples in IPv6 address given was less than 16.')
 
     ip_set = index[offset:]
     ip_hex = ["%02x" % part for part in ip_set]
