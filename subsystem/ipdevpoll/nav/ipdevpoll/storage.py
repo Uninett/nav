@@ -186,9 +186,16 @@ class Shadow(object):
         lookups = [pk_attr] + self.__lookups__
 
         # If we have the primary key, we can return almost at once
-        # Does not catch DoesNotExist-exception by design.
+        # If PK is AutoField, we raise an exception if the object
+        # does not exist.
         if getattr(self, pk_attr):
-            model = self.__shadowclass__.objects.get(pk=getattr(self, pk_attr))
+            try:
+                model = self.__shadowclass__.objects.get(pk=getattr(self, pk_attr))
+            except DoesNotExist, e:
+                if self.__shadowclass__._meta.pk.__class__ == django.db.models.fields.AutoField:
+                    raise e
+                else:
+                    return None
             return model
         
         # Try each lookup field and see which one corresponds to
@@ -271,6 +278,14 @@ class Organization(Shadow):
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
+
+class Prefix(Shadow):
+    __shadowclass__ = manage.Prefix
+    __lookups__ = [('net_address', 'vlan'), 'net_address']
+
+class GwPortPrefix(Shadow):
+    __shadowclass__ = manage.GwPortPrefix
+    __lookups__ = ['gw_ip']
 
 class NetType(Shadow):
     __shadowclass__ = manage.NetType
