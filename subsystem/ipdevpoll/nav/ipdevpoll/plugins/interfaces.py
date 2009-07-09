@@ -93,7 +93,9 @@ class Interfaces(Plugin):
         interface.ifdescr = row['ifDescr']
         interface.iftype = row['ifType']
 
-        if row['ifSpeed'] < 2147483647:
+        # ifSpeed spec says to use ifHighSpeed if the 32-bit unsigned
+        # integer is maxed out
+        if row['ifSpeed'] < 4294967295:
             interface.speed = row['ifSpeed'] / 1000000.0
         else:
             interface.speed = float(row['ifHighSpeed'])
