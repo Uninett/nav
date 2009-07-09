@@ -54,11 +54,11 @@ class Interfaces(Plugin):
                 'ifConnectorPresent',
                 'ifAlias',
                 ])
-        df.addCallback(self.got_interfaces)
-        df.addErrback(self.error)
+        df.addCallback(self._got_interfaces)
+        df.addErrback(self._error)
         return self.deferred
 
-    def error(self, failure):
+    def _error(self, failure):
         if failure.check(defer.TimeoutError):
             # Transform TimeoutErrors to something else
             self.logger.error(failure.getErrorMessage())
@@ -67,7 +67,7 @@ class Interfaces(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
-    def got_interfaces(self, result):
+    def _got_interfaces(self, result):
         self.logger.debug("Found %d interfaces", len(result))
 
         # Now save stuff to containers and signal our exit
