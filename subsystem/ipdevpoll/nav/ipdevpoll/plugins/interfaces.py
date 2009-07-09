@@ -14,10 +14,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""ipdevpoll plugin to pull iftable date.
+"""ipdevpoll plugin to collect interface data.
 
-Just a prototype, will only log info, not store it in NAVdb.
-
+This plugin will also examine the list of know interfaces for a netbox
+and compare it to the collected list.  Any known interface not found
+by polling will be marked as missing with a timestamp (gone_since).
 """
 
 import logging
@@ -59,6 +60,7 @@ class Interfaces(Plugin):
         return self.deferred
 
     def _error(self, failure):
+        """Errback for SNMP failures."""
         if failure.check(defer.TimeoutError):
             # Transform TimeoutErrors to something else
             self.logger.error(failure.getErrorMessage())
@@ -68,34 +70,42 @@ class Interfaces(Plugin):
         self.deferred.errback(failure)
 
     def _got_interfaces(self, result):
+        """Process the list of collected interfaces."""
+
         self.logger.debug("Found %d interfaces", len(result))
 
         # Now save stuff to containers and signal our exit
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
-        for (ifIndex,),row in result.items():
-            interface = self.job_handler.container_factory(storage.Interface,
-                                                           key=ifIndex)
-            interface.ifindex = ifIndex
-            interface.ifdescr = row['ifDescr']
-            interface.iftype = row['ifType']
-
-            if row['ifSpeed'] < 2147483647:
-                interface.speed = row['ifSpeed'] / 1000000.0
-            else:
-                interface.speed = float(row['ifHighSpeed'])
-
-            interface.ifphysaddress = binary_mac_to_hex(row['ifPhysAddress'])
-            interface.ifadminstatus = row['ifAdminStatus']
-            interface.ifoperstatus = row['ifOperStatus']
-
-            interface.ifname = row['ifName']
-            interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
-            interface.ifalias = row['ifAlias']
-
-            interface.netbox = netbox
+        for (ifindex,),row in result.items():
+            self._convert_row_to_container(netbox, ifindex, row)
 
         self.deferred.callback(True)
         return result
+    
+    def _convert_row_to_container(self, netbox, ifindex, row):
+        """Convert a collected ifTable/ifXTable row into a container object."""
+
+        interface = self.job_handler.container_factory(storage.Interface,
+                                                       key=ifindex)
+        interface.ifindex = ifindex
+        interface.ifdescr = row['ifDescr']
+        interface.iftype = row['ifType']
+
+        if row['ifSpeed'] < 2147483647:
+            interface.speed = row['ifSpeed'] / 1000000.0
+        else:
+            interface.speed = float(row['ifHighSpeed'])
+
+        interface.ifphysaddress = binary_mac_to_hex(row['ifPhysAddress'])
+        interface.ifadminstatus = row['ifAdminStatus']
+        interface.ifoperstatus = row['ifOperStatus']
+
+        interface.ifname = row['ifName']
+        interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
+        interface.ifalias = row['ifAlias']
+
+        interface.netbox = netbox
+        return interface
 
 def binary_mac_to_hex(binary_mac):
     """Convert a binary string MAC address to hex string."""
