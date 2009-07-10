@@ -32,7 +32,7 @@ from twisted.python.failure import Failure
 
 from nav.ipdevpoll import Plugin, FatalPluginError, storage
 from nav.ipdevpoll.models import Type, OID
-from nav.mibs import Snmpv2Mib
+from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
 
 class TypeOid(Plugin):

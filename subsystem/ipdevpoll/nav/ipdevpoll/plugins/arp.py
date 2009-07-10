@@ -22,7 +22,9 @@ from datetime import datetime
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs import IpMib, Ipv6Mib, CiscoIetfIpMib
+from nav.mibs.ip_mib import IpMib
+from nav.mibs.ipv6_mib import Ipv6Mib
+from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
