@@ -53,7 +53,9 @@ class MIBObject(object):
     oid -- The full object identifier
     enum -- If the object's syntax indicates it is an enumerated
             value, this dictionary will hold mappings between the
-            enumerations textual names and integer values.
+            enumerations textual names and integer values.  As a
+            simplifying case, SNMPv2-TC::TruthValues will be
+            deciphered as enums of boolean values.
 
     """
     def __init__(self, mib, name):
@@ -73,6 +75,20 @@ class MIBObject(object):
 
     def _build_type(self):
         typ = self._mib['nodes'][self.name]['syntax']['type']
+        if 'module' in typ and 'name' in typ:
+            # the typedef is separate to the node
+            # FIXME: Support type defs from external mibs?
+            # FIXME: Build typedef'ed enumerations only once for a mib
+            typename = typ['name']
+            if typ['module'] == self.module and \
+                    typename in self._mib['typedefs']:
+                typ = self._mib['typedefs'][typename]
+            elif typ['module'] == 'SNMPv2-TC' and typename == 'TruthValue':
+                # no True:1 translate because of wacky Python.  
+                # True is resolved as 1 anyway.
+                self.enum = {1: True, 2: False, False: 2} 
+                return
+
         if 'basetype' in typ and typ['basetype'] == 'Enumeration':
             # Build a two-way dictionary mapping enumerated names
             enums = [(k, int(val['number'])) 
