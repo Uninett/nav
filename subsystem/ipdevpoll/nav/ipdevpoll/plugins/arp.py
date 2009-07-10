@@ -21,7 +21,6 @@ from datetime import datetime
 
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
-from django.db import connection
 
 from nav.mibs import IpMib, Ipv6Mib, CiscoIetfIpMib
 from nav.models import manage
