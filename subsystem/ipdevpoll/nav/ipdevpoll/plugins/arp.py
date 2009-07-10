@@ -114,6 +114,8 @@ class Arp(Plugin):
         """Sets end_time for all existing records that are not found in the new
         records.
         """
+        # FIXME Should perhaps take new records as a parameter, instead of just
+        # looking them up in self.job_handler.containers?
         for row in result:
             ip = IP(row.ip).strCompressed()
             key = (self.netbox, ip, row.mac)
@@ -157,8 +159,11 @@ class Arp(Plugin):
         for index, mac in result.items():
             try:
                 ip = index_to_ip(index, type)
+            except IndexToIpException, e:
+                self.logger.warning(e)
+                continue
             except Exception, e:
-                self.logger.debug(e, "Aborting ARP processing.")
+                self.logger.warning(e, "Aborting ARP processing.")
                 return
 
             ip_str = ip.strCompressed()
@@ -190,7 +195,7 @@ def ipmib_index_to_ip(index):
     # Use the last 4 parts
     offset = len(index) - 4
     if offset < 0:
-        raise Exception('Number of tuples in IPv4 address given was less than 4.')
+        raise IndexToIpException('Number of tuples in IPv4 address given was less than 4.')
 
     ip_set = index[offset:]
     ip = '.'.join(["%d" % part for part in ip_set])
@@ -208,7 +213,7 @@ def ipv6mib_index_to_ip(index):
     # Use the last 16 parts
     offset = len(index) - 16
     if offset < 0:
-        raise Exception('Number of tuples in IPv6 address given was less than 16.')
+        raise IndexToIpException('Number of tuples in IPv6 address given was less than 16.')
 
     ip_set = index[offset:]
     ip_hex = ["%02x" % part for part in ip_set]
@@ -227,15 +232,18 @@ def ciscomib_index_to_ip(index):
     """
     ifIndex, ip_ver, length = index[0:3]
     ip = index[3:]
-    if ip_ver == 1:
+    if ip_ver == 1 and len(ip) == 4:
         return ipmib_index_to_ip(ip)
-    elif ip_ver == 2:
+    elif ip_ver == 2 and len(ip) == 16:
         return ipv6mib_index_to_ip(ip)
-    elif ip_ver == 3:
+    elif ip_ver == 3 and len(ip) == 5:
         # FIXME IP with zone, what to do?
         return ipmib_index_to_ip(ip[:-1])
-    elif ip_ver == 4:
+    elif ip_ver == 4 and len(ip) == 17:
         # FIXME IPv6 with zone, what to do?
         return ipv6mib_index_to_ip(ip[:-1])
     else:
-        raise Exception('Unknown ip version from Cisco MIB.')
+        raise IndexToIpException('Unknown ip version from Cisco MIB.')
+
+class IndexToIpException(Exception):
+    pass

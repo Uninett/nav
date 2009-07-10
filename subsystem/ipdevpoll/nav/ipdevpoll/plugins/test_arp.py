@@ -45,7 +45,7 @@ class ArpPluginTest(unittest.TestCase):
 
         # To few parts, should fail
         ip_tuple = (1L, 2L, 3L)
-        self.assertRaises(Exception, ipmib_index_to_ip, ip_tuple)
+        self.assertRaises(IndexToIpException, ipmib_index_to_ip, ip_tuple)
 
     def test_ipv6mib_index(self):
         correct_ip = IP('2001:db8::1')
@@ -68,7 +68,7 @@ class ArpPluginTest(unittest.TestCase):
 
         # To few parts, should fail
         ip_tuple = (1L, 2L, 3L)
-        self.assertRaises(Exception, ipv6mib_index_to_ip, ip_tuple)
+        self.assertRaises(IndexToIpException, ipv6mib_index_to_ip, ip_tuple)
 
     def test_ciscomib_index(self):
         correct_ipv4 = IP('127.0.0.1')
@@ -81,14 +81,14 @@ class ArpPluginTest(unittest.TestCase):
 
         ip_tuple = (1L, 1L, 16L, 32L, 1L, 13L, 184L, 0L, 0L, 0L, 0L, 0L, 0L,
                     0L, 0L, 0L, 0L, 0L, 1L)
-        self.assertRaises(Exception, ciscomib_index_to_ip, ip_tuple)
+        self.assertRaises(IndexToIpException, ciscomib_index_to_ip, ip_tuple)
 
         ip_tuple = (1L, 1L, 4L, 127L, 0L, 0L, 1L)
         ip = ciscomib_index_to_ip(ip_tuple)
         self.assertEquals(ip, correct_ipv4)
 
         ip_tuple = (1L, 2L, 4L, 127L, 0L, 0L, 1L)
-        self.assertRaises(Exception, ciscomib_index_to_ip, ip_tuple)
+        self.assertRaises(IndexToIpException, ciscomib_index_to_ip, ip_tuple)
 
 if __name__ == '__main__':
     unittest.main()
