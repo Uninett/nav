@@ -139,11 +139,15 @@ class Arp(Plugin):
         """
         def index_to_ip(index, type):
             if type == IP_MIB:
-                return IpMib.index_to_ip(index)
+                ip_set = index[1:]
+                return IpMib.index_to_ip(ip_set)
             elif type == IPV6_MIB:
-                return Ipv6Mib.index_to_ip(index)
+                ip_set = index[1:]
+                return Ipv6Mib.index_to_ip(ip_set)
             elif type == CISCO_MIB:
-                return CiscoIetfIpMib.index_to_ip(index)
+                if_index, ip_version, length = index[0:3]
+                ip_set = index[3:]
+                return CiscoIetfIpMib.index_to_ip(ip_version, ip_set)
             else:
                 raise Exception("Unknown MIB type, %s,  specified." % type)
 
