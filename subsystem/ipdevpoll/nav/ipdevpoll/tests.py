@@ -17,6 +17,7 @@
 
 import unittest
 import os
+from random import shuffle
 from IPy import IP
 
 os.environ['PYSNMP_API_VERSION'] = 'v3'
@@ -30,31 +31,32 @@ class ArpPluginTest(unittest.TestCase):
         correct_ipv4 = IP('192.0.2.1')
         correct_ipv6 = IP('2001:db8:1234::1')
 
-        loose_prefix = Prefix(
+        loose_v6_prefix = Prefix(
             net_address='2001:db8::/32'
         )
-        tight_prefix = Prefix(
+        tight_v6_prefix = Prefix(
             net_address='2001:db8:1234::/48'
         )
-
-        prefix1 = find_prefix(correct_ipv6, [loose_prefix, tight_prefix])
-        prefix2 = find_prefix(correct_ipv6, [tight_prefix, loose_prefix])
-
-        self.assertEqual(prefix1, tight_prefix)
-        self.assertEqual(prefix2, tight_prefix)
-
-        loose_prefix = Prefix(
+        loose_v4_prefix = Prefix(
             net_address='192.0.2/24'
         )
-        tight_prefix = Prefix(
+        tight_v4_prefix = Prefix(
             net_address='192.0.2.0/26'
         )
 
-        prefix1 = find_prefix(correct_ipv4, [loose_prefix, tight_prefix])
-        prefix2 = find_prefix(correct_ipv4, [tight_prefix, loose_prefix])
+        prefix_list = [
+            loose_v6_prefix,
+            tight_v6_prefix,
+            loose_v4_prefix,
+            tight_v4_prefix,
+        ]
+        shuffle(prefix_list)
 
-        self.assertEqual(prefix1, tight_prefix)
-        self.assertEqual(prefix2, tight_prefix)
+        prefix1 = find_prefix(correct_ipv6, prefix_list)
+        prefix2 = find_prefix(correct_ipv4, prefix_list)
+
+        self.assertEqual(prefix1, tight_v6_prefix)
+        self.assertEqual(prefix2, tight_v4_prefix)
 
 if __name__ == '__main__':
     unittest.main()
