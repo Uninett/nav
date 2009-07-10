@@ -99,6 +99,18 @@ class MIBObject(object):
             self.enum = dict(enums)
             self.enum.update((y,x) for (x,y) in enums)
 
+    def to_python(self, value):
+        """Translate an SNMP value into something python-like.
+
+        If the syntax of this object is an Enumeration, value will be
+        translated from and int to a str object.  If it is an
+        SNMPv2-TC::TruthValue, it will be translated from int to bool.
+
+        """
+        if self.enum and isinstance(value, (int, long)) and value in self.enum:
+            value = self.enum[value]
+        return value
+
     def __cmp__(self, other):
         """Compare to others based on OID."""
         if isinstance(other, self.__class__):
@@ -414,7 +426,23 @@ class MibRetriever(object):
         deferred.addCallback(resultFormatter)
         return deferred
 
+    def translate_result(self, result):
+        """Translate result values to pythonic values according to object 
+        syntax.
 
+        Given a table result from one of this object's retrievers,
+        every column object will have it's to_python translation rules
+        applied.  This is useful to insert into a callback chain for
+        result formatting.
+
+        """
+        for row in result.values():
+            for column in row.keys():
+                if column in self.nodes:
+                    row[column] = self.nodes[column].to_python(row[column])
+        return result
+                    
+                    
 def convert_oids(mib):
     """Convert a mib data structure's oid strings to OID objects.
 
