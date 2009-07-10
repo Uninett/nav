@@ -25,7 +25,8 @@ import re
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs import QBridgeMib, CiscoVTPMib
+from nav.mibs.qbridge_mib import QBridgeMib
+from nav.mibs.cisco_vtp_mib import CiscoVTPMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
 from nav.models.manage import Interface

@@ -28,7 +28,7 @@ import datetime
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs import IfMib
+from nav.mibs.if_mib import IfMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
 from nav.ipdevpoll.utils import binary_mac_to_hex
