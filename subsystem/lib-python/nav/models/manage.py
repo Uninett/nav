@@ -27,6 +27,7 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
+from nav.models.fields import DateTimeInfinityField
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -722,7 +723,7 @@ class Arp(models.Model):
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    end_time = DateTimeInfinityField()
 
     class Meta:
         db_table = 'arp'

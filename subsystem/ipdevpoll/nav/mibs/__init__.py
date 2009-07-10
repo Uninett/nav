@@ -28,8 +28,14 @@ class IfMib(mibretriever.MibRetriever):
 class IpMib(mibretriever.MibRetriever):
     from nav.smidumps.ip_mib import MIB as mib
 
+class Ipv6Mib(mibretriever.MibRetriever):
+    from nav.smidumps.ipv6_mib import MIB as mib
+
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
+
+class CiscoIetfIpMib(mibretriever.MibRetriever):
+    from nav.smidumps.cisco_ietf_ip_mib import MIB as mib
 
 class QBridgeMib(mibretriever.MibRetriever):
     from nav.smidumps.qbridge_mib import MIB as mib

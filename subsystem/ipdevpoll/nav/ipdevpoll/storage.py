@@ -292,3 +292,10 @@ class NetType(Shadow):
 
 class SwPortVlan(Shadow):
     __shadowclass__ = manage.SwPortVlan
+
+class Arp(Shadow):
+    __shadowclass__ = manage.Arp
+    __lookups__ = [('netbox', 'ip', 'mac', 'end_time')]
+
+class Prefix(Shadow):
+    __shadowclass__ = manage.Prefix
