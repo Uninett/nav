@@ -11,14 +11,14 @@ class CiscoIetfIpMib(mibretriever.MibRetriever):
         """Takes ip_version and a tuple of undetermined length and returns a
         IPy.IP object witht the ip.
         """
-        if ip_ver == 1 and len(ip) == 4:
+        if ip_version == 1 and len(ip) == 4:
             return IpMib.index_to_ip(ip)
-        elif ip_ver == 2 and len(ip) == 16:
+        elif ip_version == 2 and len(ip) == 16:
             return Ipv6Mib.index_to_ip(ip)
-        elif ip_ver == 3 and len(ip) == 5:
+        elif ip_version == 3 and len(ip) == 5:
             # FIXME IP with zone, what to do?
             return IpMib.index_to_ip(ip[:-1])
-        elif ip_ver == 4 and len(ip) == 17:
+        elif ip_version == 4 and len(ip) == 17:
             # FIXME IPv6 with zone, what to do?
             return Ipv6Mib.index_to_ip(ip[:-1])
         else:
