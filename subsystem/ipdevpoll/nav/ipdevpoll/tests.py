@@ -24,7 +24,7 @@ os.environ['PYSNMP_API_VERSION'] = 'v3'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 from nav.models.manage import Prefix
-from nav.ipdevpoll.utils import find_prefix
+from nav.ipdevpoll.utils import find_prefix, truncate_mac, binary_mac_to_hex
 
 class UtilsTest(unittest.TestCase):
     def test_find_prefix(self):
@@ -57,6 +57,19 @@ class UtilsTest(unittest.TestCase):
 
         self.assertEqual(prefix1, tight_v6_prefix)
         self.assertEqual(prefix2, tight_v4_prefix)
+
+    def test_binary_mac_to_hex(self):
+        # Make a simple "binary" mac
+        binary_mac = '123456'
+        mac = '31:32:33:34:35:36'
+        converted_mac = binary_mac_to_hex(binary_mac)
+        self.assertEqual(converted_mac, mac)
+
+    def test_truncate_mac(self):
+        mac = '01:02:03:04:05:06'
+        long_mac = mac + ':07:08:09'
+        trunc_mac = truncate_mac(long_mac)
+        self.assertEquals(trunc_mac, mac)
 
 if __name__ == '__main__':
     unittest.main()
