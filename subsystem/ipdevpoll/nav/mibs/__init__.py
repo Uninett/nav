@@ -16,68 +16,7 @@
 #
 """MIB parsing and MIB-aware data retrieval."""
 
-import os
 import mibretriever
 
-class Snmpv2Mib(mibretriever.MibRetriever):
-    from nav.smidumps.snmpv2_mib import MIB as mib
-
-class IfMib(mibretriever.MibRetriever):
-    from nav.smidumps.if_mib import MIB as mib
-
-class IpMib(mibretriever.MibRetriever):
-    from nav.smidumps.ip_mib import MIB as mib
-
-class Ipv6Mib(mibretriever.MibRetriever):
-    from nav.smidumps.ipv6_mib import MIB as mib
-
-class EntityMib(mibretriever.MibRetriever):
-    from nav.smidumps.entity_mib import MIB as mib
-
-class CiscoIetfIpMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_ietf_ip_mib import MIB as mib
-
-class QBridgeMib(mibretriever.MibRetriever):
-    from nav.smidumps.qbridge_mib import MIB as mib
-
-class BridgeMib(mibretriever.MibRetriever):
-    from nav.smidumps.bridge_mib import MIB as mib
-
-class CiscoVTPMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_vtp_mib import MIB as mib
-
 modules = mibretriever.MibRetrieverMaker.modules
-
-def test(host, community='public', mib=IfMib, tablename='ifTable'):
-    import logging
-    global final_result
-    from twisted.internet import reactor, defer, task
-    from twistedsnmp import snmpprotocol, agentproxy
-
-    #logging.basicConfig()
-    #logging.getLogger('').setLevel(logging.DEBUG)
-
-    port = snmpprotocol.port()
-    agent = agentproxy.AgentProxy(
-        host, 161,
-        community = community,
-        snmpVersion = 'v2c',
-        protocol = port.protocol,
-        )
-
-    retriever = mib(agent)
-
-    def printResult(result):
-        import pprint
-        pprint.pprint(result)
-        global final_result
-        final_result = result
-        reactor.callLater(0, reactor.stop)
-
-    def runner():
-        deferred = retriever.retrieve_table(tablename)
-        deferred.addCallback(printResult)
-
-    reactor.callWhenRunning(runner)
-    reactor.run()
 
