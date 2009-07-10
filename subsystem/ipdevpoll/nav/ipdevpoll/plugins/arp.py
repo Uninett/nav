@@ -22,13 +22,13 @@ from datetime import datetime
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs.ip_mib import IpMib
+from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
-from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac
+from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
 
 # MIB objects used
 IP_MIB = 'ipNetToMediaPhysAddress'
@@ -137,23 +137,13 @@ class Arp(Plugin):
             type   - The MIB OID name used. Used to format IP addresses.
             prefix - Prefix objects fetched from the database.
         """
-        def find_prefix(ip, prefix):
-            ret = None
-            for p in prefix:
-                sub = IP(p.net_address)
-                if ip in sub:
-                    # Return the most precise prefix, ie the longest prefix
-                    if not ret or IP(ret.net_address).prefixlen() < sub.prefixlen():
-                        ret = p
-            return ret
-
         def index_to_ip(index, type):
             if type == IP_MIB:
-                return ipmib_index_to_ip(index)
+                return IpMib.index_to_ip(index)
             elif type == IPV6_MIB:
-                return ipv6mib_index_to_ip(index)
+                return Ipv6Mib.index_to_ip(index)
             elif type == CISCO_MIB:
-                return ciscomib_index_to_ip(index)
+                return CiscoIetfIpMib.index_to_ip(index)
             else:
                 raise Exception("Unknown MIB type, %s,  specified." % type)
 
@@ -183,68 +173,3 @@ class Arp(Plugin):
             arp.netbox = self.netbox
             arp.start_time = datetime.utcnow()
             arp.end_time = datetime.max
-
-def ipmib_index_to_ip(index):
-    """The index of ipNetToMediaPhysAddress is 5 parts (5 bytes in raw SNMP,
-    represented as a 5-tuple in python).
-
-    The first part is an ifIndex, the remaining 4 parts is the IPv4 address for
-    the MAC address returned.
-
-    This function joins those four parts and returns an IP object.
-    """
-    # Use the last 4 parts
-    offset = len(index) - 4
-    if offset < 0:
-        raise IndexToIpException('Number of tuples in IPv4 address given was less than 4.')
-
-    ip_set = index[offset:]
-    ip = '.'.join(["%d" % part for part in ip_set])
-    return IP(ip)
-
-def ipv6mib_index_to_ip(index):
-    """The index of ipv6NetToMediaPhysAddress is 17 parts (17 bytes in raw SNMP
-    represented as a 17-tuple in python).
-
-    The first part is an ifIndex, the remaining 16 is the IPv6 address for the
-    MAC address returned.
-
-    This function joins those 16 parts and returns an IP object.
-    """
-    # Use the last 16 parts
-    offset = len(index) - 16
-    if offset < 0:
-        raise IndexToIpException('Number of tuples in IPv6 address given was less than 16.')
-
-    ip_set = index[offset:]
-    ip_hex = ["%02x" % part for part in ip_set]
-    ip = ':'.join([ip_hex[n] + ip_hex[n+1] for n,v in enumerate(ip_hex) if n % 2 == 0])
-    return IP(ip)
-
-def ciscomib_index_to_ip(index):
-    """The index of cInetNetToMediaPhysAddress is of undetermined length, but
-    the first 3 parts are always ifIndex, ip version and length.
-
-    The remaining parts should either be of length 4 or 16, depending of ip
-    version.
-
-    This function checks the ip version and calls ipmib_index_to_ip if it's a
-    IPv4 address or ipv6mib_index_to_ip if it's a IPv6 address.
-    """
-    ifIndex, ip_ver, length = index[0:3]
-    ip = index[3:]
-    if ip_ver == 1 and len(ip) == 4:
-        return ipmib_index_to_ip(ip)
-    elif ip_ver == 2 and len(ip) == 16:
-        return ipv6mib_index_to_ip(ip)
-    elif ip_ver == 3 and len(ip) == 5:
-        # FIXME IP with zone, what to do?
-        return ipmib_index_to_ip(ip[:-1])
-    elif ip_ver == 4 and len(ip) == 17:
-        # FIXME IPv6 with zone, what to do?
-        return ipv6mib_index_to_ip(ip[:-1])
-    else:
-        raise IndexToIpException('Unknown ip version from Cisco MIB.')
-
-class IndexToIpException(Exception):
-    pass
