@@ -26,7 +26,7 @@ from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
-class ArpPluginTest(unittest.TestCase):
+class IpMibTests(unittest.TestCase):
     def setUp(self):
         self.correct_ipv4 = IP('192.0.2.1')
         self.correct_ipv6 = IP('2001:db8:1234::1')

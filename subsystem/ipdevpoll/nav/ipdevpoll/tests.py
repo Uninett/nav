@@ -26,7 +26,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 from nav.models.manage import Prefix
 from nav.ipdevpoll.utils import find_prefix
 
-class ArpPluginTest(unittest.TestCase):
+class UtilsTest(unittest.TestCase):
     def test_find_prefix(self):
         correct_ipv4 = IP('192.0.2.1')
         correct_ipv6 = IP('2001:db8:1234::1')
