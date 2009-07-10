@@ -151,10 +151,10 @@ class Arp(Plugin):
             try:
                 ip = index_to_ip(index, type)
             except IndexToIpException, e:
-                self.logger.warning(e)
+                self.logger.warning(unicode(e))
                 continue
             except Exception, e:
-                self.logger.warning(e, "Aborting ARP processing.")
+                self.logger.warning(unicode(e) + " Aborting ARP processing.")
                 return
 
             ip_str = ip.strCompressed()
