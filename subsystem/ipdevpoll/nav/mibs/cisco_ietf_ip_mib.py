@@ -7,7 +7,7 @@ class CiscoIetfIpMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_ietf_ip_mib import MIB as mib
 
     @staticmethod
-    def ciscomib_index_to_ip(index):
+    def index_to_ip(index):
         """The index of cInetNetToMediaPhysAddress is of undetermined length, but
         the first 3 parts are always ifIndex, ip version and length.
 
