@@ -20,12 +20,16 @@
 """
 
 import os
+import logging
 
 from django.template import Context, Template
 
 import nav
 from nav.web.geomap.conf import get_configuration
 from nav.web.geomap.utils import *
+
+
+logger = logging.getLogger('nav.web.geomap.features')
 
 
 _node_feature_properties = []
@@ -66,9 +70,17 @@ def load_network_popup_template():
 def apply_indicator(ind, type, properties):
     if type == ind['type']:
         for option in ind['options']:
-            if eval(option['test'], properties):
-                # TODO error handling
+            try:
+                test_result = eval(option['test'], {}, properties)
+            except Exception, e:
+                logger.warning(('Exception when evaluating test "%s" ' +
+                                'for indicator "%s" on properties %s: %s') %
+                               (option['test'], ind['name'], properties, e))
+                continue
+            if test_result:
                 return {ind['property']: option['value']}
+        logger.warning('No tests in indicator %s matched properties %s' %
+                       (ind['name'], properties))
     return {}
 
 

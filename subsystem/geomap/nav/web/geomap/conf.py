@@ -35,12 +35,15 @@ by the function get_configuration.
 
 import os
 import re
+import logging
 
 import nav
 from nav.errors import ConfigurationError
 
 from nav.web.geomap.utils import *
 
+
+logger = logging.getLogger('nav.web.geomap.conf')
 
 _config = None
 
@@ -166,7 +169,14 @@ def interpret_configuration(c, filename):
                     filename, sub['linenr'])
             test = m.group(1)
             result = concat_str([o['text'] for o in sub['objects']])
-            value,label = eval(result) # TODO error handling
+            try:
+                value,label = eval(result, {})
+            except Exception, e:
+                logger.warning(('Exception when evaluating indicator value ' +
+                                'expression "%s" in configuration file ' +
+                                '%s on line %d: %s') %
+                               (result, filename, sub['linenr'], e))
+                value,label = '','(configuration error, see log)'
             options.append({'test': test,
                             'value': value,
                             'label': label})
