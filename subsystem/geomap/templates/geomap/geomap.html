@@ -1,12 +1,116 @@
 {% extends "base.html" %}
 
 {% block base_content %}
-<form>
-{{ time_interval_form.as_p }}
+
+<h2 id="geomap-heading">Geomap</h2>
+
+<table id="map-and-form">
+<tr>
+<td>    
+<div id="map"></div>
+</td>
+
+<td class="time-interval-form-container">
+<form id="time-interval-form" action="/geomap" onsubmit="return false;">
+
+<div>
+
+<div id="time-interval-form-datetime">
+
+<div>
+  Interval:
+  <select name="interval_size" id="id_interval_size">
+    <option value="5min" selected="selected">5 minutes</option>
+    <option value="1hour">Hour</option>
+    <option value="1day">Day</option>
+    <option value="1week">Week</option>
+  </select>
+</div>
+
+  Date:
+  <input id="id_date" type="text" name="date" size="8" value="now" />
+  <table id="calendar">
+    <tr id="calendar-head-row">
+      <td id="calendar-prev-year" title="Previous year">&lt;&lt;</td>
+      <td id="calendar-prev-month" title="Previous month">&lt;</td>
+      <td id="calendar-header"></td>
+      <td id="calendar-next-month" title="Next month">&gt;</td>
+      <td id="calendar-next-year" title="Next year">&gt;&gt;</td>
+    </tr>
+    <tr id="calendar-body">
+      <td colspan="5">
+      <table id="calendar-month">
+	<tr id="calendar-row-0">
+	  <td id="calendar-cell-0,0"></td>
+	  <td id="calendar-cell-0,1"></td>
+	  <td id="calendar-cell-0,2"></td>
+	  <td id="calendar-cell-0,3"></td>
+	  <td id="calendar-cell-0,4"></td>
+	  <td id="calendar-cell-0,5"></td>
+	  <td id="calendar-cell-0,6"></td>
+	</tr>
+	<tr id="calendar-row-1">
+	  <td id="calendar-cell-1,0"></td>
+	  <td id="calendar-cell-1,1"></td>
+	  <td id="calendar-cell-1,2"></td>
+	  <td id="calendar-cell-1,3"></td>
+	  <td id="calendar-cell-1,4"></td>
+	  <td id="calendar-cell-1,5"></td>
+	  <td id="calendar-cell-1,6"></td>
+	</tr>
+	<tr id="calendar-row-2">
+	  <td id="calendar-cell-2,0"></td>
+	  <td id="calendar-cell-2,1"></td>
+	  <td id="calendar-cell-2,2"></td>
+	  <td id="calendar-cell-2,3"></td>
+	  <td id="calendar-cell-2,4"></td>
+	  <td id="calendar-cell-2,5"></td>
+	  <td id="calendar-cell-2,6"></td>
+	</tr>
+	<tr id="calendar-row-3">
+	  <td id="calendar-cell-3,0"></td>
+	  <td id="calendar-cell-3,1"></td>
+	  <td id="calendar-cell-3,2"></td>
+	  <td id="calendar-cell-3,3"></td>
+	  <td id="calendar-cell-3,4"></td>
+	  <td id="calendar-cell-3,5"></td>
+	  <td id="calendar-cell-3,6"></td>
+	</tr>
+	<tr id="calendar-row-4">
+	  <td id="calendar-cell-4,0"></td>
+	  <td id="calendar-cell-4,1"></td>
+	  <td id="calendar-cell-4,2"></td>
+	  <td id="calendar-cell-4,3"></td>
+	  <td id="calendar-cell-4,4"></td>
+	  <td id="calendar-cell-4,5"></td>
+	  <td id="calendar-cell-4,6"></td>
+	</tr>
+      </table>
+    </td>
+  </table>
+  <span>
+  Time:
+  <input id="id_timeofday" type="text" name="timeofday" size="5" value="now" />
+  (HH:MM or "now")
+  </span>
+</div>
+
+<hr>
+<div id="time-interval-edit-mode"></div>
+<hr>
+
+<div id="start-end-time">
+  <p>Start: <input id="id_starttime" type="text" name="starttime" value="now-5min" size="14" /></p>
+  <p>End: <input id="id_endtime" type="text" name="endtime" value="now" size="14" /></p>
+  <p><button id="start-end-time-update">Update</button></p>
+</div>
+
+</div>
 </form>
 
+</td></tr></table>
 
-<div id="map"></div>
+
 
 <div id="legend">
   <table>

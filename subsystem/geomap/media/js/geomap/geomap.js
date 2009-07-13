@@ -35,6 +35,8 @@ var mapElemId;
 
 var mapFullscreen = false;
 
+var calendar;
+
 /*
  * Called when the web page which should show the map is
  * loaded. Creates a map with two different OpenStreetMap base layers
@@ -119,6 +121,11 @@ function init(map_element_id, url) {
 	}),
 	styleMap: netLayerStyle,
 	rendererOptions: {zIndexing: true},
+	eventListeners: {
+	    loadstart: netLayerLoadStart,
+	    loadend: netLayerLoadEnd,
+	    loadcancel: netLayerLoadCancel
+	},
 	onMapMove: function() {
 	    this.redraw();
 	},
@@ -151,12 +158,27 @@ function init(map_element_id, url) {
 	themap.zoomToExtent(requestedBounds);
     }
 
-    setTimeIntervalFormListeners();
+    //setTimeIntervalFormListeners();
+
+    init_time_interval_form();
 }
 
 
 function updateNetData() {
     bboxStrategy.triggerRead();
+}
+
+
+function netLayerLoadStart() {
+    document.getElementById('geomap-heading').innerHTML = "Geomap (loading data ...)";
+}
+
+function netLayerLoadEnd() {
+    document.getElementById('geomap-heading').innerHTML = "Geomap";
+}
+
+function netLayerLoadCancel() {
+    document.getElementById('geomap-heading').innerHTML = "Geomap";
 }
 
 
@@ -171,8 +193,9 @@ function setMapSize() {
 	mapE.style.left = '0';
 	mapE.style.right = '0';
 	mapE.style.height = 'auto';
+	mapE.style.width = 'auto';
     } else {
-	var height;
+	var height, width;
 
 	// several possibilities for preferred height:
 	height =
@@ -185,14 +208,33 @@ function setMapSize() {
 	    window.innerHeight - mapE.getBoundingClientRect().top - 4;
 	height =
 	    window.innerHeight - mapE.offsetTop - 4;
+	height =
+	    window.innerHeight - elemOffsetTop(mapE) - 4;
+
+	width = window.innerWidth -
+	    document.getElementById('time-interval-form').clientWidth - 50;
 
 	mapE.style.position = '';
 	mapE.style.height = height + 'px';
-	mapE.style.width = '100%';
+	mapE.style.width = width + 'px';
+
+	    /*
+	mapE.style.height = '600px';
+	mapE.style.width = '800px';
+	    */
     }
     if (themap)
 	themap.updateSize();
 }
+
+
+function elemOffsetTop(elem) {
+    var offset = elem.offsetTop;
+    while (elem = elem.offsetParent)
+	offset += elem.offsetTop;
+    return offset;
+}
+
 
 function toggleFullscreen() {
     mapFullscreen = !mapFullscreen;
@@ -200,63 +242,4 @@ function toggleFullscreen() {
     setMapSize();
 }
 
-
-function getTimeIntervalStart() {
-    var time = 'end-'+getTimeIntervalLength();
-    /*
-    if (!validate_rrd_time(time))
-	alert('Invalid start time "' + time + '"');
-    */
-    return time;
-}
-
-function getTimeIntervalEnd() {
-    var time = document.getElementById('id_endtime').value;
-    if (!validate_rrd_time(time))
-	alert('Invalid end time "' + time + '"');
-    return time;
-}
-
-function getTimeIntervalLength() {
-    return document.getElementById('id_interval_size').value;
-}
-
-
-function setTimeIntervalFormListeners() {
-    document.getElementById('id_endtime').onchange = updateNetData;
-    document.getElementById('id_interval_size').onchange = updateNetData;
-}
-
-
-function validate_rrd_time(time) {
-    var re_time = 'midnight|noon|teatime|\\d\\d([:.]\\d\\d)?([ap]m)?';
-    var re_day1 = 'yesterday|today|tomorrow';
-    var re_day2 = '(January|February|March|April|May|June|July|August|' +
-	'September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|' +
-        'Aug|Sep|Oct|Nov|Dec) \\d\\d?( \\d\\d(\\d\\d)?)?';
-    var re_day3 = '\\d\\d/\\d\\d/\\d\\d(\\d\\d)?';
-    var re_day4 = '\\d\\d[.]\\d\\d[.]\\d\\d(\\d\\d)?';
-    var re_day5 = '\\d\\d\\d\\d\\d\\d\\d\\d';
-    var re_day6 = 'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|' +
-        'Mon|Tue|Wed|Thu|Fri|Sat|Sun';
-    var re_day = format('(%s)|(%s)|(%s)|(%s)|(%s)|(%s)',
-			re_day1, re_day2, re_day3, re_day4, re_day5, re_day6);
-    re_ref = format('now|start|end|(((%s) )?(%s))', re_time, re_day);
-
-    var re_offset_long = '(year|month|week|day|hour|minute|second)s?';
-    var re_offset_short = 'mon|min|sec';
-    var re_offset_single = 'y|m|w|d|h|s';
-    var re_offset_no_sign =
-	format('\\d+((%s)|(%s)|(%s))',
-	       re_offset_long, re_offset_short, re_offset_single);
-    re_offset =
-	format('[+-](%s)([+-]?%s)*', re_offset_no_sign, re_offset_no_sign);
-
-    re_total_str =
-	format('^(%s)|((%s) ?(%s)?)$', re_offset, re_ref, re_offset);
-
-    var re = new RegExp(re_total_str);
-
-    return re.exec(time) != null;
-}
 

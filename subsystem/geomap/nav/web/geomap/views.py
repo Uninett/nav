@@ -14,6 +14,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+import profile
+
 from django.template import RequestContext
 from django.http import HttpResponse
 from django import forms
@@ -22,32 +25,20 @@ from nav.django.shortcuts import render_to_response
 import nav.db
 import psycopg2.extras
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import get_data, rrd_statistics
+from nav.web.geomap.db import get_data, rrd_statistics, store_cache
 from nav.web.geomap.graph import build_graph, simplify
 from nav.web.geomap.features import create_features
 from nav.web.geomap.output_formats import format_data, format_mime_type
 from nav.web.templates.GeomapTemplate import GeomapTemplate
 
 
-class TimeIntervalForm(forms.Form):
-    interval_size = forms.ChoiceField(
-        [('10min', '10 minutes'),
-         ('1hour', 'Hour'),
-         ('1day', 'Day'),
-         ('1week', 'Week')],
-        required=False)
-    endtime = forms.CharField(required=False, initial='now')
+logger = logging.getLogger('nav.web.geomap.views')
 
 
 def geomap(request):
-    if request.GET.has_key('endtime'):
-        time_interval_form = TimeIntervalForm(request.GET)
-    else:
-        time_interval_form = TimeIntervalForm()
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {'config': get_configuration(),
-                               'time_interval_form': time_interval_form},
+                              {'config': get_configuration()},
                               RequestContext(request),
                               path=[('Home', '/'),
                                     ('Geomap', None)])
@@ -86,10 +77,15 @@ def data(request):
 
 #     geojson = get_geojson(db, bounds, viewport_size, limit)
 
-    #rrd_statistics['cache'] = 0
-    #rrd_statistics['file'] = 0
+    rrd_statistics['cache'] = 0
+    rrd_statistics['file'] = 0
+    rrd_statistics['file_keys'] = []
+    rrd_statistics['cache_keys'] = []
     data = get_formatted_data(db, format, bounds, viewport_size, limit,
                               time_interval)
+    store_cache()
+    logger.debug('rrd statistics: cache hits=%d, file reads=%d' %
+                 (rrd_statistics['cache'], rrd_statistics['file']))
     #data = ('//cache: %d, file: %d\n' % (rrd_statistics['cache'], rrd_statistics['file'])) + data
     response = HttpResponse(data)
     response['Content-Type'] = format_mime_type(format)
@@ -121,7 +117,13 @@ def get_formatted_data(db, format, bounds, viewport_size, limit,
     Return value: formatted data as a string.
 
     """
-    graph = build_graph(get_data(db, bounds, time_interval))
+    logger.debug('get_data')
+    data = get_data(db, bounds, time_interval)
+    logger.debug('build_graph')
+    graph = build_graph(data)
+    logger.debug('simplify')
     simplify(graph, bounds, viewport_size, limit)
+    logger.debug('create_features')
     features = create_features(graph)
+    logger.debug('format')
     return format_data(format, features)

@@ -83,3 +83,97 @@ body
 {
   width: 80px;
 }
+
+
+
+#calendar
+{
+  border: 1px solid black;
+}
+
+#calendar-month
+{
+  border-collapse: separate;
+}
+
+#calendar.enabled #calendar-body.row-selection tr.selected,
+#calendar.enabled #calendar-body.cell-selection td.selected
+{
+  background-color: #999999;
+}
+
+#calendar.enabled #calendar-body.row-selection tr.selectable,
+#calendar.enabled #calendar-body.row-selection tr.selectable,
+#calendar.enabled #calendar-body.cell-selection td.selectable,
+#calendar.enabled #calendar-head-row .selectable
+{
+  cursor: pointer;
+  color: blue;
+}
+
+#calendar.enabled #calendar-body.row-selection tr.selectable:hover,
+#calendar.enabled #calendar-body.row-selection tr.selectable:hover,
+#calendar.enabled #calendar-body.cell-selection td.selectable:hover,
+#calendar.enabled #calendar-head-row .selectable:hover
+{ 
+  background-color: #6666FF;
+  color: white;
+}
+
+#calendar-body td.today
+{
+  border: 1px dashed black;
+}
+
+#calendar.disabled
+{
+  background-color: #CCCCCC;
+  color: #999999;
+}
+
+#calendar td
+{ 
+  padding: .1em .5em;
+}
+
+#calendar-head-row td
+{ 
+  text-align: center;
+}
+
+#calendar-body td
+{
+  text-align: right;
+}
+
+#time-interval-edit-mode .selected
+{
+  font-weight: bold;
+}
+
+#time-interval-form .highlight
+{
+  background-color: yellow;
+}
+
+#time-interval-form .inactive
+{
+  background-color: #CCCCCC;
+}
+
+
+#map-and-form > tr > td
+{
+  text-align: center;
+}
+
+td.time-interval-form-container
+{
+  vertical-align: top;
+}
+
+#time-interval-form > div
+{
+  padding: 1em;
+}
+

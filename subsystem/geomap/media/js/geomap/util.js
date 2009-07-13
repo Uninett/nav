@@ -124,38 +124,43 @@ function difference(a, b) {
 
 function format(fstr) {
     //var re = /%([0-9]?)([dfs])/g;
-    var re = new RegExp("%([0-9]?)([dfs])", 'g');
+    var re = new RegExp("%((.?)([0-9]))?([dfs])", 'g');
     var i;
     var lastpos = 0;
     var result = '';
+
     for (i = 1; i < arguments.length; i++) {
 	var arr = re.exec(fstr);
 	if (arr == null)
 	    throw 'format -- error: too many arguments for format string "' +
 	    fstr + '"';
 	result += fstr.substring(lastpos, arr.index);
-	result += format_value(arguments[i], arr[2], arr[1]);
+	result += format_value(arguments[i], arr[4], arr[3], arr[2]);
 	lastpos = re.lastIndex;
     }
+
     result += fstr.substring(lastpos);
     return result;
 }
 
-function format_value(val, type, len) {
+function format_value(val, type, len, variant) {
     var str;
+    var fill_char = ' ';
     switch (type) {
     case 'f':
 	return val.toPrecision(len);
     case 'd':
 	str = String(Math.round(val));
+	if (variant == '0')
+	    fill_char = '0';
 	while (str.length < len)
-	    str = ' ' + str;
+	    str = fill_char + str;
 	return str;
     case 's':
 	if (len) {
 	    str = val.substring(0, len);
 	    while (str.length < len)
-		str += ' ';
+		str += fill_char;
 	    return str;
 	} else {
 	    return val;

@@ -25,6 +25,7 @@ Based on datacollector.py in the Netmap subsystem.
 """
 
 import random
+import logging
 
 import nav
 from nav.config import readConfig
@@ -32,6 +33,9 @@ import rrdtool
 from django.core.cache import cache
 
 from nav.web.geomap.utils import *
+
+
+logger = logging.getLogger('nav.web.geomap.db')
 
 
 _nav_conf = readConfig('nav.conf')
@@ -54,6 +58,8 @@ def get_data(db_cursor, bounds, time_interval=None):
     if time_interval is None:
         time_interval = {'start': 'end-10min',
                          'end': 'now'}
+
+    read_cache(time_interval)
 
     netboxes = {}
     connections = {}
@@ -392,16 +398,39 @@ def get_rrd_cpu_load(rrdfile, time_interval):
 rrd_statistics = {'cache': 0,
                   'file': 0}
 
+_cache_key = None
+_cache_data = None
+
+def read_cache(time_interval):
+    global _cache_data, _cache_key
+    _cache_key = 'geomap-rrd-(%s,%s)' % \
+        (time_interval['start'], time_interval['end'])
+    _cache_key = _cache_key.replace(' ', '_')
+    _cache_data = cache.get(_cache_key)
+    if _cache_data is None:
+        _cache_data = {}
+
+def cache_get(key):
+    return _cache_data.get(key)
+
+def cache_set(key, val):
+    _cache_data[key] = val
+
+def store_cache():
+    cache.set(_cache_key, _cache_data, 60*5)
+
+
 def read_rrd_data(rrdfile, cf, time_interval, indices):
     rrdfile = rrd_file_name(rrdfile)
-    key = 'geomap-rrd-%s-%s-(%s,%s)-(%s)' % \
-        (rrdfile, cf, time_interval['start'], time_interval['end'],
-         ','.join(map(str, indices)))
-    timeout_seconds = 60*5
-    val = cache.get(key)
+    key = '%s-(%s)' % (rrdfile, ','.join(map(str, indices)))
+    val = cache_get(key)
 
-    if val is None: rrd_statistics['file'] = rrd_statistics['file']+1
-    else: rrd_statistics['cache'] = rrd_statistics['cache']+1
+    if val is None:
+        rrd_statistics['file'] = rrd_statistics['file']+1
+        rrd_statistics['file_keys'].append(key)
+    else:
+        rrd_statistics['cache'] = rrd_statistics['cache']+1
+        rrd_statistics['cache_keys'].append(key)
 
     if val is None:
         try:
@@ -412,7 +441,7 @@ def read_rrd_data(rrdfile, cf, time_interval, indices):
             val = 'unknown'
         if val is None:
             val = 'unknown'
-        cache.set(key, val, timeout_seconds)
+        cache_set(key, val)
     return val
 
 
@@ -453,4 +482,3 @@ def validate_rrd_time(time):
 
     re_total = '^(%s)|((%s) ?(%s)?)$' % (re_offset, re_ref, re_offset)
     return re.match(re_total, time) is not None
-

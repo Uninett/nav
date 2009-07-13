@@ -59,6 +59,17 @@ def weighted_avg(lst):
     return float(total)/num
 
 
+def argmax(fun, lst):
+    max_item = lst[0]
+    max_val = fun(lst[0])
+    for x in lst[1:]:
+        x_val = fun(x)
+        if x_val > max_val:
+            max_item = x
+            max_val = x_val
+    return max_item
+
+
 def fix(fun, argvalues, argnums=0):
     if not isinstance(argvalues, list):
         argvalues = [argvalues]
@@ -150,23 +161,28 @@ def concat_str(strs):
     return reduce(lambda a,b: a+b, strs, '')
 
 
-class lazy_dict(dict):
+class lazy_dict:
     unevaluated = None
+    storage = None
 
     def __init__(self, *args, **kwargs):
-        super(lazy_dict, self).__init__(*args, **kwargs)
         self.unevaluated = set([])
+        self.storage = dict(*args, **kwargs)
 
     def __getitem__(self, key):
         if isinstance(key, list):
             real_key = key[0]
-            val = super(lazy_dict, self).__getitem__(real_key)
+            val = self.storage[real_key]
             if real_key in self.unevaluated:
                 return val
             else:
                 return {'value': val}
         else:
-            return self.force_and_call(key, '__getitem__', key)
+            self.force(key)
+            return self.storage[key]
+
+    def __contains__(self, key):
+        return self.storage.__contains__(key)
 
     def copy(self):
         cp = lazy_dict()
@@ -177,35 +193,19 @@ class lazy_dict(dict):
     def get(self, key, default=None):
         return self.force_and_call(key, 'get', key, default)
 
+    def keys(self):
+        return self.storage.keys()
+
     def items(self):
         return self.force_and_call(None, 'items')
-
-    def iteritems(self):
-        return self.force_and_call(None, 'iteritems')
-
-    def itervalues(self):
-        return self.force_and_call(None, 'itervalues')
-
-    def pop(self, key, *args):
-        if key in self:
-            self.force(key)
-        return super(lazy_dict, self).pop(key, *args)
-
-    def popitem(self):
-        if len(self.keys()) == 0:
-            raise KeyError('dictionary is empty')
-        key = self.keys()[0]
-        val = self.pop(key)
-        return (key,val)
-
-    #TODO: setdefault
 
     def update(self, d1, **d2):
         if isinstance(d1, lazy_dict):
             for key in d1.keys():
                 self[[key]] = d1[[key]]
         else:
-            super(lazy_dict, self).update(d1)
+            for key in d1.keys():
+                self[key] = d1[key]
         if len(d2.keys()) > 0:
             self.update(d2)
 
@@ -220,7 +220,7 @@ class lazy_dict(dict):
                     val = val['value']
                 else:
                     self.unevaluated.add(real_key)
-                super(lazy_dict, self).__setitem__(real_key, val)
+                self.storage[real_key] = val
             else:
                 if isinstance(val, tuple):
                     fun = val[0]
@@ -230,14 +230,15 @@ class lazy_dict(dict):
                     args = []
                 self.set_lazy(real_key, fun, *args)
         else:
-            super(lazy_dict, self).__setitem__(key, val)
+            self.storage[key] = val
+            self.unevaluated.discard(key)
 
     def set_lazy(self, key, fun, *args):
-        super(lazy_dict, self).__setitem__(key, {'fun': fun, 'args': args})
+        self.storage[key] = {'fun': fun, 'args': args}
         self.unevaluated.add(key)
 
     def __repr__(self):
-        return '<lazy_dict %s>' % super(lazy_dict, self).__repr__()
+        return '<lazy_dict %s>' % self.storage
 
     def force(self, key):
         if len(self.unevaluated) == 0:
@@ -248,15 +249,15 @@ class lazy_dict(dict):
             for k in key:
                 self.force(k)
         elif key in self.unevaluated:
-            fun = super(lazy_dict, self).__getitem__(key)['fun']
-            args = super(lazy_dict, self).__getitem__(key)['args']
+            fun = self.storage[key]['fun']
+            args = self.storage[key]['args']
             val = apply(fun, args)
-            super(lazy_dict, self).__setitem__(key, val)
+            self.storage[key] = val
             self.unevaluated.remove(key)
 
     def force_and_call(self, key, method, *args):
         self.force(key)
-        return type(dict).__getattribute__(dict, method)(self, *args)
+        return type(dict).__getattribute__(dict, method)(self.storage, *args)
 
 
 def map_dict_lazy(fun, d):
