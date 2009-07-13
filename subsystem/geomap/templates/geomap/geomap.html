@@ -4,6 +4,19 @@
 
 <h2 id="geomap-heading">Geomap</h2>
 
+<p>Variant:
+{% for other_variant in config.variants.values %}
+{% ifequal other_variant.identifier variant %}
+{{ other_variant.name }}
+{% else %}
+<a href="/geomap/{{ other_variant.identifier }}/">{{ other_variant.name }}</a>
+{% endifequal %}
+{% if not forloop.last %}
+|
+{% endif %}
+{% endfor %}
+</p>
+
 <table id="map-and-form">
 <tr>
 <td>    

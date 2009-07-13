@@ -167,8 +167,8 @@ def interpret_configuration(c, filename):
 
     def read_variant(c_obj):
         m = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
-        identifier = m.group(1)
-        name = m.group(2)
+        identifier = m.group(1).strip()
+        name = eval_or_warning(m.group(2), c_obj['linenr'])
         indicators = {}
         styles = {}
         template_files = {}
@@ -191,7 +191,8 @@ def interpret_configuration(c, filename):
             else:
                 warn_unknown_object(sub)
         return (identifier,
-                {'name': name,
+                {'identifier': identifier,
+                 'name': name,
                  'indicators': indicators,
                  'styles': styles,
                  'template_files': template_files})
@@ -206,11 +207,7 @@ def interpret_configuration(c, filename):
         m = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
         type = m.group(1).strip()
         property = m.group(2).strip()
-        try:
-            name = conf_eval(m.group(3).strip(), filename, c_obj['linenr'])
-        except ConfigurationEvaluationError, e:
-            logger.warning(e)
-            name = '(configuration error, see log)'
+        name = eval_or_warning(m.group(3), c_obj['linenr'])
         options = []
         for sub in c_obj['objects']:
             if sub['type'] != 'block':
@@ -224,11 +221,9 @@ def interpret_configuration(c, filename):
                     filename, sub['linenr'])
             test = m.group(1)
             result = concat_str([o['text'] for o in sub['objects']])
-            try:
-                value_and_label = conf_eval(result, filename, sub['linenr'])
-            except ConfigurationEvaluationError, e:
-                logger.warning(e)
-                value_and_label = '','(configuration error, see log)'
+            value_and_label = \
+                eval_or_warning(result, sub['linenr'],
+                                ('','(configuration error, see log)'))
             if len(value_and_label) != 2:
                 logger.warning(('Error in configuration file %s on line ' +
                                 '%d: expected expression "%s" to evaluate ' +
@@ -255,11 +250,7 @@ def interpret_configuration(c, filename):
     def read_template_file(c_obj):
         m = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
         template_for = m.group(1).strip()
-        try:
-            template_file = conf_eval(m.group(2), filename, c_obj)
-        except ConfigurationEvaluationError, e:
-            logger.warning(e)
-            template_file = None
+        template_file = eval_or_warning(m.group(2), c_obj['linenr'], None)
         return (template_for,template_file)
 
     def is_style(c_obj):
@@ -272,11 +263,7 @@ def interpret_configuration(c, filename):
         m = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
         type = m.group(1).strip()
         property = m.group(2).strip()
-        try:
-            value = conf_eval(m.group(3), filename, c_obj['linenr'])
-        except ConfigurationEvaluationError, e:
-            logger.warning(e)
-            value = None
+        value = eval_or_warning(m.group(3), c_obj['linenr'], None)
         return (type,
                 {property: value})
 
@@ -285,6 +272,13 @@ def interpret_configuration(c, filename):
                         '"%s" starting on line %d') %
                        filename, c_obj['text'], c_obj['linenr'])
 
+    def eval_or_warning(expr, linenr,
+                        default_value='(configuration error, see log)'):
+        try:
+            return conf_eval(expr, filename, linenr)
+        except ConfigurationEvaluationError, e:
+            logger.warning(e)
+            return default_value
 
     variants = {}
     variant_order = []

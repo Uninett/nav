@@ -18,7 +18,7 @@ import logging
 import profile
 
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django import forms
 
@@ -38,10 +38,13 @@ logger = logging.getLogger('nav.web.geomap.views')
 
 def geomap(request, variant):
     config = get_configuration()
+    if variant not in config['variants']:
+        raise Http404
     variant_config = config['variants'][variant]
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
                               {'config': config,
+                               'variant': variant,
                                'variant_config': variant_config},
                               RequestContext(request),
                               path=[('Home', '/'),
