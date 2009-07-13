@@ -65,6 +65,8 @@ class Vlans(Plugin):
 
         interfaces = dw.getResult()
         for interface in interfaces:
+            if not interface.ifdescr:
+                continue
             data = VLAN_REGEXP.findall(interface.ifdescr)
             if data:
                 if interface.vlan and str(interface.vlan) != str(data[0]):
