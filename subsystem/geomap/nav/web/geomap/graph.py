@@ -20,25 +20,26 @@
 
 """
 
+import logging
+
 from math import sqrt
 
 from nav.web.geomap.coordinates import utm_str_to_lonlat
 from nav.web.geomap.utils import *
 
 
+logger = logging.getLogger('nav.web.geomap.graph')
+
+
 aggregate_properties_place = {
-    'load':
-        lambda rooms:
-        weighted_avg(map(lambda room: (room.properties['load'],
-                                       room.properties['num_netboxes']),
-                         rooms)),
+    'load': (max, 'load'),
     'num_rooms': len,
     'num_netboxes': (sum, 'num_netboxes')
     }
 
 aggregate_properties_room = {
     'name': lambda netboxes: netboxes[0].properties['room'],
-    'load': (compose(avg, fix(map, float_or_nan)), 'load'),
+    'load': (compose(max, fix(map, float_or_nan)), 'load'),
     'num_netboxes': len
     }
 
@@ -55,12 +56,8 @@ def build_graph(db_results):
     (netboxes,connections) = db_results
     graph = Graph()
 
-    # fix coordinates (remove when database has (lon,lat)
-    # coordinates), and create Node objects:
-    #netboxes = filter(lambda n: n['utm'] is not None, netboxes)
+    # create Node objects:
     for netbox in netboxes:
-        #(lon,lat) = utm_str_to_lonlat(netbox['utm'])
-        #graph.add_node(Node(netbox['netboxid'], lon, lat, netbox))
         graph.add_node(Node(netbox['netboxid'], netbox['lon'], netbox['lat'],
                             netbox))
 
@@ -320,7 +317,9 @@ def combine_edges(graph, property_aggregators={}):
         for e in eset:
             edge_sets[e] = eset
 
-    # TODO: edges in a set may not have the same direction
+    edge_sets = map_dict(equalize_edge_orientation, edge_sets)
+
+    logger.debug('--mapping over edges (%d) ...' % len(edge_sets))
     edges = map(
         lambda eset:
             Edge('ce[%s]' % (';'.join([e.id for e in eset])),
@@ -329,7 +328,24 @@ def combine_edges(graph, property_aggregators={}):
                  union_dict(aggregate_properties(eset, property_aggregators),
                             {'subedges': eset})),
         edge_sets.values())
+    logger.debug('--done')
     graph.edges = dict([(e.id,e) for e in edges])
+
+
+def equalize_edge_orientation(edges):
+    reference = edges[0]
+    def fix_orientation(edge):
+        if edge.source != reference.source:
+            return reverse_edge(edge)
+        return edge
+    return map(fix_orientation, edges)
+
+
+def reverse_edge(edge):
+    properties = edge.properties.copy()
+    properties['load_in'] = edge.properties['load_out']
+    properties['load_out'] = edge.properties['load_in']
+    return Edge(edge.id, edge.target, edge.source, properties)
 
 
 class Node:
