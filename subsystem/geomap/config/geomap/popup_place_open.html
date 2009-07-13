@@ -1,0 +1,7 @@
+<div class="place-popup">
+  <ul>
+    {% for room in place.properties.rooms %}
+    <li>Room: {{ room.properties.name }}</li>
+    {% endfor %}
+  </ul>
+</div>

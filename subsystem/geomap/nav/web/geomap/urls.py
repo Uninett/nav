@@ -17,6 +17,7 @@
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('nav.web.geomap.views',
-    url(r'^$', 'geomap', name='geomap'),
-    url(r'^data$', 'data', name='geomap-data'),
+    url(r'^$', 'forward_to_default_variant', name='geomap-forward'),
+    url(r'^([^/]+)/$', 'geomap', name='geomap'),
+    url(r'^([^/]+)/data$', 'data', name='geomap-data'),
 )

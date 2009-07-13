@@ -1,0 +1,8 @@
+<div class="network-popup">
+  Capacity: {{ network.properties.speed }},
+  <ul>
+    {% for net in network.properties.subedges %}
+    <li>{{ net.properties.netident }}</li>
+    {% endfor %}
+  </ul>
+</div>

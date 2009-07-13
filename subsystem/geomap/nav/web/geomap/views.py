@@ -18,7 +18,8 @@ import logging
 import profile
 
 from django.template import RequestContext
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from django import forms
 
 from nav.django.shortcuts import render_to_response
@@ -35,16 +36,24 @@ from nav.web.templates.GeomapTemplate import GeomapTemplate
 logger = logging.getLogger('nav.web.geomap.views')
 
 
-def geomap(request):
+def geomap(request, variant):
+    config = get_configuration()
+    variant_config = config['variants'][variant]
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {'config': get_configuration()},
+                              {'config': config,
+                               'variant_config': variant_config},
                               RequestContext(request),
                               path=[('Home', '/'),
                                     ('Geomap', None)])
 
             
-def data(request):
+def forward_to_default_variant(request):
+    default_variant = get_configuration()['variant_order'][0]
+    return HttpResponseRedirect(reverse('geomap', args=(default_variant,)))
+
+
+def data(request, variant):
 #    connection = nav.db.getConnection('netmapserver', 'manage')
     # TODO remove this (using teknobyen-vk temporarily for testing)
     connection = psycopg2.connect(nav.db.get_connection_string(('teknobyen-vk.uninett.no',
@@ -81,8 +90,8 @@ def data(request):
     rrd_statistics['file'] = 0
     rrd_statistics['file_keys'] = []
     rrd_statistics['cache_keys'] = []
-    data = get_formatted_data(db, format, bounds, viewport_size, limit,
-                              time_interval)
+    data = get_formatted_data(variant, db, format, bounds, viewport_size,
+                              limit, time_interval)
     store_cache()
     logger.debug('rrd statistics: cache hits=%d, file reads=%d' %
                  (rrd_statistics['cache'], rrd_statistics['file']))
@@ -93,9 +102,12 @@ def data(request):
     return response
 
 
-def get_formatted_data(db, format, bounds, viewport_size, limit,
+def get_formatted_data(variant, db, format, bounds, viewport_size, limit,
                        time_interval):
     """Get formatted output for given conditions.
+
+    variant -- name of the map variant to create data for (variants
+    are defined in the configuration file)
 
     db -- a database connection object.
 
@@ -124,6 +136,6 @@ def get_formatted_data(db, format, bounds, viewport_size, limit,
     logger.debug('simplify')
     simplify(graph, bounds, viewport_size, limit)
     logger.debug('create_features')
-    features = create_features(graph)
+    features = create_features(variant, graph)
     logger.debug('format')
     return format_data(format, features)

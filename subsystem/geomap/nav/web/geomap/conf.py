@@ -159,13 +159,51 @@ def parse_conf_file(filename):
 
 
 def interpret_configuration(c, filename):
-    def read_indicator(c_obj):
+    def is_variant(c_obj):
         if c_obj['type'] != 'block':
-            return None
-        m = re.match(r'^def indicator\((.*),(.*),(.*)\)$', c_obj['text'])
-        if m is None:
-            print 'not an indicator'
-            return None
+            return False
+        m = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
+        return m is not None
+
+    def read_variant(c_obj):
+        m = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
+        identifier = m.group(1)
+        name = m.group(2)
+        indicators = {}
+        styles = {}
+        template_files = {}
+        styles['node'], styles['edge'] = {}, {}
+        indicators['node'], indicators['edge'] = [], []
+        for sub in c_obj['objects']:
+            if is_indicator(sub):
+                indicator_type,indicator = read_indicator(sub)
+                if indicator_type not in indicators:
+                    indicators[indicator_type] = []
+                indicators[indicator_type].append(indicator)
+            elif is_style(sub):
+                style_type,style = read_style(sub)
+                if style_type not in styles:
+                    styles[style_type] = {}
+                styles[style_type].update(style)
+            elif is_template_file(sub):
+                template_for,template_file = read_template_file(sub)
+                template_files[template_for] = template_file
+            else:
+                warn_unknown_object(sub)
+        return (identifier,
+                {'name': name,
+                 'indicators': indicators,
+                 'styles': styles,
+                 'template_files': template_files})
+
+    def is_indicator(c_obj):
+        if c_obj['type'] != 'block':
+            return False
+        m = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
+        return m is not None
+
+    def read_indicator(c_obj):
+        m = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
         type = m.group(1).strip()
         property = m.group(2).strip()
         try:
@@ -179,7 +217,7 @@ def interpret_configuration(c, filename):
                 raise ConfigurationSyntaxError(
                     'Illegal indicator syntax (expected a block)',
                     filename, sub['linenr'])
-            m = re.match(r'^if (.*)$', sub['text'])
+            m = re.match(r'^if (.+)$', sub['text'])
             if m is None:
                 raise ConfigurationSyntaxError(
                     'Illegal indicator syntax (expected \'if ...\')',
@@ -202,17 +240,64 @@ def interpret_configuration(c, filename):
             options.append({'test': test,
                             'value': value,
                             'label': label})
-        return {'type': type,
-                'property': property,
-                'name': name,
-                'options': options}
+        return (type,
+                {'type': type,
+                 'property': property,
+                 'name': name,
+                 'options': options})
     
-    indicators = []
-    for obj in c:
-        ind = read_indicator(obj)
-        if ind is not None:
-            indicators.append(ind)
-    return {'indicators': indicators}
+    def is_template_file(c_obj):
+        if c_obj['type'] == 'block':
+            return False
+        m = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
+        return m is not None
+        
+    def read_template_file(c_obj):
+        m = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
+        template_for = m.group(1).strip()
+        try:
+            template_file = conf_eval(m.group(2), filename, c_obj)
+        except ConfigurationEvaluationError, e:
+            logger.warning(e)
+            template_file = None
+        return (template_for,template_file)
+
+    def is_style(c_obj):
+        if c_obj['type'] == 'block':
+            return False
+        m = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
+        return m is not None
+        
+    def read_style(c_obj):
+        m = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
+        type = m.group(1).strip()
+        property = m.group(2).strip()
+        try:
+            value = conf_eval(m.group(3), filename, c_obj['linenr'])
+        except ConfigurationEvaluationError, e:
+            logger.warning(e)
+            value = None
+        return (type,
+                {property: value})
+
+    def warn_unknown_object(c_obj):
+        logger.warning(('Error in configuration file %s: Unknown object ' +
+                        '"%s" starting on line %d') %
+                       filename, c_obj['text'], c_obj['linenr'])
+
+
+    variants = {}
+    variant_order = []
+    for c_obj in c:
+        if is_variant(c_obj):
+            variant_id, variant = read_variant(c_obj)
+            variants[variant_id] = variant
+            variant_order.append(variant_id)
+        else:
+            warn_unknown_object(sub)
+
+    return {'variants': variants,
+            'variant_order': variant_order}
 
 
 def conf_eval(expr, filename, linenr):

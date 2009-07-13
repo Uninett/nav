@@ -115,7 +115,8 @@
 <div id="legend">
   <table>
     <tr>
-      {% for indicator in config.indicators %}
+      {% for indicator_list in variant_config.indicators.values %}
+      {% for indicator in indicator_list %}
       <td>
 	<table>
 	  <tr><th colspan="2">{{ indicator.name }}:</th></tr>
@@ -149,6 +150,7 @@
 	  {% endfor %}
 	</table>
       </td>
+      {% endfor %}
       {% endfor %}
     </tr>
   </table>
