@@ -58,6 +58,19 @@ class ConfigurationSyntaxError(ConfigurationError):
             (self.filename, self.linenr, self.msg)
 
 
+class ConfigurationEvaluationError(ConfigurationError):
+    def __init__(self, expression, original_exception, filename, linenr):
+        self.expression = expression
+        self.original_exception = original_exception
+        self.filename = filename
+        self.linenr = linenr
+    def __str__(self):
+        return ('Exception when evaluating expression "%s" in configuration '
+                'file %s on line %d: %s') % \
+                (self.expression, self.filename, self.linenr,
+                 self.original_exception)
+
+
 def parse_conf(lines, filename):
     stack = [{'objects': [],
               'indent': 0}]
@@ -155,7 +168,11 @@ def interpret_configuration(c, filename):
             return None
         type = m.group(1).strip()
         property = m.group(2).strip()
-        name = eval(m.group(3).strip(), {})
+        try:
+            name = conf_eval(m.group(3).strip(), filename, c_obj['linenr'])
+        except ConfigurationEvaluationError, e:
+            logger.warning(e)
+            name = '(configuration error, see log)'
         options = []
         for sub in c_obj['objects']:
             if sub['type'] != 'block':
@@ -170,13 +187,18 @@ def interpret_configuration(c, filename):
             test = m.group(1)
             result = concat_str([o['text'] for o in sub['objects']])
             try:
-                value,label = eval(result, {})
-            except Exception, e:
-                logger.warning(('Exception when evaluating indicator value ' +
-                                'expression "%s" in configuration file ' +
-                                '%s on line %d: %s') %
-                               (result, filename, sub['linenr'], e))
-                value,label = '','(configuration error, see log)'
+                value_and_label = conf_eval(result, filename, sub['linenr'])
+            except ConfigurationEvaluationError, e:
+                logger.warning(e)
+                value_and_label = '','(configuration error, see log)'
+            if len(value_and_label) != 2:
+                logger.warning(('Error in configuration file %s on line ' +
+                                '%d: expected expression "%s" to evaluate ' +
+                                'to 2-tuple, it evaluated to %s') %
+                               (filename, sub['linenr'], result,
+                                value_and_label))
+                value_and_label = '','(configuration error, see log)'
+            value,label = value_and_label
             options.append({'test': test,
                             'value': value,
                             'label': label})
@@ -191,6 +213,13 @@ def interpret_configuration(c, filename):
         if ind is not None:
             indicators.append(ind)
     return {'indicators': indicators}
+
+
+def conf_eval(expr, filename, linenr):
+    try:
+        return eval(expr, {})
+    except Exception, e:
+        raise ConfigurationEvaluationError(expr, e, filename, linenr)
 
 
 def read_configuration(filename):

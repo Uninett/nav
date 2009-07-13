@@ -71,6 +71,9 @@ def apply_indicator(ind, type, properties):
     if type == ind['type']:
         for option in ind['options']:
             try:
+                # Properties must be passed as locals, not globals,
+                # since it may not be a dict object (we use lazy_dict
+                # from utils.py). (See documentation of eval).
                 test_result = eval(option['test'], {}, properties)
             except Exception, e:
                 logger.warning(('Exception when evaluating test "%s" ' +
