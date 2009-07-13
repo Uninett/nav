@@ -28,13 +28,13 @@ def indicator(edge, color, "Link load"):
 
 def indicator(edge, size, "Link capacity"):
     if speed <= 2:
-        (5, "<= 2 Mbit/s")
+        (4, "<= 2 Mbit/s")
     if speed <= 155:
-        (10, "<= 155 Mbit/s")
+        (6, "<= 155 Mbit/s")
     if speed <= 2500:
-        (15, "<= 2.5 Gbit/s")
+        (8, "<= 2.5 Gbit/s")
     if True:
-        (20, "> 2.5 Gbit/s")
+        (10, "> 2.5 Gbit/s")
 
 
 def indicator(node, color, "CPU load"):
@@ -50,10 +50,10 @@ def indicator(node, color, "CPU load"):
 
 def indicator(node, size, "# netboxes"):
     if num_netboxes == 1:
-        (5, "1")
+        (4, "1")
     if num_netboxes <= 10:
-        (10, "2--10")
+        (6, "2--10")
     if num_netboxes <= 20:
-        (15, "11--20")
+        (8, "11--20")
     if True:
-        (20, "> 20")
+        (10, "> 20")
