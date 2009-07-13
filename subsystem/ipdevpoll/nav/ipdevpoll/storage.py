@@ -191,7 +191,7 @@ class Shadow(object):
         if getattr(self, pk_attr):
             try:
                 model = self.__shadowclass__.objects.get(pk=getattr(self, pk_attr))
-            except DoesNotExist, e:
+            except self.__shadowclass__.DoesNotExist, e:
                 if self.__shadowclass__._meta.pk.__class__ == django.db.models.fields.AutoField:
                     raise e
                 else:
@@ -299,3 +299,4 @@ class Arp(Shadow):
 
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
+    __lookups__ = ['net_address']
