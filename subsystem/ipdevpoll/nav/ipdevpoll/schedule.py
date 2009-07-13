@@ -203,6 +203,7 @@ class JobHandler(object):
                     except AttributeError:
                         pass
                     obj.get_model().save()
+                    obj._touched = []
 
             transaction.commit()
             end_time = time.time()
@@ -213,29 +214,31 @@ class JobHandler(object):
             transaction.rollback()
 
     def traverse_all_instances(self):
-        for instance_class, instances in self.containers.items():
-            for instance in instances.values():
+        for key in self.containers.keys():
+            for instance in  self.containers[key].values():
                 if instance in self.storage_queue:
                     continue
-                self.storage_queue.extend([r for r in self.traverse_instance_for_storage(instance, self.storage_queue) if r not in self.storage_queue])
+                l = self.traverse_instance_for_storage(instance, self.storage_queue)
+                self.storage_queue.extend([r for r in l if r not in self.storage_queue])
 
     def traverse_instance_for_storage(self, instance, storage_queue):
+        try:
+            storage_queue.insert(0, instance)
 
-        storage_queue.insert(0, instance)
-
-        for field in instance.__class__._fields:
-            t = instance.__class__.__shadowclass__._meta.get_field(field)
-            if issubclass(t.__class__, django.db.models.fields.related.ForeignKey):
-                if t.rel.to in storage.shadowed_classes:
-                    if not storage.shadowed_classes[t.rel.to] in self.containers:
-                        pass
-                    else:
-                        # If the foreignkey is not None, then traverse that object as well
-                        if not getattr(instance, field):
-                            continue
-                        if getattr(instance, field) in self.containers[storage.shadowed_classes[t.rel.to]]:
-                            storage_queue = self.traverse_instance_for_storage(obj, storage_queue)
-                            break
+            for field in instance.__class__._fields:
+                t = instance.__class__.__shadowclass__._meta.get_field(field)
+                if issubclass(t.__class__, django.db.models.fields.related.ForeignKey):
+                    if t.rel.to in storage.shadowed_classes:
+                        if not storage.shadowed_classes[t.rel.to] in self.containers:
+                            pass
+                        else:
+                            # If the foreignkey is not None, then traverse that object as well
+                            if not getattr(instance, field):
+                                continue
+                            if getattr(instance, field) in self.containers[storage.shadowed_classes[t.rel.to]].values():
+                                storage_queue = self.traverse_instance_for_storage(getattr(instance, field), storage_queue)
+        except Exception, e:
+            self.logger.error(e)
         return storage_queue
 
 
