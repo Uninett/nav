@@ -137,10 +137,10 @@ def create_edge_features(edge, popup_template, default_style, indicators):
                        subdict(properties, _edge_feature_properties))
 
     properties = subdict(edge.properties, _edge_feature_properties)
-    properties_forward = union_dict(edge.properties,
-                                    {'load': edge.properties['load_in']})
-    properties_back = union_dict(edge.properties,
-                                 {'load': edge.properties['load_out']})
+    properties_forward = edge.properties.copy();
+    properties_forward[['load']] = edge.properties[['load_in']];
+    properties_back = edge.properties.copy();
+    properties_back[['load']] = edge.properties[['load_out']];
     source = [edge.source.lon, edge.source.lat]
     middle = [(edge.source.lon+edge.target.lon)/2,
               (edge.source.lat+edge.target.lat)/2]

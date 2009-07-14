@@ -343,8 +343,8 @@ def equalize_edge_orientation(edges):
 
 def reverse_edge(edge):
     properties = edge.properties.copy()
-    properties['load_in'] = edge.properties['load_out']
-    properties['load_out'] = edge.properties['load_in']
+    properties[['load_in']] = edge.properties[['load_out']]
+    properties[['load_out']] = edge.properties[['load_in']]
     return Edge(edge.id, edge.target, edge.source, properties)
 
 
