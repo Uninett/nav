@@ -15,17 +15,18 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import re
-
-from twisted.internet import defer, threads
+from twisted.internet import defer, threads, reactor
 from twisted.python.failure import Failure
+from twistedsnmp import snmpprotocol, agentproxy
 
-from nav.mibs.qbridge_mib import QBridgeMib
+from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.cisco_vtp_mib import CiscoVTPMib
+from nav.mibs.if_mib import IfMib
+from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
-from nav.models.manage import Interface
-from schedule import ports
+from nav.models import manage
+from nav.util import round_robin
 
 class Cam(Plugin):
     @classmethod
@@ -35,75 +36,83 @@ class Cam(Plugin):
     @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting CAM logs")
+        agents = CommunityIndexAgentProxy(self.netbox)
 
+        interfaces = manage.Interface.objects.filter(
+            netbox__id=self.netbox.id)
         dw = defer.waitForDeferred(threads.deferToThread(
-                storage.shadowify_queryset, manage.Vlan.objects.all()))
+            storage.shadowify_queryset, interfaces))
         yield dw
-        vlans = dw.getResult()
+        result = dw.getResult()
 
-        result = None
+        vlans = []
+        for i in result:
+            if i.vlan and i.vlan not in vlans:
+                vlans.append(i.vlan)
+
+        bridge_mib = BridgeMib(self.job_handler.agent)
+        if_mib = IfMib(self.job_handler.agent)
+
+        defer.setDebugging(True)
+        mac_result = []
         if len(vlans) > 0:
-            dw = defer.waitForDeferred(threads.deferToThread(
-                self._fetch_macs_for_vlans(vlans)))
-            yield dw
-            mac_result = dw.getResult()
+            for vlan in vlans:
+                agent = agents.agent_for_vlan(vlan)
+                vlan_bridge_mib = BridgeMib(agent)
+                df = vlan_bridge_mib.retrieve_columns([
+                    'dot1dTpFdbAddress',
+                    'dot1dTpFdbPort',
+                    ])
+                dw = defer.waitForDeferred(df)
+                yield dw
+                try:
+                    result = dw.getResult()
+                except defer.TimeoutError, e:
+                    self.logger.warning("Timeout for vlan %d" % vlan)
+                    continue
+                else:
+                    self.logger.debug("Found %d results for vlan %d" % (
+                        len(result), vlan))
+                    mac_result.append(result)
 
         # FIXME just run the regular one without community string indexing
         # anyways?
         if len(mac_result) == 0 or len(vlans) == 0:
-            bridge_mib = BridgeMib(self.job_handler.agent)
-            dw = defer.waitForDeferred(bridge_mib.retrieve_columns([
+            self.logger.debug("Trying to fetch cam without community index")
+            dw = defer.waitForDeferred(
+                bridge_mib.retrieve_columns([
                     'dot1dTpFdbAddress',
                     'dot1dTpFdbPort',
                 ]))
             yield dw
-            mac_result = dw.getResult()
+            result = dw.getResult()
+            mac_result = [result]
+            self.logger.debug("Found %d results for box" % len(result))
 
-        dw = defer.waitForDeferred(bridge_mib.retrieve_column(
-                'dot1dBasePortIfIndex'
-            ))
-        yield dw
-        ifindex_result = dw.getResult()
+        #dw = defer.waitForDeferred(
+        #    bridge_mib.retrieve_column('dot1dBasePortIfIndex'))
+        #yield dw
+        #ifindex_result = dw.getResult()
+
+        #dw = defer.waitForDeferred(
+        #    if_mib.retrieve_column('ifName'))
+        #yield dw
+        #ifname_result = dw.getResult()
 
         yield True
 
-    def _fetch_macs_for_vlans(self, vlans):
-        vlans = iter(vlans)
-        final_result = []
-        deferred_result = defer.Deferred()
+class CommunityIndexAgentProxy(object):
+    def __init__(self, netbox):
+        self.netbox = netbox
+        self.ports = round_robin([snmpprotocol.port() for i in range(10)])
 
-        def format_result(result, vlan):
-            for index, row in result.items():
-                final_result.append({
-                        'vlan': vlan,
-                        'mac': row['dot1dTpFdbAddress'],
-                        'port': row['dot1dTpFdbPort'],
-                    })
-            return True
-
-        def schedule_next():
-            try:
-                vlan = vlans.next()
-            except StopIteration:
-                deferred_result.callback(final_result)
-                return
-
-            community = self.netbox.read_only + vlan
-            port = ports.next()
-            agent = agentproxy.AgentProxy(
-                self.netbox.ip, 161,
-                community=community
-                snmpVersion='v%s' % self.netbox.snmp_version,
-                protocol=port.protocol,
-            )
-            bridge_mib = BridgeMib(agent)
-
-            df = bridge_mib.retrieve_columns([
-                    'dot1dTpFdbAddress',
-                    'dot1dTpFdbPort',
-                ])
-            df.addCallback(format_result, vlan)
-            df.addCallback(schedule_next)
-
-        reactor.callLater(0, schedule_next)
-        return deferred_result
+    def agent_for_vlan(self, vlan):
+        community = "%s@%s" % (self.netbox.read_only, vlan)
+        port = self.ports.next()
+        agent = agentproxy.AgentProxy(
+            self.netbox.ip, 161,
+            community=community,
+            snmpVersion='v%s' % self.netbox.snmp_version,
+            protocol=port.protocol,
+        )
+        return agent
