@@ -48,12 +48,56 @@ class Prefix(Plugin):
 
 
         self.logger.debug("Collecting prefixes")
+        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+
         ipmib = IpMib(self.job_handler.agent)
-        df = ipmib.retrieve_columns(['ipAdEntIfIndex','ipAdEntAddr','ipAdEntNetMask'])
+        df = ipmib.retrieve_table('ipAddressTable')
         dw = defer.waitForDeferred(df)
         yield dw
 
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        results = dw.getResult()
+
+        for key, result in results.items():
+            ip = None
+            # IPv4
+            if key[0] == 1:
+                ip = str(ipmib.index_to_ip(key[-key[1]:]))
+                netmask = IpMib.index_to_ip(result['ipAddressPrefix'][13:-1])
+                pfx = result['ipAddressPrefix'][-1]
+                net_prefix = str(netmask.make_net(pfx))
+                ifindex = result['ipAddressIfIndex']
+
+            # IPv6
+            elif key[0] == 2:
+                ip = str(Ipv6Mib.index_to_ip(key[-key[1]:]))
+                netmask = Ipv6Mib.index_to_ip(result['ipAddressPrefix'][13:-1])
+                pfx = result['ipAddressPrefix'][-1]
+                net_prefix = str(netmask.make_net(pfx))
+                ifindex = result['ipAddressIfIndex']
+
+            if not ip:
+                continue
+
+            interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
+            interface.ifindex = ifindex
+            interface.netbox = netbox
+
+            prefix = self.job_handler.container_factory(storage.Prefix, key=net_prefix)
+            prefix.net_address = net_prefix
+
+            port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
+            port_prefix.interface = interface
+            port_prefix.prefix = prefix
+            port_prefix.gw_ip = ip
+
+        # End run if we got ipAddressTable-result
+        if results:
+            return
+
+        self.logger.debug("Netbox did not answer on 'ipAddressTable' - Trying deprecated methods")
+        df = ipmib.retrieve_columns(['ipAdEntIfIndex','ipAdEntAddr','ipAdEntNetMask'])
+        dw = defer.waitForDeferred(df)
+        yield dw
 
         results = dw.getResult()
 
