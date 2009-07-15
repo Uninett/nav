@@ -45,7 +45,7 @@ class MetaShadow(type):
             raise AttributeError("No shadow attribute in class %s" % name)
 
         super(MetaShadow, cls).__init__(name, bases, dct)
-        
+
         if shadowclass is None:
             return
 
@@ -113,7 +113,7 @@ class Shadow(object):
 
     def __repr__(self):
         attrs = [field for field in self._fields
-                 if getattr(self, field) is not None or 
+                 if getattr(self, field) is not None or
                  field in self._touched]
         varbinds = ["%s=%r" % (field, getattr(self, field))
                     for field in attrs]
@@ -155,7 +155,7 @@ class Shadow(object):
 
     def get_model(self):
         """Return a live Django model object based on the data of this one.
-        
+
         If this shadow object represents something that is already in
         the database, the existing database object will be retrieved
         synchronously, and its attributes modified with the contents
@@ -197,14 +197,14 @@ class Shadow(object):
                 else:
                     return None
             return model
-        
+
         # Try each lookup field and see which one corresponds to
         # something in the a database, if any
         for lookup in lookups:
             kwargs = None
             if isinstance(lookup, tuple):
                 kwargs = dict(zip(lookup, map(lambda l: getattr(self, l), lookup)))
-            else: 
+            else:
                 value = getattr(self, lookup)
                 if value is not None:
                     kwargs = {lookup: value}
@@ -296,6 +296,9 @@ class SwPortVlan(Shadow):
 class Arp(Shadow):
     __shadowclass__ = manage.Arp
     __lookups__ = [('netbox', 'ip', 'mac', 'end_time')]
+
+class Cam(Shadow):
+    __shadowclass__ = manage.Cam
 
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
