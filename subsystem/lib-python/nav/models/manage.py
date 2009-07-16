@@ -963,7 +963,7 @@ class Cam(models.Model):
     module = models.CharField(max_length=4)
     port = models.CharField(max_length=-1)
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    end_time = DateTimeInfinityField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
