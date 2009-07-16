@@ -299,6 +299,7 @@ class Arp(Shadow):
 
 class Cam(Shadow):
     __shadowclass__ = manage.Cam
+    __lookups__ = [('netbox', 'ifindex', 'mac', 'miss_count')]
 
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
