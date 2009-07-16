@@ -30,6 +30,7 @@ var bboxStrategy;
 var netPopupControl;
 var netLayerStyle;
 var posControl;
+var timeNavigator;
 
 var mapElemId;
 
@@ -50,6 +51,9 @@ function init(map_element_id, url) {
     mapElemId = map_element_id;
     setMapSize();
     window.onresize = setMapSize;
+
+    timeNavigator = new TimeNavigator('time-navigation',
+				      selectedTimeInterval)
 
     themap = new OpenLayers.Map(map_element_id, {
         controls:[
@@ -160,12 +164,34 @@ function init(map_element_id, url) {
 
     //setTimeIntervalFormListeners();
 
-    init_time_interval_form();
+    //init_time_interval_form();
+
+    //initTimeIntervalForm('time-selection');
 }
 
 
 function updateNetData() {
     bboxStrategy.triggerRead();
+}
+
+
+function selectedTimeInterval(interval) {
+    /*
+    var startE = document.getElementById('id_starttime');
+    var endE = document.getElementById('id_endtime');
+    startE.value = interval.beginning().format('%H:%M %Y%m%d');
+    endE.value = interval.end().format('%H:%M %Y%m%d');
+    */
+    updateNetData();
+}
+
+function getTimeIntervalStart() {
+    var timeFormat = '%H:%M %Y%m%d';
+    return timeNavigator.interval.beginning().format(timeFormat);
+}
+function getTimeIntervalEnd() {
+    var timeFormat = '%H:%M %Y%m%d';
+    return timeNavigator.interval.end().format(timeFormat);
 }
 
 
@@ -212,7 +238,8 @@ function setMapSize() {
 	    window.innerHeight - elemOffsetTop(mapE) - 4;
 
 	width = window.innerWidth -
-	    document.getElementById('time-interval-form').clientWidth - 50;
+	    document.getElementById('geomap-sidebar').clientWidth - 50;
+	width = window.innerWidth - 400;
 
 	mapE.style.position = '';
 	mapE.style.height = height + 'px';

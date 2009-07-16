@@ -247,25 +247,3 @@ function calendar_draw(c) {
 					  row_selected?'selected':'selectable');
     }
 }
-
-/*
-function make_month_calendar_html(year, month, selection_type, selection_cb) {
-    var cal = make_month_calendar(year, month);
-    var html = '<table id="calendar">';
-    for (row = 0; row < cal.length; row++) {
-	html += '<tr>';
-	for (col = 0; col < 7; col++) {
-	    html += '<td>';
-	    var day = cal[row][col];
-	    if (day != null)
-		html += format('<a href="javascript:%s(%d,%d,%d)">%d</a>',
-			       selection_cb, year, month, day, day);
-	    html += '</td>';
-	}
-	html += '</tr>';
-    }
-    html += '</table>';
-}
-
-function make_calendar_html(year, month
-*/

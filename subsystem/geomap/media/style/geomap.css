@@ -86,90 +86,20 @@ body
 
 
 
-#calendar
-{
-  border: 1px solid black;
-}
-
-#calendar-month
-{
-  border-collapse: separate;
-}
-
-#calendar.enabled #calendar-body.row-selection tr.selected,
-#calendar.enabled #calendar-body.cell-selection td.selected
-{
-  background-color: #999999;
-}
-
-#calendar.enabled #calendar-body.row-selection tr.selectable,
-#calendar.enabled #calendar-body.row-selection tr.selectable,
-#calendar.enabled #calendar-body.cell-selection td.selectable,
-#calendar.enabled #calendar-head-row .selectable
-{
-  cursor: pointer;
-  color: blue;
-}
-
-#calendar.enabled #calendar-body.row-selection tr.selectable:hover,
-#calendar.enabled #calendar-body.row-selection tr.selectable:hover,
-#calendar.enabled #calendar-body.cell-selection td.selectable:hover,
-#calendar.enabled #calendar-head-row .selectable:hover
-{ 
-  background-color: #6666FF;
-  color: white;
-}
-
-#calendar-body td.today
-{
-  border: 1px dashed black;
-}
-
-#calendar.disabled
-{
-  background-color: #CCCCCC;
-  color: #999999;
-}
-
-#calendar td
-{ 
-  padding: .1em .5em;
-}
-
-#calendar-head-row td
-{ 
-  text-align: center;
-}
-
-#calendar-body td
-{
-  text-align: right;
-}
-
-#time-interval-edit-mode .selected
-{
-  font-weight: bold;
-}
-
-#time-interval-form .highlight
-{
-  background-color: yellow;
-}
-
-#time-interval-form .inactive
-{
-  background-color: #CCCCCC;
-}
-
-
 #map-and-form > tr > td
 {
   text-align: center;
 }
 
-td.time-interval-form-container
+#map-container
 {
   vertical-align: top;
+}
+
+#geomap-sidebar
+{
+  vertical-align: top;
+  padding: 1em;
 }
 
 #time-interval-form > div
@@ -177,3 +107,126 @@ td.time-interval-form-container
   padding: 1em;
 }
 
+
+
+
+#time-navigation-selected-time
+{
+  font-weight: bold;
+  font-size: 120%;
+}
+
+#time-navigation-prev-jump.enabled, #time-navigation-prev.enabled,
+#time-navigation-next.enabled, #time-navigation-next-jump.enabled,
+#time-navigation-last.enabled, #time-navigation-up.enabled
+{
+  cursor: pointer;
+}
+
+#time-navigation-prev-jump.enabled:before
+{
+  content: url('/images/geomap/left2.png');
+}
+#time-navigation-prev-jump.disabled:before
+{
+  content: url('/images/geomap/left2_grey.png');
+}
+#time-navigation-prev.enabled:before
+{
+  content: url('/images/geomap/left1.png');
+}
+#time-navigation-prev.disabled:before
+{
+  content: url('/images/geomap/left1_grey.png');
+}
+#time-navigation-next.enabled:before
+{
+  content: url('/images/geomap/right1.png');
+}
+#time-navigation-next.disabled:before
+{
+  content: url('/images/geomap/right1_grey.png');
+}
+#time-navigation-next-jump.enabled:before
+{
+  content: url('/images/geomap/right2.png');
+}
+#time-navigation-next-jump.disabled:before
+{
+  content: url('/images/geomap/right2_grey.png');
+}
+#time-navigation-last.enabled:before
+{
+  content: url('/images/geomap/right_last.png');
+}
+#time-navigation-last.disabled:before
+{
+  content: url('/images/geomap/right_last_grey.png');
+}
+#time-navigation-up.enabled:before
+{
+  content: url('/images/geomap/up1.png');
+}
+#time-navigation-up.disabled:before
+{
+  content: url('/images/geomap/up1_grey.png');
+}
+
+#time-navigation-down.disabled
+{
+  display: none;
+}
+
+#time-navigation-calendar
+{
+  border: 1px solid black;
+}
+
+#time-navigation-calendar-month
+{
+  border-collapse: separate;
+}
+
+#time-navigation-calendar.enabled .selected
+{
+  background-color: #999999;
+}
+
+#time-navigation-calendar.enabled .selectable
+{
+  cursor: pointer;
+  color: blue;
+}
+
+#time-navigation-calendar.enabled .selectable:hover,
+#time-navigation-calendar.enabled .selectable:hover .selectable
+{ 
+  background-color: #6666FF;
+  color: white;
+}
+
+#time-navigation-calendar-body td.today
+{
+  border: 1px dashed black;
+}
+
+#time-navigation-calendar.disabled
+{
+  background-color: #CCCCCC;
+  color: #999999;
+}
+
+#time-navigation-calendar td
+{ 
+  padding: .1em .5em;
+}
+
+#time-navigation-calendar-head-row td
+{ 
+  text-align: center;
+}
+
+#time-navigation-calendar-body td
+{
+  text-align: right;
+}
