@@ -379,6 +379,7 @@ class MibRetriever(object):
             deferred = self.retrieve_column(column)
             deferred.addCallback(result_aggregate, column)
             deferred.addCallback(schedule_next)
+            deferred.addErrback(my_deferred.errback)
 
         reactor.callLater(0, schedule_next)
         return my_deferred
