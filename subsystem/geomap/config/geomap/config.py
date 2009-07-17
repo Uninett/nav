@@ -13,22 +13,14 @@ def variant(normal, "Normal"):
     def indicator(edge, color, "Link load"):
         if load != load:
             ("#666666", "No statistics")
-        if load/speed < 0.01:
-            ("#0099FF", "0--1 %")
-        if load/speed < 0.05:
-            ("#66CCFF", "1--5 %")
-        if load/speed < 0.10:
-            ("#99FF00", "5--10 %")
-        if load/speed < 0.30:
-            ("#CCFF00", "10--30 %")
-        if load/speed < 0.50:
-            ("#FFFF00", "30--50 %")
-        if load/speed < 0.70:
-            ("#FFCC00", "50--70 %")
-        if load/speed < 0.90:
-            ("#FF9900", "70--90 %")
+        if load/speed < 0.3:
+            ("#8AE234", "0--30 %")
+        if load/speed < 0.6:
+            ("#FCE94F", "30--60 %")
+        if load/speed < 0.9:
+            ("#FCAF3E", "60--90 %")
         if True:
-            ("#FF3333", "90--100 %")
+            ("#CC0000", "90--100 %")
 
     def indicator(edge, size, "Link capacity"):
         if speed <= 2:
@@ -44,11 +36,11 @@ def variant(normal, "Normal"):
         if load != load:
             ("#666666", "No statistics")
         if load < 0.5:
-            ("#33CC33", "0--0.5")
+            ("#8AE234", "0--0.5")
         if load < 1:
-            ("#FFEF00", "0.5--1")
+            ("#FCE94F", "0.5--1")
         if True:
-            ("#FF3333", "> 1")
+            ("#CC0000", "> 1")
 
     def indicator(node, size, "# netboxes"):
         if num_netboxes == 1:
