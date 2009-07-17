@@ -61,11 +61,15 @@ const TIME_UNITS = ['year', 'month', 'week', 'day', 'hour', 'minute'];
  */
 function Time(obj, absolute) {
     if (obj) {
-	if (absolute) {
-	    this.month = 1;
-	    this.day = 1;
+	if (typeof obj == 'string') {
+	    this.read(obj);
+	} else {
+	    if (absolute) {
+		this.month = 1;
+		this.day = 1;
+	    }
+	    this.copyPropertiesFrom(obj);
 	}
-	this.copyPropertiesFrom(obj);
     } else {
 	this.year = new Date().getFullYear();
 	this.month = new Date().getMonth()+1;
@@ -306,6 +310,22 @@ Time.prototype = {
      */
     format_: function(fstr) {
 	return this.toDate().toLocaleFormat(fstr);
+    },
+
+    toReadableString: function() {
+	return this.format('%Y%m%d%H%M');
+    },
+
+    read: function(str) {
+	m = /(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/.exec(str);
+	if (!m)
+	    throw new Error(format('Time.read -- not a valid time string: "%s"',
+				   str));
+	this.year = Number(m[1]);
+	this.month = Number(m[2]);
+	this.day = Number(m[3]);
+	this.hour = Number(m[4]);
+	this.minute = Number(m[5]);
     },
 
     toString: function() {

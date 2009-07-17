@@ -94,6 +94,11 @@ function sizeName(size, omitNIfOne) {
  *         the given size.
  */
 function TimeInterval(size, time) {
+    if (typeof size == 'string') {
+	this.read(size);
+	return;
+    }
+
     this.size = size;
     if (time) {
 	this.time = new Time(time, true);
@@ -223,6 +228,26 @@ TimeInterval.prototype = {
     contains: function(time) {
 	return (this.beginning().compare(time) <= 0 &&
 		this.end().compare(time) > 0);
+    },
+
+    toReadableString: function() {
+	return this.size + ',' + this.beginning().toReadableString();
+    },
+
+    read: function(str) {
+	function err(msg) {
+	    throw new Error('TimeInterval.read -- ' +
+			    format.apply(null, arguments));
+	}
+	m = /(\d+),(.+)/.exec(str)
+	if (!m)
+	    err('not a valid interval string: "%s"', str);
+	var size = Number(m[1]);
+	if (size >= TI_SIZES.length)
+	    err('illegal size %d in interval string "%s"', size, str);
+	var time = new Time(m[2]);
+	this.size = size;
+	this.time = time;
     },
 
     toShortString: function() {
