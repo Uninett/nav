@@ -14,6 +14,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Dynamic CAM record collecting with and without community string indexing.
+"""
 
 from datetime import datetime
 
@@ -32,6 +34,8 @@ from nav.util import round_robin
 MAX_MISS_COUNT = 3
 
 class Cam(Plugin):
+    """Collects dynamic CAM records"""
+
     def __init__(self, *args, **kwargs):
         super(Cam, self).__init__(*args, **kwargs)
         self.cam = {}
@@ -104,6 +108,11 @@ class Cam(Plugin):
         yield True
 
     def _store(self):
+        """Store found cam data.
+
+        If we find a record that already exist in the database, but has a miss
+        count, we reset the miss count and end time.
+        """
         for key, row in self.cam.items():
             cam = self.job_handler.container_factory(storage.Cam, key=key)
             if key in self.existing_cam:
@@ -127,6 +136,13 @@ class Cam(Plugin):
             cam.miss_count = 0
 
     def _timeout_cam(self):
+        """Compares existing cam records in the database to what was found
+        during this polling run.
+
+        Records that are no longer found will get their miss count increased
+        untill they reach the maximum miss count. They are then considered
+        closed.
+        """
         for key, row in self.existing_cam.items():
             if key not in self.cam:
                 cam = self.job_handler.container_factory(storage.Cam, key=key)
@@ -154,6 +170,16 @@ class Cam(Plugin):
 
     @defer.deferredGenerator
     def _fetch_macs(self, bridge_mib):
+        """Polls cam data.
+
+        Uses the given bridge_mib.
+
+        Sets self.result to a dictionary indexed by ifindex. Values are a list
+        of macs.
+
+        Returns number of found macs.
+        """
+
         def process_mac_result(mac_result):
             result = {}
             for index, row in mac_result.items():
@@ -187,6 +213,10 @@ class Cam(Plugin):
         yield num
 
     def _process_cam(self, ifname_result):
+        """Combines self.result with ifname_result.
+        Sets self.cam to a dictionary where the keys are netbox id, ifindex and
+        mac.
+        """
         for (ifindex,), portname in ifname_result.items():
             if ifindex in self.result:
                 macs = self.result[ifindex]
@@ -200,8 +230,11 @@ class Cam(Plugin):
                     }
 
     def _get_vlans(self):
+        """Fetches all vlans from the database.
+        """
         queryset = manage.Interface.objects.filter(
-            netbox__id=self.netbox.id)
+                netbox__id=self.netbox.id
+            )
         interfaces = storage.shadowify_queryset(queryset)
 
         vlans = []
@@ -212,11 +245,16 @@ class Cam(Plugin):
         return defer.succeed(vlans)
 
     def _fetch_cam(self):
+        """Fetches all cam data from the database.
+        Returns a dictionary where the keys are tuples of netbox id, if index
+        and mac.
+        """
         queryset = manage.Cam.objects.filter(
                 netbox__id=self.netbox.id,
                 miss_count__isnull=False,
             )
         shadow = storage.shadowify_queryset(queryset)
+
         result = {}
         for row in shadow:
             key = (row.netbox.id, row.ifindex, row.mac)
@@ -224,11 +262,16 @@ class Cam(Plugin):
         return result
 
 class CommunityIndexAgentProxy(object):
+    """Makes agent proxies with community string indexing"""
+
     def __init__(self, netbox):
         self.netbox = netbox
         self.ports = round_robin([snmpprotocol.port() for i in range(10)])
 
     def agent_for_vlan(self, vlan):
+        """Returns a new agent proxy with community string index set to the
+        given vlan.
+        """
         community = "%s@%s" % (self.netbox.read_only, vlan)
         port = self.ports.next()
         agent = agentproxy.AgentProxy(
