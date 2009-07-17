@@ -722,7 +722,7 @@ class Arp(models.Model):
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
-    start_time = models.DateTimeField()
+    start_time = models.DateTimeField(auto_now_add=True)
     end_time = DateTimeInfinityField()
 
     class Meta:
@@ -962,7 +962,7 @@ class Cam(models.Model):
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
     port = models.CharField(max_length=-1)
-    start_time = models.DateTimeField()
+    start_time = models.DateTimeField(auto_now_add=True)
     end_time = DateTimeInfinityField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
     # TODO: Create MACAddressField in Django

@@ -115,16 +115,15 @@ class Cam(Plugin):
         """
         for key, row in self.cam.items():
             cam = self.job_handler.container_factory(storage.Cam, key=key)
+
             if key in self.existing_cam:
-                cam.id = self.existing_cam[key].id
                 if self.existing_cam[key].miss_count > 0:
                     self.logger.debug(
                         "Resetting miss count and end time on ifindex %s/mac %s" % (
                             self.existing_cam[key].ifindex,
                             self.existing_cam[key].mac,
                     ))
-            else:
-                cam.start_time = datetime.now()
+                cam.id = self.existing_cam[key].id
 
             cam.netbox = self.netbox
             cam.sysname = self.netbox.sysname
