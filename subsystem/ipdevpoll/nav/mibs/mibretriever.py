@@ -10,14 +10,14 @@
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """APIs to create MIB-aware retriever classes for asynchronous SNMP polling.
 
 libsmi provides a command line tool (smidump) which can parse MIB
-definitions and dump them as Python data structures.  
+definitions and dump them as Python data structures.
 
 To create a new MIB-aware retriever class, inherit from the
 MibRetriever class and set the class-variable "mib" to point to a MIB
@@ -84,14 +84,14 @@ class MIBObject(object):
                     typename in self._mib['typedefs']:
                 typ = self._mib['typedefs'][typename]
             elif typ['module'] == 'SNMPv2-TC' and typename == 'TruthValue':
-                # no True:1 translate because of wacky Python.  
+                # no True:1 translate because of wacky Python.
                 # True is resolved as 1 anyway.
-                self.enum = {1: True, 2: False, False: 2} 
+                self.enum = {1: True, 2: False, False: 2}
                 return
 
         if 'basetype' in typ and typ['basetype'] == 'Enumeration':
             # Build a two-way dictionary mapping enumerated names
-            enums = [(k, int(val['number'])) 
+            enums = [(k, int(val['number']))
                      for k,val in typ.items()
                      if type(val) is dict and 'nodetype' in val and
                      val['nodetype'] == 'namednumber'
@@ -132,7 +132,7 @@ class MibTableDescriptor(object):
         self.columns = column_objects
 
         # column numbers indexed by name
-        self.column_index = dict((c.name, c.oid[-1]) 
+        self.column_index = dict((c.name, c.oid[-1])
                                  for c in self.columns.values())
         # column names indexed by column numbers
         self.reverse_column_index = \
@@ -177,7 +177,7 @@ class MibTableDescriptor(object):
                 table_descriptors.append(
                     MibTableDescriptor.build(mib, node.name))
         return table_descriptors
-    
+
 class MibTableResultRow(dict):
     """A result row from a MIB table.
 
@@ -201,7 +201,7 @@ class MibTableResultRow(dict):
 
 class MibRetrieverMaker(type):
     """Metaclass to create new functional MIB retriever classes.
-    
+
     The MibRetriever base class uses this as its metaclass.  All new
     MIB retrievers should inherit inherit directly from the
     MibRetriever class.
@@ -219,16 +219,16 @@ class MibRetrieverMaker(type):
             mib = dct['mib']
         except KeyError, error:
             raise AttributeError("No mib attribute in class %s" % name)
-        
+
         super(MibRetrieverMaker, cls).__init__(name, bases, dct)
-        
+
         if name == 'MibRetriever' and mib is None:
             # This is the base retriever class, which is meant to be abstract
             return
 
         # modify mib data to slightly optimize later OID manipulation
         convert_oids(mib)
-        
+
         MibRetrieverMaker.__make_node_objects(cls)
         cls.tables = dict((t.table.name, t)
                           for t in MibTableDescriptor.build_all(cls))
@@ -240,7 +240,7 @@ class MibRetrieverMaker(type):
 
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.
-    
+
     @staticmethod
     def __make_scalar_getters(cls):
         """Make a get_* method for every scalar MIB node."""
@@ -251,7 +251,7 @@ class MibRetrieverMaker(type):
                 if not hasattr(cls, method_name):
                     setattr(cls, method_name,
                             MibRetrieverMaker.__scalar_getter(node.name))
-    
+
     @staticmethod
     def __scalar_getter(node_name):
         """Return a single get_* method for a scalar MIB node.
@@ -265,15 +265,15 @@ class MibRetrieverMaker(type):
                              node_name, result)
                 return result[the_oid]
             else:
-                logger.debug("%s was not in the result: %r", 
+                logger.debug("%s was not in the result: %r",
                              node_name, result)
                 return None
-            
+
         def getter(self):
             logger.debug("Retrieving scalar value %s", node_name)
             the_oid = self.nodes[node_name].oid
             df = self.agent_proxy.get([the_oid])
-            df.addCallback(result_formatter, the_oid) 
+            df.addCallback(result_formatter, the_oid)
             return df
         getter.__name__ = node_name
         return getter
@@ -282,7 +282,7 @@ class MibRetrieverMaker(type):
     def __make_table_getters(cls):
         """Make a get_* method for all table MIB node."""
         for node_name in cls.tables.keys():
-            setattr(cls, 'get_%s' % node_name, 
+            setattr(cls, 'get_%s' % node_name,
                     MibRetrieverMaker.__table_getter(node_name))
 
     @staticmethod
@@ -302,7 +302,7 @@ class MibRetrieverMaker(type):
     def __make_node_objects(cls):
         cls.nodes = dict((node_name, MIBObject(cls.mib, node_name))
                          for node_name in cls.mib['nodes'].keys())
-        
+
 class MibRetriever(object):
     """Base class for functioning MIB retriever classes."""
     mib = None
@@ -316,7 +316,7 @@ class MibRetriever(object):
     def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.
 
-        Returns a deferred whose result is a dictionary: 
+        Returns a deferred whose result is a dictionary:
 
           { row_index: column_value }
 
@@ -324,14 +324,14 @@ class MibRetriever(object):
         node = self.nodes[column_name]
         if node.raw_mib_data['nodetype'] != 'column':
             logger.debug("%s is not a table column", column_name)
-        
+
         def resultFormatter(result):
             formatted_result = {}
             if node.oid not in result:
                 logger.info("oid not in result. Device did not return valid data on this oid")
                 return {}
             varlist = result[node.oid]
-            
+
             for oid, value in varlist.items():
                 # Extract index information from oid
                 row_index = oid[ len(node.oid): ]
@@ -345,12 +345,12 @@ class MibRetriever(object):
 
     def retrieve_columns(self, column_names):
         """Retrieve a set of table columns.
-        
+
         The table columns may come from different tables, as long as
         the table rows are indexed the same way.
 
         Returns a deferred whose result is a dictionary:
-  
+
           { row_index: MibTableResultRow instance }
 
         """
@@ -389,7 +389,7 @@ class MibRetriever(object):
 
         Retrieves an entire MIB table.  Returns a deferred whose
         result is a dictionary:
-  
+
           { row_index: MibTableResultRow instance }
 
         Each dictionary key is a row index (an oid suffix tuple).  Each
@@ -428,7 +428,7 @@ class MibRetriever(object):
         return deferred
 
     def translate_result(self, result):
-        """Translate result values to pythonic values according to object 
+        """Translate result values to pythonic values according to object
         syntax.
 
         Given a table result from one of this object's retrievers,
@@ -442,8 +442,8 @@ class MibRetriever(object):
                 if column in self.nodes:
                     row[column] = self.nodes[column].to_python(row[column])
         return result
-                    
-                    
+
+
 def convert_oids(mib):
     """Convert a mib data structure's oid strings to OID objects.
 
