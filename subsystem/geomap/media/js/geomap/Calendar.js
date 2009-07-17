@@ -1,7 +1,10 @@
-function Calendar(idPrefix, changeCallback, interval) {
+function Calendar(idPrefix, changeCallback, interval,
+		  dateSelectable, monthSelectable) {
     this.idPrefix = idPrefix;
     this.changeCallback = changeCallback;
     this.interval = interval;
+    this.dateSelectable = dateSelectable || function() { return true; };
+    this.monthSelectable = monthSelectable || function() { return true; };
 
     this.writeInitialHTML();
     this.updateHTML();
@@ -11,6 +14,8 @@ Calendar.prototype = {
     idPrefix: null,
     changeCallback: null,
     interval: null,
+    dateSelectable: null,
+    monthSelectable: null,
 
     get time() { return this.interval.time; },
     set time(t) {
@@ -49,18 +54,13 @@ Calendar.prototype = {
 	    return function() { cal.select(time); };
 	}
 
-	function selectionType(unit) {
-	    if (unit == 'year' || unit == 'month')
-		return '';
-	    if (unit == 'week')
-		return 'row-selection';
-	    return 'cell-selection';
-	}
-
 	function updateMovementButton(id, timeOffset) {
 	    var elem = cal.getElem(id);
-	    elem.onclick = makeSelectFunc(cal.time.add(timeOffset));
-	    elem.setAttribute('class', 'selectable');
+	    var time = cal.time.add(timeOffset);
+	    var selectable = cal.monthSelectable(time);
+	    
+	    elem.onclick = selectable ? makeSelectFunc(time) : function(){};
+	    elem.className = selectable ? 'selectable' : '';
 	}
 
 	function todayp(t) {
@@ -74,6 +74,7 @@ Calendar.prototype = {
 		{day: day || (row == 0 ? 1 : cal.time.daysInMonth)});
 	    var selected = (day == cal.time.day);
 	    var selectable =
+		cal.dateSelectable(time) &&
 		!selected && !rowSelected &&
 		selectUnit != 'month' &&
 		(day != null || selectUnit == 'week');
@@ -89,12 +90,15 @@ Calendar.prototype = {
 
 	function updateRow(row) {
 	    var elem = cal.getElem('row-'+row);
+	    var time = cal.time.relative(
+		{day: firstWith(identity, tab[row])}).weekCenter();
 	    var selected =
 		(selectUnit == 'month' ||
 		 (selectUnit == 'week' &&
-		  cal.interval.contains(cal.time.relative(
-		      {day: firstWith(identity, tab[row])}))));
-	    var selectable = (selectUnit == 'week') && !selected;
+		  cal.interval.contains(time)));
+	    var selectable =
+		cal.dateSelectable(time) &&
+		(selectUnit == 'week') && !selected;
 
 	    elem.className = (selected ? 'selected' :
 			      (selectable ? 'selectable' : ''));
@@ -103,9 +107,6 @@ Calendar.prototype = {
 	}
 
 	this.getElem().className = 'enabled';
-
-	this.getElem('body').className =
-	    selectionType(this.interval.getSize().unit);
 
 	map(updateMovementButton,
 	    ['prev-year', 'next-year', 'prev-month', 'next-month'],

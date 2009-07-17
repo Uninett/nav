@@ -26,10 +26,21 @@ function TimeNavigator(idPrefix, changeCallback, initialInterval) {
 	this.interval = initialInterval;
     else
 	this.interval = new TimeInterval(TI_5MIN);
+    this.changeCallback = changeCallback;
+
+    hasBeen = encapsulate(this, function(time) {
+	//return time.compare(new Time()) <= 0;
+	return new TimeInterval(this.interval.size, time).hasBeen();
+    });
+    function monthSelectable(time) {
+	return new TimeInterval(this.interval.size,
+				time.relative({day: 1})).hasBeen();
+    }
     this.calendar = new Calendar(idPrefix+'-calendar',
 				 encapsulate(this, this.calendarChanged),
-				 this.interval);
-    this.changeCallback = changeCallback;
+				 this.interval,
+				 hasBeen, monthSelectable);
+
     this.updateUI();
 }
 
