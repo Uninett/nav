@@ -130,7 +130,9 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
     hidePopup:
     function(popup) {
 	if (popup) popup.hide();
-    }
+    },
+
+    CLASS_NAME: "PopupControl"
 
 });
 

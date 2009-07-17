@@ -26,17 +26,12 @@ var themap;
 var mapnikLayer;
 var osmaLayer;
 var netLayer;
-var bboxStrategy;
-var netPopupControl;
-var netLayerStyle;
 var posControl;
 var timeNavigator;
 
 var mapElemId;
 
 var mapFullscreen = false;
-
-var calendar;
 
 /*
  * Called when the web page which should show the map is
@@ -53,7 +48,7 @@ function init(map_element_id, url) {
     window.onresize = setMapSize;
 
     timeNavigator = new TimeNavigator('time-navigation',
-				      selectedTimeInterval)
+				      function() { netLayer.update(); });
 
     themap = new OpenLayers.Map(map_element_id, {
         controls:[
@@ -70,77 +65,16 @@ function init(map_element_id, url) {
     osmaLayer = new OpenLayers.Layer.OSM.Osmarender("Osmarender");
     themap.addLayer(osmaLayer);
 
-    var format = new OpenLayers.Format.GeoJSON({
-	externalProjection: new OpenLayers.Projection('EPSG:4326'),
-	internalProjection: themap.getProjectionObject()
-    });
-
-    netLayerStyle = new OpenLayers.StyleMap({
-	pointRadius: 15,
-	strokeWidth: 10,
-	strokeOpacity: 0.4,
-	strokeLinecap: 'butt',
-	fillOpacity: 0.7,
-	fillColor: 'black',
-	strokeColor: 'red',
-	graphicZIndex: 1
-    });
-    netLayerStyle.addUniqueValueRules('default', 'type', {
-	node: {
-	    fillColor: '${color}',//'#ee9900',
-	    strokeColor: 'black',
-	    strokeWidth: 0,
-	    pointRadius: '${size}',
-	    graphicZIndex: 2
-	},
-	edge: {
-	    strokeColor: '${color}',//'#333399',
-	    strokeWidth: '${size}',
-	    graphicZIndex: 1
-	}
-    });
-
-    bboxStrategy = new OpenLayers.Strategy.BBOX({resFactor: 1.1});
-
-    netLayer = new OpenLayers.Layer.Vector('Networks', {
-	strategies: [bboxStrategy],
-		     //new OpenLayers.Strategy.Cluster()],
-	protocol: new MyHTTPProtocol({
-	    url: url,
-	    params: {
-		format: 'geojson',
-		limit: 30,
-	    },
-	    dynamicParams: {
-		viewportWidth:
-		{'function': function() { return themap.getSize().w }},
-		viewportHeight:
-		{'function': function() { return themap.getSize().h }},
-		timeStart: {'function': getTimeIntervalStart},
-		timeEnd: {'function': getTimeIntervalEnd}
-	    },
-	    format: new OpenLayers.Format.GeoJSON()
-	}),
-	styleMap: netLayerStyle,
-	rendererOptions: {zIndexing: true},
-	eventListeners: {
+    netLayer = new NetworkLayer(
+	'Networks', url,
+	{start: function() { return timeNavigator.interval.beginning(); },
+	 end: function() { return timeNavigator.interval.end(); }},
+	{eventListeners: {
 	    loadstart: netLayerLoadStart,
 	    loadend: netLayerLoadEnd,
-	    loadcancel: netLayerLoadCancel
-	},
-	onMapMove: function() {
-	    this.redraw();
-	},
-	setMap: function(map) {
-	    OpenLayers.Layer.Vector.prototype.setMap.apply(this, arguments);
-	    map.events.register('move', this, this.onMapMove);
-	},
-    });
+	    loadcancel: netLayerLoadCancel }
+	});
     themap.addLayer(netLayer);
-
-    netPopupControl = new PopupControl(netLayer);
-    themap.addControl(netPopupControl);
-    netPopupControl.activate();
 
     posControl = new PositionControl();
     themap.addControl(posControl);
@@ -161,36 +95,6 @@ function init(map_element_id, url) {
 	 get time() { return timeNavigator.interval.toReadableString(); }},
 	[timeNavigator.onChange]);
 
-    //setTimeIntervalFormListeners();
-
-    //init_time_interval_form();
-
-    //initTimeIntervalForm('time-selection');
-}
-
-
-function updateNetData() {
-    bboxStrategy.triggerRead();
-}
-
-
-function selectedTimeInterval(interval) {
-    /*
-    var startE = document.getElementById('id_starttime');
-    var endE = document.getElementById('id_endtime');
-    startE.value = interval.beginning().format('%H:%M %Y%m%d');
-    endE.value = interval.end().format('%H:%M %Y%m%d');
-    */
-    updateNetData();
-}
-
-function getTimeIntervalStart() {
-    var timeFormat = '%H:%M %Y%m%d';
-    return timeNavigator.interval.beginning().format(timeFormat);
-}
-function getTimeIntervalEnd() {
-    var timeFormat = '%H:%M %Y%m%d';
-    return timeNavigator.interval.end().format(timeFormat);
 }
 
 
@@ -208,7 +112,7 @@ function netLayerLoadCancel() {
 
 
 function setMapSize() {
-    var mapE = document.getElementById('map')
+    var mapE = document.getElementById(mapElemId)
 
     if (mapFullscreen) {
 	mapE.style.position = 'absolute';
@@ -220,34 +124,12 @@ function setMapSize() {
 	mapE.style.height = 'auto';
 	mapE.style.width = 'auto';
     } else {
-	var height, width;
-
-	// several possibilities for preferred height:
-	height =
-	    window.innerHeight + mapE.clientHeight - document.body.clientHeight +
-	    document.getElementById('footer').clientHeight;
-	height =
-	    window.innerHeight + mapE.clientHeight -
-	    document.getElementById('footer').getBoundingClientRect().top;
-	height =
-	    window.innerHeight - mapE.getBoundingClientRect().top - 4;
-	height =
-	    window.innerHeight - mapE.offsetTop - 4;
-	height =
-	    window.innerHeight - elemOffsetTop(mapE) - 4;
-
-	width = window.innerWidth -
-	    document.getElementById('geomap-sidebar').clientWidth - 50;
-	width = window.innerWidth - 400;
+	var height = window.innerHeight - elemOffsetTop(mapE) - 4;
+	var width = window.innerWidth - 400;
 
 	mapE.style.position = '';
 	mapE.style.height = height + 'px';
 	mapE.style.width = width + 'px';
-
-	    /*
-	mapE.style.height = '600px';
-	mapE.style.width = '800px';
-	    */
     }
     if (themap)
 	themap.updateSize();
