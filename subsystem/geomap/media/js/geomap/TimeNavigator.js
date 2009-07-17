@@ -31,18 +31,16 @@ function TimeNavigator(idPrefix, changeCallback, initialInterval) {
     if (changeCallback)
 	addHook(this.onChange, changeCallback);
 
-    hasBeen = encapsulate(this, function(time) {
-	//return time.compare(new Time()) <= 0;
-	return new TimeInterval(this.interval.size, time).hasBeen();
+    var dateSelectable = encapsulate(this, function(time) {
+	return this.interval.gotoTime(time).selectable();
     });
     function monthSelectable(time) {
-	return new TimeInterval(this.interval.size,
-				time.relative({day: 1})).hasBeen();
+	return new TimeInterval(TI_MONTH, time).selectable();
     }
     this.calendar = new Calendar(idPrefix+'-calendar',
 				 encapsulate(this, this.calendarChanged),
 				 this.interval,
-				 hasBeen, monthSelectable);
+				 dateSelectable, monthSelectable);
 
     this.updateUI();
 }

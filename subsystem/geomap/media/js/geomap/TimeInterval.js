@@ -103,12 +103,18 @@ function TimeInterval(size, time) {
     if (time) {
 	this.time = new Time(time, true);
     } else {
-	this.time = new Time().add(makeObject(this.sizeUnit(), -this.sizeN()));
+	this.time = new Time();
+	if (this.size == TI_5MIN) {
+	    this.time = this.time.add(makeObject(this.sizeUnit(),
+						 -this.sizeN()));
+	}
     }
     if (size == TI_WEEK) {
 	this.time = this.time.weekCenter();
-    } else if (size == TI_5MIN) {
-	this.time.minute -= this.time.minute % 5;
+    }
+    if (this.sizeN() != 1) {
+	this.time[this.sizeUnit()] -=
+	    this.time[this.sizeUnit()] % this.sizeN();
     }
 }
 
@@ -159,12 +165,23 @@ TimeInterval.prototype = {
 	return this.end().compare(new Time()) <= 0;
     },
 
+    hasStarted: function() {
+	return this.beginning().compare(new Time()) <= 0;
+    },
+
+    selectable: function() {
+	return (this.size == TI_5MIN ? this.hasBeen() : this.hasStarted());
+    },
+
+    gotoTime: function(time) {
+	return new TimeInterval(this.size, time);
+    },
+
     add: function(size, num) {
 	if (typeof size == 'number')
 	    size = TI_SIZES[size];
-	return new TimeInterval(this.size,
-				this.time.add(makeObject(size.unit,
-							 size.n*num)));
+	return this.gotoTime(this.time.add(makeObject(size.unit,
+						      size.n*num)));
     },
 
     next: function() {
@@ -172,7 +189,7 @@ TimeInterval.prototype = {
     },
 
     nextPossible: function() {
-	return this.next().hasBeen();
+	return this.next().selectable();
     },
 
     nextJump: function() {
@@ -180,7 +197,7 @@ TimeInterval.prototype = {
     },
 
     nextJumpPossible: function() {
-	return this.nextJump().hasBeen();
+	return this.nextJump().selectable();
     },
 
     prev: function() {
@@ -214,7 +231,7 @@ TimeInterval.prototype = {
 		this.time[this.sizeUnit()])
 		break;
 	    var choice = new TimeInterval(this.size+1, choiceTime);
-	    if (!choice.hasBeen())
+	    if (!choice.selectable())
 		break;
 	    choices.push(choice);
 	}
