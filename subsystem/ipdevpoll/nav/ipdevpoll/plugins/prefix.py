@@ -78,17 +78,7 @@ class Prefix(Plugin):
             if not ip:
                 continue
 
-            interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
-            interface.ifindex = ifindex
-            interface.netbox = netbox
-
-            prefix = self.job_handler.container_factory(storage.Prefix, key=net_prefix)
-            prefix.net_address = net_prefix
-
-            port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
-            port_prefix.interface = interface
-            port_prefix.prefix = prefix
-            port_prefix.gw_ip = ip
+            self.create_containers(netbox, ifindex, net_prefix, ip)
 
         # End run if we got ipAddressTable-result
         if results:
@@ -106,17 +96,7 @@ class Prefix(Plugin):
             ifindex = result['ipAdEntIfIndex']
             net_prefix = str(IP(result['ipAdEntAddr']).make_net(result['ipAdEntNetMask']))
 
-            interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
-            interface.ifindex = ifindex
-            interface.netbox = netbox
-
-            prefix = self.job_handler.container_factory(storage.Prefix, key=net_prefix)
-            prefix.net_address = net_prefix
-
-            port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
-            port_prefix.interface = interface
-            port_prefix.prefix = prefix
-            port_prefix.gw_ip = ip
+            self.create_containers(netbox, ifindex, net_prefix, ip)
 
         # Check IPv6 - Only Cisco for now, couldn't find any
         # netboxes that aswered on IPv6MIB correctly
@@ -135,20 +115,26 @@ class Prefix(Plugin):
                 net_prefix = netmask.make_net(pfx)
                 ifindex = result['cIpAddressIfIndex']
 
-                interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
-                interface.ifindex = ifindex
-                interface.netbox = netbox
-
-                prefix = self.job_handler.container_factory(storage.Prefix, key=net_prefix)
-                prefix.net_address = str(net_prefix)
-
-                port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
-                port_prefix.interface = interface
-                port_prefix.prefix = prefix
-                port_prefix.gw_ip = str(ip)
+                self.create_containers(netbox, ifindex, net_prefix, ip)
 
             except IndexToIpException:
                 pass
+
+    def create_containers(self, netbox, ifindex, net_prefix, ip):
+        """
+        Utitilty method for creating the shadow-objects
+        """
+        interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
+        interface.ifindex = ifindex
+        interface.netbox = netbox
+
+        prefix = self.job_handler.container_factory(storage.Prefix, key=net_prefix)
+        prefix.net_address = str(net_prefix)
+
+        port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
+        port_prefix.interface = interface
+        port_prefix.prefix = prefix
+        port_prefix.gw_ip = str(ip)
 
     def error(self, failure):
         """
