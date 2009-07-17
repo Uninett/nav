@@ -231,7 +231,7 @@ TimeInterval.prototype = {
     },
 
     toReadableString: function() {
-	return this.size + ',' + this.beginning().toReadableString();
+	return this.size + '-' + this.beginning().toReadableString();
     },
 
     read: function(str) {
@@ -239,7 +239,7 @@ TimeInterval.prototype = {
 	    throw new Error('TimeInterval.read -- ' +
 			    format.apply(null, arguments));
 	}
-	m = /(\d+),(.+)/.exec(str)
+	m = /(\d+)-(.+)/.exec(str)
 	if (!m)
 	    err('not a valid interval string: "%s"', str);
 	var size = Number(m[1]);

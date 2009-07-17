@@ -26,7 +26,10 @@ function TimeNavigator(idPrefix, changeCallback, initialInterval) {
 	this.interval = initialInterval;
     else
 	this.interval = new TimeInterval(TI_5MIN);
-    this.changeCallback = changeCallback;
+
+    this.onChange = makeHook();
+    if (changeCallback)
+	addHook(this.onChange, changeCallback);
 
     hasBeen = encapsulate(this, function(time) {
 	//return time.compare(new Time()) <= 0;
@@ -51,10 +54,11 @@ TimeNavigator.prototype = {
     interval: null,
 
     /*
-     * Function called with the new interval as argument each time the
-     * selection is changed.
+     * Hook called with the new interval as argument each time the
+     * selection is changed. (use addHook to add more functions to
+     * this).
      */
-    changeCallback: null,
+    onChange: null,
 
     /*
      * Common prefix of id attribute of all HTML elements to be
@@ -70,7 +74,7 @@ TimeNavigator.prototype = {
     setInterval: function(newInterval) {
 	this.interval = newInterval;
 	this.updateUI();
-	this.changeCallback(newInterval);
+	callHook(this.onChange, newInterval);
     },
 
     /*

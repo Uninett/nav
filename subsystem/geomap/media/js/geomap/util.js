@@ -353,3 +353,16 @@ function range(start, end, step) {
     return result;
 }
 
+
+function makeHook() {
+    return [];
+}
+
+function addHook(hook, func) {
+    hook.push(func);
+}
+
+function callHook(hook) {
+    var args = subarray(arguments, 1);
+    hook.forEach(function (f) { f.apply(null, args); });
+}

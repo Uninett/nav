@@ -110,8 +110,6 @@ function init(map_element_id, url) {
 	    params: {
 		format: 'geojson',
 		limit: 30,
-		//timeStart: parameters['timeStart'],
-		//timeEnd: parameters['timeEnd']
 	    },
 	    dynamicParams: {
 		viewportWidth:
@@ -151,16 +149,17 @@ function init(map_element_id, url) {
     var lonLat = new OpenLayers.LonLat(lon, lat).transform(themap.displayProjection, themap.getProjectionObject());
     themap.setCenter(lonLat, zoom, false);
     
-    var permalinkControl = new OpenLayers.Control.Permalink();
-    var argsControl = new permalinkControl.argParserClass();
-    themap.addControl(permalinkControl);
-    themap.addControl(argsControl);
-
     if (parameters.bbox) {
 	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
 	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
 	themap.zoomToExtent(requestedBounds);
     }
+
+    var permalink = new Permalink(
+	'permalink', themap,
+	{set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
+	 get time() { return timeNavigator.interval.toReadableString(); }},
+	[timeNavigator.onChange]);
 
     //setTimeIntervalFormListeners();
 
