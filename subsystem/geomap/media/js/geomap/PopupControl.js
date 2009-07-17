@@ -22,8 +22,7 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 
     mousePos: {x:0,y:0},
 
-    initialize:
-    function(layer, options) {
+    initialize: function(layer, options) {
 	OpenLayers.Control.prototype.initialize.apply(this, [options]);
 	this.layer = layer;
 	this.popups = {};
@@ -37,27 +36,23 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	this.handler = new OpenLayers.Handler.Feature(this, this.layer, callbacks);
     },
 
-    setMap:
-    function(map) {
+    setMap: function(map) {
 	OpenLayers.Control.prototype.setMap.apply(this, arguments);
 	this.map.events.register('mousemove', this, this.mouseMoved);
     },
 
 
-    mouseMoved:
-    function(event) {
+    mouseMoved: function(event) {
 	this.mousePos = this.map.events.getMousePosition(event);
     },
     
 
-    clickFeature:
-    function(feature) {
+    clickFeature: function(feature) {
 	setOutput('CLICK ' + feature.data.name);
 	this.showPopup(this.getPopup(feature.data.popup));
     },
 
-    overFeature:
-    function(feature) {
+    overFeature: function(feature) {
 	setOutput('OVER ' + feature.data.name);
 	if (feature.data.miniPopup == null) return;
 	clearTimeout(feature.data.miniPopupTimeout);
@@ -77,8 +72,7 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	}
     },
 
-    outOfFeature:
-    function(feature) {
+    outOfFeature: function(feature) {
 	setOutput('nothing');
 	if (feature.data.miniPopup == null) return;
 	var t = this;
@@ -118,8 +112,7 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	return popup;
     },
 
-    showPopup:
-    function(popup) {
+    showPopup: function(popup) {
 	if (!popup) return;
 	popup.lonlat = this.map.getLonLatFromPixel(this.mousePos);
 	this.map.removePopup(popup);
@@ -127,8 +120,7 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	popup.show();
     },
 
-    hidePopup:
-    function(popup) {
+    hidePopup: function(popup) {
 	if (popup) popup.hide();
     },
 

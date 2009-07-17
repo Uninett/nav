@@ -35,33 +35,33 @@ var coordinatePrintPrecision = 7;
  * -- http://spatialreference.org/
  */
 function utmProjectionName(zone, hemisphere) {
-	return 'EPSG:32' + (hemisphere=='N'?'6':'7') + zone;
+    return 'EPSG:32' + (hemisphere=='N'?'6':'7') + zone;
 }
 
 function utmProjection(zone, hemisphere) {
-	var projName = utmProjectionName(zone, hemisphere);
-	return new OpenLayers.Projection(projName);
+    var projName = utmProjectionName(zone, hemisphere);
+    return new OpenLayers.Projection(projName);
 }
 
 function parseUtm(utmStr) {
-	var defaultHemisphere = 'N';
-	var utmRE = /^\W*([0-9][0-9])([NS]?)\W+([0-9]*[.]?[0-9]+)\W+([0-9]*[.]?[0-9]+)\W*$/;
-	var arr = utmRE.exec(utmStr);
-	if (arr == null) {
-		throw 'error: incorrectly formatted UTM string "' +
-			utmStr + '"';
-	}
-	var utm = {};
-	utm.zone = arr[1];
-	utm.hemisphere = (arr[2]=='' ? defaultHemisphere : arr[2]);
-	utm.n = arr[3];
-	utm.e = arr[4];
-	return utm;
+    var defaultHemisphere = 'N';
+    var utmRE = /^\W*([0-9][0-9])([NS]?)\W+([0-9]*[.]?[0-9]+)\W+([0-9]*[.]?[0-9]+)\W*$/;
+    var arr = utmRE.exec(utmStr);
+    if (arr == null) {
+	throw 'error: incorrectly formatted UTM string "' +
+	    utmStr + '"';
+    }
+    var utm = {};
+    utm.zone = arr[1];
+    utm.hemisphere = (arr[2]=='' ? defaultHemisphere : arr[2]);
+    utm.n = arr[3];
+    utm.e = arr[4];
+    return utm;
 }
 
 function utmToStr(utm) {
-	return format('%d%s %d %d',
-		      utm.zone, utm.hemisphere, utm.n, utm.e);
+    return format('%d%s %d %d',
+		  utm.zone, utm.hemisphere, utm.n, utm.e);
 }
 
 
@@ -72,16 +72,16 @@ function utmToStr(utm) {
 
 
 function parseLonLat(llStr) {
-	var re = /^([0-9]*[.]?[0-9]+), *([0-9]*[.]?[0-9]+)$/;
-	var arr = re.exec(llStr);
-	if (arr == null)
-		throw 'error: incorrectly formatted longitude, latitude string "' +
-			llStr + '"';
-	return new OpenLayers.LonLat(arr[2], arr[1]);
+    var re = /^([0-9]*[.]?[0-9]+), *([0-9]*[.]?[0-9]+)$/;
+    var arr = re.exec(llStr);
+    if (arr == null)
+	throw 'error: incorrectly formatted longitude, latitude string "' +
+	llStr + '"';
+    return new OpenLayers.LonLat(arr[2], arr[1]);
 }
 
 function lonLatToStr(lonlat) {
-	return format('%7f, %6f', lonlat.lat, lonlat.lon);
+    return format('%7f, %6f', lonlat.lat, lonlat.lon);
 }
 
 
@@ -91,35 +91,35 @@ function lonLatToStr(lonlat) {
  */
 
 function utmStrToLonLat(utmStr) {
-	return utmToLonLat(parseUtm(utmStr));
+    return utmToLonLat(parseUtm(utmStr));
 }
 
 function utmToLonLat(utm) {
-	var point = new OpenLayers.LonLat(utm.e, utm.n);
-	var proj = utmProjection(utm.zone, utm.hemisphere);
-	//this.utmProj = proj;
-	/*
-	  for (var i = 0; i < 10000; i++)
-	  if (proj.proj.readyToUse)
-	  break;
-	*/
-	if (!proj.proj.readyToUse)
-		throw 'error: projection not ready';
-	return point.transform(proj, normalProjection);
+    var point = new OpenLayers.LonLat(utm.e, utm.n);
+    var proj = utmProjection(utm.zone, utm.hemisphere);
+    //this.utmProj = proj;
+    /*
+      for (var i = 0; i < 10000; i++)
+      if (proj.proj.readyToUse)
+      break;
+    */
+    if (!proj.proj.readyToUse)
+	throw 'error: projection not ready';
+    return point.transform(proj, normalProjection);
 }
 
 function lonLatToUtm(lonlat) {
-	var utm = {};
-	utm.zone = utmZone(lonlat);
-	utm.hemisphere = utmHemisphere(lonlat);
-	var point = lonlat.clone();
-	var proj = utmProjection(utm.zone, utm.hemisphere);
-	if (!proj.proj.readyToUse)
-		throw 'error: projection not ready';
-	point.transform(normalProjection, proj);
-	utm.n = point.lat;
-	utm.e = point.lon;
-	return utm;
+    var utm = {};
+    utm.zone = utmZone(lonlat);
+    utm.hemisphere = utmHemisphere(lonlat);
+    var point = lonlat.clone();
+    var proj = utmProjection(utm.zone, utm.hemisphere);
+    if (!proj.proj.readyToUse)
+	throw 'error: projection not ready';
+    point.transform(normalProjection, proj);
+    utm.n = point.lat;
+    utm.e = point.lon;
+    return utm;
 }
 
 
@@ -134,22 +134,22 @@ function lonLatToUtm(lonlat) {
  * LatLonUTMConversion Python file available at http://pygps.org/.
  */
 function utmZone(lonlat) {
-	var lon = lonlat.lon;
-	var lat = lonlat.lat;
-	
-	var zone = Math.floor((lon+180) / 6) + 1;
-	// zone 32 extended at southern part of Norway:
-	if (lat >= 56 && lat < 64 &&
-	    lon >= 3  && lon < 12)
-		zone = 32;
-	// zones around Svalbard are completely crazy:
-	if (lat >= 72 && lat < 84) {
-		if (lon >=  0 && lon <  9) zone = 31;
-		if (lon >=  9 && lon < 21) zone = 33;
-		if (lon >= 21 && lon < 33) zone = 35;
-		if (lon >= 33 && lon < 42) zone = 37;
-	}
-	return zone;
+    var lon = lonlat.lon;
+    var lat = lonlat.lat;
+    
+    var zone = Math.floor((lon+180) / 6) + 1;
+    // zone 32 extended at southern part of Norway:
+    if (lat >= 56 && lat < 64 &&
+	lon >= 3  && lon < 12)
+	zone = 32;
+    // zones around Svalbard are completely crazy:
+    if (lat >= 72 && lat < 84) {
+	if (lon >=  0 && lon <  9) zone = 31;
+	if (lon >=  9 && lon < 21) zone = 33;
+	if (lon >= 21 && lon < 33) zone = 35;
+	if (lon >= 33 && lon < 42) zone = 37;
+    }
+    return zone;
 }
 
 /*
@@ -157,7 +157,7 @@ function utmZone(lonlat) {
  * hemisphere, 'S' for southern.
  */
 function utmHemisphere(lonlat) {
-	return (lonlat.lat < 0) ? 'S' : 'N';
+    return (lonlat.lat < 0) ? 'S' : 'N';
 }
 
 
@@ -165,15 +165,15 @@ function utmHemisphere(lonlat) {
 
 
 function fromMapCoords(lonlat, map) {
-	var newLonlat = lonlat.clone();
-	newLonlat.transform(map.getProjectionObject(),
-			    normalProjection);
-	return newLonlat;
+    var newLonlat = lonlat.clone();
+    newLonlat.transform(map.getProjectionObject(),
+			normalProjection);
+    return newLonlat;
 }
 
 function toMapCoords(lonlat, map) {
-	var newLonlat = lonlat.clone();
-	newLonlat.transform(normalProjection,
-			    map.getProjectionObject());
-	return newLonlat;
+    var newLonlat = lonlat.clone();
+    newLonlat.transform(normalProjection,
+			map.getProjectionObject());
+    return newLonlat;
 }
