@@ -175,5 +175,4 @@ class Arp(Plugin):
             arp.mac = mac
             arp.prefix = find_prefix(ip, prefix)
             arp.netbox = self.netbox
-            arp.start_time = datetime.utcnow()
             arp.end_time = datetime.max
