@@ -34,7 +34,7 @@ from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherExce
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
-    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
+    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
@@ -47,7 +47,7 @@ SUPPORTED_MODELS = [
         AlertQueue, AlertType, EventType,
     # manage models
         Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        NetboxType, Organization, Prefix, Room, Subcategory, SwPort,
         Vendor, Vlan,
         Usage,
 ]
