@@ -110,6 +110,7 @@ class Shadow(object):
 
         self._touched = set()
         self.delete = False
+        self.update_only = False
 
     def __repr__(self):
         attrs = [field for field in self._fields
@@ -163,7 +164,11 @@ class Shadow(object):
 
         """
         # Get existing or create new instance
-        model = self.get_existing_model() or self.__shadowclass__()
+        model = self.get_existing_model()
+        if not model and self.update_only:
+            return None
+        elif not model:
+            model = self.__shadowclass__()
 
         # Copy all modified attributes to the empty model object
         for attr in self._touched:
