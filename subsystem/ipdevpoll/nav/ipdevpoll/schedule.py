@@ -191,27 +191,30 @@ class JobHandler(object):
             self.storage_queue.reverse()
             while self.storage_queue:
                 obj = self.storage_queue.pop()
-                if obj.delete:
-                    obj.get_model().delete()
+                obj_model = obj.get_model()
+                if obj.delete and obj_model:
+                        obj_model.delete()
                 else:
                     try:
-                        # Skip if object exists in database, and no fields
+                        # Skip if object exists in database and no fields
                         # are touched
                         if obj.getattr(obj, obj.__shadowclass__._meta.pk.name) \
                             and not obj.get_touched():
                             continue
                     except AttributeError:
                         pass
-                    obj.get_model().save()
-                    obj._touched = []
+                    if obj_model:
+                        obj_model.save()
+                        obj._touched = []
 
             transaction.commit()
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
             return total_time
         except Exception, e:
-            self.logger.debug("Caught exception during save. Last object = %s. Exception:\n%s" % (obj, e))
+            self.logger.debug("Caught exception during save. Last object = %s. Last model: %s  \nException:\n%s" % (obj,obj_model, e))
             transaction.rollback()
+            raise e
 
     def traverse_all_instances(self):
         for key in self.containers.keys():
