@@ -1015,3 +1015,38 @@ class AccountAlertQueue(models.Model):
             self.delete()
 
         return sent
+
+class StatusPreference(models.Model):
+    '''Preferences for the Status tool'''
+
+    SECTION_NETBOX = 'netbox'
+    SECTION_NETBOX_MAINTENANCE = 'netbox_maintenance'
+    SECTION_MODULE = 'module'
+    SECTION_SERVICE = 'service'
+    SECTION_SERVICE_MAINTENANCE = 'service_maintenance'
+    SECTION_THRESHOLD = 'threshold'
+
+    SECTION_CHOICES = (
+        (SECTION_NETBOX, 'IP Devices down'),
+        (SECTION_NETBOX_MAINTENANCE, 'IP Devices on maintenance'),
+        (SECTION_MODULE, 'Modules down'),
+        (SECTION_SERVICE, 'Services down'),
+        (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
+        (SECTION_THRESHOLD, 'Thresholds exceeded'),
+    )
+
+    name = models.TextField()
+    position = models.IntegerField()
+    type = models.CharField(choices=SECTION_CHOICES)
+    account = models.ForeignKey('Account', db_column='accountid')
+    organizations = models.ManyToManyField(
+        Organization, db_table='statuspreference_organization')
+    categories = models.ManyToManyField(
+        Category, db_table='statuspreference_category', blank=True)
+
+    services = models.TextField(blank=True)
+    states = models.TextField(blank=True)
+
+    class Meta:
+        db_table = u'statuspreference'
+        ordering = ('position',)
