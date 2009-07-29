@@ -1,3 +1,5 @@
+{% include "header.html" %}
+
 {% block base_toolbar %}
     {% if available_tools %}
         {% include "toolbar.html" %}
@@ -14,3 +16,5 @@
         {% endif %}
     {% endif %}
 {% endblock %}
+
+{% include "footer.html" %}

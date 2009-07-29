@@ -1,0 +1,18 @@
+<div id="footer">
+    <hr />
+    <p>
+        <a href="/about/">Network Administration Visualized</a>
+        version {{ version }}
+        <br />
+        {% if account.is_default_account %}
+        You are not logged in.
+        {% else %}
+        You are logged in as <a href="/userinfo/">{{ account.name }}</a>.
+        {% endif %}
+    </p>
+</div>
+
+</div>
+
+</body>
+</html>
