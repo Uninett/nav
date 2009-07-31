@@ -22,6 +22,7 @@ from datetime import datetime
 
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
+from django.views.generic.simple import direct_to_template
 
 from nav.config import readConfig
 from nav.path import sysconfdir
@@ -61,8 +62,8 @@ def index(request):
         if box.netbox.up == Netbox.UP_SHADOW:
             num_shadow += 1
 
-    return render_to_response(
-        DjangoCheetah,
+    return direct_to_template(
+        request,
         'webfront/index.html',
         {
             'date_now': datetime.today(),
@@ -73,16 +74,15 @@ def index(request):
             'current_messages': current_messages(),
             'boxes_down': down,
             'num_shadow': num_shadow,
-        },
-        RequestContext(request)
+        }
     )
 
 def login(request):
     if request.method == 'POST':
         return do_login(request)
 
-    from django.shortcuts import render_to_response
-    return render_to_response(
+    return direct_to_template(
+        request,
         'webfront/login.html',
         {
             'form': LoginForm(),
@@ -118,8 +118,8 @@ def do_login(request):
                 errors.append('Authentication failed for the specified username and password.')
 
     # Something went wrong. Display login page with errors.
-    from django.shortcuts import render_to_response
-    return render_to_response(
+    return direct_to_template(
+        request,
         'webfront/login.html',
         {
             'form': form,
@@ -133,29 +133,19 @@ def logout(request):
     return HttpResponseRedirect('/')
 
 def about(request):
-    return render_to_response(
-        DjangoCheetah,
+    return direct_to_template(
+        request,
         'webfront/about.html',
-        {},
-        RequestContext(request),
-        path=[
-            ('Home', '/'),
-            ('About', None),
-        ]
+        {}
     )
 
 def toolbox(request):
     account = get_account(request)
     tools = tool_list(account)
-    return render_to_response(
-        DjangoCheetah,
+    return direct_to_template(
+        request,
         'webfront/toolbox.html',
         {
             'tools': tools,
         },
-        RequestContext(request),
-        path=[
-            ('Home', '/'),
-            ('Toolbox', None),
-        ]
     )
