@@ -20,26 +20,41 @@ from django.template.loader import render_to_string
 from nav.models.profiles import Account
 from nav.buildconf import VERSION
 
-def header(user, title, navpath):
-    account = Account.objects.get(id=user['id'])
-    return render_to_string(
-        'header.html',
-        {
-            'title': title,
-            'navpath': navpath,
-            'account': account,
-            'navbar': user['preferences']['navbar'],
-            'qlink1': user['preferences']['qlink1'],
-            'qlink2': user['preferences']['qlink2'],
-        }
-    )
+class Cheetah(object):
+    """Provides a compability layer between cheetah and django.
+    """
+    def __init__(self, user, title, navpath):
+        self.user = Account.objects.get(id=user['id'])
+        self.title = title
+        self.navpath = navpath
+        
+        preferences = user.get('preferences', {})
+        self.navbar = preferences.get('navbar', [])
+        self.qlink1 = preferences.get('qlink1', [])
+        self.qlink2 = preferences.get('qlink2', [])
 
-def footer(user):
-    account = Account.objects.get(id=user['id'])
-    return render_to_string(
-        'footer.html',
-        {
-            'account': account,
-            'version': VERSION,
-        }
-    )
+    def header(self):
+        """Prints the django header template as a string.
+        """
+        return render_to_string(
+            'header.html',
+            {
+                'title': self.title,
+                'navpath': self.navpath,
+                'account': self.user,
+                'navbar': self.navbar,
+                'qlink1': self.qlink1,
+                'qlink2': self.qlink2,
+            }
+        )
+
+    def footer(self):
+        """Prints the django footer template as a string.
+        """
+        return render_to_string(
+            'footer.html',
+            {
+                'account': self.user,
+                'version': VERSION,
+            }
+        )

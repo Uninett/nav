@@ -53,7 +53,7 @@
 ##
 #from nav.web import shouldShow, cycler
 #import nav.buildconf
-#from nav.web.webfront.compability import header, footer
+#from nav.web.webfront.compability import Cheetah
 ##
 #attr $imagefolder = "/images"
 #attr $bodyOnLoad = ""
@@ -63,8 +63,10 @@
 #set global $rowcycler = cycler.cycler('evenrow', 'oddrow')
 #set global $cellcycler = cycler.cycler('evencell', 'oddcell')
 ##
+#set $compability = Cheetah($user, $title, $path)
+##
 #filter EncodeUnicode
-$header($user, $title, $path)
+$compability.header()
 
 <div id="navbody">
 
@@ -74,5 +76,5 @@ $header($user, $title, $path)
 #end def content
 $content()
 
-$footer($user)
+$compability.footer()
 #end filter
