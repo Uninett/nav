@@ -20,12 +20,15 @@
 from django.views.generic import list_detail
 from django.shortcuts import render_to_response as django_render_to_response
 
+from nav.buildconf import VERSION
+
 def render_to_response(cheetah_template_func, template_name, context,
         context_instance=None, path=[('Home', '/')]):
 
     context['deprecated'] = True
     context['navpath'] = path
     context['title'] = 'NAV'
+    context['version'] = VERSION
 
     return django_render_to_response(
         template_name,
@@ -41,6 +44,7 @@ def object_list(cheetah_template_func, *args, **kwargs):
     try:
         kwargs['extra_context']['deprecated'] = True
         kwargs['extra_context']['title'] = 'NAV'
+        kwargs['extra_context']['version'] = VERSION
         if path:
             kwargs['extra_context']['navpath'] = path
     except KeyError:
@@ -57,6 +61,7 @@ def object_detail(cheetah_template_func, *args, **kwargs):
     try:
         kwargs['extra_context']['deprecated'] = True
         kwargs['extra_context']['title'] = 'NAV'
+        kwargs['extra_context']['version'] = VERSION
         if path:
             kwargs['extra_context']['navpath'] = path
     except KeyError:
