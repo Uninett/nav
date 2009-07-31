@@ -23,6 +23,11 @@ from nav.buildconf import VERSION
 class Cheetah(object):
     """Provides a compability layer between cheetah and django.
     """
+    additional_meta = None
+    additional_css = None
+    additional_javascript = None
+    additional_head = None
+
     def __init__(self, user, title, navpath):
         self.user = Account.objects.get(id=user['id'])
         self.title = title
@@ -37,7 +42,7 @@ class Cheetah(object):
         """Prints the django header template as a string.
         """
         return render_to_string(
-            'header.html',
+            'compability/header.html',
             {
                 'title': self.title,
                 'navpath': self.navpath,
@@ -45,6 +50,12 @@ class Cheetah(object):
                 'navbar': self.navbar,
                 'qlink1': self.qlink1,
                 'qlink2': self.qlink2,
+                'additional': {
+                    'meta': self.additional_meta,
+                    'css': self.additional_css,
+                    'javascript': self.additional_javascript,
+                    'head': self.additional_head,
+                }
             }
         )
 
