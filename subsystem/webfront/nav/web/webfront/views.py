@@ -66,6 +66,7 @@ def index(request):
         request,
         'webfront/index.html',
         {
+            'navpath': [('Home', '/')],
             'date_now': datetime.today(),
             'external_links': external_links,
             'contact_information': contact_information,
@@ -136,7 +137,9 @@ def about(request):
     return direct_to_template(
         request,
         'webfront/about.html',
-        {}
+        {
+            'navpath': [('Home', '/'), ('About', None)],
+        }
     )
 
 def toolbox(request):
@@ -146,6 +149,7 @@ def toolbox(request):
         request,
         'webfront/toolbox.html',
         {
+            'navpath': [('Home', '/'), ('Toolbox', None)],
             'tools': tools,
         },
     )
