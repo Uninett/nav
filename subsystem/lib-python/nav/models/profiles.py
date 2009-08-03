@@ -155,6 +155,8 @@ class Account(models.Model):
 
         Copied from nav.db.navprofiles
         """
+        # FIXME If password is old style NAV MD5, shouldn't we update the
+        # password in the database to be new style password?
         if len(self.password.strip()) > 0:
             stored_hash = nav.pwhash.Hash()
             try:

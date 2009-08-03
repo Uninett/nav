@@ -136,13 +136,17 @@ def authenticate(username, password):
         if account.ext_sync == 'ldap' and ldapAuth.available:
             # Try to authenticate with LDAP if user has specified this.
             auth = ldapAuth.authenticate(username, password)
-            account.set_password(password)
-            account.save()
+            if auth:
+                account.set_password(password)
+                account.save()
         else:
             # Authenticate against database
             auth = account.check_password(password)
 
-    return account
+    if auth and account:
+        return account
+    else:
+        return None
 
 def login(request, account):
     '''Set user as authenticated in the session object.
