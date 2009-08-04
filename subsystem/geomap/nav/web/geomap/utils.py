@@ -42,8 +42,11 @@ def group(property, lst):
 
 
 def avg(lst):
-    """Return the average of the values in lst.  lst should be a list
-    of numbers.
+    """Compute the average of the values in lst.
+
+    Arguments:
+
+    lst -- a list of numbers.
 
     """
     if len(lst) == 0:
@@ -52,6 +55,13 @@ def avg(lst):
 
 
 def weighted_avg(lst):
+    """Compute a weighted average.
+
+    Arguments:
+
+    lst -- a list of tuples (value, weight)
+
+    """
     if len(lst) == 0:
         return 0
     total = sum(map(lambda (value,weight): value*weight, lst))
@@ -60,6 +70,18 @@ def weighted_avg(lst):
 
 
 def argmax(fun, lst):
+    """Find an argument to fun from lst giving maximal value.
+
+    Return value: An element m of lst with the property that for any
+    element e in lst, fun(m) >= fun(e).
+
+    Arguments:
+
+    fun -- the single-argument function to maximize
+
+    lst -- list of possible arguments to fun
+
+    """
     max_item = lst[0]
     max_val = fun(lst[0])
     for x in lst[1:]:
@@ -71,6 +93,32 @@ def argmax(fun, lst):
 
 
 def fix(fun, argvalues, argnums=0):
+    """Fix one or more arguments to a function.
+
+    Returns a new function which is like fun, but takes len(argvalues)
+    (or 1 if argvalues is not a list) fewer arguments. This function,
+    when called, combines the arguments it is given with argvalues,
+    passes the resulting list as arguments to fun, and returns the
+    result.
+
+    Arguments:
+
+    fun -- base function
+
+    argvalues -- fixed argument values. Passing a non-list value as
+    argvalues is equivalent to passing a single-element list
+    containing that value.
+
+    argnums -- positions of argvalues in the argument list. Must be
+    either a list of numbers with same length as argvalues or a
+    number. If it is a list, it specifies the position in fun's
+    argument list for each value in argvalues. If it is a single
+    number, it specifies the position for the first value in
+    argvalues; the remaining values are placed in the subsequent
+    positions.
+
+
+    """
     if not isinstance(argvalues, list):
         argvalues = [argvalues]
     def derived(*args, **kwargs):
@@ -79,16 +127,20 @@ def fix(fun, argvalues, argnums=0):
             args[argnums:argnums] = argvalues
         else:
             for i in xrange(len(argnums)):
+                # TODO this may put arguments in wrong places; should be fixed
                 args.insert(argnums[i], argvalues[i])
         return apply(fun, args, kwargs)
     return derived
 
 
 def numeric(obj):
+    """Check whether an object is a number."""
     return isinstance(obj, int) or isinstance(obj, float)
 
 
 def float_or_nan(string):
+    """Convert a string to a float if possible, otherwise return the NaN value.
+    """
     try:
         return float(string)
     except ValueError:
@@ -96,6 +148,16 @@ def float_or_nan(string):
 
 
 def compose(*functions):
+    """Function composition.
+
+    Each argument should be a single-argument function.
+
+    The return value is a function such that the following holds for
+    any x:
+
+      compose(f_1, f_2, ..., f_n)(x) == f_1(f_2(...(f_n(x))))
+
+    """
     return reduce(lambda f1, f2: lambda x: f1(f2(x)),
                   functions)
 
@@ -162,14 +224,59 @@ def concat_str(strs):
 
 
 class lazy_dict:
-    unevaluated = None
-    storage = None
+    """A dictionary with values that are computed only when needed.
+
+    This class provides a very limited form of lazy evaluation. When
+    setting a value in the dictionary, the value may be given either
+    directly or indirectly by a function for computing it. In the
+    latter case, the function will be called (and the resulting value
+    stored for later lookups) the first time the value is read from
+    the dictionary.
+
+    A lazy_dict may be used mostly as a dictionary. Values are read
+    and written with the usual bracket notation (d[key]). For lazy
+    values, a double bracket notation is provided. To set a lazy
+    value, use
+
+      d[[key]] = function
+
+    or
+
+      d[[key]] = (function, arg1, arg2, ...).
+
+    If the same key is later looked up with single brackets, this
+    function is called with these arguments (if any) and the resulting
+    value returned.
+
+    Double brackets may also be used for reading to copy a value (to
+    another lazy_dict or a different key in the same dictionary)
+    without evaluating it:
+
+      d1[[key1]] = d2[[key2]].
+
+    (The double bracket notation is not any special syntax, just a
+    trick to create something which looks like it. As far as Python is
+    concerned, the outermost brackets are exactly the same as in
+    single bracket notation, while the inner brackets denote list
+    construction. The bracket functionality is implemented by
+    __getitem__ and __setitem__ (since Python automagically translates
+    the expression d[k] to d.__getitem__(k) and the statement d[k]=v
+    to d.__setitem__(k,v)), and these simply check whether their first
+    argument is a list in order to determine whether single or double
+    brackets are used. (Note that a list can not be used as a
+    dictionary key, so this does not interfere with potential keys)).
+
+    """
+
+    unevaluated = None # set of keys whose values are not evaluated
+    storage = None # dictionary for storing functions and evaluated values
 
     def __init__(self, *args, **kwargs):
         self.unevaluated = set([])
         self.storage = dict(*args, **kwargs)
 
     def __getitem__(self, key):
+        """d.__getitem__(k) <==> d[k]"""
         if isinstance(key, list):
             real_key = key[0]
             val = self.storage[real_key]
@@ -182,24 +289,46 @@ class lazy_dict:
             return self.storage[key]
 
     def __contains__(self, key):
+        """d.__contains__(k) <==> k in d"""
         return self.storage.__contains__(key)
 
     def copy(self):
+        """Returns a new lazy_dict with the same contents as this.
+
+        Lazy (unevaluated) values are preserved as such in the
+        copy. If any of these values is later looked up in either the
+        original or in the copy, it will still remain unevaluated in
+        the other one.
+
+        """
         cp = lazy_dict()
         for key in self.keys():
             cp[[key]] = self[[key]]
         return cp
 
     def get(self, key, default=None):
+        """Returns self[key] if key is a key in self, default otherwise."""
         return self.force_and_call(key, 'get', key, default)
 
     def keys(self):
+        """Returns the dictionary's keys as a list."""
         return self.storage.keys()
 
     def items(self):
+        """Returns all (key,value) pairs (like dict.items).
+
+        This forces all values to be evaluated.
+
+        """
         return self.force_and_call(None, 'items')
 
     def update(self, d1, **d2):
+        """Add values from another dictionary and/or keyword arguments.
+
+        If d1 is a lazy_dict, laziness is preserved for elements added
+        from it.
+
+        """
         if isinstance(d1, lazy_dict):
             for key in d1.keys():
                 self[[key]] = d1[[key]]
@@ -210,9 +339,15 @@ class lazy_dict:
             self.update(d2)
 
     def values(self):
+        """Returns all the dictionary's values as a list.
+
+        This forces all values to be evaluated.
+
+        """
         return self.force_and_call(None, 'values')
 
     def __setitem__(self, key, val):
+        """d.__setitem__(key, val) <==> d[key] = val."""
         if isinstance(key, list):
             real_key = key[0]
             if isinstance(val, dict):
@@ -234,6 +369,12 @@ class lazy_dict:
             self.unevaluated.discard(key)
 
     def set_lazy(self, key, fun, *args):
+        """Set a lazy value.
+
+        Double bracket notation may be used instead of this function:
+        d.set_lazy(k, f, a1, a2) is equivalent to d[[k]] = (f, a1, a2).
+
+        """
         self.storage[key] = {'fun': fun, 'args': args}
         self.unevaluated.add(key)
 
@@ -241,6 +382,12 @@ class lazy_dict:
         return '<lazy_dict %s>' % self.storage
 
     def force(self, key):
+        """Force certain value(s) to be evaluated.
+
+        If key is None, evaluate all values. If key is a list evaluate
+        self[k] for each k in key. Otherwise, evaluate d[key].
+
+        """
         if len(self.unevaluated) == 0:
             return
         if key is None:
@@ -256,11 +403,16 @@ class lazy_dict:
             self.unevaluated.remove(key)
 
     def force_and_call(self, key, method, *args):
+        """Call a method on the underlying dict after forcing evaluation of key.
+        """
         self.force(key)
         return type(dict).__getattribute__(dict, method)(self.storage, *args)
 
 
 def map_dict_lazy(fun, d):
+    """Like map_dict, but produces a lazy_dict instead of a dict.
+
+    Each value in the dictionary is set lazily."""
     res = lazy_dict()
     for key in d:
         res.set_lazy(key, fun, d[key])

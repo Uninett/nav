@@ -16,6 +16,18 @@
 
 """Create points, lines and popups based on a graph.
 
+The terminology (in particular, the words 'feature' and 'geometry')
+and data representation used in this module are based on GeoJSON[1].
+
+A _feature_ is a point or a line. A feature has an associated
+_geometry_, which specifies the type ('Point' or 'LineString') and
+coordinates of the feature. A feature also has a color and a size, and
+a popup box (these are our own additions, not from GeoJSON). A feature
+also has a set of properties, which are arbitrary key/value pairs.
+
+___
+
+1: http://geojson.org/geojson-spec.html
 
 """
 
@@ -36,6 +48,7 @@ _edge_feature_properties = []
 
 
 def create_features(variant, graph):
+    """Create features (points/lines) and popups from a graph."""
     variant_config = get_configuration()['variants'][variant]
     indicators = variant_config['indicators']
     styles = variant_config['styles']
@@ -58,6 +71,7 @@ def create_features(variant, graph):
 
 
 def template_from_config(filename):
+    """Create a Django template from a configuration file."""
     if filename is None:
         return None
     confdir = os.path.join(nav.path.sysconfdir, 'geomap')
@@ -83,6 +97,18 @@ def template_from_config(filename):
 
 
 def apply_indicator(ind, properties):
+    """Apply an indicator to a list of properties.
+
+    The indicator specifies how to select a value for some style
+    property based on the properties. It contains a list of possible
+    values, each combined with a test expression which determines
+    whether it should be selected. Each test expression is evaluated
+    with properties as environment.
+
+    The result is a single-item dictionary with the style property
+    controlled by the indicator mapped to the computed value.
+
+    """
     for option in ind['options']:
         try:
             # Properties must be passed as locals, not globals,
@@ -101,6 +127,7 @@ def apply_indicator(ind, properties):
 
 
 def apply_indicators(indicators, properties):
+    """Apply a list of indicators to a list of properties."""
     return apply(union_dict,
                  map(fix(apply_indicator, properties, 1), indicators))
 
@@ -111,6 +138,21 @@ def apply_indicators(indicators, properties):
 
 
 def create_node_feature(node, popup_template, default_style, indicators):
+    """Create a feature representing a node.
+
+    Arguments:
+
+    node -- Node object (see graph.py)
+
+    popup_template -- template for the contents of the popup
+
+    default_style -- style values to use for properties which have no
+    indicator
+
+    indicators -- specifications of style properties based on
+    properties of the node
+
+    """
     style = union_dict(default_style,
                        apply_indicators(indicators, node.properties))
     return Feature(node.id, 'node', Geometry('Point', [node.lon, node.lat]),
@@ -120,6 +162,7 @@ def create_node_feature(node, popup_template, default_style, indicators):
 
 
 def create_node_popup(node, popup_template):
+    """Create the popup for a node."""
     if popup_template is None:
         return None
     content = popup_template.render(Context({'place': node}))
@@ -127,6 +170,31 @@ def create_node_popup(node, popup_template):
 
 
 def create_edge_features(edge, popup_template, default_style, indicators):
+    """Create features representing an edge.
+
+    Each edge is represented by _two_ features: one for each
+    direction. Both features are lines; each goes from one endpoint of
+    the edge to the point halfway between the endpoints. When applying
+    indicators, an additional property 'load' is supplied, with value
+    taken from 'load_in'/'load_out' depending on the direction.
+
+    The popup is the same for both features.
+
+    Return value: List of two features.
+
+    Arguments:
+
+    edge -- an Edge object (see graph.py)
+
+    popup_template -- template for the contents of the popup
+
+    default_style -- style values to use for properties which have no
+    indicator
+
+    indicators -- specifications of style properties based on
+    properties of the edge
+
+    """
     popup = create_edge_popup(edge, popup_template)
     def make_feature(id_suffix, source_coords, target_coords, properties):
         style = union_dict(default_style,
@@ -150,6 +218,7 @@ def create_edge_features(edge, popup_template, default_style, indicators):
 
 
 def create_edge_popup(edge, popup_template):
+    """Create the popup for a node."""
     if popup_template is None:
         return None
     content = popup_template.render(Context({'network': edge}))

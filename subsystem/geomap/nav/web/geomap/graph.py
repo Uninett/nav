@@ -31,6 +31,9 @@ from nav.web.geomap.utils import *
 logger = logging.getLogger('nav.web.geomap.graph')
 
 
+# Specifications of how to combine the properties when combining nodes
+# and edges:
+
 aggregate_properties_place = {
     'load': (max, 'load'),
     'num_rooms': len,
@@ -272,6 +275,24 @@ def collapse_nodes(graph, node_sets, subnode_list_name,
 
 
 def aggregate_properties(objects, aggregators):
+    """Combine the properties of a list of objects.
+
+    Constructs a lazy dictionary (see class lazy_dict in utils.js) of
+    properties.
+
+    Arguments:
+
+    objects -- a list of Node or Edge objects
+
+    aggregators -- dictionary, specifies how to combine the
+    properties. For each item in aggregators, a property with the same
+    key is created. The aggregator value should be either a function,
+    in which case the property value is created by calling that
+    function on the list of objects; or a pair (function, prop), in
+    which case the property value is created by calling the function
+    on a list containing each object's value for property prop.
+
+    """
     def apply_aggregator(aggr):
         if isinstance(aggr, tuple):
             fun = aggr[0]
@@ -333,6 +354,13 @@ def combine_edges(graph, property_aggregators={}):
 
 
 def equalize_edge_orientation(edges):
+    """Make all edges have the same direction.
+
+    Arguments:
+
+    edges -- list of edges between the same pair of nodes
+
+    """
     reference = edges[0]
     def fix_orientation(edge):
         if edge.source != reference.source:
@@ -342,6 +370,11 @@ def equalize_edge_orientation(edges):
 
 
 def reverse_edge(edge):
+    """Reverse the direction of an edge.
+
+    Returns a new Edge object; the argument is not modified.
+
+    """
     properties = edge.properties.copy()
     properties[['load_in']] = edge.properties[['load_out']]
     properties[['load_out']] = edge.properties[['load_in']]

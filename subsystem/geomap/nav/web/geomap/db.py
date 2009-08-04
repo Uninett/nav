@@ -14,11 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""Database access for Geomap.
+"""Data access for Geomap.
 
 This module abstracts away all the horrendous queries needed to get
-data for Geomap from the database and provides one simple function,
-get_data, which returns the stuff we want.
+data for Geomap from the database, as well as the code for reading RRD
+files, and provides one simple function, get_data, which returns the
+stuff we want.
 
 Based on datacollector.py in the Netmap subsystem.
 
@@ -43,7 +44,16 @@ _domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
 
 
 def get_data(db_cursor, bounds, time_interval=None):
-    """Returns a dictionary containing the netboxes with their modules, ports and connections"""
+    """Reads data from database.
+
+    Returns a pair of dictionaries (netboxes, connections). Each of these
+    contains, for each netbox/connection, a 'lazy dictionary' (see class
+    lazy_dict in utils.py) with information. (The reason for using
+    lazy_dict is that this allows postponing reading of RRD files until we
+    know it is necessary, while still keeping the code for reading them
+    here).
+
+    """
 
     if not db_cursor:
         raise nav.errors.GeneralException("No db-cursor given")
@@ -377,6 +387,9 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     return (netboxes, connections)
 
 
+
+# RRD FILES
+
 def get_rrd_link_load(rrdfile, time_interval):
     """Returns the ds1 and ds2 fields of an rrd-file (ifInOctets,
     ifOutOctets)"""
@@ -398,29 +411,9 @@ def get_rrd_cpu_load(rrdfile, time_interval):
 rrd_statistics = {'cache': 0,
                   'file': 0}
 
-_cache_key = None
-_cache_data = None
-
-def read_cache(time_interval):
-    global _cache_data, _cache_key
-    _cache_key = 'geomap-rrd-(%s,%s)' % \
-        (time_interval['start'], time_interval['end'])
-    _cache_key = _cache_key.replace(' ', '_')
-    _cache_data = cache.get(_cache_key)
-    if _cache_data is None:
-        _cache_data = {}
-
-def cache_get(key):
-    return _cache_data.get(key)
-
-def cache_set(key, val):
-    _cache_data[key] = val
-
-def store_cache():
-    cache.set(_cache_key, _cache_data, 60*5)
-
 
 def read_rrd_data(rrdfile, cf, time_interval, indices):
+    """Read data from an RRD file or cache."""
     rrdfile = rrd_file_name(rrdfile)
     key = '%s-(%s)' % (rrdfile, ','.join(map(str, indices)))
     val = cache_get(key)
@@ -446,6 +439,7 @@ def read_rrd_data(rrdfile, cf, time_interval, indices):
 
 
 def rrd_file_name(filename):
+    """Perform any necessary transformation of an RRD file name."""
     # TODO remove the following line (hack for using teknobyen-vk data
     # from navdev)
     filename = filename.replace('/home/nav/cricket-data', '/media/prod-rrd')
@@ -453,11 +447,13 @@ def rrd_file_name(filename):
 
 
 def rrd_args(time_interval):
+    """Create RRDtool arguments for the specified time interval."""
     return ['-s ' + str(time_interval['start']),
             '-e ' + str(time_interval['end'])]
 
 
 def validate_rrd_time(time):
+    """Validate a time specification in RRDtool format."""
     re_time = 'midnight|noon|teatime|\d\d([:.]\d\d)?([ap]m)?'
     re_day1 = 'yesterday|today|tomorrow'
     re_day2 = '(January|February|March|April|May|June|July|August|' + \
@@ -482,3 +478,49 @@ def validate_rrd_time(time):
 
     re_total = '^(%s)|((%s) ?(%s)?)$' % (re_offset, re_ref, re_offset)
     return re.match(re_total, time) is not None
+
+
+
+# CACHE
+#
+# We use Django's cache framework to cache data from RRD files, since
+# reading all the files may take a long time. To avoid putting
+# extremely many keys into the cache, all data for a single time
+# interval is stored under one key, as a dictionary. For a single
+# request, only one time interval is interesting, and the cached data
+# for this interval is read with the function read_cache by get_data
+# and should be stored by calling store_cache after all processing is
+# finished. The functions cache_get/cache_set provide an interface to
+# the individual values within the dictionary for the active time
+# interval.
+
+_cache_key = None
+_cache_data = None
+
+def read_cache(time_interval):
+    """Read all cached data for given time interval.
+
+    The data will be available by the cache_get function.
+
+    """
+    global _cache_data, _cache_key
+    _cache_key = 'geomap-rrd-(%s,%s)' % \
+        (time_interval['start'], time_interval['end'])
+    _cache_key = _cache_key.replace(' ', '_')
+    _cache_data = cache.get(_cache_key)
+    if _cache_data is None:
+        _cache_data = {}
+
+def cache_get(key):
+    """Get an object from the cache loaded by read_cache."""
+    return _cache_data.get(key)
+
+def cache_set(key, val):
+    """Set a value in the cache loaded by read_cache."""
+    _cache_data[key] = val
+
+def store_cache():
+    """Write back the cache loaded by read_cache."""
+    cache.set(_cache_key, _cache_data, 60*5)
+
+

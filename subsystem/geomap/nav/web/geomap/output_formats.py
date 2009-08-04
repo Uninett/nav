@@ -16,6 +16,10 @@
 
 """Formatting of data. Supported formats: GeoJSON, KML.
 
+See
+http://geojson.org/geojson-spec.html
+http://code.google.com/apis/kml/
+
 """
 
 
@@ -26,11 +30,13 @@ from nav.web.geomap.utils import *
 # GeoJSON:
 
 def make_geojson(featurelist):
+    """Create a GeoJSON representation of a list of features."""
     geojson = {'type': 'FeatureCollection',
                'features': map(make_geojson_feature, featurelist)}
     return write_json(geojson)
 
 def make_geojson_feature(feature):
+    """Create a GeoJSON object for a feature."""
     popup = None
     if feature.popup:
         popup = {'id': feature.popup.id,
@@ -56,6 +62,17 @@ json_escapes = [('\\', '\\\\'),
                 ('\r', '\\r')]
 
 def write_json(obj):
+    """Convert an object to a JSON string.
+
+    Dictionaries, lists, strings, numbers, booleans and None are
+    recognized and represented as JSON values in the obvious way. The
+    occurence of objects of any other type in obj is an error.
+
+    This function is only needed in pre-2.6 versions of Python. From
+    version 2.6, it may be replaced by the standard library's
+    json.dumps.
+
+    """
     if isinstance(obj, list):
         return '[' + ', '.join(map(write_json, obj)) + ']'
     if isinstance(obj, dict):
@@ -84,7 +101,7 @@ def make_kml(featurelist):
 
 
 
-# High-level functions
+# General
 
 _formats = {
     'geojson': (make_geojson, 'application/json'),
@@ -92,12 +109,22 @@ _formats = {
     };
 
 def format_data(format, featurelist):
+    """Format features in featurelist to a string.
+
+    Arguments:
+
+    format -- name of a format (key in _formats)
+
+    featurelist -- list of features
+
+    """
     if not format in _formats:
         raise Exception('unknown format %s' % format)
     formatter = _formats[format][0]
     return formatter(featurelist)
 
 def format_mime_type(format):
+    """Returns the MIME type for the specified format."""
     if not format in _formats:
         raise Exception('unknown format %s' % format)
     return _formats[format][1]
