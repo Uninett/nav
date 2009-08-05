@@ -107,7 +107,8 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	var popupclass = OpenLayers.Popup.AnchoredBubble;
 	popupclass= OpenLayers.Popup.FramedCloud;
 	popup = new popupclass(id, pos, size, content, anchor, closable);
-	popup.autoSize = false;
+	popup.maxSize = size;
+	popup.autoSize = true;
 	this.popups[id] = popup;
 	return popup;
     },
