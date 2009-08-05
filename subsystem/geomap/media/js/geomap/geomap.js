@@ -76,7 +76,7 @@ function init(map_element_id, url) {
 	});
     themap.addLayer(netLayer);
 
-    posControl = new PositionControl();
+    posControl = new PositionControl('pos');
     themap.addControl(posControl);
     posControl.activate();
 
