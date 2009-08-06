@@ -26,7 +26,7 @@ from nav.django.shortcuts import render_to_response
 import nav.db
 import psycopg2.extras
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import get_data, rrd_statistics, store_cache
+from nav.web.geomap.db import get_data, get_data_finish
 from nav.web.geomap.graph import build_graph, simplify
 from nav.web.geomap.features import create_features
 from nav.web.geomap.output_formats import format_data, format_mime_type
@@ -106,18 +106,8 @@ def data(request, variant):
     else:
         time_interval = None
 
-#     geojson = get_geojson(db, bounds, viewport_size, limit)
-
-    rrd_statistics['cache'] = 0
-    rrd_statistics['file'] = 0
-    rrd_statistics['file_keys'] = []
-    rrd_statistics['cache_keys'] = []
     data = get_formatted_data(variant, db, format, bounds, viewport_size,
                               limit, time_interval)
-    store_cache()
-    logger.debug('rrd statistics: cache hits=%d, file reads=%d' %
-                 (rrd_statistics['cache'], rrd_statistics['file']))
-    #data = ('//cache: %d, file: %d\n' % (rrd_statistics['cache'], rrd_statistics['file'])) + data
     response = HttpResponse(data)
     response['Content-Type'] = format_mime_type(format)
     response['Content-Type'] = 'text/plain' # TODO remove this
@@ -160,4 +150,6 @@ def get_formatted_data(variant, db, format, bounds, viewport_size, limit,
     logger.debug('create_features')
     features = create_features(variant, graph)
     logger.debug('format')
-    return format_data(format, features)
+    output = format_data(format, features)
+    get_data_finish()
+    return output

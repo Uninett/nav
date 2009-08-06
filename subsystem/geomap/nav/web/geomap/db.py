@@ -387,6 +387,17 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     return (netboxes, connections)
 
 
+def get_data_finish():
+    """Pick up loose threads left behind by get_data.
+
+    This should be called when the objects returned by get_data are no
+    longer used.  Since reading of data from RRD files is delayed
+    until it is needed, this module can never know when it is finished
+    reading RRD files unless being told explicitly.
+
+    """
+    store_cache()
+
 
 # RRD FILES
 
@@ -424,22 +435,11 @@ def get_rrd_cpu_load(rrdfile, time_interval):
     return rrd_data
 
 
-rrd_statistics = {'cache': 0,
-                  'file': 0}
-
-
 def read_rrd_data(rrdfile, cf, time_interval, indices):
     """Read data from an RRD file or cache."""
     rrdfile = rrd_file_name(rrdfile)
     key = '%s-(%s)' % (rrdfile, ','.join(map(str, indices)))
     val = cache_get(key)
-
-    if val is None:
-        rrd_statistics['file'] = rrd_statistics['file']+1
-        rrd_statistics['file_keys'].append(key)
-    else:
-        rrd_statistics['cache'] = rrd_statistics['cache']+1
-        rrd_statistics['cache_keys'].append(key)
 
     if val is None:
         try:
@@ -512,6 +512,7 @@ def validate_rrd_time(time):
 
 _cache_key = None
 _cache_data = None
+_cache_statistics = None
 
 def read_cache(time_interval):
     """Read all cached data for given time interval.
@@ -519,17 +520,23 @@ def read_cache(time_interval):
     The data will be available by the cache_get function.
 
     """
-    global _cache_data, _cache_key
+    global _cache_data, _cache_key, _cache_statistics
     _cache_key = 'geomap-rrd-(%s,%s)' % \
         (time_interval['start'], time_interval['end'])
     _cache_key = _cache_key.replace(' ', '_')
     _cache_data = cache.get(_cache_key)
     if _cache_data is None:
         _cache_data = {}
+    _cache_statistics = {'hit': 0, 'miss': 0}
 
 def cache_get(key):
     """Get an object from the cache loaded by read_cache."""
-    return _cache_data.get(key)
+    obj = _cache_data.get(key)
+    if obj is None:
+        _cache_statistics['miss'] += 1
+    else:
+        _cache_statistics['hit'] += 1
+    return obj
 
 def cache_set(key, val):
     """Set a value in the cache loaded by read_cache."""
@@ -537,6 +544,6 @@ def cache_set(key, val):
 
 def store_cache():
     """Write back the cache loaded by read_cache."""
+    logger.debug('RRD file cache: %d hits, %d misses' %
+                 (_cache_statistics['hit'], _cache_statistics['miss']))
     cache.set(_cache_key, _cache_data, 60*5)
-
-
