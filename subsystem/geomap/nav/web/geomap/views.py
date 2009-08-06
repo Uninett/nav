@@ -37,6 +37,11 @@ logger = logging.getLogger('nav.web.geomap.views')
 
 
 def geomap(request, variant):
+    """Create the page showing the map.
+
+    variant must be a variant name defined in the configuration file.
+
+    """
     config = get_configuration()
     if variant not in config['variants']:
         raise Http404
@@ -52,11 +57,25 @@ def geomap(request, variant):
 
             
 def forward_to_default_variant(request):
+    """Redirect the client to the default variant.
+
+    The default variant is the one listed first in the configuration
+    file.
+
+    """
     default_variant = get_configuration()['variant_order'][0]
     return HttpResponseRedirect(reverse('geomap', args=(default_variant,)))
 
 
 def data(request, variant):
+    """Respond to a data request.
+
+    GET paramaters in the request object specify the bounding box of
+    the area to retrieve data for and other parameters.
+
+    variant must be a variant name defined in the configuration file.
+
+    """
 #    connection = nav.db.getConnection('netmapserver', 'manage')
     # TODO remove this (using teknobyen-vk temporarily for testing)
     connection = psycopg2.connect(nav.db.get_connection_string(('teknobyen-vk.uninett.no',
