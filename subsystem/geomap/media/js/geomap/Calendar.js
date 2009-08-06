@@ -33,6 +33,9 @@ Calendar.prototype = {
     dateSelectable: null,
     monthSelectable: null,
 
+    num_rows: 6,
+    num_cols: 7,
+
     get time() { return this.interval.time; },
     set time(t) {
 	this.interval = new TimeInterval(this.interval.size, t);
@@ -54,10 +57,10 @@ Calendar.prototype = {
 	var makeRow = encapsulate(this, function(i) {
 	    return format('<tr id="%s-row-%d">%s</tr>',
 			  this.idPrefix, i,
-			  concat(map(fix(makeCell, i), range(7))));
+			  concat(map(fix(makeCell, i), range(this.num_cols))));
 	});
 	var monthElem = this.getElem('month');
-	monthElem.innerHTML = concat(map(makeRow, range(5)));
+	monthElem.innerHTML = concat(map(makeRow, range(this.num_rows)));
     },
     
     updateHTML: function() {
@@ -93,7 +96,7 @@ Calendar.prototype = {
 		cal.dateSelectable(time) &&
 		!selected && !rowSelected &&
 		selectUnit != 'month' &&
-		(day != null || selectUnit == 'week');
+		day != null;
 	    var classes =
 		(todayp(time) ? 'today ' : '') +
 		(selected ? 'selected' :
@@ -106,19 +109,22 @@ Calendar.prototype = {
 
 	function updateRow(row) {
 	    var elem = cal.getElem('row-'+row);
-	    var time = cal.time.relative(
-		{day: firstWith(identity, tab[row])}).weekCenter();
+	    var firstDay = firstWith(identity, tab[row], null)
+	    var time =
+		(firstDay != null ?
+		 cal.time.relative({day: firstDay}).weekCenter() :
+		 null);
 	    var selected =
 		(selectUnit == 'month' ||
 		 (selectUnit == 'week' &&
-		  cal.interval.contains(time)));
+		  time != null && cal.interval.contains(time)));
 	    var selectable =
-		cal.dateSelectable(time) &&
+		time != null && cal.dateSelectable(time) &&
 		(selectUnit == 'week') && !selected;
 
 	    elem.className = (selected ? 'selected' :
 			      (selectable ? 'selectable' : ''));
-	    for (var i = 0; i < 7; i++)
+	    for (var i = 0; i < cal.num_cols; i++)
 		updateCell(row, i, selected);
 	}
 
@@ -130,7 +136,7 @@ Calendar.prototype = {
 
 	this.getElem('header').innerHTML = this.time.format('%b %Y');
 
-	range(5).forEach(updateRow);
+	range(this.num_rows).forEach(updateRow);
     },
 
     getElem: function(id) {
@@ -144,9 +150,9 @@ Calendar.prototype = {
 
 	var cal = [];
 	var row, col, day;
-	for (row = 0, day = -firstWeekday+1; row < 5; row++) {
+	for (row = 0, day = -firstWeekday+1; row < this.num_rows; row++) {
 	    cal[row] = [];
-	    for (col = 0; col < 7; col++, day++) {
+	    for (col = 0; col < this.num_cols; col++, day++) {
 		if (day < 1 || day > lastDay) {
 		    cal[row][col] = null;
 		} else {
