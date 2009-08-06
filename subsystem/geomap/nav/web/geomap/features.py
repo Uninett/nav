@@ -35,6 +35,7 @@ import os
 import logging
 
 from django.template import Context, Template
+from django import template
 
 import nav
 from nav.web.geomap.conf import get_configuration
@@ -53,8 +54,8 @@ def create_features(variant, graph):
     indicators = variant_config['indicators']
     styles = variant_config['styles']
     template_files = variant_config['template_files']
-    node_popup_template = template_from_config(template_files['node_popup'])
-    edge_popup_template = template_from_config(template_files['edge_popup'])
+    node_popup_template = load_popup_template(template_files['node_popup'])
+    edge_popup_template = load_popup_template(template_files['edge_popup'])
 
     node_feature_creator = fix(create_node_feature,
                                [node_popup_template, styles['node'],
@@ -70,8 +71,56 @@ def create_features(variant, graph):
     return nodes+edges
 
 
-def template_from_config(filename):
-    """Create a Django template from a configuration file."""
+def filter_nan2none(value):
+    """Convert the NaN value to None, leaving everything else unchanged.
+
+    This function is meant to be used as a Django template filter. It
+    is useful in combination with filters that handle None (or any
+    false value) specially, such as the 'default' filter, when one
+    wants special treatment for the NaN value. It is also useful
+    before the 'format' filter to avoid the NaN value being formatted.
+
+    """
+    if is_nan(value):
+        return None
+    return value
+
+
+def filter_format(value, arg):
+    """Format value according to format string arg.
+
+    This function is meant to be used as a Django template filter.
+
+    """
+    try:
+        return arg % value
+    except:
+        return ''
+
+
+def load_popup_template(filename):
+    """Load the template for a popup.
+
+    Returns a django.template.Template object.
+
+    """
+    filters = {'nan2none': filter_nan2none,
+               'format': filter_format}
+    return template_from_config(filename, filters)
+
+
+def template_from_config(filename, filters={}):
+    """Create a Django template from a configuration file.
+
+    Arguments:
+
+    filename -- name of configuration file containing template
+    (relative to the geomap configuration directory)
+
+    filters -- additional template filters (see
+    compile_template_with_filters)
+
+    """
     if filename is None:
         return None
     confdir = os.path.join(nav.path.sysconfdir, 'geomap')
@@ -79,7 +128,35 @@ def template_from_config(filename):
     file = open(abs_filename, 'r')
     content = file.read()
     file.close()
-    return Template(content)
+    return compile_template_with_filters(content, filters)
+
+
+def compile_template_with_filters(template_string, filters):
+    """Compile a Django template, using additional filters.
+
+    This is like Template(template_string) except that additional
+    filters to be made available to the template may be specified.
+
+    Normally, one would define filters as documented in [1], but this
+    requires the INSTALLED_APPS settings to be set, which is not the
+    case in NAV[2]. This function is just a hack to get around that
+    limitation. The code is based on
+    django.template.compile_string[3].
+
+    filters should be a dictionary mapping filter names to functions.
+
+    [1]: http://docs.djangoproject.com/en/dev/howto/custom-template-tags/
+    [2]: http://metanav.uninett.no/devel:django_introduction#settings
+    [3]: http://code.djangoproject.com/browser/django/trunk/django/template/__init__.py
+
+    """
+    lib = template.Library()
+    for name in filters.keys():
+        lib.filter(name, filters[name])
+    lexer = template.Lexer(template_string, None)
+    parser = template.Parser(lexer.tokenize())
+    parser.add_library(lib)
+    return parser.parse()
 
 
 # def load_place_popup_template():
@@ -111,10 +188,16 @@ def apply_indicator(ind, properties):
     """
     for option in ind['options']:
         try:
-            # Properties must be passed as locals, not globals,
-            # since it may not be a dict object (we use lazy_dict
-            # from utils.py). (See documentation of eval).
-            test_result = eval(option['test'], {}, properties)
+            # Properties must be passed as locals, not globals, since
+            # it may not be a dict object (we use lazy_dict from
+            # utils.py). (See documentation of eval).
+            #
+            # Besides, we need to send the current globals() as
+            # globals in order to make our functions available to the
+            # configuration file (this is of course dangerous, since
+            # it allows the configuration file to do all kinds of
+            # nasty stuff, but it is also quite useful).
+            test_result = eval(option['test'], globals(), properties)
         except Exception, e:
             logger.warning(('Exception when evaluating test "%s" ' +
                             'for indicator "%s" on properties %s: %s') %

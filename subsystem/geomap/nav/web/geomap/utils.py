@@ -92,6 +92,25 @@ def argmax(fun, lst):
     return max_item
 
 
+def nansafe_max(lst):
+    """Find the maximum value in lst, ignoring any NaN values.
+
+    The builtin max function (on my system, at least) returns NaN if
+    the first value is NaN and the maximum of the non-NaN values in
+    all other cases; which means it gives different results for
+    different permutations of a list when both NaN and other values
+    are involved.
+
+    This function returns NaN if and only if _all_ values in lst are
+    NaN; otherwise it returns the largest non-NaN value.
+
+    """
+    values = filter(negate(is_nan), lst)
+    if len(values) == 0:
+        return float('nan')
+    return max(values)
+
+
 def fix(fun, argvalues, argnums=0):
     """Fix one or more arguments to a function.
 
@@ -147,6 +166,18 @@ def float_or_nan(string):
         return float('nan')
 
 
+def is_nan(val):
+    """Check if val is the special NaN (not a number) floating point value.
+
+    This test is, apparently, somewhat platform-dependent (see [1]).
+    From Python 2.6, this should be replaced by math.isnan.
+
+    [1]: http://groups.google.com/group/comp.lang.python/browse_thread/thread/17f4cae77e28814b/eaa6a2753877737d#msg_61950ec8cae12f8f
+
+    """
+    return val != val
+
+
 def compose(*functions):
     """Function composition.
 
@@ -160,6 +191,21 @@ def compose(*functions):
     """
     return reduce(lambda f1, f2: lambda x: f1(f2(x)),
                   functions)
+
+
+def negate(p):
+    """Negate the predicate (i.e., boolean function) p.
+
+    Returns a function np with the property that
+
+      np(x_1, ..., x_n) == not p(x_1, ..., x_n)
+
+    for all x_1, ..., x_n.
+
+    """
+    def np(*args):
+        return not p(*args)
+    return np
 
 
 def subdict(d, keys):

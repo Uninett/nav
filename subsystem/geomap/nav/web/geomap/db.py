@@ -324,7 +324,7 @@ ORDER BY from_sysname, sysname, swport.speed DESC
                          lambda file: get_rrd_link_load(file, time_interval),
                          res['rrdfile'])
         else:
-            res['load'] = ('unknown','unknown')
+            res['load'] = (float('nan'), float('nan'))
         res.set_lazy('load_in', lambda r: r['load'][0], res)
         res.set_lazy('load_out', lambda r: r['load'][1], res)
         if 'from_swportid' in res and res['from_swportid']:
@@ -393,19 +393,35 @@ ORDER BY from_sysname, sysname, swport.speed DESC
 def get_rrd_link_load(rrdfile, time_interval):
     """Returns the ds1 and ds2 fields of an rrd-file (ifInOctets,
     ifOutOctets)"""
+    nan = float('nan')
     if not rrdfile:
-        return ('unknown','unknown')
+        return (nan, nan)
     rrd_data = read_rrd_data(rrdfile, 'AVERAGE', time_interval, [2, 0])
     if rrd_data == 'unknown':
-        return ('unknown', 'unknown')
-    rrd_data = (rrd_data[0] or float('nan'), rrd_data[1] or float('nan'))
-    return ((rrd_data[1])/1024.0, (rrd_data[0])/1024.0)
+        return (nan, nan)
+    # Replace unknown values by nan:
+    rrd_data = (rrd_data[0] or nan, rrd_data[1] or nan)
+    # Make sure values are floats:
+    rrd_data = (float(rrd_data[0]), float(rrd_data[1]))
+    # Reverse the order (apparently, the original order is (out, in).
+    # I have no idea about whether that is correct or how to find out
+    # if it is; I know nothing, I only copied this from Netmap's
+    # datacollector.py):
+    rrd_data = (rrd_data[1], rrd_data[0])
+    # Convert from bit/s to Mibit/s to get same unit as the 'speed'
+    # property:
+    rrd_data = (rrd_data[0]/(1024*1024), rrd_data[1]/(1024*1024))
+    return rrd_data
 
 
 def get_rrd_cpu_load(rrdfile, time_interval):
+    nan = float('nan')
     if not rrdfile:
-        return 'unknown'
-    return read_rrd_data(rrdfile, 'AVERAGE', time_interval, [2, 0, 1])
+        return nan
+    rrd_data = read_rrd_data(rrdfile, 'AVERAGE', time_interval, [2, 0, 1])
+    if rrd_data == 'unknown':
+        return nan
+    return rrd_data
 
 
 rrd_statistics = {'cache': 0,

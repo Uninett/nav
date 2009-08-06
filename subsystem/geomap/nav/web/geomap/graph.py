@@ -35,21 +35,21 @@ logger = logging.getLogger('nav.web.geomap.graph')
 # and edges:
 
 aggregate_properties_place = {
-    'load': (max, 'load'),
+    'load': (nansafe_max, 'load'),
     'num_rooms': len,
     'num_netboxes': (sum, 'num_netboxes')
     }
 
 aggregate_properties_room = {
     'name': lambda netboxes: netboxes[0].properties['room'],
-    'load': (compose(max, fix(map, float_or_nan)), 'load'),
+    'load': (nansafe_max, 'load'),
     'num_netboxes': len
     }
 
 aggregate_properties_edge = {
     'speed': (sum, 'speed'),
-    'load_in': (compose(sum, fix(map, float_or_nan)), 'load_in'),
-    'load_out': (compose(sum, fix(map, float_or_nan)), 'load_out')
+    'load_in': (sum, 'load_in'),
+    'load_out': (sum, 'load_out')
     }
 
 

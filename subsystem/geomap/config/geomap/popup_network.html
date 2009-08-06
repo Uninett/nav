@@ -1,13 +1,20 @@
 <div class="network-popup">
-  Capacity: {{ network.properties.speed }},
-  load in: {{ network.properties.load_in }},
-  load out: {{ network.properties.load_out }})</li>
+  {% with network.properties as p %}
+  Capacity: {{ p.speed|floatformat:0 }} Mbps,
+  load in: {{ p.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }},
+  load out: {{ p.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}
+  {% endwith %}
+
   <ul>
     {% for net in network.properties.subedges %}
-    <li>{{ net.properties.netident }}
-    (capacity: {{ net.properties.speed }},
-    load in: {{ net.properties.load_in }},
-    load out: {{ net.properties.load_out }})</li>
+    {% with net.properties as p %}
+    <li>
+    {{ p.netident }}
+    (capacity: {{ p.speed|floatformat:0 }} Mbps,
+     load in: {{ p.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }},
+     load out: {{ p.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }})
+    </li>
+    {% endwith %}
     {% endfor %}
   </ul>
 </div>

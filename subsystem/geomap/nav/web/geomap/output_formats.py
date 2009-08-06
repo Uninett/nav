@@ -30,10 +30,15 @@ from nav.web.geomap.utils import *
 # GeoJSON:
 
 def make_geojson(featurelist):
-    """Create a GeoJSON representation of a list of features."""
+    """Create the GeoJSON representation of a list of features.
+
+    The result is a GeoJSON string.
+
+    """
     geojson = {'type': 'FeatureCollection',
                'features': map(make_geojson_feature, featurelist)}
     return write_json(geojson)
+
 
 def make_geojson_feature(feature):
     """Create a GeoJSON object for a feature."""
@@ -55,11 +60,6 @@ def make_geojson_feature(feature):
                             'popup': popup},
                            feature.properties)}
 
-# should use json.dumps, but navdev has too old Python version
-json_escapes = [('\\', '\\\\'),
-                ('"', '\\"'),
-                ('\n', '\\n'),
-                ('\r', '\\r')]
 
 def write_json(obj):
     """Convert an object to a JSON string.
@@ -73,6 +73,11 @@ def write_json(obj):
     json.dumps.
 
     """
+    json_escapes = [('\\', '\\\\'),
+                    ('"', '\\"'),
+                    ('\n', '\\n'),
+                    ('\r', '\\r')]
+
     if isinstance(obj, list):
         return '[' + ', '.join(map(write_json, obj)) + ']'
     if isinstance(obj, dict):

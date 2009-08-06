@@ -1,14 +1,20 @@
 <div class="place-popup">
-  Load: {{ place.properties.load }}
+  Load:
+  {{ place.properties.load|nan2none|floatformat:2|default:"unknown" }}
+
   <ul>
     {% for room in place.properties.rooms %}
-    <li>Room: {{ room.properties.name }} (load: {{ room.properties.load }})
+    <li>Room: {{ room.properties.name }}
+        (load: {{ room.properties.load|nan2none|floatformat:2|default:"unknown" }})
     <ul>
       {% for box in room.properties.netboxes %}
       <li>{{ box.properties.sysname }}
-      (ip: {{ box.properties.ip }}, load: {{ box.properties.load }})</li>
+          (ip: {{ box.properties.ip }},
+          load: {{ box.properties.load|nan2none|floatformat:2|default:"unknown" }})
+      </li>
       {% endfor %}
     </ul>
+    </li>
     {% endfor %}
   </ul>
 </div>

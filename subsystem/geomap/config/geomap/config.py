@@ -11,7 +11,7 @@ def variant(normal, "Normal"):
     template_file(edge_popup, "popup_network.html")
 
     def indicator(edge, color, "Link load"):
-        if load != load:
+        if is_nan(load):
             ("#666666", "No statistics")
         if load/speed < 0.3:
             ("#8AE234", "0--30 %")
@@ -33,7 +33,7 @@ def variant(normal, "Normal"):
             (10, "> 2.5 Gbit/s")
 
     def indicator(node, color, "CPU load"):
-        if load != load:
+        if is_nan(load):
             ("#666666", "No statistics")
         if load < 0.5:
             ("#8AE234", "0--0.5")
