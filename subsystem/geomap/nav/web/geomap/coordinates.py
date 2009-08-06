@@ -241,7 +241,7 @@ def parse_utm(utm_str):
     default_hemisphere = 'N'
     utm_re = '^\W*([0-9][0-9])([NS]?)\W+([0-9]*[.]?[0-9]+)\W+([0-9]*[.]?[0-9]+)\W*$'
     m = re.match(utm_re, utm_str)
-    if m == None:
+    if m is None:
         raise Exception('incorrectly formatted UTM string "' + utm_str)
     utm = {}
     utm['zone'] = int(m.group(1))

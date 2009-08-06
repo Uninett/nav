@@ -92,7 +92,7 @@ def write_json(obj):
                                json_escapes, obj)
     if numeric(obj):
         return str(obj)
-    if obj == None:
+    if obj is None:
         return 'null'
     return '"ERROR: unrecognized type ' + str(type(obj)) + '"'
 

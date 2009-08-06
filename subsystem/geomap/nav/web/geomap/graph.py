@@ -70,7 +70,7 @@ def build_graph(db_results):
             not connection['netboxid'] in graph.nodes):
             continue
         id = connection['netident']
-        if id == None:
+        if id is None:
             id = str(connection['from_netboxid'])+'-'+str(connection['netboxid'])
         # TODO name?
         graph.add_edge(Edge(id,
