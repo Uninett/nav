@@ -72,6 +72,43 @@ class ConfigurationEvaluationError(ConfigurationError):
 
 
 def parse_conf(lines, filename):
+    """Parse Python-ish colon- and indentation-based block structure.
+
+    Returns a list of objects, where each object is either a block or
+    a line.  Each object is represented as a dictionary.
+
+    A block has the following keys:
+
+    type -- 'block'
+    text -- contents of first line of block (indentation and colon removed)
+    objects -- list of objects inside the block
+    linenr -- line number of first line of the block
+
+    A line has the following keys:
+
+    type -- 'line'
+    text -- contents of the line (indentation removed)
+    linenr -- the line's line number
+
+    Syntax:
+
+    All lines at the same level must have the same indent in spaces
+    (tab is translated to 8 spaces).  Any whitespace at the end of
+    lines is ignored.  Comments are introduced by a '#' character
+    (which must be the first non-whitespace character on the line) and
+    last until end of line.  Any line ending in colon introduces a new
+    block, which must have deeper indentation than the current block.
+    Colons inside a line have no special significance.
+
+    Arguments:
+
+    lines -- lines of text to parse (list of string; each line is one
+    element)
+
+    filename -- name of file lines are read from (used in error
+    messages)
+
+    """
     stack = [{'objects': [],
               'indent': 0}]
     def line_empty_p(line):
@@ -152,6 +189,13 @@ def parse_conf(lines, filename):
 
 
 def parse_conf_file(filename):
+    """Parse a configuration file using parse_conf.
+
+    Arguments:
+
+    filename -- absolute path to configuration file
+
+    """
     f = file(filename)
     lines = f.readlines()
     f.close()
