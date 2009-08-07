@@ -53,6 +53,9 @@ def get_data(db_cursor, bounds, time_interval=None):
     know it is necessary, while still keeping the code for reading them
     here).
 
+    The caller of get_data should call get_data_finish when the
+    objects returned from get_data are no longer used.
+
     """
 
     if not db_cursor:
@@ -319,6 +322,7 @@ ORDER BY from_sysname, sysname, swport.speed DESC
             assert False, str(res)
         if 'from_swportid' not in res and 'from_gwportid' not in res:
             assert False, str(res)
+
         if res['rrdfile']:
             res.set_lazy('load',
                          lambda file: get_rrd_link_load(file, time_interval),
@@ -327,12 +331,28 @@ ORDER BY from_sysname, sysname, swport.speed DESC
             res['load'] = (float('nan'), float('nan'))
         res.set_lazy('load_in', lambda r: r['load'][0], res)
         res.set_lazy('load_out', lambda r: r['load'][1], res)
+
         if 'from_swportid' in res and res['from_swportid']:
             res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
+            res['from_portid'] = res['from_swportid']
         elif 'from_gwportid' in res and res['from_gwportid']:
             res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
+            res['from_portid'] = res['from_gwportid']
         else:
             assert False, str(res)
+        if 'swportid' in res:
+            res['to_swportid'] = res['swportid']
+            res['to_portid'] = res['to_swportid']
+        elif 'gwportid' in res:
+            res['to_gwportid'] = res['gwportid']
+            res['to_portid'] = res['to_gwportid']
+        else:
+            assert False, str(res)
+
+        res['to_sysname'] = res['sysname']
+        res['to_interface'] = res['interface']
+
+        res['capacity'] = res['speed']
 
         connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
         connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
@@ -345,19 +365,12 @@ ORDER BY from_sysname, sysname, swport.speed DESC
                         connections[conn] = res
 
 
-    query = """
-        SELECT DISTINCT ON (netboxid) *,location.descr AS location,room.descr AS room,room.opt3 as utm,  path || '/' || filename AS rrd
-        FROM netbox
-        LEFT JOIN room using (roomid)
-        LEFT JOIN location USING (locationid)
-        LEFT JOIN type USING (typeid)
-        LEFT JOIN (SELECT netboxid,path,filename FROM rrd_file NATURAL JOIN rrd_datasource WHERE descr = 'cpu5min') AS rrd USING (netboxid)
-        LEFT JOIN netmap_position USING (sysname)
-        """
-
-    query = """
+    query_netboxes = """
         SELECT DISTINCT ON (netboxid)
-               *, location.descr AS location, room.descr AS room,
+               netbox.netboxid, netbox.sysname, netbox.ip,
+               netbox.catid, netbox.up, netbox.roomid,
+               type.descr AS type,
+               location.descr AS location, room.descr AS room_descr,
                room.position[0] as lat, room.position[1] as lon,
                path || '/' || filename AS rrd
         FROM netbox
@@ -375,7 +388,7 @@ ORDER BY from_sysname, sysname, swport.speed DESC
 #           AND room.position[1] <= %s AND room.position[0] <= %s
 #         """
 
-    db_cursor.execute(query)
+    db_cursor.execute(query_netboxes)
     netboxes = [lazy_dict(row) for row in db_cursor.fetchall()]
     for netbox in netboxes:
         netbox.set_lazy('load',
@@ -505,7 +518,7 @@ def validate_rrd_time(time):
 # interval is stored under one key, as a dictionary. For a single
 # request, only one time interval is interesting, and the cached data
 # for this interval is read with the function read_cache by get_data
-# and should be stored by calling store_cache after all processing is
+# and stored by calling store_cache after all processing is
 # finished. The functions cache_get/cache_set provide an interface to
 # the individual values within the dictionary for the active time
 # interval.

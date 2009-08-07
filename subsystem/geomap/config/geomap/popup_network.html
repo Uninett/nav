@@ -1,18 +1,24 @@
 <div class="network-popup">
   {% with network.properties as p %}
-  Capacity: {{ p.speed|floatformat:0 }} Mbps,
-  load in: {{ p.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }},
-  load out: {{ p.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}
+  Capacity: {{ p.capacity|floatformat:0 }} Mbps<br/>
+  Load in: {{ p.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
+  Load out: {{ p.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}
   {% endwith %}
 
   <ul>
     {% for net in network.properties.subedges %}
     {% with net.properties as p %}
     <li>
-    {{ p.netident }}
-    (capacity: {{ p.speed|floatformat:0 }} Mbps,
-     load in: {{ p.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }},
-     load out: {{ p.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }})
+    {{ p.netident }}<br/>
+    Capacity: {{ p.capacity|floatformat:0 }} Mbps<br/>
+    Load in: {{ p.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
+    Load out: {{ p.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
+    Interfaces: {{ p.from_interface }}&#8211;{{ p.to_interface }}<br/>
+    Netboxes: {{ p.from_sysname }}&#8211;{{ p.to_sysname }}<br/>
+    Ports: {{ p.from_portid }}&#8211;{{ p.to_portid }}<br/>
+    Network type: {{ p.nettype }}<br/>
+    Layer: {{ p.layer }}<br/>
+    Vlan: {{ p.vlan }}
     </li>
     {% endwith %}
     {% endfor %}

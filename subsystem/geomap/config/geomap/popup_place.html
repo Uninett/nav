@@ -1,20 +1,35 @@
+{% with place.properties as p %}
 <div class="place-popup">
+  {{ p.num_rooms }} room{{ p.num_rooms|pluralize }},
+  {{ p.num_netboxes }} netbox{{ p.num_netboxes|pluralize:"es" }}<br/>
   Load:
-  {{ place.properties.load|nan2none|floatformat:2|default:"unknown" }}
+  {{ p.load|nan2none|floatformat:2|default:"unknown" }}
 
   <ul>
-    {% for room in place.properties.rooms %}
-    <li>Room: {{ room.properties.name }}
-        (load: {{ room.properties.load|nan2none|floatformat:2|default:"unknown" }})
+    {% for room in p.rooms %}
+    {% with room.properties as rp %}
+    <li>Room: {{ rp.id }} ({{ rp.descr }})<br/>
+        {{ rp.num_netboxes }} netbox{{ rp.num_netboxes|pluralize:"es" }}<br/>
+        Load: {{ rp.load|nan2none|floatformat:2|default:"unknown" }}
     <ul>
-      {% for box in room.properties.netboxes %}
-      <li>{{ box.properties.sysname }}
-          (ip: {{ box.properties.ip }},
-          load: {{ box.properties.load|nan2none|floatformat:2|default:"unknown" }})
+      {% for box in rp.netboxes %}
+      {% with box.properties as bp %}
+      <li><a href="/ipdevinfo/?query={{ bp.ip }}"
+             target="_blank"
+             title="View in IP Device Info">{{ bp.sysname }}</a><br/>
+          Netboxid: {{ bp.netboxid }}<br/>
+          IP: {{ bp.ip }}<br/>
+          Category: {{ bp.catid }}<br/>
+          Up: {{ bp.up }}<br/>
+          Type: {{ bp.type }}<br/>
+          Load: {{ bp.load|nan2none|floatformat:2|default:"unknown" }}<br/>
       </li>
+      {% endwith %}
       {% endfor %}
     </ul>
     </li>
+    {% endwith %}
     {% endfor %}
   </ul>
 </div>
+{% endwith %}

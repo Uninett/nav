@@ -41,13 +41,15 @@ aggregate_properties_place = {
     }
 
 aggregate_properties_room = {
-    'name': lambda netboxes: netboxes[0].properties['room'],
+    'id': (first, 'roomid'),
+    'descr': (first, 'room_descr'),
     'load': (nansafe_max, 'load'),
     'num_netboxes': len
     }
 
 aggregate_properties_edge = {
-    'speed': (sum, 'speed'),
+    'num_edges': len
+    'capacity': (sum, 'capacity'),
     'load_in': (sum, 'load_in'),
     'load_out': (sum, 'load_out')
     }

@@ -13,21 +13,21 @@ def variant(normal, "Normal"):
     def indicator(edge, color, "Link load"):
         if is_nan(load):
             ("#666666", "No statistics")
-        if load/speed < 0.3:
+        if load/capacity < 0.3:
             ("#8AE234", "0--30 %")
-        if load/speed < 0.6:
+        if load/capacity < 0.6:
             ("#FCE94F", "30--60 %")
-        if load/speed < 0.9:
+        if load/capacity < 0.9:
             ("#FCAF3E", "60--90 %")
         if True:
             ("#CC0000", "90--100 %")
 
     def indicator(edge, size, "Link capacity"):
-        if speed <= 2:
+        if capacity <= 2:
             (4, "<= 2 Mbit/s")
-        if speed <= 155:
+        if capacity <= 155:
             (6, "<= 155 Mbit/s")
-        if speed <= 2500:
+        if capacity <= 2500:
             (8, "<= 2.5 Gbit/s")
         if True:
             (10, "> 2.5 Gbit/s")
@@ -64,11 +64,11 @@ def variant(open, "Open"):
     style(node, size, 10)
 
     def indicator(edge, size, "Link capacity"):
-        if speed <= 2:
+        if capacity <= 2:
             (4, "<= 2 Mbit/s")
-        if speed <= 155:
+        if capacity <= 155:
             (6, "<= 155 Mbit/s")
-        if speed <= 2500:
+        if capacity <= 2500:
             (8, "<= 2.5 Gbit/s")
         if True:
             (10, "> 2.5 Gbit/s")

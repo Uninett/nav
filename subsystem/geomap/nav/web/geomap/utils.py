@@ -472,3 +472,8 @@ def any(iterable):
         if element:
             return True
     return False
+
+
+def first(lst):
+    """Extract the first element from a list or other indexable object."""
+    return lst[0]
