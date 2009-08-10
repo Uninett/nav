@@ -48,7 +48,7 @@ aggregate_properties_room = {
     }
 
 aggregate_properties_edge = {
-    'num_edges': len
+    'num_edges': len,
     'capacity': (sum, 'capacity'),
     'load_in': (sum, 'load_in'),
     'load_out': (sum, 'load_out')
