@@ -170,7 +170,9 @@ TimeInterval.prototype = {
     },
 
     selectable: function() {
-	return (this.size == TI_5MIN ? this.hasBeen() : this.hasStarted());
+	if (this.size == TI_SIZES.length-1)
+	    return this.hasBeen();
+	return this.hasBeen() || this.downChoices().length != 0;
     },
 
     gotoTime: function(time) {
