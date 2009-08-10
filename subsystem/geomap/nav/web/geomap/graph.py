@@ -261,7 +261,7 @@ def collapse_nodes(graph, node_sets, subnode_list_name,
     for s in node_sets:
         properties = aggregate_properties(s, property_aggregators)
         properties[subnode_list_name] = s
-        new_node = Node('cn[%s]' % (';'.join([str(n.id) for n in s])),
+        new_node = Node('cn[%s]' % combine_ids(s),
                         avg([n.lon for n in s]), avg([n.lat for n in s]),
                         properties)
         for n in s:
@@ -274,6 +274,12 @@ def collapse_nodes(graph, node_sets, subnode_list_name,
         edge.target = nodehash[edge.target.id]
     graph.edges = filter_dict(lambda edge: edge.source != edge.target,
                               graph.edges)
+
+
+def combine_ids(objects):
+    ids = [str(o.id) for o in objects]
+    ids.sort()
+    return ';'.join(ids)
 
 
 def aggregate_properties(objects, aggregators):
@@ -345,7 +351,7 @@ def combine_edges(graph, property_aggregators={}):
     logger.debug('--mapping over edges (%d) ...' % len(edge_sets))
     edges = map(
         lambda eset:
-            Edge('ce[%s]' % (';'.join([e.id for e in eset])),
+            Edge('ce[%s]' % combine_ids(eset),
                  eset[0].source,
                  eset[0].target,
                  union_dict(aggregate_properties(eset, property_aggregators),
