@@ -29,8 +29,6 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 
 	var callbacks = {
 	    'click': this.clickFeature,
-	    'over': this.overFeature,
-	    'out': this.outOfFeature
 	};
         
 	this.handler = new OpenLayers.Handler.Feature(this, this.layer, callbacks);
@@ -48,53 +46,17 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
     
 
     clickFeature: function(feature) {
-	setOutput('CLICK ' + feature.data.name);
-	this.showPopup(this.getPopup(feature.data.popup));
+	this.showPopup(feature.data.popup);
     },
-
-    overFeature: function(feature) {
-	setOutput('OVER ' + feature.data.name);
-	if (feature.data.miniPopup == null) return;
-	clearTimeout(feature.data.miniPopupTimeout);
-	if (!feature.data.miniPopup.visible()) {
-	    var t = this;
-	    feature.data.miniPopup.div.onmouseover = function() {
-		feature.data.miniPopup.mouseover = true;
-		clearTimeout(feature.data.miniPopupTimeout);
-	    };
-	    feature.data.miniPopup.div.onmouseout = function() {
-		feature.data.miniPopup.mouseover = false;
-		var hide = function() { t.hidePopup(feature.data.miniPopup); };
-		feature.data.miniPopupTimeout = setTimeout(hide, 100);
-		//t.hidePopup(feature.data.miniPopup);
-	    };
-	    this.showPopup(feature.data.miniPopup);
-	}
-    },
-
-    outOfFeature: function(feature) {
-	setOutput('nothing');
-	if (feature.data.miniPopup == null) return;
-	var t = this;
-	var hide = function() { t.hidePopup(feature.data.miniPopup); };
-	feature.data.miniPopupTimeout = setTimeout(hide, 300);
-	/*
-		if (!feature.data.miniPopup.mouseover)
-			this.hidePopup(feature.data.miniPopup);
-		*/
-    },
-
 
     getPopup: function(popupData) {
 	if (!popupData)
 	    return null;
+	return this.popups[popupData.id];
+    },
 
-	var popup;
+    makePopup: function(popupData) {
 	var id = popupData.id;
-
-	if (popup = this.popups[id])
-	    return popup;
-
 	// set (0,0) as position now; will set correct position when
 	// popup is shown:
 	var pos = new OpenLayers.LonLat(0, 0);
@@ -113,12 +75,15 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	return popup;
     },
 
-    showPopup: function(popup) {
-	if (!popup) return;
-	popup.lonlat = this.map.getLonLatFromPixel(this.mousePos);
-	this.map.removePopup(popup);
-	this.map.addPopup(popup);
-	popup.show();
+    showPopup: function(popupData) {
+	if (!popupData) return;
+	var existingPopup = this.getPopup(popupData);
+	if (existingPopup)
+	    this.map.removePopup(existingPopup);
+	var newPopup = this.makePopup(popupData);
+	newPopup.lonlat = this.map.getLonLatFromPixel(this.mousePos);
+	this.map.addPopup(newPopup);
+	newPopup.show();
     },
 
     hidePopup: function(popup) {
@@ -128,9 +93,3 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
     CLASS_NAME: "PopupControl"
 
 });
-
-
-
-function setOutput(str) {
-    //document.getElementById("output").firstChild.nodeValue = str;
-}
