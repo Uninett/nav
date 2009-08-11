@@ -102,12 +102,15 @@ function init(mapElementId, url) {
 	themap.zoomToExtent(requestedBounds);
     }
 
-    var permalink = new Permalink(
-	'permalink', themap,
-	{set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
-	 get time() { return timeNavigator.interval.toReadableString(); }},
-	[timeNavigator.onChange]);
-
+    try {
+	var permalink = new Permalink(
+	    'permalink', themap,
+	    {set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
+	     get time() { return timeNavigator.interval.toReadableString(); }},
+	    [timeNavigator.onChange]);
+    } catch (e if e instanceof Error) {
+	alert('Error parsing URL query string:\n' + e);
+    }
 }
 
 
