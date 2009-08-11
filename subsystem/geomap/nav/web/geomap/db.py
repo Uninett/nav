@@ -27,6 +27,8 @@ Based on datacollector.py in the Netmap subsystem.
 
 import random
 import logging
+import re
+from datetime import datetime, timedelta
 
 import nav
 from nav.config import readConfig
@@ -508,6 +510,22 @@ def validate_rrd_time(time):
     re_total = '^(%s)|((%s) ?(%s)?)$' % (re_offset, re_ref, re_offset)
     return re.match(re_total, time) is not None
 
+def parse_rrd_time(time):
+    """Parse a time in RRD format.
+
+    Returns a datetime object.  Only understands one of several
+    formats RRD times may have, returns None if the specified string
+    is not understood.
+
+    """
+    re_rrd = '(\d\d):(\d\d) (\d\d\d\d)(\d\d)(\d\d)'
+    match = re.match(re_rrd, time)
+    if match:
+        return apply(datetime,
+                     map(compose(int, match.group),
+                         [3, 4, 5, 1, 2]))
+    return None
+
 
 
 # CACHE
@@ -525,6 +543,7 @@ def validate_rrd_time(time):
 
 _cache_key = None
 _cache_data = None
+_cache_timeout = None
 _cache_statistics = None
 
 def read_cache(time_interval):
@@ -533,7 +552,8 @@ def read_cache(time_interval):
     The data will be available by the cache_get function.
 
     """
-    global _cache_data, _cache_key, _cache_statistics
+    global _cache_data, _cache_key, _cache_timeout, _cache_statistics
+    _cache_timeout = cache_timeout(time_interval)
     _cache_key = 'geomap-rrd-(%s,%s)' % \
         (time_interval['start'], time_interval['end'])
     _cache_key = _cache_key.replace(' ', '_')
@@ -541,6 +561,37 @@ def read_cache(time_interval):
     if _cache_data is None:
         _cache_data = {}
     _cache_statistics = {'hit': 0, 'miss': 0}
+
+def cache_timeout(time_interval):
+    """Determine how long to keep data for a certain time interval in cache.
+
+    Returns time in number of seconds.
+
+    Arguments:
+
+    time_interval -- dictionary with keys ('start', 'end'), values are
+    start and end time in RRD format.
+
+    """
+    starttime = parse_rrd_time(time_interval['start'])
+    endtime = parse_rrd_time(time_interval['end'])
+    minute = 60
+    hour = 60*60
+    # Intervals which are finished (and then some time to allow data
+    # to be collected, arbitrarily chosen as 2 minutes):
+    if endtime and (datetime.now() - endtime > timedelta(minutes=2)):
+        return hour
+    # Small unfinished intervals:
+    if starttime and endtime and \
+            (endtime - starttime < timedelta(hours=1)):
+        return minute
+    # Somewhat larger unfinished intervals:
+    if starttime and endtime and \
+            (endtime - starttime < timedelta(days=1)):
+        return 5*minute
+    # Large intervals which are not finished:
+    else:
+        return hour
 
 def cache_get(key):
     """Get an object from the cache loaded by read_cache."""
@@ -559,4 +610,5 @@ def store_cache():
     """Write back the cache loaded by read_cache."""
     logger.debug('RRD file cache: %d hits, %d misses' %
                  (_cache_statistics['hit'], _cache_statistics['miss']))
-    cache.set(_cache_key, _cache_data, 60*5)
+    logger.debug('Storing cache with timeout %d seconds' % _cache_timeout)
+    cache.set(_cache_key, _cache_data, _cache_timeout)
