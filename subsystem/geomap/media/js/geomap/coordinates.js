@@ -38,11 +38,28 @@ function utmProjectionName(zone, hemisphere) {
     return 'EPSG:32' + (hemisphere=='N'?'6':'7') + zone;
 }
 
+/*
+ * Projection object for UTM in a specified zone.
+ */
 function utmProjection(zone, hemisphere) {
     var projName = utmProjectionName(zone, hemisphere);
     return new OpenLayers.Projection(projName);
 }
 
+/*
+ * Parse a string containing UTM coordinates.
+ *
+ * The following format is expected (note: this is not the only way to
+ * format UTM coordinates, and may not even be a common way to do it):
+ *
+ * Zone number (two digits), directly followed by hemisphere ('N'/'S');
+ * whitespace;
+ * northings and eastings (in this order!), separated by whitespace.
+ *
+ * The hemisphere may be omitted, in which case 'N' is assumed.
+ *
+ * Returns an object with properties zone, hemisphere, n, e.
+ */
 function parseUtm(utmStr) {
     var defaultHemisphere = 'N';
     var utmRE = /^\W*([0-9][0-9])([NS]?)\W+([0-9]*[.]?[0-9]+)\W+([0-9]*[.]?[0-9]+)\W*$/;
@@ -59,6 +76,9 @@ function parseUtm(utmStr) {
     return utm;
 }
 
+/*
+ * Format UTM coordinates as a string.
+ */
 function utmToStr(utm) {
     return format('%d%s %d %d',
 		  utm.zone, utm.hemisphere, utm.n, utm.e);
@@ -70,16 +90,26 @@ function utmToStr(utm) {
  * Longitude/latitude pairs.
  */
 
-
+/*
+ * Parse a string containing latitude/longitude coordinates.
+ *
+ * The string is expected to be on the form latitude, comma, any
+ * amount of whitespace (including none), longitude.
+ *
+ * Returns an instance of OpenLayers.LonLat.
+ */
 function parseLonLat(llStr) {
     var re = /^([0-9]*[.]?[0-9]+), *([0-9]*[.]?[0-9]+)$/;
     var arr = re.exec(llStr);
     if (arr == null)
-	throw 'error: incorrectly formatted longitude, latitude string "' +
+	throw 'error: incorrectly formatted latitude, longitude string "' +
 	llStr + '"';
     return new OpenLayers.LonLat(arr[2], arr[1]);
 }
 
+/*
+ * Format a longitude/latitude object as a string.
+ */
 function lonLatToStr(lonlat) {
     return format('%7f, %6f', lonlat.lat, lonlat.lon);
 }
@@ -87,13 +117,23 @@ function lonLatToStr(lonlat) {
 
 
 /*
- * Converting.
+ * Convertions.
  */
 
+/*
+ * Convert UTM coordinates given as a string to a longitude/latitude object.
+ *
+ * See parseUtm for expected format of the UTM string.
+ *
+ * Returns an instance of OpenLayers.LonLat.
+ */
 function utmStrToLonLat(utmStr) {
     return utmToLonLat(parseUtm(utmStr));
 }
 
+/*
+ * Convert UTM coordinates to longitude/latitude.
+ */
 function utmToLonLat(utm) {
     var point = new OpenLayers.LonLat(utm.e, utm.n);
     var proj = utmProjection(utm.zone, utm.hemisphere);
@@ -108,6 +148,9 @@ function utmToLonLat(utm) {
     return point.transform(proj, normalProjection);
 }
 
+/*
+ * Convert longitude/latitude to UTM.
+ */
 function lonLatToUtm(lonlat) {
     var utm = {};
     utm.zone = utmZone(lonlat);

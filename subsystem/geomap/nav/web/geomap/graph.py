@@ -277,6 +277,13 @@ def collapse_nodes(graph, node_sets, subnode_list_name,
 
 
 def combine_ids(objects):
+    """Combine the IDs of a list (or set) of objects to a string.
+
+    Used when generating IDs for collapsed objects.  The IDs are
+    sorted so that the resulting ID is uniquely determined by the set
+    of objects.
+
+    """
     ids = [str(o.id) for o in objects]
     ids.sort()
     return ';'.join(ids)

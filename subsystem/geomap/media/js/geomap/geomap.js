@@ -18,10 +18,12 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
+// Initial position and zoom level (if none provided in the URL):
 var lat=63.4141131037476;
 var lon=10.4059409151806;
 var zoom=6;
 
+// Variables holding the objects created by init:
 var themap;
 var mapnikLayer;
 var osmaLayer;
@@ -29,28 +31,39 @@ var netLayer;
 var posControl;
 var timeNavigator;
 
+// id attribute of the HTML element containing the map:
 var mapElemId;
 
+// Boolean variable determining whether the map should cover the whole
+// viewport:
 var mapFullscreen = false;
 
+
 /*
- * Called when the web page which should show the map is
- * loaded. Creates a map with two different OpenStreetMap base layers
- * (Mapnik and Osmarender), as well as a layer showing networks (with
- * data from url). The map is placed in the HTML element with
- * map_element_id as id.
+ * Called when the web page which should show the map is loaded.
+ *
+ * Creates a map with two different OpenStreetMap base layers (Mapnik
+ * and Osmarender), as well as a layer showing networks (with data
+ * from url).  The map is placed in the HTML element with
+ * mapElementId as id.
+ *
+ * Arguments:
+ *
+ * mapElementId -- id of HTML element for map
+ *
+ * url -- URL for network data requests
  */
-function init(map_element_id, url) {
+function init(mapElementId, url) {
     var parameters = OpenLayers.Util.getParameters();
 
-    mapElemId = map_element_id;
+    mapElemId = mapElementId;
     setMapSize();
     window.onresize = setMapSize;
 
     timeNavigator = new TimeNavigator('time-navigation',
 				      function() { netLayer.update(); });
 
-    themap = new OpenLayers.Map(map_element_id, {
+    themap = new OpenLayers.Map(mapElementId, {
         controls:[
 	    new OpenLayers.Control.Navigation(),
 	    new OpenLayers.Control.PanZoomBar(),
@@ -98,19 +111,28 @@ function init(map_element_id, url) {
 }
 
 
+/*
+ * Updating the displayed loading status:
+ */
 function netLayerLoadStart() {
     document.getElementById('geomap-heading').innerHTML = "Geomap (loading data ...)";
 }
-
 function netLayerLoadEnd() {
     document.getElementById('geomap-heading').innerHTML = "Geomap";
 }
-
 function netLayerLoadCancel() {
     document.getElementById('geomap-heading').innerHTML = "Geomap";
 }
 
-
+/*
+ * Update the size of the map element according to the viewport size.
+ *
+ * It would be nicer to use only CSS for this, but we want the map
+ * element to cover the whole viewport _except_ a certain amount at
+ * the top and right (for the NAV header and the time selection,
+ * respectively), which cannot be expressed in CSS (at least not in
+ * version 2).
+ */
 function setMapSize() {
     var mapE = document.getElementById(mapElemId)
 
@@ -135,7 +157,11 @@ function setMapSize() {
 	themap.updateSize();
 }
 
-
+/*
+ * Distance from top of viewport to top of HTML element elem.
+ *
+ * (Helper function for setMapSize).
+ */
 function elemOffsetTop(elem) {
     var offset = elem.offsetTop;
     while (elem = elem.offsetParent)
@@ -143,7 +169,9 @@ function elemOffsetTop(elem) {
     return offset;
 }
 
-
+/*
+ * Switch between fullscreen mode and normal mode.
+ */
 function toggleFullscreen() {
     mapFullscreen = !mapFullscreen;
     setMapSize();

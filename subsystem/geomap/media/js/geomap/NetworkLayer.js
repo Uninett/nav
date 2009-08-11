@@ -20,6 +20,20 @@
 
 NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 
+    /*
+     * Constructor.
+     *
+     * Arguments:
+     *
+     * name -- name of the layer
+     *
+     * url -- URL for retrieving network data
+     *
+     * timeInterval -- object containing two functions start and end,
+     * which should return the boundaries of the current time interval
+     *
+     * options -- arbitrary properties to set on the object
+     */
     initialize: function(name, url, timeInterval, options) {
 
 	var style = new OpenLayers.StyleMap({
@@ -56,6 +70,8 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 
 	this.bboxStrategy = new OpenLayers.Strategy.BBOX({resFactor: 1.1});
 
+	var thisObj = this;
+
 	options = extend({
 	    strategies: [this.bboxStrategy],
 	    protocol: new MyHTTPProtocol({
@@ -66,15 +82,11 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 		},
 		dynamicParams: {
 		    viewportWidth:
-		    {'function': encapsulate(this, function() {
-			return this.map.getSize().w })},
+		    function() { return thisObj.map.getSize().w; },
 		    viewportHeight:
-		    {'function': encapsulate(this, function() {
-			return this.map.getSize().h })},
-		    timeStart:
-		    {'function': formattedTime(timeInterval.start)},
-		    timeEnd:
-		    {'function': formattedTime(timeInterval.end)}
+		    function() { return thisObj.map.getSize().h; },
+		    timeStart: formattedTime(timeInterval.start),
+		    timeEnd: formattedTime(timeInterval.end)
 		},
 		format: new OpenLayers.Format.GeoJSON()
 	    }),
@@ -88,14 +100,23 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 	this.popupControl = new PopupControl(this);
     },
 
+    /*
+     * Reload the network data.
+     */
     update: function() {
 	this.bboxStrategy.triggerRead();
     },
 
+    /*
+     * Callback function for map movement.
+     */
     onMapMove: function() {
 	this.redraw();
     },
 
+    /*
+     * Set the map this layer belongs to.
+     */
     setMap: function(map) {
 	if (this.map)
 	    this.map.removeControl(this.popupControl);

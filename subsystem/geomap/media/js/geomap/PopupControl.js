@@ -14,12 +14,36 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * OpenLayers control for opening popups when clicking on features.
+ *
+ * In order to get a popup, a feature f must have a f.data.popup with
+ * the following properties:
+ *
+ *  id -- identifier of the popup; must be unique among the features
+ *  content -- HTML content for the popup
+ *
+ * A popup is always shown at the point where the mouse was clicked.
+ * If the popup for a feature is already open and the feature is
+ * clicked again, the popup is closed and then reopened at the
+ * position of the second click.
+ */
 PopupControl = OpenLayers.Class(OpenLayers.Control, {
 
+    /*
+     * The layer this control belongs to.
+     */ 
     layer: null,
 
+    /*
+     * Dictionary of generated popups indexed by id.
+     */
     popups: null,
 
+    /*
+     * The position of the last mouse click (used for positioning
+     * popups).
+     */
     mousePos: {x:0,y:0},
 
     initialize: function(layer, options) {
@@ -39,22 +63,32 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	this.map.events.register('mousemove', this, this.mouseMoved);
     },
 
-
+    /*
+     * Callback function for mouse movement.
+     */
     mouseMoved: function(event) {
 	this.mousePos = this.map.events.getMousePosition(event);
     },
     
-
+    /*
+     * Callback function for 'mouse click on a feature' events.
+     */
     clickFeature: function(feature) {
 	this.showPopup(feature.data.popup);
     },
 
+    /*
+     * Get a previously created popup object for some popup data.
+     */
     getPopup: function(popupData) {
 	if (!popupData)
 	    return null;
 	return this.popups[popupData.id];
     },
 
+    /*
+     * Create a new popup object for the given popup data.
+     */
     makePopup: function(popupData) {
 	var id = popupData.id;
 	// set (0,0) as position now; will set correct position when
@@ -75,6 +109,9 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	return popup;
     },
 
+    /*
+     * Show a popup.
+     */
     showPopup: function(popupData) {
 	if (!popupData) return;
 	var existingPopup = this.getPopup(popupData);
@@ -86,6 +123,9 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	newPopup.show();
     },
 
+    /*
+     * Hide a popup.
+     */
     hidePopup: function(popup) {
 	if (popup) popup.hide();
     },

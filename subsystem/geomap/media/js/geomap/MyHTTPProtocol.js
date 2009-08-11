@@ -14,10 +14,27 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * Small extension of OpenLayers.Protocol.HTTP providing "dynamic
+ * parameters".  These are like the params property of O.P.HTTP except
+ * that they are not fixed at the time the Protocol object is
+ * constructed.  Instead, they are specified by functions which are
+ * called each time the parameters are needed.
+ *
+ * Dynamic parameters are specified by setting dynamicParams in the
+ * options argument to the constructor.
+ */
 MyHTTPProtocol = OpenLayers.Class(OpenLayers.Protocol.HTTP, {
 
+    /*
+     * Dynamic parameters, dictionary mapping parameter names to
+     * functions.  (The functions should take no arguments).
+     */
     dynamicParams: null,
 
+    /*
+     * Overrides the read function of OpenLayers.Protocol.HTTP.
+     */
     read: function(options) {
 	var dynamicParams = this.evaluateDynamicParams();
 	var params = extend(this.params,
@@ -27,12 +44,16 @@ MyHTTPProtocol = OpenLayers.Class(OpenLayers.Protocol.HTTP, {
 							     [extOptions]);
     },
 
+    /*
+     * Evaluate the dynamic parameters.
+     *
+     * Returns a dictionary with parameter names mapped to parameter
+     * values (results of calling the functions in dynamicParams).
+     */
     evaluateDynamicParams: function() {
 	var params = {};
-	for (var key in this.dynamicParams) {
-	    var dp = this.dynamicParams[key];
-	    params[key] = dp['function'].apply(dp['object']);
-	}
+	for (var key in this.dynamicParams)
+	    params[key] = this.dynamicParams[key]();
 	return params;
     },
     

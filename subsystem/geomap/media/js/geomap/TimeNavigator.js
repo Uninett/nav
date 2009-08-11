@@ -17,9 +17,37 @@
 /*
  * TimeNavigator.js: Provides time navigation in a manner similar to
  * that in Stager (http://software.uninett.no/stager/).
+ *
+ * An instance of TimeNavigator hooks onto a set of HTML elements with
+ * certain ids; these must already be present in the HTML document.
+ *
+ * Some differences between the UI provided by this class and that of
+ * Stager:
+ *
+ * * We have a menu for selecting any interval size (not only the
+ *   one-step up/down selections)
+ *
+ * * Our calendar is smaller and more versatile (it shows only one
+ *   month at a time, but can show any month, not just the last five)
+ *
+ * * Our calendar indicates the current selection
  */
 
 
+/*
+ * Constructor.
+ *
+ * Arguments:
+ *
+ * idPrefix -- prefix of id of HTML elements controlled by this object.
+ *
+ * changeCallback -- function to be called (with the new interval as
+ * argument) each time the selection is changed.
+ *
+ * initialInterval -- initially selected time interval (TimeInterval
+ * object).  If omitted, the last possible interval of size TI_5MIN is
+ * used.
+ */
 function TimeNavigator(idPrefix, changeCallback, initialInterval) {
     this.idPrefix = idPrefix;
     if (initialInterval)
@@ -64,6 +92,9 @@ TimeNavigator.prototype = {
      */
     idPrefix: null,
 
+    /*
+     * Calendar object (see Calendar.js).
+     */
     calendar: null,
 
     /*
@@ -160,10 +191,29 @@ TimeNavigator.prototype = {
 	this.calendar.updateHTML();
     },
 
+    /*
+     * Called when the selection in the calendar is changed.
+     */
     calendarChanged: function() {
 	this.setInterval(this.calendar.interval);
     },
 
+    /*
+     * Button definitions.
+     *
+     * id -- id of HTML element for button (without prefix)
+     *
+     * method -- name of method to call on the current time interval
+     * when clicking on the button; the result is used as new time
+     * interval
+     *
+     * enable -- name of method to call on current time interval to
+     * find out whether the button should be enabled; or true for
+     * buttons which are always enabled
+     *
+     * label -- function to be called with current time interval as
+     * argument, returns text to use as label for the button
+     */
     buttons: [
 	{id: 'prev-jump', method: 'prevJump', enable: true,
 	 label: function(ti) {

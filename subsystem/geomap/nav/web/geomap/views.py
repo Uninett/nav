@@ -14,6 +14,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Views for Geomap."""
+
+
 import logging
 import profile
 

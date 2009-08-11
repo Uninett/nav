@@ -103,11 +103,14 @@ function TimeInterval(size, time) {
     if (time) {
 	this.time = new Time(time, true);
     } else {
-	this.time = new Time();
-	if (this.size == TI_5MIN) {
-	    this.time = this.time.add(makeObject(this.sizeUnit(),
-						 -this.sizeN()));
-	}
+	// Find the last selectable interval.  By the rules in
+	// TimeInterval.selectable, it must contain (possibly being
+	// equal to) an interval of smallest size which is completely
+	// finished.  We therefore subtract the smallest interval size
+	// from the current time:
+	var smallestSize = TI_SIZES[TI_SIZES.length-1];
+	this.time = new Time().add(makeObject(smallestSize.unit,
+					      -smallestSize.n));
     }
     if (size == TI_WEEK) {
 	this.time = this.time.weekCenter();
@@ -119,26 +122,49 @@ function TimeInterval(size, time) {
 }
 
 TimeInterval.prototype = {
+    /*
+     * Returns interval size as integer, in multiples of this.sizeUnit().
+     */
     sizeN: function() {
 	return TI_SIZES[this.size].n;
     },
 
+    /*
+     * Returns the unit of the time interval.
+     *
+     * The value is one of TIME_UNITS from Time.js.
+     */
     sizeUnit: function() {
 	return TI_SIZES[this.size].unit;
     },
 
+    /*
+     * Returns the interval size (object with properties n, unit).
+     */
     getSize: function() {
 	return TI_SIZES[this.size];
     },
 
+    /*
+     * Returns the size which is one step larger than the size of this
+     * interval.
+     */
     largerSize: function() {
 	return TI_SIZES[this.size-1];
     },
 
+    /*
+     * Returns the size which is one step larger than the size of this
+     * interval.
+     */
     smallerSize: function() {
 	return TI_SIZES[this.size+1];
     },
 
+    /*
+     * Returns a Time object representing the beginning of this
+     * interval.
+     */
     beginning: function() {
 	var t = new Time({}, true);
 	for (var i = 0; i < TIME_UNITS.length; i++) {
@@ -157,28 +183,62 @@ TimeInterval.prototype = {
 	return t;
     },
 
+    /*
+     * Returns a Time object representing the end of this interval.
+     */
     end: function() {
 	return this.next().beginning();
     },
 
+    /*
+     * Predicate telling whether all of this interval is before the
+     * current time.
+     */
     hasBeen: function() {
 	return this.end().compare(new Time()) <= 0;
     },
 
+    /*
+     * Predicate telling whether the beginning of this interval is
+     * before the current time.
+     */
     hasStarted: function() {
 	return this.beginning().compare(new Time()) <= 0;
     },
 
+    /*
+     * Predicate telling whether this interval should be selectable.
+     *
+     * The rules for selectability are (these are somewhat arbitrary
+     * and ad-hoc):
+     *
+     * * An interval of the smallest size is selectable iff the whole
+     *   interval is in the past
+     *
+     * * An interval of a larger size is selectable iff it contains at
+     *   least one selectable interval.
+     */
     selectable: function() {
 	if (this.size == TI_SIZES.length-1)
 	    return this.hasBeen();
 	return this.hasBeen() || this.downChoices().length != 0;
     },
 
+    /*
+     * Returns a new interval of the same size as this but with a
+     * different time.
+     */
     gotoTime: function(time) {
 	return new TimeInterval(this.size, time);
     },
 
+    /*
+     * Returns a new interval of the same size as this which is offset
+     * num multiples of size relative to this.
+     *
+     * size may be either an object with properties (units, n) or an
+     * index into TI_SIZES.
+     */
     add: function(size, num) {
 	if (typeof size == 'number')
 	    size = TI_SIZES[size];
@@ -186,40 +246,75 @@ TimeInterval.prototype = {
 						      size.n*num)));
     },
 
+    /*
+     * Returns the next interval of the same size as this.
+     */
     next: function() {
 	return this.add(this.size, 1);
     },
 
+    /*
+     * Predicate telling whether it should be possible to select the
+     * interval returned by this.next().
+     */
     nextPossible: function() {
 	return this.next().selectable();
     },
 
+    /*
+     * Returns the interval of the same size as this obtained by doing
+     * a 'jump' forwards in time, i.e. adding the next larger interval
+     * size.
+     */
     nextJump: function() {
 	return this.add(this.size-1, 1);
     },
 
+    /*
+     * Predicate telling whether it should be possible to select the
+     * interval returned by this.nextJump().
+     */
     nextJumpPossible: function() {
 	return this.nextJump().selectable();
     },
 
+    /*
+     * Returns the next interval of the same size as this.
+     */
     prev: function() {
 	return this.add(this.size, -1);
     },
 
+    /*
+     * Returns the interval of the same size as this obtained by doing
+     * a 'jump' forwards in time, i.e. adding the next larger interval
+     * size.
+     */
     prevJump: function() {
 	return this.add(this.size-1, -1);
     },
 
+    /*
+     * Returns the interval of one step larger size at the same time
+     * as this.
+     */
     up: function() {
 	if (this.size == 0)
 	    return null;
 	return new TimeInterval(this.size-1, this.time);
     },
 
+    /*
+     * Predicate telling whether it is possible to move up from this.
+     */
     upPossible: function() {
 	return this.size>1;
     },
 
+    /*
+     * Returns list of possible intervals for moving down in size from
+     * this.
+     */
     downChoices: function() {
 	if (this.size == TI_SIZES.length-1)
 	    return null;
@@ -240,19 +335,36 @@ TimeInterval.prototype = {
 	return choices;
     },
 
+    /*
+     * Returns last selectable interval of this size.
+     */
     last: function() {
 	return new TimeInterval(this.size);
     },
 
+    /*
+     * Predicate; tells whether the Time object time is contained in
+     * this interval.
+     */
     contains: function(time) {
 	return (this.beginning().compare(time) <= 0 &&
 		this.end().compare(time) > 0);
     },
 
+    /*
+     * Make a string representation of this interval which can be read
+     * back with the read function.
+     */
     toReadableString: function() {
 	return this.size + '-' + this.beginning().toReadableString();
     },
 
+    /*
+     * Fill this object with data from a string as produced by
+     * toReadableString.
+     *
+     * Warning: This function is destructive!
+     */
     read: function(str) {
 	function err(msg) {
 	    throw new Error('TimeInterval.read -- ' +
@@ -269,10 +381,18 @@ TimeInterval.prototype = {
 	this.time = time;
     },
 
+    /*
+     * Format this interval with the 'short format' given in the size
+     * specification (see definition of TI_SIZES).
+     */
     toShortString: function() {
 	return this.time.format(this.getSize().shortFormat);
     },
 
+    /*
+     * Format this interval with the format given in the size
+     * specification (see definition of TI_SIZES).
+     */
     toString: function() {
 	var format = this.getSize().format;
 	if (typeof format == 'string') {
