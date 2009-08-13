@@ -54,6 +54,7 @@ import atexit
 import logging
 from ConfigParser import ConfigParser
 import datetime
+import optparse
 
 import nav
 import nav.logs
@@ -210,12 +211,17 @@ def find_month(textual):
 
 def delete_old_messages(config):
     """Delete old messages from db, according to config settings."""
+    logger.info("Deleting old messages from db")
+
+    connection = db.getConnection('logger','logger')
+    cursor = connection.cursor()
+
     for priority in range(0,8):
         if config.get("deletepriority",str(priority)):
             days = config.getint("deletepriority", str(priority))
-            database.execute("DELETE FROM log_message WHERE newpriority=%s "
-                             "AND time < now() - interval %s",
-                             (priority, '%d days' % days))
+            cursor.execute("DELETE FROM log_message WHERE newpriority=%s "
+                           "AND time < now() - interval %s",
+                           (priority, '%d days' % days))
 
     connection.commit()
 
@@ -393,17 +399,8 @@ def parse_and_insert(line, database,
                           message.priorityid, typeid,
                           message.description))
 
-def main():
-    global logger, connection, database
-
-    # Process setup
-
-    config = ConfigParser()
-    config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
-
-    logging.basicConfig()
-    logger = logging.getLogger('logengine')
-    nav.logs.setLogLevels()
+def logengine(config):
+    global connection, database
 
     verify_singleton()
 
@@ -421,10 +418,8 @@ def main():
      exceptiontype,
      exceptiontypeorigin) =  get_exception_dicts(config)
 
-    #get rid of old records before filling up with new (old jungle proverb)
-    delete_old_messages(config)
-
     ## add new records
+    logger.info("Reading new log entries")
     for line in read_log_lines(config):
         parse_and_insert(line, database,
                          categories, origins, types,
@@ -433,6 +428,36 @@ def main():
     # Make sure it all sticks
     connection.commit()
 
+
+def parse_options():
+    """Parse and return options supplied on command line."""
+    parser = optparse.OptionParser()
+    parser.add_option("-d", "--delete", action="store_true", dest="delete",
+                      help="delete old messages from database and exit")
+
+    return parser.parse_args()
+
+def main():
+    global logger
+
+    # Figure out what to do
+    (options, args) = parse_options()
+
+    # Process setup
+
+    config = ConfigParser()
+    config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
+
+    logging.basicConfig()
+    logger = logging.getLogger('logengine')
+    nav.logs.setLogLevels()
+
+    if options.delete:
+        # get rid of old records
+        delete_old_messages(config)
+        sys.exit(0)
+    else:
+        logengine(config)
 
 
 if __name__ == '__main__':
