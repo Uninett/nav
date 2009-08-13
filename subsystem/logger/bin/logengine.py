@@ -32,10 +32,18 @@ files, one of which this program will have exclusive access to.
 
 """
 
-## The structure in this file is not good, but understandable. It is easy
-## to see that this file is converted from procedure oriented perl code.
-## go down to the main part first if you want to know what this is all
-## about.
+## The structure of this code was a mess translated more or less
+## directly from perl code. Some refactoring attempts have been made
+## to make it more maintainable.  Feel free to refactor it further,
+## where it makes sense.
+
+## BUGS: This program has one glaring problem: All the log lines are
+## read into memory, and the logfile is subsequently truncated.  If
+## the program crashes before the lines are inserted into the
+## database, all the read log lines are lost.
+
+## TODO: Possible future enhancement is the ability to tail a log file
+## continually, instead of reading and truncating as a cron job.
 
 import re
 import fcntl
@@ -52,20 +60,6 @@ import nav.logs
 from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
-
-
-config = ConfigParser()
-config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
-logfile = config.get("paths","syslog")
-if config.has_option("paths", "charset"):
-    logfile_charset = config.get("paths", "charset")
-else:
-    logfile_charset = "ISO-8859-1"
-
-logging.basicConfig()
-logger = logging.getLogger('logengine')
-connection = db.getConnection('logger','logger')
-database = connection.cursor()
 
 def get_exception_dicts(config):
 
@@ -214,10 +208,23 @@ def find_month(textual):
     except ValueError, e:
         pass
 
+def delete_old_messages(config):
+    """Delete old messages from db, according to config settings."""
+    for priority in range(0,8):
+        if config.get("deletepriority",str(priority)):
+            days = config.getint("deletepriority", str(priority))
+            database.execute("DELETE FROM log_message WHERE newpriority=%s "
+                             "AND time < now() - interval %s",
+                             (priority, '%d days' % days))
 
+    connection.commit()
 
-if __name__ == '__main__':
-    nav.logs.setLogLevels()
+def verify_singleton():
+    """Verify that we are the single running logengine process.
+
+    If a logengine process is already running, we exit this process.
+
+    """
     # Create a pidfile and delete it automagically when the process exits.
     # Although we're not a daemon, we do want to prevent multiple simultaineous
     # logengine processes.
@@ -232,51 +239,47 @@ if __name__ == '__main__':
     daemon.writepidfile(pidfile)
     atexit.register(daemon.daemonexit, pidfile)
 
-    ## initial setup of dictionaries
 
+def get_categories(cursor):
     categories = {}
-    database.execute("select category from category")
-    for r in database.fetchall():
+    cursor.execute("select category from category")
+    for r in cursor.fetchall():
         if not categories.has_key(r[0]):
             categories[r[0]] = r[0]
-    
+    return categories
+
+def get_origins(cursor):
     origins = {}
-    database.execute("select origin, name from origin")
-    for r in database.fetchall():
+    cursor.execute("select origin, name from origin")
+    for r in cursor.fetchall():
         if not origins.has_key(r[1]):
             origins[r[1]] = int(r[0])
+    return origins
 
+def get_types(cursor):
     types = {}
-    database.execute("select type, facility, mnemonic, priority from log_message_type")
-    for r in database.fetchall():
+    cursor.execute("select type, facility, mnemonic, priority from log_message_type")
+    for r in cursor.fetchall():
         if not types.has_key(r[1]): 
             types[r[1]] = {}
         if not types[r[1]].has_key(r[2]):
             types[r[1]][r[2]] = int(r[0])
+    return types
 
-    ## parse priorityexceptions
-    (exceptionorigin,
-     exceptiontype,
-     exceptiontypeorigin) =  get_exception_dicts(config)
+def read_log_lines(config):
+    """Read and yield message lines from the watched cisco log file.
+    
+    Once the log file has been read, it is truncated. The watched file
+    is configured using the syslog option in the paths section of
+    logger.conf.
 
-    ## delete old records
-    ## the limits for what is old is specified in the logger.conf
-    ## configuration file
-    for priority in range(0,8):
-        if config.get("deletepriority",str(priority)):
-            days = config.getint("deletepriority", str(priority))
-            database.execute("DELETE FROM log_message WHERE newpriority=%s "
-                             "AND time < now() - interval %s",
-                             (priority, '%d days' % days))
-
-    #get rid of old records before filling up with new (old jungle proverb)
-    connection.commit()
-
-
-    ## add new records
-    ## the new records are read from the cisco syslog file specified 
-    ## by the syslog path in the logger.conf configuration file
-
+    """
+    logfile = config.get("paths","syslog")
+    if config.has_option("paths", "charset"):
+        charset = config.get("paths", "charset")
+    else:
+        charset = "ISO-8859-1"
+    
     f = None
     ## open log
     try:
@@ -285,7 +288,7 @@ if __name__ == '__main__':
         # If errno==2 (file not found), we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
         if e.errno != 2:
-            print >> sys.stderr, "Couldn't open logfile %s: %s" % (logfile, e)
+            logger.exception("Couldn't open logfile %s", logfile)
 
     ## if the file exists
     if f:
@@ -306,80 +309,131 @@ if __name__ == '__main__':
 
         for line in fcon:
             # Make sure the data is encoded as UTF-8 before we begin work on it
-            line = line.decode(logfile_charset).encode("UTF-8")
+            line = line.decode(charset).encode("UTF-8")
+            yield line
+    else:
+        raise StopIteration
+
+def parse_and_insert(line, database,
+                     categories, origins, types,
+                     exceptionorigin, exceptiontype, exceptiontypeorigin):
+    """Parse a line of cisco log text and insert into db."""
+
+    try:
+        message = createMessage(line)
+    except Exception, e:
+        logger.exception("Unhandled exception during message parse: %s",
+                         line)
+        return False
+
+    if message:
+
+        ## check origin (host)
+        if origins.has_key(message.origin):
+            originid = origins[message.origin]
+
+        else:
+            ## update category database table
+            if not categories.has_key(message.category):
+                database.execute("INSERT INTO category (category) "
+                                 "VALUES (%s)", (message.category,))
+                categories[message.category] = message.category
+
+            ## update origin database table
+            database.execute("SELECT nextval('origin_origin_seq')")
+            originid = database.fetchone()[0]
+            database.execute("INSERT INTO origin (origin, name, "
+                             "category) VALUES (%d, %s, %s)",
+                             (originid, message.origin,
+                              message.category))
+            origins[message.origin] = originid
+
+        ## check type
+        if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
+            typeid = types[message.facility][message.mnemonic]
+
+        else:
+            ## update type database table
+            database.execute("SELECT nextval('log_message_type_type_seq')")
+            typeid = int(database.fetchone()[0])
+
+            database.execute("INSERT INTO log_message_type (type, facility, "
+                             "mnemonic, priority) "
+                             "VALUES (%d, %s, %s, %d)",
+                             (typeid, message.facility,
+                              message.mnemonic, message.priorityid))
+            if not types.has_key(message.facility):
+                types[message.facility] = {}
+            types[message.facility][message.mnemonic] = typeid
+
+        ## overload priority if exceptions are set
+        if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
             try:
-                message = createMessage(line)
-            except Exception, e:
-                logger.exception("Unhandled exception during message parse: %s",
-                                 line)
-                continue
-            if message:
+                message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
+            except:
+                pass
 
-                ## check origin (host)
-                if origins.has_key(message.origin):
-                    originid = origins[message.origin]
+        elif exceptionorigin.has_key(message.origin.lower()):
+            try:
+                message.priorityid = int(exceptionorigin[message.origin.lower()])
+            except:
+                pass
 
-                else:
-                    ## update category database table
-                    if not categories.has_key(message.category):
-                        database.execute("INSERT INTO category (category) "
-                                         "VALUES (%s)", (message.category,))
-                        categories[message.category] = message.category
+        elif exceptiontype.has_key(message.type.lower()):
+            try:
+                message.priorityid = int(exceptiontype[message.type.lower()])
+            except:
+                pass
 
-                    ## update origin database table
-                    database.execute("SELECT nextval('origin_origin_seq')")
-                    originid = database.fetchone()[0]
-                    database.execute("INSERT INTO origin (origin, name, "
-                                     "category) VALUES (%d, %s, %s)",
-                                     (originid, message.origin,
-                                      message.category))
-                    origins[message.origin] = originid
+        ## insert message into database
+        database.execute("INSERT INTO log_message (time, origin, "
+                         "newpriority, type, message) "
+                         "VALUES (%s, %s, %s, %s, %s)",
+                         (str(message.time), originid,
+                          message.priorityid, typeid,
+                          message.description))
 
-                ## check type
-                if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
-                    typeid = types[message.facility][message.mnemonic]
+def main():
+    global logger, connection, database
 
-                else:
-                    ## update type database table
-                    database.execute("SELECT nextval('log_message_type_type_seq')")
-                    typeid = int(database.fetchone()[0])
+    # Process setup
 
-                    database.execute("INSERT INTO log_message_type (type, facility, "
-                                     "mnemonic, priority) "
-                                     "VALUES (%d, %s, %s, %d)",
-                                     (typeid, message.facility,
-                                      message.mnemonic, message.priorityid))
-                    if not types.has_key(message.facility):
-                        types[message.facility] = {}
-                    types[message.facility][message.mnemonic] = typeid
+    config = ConfigParser()
+    config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
 
-                ## overload priority if exceptions are set
-                if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
-                    try:
-                        message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
-                    except:
-                        pass
+    logging.basicConfig()
+    logger = logging.getLogger('logengine')
+    nav.logs.setLogLevels()
 
-                elif exceptionorigin.has_key(message.origin.lower()):
-                    try:
-                        message.priorityid = int(exceptionorigin[message.origin.lower()])
-                    except:
-                        pass
+    verify_singleton()
 
-                elif exceptiontype.has_key(message.type.lower()):
-                    try:
-                        message.priorityid = int(exceptiontype[message.type.lower()])
-                    except:
-                        pass
+    connection = db.getConnection('logger','logger')
+    database = connection.cursor()
 
-                ## insert message into database
-                database.execute("INSERT INTO log_message (time, origin, "
-                                 "newpriority, type, message) "
-                                 "VALUES (%s, %s, %s, %s, %s)",
-                                 (str(message.time), originid,
-                                  message.priorityid, typeid,
-                                  message.description))
+    ## initial setup of dictionaries
 
-        connection.commit()
+    categories = get_categories(database)
+    origins = get_origins(database)
+    types = get_types(database)
+
+    ## parse priorityexceptions
+    (exceptionorigin,
+     exceptiontype,
+     exceptiontypeorigin) =  get_exception_dicts(config)
+
+    #get rid of old records before filling up with new (old jungle proverb)
+    delete_old_messages(config)
+
+    ## add new records
+    for line in read_log_lines(config):
+        parse_and_insert(line, database,
+                         categories, origins, types,
+                         exceptionorigin, exceptiontype, exceptiontypeorigin)
+
+    # Make sure it all sticks
+    connection.commit()
 
 
+
+if __name__ == '__main__':
+    main()
