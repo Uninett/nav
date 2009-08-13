@@ -49,6 +49,11 @@ body
   height: 600px;
 }
 
+#navbody.loading, #navbody.loading #map
+{
+  cursor: progress;
+}
+
 #legend
 {
   margin-top: 10px;

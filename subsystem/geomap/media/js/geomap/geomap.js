@@ -118,13 +118,16 @@ function init(mapElementId, url) {
  * Updating the displayed loading status:
  */
 function netLayerLoadStart() {
-    document.getElementById('geomap-heading').innerHTML = "Geomap (loading data ...)";
+    document.getElementById('geomap-heading').innerHTML = 'Geomap (<img src="/images/geomap/loading.gif" alt=""/> loading data ...)';
+    document.getElementById('navbody').className = 'loading';
 }
 function netLayerLoadEnd() {
     document.getElementById('geomap-heading').innerHTML = "Geomap";
+    document.getElementById('navbody').className = '';
 }
 function netLayerLoadCancel() {
     document.getElementById('geomap-heading').innerHTML = "Geomap";
+    document.getElementById('navbody').className = '';
 }
 
 /*
