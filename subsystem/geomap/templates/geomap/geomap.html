@@ -1,5 +1,34 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+<script src="/js/geomap/proj4js-compressed.js"></script>
+<script src="/js/geomap/projdefs/EPSG326xx.js"></script>
+<script src="/js/geomap/projdefs/EPSG327xx.js"></script>
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+ 
+<script src="/js/geomap/util.js"></script>
+<script src="/js/geomap/coordinates.js"></script>
+<script src="/js/geomap/NetworkLayer.js"></script>
+<script src="/js/geomap/PopupControl.js"></script>
+<script src="/js/geomap/PositionControl.js"></script>
+<script src="/js/geomap/MyHTTPProtocol.js"></script>
+<script src="/js/geomap/Calendar.js"></script>
+<script src="/js/geomap/Time.js"></script>
+<script src="/js/geomap/TimeInterval.js"></script>
+<script src="/js/geomap/TimeNavigator.js"></script>
+<script src="/js/geomap/Permalink.js"></script>
+<script src="/js/geomap/geomap.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/style/geomap.css" />
+{% endblock %}
+
+
+{% block base_body_start %}
+<body onload="init('map', 'data')">
+{% endblock %}
+
+
 {% block base_content %}
 
 <h2 id="geomap-heading">Geomap</h2>
