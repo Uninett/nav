@@ -1,8 +1,11 @@
 <div class="network-popup">
-  Capacity: {{ network.properties.speed }},
+  Capacity: {{ network.capacity|floatformat:0 }} Mbps<br/>
   <ul>
-    {% for net in network.properties.subedges %}
-    <li>{{ net.properties.netident }}</li>
+    {% for sub in network.subedges %}
+    <li>
+    {{ sub.netident }}<br/>
+    Capacity: {{ sub.capacity|floatformat:0 }} Mbps<br/>
+    </li>
     {% endfor %}
   </ul>
 </div>

@@ -22,6 +22,11 @@ library.
 """
 
 
+def identity(x):
+    """identity(x) == x for all x"""
+    return x
+
+
 def group(property, lst):
     """Group a list into sublists based on equality of some property.
 
@@ -423,6 +428,22 @@ class lazy_dict:
         """
         self.storage[key] = {'fun': fun, 'args': args}
         self.unevaluated.add(key)
+
+    def __delitem__(self, key):
+        """d.__delitem__(key) <==> del d[key]."""
+        del self.storage[key]
+        self.unevaluated.discard(key)
+
+    def remove_if_present(self, k):
+        """Remove key k from dictionary if it is present."""
+        if k in self:
+            del self[k]
+
+    def swap(self, k1, k2):
+        """Swap the values at keys k1 and k2."""
+        tmp = self[[k1]]
+        self[[k1]] = self[[k2]]
+        self[[k2]] = tmp
 
     def __repr__(self):
         return '<lazy_dict %s>' % self.storage

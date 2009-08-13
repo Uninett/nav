@@ -1,35 +1,29 @@
-{% with place.properties as p %}
 <div class="place-popup">
-  {{ p.num_rooms }} room{{ p.num_rooms|pluralize }},
-  {{ p.num_netboxes }} netbox{{ p.num_netboxes|pluralize:"es" }}<br/>
-  Load:
-  {{ p.load|nan2none|floatformat:2|default:"unknown" }}
+  {{ place.num_rooms }} room{{ place.num_rooms|pluralize }},
+  {{ place.num_netboxes }} netbox{{ place.num_netboxes|pluralize:"es" }}<br/>
+  CPU load (max):
+  {{ place.load|nan2none|floatformat:2|default:"unknown" }}
 
   <ul>
-    {% for room in p.rooms %}
-    {% with room.properties as rp %}
-    <li>Room: {{ rp.id }} ({{ rp.descr }})<br/>
-        {{ rp.num_netboxes }} netbox{{ rp.num_netboxes|pluralize:"es" }}<br/>
-        Load: {{ rp.load|nan2none|floatformat:2|default:"unknown" }}
+    {% for room in place.rooms %}
+    <li>Room: {{ room.id }} ({{ room.descr }})<br/>
+        {{ room.num_netboxes }} netbox{{ room.num_netboxes|pluralize:"es" }}<br/>
+        CPU load (max): {{ room.load|nan2none|floatformat:2|default:"unknown" }}
     <ul>
-      {% for box in rp.netboxes %}
-      {% with box.properties as bp %}
-      <li><a href="/ipdevinfo/?query={{ bp.ip }}"
+      {% for box in room.netboxes %}
+      <li><a href="/ipdevinfo/?query={{ box.ip }}"
              target="_blank"
-             title="View in IP Device Info">{{ bp.sysname }}</a><br/>
-          Netboxid: {{ bp.netboxid }}<br/>
-          IP: {{ bp.ip }}<br/>
-          Category: {{ bp.catid }}<br/>
-          Up: {{ bp.up }}<br/>
-          Type: {{ bp.type }}<br/>
-          Load: {{ bp.load|nan2none|floatformat:2|default:"unknown" }}<br/>
+             title="View in IP Device Info">{{ box.sysname }}</a><br/>
+          Netboxid: {{ box.netboxid }}<br/>
+          IP: {{ box.ip }}<br/>
+          Category: {{ box.catid }}<br/>
+          Up: {{ box.up }}<br/>
+          Type: {{ box.type }}<br/>
+          Load: {{ box.load|nan2none|floatformat:2|default:"unknown" }}<br/>
       </li>
-      {% endwith %}
       {% endfor %}
     </ul>
     </li>
-    {% endwith %}
     {% endfor %}
   </ul>
 </div>
-{% endwith %}

@@ -248,7 +248,7 @@ def create_node_popup(node, popup_template):
     """Create the popup for a node."""
     if popup_template is None:
         return None
-    content = popup_template.render(Context({'place': node}))
+    content = popup_template.render(Context({'place': node.properties}))
     return Popup('popup-' + node.id, [300,250], content, True)
 
 
@@ -278,38 +278,32 @@ def create_edge_features(edge, popup_template, default_style, indicators):
     properties of the edge
 
     """
-    popup = create_edge_popup(edge, popup_template)
-    def make_feature(id_suffix, source_coords, target_coords, properties):
+    def make_feature(source_coords, target_coords, data):
         style = union_dict(default_style,
-                           apply_indicators(indicators, properties))
-        return Feature(str(edge.id)+id_suffix, 'edge',
+                           apply_indicators(indicators, data))
+        popup = create_edge_popup(data, popup_template)
+        return Feature(data['id'], 'edge',
                        Geometry('LineString', [source_coords, target_coords]),
-                       style['color'], style['size'], popup,
-                       subdict(properties, _edge_feature_properties))
+                       style['color'], style['size'], popup)
 
-    properties = subdict(edge.properties, _edge_feature_properties)
-    properties_forward = edge.properties.copy();
-    properties_forward[['load']] = edge.properties[['load_in']];
-    properties_back = edge.properties.copy();
-    properties_back[['load']] = edge.properties[['load_out']];
     source = [edge.source.lon, edge.source.lat]
     middle = [(edge.source.lon+edge.target.lon)/2,
               (edge.source.lat+edge.target.lat)/2]
     target = [edge.target.lon, edge.target.lat]
-    return [make_feature('[1]', source, middle, properties_forward),
-            make_feature('[2]', middle, target, properties_back)]
+    return [make_feature(source, middle, edge.sourceData),
+            make_feature(middle, target, edge.targetData)]
 
 
-def create_edge_popup(edge, popup_template):
+def create_edge_popup(data, popup_template):
     """Create the popup for a node."""
     if popup_template is None:
         return None
-    content = popup_template.render(Context({'network': edge}))
-    return Popup('popup-' + edge.id, [300,250], content, True)
+    content = popup_template.render(Context({'network': data}))
+    return Popup('popup-' + data['id'], [300,250], content, True)
     
 
 class Feature:
-    def __init__(self, id, type, geometry, color, size, popup, properties):
+    def __init__(self, id, type, geometry, color, size, popup, properties={}):
         self.id = id
         self.type = type
         self.geometry = geometry

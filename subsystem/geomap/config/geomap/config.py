@@ -11,13 +11,13 @@ def variant(normal, "Normal"):
     template_file(edge_popup, "popup_network.html")
 
     def indicator(edge, color, "Link load"):
-        if is_nan(load):
+        if is_nan(load_out):
             ("#666666", "No statistics")
-        if load/capacity < 0.3:
+        if load_out/capacity < 0.3:
             ("#8AE234", "0--30 %")
-        if load/capacity < 0.6:
+        if load_out/capacity < 0.6:
             ("#FCE94F", "30--60 %")
-        if load/capacity < 0.9:
+        if load_out/capacity < 0.9:
             ("#FCAF3E", "60--90 %")
         if True:
             ("#CC0000", "90--100 %")
