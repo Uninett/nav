@@ -26,6 +26,7 @@ from django.core.urlresolvers import reverse
 from django import forms
 
 from nav.django.shortcuts import render_to_response
+from nav.django.utils import get_account
 import nav.db
 import psycopg2.extras
 from nav.web.geomap.conf import get_configuration
@@ -66,8 +67,12 @@ def forward_to_default_variant(request):
     file.
 
     """
-    default_variant = get_configuration()['variant_order'][0]
-    return HttpResponseRedirect(reverse('geomap', args=(default_variant,)))
+    account = get_account(request)
+    for variant in get_configuration()['variant_order']:
+        url = reverse('geomap', args=(variant,))
+        if account.has_perm('web_access', url):
+            return HttpResponseRedirect(url)
+    return HttpResponseForbidden # TODO: should use 'Unauthorized'
 
 
 def data(request, variant):
