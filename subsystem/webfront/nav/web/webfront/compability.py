@@ -63,7 +63,7 @@ class Cheetah(object):
         """Prints the django footer template as a string.
         """
         return render_to_string(
-            'footer.html',
+            'compability/footer.html',
             {
                 'account': self.user,
                 'version': VERSION,
