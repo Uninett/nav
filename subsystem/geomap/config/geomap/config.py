@@ -11,7 +11,7 @@ def variant(normal, "Normal"):
     template_file(edge_popup, "popup_network.html")
 
     def indicator(edge, color, "Link load"):
-        if is_nan(load_out):
+        if is_nan(load_out) or capacity == 0:
             ("#666666", "No statistics")
         if load_out/capacity < 0.3:
             ("#8AE234", "0--30 %")
@@ -59,7 +59,7 @@ def variant(open, "Open"):
     template_file(edge_popup, "popup_network_open.html")
 
     def indicator(edge, color, "Link load"):
-        if is_nan(load_out):
+        if is_nan(load_out) or capacity == 0:
             ("#666666", "No statistics")
         if load_out/capacity < 0.3:
             ("#8AE234", "0--30 %")
