@@ -108,7 +108,7 @@ function init(mapElementId, url) {
 	    {set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
 	     get time() { return timeNavigator.interval.toReadableString(); }},
 	    [timeNavigator.onChange]);
-    } catch (e if e instanceof Error) {
+    } catch (e) {
 	alert('Error parsing URL query string:\n' + e);
     }
 }
