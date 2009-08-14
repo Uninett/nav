@@ -216,11 +216,19 @@ def negate(p):
 def subdict(d, keys):
     """Restriction of dictionary to some keys.
 
-    d should be a dictionary and keys a list whose items are keys of
-    d.  Returns a new dictionary object.
+    d should be a dictionary (or lazy_dict) and keys a list whose
+    items are keys of d.  Returns a new dictionary object; d is not
+    modified.  If d is a lazy_dict, the result is also a lazy_dict.
 
     """
-    return dict([(k, d[k]) for k in keys])
+    if isinstance(d, lazy_dict):
+        new_d = d.copy()
+        for k in d.keys():
+            if k not in keys:
+                del new_d[k]
+        return new_d
+    else:
+        return dict([(k, d[k]) for k in keys])
 
 
 def filter_dict(fun, d):
@@ -279,10 +287,10 @@ class lazy_dict:
 
     This class provides a very limited form of lazy evaluation. When
     setting a value in the dictionary, the value may be given either
-    directly or indirectly by a function for computing it. In the
-    latter case, the function will be called (and the resulting value
-    stored for later lookups) the first time the value is read from
-    the dictionary.
+    directly as when using an ordinary dictionary, or indirectly by a
+    function for computing it. In the latter case, the function will
+    be called (and the resulting value stored for later lookups) the
+    first time the value is read from the dictionary.
 
     A lazy_dict may be used mostly as a dictionary. Values are read
     and written with the usual bracket notation (d[key]). For lazy

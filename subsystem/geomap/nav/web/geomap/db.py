@@ -80,23 +80,32 @@ def get_data(db_cursor, bounds, time_interval=None):
     connections = {}
 
     layer_3_query = """
-        SELECT DISTINCT ON (sysname, from_sysname)
-               gwport.gwportid,speed, ifindex, interface, sysname,
-               netbox.netboxid, conn.*, nettype, netident,
-               from_rrd_file.path ||'/'|| from_rrd_file.filename AS from_rrdfile,
-               rrd_file.path ||'/'|| rrd_file.filename AS rrdfile,
-               3 AS layer, NULL AS from_swportid, vlan.*
+        SELECT DISTINCT ON (local_sysname, remote_sysname)
+               sysname AS local_sysname,
+               interface AS local_interface,
+               netbox.netboxid AS local_netboxid,
+               gwport.gwportid AS local_gwportid,
+               gwport.gwportid AS local_portid,
+               NULL AS local_swportid,
+               speed AS capacity,
+               ifindex,
+               conn.*, nettype, netident,
+               remote_rrd_file.path ||'/'|| remote_rrd_file.filename AS remote_rrdfile,
+               rrd_file.path ||'/'|| rrd_file.filename AS local_rrdfile,
+               3 AS layer, NULL AS remote_swportid, vlan.*
         FROM gwportprefix
         JOIN (
             SELECT DISTINCT ON (gwportprefix.prefixid)
-                   gwportid AS from_gwportid,
+                   gwportid AS remote_gwportid,
+                   gwportid AS remote_portid,
+                   NULL AS remote_swportid,
                    gwportprefix.prefixid,
-                   ifindex AS from_ifindex,
-                   interface AS from_interface,
-                   sysname AS from_sysname,
-                   speed AS from_speed,
-                   netboxid AS from_netboxid,
-                   room.position AS from_position
+                   ifindex AS remote_ifindex,
+                   interface AS remote_interface,
+                   sysname AS remote_sysname,
+                   speed AS remote_speed,
+                   netboxid AS remote_netboxid,
+                   room.position AS remote_position
             FROM gwport
             JOIN module USING (moduleid)
             JOIN netbox USING (netboxid)
@@ -109,42 +118,43 @@ def get_data(db_cursor, bounds, time_interval=None):
         JOIN room USING (roomid)
         LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
         LEFT JOIN vlan USING (vlanid)
-        LEFT JOIN rrd_file AS from_rrd_file ON (from_rrd_file.key='gwport' AND from_rrd_file.value=conn.from_gwportid::varchar)
+        LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='gwport' AND remote_rrd_file.value=conn.remote_gwportid::varchar)
         LEFT JOIN rrd_file ON (rrd_file.key='gwport' AND rrd_file.value=gwport.gwportid::varchar)
-        WHERE gwport.gwportid <> from_gwportid AND vlan.nettype NOT IN ('static', 'lan')
+        WHERE gwport.gwportid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
           AND ((room.position[1] >= %s AND room.position[0] >= %s AND
                 room.position[1] <= %s AND room.position[0] <= %s)
                OR
-               (from_position[1] >= %s AND from_position[0] >= %s AND
-                from_position[1] <= %s AND from_position[0] <= %s))
-          AND length(lseg(room.position, from_position)) >= %s
-        ORDER BY sysname,from_sysname, netaddr ASC, speed DESC
+               (remote_position[1] >= %s AND remote_position[0] >= %s AND
+                remote_position[1] <= %s AND remote_position[0] <= %s))
+          AND length(lseg(room.position, remote_position)) >= %s
+        ORDER BY sysname,remote_sysname, netaddr ASC, speed DESC
     """
 
 
 
     layer_2_query_1 = """
 SELECT DISTINCT ON (swport.swportid)
-gwport.gwportid AS from_gwportid,
-gwport.speed,
-gwport.ifindex AS from_ifindex,
-gwport.interface AS from_interface,
-netbox.sysname AS from_sysname,
-netbox.netboxid AS from_netboxid,
-gwport.to_swportid AS to_swportid,
+gwport.gwportid AS remote_gwportid,
+gwport.gwportid AS remote_portid,
+NULL AS remote_swportid,
+gwport.speed AS capacity,
+gwport.ifindex AS remote_ifindex,
+gwport.interface AS remote_interface,
+netbox.sysname AS remote_sysname,
+netbox.netboxid AS remote_netboxid,
 
-swport.swportid AS swportid,
-swport.interface  AS interface,
-swport_netbox.sysname AS sysname,
-swport_netbox.netboxid AS netboxid,
+swport.swportid AS local_swportid,
+swport.swportid AS local_portid,
+NULL AS local_gwportid,
+swport.interface AS local_interface,
+swport_netbox.sysname AS local_sysname,
+swport_netbox.netboxid AS local_netboxid,
 swport.ifindex AS ifindex,
 
 2 AS layer,
-from_rrd_file.path ||'/'|| from_rrd_file.filename AS from_rrdfile,
-rrd_file.path ||'/'|| rrd_file.filename AS rrdfile,
+remote_rrd_file.path ||'/'|| remote_rrd_file.filename AS remote_rrdfile,
+rrd_file.path ||'/'|| rrd_file.filename AS local_rrdfile,
 nettype, netident,
-NULL AS from_swportid,
-NULL AS gwportid,
 vlan.*
 
 FROM gwport
@@ -154,7 +164,7 @@ FROM gwport
  LEFT JOIN gwportprefix ON (gwportprefix.gwportid = gwport.gwportid)
  LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
  LEFT JOIN vlan USING (vlanid)
- LEFT JOIN rrd_file AS from_rrd_file ON (from_rrd_file.key='gwport' AND from_rrd_file.value=gwport.gwportid::varchar)
+ LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='gwport' AND remote_rrd_file.value=gwport.gwportid::varchar)
 
  JOIN swport ON (swport.swportid = gwport.to_swportid)
  JOIN module AS swport_module ON (swport.moduleid = swport.moduleid)
@@ -175,21 +185,20 @@ FROM gwport
     """
 
     layer_2_query_2 = """
-SELECT DISTINCT ON (from_sysname, sysname)
-swport.swportid AS from_swportid,
-swport.speed,
-swport.ifindex AS from_ifindex,
-swport.interface AS from_interface,
-netbox.sysname AS from_sysname,
-netbox.netboxid AS from_netboxid,
-swport.to_swportid AS to_swportid,
+SELECT DISTINCT ON (remote_sysname, local_sysname)
+swport.swportid AS remote_swportid,
+swport.swportid AS remote_portid,
+NULL AS remote_gwportid,
+swport.speed AS capacity,
+swport.ifindex AS remote_ifindex,
+swport.interface AS remote_interface,
+netbox.sysname AS remote_sysname,
+netbox.netboxid AS remote_netboxid,
 2 AS layer,
 foo.*,
 vlan.*,
-from_rrd_file.path ||'/'|| from_rrd_file.filename AS from_rrdfile,
-rrd_file.path ||'/'|| rrd_file.filename AS rrdfile,
-NULL AS gwportid,
-NULL AS from_gwportid
+remote_rrd_file.path ||'/'|| remote_rrd_file.filename AS remote_rrdfile,
+rrd_file.path ||'/'|| rrd_file.filename AS local_rrdfile
 
 FROM swport
  JOIN module ON (swport.moduleid = module.moduleid)
@@ -198,180 +207,146 @@ FROM swport
  JOIN (
 
      SELECT
-     swport.swportid AS swportid,
-     swport.speed,
+     swport.swportid AS local_swportid,
+     swport.swportid AS local_portid,
+     NULL AS local_gwportid,
      swport.ifindex AS ifindex,
-     swport.interface AS interface,
-     netbox.sysname AS sysname,
-     netbox.netboxid AS netboxid,
-     room.position AS to_position
+     swport.interface AS local_interface,
+     netbox.sysname AS local_sysname,
+     netbox.netboxid AS local_netboxid,
+     room.position AS local_position
 
      FROM swport
      JOIN module ON (swport.moduleid = module.moduleid)
      JOIN netbox USING (netboxid)
      JOIN room USING (roomid)
 
-   ) AS foo ON (foo.swportid = to_swportid)
+   ) AS foo ON (foo.local_swportid = to_swportid)
 
 
 LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
 LEFT JOIN vlan USING (vlanid)
 
-LEFT JOIN rrd_file AS from_rrd_file ON (from_rrd_file.key='swport' AND from_rrd_file.value=swport.swportid::varchar)
-LEFT JOIN rrd_file ON (rrd_file.key='swport' AND rrd_file.value=foo.swportid::varchar)
+LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='swport' AND remote_rrd_file.value=swport.swportid::varchar)
+LEFT JOIN rrd_file ON (rrd_file.key='swport' AND rrd_file.value=foo.local_swportid::varchar)
 
-JOIN room AS from_room ON (netbox.roomid = from_room.roomid)
+JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
 
-WHERE ((from_room.position[1] >= %s AND from_room.position[0] >= %s AND
-        from_room.position[1] <= %s AND from_room.position[0] <= %s)
+WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
+        remote_room.position[1] <= %s AND remote_room.position[0] <= %s)
        OR
-       (foo.to_position[1] >= %s AND foo.to_position[0] >= %s AND
-        foo.to_position[1] <= %s AND foo.to_position[0] <= %s))
-  AND length(lseg(from_room.position, foo.to_position)) >= %s
+       (foo.local_position[1] >= %s AND foo.local_position[0] >= %s AND
+        foo.local_position[1] <= %s AND foo.local_position[0] <= %s))
+  AND length(lseg(remote_room.position, foo.local_position)) >= %s
 
-ORDER BY from_sysname, sysname, swport.speed DESC
+ORDER BY remote_sysname, local_sysname, swport.speed DESC
     """
 
     layer_2_query_3 = """
-SELECT DISTINCT ON (from_sysname, sysname)
+SELECT DISTINCT ON (remote_sysname, local_sysname)
 
-swport.swportid AS from_swportid,
-swport.speed,
-swport.ifindex AS from_ifindex,
-swport.interface AS from_interface,
-netbox.sysname AS from_sysname,
-netbox.netboxid AS from_netboxid,
+swport.swportid AS remote_swportid,
+swport.swportid AS remote_portid,
+swport.ifindex AS remote_ifindex,
+swport.interface AS remote_interface,
+netbox.sysname AS remote_sysname,
+netbox.netboxid AS remote_netboxid,
+swport.speed AS capacity,
 2 AS layer,
 conn.*,
 vlan.*,
-path ||'/'|| filename AS from_rrdfile,
-NULL AS rrdfile,
-NULL AS gwportid,
-NULL AS from_gwportid,
-NULL AS to_swportid
-
+path ||'/'|| filename AS remote_rrdfile,
+NULL AS remote_gwportid,
+NULL AS local_rrdfile,
+NULL AS local_gwportid,
+NULL AS local_swportid,
+NULL AS local_portid,
+NULL AS local_interface
 
 FROM swport
  JOIN module ON (swport.moduleid = module.moduleid)
  JOIN netbox USING (netboxid)
 
  JOIN (
-    SELECT *, NULL AS interface, NULL AS swportid, room.position AS to_position
+    SELECT
+      netbox.sysname AS local_sysname,
+      netbox.netboxid AS local_netboxid,
+      room.position AS local_position
     FROM netbox
     JOIN room USING (roomid)
- ) AS conn ON (conn.netboxid = to_netboxid)
+ ) AS conn ON (conn.local_netboxid = to_netboxid)
 
 LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
 LEFT JOIN vlan USING (vlanid)
 LEFT JOIN rrd_file  ON (key='swport' AND value=swport.swportid::varchar)
 
-JOIN room AS from_room ON (netbox.roomid = from_room.roomid)
+JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
 
-WHERE ((from_room.position[1] >= %s AND from_room.position[0] >= %s AND
-        from_room.position[1] <= %s AND from_room.position[0] <= %s)
+WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
+        remote_room.position[1] <= %s AND remote_room.position[0] <= %s)
        OR
-       (conn.to_position[1] >= %s AND conn.to_position[0] >= %s AND
-        conn.to_position[1] <= %s AND conn.to_position[0] <= %s))
-  AND length(lseg(from_room.position, conn.to_position)) >= %s
+       (conn.local_position[1] >= %s AND conn.local_position[0] >= %s AND
+        conn.local_position[1] <= %s AND conn.local_position[0] <= %s))
+  AND length(lseg(remote_room.position, conn.local_position)) >= %s
 
-ORDER BY from_sysname, sysname, swport.speed DESC
+ORDER BY remote_sysname, local_sysname, swport.speed DESC
     """
 
     db_cursor.execute(layer_3_query, network_query_args)
     # Expect DictRows, but want to work with updateable dicts:
     results = [lazy_dict(row) for row in db_cursor.fetchall()]
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_1, network_query_args)
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_2, network_query_args)
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_3, network_query_args)
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
 
-    # Go through all the connections, do some processing (some of this
-    # could probably be moved to the queries) and add them to the
-    # connections dictionary:
     for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
-        if 'from_swportid' not in res and 'from_gwportid' not in res:
-            assert False, str(res)
+        assert (res.get('remote_swportid', None) is not None or
+                res.get('remote_gwportid', None) is not None)
 
-        # Change some of the names, and add some additional properties:
-        if 'from_swportid' in res and res['from_swportid']:
-            res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
-            res['from_portid'] = res['from_swportid']
-        elif 'from_gwportid' in res and res['from_gwportid']:
-            res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
-            res['from_portid'] = res['from_gwportid']
-        else:
-            assert False, str(res)
-        if 'swportid' in res:
-            res['to_swportid'] = res['swportid']
-            res['to_portid'] = res['to_swportid']
-            del res['swportid']
-        elif 'gwportid' in res:
-            res['to_gwportid'] = res['gwportid']
-            res['to_portid'] = res['to_gwportid']
-            del res['gwportid']
-        else:
-            assert False, str(res)
-
-        res['to_sysname'] = res['sysname']
-        del res['sysname']
-        res['to_interface'] = res['interface']
-        del res['interface']
-        res['to_netboxid'] = res['netboxid']
-        del res['netboxid']
-
-        res['capacity'] = res['speed']
-        del res['speed']
+    # Go through all the connections and add them to the connections
+    # dictionary:
+    for res in results:
+        # Remove all data we are not interested in keeping:
+        network_properties = \
+            ['capacity', 'nettype', 'netident', 'layer', 'vlan',
+             'local_sysname', 'local_netboxid', 'local_interface',
+             'local_portid', 'local_gwportid', 'local_swportid',
+             'local_rrdfile',
+             'remote_sysname', 'remote_netboxid', 'remote_interface',
+             'remote_portid', 'remote_gwportid', 'remote_swportid',
+             'remote_rrdfile']
+        res = subdict(res, network_properties)
 
         # Create a reversed version of the connection (this has all
-        # from_*/to_* swapped and has load data from the opposite
+        # remote_*/local_* swapped and has load data from the opposite
         # end):
         reverse = res.copy()
-        reverse.swap('from_interface', 'to_interface')
-        reverse.swap('from_sysname', 'to_sysname')
-        reverse.swap('from_portid', 'to_portid')
-        reverse.swap('from_netboxid', 'to_netboxid')
-        map(reverse.remove_if_present,
-            ['from_gwportid', 'to_gwportid', 'from_swportid', 'to_swportid'])
-        def copy_portid((k1, k2)):
-            if k1 in res:
-                reverse[k2] = res[k1]
-            if k2 in res:
-                reverse[k1] = res[k2]
-        map(copy_portid, [('from_gwportid', 'to_gwportid'),
-                          ('from_swportid', 'to_swportid')])
-        reverse['rrdfile'] = res['from_rrdfile']
-        del res['from_rrdfile']
-        del reverse['from_rrdfile']
+        reversable_properties = ['sysname', 'netboxid', 'interface',
+                                 'portid', 'gwportid', 'swportid',
+                                 'rrdfile']
+        map(reverse.swap,
+            map(lambda p: 'local_'+p, reversable_properties),
+            map(lambda p: 'remote_'+p, reversable_properties))
 
         # Add load data to both res and reverse.  We use the laziness
         # of lazy_dict here (see documentation of class lazy_dict in
         # utils.py) to avoid reading the RRD files until we know that
         # they are needed.
         def add_load_properties(d):
-            if d['rrdfile']:
+            if d['local_rrdfile']:
                 d[['load']] = fix(get_rrd_link_load,
-                                  [d['rrdfile'], time_interval])
+                                  [d['local_rrdfile'], time_interval])
             else:
                 d['load'] = (float('nan'), float('nan'))
             d[['load_in']] = lambda: d['load'][0]
             d[['load_out']] = lambda: d['load'][1]
         map(add_load_properties, [res, reverse])
 
-        connection_id = "%s-%s" % (res['to_sysname'], res['from_sysname'])
-        connection_rid = "%s-%s" % (res['from_sysname'], res['to_sysname'])
+        connection_id = "%s-%s" % (res['local_sysname'], res['remote_sysname'])
+        connection_rid = "%s-%s" % (res['remote_sysname'], res['local_sysname'])
         res['id'] = connection_id
         reverse['id'] = connection_rid
 

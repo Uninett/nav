@@ -72,14 +72,15 @@ def build_graph(db_results):
 
     # create Edge objects:
     for connection in connections.values():
-        if (not connection['forward']['to_netboxid'] in graph.nodes or
-            not connection['reverse']['to_netboxid'] in graph.nodes):
+        if (not connection['forward']['local_netboxid'] in graph.nodes or
+            not connection['reverse']['local_netboxid'] in graph.nodes):
             continue
         graph.add_edge(Edge(connection['forward']['id'],
-                            graph.nodes[connection['forward']['from_netboxid']],
-                            graph.nodes[connection['forward']['to_netboxid']],
-                            connection['reverse'],
-                            connection['forward']))
+                            connection['reverse']['id'],
+                            graph.nodes[connection['forward']['local_netboxid']],
+                            graph.nodes[connection['reverse']['local_netboxid']],
+                            connection['forward'],
+                            connection['reverse']))
 
     return graph
 
@@ -360,6 +361,7 @@ def combine_edges(graph, property_aggregators={}):
     edges = map(
         lambda eset:
             Edge('ce[%s]' % combine_ids(eset),
+                 'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
                  eset[0].source,
                  eset[0].target,
                  aggregate_properties(map(lambda edge: edge.sourceData, eset),
@@ -392,7 +394,7 @@ def reverse_edge(edge):
     Returns a new Edge object; the argument is not modified.
 
     """
-    return Edge(edge.sourceData['id'],
+    return Edge(edge.reverse_id, edge.id,
                 edge.target, edge.source,
                 edge.targetData, edge.sourceData)
 
@@ -408,8 +410,9 @@ class Node:
 
 class Edge:
     """Representation of an edge in a graph."""
-    def __init__(self, id, source, target, sourceData, targetData):
+    def __init__(self, id, reverse_id, source, target, sourceData, targetData):
         self.id = id
+        self.reverse_id = reverse_id
         self.source = source
         self.target = target
         self.sourceData = sourceData

@@ -80,7 +80,7 @@ def write_json(obj):
 
     if isinstance(obj, list):
         return '[' + ', '.join(map(write_json, obj)) + ']'
-    if isinstance(obj, dict):
+    if isinstance(obj, dict) or isinstance(obj, lazy_dict):
         return '{' + ', '.join(map(lambda kv: kv[0]+':'+kv[1],
                                    zip(map(write_json, obj.keys()),
                                        map(write_json, obj.values())))) + '}'

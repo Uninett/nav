@@ -10,16 +10,16 @@
     Capacity: {{ sub.capacity|floatformat:0 }} Mbps<br/>
     Load in: {{ sub.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
     Load out: {{ sub.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
-    Interface (local): {{ sub.to_interface }}<br/>
-    Interface (remote): {{ sub.from_interface }}<br/>
-    Netbox (local): {{ sub.to_sysname }}<br/>
-    Netbox (remote): {{ sub.from_sysname }}<br/>
-    Port (local): {{ sub.to_portid }}<br/>
-    Port (remote): {{ sub.from_portid }}<br/>
+    Interface (local): {{ sub.local_interface }}<br/>
+    Interface (remote): {{ sub.remote_interface }}<br/>
+    Netbox (local): {{ sub.local_sysname }}<br/>
+    Netbox (remote): {{ sub.remote_sysname }}<br/>
+    Port (local): {{ sub.local_portid }}<br/>
+    Port (remote): {{ sub.remote_portid }}<br/>
     Network type: {{ sub.nettype }}<br/>
     Layer: {{ sub.layer }}<br/>
     Vlan: {{ sub.vlan }}<br/>
-    RRD file: {{ sub.rrdfile }}
+    RRD file: {{ sub.local_rrdfile }}
     </li>
     {% endfor %}
   </ul>
