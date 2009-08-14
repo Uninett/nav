@@ -16,6 +16,14 @@
 
 /*
  * NetworkLayer.js: OpenLayers layer which shows network information.
+ *
+ * The information is downloaded from a URL (parametrized by the
+ * location, zoom level and size of the map) and reloaded when the map
+ * is zoomed or moved (unless the movement is small).
+ *
+ * The downloaded information is expected to be in GeoJSON format,
+ * with additional properties for size/color of features and text to
+ * show in popup boxes when clicking on them.
  */
 
 NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
@@ -36,6 +44,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
      */
     initialize: function(name, url, timeInterval, options) {
 
+	// Default style for points and lines:
 	var style = new OpenLayers.StyleMap({
 	    pointRadius: 15,
 	    strokeWidth: 10,
@@ -47,6 +56,8 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 	    graphicZIndex: 1
 	});
 
+	// Add rules for overriding style based on properties of the
+	// objects:
 	style.addUniqueValueRules('default', 'type', {
 	    node: {
 		fillColor: '${color}',
@@ -62,16 +73,27 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 	    }
 	});
 
+	// From a function of no arguments returning a Time object,
+	// create a function which returns the same time formatted in
+	// RRD syntax (used for creating parameters below):
 	function formattedTime(timeFunc) {
 	    return function() {
 		return timeFunc().format('%H:%M %Y%m%d');
 	    };
 	}
 
+	// A "strategy" takes care of automatically downloading data.
+	// The BBOX strategy reacts to moving and zooming.
 	this.bboxStrategy = new OpenLayers.Strategy.BBOX({resFactor: 1.1});
 
+	// Reference to this for use in functions below which are not
+	// called on this object:
 	var thisObj = this;
 
+	// Add the strategy from above and a "protocol" (which
+	// determines how to download data), as well as the style map
+	// we created, to the options we pass to the superclass
+	// constructor:
 	options = extend({
 	    strategies: [this.bboxStrategy],
 	    protocol: new MyHTTPProtocol({

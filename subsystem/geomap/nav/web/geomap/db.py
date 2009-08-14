@@ -48,12 +48,13 @@ _domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
 def get_data(db_cursor, bounds, time_interval=None):
     """Reads data from database.
 
-    Returns a pair of dictionaries (netboxes, connections). Each of these
-    contains, for each netbox/connection, a 'lazy dictionary' (see class
-    lazy_dict in utils.py) with information. (The reason for using
-    lazy_dict is that this allows postponing reading of RRD files until we
-    know it is necessary, while still keeping the code for reading them
-    here).
+    Returns a pair of dictionaries (netboxes, connections).  netboxes
+    contains a 'lazy dictionary' (see class lazy_dict in utils.py)
+    with information for each netbox; connections contains two lazy
+    dictionaries for each connection (one representing each end).
+    (The reason for using lazy_dict is that this allows postponing
+    reading of RRD files until we know it is necessary, while still
+    keeping the code for reading them here).
 
     The caller of get_data should call get_data_finish when the
     objects returned from get_data are no longer used.
