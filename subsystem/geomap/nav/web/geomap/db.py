@@ -422,11 +422,20 @@ def get_rrd_link_load(rrdfile, time_interval):
     rrd_data = (rrd_data[0] or nan, rrd_data[1] or nan)
     # Make sure values are floats:
     rrd_data = (float(rrd_data[0]), float(rrd_data[1]))
+
     # Reverse the order (apparently, the original order is (out, in).
     # I have no idea about whether that is correct or how to find out
     # if it is; I know nothing, I only copied this from Netmap's
-    # datacollector.py):
-    rrd_data = (rrd_data[1], rrd_data[0])
+    # datacollector.py).
+    ####rrd_data = (rrd_data[1], rrd_data[0])
+    # [Commented out the above line: I _think_ the order actually is
+    # (in, out), based on looking at the database (which seems to
+    # suggest that ds0=ifInOctets, ds1=ifOutOctets) and the result of
+    # doing an rrdtool.fetch (which seems to suggest that the order of
+    # the data is (ds0, ds1, ...)) and a whole lot of unqualified
+    # guesswork.  Are these things documented anywhere?  Uncomment the
+    # line if the order actually _is_ (out, in)]
+
     # Convert from bit/s to Mibit/s to get same unit as the 'capacity'
     # property:
     rrd_data = (rrd_data[0]/(1024*1024), rrd_data[1]/(1024*1024))
