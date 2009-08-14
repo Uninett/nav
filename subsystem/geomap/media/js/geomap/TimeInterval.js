@@ -104,13 +104,12 @@ function TimeInterval(size, time) {
 	this.time = new Time(time, true);
     } else {
 	// Find the last selectable interval.  By the rules in
-	// TimeInterval.selectable, it must contain (possibly being
-	// equal to) an interval of smallest size which is completely
-	// finished.  We therefore subtract the smallest interval size
-	// from the current time:
+	// TimeInterval.selectable, it must contain an interval of the
+	// smallest size which was finished at least one interval size
+	// ago.
 	var smallestSize = TI_SIZES[TI_SIZES.length-1];
 	this.time = new Time().add(makeObject(smallestSize.unit,
-					      -smallestSize.n));
+					      -2*smallestSize.n));
     }
     if (size == TI_WEEK) {
 	this.time = this.time.weekCenter();
@@ -212,16 +211,16 @@ TimeInterval.prototype = {
      * The rules for selectability are (these are somewhat arbitrary
      * and ad-hoc):
      *
-     * * An interval of the smallest size is selectable iff the whole
-     *   interval is in the past
+     * * An interval of the smallest size is selectable iff it ended
+     *   at least one interval size ago.
      *
      * * An interval of a larger size is selectable iff it contains at
      *   least one selectable interval.
      */
     selectable: function() {
 	if (this.size == TI_SIZES.length-1)
-	    return this.hasBeen();
-	return this.hasBeen() || this.downChoices().length != 0;
+	    return this.next().hasBeen();
+	return this.next().hasBeen() || this.downChoices().length != 0;
     },
 
     /*
