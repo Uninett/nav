@@ -84,13 +84,7 @@ def data(request, variant):
     variant must be a variant name defined in the configuration file.
 
     """
-#    connection = nav.db.getConnection('netmapserver', 'manage')
-    # TODO remove this (using teknobyen-vk temporarily for testing)
-    connection = psycopg2.connect(nav.db.get_connection_string(('teknobyen-vk.uninett.no',
-                                                                5432,
-                                                                'nav',
-                                                                'navread',
-                                                                'bjcgpzQy6')))
+    connection = nav.db.getConnection('geomapserver', 'manage')
     connection.set_isolation_level(1)
     db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 

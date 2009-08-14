@@ -473,9 +473,6 @@ def read_rrd_data(rrdfile, cf, time_interval, indices):
 
 def rrd_file_name(filename):
     """Perform any necessary transformation of an RRD file name."""
-    # TODO remove the following line (hack for using teknobyen-vk data
-    # from navdev)
-    filename = filename.replace('/home/nav/cricket-data', '/media/prod-rrd')
     return str(filename)
 
 
