@@ -34,4 +34,8 @@ urlpatterns = patterns('',
         name='webfront-about'),
     url(r'^toolbox/', toolbox,
         name='webfront-toolbox'),
+    url(r'^preferences/$', preferences,
+        name='webfront-preferences'),
+    url(r'^preferences/navigation/', preferences_navigation,
+        name='webfront-preferences-navigation'),
 )
