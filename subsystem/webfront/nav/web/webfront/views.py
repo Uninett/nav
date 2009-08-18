@@ -167,6 +167,8 @@ def preferences(request):
 
 def preferences_navigation(request):
     def formset_wrapper(link_set, checked):
+        """Massages data retrieved from the database to fit the forms used.
+        """
         data = []
         for link in link_set:
             check = checked.get(link.id, {})
@@ -181,6 +183,9 @@ def preferences_navigation(request):
         return data
 
     def get_or_create_accountnavbar(account):
+        """Tries to retrive this users navigation bar preferences from the
+        database. If nothing is found, we copy the default users preferences.
+        """
         account_navbar = AccountNavbar.objects.filter(account=account)
         if len(account_navbar) == 0:
             # No preferences. Set them according to default user
@@ -196,24 +201,37 @@ def preferences_navigation(request):
         return account_navbar
 
     def save_navbar(data):
+        """Saves a given formsets cleaned data to the database.
+
+            - data: should be the cleaned data from a formset, not the formset
+                    itself
+        """
         for link in data:
+            # If link is a empty dictionary, we should skip it
             if link:
+                # Try to fetch the navbar link from the database if id is
+                # supplied.
                 try:
                     navbarlink = NavbarLink.objects.get(id=link['id'])
                 except (KeyError, NavbarLink.DoesNotExist):
                     navbarlink = NavbarLink()
                     navbarlink.account = account
                 else:
+                    # If the navbar link was found, and the DELETE flag was
+                    # set, we should delete the navbar link.
                     if navbarlink.account == account:
                         if 'DELETE' in link and link['DELETE']:
                             navbarlink.delete()
                             continue
 
+                # Only save navbar link if this user is it's owner.
                 if navbarlink.account == account:
                     navbarlink.name = link['name']
                     navbarlink.uri = link['url']
                     navbarlink.save()
 
+                # Try to fetch the account navbar object related to this navbar
+                # link.
                 try:
                     navbar = AccountNavbar.objects.get(
                         account=account, navbarlink=link['id']
@@ -222,6 +240,7 @@ def preferences_navigation(request):
                     navbar = AccountNavbar()
                     navbar.account = account
 
+                # Set the positions this link should be in.
                 positions = []
                 if 'navbar' in link and link['navbar']:
                     positions.append('navbar')
@@ -235,6 +254,8 @@ def preferences_navigation(request):
                     navbar.navbarlink = navbarlink
                     navbar.save()
                 else:
+                    # If no positions, delete the account navbar object (not
+                    # the link itself).
                     if navbar.id:
                         navbar.delete()
 
@@ -257,6 +278,7 @@ def preferences_navigation(request):
             save_navbar(navbar_formset.cleaned_data)
             return HttpResponseRedirect(reverse('webfront-preferences-navigation'))
     else:
+        # Figure out which positions should be checked for which links.
         checked = {}
         for navbar in account_navbar:
             check = {}
@@ -268,11 +290,13 @@ def preferences_navigation(request):
                 check['qlink2'] = True
             checked[navbar.navbarlink_id] = check
 
+        # Get user links and default links if user is not default account.
+        # Default account only has user links, and editing them will effect
+        # everyone who uses those links.
         links = {
             'user': NavbarLink.objects.filter(account=account),
             'default': None,
         }
-
         if account.id != Account.DEFAULT_ACCOUNT:
             links['default'] = NavbarLink.objects.filter(
                 account__id=Account.DEFAULT_ACCOUNT)
