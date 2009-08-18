@@ -287,7 +287,9 @@ def preferences_navigation(request):
         )
 
     navpath = [
-        ('Home', '/'), ('Preferences', ''), ('Navigation preferences', None)
+        ('Home', '/'),
+        ('Preferences', reverse('webfront-preferences')),
+        ('Navigation preferences', None)
     ]
     return direct_to_template(
         request,
