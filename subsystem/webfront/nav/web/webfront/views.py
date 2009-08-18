@@ -200,7 +200,7 @@ def preferences_navigation(request):
             account_navbar = AccountNavbar.objects.filter(account=account)
         return account_navbar
 
-    def save_navbar(data):
+    def save_navbar(data, account):
         """Saves a given formsets cleaned data to the database.
 
             - data: should be the cleaned data from a formset, not the formset
@@ -274,8 +274,8 @@ def preferences_navigation(request):
             prefix='default'
         )
         if personal_navbar_formset.is_valid() and navbar_formset.is_valid():
-            save_navbar(personal_navbar_formset.cleaned_data)
-            save_navbar(navbar_formset.cleaned_data)
+            save_navbar(personal_navbar_formset.cleaned_data, account)
+            save_navbar(navbar_formset.cleaned_data, account)
             return HttpResponseRedirect(reverse('webfront-preferences-navigation'))
     else:
         # Figure out which positions should be checked for which links.
