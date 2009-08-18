@@ -21,3 +21,28 @@ class LoginForm(forms.Form):
     username = forms.CharField(label='Username')
     password = forms.CharField(label='Password',
         widget=forms.widgets.PasswordInput(render_value=False))
+
+class PersonalNavbarForm(forms.Form):
+    id = forms.IntegerField(
+        widget=forms.widgets.HiddenInput(),
+        required=False
+    )
+    name = forms.CharField()
+    url = forms.CharField()
+    navbar = forms.BooleanField(required=False)
+    qlink1 = forms.BooleanField(required=False)
+    qlink2 = forms.BooleanField(required=False)
+
+class NavbarForm(PersonalNavbarForm):
+    name = forms.CharField(
+        widget=forms.widgets.TextInput(attrs={
+            'readonly': 'readonly'
+        }),
+        required=False
+    )
+    url = forms.CharField(
+        widget=forms.widgets.TextInput(attrs={
+            'readonly': 'readonly'
+        }),
+        required=False
+    )
