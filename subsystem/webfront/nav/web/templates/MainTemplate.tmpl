@@ -66,7 +66,7 @@
 #set $compability = Cheetah($user, $title, $path)
 ##
 #filter EncodeUnicode
-
+##
 #def default_table_CSS
     <link rel="stylesheet" type="text/css" href="/style/table.css" />
 #end def default_table_CSS
@@ -85,24 +85,24 @@
 #def default_quickselect_CSS
     <link rel="stylesheet" type="text/css" href="/style/quickselect.css" />
 #end def default_treeselect_CSS
-
+##
 #def additionalMeta
 #end def additionalMeta
-
+##
 #def additionalCSS
 #end def additionalCSS
-
+##
 #def additionalJavaScript
 #end def additionalJavaScript
-
+##
 #def additionalHead
 #end def additionalHead
-
+##
 #set $compability.additional_meta = $additionalMeta()
 #set $compability.additional_css = $additionalCSS()
 #set $compability.additional_javascript = $additionalJavaScript()
 #set $compability.additional_head = $additionalHead()
-
+##
 $compability.header()
 
 #def content
