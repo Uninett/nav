@@ -228,6 +228,7 @@ class AccountNavbar(models.Model):
 
     class Meta:
         db_table = u'accountnavbar'
+        unique_together = ('account', 'navbarlink')
 
     def __unicode__(self):
         return '%s in %s' % (self.navbarlink.name, self.positions)
