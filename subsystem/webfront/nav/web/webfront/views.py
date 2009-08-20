@@ -86,7 +86,7 @@ def login(request):
 
     origin = request.GET.get('origin', '').strip()
     if isinstance(origin, unicode):
-        origin = origin.encode('latin-1')
+        origin = origin.encode('utf-8')
     return direct_to_template(
         request,
         'webfront/login.html',
