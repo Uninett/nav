@@ -192,11 +192,38 @@ def preferences_navigation(request):
             default_navbar = AccountNavbar.objects.filter(
                 account__id=Account.DEFAULT_ACCOUNT)
             for navbar in default_navbar:
-                AccountNavbar.create(
+                AccountNavbar.objects.create(
                     account=account,
                     navbarlink=navbar.navbarlink,
                     positions=navbar.positions,
                 )
+            account_navbar = AccountNavbar.objects.filter(account=account)
+
+        # Convert old style positon preferences to new style.
+        # Old style is a single string for all positions, new style is a
+        # table row per position.
+        did_convert = False
+        for navbar in account_navbar:
+            if navbar.positions not in ('navbar', 'qlink1', 'qlink2'):
+                positions = []
+                if navbar.positions.count('navbar'):
+                    positions.append('navbar')
+                if navbar.positions.count('qlink1'):
+                    positions.append('qlink1')
+                if navbar.positions.count('qlink2'):
+                    positions.append('qlink2')
+                navbar.delete()
+
+                for position in positions:
+                    AccountNavbar.objects.create(
+                        account=account,
+                        navbarlink=navbar.navbarlink,
+                        positions=position,
+                    )
+                did_convert = True
+
+        # If we did convert preferences, we need to fetch the new objects.
+        if did_convert:
             account_navbar = AccountNavbar.objects.filter(account=account)
         return account_navbar
 
@@ -230,17 +257,11 @@ def preferences_navigation(request):
                     navbarlink.uri = link['url']
                     navbarlink.save()
 
-                # Try to fetch the account navbar object related to this navbar
-                # link.
-                try:
-                    navbar = AccountNavbar.objects.get(
-                        account=account, navbarlink=link['id']
-                    )
-                except (KeyError, AccountNavbar.DoesNotExist):
-                    navbar = AccountNavbar()
-                    navbar.account = account
+                # Remove existing accountnavbar position preferences
+                AccountNavbar.objects.filter(
+                    account=account, navbarlink=navbarlink
+                ).delete()
 
-                # Set the positions this link should be in.
                 positions = []
                 if 'navbar' in link and link['navbar']:
                     positions.append('navbar')
@@ -249,15 +270,13 @@ def preferences_navigation(request):
                 if 'qlink2' in link and link['qlink2']:
                     positions.append('qlink2')
 
-                if len(positions) > 0:
-                    navbar.positions = ','.join(positions)
-                    navbar.navbarlink = navbarlink
-                    navbar.save()
-                else:
-                    # If no positions, delete the account navbar object (not
-                    # the link itself).
-                    if navbar.id:
-                        navbar.delete()
+                # Save the new accountnavbar position preferences
+                for position in positions:
+                    AccountNavbar.objects.create(
+                        account=account,
+                        navbarlink=navbarlink,
+                        positions=position,
+                    )
 
     account = get_account(request)
     account_navbar = get_or_create_accountnavbar(account)
@@ -282,13 +301,9 @@ def preferences_navigation(request):
         checked = {}
         for navbar in account_navbar:
             check = {}
-            if navbar.positions.count('navbar'):
-                check['navbar'] = True
-            if navbar.positions.count('qlink1'):
-                check['qlink1'] = True
-            if navbar.positions.count('qlink2'):
-                check['qlink2'] = True
-            checked[navbar.navbarlink_id] = check
+            if navbar.navbarlink_id not in checked:
+                checked[navbar.navbarlink_id] = {}
+            checked[navbar.navbarlink_id][navbar.positions] = True
 
         # Get user links and default links if user is not default account.
         # Default account only has user links, and editing them will effect
