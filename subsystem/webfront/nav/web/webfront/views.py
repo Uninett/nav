@@ -16,9 +16,9 @@
 #
 
 import os
-import cgi
 from ConfigParser import ConfigParser
 from datetime import datetime
+from urllib import quote, unquote
 
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
@@ -84,12 +84,15 @@ def login(request):
     if request.method == 'POST':
         return do_login(request)
 
+    origin = request.GET.get('origin', '').strip()
+    if isinstance(origin, unicode):
+        origin = origin.encode('latin-1')
     return direct_to_template(
         request,
         'webfront/login.html',
         {
             'form': LoginForm(),
-            'origin': cgi.escape(request.GET.get('origin', '').strip()),
+            'origin': quote(origin),
         }
     )
 
@@ -97,7 +100,7 @@ def do_login(request):
     # FIXME Log stuff?
     errors = []
     form = LoginForm(request.POST)
-    origin = cgi.escape(request.POST.get('origin', '').strip())
+    origin = unquote(request.POST.get('origin', '').strip())
 
     if form.is_valid():
         username = form.cleaned_data['username']
