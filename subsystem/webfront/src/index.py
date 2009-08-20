@@ -33,6 +33,7 @@ from nav import web
 from nav.web import ldapAuth
 import logging
 import cgi
+import urllib
 
 logger = logging.getLogger("nav.web.index")
 
@@ -117,7 +118,6 @@ def login(req, login='', password='', origin=''):
     Handles the login page
     """
     req.content_type = 'text/html'
-    origin = cgi.escape(origin)
     if login:
         # The user is attempting to log in, and we want to be sure
         # that any existing Account objects in this session are
@@ -126,6 +126,8 @@ def login(req, login='', password='', origin=''):
             del req.session['user']
             req.session.save()
         
+        origin = urllib.unquote(origin)
+
         from nav import db
         conn = db.getConnection('navprofile', 'navprofile')
         from nav.db import navprofiles
@@ -204,7 +206,7 @@ def login(req, login='', password='', origin=''):
             # up the client's POST operation)
             if not origin.strip():
                 origin = '/'
-            web.redirect(req, origin, seeOther=True)
+            web.redirect(req, urllib.unquote(origin), seeOther=True)
         else:
             logger.warning("Account %s failed to log in", login)
             return _getLoginPage(origin, "Login failed")
@@ -219,8 +221,10 @@ def login(req, login='', password='', origin=''):
             message = ''
         # The user requested only the login page
         if origin:
-            return _getLoginPage(origin,
-                                 """%sYou are not authorized to access<br />%s""" % (message, origin))
+            return _getLoginPage(
+                origin,
+                """%sYou are not authorized to access<br />%s""" %
+                (message, cgi.escape(origin)))
         else:
             return _getLoginPage('', message)
 
@@ -228,7 +232,7 @@ def _getLoginPage(origin, message=''):
     from nav.web.templates.LoginTemplate import LoginTemplate
     page = LoginTemplate()
 
-    page.origin = origin
+    page.origin = urllib.quote(origin)
     page.message = message
     
     return page
