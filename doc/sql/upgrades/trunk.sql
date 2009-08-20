@@ -120,4 +120,7 @@ CREATE TABLE statuspreference_category (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
+-- Remove UNIQUE constraint on (account, navbarlink)
+ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_accountid_key;
+
 COMMIT;
