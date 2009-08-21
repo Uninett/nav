@@ -270,12 +270,13 @@ CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  module INT4 NOT NULL,
+  module INT4,
+  name VARCHAR NOT NULL,
   model VARCHAR,
   descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
-  UNIQUE (netboxid, module),
+  CONSTRAINT module_netboxid_key UNIQUE (netboxid, name),
   UNIQUE(deviceid)
 );
 

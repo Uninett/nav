@@ -294,6 +294,7 @@ class Module(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
+    name = models.CharField(max_length=-1)
     model = models.CharField(max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
