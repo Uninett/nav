@@ -20,6 +20,7 @@
 
 import logging
 import pprint
+from datetime import datetime
 
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
@@ -34,14 +35,32 @@ class Modules(Plugin):
     def can_handle(cls, netbox):
         return True
 
+    def __init__(self, *args, **kwargs):
+        super(Modules, self).__init__(*args, **kwargs)
+        self.alias_mapping = {}
+
+    @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting ENTITY-MIB module data")
-        self.entitymib = EntityMib(self.job_handler.agent)
-        df = self.entitymib.retrieve_table('entPhysicalTable')
-        df.addCallback(self.entitymib.translate_result)
-        df.addCallback(self._process_entities)
-        df.addErrback(self._error)
-        return df
+        entitymib = EntityMib(self.job_handler.agent)
+        dw = defer.waitForDeferred(entitymib.retrieve_table('entPhysicalTable'))
+        yield dw
+        physical_table = entitymib.translate_result(dw.getResult())
+
+        dw = defer.waitForDeferred(entitymib.retrieve_column('entAliasMappingIdentifier'))
+        yield dw
+        alias_mapping = dw.getResult()
+
+        for (phys_index, logical), row in alias_mapping.items():
+            # Last element is ifindex. Preceeding elements is an OID.
+            ifindex = row.pop()
+
+            if phys_index not in self.alias_mapping:
+                self.alias_mapping[phys_index] = []
+            self.alias_mapping[phys_index].append(ifindex)
+
+        print self.alias_mapping
+        self._process_entities(physical_table)
 
     def _error(self, failure):
         """Errback for SNMP failures."""
@@ -56,15 +75,45 @@ class Modules(Plugin):
     def _process_entities(self, result):
         """Process the list of collected entities."""
 
-        #self.logger.debug(pprint.pformat(result))
         modules = self._filter_modules(result)
-        self.logger.debug(pprint.pformat(modules))
+        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
 
+        for ent in modules:
+            device = self.job_handler.container_factory(
+                storage.Device, key=ent['entPhysicalSerialNum'])
+            device.serial = ent['entPhysicalSerialNum']
+            device.hardware_version = ent['entPhysicalHardwareRev']
+            device.software_version = ent['entPhysicalSoftwareRev']
+            device.firmware_version = ent['entPhysicalFirmwareRev']
+            device.auto = True
+            device.active = True
+            device.discovered = datetime.now()
+
+            module = self.job_handler.container_factory(
+                storage.Module, key=(netbox, ent['entPhysicalName']))
+            module.device = device
+            module.netbox = netbox
+            module.module_number = ent.index[0]
+            module.model = ent['entPhysicalModelName']
+            module.description = ent['entPhysicalDescr']
+            module.up = "y"
+            module.name = ent['entPhysicalName']
+            module.parent = ent['entPhysicalContainedIn']
+
+            if ent.index[0] in self.alias_mapping:
+                indices = self.alias_mapping[ent.index[0]]
+                for ifindex in indices:
+                    interface = self.job_handler.container_factory(
+                        storage.Interface, key=(netbox, ifindex))
+                    interface.netbox = netbox
+                    interface.ifindex = ifindex
+                    interface.module = module
+                    interface.update_only = True
 
     def _filter_modules(self, entities):
         """Filter out anything but field replaceable modules with
         serial numbers.
-        
+
         """
         def is_module(e):
             return e['entPhysicalClass'] == 'module' and \
