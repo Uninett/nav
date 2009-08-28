@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler preferences
-DirectoryIndex preferences.py
