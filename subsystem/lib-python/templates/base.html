@@ -8,7 +8,7 @@
 {% block base_header_head %}
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <title>{{ title }}</title>
+    <title>{% block base_header_title %}{{ title }}{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="/style/reset.css" />
     <link rel="stylesheet" type="text/css" href="/style/default.css" />
     <link rel="stylesheet" type="text/css" href="/style/table.css" />
@@ -96,9 +96,9 @@
             </tr>
         </table>
     </div>
-    {% endblock %}
+    {% endblock base_header_navbar %}
 </div>
-{% endblock %}
+{% endblock base_header %}
 
 {% block base_toolbar %}
     {% if available_tools %}
