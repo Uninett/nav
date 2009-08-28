@@ -42,6 +42,7 @@
             <tr>
                 <td>
                     <div id="navpath">
+                    {% block base_header_navpath %}
                     {% for title, url in navpath %}
                         {% if url %}
                             <a href="{{ url }}">{{ title }}</a>
@@ -52,6 +53,7 @@
                             >
                         {% endif %}
                     {% endfor %}
+                    {% endblock %}
                     </div>
                 </td>
                 <td class="spacer"></td>
