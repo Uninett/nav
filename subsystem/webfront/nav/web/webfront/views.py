@@ -92,6 +92,7 @@ def login(request):
         'webfront/login.html',
         {
             'form': LoginForm(),
+            'displayed_origin': origin,
             'origin': quote(origin),
         }
     )
