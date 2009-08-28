@@ -26,34 +26,29 @@ __license__ = "GPL"
 __author__ = "Kristian Klette (kristian.klette@uninett.no)"
 __id__ = "$Id$"
 
-from django.core import serializers
-from django.core import serializers
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect, HttpResponseBadRequest, Http404
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render_to_response as render_to_response_orig
-from django.template import Context, Template
-from django.template import RequestContext
-from django.template.loader import render_to_string
-from django.utils import simplejson
-from django.db.models import Q
-
 import datetime
 import socket
 import sys
 from urllib import unquote
 
-from nav.django.shortcuts import render_to_response, object_list
+from django.core import serializers
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.utils import simplejson
+from django.db.models import Q
+
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan
 from nav.models.service import Service
 
-from nav.web.templates.NetworkExplorerTemplate import NetworkExplorerTemplate
-
 import nav.natsort
 
 from search import *
+
+PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
 
 def index(request):
     """Basic view of the network"""
@@ -62,10 +57,13 @@ def index(request):
     for router in routers:
         if len(router.get_gwports()) > 0:
             router.has_children = True
-    return render_to_response(NetworkExplorerTemplate, 'networkexplorer/base.html',
+    return render_to_response(
+        'networkexplorer/base.html',
         {
             'routers': routers,
-        })
+            'navpath': PATH,
+        },
+        context_instance=RequestContext(request))
 
 def expand_router(request):
     """
@@ -109,11 +107,12 @@ def expand_router(request):
         except:
             continue
 
-    return render_to_response_orig('networkexplorer/expand_router.html',
+    return render_to_response('networkexplorer/expand_router.html',
         {
             'sysname': router.sysname,
             'ports': sorted_ports,
-        })
+        },
+        context_instance=RequestContext(request))
 
 def expand_gwport(request):
     """
@@ -194,7 +193,7 @@ def expand_gwport(request):
     interface_names.sort(key=nav.natsort.split)
     vlans = [unsorted[i] for i in interface_names]
 
-    return render_to_response_orig('networkexplorer/expand_gwport.html',
+    return render_to_response('networkexplorer/expand_gwport.html',
         {
             'gwport': gwport,
             'vlans': vlans,
@@ -224,7 +223,7 @@ def expand_switch(request):
     interface_names.sort(key=nav.natsort.split)
     vlans = [unsorted[i] for i in interface_names]
 
-    return render_to_response_orig('networkexplorer/expand_switch.html',
+    return render_to_response('networkexplorer/expand_switch.html',
         {
             'swportvlans': vlans,
         }, context_instance=RequestContext(request))
@@ -266,7 +265,7 @@ def expand_swport(request):
     hosts_behind_port.sort()
 
 
-    return render_to_response_orig('networkexplorer/expand_swport.html',
+    return render_to_response('networkexplorer/expand_swport.html',
         {
             'netbox': to_netbox,
             'services': services,
