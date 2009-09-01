@@ -67,7 +67,7 @@ class Interfaces(Plugin):
             # Report this failure to the waiting plugin manager (RunHandler)
             exc = FatalPluginError("Cannot continue due to device timeouts")
             failure = Failure(exc)
-        self.deferred.errback(failure)
+        return failure
 
     def _got_interfaces(self, result):
         """Process the list of collected interfaces."""
