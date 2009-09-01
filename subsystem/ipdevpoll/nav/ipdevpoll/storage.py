@@ -112,6 +112,30 @@ class Shadow(object):
         self.delete = False
         self.update_only = False
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if not self.__shadowclass__ == other.__shadowclass__:
+            return False
+
+        for lookup in self.__lookups__:
+            if isinstance(lookup, tuple):
+                ret = True
+                for field in lookup:
+                    try:
+                        if getattr(self, field) != getattr(other, field):
+                            ret = False
+                    except AttributeError:
+                        ret = False
+                if ret:
+                    return ret
+            try:
+                if getattr(self, lookup) == getattr(other, lookup):
+                    return True
+            except AttributeError:
+                continue
+        return False
+
     def __repr__(self):
         attrs = [field for field in self._fields
                  if getattr(self, field) is not None or
