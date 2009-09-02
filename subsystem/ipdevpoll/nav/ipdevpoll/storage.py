@@ -285,6 +285,7 @@ class Vendor(Shadow):
 
 class Module(Shadow):
     __shadowclass__ = manage.Module
+    __lookups__ = [('netbox', 'name')]
 
 class Device(Shadow):
     __shadowclass__ = manage.Device
