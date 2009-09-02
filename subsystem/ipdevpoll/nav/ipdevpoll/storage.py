@@ -288,6 +288,7 @@ class Module(Shadow):
 
 class Device(Shadow):
     __shadowclass__ = manage.Device
+    __lookups__ = ['serial']
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
