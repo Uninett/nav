@@ -189,6 +189,7 @@ class JobHandler(object):
         start_time = time.time()
         try:
             self.storage_queue.reverse()
+            self.logger.debug("storage queue: %r", self.storage_queue)
             while self.storage_queue:
                 obj = self.storage_queue.pop()
                 obj_model = obj.get_model()
@@ -241,7 +242,9 @@ class JobHandler(object):
                             if getattr(instance, field) in self.containers[storage.shadowed_classes[t.rel.to]].values():
                                 storage_queue = self.traverse_instance_for_storage(getattr(instance, field), storage_queue)
         except Exception, e:
-            self.logger.error(e)
+            self.logger.exception("Unhandled exception while traversing "
+                                  "storage queue.  locals: %r",
+                                  locals())
         return storage_queue
 
 
