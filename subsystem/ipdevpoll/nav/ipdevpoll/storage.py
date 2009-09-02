@@ -129,11 +129,12 @@ class Shadow(object):
                         ret = False
                 if ret:
                     return ret
-            try:
-                if getattr(self, lookup) == getattr(other, lookup):
-                    return True
-            except AttributeError:
-                continue
+            else:
+                try:
+                    if getattr(self, lookup) == getattr(other, lookup):
+                        return True
+                except AttributeError:
+                    continue
         return False
 
     def __repr__(self):
