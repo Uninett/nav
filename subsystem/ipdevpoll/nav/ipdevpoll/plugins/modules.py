@@ -93,7 +93,7 @@ class Modules(Plugin):
 
         def module_from_entity(ent):
             module = self.job_handler.container_factory(
-                storage.Module, key=(netbox, ent['entPhysicalName']))
+                storage.Module, key=ent['entPhysicalSerialNum'])
             module.netbox = netbox
             module.model = ent['entPhysicalModelName'].strip()
             module.description = ent['entPhysicalDescr'].strip()
