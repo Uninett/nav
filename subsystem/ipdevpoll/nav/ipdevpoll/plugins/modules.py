@@ -143,12 +143,12 @@ class Modules(Plugin):
                         interface.module = module
                         interface.update_only = True
 
-                        if module.name in module_port_map:
+                        if module.name in module_ifindex_map:
                             module_ifindex_map[module.name].append(ifindex)
                         else:
                             module_ifindex_map[module.name] = [ifindex]
 
-        if module_port_map:
+        if module_ifindex_map:
             self.logger.debug("module/ifindex mapping: %r", 
                               module_ifindex_map)
 
