@@ -328,7 +328,10 @@ class MibRetriever(object):
         def resultFormatter(result):
             formatted_result = {}
             if node.oid not in result:
-                logger.info("oid not in result. Device did not return valid data on this oid")
+                logger.info("%r not in result. Device %s did not return "
+                            "valid data on this oid (%s): %r", 
+                            node.oid, self.agent_proxy.ip, column_name, 
+                            result.keys())
                 return {}
             varlist = result[node.oid]
 
