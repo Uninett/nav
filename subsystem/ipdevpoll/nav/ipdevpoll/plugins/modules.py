@@ -137,11 +137,10 @@ class Modules(Plugin):
                     indices = self.alias_mapping[entity_index]
                     for ifindex in indices:
                         interface = self.job_handler.container_factory(
-                            storage.Interface, key=(netbox, ifindex))
+                            storage.Interface, key=ifindex)
                         interface.netbox = netbox
                         interface.ifindex = ifindex
                         interface.module = module
-                        interface.update_only = True
 
                         if module.name in module_ifindex_map:
                             module_ifindex_map[module.name].append(ifindex)
