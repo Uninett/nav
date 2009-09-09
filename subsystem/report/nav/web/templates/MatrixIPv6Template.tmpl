@@ -27,7 +27,7 @@
 	#if $append_term_and_prefix
 		<a class="monosp" href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
 	#else
-		<a class="monosp" href="/report/prefix?host(netaddr)=$link&op_host(netaddr)=like">$text</a>
+		<a class="monosp" href="/report/prefix?netaddr=$link&op_netaddr=like">$text</a>
 	#end if
 #end def	
 
