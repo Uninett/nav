@@ -1,2 +1,7 @@
 ## info: Regularly check the syslog for network messages and update the logger database
+
+# Regular run
 * * * * * $BINDIR/logengine.py
+
+# Delete old messages once a day
+3 3 * * * $BINDIR/logengine.py -d

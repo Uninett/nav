@@ -30,13 +30,7 @@ class Generator:
     The maker and controller of the generating of a report
     """
 
-    def __init__(self):
-
-        self.config = None
-        self.dbresult = None
-        self.sql = ""
-
-    def makeReport(self,reportName,configFile,configFileLocal,uri,dbresult):
+    def makeReport(self,reportName,configFile,configFileLocal,uri,config,dbresult):
         """
         Makes a report
 
@@ -44,53 +38,53 @@ class Generator:
         - configFile      : the configuration file where the definition resides
         - configFileLocal : the local configuration file where changes to the default definition resides
         - uri             : the request from the user as a uri
+        - config          : the parsed configuration object, if cached
+        - dbresult        : the database result, if cached
 
-        returns a formatted report object instance or 0
+        Returns a formatted report object and search parameters. Also returns a
+        parsed ReportConfig object and a DatabaseResult object to be cached.
         """
 
         parsed_uri = urlsplit(uri)
         args = parsed_uri[3]
-
-        configParser = ConfigParser(configFile,configFileLocal)
-        parseOK = configParser.parseReport(reportName)
-
-        config = configParser.configuration
-
         adv = 0
-        if parseOK:
-            argumentParser = ArgumentParser(config)
-            argumentHash = argumentParser.parseArguments(args)
-            
-            # Remove non-query arguments
-            if argumentHash.has_key("export"):
-                del argumentHash["export"]
 
-            if argumentHash.has_key("adv"):
-                if argumentHash["adv"]:
-                    adv = 1
-                del argumentHash["adv"]
+        if not config:
+            configParser = ConfigParser(configFile,configFileLocal)
+            parseOK = configParser.parseReport(reportName)
+            config = configParser.configuration
+            if not parseOK:
+                return (0,None,None,None,None,None,None)
 
-            (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
+        argumentParser = ArgumentParser(config)
+        argumentHash = argumentParser.parseArguments(args)
+        
+        # Remove non-query arguments
+        if argumentHash.has_key("export"):
+            del argumentHash["export"]
 
-            # Check if there exists a database result for the query
-            if dbresult != None:
-                formatted = Report(config,dbresult,uri)
-                formatted.titlebar = reportName + " - report - NAV"
+        if argumentHash.has_key("adv"):
+            if argumentHash["adv"]:
+                adv = 1
+            del argumentHash["adv"]
 
-                return (formatted,contents,neg,operator,adv,None)
+        (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
 
-            else:
-                dbresult = DatabaseResult(config)
-                self.sql = dbresult.sql
+        # Check if there exists a cached database result for this query
+        if dbresult: # Cached
+            report = Report(config,dbresult,uri)
+            report.titlebar = reportName + " - report - NAV"
 
-                formatted = Report(config,dbresult,uri)
-                formatted.titlebar = reportName + " - report - NAV"
+            return (report,contents,neg,operator,adv)
 
-                return (formatted,contents,neg,operator,adv,dbresult)
+        else: # Not cached
+            dbresult = DatabaseResult(config)
+            self.sql = dbresult.sql
 
-        else:
-            return (0,None,None,None,adv,None)
+            report = Report(config,dbresult,uri)
+            report.titlebar = reportName + " - report - NAV"
 
+            return (report,contents,neg,operator,adv,config,dbresult)
 
 
 class ReportList:
@@ -199,7 +193,7 @@ class ConfigParser:
             value = line[1].replace('\n',' ').strip()
 
             if key == "sql" or key == "query":
-                config.setQuery(value)
+                config.sql = value
             elif key == "title":
                 config.title = value
             elif key == "order_by" or key == "sort":
@@ -409,56 +403,28 @@ class ArgumentParser:
 class ReportConfig:
 
     def __init__(self):
-        self.orig_sql = ""
-        self.sql = None
-        self.title = ""
         self.description = ""
-        self.orderBy = []
-        self.hidden = []
-        self.extra = []
-        self.sum = []
-        self.name = {}
-        self.uri = {}
         self.explain = {}
-        self.where = []
-        self.offset = ""
+        self.extra = []
+        self.hidden = []
         self.limit = ""
-        self.sql_from = ""
-        self.sql_where = []
-        self.sql_group = []
-        self.sql_order = []
-        self.sql_limit = []
-        self.sql_offset = []
-        self.sql_select_orig = []
-
-
-    def setQuery(self,sql):
-        self.orig_sql = sql
-        self.sql = sql
-        (self.sql_select,self.sql_select_orig) = self.parse_select(sql)
-        self.sql_from = self.parse_from(sql)
-        self.sql_where = self.parse_where(sql)
-        self.sql_group = self.parse_group(sql)
-        self.sql_order = self.parse_order(sql)
-        self.sql_limit = self.parse_limit(sql)
-        self.sql_offset = self.parse_offset(sql)
+        self.name = {}
+        self.offset = ""
+        self.orderBy = []
+        self.sql = None
+        self.sql_select = []
+        self.sum = []
+        self.title = ""
+        self.uri = {}
+        self.where = []
 
     def makeSQL(self):
-        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring() + self.orderstring()
+        # Group bys are not configured nor supported through the web interface - therefore dropped.
+        sql = "SELECT * FROM (" + self.sql + ") AS foo " + self.wherestring() + self.orderstring()
         return sql
 
-    def fromstring(self):
-        return " FROM " + self.sql_from
-
-    def selectstring(self,selectFields = []):
-        if not selectFields:
-            selectFields = self.sql_select_orig
-        if not isinstance(selectFields,str):
-            selectFields = string.join(selectFields,",")
-        return "SELECT " + selectFields
-
     def wherestring(self):
-        where = self.sql_where + self.where
+        where = self.where
         if where:
             alias_remover = re.compile("(.+)\s+AS\s+\S+",re.I)
             where = [alias_remover.sub("\g<1>",word) for word in where]
@@ -466,14 +432,8 @@ class ReportConfig:
         else:
             return ""
 
-    def groupstring(self):
-        if self.sql_group:
-            return " GROUP BY " + string.join(self.sql_group,",")
-        else:
-            return ""
-
     def orderstring(self):
-        sort = self.orderBy + self.sql_order
+        sort = self.orderBy
         if sort:
             for s in sort:
                 if s.startswith("-"):
@@ -484,106 +444,3 @@ class ReportConfig:
             return " ORDER BY " + string.join(sort,",")
         else:
             return ""
-
-    def rstrip(self,string):
-        """Returns the last \w-portion of the string"""
-        last = re.search("(\w+)\W*?$",string)
-        last = last.group(1)
-        return last.strip()
-
-    def parse_select(self,sql):
-        select = re.search("SELECT\s*(.*?)\s*FROM\s+",sql,re.I|re.S|re.M)
-        if select:
-            select = select.group(1)
-
-            # Split properly (e.i. not in the middle of ( ) )
-            last = 0
-            k = 0
-            elem = []
-            for i in range(len(select)):
-                if select[i] == '(': k += 1
-                elif select[i] == ')': k -= 1
-                elif k == 0 and select[i] == ',':
-                    if (last < i):
-                        elem.append(select[last:i]);
-                    last = i+1
-            if last < len(select):
-                elem.append(select[last:len(select)])
-            select = elem
-
-            return ([ self.rstrip(word) for word in select],[a.strip() for a in select])
-        else:
-            return ([],[])
-
-    def parse_from(self,sql):
-        str = ''
-        for elem in sql: str += elem
-        fromm = self.findInLevel(0, str, 'FROM', ['WHERE','ORDER','GROUP','LIMIT','OFFSET'])
-        if fromm:
-            return fromm
-        return ""
-
-    def parse_where(self,sql):
-        str = ''
-        for elem in sql: str += elem
-        where = self.findInLevel(0, str, 'WHERE', ['ORDER','GROUP','LIMIT','OFFSET'])
-        if where:
-            return [where]
-        return []
-
-    def parse_group(self,sql):
-        str = ''
-        for elem in sql: str += elem
-        group = self.findInLevel(0, str, 'GROUP BY', ['ORDER','LIMIT','OFFSET'])
-        if group:
-            return [group]
-        return []
-
-    def parse_order(self,sql):
-        str = ''
-        for elem in sql: str += elem
-        order = self.findInLevel(0, str, 'ORDER BY', ['GROUP BY','LIMIT','OFFSET'])
-        if order:
-            return [order]
-        return []
-
-    def parse_limit(self,sql):
-        str = ''
-        for elem in sql: str += elem
-        limit = self.findInLevel(0, str, 'LIMIT', ['OFFSET'])
-        if limit:
-            return limit
-        return ""
-
-    def parse_offset(self,sql):
-        str = ''
-        for elem in sql: str += elem
-        offset = self.findInLevel(0, str, 'OFFSET', [])
-        if offset:
-            return offset
-        return ""
-
-    def strAtIdx(self, idx, str, set):
-        for elem in set:
-            if str[idx:idx+len(elem)].lower() == elem.lower():
-                return 1
-        return 0
-
-    def findInLevel(self, level, str, begin, end):
-        last = 0
-        k = 0
-        elem = []
-        beginIdx = -1
-        endLev = -1
-        if (level == 0): endLev = len(str)
-        for i in xrange(len(str)):
-            if str[i] == '(': k += 1
-            elif str[i] == ')':
-                if k == level: endLev = i
-                k -= 1
-            elif k == level:
-                if beginIdx == -1 and self.strAtIdx(i, str, [begin]):
-                    beginIdx = i + len(begin)
-                elif beginIdx >= 0 and self.strAtIdx(i, str, end):
-                    return str[beginIdx:i]
-        if beginIdx >= 0 and endLev >= 0: return str[beginIdx:endLev]

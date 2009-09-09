@@ -87,7 +87,7 @@
     #end if
 
     #if $row.netboxid
-        <td><a href="/report/swport?b1.netboxid=$row.netboxid" title="Switch ports">$row.portIn</a></td>
+        <td><a href="/report/swport?netboxid=$row.netboxid" title="Switch ports">$row.portIn</a></td>
     #else
         <td>$row.portIn</td>
     #end if
@@ -105,7 +105,7 @@
     #end if
 
     #if $row.netboxid
-        <td><a href="/report/swport?b1.netboxid=$row.netboxid" title="Switch ports">$row.portOut</a></td>
+        <td><a href="/report/swport?netboxid=$row.netboxid" title="Switch ports">$row.portOut</a></td>
     #else
         <td>$row.portOut</td>
     #end if

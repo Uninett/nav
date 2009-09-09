@@ -114,11 +114,11 @@ foreach my $line (@list) {
     my $exists = 0;
 
     # Selects filepath,filename, time and size from the output.
-    $line =~ m/(^\/.*)\/(.*\.rrd)\s(.*\d{2}:\d{2}:\d{2}\s\d{4})\s(\d+)/;
+    $line =~ m/(^\/.*)\/(.*\.rrd)\s(.*\d{2}:\d{2}:\d{2}(\.\d{10})?\s\d{4})\s(\d+)/;
     chomp (my $filepath = $1);
     chomp (my $filename = $2);
     chomp (my $time = $3);
-    chomp (my $size = $4);
+    chomp (my $size = $5);
 
     #printf ("%s,%s,%s,%s\n", $1, $2, $3, $4);
 

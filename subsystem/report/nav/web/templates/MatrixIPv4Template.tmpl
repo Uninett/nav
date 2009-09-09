@@ -39,7 +39,7 @@
 	#if $append_term_and_prefix
 		<a href="/report/matrix?scope=$ip.strNormal">$ip.strNormal</a>
 	#else
-		<a href="/report/prefix?host(netaddr)=$nip%&op_host(netaddr)=like">$nip</a>
+		<a href="/report/prefix?netaddr=$nip%&op_netaddr=like">$nip</a>
 	#end if
 #end def	
 
