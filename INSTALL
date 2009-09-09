@@ -14,7 +14,7 @@ To build NAV, you need at least the following:
  * Python >= 2.4.0
  * Java 2 SDK >= 1.5.0
  * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
- * Cheetah Templates
+ * Cheetah Templates >= 2.0rc7
 
 Runtime requirements
 --------------------
@@ -25,7 +25,7 @@ To run NAV, these software packages are required:
  * Cricket
  * PostgreSQL >= 8.0
  * rrdtool
- * Cheetah Templates
+ * Cheetah Templates >= 2.0rc7
  * Java 2 SDK >= 1.5.0
  * Perl >= 5.6.0
  * Python >= 2.4.0
