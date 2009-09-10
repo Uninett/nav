@@ -294,12 +294,12 @@ DROP TABLE gwport;
 DROP TABLE swport;
 
 -- View to mimic old swport table
-CREATE VIEW manage.swport AS (
+CREATE OR REPLACE VIEW manage.swport AS (
   SELECT 
     interfaceid AS swportid,
     moduleid,
     ifindex,
-    NULL::INT4 AS port,
+    baseport AS port,
     ifdescr AS interface,
     CASE ifadminstatus
       WHEN 1 THEN CASE ifoperstatus
@@ -321,7 +321,7 @@ CREATE VIEW manage.swport AS (
 );
 
 -- View to mimic old gwport table
-CREATE VIEW manage.gwport AS (
+CREATE OR REPLACE VIEW manage.gwport AS (
   SELECT 
     i.interfaceid AS gwportid,
     moduleid,

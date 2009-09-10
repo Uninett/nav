@@ -412,7 +412,7 @@ CREATE VIEW swport AS (
     interfaceid AS swportid,
     moduleid,
     ifindex,
-    NULL::INT4 AS port,
+    baseport AS port,
     ifdescr AS interface,
     CASE ifadminstatus
       WHEN 1 THEN CASE ifoperstatus
