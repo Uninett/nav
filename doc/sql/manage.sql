@@ -458,6 +458,40 @@ CREATE VIEW gwport AS (
   LEFT JOIN rproto_attr ra ON (i.interfaceid=ra.interfaceid AND ra.protoname='ospf')
 );
 
+-- View to see only switch ports
+CREATE VIEW interface_swport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  WHERE
+    baseport IS NOT NULL
+);
+
+-- View to see only router ports
+CREATE VIEW interface_gwport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  JOIN
+    (SELECT interfaceid FROM gwportprefix GROUP BY interfaceid) routerports USING (interfaceid)
+);
+
 CREATE TABLE cabling (
   cablingid SERIAL PRIMARY KEY,
   roomid VARCHAR(30) NOT NULL REFERENCES room ON UPDATE CASCADE ON DELETE CASCADE,

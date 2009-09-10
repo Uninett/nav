@@ -345,6 +345,41 @@ CREATE OR REPLACE VIEW manage.gwport AS (
   LEFT JOIN rproto_attr ra ON (i.interfaceid=ra.interfaceid AND ra.protoname='ospf')
 );
 
+-- View to see only switch ports
+CREATE OR REPLACE VIEW manage.interface_swport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  WHERE
+    baseport IS NOT NULL
+);
+
+-- View to see only router ports
+CREATE OR REPLACE VIEW manage.interface_gwport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  JOIN
+    (SELECT interfaceid FROM gwportprefix GROUP BY interfaceid) routerports USING (interfaceid)
+);
+
+
 -- Modules aren't necessarily identified using integers, so we add names.
 ALTER TABLE module ALTER COLUMN module DROP NOT NULL;
 ALTER TABLE module ADD COLUMN name VARCHAR NOT NULL;
