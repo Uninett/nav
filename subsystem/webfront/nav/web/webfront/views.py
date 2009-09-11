@@ -77,6 +77,7 @@ def index(request):
             'current_messages': current_messages(),
             'boxes_down': down,
             'num_shadow': num_shadow,
+            'title': 'Welcome to NAV',
         }
     )
 
@@ -145,6 +146,7 @@ def about(request):
         'webfront/about.html',
         {
             'navpath': [('Home', '/'), ('About', None)],
+            'title': 'About NAV',
         }
     )
 
@@ -157,6 +159,7 @@ def toolbox(request):
         {
             'navpath': [('Home', '/'), ('Toolbox', None)],
             'tools': tools,
+            'title': 'NAV toolbox',
         },
     )
 
@@ -166,6 +169,7 @@ def preferences(request):
         'webfront/preferences.html',
         {
             'navpath': [('Home', '/'), ('Preferences', None)],
+            'title': 'Personal NAV preferences',
         }
     )
 
@@ -341,5 +345,6 @@ def preferences_navigation(request):
             'navpath': navpath,
             'personal_navbar_formset': personal_navbar_formset,
             'navbar_formset': navbar_formset,
+            'title': 'NAVbar preferences',
         }
     )
