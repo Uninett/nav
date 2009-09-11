@@ -20,3 +20,22 @@ import mibretriever
 
 modules = mibretriever.MibRetrieverMaker.modules
 
+def reduce_index(result):
+    """Reduce a MIB table result dictionary's keys.
+
+    Given that the keys (table indexes) of the result dictionary are
+    single-element tuples, this function will replace the tuples with
+    the single element in them.
+
+    A convenient translator to add to the callback chain of many table
+    retrievals.  Notes: This will alter the original result dictionary
+    instance.
+
+    """
+    for key, value in result.items():
+        if len(key) == 1:
+            del result[key]
+            key = key[0]
+            result[key] = value
+    return result
+
