@@ -70,7 +70,7 @@ def devicehistory_search(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.POST.getlist('type')
+    types = request.POST.get('type', None)
 
     selected_types = get_selected_types(types)
     event_types = get_event_and_alert_types()
@@ -97,7 +97,7 @@ def devicehistory_view(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     from_date = request.REQUEST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.REQUEST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.REQUEST.getlist('type')
+    types = request.REQUEST.get('type', None)
     group_by = request.REQUEST.get('group_by', 'netbox')
     selection = DeviceQuickSelect.handle_post(request)
 

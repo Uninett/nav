@@ -1,4 +1,3 @@
-{% load filters %}
 <tr>
     <th>From:</th>
     <td><input type="text" name="from_date" value="{{ from_date }}" /></td>
@@ -15,13 +14,17 @@
         {% for e,alert_types in event_type.items %}
             <optgroup label="{{ e }}">
                 <option value="e_{{ e }}"
-                {% if e|in_list:selected_types.event %}
+                {% if selected_types.event %}
+                {% ifequal selected_types.event e %}
                 selected="selected"
+                {% endifequal %}
                 {% endif %}>All {{ e }}</option>
             {% for a in alert_types %}
                 <option value="a_{{ a.id }}" 
-                {% if a.id|stringformat:"s"|in_list:selected_types.alert %}
+                {% if selected_types.alert %}
+                {% ifequal selected_types.alert a.id %}
                     selected="selected"
+                {% endifequal %}
                 {% endif %}>{{ a.name }}</option>
             {% endfor %}
             </optgroup>

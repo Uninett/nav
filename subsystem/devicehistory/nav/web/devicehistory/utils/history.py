@@ -24,15 +24,14 @@ from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.manage import Netbox, Device
 from nav.web.quickselect import QuickSelect
 
-def get_selected_types(types):
-    selected_types = {'event': [], 'alert': []}
-    for type in types:
-        if type.find('_') != -1:
-            splitted = type.split('_')
-            if splitted[0] == 'e':
-                selected_types['event'].append(splitted[1])
-            else:
-                selected_types['alert'].append(splitted[1])
+def get_selected_types(type):
+    selected_types = {'event': None, 'alert': None}
+    if type and type.find('_') != -1:
+        splitted = type.split('_')
+        if splitted[0] == 'e':
+            selected_types['event'] = splitted[1]
+        else:
+            selected_types['alert'] = int(splitted[1])
     return selected_types
 
 def fetch_history(selection, from_date, to_date, selected_types=[], order_by=None):
@@ -41,9 +40,9 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         # Remove option for multiple and make it simpler?
         type_filter = []
         if selected_types['event']:
-            type_filter.append(Q(event_type__in=selected_types['event']))
+            type_filter.append(Q(event_type=selected_types['event']))
         if selected_types['alert']:
-            type_filter.append(Q(alert_type__in=selected_types['alert']))
+            type_filter.append(Q(alert_type=selected_types['alert']))
         return type_filter
 
     type_filter = type_query_filter(selected_types)
