@@ -17,6 +17,7 @@
 """Bit vector manipulation."""
 
 import array
+import re
 
 class BitVector(object):
     """
@@ -70,6 +71,17 @@ class BitVector(object):
             shift = posn & 7
             return (self.vector[block] << shift) & 128 and 1 or 0
 
+    _hexdigits = re.compile(r"[^0-9A-Fa-f]")
+    @classmethod
+    def from_hex(cls, hexstring):
+        """Create a BitVector instance from a hexstring."""
+        hexstring = cls._hexdigits.sub("", hexstring)
+        if len(hexstring) % 2 != 0:
+            raise ValueError("hexstring must contain an even number of digits")
+        hex_octets = [hexstring[i:i+2] for i in range(0, len(hexstring), 2)]
+        octetstring = ''.join([chr(int(octet, 16)) for octet in hex_octets])
+        return cls(octetstring)
+        
     def to_binary(self):
         """
         Returns a string consisting of 1s and 0s, representing the
@@ -80,6 +92,11 @@ class BitVector(object):
             bits = bits + [str((octet >> y) & 1) for y in range(8-1, -1, -1)]
         return "".join(bits)
     
+    def to_hex(self):
+        """Return a hexadecimal string representation of this vector."""
+        digits = ["%02x" % octet for octet in self.vector]
+        return ''.join(digits)
+
     def reverse(self):
         """Reverse the bit pattern."""
         # This is hopelessly ineffective, but it does the job
@@ -92,3 +109,4 @@ class BitVector(object):
         # This is hopelessly ineffective, but it does the job
         bits = [i for i in range(len(self)) if self[i]]
         return bits
+
