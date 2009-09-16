@@ -210,17 +210,23 @@ class Shadow(object):
         database, this method will return it from the database.  If
         such an object doesn't exist, the None value will be returned.
         """
-        # Find out which attribute is the primary key, add it to the
-        # list of lookup fields
-        pk_attr = self.__shadowclass__._meta.pk.name
-        lookups = [pk_attr] + self.__lookups__
+        # Find the primary key attribute.  If the primary key is also
+        # a foreign key, we need to get the existing model for the
+        # foreign key first.  Either way, the primary key attribute
+        # name is added to the list of lookup fields.
+        pk = self.__shadowclass__._meta.pk
+        pk_value = getattr(self, pk.name)
+        lookups = [pk.name] + self.__lookups__
+
+        if issubclass(pk_value.__class__, Shadow):
+            pk_value = pk_value.get_existing_model()
 
         # If we have the primary key, we can return almost at once
         # If PK is AutoField, we raise an exception if the object
         # does not exist.
-        if getattr(self, pk_attr):
+        if pk_value:
             try:
-                model = self.__shadowclass__.objects.get(pk=getattr(self, pk_attr))
+                model = self.__shadowclass__.objects.get(pk=pk_value)
             except self.__shadowclass__.DoesNotExist, e:
                 if self.__shadowclass__._meta.pk.__class__ == django.db.models.fields.AutoField:
                     raise e
