@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 UNINETT AS
+# Copyright (C) 2007, 2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -60,9 +60,15 @@ class BitVector(object):
         Get the value of the bit in position posn.  NOTE: The most
         significant bit is regarded as bit 0 in this context.
         """
-        block = posn / 8
-        shift = posn & 7
-        return (self.vector[block] << shift) & 128 and 1 or 0
+        if isinstance(posn, slice):
+            result = []
+            for i in range(*posn.indices(len(self))):
+                result.append(self[i])
+            return result
+        else:
+            block = posn / 8
+            shift = posn & 7
+            return (self.vector[block] << shift) & 128 and 1 or 0
 
     def to_binary(self):
         """
@@ -74,3 +80,15 @@ class BitVector(object):
             bits = bits + [str((octet >> y) & 1) for y in range(8-1, -1, -1)]
         return "".join(bits)
     
+    def reverse(self):
+        """Reverse the bit pattern."""
+        # This is hopelessly ineffective, but it does the job
+        reversed_bits = self[-1::-1]
+        for index, bit in enumerate(reversed_bits):
+            self[index] = bit
+
+    def get_set_bits(self):
+        """Return a list of bit numbers that have been set."""
+        # This is hopelessly ineffective, but it does the job
+        bits = [i for i in range(len(self)) if self[i]]
+        return bits
