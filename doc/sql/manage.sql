@@ -584,28 +584,22 @@ CREATE VIEW prefix_max_ip_cnt AS
  FROM prefix);
 
 -- This view gives the allowed vlan for a given hexstring i swportallowedvlan
-CREATE TABLE range (
-  num INT NOT NULL PRIMARY KEY
+CREATE VIEW allowedvlan AS (
+  SELECT 
+    interfaceid, vlan AS allowedvlan 
+  FROM 
+    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring 
+     FROM swportallowedvlan) AS allowed_octets
+  CROSS JOIN
+    generate_series(0, 4095) AS vlan
+  WHERE
+    vlan < length(octetstring)*8 AND
+    (CASE 
+       WHEN length(octetstring)>=128 
+         THEN get_bit(octetstring, (vlan/8)*8+7-(vlan%8))
+       ELSE get_bit(octetstring,(length(octetstring)*8-vlan+7>>3<<3)-8+(vlan%8))
+     END) = 1
 );
-INSERT INTO range VALUES (0);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
-DELETE FROM range WHERE num >= 1000;
-
-CREATE VIEW allowedvlan AS
-  (SELECT interfaceid,num AS allowedvlan FROM swportallowedvlan CROSS JOIN range
-    WHERE num < length(decode(hexstring,'hex'))*8 AND (CASE WHEN length(hexstring)=256
-    THEN get_bit(decode(hexstring,'hex'),(num/8)*8+7-(num%8))
-    ELSE get_bit(decode(hexstring,'hex'),(length(decode(hexstring,'hex'))*8-num+7>>3<<3)-8+(num%8))
-    END)=1);
 
 CREATE VIEW allowedvlan_both AS
   (select interfaceid,interfaceid as interfaceid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
