@@ -336,3 +336,7 @@ class Cam(Shadow):
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
     __lookups__ = ['net_address']
+
+class SwPortAllowedVlan(Shadow):
+    __shadowclass__ = manage.SwPortAllowedVlan
+    __lookups__ = ['interface']
