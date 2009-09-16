@@ -889,7 +889,7 @@ class SwPortAllowedVlan(models.Model):
     """From MetaNAV: Stores a hexstring that has “hidden” information about the
     vlans that are allowed to traverse a given trunk."""
 
-    interface = models.ForeignKey('Interface', db_column='interfaceid', primary_key=True)
+    interface = models.OneToOneField('Interface', db_column='interfaceid', primary_key=True)
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
 
     class Meta:
