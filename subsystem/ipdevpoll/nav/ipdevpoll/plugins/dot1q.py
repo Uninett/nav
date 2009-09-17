@@ -21,18 +21,18 @@ BRIDGE-MIB is used purely to collect a translation map between
 ifindexes from IF-MIB and the port numbers used internally in BRIDGE
 and Q-BRIDGE.
 
-Specifically, this plugin will set the vlan and trunk attributed value
-for interfaces.
-
-TODO: Also set the list of allowed trunk VLANs.
+Specifically, this plugin will set the vlan and trunk attributes for
+interfaces, as well as set the list of enabled VLANs on trunks.
 
 """
 
 import re
+import math
 
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
+from nav.bitvector import BitVector
 from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib, PortList
@@ -163,13 +163,38 @@ class Dot1q(Plugin):
         self.logger.debug("trunkports: %r", trunkports)
 
         # Now store it
-        for port in trunkports.keys():
+        for port, vlans in trunkports.items():
             if port in baseports:
+                # Mark as trunk
                 ifindex = baseports[port]
                 interface = self.job_handler.container_factory(
                     storage.Interface, key=ifindex)
                 interface.trunk = True
+
+                # Store a hex string representation of enabled VLANs
+                # in swportallowedvlan
+                allowed = self.job_handler.container_factory(
+                    storage.SwPortAllowedVlan, key=ifindex)
+                allowed.interface = interface
+                allowed.hex_string = vlan_list_to_hex(vlans)
+
             else:
                 self.logger.info("dot1qVlanCurrentTable referred to unknown "
                                  "port number %s", port)
             
+
+def vlan_list_to_hex(vlans):
+    """Convert a list of VLAN numbers to a hexadecimal string.
+
+    The hexadecimal string is suitable for insertion into the
+    swportallowedvlan table.
+    """
+    # Make sure there are at least 256 digits (128 octets) in the
+    # resulting hex string.  This is necessary for parts of NAV to
+    # parse the hexstring correctly.
+    max_vlan = sorted(vlans)[-1]
+    needed_octets = int(math.ceil((max_vlan+1) / 8.0))
+    bits = BitVector('\x00' * max(needed_octets, 128))
+    for vlan in vlans:
+        bits[vlan] = True
+    return bits.to_hex()
