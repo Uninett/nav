@@ -189,7 +189,8 @@ class JobHandler(object):
         start_time = time.time()
         try:
             self.storage_queue.reverse()
-            self.logger.debug("storage queue: %r", self.storage_queue)
+            queuelog = logging.getLogger(self.logger.name + '.queue')
+            queuelog.debug("%s", pprint.pformat(self.storage_queue))
             while self.storage_queue:
                 obj = self.storage_queue.pop()
                 obj_model = obj.get_model()
@@ -213,7 +214,9 @@ class JobHandler(object):
             total_time = (end_time - start_time) * 1000.0
             return total_time
         except Exception, e:
-            self.logger.debug("Caught exception during save. Last object = %s. Last model: %s  \nException:\n%s" % (obj,obj_model, e))
+            self.logger.exception("Caught exception during save. "
+                                  "Last object = %s. Last model: %s",
+                                  obj, obj_model)
             transaction.rollback()
             raise e
 
