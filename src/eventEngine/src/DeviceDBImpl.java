@@ -225,8 +225,6 @@ class DeviceDBImpl implements DeviceDB
 					}
 
 					// Insert into alerthist
-					// FIXME this id needs to be persistet
-					// in alertq
 					String id = insertAlert(e, true, null);
 
 					if (e.getState() == Event.STATE_START) {
@@ -242,8 +240,6 @@ class DeviceDBImpl implements DeviceDB
 				String alertid = null;
 				// Insert into alertq
 				if (e.getPostAlertq()) {
-					// FIXME this alert needs to have
-					// alerthistid
 					alertid = insertAlert(e, false, null);
 				}
 
