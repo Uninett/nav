@@ -28,7 +28,10 @@ to the Account system.
 import nav.db
 from nav.db.forgotten.navprofiles import *
 import nav.pwhash
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 
 class Account(nav.db.forgotten.navprofiles.Account):
     def getGroups(self):
@@ -122,7 +125,7 @@ class Account(nav.db.forgotten.navprofiles.Account):
             # hash we compute the MD5 hash of the supplied password
             # for comparison.
             if self.password[:3] == 'md5':
-                hash = md5.md5(password)
+                hash = md5(password)
                 return (hash.hexdigest() == self.password[3:])
             else:
                 return (password == self.password)
