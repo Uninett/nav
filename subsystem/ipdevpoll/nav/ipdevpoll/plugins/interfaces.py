@@ -16,6 +16,9 @@
 #
 """ipdevpoll plugin to collect interface data.
 
+The plugin uses IF-MIB to retrieve generic interface data, and
+EtherLike-MIB to retrieve duplex status for ethernet interfaces.
+
 This plugin will also examine the list of know interfaces for a netbox
 and compare it to the collected list.  Any known interface not found
 by polling will be marked as missing with a timestamp (gone_since).
@@ -28,7 +31,10 @@ import datetime
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
+from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
+from nav.mibs.etherlike_mib import EtherLikeMib
+
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
 from nav.ipdevpoll.utils import binary_mac_to_hex
@@ -42,6 +48,7 @@ class Interfaces(Plugin):
     def handle(self):
         self.logger.debug("Collecting interface data")
         self.ifmib = IfMib(self.job_handler.agent)
+        self.etherlikemib = EtherLikeMib(self.job_handler.agent)
         df = self.ifmib.retrieve_columns([
                 'ifDescr',
                 'ifType',
@@ -54,6 +61,8 @@ class Interfaces(Plugin):
                 'ifConnectorPresent',
                 'ifAlias',
                 ])
+        df.addCallback(reduce_index)
+        df.addCallback(self._retrieve_duplex)
         df.addCallback(self._got_interfaces)
         df.addCallback(self._check_missing_interfaces)
         df.addErrback(self._error)
@@ -78,9 +87,14 @@ class Interfaces(Plugin):
         # to the next callback
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
         interfaces = [self._convert_row_to_container(netbox, ifindex, row)
-                      for (ifindex,),row in result.items()]
+                      for ifindex, row in result.items()]
         return interfaces
     
+    duplex_map = {
+        'unknown': None,
+        'halfDuplex': 'h',
+        'fullDuplex': 'f',
+        }
     def _convert_row_to_container(self, netbox, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
@@ -105,6 +119,10 @@ class Interfaces(Plugin):
         interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
         interface.ifalias = row['ifAlias']
         
+        # Set duplex if sucessfully retrieved
+        if 'duplex' in row and row['duplex'] in self.duplex_map:
+            interface.duplex = self.duplex_map[ row['duplex'] ]
+
         interface.gone_since = None
 
         interface.netbox = netbox
@@ -160,4 +178,17 @@ class Interfaces(Plugin):
         deferred = threads.deferToThread(storage.shadowify_queryset, 
                                          queryset)
         deferred.addCallback(do_comparison)
+        return deferred
+
+    def _retrieve_duplex(self, interfaces):
+        """Get duplex from EtherLike-MIB and update the ifTable results."""
+        def update_result(duplexes):
+            self.logger.debug("Got duplex information: %r", duplexes)
+            for index, duplex in duplexes.items():
+                if index in interfaces:
+                    interfaces[index]['duplex'] = duplex
+            return interfaces
+
+        deferred = self.etherlikemib.get_duplex()
+        deferred.addCallback(update_result)
         return deferred
