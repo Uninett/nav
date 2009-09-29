@@ -18,7 +18,7 @@ initdir = @initdir@
 VERSION = @VERSION@
 pathmodule = nav/buildconf.py
 
-DJANGO_TEMPLATES_SRC = $(wildcard templates/* templates/*/*)
+DJANGO_TEMPLATES_SRC = $(wildcard templates/*.html templates/*/*.html)
 DJANGO_TEMPLATES = $(DJANGO_TEMPLATES_SRC:templates/%=%)
 
 .PHONY: all install install-lib install-bin clean distclean

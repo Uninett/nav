@@ -1,0 +1,96 @@
+{% extends "status/base.html" %}
+
+{% block content %}
+
+{% if formset %}
+<form action="" method="post">
+{{ formset.management_form }}
+<table class="listtable">
+    <caption>
+        Status preferences
+    </caption>
+    {% for form in formset.forms %}
+    <tbody>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Organizations</td>
+            <th>
+                {% if form.categories %}
+                Categories
+                {% else %}
+                Services
+                {% endif %}
+            </th>
+            <th>
+                {% if form.states %}
+                State
+                {% endif %}
+            </th>
+            <th></th>
+            <th></th>
+        </tr>
+        {% if form.errors %}
+        <tr>
+            <td colspan="7">{{ form.errors }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>
+                {{ form.id }}
+                {{ form.position }}
+                <label>
+                {{ form.DELETE.label }}
+                {{ form.DELETE }}
+                </label>
+            </td>
+            <td>
+                {{ form.type }}{{ form.name }}
+                {{ form.type.errors }} {{ form.name.errors }}
+            </td>
+            <td>{{ form.organizations }}{{ form.organizations.errors }}</td>
+            <td>
+                {% if form.categories %}
+                {{ form.categories }}
+                {{ form.categories.errors }}
+                {% else %}
+                {{ form.service_choice }}
+                {{ form.service_choice.errors }}
+                {% endif %}
+            </td>
+            <td>
+                {{ form.state_choice }}
+                {{ form.state_choice.errors }}
+            </td>
+            <td>
+                {% if not forloop.first %}
+                <input type="submit" name="moveup={{ form.instance.id }}" value="Move up" />
+                {% endif %}
+            </td>
+            <td>
+                {% if not forloop.last %}
+                <input type="submit" name="movedown={{ form.instance.id }}" value="Move down" />
+                {% endif %}
+            </td>
+        </tr>
+    </tbody>
+    {% endfor %}
+    <tfoot>
+        <tr>
+            <td colspan="7"><input type="submit" value="Save preferences" /></td>
+        </tr>
+    </tfoot>
+</table>
+</form>
+{% endif %}
+
+{% if add_section %}
+<form action="{% url status-preferences-addsection %}" method="post">
+    <div class="info">            
+        {{ add_section.section }}
+        <input type="submit" name="add_section" value="Add section" />
+    </div>
+</form>
+{% endif %}
+
+{% endblock %}
