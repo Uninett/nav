@@ -83,7 +83,6 @@ AC_OUTPUT(Makefile
 	subsystem/arnold/lib/Makefile
 	subsystem/dbTools/Makefile
 	subsystem/devicehistory/Makefile
-	subsystem/deviceManagement/Makefile
 	subsystem/ipdevinfo/Makefile
 	subsystem/ipinfo/Makefile
 	subsystem/ipinfo/templates/Makefile
