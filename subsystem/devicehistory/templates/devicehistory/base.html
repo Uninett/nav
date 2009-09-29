@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/quickselect.js"></script>
+    <script type="text/javascript" src="/js/devicehistory.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style/devicehistory.css" />
+{% endblock %}
+
 {% block base_content %}
 <div class="tabs">
     {% block tabs %}
