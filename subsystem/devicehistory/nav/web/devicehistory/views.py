@@ -22,11 +22,10 @@ from django.core.urlresolvers import reverse
 from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.datastructures import SortedDict
 
-from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryMessage, \
     AlertHistoryVariable, AlertType, EventType
@@ -82,9 +81,10 @@ def devicehistory_search(request):
         'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
+        'navpath': [('Home', '/'), ('Device History', '')],
+        'title': 'NAV - Device History',
     }
     return render_to_response(
-        DeviceHistoryTemplate,
         'devicehistory/history_search.html',
         info_dict,
         RequestContext(request)
@@ -135,9 +135,13 @@ def devicehistory_view(request):
         'from_date': from_date,
         'to_date': to_date,
         'group_by': group_by,
+        'title': 'NAV - Device History',
+        'navpath': [
+            ('Home', '/'),
+            ('Device History', reverse('devicehistory-search')),
+        ]
     }
     return render_to_response(
-        DeviceHistoryTemplate,
         'devicehistory/history_view.html',
         info_dict,
         RequestContext(request)
@@ -148,13 +152,17 @@ def error_form(request):
     error_comment = request.POST.get('error_comment', "")
 
     return render_to_response(
-        DeviceHistoryTemplate,
         'devicehistory/register_error.html',
         {
             'active': {'error': True},
             'confirm': False,
             'quickselect': DeviceQuickSelect,
             'error_comment': error_comment,
+            'title': 'NAV - Device History - Register error',
+            'navpath': [
+                ('Home', '/'),
+                ('Register error event', ''),
+            ]
         },
         RequestContext(request)
     )
@@ -171,13 +179,17 @@ def confirm_error_form(request):
     module = Module.objects.filter(id__in=selection['module'])
 
     return render_to_response(
-        DeviceHistoryTemplate,
         'devicehistory/confirm_error.html',
         {
             'active': {'error': True},
             'confirm': True,
             'netbox': netbox,
             'module': module,
+            'title': 'NAV - Device History - Confirm error event',
+            'navpath': [
+                ('Home', '/'),
+                ('Register error event', reverse('devicehistory-registererror')),
+            ],
         },
         RequestContext(request)
     )
@@ -253,10 +265,11 @@ def delete_module(request):
     info_dict = {
         'active': {'module': True},
         'confirm_delete': confirm_deletion,
-        'modules': result
+        'modules': result,
+        'title': 'NAV - Device History - Delete module',
+        'navpath': [('Home', '/'), ('Delete module', '')],
     }
     return render_to_response(
-        DeviceHistoryTemplate,
         'devicehistory/delete_module.html',
         info_dict,
         RequestContext(request)
