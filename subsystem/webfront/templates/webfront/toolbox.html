@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+<h2>Toolbox</h2>
+
+<table class="toolbox toolbox3cols">
+    {% for tool in tools %}
+    {% cycle '<tr>' '' '' %}
+        <td>
+            <h2>
+                <a href="{{ tool.uri }}">
+                    <img src="{{ tool.icon}}" alt="{{ tool.name }}" />
+                </a>
+                <a href="{{ tool.uri }}">{{ tool.name }}</a>
+            </h2>
+            <p>{{ tool.description }}</p>
+        </td>
+    {% if not forloop.last %}
+    {% cycle '' '' '</tr>' %}
+    {% else %}
+    </tr>
+    {% endif %}
+    {% endfor %}
+</table>
+{% endblock %}

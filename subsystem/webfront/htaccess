@@ -1,5 +1,6 @@
 SetHandler python-program
-PythonHandler mod_python.publisher
+PythonHandler django.core.handlers.modpython
+SetEnv DJANGO_SETTINGS_MODULE nav.django.settings
 PythonDebug On
 PythonHeaderParserHandler nav.web
 PythonCleanupHandler nav.web

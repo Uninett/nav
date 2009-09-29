@@ -119,7 +119,6 @@ AC_OUTPUT(Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
 	subsystem/status/Makefile
-	subsystem/status/src/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
 	subsystem/webfront/Makefile

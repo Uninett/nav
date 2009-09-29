@@ -23,17 +23,16 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.views.generic.list_detail import object_list
 
-from nav.django.shortcuts import render_to_response, object_list
 from nav.models.cabling import Cabling, Patch
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, Module, SwPort, GwPort
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.service import Service
 
-from nav.web.templates.IpDevInfoTemplate import IpDevInfoTemplate
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
@@ -91,7 +90,7 @@ def search(request):
                     kwargs={'name': netboxes[0].sysname}))
 
     # Else, show list of results
-    return render_to_response(IpDevInfoTemplate, 'ipdevinfo/search.html',
+    return render_to_response('ipdevinfo/search.html',
         {
             'errors': errors,
             'query': query,
@@ -287,7 +286,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         port_view = get_port_view(
             netbox, port_view_perspective, activity_interval)
 
-    return render_to_response(IpDevInfoTemplate,
+    return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
             'host_info': host_info,
@@ -355,7 +354,7 @@ def module_details(request, netbox_sysname, module_number):
         module, 'swportactive', activity_interval)
     gwportstatus_view = get_module_view(module, 'gwportstatus')
 
-    return render_to_response(IpDevInfoTemplate,
+    return render_to_response(
         'ipdevinfo/module-details.html',
         {
             'module': module,
@@ -385,7 +384,7 @@ def port_details(request, netbox_sysname, module_number, port_type,
         port = get_object_or_404(ports, module__netbox__sysname=netbox_sysname,
             module__module_number=module_number, interface=port_name)
 
-    return render_to_response(IpDevInfoTemplate,
+    return render_to_response(
         'ipdevinfo/port-details.html',
         {
             'port_type': port_type,
@@ -407,7 +406,7 @@ def service_list(request, handler=None):
     handler_list = Service.objects.values('handler').distinct()
 
     # Pass on to generic view
-    return object_list(IpDevInfoTemplate,
+    return object_list(
         request,
         services,
         paginate_by=100,
@@ -442,7 +441,7 @@ def service_matrix(request):
 
     matrix = matrix_dict.values()
 
-    return render_to_response(IpDevInfoTemplate,
+    return render_to_response(
         'ipdevinfo/service-matrix.html',
         {
             'handler_list': handler_list,

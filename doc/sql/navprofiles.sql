@@ -620,7 +620,6 @@ CREATE TABLE AccountNavbar (
     positions varchar,
 
     CONSTRAINT accountnavbar_pkey PRIMARY KEY (id),
-    CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid),
     CONSTRAINT accountnavbar_accountid_fkey
                FOREIGN KEY (accountid) REFERENCES Account(id)
                ON DELETE CASCADE
