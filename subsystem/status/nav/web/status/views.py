@@ -21,9 +21,9 @@ from django.forms.models import modelformset_factory, inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.shortcuts import render_to_response
 
 from nav.web.templates.StatusTemplate import StatusTemplate
-from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 from nav.models.profiles import StatusPreference, Account
 from nav.web.message import Messages, new_message
@@ -38,11 +38,12 @@ def status(request):
     sections = get_user_sections(account)
 
     return render_to_response(
-        StatusTemplate,
         'status/status.html',
         {
             'active': {'status': True},
             'sections': sections,
+            'title': 'NAV - Status',
+            'navpath': [('Home', '/'), ('Status', '')],
         },
         RequestContext(request)
     )
@@ -64,12 +65,13 @@ def preferences(request):
         form=SectionForm)
     formset = SectionFormSet(instance=account)
     return render_to_response(
-        StatusTemplate,
         'status/preferences.html',
         {
             'active': {'preferences': True},
             'formset': formset,
             'add_section': AddSectionForm(),
+            'title': 'Nav - Status preferences',
+            'navpath': [('Home', '/'), ('Status', '')],
         },
         RequestContext(request)
     )
@@ -92,10 +94,11 @@ def save_preferences(request):
         return HttpResponseRedirect(reverse('status-preferences'))
     else:
         return render_to_response(
-            StatusTemplate,
             'status/preferences.html',
             {
                 'formset': formset,
+                'title': 'Nav - Status preferences',
+                'navpath': [('Home', '/'), ('Status', '')],
             },
             RequestContext(request)
         )
@@ -191,11 +194,12 @@ def add_section(request):
         add_form = AddSectionForm()
 
     return render_to_response(
-        StatusTemplate,
         'status/add_section.html',
         {
             'add_form': add_form,
             'section_form': section_form,
+            'title': 'Nav - Status preferences',
+            'navpath': [('Home', '/'), ('Status', '')],
         },
         RequestContext(request)
     )
