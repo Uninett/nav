@@ -49,14 +49,12 @@ class Report:
         self.rowcount = database.rowcount
         self.sums = database.sums
 
-        # Store values as integers
         self.limit = int(str((self.setLimit(configuration.limit))))
         self.offset = int(str(self.setOffset(configuration.offset)))
 
-        # Slice the result according to offset and limit
         self.formatted = database.result[self.offset:self.limit+self.offset]
         self.dbresult = database.result
-
+        
         self.address = self.stripPath(path)
 
         self.title = configuration.title
@@ -68,7 +66,7 @@ class Report:
         self.uri = configuration.uri
 
         self.fields = configuration.sql_select + self.extra
-        self.sql_fields = configuration.sql_select_orig
+        self.sql_fields = configuration.sql_select
         self.fieldNum,self.fieldName = self.fieldNum(self.fields)
         self.fieldsSum = len(self.fields)
         self.shown = self.hideIndex()
@@ -85,6 +83,7 @@ class Report:
         self.navigator.setNavigator(self.limit,self.offset,self.address,self.rowcount)
 
         self.form = self.makeForm(self.name)
+
         if database.error:
             self.navigator.setMessage(database.error)
 
