@@ -262,21 +262,21 @@ class MibRetrieverMaker(type):
         node_name -- The name of the scalar node, e.g. ifDescr.
 
         """
-        def result_formatter(result, the_oid):
+        def result_formatter(result, the_oid, self):
             if the_oid in result:
-                logger.debug("%s query result: %r",
-                             node_name, result)
+                self.logger.debug("%s query result: %r",
+                                  node_name, result)
                 return result[the_oid]
             else:
-                logger.debug("%s was not in the result: %r",
-                             node_name, result)
+                self.logger.debug("%s was not in the result: %r",
+                                  node_name, result)
                 return None
 
         def getter(self):
-            logger.debug("Retrieving scalar value %s", node_name)
+            self.logger.debug("Retrieving scalar value %s", node_name)
             the_oid = self.nodes[node_name].oid
             df = self.agent_proxy.get([the_oid])
-            df.addCallback(result_formatter, the_oid)
+            df.addCallback(result_formatter, the_oid, self)
             return df
         getter.__name__ = node_name
         return getter
@@ -327,15 +327,14 @@ class MibRetriever(object):
         """
         node = self.nodes[column_name]
         if node.raw_mib_data['nodetype'] != 'column':
-            logger.debug("%s is not a table column", column_name)
+            self.logger.debug("%s is not a table column", column_name)
 
         def resultFormatter(result):
             formatted_result = {}
             if node.oid not in result:
-                logger.info("%r not in result. Device %s did not return "
-                            "valid data on this oid (%s): %r", 
-                            node.oid, self.agent_proxy.ip, column_name, 
-                            result.keys())
+                self.logger.debug("%s (%s) seems to be unsupported, result "
+                                  "keys were: %r",
+                                  column_name, node.oid, result.keys())
                 return {}
             varlist = result[node.oid]
 
