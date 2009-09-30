@@ -49,9 +49,13 @@ class JobHandler(object):
     def __init__(self, name, netbox, plugins=None):
         self.name = name
         self.netbox = netbox
+
+        instance_name = (self.name, "[%s]" % netbox.sysname)
+        instance_queue_name = ("queue",) + instance_name
         self.logger = \
-            ipdevpoll.get_instance_logger(self, "%s.[%s]" % 
-                                          (self.name, netbox.sysname))
+            ipdevpoll.get_instance_logger(self, ".".join(instance_name))
+        self.queue_logger = \
+            ipdevpoll.get_instance_logger(self, ".".join(instance_queue_name))
 
         self.plugins = plugins or []
         self.logger.debug("Job %r initialized with plugins: %r",
@@ -189,8 +193,7 @@ class JobHandler(object):
         start_time = time.time()
         try:
             self.storage_queue.reverse()
-            queuelog = logging.getLogger(self.logger.name + '.queue')
-            queuelog.debug("%s", pprint.pformat(self.storage_queue))
+            self.queue_logger.debug("%s", pprint.pformat(self.storage_queue))
             while self.storage_queue:
                 obj = self.storage_queue.pop()
                 obj_model = obj.get_model()
