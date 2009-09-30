@@ -462,14 +462,15 @@ class AcctDetailQuery(SQLQuery):
     Get all details about a specified session
     """
 
-    def __init__(self, sessionid):
+    def __init__(self, startTime):
         """
         Construct SQL query
 
         Keyword arguments:
         sessionid   - ID of the session we want to get details on.
         """
-        self.sessionid = sessionid
+        #self.sessionid = sessionid
+        self.startTime = startTime
 
         self.sqlQuery = """SELECT 
                            acctuniqueid,
@@ -489,9 +490,9 @@ class AcctDetailQuery(SQLQuery):
                            framedprotocol,
                            framedipaddress
                            FROM %s 
-                           WHERE acctuniqueid = %%s
+                           WHERE acctstarttime = %%s
                         """ % (ACCT_TABLE)
-        self.sqlParameters = (self.sessionid,)
+        self.sqlParameters = (self.startTime,)
 
 
     def getTable(self):
