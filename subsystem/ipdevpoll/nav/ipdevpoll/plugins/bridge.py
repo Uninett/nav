@@ -17,12 +17,9 @@
 """ipdevpoll plugin to collect bridge data.
 
 This plugin doesn't do much except find baseport numbers for switch
-ports, using the BRIDGE-MIB.
-
-TODO: This version of the plugin will not support multiple BRIDGE-MIB
-entities, such as on Cisco switches. A future version must be updated
-to poll all BRIDGE-MIB instances mentioned in
-ENTITY-MIB::entLogicalTable.
+ports, using the BRIDGE-MIB.  The plugin also supports multiple
+BRIDGE-MIB instances if they are listed as logical entities in
+ENTITY-MIB.
 
 """
 
