@@ -14,6 +14,23 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""ipdevpoll plugin to poll IP prefix information.
+
+This plugin will use the IP-MIB, IPv6-MIB and CISCO-IETF-IP-MIB to
+poll prefix information for both IPv4 and IPv6.
+
+A revised version of the IP-MIB contains the IP-version-agnostic
+ipAddressTable which is queried first, although not much equipment
+supports this table yet.  It then falls back to the original IPv4-only
+ipAddrTable, followed by the IPv6-MIB (which has been superseded by
+the updated IP-MIB).  It also tries a Cisco proprietary
+CISCO-IETF-IP-MIB, which is based on a draft that later became the
+revised IP-MIB.
+
+TODO: Figure out which VLAN each prefix belongs to.
+TODO: Ignore single-host prefixes (32 bit IPv4 mask and 128 bit IPv6 mask)
+
+"""
 
 from twisted.internet import defer
 from twisted.python.failure import Failure
@@ -51,74 +68,53 @@ class Prefix(Plugin):
         netbox = self.job_handler.container_factory(storage.Netbox, key=None)
 
         ipmib = IpMib(self.job_handler.agent)
-        df = ipmib.retrieve_table('ipAddressTable')
+        ciscoip = CiscoIetfIpMib(self.job_handler.agent)
+
+        # Traverse ipAddressTable and cIpAddressTable as more or less
+        # identical tables, but skip the Cisco MIB if the first gives
+        # results.
+        for mib, ifindex_col, prefix_col in (
+            (ipmib, 'ipAddressIfIndex', 'ipAddressPrefix'),
+            (ciscoip, 'cIpAddressIfIndex', 'cIpAddressPrefix'),
+            ):
+            self.logger.debug("Trying address table from %s",
+                              mib.mib['moduleName'])
+            df = mib.retrieve_columns((ifindex_col, prefix_col))
+            dw = defer.waitForDeferred(df)
+            yield dw
+
+            addresses = dw.getResult()
+
+            for index, row in addresses.items():
+                ip = ipmib.address_index_to_ip(index)
+                if not ip:
+                    continue
+
+                prefix = ipmib.prefix_index_to_ip(row[prefix_col])
+                ifindex = row[ifindex_col]
+
+                self.create_containers(netbox, ifindex, prefix, ip)
+            
+            # If we got results, skip the remaining mibs
+            if addresses:
+                return
+
+        self.logger.debug("Trying original ipAddrTable")
+        df = ipmib.retrieve_columns(('ipAdEntIfIndex',
+                                     'ipAdEntAddr',
+                                     'ipAdEntNetMask'))
         dw = defer.waitForDeferred(df)
         yield dw
 
-        results = dw.getResult()
+        result = dw.getResult()
 
-        for key, result in results.items():
-            ip = None
-            # IPv4
-            if key[0] == 1:
-                ip = str(ipmib.index_to_ip(key[-key[1]:]))
-                netmask = IpMib.index_to_ip(result['ipAddressPrefix'][13:-1])
-                pfx = result['ipAddressPrefix'][-1]
-                net_prefix = str(netmask.make_net(pfx))
-                ifindex = result['ipAddressIfIndex']
-
-            # IPv6
-            elif key[0] == 2:
-                ip = str(Ipv6Mib.index_to_ip(key[-key[1]:]))
-                netmask = Ipv6Mib.index_to_ip(result['ipAddressPrefix'][13:-1])
-                pfx = result['ipAddressPrefix'][-1]
-                net_prefix = str(netmask.make_net(pfx))
-                ifindex = result['ipAddressIfIndex']
-
-            if not ip:
-                continue
+        for row in result.values():
+            ip = IP(row['ipAdEntAddr'])
+            ifindex = row['ipAdEntIfIndex']
+            net_prefix = ip.make_net(row['ipAdEntNetMask'])
 
             self.create_containers(netbox, ifindex, net_prefix, ip)
 
-        # End run if we got ipAddressTable-result
-        if results:
-            return
-
-        self.logger.debug("Netbox did not answer on 'ipAddressTable' - Trying deprecated methods")
-        df = ipmib.retrieve_columns(['ipAdEntIfIndex','ipAdEntAddr','ipAdEntNetMask'])
-        dw = defer.waitForDeferred(df)
-        yield dw
-
-        results = dw.getResult()
-
-        for result in results.values():
-            ip = result['ipAdEntAddr']
-            ifindex = result['ipAdEntIfIndex']
-            net_prefix = str(IP(result['ipAdEntAddr']).make_net(result['ipAdEntNetMask']))
-
-            self.create_containers(netbox, ifindex, net_prefix, ip)
-
-        # Check IPv6 - Only Cisco for now, couldn't find any
-        # netboxes that aswered on IPv6MIB correctly
-        mib = CiscoIetfIpMib(self.job_handler.agent)
-        df = mib.retrieve_table('cIpAddressTable')
-        dw = defer.waitForDeferred(df)
-        yield dw
-
-        results = dw.getResult()
-
-        for key, result in results.items():
-            try:
-                ip = Ipv6Mib.index_to_ip(key[2:])
-                netmask = Ipv6Mib.index_to_ip(result['cIpAddressPrefix'][17:-1])
-                pfx = result['cIpAddressPrefix'][-1]
-                net_prefix = netmask.make_net(pfx)
-                ifindex = result['cIpAddressIfIndex']
-
-                self.create_containers(netbox, ifindex, net_prefix, ip)
-
-            except IndexToIpException:
-                pass
 
     def create_containers(self, netbox, ifindex, net_prefix, ip):
         """
@@ -128,13 +124,16 @@ class Prefix(Plugin):
         interface.ifindex = ifindex
         interface.netbox = netbox
 
-        prefix = self.job_handler.container_factory(storage.Prefix, key=net_prefix)
-        prefix.net_address = str(net_prefix)
-
         port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
         port_prefix.interface = interface
-        port_prefix.prefix = prefix
         port_prefix.gw_ip = str(ip)
+
+        if net_prefix:
+            prefix = self.job_handler.container_factory(storage.Prefix, 
+                                                        key=net_prefix)
+            prefix.net_address = str(net_prefix)
+            port_prefix.prefix = prefix
+
 
     def error(self, failure):
         """
