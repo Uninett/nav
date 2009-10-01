@@ -244,15 +244,13 @@ $makeMenu($menu, $current)
         ## One row of the search result table
         <tr class="$rowtype">
             <td nowrap><a href="$makeSearchURL("", {"searchstring": $row.username, "searchtype": "username"} , $form)" title="Limit search to this user only">$row.username</a> &nbsp;&nbsp;</td>
-            ##<td nowrap><a href="$makeSearchURL("", {"searchstring": $row.realm, "searchtype": "realm"}, $form)" title="Limit search to this realm only">$row.realm &nbsp;&nbsp;</td>
             <td nowrap><a href="$makeSearchURL("", {"searchstring": $framedipaddress, "searchtype": "framedipaddress"}, $form)" title="Limit search to this user IP address only">$framedipaddress</a> &nbsp;&nbsp;</td>
             <td nowrap><a href="$makeSearchURL("", {"searchstring": $nasipaddress, "searchtype": "nasipaddress"}, $form)" title="Limit search to this NAS IP address only">$nasipaddress</a> &nbsp;&nbsp;</td>
             <td nowrap>$row.acctstarttime &nbsp;</td>
             <td nowrap>$showStopTime($row.acctstarttime, $row.acctstoptime, $row.acctsessiontime) &nbsp;</td>
             <td nowrap align="right">$makeTimeHumanReadable($row.acctsessiontime) &nbsp;</td>
-            ##<td nowrap><a href="acctdetail?acctuniqueid=$row.acctstarttime" title="View all available information on this session">$row.acctuniqueid</a></td>
-	    <td nowrap><a href="acctdetail?acctstarttime=$row.acctstarttime" title="View all available information on this session">Details</a></td>
-        </tr>
+            <td nowrap><a href="acctdetail?acctuniqueid=$row.acctstarttime" title="View all available information on this session">Details</a></td>
+	</tr>
     #end for
 </table>
 
