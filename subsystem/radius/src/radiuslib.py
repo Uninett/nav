@@ -208,8 +208,28 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
             stopTime = "Still Active"
         else:
             stopTime = "Timed Out"
+    else:
+        stopTime = removeFractions(stopTime)
 
     return stopTime 
+
+
+def removeFractions(timestamp):
+    """
+    Removes the fractions of a second part from the timestamps so we don't
+    have to display them on the webpage.
+    
+    Keyword arguments:
+    acctstarttime   - Session start time
+    acctstoptime    - Session stop time
+    """
+    
+    ts = str(timestamp)
+    
+    if match(r'.+\d\.\d+', ts):
+        formattedTime = sub(r'\.\d+', '', ts)
+    
+    return formattedTime
 
 
 def makeSearchURL(page, changeFields, form):
