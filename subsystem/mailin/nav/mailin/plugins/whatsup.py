@@ -43,7 +43,5 @@ class Plugin(nav.mailin.Plugin):
         event = nav.mailin.make_event(eventtypeid='mailinWhatsup')
         event['subject'] = msg['Subject']
         event['body'] = body
-        
-        event.post()
-        
-        return True
+
+        return event
