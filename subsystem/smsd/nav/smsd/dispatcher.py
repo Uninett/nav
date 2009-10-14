@@ -152,13 +152,17 @@ class DispatcherHandler(object):
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
             except Exception, error:
-                self.logger.exception("Unknown exception: %s", error)
+                self.logger.exception(
+                    "Unknown dispatcher exception during send: %s", error)
+                continue
 
-            if result is False:
-                self.logger.warning("%s failed to send SMS: Returned false.",
-                    dispatchername)
-                dispatcher.lastfailed = int(time.time())
-                continue # Skip to next dispatcher
+            else:
+                if result is False:
+                    self.logger.warning(
+                        "%s failed to send SMS: Returned false.",
+                        dispatchername)
+                    dispatcher.lastfailed = int(time.time())
+                    continue # Skip to next dispatcher
 
             # No exception and true result? Success!
             return (sms, sent, ignored, smsid)
