@@ -193,7 +193,11 @@ class JobHandler(object):
         start_time = time.time()
         try:
             self.storage_queue.reverse()
-            self.queue_logger.debug("%s", pprint.pformat(self.storage_queue))
+            if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
+                self.queue_logger.debug(pprint.pformat(
+                        [(id(o), o) 
+                         for o in self.storage_queue]))
+                                        
             while self.storage_queue:
                 obj = self.storage_queue.pop()
                 obj_model = obj.get_model()
