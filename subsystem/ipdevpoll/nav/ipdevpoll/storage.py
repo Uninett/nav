@@ -225,6 +225,22 @@ class Shadow(object):
             setattr(model, attr, value)
         return model
 
+    def get_primary_key_attribute(self):
+        """Return a reference to the corresponding Django model's primary key
+        attribute.
+        """
+        return self.__shadowclass__._meta.pk
+
+    def get_primary_key(self):
+        """Return the value of the primary key, if set."""
+        pk = self.get_primary_key_attribute()
+        return getattr(self, pk.name)
+
+    def set_primary_key(self, value):
+        """Set the value of the primary key."""
+        pk = self.get_primary_key_attribute()
+        setattr(self, pk.name, value)
+
     def get_existing_model(self):
         """Return an existing live Django model object.
 
@@ -236,8 +252,8 @@ class Shadow(object):
         # a foreign key, we need to get the existing model for the
         # foreign key first.  Either way, the primary key attribute
         # name is added to the list of lookup fields.
-        pk = self.__shadowclass__._meta.pk
-        pk_value = getattr(self, pk.name)
+        pk = self.get_primary_key_attribute()
+        pk_value = self.get_primary_key()
         lookups = [pk.name] + self.__lookups__
 
         if issubclass(pk_value.__class__, Shadow):
@@ -276,6 +292,9 @@ class Shadow(object):
                 except self.__shadowclass__.DoesNotExist, e:
                     pass
                 else:
+                    # Set our primary key from the existing object in an
+                    # attempt to achieve consistency
+                    setattr(self, pk.name, model.pk)
                     return model
 
 

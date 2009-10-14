@@ -207,18 +207,29 @@ class JobHandler(object):
                     try:
                         # Skip if object exists in database and no fields
                         # are touched
-                        if obj.getattr(obj, obj.__shadowclass__._meta.pk.name) \
+                        if obj.getattr(obj, obj.get_primary_key().name) \
                             and not obj.get_touched():
                             continue
                     except AttributeError:
                         pass
                     if obj_model:
                         obj_model.save()
+                        # In case we saved a new object, store a reference to
+                        # the newly allocated primary key in the shadow object.
+                        # This is to ensure that other shadows referring to
+                        # this shadow will know about this change.
+                        if not obj.get_primary_key():
+                            obj.set_primary_key(obj_model.pk)
                         obj._touched = []
 
             transaction.commit()
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
+
+            if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
+                self.queue_logger.debug("containers after save: %s", 
+                                        pprint.pformat(self.containers))
+ 
             return total_time
         except Exception, e:
             self.logger.exception("Caught exception during save. "
