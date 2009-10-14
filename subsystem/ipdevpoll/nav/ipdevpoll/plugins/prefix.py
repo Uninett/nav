@@ -152,15 +152,19 @@ class Prefix(Plugin):
             prefix.net_address = str(net_prefix)
             port_prefix.prefix = prefix
 
+            # Always associate prefix with a VLAN record, but set a
+            # VLAN number if we can.
+            # TODO: Some of this logic should actually be in a storage class, not in this plugin.
+            vlan = self.job_handler.container_factory(storage.Vlan, 
+                                                      key=net_prefix)
             if ifindex in vlan_interfaces:
-                vlan_number = vlan_interfaces[ifindex]
-                vlan = self.job_handler.container_factory(storage.Vlan, 
-                                                          key=vlan_number)
-                vlan.vlan = vlan_number
+                vlan.vlan = vlan_interfaces[ifindex]
 
-                if not vlan.net_type:
-                    vlan.net_type = self.get_net_type('unknown')
-                prefix.vlan = vlan
+            if not vlan.net_type:
+                vlan.net_type = self.guesstimate_net_type(net_prefix)
+                self.logger.debug("VLAN %s TYPE IS: %r", vlan.vlan, vlan.net_type)
+
+            prefix.vlan = vlan
 
     @defer.deferredGenerator
     def get_vlan_interfaces(self):
@@ -193,6 +197,34 @@ class Prefix(Plugin):
         net_type = self.job_handler.container_factory(
             storage.NetType, key=net_type_id)
         net_type.id = net_type_id
+        return net_type
+
+    def guesstimate_net_type(self, prefix):
+        """Guesstimate a net type for the given prefix.
+
+        Various algorithms may be used (and the database may be
+        queried).  
+
+        Arguments:
+
+         prefix -- An IPy.IP object representing the prefix.
+
+        Returns:
+
+          A NetType storage container, suitable for assigment to
+          Vlan.net_type.
+
+        """
+        net_type = 'unknown'
+        if prefix.version() == 6 and prefix.prefixlen() == 128:
+            net_type = 'loopback'
+        elif prefix.version() == 4:
+            if prefix.prefixlen() == 32:
+                net_type = 'loopback'
+            elif prefix.prefixlen() == 30:
+                net_type = 'link'
+
+        return self.get_net_type(net_type)
 
     def error(self, failure):
         """
