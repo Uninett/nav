@@ -16,8 +16,8 @@
 #
 """ipdevpoll plugin to poll IP prefix information.
 
-This plugin will use the IP-MIB, IPv6-MIB and CISCO-IETF-IP-MIB to
-poll prefix information for both IPv4 and IPv6.
+This plugin will use the IF-MIB, IP-MIB, IPv6-MIB and
+CISCO-IETF-IP-MIB to poll prefix information for both IPv4 and IPv6.
 
 A revised version of the IP-MIB contains the IP-version-agnostic
 ipAddressTable which is queried first, although not much equipment
@@ -27,22 +27,33 @@ the updated IP-MIB).  It also tries a Cisco proprietary
 CISCO-IETF-IP-MIB, which is based on a draft that later became the
 revised IP-MIB.
 
-TODO: Figure out which VLAN each prefix belongs to.
-TODO: Ignore single-host prefixes (32 bit IPv4 mask and 128 bit IPv6 mask)
+An interface with an IP address whose name matches the VLAN_PATTERN
+will cause the corresponding prefix to be associated with the VLAN id
+parsed from the interface name.  Not all dot1q enabled routers name
+their interfaces like this, but routing switches from several vendors
+do.
+
+TODO: Guesstimate an appropriate nettype for each VLAN
+TODO: Parse router port descriptions according to conventions
 
 """
+import re
 
 from twisted.internet import defer
 from twisted.python.failure import Failure
 
 from IPy import IP
 
+from nav.mibs import reduce_index
+from nav.mibs.if_mib import IfMib
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage
+
+VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
 class Prefix(Plugin):
     """
@@ -70,6 +81,12 @@ class Prefix(Plugin):
         ipmib = IpMib(self.job_handler.agent)
         ciscoip = CiscoIetfIpMib(self.job_handler.agent)
 
+        # Retrieve interface names and keep those who match a VLAN
+        # naming pattern
+        dw = defer.waitForDeferred(self.get_vlan_interfaces())
+        yield dw
+        vlan_interfaces = dw.getResult()
+
         # Traverse ipAddressTable and cIpAddressTable as more or less
         # identical tables, but skip the Cisco MIB if the first gives
         # results.
@@ -93,12 +110,9 @@ class Prefix(Plugin):
                 prefix = ipmib.prefix_index_to_ip(row[prefix_col])
                 ifindex = row[ifindex_col]
 
-                self.create_containers(netbox, ifindex, prefix, ip)
+                self.create_containers(netbox, ifindex, prefix, ip, 
+                                       vlan_interfaces)
             
-            # If we got results, skip the remaining mibs
-            if addresses:
-                return
-
         self.logger.debug("Trying original ipAddrTable")
         df = ipmib.retrieve_columns(('ipAdEntIfIndex',
                                      'ipAdEntAddr',
@@ -113,10 +127,12 @@ class Prefix(Plugin):
             ifindex = row['ipAdEntIfIndex']
             net_prefix = ip.make_net(row['ipAdEntNetMask'])
 
-            self.create_containers(netbox, ifindex, net_prefix, ip)
+            self.create_containers(netbox, ifindex, net_prefix, ip, 
+                                   vlan_interfaces)
 
 
-    def create_containers(self, netbox, ifindex, net_prefix, ip):
+    def create_containers(self, netbox, ifindex, net_prefix, ip, 
+                          vlan_interfaces):
         """
         Utitilty method for creating the shadow-objects
         """
@@ -124,16 +140,59 @@ class Prefix(Plugin):
         interface.ifindex = ifindex
         interface.netbox = netbox
 
-        port_prefix = self.job_handler.container_factory(storage.GwPortPrefix, key=ip)
-        port_prefix.interface = interface
-        port_prefix.gw_ip = str(ip)
-
+        # No use in adding the GwPortPrefix unless we actually found a prefix
         if net_prefix:
+            port_prefix = self.job_handler.container_factory(
+                storage.GwPortPrefix, key=ip)
+            port_prefix.interface = interface
+            port_prefix.gw_ip = str(ip)
+
             prefix = self.job_handler.container_factory(storage.Prefix, 
                                                         key=net_prefix)
             prefix.net_address = str(net_prefix)
             port_prefix.prefix = prefix
 
+            if ifindex in vlan_interfaces:
+                vlan_number = vlan_interfaces[ifindex]
+                vlan = self.job_handler.container_factory(storage.Vlan, 
+                                                          key=vlan_number)
+                vlan.vlan = vlan_number
+
+                if not vlan.net_type:
+                    vlan.net_type = self.get_net_type('unknown')
+                prefix.vlan = vlan
+
+    @defer.deferredGenerator
+    def get_vlan_interfaces(self):
+        """Get all virtual VLAN interfaces.
+
+        Any interface whose ifName matches the VLAN_PATTERN regexp
+        will be included in the result.
+
+        Return value:
+
+          A deferred whose result is a dictionary: { ifindex: vlan }
+
+        """
+        ifmib = IfMib(self.job_handler.agent)
+        dw = defer.waitForDeferred(ifmib.retrieve_column('ifName'))
+        yield dw
+        interfaces = reduce_index(dw.getResult())
+
+        vlan_ifs = {}        
+        for ifindex, ifname in interfaces.items():
+            match = VLAN_PATTERN.match(ifname)
+            if match:
+                vlan = int(match.group('vlan'))
+                vlan_ifs[ifindex] = vlan
+        
+        yield vlan_ifs
+
+    def get_net_type(self, net_type_id):
+        """Return a storage container for the given net_type id."""
+        net_type = self.job_handler.container_factory(
+            storage.NetType, key=net_type_id)
+        net_type.id = net_type_id
 
     def error(self, failure):
         """

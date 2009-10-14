@@ -316,6 +316,7 @@ class Organization(Shadow):
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
+    __lookups__ = ['vlan']
 
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
