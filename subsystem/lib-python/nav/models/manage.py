@@ -640,7 +640,7 @@ class Prefix(models.Model):
     id = models.AutoField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', db_column='vlanid', null=True)
+    vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
     class Meta:
         db_table = 'prefix'
