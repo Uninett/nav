@@ -28,7 +28,7 @@ from django.db import transaction
 
 
 from nav.util import round_robin
-from nav import ipdevpoll
+from nav import ipdevpoll, toposort
 from nav.ipdevpoll.plugins import plugin_registry
 import storage
 
@@ -176,7 +176,7 @@ class JobHandler(object):
         # Traverse all the objects in the storage container and generate
         # the storage queue
         # Actually save to the database
-        df = threads.deferToThread(self.traverse_all_instances)
+        df = threads.deferToThread(self.populate_storage_queue)
         dw = defer.waitForDeferred(df)
         yield dw
 
@@ -226,6 +226,20 @@ class JobHandler(object):
                                   obj, obj_model)
             transaction.rollback()
             raise e
+
+    def populate_storage_queue(self):
+        """Naive population of the storage queue.
+
+        Assuming there are no inter-dependencies between instances of a single
+        shadow class, the only relevant ordering is the one between the
+        container types themselves.  This method will only order instances
+        according to the dependency (topological) order of their classes.
+
+        """
+        for shadow_class in sorted_shadow_classes:
+            if shadow_class in self.containers:
+                shadows = self.containers[shadow_class].values()
+                self.storage_queue.extend(shadows)
 
     def traverse_all_instances(self):
         for key in self.containers.keys():
@@ -348,3 +362,20 @@ class Schedule(object):
             deferred.addCallback(self._map_cleanup)
             deferred.addCallback(self._reschedule)
         return dummy
+
+def get_shadow_sort_order():
+    """Return a topologically sorted list of shadow classes."""
+    def get_dependencies(shadow_class):
+        return shadow_class.get_dependencies()
+
+    shadow_classes = storage.shadowed_classes.values()
+    graph = toposort.build_graph(shadow_classes, get_dependencies)
+    sorted_classes = toposort.topological_sort(graph)
+    return sorted_classes
+
+
+# As this module is loaded, we want to build a list of shadow classes
+# sorted in topological order.  This only needs to be done once.  The
+# list is used to find the correct order in which to store shadow
+# objects at the end of a job.
+sorted_shadow_classes = get_shadow_sort_order()

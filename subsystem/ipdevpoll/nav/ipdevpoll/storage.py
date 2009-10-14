@@ -170,6 +170,28 @@ class Shadow(object):
                     value, attr)
         return super(Shadow, self).__setattr__(attr, value)
 
+    @classmethod
+    def get_dependencies(cls):
+        """Get a list of other shadow classes this class depends on.
+
+        Returns:
+
+          A list of shadow classes that are known to be foreign keys
+          on this one.
+
+        """
+        dependencies = []
+        django_model = cls.__shadowclass__
+        for field in django_model._meta.fields:
+            if issubclass(field.__class__, 
+                          django.db.models.fields.related.ForeignKey):
+                django_dependency = field.rel.to
+
+                if django_dependency in shadowed_classes:
+                    shadow_dependency = shadowed_classes[django_dependency]
+                    dependencies.append(shadow_dependency)
+        return dependencies
+
     def get_touched(self):
         """Get list of touched attributes.
 
