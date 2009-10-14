@@ -1,32 +1,21 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007-2008 UNINETT AS
+# Copyright (C) 2007,2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
-#
-
+# -*- coding: utf-8 -*-
 """Django ORM wrapper for the NAV manage database"""
-
-__copyright__ = "Copyright 2007-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 import datetime as dt
 import IPy
@@ -38,6 +27,7 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
+from nav.models.fields import DateTimeInfinityField
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -304,6 +294,7 @@ class Module(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
+    name = models.CharField(max_length=-1)
     model = models.CharField(max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
@@ -495,8 +486,7 @@ class NetboxType(models.Model):
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = models.CharField(db_column='typename', max_length=-1)
-    sysobject = models.CharField(db_column='sysobjectid',
-        unique=True, max_length=-1)
+    sysobjectid = models.CharField(unique=True, max_length=-1)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
@@ -650,7 +640,7 @@ class Prefix(models.Model):
     id = models.AutoField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', db_column='vlanid', null=True)
+    vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
     class Meta:
         db_table = 'prefix'
@@ -733,8 +723,8 @@ class Arp(models.Model):
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = DateTimeInfinityField()
 
     class Meta:
         db_table = 'arp'
@@ -899,7 +889,7 @@ class SwPortAllowedVlan(models.Model):
     """From MetaNAV: Stores a hexstring that has “hidden” information about the
     vlans that are allowed to traverse a given trunk."""
 
-    interface = models.ForeignKey('Interface', db_column='interfaceid', primary_key=True)
+    interface = models.OneToOneField('Interface', db_column='interfaceid', primary_key=True)
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
 
     class Meta:
@@ -973,8 +963,8 @@ class Cam(models.Model):
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
     port = models.CharField(max_length=-1)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = DateTimeInfinityField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)

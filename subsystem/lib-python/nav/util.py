@@ -69,3 +69,12 @@ def isValidIP(ip):
         except ValueError:
             pass
     return False
+
+def round_robin(collection):
+    '''Returns a generator that will loop over the collection forever in a
+       round robin fashion'''
+    index = 0
+
+    while True:
+        yield collection[index]
+        index = (index + 1) % len(collection)

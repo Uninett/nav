@@ -35,9 +35,9 @@
     </form>
 
     <form action="swport">
-        <input type="hidden" name="op_s1.portname" value="like" />
+        <input type="hidden" name="op_portname" value="like" />
         <div>Portname search</div>
-        <input type="text" name="s1.portname" size="15" />
+        <input type="text" name="portname" size="15" />
         <input type="submit" value="Find" />
         <div><i>text</i></div>
     </form>
@@ -69,15 +69,15 @@
     </li>
     <li><a href="netbox?catid=SW%2CGSW&amp;op_catid=in">Core Switches</a>
         <ul>
-            <li><a href="swport?op_b1.catid=in&amp;b1.catid=SW,GSW">Core switch ports</a></li>
-            <li><a href="swport?b1.catid=SW&amp;s1.trunk=t">Trunked core switch ports</a></li>
-            <li><a href="swporttrunk?b1.catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
+            <li><a href="swport?op_catid=in&amp;catid=SW,GSW">Core switch ports</a></li>
+            <li><a href="swport?catid=SW&amp;trunk=Y">Trunked core switch ports</a></li>
+            <li><a href="swporttrunk?catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
             <li><a href="stpblock">STP blocked switch ports</a></li>
         </ul>
     </li>
     <li><a href="netbox?catid=EDGE">Edge Switches and Hubs</a>
         <ul>
-            <li><a href="swporttrunk?b1.catid=EDGE">Edge switch ports</a></li>
+            <li><a href="swporttrunk?catid=EDGE">Edge switch ports</a></li>
         </ul>
     </li>
     <li><a href="netbox?catid=WLAN">Wireless</a></li>

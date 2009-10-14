@@ -277,12 +277,25 @@ UNION DISTINCT
 DROP VIEW allowedvlan_both;
 DROP VIEW allowedvlan;
 
-CREATE OR REPLACE VIEW manage.allowedvlan AS
-  (SELECT interfaceid,num AS allowedvlan FROM swportallowedvlan CROSS JOIN range
-    WHERE num < length(decode(hexstring,'hex'))*8 AND (CASE WHEN length(hexstring)=256
-    THEN get_bit(decode(hexstring,'hex'),(num/8)*8+7-(num%8))
-    ELSE get_bit(decode(hexstring,'hex'),(length(decode(hexstring,'hex'))*8-num+7>>3<<3)-8+(num%8))
-    END)=1);
+-- Drop unnecessary table and update the corresponding allowedvlan view
+DROP TABLE manage.range;
+CREATE OR REPLACE VIEW allowedvlan AS (
+  SELECT 
+    interfaceid, vlan AS allowedvlan 
+  FROM 
+    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring 
+     FROM swportallowedvlan) AS allowed_octets
+  CROSS JOIN
+    generate_series(0, 4095) AS vlan
+  WHERE
+    vlan < length(octetstring)*8 AND
+    (CASE 
+       WHEN length(octetstring)>=128 
+         THEN get_bit(octetstring, (vlan/8)*8+7-(vlan%8))
+       ELSE get_bit(octetstring,(length(octetstring)*8-vlan+7>>3<<3)-8+(vlan%8))
+     END) = 1
+);
+
 
 CREATE OR REPLACE VIEW manage.allowedvlan_both AS
   (select interfaceid,interfaceid as interfaceid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
@@ -294,12 +307,12 @@ DROP TABLE gwport;
 DROP TABLE swport;
 
 -- View to mimic old swport table
-CREATE VIEW manage.swport AS (
+CREATE OR REPLACE VIEW manage.swport AS (
   SELECT 
     interfaceid AS swportid,
     moduleid,
     ifindex,
-    NULL::INT4 AS port,
+    baseport AS port,
     ifdescr AS interface,
     CASE ifadminstatus
       WHEN 1 THEN CASE ifoperstatus
@@ -321,7 +334,7 @@ CREATE VIEW manage.swport AS (
 );
 
 -- View to mimic old gwport table
-CREATE VIEW manage.gwport AS (
+CREATE OR REPLACE VIEW manage.gwport AS (
   SELECT 
     i.interfaceid AS gwportid,
     moduleid,
@@ -344,5 +357,48 @@ CREATE VIEW manage.gwport AS (
   JOIN gwportprefix gwpfx ON (i.interfaceid=gwpfx.interfaceid)
   LEFT JOIN rproto_attr ra ON (i.interfaceid=ra.interfaceid AND ra.protoname='ospf')
 );
+
+-- View to see only switch ports
+CREATE OR REPLACE VIEW manage.interface_swport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  WHERE
+    baseport IS NOT NULL
+);
+
+-- View to see only router ports
+CREATE OR REPLACE VIEW manage.interface_gwport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  JOIN
+    (SELECT interfaceid FROM gwportprefix GROUP BY interfaceid) routerports USING (interfaceid)
+);
+
+
+-- Modules aren't necessarily identified using integers, so we add names.
+ALTER TABLE module ALTER COLUMN module DROP NOT NULL;
+ALTER TABLE module ADD COLUMN name VARCHAR NOT NULL;
+ALTER TABLE module DROP CONSTRAINT module_netboxid_key;
+UPDATE module SET name = module::text;
+ALTER TABLE module ADD CONSTRAINT module_netboxid_key UNIQUE (netboxid, name);
+
 
 COMMIT;

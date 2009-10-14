@@ -1571,7 +1571,10 @@ class networkDiscovery
 	private static boolean isAllowedVlan(String hexstr, int vlan)
 	{
 		hexstr = hexstr.replaceAll(":", "");
-		if (hexstr.length() == 256 || hexstr.length() == 254) {
+		// This code used to say:
+		//   if (hexstr.length() == 256 || hexstr.length() == 254) {
+		// I don't know why the hell 254 was considered a magic value here, as none of the other redundant pieces of NAV code seem to think so.
+		if (hexstr.length() >= 256) {
 			return isAllowedVlanFwd(hexstr, vlan);
 		}
 		return isAllowedVlanRev(hexstr, vlan);
@@ -1579,7 +1582,7 @@ class networkDiscovery
 
 	private static boolean isAllowedVlanFwd(String hexstr, int vlan)
 	{
-		if (vlan < 0 || vlan > 1023) return false;
+		if (vlan < 0 || vlan > 4095) return false;
 		int index = vlan / 4;
 
 		int allowed = Integer.parseInt(String.valueOf(hexstr.charAt(index)), 16);
