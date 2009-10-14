@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2006-2008 UNINETT AS
+# Copyright 2006-2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -31,7 +31,6 @@ __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 import logging
 import sys
 import time
-import nav.smsd # eval() wants it
 
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
@@ -83,8 +82,8 @@ class DispatcherHandler(object):
 
                 # Initialize dispatcher
                 try:
-                    instance = eval("%s.%s(%s)" % (
-                        module.__name__, dispatcher, config[dispatcher]))
+                    dispatcher_class = getattr(module, dispatcher)
+                    instance = dispatcher_class(config[dispatcher])
                     self.dispatchers.append((dispatcher, instance))
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
                 except DispatcherError, error:
