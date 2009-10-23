@@ -695,9 +695,10 @@ if duplikat
 
 	private static boolean isAllowedVlanFwd(String hexstr, int vlan)
 	{
-		if (vlan < 0 || vlan > 4095) return false;
+		if (vlan < 0) return false;
 		int index = vlan / 4;
-
+		if (index >= hexstr.length()) return false;
+		
 		int allowed = Integer.parseInt(String.valueOf(hexstr.charAt(index)), 16);
 		return ((allowed & (1<<3-(vlan%4))) != 0);
 	}
