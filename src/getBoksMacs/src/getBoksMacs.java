@@ -246,16 +246,14 @@ class getBoksMacs
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
 
-		// Mapping fra boksid, port og modul til swportid i swport
-		out("  swport...");
+		// Mapping from netboxid and ifindex to interfaceid from database
+		out("  interface (swport)...");
 		dumpBeginTime = System.currentTimeMillis();
-		QueryBoks.swportidMap = new HashMap();
-		QueryBoks.swportNetboxSet = new HashSet();
-		rs = Database.query("SELECT swportid,netboxid,ifindex FROM swport JOIN module USING(moduleid)");
+		QueryBoks.interfaceidMap = new HashMap();
+		rs = Database.query("SELECT interfaceid,netboxid,ifindex FROM interface_swport");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
-			QueryBoks.swportidMap.put(key, rs.getString("swportid"));
-			QueryBoks.swportNetboxSet.add(rs.getString("netboxid"));
+			QueryBoks.interfaceidMap.put(key, rs.getString("interfaceid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
@@ -263,13 +261,13 @@ class getBoksMacs
 		// Hent alle vlan som er blokkert av spanning-tree
 		out("  swportblocked...");
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT swportid,netboxid,ifindex,cs_at_vlan,swportblocked.vlan FROM swportblocked JOIN swport USING(swportid) JOIN module USING(moduleid) JOIN netbox USING(netboxid) JOIN type USING(typeid)");
+		rs = Database.query("SELECT interfaceid,netboxid,ifindex,cs_at_vlan,swportblocked.vlan FROM swportblocked JOIN interface_swport USING(interfaceid) JOIN netbox USING(netboxid) JOIN type USING(typeid)");
 		while (rs.next()) {
 			String vlan = (rs.getBoolean("cs_at_vlan") ? rs.getString("vlan") : "");
 			String key = rs.getString("netboxid")+":"+vlan;
 			HashMap blockedIfind;
 			if ( (blockedIfind=(HashMap)spanTreeBlocked.get(key)) == null) spanTreeBlocked.put(key, blockedIfind = new HashMap());
-			blockedIfind.put(rs.getString("ifindex"), rs.getString("swportid"));
+			blockedIfind.put(rs.getString("ifindex"), rs.getString("interfaceid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
@@ -278,14 +276,13 @@ class getBoksMacs
 		getActiveVlansFromDB();
 
 
-		// Alt fra swp_boks for duplikatsjekking
-		out("  swp_boks...");
+		// Everything from swp_netbox for duplicate checking
+		out("  swp_netbox...");
 		dumpBeginTime = System.currentTimeMillis();
 		HashSet swp = new HashSet();
 		HashMap swp_d = new HashMap();
-		rs = Database.query("SELECT swp_netboxid,netboxid,ifindex,to_netboxid,to_swportid,misscnt FROM swp_netbox");
+		rs = Database.query("SELECT swp_netboxid,netboxid,ifindex,to_netboxid,to_interfaceid,misscnt FROM swp_netbox");
 		ResultSetMetaData rsmd = rs.getMetaData();
-		//rs = Database.query("SELECT swp_boksid,boksid,modul,port,boksbak FROM swp_boks JOIN boks USING (boksid) WHERE sysName='sb-sw'");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("to_netboxid");
 			swp.add(key);
@@ -308,12 +305,9 @@ class getBoksMacs
 		dumpBeginTime = System.currentTimeMillis();
 		QueryBoks.oidDb = new HashMap();
 		Map oidDb = QueryBoks.oidDb;
-		rs = Database.query("SELECT netboxid,oidkey,snmpoid FROM netbox JOIN netboxsnmpoid USING(netboxid) JOIN snmpoid USING(snmpoidid)");
+		rs = Database.query("SELECT oidkey,snmpoid FROM snmpoid");
 		while (rs.next()) {
-			Map m;
-			String nid = rs.getString("netboxid");
-			if ( (m=(Map)oidDb.get(nid)) == null) oidDb.put(nid, m = new HashMap());
-			m.put(rs.getString("oidkey"), rs.getString("snmpoid"));
+			oidDb.put(rs.getString("oidkey"), rs.getString("snmpoid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
@@ -321,29 +315,29 @@ class getBoksMacs
 		// netboxid+ifindex -> vlan
 		QueryBoks.vlanMap = new HashMap();
 		Map vlanMap = QueryBoks.vlanMap;
-		rs = Database.query("SELECT netboxid,ifindex,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");
+		rs = Database.query("SELECT netboxid,ifindex,vlan FROM interface_swport WHERE trunk='f' AND vlan IS NOT NULL");
 		while (rs.next()) {
 			vlanMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("vlan"));
 		}
 
-		// netboxid+interface -> swportid
+		// netboxid+ifname -> interfaceid
+		// FIXME: This should probably map ifDescr as well, if used for CDP neighbor lookups
 		QueryBoks.interfaceMap = new HashMap();
 		Map interfaceMap = QueryBoks.interfaceMap;
-		rs = Database.query("SELECT netboxid,ifindex,interface,swportid FROM swport JOIN module USING(moduleid) ORDER BY ifindex DESC");
+		rs = Database.query("SELECT netboxid,ifindex,ifname,interfaceid FROM interface ORDER BY ifindex DESC");
 		while (rs.next()) {
-			interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("swportid"));
-			if (rs.getString("interface") != null) {
-				interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("interface"), rs.getString("swportid"));
+			interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("interfaceid"));
+			if (rs.getString("ifname") != null) {
+				interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifname"), rs.getString("interfaceid"));
 			}
 		}
-
+		
 		QueryBoks.mpMap = new HashMap();
 		Map mpMap = QueryBoks.mpMap;
-		rs = Database.query("SELECT netboxid,ifindex,module,interface FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
+		rs = Database.query("SELECT interface_swport.netboxid, ifindex, module.name AS module_name, ifname FROM interface_swport LEFT JOIN module USING(moduleid) WHERE ifname IS NOT NULL");
 		while (rs.next()) {
-			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module"), rs.getString("interface") } );
+			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module_name"), rs.getString("ifname") } );
 		}
-
 
 		// For CAM-logger, alle uavsluttede CAM-records (dvs. alle steder hvor til er null)
 		if (DUMP_CAM) {
@@ -378,24 +372,11 @@ if duplikat
 			outl(dumpUsedTime + " ms.");
 		}
 
-		//Database.setDefaultKeepOpen(true);
 		if (qNetbox == null) {
 			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','EDGE','WLAN','GW','GSW') AND up='y' AND ro IS NOT NULL");
-		} else
-		if (qNetbox.equals("_gw")) {
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='GW'");
-		} else
-		if (qNetbox.equals("_sw")) {
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='SW'");
-		} else
-		if (qNetbox.equals("_kant")) {
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='EDGE'");
 		} else {
 			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNetbox+"' AND ro IS NOT NULL");
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE prefiksid in (2089,1930) AND boksid != 241");
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE typegruppe in ('cat-sw', 'ios-sw')");
 		}
-		//Database.setDefaultKeepOpen(false);
 
 		Stack bdStack = new Stack();
 		while (rs.next()) {
@@ -546,7 +527,7 @@ if duplikat
 				s.add(new Integer(rs.getInt("vtpvlan")));
 			}
 			Set vtpBoksid = vlanBoksid.keySet();
-			rs = Database.query("SELECT DISTINCT netboxid,vlan.vlan FROM module JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid)");
+			rs = Database.query("SELECT DISTINCT netboxid,vlan.vlan FROM interface_swport JOIN swportvlan USING(interfaceid) JOIN vlan USING(vlanid)");
 			while (rs.next()) {
 				Set s;
 				String boksid = rs.getString("netboxid");
@@ -563,7 +544,7 @@ if duplikat
 				for (Iterator it=tmp.iterator(); it.hasNext(); i++) vlanList[i] = ((Integer)it.next()).intValue();
 			}
 
-			rs = Database.query("SELECT netboxid,hexstring FROM swport JOIN module USING(moduleid) JOIN swportallowedvlan USING (swportid)");
+			rs = Database.query("SELECT netboxid,hexstring FROM interface_swport JOIN swportallowedvlan USING (interfaceid)");
 			while (rs.next()) {
 				String boksid = rs.getString("netboxid");
 				if (!vtpBoksid.contains(boksid)) {
@@ -579,7 +560,7 @@ if duplikat
 				}
 			}
 		}
-		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM interface_swport WHERE trunk='f' AND vlan IS NOT NULL");
 		while (rs.next()) {
 			Set s;
 			String boksid = rs.getString("netboxid");
