@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006-2008 UNINETT AS
+# Copyright (C) 2006-2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,7 +19,6 @@
 import logging
 import sys
 import time
-import nav.smsd # eval() wants it
 
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
@@ -71,8 +70,8 @@ class DispatcherHandler(object):
 
                 # Initialize dispatcher
                 try:
-                    instance = eval("%s.%s(%s)" % (
-                        module.__name__, dispatcher, config[dispatcher]))
+                    dispatcher_class = getattr(module, dispatcher)
+                    instance = dispatcher_class(config[dispatcher])
                     self.dispatchers.append((dispatcher, instance))
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
                 except DispatcherError, error:
@@ -141,13 +140,17 @@ class DispatcherHandler(object):
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
             except Exception, error:
-                self.logger.exception("Unknown exception: %s", error)
+                self.logger.exception(
+                    "Unknown dispatcher exception during send: %s", error)
+                continue
 
-            if result is False:
-                self.logger.warning("%s failed to send SMS: Returned false.",
-                    dispatchername)
-                dispatcher.lastfailed = int(time.time())
-                continue # Skip to next dispatcher
+            else:
+                if result is False:
+                    self.logger.warning(
+                        "%s failed to send SMS: Returned false.",
+                        dispatchername)
+                    dispatcher.lastfailed = int(time.time())
+                    continue # Skip to next dispatcher
 
             # No exception and true result? Success!
             return (sms, sent, ignored, smsid)
