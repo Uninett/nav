@@ -174,17 +174,30 @@ class JobHandler(object):
         are stored.
         """
 
+        # Prepare all shadow objects for storage.
+        df = threads.deferToThread(self.prepare_containers_for_save)
+        dw = defer.waitForDeferred(df)
+        yield dw
+
         # Traverse all the objects in the storage container and generate
         # the storage queue
-        # Actually save to the database
         df = threads.deferToThread(self.populate_storage_queue)
         dw = defer.waitForDeferred(df)
         yield dw
 
+        # Actually save to the database
         df = threads.deferToThread(self.perform_save)
         df.addCallback(self.log_timed_result, "Storing to database complete")
         dw = defer.waitForDeferred(df)
         yield dw
+
+    def prepare_containers_for_save(self):
+        """
+        Execute the prepare_for_save-method on all known shadow instances
+        """
+        for key in self.containers.keys():
+            for instance in self.containers[key].values():
+                instance.prepare_for_save(self.containers)
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)

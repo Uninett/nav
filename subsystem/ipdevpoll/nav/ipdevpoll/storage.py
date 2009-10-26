@@ -303,7 +303,13 @@ class Shadow(object):
                     # attempt to achieve consistency
                     setattr(self, pk.name, model.pk)
                     return model
-    
+    def prepare_for_save(self, containers=None):
+        """
+        This method is run on all shadow instances known the the running
+        job handler before saving to the database.
+        """
+        pass
+
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
 
