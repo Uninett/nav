@@ -195,9 +195,8 @@ class JobHandler(object):
             self.storage_queue.reverse()
             if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
                 self.queue_logger.debug(pprint.pformat(
-                        [(id(o), o) 
-                         for o in self.storage_queue]))
-                                        
+                        [(id(o), o) for o in self.storage_queue]))
+
             while self.storage_queue:
                 obj = self.storage_queue.pop()
                 obj_model = obj.get_model()
@@ -227,9 +226,9 @@ class JobHandler(object):
             total_time = (end_time - start_time) * 1000.0
 
             if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self.queue_logger.debug("containers after save: %s", 
+                self.queue_logger.debug("containers after save: %s",
                                         pprint.pformat(self.containers))
- 
+
             return total_time
         except Exception, e:
             self.logger.exception("Caught exception during save. "
@@ -251,37 +250,6 @@ class JobHandler(object):
             if shadow_class in self.containers:
                 shadows = self.containers[shadow_class].values()
                 self.storage_queue.extend(shadows)
-
-    def traverse_all_instances(self):
-        for key in self.containers.keys():
-            for instance in  self.containers[key].values():
-                if instance in self.storage_queue:
-                    continue
-                l = self.traverse_instance_for_storage(instance, self.storage_queue)
-                self.storage_queue.extend([r for r in l if r not in self.storage_queue])
-
-    def traverse_instance_for_storage(self, instance, storage_queue):
-        try:
-            storage_queue.insert(0, instance)
-
-            for field in instance.__class__._fields:
-                t = instance.__class__.__shadowclass__._meta.get_field(field)
-                if issubclass(t.__class__, django.db.models.fields.related.ForeignKey):
-                    if t.rel.to in storage.shadowed_classes:
-                        if not storage.shadowed_classes[t.rel.to] in self.containers:
-                            pass
-                        else:
-                            # If the foreignkey is not None, then traverse that object as well
-                            if not getattr(instance, field):
-                                continue
-                            if getattr(instance, field) in self.containers[storage.shadowed_classes[t.rel.to]].values():
-                                storage_queue = self.traverse_instance_for_storage(getattr(instance, field), storage_queue)
-        except Exception, e:
-            self.logger.exception("Unhandled exception while traversing "
-                                  "storage queue.  locals: %r",
-                                  locals())
-        return storage_queue
-
 
     def container_factory(self, container_class, key):
         """Container factory function"""
