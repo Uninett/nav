@@ -110,9 +110,9 @@ class Prefix(Plugin):
                 prefix = ipmib.prefix_index_to_ip(row[prefix_col])
                 ifindex = row[ifindex_col]
 
-                self.create_containers(netbox, ifindex, prefix, ip, 
+                self.create_containers(netbox, ifindex, prefix, ip,
                                        vlan_interfaces)
-            
+
         self.logger.debug("Trying original ipAddrTable")
         df = ipmib.retrieve_columns(('ipAdEntIfIndex',
                                      'ipAdEntAddr',
@@ -127,11 +127,11 @@ class Prefix(Plugin):
             ifindex = row['ipAdEntIfIndex']
             net_prefix = ip.make_net(row['ipAdEntNetMask'])
 
-            self.create_containers(netbox, ifindex, net_prefix, ip, 
+            self.create_containers(netbox, ifindex, net_prefix, ip,
                                    vlan_interfaces)
 
 
-    def create_containers(self, netbox, ifindex, net_prefix, ip, 
+    def create_containers(self, netbox, ifindex, net_prefix, ip,
                           vlan_interfaces):
         """
         Utitilty method for creating the shadow-objects
@@ -147,7 +147,7 @@ class Prefix(Plugin):
             port_prefix.interface = interface
             port_prefix.gw_ip = str(ip)
 
-            prefix = self.job_handler.container_factory(storage.Prefix, 
+            prefix = self.job_handler.container_factory(storage.Prefix,
                                                         key=net_prefix)
             prefix.net_address = str(net_prefix)
             port_prefix.prefix = prefix
@@ -155,7 +155,7 @@ class Prefix(Plugin):
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
             # TODO: Some of this logic should actually be in a storage class, not in this plugin.
-            vlan = self.job_handler.container_factory(storage.Vlan, 
+            vlan = self.job_handler.container_factory(storage.Vlan,
                                                       key=net_prefix)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
@@ -183,13 +183,13 @@ class Prefix(Plugin):
         yield dw
         interfaces = reduce_index(dw.getResult())
 
-        vlan_ifs = {}        
+        vlan_ifs = {}
         for ifindex, ifname in interfaces.items():
             match = VLAN_PATTERN.match(ifname)
             if match:
                 vlan = int(match.group('vlan'))
                 vlan_ifs[ifindex] = vlan
-        
+
         yield vlan_ifs
 
     def get_net_type(self, net_type_id):
@@ -203,7 +203,7 @@ class Prefix(Plugin):
         """Guesstimate a net type for the given prefix.
 
         Various algorithms may be used (and the database may be
-        queried).  
+        queried).
 
         Arguments:
 
