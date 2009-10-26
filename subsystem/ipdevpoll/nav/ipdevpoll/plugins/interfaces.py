@@ -36,7 +36,7 @@ from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
 
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage
 
@@ -85,7 +85,7 @@ class Interfaces(Plugin):
 
         # Now save stuff to containers and pass the list of containers
         # to the next callback
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
         interfaces = [self._convert_row_to_container(netbox, ifindex, row)
                       for ifindex, row in result.items()]
         return interfaces
@@ -98,7 +98,7 @@ class Interfaces(Plugin):
     def _convert_row_to_container(self, netbox, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
-        interface = self.job_handler.container_factory(storage.Interface,
+        interface = self.job_handler.container_factory(shadows.Interface,
                                                        key=ifindex)
         interface.ifindex = ifindex
         interface.ifdescr = row['ifDescr']
@@ -148,7 +148,7 @@ class Interfaces(Plugin):
         """
         def mark_as_gone(ifindices):
             now = datetime.datetime.now()
-            netbox = self.job_handler.container_factory(storage.Netbox, 
+            netbox = self.job_handler.container_factory(shadows.Netbox, 
                                                         key=None)
 
             if ifindices:
@@ -157,7 +157,7 @@ class Interfaces(Plugin):
 
             for ifindex in ifindices:
                 interface = self.job_handler.container_factory(
-                    storage.Interface, key=ifindex)
+                    shadows.Interface, key=ifindex)
                 interface.ifindex = ifindex
                 interface.gone_since = now
                 interface.netbox = netbox

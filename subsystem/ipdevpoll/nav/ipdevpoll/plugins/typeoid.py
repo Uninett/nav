@@ -30,7 +30,7 @@ import pprint
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.ipdevpoll import Plugin, FatalPluginError, storage
+from nav.ipdevpoll import Plugin, FatalPluginError, storage, shadows
 from nav.ipdevpoll.models import Type, OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
@@ -82,7 +82,7 @@ class TypeOid(Plugin):
         else:
             type_ = types[0]
             netbox_container = self.job_handler.container_factory(
-                storage.Netbox, key=None)
+                shadows.Netbox, key=None)
             netbox_container.type = type_
         yield True
 

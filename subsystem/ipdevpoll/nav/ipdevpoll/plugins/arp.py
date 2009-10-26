@@ -27,7 +27,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
 
 # MIB objects used
@@ -104,7 +104,7 @@ class Arp(Plugin):
         yield thing
         result = thing.getResult()
 
-        if storage.Arp not in self.job_handler.containers:
+        if shadows.Arp not in self.job_handler.containers:
             self.logger.warning("No ARP data found on %s." + \
                 "All ARP records for this box will now time out." % self.netbox.sysname)
         self.timeout_arp(existing_arp)
@@ -120,9 +120,9 @@ class Arp(Plugin):
         for row in result:
             ip = IP(row.ip).strCompressed()
             key = (self.netbox, ip, row.mac)
-            if storage.Arp not in self.job_handler.containers or \
-                    key not in self.job_handler.containers[storage.Arp]:
-                arp = self.job_handler.container_factory(storage.Arp, key=row.id)
+            if shadows.Arp not in self.job_handler.containers or \
+                    key not in self.job_handler.containers[shadows.Arp]:
+                arp = self.job_handler.container_factory(shadows.Arp, key=row.id)
                 arp.id = row.id
                 arp.end_time = datetime.utcnow()
                 self.logger.debug('Timeout on %s for %s' % (row.mac, ip))
@@ -165,7 +165,7 @@ class Arp(Plugin):
             mac = binary_mac_to_hex(mac)
             mac = truncate_mac(mac)
 
-            arp = self.job_handler.container_factory(storage.Arp, key=(
+            arp = self.job_handler.container_factory(shadows.Arp, key=(
                 self.netbox,
                 ip_str,
                 mac,

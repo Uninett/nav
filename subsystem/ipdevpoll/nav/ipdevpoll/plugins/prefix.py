@@ -51,7 +51,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
@@ -76,7 +76,7 @@ class Prefix(Plugin):
 
 
         self.logger.debug("Collecting prefixes")
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
 
         ipmib = IpMib(self.job_handler.agent)
         ciscoip = CiscoIetfIpMib(self.job_handler.agent)
@@ -136,18 +136,18 @@ class Prefix(Plugin):
         """
         Utitilty method for creating the shadow-objects
         """
-        interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
+        interface = self.job_handler.container_factory(shadows.Interface, key=ifindex)
         interface.ifindex = ifindex
         interface.netbox = netbox
 
         # No use in adding the GwPortPrefix unless we actually found a prefix
         if net_prefix:
             port_prefix = self.job_handler.container_factory(
-                storage.GwPortPrefix, key=ip)
+                shadows.GwPortPrefix, key=ip)
             port_prefix.interface = interface
             port_prefix.gw_ip = str(ip)
 
-            prefix = self.job_handler.container_factory(storage.Prefix,
+            prefix = self.job_handler.container_factory(shadows.Prefix,
                                                         key=net_prefix)
             prefix.net_address = str(net_prefix)
             port_prefix.prefix = prefix
@@ -155,7 +155,7 @@ class Prefix(Plugin):
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
             # TODO: Some of this logic should actually be in a storage class, not in this plugin.
-            vlan = self.job_handler.container_factory(storage.Vlan,
+            vlan = self.job_handler.container_factory(shadows.Vlan,
                                                       key=net_prefix)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
@@ -195,7 +195,7 @@ class Prefix(Plugin):
     def get_net_type(self, net_type_id):
         """Return a storage container for the given net_type id."""
         net_type = self.job_handler.container_factory(
-            storage.NetType, key=net_type_id)
+            shadows.NetType, key=net_type_id)
         net_type.id = net_type_id
         return net_type
 

@@ -37,7 +37,7 @@ from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib, PortList
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.models.manage import Interface
 
 
@@ -105,7 +105,7 @@ class Dot1q(Plugin):
                 if port in baseports:
                     ifindex = baseports[port]
                     interface = self.job_handler.container_factory(
-                        storage.Interface, key=ifindex)
+                        shadows.Interface, key=ifindex)
                     interface.vlan = pvid
                 else:
                     self.logger.info("dot1qPortVlanTable referred to unknown "
@@ -168,13 +168,13 @@ class Dot1q(Plugin):
                 # Mark as trunk
                 ifindex = baseports[port]
                 interface = self.job_handler.container_factory(
-                    storage.Interface, key=ifindex)
+                    shadows.Interface, key=ifindex)
                 interface.trunk = True
 
                 # Store a hex string representation of enabled VLANs
                 # in swportallowedvlan
                 allowed = self.job_handler.container_factory(
-                    storage.SwPortAllowedVlan, key=ifindex)
+                    shadows.SwPortAllowedVlan, key=ifindex)
                 allowed.interface = interface
                 allowed.hex_string = vlan_list_to_hex(vlans)
 

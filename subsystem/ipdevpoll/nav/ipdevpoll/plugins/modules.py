@@ -36,7 +36,7 @@ from twisted.python.failure import Failure
 
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.models import manage
 
 class Modules(Plugin):
@@ -80,7 +80,7 @@ class Modules(Plugin):
         """Process the list of collected entities."""
         def device_from_entity(ent):
             device = self.job_handler.container_factory(
-                storage.Device, key=ent['entPhysicalSerialNum'])
+                shadows.Device, key=ent['entPhysicalSerialNum'])
             device.serial = ent['entPhysicalSerialNum'].strip()
             if ent['entPhysicalHardwareRev']:
                 device.hardware_version = ent['entPhysicalHardwareRev'].strip()
@@ -93,7 +93,7 @@ class Modules(Plugin):
 
         def module_from_entity(ent):
             module = self.job_handler.container_factory(
-                storage.Module, key=ent['entPhysicalSerialNum'])
+                shadows.Module, key=ent['entPhysicalSerialNum'])
             module.netbox = netbox
             module.model = ent['entPhysicalModelName'].strip()
             module.description = ent['entPhysicalDescr'].strip()
@@ -114,7 +114,7 @@ class Modules(Plugin):
 
         modules = entities.get_modules()
         ports = entities.get_ports()
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
         
         for ent in modules:
             entity_index = ent[0]
@@ -137,7 +137,7 @@ class Modules(Plugin):
                     indices = self.alias_mapping[entity_index]
                     for ifindex in indices:
                         interface = self.job_handler.container_factory(
-                            storage.Interface, key=ifindex)
+                            shadows.Interface, key=ifindex)
                         interface.netbox = netbox
                         interface.ifindex = ifindex
                         interface.module = module

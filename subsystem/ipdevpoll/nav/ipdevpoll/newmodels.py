@@ -25,11 +25,11 @@ database and cache a list of Netboxes to poll.  It also loads and
 caches Type and Vendor data.  
 
 Data is loaded synchronously from the database using Django models -
-the model objects are shadowed using the storage module, so that the
-resulting objects will be guaranteed to stay away from the database
-during asynchronous operation.  The loading/reloading of data from the
-database will be executed in a separate thread to avoid interfering
-with the daemon's asynchronous operations.
+the model objects are "shadowed" using the shadows.Netbox class, so
+that the resulting objects will be guaranteed to stay away from the
+database during asynchronous operation.  The loading/reloading of data
+from the database will be executed in a separate thread to avoid
+interfering with the daemon's asynchronous operations.
 
 Periodic reloads are scheduled through the reactor.
 """
@@ -42,7 +42,7 @@ from twistedsnmp import snmpprotocol, agentproxy
 from nav.util import round_robin
 from nav.models import manage
 from nav import ipdevpoll
-import storage
+import shadows
 
 ports = round_robin([snmpprotocol.port() for i in range(10)])
 
@@ -55,7 +55,7 @@ class NetboxLoader(list):
     def load_all_s(self):
         """Synchronously load a list of netbox shadow containers."""
         netboxes = manage.Netbox.objects.select_related(depth=2).all()
-        result = [storage.Netbox(n) for n in netboxes]
+        result = [shadows.Netbox(n) for n in netboxes]
         self[:] = result
         self._logger.info("Loaded %d netboxes from database", len(result))
         return len(self)

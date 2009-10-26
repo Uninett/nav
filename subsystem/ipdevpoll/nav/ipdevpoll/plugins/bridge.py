@@ -30,7 +30,7 @@ from twistedsnmp import agentproxy
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 
 class Bridge(Plugin):
     @classmethod
@@ -151,7 +151,7 @@ class Bridge(Plugin):
         for portnum, ifindex in result.items():
             # The index is a single integer
             portnum = portnum[0]
-            interface = self.job_handler.container_factory(storage.Interface, 
+            interface = self.job_handler.container_factory(shadows.Interface, 
                                                            key=ifindex)
             interface.baseport = portnum
 

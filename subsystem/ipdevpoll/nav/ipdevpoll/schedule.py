@@ -31,6 +31,7 @@ from nav.util import round_robin
 from nav import ipdevpoll, toposort
 from nav.ipdevpoll.plugins import plugin_registry
 import storage
+import shadows
 
 logger = logging.getLogger(__name__)
 ports = round_robin([snmpprotocol.port() for i in range(10)])
@@ -65,7 +66,7 @@ class JobHandler(object):
         self.storage_queue = []
 
         # Initialize netbox in container
-        nb = self.container_factory(storage.Netbox, key=None)
+        nb = self.container_factory(shadows.Netbox, key=None)
         nb.id = netbox.id
 
         port = ports.next()

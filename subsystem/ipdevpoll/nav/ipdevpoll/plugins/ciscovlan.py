@@ -32,7 +32,7 @@ from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
 from nav.bitvector import BitVector
 
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.models.manage import Interface
 
 
@@ -74,7 +74,7 @@ class CiscoVlan(Plugin):
     def _store_access_ports(self, vlan_membership):
         """Store vlan memberships for all ports."""
         for ifindex, vlan in vlan_membership.items():
-            interface = self.job_handler.container_factory(storage.Interface,
+            interface = self.job_handler.container_factory(shadows.Interface,
                                                            key=ifindex)
             interface.trunk = False
             interface.vlan = vlan
@@ -83,7 +83,7 @@ class CiscoVlan(Plugin):
     def _store_trunk_ports(self, native_vlans, enabled_vlans):
         """Store the set of enabled vlans for each trunk port."""
         for ifindex, vector in enabled_vlans.items():
-            interface = self.job_handler.container_factory(storage.Interface,
+            interface = self.job_handler.container_factory(shadows.Interface,
                                                            key=ifindex)
             interface.trunk = True
             if ifindex in native_vlans:
@@ -94,6 +94,6 @@ class CiscoVlan(Plugin):
                               len(vector.get_set_bits()))
 
             allowed = self.job_handler.container_factory(
-                storage.SwPortAllowedVlan, key=ifindex)
+                shadows.SwPortAllowedVlan, key=ifindex)
             allowed.interface = interface
             allowed.hex_string = vector.to_hex()

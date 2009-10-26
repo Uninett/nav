@@ -20,7 +20,6 @@ import logging
 
 import django.db.models
 
-from nav.models import manage
 from nav import ipdevpoll
 
 # dict structure: { django_model_class: shadow_class }
@@ -325,73 +324,3 @@ def shadowify_queryset(queryset):
     return new_list
 
 
-# Shadow classes.  Not all of these will be used to store data, but
-# may be used to retrieve and cache existing database records.
-
-class Netbox(Shadow):
-    __shadowclass__ = manage.Netbox
-    __lookups__ = ['sysname', 'ip']
-
-class NetboxType(Shadow):
-    __shadowclass__ = manage.NetboxType
-
-class Vendor(Shadow):
-    __shadowclass__ = manage.Vendor
-
-class Module(Shadow):
-    __shadowclass__ = manage.Module
-    __lookups__ = [('netbox', 'name')]
-
-class Device(Shadow):
-    __shadowclass__ = manage.Device
-    __lookups__ = ['serial']
-
-class Interface(Shadow):
-    __shadowclass__ = manage.Interface
-    __lookups__ = [('netbox', 'ifname'), ('netbox', 'ifindex')]
-
-class Location(Shadow):
-    __shadowclass__ = manage.Location
-
-class Room(Shadow):
-    __shadowclass__ = manage.Room
-
-class Category(Shadow):
-    __shadowclass__ = manage.Category
-
-class Organization(Shadow):
-    __shadowclass__ = manage.Organization
-
-class Vlan(Shadow):
-    __shadowclass__ = manage.Vlan
-    __lookups__ = ['vlan']
-
-class Prefix(Shadow):
-    __shadowclass__ = manage.Prefix
-    __lookups__ = [('net_address', 'vlan'), 'net_address']
-
-class GwPortPrefix(Shadow):
-    __shadowclass__ = manage.GwPortPrefix
-    __lookups__ = ['gw_ip']
-
-class NetType(Shadow):
-    __shadowclass__ = manage.NetType
-
-class SwPortVlan(Shadow):
-    __shadowclass__ = manage.SwPortVlan
-
-class Arp(Shadow):
-    __shadowclass__ = manage.Arp
-    __lookups__ = [('netbox', 'ip', 'mac', 'end_time')]
-
-class Cam(Shadow):
-    __shadowclass__ = manage.Cam
-    __lookups__ = [('netbox', 'ifindex', 'mac', 'miss_count')]
-
-class Prefix(Shadow):
-    __shadowclass__ = manage.Prefix
-    __lookups__ = ['net_address']
-
-class SwPortAllowedVlan(Shadow):
-    __shadowclass__ = manage.SwPortAllowedVlan
-    __lookups__ = ['interface']
