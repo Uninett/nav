@@ -26,7 +26,7 @@ from optparse import OptionParser
 
 from twisted.internet import reactor
 
-from newmodels import NetboxLoader
+from dataloader import NetboxLoader
 from schedule import Schedule
 from plugins import import_plugins
 from jobs import get_jobs

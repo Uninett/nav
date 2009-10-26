@@ -32,19 +32,17 @@ from the database will be executed in a separate thread to avoid
 interfering with the daemon's asynchronous operations.
 
 Periodic reloads are scheduled through the reactor.
+
 """
 
 import logging
 
 from twisted.internet import reactor, defer, task, threads
-from twistedsnmp import snmpprotocol, agentproxy
 
-from nav.util import round_robin
 from nav.models import manage
 from nav import ipdevpoll
-import shadows
+import storage
 
-ports = round_robin([snmpprotocol.port() for i in range(10)])
 
 class NetboxLoader(list):
     def __init__(self):
@@ -55,7 +53,7 @@ class NetboxLoader(list):
     def load_all_s(self):
         """Synchronously load a list of netbox shadow containers."""
         netboxes = manage.Netbox.objects.select_related(depth=2).all()
-        result = [shadows.Netbox(n) for n in netboxes]
+        result = storage.shadowify_queryset(netboxes)
         self[:] = result
         self._logger.info("Loaded %d netboxes from database", len(result))
         return len(self)
