@@ -105,8 +105,9 @@ class Arp(Plugin):
         result = thing.getResult()
 
         if shadows.Arp not in self.job_handler.containers:
-            self.logger.warning("No ARP data found on %s." + \
-                "All ARP records for this box will now time out." % self.netbox.sysname)
+            self.logger.warning(
+                "No ARP data found."
+                "All ARP records for this box will now time out.")
         self.timeout_arp(existing_arp)
 
         yield True

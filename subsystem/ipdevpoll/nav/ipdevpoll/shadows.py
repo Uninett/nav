@@ -67,6 +67,44 @@ class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
     __lookups__ = ['vlan']
 
+    def _get_my_prefixes(self, containers):
+        """Get a list of Prefix shadow objects that point to this Vlan."""
+        if Prefix in containers:
+            all_prefixes = containers[Prefix].values()
+            my_prefixes = [prefix for prefix in all_prefixes
+                           if prefix.vlan is self]
+            return my_prefixes
+        else:
+            return []
+
+    def _get_vlan_id_from_my_prefixes(self, containers):
+        """Find and return an existing primary key value from any
+        shadow prefix object pointing to this Vlan.
+
+        """
+        my_prefixes = self._get_my_prefixes(containers)
+        for prefix in my_prefixes:
+            live_prefix = prefix.get_existing_model()
+            if live_prefix and live_prefix.vlan_id:
+                # We just care about the first associated prefix we found
+                return live_prefix.vlan_id
+
+    def get_existing_model(self, containers):
+        """Overriden to provide special handling of looking up
+        existing models via known prefixes.
+
+        """
+        # Magic lookup only if a simple lookup isn't available
+        # Find and set the primary key of this object, if available
+        if not (self.vlan or self.id):
+            vlan_id = self._get_vlan_id_from_my_prefixes(containers)
+            if vlan_id:
+                self.id = vlan_id
+
+        # We now return to our regular program :P
+        return super(Vlan, self).get_existing_model(containers)
+
+
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
     __lookups__ = [('net_address', 'vlan'), 'net_address']

@@ -214,8 +214,8 @@ class Shadow(object):
         with shadow instances keyed by their index created upon container creation.
         """
 
-        if not container_list:
-            container_list = {}
+        if containers is None:
+            containers = {}
 
         # Get existing or create new instance
         model = self.get_existing_model(containers)
@@ -228,7 +228,7 @@ class Shadow(object):
         for attr in self._touched:
             value = getattr(self, attr)
             if issubclass(value.__class__, Shadow):
-                value = value.get_model()
+                value = value.convert_to_model()
             setattr(model, attr, value)
         return model
 
@@ -248,13 +248,16 @@ class Shadow(object):
         pk = self.get_primary_key_attribute()
         setattr(self, pk.name, value)
 
-    def get_existing_model(self):
+    def get_existing_model(self, containers=None):
         """Return an existing live Django model object.
 
         If the object represented by this shadow already exists in the
         database, this method will return it from the database.  If
         such an object doesn't exist, the None value will be returned.
         """
+        if containers is None:
+            containers = {}
+
         # Find the primary key attribute.  If the primary key is also
         # a foreign key, we need to get the existing model for the
         # foreign key first.  Either way, the primary key attribute
@@ -293,7 +296,7 @@ class Shadow(object):
                 # Ensure we only have django models
                 for key, val in kwargs.items():
                     if issubclass(val.__class__, Shadow):
-                        kwargs[key] = val.get_model()
+                        kwargs[key] = val.convert_to_model()
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
