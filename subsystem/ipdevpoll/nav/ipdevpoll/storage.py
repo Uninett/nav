@@ -306,7 +306,7 @@ class Shadow(object):
     def prepare_for_save(self, containers=None):
         """
         This method is run on all shadow instances known the the running
-        job handler before saving to the database.
+        job handler before storage-queue generation and storing occurs.
         """
         pass
 
