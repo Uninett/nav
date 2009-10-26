@@ -201,7 +201,7 @@ class Shadow(object):
         """
         return list(self._touched)
 
-    def get_model(self):
+    def convert_to_model(self, containers=None):
         """Return a live Django model object based on the data of this one.
 
         If this shadow object represents something that is already in
@@ -209,9 +209,17 @@ class Shadow(object):
         synchronously, and its attributes modified with the contents
         of the touched attributes of the shadow object.
 
+        The current job handler's containers are provided for asvanced lookups
+        overrides in certain shadow classes. The containers argument is a dictionary
+        with keyed by the shadowclass. The value connected to the key is a dictionary
+        with shadow instances keyed by their index created upon container creation.
         """
+
+        if not container_list:
+            container_list = {}
+
         # Get existing or create new instance
-        model = self.get_existing_model()
+        model = self.get_existing_model(containers)
         if not model and self.update_only:
             return None
         elif not model:
@@ -296,8 +304,7 @@ class Shadow(object):
                     # attempt to achieve consistency
                     setattr(self, pk.name, model.pk)
                     return model
-
-
+    
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
 

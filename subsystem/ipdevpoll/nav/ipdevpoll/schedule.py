@@ -199,7 +199,7 @@ class JobHandler(object):
 
             while self.storage_queue:
                 obj = self.storage_queue.pop()
-                obj_model = obj.get_model()
+                obj_model = obj.convert_to_model(self.containers)
                 if obj.delete and obj_model:
                         obj_model.delete()
                 else:
