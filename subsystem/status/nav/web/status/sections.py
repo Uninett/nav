@@ -22,7 +22,8 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_unicode, smart_str, force_unicode
 
-from nav.models.profiles import StatusPreference
+from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
+    StatusPreferenceOrganization
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
 from nav.models.manage import Netbox, Module
 
@@ -40,6 +41,17 @@ def get_user_sections(account):
     preferences = StatusPreference.objects.filter(
         account=account
     ).order_by('position')
+
+    categories = StatusPreferenceCategory.objects.filter(
+        statuspreference__in=preferences
+    ).values_list('category_id', flat=True)
+    organizations = StatusPreferenceOrganization.objects.filter(
+        statuspreference__in=preferences
+    ).values_list('organization_id', flat=True)
+
+    for pref in preferences:
+        pref.fetched_categories = categories
+        pref.fetched_organizations = organizations
 
     for pref in preferences:
         if pref.type == StatusPreference.SECTION_NETBOX:
@@ -76,8 +88,8 @@ class _Section(object):
 
     def __init__(self, prefs=None):
         self.prefs = prefs
-        self.categories = self.prefs.categories.values_list('id', flat=True)
-        self.organizations = self.prefs.organizations.values_list('id', flat=True)
+        self.categories = self.prefs.fetched_categories
+        self.organizations = self.prefs.fetched_organizations
         self.states = self.prefs.states.split(',')
 
         for key, title in StatusPreference.SECTION_CHOICES:

@@ -1052,3 +1052,17 @@ class StatusPreference(models.Model):
     class Meta:
         db_table = u'statuspreference'
         ordering = ('position',)
+
+class StatusPreferenceOrganization(models.Model):
+    statuspreference = models.ForeignKey(StatusPreference)
+    organization = models.ForeignKey(Organization)
+
+    class Meta:
+        db_table = u'statuspreference_organization'
+
+class StatusPreferenceCategory(models.Model):
+    statuspreference = models.ForeignKey(StatusPreference)
+    category = models.ForeignKey(Category)
+
+    class Meta:
+        db_table = u'statuspreference_category'
