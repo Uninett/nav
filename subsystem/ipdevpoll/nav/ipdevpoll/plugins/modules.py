@@ -34,7 +34,7 @@ from datetime import datetime
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs.entity_mib import EntityMib
+from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin, FatalPluginError
 from nav.ipdevpoll import storage, shadows
 from nav.models import manage
@@ -164,62 +164,4 @@ class Modules(Plugin):
         self.logger.debug("alias mapping: %r", mapping)
         return mapping
 
-
-class EntityTable(dict):
-    """Represent the contents of the entPhysicalTable as a dictionary"""
-    def __init__(self, mibresult):
-        # want single integers, not oid tuples as keys/indexes
-        super(EntityTable, self).__init__()
-        for row in mibresult.values():
-            index = row[0][0]
-            row[0] = index
-            self[index] = row
-
-    def is_module(self, e):
-        return e['entPhysicalClass'] == 'module' and \
-            e['entPhysicalIsFRU'] and \
-            e['entPhysicalSerialNum']
-
-    def is_port(self, e):
-        return e['entPhysicalClass'] == 'port'
-
-    def get_modules(self):
-        """Return the subset of entities that are modules.
-
-        A module is defined as an entity with class=module, being a
-        field replaceable unit and having a non-empty serial number.
-
-        Return value is a list of table rows.
-
-        """
-
-        modules = [entity for entity in self.values()
-                   if self.is_module(entity)]
-        return modules
-
-    def get_ports(self):
-        """Return the subset of entities that are physical ports.
-
-        A port is defined as en entity class=port.
-
-        Return value is a list of table rows.
-
-        """
-        ports = [entity for entity in self.values()
-                 if self.is_port(entity)]
-        return ports
-
-    def get_nearest_module_parent(self, entity):
-        """Traverse the entity hierarchy to find a suitable parent module.
-
-        Returns a module row if a parent is found, else None is returned.
-
-        """
-        parent_index = entity['entPhysicalContainedIn']
-        if parent_index in self:
-            parent = self[parent_index]
-            if self.is_module(parent):
-                return parent
-            else:
-                return self.get_nearest_module_parent(parent)
 
