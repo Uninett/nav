@@ -305,7 +305,7 @@ class NetboxScheduler(object):
 
     key: value  -->  str(ip): JobHandler instance
     """
-    INTERVAL = 3600.0 # seconds
+    DEFAULT_INTERVAL = 3600.0 # seconds
 
 
     def __init__(self, jobname, netbox, interval=None, plugins=None):
@@ -316,7 +316,7 @@ class NetboxScheduler(object):
                                           (self.jobname, netbox.sysname))
 
         self.plugins = plugins or []
-        self.interval = interval or self.INTERVAL
+        self.interval = interval or self.DEFAULT_INTERVAL
         self.active = True
 
     def start(self):
