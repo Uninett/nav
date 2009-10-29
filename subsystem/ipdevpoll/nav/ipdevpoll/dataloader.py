@@ -28,16 +28,14 @@ Data is loaded synchronously from the database using Django models -
 the model objects are "shadowed" using the shadows.Netbox class, so
 that the resulting objects will be guaranteed to stay away from the
 database during asynchronous operation.  The loading/reloading of data
-from the database will be executed in a separate thread to avoid
+from the database can be executed in a separate thread to avoid
 interfering with the daemon's asynchronous operations.
-
-Periodic reloads are scheduled through the reactor.
 
 """
 
 import logging
 
-from twisted.internet import reactor, defer, task, threads
+from twisted.internet import threads
 
 from nav.models import manage
 from nav import ipdevpoll
@@ -45,13 +43,29 @@ import storage
 
 
 class NetboxLoader(dict):
+    """Loads netboxes from the database, synchronously or asynchronously.
+
+    Access as a dictionary to retrieve information about the loaded
+    netboxes.  The dictionary keys are netbox table primary keys, the
+    values are shadows.Netbox objects.
+
+    """
+
     def __init__(self):
         super(NetboxLoader, self).__init__()
-        self.loop = None
+        self.peak_count = 0
         self._logger = ipdevpoll.get_instance_logger(self, id(self))
 
     def load_all_s(self):
-        """Synchronously load netboxes from database."""
+        """Synchronously load netboxes from database.
+
+        Returns:
+
+          A two-element tuple, (new_ids, lost_ids), which are sets of
+          netbox IDs.  The first set are IDs that a new since the last
+          load operation, the second is the set of IDs that have been
+          removed since the last load operation.
+        """
         queryset = manage.Netbox.objects.select_related(depth=2).all()
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
@@ -63,25 +77,14 @@ class NetboxLoader(dict):
         
         self.clear()
         self.update(netbox_dict)
+        self.peak_count = max(self.peak_count, len(self))
 
         self._logger.info(
-            "Loaded %d netboxes from database (%d new, %d removed)", 
-            len(netbox_dict), len(new_ids), len(lost_ids)
+            "Loaded %d netboxes from database (%d new, %d removed, %d peak)",
+            len(netbox_dict), len(new_ids), len(lost_ids), self.peak_count
             )
-        return len(self)
+        return (new_ids, lost_ids)
 
     def load_all(self):
         """Asynchronously load netboxes from database."""
         return threads.deferToThread(self.load_all_s)
-
-    def initiate_looping_load(self, interval=5*60.0):
-        """Run load_all() in five minute intervals.
-
-        Returns a deferred that will fire callbacks after the first
-        load operation.
-
-        """
-        deferred = self.load_all()
-        self.loop = task.LoopingCall(self.load_all)
-        self.loop.start(interval, now=False)
-        return deferred

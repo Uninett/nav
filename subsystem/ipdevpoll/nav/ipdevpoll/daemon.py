@@ -26,29 +26,17 @@ from optparse import OptionParser
 
 from twisted.internet import reactor
 
-from dataloader import NetboxLoader
-from schedule import Schedule
-from plugins import import_plugins
-from jobs import get_jobs
-
 from nav import buildconf
 
-def start_polling(result=None):
-    """Initiate polling.
-
-    First time around, all netboxes are polled immediately.
-    """
-
-    for netbox in netboxes.values():
-        for jobname,(interval,plugins) in get_jobs().items():
-            Schedule(jobname, netbox, interval, plugins).start()
+from schedule import Scheduler
+from plugins import import_plugins
 
 def run_poller():
-    """Load plugins, set up data caching and polling schedules."""
-    global netboxes
+    """Load plugins, and initiate polling schedules."""
+    global scheduler
     import_plugins()
-    netboxes = NetboxLoader()
-    netboxes.initiate_looping_load().addCallback(start_polling)
+    scheduler = Scheduler()
+    return scheduler.run()
 
 def get_parser():
     """Setup and return a command line option parser."""

@@ -23,15 +23,17 @@ import time
 from twisted.internet import reactor, defer, task, threads
 from twistedsnmp import snmpprotocol, agentproxy
 
+import nav.models
 import django.db.models.fields.related
 from django.db import transaction
-
 
 from nav.util import round_robin
 from nav import ipdevpoll, toposort
 from nav.ipdevpoll.plugins import plugin_registry
 import storage
 import shadows
+import jobs
+from dataloader import NetboxLoader
 
 logger = logging.getLogger(__name__)
 ports = round_robin([snmpprotocol.port() for i in range(10)])
@@ -284,9 +286,11 @@ class JobHandler(object):
         return obj
 
 
-class Schedule(object):
+class NetboxScheduler(object):
+    """Netbox job schedule handler.
 
-    """Netbox polling schedule handler.
+    An instance of this class takes care of scheduling, running and
+    rescheduling of a single JobHandler for a single netbox.
 
     Does not employ task.LoopingCall because we want to reschedule at
     the end of each JobHandler, not run the handler at fixed times.
@@ -296,7 +300,7 @@ class Schedule(object):
     ip_map = {}
     """A map of ip addresses there are currently active JobHandlers for.
 
-    Scheduling will not allow simultaineous runs against the same IP
+    Scheduling will not allow simultaneous runs against the same IP
     address, so as to not overload the SNMP agent at that address.
 
     key: value  -->  str(ip): JobHandler instance
@@ -313,29 +317,43 @@ class Schedule(object):
 
         self.plugins = plugins or []
         self.interval = interval or self.INTERVAL
+        self.active = True
 
     def start(self):
         """Start polling schedule."""
         return self._do_poll()
 
+    def cancel(self):
+        """Cancel scheduling of this job for this box.
+
+        Future runs will not be scheduled after this."""
+        self.active = False
+        self.delayed.cancel()
+        self.logger.debug("Job %r cancelled for %s",
+                          self.jobname, self.netbox.sysname)
+
     def _reschedule(self, dummy=None):
-        self.delayed = reactor.callLater(self.interval, self._do_poll)
-        self.logger.debug("Rescheduling job %r for %s in %s seconds",
-                          self.jobname, self.netbox.sysname, self.interval)
+        if self.active:
+            self.delayed = reactor.callLater(self.interval, self._do_poll)
+            self.logger.debug("Rescheduling job %r for %s in %s seconds",
+                              self.jobname, self.netbox.sysname, self.interval)
+        else:
+            self.logger.debug(
+                "Attempt to reschedule, but this job has been cancelled.")
         return dummy
 
-    def _map_cleanup(self, handler):
-        """Remove a handler from the ip map."""
-        if handler.netbox.ip in Schedule.ip_map:
-            del Schedule.ip_map[handler.netbox.ip]
-        return handler
+    def _map_cleanup(self, job_handler):
+        """Remove a JobHandler from the ip map."""
+        if job_handler.netbox.ip in NetboxScheduler.ip_map:
+            del NetboxScheduler.ip_map[job_handler.netbox.ip]
+        return job_handler
 
     def _do_poll(self, dummy=None):
         ip = self.netbox.ip
-        if ip in Schedule.ip_map:
+        if ip in NetboxScheduler.ip_map:
             # We won't start a JobHandler now because a JobHandler is
             # already polling this IP address.
-            other_handler = Schedule.ip_map[ip]
+            other_handler = NetboxScheduler.ip_map[ip]
             self.logger.info("schedule clash: waiting for run for %s to "
                              "finish before starting run for %s",
                              other_handler.netbox, self.netbox)
@@ -348,13 +366,76 @@ class Schedule(object):
         else:
             # We're ok to start a polling run.
             handler = JobHandler(self.jobname, self.netbox, plugins=self.plugins)
-            Schedule.ip_map[ip] = handler
+            NetboxScheduler.ip_map[ip] = handler
             deferred = handler.run()
             # Make sure to remove from map and reschedule next run as
             # soon as this one is over.
             deferred.addCallback(self._map_cleanup)
             deferred.addCallback(self._reschedule)
         return dummy
+
+class Scheduler(object):
+    """Controller of the polling schedule.
+
+    A scheduler allocates individual job schedules for each netbox.
+    It will reload the list of netboxes from the database at set
+    intervals; any netbox removed from the database will have its jobs
+    descheduled, while new netboxes that appear will be scheduled
+    immediately.
+
+    There should only be one single Scheduler instance in an ipdevpoll
+    process, although a singleton pattern will not be enforced by this
+    class.
+
+    """
+    def __init__(self):
+        self.netboxes = NetboxLoader()
+        self.netbox_schedulers_map = {}
+
+    def run(self):
+        """Initiate scheduling of polling."""
+        self.netbox_reload_loop = task.LoopingCall(self.reload_netboxes)
+        # FIXME: Interval should be configurable
+        deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
+        return deferred
+
+    def reload_netboxes(self):
+        """Reload the set of netboxes to poll and update schedules."""
+        deferred = self.netboxes.load_all()
+        deferred.addCallback(self.process_reloaded_netboxes)
+        return deferred
+
+    def process_reloaded_netboxes(self, result):
+        """Process the result of a netbox reload and update schedules."""
+        (new_ids, removed_ids) = result
+        # Schedule new boxes
+        for netbox_id in new_ids:
+            for jobname,(interval, plugins) in jobs.get_jobs().items():
+                self.add_netbox_scheduler(jobname, netbox_id, interval, plugins)
+
+        # Deschedule removed boxes
+        for netbox_id in removed_ids:
+            self.cancel_netbox_schedulers(netbox_id)
+            
+    def add_netbox_scheduler(self, jobname, netbox_id, interval, plugins):
+        netbox = self.netboxes[netbox_id]
+        scheduler = NetboxScheduler(jobname, netbox, interval, plugins)
+
+        if netbox.id not in self.netbox_schedulers_map:
+            self.netbox_schedulers_map[netbox.id] = [scheduler]
+        else:
+            self.netbox_schedulers_map[netbox.id].append(scheduler)
+        return scheduler.start()
+
+    def cancel_netbox_schedulers(self, netbox_id):
+        if netbox_id in self.netbox_schedulers_map:
+            schedulers = self.netbox_schedulers_map[netbox_id]
+            for scheduler in schedulers:
+                scheduler.cancel()
+            del self.netbox_schedulers_map[netbox_id]
+            return len(schedulers)
+        else:
+            return 0
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
