@@ -39,7 +39,7 @@ def start_polling(result=None):
     First time around, all netboxes are polled immediately.
     """
 
-    for netbox in netboxes:
+    for netbox in netboxes.values():
         for jobname,(interval,plugins) in get_jobs().items():
             Schedule(jobname, netbox, interval, plugins).start()
 

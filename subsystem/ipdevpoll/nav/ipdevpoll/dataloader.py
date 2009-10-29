@@ -44,22 +44,34 @@ from nav import ipdevpoll
 import storage
 
 
-class NetboxLoader(list):
+class NetboxLoader(dict):
     def __init__(self):
         super(NetboxLoader, self).__init__()
         self.loop = None
         self._logger = ipdevpoll.get_instance_logger(self, id(self))
 
     def load_all_s(self):
-        """Synchronously load a list of netbox shadow containers."""
-        netboxes = manage.Netbox.objects.select_related(depth=2).all()
-        result = storage.shadowify_queryset(netboxes)
-        self[:] = result
-        self._logger.info("Loaded %d netboxes from database", len(result))
+        """Synchronously load netboxes from database."""
+        queryset = manage.Netbox.objects.select_related(depth=2).all()
+        netbox_list = storage.shadowify_queryset(queryset)
+        netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
+
+        previous_ids = set(self.keys())
+        current_ids = set(netbox_dict.keys())
+        lost_ids = previous_ids.difference(current_ids)
+        new_ids = current_ids.difference(previous_ids)
+        
+        self.clear()
+        self.update(netbox_dict)
+
+        self._logger.info(
+            "Loaded %d netboxes from database (%d new, %d removed)", 
+            len(netbox_dict), len(new_ids), len(lost_ids)
+            )
         return len(self)
 
     def load_all(self):
-        """Asynchronously load a list of netbox shadow containers."""
+        """Asynchronously load netboxes from database."""
         return threads.deferToThread(self.load_all_s)
 
     def initiate_looping_load(self, interval=5*60.0):
