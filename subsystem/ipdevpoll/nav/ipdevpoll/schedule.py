@@ -333,7 +333,7 @@ class Schedule(object):
     def _do_poll(self, dummy=None):
         ip = self.netbox.ip
         if ip in Schedule.ip_map:
-            # We won't start a runhandler now because a runhandler is
+            # We won't start a JobHandler now because a JobHandler is
             # already polling this IP address.
             other_handler = Schedule.ip_map[ip]
             self.logger.info("schedule clash: waiting for run for %s to "
