@@ -180,18 +180,21 @@ class JobHandler(object):
         df = threads.deferToThread(self.prepare_containers_for_save)
         dw = defer.waitForDeferred(df)
         yield dw
+        dw.getResult()
 
         # Traverse all the objects in the storage container and generate
         # the storage queue
         df = threads.deferToThread(self.populate_storage_queue)
         dw = defer.waitForDeferred(df)
         yield dw
+        dw.getResult()
 
         # Actually save to the database
         df = threads.deferToThread(self.perform_save)
         df.addCallback(self.log_timed_result, "Storing to database complete")
         dw = defer.waitForDeferred(df)
         yield dw
+        dw.getResult()
 
     def prepare_containers_for_save(self):
         """
