@@ -292,9 +292,6 @@ class NetboxScheduler(object):
     An instance of this class takes care of scheduling, running and
     rescheduling of a single JobHandler for a single netbox.
 
-    Does not employ task.LoopingCall because we want to reschedule at
-    the end of each JobHandler, not run the handler at fixed times.
-
     """
 
     ip_map = {}
@@ -321,26 +318,17 @@ class NetboxScheduler(object):
 
     def start(self):
         """Start polling schedule."""
-        return self._do_poll()
+        self.loop = task.LoopingCall(self.run_job)
+        deferred = self.loop.start(interval=self.interval, now=True)
+        return deferred
 
     def cancel(self):
         """Cancel scheduling of this job for this box.
 
         Future runs will not be scheduled after this."""
-        self.active = False
-        self.delayed.cancel()
+        self.loop.stop()
         self.logger.debug("Job %r cancelled for %s",
                           self.jobname, self.netbox.sysname)
-
-    def _reschedule(self, dummy=None):
-        if self.active:
-            self.delayed = reactor.callLater(self.interval, self._do_poll)
-            self.logger.debug("Rescheduling job %r for %s in %s seconds",
-                              self.jobname, self.netbox.sysname, self.interval)
-        else:
-            self.logger.debug(
-                "Attempt to reschedule, but this job has been cancelled.")
-        return dummy
 
     def _map_cleanup(self, job_handler):
         """Remove a JobHandler from the ip map."""
@@ -348,31 +336,28 @@ class NetboxScheduler(object):
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
         return job_handler
 
-    def _do_poll(self, dummy=None):
+    def run_job(self):
         ip = self.netbox.ip
         if ip in NetboxScheduler.ip_map:
             # We won't start a JobHandler now because a JobHandler is
             # already polling this IP address.
-            other_handler = NetboxScheduler.ip_map[ip]
+            other_job_handler = NetboxScheduler.ip_map[ip]
             self.logger.info("schedule clash: waiting for run for %s to "
                              "finish before starting run for %s",
                              other_handler.netbox, self.netbox)
-            if id(self.netbox) == id(other_handler.netbox):
+            if id(self.netbox) == id(other_job_handler.netbox):
                 self.logger.debug("Clashing instances are identical")
 
             # Reschedule this function to be called as soon as the
-            # other runhandler is finished
-            other_handler.deferred.addCallback(self._do_poll)
+            # other JobHandler is finished
+            other_job_handler.deferred.addCallback(self.run_job)
         else:
             # We're ok to start a polling run.
             handler = JobHandler(self.jobname, self.netbox, plugins=self.plugins)
             NetboxScheduler.ip_map[ip] = handler
             deferred = handler.run()
-            # Make sure to remove from map and reschedule next run as
-            # soon as this one is over.
+            # Make sure to remove from ip_map as soon as this run is over
             deferred.addCallback(self._map_cleanup)
-            deferred.addCallback(self._reschedule)
-        return dummy
 
 class Scheduler(object):
     """Controller of the polling schedule.
