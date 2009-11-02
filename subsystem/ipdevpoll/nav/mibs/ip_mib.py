@@ -16,6 +16,9 @@
 #
 from IPy import IP
 
+from twisted.internet import defer
+
+from nav.ipdevpoll.utils import binary_mac_to_hex
 import mibretriever
 
 class IpMib(mibretriever.MibRetriever):
@@ -109,6 +112,82 @@ class IpMib(mibretriever.MibRetriever):
         if ip:
             prefix = ip.make_net(prefix_length)
             return prefix
+
+    @defer.deferredGenerator
+    def _get_ifindex_ip_mac_mappings(self, 
+                                     column='ipNetToPhysicalPhysAddress'):
+        """Get IP/MAC mappings from a table indexed by IfIndex+InetAddressType+
+        InetAddress.
+        """
+        waiter = defer.waitForDeferred(self.retrieve_column(column))
+        yield waiter
+        all_phys_addrs = waiter.getResult()
+
+        mappings = set()
+
+        for row_index, phys_address in all_phys_addrs.items():
+            ifindex = row_index[0]
+            inet_address = row_index[1:]
+            ip = IpMib.inetaddress_to_ip(inet_address)
+            mac = binary_mac_to_hex(phys_address)
+            
+            row = (ifindex, ip, mac)
+            mappings.add(row)
+        self.logger.debug("ip/mac pairs: Got %d rows from %s", 
+                          len(all_phys_addrs), column)
+        yield mappings
+
+    @defer.deferredGenerator
+    def _get_ifindex_ipv4_mac_mappings(self, column='ipNetToMediaPhysAddress'):
+        """Get IP/MAC mappings from a table indexed by IfIndex+IpAddress."""
+        waiter = defer.waitForDeferred(self.retrieve_column(column))
+        yield waiter
+        ipv4_phys_addrs = waiter.getResult()
+
+        mappings = set()
+
+        for row_index, phys_address in ipv4_phys_addrs.items():
+            ifindex = row_index[0]
+            ip_address = row_index[1:]
+            ip_address_string = ".".join([str(i) for i in ip_address])
+            ip = IP(ip_address_string)
+            mac = binary_mac_to_hex(phys_address)
+
+            row = (ifindex, ip, mac)
+            mappings.add(row)
+        self.logger.debug("ip/mac pairs: Got %d rows from %s", 
+                          len(ipv4_phys_addrs), column)
+        yield mappings
+
+
+    @defer.deferredGenerator
+    def get_ifindex_ip_mac_mappings(self):
+        """Retrieve the layer 3->layer 2 address mappings of this device.
+
+        Will retrieve results from the new IP-version-agnostic table of IP-MIB,
+        if there are no results it will retrieve from the deprecated IPv4-only
+        table.
+
+        Return value:
+          A set of tuples: set([(ifindex, ip_address, mac_address), ...])
+          ifindex will be an integer, ip_address will be an IPy.IP object and
+          mac_address will be a string with a colon-separated hex representation
+          of a MAC address.
+
+        """
+        waiter = defer.waitForDeferred(self._get_ifindex_ip_mac_mappings())
+        yield waiter
+        mappings = waiter.getResult()
+
+        # Fall back to deprecated table if the IP-version agnostic
+        # table gave no results.
+        if len(mappings) == 0:
+            waiter = defer.waitForDeferred(
+                self._get_ifindex_ipv4_mac_mappings())
+            yield waiter
+            mappings = waiter.getResult()
+
+        yield mappings
 
 
 class IndexToIpException(Exception):
