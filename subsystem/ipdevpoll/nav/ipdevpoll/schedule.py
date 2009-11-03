@@ -115,7 +115,8 @@ class JobHandler(object):
     def run(self):
         """Start a polling run against a netbox and retun a deferred."""
 
-        self.logger.info("Starting polling run")
+        self.logger.info("Starting job %r for %s", 
+                         self.name, self.netbox.sysname)
         self.find_plugins()
         self.deferred = defer.Deferred()
 
@@ -162,7 +163,7 @@ class JobHandler(object):
 
         """
         self.save_container()
-        self.logger.info("Job done")
+        self.logger.info("Job %r done", self.name)
 
         # Fire the callback chain
         self.deferred.callback(self)
@@ -345,11 +346,14 @@ class NetboxScheduler(object):
             # We won't start a JobHandler now because a JobHandler is
             # already polling this IP address.
             other_job_handler = NetboxScheduler.ip_map[ip]
-            self.logger.info("schedule clash: waiting for run for %s to "
-                             "finish before starting run for %s",
-                             other_job_handler.netbox, self.netbox)
+            self.logger.info(
+                "Job %r is still running for %s, waiting for it to finish "
+                "before starting %r",
+                other_job_handler.name, self.netbox.sysname,
+                self.jobname)
             if id(self.netbox) == id(other_job_handler.netbox):
-                self.logger.debug("Clashing instances are identical")
+                self.logger.debug(
+                    "other job is working on an identical netbox instance")
 
             # Reschedule this function to be called as soon as the
             # other JobHandler is finished
