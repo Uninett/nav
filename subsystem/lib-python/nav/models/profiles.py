@@ -1053,6 +1053,15 @@ class StatusPreference(models.Model):
         db_table = u'statuspreference'
         ordering = ('position',)
 
+    def readable_type(self):
+        return StatusPreference.lookup_readable_type(self.type)
+
+    @staticmethod
+    def lookup_readable_type(type):
+        for (id, readable_type) in StatusPreference.SECTION_CHOICES:
+            if type == id:
+                return readable_type
+
 class StatusPreferenceOrganization(models.Model):
     statuspreference = models.ForeignKey(StatusPreference)
     organization = models.ForeignKey(Organization)
