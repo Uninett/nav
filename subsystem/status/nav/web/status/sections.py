@@ -25,10 +25,11 @@ from django.utils.encoding import smart_unicode, smart_str, force_unicode
 from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
     StatusPreferenceOrganization
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
-from nav.models.manage import Netbox, Module
+from nav.models.manage import Netbox, Module, Category, Organization
 
 from nav.web.status.filters import OrganizationFilter, CategoryFilter, \
     StateFilter, ServiceFilter
+from nav.web import serviceHelper
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
@@ -42,16 +43,30 @@ def get_user_sections(account):
         account=account
     ).order_by('position')
 
-    categories = StatusPreferenceCategory.objects.filter(
+    all_cats = Category.objects.values_list('pk', flat=True)
+    all_orgs = Organization.objects.values_list('pk', flat=True)
+
+    categories = {}
+    organizations = {}
+    cats = StatusPreferenceCategory.objects.filter(
         statuspreference__in=preferences
-    ).values_list('category_id', flat=True)
-    organizations = StatusPreferenceOrganization.objects.filter(
+    )
+    orgs = StatusPreferenceOrganization.objects.filter(
         statuspreference__in=preferences
-    ).values_list('organization_id', flat=True)
+    )
+
+    for cat in cats:
+        if not cat.statuspreference_id in categories:
+            categories[cat.statuspreference_id] = []
+        categories[cat.statuspreference_id].append(cat.category_id)
+    for org in orgs:
+        if not org.statuspreference_id in organizations:
+            organizations[org.statuspreference_id] = []
+        organizations[org.statuspreference_id].append(org.organization_id)
 
     for pref in preferences:
-        pref.fetched_categories = categories
-        pref.fetched_organizations = organizations
+        pref.fetched_categories = categories.get(pref.id, all_cats)
+        pref.fetched_organizations = organizations.get(pref.id, all_orgs)
 
     for pref in preferences:
         if pref.type == StatusPreference.SECTION_NETBOX:
@@ -255,7 +270,10 @@ class ServiceSection(_Section):
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
-        self.services = self.prefs.services.split(',')
+        if self.prefs.services:
+            self.services = self.prefs.services.split(',')
+        else:
+            self.services = [s for s in serviceHelper.getCheckers()]
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(
