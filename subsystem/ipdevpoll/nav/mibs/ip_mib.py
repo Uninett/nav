@@ -91,11 +91,12 @@ class IpMib(mibretriever.MibRetriever):
 
 
     @classmethod
-    def prefix_index_to_ip(cls, index):
+    def prefix_index_to_ip(cls, index,
+                           prefix_entry='ipAddressPrefixEntry'):
         """Convert a row index from ipAddressPrefixTable to an IP object."""
 
-        if 'ipAddressPrefixEntry' in cls.nodes:
-            entry = cls.nodes['ipAddressPrefixEntry']
+        if prefix_entry in cls.nodes:
+            entry = cls.nodes[prefix_entry]
             if entry.oid.isaprefix(index):
                 # Chop off the entry OID+column prefix
                 index = index[(len(entry.oid) + 1):]
@@ -188,6 +189,93 @@ class IpMib(mibretriever.MibRetriever):
             mappings = waiter.getResult()
 
         yield mappings
+
+
+    @defer.deferredGenerator
+    def _get_interface_ipv4_addresses(self, 
+                                      ifindex_column='ipAdEntIfIndex',
+                                      netmask_column='ipAdEntNetMask'):
+        dw = defer.waitForDeferred(df)
+        """Get IPv4 address information for interfaces from a table
+        indexed by IpAddress.  Default is the ipAddrTable.
+
+        """
+        waiter = defer.waitForDeferred(
+            self.retrieve_columns((ifindex_column, netmask_column)))
+        yield waiter
+        address_rows = waiter.getResult()
+
+        addresses = set()
+
+        for row_index, row in address_rows.items():
+            ip_address_string = ".".join([str(i) for i in row_index])
+            ip = IP(ip_address_string)
+            ifindex = row[ifindex_column]
+            netmask = row[netmask_column]
+            prefix = ip.make_net(netmask)
+
+            new_row = (ifindex, ip, prefix)
+            addresses.add(new_row)
+        self.logger.debug("interface addresses: Got %d rows from %s", 
+                          len(address_rows), ifindex_column)
+        yield addresses
+
+    @defer.deferredGenerator
+    def _get_interface_addresses(self, 
+                                 ifindex_column='ipAddressIfIndex',
+                                 prefix_column='ipAddressPrefix',
+                                 prefix_entry='ipAddressPrefixEntry'):
+        """Get IP address information for interfaces from a table
+        indexed by InetAddressType+InetAddress.  Default is the ipAddressTable.
+
+        """
+        waiter = defer.waitForDeferred(
+            self.retrieve_columns((ifindex_column, prefix_column)))
+        yield waiter
+        address_rows = waiter.getResult()
+
+        addresses = set()
+
+        for row_index, row in address_rows.items():
+            ip = IpMib.inetaddress_to_ip(row_index)
+            ifindex = row[ifindex_column]
+            prefix_pointer = row[prefix_column]
+
+            prefix = prefix_index_to_ip(prefix_pointer, prefix_entry)
+
+            new_row = (ifindex, ip, prefix)
+            addresses.add(new_row)
+        self.logger.debug("interface addresses: Got %d rows from %s", 
+                          len(address_rows), ifindex_column)
+        yield addresses
+
+    @defer.deferredGenerator
+    def get_interface_addresses(self):
+        """Retrieve the IP addresses and prefixes of interfaces.
+
+        Will retrieve results from the new IP-version-agnostic table of IP-MIB,
+        if there are no results it will retrieve from the deprecated IPv4-only
+        table.
+
+        Return value:
+          A set of tuples: set([(ifindex, ip_address, prefix_address), ...])
+          ifindex will be an integer, ip_address and prefix_address will be
+          IPy.IP objects.
+
+        """
+        waiter = defer.waitForDeferred(self._get_interface_addresses())
+        yield waiter
+        addresses = waiter.getResult()
+
+        # Fall back to deprecated table if the IP-version agnostic
+        # table gave no results.
+        if len(addresses) == 0:
+            waiter = defer.waitForDeferred(
+                self._get_interface_ipv4_addresses())
+            yield waiter
+            addresses = waiter.getResult()
+
+        yield addresses
 
 
 class IndexToIpException(Exception):

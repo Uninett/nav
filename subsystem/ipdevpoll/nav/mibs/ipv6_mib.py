@@ -85,3 +85,35 @@ class Ipv6Mib(mibretriever.MibRetriever):
         self.logger.debug("ip/mac pairs: Got %d rows from %s", 
                           len(ipv6_phys_addrs), column)
         yield mappings
+
+
+    @defer.deferredGenerator
+    def get_interface_addresses(self):
+        """Retrieve the IPv6 addresses and prefixes of interfaces.
+
+        Return value:
+          A set of tuples: set([(ifindex, ip_address, prefix_address), ...])
+          ifindex will be an integer, ip_address and prefix_address will be
+          IPy.IP objects.
+
+        """
+        prefixlen_column = 'ipv6AddrPfxLength'
+        waiter = defer.waitForDeferred(self.retrieve_column(prefixlen_column))
+        yield waiter
+        ipv6_addrs = waiter.getResult()
+
+        addresses = set()
+
+        for row_index, prefixlen in ipv6_addrs.items():
+            ifindex = row_index[0]
+            ipv6_address = row_index[1:]
+            ip = Ipv6Mib.ipv6address_to_ip(ipv6_address)
+
+            prefix = ip.make_net(prefixlen)
+            
+            row = (ifindex, ip, prefix)
+            addresses.append(row)
+        self.logger.debug("interface addresses: Got %d rows from %s", 
+                          len(ipv6_addrs), prefixlen_column)
+
+        yield addresses

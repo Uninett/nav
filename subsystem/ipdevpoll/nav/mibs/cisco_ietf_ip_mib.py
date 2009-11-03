@@ -71,3 +71,23 @@ class CiscoIetfIpMib(IpMib):
         mappings = waiter.getResult()
 
         yield mappings
+
+    @defer.deferredGenerator
+    def get_interface_addresses(self):
+        """Retrieve the IP addresses and prefixes of interfaces.
+
+        Return value:
+          A set of tuples: set([(ifindex, ip_address, prefix_address), ...])
+          ifindex will be an integer, ip_address and prefix_address will be
+          IPy.IP objects.
+
+        """
+        waiter = defer.waitForDeferred(self._get_interface_addresses(
+                ifindex_column='cIpAddressIfIndex',
+                prefix_column='cIpAddressPrefix',
+                prefix_entry='cIpAddressPfxEntry'))
+        yield waiter
+        addresses = waiter.getResult()
+
+        yield addresses
+        
