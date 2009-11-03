@@ -97,7 +97,7 @@ class DnsName(Plugin):
             self.logger.warning("Box dnsname has changed from %s to %s",
                                 repr(self.netbox.sysname), repr(dns_name))
         # Our work here is done
-        self.logger.info("Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name)
+        self.logger.debug("Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name)
         self.deferred.callback(True)
         return dns_name
 
