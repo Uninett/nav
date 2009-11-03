@@ -80,6 +80,7 @@ class Prefix(Plugin):
 
         ipmib = IpMib(self.job_handler.agent)
         ciscoip = CiscoIetfIpMib(self.job_handler.agent)
+        ipv6mib = Ipv6Mib(self.job_handler.agent)
 
         # Retrieve interface names and keep those who match a VLAN
         # naming pattern
@@ -87,47 +88,19 @@ class Prefix(Plugin):
         yield dw
         vlan_interfaces = dw.getResult()
 
-        # Traverse ipAddressTable and cIpAddressTable as more or less
-        # identical tables, but skip the Cisco MIB if the first gives
-        # results.
-        for mib, ifindex_col, prefix_col in (
-            (ipmib, 'ipAddressIfIndex', 'ipAddressPrefix'),
-            (ciscoip, 'cIpAddressIfIndex', 'cIpAddressPrefix'),
-            ):
-            self.logger.debug("Trying address table from %s",
+        # Traverse address tables from IP-MIB, IPV6-MIB and
+        # CISCO-IETF-IP-MIB in that order.
+        addresses = set()
+        for mib in ipmib, ipv6mib, ipmib:
+            self.logger.debug("Trying address tables from %s",
                               mib.mib['moduleName'])
-            df = mib.retrieve_columns((ifindex_col, prefix_col))
-            dw = defer.waitForDeferred(df)
-            yield dw
+            waiter = defer.waitForDeferred(mib.get_interface_addresses())
+            yield waiter
+            new_addresses = waiter.getResult()
+            addresses.update(new_addresses)
 
-            addresses = dw.getResult()
-
-            for index, row in addresses.items():
-                ip = ipmib.address_index_to_ip(index)
-                if not ip:
-                    continue
-
-                prefix = ipmib.prefix_index_to_ip(row[prefix_col])
-                ifindex = row[ifindex_col]
-
-                self.create_containers(netbox, ifindex, prefix, ip,
-                                       vlan_interfaces)
-
-        self.logger.debug("Trying original ipAddrTable")
-        df = ipmib.retrieve_columns(('ipAdEntIfIndex',
-                                     'ipAdEntAddr',
-                                     'ipAdEntNetMask'))
-        dw = defer.waitForDeferred(df)
-        yield dw
-
-        result = dw.getResult()
-
-        for row in result.values():
-            ip = IP(row['ipAdEntAddr'])
-            ifindex = row['ipAdEntIfIndex']
-            net_prefix = ip.make_net(row['ipAdEntNetMask'])
-
-            self.create_containers(netbox, ifindex, net_prefix, ip,
+        for ifindex, ip, prefix in addresses:
+            self.create_containers(netbox, ifindex, prefix, ip,
                                    vlan_interfaces)
 
 

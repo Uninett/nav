@@ -195,7 +195,6 @@ class IpMib(mibretriever.MibRetriever):
     def _get_interface_ipv4_addresses(self, 
                                       ifindex_column='ipAdEntIfIndex',
                                       netmask_column='ipAdEntNetMask'):
-        dw = defer.waitForDeferred(df)
         """Get IPv4 address information for interfaces from a table
         indexed by IpAddress.  Default is the ipAddrTable.
 
@@ -241,7 +240,7 @@ class IpMib(mibretriever.MibRetriever):
             ifindex = row[ifindex_column]
             prefix_pointer = row[prefix_column]
 
-            prefix = prefix_index_to_ip(prefix_pointer, prefix_entry)
+            prefix = IpMib.prefix_index_to_ip(prefix_pointer, prefix_entry)
 
             new_row = (ifindex, ip, prefix)
             addresses.add(new_row)

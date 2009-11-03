@@ -112,7 +112,7 @@ class Ipv6Mib(mibretriever.MibRetriever):
             prefix = ip.make_net(prefixlen)
             
             row = (ifindex, ip, prefix)
-            addresses.append(row)
+            addresses.add(row)
         self.logger.debug("interface addresses: Got %d rows from %s", 
                           len(ipv6_addrs), prefixlen_column)
 
