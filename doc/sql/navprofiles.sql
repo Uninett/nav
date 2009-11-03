@@ -1100,6 +1100,13 @@ INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (
 INSERT INTO filtergroup_group_permission (accountgroup_id, filtergroup_id) VALUES (1, 71);
 
 
+-- StatusPreferences for Default user
+
+INSERT INTO statuspreference (name, position, type, accountid, states) VALUES ('IP devices down', 1, 'netbox', 0, 'n');
+INSERT INTO statuspreference (name, position, type, accountid, states) VALUES ('IP devices in shadow', 2, 'netbox', 0, 's');
+INSERT INTO statuspreference (name, position, type, accountid, states) VALUES ('Modules down/in shadow', 3, 'module', 0, 'n,s');
+INSERT INTO statuspreference (name, position, type, accountid, states) VALUES ('Services down', 4, 'service', 0, 'n,s');
+
 /*
 ------------------------------------------------------
  EOF
