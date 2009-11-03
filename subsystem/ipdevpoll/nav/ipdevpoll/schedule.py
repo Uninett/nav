@@ -339,7 +339,7 @@ class NetboxScheduler(object):
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
         return job_handler
 
-    def run_job(self):
+    def run_job(self, dummy=None):
         ip = self.netbox.ip
         if ip in NetboxScheduler.ip_map:
             # We won't start a JobHandler now because a JobHandler is
@@ -347,7 +347,7 @@ class NetboxScheduler(object):
             other_job_handler = NetboxScheduler.ip_map[ip]
             self.logger.info("schedule clash: waiting for run for %s to "
                              "finish before starting run for %s",
-                             other_handler.netbox, self.netbox)
+                             other_job_handler.netbox, self.netbox)
             if id(self.netbox) == id(other_job_handler.netbox):
                 self.logger.debug("Clashing instances are identical")
 
