@@ -1,3 +1,6 @@
+"""
+Creates Cricket config for switches
+"""
 import sys
 import os
 import re
@@ -5,17 +8,15 @@ import logging
 from os.path import join
 
 from nav.db import getConnection
-
-# from nav.mcc import cricket
-import cricket
+from nav.mcc import utils
 
 def make_config(config):
     dirname = "switches"
-    logger = logging.getLogger('mcc.switches')
+    logger = logging.getLogger(__name__)
 
     # Get path to cricket-config
     configfile = config.get('mcc','configfile')
-    configroot = cricket.get_configroot(configfile)
+    configroot = utils.get_configroot(configfile)
     if not configroot:
         logger.error("Could not find configroot in %s, exiting."
                      %config.get('mcc', 'configfile'))
@@ -25,18 +26,18 @@ def make_config(config):
     logger.info("Creating config for %s in %s" %(dirname, fullpath))
 
     # Get views
-    views = cricket.parse_views()
+    views = utils.parse_views()
     if not views:
         logger.error("Error parsing views, exiting")
         return False
 
     # Get datadir
-    datadir = join(cricket.get_datadir(configroot), dirname)
+    datadir = join(utils.get_datadir(configroot), dirname)
     logger.debug("Datadir set to %s" %datadir)
 
     # Find oids. We search all files as we cannot be certain of the name
     oidlist = find_oids(logger, fullpath)
-    oidlist.extend(cricket.get_toplevel_oids(configroot))
+    oidlist.extend(utils.get_toplevel_oids(configroot))
     if len(oidlist) <= 0:
         logger.error("Could not find oids in %s - exiting." %fullpath)
         return False
@@ -77,7 +78,7 @@ def make_config(config):
         # Check if rrd-file exists. If not, the rrd-file and corresponding
         # datasources are removed from the database, and config is made from
         # scratch.
-        fileexists = cricket.check_file_existence(datadir, sysname)
+        fileexists = utils.check_file_existence(datadir, sysname)
 
         # Find the oids valid for this box that also exists in the cricket
         # config files.
@@ -93,8 +94,9 @@ def make_config(config):
             continue
 
         if fileexists:
-            # Compare datasources we found with the ones in the database, if any.
-            targetoids = cricket.compare_datasources(
+            # Compare datasources we found with the ones in the database, if
+            # any.
+            targetoids = utils.compare_datasources(
                 datadir, sysname + '.rrd',  targetoids)
 
         # Print ds definition to file
@@ -115,7 +117,7 @@ def make_config(config):
             f.write("\tview = \"%s\"\n\n" %", ".join(sorted(intersections)))
 
         # Create container object and fill it
-        container = cricket.RRDcontainer(sysname, netboxid)
+        container = utils.RRDcontainer(sysname, netboxid)
         counter = 0
         for to in sorted(targetoids):
             container.datasources.append(('ds' + str(counter), to, 'GAUGE'))
@@ -127,7 +129,7 @@ def make_config(config):
     f.close()
                 
     try:
-        f = open(join(fullpath, 'mccTargets'), 'w')
+        f = open(join(fullpath, utils.TARGETFILENAME), 'w')
     except Exception, e:
         logger.error("Could not write to file: %s" %e)
         return False
@@ -146,7 +148,7 @@ def make_config(config):
 
     f.close()
 
-    cricket.updatedb(datadir, containers)
+    utils.updatedb(datadir, containers)
 
     return True
 

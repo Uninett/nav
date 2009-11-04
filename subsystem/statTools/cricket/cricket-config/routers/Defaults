@@ -1,26 +1,23 @@
 # routers sub-tree
 #
 # This is where we collect stats on the chassis of our routers
-# (i.e. memory, CPU, temperature). These are kept separate from
+# (i.e. memory, CPU). These are kept separate from
 # the interfaces themselves since they have quite different
 # configuration needs.
 
 #############################################
 # Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <bredal@itea.ntnu.no>
+# by John Magne Bredal <john.m.bredal@ntnu.no>
 #############################################
 
 Target	--default--
 	short-desc      	=	""
 
-# Alfa version notes:
-# We are not checking if the oid's we use to gather data
-# are defined here. This must be done before final version.
 OID	cpu1min			1.3.6.1.4.1.9.2.1.57.0
 OID	cpu5min			1.3.6.1.4.1.9.2.1.58.0
-OID	tempInlet		1.3.6.1.4.1.9.9.13.1.3.1.3.1
-OID	tempOutlet		1.3.6.1.4.1.9.9.13.1.3.1.3.3
-OID	tempState		1.3.6.1.4.1.9.9.13.1.3.1.6.1
+OID     tempInlet               1.3.6.1.4.1.9.9.13.1.3.1.3.1
+OID     tempOutlet              1.3.6.1.4.1.9.9.13.1.3.1.3.3
+OID     tempState               1.3.6.1.4.1.9.9.13.1.3.1.6.1
 OID	mem5minUsed		1.3.6.1.4.1.9.9.48.1.1.1.5.1
 OID	mem5minFree		1.3.6.1.4.1.9.9.48.1.1.1.6.1
 OID	c5000Bandwidth		1.3.6.1.4.1.9.5.1.1.8.0
@@ -31,61 +28,15 @@ datasource	--default--
 	rrd-min			=	undef
 	rrd-max			=	undef
 	
-datasource	cpu1min			ds-source	=	snmp://%snmp%/cpu1min
-datasource	cpu5min			ds-source	=	snmp://%snmp%/cpu5min
-datasource	tempInlet		ds-source	=	snmp://%snmp%/tempInlet
-datasource	tempOutlet		ds-source	=	snmp://%snmp%/tempOutlet
-datasource	tempState		ds-source	=	snmp://%snmp%/tempState
-datasource	mem5minUsed		ds-source	=	snmp://%snmp%/mem5minUsed
-datasource	mem5minFree		ds-source	=	snmp://%snmp%/mem5minFree
-datasource	c5000Bandwidth		ds-source       =       snmp://%snmp%/c5000Bandwidth
-datasource      c5000BandwidthMax	ds-source       =       snmp://%snmp%/c5000BandwidthMax
-
-# ALFA version:
-# We are currently relying on the ability of the admins to make views. This
-# should be done automatically before final release.
-
-#!#!#! Do NOT remove this line
-targetType C1000
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
-
-targetType cis1005
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,uptime:sysUptime"
-
-targetType C1605
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
-
-targetType C1700
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
-
-targetType cis4000
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,uptime:sysUptime"
-
-targetType C6500gsw
-        ds      =       "cpu1min,cpu5min,tempInlet,mem5minUsed,tempOutlet,mem5minFree,c5000Bandwidth,c5000BandwidthMax"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet, bandwidth:c5000Bandwidth c5000BandwidthMax"
-
-targetType cat6509
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,tempInlet,tempOutlet,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime: sysUptime"
-
-targetType C7200
-        ds      =       "cpu1min,cpu5min,tempInlet,mem5minUsed,tempOutlet,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet"
-
-targetType cis7206
-        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,tempOutlet,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet,uptime:sysUptime"
-
-targetType RSM
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
-
+datasource cpu1min		ds-source = snmp://%snmp%/cpu1min
+datasource cpu5min		ds-source = snmp://%snmp%/cpu5min
+datasource tempInlet		ds-source = snmp://%snmp%/tempInlet
+datasource tempOutlet		ds-source = snmp://%snmp%/tempOutlet
+datasource tempState		ds-source = snmp://%snmp%/tempState
+datasource mem5minUsed		ds-source = snmp://%snmp%/mem5minUsed
+datasource mem5minFree		ds-source = snmp://%snmp%/mem5minFree
+datasource c5000Bandwidth	ds-source = snmp://%snmp%/c5000Bandwidth
+datasource c5000BandwidthMax	ds-source = snmp://%snmp%/c5000BandwidthMax
 
 html 	short-desc	Router Chassis
 
@@ -133,19 +84,19 @@ graph 	c5000BandwidthMax
 	y-min	=	0
 	y-max	=	100
 
-graph 	tempInlet
-	draw-as	=	LINE2
-	y-axis 	=	"Degrees Celcius"
-	legend 	=	"The temperature of the inlet in Celcius"
-	units   =   	"&#176;"
-	precision =	integer
+graph   tempInlet
+        draw-as =       LINE2
+        y-axis  =       "Degrees Celcius"
+        legend  =       "The temperature of the inlet in Celcius"
+        units   =       "&#176;"
+        precision =     integer
 
-graph 	tempOutlet
-	draw-as	=	LINE2
-	y-axis 	=	"Degrees Celcius"
-	legend 	=	"The temperature of the outlet in Celcius"
-	units   =   	"&#176;"
-	precision =	integer
+graph   tempOutlet
+        draw-as =       LINE2
+        y-axis  =       "Degrees Celcius"
+        legend  =       "The temperature of the outlet in Celcius"
+        units   =       "&#176;"
+        precision =     integer
 
 html    page-header
 	<table width=100%>

@@ -1,22 +1,22 @@
+"""
+Creates Cricket config for router interfaces.
+"""
 import logging
 import os
 import re
 from os.path import join, isdir
 
 from nav.db import getConnection
-# from nav.mcc import cricket
-import cricket
-"""
-comment
-"""
+from nav.mcc import utils
 
-logger = logging.getLogger("mcc.router-interfaces")
+logger = logging.getLogger(__name__)
 
 def make_config(config):
     dirname = 'router-interfaces'
     # Get path to cricket-config
     configfile = config.get('mcc','configfile')
-    configroot = cricket.get_configroot(configfile)
+    configroot = utils.get_configroot(configfile)
+
     if not configroot:
         logger.error("Could not find configroot in %s, exiting."
                      %config.get('mcc', 'configfile'))
@@ -25,18 +25,30 @@ def make_config(config):
     fullpath = join(configroot, dirname)
     logger.info("Creating config for %s in %s" %(dirname, fullpath))
 
+    # Get all subdirectories. The purpose of this is to clean up all
+    # directories which may be left over from previous runs but are not
+    # included in this run.
+    subdirs = []
+    for d in os.listdir(fullpath):
+        subdir = join(fullpath, d)
+        if os.path.isdir(subdir):
+            subdirs.append(subdir)
+    logger.debug("Subdirs: %s" %subdirs)
+
     # Get datadir
-    datadir = join(cricket.get_datadir(configroot), dirname)
+    datadir = join(utils.get_datadir(configroot), dirname)
     logger.debug("Datadir set to %s" %datadir)
 
     # Find datasources for the predefined target-types
     datasources = get_interface_datasources(configroot)
+    if not datasources:
+        return False
 
     # Connect to database
     conn = getConnection('default')
     c = conn.cursor()
 
-    # Get all switches from database
+    # Get all routers from database
     sql = """
     SELECT netboxid, sysname, ip, ro, snmp_version
     FROM netbox
@@ -55,6 +67,14 @@ def make_config(config):
         targetdir = join(fullpath, sysname)
         logger.info("Creating config for %s" %targetdir)
 
+        # Remove targetdir from subdirs
+        logger.debug('Removing %s from subdirs' %targetdir)
+        try:
+            subdirs.remove(targetdir)
+        except ValueError, e:
+            logger.error("%s not in %s" %(targetdir, subdirs))
+        logger.debug(subdirs)
+
         # Check if directory exists
         if not isdir(targetdir):
             logger.info("Creating directory %s" %targetdir)
@@ -66,19 +86,19 @@ def make_config(config):
 
         # Open targets file for writing
         try:
-            f = open(join(targetdir, "mccTargets"), 'w')
+            f = open(join(targetdir, utils.TARGETFILENAME), 'w')
         except Exception, e:
             logger.error("Could not open targetsfile for writing: %s" %e)
             continue
         
         # Fetch all interfaces for this netbox
         interfacesq = """
-        SELECT gwportid, interface, ifindex, portname
+        SELECT interfaceid, ifname, ifindex, ifalias
         FROM netbox
-        JOIN module USING (netboxid)
-        JOIN gwport USING (moduleid)
+        JOIN interface_gwport USING (netboxid)
         WHERE netboxid = %s
-        ORDER BY moduleid, ifindex
+        AND gone_since IS NULL
+        ORDER BY ifindex
         """
         c.execute(interfacesq, (netboxid,))
 
@@ -99,21 +119,24 @@ def make_config(config):
         targets = []
 
         # Fill in targets
-        for (gwportid, interface, ifindex, portname) in c.fetchall():
-            if not interface:
-                logger.error("%s: No interfacename found for swportid %s"
-                             %(sysname, swportid))
+        for (interfaceid, ifname, ifindex, ifalias) in c.fetchall():
+            if not ifname:
+                logger.error("%s: No ifname found for interfaceid %s"
+                             %(sysname, interfaceid))
                 continue
 
-            portname = portname or '-'
-            targetname = cricket.create_target_name(interface)
-            displayname = cricket.filter_name(interface)
-            shortdesc = cricket.filter_name(portname)
+            ifalias = ifalias or '-'
+            targetname = utils.create_target_name(ifname)
+            displayname = utils.filter_name(ifname)
+            shortdesc = utils.filter_name(ifalias)
+
+            logger.info('Creating target %s (%s)' %(targetname, displayname))
             
             f.write("target \"%s\"\n" %targetname)
             f.write("\tdisplay-name = \"%s\"\n" %displayname)
             f.write("\tinterface-index = %s\n" %ifindex)
             f.write("\tshort-desc = \"%s\"\n" %shortdesc)
+            f.write("\tifname = %s\n" %ifname)
             f.write("\torder = %s\n\n" %reversecounter)
             reversecounter = reversecounter - 1
 
@@ -123,8 +146,8 @@ def make_config(config):
             # Netboxid
             # key - gwport
             # value - gwportid
-            container = cricket.RRDcontainer(targetname + ".rrd", netboxid,
-                                             sysname, 'gwport', gwportid)
+            container = utils.RRDcontainer(targetname + ".rrd", netboxid,
+                                             sysname, 'gwport', interfaceid)
 
             counter = 0
             for ds in datasources[snmp_version]:
@@ -142,7 +165,8 @@ def make_config(config):
 
         f.close()
 
-    cricket.updatedb(datadir, containers)
+    utils.updatedb(datadir, containers)
+    utils.remove_old_config(subdirs)
     return True
 
 
@@ -153,8 +177,8 @@ def get_interface_datasources(configroot):
     try:
         f = open(filename, 'r')
     except Exception, e:
-        #logger.error("Could not open %s: %s" %(filename, e))
-        print "Could not open %s: %s" %(filename, e)
+        logger.error("Could not open %s: %s" %(filename, e))
+        return False
 
     matchv1 = re.compile("targettype\s+standard-interface", re.I)
     matchv2 = re.compile("targettype\s+snmpv2-interface", re.I)

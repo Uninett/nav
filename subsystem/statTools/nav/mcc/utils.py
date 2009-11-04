@@ -1,3 +1,6 @@
+"""
+Contains help functions for the various config creation modules.
+"""
 import ConfigParser
 import re
 import sys
@@ -8,7 +11,8 @@ from os.path import join
 from nav import path
 from nav.db import getConnection
 
-logger = logging.getLogger('mcc.cricket')
+logger = logging.getLogger(__name__)
+TARGETFILENAME = 'mccTargets'
 
 def start_config_creation(modules, config):    
     # Start modules
@@ -21,6 +25,8 @@ def start_config_creation(modules, config):
         result = mod.make_config(config)
         if not result:
             logger.error("Module %s reports error creating config." %module)
+        else:
+            logger.info("Module %s successfully done." %module)
 
     logger.info("Done creating config")
 
@@ -149,7 +155,7 @@ def updatedb(datadir, containers):
         c.execute(verify, (datapath, filename))
         if c.rowcount > 0:
             # This target already exists, update it.
-            logger.info("Target %s exists in database."
+            logger.debug("Target %s exists in database."
                         %join(datapath, filename))
             rrd_fileid = c.fetchone()[0]
             
@@ -173,9 +179,6 @@ def updatedb(datadir, containers):
             FROM rrd_file
             WHERE key=%s AND value=%s"""
 
-            print "%s" %(join (datapath, filename))
-            print keyvalueq %(key, str(value))
-
             c.execute(keyvalueq, (key, str(value)))
             if c.rowcount > 0:
                 rrd_fileid, dbpath, dbfilename = c.fetchone()
@@ -191,13 +194,13 @@ def updatedb(datadir, containers):
                 # Move file to new place. If it does not exist, we assume it's
                 # ok and keep the change in the database
                 try:
-                    print "Renaming %s to %s" %(
-                        join(dbpath, dbfilename), join(datapath, filename))
+                    logger.info("Renaming %s to %s" %(
+                        join(dbpath, dbfilename), join(datapath, filename)))
                     os.rename(join(dbpath, dbfilename),
                               join(datapath, filename))
                 except Exception, e:
-                    print "Exception when moving file %s: %s" \
-                          %(join(dbpath, dbfilename), e)
+                    logger.error("Exception when moving file %s: %s" \
+                          %(join(dbpath, dbfilename), e))
                     
             else:
                 # Target did not exist in database. Insert file and
@@ -347,6 +350,32 @@ def filter_name(name):
     name = re.escape(name)
 
     return name
+
+
+def remove_old_config(dirs):
+    """
+    Input is a list of directories. Remove those if they contain nothing but
+    the mccTargets file. If they contain more, remove only the mccTargets file.
+    """
+
+    for dir in dirs:
+        logger.debug("Checking %s for removal." %dir)
+        files = os.listdir(dir)
+        try:
+            files.remove(TARGETFILENAME)
+            os.remove(join(dir, TARGETFILENAME))
+        except ValueError, e:
+            logger.error("Could not find %s in %s" %(TARGETFILENAME, dir))
+
+        if not len(files):
+            # Remove dir if it is empty
+            try:
+                os.rmdir(dir)
+                logger.info("%s removed." %dir)
+            except Exception, e:
+                logger.error("Could not remove %s: %s" %(dir, e))
+        else:
+            logger.info("%s is not empty, leaving it alone." %dir)
 
 
 class RRDcontainer:

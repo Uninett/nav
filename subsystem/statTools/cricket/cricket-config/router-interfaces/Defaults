@@ -9,7 +9,7 @@
 #############################################
 
 Target  --default--
-        inst            =       map(interface-index)
+        inst            =       map(interface-name)
         target-type     =       standard-interface
         short-desc      =       ""
 

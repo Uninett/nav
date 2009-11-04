@@ -1,11 +1,8 @@
 # switches sub-tree
 #
-# Contributed by Jeff Jensen <jpj@corp.webtv.net>.
-# Hacked by Jeff Allen... any mistakes are mine.
-
 #############################################
 # Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <bredal@itea.ntnu.no>
+# by John Magne Bredal <john.m.bredal@ntnu.no>
 ############################################# 
 
 Target  --default--
@@ -188,83 +185,10 @@ graph	tempInlet
 	units		=	"&#176;"
 	draw-as		=	LINE2
 
-# ALFA version:
-# We are currently relying on the ability of the admins to make views. This
-# should be done automatically before final release.
 
 ########################################
 # TARGET-TYPES
 ########################################
-
-#!#!#! Do NOT remove this line
-targetType c2970
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax:uptime:sysUpTime"
-
-targetType c3750
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax:uptime:sysUpTime"
-
-targetType cat2924XLv
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat295024G
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat3508GXL
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat3524XL
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat4006
-        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet,uptime:sysUpTime"
-
-targetType cat4506
-        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet,uptime:sysUpTime"
-
-targetType hp2524
-        ds      =       "hpmem5minUsed,hpcpu,hpmem5minFree,sysUpTime"
-        view    =       "cpu:hpcpu,memory:hpmem5minUsed hpmem5minFree,uptime:sysUpTime"
-
-targetType wsc2926
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax:uptime:sysUpTime"
-
-targetType wsc4006
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType wsc5000
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType wsc5500
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType wsc5505
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType SW1100
-        ds      =       "sysUpTime"
-        view    =       "uptime:sysUpTime"
-
-targetType SW3300
-        ds      =       "sysUpTime"
-        view    =       "uptime:sysUpTime"
-
-targetType SW9300
-        ds      =       "sysUpTime"
-        view    =       "uptime:sysUpTime"
-
 
 html    page-header
 	<table width=100%>

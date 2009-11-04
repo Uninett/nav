@@ -18,10 +18,10 @@ crondir = @crondir@
 libdir = @libdir@
 pythonlibdir = @pythonlibdir@
 
-binaries = cleanrrds.pl makecricketconfig.pl
-conffiles = cricket-views.conf
+binaries = cleanrrds.pl makecricketconfig.pl mcc.py
+conffiles = cricket-views.conf mcc.conf
 tool = stats.tool
-libfiles = $(wildcard nav/*.py nav/rrd/*.py)
+libfiles = $(wildcard nav/*.py nav/rrd/*.py nav/mcc/*.py)
 
 .PHONY: all install install-lib install-bin install-conf install-web clean distclean install-doc install-cron
 
