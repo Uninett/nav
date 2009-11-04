@@ -19,16 +19,27 @@
 import os
 import logging
 import ConfigParser
+from StringIO import StringIO
 
 import nav.buildconf
 
 logger = logging.getLogger(__name__)
 
+ipdevpoll_conf_defaults = """
+[ipdevpoll]
+logfile = ipdevpolld.log
+
+[plugins]
+
+[jobs]
+"""
+
 class IpdevpollConfig(ConfigParser.ConfigParser):
     def __init__(self):
         ConfigParser.ConfigParser.__init__(self)
-        # TODO: initialize with default settings
         # TODO: perform sanity check on config settings
+        faked_default_file = StringIO(ipdevpoll_conf_defaults)
+        self.readfp(faked_default_file)
         self.read_all()
 
     def read_all(self):
