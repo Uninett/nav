@@ -22,21 +22,19 @@ This is the daemon program that runs the IP device poller.
 
 import sys
 import os
-import logging, logging.config
+import logging
 from optparse import OptionParser
-
-from twisted.internet import reactor
 
 from nav import buildconf
 import nav.daemon
 import nav.logs
 
-from schedule import Scheduler
 
 pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'ipdevpolld.pid')
 
 def run_poller():
     """Load plugins, and initiate polling schedules."""
+    from schedule import Scheduler
     global scheduler
     import plugins
 
@@ -116,6 +114,7 @@ def main():
     nav.logs.reopen_log_files()
     logger.info("ipdevpolld now running in the background")
 
+    from twisted.internet import reactor
     reactor.callWhenRunning(run_poller)
     reactor.run()
 
