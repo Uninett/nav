@@ -23,6 +23,7 @@ This is the daemon program that runs the IP device poller.
 import sys
 import os
 import logging
+import signal
 from optparse import OptionParser
 
 from nav import buildconf
@@ -32,11 +33,30 @@ import nav.logs
 
 pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'ipdevpolld.pid')
 
+def sighup_handler(signum, frame):
+    """Reopen log files."""
+    logger.info("SIGHUP received; reopening log files")
+    nav.logs.reopen_log_files()
+    nav.daemon.redirect_std_fds(
+        stderr=nav.logs.get_logfile_from_logger())
+    logger.info("Log files reopened.")
+
+def sigterm_handler(signum, frame):
+    """Cleanly shutdown logging system and the reactor."""
+    from twisted.internet import reactor
+    logger.warn("SIGTERM received: Shutting down")
+    logging.shutdown()
+    reactor.callFromThread(reactor.stop)
+
 def run_poller():
     """Load plugins, and initiate polling schedules."""
     from schedule import Scheduler
     global scheduler
     import plugins
+
+    # We need to react to SIGHUP and SIGTERM 
+    signal.signal(signal.SIGHUP, sighup_handler)
+    signal.signal(signal.SIGTERM, sigterm_handler)
 
     plugins.import_plugins()
     scheduler = Scheduler()
@@ -92,6 +112,7 @@ def main():
     """Main execution function"""
     parser = get_parser()
     (options, args) = parser.parse_args()
+    global logger
 
     logger = init_logging()
     logger.info("--- Starting ipdevpolld ---")
