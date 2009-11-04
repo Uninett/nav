@@ -78,6 +78,9 @@ def init_logging():
     # instead.
     import config
     logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
+    if logfile_name[0] not in './':
+        logfile_name = os.path.join(nav.buildconf.localstatedir, 
+                                    'log', logfile_name)
 
     file_handler = logging.FileHandler(logfile_name, 'a')
     file_handler.setFormatter(formatter)
