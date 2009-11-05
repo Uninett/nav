@@ -346,6 +346,13 @@ def filter_name(name):
     """
     Filter name making it suitable for presentation on a website.
     """
+    
+    # Cricket always displays latin-1. Database stores stuff in utf-8. Encode
+    # it to display correctly.
+    try:
+        name = name.decode('utf-8').encode('latin-1')
+    except Exception, e:
+        logger.error("Could not decode %s to latin-1: %s" %(name, e))
     name = name.replace("\"", "&quot;")
     name = re.escape(name)
 

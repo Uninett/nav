@@ -133,18 +133,20 @@ def make_config(config):
     except Exception, e:
         logger.error("Could not write to file: %s" %e)
         return False
-        
+
     # Create targets
     for (sysname, ip, ro, descr, typename) in targetlist:
+        if descr:
+            shortdesc = ", ".join([typename, utils.filter_name(descr)])
+        else:
+            shortdesc = typename
+
         logger.info("Writing target %s" %sysname)
         f.write("target \"%s\"\n" %sysname)
         f.write("\tsnmp-host\t= %s\n" %ip)
         f.write("\tsnmp-community\t= %s\n" %ro)
         f.write("\ttarget-type\t= %s\n" %sysname)
-        if not descr:
-            descr = 'N/A'
-        f.write("\tshort-desc\t= \"%s, %s\"\n\n" \
-                %(typename, descr.replace(r'"',r'&quot;')))
+        f.write("\tshort-desc\t= \"%s\"\n\n" %shortdesc)
 
     f.close()
 
