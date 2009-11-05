@@ -18,7 +18,7 @@ crondir = @crondir@
 libdir = @libdir@
 pythonlibdir = @pythonlibdir@
 
-binaries = cleanrrds.pl makecricketconfig.pl mcc.py
+binaries = cleanrrds.pl makecricketconfig.pl mcc.py extract_cricket_oids.py
 conffiles = cricket-views.conf mcc.conf
 tool = stats.tool
 libfiles = $(wildcard nav/*.py nav/rrd/*.py nav/mcc/*.py)
