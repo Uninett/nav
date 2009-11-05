@@ -15,9 +15,6 @@ Target	--default--
 
 OID	cpu1min			1.3.6.1.4.1.9.2.1.57.0
 OID	cpu5min			1.3.6.1.4.1.9.2.1.58.0
-OID     tempInlet               1.3.6.1.4.1.9.9.13.1.3.1.3.1
-OID     tempOutlet              1.3.6.1.4.1.9.9.13.1.3.1.3.3
-OID     tempState               1.3.6.1.4.1.9.9.13.1.3.1.6.1
 OID	mem5minUsed		1.3.6.1.4.1.9.9.48.1.1.1.5.1
 OID	mem5minFree		1.3.6.1.4.1.9.9.48.1.1.1.6.1
 OID	c5000Bandwidth		1.3.6.1.4.1.9.5.1.1.8.0
