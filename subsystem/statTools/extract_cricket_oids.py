@@ -5,8 +5,10 @@ import sys
 import os
 from os.path import join
 
-from nav.db import getConnection
 from nav import path
+from nav.models.oid import SnmpOid
+
+DIRS = ['routers', 'switches'] # What directories to parse
 
 def main(configpath):
     """
@@ -15,16 +17,10 @@ def main(configpath):
     snmpoid table, and if not insert them there.
     """
 
-    conn = getConnection('default')
-    cur = conn.cursor()
-
-    # What directories to parse
-    dirs = ['routers', 'switches']
-
     # Find oids assuming these directories are leaf nodes
     oids = []
     c = re.compile('\s*OID\s+(\w+)\s+(\S+)')
-    for dir in dirs:
+    for dir in DIRS:
         path = join(configpath, dir)
         for file in os.listdir(path):
             file = join(path, file)
@@ -38,35 +34,32 @@ def main(configpath):
                 m = c.search(line)
                 if m:
                     oidkey, snmpoid = m.groups()
-                    print "%s: OID %s %s" %(file, oidkey, snmpoid)
+                    #print "%s: OID %s %s" %(file, oidkey, snmpoid)
                     oids.append((oidkey, snmpoid))
 
+    print "Found %s oids in Crickets config files" %len(oids)
+
     # Check if oids are present in snmpoid table, insert if not.
+    inserted = updated = 0
     for oidkey, snmpoid in oids:
-        q = "SELECT oidkey FROM snmpoid WHERE snmpoid = %s"
-        cur.execute(q, (snmpoid,))
-
-        if cur.rowcount <= 0:
+        try:
+            s = SnmpOid.objects.get(snmp_oid=snmpoid)
+            if oidkey != s.oid_key:
+                print "Updating %s: %s => %s" %(snmpoid, s.oid_key, oidkey)
+                s.oid_key = oidkey
+                s.save()
+                updated += 1
+            else:
+                print "In database: %s:%s" %(oidkey, snmpoid)
+        except SnmpOid.DoesNotExist:
             print "Inserting %s:%s" %(oidkey, snmpoid)
-            q = """
-                INSERT INTO snmpoid 
-                (oidkey, snmpoid, oidsource, getnext)
-                VALUES
-                (%s, %s, 'Cricket', 'f')
-                """
-            cur.execute(q, (oidkey, snmpoid))
-        elif oidkey != cur.fetchone()[0]:
-            print "Updating %s:%s" %(oidkey, snmpoid)
-            q = """
-                UPDATE snmpoid
-                SET oidkey = %s, oidsource = 'Cricket', getnext = 'f'
-                WHERE snmpoid = %s
-                """
-            cur.execute(q, (oidkey, snmpoid))
-        else:
-            print "%s:%s already in database" %(oidkey, snmpoid)
-
-    conn.commit()
+            s = SnmpOid(oid_key=oidkey, snmp_oid=snmpoid, oid_source='Cricket',
+                        get_next=False)
+            s.save()
+            inserted += 1
+        
+    print "Inserted: %s" %inserted
+    print "Updated: %s" %updated
 
 
 if __name__ == '__main__':
