@@ -237,9 +237,9 @@ def handler(req):
             for element in blockedports:
                 q = """
                 SELECT sysname, module, port FROM netbox
-                LEFT JOIN module USING (netboxid)
-                LEFT JOIN swport USING (moduleid)
-                WHERE swportid=%s
+                JOIN module USING (netboxid)
+                JOIN interface USING (moduleid)
+                WHERE interfaceid=%s
                 """
 
                 try:
@@ -631,9 +631,11 @@ def printBlocked(cur, page, sort, section):
         item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
                           + "' title='Details'><img src='/images/arnold/details.png'></a>"
         
-        managequery = """SELECT sysname, module, port FROM netbox LEFT
-        JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid)
-        WHERE swportid = %s"""
+        managequery = """
+        SELECT sysname, port FROM netbox 
+        JOIN interface USING (netboxid)
+        WHERE interfaceid = %s
+        """
 
         managec.execute(managequery, (item['swportid'], ))
         managelist = managec.fetchone()
@@ -805,9 +807,8 @@ def showDetails (cur, page, section, id):
 
     q = """
     SELECT * FROM netbox
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN swport USING (moduleid)
-    WHERE swportid=%s
+    JOIN interface USING (netboxid)
+    WHERE interfaceid=%s
     """
     managec.execute(q, (list[0]['swportid'], ))
     managerow = managec.fetchone()
@@ -819,8 +820,7 @@ def showDetails (cur, page, section, id):
             entry['modport'] = "N/A"
         else:
             page.output = ""
-            entry['modport'] = str(managerow['module']) + ":" + \
-                               str(managerow['port'])
+            entry['modport'] = managerow['ifname']
             entry['sysname'] = managerow['sysname']
         
         entry['starttime'] = entry['starttime'].strftime('%Y-%m-%d %k:%M:%S')
