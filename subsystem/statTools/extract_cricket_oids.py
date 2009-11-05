@@ -43,7 +43,7 @@ def main(configpath):
 
     # Check if oids are present in snmpoid table, insert if not.
     for oidkey, snmpoid in oids:
-        q = "SELECT * FROM snmpoid WHERE snmpoid = %s"
+        q = "SELECT oidkey FROM snmpoid WHERE snmpoid = %s"
         cur.execute(q, (snmpoid,))
 
         if cur.rowcount <= 0:
@@ -55,7 +55,7 @@ def main(configpath):
                 (%s, %s, 'Cricket', 'f')
                 """
             cur.execute(q, (oidkey, snmpoid))
-        else:
+        elif oidkey != cur.fetchone()[0]:
             print "Updating %s:%s" %(oidkey, snmpoid)
             q = """
                 UPDATE snmpoid
@@ -63,6 +63,8 @@ def main(configpath):
                 WHERE snmpoid = %s
                 """
             cur.execute(q, (oidkey, snmpoid))
+        else:
+            print "%s:%s already in database" %(oidkey, snmpoid)
 
     conn.commit()
 
@@ -77,7 +79,7 @@ if __name__ == '__main__':
     # Read the mcc config file
     config = ConfigParser.ConfigParser()
     try:
-        config.read(mcc_configfile)
+        config.readfp(open(mcc_configfile, 'r'))
     except Exception, e:
         print "Could not find %s: %s" %(configfile, e)
         sys.exit()
