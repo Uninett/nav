@@ -153,7 +153,8 @@ class Shadow(object):
         # The _touched attribute will not exist during initialization
         # of the object, so ignore AttributeErrors
         try:
-            self._touched.add(attr)
+            if attr not in ('delete', 'update_only'):
+                self._touched.add(attr)
         except AttributeError:
             pass
 
