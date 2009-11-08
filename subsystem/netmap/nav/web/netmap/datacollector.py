@@ -161,6 +161,8 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
             res['load'] = (data[0],data[1])
         else:
             res['load'] = (-1,-1)
+
+        # TODO: Update these when ipdevinfo is updated to use interfacetable
         if 'from_swportid' in res and res['from_swportid']:
             res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
         elif 'from_gwportid' in res and res['from_gwportid']:
