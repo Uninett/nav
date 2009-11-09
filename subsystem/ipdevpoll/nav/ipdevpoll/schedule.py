@@ -363,12 +363,24 @@ class NetboxScheduler(object):
             self.deferred_map[other_job_handler].addCallback(self.run_job)
         else:
             # We're ok to start a polling run.
-            handler = JobHandler(self.jobname, self.netbox, plugins=self.plugins)
-            NetboxScheduler.ip_map[ip] = handler
-            deferred = handler.run()
-            self.deferred_map[handler] = deferred
+            job_handler = JobHandler(self.jobname, self.netbox, 
+                                     plugins=self.plugins)
+            NetboxScheduler.ip_map[ip] = job_handler
+            deferred = job_handler.run()
+            self.deferred_map[job_handler] = deferred
             # Make sure to remove from ip_map as soon as this run is over
-            deferred.addCallback(self._map_cleanup, handler)
+            deferred.addCallback(self._map_cleanup, job_handler)
+            deferred.addErrback(self._job_error_handler, job_handler)
+            deferred.addErrback(self._map_cleanup, job_handler)
+
+    def _job_error_handler(self, failure, job_handler):
+        self.logger.exception(
+            "Unhandled exception raised by JobHandler: %s\n%s",
+            failure.getErrorMessage(),
+            failure.getTraceback()
+            )
+        return failure
+           
 
 class Scheduler(object):
     """Controller of the polling schedule.
