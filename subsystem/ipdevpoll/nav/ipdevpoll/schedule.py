@@ -104,70 +104,68 @@ class JobHandler(object):
                                   plugin_name, self.netbox.sysname)
 
         if not plugins:
-            self.logger.warning("No plugins for this job")
+            self.logger.debug("No plugins for this job")
             return
 
         self.logger.debug("Plugins to call: %s",
                           ",".join([p.name() for p in plugins]))
 
-        self.plugin_iterator = iter(plugins)
+        return plugins
 
+    @defer.deferredGenerator
     def run(self):
         """Start a polling run against a netbox and retun a deferred."""
+        plugins = self.find_plugins()
+        if not plugins:
+            return
 
         self.logger.info("Starting job %r for %s", 
                          self.name, self.netbox.sysname)
-        self.find_plugins()
-        self.deferred = defer.Deferred()
 
-        # Hop on to the first plugin
-        self._nextplugin()
-        return self.deferred
+        for plugin_instance in plugins:
+            self.logger.debug("Now calling plugin: %s", plugin_instance)
+            
+            plugin_df = plugin_instance.handle()
+            #plugin_df.addErrback(self._error, plugin_instance)
+            waiter = defer.waitForDeferred(plugin_df)
+            yield waiter
+            if self._handle_errors(waiter, plugin_instance):
+                return
 
-    def _nextplugin(self, result=None):
-        """Callback that advances to the next plugin in the sequence."""
-        try:
-            self.current_plugin = self.plugin_iterator.next()
-        except StopIteration:
-            return self._done()
-        else:
-            self.logger.debug("Now calling plugin: %s", self.current_plugin)
-            df = self.current_plugin.handle()
-            # Make sure we advance to next plugin when this one is done
-            df.addCallback(self._nextplugin)
-            df.addErrback(self._error)
-
-    def _error(self, failure):
-        """Error callback that handles plugin failures."""
-        if failure.check(ipdevpoll.FatalPluginError):
-            # Handle known exceptions from plugins
-            self.logger.error("Aborting poll run due to error in plugin "
-                              "%s: %s",
-                              self.current_plugin, failure.getErrorMessage())
-        else:
-            # For unknown failures we dump a traceback.  The
-            # JobHandler will eat all plugin errors to protect the
-            # daemon process.
-            self.logger.error("Aborting poll run due to unknown error in "
-                              "plugin %s\n%s",
-                              self.current_plugin, failure.getTraceback())
-
-        # FIXME why is this commented out?
-        #self.deferred.errback(err)
-        #return self.deferred
-
-    def _done(self):
-        """Performs internal cleanup and callback firing.
-
-        This is called after successful poll run.
-
-        """
         self.save_container()
         self.logger.info("Job %r done", self.name)
+        
+    def _handle_errors(self, waiter, plugin):
+        """Handles and logs errors in plugins.
 
-        # Fire the callback chain
-        self.deferred.callback(self)
-        return self.deferred
+        Arguments:
+          waiter -- a deferredWaiter whose result will be checked.
+          plugin -- the current plugin instance.
+
+        Returns: True if there was an error, False it everything was ok.
+
+        """
+        error_template = "Job %r aborted for %s due to " % (self.name, 
+                                                            self.netbox.sysname)
+        try:
+            result = waiter.getResult()
+            return False
+
+        except ipdevpoll.FatalPluginError, err:
+            # Plugin encountered a fatal exception
+            self.logger.error("%s fatal error in plugin %s: %s",
+                              error_template, plugin, err)
+
+        except defer.TimeoutError, err:
+            # Plugin encountered a Timeout that it didn't handle itself.
+            self.logger.error("%s a TimeoutError in plugin %s: %s",
+                              error_template, plugin, err)
+            
+        except Exception, err:
+            self.logger.exception("%s unhandled error in plugin %s: %s", 
+                                  error_template, plugin, type(err))
+
+        return True
 
     @defer.deferredGenerator
     def save_container(self):
@@ -334,7 +332,7 @@ class NetboxScheduler(object):
         self.logger.debug("Job %r cancelled for %s",
                           self.jobname, self.netbox.sysname)
 
-    def _map_cleanup(self, job_handler):
+    def _map_cleanup(self, _, job_handler):
         """Remove a JobHandler from the ip map."""
         if job_handler.netbox.ip in NetboxScheduler.ip_map:
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
@@ -364,7 +362,7 @@ class NetboxScheduler(object):
             NetboxScheduler.ip_map[ip] = handler
             deferred = handler.run()
             # Make sure to remove from ip_map as soon as this run is over
-            deferred.addCallback(self._map_cleanup)
+            deferred.addCallback(self._map_cleanup, handler)
 
 class Scheduler(object):
     """Controller of the polling schedule.
