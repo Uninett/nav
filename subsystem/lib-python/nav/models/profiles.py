@@ -444,7 +444,7 @@ class AlertSubscription(models.Model):
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
-    ignore_resolved_alerts = models.BooleanField(db_column='ignore_closed_alerts') # FIXME rename to ignore_resolved_alerts in db
+    ignore_resolved_alerts = models.BooleanField()
 
     class Meta:
         db_table = u'alertsubscription'
