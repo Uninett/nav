@@ -403,7 +403,7 @@ class Scheduler(object):
 
     def process_reloaded_netboxes(self, result):
         """Process the result of a netbox reload and update schedules."""
-        (new_ids, removed_ids) = result
+        (new_ids, removed_ids, changed_ids) = result
         # Schedule new boxes
         for netbox_id in new_ids:
             for jobname,(interval, plugins) in jobs.get_jobs().items():

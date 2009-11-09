@@ -61,10 +61,17 @@ class NetboxLoader(dict):
 
         Returns:
 
-          A two-element tuple, (new_ids, lost_ids), which are sets of
-          netbox IDs.  The first set are IDs that a new since the last
-          load operation, the second is the set of IDs that have been
-          removed since the last load operation.
+          A three-tuple, (new_ids, lost_ids, changed_ids), whose elements are
+          sets of netbox IDs.
+
+          - The first set are IDs that a new since the last load operation.
+
+          - The second is the set of IDs that have been removed since the last
+            load operation.
+
+          - The third is the set of IDs of netboxes whose information have
+            changed in the database since the last load operation.
+
         """
         queryset = manage.Netbox.objects.select_related(depth=2).all()
         netbox_list = storage.shadowify_queryset(queryset)
@@ -74,17 +81,47 @@ class NetboxLoader(dict):
         current_ids = set(netbox_dict.keys())
         lost_ids = previous_ids.difference(current_ids)
         new_ids = current_ids.difference(previous_ids)
-        
+
+        same_ids = previous_ids.intersection(current_ids)
+        changed_ids = set(i for i in same_ids
+                          if is_netbox_changed(self[i], netbox_dict[i]))
+
         self.clear()
         self.update(netbox_dict)
         self.peak_count = max(self.peak_count, len(self))
 
         self._logger.info(
-            "Loaded %d netboxes from database (%d new, %d removed, %d peak)",
-            len(netbox_dict), len(new_ids), len(lost_ids), self.peak_count
+            "Loaded %d netboxes from database "
+            "(%d new, %d removed, %d changed, %d peak)",
+            len(netbox_dict), len(new_ids), len(lost_ids), len(changed_ids),
+            self.peak_count
             )
-        return (new_ids, lost_ids)
+        return (new_ids, lost_ids, changed_ids)
 
     def load_all(self):
         """Asynchronously load netboxes from database."""
         return threads.deferToThread(self.load_all_s)
+
+
+def is_netbox_changed(netbox1, netbox2):
+    """Determine whether a netbox' information has changed enough to
+    warrant a schedule change.
+
+    """
+    if netbox1.id != netbox2.id:
+        raise Exception("netbox1 and netbox2 do not represent the same netbox")
+
+    for attr in ('ip', 
+                 'type.id', 
+                 'read_only', 
+                 'snmp_version', 
+                 'up_to_date', 
+                 'device.id',
+                 ):
+        # Using eval, not getattr, since we also search sub-attributes
+        if eval('netbox1.' + attr) != eval('netbox2.' + attr):
+            return True
+
+    return False
+
+
