@@ -412,5 +412,8 @@ CREATE RULE reprofile_netboxes_on_snmpoid_update
   DO ALSO
     UPDATE netbox SET uptodate=false;
 
+DELETE FROM netboxsnmpoid;
+ALTER TABLE netboxsnmpoid ALTER COLUMN netboxid SET NOT NULL;
+ALTER TABLE netboxsnmpoid ALTER COLUMN snmpoidid SET NOT NULL;
 
 COMMIT;
