@@ -23,7 +23,7 @@ database I/O.
 
 """
 
-from nav.models import manage
+from nav.models import manage, oid
 from storage import Shadow
 
 # Shadow classes.  Not all of these will be used to store data, but
@@ -134,3 +134,12 @@ class Prefix(Shadow):
 class SwPortAllowedVlan(Shadow):
     __shadowclass__ = manage.SwPortAllowedVlan
     __lookups__ = ['interface']
+
+class SnmpOid(Shadow):
+    __shadowclass__ = oid.SnmpOid
+    __lookups__ = ['oidkey']
+
+class NetboxSnmpOid(Shadow):
+    __shadowclass__ = oid.NetboxSnmpOid
+
+
