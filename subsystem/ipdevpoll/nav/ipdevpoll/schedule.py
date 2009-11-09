@@ -404,14 +404,18 @@ class Scheduler(object):
     def process_reloaded_netboxes(self, result):
         """Process the result of a netbox reload and update schedules."""
         (new_ids, removed_ids, changed_ids) = result
-        # Schedule new boxes
-        for netbox_id in new_ids:
-            for jobname,(interval, plugins) in jobs.get_jobs().items():
-                self.add_netbox_scheduler(jobname, netbox_id, interval, plugins)
 
-        # Deschedule removed boxes
-        for netbox_id in removed_ids:
+        # Deschedule removed and changed boxes
+        for netbox_id in removed_ids.union(changed_ids):
             self.cancel_netbox_schedulers(netbox_id)
+
+        # Schedule new and changed boxes
+        for netbox_id in new_ids.union(changed_ids):
+            self.add_netbox_schedulers(netbox_id)
+
+    def add_netbox_schedulers(self, netbox_id):
+        for jobname,(interval, plugins) in jobs.get_jobs().items():
+            self.add_netbox_scheduler(jobname, netbox_id, interval, plugins)
             
     def add_netbox_scheduler(self, jobname, netbox_id, interval, plugins):
         netbox = self.netboxes[netbox_id]
