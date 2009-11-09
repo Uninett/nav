@@ -186,6 +186,18 @@ CREATE TABLE snmpoid (
   UNIQUE(oidkey)
 );
 
+-- These rules make sure to invalidate all netbox SNMP profiles when
+-- new snmpoids are inserted, or existing ones updated.
+CREATE RULE reprofile_netboxes_on_snmpoid_insert
+  AS ON INSERT TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
+CREATE RULE reprofile_netboxes_on_snmpoid_update
+  AS ON UPDATE TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
 CREATE TABLE netbox (
   netboxid SERIAL PRIMARY KEY,
   ip INET NOT NULL,

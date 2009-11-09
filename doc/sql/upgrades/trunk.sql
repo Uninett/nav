@@ -401,4 +401,16 @@ UPDATE module SET name = module::text;
 ALTER TABLE module ADD CONSTRAINT module_netboxid_key UNIQUE (netboxid, name);
 
 
+-- Add netbox updating rules to snmpoid
+CREATE RULE reprofile_netboxes_on_snmpoid_insert
+  AS ON INSERT TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
+CREATE RULE reprofile_netboxes_on_snmpoid_update
+  AS ON UPDATE TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
+
 COMMIT;
