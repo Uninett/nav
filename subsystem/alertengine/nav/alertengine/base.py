@@ -65,9 +65,9 @@ def check_alerts(debug=False):
     logger.debug('Checking %d queued alerts' % len(queued_alerts))
 
     if len(queued_alerts):
-        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_closed_alerts_ignored = handle_queued_alerts(queued_alerts, now)
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored = handle_queued_alerts(queued_alerts, now)
     else:
-        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_closed_alerts_ignored = [], [], 0, 0, 0
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored = [], [], 0, 0, 0
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
@@ -90,7 +90,7 @@ def check_alerts(debug=False):
     num_deleted = len(initial_alerts) - AlertQueue.objects.filter(id__in=initial_alerts).count()
 
     logger.info('%d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s), %d ignored',
-        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends, num_closed_alerts_ignored)
+        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends, num_resolved_alerts_ignored)
 
     if num_failed_sends:
         logger.warning('Send %d alerts failed.', num_failed_sends)
@@ -202,7 +202,7 @@ def handle_queued_alerts(queued_alerts, now=None):
     sent_daily = []
 
     num_sent_alerts = 0
-    num_closed_alerts_ignored = 0
+    num_resolved_alerts_ignored = 0
     num_failed_sends = 0
 
     for queued_alert in queued_alerts:
@@ -214,13 +214,13 @@ def handle_queued_alerts(queued_alerts, now=None):
 
         logger.debug('Stored alert %d: Checking %s %s subscription %d' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display(), subscription.id) )
 
-        if subscription.ignore_closed_alerts:
+        if subscription.ignore_resolved_alerts:
             end = queued_alert.alert.history.end_time
 
             if end and end < now:
-                logger.info('Ignoring closed alert %d due to user preference' % queued_alert.alert_id)
+                logger.info('Ignoring resolved alert %d due to user preference' % queued_alert.alert_id)
 
-                num_closed_alerts_ignored += 1
+                num_resolved_alerts_ignored += 1
                 queued_alert.delete()
                 continue
 
@@ -337,7 +337,7 @@ def handle_queued_alerts(queued_alerts, now=None):
         del queued_alert
     del queued_alerts
 
-    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_closed_alerts_ignored)
+    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored)
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
     '''Checks a given alert against an array of filtergroupcontents'''
