@@ -44,17 +44,10 @@ class OidProfiler(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        """We handle everything that supports SNMP"""
-        return True
+        """We only handle boxes whose profiles are not up to date"""
+        return not netbox.up_to_date
 
     def handle(self):
-        if self.netbox.up_to_date:
-            # Nothing to do here.
-            self.logger.debug("profile is already up-to-date")
-            df = defer.Deferred()
-            reactor.callLater(0, df.callback, True)
-            return df
-
         return get_all_snmpoids().addCallback(self._query_oids)
 
     @defer.deferredGenerator
