@@ -53,7 +53,7 @@ class JobHandler(object):
         self.name = name
         self.netbox = netbox
 
-        instance_name = (self.name, "[%s]" % netbox.sysname)
+        instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
         self.logger = \
             ipdevpoll.get_instance_logger(self, ".".join(instance_name))
@@ -314,7 +314,7 @@ class NetboxScheduler(object):
         self.jobname = jobname
         self.netbox = netbox
         self.logger = \
-            ipdevpoll.get_instance_logger(self, "%s.[%s]" % 
+            ipdevpoll.get_instance_logger(self, "%s.(%s)" % 
                                           (self.jobname, netbox.sysname))
 
         self.plugins = plugins or []
