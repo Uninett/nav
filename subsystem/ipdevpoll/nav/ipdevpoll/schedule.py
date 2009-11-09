@@ -304,6 +304,9 @@ class NetboxScheduler(object):
 
     key: value  -->  str(ip): JobHandler instance
     """
+
+    deferred_map = {} # Map active JobHandlers' deferred objects
+
     DEFAULT_INTERVAL = 3600.0 # seconds
 
 
@@ -333,9 +336,11 @@ class NetboxScheduler(object):
                           self.jobname, self.netbox.sysname)
 
     def _map_cleanup(self, _, job_handler):
-        """Remove a JobHandler from the ip map."""
+        """Remove a JobHandler from internal data structures."""
         if job_handler.netbox.ip in NetboxScheduler.ip_map:
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
+        if job_handler in self.deferred_map:
+            del self.deferred_map[job_handler]
         return job_handler
 
     def run_job(self, dummy=None):
@@ -355,12 +360,13 @@ class NetboxScheduler(object):
 
             # Reschedule this function to be called as soon as the
             # other JobHandler is finished
-            other_job_handler.deferred.addCallback(self.run_job)
+            self.deferred_map[other_job_handler].addCallback(self.run_job)
         else:
             # We're ok to start a polling run.
             handler = JobHandler(self.jobname, self.netbox, plugins=self.plugins)
             NetboxScheduler.ip_map[ip] = handler
             deferred = handler.run()
+            self.deferred_map[handler] = deferred
             # Make sure to remove from ip_map as soon as this run is over
             deferred.addCallback(self._map_cleanup, handler)
 
