@@ -28,6 +28,7 @@ import copy
 import logging
 
 import nav.db
+from nav.models.profiles import Account
 from StatusSections import *
 
 logger = logging.getLogger('nav.web.status.StatusPrefs')
@@ -78,9 +79,10 @@ class HandleStatusPrefs:
         form = req.form
         
         # Admin gets to select between all orgs and can save def prefs
-        if str(req.session['user'].id) == ADMIN_USER_ID:
+        if str(req.session['user']['id']) == Account.ADMIN_ACCOUNT:
             self.isAdmin = True
-        self.orgList = req.session['user'].getOrgIds()
+        orgs = Account.objects.get(id=req.session['user']['id']).organizations
+        self.orgList = orgs.values_list('id', flat=True)
         # Make a list of the available SectionBox types
         sectionBoxTypeList = []
         sectionBoxTypeList.append(NetboxSectionBox)
@@ -289,7 +291,7 @@ class HandleStatusPrefs:
 
         """
         if accountid is None:
-            accountid = self.req.session['user'].id
+            accountid = self.req.session['user']['id']
 
         prefs = self.getPrefs()
                 
@@ -320,7 +322,7 @@ class HandleStatusPrefs:
         connection.commit()
 
     def loadPrefs(cls,req):
-        accountid = req.session['user'].id
+        accountid = req.session['user']['id']
 
         connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
@@ -347,7 +349,7 @@ class HandleStatusPrefs:
                 # Instead of attempting to fix the users's prefs, we
                 # return the hardcoded defaults and log this incident.
                 logger.warning("Ignoring faulty statusprefs for user %s", 
-                               req.session['user'].login)
+                               req.session['user']['login'])
                 logger.debug("The unpickle exception was: ", exc_info=True)
             else:
                 # Although we expect the pickle to be a list, it might

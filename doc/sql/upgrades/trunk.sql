@@ -416,4 +416,11 @@ DELETE FROM netboxsnmpoid;
 ALTER TABLE netboxsnmpoid ALTER COLUMN netboxid SET NOT NULL;
 ALTER TABLE netboxsnmpoid ALTER COLUMN snmpoidid SET NOT NULL;
 
+
+-- Django needs a simple integer primary key in navbarlink
+ALTER TABLE navbarlink DROP CONSTRAINT accountnavbar_pkey;
+ALTER TABLE navbarlink ADD UNIQUE (accountid, navbarlinkid);
+CREATE SEQUENCE navbarlink_id_seq;
+ALTER TABLE navbarlink ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
+
 COMMIT;

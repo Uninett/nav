@@ -88,9 +88,9 @@ def handler(req):
     # Make menu based on user
     setMenu(page)
 
-    username = req.session['user'].login
+    username = req.session['user']['login']
     page.username = username
-    page.name = req.session['user'].name
+    page.name = req.session['user']['name']
 
     page.path = [("Home","/"), ("Arnold", "/arnold")]
 
@@ -237,9 +237,9 @@ def handler(req):
             for element in blockedports:
                 q = """
                 SELECT sysname, module, port FROM netbox
-                LEFT JOIN module USING (netboxid)
-                LEFT JOIN swport USING (moduleid)
-                WHERE swportid=%s
+                JOIN module USING (netboxid)
+                JOIN interface USING (moduleid)
+                WHERE interfaceid=%s
                 """
 
                 try:
@@ -320,7 +320,7 @@ def handler(req):
             nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
-                                 req.session['user'].login, 'block')
+                                 req.session['user']['login'], 'block')
         except Exception, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -350,7 +350,7 @@ def handler(req):
             nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
-                                 req.session['user'].login, 'quarantine', vlan)
+                                 req.session['user']['login'], 'quarantine', vlan)
         except Exception, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -468,8 +468,8 @@ def handler(req):
             active = 'y'
         else:
             active = 'n'
-        if req.session.has_key('user') and req.session['user'].id > 0:
-            lasteditedby = req.session['user'].name
+        if req.session.has_key('user') and req.session['user']['id'] > 0:
+            lasteditedby = req.session['user']['name']
 
         if blockid:
 
@@ -631,9 +631,11 @@ def printBlocked(cur, page, sort, section):
         item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
                           + "' title='Details'><img src='/images/arnold/details.png'></a>"
         
-        managequery = """SELECT sysname, module, port FROM netbox LEFT
-        JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid)
-        WHERE swportid = %s"""
+        managequery = """
+        SELECT sysname, port FROM netbox 
+        JOIN interface USING (netboxid)
+        WHERE interfaceid = %s
+        """
 
         managec.execute(managequery, (item['swportid'], ))
         managelist = managec.fetchone()
@@ -805,9 +807,8 @@ def showDetails (cur, page, section, id):
 
     q = """
     SELECT * FROM netbox
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN swport USING (moduleid)
-    WHERE swportid=%s
+    JOIN interface USING (netboxid)
+    WHERE interfaceid=%s
     """
     managec.execute(q, (list[0]['swportid'], ))
     managerow = managec.fetchone()
@@ -819,8 +820,7 @@ def showDetails (cur, page, section, id):
             entry['modport'] = "N/A"
         else:
             page.output = ""
-            entry['modport'] = str(managerow['module']) + ":" + \
-                               str(managerow['port'])
+            entry['modport'] = managerow['ifname']
             entry['sysname'] = managerow['sysname']
         
         entry['starttime'] = entry['starttime'].strftime('%Y-%m-%d %k:%M:%S')
