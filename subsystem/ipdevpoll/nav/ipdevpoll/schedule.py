@@ -419,8 +419,11 @@ class NetboxScheduler(object):
             self.deferred_map[job_handler] = deferred
             # Make sure to remove from ip_map as soon as this run is over
             deferred.addCallback(self._map_cleanup, job_handler)
+            deferred.addCallback(self._log_time_to_next_run)
+
             deferred.addErrback(self._job_error_handler, job_handler)
             deferred.addErrback(self._map_cleanup, job_handler)
+            deferred.addErrback(self._log_time_to_next_run)
 
     def _job_error_handler(self, failure, job_handler):
         self.logger.exception(
@@ -429,6 +432,15 @@ class NetboxScheduler(object):
             failure.getTraceback()
             )
         return failure
+
+    def _log_time_to_next_run(self, thing=None):
+        if hasattr(self.loop, 'call') and self.loop.call is not None:
+            next_call = self.loop.call
+            next_time = datetime.datetime.fromtimestamp(next_call.getTime())
+            self.logger.debug("Next %r job for %s will be at %s",
+                              self.jobname, self.netbox.sysname, next_time)
+        return thing
+                              
            
 
 class Scheduler(object):
