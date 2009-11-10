@@ -401,10 +401,10 @@ UPDATE module SET name = module::text;
 ALTER TABLE module ADD CONSTRAINT module_netboxid_key UNIQUE (netboxid, name);
 
 
--- Django needs an simple integer primary key in navbarlink
-ALTER TABLE navbarlink DROP CONSTRAINT accountnavbar_pkey;
-ALTER TABLE navbarlink ADD UNIQUE (accountid, navbarlinkid);
-CREATE SEQUENCE navbarlink_id_seq;
-ALTER TABLE navbarlink ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
+-- Django needs a simple integer primary key in accountnavbar
+ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
+ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid);
+CREATE SEQUENCE accountnavbar_id_seq;
+ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
 COMMIT;
