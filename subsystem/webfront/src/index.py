@@ -20,6 +20,8 @@ follows the mod_python.publisher paradigm.
 """
 from mod_python import apache
 import os, os.path, sys
+
+from nav.models.profiles import Account
 import nav, nav.path
 from nav import web
 from nav.web import ldapAuth
@@ -50,7 +52,7 @@ def _quickRead(filename):
 
 def index(req):
     if req.session.has_key('user'):
-        name = req.session['user'].name
+        name = req.session['user']['name']
     else:
         name = req.session.id
 
@@ -60,7 +62,7 @@ def index(req):
     page = FrontpageTemplate()
     page.path = [("Home", False)]
 
-    if req.session['user'].id == 0:
+    if req.session['user']['id'] == 0:
         welcomeFile = welcomeFileAnonymous
     else:
         welcomeFile = welcomeFileRegistered
@@ -120,14 +122,10 @@ def login(req, login='', password='', origin=''):
         
         origin = urllib.unquote(origin)
 
-        from nav import db
-        conn = db.getConnection('navprofile', 'navprofile')
-        from nav.db import navprofiles
-        from nav.db.navprofiles import Account
 
         try:
-            account = Account.loadByLogin(login)
-        except nav.db.navprofiles.NoSuchAccountError:
+            account = Account.objects.get(login=login)
+        except Account.DoesNotExist:
             account = None
             logger.error("Account %s not found in NAVdb", login)
 
@@ -149,14 +147,15 @@ def login(req, login='', password='', origin=''):
                     # setup, so we create a new account in the NAVdb for
                     # this user.
                     fullName = ldapAuth.getUserName(login)
-                    
-                    account = Account()
-                    account.login = login
-                    account.name = fullName
-                    account.setPassword(password)
-                    account.ext_sync = 'ldap'
+
+                    account = Account(
+                        login=login,
+                        name=fullName,
+                        ext_sync='ldap'
+                    )
+                    account.set_password(password)
                     account.save()
-    
+
                     # Later, we should allow configuration of default
                     # groups and such
             else:
@@ -172,7 +171,7 @@ def login(req, login='', password='', origin=''):
                     # If we were authenticated, we update the stored password hash
                     if authenticated:
                         logger.info("Account %s authenticated through LDAP", login)
-                        account.setPassword(password)
+                        account.set_password(password)
                         account.save()
                 except ldapAuth.Error, e:
                     req.session['message'] = 'Error while talking to ' \
@@ -181,16 +180,26 @@ def login(req, login='', password='', origin=''):
                     # when no answer
                     logger.info("Attempting to authenticate %s locally",
                                 login)
-                    authenticated = account.authenticate(password)
+                    authenticated = account.check_password(password)
             else:
                 # If this account is not to be externally
                 # authenticated, we authenticated against NAVdb only.
-                authenticated = account.authenticate(password)
+                authenticated = account.check_password(password)
 
         if authenticated:
             logger.info("Account %s successfully logged in", login)
-            # Place the Account object in the session dictionary
-            req.session['user'] = account
+
+            # Create a dictionary with the neccessery values from the account
+            # object.
+            account_dict = {
+                'id': account.id,
+                'login': account.login,
+                'name': account.name,
+            }
+
+            # Place the account information dictionary in the session
+            # dictionary.
+            req.session['user'] = account_dict
             req.session.save()
 
             # Redirect to the origin page, or to the root if one was
@@ -226,7 +235,7 @@ def _getLoginPage(origin, message=''):
 
     page.origin = urllib.quote(origin)
     page.message = message
-    
+
     return page
 
 def logout(req):
@@ -234,7 +243,7 @@ def logout(req):
     Expires the current session, removes the session cookie and redirects to the index page.
     """
     # Expire and remove session
-    login = req.session['user'].login
+    login = req.session['user']['login']
     req.session.expire()
     del req.session
     from nav.web import state

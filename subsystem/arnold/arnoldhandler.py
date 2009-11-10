@@ -88,9 +88,9 @@ def handler(req):
     # Make menu based on user
     setMenu(page)
 
-    username = req.session['user'].login
+    username = req.session['user']['login']
     page.username = username
-    page.name = req.session['user'].name
+    page.name = req.session['user']['name']
 
     page.path = [("Home","/"), ("Arnold", "/arnold")]
 
@@ -320,7 +320,7 @@ def handler(req):
             nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
-                                 req.session['user'].login, 'block')
+                                 req.session['user']['login'], 'block')
         except Exception, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -350,7 +350,7 @@ def handler(req):
             nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
-                                 req.session['user'].login, 'quarantine', vlan)
+                                 req.session['user']['login'], 'quarantine', vlan)
         except Exception, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -468,8 +468,8 @@ def handler(req):
             active = 'y'
         else:
             active = 'n'
-        if req.session.has_key('user') and req.session['user'].id > 0:
-            lasteditedby = req.session['user'].name
+        if req.session.has_key('user') and req.session['user']['id'] > 0:
+            lasteditedby = req.session['user']['name']
 
         if blockid:
 
