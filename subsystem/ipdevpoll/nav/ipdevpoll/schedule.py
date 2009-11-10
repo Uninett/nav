@@ -19,6 +19,7 @@
 import logging
 import pprint
 import time
+import datetime
 
 from twisted.internet import reactor, defer, task, threads
 from twistedsnmp import snmpprotocol, agentproxy
@@ -116,6 +117,7 @@ class JobHandler(object):
     def run(self):
         """Start a polling run against a netbox and retun a deferred."""
         plugins = self.find_plugins()
+        self._reset_timers()
         if not plugins:
             return
 
@@ -125,14 +127,19 @@ class JobHandler(object):
         for plugin_instance in plugins:
             self.logger.debug("Now calling plugin: %s", plugin_instance)
             
+            self._start_plugin_timer(plugin_instance)
             plugin_df = plugin_instance.handle()
-            #plugin_df.addErrback(self._error, plugin_instance)
             waiter = defer.waitForDeferred(plugin_df)
             yield waiter
+            self._stop_plugin_timer()
             if self._handle_errors(waiter, plugin_instance):
                 return
 
-        self.save_container()
+        waiter = defer.waitForDeferred(self.save_container())
+        yield waiter
+        waiter.getResult()
+
+        self._log_timings()
         self.logger.info("Job %r done", self.name)
         
     def _handle_errors(self, waiter, plugin):
@@ -166,6 +173,48 @@ class JobHandler(object):
                                   error_template, plugin, type(err))
 
         return True
+
+    def _reset_timers(self):
+        self._start_time = datetime.datetime.now()
+        self._plugin_times = []
+
+    def _start_plugin_timer(self, plugin):
+        timings = [plugin.__class__.__name__, datetime.datetime.now()]
+        self._plugin_times.append(timings)
+
+    def _stop_plugin_timer(self):
+        timings = self._plugin_times[-1]
+        timings.append(datetime.datetime.now())
+
+    def _log_timings(self):
+        stop_time = datetime.datetime.now()
+        job_total = stop_time-self._start_time
+
+        times = [(plugin, stop-start)
+                 for (plugin, start, stop) in self._plugin_times]
+        plugin_total = sum((i[1] for i in times), datetime.timedelta(0))
+        
+        times.append(("Plugin total", plugin_total))
+        times.append(("Job total", job_total))
+        times.append(("Job overhead", job_total - plugin_total))
+
+        log_text = []
+        longest_label = max(len(i[0]) for i in times)
+        format = "%%-%ds: %%s" % longest_label
+
+        for plugin, delta in times:
+            log_text.append(format % (plugin, delta))
+
+        dashes = "-" * max(len(i) for i in log_text)
+        log_text.insert(-3, dashes)
+        log_text.insert(-2, dashes)
+
+        log_text.insert(0, "Job %r timings for %s:" % 
+                        (self.name, self.netbox.sysname))
+
+        logger = ipdevpoll.get_instance_logger(self, "timings")
+        logger.debug("\n".join(log_text))
+
 
     @defer.deferredGenerator
     def save_container(self):
