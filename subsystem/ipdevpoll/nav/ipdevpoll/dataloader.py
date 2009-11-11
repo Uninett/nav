@@ -112,15 +112,14 @@ def is_netbox_changed(netbox1, netbox2):
         raise Exception("netbox1 and netbox2 do not represent the same netbox")
 
     for attr in ('ip', 
-                 'type.id', 
+                 'type', 
                  'read_only', 
                  'snmp_version', 
                  'up_to_date', 
-                 'device.id',
+                 'device',
                  ):
-        # Using eval, not getattr, since we also search sub-attributes
-        if eval('netbox1.' + attr) != eval('netbox2.' + attr):
-            return True
+        if getattr(netbox1, attr) != getattr(netbox2, attr):
+                return True
 
     return False
 
