@@ -65,7 +65,8 @@ class TypeOid(Plugin):
 
         
         self.logger.debug("sysObjectID is %s", sysobjectid)
-        if self.netbox.type.sysobjectid != str(sysobjectid):
+        if self.netbox.type is None or \
+                self.netbox.type.sysobjectid != str(sysobjectid):
             self.logger.warning("Netbox has changed type from %r",
                                 self.netbox.type)
 
