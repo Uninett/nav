@@ -117,6 +117,10 @@ class Shadow(object):
         if not self.__shadowclass__ == other.__shadowclass__:
             return False
 
+        if self.get_primary_key() and other.get_primary_key() and \
+                self.get_primary_key() == other.get_primary_key():
+            return True
+
         for lookup in self.__lookups__:
             if isinstance(lookup, tuple):
                 ret = True
@@ -135,6 +139,9 @@ class Shadow(object):
                 except AttributeError:
                     continue
         return False
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def __repr__(self):
         attrs = [field for field in self._fields
