@@ -109,7 +109,6 @@ installdirs:
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/log
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/log/arnold
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/log/eventEngine
-	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/log/getDeviceData
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/log/networkDiscovery
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/run
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/rrd
