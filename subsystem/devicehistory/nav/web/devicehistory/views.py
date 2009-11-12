@@ -58,12 +58,9 @@ ONE_DAY = 24 * 3600
 ONE_WEEK = 7 * ONE_DAY
 
 HISTORY_PER_PAGE = 100
+ORPHANS = 10
 
 _ = lambda a: a
-
-# NOTE:
-# Search is using POST instead of GET, which would be more correct, because of
-# constraints in IE that limits the length of an URL to around 2000 characters.
 
 def devicehistory_search(request):
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
@@ -91,9 +88,6 @@ def devicehistory_search(request):
     )
 
 def devicehistory_view(request):
-    # Using REQUEST so that it is possible to use both POST and GET.
-    # As previously mentioned, we would like to always use GET, but the urls
-    # from the search may become to long, so we use POST in the form instead.
     DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     from_date = request.REQUEST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.REQUEST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
@@ -116,7 +110,7 @@ def devicehistory_view(request):
         selected_types,
         group_by
     )
-    paginated_history = Paginator(alert_history, HISTORY_PER_PAGE)
+    paginated_history = Paginator(alert_history, HISTORY_PER_PAGE, ORPHANS)
     this_page = get_page(paginated_history, page)
     messages = get_messages_for_history(this_page.object_list)
     grouped_history = group_history_and_messages(
@@ -126,15 +120,50 @@ def devicehistory_view(request):
     )
     this_page.grouped_history = grouped_history
 
+    first_page_link = True
+    last_page_link = True
+    if this_page.paginator.num_pages > 20:
+        if page < 6:
+            index = 0
+            last_index = 10
+        else:
+            index = page - 6
+            last_index = page + 5
+        if page >= this_page.paginator.num_pages - 5:
+            last_page_link = False
+        if page <= 6:
+            first_page_link = False
+        pages = this_page.paginator.page_range[index:last_index]
+    else:
+        pages = this_page.paginator.page_range
+        first_page_link = False
+        last_page_link = False
+
+    url = "?from_date=%s&to_date=%s&type=%s&group_by=%s" % (
+        from_date or "", to_date or "", types or "", group_by or "")
+
+    for key, values in selection.items():
+        attr = key
+        if key == "location":
+            attr = "loc"
+
+        url += "&submit_%s=%s" % (attr, "history")
+        for id in values:
+            url += "&%s=%s" % (attr, id)
+
     info_dict = {
         'active': {'devicehistory': True},
         'history': this_page,
+        'pages': pages,
+        'first_page_link': first_page_link,
+        'last_page_link': last_page_link,
         'selection': selection,
         'selected_types': selected_types,
         'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
         'group_by': group_by,
+        'get_url': url,
         'title': 'NAV - Device History',
         'navpath': [
             ('Home', '/'),
