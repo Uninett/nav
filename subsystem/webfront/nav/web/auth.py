@@ -22,10 +22,7 @@ import sys, os, re
 import nav
 import logging
 
-from nav import db
-from nav.db import navprofiles
-from nav.web.preferences import Preferences, Link
-from nav.db.navprofiles import Account, Accountnavbar, Navbarlink
+from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
 logger = logging.getLogger("nav.web.auth")
 
@@ -35,13 +32,13 @@ def checkAuthorization(user, uri):
     specified URI)
     """
     # First make sure we are connected to the navprofile database.
-    conn = db.getConnection('navprofile', 'navprofile')
-    cursor = conn.cursor()
+#    conn = db.getConnection('navprofile', 'navprofile')
+#    cursor = conn.cursor()
 
     # When the connection has been made, we make use of the privilege
     # system to discover whether the user has access to this uri or
     # not.
-    return nav.auth.hasPrivilege(user, 'web_access', uri)
+    return Account.objects.get(id=user['id']).has_perm('web_access', uri)
 
 def redirectToLogin(req):
     """
@@ -53,21 +50,33 @@ def redirectToLogin(req):
 def _find_user_preferences(user, req):
     if not hasattr(user, "preferences"):
         # if user preferences is not loaded, it's time to do so
-        user.preferences = Preferences()
-        conn = nav.db.getConnection('navprofile', 'navprofile')
-        prefs = user.getChildren(Accountnavbar)
-        if not prefs:
+        user['preferences'] = {
+            'navbar': [],
+            'qlink1': [],
+            'qlink2': [],
+            'hidelogo': 0,
+        }
+        prefs = AccountNavbar.objects.select_related(
+            'navbarlink'
+        ).filter(account__id=user['id'])
+
+        if prefs.count() == 0:
             # if user has no preferences set, use default preferences
-            default = Account(0)
-            prefs = default.getChildren(Accountnavbar)
+            prefs = AccountNavbar.objects.select_related(
+                'navbarlink'
+            ).filter(account__id=0)
+
         for pref in prefs:
-            link = Navbarlink(pref.navbarlink)
+            link = {
+                'name': pref.navbarlink.name,
+                'uri': pref.navbarlink.uri,
+            }
             if pref.positions.count('navbar'): # does 'positions'-string contain 'navbar'
-                user.preferences.navbar.append(Link(link.name, link.uri))
+                user['preferences']['navbar'].append(link)
             if pref.positions.count('qlink1'): # does 'positions'-string contain 'qlink1'
-                user.preferences.qlink1.append(Link(link.name, link.uri))
+                user['preferences']['qlink1'].append(link)
             if pref.positions.count('qlink2'): # does 'positions'-string contain 'qlink2'
-                user.preferences.qlink2.append(Link(link.name, link.uri))
+                user['preferences']['qlink2'].append(link)
         if req:
             req.session.save() # remember this to next time
 
@@ -82,22 +91,29 @@ def authenticate(req):
         # If no Account object is registered with this session, we
         # load and register the default Account (which is almost a
         # synonym for Anonymous user)
-        conn = db.getConnection('navprofile', 'navprofile')
-        cursor = conn.cursor()
-        req.session['user'] = Account(0)
+        #conn = db.getConnection('navprofile', 'navprofile')
+        #cursor = conn.cursor()
+
+        # FIXME Should we load, or just make a new account object?
+        account = Account.objects.get(id=0)
+        req.session['user'] = {
+            'id': account.id,
+            'login': account.login,
+            'name': account.name,
+        }
 
     user = req.session['user']
     logger.debug("Request for %s authenticated as user=%s", req.unparsed_uri,
-                 user.login)
+                 user['login'])
     _find_user_preferences(user, req)
-    
+
     if not checkAuthorization(user, req.unparsed_uri):
-        logger.warn("User %s denied access to %s", user.login,
+        logger.warn("User %s denied access to %s", user['login'],
                     req.unparsed_uri)
         redirectToLogin(req)
     else:
-        if not user.id == 0:
-            os.environ['REMOTE_USER'] = user.login
+        if not user['id'] == 0:
+            os.environ['REMOTE_USER'] = user['login']
         elif os.environ.has_key('REMOTE_USER'):
             del os.environ['REMOTE_USER']
         return True

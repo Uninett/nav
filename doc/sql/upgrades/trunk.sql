@@ -52,4 +52,10 @@ CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_t
 -- Try to provide consistency between code and db names.
 ALTER TABLE alertsubscription RENAME ignore_closed_alerts TO ignore_resolved_alerts;
 
+-- Django needs a simple integer primary key in accountnavbar
+ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
+ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid);
+CREATE SEQUENCE accountnavbar_id_seq;
+ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
+
 COMMIT;
