@@ -214,7 +214,7 @@ def handle_queued_alerts(queued_alerts, now=None):
 
         logger.debug('Stored alert %d: Checking %s %s subscription %d' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display(), subscription.id) )
 
-        if subscription.ignore_resolved_alerts:
+        if subscription.ignore_resolved_alerts and subscription.type != AlertSubscription.NOW:
             end = queued_alert.alert.history.end_time
 
             if end and end < now:
