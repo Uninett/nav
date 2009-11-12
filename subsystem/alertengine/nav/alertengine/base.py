@@ -206,6 +206,8 @@ def handle_queued_alerts(queued_alerts, now=None):
     num_failed_sends = 0
 
     for queued_alert in queued_alerts:
+        send, daily, weekly = False, False, False
+
         try:
             subscription = queued_alert.subscription
         except AlertSubscription.DoesNotExist:
@@ -214,33 +216,17 @@ def handle_queued_alerts(queued_alerts, now=None):
 
         logger.debug('Stored alert %d: Checking %s %s subscription %d' % (queued_alert.alert_id, queued_alert.account, subscription.get_type_display(), subscription.id) )
 
-        if subscription.ignore_resolved_alerts and subscription.type != AlertSubscription.NOW:
-            end = queued_alert.alert.history.end_time
-
-            if end and end < now:
-                logger.info('Ignoring resolved alert %d due to user preference' % queued_alert.alert_id)
-
-                num_resolved_alerts_ignored += 1
-                queued_alert.delete()
-                continue
-
         try:
             subscription.time_period.profile.alertpreference
         except AlertPreference.DoesNotExist:
+            subscription = None
+
+        if subscription is None:
             logger.info('Sending alert %d right away as the users profile has been disabled' % queued_alert.alert_id)
+            send = True
 
-            if queued_alert.send():
-                num_sent_alerts += 1
-            else:
-                num_failed_sends += 1
-
-            continue
-
-        if subscription.type == AlertSubscription.NOW:
-            if queued_alert.send():
-                num_sent_alerts += 1
-            else:
-                num_failed_sends += 1
+        elif subscription.type == AlertSubscription.NOW:
+            send = True
 
         elif subscription.type == AlertSubscription.DAILY:
             daily_time = subscription.time_period.profile.daily_dispatch_time
@@ -258,11 +244,8 @@ def handle_queued_alerts(queued_alerts, now=None):
                     (last_sent_test, daily_time_test, insertion_time_test))
 
             if last_sent_test and daily_time_test and insertion_time_test:
-                if queued_alert.send():
-                    num_sent_alerts += 1
-                    sent_daily.append(queued_alert.account)
-                else:
-                    num_failed_sends += 1
+                send = True
+                daily = True
 
         elif subscription.type == AlertSubscription.WEEKLY:
             weekly_time = subscription.time_period.profile.weekly_dispatch_time
@@ -282,11 +265,8 @@ def handle_queued_alerts(queued_alerts, now=None):
                     (weekday_test, last_sent_test, weekly_time_test, insertion_time_test))
 
             if weekday_test and last_sent_test and weekly_time_test and insertion_time_test:
-                if queued_alert.send():
-                    num_sent_alerts += 1
-                    sent_weekly.append(queued_alert.account)
-                else:
-                    num_failed_sends += 1
+                send = True
+                weekly = True
 
         elif subscription.type == AlertSubscription.NEXT:
             active_profile = subscription.alert_address.account.get_active_profile()
@@ -320,19 +300,35 @@ def handle_queued_alerts(queued_alerts, now=None):
                 logger.debug('Tests: only one time period %s, insertion time %s' % (only_one_time_period, insertion_time.time() < queued_alert_time_period.start))
 
                 if subscription.time_period.id != current_time_period.id:
-                    if queued_alert.send():
-                        num_sent_alerts += 1
-                    else:
-                        num_failed_sends += 1
+                    send = True
 
                 elif only_one_time_period and insertion_time.time() < queued_alert_time_period.start:
-                    if queued_alert.send():
-                        num_sent_alerts += 1
-                    else:
-                        num_failed_sends += 1
+                    send = True
 
         else:
             logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
+
+        if send:
+            end = queued_alert.alert.history.end_time
+
+            # Check if alert should be ignored
+            if subscription.ignore_resolved_alerts and subscription.type != AlertSubscription.NOW and end and end < now:
+                logger.info('Ignoring resolved alert %d due to user preference' % queued_alert.alert_id)
+
+                num_resolved_alerts_ignored += 1
+                queued_alert.delete()
+
+            # Try to send alert
+            elif queued_alert.send():
+                num_sent_alerts += 1
+
+                if weekly:
+                   sent_weekly.append(queued_alert.account)
+                elif daily:
+                   sent_daily.append(queued_alert.account)
+            # Count failure
+            else:
+                num_failed_sends += 1
 
         del queued_alert
     del queued_alerts
