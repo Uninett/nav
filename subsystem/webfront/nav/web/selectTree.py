@@ -16,9 +16,8 @@
 #
 """selectTree widget for use in web forms.  This widget is deprecated."""
 
-import nav.db,re
-
-from mod_python import util
+import re
+import nav.db
 
 class selectTreeLayoutBox:
     ''' Contains a list of selects that will be outputted horizontaly after
