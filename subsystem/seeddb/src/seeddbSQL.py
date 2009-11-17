@@ -17,6 +17,7 @@
 
 import nav.db
 import psycopg2
+from nav.errors import GeneralException
 
 UPDATE_ENTRY = 'update_entry'
 # REQ_TRUE: a required field
@@ -78,8 +79,10 @@ def addEntryBulk(data,table):
         sqllist.append(sql)
     try:
         executeSQL(sqllist)
-    except psycopg2.IntegrityError:
-        pass
+    except psycopg2.IntegrityError, err:
+        rollbackSQL(err)
+        raise BulkImportDuplicateError(err)
+
 
 def addEntry(req,templatebox,table,unique=None):
     # req: request object containing a form
@@ -263,3 +266,12 @@ def deleteEntry(selected,table,idfield,where=None):
         sql = 'DELETE FROM %s WHERE %s IN (%s)' % \
             (table, idfield, idlist)
     executeSQL([sql])
+
+
+class BulkImportError(GeneralException):
+    """Unexpected error during bulk import"""
+    pass
+
+class BulkImportDuplicateError(BulkImportError):
+    """Duplicates in bulk data set"""
+    pass

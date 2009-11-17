@@ -5132,16 +5132,20 @@ def bulkImport(req,action):
         form.status = seeddbStatus()
         if req.form.has_key(BULK_HIDDEN_DATA):
             data = req.form[BULK_HIDDEN_DATA]
-            result = bulkInsert(data,bulkdef[table],separator)
-            noun = ' rows'
-            if result == 1:
-                noun = ' row'
-            form.status.messages.append('Inserted ' + str(result) + noun)
-            page = pageList[table]
-            listView = page.listDef(req,page,None)
-            listView.status = form.status
-            listView.fill(req)
-            form = None
+            try:
+                result = bulkInsert(data,bulkdef[table],separator)
+            except BulkImportDuplicateError, err:
+                form.status.errors.append("No rows were imported: %s" % err)
+            else:
+                noun = ' rows'
+                if result == 1:
+                    noun = ' row'
+                form.status.messages.append('Inserted ' + str(result) + noun)
+                page = pageList[table]
+                listView = page.listDef(req,page,None)
+                listView.status = form.status
+                listView.fill(req)
+                form = None
         else:
             form.status.errors.append('No rows to insert.')
 
