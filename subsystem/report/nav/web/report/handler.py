@@ -244,7 +244,7 @@ def make_report(req, report_name, export, uri, nuri):
             del nuri.args[key]
 
     uri_strip = nuri.make()
-    username = req.session['user'].login
+    username = req.session['user']['login']
     mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
     cache_name = 'report_' + username + '_' + str(mtime_config)
 

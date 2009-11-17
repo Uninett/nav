@@ -294,7 +294,7 @@ def handler(req):
                 state = 'scheduled'
 
             # Get session data
-            author = req.session['user'].login
+            author = req.session['user']['login']
 
             # If any data not okay, form is showed with list of errors on top.
             # There is no need to do anything further here.
@@ -346,7 +346,7 @@ def handler(req):
         
 
     # Check if user is logged in
-    if req.session['user'].id != 0:
+    if req.session['user']['id'] != 0:
         page.authorized = True
     else:
         page.authorized = False
