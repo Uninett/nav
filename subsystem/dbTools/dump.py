@@ -171,13 +171,13 @@ class Handlers:
             warn("Not smart to use : as separator for services, using ;")
             SEPARATOR=";"
         header("#ip/sysname:handler[:arg=value[:arg=value]]")
-        allProperties = nav.models.service.ServiceProperty.objects.all()
-        for service in nav.models.service.Service.objects.all():
+        allServices = nav.models.service.Service.objects.all()
+        for service in allServices.select_related('ServiceProperty'):
             line = []            
             line.append(service.netbox.sysname)
             line.append(service.handler)
             properties = ["%s=%s" % (p.property, p.value)
-                          for p in allProperties if p.service == service]
+                          for p in service.serviceproperty_set.all()]
             line.extend(properties)                  
             lineout(line)
         SEPARATOR = old_sep
