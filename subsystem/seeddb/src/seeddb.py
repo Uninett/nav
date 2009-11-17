@@ -26,6 +26,7 @@ import sys
 import re
 import copy
 import initBox
+from options import *
 import nav.web
 from nav.models import manage, cabling, oid, service
 import nav.util
@@ -3684,7 +3685,7 @@ class pageProduct(seeddbPage):
             self.page = page.pageName
             self.table = page.table
             # Field definitions {field name: [input object, required]}
-            f = {'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
+            f = {'vendorid': [inputSelect(options=get_vendor_options()),
                               REQ_TRUE,'Vendor',FIELD_STRING],
                  'productno': [inputText(),REQ_TRUE,'Productno',FIELD_STRING],
                  'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING]}
@@ -4535,7 +4536,7 @@ class pageType(seeddbPage):
             self.table = page.table
             # Field definitions {field name: [input object, required]}
             f = {'typename': [inputText(),REQ_TRUE,'Typename',FIELD_STRING],
-                 'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
+                 'vendorid': [inputSelect(options=get_vendor_options()),
                               REQ_TRUE,'Vendor',FIELD_STRING],
                  'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING],
                  'sysobjectid': [inputText(),REQ_TRUE,'Sysobjectid',
