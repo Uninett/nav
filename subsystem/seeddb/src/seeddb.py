@@ -4965,7 +4965,18 @@ def bulkImportParse(input,bulkdef,separator):
                     if i < bulkdef.max_num_fields and \
                        type(bulkdef.uniqueField) is str and \
                        fn == bulkdef.uniqueField:
-                        where = {bulkdef.uniqueField: fields[i]}
+                        # This stupid-ass code mixes pure SQL and ORM in insane 
+                        # ways.  We have a db column name and want to know which
+                        # attribute name the Django model uses for it.
+                        # XXX: This uses undocumented Django internals
+                        column_map = dict((f.db_column, f.name)
+                                          for f in bulkdef.table._meta.fields)
+                        if bulkdef.uniqueField in column_map:
+                            attr_name = column_map[bulkdef.uniqueField]
+                        else:
+                            attr_name = bulkdef.uniqueField
+
+                        where = {attr_name: fields[i]}
                         queryset = bulkdef.table.objects.filter(**where)
                         if len(queryset) > 0:
                             status = BULK_STATUS_YELLOW_ERROR
