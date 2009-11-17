@@ -1399,7 +1399,7 @@ class seeddbPage:
         try:
             executeSQL([sql])
         except psycopg2.IntegrityError, e:
-            rollbackSQL()
+            rollbackSQL(e)
             if type(self.unique) is list:
                 error = 'There already exists an entry with '
                 first = True
@@ -1503,9 +1503,9 @@ class seeddbPage:
             sql += ' WHERE ' + self.tableIdKey + "='" + id + "'"
             try:
                 executeSQL([sql])
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError, e:
                 # Assumes tableIdKey = the unique field
-                rollbackSQL()
+                rollbackSQL(e)
                 if type(self.unique) is list:
                     error = 'There already exists an entry with '
                     first = True
@@ -1613,11 +1613,11 @@ class seeddbPage:
                 deleteEntry([id],self.tableName,self.tableIdKey)
                 status.messages.append("Deleted %s: %s" % \
                                            (self.singular,deletedName))
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError, e:
                 # Got integrity error while deleting, must check what
                 # dependencies are blocking.  But firstly, we roll back the
                 # failed transaction.
-                rollbackSQL()
+                rollbackSQL(e)
 
                 error = "Error while deleting %s '%s': " % (self.singular,
                                                             deletedName)

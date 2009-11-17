@@ -40,8 +40,19 @@ def executeSQLreturn(sql):
     connection.commit()
     return database.fetchall()
 
-def rollbackSQL():
-    connection = nav.db.getConnection('default','manage')
+def rollbackSQL(exception=None):
+    """Rollback the current transaction.
+
+    Will rollback the transaction on the current default connection for the
+    manage user, retrieved by nav.db.getConnection().  However, if the
+    exception argument is set to a psycopg2 exception, the connection which
+    raised the exception will have its current transaction rolled back.
+
+    """
+    if exception is None:
+        connection = nav.db.getConnection('default','manage')
+    else:
+        connection = exception.cursor.connection
     connection.rollback()
 
 def addEntryBulk(data,table):
