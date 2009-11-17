@@ -43,12 +43,12 @@ def getData(db_cursor = None):
     connections = {}
 
     layer_3_query = """
-SELECT DISTINCT ON (sysname, from_sysname) gwportprefixcount.count, interface_gwport.interfaceid ,speed, ifindex, ifname, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
+SELECT DISTINCT ON (sysname, from_sysname) gwportprefixcount.count, interface_gwport.interfaceid AS gwportid ,speed, ifindex, ifname AS interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
 3 AS layer, NULL AS from_swportid, vlan.*
 FROM gwportprefix
   JOIN (
      SELECT DISTINCT ON (gwportprefix.prefixid)
-       interfaceid AS from_interfaceid,
+       interfaceid AS from_gwportid,
        gwportprefix.prefixid,
        ifindex AS from_ifindex,
        ifname AS from_interface,
@@ -64,8 +64,8 @@ FROM gwportprefix
   JOIN netbox USING (netboxid)
   LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
   LEFT JOIN vlan USING (vlanid)
-  LEFT JOIN rrd_file ON (key='gwport' AND value=conn.from_interfaceid::varchar)
-WHERE interface_gwport.interfaceid <> from_interfaceid AND vlan.nettype NOT IN ('static', 'lan') AND gwportprefixcount.count = 2
+  LEFT JOIN rrd_file ON (key='gwport' AND value=conn.from_gwportid::varchar)
+WHERE interface_gwport.interfaceid <> from_gwportid AND vlan.nettype NOT IN ('static', 'lan') AND gwportprefixcount.count = 2
 ORDER BY sysname,from_sysname, netaddr ASC, speed DESC
 """
 
@@ -141,21 +141,11 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
     db_cursor.execute(layer_3_query)
     # Expect DictRows, but want to work with updateable dicts:
     results = [dict(row) for row in db_cursor.fetchall()]
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_1)
     results.extend([dict(row) for row in db_cursor.fetchall()])
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_3)
     results.extend([dict(row) for row in db_cursor.fetchall()])
     for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
-        if 'from_swportid' not in res and 'from_gwportid' not in res:
-            assert False, str(res)
         if res['rrdfile']:
             data = get_rrd_link_load(res['rrdfile'])
             res['load'] = (data[0],data[1])
@@ -167,8 +157,6 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
             res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
         elif 'from_gwportid' in res and res['from_gwportid']:
             res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
-        else:
-            assert False, str(res)
 
         connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
         connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
