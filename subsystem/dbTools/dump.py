@@ -124,7 +124,7 @@ class Handlers:
             line = []
             line.append(type.vendor.id)
             line.append(type.name)
-            line.append(type.sysobject)
+            line.append(type.sysobjectid)
             line.append(type.description)
             line.append(str(type.frequency))
             line.append(str(type.cdp or False))
@@ -148,16 +148,17 @@ class Handlers:
 
     def prefix(self):
         header("#prefix/mask:nettype[:orgid:netident:usage:description:vlan]")
-        for prefix in Prefix.objects.all():
+        for prefix in manage.Prefix.objects.all():
             vlan = prefix.vlan
             line = []
             line.append(prefix.net_address)
-            line.append(vlan.net_type.id)
-            line.append(vlan.organization and vlan.organization.id or "")
-            line.append(vlan.net_ident or "")
-            line.append(vlan.usage and vlan.usage.id or "")
-            line.append(vlan.description or "")
-            line.append(vlan.vlan and str(vlan.vlan) or "")
+            line.append(vlan and vlan.net_type and vlan.net_type.id or "")
+            if vlan:
+                line.append(vlan.organization and vlan.organization.id or "")
+                line.append(vlan.net_ident or "")
+                line.append(vlan.usage and vlan.usage.id or "")
+                line.append(vlan.description or "")
+                line.append(vlan.vlan and str(vlan.vlan) or "")
             lineout(line)
 
 
