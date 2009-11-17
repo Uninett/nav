@@ -124,12 +124,14 @@ def addEntry(req,templatebox,table,unique=None):
     return error
 
 def addEntryFields(fields,table,sequence=None):
-    # Add a new entry using the dict fields which contain
-    # key,value pairs (used when data from more than two templatexboxes
-    # are to be inserted. eg. when inserting a netbox)
+    """Add a new entry using the dict fields which contain
+    key,value pairs (used when data from more than two templatexboxes
+    are to be inserted. eg. when inserting a netbox)
 
-    # Sequence is a tuple (idfield,sequencename). If given, get
-    # the nextval from sequence and set the idfield to this value
+    Sequence is a tuple (idfield,sequencename). If given, get
+    the nextval from sequence and set the idfield to this value
+
+    """
     nextid = None
     if sequence:
         idfield,seq = sequence
@@ -138,27 +140,13 @@ def addEntryFields(fields,table,sequence=None):
         nextid = str(result[0][0])
         fields[idfield] = nextid
 
-    sql = 'INSERT INTO ' + table + ' ('
-    first = True
-    for field,value in fields.items():
-        if not first:
-            sql += ','
-        sql += field
-        first = False
-    sql += ') VALUES ('
-    first = True
-    for field,value in fields.items():
-        if not first:
-            sql += ','
-        if value:
-            sql += "'" + value + "'"
-        else:
-            # Remove value
-            sql += 'NULL'
-        first = False
-    sql += ')'
-    sqllist = [sql]
-    executeSQL(sqllist)
+    field_names = ",".join(fields.keys())
+    field_values = ",".join(value and "'%s'" % value or "NULL"
+                            for value in fields.values())
+    sql = 'INSERT INTO %s (%s) VALUES (%s)' % \
+        (table, field_names, field_values)
+
+    executeSQL([sql])
     return nextid
 
 def updateEntryFields(fields,table,idfield,updateid):
@@ -267,15 +255,11 @@ def updateEntry(req,templatebox,table,idfield,staticid=False,
     return idlist,error
 
 def deleteEntry(selected,table,idfield,where=None):
+    idlist = ",".join([nav.db.escape(str(id)) for id in selected])
     if where:
-        sql = 'DELETE FROM ' + table + ' WHERE ' + where + ' AND '
+        sql = 'DELETE FROM %s WHERE %s AND %s IN (%s)' % \
+            (table, where, idfield, idlist)
     else:
-        sql = 'DELETE FROM ' + table + ' WHERE '
-    first = True
-    for id in selected:
-        if not first:
-            sql += ' OR '
-        sql += idfield + "='" + id + "'"
-        first = False
-    sqllist = [sql]
-    executeSQL(sqllist)
+        sql = 'DELETE FROM %s WHERE %s IN (%s)' % \
+            (table, idfield, idlist)
+    executeSQL([sql])
