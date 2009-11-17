@@ -133,10 +133,10 @@ class Netbox(models.Model):
             return '(Invalid value in DB)'
 
     def get_gwports(self):
-        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False)
+        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False).distinct()
 
     def get_swports(self):
-        return Interface.objects.filter(netbox=self, baseport__isnull=False)
+        return Interface.objects.filter(netbox=self, baseport__isnull=False).distinct()
 
     def get_availability(self):
         from nav.models.rrd import RrdDataSource
