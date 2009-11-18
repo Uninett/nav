@@ -30,7 +30,6 @@ from nav.models.manage import Room, Location, Netbox, Module
 from nav.models.event import AlertHistory, AlertHistoryMessage, \
     AlertHistoryVariable, AlertType, EventType
 from nav.web.message import new_message, Messages
-from nav.web.templates.DeviceHistoryTemplate import DeviceHistoryTemplate
 from nav.web.quickselect import QuickSelect
 
 from nav.web.devicehistory.utils import get_event_and_alert_types
