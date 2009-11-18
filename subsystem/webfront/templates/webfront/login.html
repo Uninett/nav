@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>NAV Login</title>
+    <link rel="stylesheet" type="text/css" href="/style/login.css" />
+</head>
+
+<body onload="document.getElementById('id_username').focus();">
+
+<div id="container">
+
+<img src="/images/main/navlogo-281x100.png" alt="NAV" />
+
+{% if origin %}
+<p>
+After succsesfully logging in, you will be redirected to:<br />
+{{ displayed_origin }}
+</p>
+{% endif %}
+
+<div>
+    <ul class="errorlist">
+        {% for e in errors %}
+        <li>{{ e }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<form method="post" action="/index/login/">
+    <input type="hidden" name="origin" value="{{ origin }}" />
+    <p>
+        {{ form.username.label }}<br />
+        {{ form.username.errors }}
+        {{ form.username }}
+    </p>
+    <p>
+        {{ form.password.label }}<br />
+        {{ form.password.errors }}
+        {{ form.password }}
+    </p>
+    <p><input type="submit" value="Log in" /></p>
+</form>
+
+</div>
+
+</body>
+
+</html>

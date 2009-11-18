@@ -118,39 +118,13 @@ INSERT INTO cat values ('WLAN','Wireless equipment','t');
 INSERT INTO cat values ('SRV','Server','f');
 INSERT INTO cat values ('OTHER','Other equipment','f');
 
-CREATE TABLE product (
-  productid SERIAL PRIMARY KEY,
-  vendorid VARCHAR(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
-  productno VARCHAR NOT NULL,
-  descr VARCHAR,
-  UNIQUE (vendorid,productno)
-);
-
-CREATE TABLE deviceorder (
-  deviceorderid SERIAL PRIMARY KEY,
-  registered TIMESTAMP NOT NULL DEFAULT now(),
-  ordered DATE,
-  arrived TIMESTAMP DEFAULT 'infinity',
-  ordernumber VARCHAR,
-  comment VARCHAR,
-  retailer VARCHAR,
-  username VARCHAR,
-  orgid VARCHAR(30) REFERENCES org (orgid) ON UPDATE CASCADE ON DELETE SET NULL,
-  productid INTEGER REFERENCES product (productid) ON UPDATE CASCADE ON DELETE SET NULL,
-  updatedby VARCHAR,
-  lastupdated DATE);
-
-
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
-  productid INT4 REFERENCES product ON UPDATE CASCADE ON DELETE SET NULL,
   serial VARCHAR,
   hw_ver VARCHAR,
   fw_ver VARCHAR,
   sw_ver VARCHAR,
-	auto BOOLEAN NOT NULL DEFAULT false,
-  active BOOLEAN NOT NULL DEFAULT false,
-  deviceorderid INT4 REFERENCES deviceorder (deviceorderid) ON DELETE CASCADE,
+  auto BOOLEAN NOT NULL DEFAULT false,
   discovered TIMESTAMP NULL DEFAULT NOW(),
   UNIQUE(serial)
 );
@@ -509,6 +483,29 @@ CREATE TABLE patch (
   split VARCHAR NOT NULL DEFAULT 'no',
 UNIQUE(interfaceid,cablingid));
 
+-- Remove floating devices.
+-- Devices that don't have a serial and no connected modules or netboxes.
+-- Triggers on delete on module and netbox.
+CREATE OR REPLACE FUNCTION remove_floating_devices() RETURNS TRIGGER AS '
+    BEGIN
+        DELETE FROM device WHERE
+            deviceid NOT IN (SELECT deviceid FROM netbox) AND
+            deviceid NOT IN (SELECT deviceid FROM module) AND
+            serial IS NULL;
+        RETURN NULL;
+        END;
+    ' language 'plpgsql';
+
+CREATE TRIGGER trig_module_delete_prune_devices
+    AFTER DELETE ON module
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE remove_floating_devices();
+
+CREATE TRIGGER trig_netbox_delete_prune_devices
+    AFTER DELETE ON netbox
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE remove_floating_devices();
+
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
@@ -719,12 +716,18 @@ CREATE TABLE eventq (
   severity INT4 NOT NULL DEFAULT '50'
 );
 
+CREATE SEQUENCE eventqvar_id_seq:
 CREATE TABLE eventqvar (
+  id integer NOT NULL DEFAULT nextval('eventqvar_id_seq'),
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
-  UNIQUE(eventqid, var) -- only one val per var per event
+
+  CONSTRAINT eventqvar_pkey PRIMARY KEY(id),
+  CONSTRAINT eventqvar_eventqid_key UNIQUE(eventqid, var) -- only one val per var per event
 );
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE eventqvar_id_seq OWNED BY eventqvar.id;
 
 
 

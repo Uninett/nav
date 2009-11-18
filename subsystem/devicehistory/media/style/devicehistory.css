@@ -1,0 +1,59 @@
+.listtable ul {
+	margin: 0;
+	padding: 0;
+}
+
+.location_wrapper {
+	border-left: 1px dashed black;
+	padding-left: 2em;
+}
+
+.location_wrapper + h2 {
+	margin-top: 3em;
+}
+
+.room_wrapper {
+	padding-left: 1em;
+	border-left: 1px dashed black;
+}
+
+.room_wrapper + h3 {
+	margin-top: 2em;
+}
+
+.module_wrapper {
+	padding-left: 2em;
+	margin-left: 1em;
+	margin-bottom: 2em;
+	border-left: 1px dashed black;
+}
+
+.module_wrapper table caption {
+	background-color: #acf;
+}
+
+ul.email_message li {
+	list-style-type: none;
+	border: 1px solid #729FCF;
+	background-color: #acf;
+	margin: 0;
+	padding: 0.2em;
+}
+
+li.sms_message {
+	clear: both;
+}
+
+li.sms_message span {
+	float: left;
+}
+
+li.sms_message .expand_link {
+	margin-left: 20px;
+	display: block;
+	float: right;
+}
+
+li.sms_message ul {
+	clear: both;
+}

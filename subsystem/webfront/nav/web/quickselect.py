@@ -61,6 +61,15 @@ class QuickSelect:
         self.output = []
 
     def handle_post(self, request):
+        # Django requests has post and get data stored in an attribute called
+        # REQUEST, while mod_python request stores it in form.
+        #
+        # This little if/else makes sure we can use both.
+        if hasattr(request, 'REQUEST'):
+            form = request.REQUEST
+        else:
+            form = request.form
+
         result = {
             'location': [],
             'service': [],
