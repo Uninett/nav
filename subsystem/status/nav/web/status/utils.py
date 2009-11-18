@@ -17,7 +17,7 @@
 
 from django.db import transaction
 
-from nav.models.profiles import StatusPreference
+from nav.models.profiles import Account, StatusPreference
 
 def extract_post(post):
     '''Some browser don't support buttons with names and values, so we have to
@@ -55,3 +55,18 @@ def order_status_preferences(account):
         return prev_position
     else:
         return 0
+
+@transaction.commit_on_success
+def make_default_preferences(account):
+    sections = StatusPreference.objects.filter(
+        account=Account.DEFAULT_ACCOUNT
+    )
+    for section in sections:
+        StatusPreference.objects.create(
+            name=section.name,
+            position=section.position,
+            type=section.type,
+            account=account,
+            services=section.services,
+            states=section.states,
+        )

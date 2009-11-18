@@ -22,9 +22,12 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_unicode, smart_str, force_unicode
 
-from nav.models.profiles import StatusPreference
+from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
+    StatusPreferenceOrganization
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
-from nav.models.manage import Netbox, Module
+from nav.models.manage import Netbox, Module, Category, Organization
+
+from nav.web import serviceHelper
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
@@ -37,6 +40,31 @@ def get_user_sections(account):
     preferences = StatusPreference.objects.filter(
         account=account
     ).order_by('position')
+
+    all_cats = Category.objects.values_list('pk', flat=True)
+    all_orgs = Organization.objects.values_list('pk', flat=True)
+
+    categories = {}
+    organizations = {}
+    cats = StatusPreferenceCategory.objects.filter(
+        statuspreference__in=preferences
+    )
+    orgs = StatusPreferenceOrganization.objects.filter(
+        statuspreference__in=preferences
+    )
+
+    for cat in cats:
+        if not cat.statuspreference_id in categories:
+            categories[cat.statuspreference_id] = []
+        categories[cat.statuspreference_id].append(cat.category_id)
+    for org in orgs:
+        if not org.statuspreference_id in organizations:
+            organizations[org.statuspreference_id] = []
+        organizations[org.statuspreference_id].append(org.organization_id)
+
+    for pref in preferences:
+        pref.fetched_categories = categories.get(pref.id, all_cats)
+        pref.fetched_organizations = organizations.get(pref.id, all_orgs)
 
     for pref in preferences:
         if pref.type == StatusPreference.SECTION_NETBOX:
@@ -73,8 +101,8 @@ class _Section(object):
 
     def __init__(self, prefs=None):
         self.prefs = prefs
-        self.categories = self.prefs.categories.values_list('id', flat=True)
-        self.organizations = self.prefs.organizations.values_list('id', flat=True)
+        self.categories = self.prefs.fetched_categories
+        self.organizations = self.prefs.fetched_organizations
         self.states = self.prefs.states.split(',')
 
         for key, title in StatusPreference.SECTION_CHOICES:
@@ -240,7 +268,10 @@ class ServiceSection(_Section):
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
-        self.services = self.prefs.services.split(',')
+        if self.prefs.services:
+            self.services = self.prefs.services.split(',')
+        else:
+            self.services = [s for s in serviceHelper.getCheckers()]
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(
