@@ -49,10 +49,82 @@ ALTER TABLE org ADD CONSTRAINT org_parent_fkey
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
+-- Remove product and deviceorder
+ALTER TABLE device DROP COLUMN productid;
+ALTER TABLE device DROP COLUMN deviceorderid;
+ALTER TABLE device DROP COLUMN active;
+
+DROP TABLE deviceorder;
+DROP TABLE product;
+
 -- Django needs a simple integer primary key in accountnavbar
 ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
-ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid);
 CREATE SEQUENCE accountnavbar_id_seq;
 ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
+
+
+-- Status preference tables
+CREATE SEQUENCE statuspreference_id_seq START 1000;
+CREATE TABLE statuspreference (
+	id integer NOT NULL DEFAULT nextval('statuspreference_id_seq'),
+	name varchar NOT NULL,
+	position integer NOT NULL,
+	type varchar NOT NULL,
+	accountid integer NOT NULL,
+
+	services varchar,
+	states varchar,
+
+	CONSTRAINT statuspreference_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_accountid_fkey
+		FOREIGN KEY (accountid) REFERENCES Account(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
+
+CREATE SEQUENCE statuspreference_organization_id_seq;
+CREATE TABLE statuspreference_organization (
+	id integer NOT NULL DEFAULT nextval('statuspreference_organization_id_seq'),
+	statuspreference_id integer NOT NULL,
+	organization_id varchar NOT NULL,
+
+	CONSTRAINT statuspreference_organization_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_organization_statuspreference_id_key
+		UNIQUE(statuspreference_id, organization_id),
+	CONSTRAINT statuspreference_organization_statuspreference_id_fkey
+		FOREIGN KEY (statuspreference_id) REFERENCES statuspreference(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT statuspreference_organization_organization_id_fkey
+		FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
+
+CREATE SEQUENCE statuspreference_category_id_seq;
+CREATE TABLE statuspreference_category (
+	id integer NOT NULL DEFAULT nextval('statuspreference_category_id_seq'),
+	statuspreference_id integer NOT NULL,
+	category_id varchar NOT NULL,
+
+	CONSTRAINT statuspreference_category_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_category_statuspreference_id_key
+		UNIQUE(statuspreference_id, category_id),
+	CONSTRAINT statuspreference_category_statuspreference_id_fkey
+		FOREIGN KEY (statuspreference_id) REFERENCES statuspreference(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT statuspreference_category_category_id_fkey
+		FOREIGN KEY (category_id) REFERENCES manage.cat(catid)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
+
 
 COMMIT;

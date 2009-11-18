@@ -33,7 +33,7 @@ from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherExce
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
-    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
+    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
@@ -46,7 +46,7 @@ SUPPORTED_MODELS = [
         AlertQueue, AlertType, EventType,
     # manage models
         Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        NetboxType, Organization, Prefix, Room, Subcategory, SwPort,
         Vendor, Vlan,
         Usage,
 ]
@@ -83,20 +83,32 @@ class Account(models.Model):
         '''Returns the accounts active alert profile'''
         return self.alertpreference.active_profile
 
-    # FIXME Could be prettier
-    def has_perm(self, action, target):
-        '''Checks user permissions by using legacy NAV hasPrivilege function'''
+    def get_groups(self):
+        '''Fetches and returns this users groups.
+        Also stores groups in this object for later use.
+        '''
         try:
-            groups = self._cached_groups
+            return self._cached_groups
         except AttributeError:
-            groups = self.accountgroup_set.values_list('id', flat=True)
-            self._cached_groups = groups
+            self._cached_groups = self.accountgroup_set.values_list(
+                'id', flat=True)
+            return self._cached_groups
 
+    def get_privileges(self):
+        '''Fetches privileges for this users groups.
+        Also stores privileges in this object for later use.
+        '''
         try:
-            privileges = self._cached_privileges
+            return self._cached_privileges
         except AttributeError:
-            privileges = Privilege.objects.filter(group__in=groups, type__name=action)
-            self._cached_privileges = privileges
+            self._cached_privileges = Privilege.objects.filter(
+                group__in=self.get_groups())
+            return self._cached_privileges
+
+    def has_perm(self, action, target):
+        '''Checks if user has permission to do action on target.'''
+        groups = self.get_groups()
+        privileges = self.get_privileges()
 
         if AccountGroup.ADMIN_GROUP in groups:
             return True
@@ -143,6 +155,8 @@ class Account(models.Model):
 
         Copied from nav.db.navprofiles
         """
+        # FIXME If password is old style NAV MD5, shouldn't we update the
+        # password in the database to be new style password?
         if len(self.password.strip()) > 0:
             stored_hash = nav.pwhash.Hash()
             try:
@@ -1003,3 +1017,38 @@ class AccountAlertQueue(models.Model):
             self.delete()
 
         return sent
+
+class StatusPreference(models.Model):
+    '''Preferences for the Status tool'''
+
+    SECTION_NETBOX = 'netbox'
+    SECTION_NETBOX_MAINTENANCE = 'netbox_maintenance'
+    SECTION_MODULE = 'module'
+    SECTION_SERVICE = 'service'
+    SECTION_SERVICE_MAINTENANCE = 'service_maintenance'
+    SECTION_THRESHOLD = 'threshold'
+
+    SECTION_CHOICES = (
+        (SECTION_NETBOX, 'IP Devices down'),
+        (SECTION_NETBOX_MAINTENANCE, 'IP Devices on maintenance'),
+        (SECTION_MODULE, 'Modules down'),
+        (SECTION_SERVICE, 'Services down'),
+        (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
+        (SECTION_THRESHOLD, 'Thresholds exceeded'),
+    )
+
+    name = models.TextField()
+    position = models.IntegerField()
+    type = models.CharField(choices=SECTION_CHOICES)
+    account = models.ForeignKey('Account', db_column='accountid')
+    organizations = models.ManyToManyField(
+        Organization, db_table='statuspreference_organization')
+    categories = models.ManyToManyField(
+        Category, db_table='statuspreference_category', blank=True)
+
+    services = models.TextField(blank=True)
+    states = models.TextField(blank=True)
+
+    class Meta:
+        db_table = u'statuspreference'
+        ordering = ('position',)

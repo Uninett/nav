@@ -85,16 +85,7 @@ class seeddbNetbox(manage.Netbox):
                     'type': manage.Type}
     _sqlPrimary =  ('netboxid',)
     _shortView =  ()
-                                                        
 
-class seeddbProduct(manage.Product):
-    # adds vendorid
-    _sqlFields =  {'descr': 'descr',
-                  'productid': 'productid',
-                  'productno': 'productno',
-                  'vendor': 'vendorid',
-                  'vendorid': 'vendorid'}
-                                                          
 class seeddbType(manage.Type):
     # adds typegroupid and vendorid
     _sqlFields =  {'cdp': 'cdp',

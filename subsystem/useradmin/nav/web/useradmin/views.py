@@ -29,14 +29,14 @@ __id__ = "$Id$"
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.generic.list_detail import object_list
 
 from nav.models.profiles import Account, AccountGroup
-from nav.django.shortcuts import render_to_response, object_list, object_detail
 from nav.django.utils import get_account
 
 from nav.web.message import new_message, Messages
-from nav.web.templates.UserAdmin import UserAdmin
 from nav.web.useradmin.forms import *
 
 # FIXME make this global
@@ -48,7 +48,7 @@ class UserAdminContext(RequestContext):
         super(UserAdminContext, self).__init__(*args, **kwargs)
 
 def account_list(request):
-    return object_list(UserAdmin, request, Account.objects.all(),
+    return object_list(request, Account.objects.all(),
                         template_object_name='account',
                         template_name='useradmin/account_list.html',
                         extra_context={'active': {'account_list': 1}})
@@ -116,7 +116,7 @@ def account_detail(request, account_id=None):
     else:
         active = {'account_new': True}
 
-    return render_to_response(UserAdmin, 'useradmin/account_detail.html',
+    return render_to_response('useradmin/account_detail.html',
                         {
                             'active': active,
                             'account': account,
@@ -141,7 +141,7 @@ def account_delete(request, account_id):
         new_message(request, 'Account %s has been deleted.' % (account.name), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
-    return render_to_response(UserAdmin, 'useradmin/delete.html',
+    return render_to_response('useradmin/delete.html',
                         {
                             'name': '%s (%s)' % (account.name, account.login),
                             'type': 'account',
@@ -165,7 +165,7 @@ def account_organization_remove(request, account_id, org_id):
         new_message(request, 'Organization %s has been removed from account %s.' % (organization, account), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
-    return render_to_response(UserAdmin, 'useradmin/delete.html',
+    return render_to_response('useradmin/delete.html',
                         {
                             'name': '%s from %s' % (organization, account),
                             'type': 'organization',
@@ -212,7 +212,7 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None, p
             return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
-    return render_to_response(UserAdmin, 'useradmin/delete.html',
+    return render_to_response('useradmin/delete.html',
                         {
                             'name': '%s from the group %s' % (account, group),
                             'type': 'account',
@@ -220,7 +220,7 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None, p
 
 
 def group_list(request):
-    return object_list(UserAdmin, request, AccountGroup.objects.all(),
+    return object_list(request, AccountGroup.objects.all(),
                         template_object_name='group',
                         template_name='useradmin/group_list.html',
                         extra_context={'active': {'group_list': True}})
@@ -281,7 +281,7 @@ def group_detail(request, group_id=None):
     else:
         active = {'group_new': True}
 
-    return render_to_response(UserAdmin, 'useradmin/group_detail.html',
+    return render_to_response('useradmin/group_detail.html',
                         {
                             'active': active,
                             'group': group,
@@ -306,7 +306,7 @@ def group_delete(request, group_id):
         new_message(request, 'Group %s has been deleted.' % (group), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
-    return render_to_response(UserAdmin, 'useradmin/delete.html',
+    return render_to_response('useradmin/delete.html',
                         {
                             'name': group,
                             'type': 'group',
@@ -335,7 +335,7 @@ def group_privilege_remove(request, group_id, privilege_id):
         new_message(request, 'Privilege %s has been removed from group %s.' % (privilege, group), type=Messages.SUCCESS)
         return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
 
-    return render_to_response(UserAdmin, 'useradmin/delete.html',
+    return render_to_response('useradmin/delete.html',
                         {
                             'name': '%s from %s' % (privilege, group),
                             'type': 'privilege',
@@ -345,7 +345,7 @@ def userinfo(request):
     account = get_account(request)
 
     if account.is_default_account():
-        return render_to_response(UserAdmin, 'useradmin/not-logged-in.html', {}, UserAdminContext(request))
+        return render_to_response('useradmin/not-logged-in.html', {}, UserAdminContext(request))
 
     if account.ext_sync:
         password_form = None
@@ -365,7 +365,7 @@ def userinfo(request):
                 new_message(request, 'Your password has been changed.', type=Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('userinfo'))
 
-    return render_to_response(UserAdmin, 'useradmin/userinfo.html',
+    return render_to_response('useradmin/userinfo.html',
                         {
                             'account': account,
                             'password_form': password_form,

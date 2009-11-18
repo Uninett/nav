@@ -1,0 +1,63 @@
+<tr>
+    <th>From:</th>
+    <td><input type="text" name="from_date" value="{{ from_date }}" /></td>
+</tr>
+<tr>
+    <th>To:</th>
+    <td><input type="text" name="to_date" value="{{ to_date }}" /></td>
+</tr>
+<tr>
+    <th>Type:</th>
+    <td>
+        <select name="type">
+        <option value="all">All</option>
+        {% for e,alert_types in event_type.items %}
+            <optgroup label="{{ e }}">
+                <option value="e_{{ e }}"
+                {% if selected_types.event %}
+                {% ifequal selected_types.event e %}
+                selected="selected"
+                {% endifequal %}
+                {% endif %}>All {{ e }}</option>
+            {% for a in alert_types %}
+                <option value="a_{{ a.id }}" 
+                {% if selected_types.alert %}
+                {% ifequal selected_types.alert a.id %}
+                    selected="selected"
+                {% endifequal %}
+                {% endif %}>{{ a.name }}</option>
+            {% endfor %}
+            </optgroup>
+        {% endfor %}
+        </select>
+    </td>
+</tr>
+<tr>
+    <th>Group by:</th>
+    <td>
+        <label><input type="radio" name="group_by" value="location"
+            {% ifequal group_by "location" %}
+            checked="checked"
+            {% endifequal %} />Location</label><br />
+        <label><input type="radio" name="group_by" value="room"
+            {% ifequal group_by "room" %}
+            checked="checked"
+            {% endifequal %} />Room</label><br />
+        <label><input type="radio" name="group_by" value="netbox"
+            {% ifequal group_by "netbox" %}
+            checked="checked"
+            {% endifequal %} />Netbox</label><br />
+        <label><input type="radio" name="group_by" value="module"
+            {% ifequal group_by "module" %}
+            checked="checked"
+            {% endifequal %} />Module</label><br />
+        <label><input type="radio" name="group_by" value="device"
+            {% ifequal group_by "device" %}
+            checked="checked"
+            {% endifequal %} />Device serial</label><br />
+        <label><input type="radio" name="group_by" value="datetime"
+            {% ifequal group_by "datetime" %}
+            checked="checked"
+            {% endifequal %} />Date</label>
+    </td>
+</tr>

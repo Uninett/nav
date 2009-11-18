@@ -30,10 +30,10 @@ body {
 	text-align: center;
 }
 
-p.message {
+p.message, ul.errorlist {
 	color: red;
 }
 
-input.intext {
+#id_username, #id_password {
 	border: 1px solid #2d5a86;
 }

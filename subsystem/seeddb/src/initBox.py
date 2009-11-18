@@ -178,7 +178,7 @@ class Box:
             escapedSerials = [nav.db.escape(ser.strip()) for ser in serials
                               if is_ascii(ser)]
             whereSerials = ",".join(escapedSerials)
-            sql = "SELECT deviceid, productid " \
+            sql = "SELECT deviceid" \
                   "FROM device " \
                   "WHERE serial IN (%s) " \
                   "      AND deviceid NOT in " \

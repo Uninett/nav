@@ -32,7 +32,6 @@ import sys
 
 from django.db.models import Q
 
-from nav.django.shortcuts import render_to_response, object_list
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan, Vlan
 from nav.models.service import Service

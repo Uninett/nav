@@ -19,11 +19,10 @@ from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
 from nav.config import readConfig
-from nav.django.shortcuts import render_to_response, object_list
 from nav.models.manage import SwPort, GwPort
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
@@ -63,7 +62,7 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
             tf=time_frame, ds=rrddatasource.id)
         presenter_page.presentations.append(presentation)
 
-    return render_to_response(RrdViewerTemplate,
+    return render_to_response(
         'rrdviewer/rrd-details.html',
         {
             'errors': errors,
