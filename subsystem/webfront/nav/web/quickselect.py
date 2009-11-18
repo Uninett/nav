@@ -36,7 +36,7 @@ class QuickSelect:
         self.room_label     = kwargs.pop('room_label',     '%(id)s (%(description)s)')
         self.netbox_label   = kwargs.pop('netbox_label',   '%(sysname)s')
         self.service_label  = kwargs.pop('service_label',  '%(handler)s')
-        self.module_label   = kwargs.pop('module_label',   '%(module_number)d')
+        self.module_label   = kwargs.pop('module_label',   '%(name)s')
 
         self.location_multi = kwargs.pop('location_multiple', True)
         self.room_multi     = kwargs.pop('room_multiple',     True)
