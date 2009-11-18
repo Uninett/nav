@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -6227,45 +6228,3 @@ class selectList:
         self.idcol = None
         self.orderBy = None
         self.tablename = ''
-
-    def fill(self):
-        " Fill the headings and rows lists "
-    
-        # fill headings
-        self.headings = []
-        if not self.isDeleteList:
-            self.headings = ['Select']
-        for heading,column,link in self.columns:    
-            self.headings.append(heading)
-
-        # fill rows
-        entries = []
-        if not self.isDeleteList:
-            entries = self.table.getAllIterator(orderBy=self.orderBy,
-                                                where=self.where)
-        else:
-            for id in self.deleteList:
-                entries.append(self.table.objects.get(id=id))
-
-        for entry in entries:
-            id = getattr(entry,self.idcol)
-
-            row = []
-            for heading,column,link in self.columns:
-                if link:
-                    eid = id
-                    if not type(eid) is str:
-                        eid = str(id)
-                    row.append(([getattr(entry,column)],BASEPATH + self.tablename + '/edit/' + eid))
-                else:
-                    text = []
-                    if type(column) is str:
-                        text = [getattr(entry,column)]
-                    else:
-                        sectable,secidfield,sectextfield = column
-                        iter = sectable.getAllIterator(where=secidfield + \
-                                        "='" + eid + "'")
-                        for i in iter:
-                            text.append(getattr(i,sectextfield)) 
-                    row.append((text,None))
-            self.rows.append((id,row))  
