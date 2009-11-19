@@ -70,11 +70,6 @@ def preferences(request):
     account = get_account(request)
     sections = StatusPreference.objects.filter(account=account)
 
-    if len(sections) == 0:
-        # Make some default preferences
-        # make_default_preferences(account) or something
-        pass
-
     return render_to_response(
         'status/preferences.html',
         {
@@ -207,10 +202,28 @@ def save_preferences(request):
         )
         return HttpResponseRedirect(reverse('status-preferences'))
     else:
+        if 'id' in request.POST and request.POST.get('id'):
+            section = StatusPreference.objects.get(id=request.POST.get('id'))
+            name = section.name
+            type = section.type
+        elif 'type' in request.POST and request.POST.get('type'):
+            name = StatusPreference.lookup_readable_type(request.POST.get('type'))
+            type = None
+
+        new_message(
+            request,
+            'There were errors in the form below.',
+            Messages.ERROR,
+        )
         return render_to_response(
             'status/edit_preferences.html',
             {
+                'active': {'preferences': True},
+                'title': 'NAV - Add new status section',
+                'navpath': [('Home', '/'), ('Status', '')],
                 'section_form': form,
+                'name': name,
+                'type': type,
             },
             RequestContext(request)
         )
