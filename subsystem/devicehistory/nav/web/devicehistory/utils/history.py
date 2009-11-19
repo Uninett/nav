@@ -45,7 +45,27 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
             type_filter.append(Q(alert_type=selected_types['alert']))
         return type_filter
 
+    def order_by_keys(group_by):
+        order_by = ['start_time', 'end_time']
+        if group_by == "location":
+            key = 'netbox__room__location__description'
+        elif group_by == "room":
+            key = 'netbox__room__description'
+        #elif group_by == "module":
+        #    key = a.module_name
+        elif group_by == "device":
+            key = 'device__serial'
+        elif group_by == "datetime":
+            key = None
+        else:
+            key = 'netbox__sysname'
+
+        if key:
+            order_by.insert(0, key)
+        return order_by
+
     type_filter = type_query_filter(selected_types)
+    order_by_keys = order_by_keys(order_by)
 
     # Find all netbox ids and device ids that belongs to
     #   - selected netboxes
@@ -90,7 +110,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
            '''
         ],
         params=[from_date, to_date, from_date, to_date]
-    ).order_by('-start_time', '-end_time')
+    ).order_by(*order_by_keys)
 
     return history
 
