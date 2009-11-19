@@ -43,50 +43,47 @@ def getData(db_cursor = None):
     connections = {}
 
     layer_3_query = """
-SELECT DISTINCT ON (sysname, from_sysname) gwportprefixcount.count,gwport.gwportid,speed, ifindex, interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
+SELECT DISTINCT ON (sysname, from_sysname) gwportprefixcount.count, interface_gwport.interfaceid AS gwportid ,speed, ifindex, ifname AS interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
 3 AS layer, NULL AS from_swportid, vlan.*
 FROM gwportprefix
   JOIN (
      SELECT DISTINCT ON (gwportprefix.prefixid)
-       gwportid AS from_gwportid,
+       interfaceid AS from_gwportid,
        gwportprefix.prefixid,
        ifindex AS from_ifindex,
-       interface AS from_interface,
+       ifname AS from_interface,
        sysname AS from_sysname,
        speed AS from_speed,
        netboxid AS from_netboxid
-       FROM gwport
-       JOIN module USING (moduleid)
+       FROM interface
        JOIN netbox USING (netboxid)
-       JOIN gwportprefix USING (gwportid)
+       JOIN gwportprefix USING (interfaceid)
        ) AS conn USING (prefixid)
-  JOIN gwport USING (gwportid)
-  JOIN module USING (moduleid)
-  JOIN ( SELECT gwportid, COUNT(*) AS count FROM gwportprefix GROUP BY gwportid ) AS gwportprefixcount ON (gwportprefix.gwportid = gwport.gwportid)
+  JOIN interface_gwport USING (interfaceid)
+  JOIN ( SELECT interfaceid, COUNT(*) AS count FROM gwportprefix GROUP BY interfaceid ) AS gwportprefixcount ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
   JOIN netbox USING (netboxid)
   LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
   LEFT JOIN vlan USING (vlanid)
   LEFT JOIN rrd_file ON (key='gwport' AND value=conn.from_gwportid::varchar)
-WHERE gwport.gwportid <> from_gwportid AND vlan.nettype NOT IN ('static', 'lan') AND gwportprefixcount.count = 2
+WHERE interface_gwport.interfaceid <> from_gwportid AND vlan.nettype NOT IN ('static', 'lan') AND gwportprefixcount.count = 2
 ORDER BY sysname,from_sysname, netaddr ASC, speed DESC
-
 """
 
     layer_2_query_1 = """
-SELECT DISTINCT ON (swport.swportid)
-gwport.gwportid AS from_gwportid,
-gwport.speed,
-gwport.ifindex AS from_ifindex,
-gwport.interface AS from_interface,
+SELECT DISTINCT ON (interface_swport.interfaceid)
+interface_gwport.interfaceid AS from_gwportid,
+interface_gwport.speed,
+interface_gwport.ifindex AS from_ifindex,
+interface_gwport.ifname AS from_interface,
 netbox.sysname AS from_sysname,
 netbox.netboxid AS from_netboxid,
-gwport.to_swportid AS to_swportid,
+interface_gwport.to_interfaceid AS to_swportid,
 
-swport.swportid AS swportid,
-swport.interface  AS interface,
+interface_swport.interfaceid AS swportid,
+interface_swport.ifname  AS interface,
 swport_netbox.sysname AS sysname,
 swport_netbox.netboxid AS netboxid,
-swport.ifindex AS ifindex,
+interface_swport.ifindex AS ifindex,
 
 2 AS layer,
 path ||'/'|| filename AS rrdfile,
@@ -95,74 +92,26 @@ NULL AS from_swportid,
 NULL AS gwportid,
 vlan.*
 
-FROM gwport
- JOIN module ON (gwport.moduleid = module.moduleid)
+FROM interface_gwport
  JOIN netbox USING (netboxid)
-
- LEFT JOIN gwportprefix ON (gwportprefix.gwportid = gwport.gwportid)
+ LEFT JOIN gwportprefix ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
  LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
  LEFT JOIN vlan USING (vlanid)
- LEFT JOIN rrd_file ON (key='gwport' AND value=gwport.gwportid::varchar)
+ LEFT JOIN rrd_file ON (key='gwport' AND value=interface_gwport.interfaceid::varchar)
 
- JOIN swport ON (swport.swportid = gwport.to_swportid)
- JOIN module AS swport_module ON (swport.moduleid = swport.moduleid)
- JOIN netbox AS swport_netbox ON (swport_module.netboxid = swport_netbox.netboxid)
+ JOIN interface_swport ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
+ JOIN netbox AS swport_netbox ON (interface_swport.netboxid = swport_netbox.netboxid)
 
-
- WHERE gwport.to_swportid IS NOT NULL AND gwport.to_swportid = swport.swportid AND swport_module.moduleid = swport.moduleid
-    """
-
-    layer_2_query_2 = """
-SELECT DISTINCT ON (from_sysname, sysname)
-swport.swportid AS from_swportid,
-swport.speed,
-swport.ifindex AS from_ifindex,
-swport.interface AS from_interface,
-netbox.sysname AS from_sysname,
-netbox.netboxid AS from_netboxid,
-swport.to_swportid AS to_swportid,
-2 AS layer,
-foo.*,
-vlan.*,
-path ||'/'|| filename AS rrdfile,
-NULL AS gwportid,
-NULL AS from_gwportid
-
-FROM swport
- JOIN module ON (swport.moduleid = module.moduleid)
- JOIN netbox USING (netboxid)
-
- JOIN (
-
- SELECT
- swport.swportid AS swportid,
- swport.speed,
- swport.ifindex AS ifindex,
- swport.interface AS interface,
- netbox.sysname AS sysname,
- netbox.netboxid AS netboxid
-
- FROM swport
-  JOIN module ON (swport.moduleid = module.moduleid)
-   JOIN netbox USING (netboxid)
-   ) AS foo ON (foo.swportid = to_swportid)
-
-
-LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
-LEFT JOIN vlan USING (vlanid)
-
-LEFT JOIN rrd_file  ON (key='swport' AND value=swport.swportid::varchar)
-
-ORDER BY from_sysname, sysname, swport.speed DESC
+ WHERE interface_gwport.to_interfaceid IS NOT NULL AND interface_gwport.to_interfaceid = interface_swport.interfaceid
     """
 
     layer_2_query_3 = """
 SELECT DISTINCT ON (from_sysname, sysname)
 
-swport.swportid AS from_swportid,
-swport.speed,
-swport.ifindex AS from_ifindex,
-swport.interface AS from_interface,
+interface_swport.interfaceid AS from_swportid,
+interface_swport.speed,
+interface_swport.ifindex AS from_ifindex,
+interface_swport.ifname AS from_interface,
 netbox.sysname AS from_sysname,
 netbox.netboxid AS from_netboxid,
 2 AS layer,
@@ -173,9 +122,7 @@ NULL AS gwportid,
 NULL AS from_gwportid,
 NULL AS to_swportid
 
-
-FROM swport
- JOIN module ON (swport.moduleid = module.moduleid)
+FROM interface_swport
  JOIN netbox USING (netboxid)
 
  JOIN (
@@ -184,47 +131,32 @@ FROM swport
 FROM netbox
    ) AS conn ON (conn.netboxid = to_netboxid)
 
-LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
+LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
 LEFT JOIN vlan USING (vlanid)
-LEFT JOIN rrd_file  ON (key='swport' AND value=swport.swportid::varchar)
+LEFT JOIN rrd_file  ON (key='swport' AND value=interface_swport.interfaceid::varchar)
 
-ORDER BY from_sysname, sysname, swport.speed DESC
+ORDER BY from_sysname, sysname, interface_swport.speed DESC
     """
 
     db_cursor.execute(layer_3_query)
     # Expect DictRows, but want to work with updateable dicts:
     results = [dict(row) for row in db_cursor.fetchall()]
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_1)
     results.extend([dict(row) for row in db_cursor.fetchall()])
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
-    db_cursor.execute(layer_2_query_2)
-    results.extend([dict(row) for row in db_cursor.fetchall()])
-    for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
     db_cursor.execute(layer_2_query_3)
     results.extend([dict(row) for row in db_cursor.fetchall()])
     for res in results:
-        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
-            assert False, str(res)
-        if 'from_swportid' not in res and 'from_gwportid' not in res:
-            assert False, str(res)
         if res['rrdfile']:
             data = get_rrd_link_load(res['rrdfile'])
             res['load'] = (data[0],data[1])
         else:
             res['load'] = (-1,-1)
+
+        # TODO: Update these when ipdevinfo is updated to use interfacetable
         if 'from_swportid' in res and res['from_swportid']:
             res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
         elif 'from_gwportid' in res and res['from_gwportid']:
             res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
-        else:
-            assert False, str(res)
 
         connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
         connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])

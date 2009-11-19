@@ -162,12 +162,46 @@ class networkDiscovery
 		Boks.boksType = boksType;
 
 		Set gwUplink = new HashSet();
-		rs = Database.query("SELECT DISTINCT ON (to_netboxid) to_netboxid FROM gwport WHERE to_netboxid IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT ON (to_netboxid) to_netboxid FROM interface_gwport WHERE to_netboxid IS NOT NULL");
 		while (rs.next()) {
 			gwUplink.add(rs.getString("to_netboxid"));
 		}
 
-		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.ifindex,swp_netbox.to_netboxid,swport.ifindex AS to_ifindex,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) LEFT JOIN gwportprefix ON (netbox.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) LEFT JOIN swport ON (swp_netbox.to_swportid=swport.swportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,swp_netbox.ifindex");
+		//rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.ifindex,swp_netbox.to_netboxid,swport.ifindex AS to_ifindex,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) LEFT JOIN gwportprefix ON (netbox.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) LEFT JOIN swport ON (swp_netbox.to_swportid=swport.swportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,swp_netbox.ifindex");
+		rs = Database.query(
+				"SELECT " +
+				"  swp_netbox.netboxid," +
+				"  catid," +
+				"  swp_netbox.ifindex," +
+				"  swp_netbox.to_netboxid," +
+				"  swport.ifindex AS to_ifindex," +
+				"  gwport.netboxid AS gwnetboxid " +
+				"FROM " +
+				"  swp_netbox " +
+				"JOIN " +
+				"  netbox USING (netboxid) " +
+				"LEFT JOIN " +
+				"  gwportprefix" +
+				"  ON (netbox.prefixid = gwportprefix.prefixid AND " +
+				"      (hsrp=true OR gwip::text IN (SELECT MIN(gwip::text) " +
+				"                                   FROM gwportprefix " +
+				"                                   GROUP BY prefixid " +
+				"                                   HAVING COUNT(DISTINCT hsrp) = 1)" +
+				"      )" +
+				"     ) " +
+				"LEFT JOIN " +
+				"  interface_gwport AS gwport " +
+				"  ON (gwport.interfaceid=gwportprefix.interfaceid) " +
+				"LEFT JOIN " +
+				"  interface_swport AS swport " +
+				"  ON (swp_netbox.to_interfaceid = swport.interfaceid) " +
+				"WHERE " +
+				"  gwportprefix.interfaceid IS NOT NULL OR " +
+				"  catid='GSW' " +
+				"ORDER BY " +
+				"  netboxid," +
+				"  swp_netbox.ifindex"
+				);
 
 
 
@@ -270,7 +304,7 @@ class networkDiscovery
 		ArrayList swport = new ArrayList();
 		HashMap swrecMap = new HashMap();
 		Map swrecSwportidMap = new HashMap();
-		rs = Database.query("SELECT swportid,netboxid,link,speed,duplex,ifindex,portname,to_netboxid,trunk,hexstring FROM swport JOIN module USING(moduleid) LEFT JOIN swportallowedvlan USING (swportid) ORDER BY netboxid,ifindex");
+		rs = Database.query("SELECT interfaceid,netboxid,link,speed,duplex,ifindex,ifalias as portname,to_netboxid,trunk,hexstring FROM interface_swport LEFT JOIN swportallowedvlan USING (interfaceid) ORDER BY netboxid,ifindex");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
 			HashMap hm = getHashFromResultSet(rs, rsmd);
@@ -278,7 +312,7 @@ class networkDiscovery
 			if (link == null || link.toLowerCase().equals("y")) swport.add(hm);
 			String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
 			swrecMap.put(key, hm);
-			swrecSwportidMap.put(rs.getString("swportid"), hm);
+			swrecSwportidMap.put(rs.getString("interfaceid"), hm);
 		}
 
 		if (DEBUG_OUT) outl("boksMp listing....<br>");
@@ -323,9 +357,9 @@ class networkDiscovery
 							"to_netboxid", bmp.boksbak.toString()
 						};
 						String[] condFields = {
-							"swportid", (String)swrec.get("swportid")
+							"interfaceid", (String)swrec.get("interfaceid")
 						};
-						Database.update("swport", updateFields, condFields);
+						Database.update("interface", updateFields, condFields);
 					}
 
 					String vlan = "non-s";
@@ -341,21 +375,21 @@ class networkDiscovery
 					Map swrecBak = (Map)swrecMap.get(bmp.hashKey());
 					if (swrecBak != null) {
 						swportbakOK = true;
-						String new_swportbak = (String)swrecBak.get("swportid");
-						String cur_swportbak = (String)swrec.get("to_swportid");
+						String new_swportbak = (String)swrecBak.get("interfaceid");
+						String cur_swportbak = (String)swrec.get("to_interfaceid");
 
 						if (cur_swportbak == null || !cur_swportbak.equals(new_swportbak)) {
 							String[] updateFields = {
-								"to_swportid", new_swportbak
+								"to_interfaceid", new_swportbak
 							};
 							String[] condFields = {
-								"swportid", (String)swrec.get("swportid")
+								"interfaceid", (String)swrec.get("interfaceid")
 							};
-							Database.update("swport", updateFields, condFields);
+							Database.update("interface", updateFields, condFields);
 						}
 					} else {
 						// Error!
-						outl("<font color=\"red\">ERROR:</font> Could not find record in swport,  boks("+bmp.boksbak+"): <b>" + boksNavn.get(bmp.boksbak) + "</b> Ifindex: <b>" + bmp.toIfindex + "</b> boksbak: <b>" + boksNavn.get(new Integer(boksid)) + "</b> ("+bmp.hashKey()+")<br>");
+						outl("<font color=\"red\">ERROR:</font> Could not find record in interface,  boks("+bmp.boksbak+"): <b>" + boksNavn.get(bmp.boksbak) + "</b> Ifindex: <b>" + bmp.toIfindex + "</b> boksbak: <b>" + boksNavn.get(new Integer(boksid)) + "</b> ("+bmp.hashKey()+")<br>");
 					}
 				}
 
@@ -384,10 +418,10 @@ class networkDiscovery
 									} else {
 										// Now we must insert a new record into swportallowedvlan
 										String[] fields = {
-											"swportid", (String)swrec.get("swportid"),
+											"interfaceid", (String)swrec.get("interfaceid"),
 											"hexstring", allowedVlanBak
 										};
-										if (DEBUG_OUT) outl("Inserting new record in swportallowedvlan, swportid: " + swrec.get("swportid") + " new hexstring: " + allowedVlanBak + "<br>");
+										if (DEBUG_OUT) outl("Inserting new record in swportallowedvlan, interfaceid: " + swrec.get("interfaceid") + " new hexstring: " + allowedVlanBak + "<br>");
 										boolean update = false;
 										try {
 											Database.insert("swportallowedvlan", fields);
@@ -397,7 +431,7 @@ class networkDiscovery
 										}
 										if (update) try {
 											outl("<font color=\"red\">ERROR:</font> swportallowedvlan seems to already have an empty record! Trying to update instead...<br>");
-											Database.update("UPDATE swportallowedvlan SET hexstring='"+allowedVlanBak+"' WHERE swportid='"+swrec.get("swportid")+"'");
+											Database.update("UPDATE swportallowedvlan SET hexstring='"+allowedVlanBak+"' WHERE interfaceid='"+swrec.get("interfaceid")+"'");
 										} catch (SQLException e) {
 											outl("<font color=\"red\">ERROR:</font> Cannot update swportallowedvlan, SQLException: " + e.getMessage() + "<br>");
 										}
@@ -409,10 +443,10 @@ class networkDiscovery
 										"hexstring", allowedVlanBak
 									};
 									String[] condFields = {
-										"swportid", (String)swrec.get("swportid")
+										"interfaceid", (String)swrec.get("interfaceid")
 									};
 									Database.update("swportallowedvlan", updateFields, condFields);
-									if (DEBUG_OUT) outl("Updated swportallowedvlan, swportid: " + condFields[0] + " old hexstring: " + allowedVlan + " new hexstring: " + allowedVlanBak + "<br>");
+									if (DEBUG_OUT) outl("Updated swportallowedvlan, interfaceid: " + condFields[0] + " old hexstring: " + allowedVlan + " new hexstring: " + allowedVlanBak + "<br>");
 								}
 							} else {
 								// Error, trunk<->non-trunk!
@@ -438,9 +472,9 @@ class networkDiscovery
 			String key = (String)me.getKey();
 			HashMap swrec = (HashMap)me.getValue();
 
-			String swportid = (String)swrec.get("swportid");
+			String swportid = (String)swrec.get("interfaceid");
 			String boksbak = (String)swrec.get("to_netboxid");
-			String swportbak = (String)swrec.get("to_swportid");
+			String swportbak = (String)swrec.get("to_interfaceid");
 
 			if (swportbak != null && swportbak.length() > 0) {
 				boolean reset = false;
@@ -457,13 +491,13 @@ class networkDiscovery
 					resetcnt++;
 					// Set fields to null
 					String[] updateFields = {
-						"to_swportid", "null"
+						"to_interfaceid", "null"
 					};
 					String[] condFields = {
-						"swportid", swportid
+						"interfaceid", swportid
 					};
-					Database.update("swport", updateFields, condFields);
-					if (DEBUG_OUT) outl("Want to reset swportbak(2) for swportid: " + swportid + "<br>");
+					Database.update("interface", updateFields, condFields);
+					if (DEBUG_OUT) outl("Want to reset boxbehind(2) for interfaceid: " + swportid + "<br>");
 					swportbak = null;
 				}
 			}
@@ -476,25 +510,25 @@ class networkDiscovery
 				resetcnt++;
 				String[] updateFields = {
 					"to_netboxid", "null",
-					"to_swportid", "null"
+					"to_interfaceid", "null"
 				};
 				String[] condFields = {
-					"swportid", swportid
+					"interfaceid", swportid
 				};
-				Database.update("swport", updateFields, condFields);
-				if (DEBUG_OUT) outl("Want to reset boksbak for swportid: " + swportid + "<br>");
+				Database.update("interface", updateFields, condFields);
+				if (DEBUG_OUT) outl("Want to reset boxbehind for interfaceid: " + swportid + "<br>");
 			}
 			else if (swportbak != null && swportbak.length() > 0) {
 				// Set fields to null
 				resetcnt++;
 				String[] updateFields = {
-					"to_swportid", "null"
+					"to_interfaceid", "null"
 				};
 				String[] condFields = {
-					"swportid", swportid
+					"interfaceid", swportid
 				};
-				Database.update("swport", updateFields, condFields);
-				if (DEBUG_OUT) outl("Want to reset swportbak for swportid: " + swportid + "<br>");
+				Database.update("interface", updateFields, condFields);
+				if (DEBUG_OUT) outl("Want to reset swportbehind for interfaceid: " + swportid + "<br>");
 			}
 
 		}
@@ -562,7 +596,7 @@ class networkDiscovery
 
 			outl("<tr>");
 			//outl("<td align=right>"+color1+ swrec.get("swportid") + color2+"</td>");
-			outl("<td align=right><a href=\"#" + swrec.get("swportid") + "\">" + swrec.get("swportid") + "</a></td>");
+			outl("<td align=right><a href=\"#" + swrec.get("interfaceid") + "\">" + swrec.get("interfaceid") + "</a></td>");
 			outl("<td align=right>"+color1+ swrec.get("netboxid") + color2+"</td>");
 			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
 			outl("<td>"+color1+ boksType.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
@@ -641,8 +675,8 @@ class networkDiscovery
 			String color1 = "<font color="+color+">";
 			String color2 = "</font>";
 
-			outl("<tr><a name=\"" + swrec.get("swportid") + "\">");
-			outl("<td align=right>"+color1+ swrec.get("swportid") + color2+"</td>");
+			outl("<tr><a name=\"" + swrec.get("interfaceid") + "\">");
+			outl("<td align=right>"+color1+ swrec.get("interfaceid") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("netboxid") + color2+"</td>");
 			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("speed") + color2+"</td>");
@@ -699,18 +733,18 @@ class networkDiscovery
 
 		// We start by setting boksbak (boxbehind) to null everywhere status='down', so we avoid loops
 		{
-			Database.update("UPDATE swport SET to_netboxid = NULL, to_swportid = NULL WHERE link!='y' AND to_netboxid IS NOT NULL");
+			Database.update("UPDATE interface SET to_netboxid = NULL, to_interfaceid = NULL WHERE ifoperstatus <> 1 AND to_netboxid IS NOT NULL");
 		}
 
 		// Find mapping for firewalled VLANs
 		Map fwVlanMap = new HashMap();
 		{
 			beginTime = System.currentTimeMillis();
-			ResultSet rs = Database.query("select vlan,netaddr from vlan join prefix using(vlanid) where vlan not in (select vlan from swport where vlan is not null) and nettype='lan' and prefixid in (select prefixid from arp where end_time='infinity' and mac not in (select mac from netboxmac))", true);
+			ResultSet rs = Database.query("select vlan,netaddr from vlan join prefix using(vlanid) where vlan not in (select vlan from interface where vlan is not null) and nettype='lan' and prefixid in (select prefixid from arp where end_time='infinity' and mac not in (select mac from netboxmac))", true);
 			while (rs.next()) {
 				String vlan = rs.getString("vlan");
 				String netaddr = rs.getString("netaddr");
-				ResultSet rs2 = Database.query("select cam.sysname,cam.netboxid,cam.ifindex,vlan from arp join cam using(mac) join swport on (moduleid in (select moduleid from module where module.netboxid=cam.netboxid) and swport.ifindex=cam.ifindex) where ip << '" + netaddr + "' and cam.end_time='infinity' and arp.end_time='infinity' and (trunk=false or trunk is null) and vlan > 1");
+				ResultSet rs2 = Database.query("select cam.sysname,cam.netboxid,cam.ifindex,vlan from arp join cam using(mac) join interface_swport AS swport on (swport.netboxid=cam.netboxid AND swport.ifindex=cam.ifindex) where ip << '" + netaddr + "' and cam.end_time='infinity' and arp.end_time='infinity' and (trunk=false or trunk is null) and vlan > 1");
 				if (rs2.next()) {
 					fwVlanMap.put(vlan, rs2.getString("vlan"));
 				}
@@ -718,7 +752,6 @@ class networkDiscovery
 			Database.free(rs);
 			if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms finding firewalled VLAN mappings (found " + fwVlanMap.size() + " mappings: " + fwVlanMap + ")<br>");
 		}
-		// select cam.sysname,cam.netboxid,cam.ifindex,vlan from arp join cam using(mac) join swport on (moduleid in (select moduleid from module where module.netboxid=cam.netboxid) and swport.ifindex=cam.ifindex) where ip << '129.241.23.0/26' and cam.end_time='infinity' and arp.end_time='infinity'and vlan > 1;
 
 		beginTime = System.currentTimeMillis();
 
@@ -744,22 +777,22 @@ class networkDiscovery
 
 		// Overview of which vlans are active on a swport connected to a gw
 		Map swportGwVlanMap = new HashMap();
-		rs = Database.query("SELECT DISTINCT to_swportid,vlan,gwportid FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) JOIN module USING(moduleid) WHERE to_swportid IS NOT NULL AND vlan IS NOT NULL");
-		while (rs.next()) swportGwVlanMap.put(rs.getString("to_swportid")+":"+rs.getString("vlan"), rs.getString("gwportid"));
+		rs = Database.query("SELECT DISTINCT to_interfaceid,vlan.vlan,interfaceid FROM interface JOIN gwportprefix USING(interfaceid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE to_interfaceid IS NOT NULL AND vlan.vlan IS NOT NULL");
+		while (rs.next()) swportGwVlanMap.put(rs.getString("to_interfaceid")+":"+rs.getString("vlan"), rs.getString("interfaceid"));
 
 		// Mapping from gwportid to the running vlanid and prefixid (needed for updating)
 		Map gwportVlanidMap = new HashMap();
-		rs = Database.query("SELECT DISTINCT gwportid,vlanid,netboxid FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) JOIN module USING(moduleid) WHERE to_swportid IS NOT NULL");
-		while (rs.next()) gwportVlanidMap.put(rs.getString("gwportid"), new String[] { rs.getString("vlanid"), rs.getString("netboxid") } );
+		rs = Database.query("SELECT DISTINCT interfaceid,vlanid,netboxid FROM interface JOIN gwportprefix USING(interfaceid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE to_interfaceid IS NOT NULL");
+		while (rs.next()) gwportVlanidMap.put(rs.getString("interfaceid"), new String[] { rs.getString("vlanid"), rs.getString("netboxid") } );
 
 		// Overview of which links:vlan are blocked by spanning tree
 		HashSet spanTreeBlocked = new HashSet();
-		rs = Database.query("SELECT swportid,vlan FROM swportblocked");
-		while (rs.next()) spanTreeBlocked.add(rs.getString("swportid")+":"+rs.getString("vlan"));
+		rs = Database.query("SELECT interfaceid,vlan FROM swportblocked");
+		while (rs.next()) spanTreeBlocked.add(rs.getString("interfaceid")+":"+rs.getString("vlan"));
 
 		// Overview of non-trunks going out from each box, per vlan
 		HashMap nontrunkVlan = new HashMap();
-		rs = Database.query("SELECT swportid,netboxid,to_netboxid,to_swportid,COALESCE(vlan,1) AS vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL");
+		rs = Database.query("SELECT interfaceid,netboxid,to_netboxid,to_interfaceid,COALESCE(vlan,1) AS vlan FROM interface_swport WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL");
 		while (rs.next()) {
 			HashMap nontrunkMap;
 			String key = rs.getString("netboxid")+":"+rs.getString("vlan");
@@ -768,16 +801,16 @@ class networkDiscovery
 				nontrunkVlan.put(key, nontrunkMap);
 			}
 			HashMap hm = new HashMap();
-			hm.put("swportid", rs.getString("swportid"));
+			hm.put("interfaceid", rs.getString("interfaceid"));
 			hm.put("netboxid", rs.getString("netboxid"));
 			hm.put("to_netboxid", rs.getString("to_netboxid"));
-			String toid = rs.getString("to_swportid") != null ? rs.getString("to_swportid") : rs.getString("to_netboxid");
+			String toid = rs.getString("to_interfaceid") != null ? rs.getString("to_interfaceid") : rs.getString("to_netboxid");
 			nontrunkMap.put(toid, hm);
 		}
 
 		// First, we need to retrieve an overview of which VLANs are allowed on each port
 		HashMap allowedVlan = new HashMap();
-		rs = Database.query("SELECT netboxid,swportid,module,port,to_netboxid,hexstring FROM swport JOIN module USING(moduleid) JOIN swportallowedvlan USING (swportid) WHERE to_netboxid IS NOT NULL ORDER BY to_netboxid");
+		rs = Database.query("SELECT interface_swport.netboxid,interfaceid,module.name as module_name,baseport,to_netboxid,hexstring FROM interface_swport LEFT JOIN module USING(moduleid) JOIN swportallowedvlan USING (interfaceid) WHERE to_netboxid IS NOT NULL ORDER BY to_netboxid");
 
 		while (rs.next()) {
 			HashMap boksAllowedMap;
@@ -787,10 +820,10 @@ class networkDiscovery
 				allowedVlan.put(boksid, boksAllowedMap);
 			}
 			HashMap hm = new HashMap();
-			hm.put("swportid", rs.getString("swportid"));
+			hm.put("interfaceid", rs.getString("interfaceid"));
 			hm.put("netboxid", rs.getString("netboxid"));
-			hm.put("module", rs.getString("module"));
-			hm.put("port", rs.getString("port"));
+			hm.put("module", rs.getString("module_name"));
+			hm.put("port", rs.getString("baseport"));
 			hm.put("to_netboxid", rs.getString("to_netboxid"));
 			hm.put("hexstring", rs.getString("hexstring"));
 
@@ -803,7 +836,7 @@ class networkDiscovery
 		// We use a HashMap of HashSets
 		HashMap activeVlan = new HashMap();
 		// VLAN is active on port, even if port is down, and we must include the VLAN of the IP address of the box itself 
-		rs = Database.query("SELECT DISTINCT swportid,netboxid,COALESCE(vlan,1) AS vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NULL");
+		rs = Database.query("SELECT DISTINCT interfaceid,netboxid,COALESCE(vlan,1) AS vlan FROM interface_swport WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NULL");
 		while (rs.next()) {
 			Map m;
 			String netboxid = rs.getString("netboxid");
@@ -811,7 +844,7 @@ class networkDiscovery
 			
 			Set s;
 			if ((s = (Set)m.get(new Integer(rs.getInt("vlan")))) == null) m.put(new Integer(rs.getInt("vlan")), s = new HashSet());
-			s.add(rs.getString("swportid"));
+			s.add(rs.getString("interfaceid"));
 		}
 
 		// The VLAN of the netbox' IP should also be added to activeVlan
@@ -827,22 +860,22 @@ class networkDiscovery
 
 		// Mapping of which swport is connected to another swport
 		HashMap swportidMap = new HashMap();
-		rs = Database.query("SELECT swportid,COALESCE(vlan,1) AS vlan,to_swportid FROM swport WHERE (trunk='f' OR trunk IS NULL) AND to_swportid IS NOT NULL");
+		rs = Database.query("SELECT interfaceid,COALESCE(vlan,1) AS vlan,to_interfaceid FROM interface_swport WHERE (trunk='f' OR trunk IS NULL) AND to_interfaceid IS NOT NULL");
 		while (rs.next()) {
 			HashMap hm = new HashMap();
 			hm.put("vlan", rs.getString("vlan"));
-			hm.put("to_swportid", rs.getString("to_swportid"));
-			swportidMap.put(rs.getString("swportid"), hm);
+			hm.put("to_interfaceid", rs.getString("to_interfaceid"));
+			swportidMap.put(rs.getString("interfaceid"), hm);
 		}
 
-		// Mapping of which VLAN that runs between two boxes where we do not have to_swportid
+		// Mapping of which VLAN that runs between two boxes where we do not have to_interfaceid
 		Map nbvlanMap = new HashMap();
 		dataStructs.put("nbvlanMap", nbvlanMap);
-		rs = Database.query("SELECT netboxid,to_netboxid,COALESCE(vlan,1) AS vlan FROM module JOIN swport USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND to_swportid IS NULL ORDER BY netboxid");
+		rs = Database.query("SELECT netboxid,to_netboxid,COALESCE(vlan,1) AS vlan FROM interface_swport WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND to_interfaceid IS NULL ORDER BY netboxid");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("to_netboxid");
 			if (nbvlanMap.containsKey(key)) {
-				outl("<font color=red>WARNING</font>: Multiple links between <b>"+boksName.get(rs.getString("netboxid"))+"</b> and <b>"+boksName.get(rs.getString("to_netboxid"))+" without exact swport knowledge (swportid)</b><br>");
+				outl("<font color=red>WARNING</font>: Multiple links between <b>"+boksName.get(rs.getString("netboxid"))+"</b> and <b>"+boksName.get(rs.getString("to_netboxid"))+" without exact swport knowledge (interfaceid)</b><br>");
 			} else {
 				nbvlanMap.put(key, rs.getString("vlan"));
 			}
@@ -853,13 +886,13 @@ class networkDiscovery
 		Map swportidVlanMap = new HashMap();
 		Set swportidVlanDupeSet = new HashSet();
 		dataStructs.put("swportidVlanMap", swportidVlanMap);
-		rs = Database.query("SELECT swportid,vlanid,COUNT(*) AS count FROM module JOIN swport USING(moduleid) JOIN cam ON (module.netboxid = cam.netboxid AND swport.ifindex = cam.ifindex and cam.end_time = 'infinity') JOIN arp ON (cam.mac = arp.mac AND arp.end_time = 'infinity') JOIN prefix ON (arp.prefixid = prefix.prefixid) JOIN vlan USING(vlanid) WHERE (trunk='f' OR trunk IS NULL) GROUP BY swportid,vlanid ORDER BY swportid,count DESC");
+		rs = Database.query("SELECT interfaceid,vlanid,COUNT(*) AS count FROM interface_swport AS swport JOIN cam ON (swport.netboxid = cam.netboxid AND swport.ifindex = cam.ifindex and cam.end_time = 'infinity') JOIN arp ON (cam.mac = arp.mac AND arp.end_time = 'infinity') JOIN prefix ON (arp.prefixid = prefix.prefixid) JOIN vlan USING(vlanid) WHERE (trunk='f' OR trunk IS NULL) GROUP BY interfaceid,vlanid ORDER BY interfaceid,count DESC");
 		while (rs.next()) {
-			String key = rs.getString("swportid")+":"+rs.getString("vlanid");
+			String key = rs.getString("interfaceid")+":"+rs.getString("vlanid");
 			if (swportidVlanDupeSet.add(key)) {
-				swportidVlanMap.put(rs.getString("swportid"), rs.getString("vlanid"));
+				swportidVlanMap.put(rs.getString("interfaceid"), rs.getString("vlanid"));
 			} else {
-				outl("<font color=red>WARNING</font>: Multiple VLANs detected behind non-trunk port (swportid="+rs.getString("swportid")+", vlanid="+rs.getString("vlanid")+")<br>");
+				outl("<font color=red>WARNING</font>: Multiple VLANs detected behind non-trunk port (interfaceid="+rs.getString("interfaceid")+", vlanid="+rs.getString("vlanid")+")<br>");
 			}
 		}
 
@@ -869,7 +902,7 @@ class networkDiscovery
 		outl("<pre>");
 
 		beginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT DISTINCT module.netboxid,vlanid,vlan.vlan,sysname,gwportid,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) JOIN gwport USING(gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
+		rs = Database.query("SELECT DISTINCT netbox.netboxid,vlanid,vlan.vlan,sysname,gwport.interfaceid,gwport.to_netboxid,gwport.to_interfaceid,swport.trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) JOIN interface_gwport AS gwport USING(interfaceid) JOIN netbox USING (netboxid) LEFT JOIN interface_swport AS swport ON (gwport.to_interfaceid=swport.interfaceid) LEFT JOIN swportallowedvlan ON (swport.interfaceid = swportallowedvlan.interfaceid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
 
 		Set vlansWithRouter = new HashSet();
 		while (rs.next()) {
@@ -898,7 +931,7 @@ class networkDiscovery
 			String netaddr = "NA";
 			String boksbak = rs.getString("to_netboxid");
 			if (boksbak == null || boksbak.length() == 0) boksbak = boksid; // Spesialtilfelle for GSW enheter
-			String swportbak = rs.getString("to_swportid");
+			String swportbak = rs.getString("to_interfaceid");
 			boolean cameFromTrunk = rs.getBoolean("trunk");
 			String hexstring = rs.getString("hexstring");
 			if (DEBUG_OUT) outl("\n<b>NEW VLAN: " + vlan + "</b> (netaddr: <b>"+netaddr+"</b>)<br>");
@@ -941,7 +974,7 @@ class networkDiscovery
 					foundGwSet.add(gwNetboxid+":"+vlanid);
 					if (vlanid != Integer.parseInt(oldVlanid)) {
 						// Swap in prefix
-						Database.update("UPDATE prefix SET vlanid="+vlanid+" WHERE prefixid IN (SELECT prefixid FROM gwportprefix WHERE gwportid="+gwportid+")");
+						Database.update("UPDATE prefix SET vlanid="+vlanid+" WHERE prefixid IN (SELECT prefixid FROM gwportprefix WHERE interfaceid="+gwportid+")");
 					}
 				}
 			}
@@ -1024,7 +1057,7 @@ class networkDiscovery
 			Iterator iter2 = boksAllowedMap.values().iterator();
 			while (iter2.hasNext()) {
 				HashMap hm = (HashMap)iter2.next();
-				String swportid = (String)hm.get("swportid");
+				String swportid = (String)hm.get("interfaceid");
 				String hexstring = (String)hm.get("hexstring");
 
 				HashSet activeVlanOnTrunk = (HashSet)activeOnTrunk.get(swportid);
@@ -1099,11 +1132,11 @@ class networkDiscovery
 		HashMap swportvlan = new HashMap();
 		HashMap swportvlanNontrunk = new HashMap();
 		HashMap swportvlanDupe = new HashMap();
-		String sql = "SELECT swportvlanid,swportid,vlanid,direction,trunk FROM swportvlan JOIN swport USING (swportid)";
+		String sql = "SELECT swportvlanid,interfaceid,vlanid,direction,trunk FROM swportvlan JOIN interface_swport USING (interfaceid)";
 		ResultSet rs = Database.query(sql);
 		HashSet reportMultipleVlan = new HashSet();
 		while (rs.next()) {
-			String swportid = rs.getString("swportid");
+			String swportid = rs.getString("interfaceid");
 			String key = swportid+":"+rs.getString("vlanid");
 			swportvlanDupe.put(key, rs.getString("direction") );
 			swportvlan.put(key, rs.getString("swportvlanid") );
@@ -1111,7 +1144,7 @@ class networkDiscovery
 			if (!rs.getBoolean("trunk")) {
 				if (swportvlanNontrunk.containsKey(swportid)) {
 					if (!reportMultipleVlan.contains(swportid)) {
-						outl("<font color=\"red\">ERROR!</font> Multiple vlans for non-trunk port, swportid: " + key + "<br>");
+						outl("<font color=\"red\">ERROR!</font> Multiple vlans for non-trunk port, interfaceid: " + key + "<br>");
 						reportMultipleVlan.add(swportid);
 					}
 					continue;
@@ -1143,11 +1176,11 @@ class networkDiscovery
 						"direction", direction
 					};
 					String[] condFields = {
-						"swportid", swportid,
+						"interfaceid", swportid,
 						"vlanid", vlanid
 					};
 					Database.update("swportvlan", updateFields, condFields);
-					outl("[UPD] swportid: " + swportid + " vlan: <b>"+ vlan +"</b> Direction: <b>" + direction + "</b> (old: "+dbRetning+")<br>");
+					outl("[UPD] interfaceid: " + swportid + " vlan: <b>"+ vlan +"</b> Direction: <b>" + direction + "</b> (old: "+dbRetning+")<br>");
 					updcnt++;
 				} else {
 					dupcnt++;
@@ -1161,7 +1194,7 @@ class networkDiscovery
 				if (swportvlanNontrunk.containsKey(swportid)) {
 					// Yep, let's just update
 					updcnt++;
-					outl("[UPD] swportid: " + swportid + " vlan: <b>"+ vlan +"</b> Direction: <b>" + direction + "</b> (renamed)<br>");
+					outl("[UPD] interfaceid: " + swportid + " vlan: <b>"+ vlan +"</b> Direction: <b>" + direction + "</b> (renamed)<br>");
 
 					String swportvlanid = (String)swportvlanNontrunk.get(swportid);
 					String[] updateFields = {
@@ -1178,11 +1211,11 @@ class networkDiscovery
 					// swportvlan does not already contain this entry, so we must insert it. 
 					newcnt++;
 					swportvlanDupe.put(key, direction);
-					outl("[NEW] swportid: " + swportid + " vlan: <b>"+ vlan +"</b> Retning: <b>" + direction + "</b><br>");
+					outl("[NEW] interfaceid: " + swportid + " vlan: <b>"+ vlan +"</b> Retning: <b>" + direction + "</b><br>");
 
 					// Insert into swportvlan
 					String[] fields = {
-						"swportid", swportid,
+						"interfaceid", swportid,
 						"vlanid", vlanid,
 						"direction", direction,
 					};
@@ -1222,7 +1255,7 @@ class networkDiscovery
 				if ("x".equals(direction) || "u".equals(direction)) continue;
 			}
 			
-			outl("[REM] swportid: " + swportid + " vlan: <b>"+ vlan +"</b> ("+swportvlanid+")<br>");
+			outl("[REM] interfaceid: " + swportid + " vlan: <b>"+ vlan +"</b> ("+swportvlanid+")<br>");
 			Database.update("DELETE FROM swportvlan WHERE swportvlanid = '"+swportvlanid+"'");
 		}
 
@@ -1282,7 +1315,7 @@ class networkDiscovery
 			while (iter.hasNext()) {
 				HashMap hm = (HashMap)iter.next();
 				String toid = (String)hm.get("to_netboxid");
-				String swportid = (String)hm.get("swportid");
+				String swportid = (String)hm.get("interfaceid");
 				String swportidBack = null;
 				
 				// We're not going to follow the link back anyway
@@ -1316,7 +1349,7 @@ class networkDiscovery
 				if (swportidMap.containsKey(swportid)) {
 					// Get the swport record and extract the to_swportid field from it
 					Map mySwrec = (Map)swportidMap.get(swportid);
-					swportidBack = (String)mySwrec.get("to_swportid");
+					swportidBack = (String)mySwrec.get("to_interfaceid");
 					Map swrecBack = (Map)swportidMap.get(swportidBack);
 					if (swrecBack != null) {
 						vlanBack = (String)swrecBack.get("vlan");
@@ -1381,7 +1414,7 @@ class networkDiscovery
 						continue;
 					}
 					
-					swportidBack = (String)hmBack.get("swportid");
+					swportidBack = (String)hmBack.get("interfaceid");
 				}
 				
 				// Now we can mark the VLAN as active also on the link back
@@ -1477,7 +1510,7 @@ class networkDiscovery
 					if (DEBUG_OUT) outl(pad+"---->ERROR! Link back not found for vlan: " + vlan + ", toid("+toid+"): " + boksName.get(toid) + ", level: " + level + "");
 					continue;
 				}
-				swportidBack = (String)hmBack.get("swportid");
+				swportidBack = (String)hmBack.get("interfaceid");
 
 				String hexstrBack = (String)hmBack.get("hexstring");
 				if (hexstrBack == null) {
@@ -1571,7 +1604,10 @@ class networkDiscovery
 	private static boolean isAllowedVlan(String hexstr, int vlan)
 	{
 		hexstr = hexstr.replaceAll(":", "");
-		if (hexstr.length() == 256 || hexstr.length() == 254) {
+		// This code used to say:
+		//   if (hexstr.length() == 256 || hexstr.length() == 254) {
+		// I don't know why the hell 254 was considered a magic value here, as none of the other redundant pieces of NAV code seem to think so.
+		if (hexstr.length() >= 256) {
 			return isAllowedVlanFwd(hexstr, vlan);
 		}
 		return isAllowedVlanRev(hexstr, vlan);
@@ -1579,7 +1615,7 @@ class networkDiscovery
 
 	private static boolean isAllowedVlanFwd(String hexstr, int vlan)
 	{
-		if (vlan < 0 || vlan > 1023) return false;
+		if (vlan < 0 || vlan > 4095) return false;
 		int index = vlan / 4;
 
 		int allowed = Integer.parseInt(String.valueOf(hexstr.charAt(index)), 16);

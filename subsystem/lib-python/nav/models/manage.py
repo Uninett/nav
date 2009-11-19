@@ -27,6 +27,7 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
+from nav.models.fields import DateTimeInfinityField
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -132,10 +133,10 @@ class Netbox(models.Model):
             return '(Invalid value in DB)'
 
     def get_gwports(self):
-        return GwPort.objects.filter(module__netbox=self)
+        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False).distinct()
 
     def get_swports(self):
-        return SwPort.objects.filter(module__netbox=self)
+        return Interface.objects.filter(netbox=self, baseport__isnull=False).distinct()
 
     def get_availability(self):
         from nav.models.rrd import RrdDataSource
@@ -190,19 +191,13 @@ class Netbox(models.Model):
     def get_uplinks(self):
         result = []
 
-        for swport in self.connected_to_swport.all():
-            if swport.swportvlan_set.filter(
+        for iface in self.connected_to_interface.all():
+            if iface.swportvlan_set.filter(
                 direction=SwPortVlan.DIRECTION_DOWN).count():
                 result.append({
-                    'other': swport,
-                    'this': swport.to_swport,
+                    'other': iface,
+                    'this': iface.to_interface,
                 })
-
-        for gwport in self.connected_to_gwport.all():
-            result.append({
-                'other': gwport,
-                'this': gwport.to_swport,
-            })
 
         return result
 
@@ -237,7 +232,7 @@ class Netbox(models.Model):
             ).exclude(
                 Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
                 Q(rrd_file__key__isnull=False,
-                    rrd_file__key__in=('swport', 'gwport'))
+                    rrd_file__key__in=('swport', 'gwport', 'interface'))
             ).order_by('description')
 
 class NetboxInfo(models.Model):
@@ -295,6 +290,7 @@ class Module(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
+    name = models.CharField(max_length=-1)
     model = models.CharField(max_length=-1)
     description = models.CharField(db_column='descr', max_length=-1)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
@@ -316,7 +312,7 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
-        return GwPort.objects.select_related(depth=2).filter(module=self)
+        return Interface.objects.select_related(depth=2).filter(module=self, gwportprefix__isnull=False)
 
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
@@ -329,7 +325,7 @@ class Module(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return SwPort.objects.select_related(depth=2).filter(module=self)
+        return Interface.objects.select_related(depth=2).filter(module=self, baseport__isnull=False)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -582,7 +578,7 @@ class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
 
-    gwport = models.ForeignKey('GwPort', db_column='gwportid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
     hsrp = models.BooleanField(default=False)
@@ -599,7 +595,7 @@ class Prefix(models.Model):
     id = models.AutoField(db_column='prefixid', primary_key=True)
     # TODO: Create CIDRField in Django
     net_address = models.TextField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', db_column='vlanid', null=True)
+    vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
     class Meta:
         db_table = 'prefix'
@@ -682,8 +678,8 @@ class Arp(models.Model):
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = DateTimeInfinityField()
 
     class Meta:
         db_table = 'arp'
@@ -832,7 +828,7 @@ class SwPortVlan(models.Model):
     )
 
     id = models.AutoField(db_column='swportvlanid', primary_key=True)
-    swport = models.ForeignKey('SwPort', db_column='swportid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
         default=DIRECTION_UNDEFINED)
@@ -842,33 +838,33 @@ class SwPortVlan(models.Model):
         unique_together = (('swport', 'vlan'),)
 
     def __unicode__(self):
-        return u'%s, on vlan %s' % (self.swport, self.vlan)
+        return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
     """From MetaNAV: Stores a hexstring that has “hidden” information about the
     vlans that are allowed to traverse a given trunk."""
 
-    swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
+    interface = models.OneToOneField('Interface', db_column='interfaceid', primary_key=True)
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
 
     class Meta:
         db_table = 'swportallowedvlan'
 
     def __unicode__(self):
-        return u'Allowed vlan for swport %s' % self.swport
+        return u'Allowed vlan for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
     given vlan for a given switch port."""
 
-    swport = models.ForeignKey('SwPort', db_column='swportid', primary_key=True)
+    interface = models.ForeignKey('Interface', db_column='interfaceid', primary_key=True)
     # XXX: 'vlan' is not a foreignkey to the vlan table in the database, but
     # it should maybe be a foreign key.
     vlan = models.IntegerField()
 
     class Meta:
         db_table = 'swportblocked'
-        unique_together = (('swport', 'vlan'),) # Primary key
+        unique_together = (('interface', 'vlan'),) # Primary key
 
     def __unicode__(self):
         return '%d, at swport %s' % (self.vlan, self.swport)
@@ -883,7 +879,7 @@ class SwPortToNetbox(models.Model):
     ifindex = models.IntegerField()
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
         related_name='candidate_for_next_hop_set')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid', null=True,
+    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid', null=True,
         related_name='candidate_for_next_hop_set')
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
@@ -922,8 +918,8 @@ class Cam(models.Model):
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
     port = models.CharField(max_length=-1)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = DateTimeInfinityField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
@@ -935,3 +931,154 @@ class Cam(models.Model):
 
     def __unicode__(self):
         return u'%s, %s' % (self.mac, self.netbox)
+
+
+#######################################################################
+### Interfaces and related attributes
+
+class Interface(models.Model):
+    """The network interfaces, both physical and virtual, of a Netbox."""
+
+    DUPLEX_FULL = 'f'
+    DUPLEX_HALF = 'h'
+    DUPLEX_CHOICES = (
+        (DUPLEX_FULL, 'full duplex'),
+        (DUPLEX_HALF, 'half duplex'),
+    )
+
+    id = models.AutoField(db_column='interfaceid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    module = models.ForeignKey('Module', db_column='moduleid', null=True)
+    ifindex = models.IntegerField()
+    ifname = models.CharField(max_length=-1)
+    ifdescr = models.CharField(max_length=-1)
+    iftype = models.IntegerField()
+    speed = models.FloatField()
+    ifphysaddress = models.CharField(max_length=17, null=True)
+    ifadminstatus = models.IntegerField()
+    ifoperstatus = models.IntegerField()
+    iflastchange = models.IntegerField()
+    ifconnectorpresent = models.BooleanField()
+    ifpromiscuousmode = models.BooleanField()
+    ifalias = models.CharField(max_length=-1)
+
+    baseport = models.IntegerField()
+    media = models.CharField(max_length=-1, null=True)
+    vlan = models.IntegerField()
+    trunk = models.BooleanField()
+    duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES, null=True)
+
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
+        related_name='connected_to_interface')
+    to_interface = models.ForeignKey('self', db_column='to_interfaceid', null=True,
+        related_name='connected_to_interface')
+
+    gone_since = models.DateTimeField()
+
+    class Meta:
+        db_table = u'interface'
+        ordering = ('baseport', 'ifname')
+
+    def __unicode__(self):
+        return u'%s at %s' % (self.get_identifier_string(), self.netbox)
+
+    def get_absolute_url(self):
+        kwargs={
+            'netbox_sysname': self.netbox.sysname,
+            'interface_id': self.id,
+        }
+        return reverse('ipdevinfo-interface-details', kwargs=kwargs)
+
+    def get_interface_display(self):
+        return self.ifname
+
+    def get_identifier_string(self):
+        if self.get_interface_display() is not None:
+            return self.get_interface_display()
+        elif self.ifindex is not None:
+            return str(self.ifindex)
+        else:
+            return 'N/A'
+
+    def get_vlan_numbers(self):
+        """List of VLAN numbers related to the port"""
+
+        # XXX: This causes a DB query per port
+        vlans = [swpv.vlan.vlan
+            for swpv in self.swportvlan_set.select_related(depth=1)]
+        if self.vlan is not None and self.vlan not in vlans:
+            vlans.append(self.vlan)
+        vlans.sort()
+        return vlans
+
+    def get_last_cam_record(self):
+        return self.netbox.cam_set.filter(ifindex=self.ifindex).latest(
+            'end_time')
+
+    def get_active_time(self, interval):
+        """
+        Time since last CAM activity on port, looking at CAM entries
+        for the last ``interval'' days.
+
+        Returns None if no activity is found, else number of days since last
+        activity as a datetime.timedelta object.
+        """
+
+        # Create cache dictionary
+        # FIXME: Replace with real Django caching
+        if not hasattr(self, 'time_since_activity_cache'):
+             self.time_since_activity_cache = {}
+
+        # Check cache for result
+        if interval in self.time_since_activity_cache:
+            return self.time_since_activity_cache[interval]
+
+        min_time = dt.datetime.now() - dt.timedelta(days=interval)
+        try:
+            # XXX: This causes a DB query per port
+            # Use .values() to avoid creating additional objects we do not need
+            last_cam_entry_end_time = self.netbox.cam_set.filter(
+                ifindex=self.ifindex, end_time__gt=min_time).order_by(
+                '-end_time').values('end_time')[0]['end_time']
+        except (Cam.DoesNotExist, IndexError):
+            # Inactive/not in use
+            return None
+
+        if last_cam_entry_end_time == dt.datetime.max:
+            # Active now
+            self.time_since_activity_cache[interval] = dt.timedelta(days=0)
+        else:
+            # Active some time inside the given interval
+            self.time_since_activity_cache[interval] = \
+                dt.datetime.now() - last_cam_entry_end_time
+
+        return self.time_since_activity_cache[interval]
+
+    def get_rrd_data_sources(self):
+        """Returns all relevant RRD data sources"""
+
+        from nav.models.rrd import RrdDataSource
+        return RrdDataSource.objects.filter(
+                rrd_file__key='interface', rrd_file__value=str(self.id)
+            ).order_by('description')
+
+
+class IanaIftype(models.Model):
+    """IANA-registered iftype values"""
+    iftype = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=-1)
+    descr = models.CharField(max_length=-1)
+
+    class Meta:
+        db_table = u'iana_iftype'
+
+
+class RoutingProtocolAttribute(models.Model):
+    """Routing protocol metric as configured on a routing interface"""
+    id = models.IntegerField(primary_key=True)
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    name = models.CharField(db_column='protoname', max_length=-1)
+    metric = models.IntegerField()
+
+    class Meta:
+        db_table = u'rproto_attr'

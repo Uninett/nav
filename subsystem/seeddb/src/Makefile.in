@@ -13,7 +13,7 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 templates = seeddbTemplate.py
-files = seeddb.py seeddbSQL.py seeddbTables.py initBox.py .htaccess
+files = seeddb.py seeddbSQL.py options.py initBox.py .htaccess
 conffiles = seeddb.conf
 
 .PHONY: all install install-lib install-bin install-web clean distclean install-conf

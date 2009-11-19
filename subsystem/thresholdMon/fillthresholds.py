@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: ISO8859-1 -*-
 # $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
@@ -30,22 +29,27 @@ of NAV-v3, but may be done several times if there is a reason
 for that. The script will not overwrite any set thresholds.
 """
 
-import forgetSQL
 import re
-import nav.db.forgotten
 import nav.path
-from nav import db
+from nav.db import getConnection
 
-conn = db.getConnection('thresholdmon','manage')
+conn = getConnection('default')
+c = conn.cursor()
 
-from nav.db import manage
-
-def setData (datasource,threshold,max):
+def setData (threshold, max, datasourceid):
     datasource.threshold = threshold
     datasource.max = max
     datasource.delimiter = ">"
     datasource.thresholdstate = "inactive"
-    datasource.save()
+
+    sql = """
+    UPDATE rrd_datasource SET 
+    threshold = %s, max = %s, delimiter = %s thresholdstate = %s 
+    WHERE rrd_datasourceid = %s
+    """
+
+    c.execute(sql, (threshold, max, ">", "inactive", datasourceid))
+    conn.commit()
 
 def openFile (file):
     try:
@@ -69,30 +73,33 @@ if handle:
 
     handle.close()
     
+query = """
+  SELECT rrd_datasourceid, key, value, descr, units FROM rrd_file
+  JOIN rrd_datasource USING (rrd_fileid)
+  WHERE threshold IS NULL
+"""
 
-for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"):
-    if datasource.units == '%' or datasource.units == '-%':
-        print "Found percent %s: %s, setting threshold=%s, max=100" %(datasource.descr,datasource.units, default)
-        setData(datasource,default,"100")
-    elif re.compile("octets",re.I).search(datasource.descr):
+c.execute(query)
+
+for datasourceid, key, value, descr, units in c.fetchall():
+    if units == '%' or units == '-%':
+        print "Found percent %s: %s, setting threshold=%s, max=100" \
+            %(descr, units, default)
+        setData(default, "100", datasourceid)
+    elif re.compile("octets",re.I).search(descr):
         # Finds the speed of the interface
-        rrdfile = datasource.rrd_file
-
-	if (rrdfile.key == 'swport'):
-            port = manage.Swport(rrdfile.value)
-	else:
-	    port = manage.Gwport(rrdfile.value)
-
-        try:
-            port.load()
-        except forgetSQL.NotFound:
+        if key != 'interface':
             continue
 
-        if port.speed:
-            speed = int(port.speed * 2 ** 20)
+        interfaceid = value
+
+        port = "SELECT speed FROM interface WHERE interfaceid = %s"
+        c.execute(port, (interfaceid,))
+
+        speed = c.fetchone()[0]
+        if speed:
+            speed = int(speed * 2 ** 20)
         
-        print "Found octets: %s, setting threshold to %s, max=%s" %(datasource.descr, default+"%", speed);
-        setData(datasource,default+"%",speed)        
-    else:
-	pass
-        
+        print "Found octets: %s, setting threshold to %s, max=%s" \
+            %(datasource.descr, default+"%", speed);
+        setData(default+"%", speed, datasourceid)
