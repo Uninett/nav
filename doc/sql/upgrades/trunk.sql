@@ -49,6 +49,9 @@ ALTER TABLE org ADD CONSTRAINT org_parent_fkey
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
+-- Try to provide consistency between code and db names.
+ALTER TABLE alertsubscription RENAME ignore_closed_alerts TO ignore_resolved_alerts;
+
 -- New consolidated interface table
 -- See MIB-II, IF-MIB, RFC 1229
 CREATE TABLE manage.interface (

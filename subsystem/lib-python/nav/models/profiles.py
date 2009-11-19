@@ -500,7 +500,7 @@ class AlertSubscription(models.Model):
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
-    ignore_closed_alerts = models.BooleanField()
+    ignore_resolved_alerts = models.BooleanField()
 
     class Meta:
         db_table = u'alertsubscription'
