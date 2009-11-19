@@ -24,6 +24,7 @@ prefix = @prefix@
 bindir = @bindir@
 libdir = @libdir@
 exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
 sysconfdir = @sysconfdir@
 initdir = @initdir@
 localstatedir = @localstatedir@
@@ -31,12 +32,14 @@ tooldir = @tooldir@
 pythonlibdir = @pythonlibdir@
 djangotmpldir = @djangotmpldir@
 webroot = @webroot@
+docdir = @docdir@
 
 # Files
 INITFILES =
 BINS = mailin.py
 LIBS = $(wildcard nav/mailin/*.py nav/mailin/plugins/*.py)
 CONFFILES = mailin.conf 
+DOCFILES = README $(wildcard config/*/*)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf uninstall clean distclean
 
@@ -46,7 +49,7 @@ bin:
 conf:
 web:
 
-install: all install-lib install-bin install-conf
+install: all install-lib install-bin install-conf install-doc
 
 install-lib: lib $(TEMPLATES)
 	for file in $(LIBS) $(TEMPLATES); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
@@ -63,6 +66,11 @@ install-conf: conf
 		else \
 			$(INSTALL) -v -D -m 644 config/$$file $$target || exit 1; \
 		fi \
+	done
+
+install-doc:
+	@for file in $(DOCFILES); do \
+	  $(INSTALL) -v -m 644 -D $$file $(DESTDIR)$(docdir)/mailin/$$file || exit 1; \
 	done
 
 uninstall:
