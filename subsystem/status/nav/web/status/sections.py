@@ -27,8 +27,6 @@ from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
 from nav.models.manage import Netbox, Module, Category, Organization
 
-from nav.web.status.filters import OrganizationFilter, CategoryFilter, \
-    StateFilter, ServiceFilter
 from nav.web import serviceHelper
 
 MAINTENANCE_STATE = 'maintenanceState'
