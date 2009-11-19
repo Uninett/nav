@@ -70,3 +70,31 @@ def make_default_preferences(account):
             services=section.services,
             states=section.states,
         )
+
+#def convert_old_preferences(account):
+#    ALL_SELECTED = 'all_selected_tkn'
+#
+#    preferences = AccountProperty.objects.filter(
+#        account=account,
+#        property='statusprefs',
+#    )
+#    for p in preferences:
+#        data = cPickle.loads(p.value.encode('utf-8'))
+#        (iDunno, type, name, prefs) = data
+#        organizations = prefs.get('orgid', [])
+#        categories = prefs.get('catid', [])
+#        services = prefs.get('handler', None)
+#        states = prefs.get('states', None)
+#
+#        section = StatusPreference(
+#            name=name,
+#            type=type,
+#            account=account,
+#        )
+#
+#        if services and services[0] != ALL_SELECTED:
+#            section.services = ",".join(services)
+#        if states and states[0] != ALL_SELECTED:
+#            section.states = ",".join(states)
+#
+#        section.save()
