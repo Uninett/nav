@@ -86,15 +86,12 @@ def login(request):
         return do_login(request)
 
     origin = request.GET.get('origin', '').strip()
-    if isinstance(origin, unicode):
-        origin = origin.encode('utf-8')
     return direct_to_template(
         request,
         'webfront/login.html',
         {
             'form': LoginForm(),
-            'displayed_origin': origin,
-            'origin': quote(origin),
+            'origin': origin,
         }
     )
 
@@ -102,7 +99,7 @@ def do_login(request):
     # FIXME Log stuff?
     errors = []
     form = LoginForm(request.POST)
-    origin = unquote(request.POST.get('origin', '').strip())
+    origin = request.POST.get('origin', '').strip()
 
     if form.is_valid():
         username = form.cleaned_data['username']
