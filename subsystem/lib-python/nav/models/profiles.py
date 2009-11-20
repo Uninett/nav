@@ -1047,7 +1047,7 @@ class StatusPreference(models.Model):
         Category, db_table='statuspreference_category', blank=True)
 
     services = models.TextField(blank=True)
-    states = models.TextField(blank=True)
+    states = models.TextField()
 
     class Meta:
         db_table = u'statuspreference'
