@@ -46,7 +46,7 @@ from urllib import unquote
 
 from nav.django.shortcuts import render_to_response, object_list
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan
+from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
 from nav.models.service import Service
 
 from nav.web.templates.NetworkExplorerTemplate import NetworkExplorerTemplate
@@ -73,7 +73,7 @@ def expand_router(request):
     """
     router = get_object_or_404(Netbox, id=request.REQUEST['netboxid'])
     gwports = router.get_gwports()
-    interface_names = [p.interface for p in gwports]
+    interface_names = [p.ifname for p in gwports]
     unsorted = dict(zip(interface_names, gwports))
     interface_names.sort(key=nav.natsort.split)
     sorted_ports = [unsorted[i] for i in interface_names]
@@ -81,30 +81,30 @@ def expand_router(request):
     for gwport in sorted_ports:
         gwport.prefixes = []
         # Check if the port is expandable
-        gpp = GwPortPrefix.objects.filter(gwport__id=gwport.id).exclude(prefix__vlan__net_type='static')
+        gpp = GwPortPrefix.objects.filter(interface__id=gwport.id).exclude(prefix__vlan__net_type='static')
         for prefix in gpp:
             netmask_pos = prefix.prefix.net_address.find('/')
             netmask = prefix.prefix.net_address[netmask_pos:]
             prefix.display_addr = prefix.gw_ip + netmask
             gwport.prefixes.append(prefix)
 
-            vlans = prefix.prefix.vlan.swportvlan_set.exclude(vlan__net_type='static').filter(swport__module__netbox=gwport.module.netbox)
+            vlans = prefix.prefix.vlan.swportvlan_set.exclude(vlan__net_type='static').filter(interface__netbox=gwport.netbox)
             for vlan in vlans:
-                if vlan.swport.swportblocked_set.filter(vlan=vlan.vlan.vlan).count() < 1:
+                if not vlan.interface.swportblocked_set.filter(vlan=vlan.vlan.vlan).count():
                     gwport.has_children = True
 
         gwport.prefixes.sort()
         if gwport.to_netbox:
             continue
-        if gwport.to_swport and gwport.to_swport.module.netbox:
-            gwport.to_netbox = gwport.to_swport.module.netbox
+        if gwport.to_interface:
+            gwport.to_netbox = gwport.to_interface.netbox
             continue
         # Find connection trough prefixes
         try:
             for gwprefix in gwport.gwportprefix_set.exclude(prefix__vlan__net_type='static'):
                 for prefix in prefix.gwportprefix_set.all().exclude(
-                        gwport=gwport, prefix__vlan_net_type='static'):
-                    gwport.to_netbox = prefix.gwport.module.netbox
+                        interface=gwport, prefix__vlan_net_type='static'):
+                    gwport.to_netbox = prefix.interface.netbox
                     raise StopIteration # Ugly hack since python doesnt support labeled breaks
         except:
             continue
@@ -118,7 +118,7 @@ def expand_router(request):
 def expand_gwport(request):
     """
     """
-    gwport = get_object_or_404(GwPort, id=request.REQUEST['gwportid'])
+    gwport = get_object_or_404(Interface, id=request.REQUEST['gwportid'])
     sys.stderr.write("Expanding gwport %s\n" % gwport)
     sys.stderr.flush()
     vlans = []
@@ -130,66 +130,66 @@ def expand_gwport(request):
         sys.stderr.write("-- Scanning prefix %s\n" % prefix)
         sys.stderr.flush()
         for vlan in prefix.prefix.vlan.swportvlan_set.all().filter(
-                        swport__module__netbox=gwport.module.netbox
-                        ).order_by('swport__interface'):
+                        interface__netbox=gwport.netbox
+                        ).order_by('interface__ifname'):
 
             sys.stderr.write("--- Checking vlan %s\n" % vlan)
             sys.stderr.flush()
             # Check if port is spanningtreeblocked
             sys.stderr.write("---- Blocked: ")
-            if vlan.swport.swportblocked_set.filter(vlan=vlan.vlan.vlan).count() > 0:
+            if vlan.interface.swportblocked_set.filter(vlan=vlan.vlan.vlan).count():
                 sys.stderr.write(" yes. skipping this vlan\n")
                 sys.stderr.flush()
                 continue
             sys.stderr.write(" no.\n")
             sys.stderr.flush()
             if vlan and not vlan in vlans:
-                vlan.swport.has_children = False
+                vlan.interface.has_children = False
                 sys.stderr.write("---- Checking for services\n")
                 sys.stderr.flush()
-                if vlan.swport.to_netbox and vlan.swport.to_netbox.service_set.all().count() > 0:
-                    sys.stderr.write("----- Netbox %s has services\n" % vlan.swport.to_netbox)
+                if vlan.interface.to_netbox and vlan.interface.to_netbox.service_set.all().count() > 0:
+                    sys.stderr.write("----- Netbox %s has services\n" % vlan.interface.to_netbox)
                     sys.stderr.flush()
-                    vlan.swport.has_children = True
-                    vlan.swport.has_services = True
+                    vlan.interface.has_children = True
+                    vlan.interface.has_services = True
                 sys.stderr.write("---- Checking for cam-entries\n")
                 sys.stderr.flush()
                 a= Cam.objects.filter(\
-                        netbox=vlan.swport.module.netbox,\
-                        ifindex=vlan.swport.ifindex,\
+                        netbox=vlan.interface.netbox,\
+                        ifindex=vlan.interface.ifindex,\
                         end_time__gt=datetime.datetime.max)
                 if a.count() > 0:
 
                     sys.stderr.write("----- Found cam-entry\n\n %s \n\n" % a.query)
                     sys.stderr.flush()
-                    vlan.swport.has_children = True
+                    vlan.interface.has_children = True
                 sys.stderr.write("---- Checking for connected swport\n")
                 sys.stderr.flush()
-                if vlan.swport.to_swport:
-                    sys.stderr.write("----- Found swport %s\n" % vlan.swport.to_swport)
+                if vlan.interface.to_interface:
+                    sys.stderr.write("----- Found swport %s\n" % vlan.interface.to_interface)
                     sys.stderr.flush()
-                    if vlan.swport.to_swport.module.netbox.category.id in ('SW','GSW','EDGE'):
-                        vlan.swport.has_children = True
-                        vlan.swport.connected_to_switch = True
-                    if vlan.swport.to_swport.module.netbox.service_set.all().count() > 0:
-                        vlan.swport.has_children = True
+                    if vlan.interface.to_interface.netbox.category.id in ('SW','GSW','EDGE'):
+                        vlan.interface.has_children = True
+                        vlan.interface.connected_to_switch = True
+                    if vlan.interface.to_interface.netbox.service_set.all().count():
+                        vlan.interface.has_children = True
                     if Cam.objects.filter( \
-                                                netbox=vlan.swport.to_swport.module.netbox, \
-                                                ifindex=vlan.swport.to_swport.ifindex,\
+                                                netbox=vlan.interface.to_interface.netbox, \
+                                                ifindex=vlan.interface.to_interface.ifindex,\
                                                 end_time__gt=datetime.datetime.max \
                                                 ).count() > 0:
-                        vlan.swport.has_children = True
-                sys.stderr.write("vlan %s has_children = %s\n" % (vlan, vlan.swport.has_children))
+                        vlan.interface.has_children = True
+                sys.stderr.write("vlan %s has_children = %s\n" % (vlan, vlan.interface.has_children))
                 sys.stderr.flush()
                 vlans.append(vlan)
                 sys.stderr.write("Appended vlan %s to vlans - current len: %s\n" %(vlan, len(vlans)))
                 sys.stderr.flush()
-                foreign_netboxes.append(vlan.swport.module.netbox)
-                sys.stderr.write("Appended netbox %s to f.netboxes - current len: %s\n" %(vlan.swport.module.netbox, len(foreign_netboxes)))
+                foreign_netboxes.append(vlan.interface.netbox)
+                sys.stderr.write("Appended netbox %s to f.netboxes - current len: %s\n" %(vlan.interface.netbox, len(foreign_netboxes)))
                 sys.stderr.flush()
     sys.stderr.write("Sorting swports by interface\n")
     sys.stderr.flush()
-    interface_names = [p.swport.interface for p in vlans]
+    interface_names = [p.interface.ifname for p in vlans]
     unsorted = dict(zip(interface_names, vlans))
     interface_names.sort(key=nav.natsort.split)
     vlans = [unsorted[i] for i in interface_names]
@@ -205,21 +205,21 @@ def expand_switch(request):
     """
     switch = get_object_or_404(Netbox, id=request.REQUEST['netboxid'])
     vlan = request.REQUEST['vlanid'] or None
-    swports = SwPort.objects.filter(module__netbox=switch)
-    swportvlans = SwPortVlan.objects.filter(swport__in=swports,vlan__id=vlan)
+    swports = switch.get_swports()
+    swportvlans = SwPortVlan.objects.filter(interface__in=swports,vlan__id=vlan)
 
     for swportvlan in swportvlans:
-        if swportvlan.swport.to_swport:
-            if swportvlan.swport.module.netbox.service_set.all().count() > 0:
-                swportvlan.swport.has_children = True
+        if swportvlan.interface.to_interface:
+            if swportvlan.interface.netbox.service_set.all().count() > 0:
+                swportvlan.interface.has_children = True
                 continue
         if Cam.objects.filter(
-            netbox=swportvlan.swport.module.netbox,
-            ifindex=swportvlan.swport.ifindex,
+            netbox=swportvlan.interface.netbox,
+            ifindex=swportvlan.interface.ifindex,
             end_time__gt=datetime.datetime.max).count() > 0:
-            swportvlan.swport.has_children = True
+            swportvlan.interface.has_children = True
 
-    interface_names = [p.swport.interface for p in swportvlans]
+    interface_names = [p.interface.ifname for p in swportvlans]
     unsorted = dict(zip(interface_names, swportvlans))
     interface_names.sort(key=nav.natsort.split)
     vlans = [unsorted[i] for i in interface_names]
