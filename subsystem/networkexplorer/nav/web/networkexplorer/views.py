@@ -33,7 +33,7 @@ from urllib import unquote
 
 from django.core import serializers
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -69,7 +69,7 @@ def expand_router(request):
     """
     Returns children of an router according to spec
     """
-    router = get_object_or_404(Netbox, id=request.REQUEST['netboxid'])
+    router = get_object_or_404(Netbox, id=request.GET['netboxid'])
     gwports = router.get_gwports()
     interface_names = [p.ifname for p in gwports]
     unsorted = dict(zip(interface_names, gwports))
@@ -111,13 +111,12 @@ def expand_router(request):
         {
             'sysname': router.sysname,
             'ports': sorted_ports,
-        },
-        context_instance=RequestContext(request))
+        })
 
 def expand_gwport(request):
     """
     """
-    gwport = get_object_or_404(Interface, id=request.REQUEST['gwportid'])
+    gwport = get_object_or_404(Interface, id=request.GET['gwportid'])
     sys.stderr.write("Expanding gwport %s\n" % gwport)
     sys.stderr.flush()
     vlans = []
@@ -197,13 +196,12 @@ def expand_gwport(request):
         {
             'gwport': gwport,
             'vlans': vlans,
-        }, context_instance=RequestContext(request))
-
+        })
 def expand_switch(request):
     """
     """
-    switch = get_object_or_404(Netbox, id=request.REQUEST['netboxid'])
-    vlan = request.REQUEST['vlanid'] or None
+    switch = get_object_or_404(Netbox, id=request.GET['netboxid'])
+    vlan = request.GET['vlanid'] or None
     swports = switch.get_swports()
     swportvlans = SwPortVlan.objects.filter(interface__in=swports,vlan__id=vlan)
 
@@ -226,13 +224,13 @@ def expand_switch(request):
     return render_to_response('networkexplorer/expand_switch.html',
         {
             'swportvlans': vlans,
-        }, context_instance=RequestContext(request))
+        })
 
 
 def expand_swport(request):
     """
     """
-    swport = get_object_or_404(SwPort, id=request.REQUEST['swportid'])
+    swport = get_object_or_404(SwPort, id=request.GET['swportid'])
     if swport.to_netbox:
         to_netbox = swport.to_netbox
     elif swport.to_swport:
@@ -277,7 +275,7 @@ def search(request):
     """
     """
     # Raise 404 if no parameters are given
-    if 'lookup_field' not in request.REQUEST:
+    if 'lookup_field' not in request.GET:
         raise Http404
 
     router_matches = []
@@ -289,38 +287,38 @@ def search(request):
     else:
         exact = False
 
-    if request.REQUEST['lookup_field'] == 'sysname':
-        result = sysname_search(request.REQUEST['query'], exact)
+    if request.GET['lookup_field'] == 'sysname':
+        result = sysname_search(request.GET['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
 
-    if request.REQUEST['lookup_field'] == 'ip':
-        result = ip_search(request.REQUEST['query'], exact)
+    if request.GET['lookup_field'] == 'ip':
+        result = ip_search(request.GET['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
 
-    if request.REQUEST['lookup_field'] == 'mac':
-        result = mac_search(unquote(request.REQUEST['query']))
+    if request.GET['lookup_field'] == 'mac':
+        result = mac_search(unquote(request.GET['query']))
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
     
-    if request.REQUEST['lookup_field'] == 'room':
-        result = room_search(request.REQUEST['query'], exact)
+    if request.GET['lookup_field'] == 'room':
+        result = room_search(request.GET['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
     
-    if request.REQUEST['lookup_field'] == 'vlan':
-        result = vlan_search(request.REQUEST['query'], exact)
+    if request.GET['lookup_field'] == 'vlan':
+        result = vlan_search(request.GET['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
     
-    if request.REQUEST['lookup_field'] == 'port':
-        result = portname_search(request.REQUEST['query'], exact)
+    if request.GET['lookup_field'] == 'port':
+        result = portname_search(request.GET['query'], exact)
         router_matches = result[0]
         gwport_matches = result[1]
         swport_matches = result[2]
@@ -333,37 +331,36 @@ def search(request):
 
     if request.REQUEST.get('hide', False):
         for gwport in gwport_matches:
-            if not gwport.port_name:
+            if not gwport.ifalias:
                 gwport_matches.remove(gwport)
         for swport in swport_matches:
-            if not swport.port_name:
+            if not swport.ifalias:
                 swport_matches.remove(swport)
 
     # Get the html up-front
     routers = []
     for router in router_matches:
-        req = FakeRequest()
-        req.REQUEST['netboxid'] = router.id
+        req = HttpRequest()
+        req.GET['netboxid'] = router.id
         routers.append([router.id, expand_router(req).content])
 
     gwports = []
     for gwport in gwport_matches:
-        req = FakeRequest()
-        req.REQUEST['gwportid'] = gwport.id
+        req = HttpRequest()
+        req.GET['gwportid'] = gwport.id
         gwports.append([gwport.id, expand_gwport(req).content])
 
     swports = []
     for swport in swport_matches:
-        req = FakeRequest()
-        req.REQUEST['swportid'] = swport.id
+        req = HttpRequest()
+        req.GET['swportid'] = swport.id
         swports.append([swport.id, expand_swport(req).content])
 
     return HttpResponse(simplejson.dumps({'routers': routers, 'gwports': gwports, 'swports': swports}))
 
 class FakeRequest:
     """Simple class for faking requests"""
-    def __init__(self):
+    def __init__(self, request):
         self.REQUEST = {}
         self.GET = {}
         self.POST = {}
-

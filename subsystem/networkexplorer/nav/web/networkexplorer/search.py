@@ -57,7 +57,7 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
     for swportvlan in swport.swportvlan_set.exclude(vlan__net_type='static').select_related(depth=5):
         for prefix in swportvlan.vlan.prefix_set.all():
             for gwportprefix in prefix.gwportprefix_set.all():
-                found_gwports.append(gwportprefix.gwport)
+                found_gwports.append(gwportprefix.interface)
 
     for port in Interface.objects.filter(to_interface=swport).exclude(to_interface__in=scanned).select_related(depth=5):
         scanned.append(port)
@@ -71,7 +71,7 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
     for port in Interface.objects.filter(to_interface__in=found_swports, gwportprefix__isnull=False):
         found_gwports.append(port)
     
-    for port in Interface.objects.filter(to_netbox=swport.module.netbox, gwportprefix__isnull=False):
+    for port in Interface.objects.filter(to_netbox=swport.netbox, gwportprefix__isnull=False):
         found_gwports.append(port)
     
     for port in Interface.objects.filter(to_interface=swport, gwportprefix__isnull=False):
@@ -94,7 +94,7 @@ def search_expand_netbox(netboxid=None, netbox=None):
             return ([],[])
 
     for result in netbox.get_uplinks():
-        if result['other'].__class__ == Interface and result['other'].gwportprefix:
+        if result['other'].__class__ == Interface and result['other'].gwportprefix_set.count():
             found_gwports.append(result['other'])
         else:
             found_swports.append(result['other'])
@@ -147,7 +147,7 @@ def search_expand_mac(mac=None):
     cam_entries = Cam.objects.filter(mac=mac, end_time__gte=datetime.datetime.max).select_related(depth=5)
 
     for cam_entry in cam_entries:
-        for swport in Interface.objects.filter(module__netbox=cam_entry.netbox, module__module_number=cam_entry.module, interface=cam_entry.port).select_related(depth=5):
+        for swport in Interface.objects.filter(module__netbox=cam_entry.netbox, ifname=cam_entry.port).select_related(depth=5):
             found_swports.append(swport)
             swport_search = search_expand_swport(swport=swport)
             found_gwports.extend(swport_search[0])
@@ -193,7 +193,7 @@ def sysname_search(sysname, exact=False):
         gwport_matches.extend(swport_search[0])
         swport_matches.extend(swport_search[1])
     
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
 
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
