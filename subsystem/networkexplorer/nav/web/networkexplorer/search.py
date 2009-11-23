@@ -147,7 +147,7 @@ def search_expand_mac(mac=None):
     cam_entries = Cam.objects.filter(mac=mac, end_time__gte=datetime.datetime.max).select_related(depth=5)
 
     for cam_entry in cam_entries:
-        for swport in Interface.objects.filter(module__netbox=cam_entry.netbox, ifname=cam_entry.port).select_related(depth=5):
+        for swport in Interface.objects.filter(netbox=cam_entry.netbox, ifname=cam_entry.port).select_related(depth=5):
             found_swports.append(swport)
             swport_search = search_expand_swport(swport=swport)
             found_gwports.extend(swport_search[0])
