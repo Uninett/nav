@@ -98,8 +98,6 @@ class GammuDispatcher(Dispatcher):
             raise DispatcherError, "GSM %s error %d: %s" % (error[0]['Where'],
                                                             error[0]['Code'],
                                                             error[0]['Text'])
-        except Exception, error:
-            self.logger.critical('blipp blopp: %s', error)
 
         if type(smsid) == int:
             result = True

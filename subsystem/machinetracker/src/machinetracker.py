@@ -34,7 +34,7 @@ if 'apache' not in globals():
     except ImportError:
         apache = None
 from pprint import pprint, pformat
-import datetime.datetime
+import datetime
 from socket import gethostbyaddr, gethostbyname, herror
 import re
 import IPy
@@ -172,7 +172,7 @@ class MachineTrackerSQLQuery:
     def __init__(self, days=7, order_by=""):
         if not days:
             days = 7
-        from_time = datetime.date.today()-datetime.timedelta(days=days)
+        from_time = datetime.date.today()-datetime.timedelta(days=int(days))
         from_time = from_time.strftime("%Y-%m-%d")
         self.where = ["end_time  > '%s'" % from_time]
 

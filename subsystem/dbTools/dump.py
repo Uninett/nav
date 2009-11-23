@@ -1,35 +1,28 @@
 #!/usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 #
-# Copyright 2004 Norwegian University of Science and Technology
+# Copyright (C) 2004,2009 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Dumps core information from NAV to textfiles importable by editDB.
-#
-# Author: Stian Søiland <stain@itea.ntnu.no>
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Dumps core information from NAV to textfiles importable by editDB."""
+
 
 import sys
 # Backup! =) 
 sys._stdout = sys.stdout
-from nav.db import manage
+from nav.models import manage
+import nav.models.service
 
 SEPARATOR=":"
 
@@ -47,121 +40,125 @@ def header(header):
 def lineout(line):
     # Remove any : in strings
     newline = [x.replace(SEPARATOR, "") for x in line]
-    print SEPARATOR.join(newline)
+    print SEPARATOR.join(newline).encode('utf-8')
 
 class Handlers:
     def netbox(self):
         header("#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]")
-        allFunctions = manage.Netboxinfo.getAll(where="var='function'")
-        for box in manage.Netbox.getAllIterator():
+        allFunctions = manage.NetboxInfo.objects.filter(key='function')
+        for box in manage.Netbox.objects.all():
             line = []
-            line.append(box.room.roomid)
+            line.append(box.room_id)
             line.append(box.ip)
-            line.append(box.org.orgid)
-            line.append(box.cat.catid)
-            line.append(box.ro or "")
+            line.append(box.organization_id)
+            line.append(box.category_id)
+            line.append(box.read_only or "")
             line.append(box.device.serial or box.sysname)
-            line.append(box.rw or "")
-            functions = [f.val for f in allFunctions 
-                         if f.netbox == box]
+            line.append(box.read_write or "")
+            functions = allFunctions.filter(netbox=box)
             functions = str.join(", ", functions)
             line.append(functions)
-            categories = box.getChildren(manage.Netboxcategory)
-            categories = [cat.category for cat in categories]
+            categories = box.subcategories.all()
+            categories = [cat.id for cat in categories]
             categories.sort()
             line.extend(categories)
             lineout(line)
 
     def org(self):
         header("#orgid[:parent:description:optional1:optional2:optional3]")
-        for org in manage.Org.getAllIterator():
+        for org in manage.Organization.objects.all():
             line = []
-            line.append(org.orgid)
-            line.append(org.parent or "")
-            line.append(org.descr or "")
-            line.append(org.opt1 or "")
-            line.append(org.opt2 or "")
-            line.append(org.opt3 or "")
+            line.append(org.id)
+            if org.parent:
+                parent = org.parent.id
+            else:
+                parent = ""
+            line.append(parent)
+            line.append(org.description or "")
+            line.append(org.optional_1 or "")
+            line.append(org.optional_2 or "")
+            line.append(org.optional_3 or "")
             lineout(line)
  
     def subcat(self):
         header("#subcatid:catid:description")
-        for subcat in manage.Subcat.getAllIterator():
+        for subcat in manage.Subcategory.objects.all():
             line = []
-            line.append(subcat.subcatid)
-            line.append(subcat.cat.catid)
-            line.append(subcat.descr)
+            line.append(subcat.id)
+            line.append(subcat.category.id)
+            line.append(subcat.description)
             lineout(line)
   
     def usage(self):
         header("#usageid:descr")
-        for usage in manage.Usage.getAllIterator():
+        for usage in manage.Usage.objects.all():
             line = []
-            line.append(usage.usageid)
-            line.append(usage.descr)
+            line.append(usage.id)
+            line.append(usage.description)
             lineout(line)
    
     def location(self):
         header("#locationid:descr")
-        for location in manage.Location.getAllIterator():
+        for location in manage.Location.objects.all():
             line = []         
-            line.append(location.locationid)
-            line.append(location.descr)
+            line.append(location.id)
+            line.append(location.description)
             lineout(line)
     
     def room(self):
         header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4]")
-        for room in manage.Room.getAllIterator():         
+        for room in manage.Room.objects.all():         
             line = []         
-            line.append(room.roomid)
-            line.append(room.location.locationid)
-            line.append(room.descr or "")
-            line.append(room.opt1 or "")
-            line.append(room.opt2 or "")
-            line.append(room.opt3 or "")
-            line.append(room.opt4 or "")
+            line.append(room.id)
+            line.append(room.location.id)
+            line.append(room.description or "")
+            line.append(room.optional_1 or "")
+            line.append(room.optional_2 or "")
+            line.append(room.optional_3 or "")
+            line.append(room.optional_4 or "")
             lineout(line)
    
     def type(self):
         header("#vendorid:typename:sysoid[:description:frequency:cdp:tftp]")
-        for type in manage.Type.getAllIterator():
+        for type in manage.NetboxType.objects.all():
             line = []
-            line.append(type.vendor.vendorid)
-            line.append(type.typename)
+            line.append(type.vendor.id)
+            line.append(type.name)
             line.append(type.sysobjectid)
-            line.append(type.descr)
+            line.append(type.description)
             line.append(str(type.frequency))
-            line.append(str(type.cdp))
-            line.append(str(type.tftp))
+            line.append(str(type.cdp or False))
+            line.append(str(type.tftp or False))
             lineout(line)
 
     def vendor(self):
         header("#vendorid")
-        for vendor in manage.Vendor.getAllIDs():
-            line = [vendor]
+        for vendor in manage.Vendor.objects.all():
+            line = [vendor.id]
             lineout(line)
    
     def product(self):
         header("#vendorid:productno[:description]")
-        for product in manage.Product.getAllIterator():
+        for product in manage.Product.objects.all():
             line = []
-            line.append(product.vendor.vendorid)
-            line.append(product.productno)
-            line.append(product.descr or "")
+            line.append(product.vendor.id)
+            line.append(product.product_number)
+            line.append(product.description or "")
             lineout(line)
 
     def prefix(self):
         header("#prefix/mask:nettype[:orgid:netident:usage:description:vlan]")
-        for prefix in manage.Prefix.getAllIterator():
+        for prefix in manage.Prefix.objects.all():
             vlan = prefix.vlan
             line = []
-            line.append(prefix.netaddr)
-            line.append(vlan.nettype.nettypeid)
-            line.append(vlan.org and vlan.org.orgid or "")
-            line.append(vlan.netident or "")
-            line.append(vlan.usage and vlan.usage.usageid or "")
-            line.append(vlan.description or "")
-            line.append(vlan.vlan and str(vlan.vlan) or "")
+            line.append(prefix.net_address)
+            line.append(vlan and vlan.net_type and vlan.net_type.id or "")
+            if vlan:
+                line.append(vlan.organization and vlan.organization.id or "")
+                line.append(vlan.net_ident or "")
+                line.append(vlan.usage and vlan.usage.id or "")
+                line.append(vlan.description or "")
+                line.append(vlan.vlan and str(vlan.vlan) or "")
             lineout(line)
 
 
@@ -174,12 +171,13 @@ class Handlers:
             warn("Not smart to use : as separator for services, using ;")
             SEPARATOR=";"
         header("#ip/sysname:handler[:arg=value[:arg=value]]")
-        for service in manage.Service.getAllIterator():
+        allServices = nav.models.service.Service.objects.all()
+        for service in allServices.select_related('ServiceProperty'):
             line = []            
             line.append(service.netbox.sysname)
             line.append(service.handler)
             properties = ["%s=%s" % (p.property, p.value)
-                          for p in service.getChildren(manage.Serviceproperty)]
+                          for p in service.serviceproperty_set.all()]
             line.extend(properties)                  
             lineout(line)
         SEPARATOR = old_sep
