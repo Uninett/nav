@@ -254,7 +254,7 @@
                     Edit IP device</a></li>
                 <li><a href="{% url maintenance-new-netbox netbox.id %}">
                     Schedule maintenance</a></li>
-                <li><a href="{% url devicemanagement-history-netbox netbox.id %}">
+                <li><a href="{% url devicehistory-view-netbox netbox.id %}">
                     View device history</a></li>
                 <li><a href="{% url ipinfo-host netbox.sysname %}">
                     View in IP Info</a></li>
@@ -352,12 +352,12 @@
                 {% if alert_info.is_more_alerts %}
                     Showing {{ alert_info.alerts|length }} of
                     {{ alert_info.count }} alerts, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">
                     Device History</a> for all
                 {% else %}
                     {{ alert_info.alerts|length }}
                     alert{{ alert_info.alerts|length|pluralize }} found, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">Device History</a> for details
                 {% endif %}
             </th>
         </tr>
