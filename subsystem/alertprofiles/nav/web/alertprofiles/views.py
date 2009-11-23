@@ -1366,7 +1366,7 @@ def filter_remove(request):
                 warnings.append({'message': u'''This filter is public. Deleting
                     it will make it unavailable for all users of this system.'''})
 
-            filter_groups = FilterGroup.objects.filter(filter_groupcontent__filter=f)
+            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter=f)
             for fg in filter_groups:
                 warnings.append({
                     'message': u'Used in filter group %(name)s.' % {'name': fg.name},
