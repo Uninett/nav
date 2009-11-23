@@ -54,7 +54,9 @@ def headerparserhandler(req):
         redirect(req, '/index/index')
 
     state.setupSession(req)
-    nav.web.auth.authenticate(req)
+    authorized = nav.web.auth.authorize(req)
+    if not authorized:
+        nav.web.auth.redirectToLogin(req)
     user = req.session['user']
 
     # Make sure the user's session file has its mtime updated every

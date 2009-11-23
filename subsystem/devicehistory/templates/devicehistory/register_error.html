@@ -1,0 +1,19 @@
+{% extends "devicehistory/base.html" %}
+
+{% block tabcontent %}
+    <p>
+        Register an error by selecting one or more units (locations, rooms,
+        boxes or modules) and enter a description of the error.
+    </p>
+
+    <form action="{% url devicehistory-do-registererror %}" method="post">
+        <div>
+            <label>Error comment<br />
+                <textarea name="error_comment" rows="5" cols="70">{{ error_comment }}</textarea>
+            </label>
+        </div>
+        {% block devices %}
+        {{ quickselect|safe }}
+        {% endblock %}
+    </form>
+{% endblock %}

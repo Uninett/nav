@@ -1,0 +1,72 @@
+{% extends "status/base.html" %}
+
+{% block content %}
+
+<form action="{% url status-preferences-addsection %}" method="post">
+{% if add_form %}
+<div class="info">
+    {{ add_form.section }}
+    <input type="submit" name="add_section" value="Add section" />
+</div>
+{% endif %}
+
+{% if section_form %}
+<table class="listtable">
+    <caption>
+        Add new section
+    </caption>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Organizations</td>
+            <th>
+                {% if section_form.categories %}
+                Categories
+                {% else %}
+                Services
+                {% endif %}
+            </th>
+            <th>
+                {% if section_form.states %}
+                State
+                {% endif %}
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if section_form.errors %}
+        <tr>
+            <td colspan="7">{{ section_form.errors }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>
+                {{ section_form.type }}{{ section_form.name }}
+                {{ section_form.type.errors }} {{ section_form.name.errors }}
+            </td>
+            <td>{{ section_form.organizations }}{{ section_form.organizations.errors }}</td>
+            <td>
+                {% if section_form.categories %}
+                {{ section_form.categories }}
+                {{ section_form.categories.errors }}
+                {% else %}
+                {{ section_form.service_choice }}
+                {{ section_form.service_choice.errors }}
+                {% endif %}
+            </td>
+            <td>
+                {{ section_form.state_choice }}
+                {{ section_form.state_choice.errors }}
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="7"><input type="submit" value="Save" /></td>
+        </tr>
+    </tfoot>
+</table>
+{% endif %}
+</form>
+
+{% endblock %}

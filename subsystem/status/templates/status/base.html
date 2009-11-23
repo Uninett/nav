@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+
+<div class="tabs">
+    <ul>
+        <li class="{{ active.preferences|yesno:"tabactive," }}">
+            <a href="{% url status-preferences %}">Preferences</a>
+        </li>
+        <li class="{{ active.status|yesno:"tabactive," }}">
+            <a href="{% url status-index %}">Status now</a>
+        </li>
+    </ul>
+</div>
+
+<div class="tabcontent">
+
+{% if messages %}
+<ul class="messages">
+    {% for m in messages %}
+    <li class="{{ m.type }}">{{ m.message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+</div>
+
+{% endblock %}
