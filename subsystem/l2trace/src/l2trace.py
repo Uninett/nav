@@ -72,7 +72,7 @@ def getNetboxidVlan(sysname):
             JOIN vlan USING(vlanid)
             LEFT JOIN module USING(netboxid)
             LEFT JOIN swport USING(moduleid)
-            LEFT JOIN swportvlan ON (swport.swportid=swportvlan.swportid AND direction='o')
+            LEFT JOIN swportvlan ON (swport.swportid=swportvlan.interfaceid AND direction='o')
         WHERE sysname LIKE %s OR ip::varchar LIKE %s
         ORDER BY length(sysname) LIMIT 1""",
         ("%"+sysname+"%",)*2)
@@ -93,9 +93,9 @@ def getNetboxidVlan(sysname):
                 FROM swport
                     JOIN module USING(moduleid)
                     JOIN netbox USING(netboxid)
-                    JOIN swportvlan USING(swportid)
+                    JOIN swportvlan ON(swportid=interfaceid)
                     JOIN vlan USING(vlanid)
-                WHERE to_netboxid=%s LIMIT 1"""
+                WHERE to_netboxid=%s LIMIT 1""",
                 (netboxid,))
 
             d = database.fetchall()
@@ -171,7 +171,7 @@ def getPathToGw(netboxid, mpIn, vlan, trunk, gwId, path):
             b.interface AS to_interface
         FROM module moda
             JOIN swport a USING(moduleid)
-            JOIN swportvlan USING (swportid)
+            JOIN swportvlan ON(swportid=interfaceid)
             JOIN vlan USING(vlanid)
             JOIN swport b ON (a.to_swportid = b.swportid)
             JOIN module modb ON (b.moduleid = modb.moduleid)
@@ -220,7 +220,7 @@ def getPath(host):
                 JOIN prefix USING(vlanid)
                 JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN
                     (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1)))
-                JOIN gwport USING(gwportid)
+                JOIN gwport ON(gwportid=interfaceid)
                 JOIN module USING(moduleid)
             WHERE vlan=%s""",
             (vlan,))
