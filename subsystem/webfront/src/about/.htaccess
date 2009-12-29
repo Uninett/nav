@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler about
-DirectoryIndex about.py

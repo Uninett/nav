@@ -43,7 +43,6 @@ The following python modules are required:
 
  * django (>= 1.0)
  * egenix-mxdatetime
- * forgetsql
  * ipy
  * ldap
  * psycopg2 >= 2.0.8

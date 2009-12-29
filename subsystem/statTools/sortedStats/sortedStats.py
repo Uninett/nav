@@ -26,7 +26,6 @@
 from mod_python import apache
 import nav, nav.path
 from nav import web, db
-from nav.db import manage
 from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.URI import URI
 

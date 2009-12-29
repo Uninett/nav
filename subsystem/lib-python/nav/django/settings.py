@@ -38,6 +38,8 @@ DATABASE_ENGINE = 'postgresql_psycopg2'
 (DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER,
  DATABASE_PASSWORD) = get_connection_parameters('django')
 
+INSTALLED_APPS = ('nav.django',)
+
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 

@@ -217,9 +217,11 @@ class DeviceDBImpl implements DeviceDB
 					// Duplicate start event, not allowing!
 					Log.e("DEV_DB", "POSTALERT", "Duplicate start event, not posting to alertq: " + e);
 				} else {
+					String alertid = null;
+
 					// Insert into alertq
 					if (e.getPostAlertq()) {
-						insertAlert(e, false, null);
+						alertid = insertAlert(e, false, null);
 					}
 
 					// Insert into alerthist
@@ -229,11 +231,16 @@ class DeviceDBImpl implements DeviceDB
 						e.setEventqid(id);
 						downAlertMap.put(e.getKey(), e);
 					}
+
+					if (alertid != null) {
+						Database.update("UPDATE alertq SET alerthistid = " + id + " WHERE alertqid = " + alertid);
+					}
 				}
 			} else {
+				String alertid = null;
 				// Insert into alertq
 				if (e.getPostAlertq()) {
-					insertAlert(e, false, null);
+					alertid = insertAlert(e, false, null);
 				}
 
 				// End event, set end time for previous (start) alert
@@ -247,6 +254,10 @@ class DeviceDBImpl implements DeviceDB
 
 					// Insert into alerthistmsg
 					insertAlert(e, true, alerthistid);
+
+					if (alertid != null) {
+						Database.update("UPDATE alertq SET alerthistid = " + alerthistid + " WHERE alertqid = " + alertid);
+					}
 				}
 			}
 

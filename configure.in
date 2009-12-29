@@ -82,7 +82,7 @@ AC_OUTPUT(Makefile
 	subsystem/arnold/images/Makefile
 	subsystem/arnold/lib/Makefile
 	subsystem/dbTools/Makefile
-	subsystem/deviceManagement/Makefile
+	subsystem/devicehistory/Makefile
 	subsystem/ipdevinfo/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/ipinfo/Makefile
@@ -98,6 +98,7 @@ AC_OUTPUT(Makefile
 	subsystem/logger/templates/Makefile
 	subsystem/machinetracker/Makefile
 	subsystem/machinetracker/src/Makefile
+	subsystem/mailin/Makefile
 	subsystem/maintenance/Makefile
 	subsystem/messages/Makefile
 	subsystem/netmap/Makefile
@@ -120,7 +121,6 @@ AC_OUTPUT(Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
 	subsystem/status/Makefile
-	subsystem/status/src/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
 	subsystem/webfront/Makefile

@@ -1,43 +1,43 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
+# -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2009 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
-#
+"""SeedDB web tool for NAV.
 
-#################################################
+Contains a mod_python handler.
+
+"""
 ## Imports
 
-import seeddbTables
 import nav.Snmp
 import sys
 import re
 import copy
 import initBox
-import forgetSQL
+from options import *
 import nav.web
-from nav.db import manage
+from nav.models import manage, cabling, oid, service
 import nav.util
 
-from mod_python import util,apache
+try:
+    from mod_python import util, apache
+except ImportError:
+    apache = None
+    util = None
+
 from seeddbSQL import *
 from socket import gethostbyaddr,gethostbyname,gaierror
 from nav.web.serviceHelper import getCheckers,getDescription
@@ -276,20 +276,13 @@ def index(req,showHelp=False,status=None):
     body.tables.append(Table('Organisation and usage categories','',
                              headings,rows))
 
-    # Table for types, products and vendors
+    # Table for types and vendors
     rows = [['Type',
              'The type describes the type of network device, uniquely ' +\
              'described from the SNMP sysobjectID',
             [BASEPATH + 'type/edit','Add'],
             [BASEPATH + 'type/list','Edit'],
             [BASEPATH + 'bulk/type','Bulk import']],
-            ['Product',
-             'Similar to type, but with focus on the product number and ' +\
-             'description. A product may be a type, it may also be a ' +\
-             'component (i.e. module) within an equipment type',
-            [BASEPATH + 'product/edit','Add'],
-            [BASEPATH + 'product/list','Edit'],
-            [BASEPATH + 'bulk/product','Bulk import']],
             ['Vendor',
              'Register the vendors that manufacture equipment that are ' +\
              'represented in your network.',
@@ -308,7 +301,7 @@ def index(req,showHelp=False,status=None):
             [BASEPATH + 'subcat/list','Edit'],
             [BASEPATH + 'bulk/subcat','Bulk import']],
 ]
-    body.tables.append(Table('Types, products and vendors','',headings,rows))
+    body.tables.append(Table('Types and vendors','',headings,rows))
 
     # Table for vlans and special subnets
     rows = [['Vlan',
@@ -930,7 +923,7 @@ class entryList:
             # Selected id
             selected = None
             if self.selectedId:
-                entry = table(self.selectedId)
+                entry = table.objects.get(id=self.selectedId)
                 fieldList = fields.split('.')
                 for field in fieldList:
                     entry = getattr(entry,field)
@@ -1128,7 +1121,7 @@ class editbox:
 
     def fill(self):
         """ Fill this form with data from the database (entry = editId). """
-        entry = self.table(self.editId)
+        entry = self.table.objects.get(id=self.editId)
        
         # Set the name of this box to reflect that we are
         # updating an entry
@@ -1400,7 +1393,7 @@ class seeddbPage:
         try:
             executeSQL([sql])
         except psycopg2.IntegrityError, e:
-            rollbackSQL()
+            rollbackSQL(e)
             if type(self.unique) is list:
                 error = 'There already exists an entry with '
                 first = True
@@ -1420,8 +1413,7 @@ class seeddbPage:
                 id = nextId
             else:
                 id = req.form[self.tableIdKey]
-            entry = self.table(id)
-            message = 'Added ' + self.singular + ': ' + self.describe(entry)
+            message = 'Added ' + self.singular + ': ' + self.describe(id)
             status.messages.append(message)
             action = 'list'
         return (status,action,outputForm,id)
@@ -1505,9 +1497,9 @@ class seeddbPage:
             sql += ' WHERE ' + self.tableIdKey + "='" + id + "'"
             try:
                 executeSQL([sql])
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError, e:
                 # Assumes tableIdKey = the unique field
-                rollbackSQL()
+                rollbackSQL(e)
                 if type(self.unique) is list:
                     error = 'There already exists an entry with '
                     first = True
@@ -1572,7 +1564,7 @@ class seeddbPage:
         description = ''
         
         try:
-            entry = self.table(id)
+            entry = self.table.objects.get(id=id)
   
             if hasattr(self,'descriptionFormat'):
                 # Use the description format for this page to make a
@@ -1603,7 +1595,7 @@ class seeddbPage:
             else:
                 # Vanilla description (only the id field)
                 description = "'" + id +"'" 
-        except forgetSQL.NotFound:
+        except self.table.DoesNotExist:
             # No such id in this table
             pass
         return description
@@ -1615,18 +1607,18 @@ class seeddbPage:
                 deleteEntry([id],self.tableName,self.tableIdKey)
                 status.messages.append("Deleted %s: %s" % \
                                            (self.singular,deletedName))
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError, e:
                 # Got integrity error while deleting, must check what
                 # dependencies are blocking.  But firstly, we roll back the
                 # failed transaction.
-                rollbackSQL()
+                rollbackSQL(e)
 
                 error = "Error while deleting %s '%s': " % (self.singular,
                                                             deletedName)
                 errorState = False
                 for (table,other,key,url) in self.dependencies:
-                    where = "%s='%s'" % (key,str(id))
-                    if table.getAll(where):
+                    where = {key: id}
+                    if table.objects.filter(**where):
                         errorState = True
                         # UGLY.. HTML
                         error += "referenced in "  + \
@@ -1646,7 +1638,7 @@ class pageCabling(seeddbPage):
     """ Describes editing of the cabling table. """
     
     basePath = BASEPATH + 'cabling/'
-    table = nav.db.manage.Cabling
+    table = cabling.Cabling
     pageName = 'cabling'
     tableName = 'cabling'
     tableIdKey = 'cablingid'
@@ -1662,7 +1654,7 @@ class pageCabling(seeddbPage):
     plural = 'cablings'
 
     # Delete dependencies
-    dependencies = [(nav.db.manage.Patch,
+    dependencies = [(cabling.Patch,
                      'patches',
                      'cablingid',
                      '/report/netbox/?roomid=')]
@@ -1670,10 +1662,10 @@ class pageCabling(seeddbPage):
     # Description format used by describe(id)
     # Example: room 021 (descr) to jack 123, building, office
     descriptionFormat = [('\'jack ','jack'),
-                         (', ','targetroom'),
+                         (', ','target_room'),
                          (', ','building'),
-                         ('\' to room \'','room.roomid'),
-                         (', ','room.location.locationid'),
+                         ('\' to room \'','room.id'),
+                         (', ','room.location.id'),
                          ('\'',None)]
 
     pathAdd = EDITPATH + [('Cabling',basePath+'list'),('Add',False)]
@@ -1703,8 +1695,8 @@ class pageCabling(seeddbPage):
                              '{id} ({descr})',
                              'flt_room',
                              'roomid',
-                             nav.db.manage.Cabling,
-                             'room.roomid']]
+                             cabling.Cabling,
+                             'room.id']]
 
             # list of (heading text, show sortlink, compare function for sort)
             self.headingDefinition = [('Select',False,None),
@@ -1743,10 +1735,13 @@ class pageCabling(seeddbPage):
                 self.editId = editId
      
             r = [(None,'Select a room')]
-            for room in nav.db.manage.Room.getAllIterator(orderBy='roomid'):
-                loc = nav.db.manage.Location(room.location).descr
-                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
-                          str(room.descr) + ')'))
+            rooms = manage.Room.objects.all().select_related('Location')
+            for room in rooms.order_by('id'):
+                r.append((room.id, 
+                          "%s (%s: %s)" % (room.id, 
+                                           room.location.description, 
+                                           room.description)
+                          ))
 
             # Field definitions {field name: [input object, required]}
             f = {'roomid': [inputSelect(options=r),REQ_TRUE,'Room',
@@ -1774,7 +1769,7 @@ class pageLocation(seeddbPage):
     """ Describes editing of the location table. """
     
     basePath = BASEPATH + 'location/'
-    table = nav.db.manage.Location
+    table = manage.Location
     pageName = 'location'
     tableName = 'location'
     tableIdKey = 'locationid'
@@ -1783,7 +1778,7 @@ class pageLocation(seeddbPage):
     editIdAllowed = True
 
     # Description format used by describe(id)
-    descriptionFormat = [('','locationid')]
+    descriptionFormat = [('','id')]
 
     # Unique fields (for errormessages from add/update)
     unique = 'locationid'
@@ -1793,7 +1788,7 @@ class pageLocation(seeddbPage):
     plural = 'locations'
 
     # Delete dependencies
-    dependencies = [(nav.db.manage.Room,
+    dependencies = [(manage.Room,
                      'rooms',
                      'locationid',
                      '/report/room/?locationid=')]
@@ -1864,7 +1859,7 @@ class pageNetbox(seeddbPage):
     """ Describes editing of the netbox table """
 
     basePath = BASEPATH + 'netbox/'
-    table = nav.db.manage.Netbox
+    table = manage.Netbox
     pageName = 'netbox'
     tableName = 'netbox'
     tableIdKey = 'netboxid'
@@ -1979,18 +1974,24 @@ class pageNetbox(seeddbPage):
                                         ('Add',False)]
      
             o = [(None,'Select an organisation')]
-            for org in manage.Org.getAllIterator(orderBy='orgid'):
-                o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
+            for org in manage.Organization.objects.all().order_by('id'):
+                o.append((org.id,
+                          "%s (%s)" % (org.id, org.description)
+                          ))
 
             r = [(None,'Select a room')]
-            for room in manage.Room.getAllIterator(orderBy='roomid'):
-                loc = manage.Location(room.location).descr
-                r.append((room.roomid,room.roomid + ' (' + str(loc) + ':' + \
-                          str(room.descr) + ')'))
+            for room in manage.Room.objects.all().select_related('Location'). \
+                    order_by('id'):
+                r.append((room.id,
+                          "%s (%s:%s)" % (room.id, room.location.description,
+                                          room.description)
+                          ))
 
             c = [(None,'Select a category')]
-            for cat in manage.Cat.getAllIterator(orderBy='catid'):
-                c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
+            for cat in manage.Category.objects.all().order_by('id'):
+                c.append((cat.id,
+                          "%s (%s)" % (cat.id, cat.description)
+                          ))
 
             # Field definitions {field name: [input object, required]}
             f = {'ip': [inputText(disabled=disabled),REQ_TRUE,'IP or hostname',
@@ -2030,7 +2031,8 @@ class pageNetbox(seeddbPage):
             # Set info fields
             self.sysname = sysname
             if typeid:
-                self.typename = manage.Type(typeid).typename
+                self.typename = \
+                    manage.NetboxType.objects.get(id=typeid).typename
             else:
                 self.typename = 'n/a'
             if snmpversion:
@@ -2089,7 +2091,7 @@ class pageNetbox(seeddbPage):
         def __init__(self,catid,editId=None,showHelp=True):
             self.hiddenFields = {}
             subcategories = False
-            if len(manage.Subcat.getAll(where="catid='" + catid + "'")):
+            if len(manage.Subcategory.objects.filter(category__id=catid)):
                 subcategories = True
 
             self.help = None
@@ -2107,10 +2109,10 @@ class pageNetbox(seeddbPage):
                                 'function of this IP device.'
 
             o = []
-            for subcat in manage.Subcat.getAllIterator(where="catid='" + \
-                                                           catid + "'"):
-                o.append((subcat.subcatid,subcat.subcatid + ' (' + \
-                          subcat.descr + ')'))
+            for subcat in manage.Subcategory.objects.filter(category__id=catid):
+                o.append((subcat.id,
+                          "%s (%s)" % (subcat.id, subcat.description)
+                          ))
             if editId:
                 if subcategories:
                     self.fields = {'subcat': \
@@ -2218,15 +2220,13 @@ class pageNetbox(seeddbPage):
 
             # Check if sysname or ip is already present in db
             if not error:
-                where = "ip = '" + ip + "'"
-                box = manage.Netbox.getAll(where)
+                box = manage.Netbox.objects.filter(ip=ip)
                 if box:
                     box = box[0]
                     error = 'IP already exists in database (' + box.sysname + ')' 
                 else:
                     # If IP isn't duplicate, check sysname
-                    where = "sysname = '" + sysname + "'"
-                    box = manage.Netbox.getAll(where)
+                    box = manage.Netbox.objects.filter(sysname=sysname)
                     if box:
                         error = 'Sysname ' + sysname + ' (' + box[0].ip + \
                                 ') already exists in database'
@@ -2236,7 +2236,7 @@ class pageNetbox(seeddbPage):
                 templateform.add(pageNetbox.editbox(pageNetbox,formData=form))
                 return (status,action,templateform,None)
 
-            if manage.Cat(form['catid']).req_snmp == True:
+            if manage.Category.objects.get(id=form['catid']).req_snmp:
                 # SNMP required by the selected category
                 if len(form['ro']):
                     # RO specified, check SNMP
@@ -2353,14 +2353,12 @@ class pageNetbox(seeddbPage):
             serial = req.form['serial']
             if len(serial):
                 # Any devices in the database with this serial?
-                where = "serial = '" + str(serial) + "'"
-                device = manage.Device.getAll(where)
+                device = manage.Device.objects.filter(serial=serial)
                 if device:
                     # Found a device with this serial
-                    deviceId = str(device[0].deviceid)
+                    deviceId = str(device[0].id)
                     # Must check if there already is a box with this serial
-                    where = "deviceid = '" + deviceId + "'"
-                    box = manage.Netbox.getAll(where)
+                    box = device.netbox_set.all()
                     if box:
                         # A box with this serial already exists
                         # in the database. Ask for serial again.
@@ -2462,7 +2460,7 @@ class pageNetbox(seeddbPage):
             step = int(form[CNAME_STEP])
         nextStep = step + 1
 
-        oldBox = seeddbTables.seeddbNetbox(selected)
+        oldBox = manage.Netbox.objects.get(id=selected)
 
         if step == STEP_1:
             # Look up sysname in DNS, it might have changed
@@ -2491,14 +2489,12 @@ class pageNetbox(seeddbPage):
             #if (oldBox.ip != form['ip'])
             if oldBox.ip != ip and (not error):
                 # If IP differs from the old, check for uniqueness
-                where = "ip = '" + ip + "'"
-                box = manage.Netbox.getAll(where)
+                box = manage.Netbox.objects.filter(ip=ip)
                 if box:
                     error = 'IP already exists in database'
                 if oldBox.sysname != sysname and not error:
                     # If IP isn't duplicate, check if (new) sysname is unique
-                    where = "sysname = '" + sysname + "'"
-                    box = manage.Netbox.getAll(where)
+                    box = manage.Netbox.objects.filter(sysname=sysname)
                     if box:
                         error = 'Sysname ' + sysname + ' (' + box[0].ip + \
                                 ') already exists in database'
@@ -2509,7 +2505,7 @@ class pageNetbox(seeddbPage):
                                                       formData=form))
                 return (status,action,templateform,selected)
 
-            if manage.Cat(form['catid']).req_snmp == True:
+            if manage.Category.objects.get(id=form['catid']).req_snmp:
                 # SNMP required by this category
                 if len(form['ro']):
                     # RO specified, check SNMP
@@ -2556,7 +2552,7 @@ class pageNetbox(seeddbPage):
                         # Show subcategory/function editbox 
                         # If category has changed, then don't 
                         # load the old subcatinfo
-                        if oldBox.catid != form['catid']:
+                        if oldBox.category.id != form['catid']:
                             templateform.add(pageNetbox.editboxCategory(
                                                           req.form['catid'],
                                                           showHelp=False))
@@ -2635,7 +2631,7 @@ class pageNetbox(seeddbPage):
                     # Show subcategory/function editbox 
                     # If category has changed, then don't 
                     # load the old subcatinfo
-                    if oldBox.catid != form['catid']:
+                    if oldBox.category.id != form['catid']:
                         templateform.add(pageNetbox.editboxCategory(
                                                       req.form['catid'],
                                                       showHelp=False))
@@ -2658,7 +2654,7 @@ class pageNetbox(seeddbPage):
                     # Show subcategory/function editbox 
                     # If category has changed, then don't 
                     # load the old subcatinfo
-                    if oldBox.catid != form['catid']:
+                    if oldBox.category.id != form['catid']:
                         templateform.add(pageNetbox.editboxCategory(
                                                       req.form['catid'],
                                                       showHelp=False))
@@ -2682,14 +2678,12 @@ class pageNetbox(seeddbPage):
                 deviceId = None
                 if serial != newSerial:
                     # Any other devices in the database with this serial?
-                    where = "serial = '" + str(newSerial) + "'"
-                    device = manage.Device.getAll(where)
+                    device = manage.Device.objects.filter(serial=newSerial)
                     if device:
                         # Found a device with this serial
-                        deviceId = str(device[0].deviceid)
+                        deviceId = str(device[0].id)
                         # Must check if there already is a box with this serial
-                        where = "deviceid = '" + deviceId + "'"
-                        box = manage.Netbox.getAll(where)
+                        box = device.netbox_set.all()
                         if box:
                             # A box with this serial already exists
                             # in the database. Ask for serial again.
@@ -2779,11 +2773,11 @@ class pageNetbox(seeddbPage):
                    (form['serial']!=oldBox.device.serial):
                     # Set new serial, if it has changed
                     fields = {'serial': form['serial']}
-                    deviceId = str(oldBox.device.deviceid)
+                    deviceId = str(oldBox.device.id)
                     updateEntryFields(fields,'device','deviceid',deviceId)
 
             # Remove old subcat and function entries
-            netboxId = oldBox.netboxid
+            netboxId = oldBox.id
             deleteEntry([netboxId],'netboxcategory','netboxid')
             deleteEntry([netboxId],'netboxinfo','netboxid')
 
@@ -2814,7 +2808,7 @@ class pageOrg(seeddbPage):
     """ Describes editing of the org table. """
     
     basePath = BASEPATH + 'org/'
-    table = nav.db.manage.Org
+    table = manage.Organization
     pageName = 'org'
     tableName = 'org'
     tableIdKey = 'orgid'
@@ -2824,7 +2818,7 @@ class pageOrg(seeddbPage):
 
     # Description format used by describe(id)
     # Example: room 021 (descr) to jack 123, building, office
-    descriptionFormat = [('','orgid')]
+    descriptionFormat = [('','id')]
 
     # Unique fields (for errormessages from add/update)
     unique = 'orgid'
@@ -2834,7 +2828,7 @@ class pageOrg(seeddbPage):
     plural = 'organisations'
 
     # Delete dependencies
-    dependencies = [(manage.Org,
+    dependencies = [(manage.Organization,
                     'organisations',
                     'parent',
                     '/report/org/?parent='),
@@ -2889,9 +2883,10 @@ class pageOrg(seeddbPage):
             # Field definitions {field name: [input object, required]}
             o = [('','No parent')]
 
-            for org in self.table.getAllIterator(orderBy='orgid'):
-                o.append((org.orgid,org.orgid + \
-                          ' (' + str(org.descr) + ')'))
+            for org in self.table.objects.all().order_by('id'):
+                o.append((org.id,
+                          "%s (%s)" % (org.id, org.description)
+                          ))
 
             f = {'orgid': [inputText(maxlength=30),REQ_TRUE,'Organisation',
                            FIELD_STRING],
@@ -2916,7 +2911,7 @@ class pagePatch(seeddbPage):
     """ Describes editing of the patch table. """
     
     basePath = BASEPATH + 'patch/'
-    table = nav.db.manage.Patch
+    table = cabling.Patch
     pageName = 'patch'
     tableName = 'patch'
     tableIdKey = 'patchid'
@@ -2944,12 +2939,12 @@ class pagePatch(seeddbPage):
     # Description format used by describe(id)
     # Example: from netbox,module x,port y to jack z,room,building,location
     descriptionFormat = [('from \'','cabling.jack'),
-                         (', ','cabling.targetroom'),
+                         (', ','cabling.target_room'),
                          (', ','cabling.building'),
-                         (', ','cabling.room.location.locationid'),
-                         ('\' to switch \'','swport.module.netbox.sysname'),
-                         (', module ','swport.module.module'),
-                         (', port ','swport.port'),
+                         (', ','cabling.room.location.id'),
+                         ('\' to switch \'','interface.module.netbox.sysname'),
+                         (', module ','interface.module.name'),
+                         (', port ','interface.baseport'),
                          ('\'',None)]
 
     pathAdd = EDITPATH + [('Patch',basePath+'list'),('Add',False)]
@@ -2980,7 +2975,7 @@ class pagePatch(seeddbPage):
                              '{id} ({descr})',
                              'flt_room',
                              'cabling.roomid',
-                             nav.db.manage.Patch,
+                             cabling.Patch,
                              'cabling.room.roomid']]
 
             # list of (heading text, show sortlink, compare function for sort)
@@ -3044,7 +3039,7 @@ class pagePatch(seeddbPage):
             if editId:
                 # Preserve the selected id
                 self.addHidden(selectList.cnameChk,editId)
-                patch = self.table(editId)
+                patch = self.table.objects.get(id=editId)
                 selectedSwport = [patch.swport.swportid]
                 selectedModule = [patch.swport.module.moduleid]
                 selectedSwitch = [patch.swport.module.netbox.netboxid]
@@ -3205,8 +3200,8 @@ class pagePatch(seeddbPage):
                 # the same value in this form
                 if req.form.has_key('cn_jack'):
                     if len(req.form['cn_jack']):
-                        where = "cablingid='" + req.form['cn_jack'] + "'"
-                        patch = nav.db.manage.Patch.getAll(where)
+                        patch = cabling.Patch.objects.filter(
+                            cabling__id=req.form['cn_jack'])
                         if patch:
                             # Already exists a patch with this jack, it must
                             # be splitted, select the same split in this form
@@ -3260,8 +3255,7 @@ class pagePatch(seeddbPage):
 
             if not error:
                 # Check if the selected jack already belongs to a patch
-                where = "cablingid='" + cablingid + "'"
-                otherPatch = nav.db.manage.Patch.getAll(where)
+                otherPatch = cabling.Patch.objects.filter(cabling__id=cablingid)
                 if otherPatch:
                     # Already exists a patch with this jack, it must
                     # be splitted, if split is changed then do something
@@ -3271,7 +3265,7 @@ class pagePatch(seeddbPage):
                     if SPLIT_OPPOSITE[split] != otherSplit:
                         # Splits are different, either update split on the
                         # other entry, or delete it if this split='no'
-                        otherPatchId = str(otherPatch.patchid)
+                        otherPatchId = str(otherPatch.id)
                         # SPLIT_LIST[0][0] is default entry id
                         if split == SPLIT_LIST[0][0]:
                             # Delete other entry
@@ -3327,9 +3321,8 @@ class pagePatch(seeddbPage):
 
         if not error:
             # Check if the selected jack belongs to another patch
-            where = "cablingid='" + cablingid + "' AND NOT patchid='" +\
-                    selected[0] + "'"
-            otherPatch = nav.db.manage.Patch.getAll(where)
+            otherPatch = cabling.Patch.objects.filter(cabling__id = cablingid)
+            otherPatch = otherPatch.exclude(id = selected[0])
             if otherPatch:
                 # Already exists a patch with this jack
                 otherPatch = otherPatch[0]
@@ -3374,7 +3367,7 @@ class pagePrefix(seeddbPage):
     'scope'. """
 
     basePath = BASEPATH + 'prefix/'
-    table = nav.db.manage.Prefix
+    table = manage.Prefix
     pageName = 'prefix'
     tableName = 'prefix'
     tableIdKey = 'prefixid'
@@ -3383,8 +3376,8 @@ class pagePrefix(seeddbPage):
     editIdAllowed = False
 
     # Description format used by describe(id)
-    descriptionFormat = [('','netaddr'),
-                         (', ','vlan.nettype')]
+    descriptionFormat = [('','net_address'),
+                         (', ','vlan.net_type')]
 
     # Unique fields (for errormessages from add/update)
     unique = 'netaddr'
@@ -3455,13 +3448,16 @@ class pagePrefix(seeddbPage):
                         ('scope','scope')]
 
             orgs = [('','No organisation')]
-            for o in nav.db.manage.Org.getAllIterator(orderBy='orgid'):
-                orgs.append((o.orgid,o.orgid + ' (' + str(o.descr) + ')'))
+            for org in manage.Organization.objects.all().order_by('id'):
+                orgs.append((org.id,
+                             "%s (%s)" % (org.id, str(org.description))
+                             ))
 
             usageids = [('','No usage')]
-            for usage in manage.Usage.getAllIterator(orderBy='usageid'):
-                usageids.append((usage.usageid,usage.usageid + ' (' + \
-                                usage.descr + ')'))
+            for usage in manage.Usage.objects.all().order_by('id'):
+                usageids.append((usage.id,
+                                 "%s (%s)" % (usage.id, usage.description)
+                                 ))
 
             # Field definitions {field name: [input object, required]}
             f = {'netaddr': [inputText(),REQ_TRUE,'Prefix/mask (cidr)',
@@ -3619,91 +3615,11 @@ class pagePrefix(seeddbPage):
             status.errors.append(error)
         return (status,action,templateform,selected)
 
-class pageProduct(seeddbPage):
-    """ Describes editing of the product table. """
-    
-    basePath = BASEPATH + 'product/'
-    table = nav.db.manage.Product
-    pageName = 'product'
-    tableName = 'product'
-    tableIdKey = 'productid'
-    sequence = 'product_productid_seq'
-    editMultipleAllowed = True
-    editIdAllowed = False
-
-    # Description format used by describe(id)
-    descriptionFormat = [('','vendor.vendorid'),
-                         (', ','productno')]
-
-    # Unique fields (for errormessages from add/update)
-    unique = ['vendorid']
-
-    # Nouns
-    singular = 'product'
-    plural = 'products'
-
-    # Delete dependencies
-    dependencies = []
-
-    pathAdd = EDITPATH + [('Product',basePath+'list'),('Add',False)]
-    pathEdit = EDITPATH + [('Product',basePath+'list'),('Edit',False)]
-    pathDelete = EDITPATH + [('Product',basePath+'list'),('Delete',False)]
-    pathList = EDITPATH + [('Product',False)]
-
-    class listDef(entryList):
-        """ Describes product list view """
-        def __init__(self,req,struct,sort,deleteWhere=None):
-            # Do general init
-            entryList.__init__(self,req,struct,sort,deleteWhere)
-            
-            # Specific init
-            self.defaultSortBy = 1
-
-            # list of (heading text, show sortlink, compare function for sort)
-            self.headingDefinition = [('Select',False,None),
-                                      ('Vendor',True,None),
-                                      ('Productno',True,None),
-                                      ('Description',True,None)]
-
-            self.cellDefinition = [(('productid,vendorid,productno,descr',
-                                     'product',
-                                     None,
-                                     None,
-                                     'vendorid,productno'),
-                                    [(None,None,entryListCell.CHECKBOX,None,None),
-                                     (1,'{p}edit/{id}',None,None,None),
-                                     (2,None,None,None,None),
-                                     (3,None,None,None,None)])]
-
-    class editbox(editbox):
-        """ Describes fields for adding and editing product entries.
-            The template uses this field information to display the form. """
-
-        def __init__(self,page,req=None,editId=None,formData=None):
-            self.page = page.pageName
-            self.table = page.table
-            # Field definitions {field name: [input object, required]}
-            f = {'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
-                              REQ_TRUE,'Vendor',FIELD_STRING],
-                 'productno': [inputText(),REQ_TRUE,'Productno',FIELD_STRING],
-                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING]}
-
-            self.fields = f
-            self.setControlNames()
-
-            if editId:
-                self.editId = editId
-                self.fill()
-
-            if formData:
-                self.formFill(formData)
-
-
 class pageRoom(seeddbPage):
     """ Describes editing of the room table. """
     
     basePath = BASEPATH + 'room/'
-    table = nav.db.manage.Room
+    table = manage.Room
     pageName = 'room'
     tableName = 'room'
     tableIdKey = 'roomid'
@@ -3715,7 +3631,7 @@ class pageRoom(seeddbPage):
     # Example: room 021 (descr) to jack 123, building, office
     # BUG: roomid.roomid should only have to be roomid
     #      can't find any error in describe()
-    descriptionFormat = [('','roomid.roomid')]
+    descriptionFormat = [('','id')]
 
     # Unique fields (for errormessages from add/update)
     unique = 'roomid'
@@ -3725,7 +3641,7 @@ class pageRoom(seeddbPage):
     plural = 'rooms'
 
     # Delete dependencies
-    dependencies = [(nav.db.manage.Netbox,
+    dependencies = [(manage.Netbox,
                      'boxes',
                      'roomid',
                      '/report/netbox/?roomid=')]
@@ -3783,10 +3699,10 @@ class pageRoom(seeddbPage):
                 disabled = True
 
             locations = [('','Select a location')]
-            for l in nav.db.manage.Location.getAllIterator(
-                                            orderBy='locationid'):
-                locations.append((l.locationid,l.locationid + ' (' +
-                                  l.descr + ')'))
+            for l in manage.Location.objects.all().order_by('id'):
+                locations.append((l.id,
+                                  "%s (%s)" % (l.id, l.description)
+                                  ))
 
             f = {'roomid': [inputText(disabled=disabled,maxlength=30),
                             REQ_TRUE,'Room Id',FIELD_STRING],
@@ -3814,7 +3730,7 @@ class pageService(seeddbPage):
     """ Describes editing of the service table. """
     
     basePath = BASEPATH + 'service/'
-    table = nav.db.manage.Service
+    table = service.Service
     pageName = 'service'
     tableName = 'service'
     tableIdKey = 'serviceid'
@@ -3896,41 +3812,31 @@ class pageService(seeddbPage):
                 self.boxName = UPDATE_ENTRY
                 self.boxId = editId
 
-                # editId is serviceid, get netboxid
-                boxid = str(nav.db.manage.Service(editId).netbox.netboxid)
-                sql = "SELECT serviceid FROM service WHERE netboxid='" +\
-                       boxid + "' ORDER BY handler"
-
-                result = executeSQLreturn(sql)
-                serviceIdList = []
-                if result:
-                    for row in result:
-                        serviceIdList.append(str(row[0]))
-               
-                for serviceId in serviceIdList:        
-                    handler = nav.db.manage.Service(serviceId).handler
+                # editId is serviceid, get info on other services on same box
+                this_service = service.Service.objects.get(id=editId)
+                all_services_on_box = service.Service.objects.filter(
+                    netbox=this_service.netbox).order_by('handler')
+                    
+                for a_service in all_services_on_box:
+                    handler = a_service.handler
                     presentHandlers.append(handler)
-                    handlerId = handler + '_' + serviceId
+                    handlerId = "%s_%s" (handler, a_service.id)
                     handlerName = handler
                     if presentHandlers.count(handler) > 0:
                         handlerName = handler + ' (' +\
                                       str(presentHandlers.count(handler)) + ')'
                     handlerEntries.append((handlerId,handlerName,True))
-                    sql = "SELECT * FROM serviceproperty WHERE " + \
-                          "serviceid='" + serviceId + "'"
-                    result = executeSQLreturn(sql)
-                    propertyValues = {}
-                    for entry in result:
-                        property = entry[1]
-                        value = entry[2]
-                        propertyValues[property] = value
+
+                    properties = a_service.serviceproperty_set.all()
+                    propertyValues = dict((p.property, p.value) 
+                                          for p in properties)
 
                     prop = self.makePropertyInput(handler,propertyValues,
                                                   serviceId=serviceId)
                     if prop:
                         propertyListFilled.append(prop)
                 # Preselected values
-                catid = nav.db.manage.Netbox(boxid).cat.catid
+                catid = this_service.netbox.category_id
                 preSelectedCatid = [catid]
                 preSelectedBoxid = [boxid]
                 catidDisabled = True
@@ -4237,30 +4143,22 @@ class pageService(seeddbPage):
             selectedHandlers = [selectedHandlers]
 
         try:
-            # editId is serviceid, get netboxid
-            boxid = str(nav.db.manage.Service(editId).netbox.netboxid)
-            sql = "SELECT serviceid FROM service WHERE netboxid='" +\
-                   boxid + "' ORDER BY handler"
+            # editId is serviceid, get info on other services on same box
+            this_service = service.Service.objects.get(id=editId)
+            all_services_on_box = service.Service.objects.filter(
+                netbox=this_service.netbox).order_by('handler')
 
-            result = executeSQLreturn(sql)
-            # get all serviceid's for this netbox
-            serviceIdList = []
-            if result:
-                for row in result:
-                    serviceIdList.append(str(row[0]))
-          
             stillSelectedHandlers = []
             deselectedHandlers = []
             currentHandlerIds = []
-            for serviceId in serviceIdList: 
-                handler = nav.db.manage.Service(serviceId).handler
-                handlerId = handler + '_' + serviceId
+            for a_service in all_services_on_box:
+                handlerId = "%s_%s" % (a_service.handler, a_service.id)
                 currentHandlerIds.append(handlerId)
                 
                 if handlerId in selectedHandlers:
-                    stillSelectedHandlers.append(serviceId)
+                    stillSelectedHandlers.append(a_service)
                 else:
-                    deselectedHandlers.append(serviceId)
+                    deselectedHandlers.append(a_service.id)
 
                 addHandlers = []
                 for handlerId in selectedHandlers:
@@ -4271,25 +4169,23 @@ class pageService(seeddbPage):
                         addHandlers.append(handlerId)
              
             # Check for all required properties for old services
-            for serviceId in stillSelectedHandlers:
-                handler = nav.db.manage.Service(serviceId).handler
-                self.checkRequiredProperties(handler,form,serviceId)  
+            for a_service in stillSelectedHandlers:
+                self.checkRequiredProperties(a_service.handler, form,
+                                             a_service.id)  
 
             # Check for all required properties for new services
             for handler in addHandlers:
                 self.checkRequiredProperties(handler,form)
 
             # Update properties for old services
-            for serviceId in stillSelectedHandlers:
+            for a_service in stillSelectedHandlers:
                 # Delete all old serviceproperties for this serviceId,
-                handler = nav.db.manage.Service(serviceId).handler
-                sql = "DELETE FROM serviceproperty WHERE serviceid='" +\
-                      serviceId + "'"
-                executeSQL([sql])
+                a_service.serviceproperty_set.all().delete()
                 # Insert new serviceproperties
-                self.insertProperties(handler,form,serviceId,editing=True)
+                self.insertProperties(a_service.handler, form, serviceId,
+                                      editing=True)
                 status.messages.append('Updated service: ' +\
-                                       self.describe(serviceId))
+                                       self.describe(a_service.id))
 
             # Add new services
             for handler in addHandlers:
@@ -4315,84 +4211,11 @@ class pageService(seeddbPage):
         return (status,action,templateForm,selected)
 
 
-    def updateOLD(self):
-        action = 'edit'
-        status = seeddbStatus()
-        editId = req.form[UPDATE_ENTRY]
-        # Check if all required serviceproperties are present
-        handler = nav.db.manage.Service(editId).handler
-        properties = getDescription(handler)
-        missing = False
-        propertyStep = False
-
-        if properties:
-            if properties.has_key('args'):
-                for required in properties['args']:
-                    if not req.form.has_key(required):
-                        propertyStep = True
-                    if req.form.has_key(required):
-                        if not len(req.form[required]):
-                            missing = required
-                            propertyStep = True
-            if properties.has_key('optargs'):
-                for optional in properties['optargs']:
-                    if not req.form.has_key(optional):
-                        # If optargs are missing, then we haven't reached
-                        # the add property step yet
-                        propertyStep = True
-
-        if propertyStep or (missing and len(req.form['netboxid'])):
-            if missing:
-                # Missing required property
-                status.errors.append("Missing required property '" +\
-                                     missing + "'")
-
-            checker = handler
-            templateForm.title = 'Edit service'
-            templateForm.add(self.editbox(self,formData=req.form,
-                                          editId=selected[0],disabled=True))
-            templateForm.add(self.editboxServiceProperties(checker,
-                                                    req.form['netboxid'],
-                                                    editId=selected[0]))
-            action = 'continueEdit'
-        elif not missing:
-            # Update service entry
-            fields = {'netboxid': req.form['netboxid'],
-                      'handler': handler}
-            updateEntryFields(fields,'service','serviceid',editId)
-            # Update serviceproperty entries
-            if properties:
-                # Delete old properties
-                deleteEntry([editId],'serviceproperty','serviceid')
-                if properties.has_key('args'):
-                    for property in properties['args']:
-                        # Already know that all properties in 'args' are present
-                        fields = {'serviceid': editId,
-                                  'property': property,
-                                  'value': req.form[property]}
-                        addEntryFields(fields,'serviceproperty')
-                        action = 'list'
-                if properties.has_key('optargs'):
-                    for property in properties['optargs']:
-                        # optargs are optional, must check if they are present
-                        if req.form.has_key(property):
-                            if len(req.form[property]):
-                                fields = {'serviceid': editId,
-                                          'property': property,
-                                          'value': req.form[property]}
-                                addEntryFields(fields,'serviceproperty')
-                                action = 'list'
-        else:
-            status.errors.append("Missing required property '" + missing+"'")
-            action = 'list'
-        selected = [editId]
-        return (status,action,templateForm,selected)
-
 class pageSnmpoid(seeddbPage):
     """ Describes adding to the snmpoid table. """
     
     basePath = BASEPATH + 'snmpoid/'
-    table = nav.db.manage.Snmpoid
+    table = oid.SnmpOid
     pageName = 'snmpoid'
     tableName = 'snmpoid'
     tableIdKey = 'snmpoidid'
@@ -4468,7 +4291,7 @@ class pageSubcat(seeddbPage):
     """ Describes editing of the subcat table. """
     
     basePath = BASEPATH + 'subcat/'
-    table = nav.db.manage.Subcat
+    table = manage.Subcategory
     pageName = 'subcat'
     tableName = 'subcat'
     tableIdKey = 'subcatid'
@@ -4477,8 +4300,8 @@ class pageSubcat(seeddbPage):
     editIdAllowed = True
 
     # Description format used by describe(id)
-    descriptionFormat = [('','subcatid'),
-                         (' (','descr'),
+    descriptionFormat = [('','id'),
+                         (' (','description'),
                          (')',None)]
 
     # Unique fields (for errormessages from add/update)
@@ -4530,8 +4353,10 @@ class pageSubcat(seeddbPage):
             self.table = page.table
             
             o = [('','Select a category')]
-            for cat in nav.db.manage.Cat.getAllIterator():
-                o.append((cat.catid,cat.catid + ' (' + cat.descr + ')'))
+            for cat in manage.Category.objects.all():
+                o.append((cat.id,
+                          "%s (%s)" % (cat.id, cat.description)
+                          ))
 
             f = {'subcatid': [inputText(),REQ_TRUE,'Subcategory',FIELD_STRING],
                  'catid': [inputSelect(options=o),REQ_TRUE,'Category',
@@ -4551,7 +4376,7 @@ class pageType(seeddbPage):
     """ Describes editing of the type table. """
     
     basePath = BASEPATH + 'type/'
-    table = nav.db.manage.Type
+    table = manage.NetboxType
     pageName = 'type'
     tableName = 'type'
     tableIdKey = 'typeid'
@@ -4560,8 +4385,8 @@ class pageType(seeddbPage):
     editIdAllowed = False
 
     # Description format used by describe(id)
-    descriptionFormat = [('','vendor.vendorid'),
-                         (' ','typename')]
+    descriptionFormat = [('','vendor.id'),
+                         (' ','name')]
 
     # Unique fields (for errormessages from add/update)
     unique = 'sysobjectid'
@@ -4625,7 +4450,7 @@ class pageType(seeddbPage):
             self.table = page.table
             # Field definitions {field name: [input object, required]}
             f = {'typename': [inputText(),REQ_TRUE,'Typename',FIELD_STRING],
-                 'vendorid': [inputSelect(table=seeddbTables.seeddbVendor),
+                 'vendorid': [inputSelect(options=get_vendor_options()),
                               REQ_TRUE,'Vendor',FIELD_STRING],
                  'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING],
                  'sysobjectid': [inputText(),REQ_TRUE,'Sysobjectid',
@@ -4650,7 +4475,7 @@ class pageUsage(seeddbPage):
     """ Describes editing of the usage table. """
     
     basePath = BASEPATH + 'usage/'
-    table = nav.db.manage.Usage
+    table = manage.Usage
     pageName = 'usage'
     tableName = 'usage'
     tableIdKey = 'usageid'
@@ -4659,8 +4484,8 @@ class pageUsage(seeddbPage):
     editIdAllowed = True
 
     # Description format used by describe(id)
-    descriptionFormat = [('','usageid'),
-                         (' (','descr'),
+    descriptionFormat = [('','id'),
+                         (' (','description'),
                          (')',None)]
 
     # Unique fields (for errormessages from add/update)
@@ -4726,7 +4551,7 @@ class pageVendor(seeddbPage):
     """ Describes editing of the vendor table. """
     
     basePath = BASEPATH + 'vendor/'
-    table = nav.db.manage.Vendor
+    table = manage.Vendor
     pageName = 'vendor'
     tableName = 'vendor'
     tableIdKey = 'vendorid'
@@ -4735,7 +4560,7 @@ class pageVendor(seeddbPage):
     editIdAllowed = True
 
     # Description format used by describe(id)
-    descriptionFormat = [('','vendorid')]
+    descriptionFormat = [('','id')]
 
     # Unique fields (for errormessages from add/update)
     unique = 'vendorid'
@@ -4745,14 +4570,10 @@ class pageVendor(seeddbPage):
     plural = 'vendors'
 
     # Delete dependencies
-    dependencies = [(nav.db.manage.Type,
+    dependencies = [(manage.NetboxType,
                     'types',
                     'vendorid',
-                    '/report/type/?vendorid='),
-                    (nav.db.manage.Product,
-                    'products',
-                    'vendorid',
-                    '/report/product/?vendorid=')]
+                    '/report/type/?vendorid=')]
 
     pathAdd = EDITPATH + [('Vendor',basePath+'list'),('Add',False)]
     pathEdit = EDITPATH + [('Vendor',basePath+'list'),('Edit',False)]
@@ -4805,7 +4626,7 @@ class pageVlan(seeddbPage):
         deleting allowed). """
     
     basePath = BASEPATH + 'vlan/'
-    table = nav.db.manage.Vlan
+    table = manage.Vlan
     pageName = 'vlan'
     tableName = 'vlan'
     tableIdKey = 'vlanid'
@@ -4818,7 +4639,7 @@ class pageVlan(seeddbPage):
     disallowAddReason = 'Cannot add vlans manually'
 
     # Description format used by describe(id)
-    descriptionFormat = [('','nettype'),
+    descriptionFormat = [('','net_type'),
                          (' ','vlan')]
 
     # Unique fields (for errormessages from add/update)
@@ -4887,13 +4708,16 @@ class pageVlan(seeddbPage):
                         ('private','private')]
 
             orgs = [('','No organisation')]
-            for o in nav.db.manage.Org.getAllIterator():
-                orgs.append((o.orgid,o.orgid + ' (' + str(o.descr) + ')'))
+            for org in manage.Organization.objects.all():
+                orgs.append((org.id,
+                             "%s (%s)" % (org.id, org.description)
+                             ))
 
             usageids = [('','No usage')]
-            for usage in nav.db.manage.Usage.getAllIterator():
-                usageids.append((usage.usageid,usage.usageid + ' (' + \
-                                usage.descr + ')'))
+            for usage in manage.Usage.objects.all():
+                usageids.append((usage.id,
+                                 "%s (%s)" % (usage.id, usage.description)
+                                 ))
 
             # Field definitions {field name: [input object, required]}
             f = {'nettype': [inputSelect(options=nettypes),REQ_TRUE,
@@ -4923,7 +4747,6 @@ pageList = {'cabling': pageCabling,
             'org': pageOrg,
             'patch': pagePatch,
             'prefix': pagePrefix,
-            'product': pageProduct,
             'room': pageRoom,
             'service': pageService,
             'snmpoid': pageSnmpoid,
@@ -4957,7 +4780,6 @@ class editboxBulk(editbox):
                   ('usage','Usage categories'),
                   ('subcat','Subcategories'),
                   ('type','Types'),
-                  ('product','Products'),
                   ('vendor','Vendors'),
                   ('netbox','IP devices'),
                   ('service','Services'),
@@ -5051,9 +4873,20 @@ def bulkImportParse(input,bulkdef,separator):
                     if i < bulkdef.max_num_fields and \
                        type(bulkdef.uniqueField) is str and \
                        fn == bulkdef.uniqueField:
-                        where = bulkdef.uniqueField+"='"+fields[i] + "'"
-                        result = bulkdef.table.getAllIDs(where=where)
-                        if result:
+                        # This stupid-ass code mixes pure SQL and ORM in insane 
+                        # ways.  We have a db column name and want to know which
+                        # attribute name the Django model uses for it.
+                        # XXX: This uses undocumented Django internals
+                        column_map = dict((f.db_column, f.name)
+                                          for f in bulkdef.table._meta.fields)
+                        if bulkdef.uniqueField in column_map:
+                            attr_name = column_map[bulkdef.uniqueField]
+                        else:
+                            attr_name = bulkdef.uniqueField
+
+                        where = {attr_name: fields[i]}
+                        queryset = bulkdef.table.objects.filter(**where)
+                        if len(queryset) > 0:
                             status = BULK_STATUS_YELLOW_ERROR
                             remark = "Not unique: An entry with " +fn + \
                                      "=" + fields[i] + " already exists"
@@ -5116,7 +4949,6 @@ def bulkImport(req,action):
                'vendor': bulkdefVendor,
                'subcat': bulkdefSubcat,
                'type': bulkdefType,
-               'product': bulkdefProduct,
                'prefix': bulkdefPrefix}
 
     listView = None
@@ -5207,16 +5039,20 @@ def bulkImport(req,action):
         form.status = seeddbStatus()
         if req.form.has_key(BULK_HIDDEN_DATA):
             data = req.form[BULK_HIDDEN_DATA]
-            result = bulkInsert(data,bulkdef[table],separator)
-            noun = ' rows'
-            if result == 1:
-                noun = ' row'
-            form.status.messages.append('Inserted ' + str(result) + noun)
-            page = pageList[table]
-            listView = page.listDef(req,page,None)
-            listView.status = form.status
-            listView.fill(req)
-            form = None
+            try:
+                result = bulkInsert(data,bulkdef[table],separator)
+            except BulkImportDuplicateError, err:
+                form.status.errors.append("No rows were imported: %s" % err)
+            else:
+                noun = ' rows'
+                if result == 1:
+                    noun = ' row'
+                form.status.messages.append('Inserted ' + str(result) + noun)
+                page = pageList[table]
+                listView = page.listDef(req,page,None)
+                listView.status = form.status
+                listView.fill(req)
+                form = None
         else:
             form.status.errors.append('No rows to insert.')
 
@@ -5292,7 +5128,7 @@ def bulkInsert(data,bulkdef,separator):
 class bulkdefCabling:
     """ Contains defintion of fields for bulk importing cabling """
     tablename = 'cabling'
-    table = nav.db.manage.Cabling
+    table = cabling.Cabling
     uniqueField = ['roomid','jack']
     enforce_max_fields = True
     max_num_fields = 6
@@ -5320,8 +5156,8 @@ class bulkdefCabling:
             if data:
                 if len(data):
                     try:
-                        nav.db.manage.Room(data).load()
-                    except forgetSQL.NotFound:
+                        manage.Room.objects.get(id=data)
+                    except manage.room.DoesNotExist:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Room '" + data + "' not found in database"
         if field == 'category':
@@ -5348,15 +5184,11 @@ class bulkdefCabling:
                 row['category'] = CATEGORY_LIST[0][0]
 
         # Check uniqueness
-        where = ""
-        first = True
+        where = {}
         for field in cls.uniqueField:
-            if not first:
-                where += 'AND '
-            where += field + "='" + row[field] + "' "
-            first = False
-        result = cls.table.getAll(where)
-        if result:
+            where[field] = row[field]
+        queryset = cls.table.objects.filter(**where)
+        if len(queryset) > 0:
             row = None
 
         return row
@@ -5366,7 +5198,7 @@ class bulkdefCabling:
 class bulkdefPatch:
     """ Contains defintion of fields for bulk importing patches """
     tablename = 'patch'
-    table = nav.db.manage.Patch
+    table = cabling.Patch
     uniqueField = ['swportid','cablingid']
     enforce_max_fields = True
     max_num_fields = 6
@@ -5394,18 +5226,17 @@ class bulkdefPatch:
             if data:
                 if len(data):
                     try:
-                        room = nav.db.manage.Room(data)
-                        cls.roomId = room.roomid
-                        # If room existsm, check if netbox is in it
-                        where = "netboxid=" + str(cls.netboxId) + " AND " +\
-                                "roomid='" + cls.roomId + "'"
-                        box = nav.db.manage.Netbox.getAll(where)
-                        if not box:
-                            sw = nav.db.manage.Netbox(cls.netboxId).sysname
+                        room = manage.Room.objects.get(id=data)
+                        cls.roomId = room.id
+
+                        # If room exists, check if netbox is in it
+                        box = manage.Netbox.get(id=cls.netboxId)
+                        if box.room != room:
+                            sw = box.sysname
                             status = BULK_STATUS_RED_ERROR
                             remark = "Switch '" + sw + "' not in room " +\
                                      cls.roomId
-                    except forgetSQL.NotFound:
+                    except manage.Room.DoesNotExist:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Room '" + data + "' not found in database"
         if field == 'sysname':
@@ -5428,33 +5259,26 @@ class bulkdefPatch:
                     # 'ip' should be numerical ip now, 
                     # else there already was an error
                     if ip:
-                        where = "ip='" + ip + "'"
-                        box = nav.db.manage.Netbox.getAll(where)
+                        box = manage.Netbox.objects.filter(ip=ip)
                         if box:
                             box = box[0]
-                            cls.netboxId = box.netboxid
+                            cls.netboxId = box.id
                         else:
                             status = BULK_STATUS_RED_ERROR
                             remark = "Switch '" + data + "' not found in database"
         if field == 'module':
             if data:
                 if len(data):
-                    try:
-                        tst = int(data)
-                        where = "module='" + data + "' AND " +\
-                                "netboxid='" + str(cls.netboxId) + "'"
-                        module = nav.db.manage.Module.getAll(where)
-                        if module:
-                            module = module[0]
-                            cls.moduleId = module.moduleid
-                        else:
-                            status = BULK_STATUS_RED_ERROR
-                            sw = nav.db.manage.Netbox(cls.netboxId).sysname
-                            remark = "Module '" + data + "' in switch " +\
-                                     sw + " not found in database"
-                    except ValueError:
+                    module = manage.Module.objects.filter(
+                        netbox__id=cls.netboxId, name=data)
+                    if module:
+                        module = module[0]
+                        cls.moduleId = module.id
+                    else:
                         status = BULK_STATUS_RED_ERROR
-                        remark = "Module must be integer"
+                        sw = manage.Netbox.objects.get(id=cls.netboxId).sysname
+                        remark = "Module '" + data + "' in switch " +\
+                                 sw + " not found in database"
         if field == 'port':
             # Check if this port on the specified module in the switch
             # is present in the database
@@ -5464,29 +5288,28 @@ class bulkdefPatch:
                         tst = int(data)
                         where = "moduleid='" + str(cls.moduleId) + "' AND " +\
                                 "port='" + data + "'"
-                        swport = nav.db.manage.Swport.getAll(where)
+                        swport = manage.Interface.objects.filter(
+                            module__id=cls.moduleId, baseport=data)
                         if swport:
                             swport = swport[0]
-                            cls.swportId = swport.swportid
+                            cls.swportId = swport.id
                         else:
                             status = BULK_STATUS_RED_ERROR
-                            sw = nav.db.manage.Netbox(cls.netboxId).sysname
-                            module = nav.db.manage.Module(cls.moduleId).module
-                            remark = "Port '" + data + "', module '" +\
-                                     str(module) + "' in switch " +\
-                                     sw + " not found in database"
+                            module = manage.Module.objects.get(id=cls.moduleId)
+                            remark = ("Port '%s%', module '%s' in switch %s "
+                                      "not found in database" %
+                                      (data, module.name, module.netbox.sysname))
                     except ValueError:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Port must be integer"
         if field == 'jack':
             if data:
                 if len(data):
-                    where = "roomid='" + cls.roomId + "' AND " +\
-                            "jack='" + data + "'"
-                    cabling = nav.db.manage.Cabling.getAll(where)
+                    cabling = manage.Cabling.objects.filter(
+                        room__id=cls.roomId, jack=data)
                     if cabling:
                         cabling = cabling[0]
-                        cls.cablingId = cabling.cablingid
+                        cls.cablingId = cabling.id
                     else:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Cabling between " +\
@@ -5526,27 +5349,21 @@ class bulkdefPatch:
                 row = None
 
         if ip:
-            where = "ip='" + ip + "'"
-            box = nav.db.manage.Netbox.getAll(where)
+            box = manage.Netbox.objects.filter(ip=ip)
             box = box[0]
 
-            where = "module='" + row['module'] + "' AND " +\
-                    "netboxid='" + str(box.netboxid) + "'"
-            module = nav.db.manage.Module.getAll(where)
+            module = box.module_set.filter(name=row['module'])
             module = module[0]
 
-            where = "moduleid='" + str(module.moduleid) + "' AND " +\
-                    "port='" + row['port'] + "'"
-            swport = nav.db.manage.Swport.getAll(where)
+            swport = module.interface_set.filter(baseport=row['port'])
             swport = swport[0]
 
-            where = "roomid='" + row['roomid'] + "' AND " +\
-                    "jack='" + row['jack'] + "'"
-            cabling = nav.db.manage.Cabling.getAll(where)
+            cabling = manage.Cabling.objects.filter(
+                room__id=row['roomid'], jack=row['jack'])
             cabling = cabling[0]
 
-            row['swportid'] = str(swport.swportid)
-            row['cablingid'] = str(cabling.cablingid)
+            row['swportid'] = str(swport.id)
+            row['cablingid'] = str(cabling.id)
 
             if not row.has_key('split'):
                 # Set default split
@@ -5555,8 +5372,7 @@ class bulkdefPatch:
                 row['split'] = SPLIT_LIST[0][0]
 
             # Check if the selected jack already belongs to a patch
-            where = "cablingid='" + row['cablingid'] + "'"
-            otherPatch = nav.db.manage.Patch.getAll(where)
+            otherPatch = cabling.patch_set.all()
             if otherPatch:
                 # Already exists a patch with this jack, it must
                 # be splitted, if split is changed then do something
@@ -5566,7 +5382,7 @@ class bulkdefPatch:
                 if SPLIT_OPPOSITE[row['split']] != otherSplit:
                     # Splits are different, either update split on the
                     # other entry, or delete it if this split='no'
-                    otherPatchId = str(otherPatch.patchid)
+                    otherPatchId = str(otherPatch.id)
                     # SPLIT_LIST[0][0] is default entry id
                     if row['split'] == SPLIT_LIST[0][0]:
                         # Delete other entry
@@ -5578,15 +5394,11 @@ class bulkdefPatch:
                                           'patchid',otherPatchId)
 
         # Check uniqueness
-        where = ""
-        first = True
+        where = {}
         for field in cls.uniqueField:
-            if not first:
-                where += 'AND '
-            where += field + "='" + row[field] + "' "
-            first = False
-        result = cls.table.getAll(where)
-        if result:
+            where[field] = row[field]
+        queryset = cls.table.objects.filter(**where)
+        if len(queryset) > 0:
             row = None
 
         return row
@@ -5653,8 +5465,8 @@ class bulkdefRoom:
             if data:
                 if len(data):
                     try:
-                        manage.Location(data).load()
-                    except forgetSQL.NotFound:
+                        manage.Location.objects.get(id=data)
+                    except manage.Location.DoesNotExist:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Location '" + data + "' not found in database"
         return (status,remark)
@@ -5663,7 +5475,7 @@ class bulkdefRoom:
 class bulkdefOrg:
     """ Contains field definitions for bulk importing orgs. """
     tablename = 'org'
-    table = manage.Org
+    table = manage.Organization
     uniqueField = 'orgid'
     enforce_max_fields = True
     max_num_fields = 6
@@ -5689,8 +5501,8 @@ class bulkdefOrg:
         remark = None
         if field == 'parent' and len(data):
              try:
-                manage.Org(data).load()
-             except forgetSQL.NotFound:
+                manage.Organization.objects.get(id=data)
+             except manage.Organization.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Parent '" + data + "' not found in database"  
         return (status,remark)
@@ -5752,7 +5564,7 @@ class bulkdefVendor:
 class bulkdefSubcat:
     """ Contains field information for bulk importing subcats. """
     tablename = 'subcat'
-    table = manage.Subcat
+    table = manage.Subcategory
     uniqueField = 'subcatid'
     enforce_max_fields = True
     max_num_fields = 3
@@ -5776,8 +5588,8 @@ class bulkdefSubcat:
 
         if field == 'catid':
              try:
-                manage.Cat(data).load()
-             except forgetSQL.NotFound:
+                manage.Category.objects.get(id=data)
+             except manage.Category.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Category '" + data + "' not found in database"  
 
@@ -5789,7 +5601,7 @@ class bulkdefType:
     """ Contains field defintions for bulk importing types. """
     # number of fields
     tablename = 'type'
-    table = manage.Type
+    table = manage.NetboxType
     uniqueField = 'typename'
     enforce_max_fields = True
     max_num_fields = 7
@@ -5818,8 +5630,8 @@ class bulkdefType:
 
         if field == 'vendorid':
             try:
-                manage.Vendor(data).load()
-            except forgetSQL.NotFound:
+                manage.Vendor.objects.get(id=data)
+            except manage.Vendor.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Vendor '" + data + "' not found in database"  
 
@@ -5841,51 +5653,6 @@ class bulkdefType:
                     row['tftp'] = '1'
             else:
                 row['tftp'] = '0'
-        return row
-    preInsert = classmethod(preInsert)
-
-class bulkdefProduct:
-    """ Contains field definitions for bulk importing products. """
-    # number of fields
-    tablename = 'product'
-    table = manage.Product
-    uniqueField = 'productno'
-    enforce_max_fields = True
-    max_num_fields = 3
-    min_num_fields = 2
-
-    process = True
-    onlyProcess = False
-    syntax = '#vendorid:productno[:description]\n'
-
-    postCheck = False
-
-    # list of (fieldname,max length,not null,use field)
-    fields = [('vendorid',15,True,True),
-              ('productno',0,True,True),
-              ('descr',0,False,True)]
-
-    def checkValidity(cls,field,data):
-        """ Checks validity of input fields. """
-        status = BULK_STATUS_OK
-        remark = None
-
-        if field == 'vendorid':
-             try:
-                manage.Vendor(data).load()
-             except forgetSQL.NotFound:
-                status = BULK_STATUS_RED_ERROR
-                remark = "Vendor '" + data + "' not found in database"  
-        return (status,remark)
-    checkValidity = classmethod(checkValidity)
-
-    def preInsert(cls,row):
-        """ Alter fields before inserting. (set correct value for cdp
-            and tftp if anything is input in those fields) """
-        if row.has_key('cdp'):
-            row['cdp'] = '1'
-        if row.has_key('tftp'):
-            row['tftp'] = '1'
         return row
     preInsert = classmethod(preInsert)
 
@@ -5928,7 +5695,8 @@ class bulkdefNetbox:
                 if len(data['serial']):
                    hasSerial = True
 
-            if (not hasRO) and manage.Cat(data['catid']).req_snmp:
+            if (not hasRO) and \
+                    manage.Category.objects.get(id=data['catid']).req_snmp:
                 status = BULK_STATUS_YELLOW_ERROR
                 raise("This category requires an RO community")
 
@@ -5949,14 +5717,14 @@ class bulkdefNetbox:
 #                        status = BULK_STATUS_YELLOW_ERROR
 #                        error = "No serial returned by SNMP, and no serial given."
                     if (not box.typeid):
-                        if manage.Cat(data['catid']).req_snmp:
+                        if manage.Category.objects.get(id=data['catid']).req_snmp:
                             status = BULK_STATUS_YELLOW_ERROR
                             error = "Got SNMP response, but couldn't get type which is required for IP devices of this category. Add type manually."
                         else:
                             status = BULK_STATUS_OK
                             error = "Got SNMP response, but couldn't get type (type isn't required for this category)."
                 except nav.Snmp.TimeOutException:
-                    if manage.Cat(data['catid']).req_snmp:
+                    if manage.Category.objects.get(id=data['catid']).req_snmp:
                         # Snmp failed, but is required by this CAT
                         status = BULK_STATUS_YELLOW_ERROR
                         raise("RO given, but failed to contact IP device by SNMP (IP devices of this category are required to answer).")
@@ -5992,32 +5760,30 @@ class bulkdefNetbox:
                 status = BULK_STATUS_RED_ERROR
         if field == 'roomid':
              try:
-                manage.Room(data).load()
-             except forgetSQL.NotFound:
+                manage.Room.objects.get(id=data)
+             except manage.Room.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Room '" + data + "' not found in database"  
         if field == 'orgid':
              try:
-                manage.Org(data).load()
-             except forgetSQL.NotFound:
+                manage.Organization.objects.get(id=data)
+             except manage.Organization.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Organisation '" + data + "' not found in database"
         if field == 'catid':
              try:
-                manage.Cat(data).load()
-             except forgetSQL.NotFound:
+                manage.Category.objects.get(id=data)
+             except manage.Category.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid category '" + data + "'"
         if field == 'serial':
             if len(data):
-                where = "serial='%s'" % (data,)
-                device = manage.Device.getAll(where)
+                device = manage.Device.objects.filter(serial=data)
                 if device:
                     # There exists a device with this serial,
                     # must check if any netbox is connected with this
                     # device
-                    where = "deviceid='%s'" % (device[0].deviceid,)
-                    netbox = manage.Netbox.getAll(where)
+                    netbox = device[0].netbox_set.all()
                     if netbox:
                         status = BULK_STATUS_RED_ERROR
                         remark = "An IP device with the serial '" + data + \
@@ -6027,8 +5793,8 @@ class bulkdefNetbox:
             # Need to check not only if the subcat exists, but
             # also if the cat is correct
             try:
-                manage.Subcat(data).load()
-            except forgetSQL.NotFound:
+                manage.Subcategory.objects.get(id=data)
+            except manage.Subcategory.DoesNotExist:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid subcat '" + data + "'"
         return (status,remark)
@@ -6100,11 +5866,10 @@ class bulkdefNetbox:
                 fields = {'serial': newSerial}
 
                 # Must check if a device with this serial is already present
-                where = "serial='%s'" % (fields['serial'])
-                device = manage.Device.getAll(where)
+                device = manage.Device.objects.filter(serial=fields['serial'])
                 if device:
                     # Found device, and it is unique (serial must be unique)
-                    deviceid = str(device[0].deviceid)
+                    deviceid = str(device[0].id)
             
             if not deviceid:                
                 # Make new device
@@ -6164,7 +5929,7 @@ class bulkdefNetbox:
 class bulkdefService:
     """ Contains field definitions for bulk importing services. """
     tablename = 'service'
-    table = manage.Service
+    table = service.Service
     uniqueField = None
     enforce_max_fields = False
     max_num_fields = 2
@@ -6197,10 +5962,9 @@ class bulkdefService:
                 ip = gethostbyname(data['netboxid'])
             except gaierror:
                 raise ("DNS query for '%s' failed." % (data['netboxid'],)) 
-            where = "ip='%s'" % (ip,)
-            box = manage.Netbox.getAll(where)
+            box = manage.Netbox.objects.filter(ip=ip)
             if box:
-                data['netboxid'] = str(box[0].netboxid)
+                data['netboxid'] = str(box[0].id)
             else:
                 raise("No box with sysname or ip '" + data['netboxid'] + \
                       "' found in database.")
@@ -6260,10 +6024,9 @@ class bulkdefService:
         """ Fills in all missing data before inserting entry. """
         try:
             ip = gethostbyname(data['netboxid'])
-            where = "ip='%s'" % (ip,)
-            box = manage.Netbox.getAll(where)
+            box = manage.Netbox.objects.filter(ip=ip)
             if box:
-                data['netboxid'] = str(box[0].netboxid)
+                data['netboxid'] = str(box[0].id)
             else:
                 data = None
         except:
@@ -6335,8 +6098,7 @@ class bulkdefPrefix:
                 executeSQL([sql])
 
                 # Already present?
-                where = "netaddr='%s'" % (data,)
-                prefixes = manage.Prefix.getAll(where)
+                prefixes = manage.Prefix.objects.filter(net_address=data)
                 if prefixes:
                     status = BULK_STATUS_YELLOW_ERROR
                     remark = "CIDR already present in database."
@@ -6346,25 +6108,24 @@ class bulkdefPrefix:
                 remark = "Invalid CIDR '" + data + "'"
         if field == 'nettype':
             # Only add nettypes we're allowed to
-            where = "nettypeid='%s' and edit='t'" % (data,)
-            result = manage.Nettype.getAll(where)
-            if not result:
+            result = manage.NetType.objects.filter(id=data, edit=True)
+            if len(result) == 0:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid nettype '" + data + "'"
         if field == 'orgid':
             if data:
                 if len(data):
                     try:
-                        manage.Org(data).load()
-                    except forgetSQL.NotFound:
+                        manage.Organization.objects.get(id=data)
+                    except manage.Organization.DoesNotExist:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Organisation '" + data + "' not found in database"
         if field == 'usage':
             if data:
                 if len(data):
                     try:
-                        manage.Usage(data).load()
-                    except forgetSQL.NotFound:
+                        manage.Usage.objects.get(id=data)
+                    except manage.Usage.DoesNotExist:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Usage '" + data + "' not found in database"
  
@@ -6467,45 +6228,3 @@ class selectList:
         self.idcol = None
         self.orderBy = None
         self.tablename = ''
-
-    def fill(self):
-        " Fill the headings and rows lists "
-    
-        # fill headings
-        self.headings = []
-        if not self.isDeleteList:
-            self.headings = ['Select']
-        for heading,column,link in self.columns:    
-            self.headings.append(heading)
-
-        # fill rows
-        entries = []
-        if not self.isDeleteList:
-            entries = self.table.getAllIterator(orderBy=self.orderBy,
-                                                where=self.where)
-        else:
-            for id in self.deleteList:
-                entries.append(self.table(id))
-
-        for entry in entries:
-            id = getattr(entry,self.idcol)
-
-            row = []
-            for heading,column,link in self.columns:
-                if link:
-                    eid = id
-                    if not type(eid) is str:
-                        eid = str(id)
-                    row.append(([getattr(entry,column)],BASEPATH + self.tablename + '/edit/' + eid))
-                else:
-                    text = []
-                    if type(column) is str:
-                        text = [getattr(entry,column)]
-                    else:
-                        sectable,secidfield,sectextfield = column
-                        iter = sectable.getAllIterator(where=secidfield + \
-                                        "='" + eid + "'")
-                        for i in iter:
-                            text.append(getattr(i,sectextfield)) 
-                    row.append((text,None))
-            self.rows.append((id,row))  
