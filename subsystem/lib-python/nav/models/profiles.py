@@ -290,8 +290,10 @@ class AlertAddress(models.Model):
             return True
 
         if self.type.is_blacklisted():
-            logger.warning('Not sending alert %s to %s as handler %s is blacklisted' % (alert.id, self.address, self.type))
             transaction.rollback()
+
+            logger.warning('Not sending alert %s to %s as handler %s is blacklisted: %s' %
+                (alert.id, self.address, self.type, self.type.blacklist_reason()))
 
             return False
 
@@ -318,7 +320,7 @@ class AlertAddress(models.Model):
         except Exception, e:
             logger.exception('Unhandeled error from %s (the handler has been blacklisted)' % self.type)
             transaction.rollback()
-            self.type.blacklist()
+            self.type.blacklist(e)
             return False
 
         return True
@@ -327,7 +329,7 @@ class AlertSender(models.Model):
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
 
-    _blacklist = set()
+    _blacklist = {}
 
     def __unicode__(self):
         return self.name
@@ -347,11 +349,14 @@ class AlertSender(models.Model):
         # Delegate sending of message
         return self.handler_instance.send(*args, **kwargs)
 
-    def blacklist(self):
-        self.__class__._blacklist.add(self.handler)
+    def blacklist(self, reason=None):
+        self.__class__._blacklist[self.handler] = reason
 
     def is_blacklisted(self):
         return self.handler in self.__class__._blacklist
+
+    def blacklist_reason(self):
+        return self.__class__._blacklist.get(self.handler, 'Unknown reason')
 
     class Meta:
         db_table = 'alertsender'
