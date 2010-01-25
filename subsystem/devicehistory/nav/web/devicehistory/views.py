@@ -150,8 +150,6 @@ def devicehistory_view(request):
         attr = key
         if key == "location":
             attr = "loc"
-
-        url += "&submit_%s=%s" % (attr, "history")
         for id in values:
             url += "&%s=%s" % (attr, id)
 

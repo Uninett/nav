@@ -118,7 +118,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
                 (end_time = 'infinity' AND start_time < %s) OR
                 (end_time >= %s AND start_time < %s)
             )
-           '''
+           ''',
         ],
         params=[from_date, to_date, from_date, to_date]
     ).order_by(*order_by_keys)
@@ -128,7 +128,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
 def get_page(paginator, page):
     try:
         history = paginator.page(page)
-    except (EmptyPage, InvalidPage):
+    except InvalidPage:
         history = paginator.page(paginator.num_pages)
     return history
 
@@ -153,7 +153,10 @@ def group_history_and_messages(history, messages, group_by=None):
                     }
                 a.extra_messages[m['state']][m['type']] = m['message']
 
-        key = GROUPINGS[group_by]['group_by'](a)
+        try:
+            key = GROUPINGS[group_by]['group_by'](a)
+        except AttributeError:
+            key = None
 
         if not grouped_history.has_key(key):
             grouped_history[key] = []
