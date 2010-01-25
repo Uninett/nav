@@ -98,6 +98,7 @@ class _Section(object):
     columns = []
     history = []
     type_title = ''
+    devicehistory_type = ''
 
     def __init__(self, prefs=None):
         self.prefs = prefs
@@ -109,9 +110,22 @@ class _Section(object):
             if self.prefs.type == key:
                 self.type_title = title
                 break
-
+        self.deviceurllulz = self.devicehistory_url()
+    
     def fetch_history(self):
         self.history = []
+
+    def devicehistory_url(self):
+        netboxes = Netbox.objects.filter(
+            category__in=self.categories,
+            organization__in=self.organizations,
+        ).values('id')
+        url = reverse('devicehistory-view')
+        url += "?type=%s" % self.devicehistory_type
+        url += "&group_by=datetime"
+        for n in netboxes:
+            url += "&netbox=%s" % n['id']
+        return url
 
 class NetboxSection(_Section):
     columns =  [
@@ -121,6 +135,7 @@ class NetboxSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'a_3'
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -152,7 +167,7 @@ class NetboxSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=a_3&group_by=datetime' % {
+                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
                         'id': h.netbox.id,
                     }
                 ),
@@ -188,6 +203,7 @@ class NetboxMaintenanceSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'e_maintenanceState'
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -220,7 +236,7 @@ class NetboxMaintenanceSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
+                    '?netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
                         'id': m.alert_history.netbox.id,
                     }
                 ),
@@ -265,6 +281,7 @@ class ServiceSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'e_serviceState'
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
@@ -319,7 +336,7 @@ class ServiceSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
+                    '?netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
                         'id': s.netbox.id,
                     }
                 )
@@ -327,7 +344,23 @@ class ServiceSection(_Section):
             history.append(row)
         self.history = history
 
+    def devicehistory_url(self):
+        # FIXME filter service
+        # Service is joined in on the alerthist.subid field, which is not a
+        # part of this query. Yay
+        netboxes = Netbox.objects.filter(
+            organization__in=self.organizations,
+        ).values('id')
+        url = reverse('devicehistory-view')
+        url += "?type=%s" % self.devicehistory_type
+        url += "&group_by=datetime"
+        for n in netboxes:
+            url += "&netbox=%s" % n['id']
+        return url
+
 class ServiceMaintenanceSection(ServiceSection):
+    devicehistory_type = 'e_maintenanceState'
+
     def fetch_history(self):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
@@ -382,7 +415,7 @@ class ServiceMaintenanceSection(ServiceSection):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
+                    '?netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
                         'id': m.alert_history.netbox.id,
                     }
                 ),
@@ -399,6 +432,7 @@ class ModuleSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'a_8'
 
     def fetch_history(self):
         module_history = AlertHistory.objects.select_related(
@@ -443,7 +477,7 @@ class ModuleSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_module=%(id)s&type=a_8&group_by=datetime' % {
+                    '?module=%(id)s&type=a_8&group_by=datetime' % {
                         'id': module.module_id,
                     }
                 ),
@@ -459,6 +493,7 @@ class ThresholdSection(_Section):
         'Time exceeded',
         '',
     ]
+    devicehistory_type = 'a_14'
 
     def fetch_history(self):
         thresholds = AlertHistory.objects.select_related(
@@ -502,7 +537,7 @@ class ThresholdSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=a_14&group_by=datetime' % {
+                    '?netbox=%(id)s&type=a_14&group_by=datetime' % {
                         'id': t.netbox.id,
                     }
                 ),
