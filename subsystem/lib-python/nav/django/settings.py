@@ -45,9 +45,12 @@ ROOT_URLCONF = 'nav.django.urls'
 TEMPLATE_DIRS = (
     nav.path.djangotmpldir,
 )
+
+# Context processors
 TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
+    'nav.django.context_processors.nav_version',
 )
 
 # Email sending
