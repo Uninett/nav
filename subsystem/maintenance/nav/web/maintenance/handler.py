@@ -113,6 +113,7 @@ def handler(req):
     elif section == 'new' or section =='edit':
         page = MaintenanceNewTemplate()
         page.title = 'Create New Maintenance Task'
+        page.action = "new"
         page.errors = []
         page.components = []
 
@@ -128,6 +129,7 @@ def handler(req):
                 page.errors.append('Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
+                page.action = "edit?id=%d" % taskid
                 task = nav.maintenance.getTask(taskid)[0]
                 page.edit_taskid = taskid
 

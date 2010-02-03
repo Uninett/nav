@@ -31,7 +31,7 @@
 
 ## Print form
 
-<form action="new" method="post" id="newform">
+<form action="$action" method="post" id="newform">
 #set $edit_taskid = $getVar('edit_taskid', False)
 #if $edit_taskid
 <input type="hidden" name="edit_taskid" value="$edit_taskid" />

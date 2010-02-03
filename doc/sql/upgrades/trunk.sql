@@ -49,12 +49,11 @@ ALTER TABLE org ADD CONSTRAINT org_parent_fkey
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
--- Django needs an ID field
-ALTER TABLE navbarlink DROP CONSTRAINT accountnavbar_pkey;
-ALTER TABLE navbarlink ADD UNIQUE (accountid, navbarlinkid);
-CREATE SEQUENCE navbarlink_id_seq;
-ALTER TABLE navbarlink_id_seq OWNER TO nav;
-ALTER TABLE navbarlink ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
+-- Django needs a simple integer primary key in accountnavbar
+ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
+ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid);
+CREATE SEQUENCE accountnavbar_id_seq;
+ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
 
 -- Status preference tables

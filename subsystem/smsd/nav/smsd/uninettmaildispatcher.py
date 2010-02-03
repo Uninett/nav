@@ -77,7 +77,7 @@ class UninettMailDispatcher(Dispatcher):
             server = smtplib.SMTP('localhost')
             result = server.sendmail(sender, self.mailaddr, message)
             server.quit()
-        except SMTPException, error:
+        except smtplib.SMTPException, error:
             raise DispatcherError, "SMTP error: %s" % error
 
         if len(result) == 0:
