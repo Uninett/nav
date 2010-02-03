@@ -14,7 +14,10 @@
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Status sections"""
+"""Status sections.
+
+Used to build up different sections for display.
+"""
 
 from datetime import datetime
 
@@ -35,12 +38,26 @@ SERVICE_STATE = 'serviceState'
 MODULE_STATE = 'moduleState'
 THRESHOLD_STATE = 'thresholdState'
 
+
 def get_user_sections(account):
+    '''Fetches all status sections for account in one swoop.
+    '''
+    # Dispatch table
+    dtable = {
+        StatusPreference.SECTION_NETBOX: NetboxSection,
+        StatusPreference.SECTION_NETBOX_MAINTENANCE: NetboxMaintenanceSection,
+        StatusPreference.SECTION_MODULE: ModuleSection,
+        StatusPreference.SECTION_SERVICE: ServiceSection,
+        StatusPreference.SECTION_SERVICE_MAINTENANCE: ServiceMaintenanceSection,
+        StatusPreference.SECTION_THRESHOLD: ThresholdSection,
+    }
+
     sections = []
     preferences = StatusPreference.objects.filter(
         account=account
     ).order_by('position')
 
+    # Pre-fetching all categories and organisations
     all_cats = Category.objects.values_list('pk', flat=True)
     all_orgs = Organization.objects.values_list('pk', flat=True)
 
@@ -53,6 +70,7 @@ def get_user_sections(account):
         statuspreference__in=preferences
     )
 
+    # Buld dicts with statuspreference_id as keys.
     for cat in cats:
         if not cat.statuspreference_id in categories:
             categories[cat.statuspreference_id] = []
@@ -62,24 +80,14 @@ def get_user_sections(account):
             organizations[org.statuspreference_id] = []
         organizations[org.statuspreference_id].append(org.organization_id)
 
+    # Add pre fetched categories and organisations to section preferences.
+    # Adds all categories and organisations if nothing is found in database.
     for pref in preferences:
         pref.fetched_categories = categories.get(pref.id, all_cats)
         pref.fetched_organizations = organizations.get(pref.id, all_orgs)
 
     for pref in preferences:
-        if pref.type == StatusPreference.SECTION_NETBOX:
-            section = NetboxSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_NETBOX_MAINTENANCE:
-            section = NetboxMaintenanceSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_MODULE:
-            section = ModuleSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_SERVICE:
-            section = ServiceSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_SERVICE_MAINTENANCE:
-            section = ServiceMaintenanceSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_THRESHOLD:
-            section = ThresholdSection(prefs=pref)
-
+        section = dtable[pref.type](prefs=pref)
         section.fetch_history()
         sections.append(section)
 
@@ -94,6 +102,10 @@ class _Section(object):
                   are looked up in the database.
 
         history - the query used to look up the history
+
+        type_title - readable type name of this section
+
+        devicehistory_type - used in links to devicehistory
     '''
     columns = []
     history = []
@@ -110,8 +122,7 @@ class _Section(object):
             if self.prefs.type == key:
                 self.type_title = title
                 break
-        self.deviceurllulz = self.devicehistory_url()
-    
+
     def fetch_history(self):
         self.history = []
 
