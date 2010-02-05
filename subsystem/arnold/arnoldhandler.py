@@ -231,40 +231,29 @@ def handler(req):
         AND blocked_status IN ('quarantined', 'disabled')"""
         cur.execute(q, (row['mac'],))
 
-        if cur.rowcount > 1:
-            # Get switchinformation from database
-            blockedports = [dict(row) for row in cur.fetchall()]
-            for element in blockedports:
-                q = """
-                SELECT sysname, module, port FROM netbox
-                LEFT JOIN module USING (netboxid)
-                LEFT JOIN swport USING (moduleid)
-                WHERE swportid=%s
-                """
+        # Get switchinformation from database
+        blockedports = [dict(row) for row in cur.fetchall()]
+        for element in blockedports:
+            q = """
+            SELECT sysname, module, port FROM netbox
+            LEFT JOIN module USING (netboxid)
+            LEFT JOIN swport USING (moduleid)
+            WHERE swportid=%s
+            """
 
-                try:
-                    managec.execute(q, (element['swportid'],))
-                except nav.db.driver.ProgrammingError, e:
-                    # We just fill a dict with info if we get any, no
-                    # need react on error really
-                    continue
-                
-                if managec.rowcount > 0:
-                    element.update(managec.fetchone())
-            
-            page.blockedports = blockedports
-            page.head = ""
-            page.path.append(("Enable", False))
-        else:
-            # If only one identity, open it directly and redirect to
-            # blockedports
             try:
-                nav.arnold.openPort(id, username)
-            except nav.arnold.NoDatabaseInformationError, why:
-                redirect (req,'blockedports?output=Port not found in database.\
-                Switch perhaps replaced. Port enabled in database only.')
+                managec.execute(q, (element['swportid'],))
+            except nav.db.driver.ProgrammingError, e:
+                # We just fill a dict with info if we get any, no
+                # need react on error really
+                continue
 
-            redirect(req, 'blockedports')
+            if managec.rowcount > 0:
+                element.update(managec.fetchone())
+
+        page.blockedports = blockedports
+        page.head = ""
+        page.path.append(("Enable", False))
 
     elif section == 'doenableall':
         # This section is active when you have selected ports to
