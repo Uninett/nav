@@ -55,4 +55,8 @@ ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (acc
 CREATE SEQUENCE accountnavbar_id_seq;
 ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
+
+-- Change type on arnold.identity.mac from varchar to macaddr
+ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr
+
 COMMIT;
