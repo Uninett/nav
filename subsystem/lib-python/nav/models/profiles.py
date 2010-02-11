@@ -298,12 +298,13 @@ class AlertSender(models.Model):
     handler = models.CharField(max_length=100)
 
     _blacklist = set()
+    _handlers = {}
 
     def __unicode__(self):
         return self.name
 
     def send(self, *args, **kwargs):
-        if not hasattr(self, 'handler_instance'):
+        if self.handler not in self._handlers:
             # Get config
             if not hasattr(AlertSender, 'config'):
                 AlertSender.config = get_alertengine_config(os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
@@ -312,10 +313,10 @@ class AlertSender(models.Model):
             module = __import__('nav.alertengine.dispatchers.%s_dispatcher' % self.handler, globals(), locals(), [self.handler])
 
             # Init module with config
-            self.handler_instance = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
+            self.__class__._handlers[self.handler] = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
 
         # Delegate sending of message
-        return self.handler_instance.send(*args, **kwargs)
+        return self._handlers[self.handler].send(*args, **kwargs)
 
     def blacklist(self):
         self.__class__._blacklist.add(self.handler)
