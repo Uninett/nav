@@ -969,6 +969,16 @@ class AccountAlertQueue(models.Model):
                 raise Exception("No sender set for address %s, " + \
                       "this might be due to a failed db upgrade from 3.4 to 3.5" % (address))
 
+        except AlertQueue.DoesNotExist, e:
+            logger = logging.getLogger('nav.alertengine.accountalertqueue.send')
+            logger.error(('Inconsistent database state, alertqueue entry %d ' +
+                          'missing for account-alert. If you know how the ' +
+                          'database got into this state please update ' +
+                          'LP#494036') % self.alert_id)
+
+            super(AccountAlertQueue, self).delete()
+            return False
+
         if sent:
             self.delete()
 
