@@ -32,6 +32,6 @@ class _Hostname:
         try:
             dns = gethostbyaddr(addr)
         except herror:
-            return None
+            return False
         self.cache[addr] = dns[0]
         return dns[0]
