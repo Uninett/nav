@@ -96,7 +96,6 @@ AC_OUTPUT(Makefile
 	subsystem/logger/src/Makefile
 	subsystem/logger/templates/Makefile
 	subsystem/machinetracker/Makefile
-	subsystem/machinetracker/src/Makefile
 	subsystem/maintenance/Makefile
 	subsystem/messages/Makefile
 	subsystem/netmap/Makefile
