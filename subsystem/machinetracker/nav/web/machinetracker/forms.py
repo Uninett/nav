@@ -20,8 +20,10 @@
 from django import forms
 
 class MachineTrackerForm(forms.Form):
-    dns = forms.BooleanField(required=False, initial=True)
-    days = forms.IntegerField(initial=7)
+    dns = forms.BooleanField(required=False, initial=False)
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': '3'}))
 
 class IpTrackerForm(MachineTrackerForm):
     # IPAddressField only supports IPv4 as of Django 1.1
