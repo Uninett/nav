@@ -62,6 +62,7 @@ def ip_search(request):
 
         from_time = date.today() - timedelta(days=days)
 
+        row_count = 0
         ip_result = SortedDict()
         if active:
             result = Arp.objects.filter(
@@ -73,6 +74,7 @@ def ip_search(request):
                 'ip', 'mac', 'start_time', 'end_time'
             )
 
+            row_count = len(result)
             for row in result:
                 ip = IP(row['ip'])
                 if ip not in ip_result:
@@ -82,6 +84,7 @@ def ip_search(request):
         ip_range = []
         if inactive:
             ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
+            row_count += len(ip_range)
         else:
             ip_range = [key for key in ip_result]
 
@@ -108,6 +111,7 @@ def ip_search(request):
             'form': forms.IpTrackerForm(initial=form.cleaned_data),
             'form_data': form.cleaned_data,
             'ip_tracker': tracker,
+            'ip_tracker_count': row_count,
         }
 
     info_dict.update(IP_DEFAULTS)
@@ -148,6 +152,8 @@ def mac_search(request):
             'ip', 'mac', 'start_time', 'end_time'
         )
 
+        mac_count = len(cam_result)
+        ip_count = len(arp_result)
         mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
         ip_tracker = track_mac(('ip', 'mac'), arp_result, dns)
 
@@ -156,6 +162,8 @@ def mac_search(request):
             'form_data': form.cleaned_data,
             'mac_tracker': mac_tracker,
             'ip_tracker': ip_tracker,
+            'mac_tracker_count': mac_count,
+            'ip_tracker_count': ip_count,
         }
 
     info_dict.update(MAC_DEFAULTS)
@@ -191,12 +199,14 @@ def switch_search(request):
         ).order_by('sysname', 'module', 'mac', '-start_time').values(
             'sysname', 'module', 'port', 'start_time', 'end_time', 'mac'
         )
+        swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
 
         info_dict = {
             'form': forms.SwitchTrackerForm(initial=form.cleaned_data),
             'form_data': form.cleaned_data,
             'mac_tracker': swp_tracker,
+            'mac_tracker_count': swp_count,
         }
 
     info_dict.update(SWP_DEFAULTS)

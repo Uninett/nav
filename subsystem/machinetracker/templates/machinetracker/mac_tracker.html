@@ -1,5 +1,9 @@
 <table class="listtable">
-    <caption>MAC Search results</caption>
+    <caption>
+        MAC Search results<br />
+        <span class="subtitle">
+        {{ mac_tracker_count }} hit{{ mac_tracker_count|pluralize }}</span>
+    </caption>
 
     <thead>
         <tr>
@@ -63,6 +67,13 @@
         {% endfor %}
     </tbody>
     {% endfor %}
+
+    <tfoot>
+        <tr>
+            <th colspan="0">{{ mac_tracker_count }}
+            hit{{ mac_tracker_count|pluralize }}</th>
+        </tr>
+    </tfoot>
 </table>
 
 <div class="infobox">

@@ -1,5 +1,9 @@
 <table class="listtable">
-    <caption>IP search results</caption>
+    <caption>
+        IP search results<br />
+        <span class="subtitle">{{ ip_tracker_count }}
+        hit{{ ip_tracker_count|pluralize }}</span>
+    </caption>
 
     <thead>
         <tr>
@@ -51,4 +55,11 @@
         {% endfor %}
     </tbody>
     {% endfor %}
+
+    <tfoot>
+        <tr>
+            <th colspan="0">{{ ip_tracker_count }}
+            hit{{ ip_tracker_count|pluralize }}</th>
+        </tr>
+    </tfoot>
 </table>
