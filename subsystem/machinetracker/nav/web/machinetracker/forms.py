@@ -30,6 +30,14 @@ class IpTrackerForm(MachineTrackerForm):
     to_ip = forms.CharField(required=False)
     active = forms.BooleanField(required=False, initial=True)
     inactive = forms.BooleanField(required=False)
+    dns = forms.BooleanField(required=False, initial=False)
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if not data['active'] and not data['inactive']:
+            data['active'] = True
+        return data
 
 class MacTrackerForm(MachineTrackerForm):
     mac = forms.CharField()
