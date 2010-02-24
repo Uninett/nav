@@ -22,21 +22,29 @@ from django.conf.urls.defaults import *
 
 from nav.web.machinetracker.views import *
 
-urlpatterns = patterns('',
-    url(r'^$', ip,
-        name='machinetracker-frontpage'),
-    url(r'^ip/$', ip,
-        name='machinetracker-ip'),
-    url(r'^ip/search/$', ip_search,
-        name='machinetracker-ip_search'),
+dummy = lambda *args, **kwargs: None
 
-    url(r'^mac/$', mac,
+urlpatterns = patterns('',
+    url(r'^$', ip_search,
+        name='machinetracker-frontpage'),
+    url(r'^ip/$', ip_search,
+        name='machinetracker-ip'),
+    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&days=(?P<days>\d+)&dns=(?P<dns>\w*)$',
+        ip_search,
+        name='machinetracker-ip_short_search'),
+
+    url(r'^mac/$', mac_search,
         name='machinetracker-mac'),
-    url(r'^mac/search/$', 'mac_search',
+    url(r'^mac/\?mac=(?P<mac>[a-f\d:]+)&days=(?P<days>\d+)&dns=(?P<dns>\w*)$',
+        mac_search,
         name='machinetracker-mac_search'),
 
-    url(r'^swp/$', switch,
+    url(r'^swp/$', switch_search,
         name='machinetracker-swp'),
-    url(r'swp/search/$', 'swp_search',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d+)&port=(?P<port>[\w\d/._-]+)$',
+        switch_search,
+        name='machinetracker-swp_short_search'),
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d+)&port=(?P<port>[\w\d/._-]+)&days=(?P<days>\d+)$',
+        switch_search,
         name='machinetracker-swp_search'),
 )
