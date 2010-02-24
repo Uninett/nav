@@ -20,7 +20,6 @@
 from django import forms
 
 class MachineTrackerForm(forms.Form):
-    dns = forms.BooleanField(required=False, initial=False)
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': '3'}))
@@ -33,8 +32,8 @@ class IpTrackerForm(MachineTrackerForm):
     inactive = forms.BooleanField(required=False)
 
 class MacTrackerForm(MachineTrackerForm):
-    # FIXME Maybe a RegexField?
     mac = forms.CharField()
+    dns = forms.BooleanField(required=False, initial=False)
 
 class SwitchTrackerForm(MachineTrackerForm):
     switch = forms.CharField()
