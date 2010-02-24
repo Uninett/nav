@@ -45,5 +45,9 @@ class MacTrackerForm(MachineTrackerForm):
 
 class SwitchTrackerForm(MachineTrackerForm):
     switch = forms.CharField()
-    module = forms.IntegerField(required=False)
-    interface = forms.CharField(required=False)
+    module = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'size': 3}))
+    port = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'size': 16}))
