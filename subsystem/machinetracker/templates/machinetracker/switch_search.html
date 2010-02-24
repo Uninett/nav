@@ -1,0 +1,39 @@
+{% extends "machinetracker/base.html" %}
+
+{% block content %}
+
+<form action="{% url machinetracker-swp %}" method="get">
+    <p>
+        <label>Switch {{ form.switch }}</label>
+        <label>Module {{ form.module }}</label>
+        <label>Interface {{ form.port }}</label>
+        <label>{{ form.days }} days</label>
+        <input type="submit" value="Search" />
+    </p>
+</form>
+
+{% if mac_tracker %}
+{% include "machinetracker/mac_tracker.html" %}
+{% else %}
+
+<div class="infobox">
+    <h4>Search Hints</h4>
+    <ul>
+        <li>
+            Switch search will search for switches having a sysname that starts
+            with whatever you enter as switch name.  E.g. searching for
+            &quot;<tt>blapp-sw</tt>&quot; will retrieve both
+            &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
+            &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;
+        </li>
+        <li>
+            Leaving the <i>module</i> or <i>interface</i> fields empty in the
+            switch search will find any module or interface that have matching
+            records for your selected switch.
+        </li>
+    </ul>
+</div>
+
+{% endif %}
+
+{% endblock content %}
