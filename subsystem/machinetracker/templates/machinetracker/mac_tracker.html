@@ -1,0 +1,75 @@
+<table class="listtable">
+    <caption>MAC Search results</caption>
+
+    <thead>
+        <tr>
+            <th>Switch</th>
+            <th>Module</th>
+            <th colspan="2">Interface</th>
+            <th>Start time</th>
+            <th>End time</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+
+    {% for key, result in mac_tracker.items %}
+    <tbody>
+        {% for row in result %}
+        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            {% if forloop.first %}
+            <td>
+                {% if row.netbox__sysname %}
+                <a href="{% url ipdevinfo-details-by-name row.netbox__sysname %}" title="Browse this switch (IP Device Info)">
+                {{ row.netbox__sysname }}</a>
+                {% else %}
+                {{ row.sysname }}
+                {% endif %}
+            </td>
+            <td>
+                {{ row.module }}
+            </td>
+            <td>
+                {% with form_data.dns|yesno:"True," as dns %}
+                <a href="{% url machinetracker-swp_search row.sysname row.module row.port form_data.days %}" title="Search for other machines on this port">
+                {{ row.port }}</a>
+                {% endwith %}
+            </td>
+            <td>
+                {% if row.netbox__sysname and row.module and row.port %}
+                <a href="{% url ipdevinfo-swport-details-by-interface row.netbox__sysname row.module row.port %}" title="Browse this interface (IP Device Info)">
+                <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
+                {% endif %}
+            </td>
+            {% else %}
+            <td></td><td></td><td></td><td></td>
+            {% endif %}
+            <td>{{ row.start_time|date:"Y-m-d H:i" }}</td>
+            <td>
+                {% if row.still_active %}
+                {{ row.still_active }}
+                {% else %}
+                {{ row.end_time|date:"Y-m-d H:i" }}
+                {% endif %}
+            </td>
+            <td>
+                {% with form_data.dns|yesno:"True," as dns %}
+                {% if forloop.first %}
+                <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search for this MAC address">
+                {{ row.mac }}</a>
+                {% endif %}
+                {% endwith %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% endfor %}
+</table>
+
+<div class="infobox">
+<h4>Interface details</h4>
+
+<p>Please note that the MAC search results are <em>historic</em> data, while
+the information found at the interface details link is the <em>current</em>
+data on the interface. They may have no other connection than being related to
+the same interface at different points in time.</p>
+</div>

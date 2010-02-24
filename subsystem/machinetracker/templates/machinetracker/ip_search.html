@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form action="{% url machinetracker-ip_search %}" method="get">
+<form action="{% url machinetracker-ip %}" method="get">
     <p>
         <label>IP from {{ form.from_ip }}</label>
         <label>to {{ form.to_ip }}</label>
@@ -14,61 +14,34 @@
     </p>
 </form>
 
-{% if tracker %}
-<table class="listtable">
-    <caption>IP search results</caption>
+{% if ip_tracker %}
+{% include "machinetracker/ip_tracker.html" %}
+{% else %}
 
-    <thead>
-        <tr>
-            {% if form.cleaned_data.dns %}
-            <th>DNS</th>
-            {% endif %}
-            <th>IP</th>
-            <th></th>
-            <th>MAC</th>
-            <th>Start time</th>
-            <th>End time</th>
-        </tr>
-    </thead>
+<div class="infobox">
+    <h4>Accuracy of the Results</h4>
+    <ul>
+        <li>
+            IP search results are based on ARP data from routers. Typically ARP
+            data entries are kept by the routers 4 hours after the last packet
+            seen.  Also keep in mind, the ARP collector only runs twice an hour
+            (0,30).  Subtracting 4-4.5 hours from the end time gives you a
+            fairly good idea.
+        </li>
+        <li>
+            Since NAV 3.3 port numbers have been removed from the search in
+            favor of interface names.  Historical search results will still
+            contain port numbers instead of interface names, as historical port
+            number data cannot be accurately mapped to interface names.
+        </li>
+        <li>
+            Checking the &quot;inactive&quot; checkbox will have no effect when
+            searching IPv6 address ranges.  The output would be huge (about
+            <em>10<sup>19</sup></em> resulting rows for a /64 subnet).
+        </li>
+    </ul>
+</div>
 
-    {% for key, result in tracker.items %}
-    <tbody>
-        {% for row in result %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            {% if form.cleaned_data.dns %}
-            <td>{{ row.dns_lookup }}</td>
-            {% endif %}
-            <td>
-                {% if row.ip %}
-                <a href="{% url machinetracker-ip_search %}?from_ip={{ row.ip }}&amp;days={{ form.cleaned_data.days }}&amp;dns={{ form.cleaned_data.dns }}" title="Search for this IP">
-                {{ row.ip }}</a>
-                {% endif %}
-            </td>
-            <td>
-                {% if row.ip %}
-                <a href="{% url ipinfo-host row.ip %}" title="Lookup this IP in IPInfo">
-                <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
-                {% endif %}
-            </td>
-            <td>
-                {% if row.mac %}
-                <a href="{% url machinetracker-mac_search %}?from_mac={{ rowm.mac }}&amp;days={{ form.cleaned_data.days }}&amp;dns={{ form.cleaned_data.dns }}">
-                {{ row.mac }}</a>
-                {% endif %}
-            </td>
-            <td>{{ row.start_time|date:"Y-m-d H:i:s" }}</td>
-            <td>
-                {% if row.still_active %}
-                {{ row.still_active }}
-                {% else %}
-                {{ row.end_time|date:"Y-m-d H:i:s" }}
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    {% endfor %}
-</table>
 {% endif %}
 
 {% endblock %}

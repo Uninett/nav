@@ -1,0 +1,54 @@
+<table class="listtable">
+    <caption>IP search results</caption>
+
+    <thead>
+        <tr>
+            {% if form_data.dns %}
+            <th>DNS</th>
+            {% endif %}
+            <th>IP</th>
+            <th></th>
+            <th>MAC</th>
+            <th>Start time</th>
+            <th>End time</th>
+        </tr>
+    </thead>
+
+    {% for key, result in ip_tracker.items %}
+    <tbody>
+        {% for row in result %}
+        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            {% if form_data.dns %}
+            <td>{{ row.dns_lookup }}</td>
+            {% endif %}
+            {% if forloop.first %}
+            <td>
+                {% with form_data.dns|yesno:"True," as dns %}
+                <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}" title="Search for this IP address">
+                {{ row.ip }}</a>
+            </td>
+            <td>
+                <a href="{% url ipinfo-host row.ip %}" title="Lookup this IP in IPInfo">
+                <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
+            </td>
+            <td>
+                <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search for this MAC address">
+                {{ row.mac }}</a>
+                {% endwith %}
+            </td>
+            {% else %}
+            <td></td><td></td><td></td>
+            {% endif %}
+            <td>{{ row.start_time|date:"Y-m-d H:i:s" }}</td>
+            <td>
+                {% if row.still_active %}
+                {{ row.still_active }}
+                {% else %}
+                {{ row.end_time|date:"Y-m-d H:i:s" }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% endfor %}
+</table>

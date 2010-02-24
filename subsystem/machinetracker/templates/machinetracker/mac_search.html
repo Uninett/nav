@@ -1,0 +1,37 @@
+{% extends "machinetracker/base.html" %}
+
+{% block content %}
+
+<form action="{% url machinetracker-mac %}" method="get">
+    <p>
+        <label>MAC {{ form.mac }}</label>
+        <label>{{ form.dns }} dns</label>
+        <label>{{ form.days }} days</label>
+        <input type="submit" value="Search" />
+    </p>
+</form>
+
+{% if mac_tracker or ip_tracker %}
+{% include "machinetracker/mac_tracker.html" %}
+{% include "machinetracker/ip_tracker.html" %}
+{% else %}
+
+<div class="infobox">
+    <h4>Search Hints</h4>
+    <ul>
+        <li>
+            MAC search allows searching for a MAC prefix, e.g. a search for
+            &quot;<tt>00aabbcc</tt>&quot; will return all matches between
+            <tt>00:aa:bb:cc:00:00</tt> and <tt>00:aa:bb:cc:ff:ff</tt>.
+        </li>
+        <li>
+            The use of colon in the MAC search is optional, e.g.
+            &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot;
+            are equal.
+        </li>
+    </ul>
+</div>
+
+{% endif %}
+
+{% endblock %}
