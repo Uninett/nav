@@ -39,17 +39,31 @@ SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
 
 
 def ip_search(request):
+    if request.GET.has_key('from_ip'):
+        return ip_do_search(request)
+    info_dict = {
+        'form': forms.IpTrackerForm(),
+    }
+    info_dict.update(IP_DEFAULTS)
+    return render_to_response(
+        'machinetracker/ip_search.html',
+        info_dict,
+        RequestContext(request)
+    )
+
+def ip_do_search(request):
     form = forms.IpTrackerForm(request.GET)
-    info_dict = {}
-    if not form.is_valid():
-        info_dict = {'form': forms.IpTrackerForm()}
-    else:
+    tracker = None
+    form_data = {}
+    row_count = 0
+    if form.is_valid():
         from_ip_string = form.cleaned_data['from_ip']
         to_ip_string = form.cleaned_data['to_ip']
         dns = form.cleaned_data['dns']
         active = form.cleaned_data['active']
         inactive = form.cleaned_data['inactive']
         days = form.cleaned_data['days']
+        form_data = form.cleaned_data
 
         from_ip = IP(from_ip_string)
         if to_ip_string:
@@ -107,13 +121,12 @@ def ip_search(request):
                     row['dns_lookup'] = hostname(ip) or ""
                 tracker[(ip, "")] = [row]
 
-        info_dict = {
-            'form': forms.IpTrackerForm(initial=form.cleaned_data),
-            'form_data': form.cleaned_data,
-            'ip_tracker': tracker,
-            'ip_tracker_count': row_count,
-        }
-
+    info_dict = {
+        'form': form,
+        'form_data': form_data,
+        'ip_tracker': tracker,
+        'ip_tracker_count': row_count,
+    }
     info_dict.update(IP_DEFAULTS)
     return render_to_response(
         'machinetracker/ip_search.html',
@@ -122,11 +135,29 @@ def ip_search(request):
     )
 
 def mac_search(request):
+    if request.GET.has_key('mac'):
+        return mac_do_search(request)
+    info_dict = {
+        'form': forms.MacTrackerForm()
+    }
+    info_dict.update(MAC_DEFAULTS)
+    return render_to_response(
+        'machinetracker/mac_search.html',
+        info_dict,
+        RequestContext(request)
+    )
+
+def mac_do_search(request):
     form = forms.MacTrackerForm(request.GET)
-    info_dict = {}
-    if not form.is_valid():
-        info_dict['form'] = forms.MacTrackerForm()
-    else:
+    info_dict = {
+        'form': form,
+        'form_data': None,
+        'mac_tracker': None,
+        'ip_tracker': None,
+        'mac_tracker_count': 0,
+        'ip_tracker_count': 0,
+    }
+    if form.is_valid():
         mac = form.cleaned_data['mac']
         days = form.cleaned_data['days']
         dns = form.cleaned_data['dns']
@@ -157,14 +188,13 @@ def mac_search(request):
         mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
         ip_tracker = track_mac(('ip', 'mac'), arp_result, dns)
 
-        info_dict = {
-            'form': forms.MacTrackerForm(initial=form.cleaned_data),
+        info_dict.update({
             'form_data': form.cleaned_data,
             'mac_tracker': mac_tracker,
             'ip_tracker': ip_tracker,
             'mac_tracker_count': mac_count,
             'ip_tracker_count': ip_count,
-        }
+        })
 
     info_dict.update(MAC_DEFAULTS)
     return render_to_response(
@@ -174,11 +204,27 @@ def mac_search(request):
     )
 
 def switch_search(request):
+    if request.GET.has_key('switch'):
+        return switch_do_search(request)
+    info_dict = {
+        'form': forms.SwitchTrackerForm(),
+    }
+    info_dict.update(SWP_DEFAULTS)
+    return render_to_response(
+        'machinetracker/switch_search.html',
+        info_dict,
+        RequestContext(request)
+    )
+
+def switch_do_search(request):
     form = forms.SwitchTrackerForm(request.GET)
-    info_dict = {}
-    if not form.is_valid():
-        info_dict['form'] = forms.SwitchTrackerForm()
-    else:
+    info_dict = {
+        'form': form,
+        'form_data': None,
+        'mac_tracker': None,
+        'mac_tracker_count': 0,
+    }
+    if form.is_valid():
         switch = form.cleaned_data['switch']
         module = form.cleaned_data.get('module')
         port_interface = form.cleaned_data.get('port')
@@ -202,12 +248,11 @@ def switch_search(request):
         swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
 
-        info_dict = {
-            'form': forms.SwitchTrackerForm(initial=form.cleaned_data),
+        info_dict.update({
             'form_data': form.cleaned_data,
             'mac_tracker': swp_tracker,
             'mac_tracker_count': swp_count,
-        }
+        })
 
     info_dict.update(SWP_DEFAULTS)
     return render_to_response(
