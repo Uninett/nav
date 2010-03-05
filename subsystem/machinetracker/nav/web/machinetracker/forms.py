@@ -18,6 +18,7 @@
 #
 
 from django import forms
+from django.forms.util import ErrorList
 
 class MachineTrackerForm(forms.Form):
     days = forms.IntegerField(
@@ -36,7 +37,10 @@ class IpTrackerForm(MachineTrackerForm):
         data = self.cleaned_data
 
         if not data['active'] and not data['inactive']:
-            data['active'] = True
+            msg = u"Either active, inactive or both must be checked."
+            self._errors['active'] = ErrorList([msg])
+            del data['active']
+            del data['inactive']
         return data
 
 class MacTrackerForm(MachineTrackerForm):
