@@ -17,11 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
-#          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
-#
 
 import time
 import re
@@ -33,11 +28,11 @@ from radius_config import *
 from socket import gethostbyname_ex, gaierror
 from mod_python import apache
 
-connection = db.getConnection(DB_USER, DB)
-database = connection.cursor()
-
-
 def handler(req):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
 
     # Mod_python caches these modules if we just import them
     # like we would usually do. Enable the DEBUG flag during 
