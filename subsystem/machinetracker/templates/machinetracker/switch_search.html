@@ -2,18 +2,25 @@
 
 {% block content %}
 
-<form action="{% url machinetracker-swp %}" method="get">
-    <p>
-        <label>Switch {{ form.switch }}</label>
-        <label>Module {{ form.module }}</label>
-        <label>Interface {{ form.port }}</label>
-        <label>{{ form.days }} days</label>
-        <input type="submit" value="Search" />
-    </p>
-</form>
+<div id="search_form">
+    <form action="{% url machinetracker-swp %}" method="get">
+        <table class="listtable">
+            <caption>Switch search</caption>
+            <tbody>
+                {{ form }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Search" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
 
 {% if mac_tracker %}
-{% include "machinetracker/mac_tracker.html" %}
+<div class="results">
+    {% include "machinetracker/mac_tracker.html" %}
+</div>
 {% else %}
 
 <div class="infobox">

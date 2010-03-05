@@ -2,20 +2,25 @@
 
 {% block content %}
 
-<form action="{% url machinetracker-ip %}" method="get">
-    <p>
-        <label>IP from {{ form.from_ip }}</label>
-        <label>to {{ form.to_ip }}</label>
-        <label>{{ form.active }} active</label>
-        <label>{{ form.inactive }} inactive</label>
-        <label>{{ form.dns }} dns</label>
-        <label>{{ form.days }} days</label>
-        <input type="submit" value="Search" />
-    </p>
-</form>
+<div id="search_form">
+    <form action="{% url machinetracker-ip %}" method="get">
+        <table class="listtable">
+            <caption>IP search</caption>
+            <tbody>
+                {{ form }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Search" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
 
 {% if ip_tracker %}
-{% include "machinetracker/ip_tracker.html" %}
+<div class="results">
+    {% include "machinetracker/ip_tracker.html" %}
+</div>
 {% else %}
 
 <div class="infobox">

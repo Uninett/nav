@@ -2,18 +2,28 @@
 
 {% block content %}
 
-<form action="{% url machinetracker-mac %}" method="get">
-    <p>
-        <label>MAC {{ form.mac }}</label>
-        <label>{{ form.dns }} dns</label>
-        <label>{{ form.days }} days</label>
-        <input type="submit" value="Search" />
-    </p>
-</form>
+<div id="search_form">
+    <form action="{% url machinetracker-mac %}" method="get">
+        <table class="listtable">
+            <caption>MAC search</caption>
+            <tbody>
+                {{ form }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Search" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
 
 {% if mac_tracker or ip_tracker %}
-{% include "machinetracker/mac_tracker.html" %}
-{% include "machinetracker/ip_tracker.html" %}
+<div class="results">
+    {% include "machinetracker/mac_tracker.html" %}
+</div>
+<div class="results">
+    {% include "machinetracker/ip_tracker.html" %}
+</div>
 {% else %}
 
 <div class="infobox">

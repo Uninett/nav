@@ -1,8 +1,8 @@
-td.error {
-	background-color: #fb9a99;
-	color: #000;
+#search_form form {
+	margin: 0;
+	padding: 0;
 }
 
-tr.error td {
-	width: 0;
+.infobox {
+		margin-bottom: 1em;
 }
