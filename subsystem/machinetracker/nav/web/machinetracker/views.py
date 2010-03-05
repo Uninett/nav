@@ -20,6 +20,7 @@
 from IPy import IP
 from datetime import date, datetime, timedelta
 
+from django.db.models import Q
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.utils.datastructures import SortedDict
@@ -230,17 +231,24 @@ def switch_do_search(request):
         port_interface = form.cleaned_data.get('port')
         days = form.cleaned_data['days']
         from_time = date.today() - timedelta(days=days)
+        criteria = {}
 
-        criteria = {
-            'sysname__istartswith': switch,
-            'end_time__gt': from_time,
-        }
+        # If an IP is entered we can search for that
+        try:
+            ip = unicode(IP(switch))
+        except ValueError:
+            ip = None
+
         if module:
             criteria['module'] = module
         if port_interface:
             criteria['port'] = port_interface
 
         cam_result = Cam.objects.filter(
+            Q(sysname__istartswith=switch) |
+            Q(netbox__sysname__istartswith=switch) |
+            Q(netbox__ip=ip),
+            end_time__gt=from_time,
             **criteria
         ).order_by('sysname', 'module', 'mac', '-start_time').values(
             'sysname', 'module', 'port', 'start_time', 'end_time', 'mac'
