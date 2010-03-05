@@ -1,0 +1,8 @@
+td.error {
+	background-color: #fb9a99;
+	color: #000;
+}
+
+tr.error td {
+	width: 0;
+}
