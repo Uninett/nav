@@ -20,18 +20,16 @@
 from django import forms
 from django.forms.util import ErrorList
 
-class MachineTrackerForm(forms.Form):
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': '3'}))
-
-class IpTrackerForm(MachineTrackerForm):
+class IpTrackerForm(forms.Form):
     # IPAddressField only supports IPv4 as of Django 1.1
     from_ip = forms.CharField()
     to_ip = forms.CharField(required=False)
     active = forms.BooleanField(required=False, initial=True)
     inactive = forms.BooleanField(required=False)
     dns = forms.BooleanField(required=False, initial=False)
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': 3}))
 
     def clean(self):
         data = self.cleaned_data
@@ -43,11 +41,14 @@ class IpTrackerForm(MachineTrackerForm):
             del data['inactive']
         return data
 
-class MacTrackerForm(MachineTrackerForm):
+class MacTrackerForm(forms.Form):
     mac = forms.CharField()
     dns = forms.BooleanField(required=False, initial=False)
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': 3}))
 
-class SwitchTrackerForm(MachineTrackerForm):
+class SwitchTrackerForm(forms.Form):
     switch = forms.CharField()
     module = forms.CharField(
         required=False,
@@ -55,3 +56,6 @@ class SwitchTrackerForm(MachineTrackerForm):
     port = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={'size': 16}))
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': 3}))
