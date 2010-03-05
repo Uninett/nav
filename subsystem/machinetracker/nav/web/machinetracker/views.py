@@ -237,7 +237,7 @@ def switch_do_search(request):
         try:
             ip = unicode(IP(switch))
         except ValueError:
-            ip = None
+            ip = switch
 
         if module:
             criteria['module'] = module
