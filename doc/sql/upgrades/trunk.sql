@@ -416,7 +416,6 @@ ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
 CREATE SEQUENCE accountnavbar_id_seq;
 ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
-
 -- Status preference tables
 CREATE SEQUENCE statuspreference_id_seq START 1000;
 CREATE TABLE statuspreference (
@@ -521,5 +520,7 @@ CREATE TRIGGER trig_netbox_delete_prune_devices
     FOR EACH STATEMENT
     EXECUTE PROCEDURE remove_floating_devices();
 
+-- Change type on arnold.identity.mac from varchar to macaddr
+ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr
 
 COMMIT;
