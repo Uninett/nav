@@ -36,8 +36,10 @@
                 <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
             </td>
             <td>
+                {% if row.mac %}
                 <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search for this MAC address">
                 {{ row.mac }}</a>
+                {% endif %}
                 {% endwith %}
             </td>
             {% else %}

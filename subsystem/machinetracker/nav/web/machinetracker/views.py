@@ -82,16 +82,12 @@ def ip_do_search(request):
         if active:
             result = Arp.objects.filter(
                 end_time__gt=from_time,
-            ).extra(
-                where=['ip BETWEEN %s and %s'],
-                params=[unicode(from_ip), unicode(to_ip)],
-            ).order_by('ip', 'mac', '-start_time').values(
-                'ip', 'mac', 'start_time', 'end_time'
-            )
+                ip__range=(from_ip, to_ip)
+            ).order_by('ip', 'mac', '-start_time')
 
             row_count = len(result)
             for row in result:
-                ip = IP(row['ip'])
+                ip = row.ip
                 if ip not in ip_result:
                     ip_result[ip] = []
                 ip_result[ip].append(row)
@@ -108,19 +104,18 @@ def ip_do_search(request):
             if ip_key in ip_result:
                 rows = ip_result[ip_key]
                 for row in rows:
-                    if row['end_time'] > datetime.now():
-                        row['still_active'] = "Still active"
+                    if row.end_time > datetime.now():
+                        row.still_active = "Still active"
                     if dns:
-                        row['dns_lookup'] = hostname(row['ip']) or ""
-                    if (row['ip'], row['mac']) not in tracker:
-                        tracker[(row['ip'], row['mac'])] = []
-                    tracker[(row['ip'], row['mac'])].append(row)
+                        row.dns_lookup = hostname(row.ip) or ""
+                    if (row.ip, row.mac) not in tracker:
+                        tracker[(row.ip, row.mac)] = []
+                    tracker[(row.ip, row.mac)].append(row)
             elif inactive:
-                ip = unicode(ip_key)
-                row = {'ip': ip}
+                row = {'ip': ip_key}
                 if dns:
-                    row['dns_lookup'] = hostname(ip) or ""
-                tracker[(ip, "")] = [row]
+                    row['dns_lookup'] = hostname(ip_key) or ""
+                tracker[(ip_key, "")] = [row]
 
     info_dict = {
         'form': form,
@@ -167,19 +162,15 @@ def mac_do_search(request):
         mac_min, mac_max = min_max_mac(mac)
 
         cam_result = Cam.objects.select_related('netbox').filter(
-            end_time__gt=from_time
-        ).extra(
-            where=['mac BETWEEN %s and %s'],
-            params=[mac_min, mac_max]
+            end_time__gt=from_time,
+            mac__range=(mac_min, mac_max)
         ).order_by('mac', 'sysname', 'module', 'port', '-start_time').values(
             'sysname', 'module', 'port', 'start_time', 'end_time', 'mac', 'netbox__sysname'
         )
 
         arp_result = Arp.objects.filter(
-            end_time__gt=from_time
-        ).extra(
-            where=['mac BETWEEN %s and %s'],
-            params=[mac_min, mac_max]
+            end_time__gt=from_time,
+            mac__range=(mac_min, mac_max)
         ).order_by('mac', 'ip', '-start_time').values(
             'ip', 'mac', 'start_time', 'end_time'
         )
@@ -233,12 +224,6 @@ def switch_do_search(request):
         from_time = date.today() - timedelta(days=days)
         criteria = {}
 
-        # If an IP is entered we can search for that
-        try:
-            ip = unicode(IP(switch))
-        except ValueError:
-            ip = switch
-
         if module:
             criteria['module'] = module
         if port_interface:
@@ -246,8 +231,7 @@ def switch_do_search(request):
 
         cam_result = Cam.objects.filter(
             Q(sysname__istartswith=switch) |
-            Q(netbox__sysname__istartswith=switch) |
-            Q(netbox__ip=ip),
+            Q(netbox__sysname__istartswith=switch),
             end_time__gt=from_time,
             **criteria
         ).order_by('sysname', 'module', 'mac', '-start_time').values(

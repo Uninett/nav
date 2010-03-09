@@ -23,8 +23,9 @@ from socket import gethostbyaddr, herror
 
 from django.utils.datastructures import SortedDict
 
-def hostname(addr):
+def hostname(ip):
     dns = _Hostname()
+    addr = unicode(ip)
     return dns.lookup(addr)
 
 class _Hostname:
