@@ -55,7 +55,6 @@ ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (acc
 CREATE SEQUENCE accountnavbar_id_seq;
 ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
-
 -- Status preference tables
 CREATE SEQUENCE statuspreference_id_seq START 1000;
 CREATE TABLE statuspreference (
@@ -119,7 +118,7 @@ CREATE TABLE statuspreference_category (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
--- Remove UNIQUE constraint on (account, navbarlink)
-ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_accountid_key;
+-- Change type on arnold.identity.mac from varchar to macaddr
+ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr
 
 COMMIT;

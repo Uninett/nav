@@ -135,7 +135,7 @@ def handler(req):
     elif section == 'search':
         page.head = "Search"
         searchfield = args.get('searchfield')
-        searchtext = args.get('searchtext')
+        searchtext = args.get('searchtext') or ''
         status = args.get('status')
         days = args.get('days')
         printSearch(cur, page, searchfield, searchtext, status, days)
@@ -231,40 +231,29 @@ def handler(req):
         AND blocked_status IN ('quarantined', 'disabled')"""
         cur.execute(q, (row['mac'],))
 
-        if cur.rowcount > 1:
-            # Get switchinformation from database
-            blockedports = [dict(row) for row in cur.fetchall()]
-            for element in blockedports:
-                q = """
-                SELECT sysname, module, port FROM netbox
-                LEFT JOIN module USING (netboxid)
-                LEFT JOIN swport USING (moduleid)
-                WHERE swportid=%s
-                """
+        # Get switchinformation from database
+        blockedports = [dict(row) for row in cur.fetchall()]
+        for element in blockedports:
+            q = """
+            SELECT sysname, module, port FROM netbox
+            LEFT JOIN module USING (netboxid)
+            LEFT JOIN swport USING (moduleid)
+            WHERE swportid=%s
+            """
 
-                try:
-                    managec.execute(q, (element['swportid'],))
-                except nav.db.driver.ProgrammingError, e:
-                    # We just fill a dict with info if we get any, no
-                    # need react on error really
-                    continue
-                
-                if managec.rowcount > 0:
-                    element.update(managec.fetchone())
-            
-            page.blockedports = blockedports
-            page.head = ""
-            page.path.append(("Enable", False))
-        else:
-            # If only one identity, open it directly and redirect to
-            # blockedports
             try:
-                nav.arnold.openPort(id, username)
-            except nav.arnold.NoDatabaseInformationError, why:
-                redirect (req,'blockedports?output=Port not found in database.\
-                Switch perhaps replaced. Port enabled in database only.')
+                managec.execute(q, (element['swportid'],))
+            except nav.db.driver.ProgrammingError, e:
+                # We just fill a dict with info if we get any, no
+                # need react on error really
+                continue
 
-            redirect(req, 'blockedports')
+            if managec.rowcount > 0:
+                element.update(managec.fetchone())
+
+        page.blockedports = blockedports
+        page.head = ""
+        page.path.append(("Enable", False))
 
     elif section == 'doenableall':
         # This section is active when you have selected ports to
@@ -284,7 +273,7 @@ def handler(req):
         redirect(req, 'blockedports')
 
     elif section == 'domanualdetain':
-        ip = args.get('ipadresse')
+        ip = args.get('ipadresse').strip()
 
         # Use modulefunction to get info about id
         try:
@@ -655,6 +644,7 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
     reconnect()
     
     searchfields = ['IP','MAC','Netbios','dns']
+    searchtext = searchtext.strip()
     page.statusfields = ['disabled','quarantined','enabled','both']
     page.searchfields = searchfields
     page.searchfield = searchfield
@@ -682,6 +672,8 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
         # Check searchfield
         if searchfield.lower() == 'ip':
             whereclause = " WHERE " + searchfield.lower() + " <<= inet %s "
+        elif searchfield.lower() == 'mac':
+            whereclause = " WHERE " + searchfield.lower() + " = %s"
         else:
             whereclause = " WHERE " + searchfield.lower() + " LIKE %s "
             searchtext = "%" + searchtext + "%"
@@ -713,9 +705,7 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
             if numresults == 0:
                 page.headertext = "Search for %s = %s, status = %s, last \
                 changed %s days ago, did not return anything." \
-                %(searchfield, searchtext, page.status, str(page.days))
-                
-                #page.headertext = "Search for " + searchfield + " = \"" + searchtext + "\", status = " + page.status + ", last changed " + str(page.days) + " days ago, did not return anything."
+                %(searchfield, page.searchtext, page.status, str(page.days))
                 page.searchresults = {}
             else:
                 for element in searchresults:
@@ -730,7 +720,13 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
                 
         except nav.db.driver.ProgrammingError:
             page.searchresults = {}
-            page.headertext = "<!-- " + q + "-->\nDBError. Search for " + searchfield + " = \"" + searchtext + "\", status = " + page.status + ", last changed " + str(page.days) + " days ago, did not return anything."
+            page.headertext = "<!-- %s -->\nDBError. Search for %s = %s, \
+            status = %s, last changed %s days ago, did not return anything." \
+            %(q, searchfield, searchtext, page.status, str(page.days))
+        except nav.db.driver.DataError:
+            page.searchresults = {}
+            page.headertext = "<!-- %s -->\nDataError. Searching for %s for \
+            %s is not valid." %(q, searchtext, searchfield)
 
     else:
         page.searchresults = {}
