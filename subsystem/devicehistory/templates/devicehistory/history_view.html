@@ -4,7 +4,7 @@
     <form action="{% url devicehistory-view %}" method="get">
         {% for type, elements in selection.items %}
             {% for id in elements %}
-                <input type="hidden" name="view_{{ type }}" value="{{ id }}" />
+                <input type="hidden" name="{{ type }}" value="{{ id }}" />
             {% endfor %}
         {% endfor %}
         <table class="vertitable">
@@ -30,7 +30,7 @@
                 <th>Location</th>
                 <th>Room</th>
                 <th>Netbox</th>
-                <th>Module</th>
+                {# <th>Module</th> #}
                 <th>Serial</th>
                 <th>Start time</th>
                 <th>End time</th>
@@ -46,7 +46,7 @@
                 <td>{{ h.netbox.room.location.description }}</td>
                 <td>{{ h.netbox.room.description }}</td>
                 <td>{{ h.netbox.sysname }}</td>
-                <td>{{ h.module_name }}</td>
+                {# <td>{{ h.module_name }}</td> #}
                 <td>{{ h.device.serial }}</td>
                 <td>{{ h.start_time }}</td>
                 <td>
