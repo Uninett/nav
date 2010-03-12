@@ -60,5 +60,10 @@ urlpatterns = patterns('',
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_number>\d+)/gwport=(?P<port_name>[\w\d\/]+)/$',
         port_details, {'port_type': 'gwport'},
         name='ipdevinfo-gwport-details-by-interface'),
+
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_id>\d+)/$',
+        port_details, name='ipdevinfo-interface-details'),
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_name>[\w\d\.-]+)/$',
+        port_details, name='ipdevinfo-interface-details'),
 )
 

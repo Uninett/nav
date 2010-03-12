@@ -134,9 +134,29 @@ class Netbox(models.Model):
 
     def get_gwports(self):
         return Interface.objects.filter(netbox=self, gwportprefix__isnull=False).distinct()
+    
+    def get_gwports_sorted(self):
+        """Returns gwports naturally sorted by interface name"""
+
+        ports = self.get_gwports()
+        interface_names = [p.get_identifier_string() for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
 
     def get_swports(self):
         return Interface.objects.filter(netbox=self, baseport__isnull=False).distinct()
+    
+    def get_swports_sorted(self):
+        """Returns swports naturally sorted by interface name"""
+
+        ports = self.get_swports()
+        interface_names = [p.get_identifier_string() for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
 
     def get_availability(self):
         from nav.models.rrd import RrdDataSource
@@ -985,7 +1005,7 @@ class Interface(models.Model):
     def get_absolute_url(self):
         kwargs={
             'netbox_sysname': self.netbox.sysname,
-            'interface_id': self.id,
+            'port_id': self.id,
         }
         return reverse('ipdevinfo-interface-details', kwargs=kwargs)
 
@@ -1061,6 +1081,21 @@ class Interface(models.Model):
         return RrdDataSource.objects.filter(
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
+
+    def get_link_status(self):
+        if not self.ifadminstatus:
+            return LINK_DOWN_ADM
+        if self.ifoperstatus:
+            return LINK_UP
+        else:
+            return LINK_DOWN
+
+    def get_link_display(self):
+        if self.get_link_status() == LINK_UP:
+            return "Active"
+        elif self.get_link_status() == LINK_DOWN_ADM:
+            return "Disabled"
+        return "Inactive"
 
 
 class IanaIftype(models.Model):

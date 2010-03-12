@@ -415,7 +415,8 @@
 {% endif %}
 
 
-{% if netbox and netbox.module_set.count %}
+{% if netbox %}
+{% if netbox.module_set.count or netbox.interface_set.count %}
 
 <div id="ports">
     <div class="tabs">
@@ -465,6 +466,7 @@
     </div>
 </div>
 
+{% endif %}
 {% endif %}
 
 {% endblock %}
