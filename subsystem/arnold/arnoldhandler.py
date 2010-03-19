@@ -231,6 +231,18 @@ def handler(req):
         AND blocked_status IN ('quarantined', 'disabled')"""
         cur.execute(q, (row['mac'],))
 
+<<<<<<< /home/magnusme/dev/nav-staging-3.6/subsystem/arnold/arnoldhandler.py
+        if cur.rowcount > 1:
+            # Get switchinformation from database
+            blockedports = [dict(row) for row in cur.fetchall()]
+            for element in blockedports:
+                q = """
+                SELECT sysname, module, port FROM netbox
+                JOIN module USING (netboxid)
+                JOIN interface USING (moduleid)
+                WHERE interfaceid=%s
+                """
+=======
         # Get switchinformation from database
         blockedports = [dict(row) for row in cur.fetchall()]
         for element in blockedports:
@@ -240,6 +252,7 @@ def handler(req):
             LEFT JOIN swport USING (moduleid)
             WHERE swportid=%s
             """
+>>>>>>> /tmp/arnoldhandler.py~other.twsu_B
 
             try:
                 managec.execute(q, (element['swportid'],))
@@ -620,9 +633,11 @@ def printBlocked(cur, page, sort, section):
         item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
                           + "' title='Details'><img src='/images/arnold/details.png'></a>"
         
-        managequery = """SELECT sysname, module, port FROM netbox LEFT
-        JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid)
-        WHERE swportid = %s"""
+        managequery = """
+        SELECT sysname, port FROM netbox 
+        JOIN interface USING (netboxid)
+        WHERE interfaceid = %s
+        """
 
         managec.execute(managequery, (item['swportid'], ))
         managelist = managec.fetchone()
@@ -801,9 +816,8 @@ def showDetails (cur, page, section, id):
 
     q = """
     SELECT * FROM netbox
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN swport USING (moduleid)
-    WHERE swportid=%s
+    JOIN interface USING (netboxid)
+    WHERE interfaceid=%s
     """
     managec.execute(q, (list[0]['swportid'], ))
     managerow = managec.fetchone()
@@ -815,8 +829,7 @@ def showDetails (cur, page, section, id):
             entry['modport'] = "N/A"
         else:
             page.output = ""
-            entry['modport'] = str(managerow['module']) + ":" + \
-                               str(managerow['port'])
+            entry['modport'] = managerow['ifname']
             entry['sysname'] = managerow['sysname']
         
         entry['starttime'] = entry['starttime'].strftime('%Y-%m-%d %k:%M:%S')

@@ -49,9 +49,370 @@ ALTER TABLE org ADD CONSTRAINT org_parent_fkey
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
+-- Try to provide consistency between code and db names.
+ALTER TABLE alertsubscription RENAME ignore_closed_alerts TO ignore_resolved_alerts;
+
+-- New consolidated interface table
+-- See MIB-II, IF-MIB, RFC 1229
+CREATE TABLE manage.interface (
+  interfaceid SERIAL NOT NULL,
+  netboxid INT4 NOT NULL,
+  moduleid INT4,
+  ifindex INT4 NOT NULL,
+  ifname VARCHAR,
+  ifdescr VARCHAR,
+  iftype INT4,
+  speed DOUBLE PRECISION,
+  ifphysaddress MACADDR,
+  ifadminstatus INT4, 
+  ifoperstatus INT4,
+  iflastchange INT4,
+  ifconnectorpresent BOOLEAN,
+  ifpromiscuousmode BOOLEAN,
+  ifalias VARCHAR,
+
+  -- non IF-MIB values
+  baseport INT4,
+  media VARCHAR,
+  vlan INT4,
+  trunk BOOLEAN,
+  duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
+
+  to_netboxid INT4, 
+  to_interfaceid INT4, 
+
+  gone_since TIMESTAMP,
+  
+  CONSTRAINT interface_pkey PRIMARY KEY (interfaceid),
+  CONSTRAINT interface_netboxid_fkey 
+             FOREIGN KEY (netboxid)
+             REFERENCES netbox (netboxid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT interface_moduleid_fkey 
+             FOREIGN KEY (moduleid)
+             REFERENCES module (moduleid)
+             ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT interface_to_netboxid_fkey 
+             FOREIGN KEY (to_netboxid) 
+             REFERENCES netbox (netboxid)
+             ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT interface_to_interfaceid_fkey 
+             FOREIGN KEY (to_interfaceid) 
+             REFERENCES interface (interfaceid)
+             ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT interface_interfaceid_netboxid_unique
+             UNIQUE (interfaceid, netboxid)
+);
+
+-- this should be populated with entries parsed from 
+-- http://www.iana.org/assignments/ianaiftype-mib
+CREATE TABLE manage.iana_iftype (
+  iftype INT4 NOT NULL,
+  name VARCHAR NOT NULL,
+  descr VARCHAR,
+
+  CONSTRAINT iftype_pkey PRIMARY KEY (iftype)
+);
+
+-- ---------------------------------------------------------------- --
+-- Convert existing swport and gwport records to interface records. --
+-- ---------------------------------------------------------------- --
+
+-- First, map old primary keys to new ones. Prime the interfaceid
+-- sequence with the max value of the two existing sequences+1000, so
+-- we don't create duplicates.
+SELECT setval('interface_interfaceid_seq',  GREATEST( nextval('swport_swportid_seq'), nextval('gwport_gwportid_seq'))+1000);
+
+CREATE TEMPORARY TABLE swport_map AS
+  SELECT swportid, nextval('interface_interfaceid_seq') AS new_id FROM swport ORDER BY swportid;
+
+CREATE TEMPORARY TABLE gwport_map AS
+  SELECT gwportid, nextval('interface_interfaceid_seq') AS new_id FROM gwport ORDER BY gwportid;
+
+UPDATE swport SET swportid=map.new_id FROM swport_map AS map WHERE map.swportid = swport.swportid;
+UPDATE gwport SET gwportid=map.new_id FROM gwport_map AS map WHERE map.gwportid = gwport.gwportid;
+
+-- convert swport records
+INSERT INTO interface
+  SELECT 
+    swportid AS interfaceid,
+    netboxid, 
+    moduleid, 
+    ifindex, 
+    interface AS ifname,
+    interface AS ifdescr, 
+    NULL AS iftype,
+    speed,
+    NULL AS ifphysaddress,
+    CASE link WHEN 'd' THEN 2 ELSE 1 END AS ifadminstatus,
+    CASE link WHEN 'y' THEN 1 ELSE 2 END AS ifoperstatus,
+    NULL AS iflastchange,
+    NULL AS ifconnectorpresent,
+    NULL AS ifpromiscuousmode,
+    portname AS ifalias,
+    media,
+    vlan,
+    trunk,
+    duplex,
+    to_netboxid,
+    to_swportid AS to_interfaceid
+  FROM swport 
+  JOIN module USING (moduleid);
+
+-- convert gwport records
+INSERT INTO interface
+  SELECT 
+    gwportid AS interfaceid,
+    netboxid, 
+    moduleid, 
+    ifindex, 
+    interface AS ifname, 
+    interface AS ifdescr, 
+    NULL AS iftype,
+    speed,
+    NULL AS ifphysaddress,
+    CASE link WHEN 'd' THEN 2 ELSE 1 END AS ifadminstatus,
+    CASE link WHEN 'y' THEN 1 ELSE 2 END AS ifoperstatus,
+    NULL AS iflastchange,
+    NULL AS ifconnectorpresent,
+    NULL AS ifpromiscuousmode,
+    portname AS ifalias,
+    NULL AS media,
+    NULL AS vlan,
+    NULL AS trunk,
+    NULL AS duplex,
+    to_netboxid,
+    to_swportid AS to_interfaceid
+  FROM gwport 
+  JOIN module USING (moduleid);
+
+
+-- Routing protocol attributes
+CREATE TABLE manage.rproto_attr (
+  id SERIAL NOT NULL,
+  interfaceid INT4 NOT NULL,
+  protoname VARCHAR NOT NULL, -- bgp/ospf/isis
+  metric INT4,
+
+  CONSTRAINT rproto_attr_pkey 
+             PRIMARY KEY (id),
+  CONSTRAINT rproto_attr_interfaceid_fkey
+             FOREIGN KEY (interfaceid)
+             REFERENCES interface (interfaceid)
+);
+
+-- Insert any existing OSPF metric values into the new table
+INSERT INTO rproto_attr
+  SELECT 
+    nextval('rproto_attr_id_seq') AS id,
+    gwportid AS interfaceid,
+    'ospf' AS protoname,
+    metric
+  FROM gwport WHERE metric IS NOT NULL;
+
+-- Now begins the arduous task of replacing all foreign keys referring
+-- to gwport and swport
+ALTER TABLE swp_netbox RENAME COLUMN to_swportid TO to_interfaceid;
+ALTER TABLE swp_netbox DROP CONSTRAINT swp_netbox_to_swportid_fkey;
+ALTER TABLE swp_netbox ADD CONSTRAINT swp_netbox_to_interfaceid_fkey 
+                                      FOREIGN KEY (to_interfaceid) REFERENCES interface(interfaceid)
+                                      ON UPDATE CASCADE ON DELETE SET NULL;
+               
+ALTER TABLE gwportprefix RENAME COLUMN gwportid TO interfaceid;
+ALTER TABLE gwportprefix DROP CONSTRAINT gwportprefix_gwportid_fkey;
+ALTER TABLE gwportprefix ADD CONSTRAINT gwportprefix_interfaceid_fkey 
+                                        FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
+                                        ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE swportvlan RENAME COLUMN swportid TO interfaceid;
+ALTER TABLE swportvlan DROP CONSTRAINT swportvlan_swportid_fkey;
+ALTER TABLE swportvlan ADD CONSTRAINT swportvlan_interfaceid_fkey 
+                                      FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
+                                      ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE swportvlan_swportid_key RENAME TO swportvlan_interfaceid_key;
+ALTER TABLE swportvlan_swportid_btree RENAME TO swportvlan_interfaceid_btree;
+
+ALTER TABLE swportallowedvlan RENAME COLUMN swportid TO interfaceid;
+ALTER TABLE swportallowedvlan DROP CONSTRAINT swportallowedvlan_swportid_fkey;
+ALTER TABLE swportallowedvlan ADD CONSTRAINT swportallowedvlan_interfaceid_fkey
+                                             FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
+                                             ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE swportblocked RENAME COLUMN swportid TO interfaceid;
+ALTER TABLE swportblocked DROP CONSTRAINT swportblocked_swportid_fkey;
+ALTER TABLE swportblocked ADD CONSTRAINT swportblocked_interfaceid_fkey
+                                         FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
+                                         ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE patch RENAME COLUMN swportid TO interfaceid;
+ALTER TABLE patch DROP CONSTRAINT patch_swportid_fkey;
+ALTER TABLE patch ADD CONSTRAINT patch_interfaceid_fkey 
+	                         FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
+                                 ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE patch_swportid_key RENAME TO patch_interfaceid_key;
+
+-- Update tables that may reference swport/gwport without proper referential integrity
+UPDATE rrd_file
+SET key='interface', value=map.new_id::text 
+FROM swport_map AS map
+WHERE rrd_file.key = 'swport' AND rrd_file.value::integer = map.swportid;
+
+UPDATE rrd_file
+SET key='interface', value=map.new_id::text 
+FROM gwport_map AS map
+WHERE rrd_file.key = 'gwport' AND rrd_file.value::integer = map.gwportid;
+
+-- Recreate views that depend on swport or gwport
+CREATE OR REPLACE VIEW manage.netboxmac AS  
+(SELECT DISTINCT ON (mac) netbox.netboxid, arp.mac
+ FROM netbox
+ JOIN arp ON (arp.arpid = (SELECT arp.arpid FROM arp WHERE arp.ip=netbox.ip AND end_time='infinity' LIMIT 1)))
+UNION DISTINCT
+(SELECT DISTINCT ON (mac) module.netboxid,mac
+ FROM arp
+ JOIN gwportprefix gwp ON
+  (arp.ip=gwp.gwip AND (hsrp=true OR (SELECT COUNT(*) FROM gwportprefix WHERE gwp.prefixid=gwportprefix.prefixid AND hsrp=true) = 0))
+ JOIN interface USING (interfaceid)
+ JOIN module USING (moduleid)
+ WHERE arp.end_time='infinity');
+
+DROP VIEW allowedvlan_both;
+DROP VIEW allowedvlan;
+
+-- Drop unnecessary table and update the corresponding allowedvlan view
+DROP TABLE manage.range;
+CREATE OR REPLACE VIEW allowedvlan AS (
+  SELECT 
+    interfaceid, vlan AS allowedvlan 
+  FROM 
+    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring 
+     FROM swportallowedvlan) AS allowed_octets
+  CROSS JOIN
+    generate_series(0, 4095) AS vlan
+  WHERE
+    vlan < length(octetstring)*8 AND
+    (CASE 
+       WHEN length(octetstring)>=128 
+         THEN get_bit(octetstring, (vlan/8)*8+7-(vlan%8))
+       ELSE get_bit(octetstring,(length(octetstring)*8-vlan+7>>3<<3)-8+(vlan%8))
+     END) = 1
+);
+
+
+CREATE OR REPLACE VIEW manage.allowedvlan_both AS
+  (select interfaceid,interfaceid as interfaceid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
+  (select  interface.interfaceid,to_interfaceid as interfaceid2,allowedvlan from interface join allowedvlan
+    on (interface.to_interfaceid=allowedvlan.interfaceid) ORDER BY allowedvlan);
+
+-- Then, finally, get rid of the old tables
+DROP TABLE gwport;
+DROP TABLE swport;
+
+-- View to mimic old swport table
+CREATE OR REPLACE VIEW manage.swport AS (
+  SELECT 
+    interfaceid AS swportid,
+    moduleid,
+    ifindex,
+    baseport AS port,
+    ifdescr AS interface,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link,
+    speed,
+    duplex,
+    media,
+    vlan,
+    trunk,
+    ifalias AS portname,
+    to_netboxid,
+    to_interfaceid AS to_swportid
+  FROM interface
+  WHERE interfaceid NOT IN (SELECT interfaceid FROM gwportprefix)
+);
+
+-- View to mimic old gwport table
+CREATE OR REPLACE VIEW manage.gwport AS (
+  SELECT 
+    i.interfaceid AS gwportid,
+    moduleid,
+    ifindex,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link,
+    NULL::INT4 AS masterindex,
+    ifdescr AS interface,
+    speed,
+    metric,
+    ifalias AS portname,
+    to_netboxid,
+    to_interfaceid AS to_swportid
+  FROM interface i
+  JOIN gwportprefix gwpfx ON (i.interfaceid=gwpfx.interfaceid)
+  LEFT JOIN rproto_attr ra ON (i.interfaceid=ra.interfaceid AND ra.protoname='ospf')
+);
+
+-- View to see only switch ports
+CREATE OR REPLACE VIEW manage.interface_swport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  WHERE
+    baseport IS NOT NULL
+);
+
+-- View to see only router ports
+CREATE OR REPLACE VIEW manage.interface_gwport AS (
+  SELECT
+    interface.*,
+    CASE ifadminstatus
+      WHEN 1 THEN CASE ifoperstatus
+                    WHEN 1 THEN 'y'::CHAR
+                    ELSE 'n'::char
+                  END
+      ELSE 'd'::char
+    END AS link
+  FROM
+    interface
+  JOIN
+    (SELECT interfaceid FROM gwportprefix GROUP BY interfaceid) routerports USING (interfaceid)
+);
+
+
+-- Modules aren't necessarily identified using integers, so we add names.
+ALTER TABLE module ALTER COLUMN module DROP NOT NULL;
+ALTER TABLE module ADD COLUMN name VARCHAR NOT NULL;
+ALTER TABLE module DROP CONSTRAINT module_netboxid_key;
+UPDATE module SET name = module::text;
+ALTER TABLE module ADD CONSTRAINT module_netboxid_key UNIQUE (netboxid, name);
+
+
+-- Remove product and deviceorder
+ALTER TABLE device DROP COLUMN productid;
+ALTER TABLE device DROP COLUMN deviceorderid;
+ALTER TABLE device DROP COLUMN active;
+
+DROP TABLE deviceorder;
+DROP TABLE product;
+
 -- Django needs a simple integer primary key in accountnavbar
 ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
-ALTER TABLE accountnavbar ADD CONSTRAINT accountnavbar_accountid_key UNIQUE (accountid, navbarlinkid);
 CREATE SEQUENCE accountnavbar_id_seq;
 ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
@@ -64,8 +425,8 @@ CREATE TABLE statuspreference (
 	type varchar NOT NULL,
 	accountid integer NOT NULL,
 
-	services varchar,
-	states varchar,
+	services varchar NOT NULL DEFAULT '',
+	states varchar NOT NULL DEFAULT 'n,s',
 
 	CONSTRAINT statuspreference_pkey PRIMARY KEY(id),
 	CONSTRAINT statuspreference_accountid_fkey
@@ -118,7 +479,52 @@ CREATE TABLE statuspreference_category (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
+-- StatusPreferences for Default user
+
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (1, 'IP devices down', 1, 'netbox', 0, 'n');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (2, 'IP devices in shadow', 2, 'netbox', 0, 's');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
+
+
+-- DeviceHistory rewrite 
+-- Django needs an id field for every table.
+--
+CREATE SEQUENCE manage.eventqvar_id_seq;
+ALTER TABLE eventqvar ADD COLUMN id integer NOT NULL
+	DEFAULT nextval('eventqvar_id_seq')
+	CONSTRAINT eventqvar_pkey PRIMARY KEY;
+
+
+-- Remove floating devices.
+-- Devices that don't have a serial and no connected modules or netboxes.
+-- Triggers on delete on module and netbox.
+CREATE OR REPLACE FUNCTION manage.remove_floating_devices() RETURNS TRIGGER AS '
+    BEGIN
+        DELETE FROM device WHERE
+            deviceid NOT IN (SELECT deviceid FROM netbox) AND
+            deviceid NOT IN (SELECT deviceid FROM module) AND
+            serial IS NULL;
+        RETURN NULL;
+        END;
+    ' language 'plpgsql';
+
+CREATE TRIGGER trig_module_delete_prune_devices
+    AFTER DELETE ON module
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE remove_floating_devices();
+
+CREATE TRIGGER trig_netbox_delete_prune_devices
+    AFTER DELETE ON netbox
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE remove_floating_devices();
+
 -- Change type on arnold.identity.mac from varchar to macaddr
 ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr
+
+-- Add foreign key to accountalertqueue.alert_id LP#494036
+ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_alert_id_fkey
+    FOREIGN KEY(alert_id) REFERENCES alertq(alertqid);
 
 COMMIT;

@@ -33,7 +33,7 @@ from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherExce
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
-    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
+    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
@@ -46,7 +46,7 @@ SUPPORTED_MODELS = [
         AlertQueue, AlertType, EventType,
     # manage models
         Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        NetboxType, Organization, Prefix, Room, Subcategory, SwPort,
         Vendor, Vlan,
         Usage,
 ]
@@ -500,7 +500,7 @@ class AlertSubscription(models.Model):
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
-    ignore_closed_alerts = models.BooleanField()
+    ignore_resolved_alerts = models.BooleanField()
 
     class Meta:
         db_table = u'alertsubscription'
@@ -1047,8 +1047,31 @@ class StatusPreference(models.Model):
         Category, db_table='statuspreference_category', blank=True)
 
     services = models.TextField(blank=True)
-    states = models.TextField(blank=True)
+    states = models.TextField()
 
     class Meta:
         db_table = u'statuspreference'
         ordering = ('position',)
+
+    def readable_type(self):
+        return StatusPreference.lookup_readable_type(self.type)
+
+    @staticmethod
+    def lookup_readable_type(type):
+        for (id, readable_type) in StatusPreference.SECTION_CHOICES:
+            if type == id:
+                return readable_type
+
+class StatusPreferenceOrganization(models.Model):
+    statuspreference = models.ForeignKey(StatusPreference)
+    organization = models.ForeignKey(Organization)
+
+    class Meta:
+        db_table = u'statuspreference_organization'
+
+class StatusPreferenceCategory(models.Model):
+    statuspreference = models.ForeignKey(StatusPreference)
+    category = models.ForeignKey(Category)
+
+    class Meta:
+        db_table = u'statuspreference_category'

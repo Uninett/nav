@@ -1,0 +1,11 @@
+{% extends "devicehistory/base.html" %}
+
+{% block tabcontent %}
+    <p>Select and view device history for a location, room, box or module. Use
+    quicksearch to search for a (partial) serialnumber, hostname, IP or
+    room.</p>
+
+    <form action="{% url devicehistory-view %}" method="get">
+        {{ quickselect|safe }}
+    </form>
+{% endblock %}

@@ -21,9 +21,7 @@ and fill the contents of the MainTemplate Cheetah template.
 """
 
 import sys, os
-from nav import db, web
-import nav.web.auth
-from nav.db import navprofiles
+from nav.models import profiles
 from nav.web.templates.MainTemplate import MainTemplate
 
 def main(argv):
@@ -37,24 +35,24 @@ def main(argv):
         vars['user'] = 0
         
     page = MainTemplate()
+    page.path = [ ("Home", "/") ]
     for key, value in vars.items():
         # Make some special considerations for special variable names.  Anything
         if key == "user":
-            conn = db.getConnection('navprofile', 'navprofile')
-
             try:
                 id = int(value)
-                account = navprofiles.Account(value)
-                account.load()
+                account = profiles.Account.objects.get(id=id)
             except ValueError, TypeError:
-                account = navprofiles.Account.loadByLogin(value)
-            nav.web.auth._find_user_preferences(account, None)
-            page.user = account
+                account = profiles.Account.objects.get(login=value)
+            page.user = {'id': account.id,
+                         'name': account.name,
+                         'login': account.login,
+                         }
         elif key == "content":
             func = lambda : vars['content']
             setattr(page, key, func)
         elif key == "path":
-            path = [ ("Home", "/") ]
+            path = page.path
             list = value.split(':')
             if len(list) % 2 != 0:
                 raise "element count of 'path' must be an even number"

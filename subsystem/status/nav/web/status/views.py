@@ -21,28 +21,39 @@ from django.forms.models import modelformset_factory, inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.shortcuts import render_to_response
 
 from nav.web.templates.StatusTemplate import StatusTemplate
-from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 from nav.models.profiles import StatusPreference, Account
 from nav.web.message import Messages, new_message
 
 from nav.web.status.sections import get_user_sections
-from nav.web.status.forms import SectionForm, AddSectionForm
-from nav.web.status.utils import extract_post, order_status_preferences
+from nav.web.status.forms import *
+from nav.web.status.utils import extract_post, order_status_preferences, \
+    make_default_preferences
+
+SERVICE_SECTIONS = (
+    StatusPreference.SECTION_SERVICE,
+    StatusPreference.SECTION_SERVICE_MAINTENANCE
+)
 
 def status(request):
     '''Main status view.'''
     account = get_account(request)
     sections = get_user_sections(account)
 
+    if not sections:
+        make_default_preferences(account)
+        sections = get_user_sections(account)
+
     return render_to_response(
-        StatusTemplate,
         'status/status.html',
         {
             'active': {'status': True},
             'sections': sections,
+            'title': 'NAV - Status',
+            'navpath': [('Home', '/'), ('Status', '')],
         },
         RequestContext(request)
     )
@@ -53,37 +64,137 @@ def preferences(request):
         request.POST = extract_post(request.POST.copy())
         if request.POST.get('moveup') or request.POST.get('movedown'):
             return move_section(request)
-        else:
-            return save_preferences(request)
+        elif request.POST.get('delete'):
+            return delete_section(request)
 
     account = get_account(request)
-    SectionFormSet = inlineformset_factory(
-        Account,
-        StatusPreference,
-        extra=0,
-        form=SectionForm)
-    formset = SectionFormSet(instance=account)
+    sections = StatusPreference.objects.filter(account=account)
+
     return render_to_response(
-        StatusTemplate,
         'status/preferences.html',
         {
             'active': {'preferences': True},
-            'formset': formset,
+            'sections': sections,
             'add_section': AddSectionForm(),
+            'title': 'Nav - Status preferences',
+            'navpath': [('Home', '/'), ('Status', '')],
         },
         RequestContext(request)
     )
 
-def save_preferences(request):
+def edit_preferences(request, section_id):
+    if request.method == 'POST':
+        return save_preferences(request)
+
     account = get_account(request)
-    StatusPreferenceFormset = inlineformset_factory(
-        Account,
-        StatusPreference,
-        extra=0,
-        form=SectionForm)
-    formset = StatusPreferenceFormset(request.POST, instance=account)
-    if formset.is_valid():
-        formset.save()
+    try:
+        section = StatusPreference.objects.get(
+            id=section_id,
+            account=account,
+        )
+    except StatusPreference.DoesNotExist:
+        # FIXME Maybe send a message as well?
+        return HttpResponseRedirect(reverse('status-preferences'))
+
+    data = {
+        'id': section.id,
+        'name': section.name,
+        'type': section.type,
+        'organizations': list(section.organizations.values_list('id', flat=True)) or [''],
+    }
+    if section.type == StatusPreference.SECTION_THRESHOLD:
+        data['categories'] = list(section.categories.values_list('id', flat=True)) or ['']
+        form = SectionWithCategoryForm(data)
+    elif section.type in SERVICE_SECTIONS:
+        data['services'] = section.services.split(",") or ['']
+        data['states'] = section.states.split(",")
+        form = SectionWithServiceAndStateForm(data)
+    else:
+        data['categories'] = list(section.categories.values_list('id', flat=True)) or ['']
+        data['states'] = section.states.split(",")
+        form = SectionWithCategoryAndStateForm(data)
+
+    return render_to_response(
+        'status/edit_preferences.html',
+        {
+            'active': {'preferences': True},
+            'name': section.name,
+            'type': section.readable_type(),
+            'section_form': form,
+            'title': 'NAV - Edit status preference section',
+            'navpath': [('Home', '/'), ('Status', '')],
+        },
+        RequestContext(request)
+    )
+
+def add_section(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('status-preferences'))
+    elif 'save' in request.POST:
+        return save_preferences(request)
+
+    type = request.POST.get('section', None)
+    name = StatusPreference.lookup_readable_type(type)
+    initial = {'name': name, 'type': type}
+    if type == StatusPreference.SECTION_THRESHOLD:
+        form = SectionWithCategoryForm(initial=initial)
+    elif type in SERVICE_SECTIONS:
+        form = SectionWithServiceAndStateForm(initial=initial)
+    else:
+        form = SectionWithCategoryAndStateForm(initial=initial)
+
+    return render_to_response(
+        'status/edit_preferences.html',
+        {
+            'active': {'preferences': True},
+            'name': name,
+            'section_form': form,
+            'title': 'NAV - Add new status section',
+            'navpath': [('Home', '/'), ('Status', '')],
+        },
+        RequestContext(request),
+    )
+
+def save_preferences(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('status-preferences'))
+
+    account = get_account(request)
+
+    type = request.POST.get('type', None)
+    if type == StatusPreference.SECTION_THRESHOLD:
+        form = SectionWithCategoryForm(request.POST)
+    elif type in SERVICE_SECTIONS:
+        form = SectionWithServiceAndStateForm(request.POST)
+    else:
+        form = SectionWithCategoryAndStateForm(request.POST)
+
+    if type and form.is_valid():
+        try:
+            section = StatusPreference.objects.get(id=form.cleaned_data['id'])
+            type = section.type
+        except StatusPreference.DoesNotExist:
+            section = StatusPreference()
+            section.position = StatusPreference.objects.count()
+            type = form.cleaned_data['type']
+            section.type = type
+
+        section.name = form.cleaned_data['name']
+        section.account = account
+        if type != StatusPreference.SECTION_THRESHOLD:
+            section.states = ",".join(form.cleaned_data['states'])
+        if type in SERVICE_SECTIONS:
+            section.services = ",".join(form.cleaned_data['services'])
+
+        section.save()
+
+        section.organizations = Organization.objects.filter(
+            id__in=form.cleaned_data['organizations'])
+
+        if type not in SERVICE_SECTIONS:
+            section.categories = Category.objects.filter(
+                id__in=form.cleaned_data['categories'])
+
         new_message(
             request,
             'Saved preferences',
@@ -91,11 +202,28 @@ def save_preferences(request):
         )
         return HttpResponseRedirect(reverse('status-preferences'))
     else:
+        if 'id' in request.POST and request.POST.get('id'):
+            section = StatusPreference.objects.get(id=request.POST.get('id'))
+            name = section.name
+            type = section.type
+        elif 'type' in request.POST and request.POST.get('type'):
+            name = StatusPreference.lookup_readable_type(request.POST.get('type'))
+            type = None
+
+        new_message(
+            request,
+            'There were errors in the form below.',
+            Messages.ERROR,
+        )
         return render_to_response(
-            StatusTemplate,
-            'status/preferences.html',
+            'status/edit_preferences.html',
             {
-                'formset': formset,
+                'active': {'preferences': True},
+                'title': 'NAV - Add new status section',
+                'navpath': [('Home', '/'), ('Status', '')],
+                'section_form': form,
+                'name': name,
+                'type': type,
             },
             RequestContext(request)
         )
@@ -120,7 +248,10 @@ def move_section(request):
 
     # Find the section we want to move
     try:
-        section = StatusPreference.objects.get(id=section_id)
+        section = StatusPreference.objects.get(
+            id=section_id,
+            account=account,
+        )
     except StatusPreference.DoesNotExist:
         new_message(
             request,
@@ -133,7 +264,10 @@ def move_section(request):
     # If it's not found we're trying to move the first section up or the last
     # section down.
     try:
-        other_section = StatusPreference.objects.get(position=section.position + movement)
+        other_section = StatusPreference.objects.get(
+            position=section.position + movement,
+            account=account,
+        )
     except StatusPreference.DoesNotExist:
         new_message(
             request,
@@ -160,42 +294,21 @@ def move_section(request):
     )
     return HttpResponseRedirect(reverse('status-preferences'))
 
-def add_section(request):
+def delete_section(request):
+    if not request.method == 'POST':
+        return HttpResponseRedirect(reverse('status-preferences'))
+
     account = get_account(request)
-    add_form = None
-    section_form = None
+    section_ids = request.POST.getlist('delete_checkbox')
 
-    if request.method == 'POST':
-        if request.POST.get('add_section'):
-            add_form = AddSectionForm(request.POST)
-            if add_form.is_valid():
-                type = add_form.cleaned_data['section']
+    sections = StatusPreference.objects.filter(
+        pk__in=section_ids,
+        account=account,
+    ).delete()
 
-                add_form = None
-                section_form = SectionForm(initial={
-                    'type': type,
-                }, type=type)
-        else:
-            try:
-                last_position = StatusPreference.objects.filter(
-                    account=account
-                ).order_by('-position')[0].position
-            except IndexError:
-                last_position = 0
-
-            section_form = SectionForm(request.POST, type=request.POST.get('type'))
-            if section_form.is_valid():
-                prefs = section_form.save(account=account, position=last_position+1)
-                return HttpResponseRedirect(reverse('status-preferences'))
-    else:
-        add_form = AddSectionForm()
-
-    return render_to_response(
-        StatusTemplate,
-        'status/add_section.html',
-        {
-            'add_form': add_form,
-            'section_form': section_form,
-        },
-        RequestContext(request)
+    new_message(
+        request,
+        'Deleted selected sections',
+        Messages.SUCCESS
     )
+    return HttpResponseRedirect(reverse('status-preferences'))

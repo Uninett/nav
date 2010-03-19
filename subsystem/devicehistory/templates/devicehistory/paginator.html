@@ -1,0 +1,38 @@
+<div>
+{% if history.has_previous %}
+    <a href="{% url devicehistory-view %}{{ get_url }}&amp;page={{ history.previous_page_number }}">
+    &lt;&lt; Previous</a>
+{% else %}
+    &lt;&lt; Previous
+{% endif %}
+|
+
+{% if first_page_link %}
+    <a href="{% url devicehistory-view %}{{ get_url}}&amp;page=1">
+    {{ history.paginator.page_range|first }}</a>
+    | ... |
+{% endif %}
+
+{% for page in pages %}
+    {% ifequal page history.number %}
+    {{ page }}
+    {% else %}
+    <a href="{% url devicehistory-view %}{{ get_url}}&amp;page={{ page }}">{{ page }}</a>
+    {% endifequal %}
+    |
+{% endfor %}
+
+{% if last_page_link %}
+    ... |
+    <a href="{% url devicehistory-view %}{{ get_url }}&amp;page={{ history.paginator.num_pages }}">
+    {{ history.paginator.page_range|last }}</a>
+    |
+{% endif %}
+
+{% if history.has_next %}
+    <a href="{% url devicehistory-view %}{{ get_url }}&amp;page={{ history.next_page_number }}">
+    Next &gt;&gt;</a>
+{% else %}
+    Next &gt;&gt;
+{% endif %}
+</div>

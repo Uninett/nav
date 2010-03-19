@@ -61,7 +61,7 @@ def readConfig(config_file, splitChar='='):
 
 # Really, what value does this function add?  Why not use a
 # ConfigParser directly?
-def getconfig(configfile, defaults=None):
+def getconfig(configfile, defaults=None, configfolder=None):
     """
     Read whole config from an INI-style configuration file.
 
@@ -76,6 +76,8 @@ def getconfig(configfile, defaults=None):
     """
 
     if isinstance(configfile, basestring):
+        if configfolder:
+            configfile = os.path.join(configfolder, configfile)
         configfile = file(configfile, 'r')
 
     config = ConfigParser.RawConfigParser(defaults)

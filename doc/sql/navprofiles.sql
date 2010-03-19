@@ -564,6 +564,8 @@ CREATE TABLE accountalertqueue (
     subscription_id integer,
     insertion_time timestamp NOT NULL,
 
+    CONSTRAINT accountalertqueue_alert_id_fkey
+        FOREIGN KEY(alert_id) REFERENCES alertq(alertqid),
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
     CONSTRAINT accountalertqueue_account_id_fkey
     	FOREIGN KEY(account_id) REFERENCES account(id)
@@ -728,8 +730,8 @@ CREATE TABLE statuspreference (
 	type varchar NOT NULL,
 	accountid integer NOT NULL,
 
-	services varchar,
-	states varchar,
+	services varchar NOT NULL DEFAULT '',
+	states varchar NOT NULL DEFAULT 'n,s',
 
 	CONSTRAINT statuspreference_pkey PRIMARY KEY(id),
 	CONSTRAINT statuspreference_accountid_fkey
@@ -1099,6 +1101,14 @@ INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (
 
 INSERT INTO filtergroup_group_permission (accountgroup_id, filtergroup_id) VALUES (1, 71);
 
+
+-- StatusPreferences for Default user
+
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (1, 'IP devices down', 1, 'netbox', 0, 'n');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (2, 'IP devices in shadow', 2, 'netbox', 0, 's');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
 
 /*
 ------------------------------------------------------

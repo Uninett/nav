@@ -1,5 +1,9 @@
 {% extends "status/base.html" %}
 
+{% block base_header_additional_head %}
+    <meta http-equiv="refresh" content="30" />
+{% endblock %}
+
 {% block content %}
 
 {% for section in sections %}
@@ -8,6 +12,7 @@
         {{ section.prefs.name }}<br />
         <span class="subtitle">
         ({{ section.type_title }})
+        <a href="{{ section.devicehistory_url }}">history</a>
         </span>
     </caption>
 
