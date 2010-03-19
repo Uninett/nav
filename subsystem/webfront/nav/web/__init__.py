@@ -25,6 +25,7 @@ import time
 import ConfigParser
 import os.path, nav.path
 import base64
+import urllib
 import cgi
 import logging
 import nav.logs
@@ -54,7 +55,16 @@ def headerparserhandler(req):
         redirect(req, '/index/index')
 
     state.setupSession(req)
-    nav.web.auth.authenticate(req)
+    authenticated = 'user' in req.session
+    if authenticated:
+        # We don't consider the default user as authenticated
+        authenticated = req.session['user']['id'] != 0
+    authorized = nav.web.auth.authorize(req)
+
+    if not authorized and not authenticated:
+        nav.web.auth.redirectToLogin(req)
+    elif not authorized and authenticated:
+        raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
     user = req.session['user']
 
     # Make sure the user's session file has its mtime updated every
