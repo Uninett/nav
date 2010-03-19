@@ -1469,7 +1469,7 @@ class networkDiscovery
 			HashMap hm = (HashMap)iter.next();
 			String hexstr = (String)hm.get("hexstring");
 			String toid = (String)hm.get("to_netboxid");
-			String swportid = (String)hm.get("swportid");
+			String swportid = (String)hm.get("interfaceid");
 			String swportidBack;
 
 			// We're not following the link back anyway

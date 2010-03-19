@@ -1,9 +1,9 @@
 {% if swportvlans.0 %}
 <dl>
-<dt>Swports on Vlan{{ swportvlans.0.vlan.vlan }} on {{ swportvlans.0.swport.module.netbox }}</dt>
+<dt>Swports on Vlan{{ swportvlans.0.vlan.vlan }} on {{ swportvlans.0.interface.netbox }}</dt>
 {% for swportvlan in swportvlans %}
-<dd id="swport-{{ swportvlan.swport.id }}">
-{% if swportvlan.swport.has_children %}
+<dd id="swport-{{ swportvlan.interface.id }}">
+{% if swportvlan.interface.has_children %}
    <img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="expand"/>
 {% else %}
 {% if forloop.last %}
@@ -12,31 +12,31 @@
    <img src="/images/networkexplorer/vertical-bound.gif">
 {% endif %}
 {% endif %}
-<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.module.netbox.sysname }}">{{ swportvlan.swport.module.netbox.sysname }}</a>
-[{{ swportvlan.swport.interface }}]
+<a target="_blank" href="/ipdevinfo/{{ swportvlan.interface.netbox.sysname }}">{{ swportvlan.interface.netbox.sysname }}</a>
+[{{ swportvlan.interface.ifname }}]
 
-{% if swportvlan.swport.portname %}
-({{ swportvlan.swport.portname }})
+{% if swportvlan.interface.ifalias %}
+({{ swportvlan.interface.ifalias }})
 {% endif %}
 
-{% if swportvlan.swport.to_netbox %}
-    {% if swportvlan.swport.trunk %}
+{% if swportvlan.interface.to_netbox %}
+    {% if swportvlan.interface.trunk %}
       <abbr title="trunk port">⇉</abbr>
     {% else %}
       <abbr title="non-trunk port">→</abbr>
     {% endif %}
-    <a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.to_netbox }}">{{ swportvlan.swport.to_netbox }}</a>
+    <a target="_blank" href="/ipdevinfo/{{ swportvlan.interface.to_netbox }}">{{ swportvlan.interface.to_netbox }}</a>
 {% else %}
-    {% if swportvlan.swport.to_swport %}
-        {% if swportvlan.swport.trunk %}
+    {% if swportvlan.interface.to_interface %}
+        {% if swportvlan.interface.trunk %}
 	  <abbr title="trunk port">⇉</abbr>
 	{% else %}
 	  <abbr title="non-trunk port">→</abbr>
 	{% endif %}
-	<a target="_blank" href="/ipdevinfo/{{ swportvlan.swport.to_swport.module.netbox }}">{{ swportvlan.swport.to_swport.module.netbox }}</a>
+	<a target="_blank" href="/ipdevinfo/{{ swportvlan.interface.to_interface.netbox }}">{{ swportvlan.interface.to_interface.netbox }}</a>
     {% else %}
-        ({{ swportvlan.swport.port_name }})
-    	{% if swportvlan.swport.trunk %}
+        ({{ swportvlan.interface.ifalias }})
+    	{% if swportvlan.interface.trunk %}
       	<abbr title="trunk port">(trunk)</abbr>
     	{% endif %}
     {% endif %}
