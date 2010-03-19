@@ -24,6 +24,34 @@ from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.manage import Netbox, Device
 from nav.web.quickselect import QuickSelect
 
+LOCATION_GROUPING = {
+    'order_by': 'netbox__room__location__description',
+    'group_by': lambda a: a.netbox.room.location.description,
+}
+ROOM_GROUPING = {
+    'order_by': 'netbox__room__description',
+    'group_by': lambda a: a.netbox.room.description,
+}
+DEVICE_GROUPING = {
+    'order_by': 'netbox__room__description',
+    'group_by': lambda a: a.device.serial,
+}
+NETBOX_GROUPING = {
+    'order_by': 'netbox__sysname',
+    'group_by': lambda a: a.netbox.sysname,
+}
+DATE_GROUPING = {
+    'order_by': None,
+    'group_by': lambda a: a.start_time.date().isoformat(),
+}
+GROUPINGS = {
+    'location': LOCATION_GROUPING,
+    'room': ROOM_GROUPING,
+    'device': DEVICE_GROUPING,
+    'netbox': NETBOX_GROUPING,
+    'datetime': DATE_GROUPING,
+}
+
 def get_selected_types(type):
     selected_types = {'event': None, 'alert': None}
     if type and type.find('_') != -1:
@@ -45,27 +73,10 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
             type_filter.append(Q(alert_type=selected_types['alert']))
         return type_filter
 
-    def order_by_keys(group_by):
-        order_by = ['start_time', 'end_time']
-        if group_by == "location":
-            key = 'netbox__room__location__description'
-        elif group_by == "room":
-            key = 'netbox__room__description'
-        #elif group_by == "module":
-        #    key = a.module_name
-        elif group_by == "device":
-            key = 'device__serial'
-        elif group_by == "datetime":
-            key = None
-        else:
-            key = 'netbox__sysname'
-
-        if key:
-            order_by.insert(0, key)
-        return order_by
-
     type_filter = type_query_filter(selected_types)
-    order_by_keys = order_by_keys(order_by)
+    order_by_keys = ['start_time', 'end_time']
+    if GROUPINGS[order_by]['order_by']:
+        order_by_keys.insert(0, GROUPINGS[order_by]['order_by'])
 
     # Find all netbox ids and device ids that belongs to
     #   - selected netboxes
@@ -107,7 +118,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
                 (end_time = 'infinity' AND start_time < %s) OR
                 (end_time >= %s AND start_time < %s)
             )
-           '''
+           ''',
         ],
         params=[from_date, to_date, from_date, to_date]
     ).order_by(*order_by_keys)
@@ -117,7 +128,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
 def get_page(paginator, page):
     try:
         history = paginator.page(page)
-    except (EmptyPage, InvalidPage):
+    except InvalidPage:
         history = paginator.page(paginator.num_pages)
     return history
 
@@ -129,21 +140,6 @@ def get_messages_for_history(alert_history):
     return msgs
 
 def group_history_and_messages(history, messages, group_by=None):
-    def get_grouping_key(a, group_by):
-        if group_by == "location":
-            key = a.netbox.room.location.description
-        elif group_by == "room":
-            key = a.netbox.room.description
-        #elif group_by == "module":
-        #    key = a.module_name
-        elif group_by == "device":
-            key = a.device.serial
-        elif group_by == "datetime":
-            key = a.start_time.date().isoformat()
-        else:
-            key = a.netbox.sysname
-        return key
-
     grouped_history = SortedDict()
     for a in history:
         a.extra_messages = {}
@@ -157,7 +153,10 @@ def group_history_and_messages(history, messages, group_by=None):
                     }
                 a.extra_messages[m['state']][m['type']] = m['message']
 
-        key = get_grouping_key(a, group_by)
+        try:
+            key = GROUPINGS[group_by]['group_by'](a)
+        except AttributeError:
+            key = None
 
         if not grouped_history.has_key(key):
             grouped_history[key] = []

@@ -14,7 +14,10 @@
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Status sections"""
+"""Status sections.
+
+Used to build up different sections for display.
+"""
 
 from datetime import datetime
 
@@ -35,12 +38,26 @@ SERVICE_STATE = 'serviceState'
 MODULE_STATE = 'moduleState'
 THRESHOLD_STATE = 'thresholdState'
 
+
 def get_user_sections(account):
+    '''Fetches all status sections for account in one swoop.
+    '''
+    # Dispatch table
+    dtable = {
+        StatusPreference.SECTION_NETBOX: NetboxSection,
+        StatusPreference.SECTION_NETBOX_MAINTENANCE: NetboxMaintenanceSection,
+        StatusPreference.SECTION_MODULE: ModuleSection,
+        StatusPreference.SECTION_SERVICE: ServiceSection,
+        StatusPreference.SECTION_SERVICE_MAINTENANCE: ServiceMaintenanceSection,
+        StatusPreference.SECTION_THRESHOLD: ThresholdSection,
+    }
+
     sections = []
     preferences = StatusPreference.objects.filter(
         account=account
     ).order_by('position')
 
+    # Pre-fetching all categories and organisations
     all_cats = Category.objects.values_list('pk', flat=True)
     all_orgs = Organization.objects.values_list('pk', flat=True)
 
@@ -53,6 +70,7 @@ def get_user_sections(account):
         statuspreference__in=preferences
     )
 
+    # Buld dicts with statuspreference_id as keys.
     for cat in cats:
         if not cat.statuspreference_id in categories:
             categories[cat.statuspreference_id] = []
@@ -62,24 +80,14 @@ def get_user_sections(account):
             organizations[org.statuspreference_id] = []
         organizations[org.statuspreference_id].append(org.organization_id)
 
+    # Add pre fetched categories and organisations to section preferences.
+    # Adds all categories and organisations if nothing is found in database.
     for pref in preferences:
         pref.fetched_categories = categories.get(pref.id, all_cats)
         pref.fetched_organizations = organizations.get(pref.id, all_orgs)
 
     for pref in preferences:
-        if pref.type == StatusPreference.SECTION_NETBOX:
-            section = NetboxSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_NETBOX_MAINTENANCE:
-            section = NetboxMaintenanceSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_MODULE:
-            section = ModuleSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_SERVICE:
-            section = ServiceSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_SERVICE_MAINTENANCE:
-            section = ServiceMaintenanceSection(prefs=pref)
-        elif pref.type == StatusPreference.SECTION_THRESHOLD:
-            section = ThresholdSection(prefs=pref)
-
+        section = dtable[pref.type](prefs=pref)
         section.fetch_history()
         sections.append(section)
 
@@ -94,10 +102,15 @@ class _Section(object):
                   are looked up in the database.
 
         history - the query used to look up the history
+
+        type_title - readable type name of this section
+
+        devicehistory_type - used in links to devicehistory
     '''
     columns = []
     history = []
     type_title = ''
+    devicehistory_type = ''
 
     def __init__(self, prefs=None):
         self.prefs = prefs
@@ -113,6 +126,18 @@ class _Section(object):
     def fetch_history(self):
         self.history = []
 
+    def devicehistory_url(self):
+        netboxes = Netbox.objects.filter(
+            category__in=self.categories,
+            organization__in=self.organizations,
+        ).values('id')
+        url = reverse('devicehistory-view')
+        url += "?type=%s" % self.devicehistory_type
+        url += "&group_by=datetime"
+        for n in netboxes:
+            url += "&netbox=%s" % n['id']
+        return url
+
 class NetboxSection(_Section):
     columns =  [
         'Sysname',
@@ -121,6 +146,7 @@ class NetboxSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'a_3'
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -152,7 +178,7 @@ class NetboxSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=a_3&group_by=datetime' % {
+                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
                         'id': h.netbox.id,
                     }
                 ),
@@ -188,6 +214,7 @@ class NetboxMaintenanceSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'e_maintenanceState'
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -220,7 +247,7 @@ class NetboxMaintenanceSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
+                    '?netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
                         'id': m.alert_history.netbox.id,
                     }
                 ),
@@ -265,6 +292,7 @@ class ServiceSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'e_serviceState'
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
@@ -319,7 +347,7 @@ class ServiceSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
+                    '?netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
                         'id': s.netbox.id,
                     }
                 )
@@ -327,7 +355,23 @@ class ServiceSection(_Section):
             history.append(row)
         self.history = history
 
+    def devicehistory_url(self):
+        # FIXME filter service
+        # Service is joined in on the alerthist.subid field, which is not a
+        # part of this query. Yay
+        netboxes = Netbox.objects.filter(
+            organization__in=self.organizations,
+        ).values('id')
+        url = reverse('devicehistory-view')
+        url += "?type=%s" % self.devicehistory_type
+        url += "&group_by=datetime"
+        for n in netboxes:
+            url += "&netbox=%s" % n['id']
+        return url
+
 class ServiceMaintenanceSection(ServiceSection):
+    devicehistory_type = 'e_maintenanceState'
+
     def fetch_history(self):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
@@ -382,7 +426,7 @@ class ServiceMaintenanceSection(ServiceSection):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
+                    '?netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
                         'id': m.alert_history.netbox.id,
                     }
                 ),
@@ -399,6 +443,7 @@ class ModuleSection(_Section):
         'Downtime',
         '',
     ]
+    devicehistory_type = 'a_8'
 
     def fetch_history(self):
         module_history = AlertHistory.objects.select_related(
@@ -443,7 +488,7 @@ class ModuleSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_module=%(id)s&type=a_8&group_by=datetime' % {
+                    '?module=%(id)s&type=a_8&group_by=datetime' % {
                         'id': module.module_id,
                     }
                 ),
@@ -459,6 +504,7 @@ class ThresholdSection(_Section):
         'Time exceeded',
         '',
     ]
+    devicehistory_type = 'a_14'
 
     def fetch_history(self):
         thresholds = AlertHistory.objects.select_related(
@@ -502,7 +548,7 @@ class ThresholdSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?view_netbox=%(id)s&type=a_14&group_by=datetime' % {
+                    '?netbox=%(id)s&type=a_14&group_by=datetime' % {
                         'id': t.netbox.id,
                     }
                 ),

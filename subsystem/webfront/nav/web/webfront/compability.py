@@ -32,7 +32,7 @@ class Cheetah(object):
         self.user = Account.objects.get(id=user['id'])
         self.title = title
         self.navpath = navpath
-        
+
         preferences = user.get('preferences', {})
         self.navbar = preferences.get('navbar', [])
         self.qlink1 = preferences.get('qlink1', [])
@@ -66,6 +66,6 @@ class Cheetah(object):
             'compability/footer.html',
             {
                 'account': self.user,
-                'version': VERSION,
+                'nav_version': VERSION,
             }
         )

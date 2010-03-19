@@ -87,12 +87,16 @@ def devicehistory_search(request):
     )
 
 def devicehistory_view(request):
-    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
     from_date = request.REQUEST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.REQUEST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.REQUEST.get('type', None)
     group_by = request.REQUEST.get('group_by', 'netbox')
-    selection = DeviceQuickSelect.handle_post(request)
+    selection = {
+        'location': request.REQUEST.getlist('loc'),
+        'room': request.REQUEST.getlist('room'),
+        'netbox': request.REQUEST.getlist('netbox'),
+        'module': request.REQUEST.getlist('module'),
+    }
 
     try:
         page = int(request.REQUEST.get('page', '1'))
@@ -145,8 +149,6 @@ def devicehistory_view(request):
         attr = key
         if key == "location":
             attr = "loc"
-
-        url += "&submit_%s=%s" % (attr, "history")
         for id in values:
             url += "&%s=%s" % (attr, id)
 

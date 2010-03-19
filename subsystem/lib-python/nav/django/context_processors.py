@@ -23,6 +23,7 @@ from nav.django.utils import get_account, is_admin
 from nav.web.message import new_message, Messages
 from nav.web.webfront.utils import tool_list
 from nav.models.profiles import AccountNavbar
+from nav.buildconf import VERSION
 
 def debug(request):
     """Returns context variables helpful for debugging.
@@ -82,6 +83,11 @@ def account_processor(request):
         'navbar': navbar,
         'qlink1': qlink1,
         'qlink2': qlink2,
+    }
+
+def nav_version(request):
+    return {
+        'nav_version': VERSION,
     }
 
 def toolbox(request):

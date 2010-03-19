@@ -189,11 +189,9 @@ def findIdInformation(id, limit):
                   FROM arp
                   WHERE ip=%s
                   ORDER BY end_time DESC
-                  LIMIT 1) arpaggr USING (mac)
-            WHERE (cam.start_time >= arpaggr.ipstarttime
-                   AND cam.start_time <= arpaggr.ipendtime)
-               OR (cam.end_time >= arpaggr.ipstarttime
-                   AND cam.end_time <= arpaggr.ipendtime)
+                  LIMIT 2) arpaggr USING (mac)
+            WHERE (cam.start_time, cam.end_time)
+            OVERLAPS (arpaggr.ipstarttime, arpaggr.ipendtime)
             ORDER BY endtime DESC
             LIMIT %s
             """
@@ -818,14 +816,10 @@ def changePortVlan(ip, ifindex, vlan):
     except (nav.Snmp.NoSuchObjectError, nav.Snmp.TimeOutException), why:
         raise ChangePortVlanError, why
 
-
-    # Cisco will not return a fromvlan if the port is a trunk, so it
-    # will be catched above. Hp (or hopefully Q-BRIDGE-MIB) will
-    # return vlan 1 as accessvlan when queried. We must therefore
-    # check if the fromvlan is 1. If it is we raise an error.
-
-    if fromvlan == 1 and vendorid != 'cisco':
-        raise ChangePortVlanError, "This port is (probably) a trunk"
+    # If the vlan on the interface is the same as we try to set, do
+    # nothing.
+    if fromvlan == int(vlan):
+        return fromvlan
 
     # Set to inputvlan. This will fail if the vlan does not exist on
     # the netbox, luckily.
