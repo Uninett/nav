@@ -523,4 +523,8 @@ CREATE TRIGGER trig_netbox_delete_prune_devices
 -- Change type on arnold.identity.mac from varchar to macaddr
 ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr
 
+-- Add foreign key to accountalertqueue.alert_id LP#494036
+ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_alert_id_fkey
+    FOREIGN KEY(alert_id) REFERENCES alertq(alertqid);
+
 COMMIT;
