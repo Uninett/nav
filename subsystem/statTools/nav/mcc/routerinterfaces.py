@@ -14,16 +14,16 @@ logger = logging.getLogger(__name__)
 def make_config(config):
     dirname = 'router-interfaces'
     # Get path to cricket-config
-    configfile = config.get('mcc','configfile')
+    configfile = config.get('mcc', 'configfile')
     configroot = utils.get_configroot(configfile)
 
     if not configroot:
         logger.error("Could not find configroot in %s, exiting."
-                     %config.get('mcc', 'configfile'))
+                     % config.get('mcc', 'configfile'))
         return False
 
     fullpath = join(configroot, dirname)
-    logger.info("Creating config for %s in %s" %(dirname, fullpath))
+    logger.info("Creating config for %s in %s" % (dirname, fullpath))
 
     # Get all subdirectories. The purpose of this is to clean up all
     # directories which may be left over from previous runs but are not
@@ -33,11 +33,11 @@ def make_config(config):
         subdir = join(fullpath, d)
         if os.path.isdir(subdir):
             subdirs.append(subdir)
-    logger.debug("Subdirs: %s" %subdirs)
+    logger.debug("Subdirs: %s" % subdirs)
 
     # Get datadir
     datadir = join(utils.get_datadir(configroot), dirname)
-    logger.debug("Datadir set to %s" %datadir)
+    logger.debug("Datadir set to %s" % datadir)
 
     # Find datasources for the predefined target-types
     datasources = get_interface_datasources(configroot)
@@ -65,30 +65,30 @@ def make_config(config):
             snmp_version = str(snmp_version)
             
         targetdir = join(fullpath, sysname)
-        logger.info("Creating config for %s" %targetdir)
+        logger.info("Creating config for %s" % targetdir)
 
         # Remove targetdir from subdirs
-        logger.debug('Removing %s from subdirs' %targetdir)
+        logger.debug('Removing %s from subdirs' % targetdir)
         try:
             subdirs.remove(targetdir)
         except ValueError, e:
-            logger.error("%s not in %s" %(targetdir, subdirs))
+            logger.error("%s not in %s" % (targetdir, subdirs))
         logger.debug(subdirs)
 
         # Check if directory exists
         if not isdir(targetdir):
-            logger.info("Creating directory %s" %targetdir)
+            logger.info("Creating directory %s" % targetdir)
             try:
                 os.mkdir(targetdir, 0755)
             except Exception, e:
-                logger.error("Error creating %s: %s" %(targetdir, e))
+                logger.error("Error creating %s: %s" % (targetdir, e))
                 continue
 
         # Open targets file for writing
         try:
             f = open(join(targetdir, utils.TARGETFILENAME), 'w')
         except Exception, e:
-            logger.error("Could not open targetsfile for writing: %s" %e)
+            logger.error("Could not open targetsfile for writing: %s" % e)
             continue
         
         # Fetch all interfaces for this netbox
@@ -104,15 +104,15 @@ def make_config(config):
 
         # Fill in default targetconfig
         if c.rowcount <= 0:
-            logger.info("No interfaces found for %s" %sysname)
+            logger.info("No interfaces found for %s" % sysname)
             continue
         
         f.write("target --default--\n")
-        f.write("\tsnmp-host\t= %s\n" %ip)
-        f.write("\tsnmp-version\t= %s\n" %snmp_version)
+        f.write("\tsnmp-host\t= %s\n" % ip)
+        f.write("\tsnmp-version\t= %s\n" % snmp_version)
         if snmp_version == '2c':
             f.write("\ttarget-type\t= snmpv2-interface\n")
-        f.write("\tsnmp-community\t= %s\n\n" %ro)
+        f.write("\tsnmp-community\t= %s\n\n" % ro)
 
         reversecounter = c.rowcount
 
@@ -122,7 +122,7 @@ def make_config(config):
         for (interfaceid, ifname, ifindex, ifalias) in c.fetchall():
             if not ifname:
                 logger.error("%s: No ifname found for interfaceid %s"
-                             %(sysname, interfaceid))
+                             % (sysname, interfaceid))
                 continue
 
             ifalias = ifalias or '-'
@@ -130,14 +130,14 @@ def make_config(config):
             displayname = utils.filter_name(ifname)
             shortdesc = utils.filter_name(ifalias)
 
-            logger.info('Creating target %s (%s)' %(targetname, displayname))
+            logger.info('Creating target %s (%s)' % (targetname, displayname))
             
-            f.write("target \"%s\"\n" %targetname)
-            f.write("\tdisplay-name = \"%s\"\n" %displayname)
-            f.write("\tinterface-index = %s\n" %ifindex)
-            f.write("\tshort-desc = \"%s\"\n" %shortdesc)
-            f.write("\tifname = %s\n" %ifname)
-            f.write("\torder = %s\n\n" %reversecounter)
+            f.write("target \"%s\"\n" % targetname)
+            f.write("\tdisplay-name = \"%s\"\n" % displayname)
+            f.write("\tinterface-index = %s\n" % ifindex)
+            f.write("\tshort-desc = \"%s\"\n" % shortdesc)
+            f.write("\tifname = %s\n" % ifname)
+            f.write("\torder = %s\n\n" % reversecounter)
             reversecounter = reversecounter - 1
 
             targets.append(targetname)
@@ -160,8 +160,8 @@ def make_config(config):
 
         # Make a target for all graphs, put it on top with order
         f.write("target \"all\"\n")
-        f.write("\ttargets = \"%s\"\n" %";".join(targets))
-        f.write("\torder = %s\n" %(c.rowcount + 1))
+        f.write("\ttargets = \"%s\"\n" % ";".join(targets))
+        f.write("\torder = %s\n" % (c.rowcount + 1))
 
         f.close()
 
@@ -177,7 +177,7 @@ def get_interface_datasources(configroot):
     try:
         f = open(filename, 'r')
     except Exception, e:
-        logger.error("Could not open %s: %s" %(filename, e))
+        logger.error("Could not open %s: %s" % (filename, e))
         return False
 
     matchv1 = re.compile("targettype\s+standard-interface", re.I)

@@ -24,13 +24,13 @@ if __name__ == '__main__':
 
     # Start logging, set loglevel
     logger = logging.getLogger('mcc')
-    loglevel = config.get('mcc','loglevel')
+    loglevel = config.get('mcc', 'loglevel')
     try:
         logger.setLevel(int(loglevel))
     except Exception:
         logger.setLevel(logging.getLevelName(loglevel.upper()))
 
-    logger.info("Loglevel set to %s" %logger.getEffectiveLevel())
+    logger.info("Loglevel set to %s" % logger.getEffectiveLevel())
 
     logger.info("Starting mcc")
     starttime = time.time()
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     try:
         # Run cricket-compile, get output from stderr
         output = Popen(['cricket-compile'], stderr=PIPE).communicate()[1]
-        logger.debug("Output from cricket-compile\n%s" %output)
+        logger.debug("Output from cricket-compile\n%s" % output)
     except Exception:
         logger.error("Could not run cricket-compile, make sure it is located in $PATH")
 
@@ -51,4 +51,4 @@ if __name__ == '__main__':
     timeused = endtime - starttime
 
     logger.info("Done. Time used: %.2f seconds"
-                %timeused)
+                % timeused)

@@ -20,13 +20,13 @@ def start_config_creation(modules, config):
     # Pass control to module
 
     for module in modules:
-        logger.info("Starting module %s" %module)
+        logger.info("Starting module %s" % module)
         mod = __import__(module, globals(), locals(), ['make_config'])
         result = mod.make_config(config)
         if not result:
-            logger.error("Module %s reports error creating config." %module)
+            logger.error("Module %s reports error creating config." % module)
         else:
-            logger.info("Module %s successfully done." %module)
+            logger.info("Module %s successfully done." % module)
 
     logger.info("Done creating config")
 
@@ -42,7 +42,7 @@ def get_configroot(configfile):
             continue
         m = match.search(line)
         if m:
-            logger.info("Found configroot to be %s" %m.groups()[0])
+            logger.info("Found configroot to be %s" % m.groups()[0])
             return m.groups()[0]
 
     return False
@@ -52,7 +52,7 @@ def parse_views():
     views = {}
     
     try:
-        f = open(join(path.sysconfdir,"cricket-views.conf"))
+        f = open(join(path.sysconfdir, "cricket-views.conf"))
     except Exception, e:
         logger.error(e)
         return False
@@ -62,7 +62,7 @@ def parse_views():
             key, value = line.split(':')
             key = re.sub("view\s+", "", key)
             values = [x.strip() for x in value.split()]
-            logger.debug("view: %s -> %s" %(key, values))
+            logger.debug("view: %s -> %s" % (key, values))
             views[key] = values
 
     return views
@@ -82,7 +82,7 @@ def get_toplevel_oids(path):
         m = match.search(line)
         if m:
             logger.debug("Found oid %s - %s"
-                        %(m.groups()[0], m.groups()[1]))
+                        % (m.groups()[0], m.groups()[1]))
             oidlist.append(m.groups()[1])
 
     return set(oidlist)
@@ -100,7 +100,7 @@ def get_datadir(path):
     try:
         f = open(join(path, filename), 'r')
     except Exception, e:
-        logger.error("Error opening %s: %s" %(join(path, filename), e[1]))
+        logger.error("Error opening %s: %s" % (join(path, filename), e[1]))
         sys.exit()
                 
     for line in f:
@@ -156,7 +156,7 @@ def updatedb(datadir, containers):
         if c.rowcount > 0:
             # This target already exists, update it.
             logger.debug("Target %s exists in database."
-                        %join(datapath, filename))
+                        % join(datapath, filename))
             rrd_fileid = c.fetchone()[0]
             
             sql = """
@@ -165,7 +165,7 @@ def updatedb(datadir, containers):
             WHERE rrd_fileid = %s
             """
 
-            logger.debug(sql %(container.netboxid, key, value, rrd_fileid))
+            logger.debug(sql % (container.netboxid, key, value, rrd_fileid))
             c.execute(sql, (container.netboxid, key, value, rrd_fileid))
 
             # We don't update the datasources as the database is the source of
@@ -194,19 +194,19 @@ def updatedb(datadir, containers):
                 # Move file to new place. If it does not exist, we assume it's
                 # ok and keep the change in the database
                 try:
-                    logger.info("Renaming %s to %s" %(
+                    logger.info("Renaming %s to %s" % (
                         join(dbpath, dbfilename), join(datapath, filename)))
                     os.rename(join(dbpath, dbfilename),
                               join(datapath, filename))
                 except Exception, e:
                     logger.error("Exception when moving file %s: %s" \
-                          %(join(dbpath, dbfilename), e))
+                          % (join(dbpath, dbfilename), e))
                     
             else:
                 # Target did not exist in database. Insert file and
                 # datasources.  Get nextval primary key
                 logger.info("Inserting target %s in database"
-                            %(join(datapath, filename)))
+                            % (join(datapath, filename)))
                 nextvalq = "SELECT nextval('rrd_file_rrd_fileid_seq')"
                 c.execute(nextvalq)
                 nextval = c.fetchone()[0]
@@ -237,7 +237,7 @@ def updatedb(datadir, containers):
             # Target did not exist in database. Insert file and datasources.
             # Get nextval primary key
             logger.info("Inserting target %s in database"
-                        %(join(datapath, filename)))
+                        % (join(datapath, filename)))
             nextvalq = "SELECT nextval('rrd_file_rrd_fileid_seq')"
             c.execute(nextvalq)
             nextval = c.fetchone()[0]
@@ -289,14 +289,14 @@ def compare_datasources(path, filename, targetoids):
     c.execute(numdsq, (path, filename))
     if c.rowcount > 0:
         logger.debug("Found %s datasources in database (%s in file)" \
-                     %(c.rowcount, len(targetoids)))
+                     % (c.rowcount, len(targetoids)))
         if c.rowcount >= len(targetoids):
             logger.debug(">= Using database as base for targetoids")
             # There are more or equal number of datasources in the database
             # Reset targetoids and fill it from database
             oids = []
             for name, descr in c.fetchall():
-                logger.debug("Appending %s as %s" %(descr, name))
+                logger.debug("Appending %s as %s" % (descr, name))
                 oids.append(descr)
         else:
             # There are less datasources in the database
@@ -317,7 +317,7 @@ def check_file_existence(datadir, sysname):
 
     if not os.path.exists(filename):
         logger.info("File %s does not exist, deleting tuple from database" \
-                    %filename)
+                    % filename)
 
         conn = getConnection('default')
         c = conn.cursor()
@@ -327,7 +327,7 @@ def check_file_existence(datadir, sysname):
         conn.commit()
         return False
 
-    logger.info('file %s existed' %filename)
+    logger.info('file %s existed' % filename)
     return True
 
 
@@ -336,7 +336,7 @@ def create_target_name(name):
     Remove and replace certain characters from the string to make sure it is
     suitable as a filename.
     """
-    name = re.sub('\W','_', name)
+    name = re.sub('\W', '_', name)
     name = name.lower()
 
     return name
@@ -352,7 +352,7 @@ def filter_name(name):
     try:
         name = name.decode('utf-8').encode('latin-1')
     except Exception, e:
-        logger.error("Could not decode %s to latin-1: %s" %(name, e))
+        logger.error("Could not decode %s to latin-1: %s" % (name, e))
     name = name.replace("\"", "&quot;")
     name = re.escape(name)
 
@@ -366,23 +366,23 @@ def remove_old_config(dirs):
     """
 
     for dir in dirs:
-        logger.debug("Checking %s for removal." %dir)
+        logger.debug("Checking %s for removal." % dir)
         files = os.listdir(dir)
         try:
             files.remove(TARGETFILENAME)
             os.remove(join(dir, TARGETFILENAME))
         except ValueError, e:
-            logger.error("Could not find %s in %s" %(TARGETFILENAME, dir))
+            logger.error("Could not find %s in %s" % (TARGETFILENAME, dir))
 
         if not len(files):
             # Remove dir if it is empty
             try:
                 os.rmdir(dir)
-                logger.info("%s removed." %dir)
+                logger.info("%s removed." % dir)
             except Exception, e:
-                logger.error("Could not remove %s: %s" %(dir, e))
+                logger.error("Could not remove %s: %s" % (dir, e))
         else:
-            logger.info("%s is not empty, leaving it alone." %dir)
+            logger.info("%s is not empty, leaving it alone." % dir)
 
 
 class RRDcontainer:

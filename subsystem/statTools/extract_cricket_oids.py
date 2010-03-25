@@ -37,7 +37,7 @@ def main(configpath):
                     #print "%s: OID %s %s" %(file, oidkey, snmpoid)
                     oids.append((oidkey, snmpoid))
 
-    print "Found %s oids in Crickets config files" %len(oids)
+    print "Found %s oids in Crickets config files" % len(oids)
 
     # Check if oids are present in snmpoid table, insert if not.
     inserted = updated = 0
@@ -45,21 +45,21 @@ def main(configpath):
         try:
             s = SnmpOid.objects.get(snmp_oid=snmpoid)
             if oidkey != s.oid_key:
-                print "Updating %s: %s => %s" %(snmpoid, s.oid_key, oidkey)
+                print "Updating %s: %s => %s" % (snmpoid, s.oid_key, oidkey)
                 s.oid_key = oidkey
                 s.save()
                 updated += 1
             else:
-                print "In database: %s:%s" %(oidkey, snmpoid)
+                print "In database: %s:%s" % (oidkey, snmpoid)
         except SnmpOid.DoesNotExist:
-            print "Inserting %s:%s" %(oidkey, snmpoid)
+            print "Inserting %s:%s" % (oidkey, snmpoid)
             s = SnmpOid(oid_key=oidkey, snmp_oid=snmpoid, oid_source='Cricket',
                         get_next=False)
             s.save()
             inserted += 1
         
-    print "Inserted: %s" %inserted
-    print "Updated: %s" %updated
+    print "Inserted: %s" % inserted
+    print "Updated: %s" % updated
 
 
 if __name__ == '__main__':
@@ -74,30 +74,30 @@ if __name__ == '__main__':
     try:
         config.readfp(open(mcc_configfile, 'r'))
     except Exception, e:
-        print "Could not find %s: %s" %(configfile, e)
+        print "Could not find %s: %s" % (configfile, e)
         sys.exit()
 
     # Locate path to cricket config file in the mcc config file
     try:
-        configfile = config.get('mcc','configfile')
+        configfile = config.get('mcc', 'configfile')
     except Exception, e:
-        print "Could not find Cricket config file: %s" %e
+        print "Could not find Cricket config file: %s" % e
         sys.exit()
 
     # Find cricket-config directory
     try: 
         f = open(configfile, 'r')
     except Exception, e:
-        print "Could not open Cricket config file: %s" %e
+        print "Could not open Cricket config file: %s" % e
         sys.exit()
 
-    c = re.compile('gConfigRoot\s*=\s*\"(.*)\"',re.I)
+    c = re.compile('gConfigRoot\s*=\s*\"(.*)\"', re.I)
     configpath = False
     for line in f.readlines():
         m = c.search(line)
         if m:
             configpath = m.groups()[0]
-            print "Setting cricket config path to %s" %configpath
+            print "Setting cricket config path to %s" % configpath
             break
 
     if not configpath:

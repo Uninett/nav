@@ -16,15 +16,15 @@ def make_config(config):
     logger = logging.getLogger('mcc.routers')
 
     # Get path to cricket-config
-    configfile = config.get('mcc','configfile')
+    configfile = config.get('mcc', 'configfile')
     configroot = utils.get_configroot(configfile)
     if not configroot:
         logger.error("Could not find configroot in %s, exiting."
-                     %config.get('mcc', 'configfile'))
+                     % config.get('mcc', 'configfile'))
         return False
 
     fullpath = join(configroot, dirname)
-    logger.info("Creating config for %s in %s" %(dirname, fullpath))
+    logger.info("Creating config for %s in %s" % (dirname, fullpath))
 
     # Get views
     views = utils.parse_views()
@@ -34,13 +34,13 @@ def make_config(config):
 
     # Get datadir
     datadir = join(utils.get_datadir(configroot), dirname)
-    logger.debug("Datadir set to %s" %datadir)
+    logger.debug("Datadir set to %s" % datadir)
 
     # Find oids. We search all files as we cannot be certain of the name
     oidlist = find_oids(logger, fullpath)
     oidlist.extend(utils.get_toplevel_oids(configroot))
     if len(oidlist) <= 0:
-        logger.error("Could not find oids in %s - exiting." %fullpath)
+        logger.error("Could not find oids in %s - exiting." % fullpath)
         return False
 
     # Connect to database
@@ -61,13 +61,13 @@ def make_config(config):
     try:
         f = open(join(fullpath, 'mccTargetTypes'), 'w')
     except Exception, e:
-        logger.error("Could not write to file: %s" %e)
+        logger.error("Could not write to file: %s" % e)
         return False
     
     targetlist = []
     containers = []
     for (netboxid, ro, sysname, ip, descr, typename) in c.fetchall():
-        logger.info("Creating config for %s" %sysname)
+        logger.info("Creating config for %s" % sysname)
         sql = """
         SELECT oidkey, snmpoid FROM netboxsnmpoid
         JOIN snmpoid USING (snmpoidid)
@@ -93,19 +93,19 @@ def make_config(config):
 
         # Skip to next netbox if no matching oids were found
         if len(targetoids) <= 0:
-            logger.error("No oids found for %s" %sysname)
+            logger.error("No oids found for %s" % sysname)
             continue
 
         if fileexists:
             # Compare datasources we found with the ones in the database, if
             # any.
             targetoids = utils.compare_datasources(
-                datadir, sysname,  targetoids)
+                datadir, sysname, targetoids)
 
         # Print ds definition to file
         targetlist.append((sysname, ip, ro, descr, typename))
-        f.write("targetType %s\n" %sysname)
-        f.write("\tds = \"%s\"\n" %", ".join(targetoids))
+        f.write("targetType %s\n" % sysname)
+        f.write("\tds = \"%s\"\n" % ", ".join(targetoids))
             
         # Create view configuration. We do that by comparing the data from
         # views with the targetoids and see what intersections exists.
@@ -114,10 +114,10 @@ def make_config(config):
             intersect = sorted(set(views[entry]).intersection(targetoids))
             if len(intersect) > 0:
                 intersections.append("%s: %s"
-                                     %(entry, " ".join(intersect)))
+                                     % (entry, " ".join(intersect)))
 
         if len(intersections) > 0:
-            f.write("\tview = \"%s\"\n\n" %", ".join(sorted(intersections)))
+            f.write("\tview = \"%s\"\n\n" % ", ".join(sorted(intersections)))
 
         # Create container object and fill it
         container = utils.RRDcontainer(sysname, netboxid)
@@ -134,7 +134,7 @@ def make_config(config):
     try:
         f = open(join(fullpath, utils.TARGETFILENAME), 'w')
     except Exception, e:
-        logger.error("Could not write to file: %s" %e)
+        logger.error("Could not write to file: %s" % e)
         return False
         
     # Create targets
@@ -144,12 +144,12 @@ def make_config(config):
         else:
             shortdesc = typename
 
-        logger.info("Writing target %s" %sysname)
-        f.write("target \"%s\"\n" %sysname)
-        f.write("\tsnmp-host\t= %s\n" %ip)
-        f.write("\tsnmp-community\t= %s\n" %ro)
-        f.write("\ttarget-type\t= %s\n" %sysname)
-        f.write("\tshort-desc\t= \"%s\"\n\n" %shortdesc)
+        logger.info("Writing target %s" % sysname)
+        f.write("target \"%s\"\n" % sysname)
+        f.write("\tsnmp-host\t= %s\n" % ip)
+        f.write("\tsnmp-community\t= %s\n" % ro)
+        f.write("\ttarget-type\t= %s\n" % sysname)
+        f.write("\tshort-desc\t= \"%s\"\n\n" % shortdesc)
 
     f.close()
 
@@ -177,7 +177,7 @@ def find_oids(logger, path):
             m = match.search(line)
             if m:
                 logger.debug("Found oid %s - %s"
-                             %(m.groups()[0], m.groups()[1]))
+                             % (m.groups()[0], m.groups()[1]))
                 oidlist.append(m.groups()[1])
 
     return list(set(oidlist))
