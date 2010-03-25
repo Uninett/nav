@@ -6,7 +6,7 @@ import re
 import sys
 import logging
 import os
-from os.path import join
+from os.path import join, abspath
 
 from nav import path
 from nav.db import getConnection
@@ -107,7 +107,13 @@ def get_datadir(path):
         m = match.search(line)
         if m:
             datadir = m.groups()[0]
+            #----------------------------------------------------------------- 
+            # %auto-base% is used in Cricket as a variable pointing to the 
+            # base directory for the cricket-config
+            datadir = re.sub("%auto-base%", path, datadir)
             datadir = re.sub("%.*%", "", datadir)
+            datadir = abspath(datadir)
+            break
 
     return datadir
     
@@ -119,7 +125,7 @@ def updatedb(datadir, containers):
     """
     conn = getConnection('default')
     c = conn.cursor()
-
+    
     for container in containers:
         datapath = datadir
         if container.path:

@@ -137,7 +137,7 @@ def make_config(config):
     # Create targets
     for (sysname, ip, ro, descr, typename) in targetlist:
         if descr:
-            shortdesc = ", ".join([typename, utils.filter_name(descr)])
+            shortdesc = utils.filter_name(", ".join([typename, descr]))
         else:
             shortdesc = typename
 
