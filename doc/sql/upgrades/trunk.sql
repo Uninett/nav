@@ -150,6 +150,7 @@ INSERT INTO interface
     NULL AS ifconnectorpresent,
     NULL AS ifpromiscuousmode,
     portname AS ifalias,
+    port AS baseport,
     media,
     vlan,
     trunk,
@@ -177,6 +178,7 @@ INSERT INTO interface
     NULL AS ifconnectorpresent,
     NULL AS ifpromiscuousmode,
     portname AS ifalias,
+    NULL AS baseport,
     NULL AS media,
     NULL AS vlan,
     NULL AS trunk,
@@ -521,7 +523,7 @@ CREATE TRIGGER trig_netbox_delete_prune_devices
     EXECUTE PROCEDURE remove_floating_devices();
 
 -- Change type on arnold.identity.mac from varchar to macaddr
-ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr
+ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr;
 
 -- Add foreign key to accountalertqueue.alert_id LP#494036
 ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_alert_id_fkey
