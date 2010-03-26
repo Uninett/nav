@@ -147,7 +147,7 @@ def make_config(config):
             # key - swport
             # value - swportid
             container = utils.RRDcontainer(targetname + '.rrd',
-                                             netboxid, sysname, 'swport',
+                                             netboxid, sysname, 'interface',
                                              interfaceid)
 
             counter = 0

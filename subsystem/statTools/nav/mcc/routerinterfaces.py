@@ -147,7 +147,7 @@ def make_config(config):
             # key - gwport
             # value - gwportid
             container = utils.RRDcontainer(targetname + ".rrd", netboxid,
-                                             sysname, 'gwport', interfaceid)
+                                             sysname, 'interface', interfaceid)
 
             counter = 0
             for ds in datasources[snmp_version]:
