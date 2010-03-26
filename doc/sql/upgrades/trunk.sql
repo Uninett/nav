@@ -11,10 +11,13 @@
  * diffs!).  We also recommend running navschema.py on each schema upgrade,
  * to ensure that your database's search path is alway up to date.
  *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
- * like this:
+ * Connect to PostgreSQL as the postgres superuser like this:
  *
- *  psql -f trunk.sql nav <username>
+ *  psql -f trunk.sql nav postgres
+ *
+ * Or more likely, like this:
+ *
+ *  sudo -u postgres psql -f trunk.sql nav
  *
 */
 
@@ -28,6 +31,7 @@ BEGIN;
 -- netbox, accountalertqueue and log_message_type tables, and any
 -- foreign key whose name has been automatically set to '$<number>' by
 -- older versions of PostgreSQL.
+SET SESSION AUTHORIZATION postgres; -- This requires superuser access!
 UPDATE pg_constraint
 SET conname=cl.relname || '_' || pa.attname || '_fkey'
 FROM pg_class cl, pg_attribute pa, pg_namespace nsp
@@ -528,5 +532,19 @@ ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr;
 -- Add foreign key to accountalertqueue.alert_id LP#494036
 ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_alert_id_fkey
     FOREIGN KEY(alert_id) REFERENCES alertq(alertqid);
+
+
+-- Since we are running as the postgres superuser, we've just created a bunch
+-- of new relations owned by postgres, and not by the current database owner.
+-- This finds any relation in the NAV namespaces that is owned by the postgres
+-- superuser, and resets their ownership to the database owner.
+UPDATE pg_class
+   SET relowner = (SELECT datdba FROM pg_database  WHERE datname=current_database())
+ WHERE relowner = (SELECT usesysid
+                   FROM pg_user
+		   WHERE usename='postgres' AND 
+		         relnamespace IN (SELECT oid 
+			                  FROM pg_namespace 
+					  WHERE nspname IN ('manage', 'arnold', 'logger', 'radius', 'profiles')));
 
 COMMIT;
