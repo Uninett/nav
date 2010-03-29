@@ -10,6 +10,7 @@ from xml.dom.minidom import parseString
 
 """
 Heavily depending on that the datasources are named ds0, ds1 and so forth.
+Supports rrdtool up to and including version 1.3.
 Author: John-Magne Bredal <john.m.bredal@ntnu.no>
 
 TODO:
@@ -22,19 +23,19 @@ class FileDoesNotExistException(Exception):
     def __init__(self, filename):
         self.filename = filename
     def __str__(self):
-        return "%s does not exist." %self.filename
+        return "%s does not exist." % self.filename
 
 class FileNotWritableException(Exception):
     def __init__(self, filename):
         self.filename = filename
     def __str__(self):
-        return "%s is not writable." %self.filename
+        return "%s is not writable." % self.filename
 
 class InvalidDatasourceNameException(Exception):
     def __init__(self, dsname):
         self.dsname = dsname
     def __str__(self):
-        return "%s is not a valid datasourcename." %self.dsname
+        return "%s is not a valid datasourcename." % self.dsname
 
 class OutofBoundsException(Exception):
     def __init__(self, dsname, numds):
@@ -43,7 +44,7 @@ class OutofBoundsException(Exception):
     def __str__(self):
         return "Datasource %s is out of bounds. File has only %s datasources \
 (0-%s)." \
-            %(self.dsname, self.numds, self.numds - 1)
+            % (self.dsname, self.numds, self.numds - 1)
 
 class CannotWriteToTmpException(Exception):
     def __init__(self, restorefile):
@@ -83,21 +84,30 @@ def rrd_info(rrdfile, raw=False):
     Intended use is from shell. If you want the whole dict returned by
     rrdtool.info, set raw to true.
     """
-    if raw:
-        return rrdtool.info(rrdfile)
-
     fileinfo = rrdtool.info(rrdfile)
+    
+    if raw: 
+        return fileinfo
+    
+    if not fileinfo.has_key('ds'):
+        #=======================================================================
+        # In version 1.3 the output from info is totally different. We just 
+        # print a key/value output.
+        #=======================================================================
+        for key in sorted(fileinfo.keys()):
+            print "%s: %s" % (key, fileinfo[key])
+        return
 
-    print "%s last updated %s" %(fileinfo['filename'], 
+    print "%s last updated %s" % (fileinfo['filename'],
                                  time.ctime(fileinfo['last_update']))
     print "Datasources (datasource: datasourcename):"
     for ds in sorted(fileinfo['ds'].items()):
-        print "  %s: %s" %(ds[0], ds[1]['ds_name'])
+        print "  %s: %s" % (ds[0], ds[1]['ds_name'])
 
-    print "RRA's (Step = %s):" %(fileinfo['step'])
+    print "RRA's (Step = %s):" % (fileinfo['step'])
 
     for rra in fileinfo['rra']:
-        print "  %s: %s/%s" %(rra['cf'], rra['pdp_per_row'], rra['rows'])
+        print "  %s: %s/%s" % (rra['cf'], rra['pdp_per_row'], rra['rows'])
 
 
 def edit_datasource(rrdfile, name, action):
@@ -129,17 +139,14 @@ def edit_datasource(rrdfile, name, action):
     except Exception, e:
         raise CannotWriteToTmpException(restorefile)
 
-    # Get headerinfo from rrd file 
-    fileinfo = rrdtool.info(rrdfile)
-
     # Dump rrd to xml
-    output = Popen(['rrdtool','dump', rrdfile], stdout=PIPE).communicate()[0]
+    output = Popen(['rrdtool', 'dump', rrdfile], stdout=PIPE).communicate()[0]
 
     # Read xml-file
     xmlfile = parseString(output)
     
     # Find index of datasource
-    m = re.search('ds(\d+)',name)
+    m = re.search('ds(\d+)', name)
     if m:
         dsvalue = int(m.groups()[0])
     else:
@@ -147,26 +154,26 @@ def edit_datasource(rrdfile, name, action):
 
     # Add or delete datasource based on input parameter
     if action == 'add':
-        xmlfile = add_datasource(xmlfile, dsvalue, fileinfo)
+        xmlfile = add_datasource(xmlfile, dsvalue)
     elif action == 'remove':
-        xmlfile = remove_datasource(xmlfile, dsvalue, fileinfo)
+        xmlfile = remove_datasource(xmlfile, dsvalue)
 
     # rrdtool restore needs a file to restore from
-    f = open(restorefile,'w')
+    f = open(restorefile, 'w')
     xmlfile.writexml(f)
     f.close()
 
     # Create backup file before restoring
-    output = Popen(['cp','-b', rrdfile, rrdfile + '.bak'], stdout=PIPE).communicate()[0]
+    output = Popen(['cp', '-b', rrdfile, rrdfile + '.bak'], stdout=PIPE).communicate()[0]
 
     # Restore xml-file to rrd (force overwrite)
-    output = Popen(['rrdtool','restore',restorefile,rrdfile,'-f'], stdout=PIPE).communicate()[0]
+    output = Popen(['rrdtool', 'restore', restorefile, rrdfile, '-f'], stdout=PIPE).communicate()[0]
 
     # Remove restore file
     os.remove(restorefile)
 
 
-def add_datasource(xmlfile, dsvalue, fileinfo):
+def add_datasource(xmlfile, dsvalue):
     # I do quite some prettymaking here with the textnodes. It is not
     # certain that this is needed, and it clutters the code a bit.
 
@@ -174,21 +181,22 @@ def add_datasource(xmlfile, dsvalue, fileinfo):
     for element in xmlfile.documentElement.childNodes:
         if element.nodeName == 'ds':
             dsclone = element.cloneNode(True)
-            dsclone.getElementsByTagName('name')[0].firstChild.data = ' ds%s ' %dsvalue
+            dsclone.getElementsByTagName('name')[0].firstChild.data = ' ds%s ' % dsvalue
             dsclone.getElementsByTagName('min')[0].firstChild.data = ' NaN '
             dsclone.getElementsByTagName('max')[0].firstChild.data = ' NaN '
             dsclone.getElementsByTagName('last_ds')[0].firstChild.data = ' NaN '
             dsclone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
-            dsclone.getElementsByTagName('unknown_sec')[0].firstChild.data = ' NaN '
+            dsclone.getElementsByTagName('unknown_sec')[0].firstChild.data = ' 0 '
             break
 
     # Set dsvalue to max allowed value if it to be appended
-    datasources = len(fileinfo['ds'])
+    datasources = find_number_of_datasources(xmlfile)
     if dsvalue >= datasources:
         # We cannot use append as this is not the last element (and
         # rrdrestore slapped me hard for saying it didn't matter).
         # Walk through all ds-elements and insert after the last one.
         dsvalue = datasources # max value
+        dsclone.getElementsByTagName('name')[0].firstChild.data = ' ds%s ' % dsvalue
         counter = 0
         for e in xmlfile.documentElement.childNodes:
             if e.nodeName == 'ds':
@@ -217,7 +225,7 @@ def add_datasource(xmlfile, dsvalue, fileinfo):
                 # Increment the rest of the datasources by one.
                 if currentvalue >= dsvalue:
                     element.getElementsByTagName('name')[0].firstChild.data = \
-                        " ds%s " %(currentvalue + 1)
+                        " ds%s " % (currentvalue + 1)
                     
     # Add cdp_prep
     for cdp in xmlfile.getElementsByTagName('cdp_prep'):
@@ -226,7 +234,7 @@ def add_datasource(xmlfile, dsvalue, fileinfo):
         dsclone.getElementsByTagName('primary_value')[0].firstChild.data = ' NaN '
         dsclone.getElementsByTagName('secondary_value')[0].firstChild.data = ' NaN '
         dsclone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
-        dsclone.getElementsByTagName('unknown_datapoints')[0].firstChild.data = ' NaN '
+        dsclone.getElementsByTagName('unknown_datapoints')[0].firstChild.data = ' 0 '
         
         if dsvalue >= datasources:
             # Modify last textnode for prettymaking
@@ -252,13 +260,13 @@ def add_datasource(xmlfile, dsvalue, fileinfo):
     return xmlfile
 
 
-def remove_datasource(xmlfile, dsvalue, fileinfo):
+def remove_datasource(xmlfile, dsvalue):
     """
     Edit xml-file to remove all elements regarding the datasource
     value given as input.
     """
     # Check if index is out of bounds
-    datasources = len(fileinfo['ds'])
+    datasources = find_number_of_datasources(xmlfile)
     if dsvalue >= datasources:
         raise OutofBoundsException(dsvalue, datasources)
 
@@ -274,7 +282,7 @@ def remove_datasource(xmlfile, dsvalue, fileinfo):
             if dsnumber >= dsvalue:
                 # Subtract one and pray.
                 dsnumber -= 1
-                node.getElementsByTagName('name')[0].firstChild.data = " ds%s " %dsnumber
+                node.getElementsByTagName('name')[0].firstChild.data = " ds%s " % dsnumber
             
     # Remove all ds-elements from all cdp-preps
     for cdp in xmlfile.getElementsByTagName('cdp_prep'):
@@ -287,6 +295,19 @@ def remove_datasource(xmlfile, dsvalue, fileinfo):
 
     return xmlfile
 
+
+def find_number_of_datasources(xmlfile):
+    """
+    Count the number of datasource nodes in the xmlfile.  
+    """
+    number_of_datasources = 0
+    for node in xmlfile.documentElement.childNodes:
+        if node.nodeName == 'ds':
+            number_of_datasources += 1
+
+    return number_of_datasources
+    
+
 if __name__ == '__main__':
     """
     Support command line arguments for use in shell.
@@ -296,9 +317,9 @@ if __name__ == '__main__':
     parser.add_option("-f", "--file", dest="rrdfile", help="File to work with")
     parser.add_option("-i", action="store_true", dest="info",
                       help="Print information about the file.")
-    parser.add_option("-r", "--remove_datasource", dest="removeds", 
+    parser.add_option("-r", "--remove_datasource", dest="removeds",
                       help="Specify datasource for removal (ds0, ds1 etc).")
-    parser.add_option("-a", "--add_datasource", dest="add", 
+    parser.add_option("-a", "--add_datasource", dest="add",
                       help="Specify datasource for addition (ds0, ds1 etc).")
     options, args = parser.parse_args()
 
