@@ -74,8 +74,8 @@ public class NetmapControl extends ControlAdapter {
 		    	cap = Double.parseDouble(item.getString("link_capacity"));
 			in = Double.parseDouble(item.getString("link_load_in"));
 			out = Double.parseDouble(item.getString("link_load_out"));
-			in = ((in/1024)/cap)*1000;
-			out = ((out/1024)/cap)*1000;
+			in = in / (cap*1000000);
+			out = out / (cap*1000000);
 			} catch (Exception exception){}
 		    t.add(new linkTooltip(
 					    item.getString("from_sysname") + " -> " + item.getString("to_sysname"),

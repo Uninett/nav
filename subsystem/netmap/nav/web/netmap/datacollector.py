@@ -26,6 +26,7 @@ import nav
 import rrdtool
 import cgi
 
+from nav.rrd import presenter
 from nav.config import readConfig
 
 log = unbuffered()
@@ -39,12 +40,28 @@ def getData(db_cursor = None):
     if not db_cursor:
         raise nav.errors.GeneralException("No db-cursor given")
 
+
     netboxes = {}
     connections = {}
 
     layer_3_query = """
-SELECT DISTINCT ON (sysname, from_sysname) gwportprefixcount.count, interface_gwport.interfaceid AS gwportid ,speed, ifindex, ifname AS interface, sysname, netbox.netboxid, conn.*, nettype, netident, path ||'/'|| filename AS rrdfile,
-3 AS layer, NULL AS from_swportid, vlan.*
+SELECT DISTINCT ON (sysname, from_sysname)
+    gwportprefixcount.count,
+    interface_gwport.interfaceid AS gwportid,
+    speed,
+    ifindex,
+    ifname AS interface,
+    sysname,
+    netbox.netboxid,
+    conn.*,
+    nettype,
+    netident,
+    path ||'/'|| filename AS rrdfile,
+    rrd_in.rrd_datasourceid AS rrd_datasource_in,
+    rrd_out.rrd_datasourceid AS rrd_datasource_out,
+    3 AS layer,
+    NULL AS from_swportid,
+    vlan.*
 FROM gwportprefix
   JOIN (
      SELECT DISTINCT ON (gwportprefix.prefixid)
@@ -65,6 +82,8 @@ FROM gwportprefix
   LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
   LEFT JOIN vlan USING (vlanid)
   LEFT JOIN rrd_file ON (key='gwport' AND value=conn.from_gwportid::varchar)
+  LEFT JOIN rrd_datasource AS rrd_in  ON (rrd_file.rrd_fileid = rrd_in.rrd_fileid AND rrd_in.descr IN ('ifHCInOctets', 'ifInOctets'))
+  LEFT JOIN rrd_datasource AS rrd_out ON (rrd_file.rrd_fileid = rrd_out.rrd_fileid AND rrd_out.descr IN ('ifHCOutOctets', 'ifOutOctets'))
 WHERE interface_gwport.interfaceid <> from_gwportid AND vlan.nettype NOT IN ('static', 'lan') AND gwportprefixcount.count = 2
 ORDER BY sysname,from_sysname, netaddr ASC, speed DESC
 """
@@ -87,6 +106,8 @@ interface_swport.ifindex AS ifindex,
 
 2 AS layer,
 path ||'/'|| filename AS rrdfile,
+rrd_in.rrd_datasourceid AS rrd_datasource_in,
+rrd_out.rrd_datasourceid AS rrd_datasource_out,
 nettype, netident,
 NULL AS from_swportid,
 NULL AS gwportid,
@@ -98,6 +119,8 @@ FROM interface_gwport
  LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
  LEFT JOIN vlan USING (vlanid)
  LEFT JOIN rrd_file ON (key='gwport' AND value=interface_gwport.interfaceid::varchar)
+ LEFT JOIN rrd_datasource AS rrd_in  ON (rrd_file.rrd_fileid = rrd_in.rrd_fileid AND rrd_in.descr IN ('ifHCInOctets', 'ifInOctets'))
+ LEFT JOIN rrd_datasource AS rrd_out ON (rrd_file.rrd_fileid = rrd_out.rrd_fileid AND rrd_out.descr IN ('ifHCOutOctets', 'ifOutOctets'))
 
  JOIN interface_swport ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
  JOIN netbox AS swport_netbox ON (interface_swport.netboxid = swport_netbox.netboxid)
@@ -118,6 +141,8 @@ netbox.netboxid AS from_netboxid,
 conn.*,
 vlan.*,
 path ||'/'|| filename AS rrdfile,
+rrd_in.rrd_datasourceid AS rrd_datasource_in,
+rrd_out.rrd_datasourceid AS rrd_datasource_out,
 NULL AS gwportid,
 NULL AS from_gwportid,
 NULL AS to_swportid
@@ -134,6 +159,8 @@ FROM netbox
 LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
 LEFT JOIN vlan USING (vlanid)
 LEFT JOIN rrd_file  ON (key='swport' AND value=interface_swport.interfaceid::varchar)
+LEFT JOIN rrd_datasource AS rrd_in  ON (rrd_file.rrd_fileid = rrd_in.rrd_fileid AND rrd_in.descr IN ('ifHCInOctets', 'ifInOctets'))
+LEFT JOIN rrd_datasource AS rrd_out ON (rrd_file.rrd_fileid = rrd_out.rrd_fileid AND rrd_out.descr IN ('ifHCOutOctets', 'ifOutOctets'))
 
 ORDER BY from_sysname, sysname, interface_swport.speed DESC
     """
@@ -146,17 +173,24 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
     db_cursor.execute(layer_2_query_3)
     results.extend([dict(row) for row in db_cursor.fetchall()])
     for res in results:
-        if res['rrdfile']:
-            data = get_rrd_link_load(res['rrdfile'])
-            res['load'] = (data[0],data[1])
-        else:
-            res['load'] = (-1,-1)
+        if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
+            assert False, str(res)
+        if 'from_swportid' not in res and 'from_gwportid' not in res:
+            assert False, str(res)
+        link_load = [-1,-1]
+        if 'rrd_datasource_in' in res:
+            link_load[0] = get_rrd_link_load(res['rrd_datasource_in'])
+        if 'rrd_datasource_out' in res:
+            link_load[1] = get_rrd_link_load(res['rrd_datasource_out'])
+        res['load'] = link_load
 
         # TODO: Update these when ipdevinfo is updated to use interfacetable
         if 'from_swportid' in res and res['from_swportid']:
             res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
         elif 'from_gwportid' in res and res['from_gwportid']:
             res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
+        else:
+            assert False, str(res)
 
         connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
         connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
@@ -193,13 +227,15 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
 
     return (netboxes, connections)
 
-def get_rrd_link_load(rrdfile):
-    """ Returns the ds1 and ds2 fields of an rrd-file (ifInOctets, ifOutOctets)"""
-    if not rrdfile:
-        return (-1,-1)
+def get_rrd_link_load(rrd_datasourceid):
+    """Use the rrd presenter to fetch the average load for the last 10 minutes"""
+    if not rrd_datasourceid:
+        return -1
     try:
-        data = rrdtool.fetch(rrdfile, 'AVERAGE', '-s -10min')[2][0]
-        return ((data[1])/1024.0, (data[0])/1024.0)
+        rrd_presenter = presenter.presentation()
+        rrd_presenter.addDs(rrd_datasourceid)
+        rrd_presenter.timeLast('min', '10')
+        return rrd_presenter.average()[0]
     except:
-        return (-1,-1)
+        return -1
 

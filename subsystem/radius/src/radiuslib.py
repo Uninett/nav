@@ -193,8 +193,8 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     # Since time.strptime does not handle fractions of a second, 
     # check if our starttime contains fractions before using strptime,
     # and remove them if it does.
-    if match(".+\d\.\d{2}$", startTime):
-        startTime = startTime[:-3]
+    if match(".+\d\.\d{6}$", startTime):
+        startTime = startTime[:-7]
 
     # Make tuple of the time string
     timeTuple = time.strptime(startTime, DATEFORMAT_DB)

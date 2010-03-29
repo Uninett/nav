@@ -197,6 +197,7 @@ def expand_gwport(request):
             'gwport': gwport,
             'vlans': vlans,
         })
+
 def expand_switch(request):
     """
     """

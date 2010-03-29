@@ -317,14 +317,14 @@ class AlertAddress(models.Model):
                     subscription.get_type_display(), subscription.id))
 
         except FatalDispatcherException, e:
-            logger.error('%s raised a FatalDispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            logger.error('%s raised a FatalDispatcherException inidicating that the alert never will be sent: %s' % (self.type, e))
             alert.delete()
             transaction.commit()
 
             return False
 
         except DispatcherException, e:
-            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent at this time: %s' % (self.type, e))
             transaction.rollback()
 
             return False
@@ -342,12 +342,13 @@ class AlertSender(models.Model):
     handler = models.CharField(max_length=100)
 
     _blacklist = set()
+    _handlers = {}
 
     def __unicode__(self):
         return self.name
 
     def send(self, *args, **kwargs):
-        if not hasattr(self, 'handler_instance'):
+        if self.handler not in self._handlers:
             # Get config
             if not hasattr(AlertSender, 'config'):
                 AlertSender.config = get_alertengine_config(os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
@@ -356,10 +357,10 @@ class AlertSender(models.Model):
             module = __import__('nav.alertengine.dispatchers.%s_dispatcher' % self.handler, globals(), locals(), [self.handler])
 
             # Init module with config
-            self.handler_instance = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
+            self.__class__._handlers[self.handler] = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
 
         # Delegate sending of message
-        return self.handler_instance.send(*args, **kwargs)
+        return self._handlers[self.handler].send(*args, **kwargs)
 
     def blacklist(self):
         self.__class__._blacklist.add(self.handler)
@@ -1012,6 +1013,16 @@ class AccountAlertQueue(models.Model):
             else:
                 raise Exception("No sender set for address %s, " + \
                       "this might be due to a failed db upgrade from 3.4 to 3.5" % (address))
+
+        except AlertQueue.DoesNotExist, e:
+            logger = logging.getLogger('nav.alertengine.accountalertqueue.send')
+            logger.error(('Inconsistent database state, alertqueue entry %d ' +
+                          'missing for account-alert. If you know how the ' +
+                          'database got into this state please update ' +
+                          'LP#494036') % self.alert_id)
+
+            super(AccountAlertQueue, self).delete()
+            return False
 
         if sent:
             self.delete()
