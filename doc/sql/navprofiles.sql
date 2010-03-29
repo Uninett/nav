@@ -324,7 +324,7 @@ CREATE TABLE alertsubscription (
 	time_period_id integer NOT NULL,
 	filter_group_id integer NOT NULL,
 	subscription_type integer,
-	ignore_closed_alerts boolean,
+	ignore_resolved_alerts boolean,
 
 	CONSTRAINT alertsubscription_pkey PRIMARY KEY(id),
 	CONSTRAINT alertsubscription_alert_address_id_key
