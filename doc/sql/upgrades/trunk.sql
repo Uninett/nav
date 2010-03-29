@@ -406,9 +406,10 @@ CREATE OR REPLACE VIEW manage.interface_gwport AS (
 
 -- Modules aren't necessarily identified using integers, so we add names.
 ALTER TABLE module ALTER COLUMN module DROP NOT NULL;
-ALTER TABLE module ADD COLUMN name VARCHAR NOT NULL;
+ALTER TABLE module ADD COLUMN name VARCHAR;
 ALTER TABLE module DROP CONSTRAINT module_netboxid_key;
 UPDATE module SET name = module::text;
+ALTER TABLE module ALTER COLUMN name SET NOT NULL;
 ALTER TABLE module ADD CONSTRAINT module_netboxid_key UNIQUE (netboxid, name);
 
 
