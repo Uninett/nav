@@ -108,6 +108,8 @@ CREATE TABLE manage.interface (
              UNIQUE (interfaceid, netboxid)
 );
 
+CREATE INDEX interface_to_interfaceid_btree ON interface USING btree (to_interfaceid);
+
 -- this should be populated with entries parsed from 
 -- http://www.iana.org/assignments/ianaiftype-mib
 CREATE TABLE manage.iana_iftype (
@@ -229,6 +231,7 @@ ALTER TABLE gwportprefix DROP CONSTRAINT gwportprefix_gwportid_fkey;
 ALTER TABLE gwportprefix ADD CONSTRAINT gwportprefix_interfaceid_fkey 
                                         FOREIGN KEY (interfaceid) REFERENCES interface(interfaceid)
                                         ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE gwportprefix_gwportid_btree RENAME TO gwportprefix_interfaceid_btree;
 
 ALTER TABLE swportvlan RENAME COLUMN swportid TO interfaceid;
 ALTER TABLE swportvlan DROP CONSTRAINT swportvlan_swportid_fkey;
