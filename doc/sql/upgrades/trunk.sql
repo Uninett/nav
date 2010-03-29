@@ -422,12 +422,12 @@ DROP TABLE product;
 
 -- Django needs a simple integer primary key in accountnavbar
 ALTER TABLE accountnavbar DROP CONSTRAINT accountnavbar_pkey;
-CREATE SEQUENCE accountnavbar_id_seq;
+CREATE SEQUENCE profiles.accountnavbar_id_seq;
 ALTER TABLE accountnavbar ADD COLUMN id integer NOT NULL PRIMARY KEY DEFAULT nextval('accountnavbar_id_seq');
 
 -- Status preference tables
-CREATE SEQUENCE statuspreference_id_seq START 1000;
-CREATE TABLE statuspreference (
+CREATE SEQUENCE profiles.statuspreference_id_seq START 1000;
+CREATE TABLE profiles.statuspreference (
 	id integer NOT NULL DEFAULT nextval('statuspreference_id_seq'),
 	name varchar NOT NULL,
 	position integer NOT NULL,
@@ -446,8 +446,8 @@ CREATE TABLE statuspreference (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
 
-CREATE SEQUENCE statuspreference_organization_id_seq;
-CREATE TABLE statuspreference_organization (
+CREATE SEQUENCE profiles.statuspreference_organization_id_seq;
+CREATE TABLE profiles.statuspreference_organization (
 	id integer NOT NULL DEFAULT nextval('statuspreference_organization_id_seq'),
 	statuspreference_id integer NOT NULL,
 	organization_id varchar NOT NULL,
@@ -467,8 +467,8 @@ CREATE TABLE statuspreference_organization (
 -- Only compatible with PostgreSQL >= 8.2:
 -- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
 
-CREATE SEQUENCE statuspreference_category_id_seq;
-CREATE TABLE statuspreference_category (
+CREATE SEQUENCE profiles.statuspreference_category_id_seq;
+CREATE TABLE profiles.statuspreference_category (
 	id integer NOT NULL DEFAULT nextval('statuspreference_category_id_seq'),
 	statuspreference_id integer NOT NULL,
 	category_id varchar NOT NULL,
