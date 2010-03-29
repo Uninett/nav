@@ -2,11 +2,7 @@
 #
 # This is where we collect stats on the interfaces
 # (i.e. Octets, Packets, Errors).  
-
-#############################################
-# Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <bredal@itea.ntnu.no>
-#############################################
+# Last changed for version 3.6 of NAV
 
 Target	--default--
 	inst		=	map(interface-name)

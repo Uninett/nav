@@ -1,17 +1,10 @@
 # switches sub-tree
 #
-#############################################
-# Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <john.m.bredal@ntnu.no>
-############################################# 
+# Last changed for version 3.6 of NAV
 
 Target  --default--
 	short-desc      =       ""
  
-# Alfa version notes:
-# We are not checking if the oid's we use to gather data
-# are defined here. This must be done before final version.
-
 # Bandwidth
 OID	c1900Bandwidth		1.3.6.1.4.1.437.1.1.3.7.1.0
 OID	c1900BandwidthMax	1.3.6.1.4.1.437.1.1.3.7.5.0
@@ -86,10 +79,7 @@ datasource  hpmem5minFree
 	ds-source	=	snmp://%snmp%/hpmem5minFree
 	desc		=	"The amount of memory free over the last 5 minutes."
 
-datasource tempInlet
-	ds-source	=	snmp://%snmp%/tempInlet
-	desc		=	"The temperature of the inlet on the unit"
- 
+
 ########################################
 # GRAPHS
 ########################################
@@ -177,16 +167,6 @@ graph   mem5minFree
 	legend		=	"5 minute free memory"
 	draw-as		=	STACK
 
-graph	tempInlet
-	y-axis 		=	"Degrees Celcius"
-	legend		=	"Temperature in the inlet"
-	units		=	"&#176;"
-	draw-as		=	LINE2
-
-
-########################################
-# TARGET-TYPES
-########################################
 
 html    page-header
 	<table width=100%>
