@@ -570,7 +570,12 @@ public class QueryBoks extends Thread
 		for (Iterator it = unrecognizedCDP.iterator(); it.hasNext();) {
 			// Write this to netboxinfo
 			String[] s = (String[])it.next();
-			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", s[0], s[1]);
+			String variable = s[0];
+			String value = s[1];
+			if (hasNullBytes(value)) {
+				value = "[Invalid SNMP data: " + bytesToHexString(value.getBytes()) + "]";
+			}
+			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", variable, value);
 		}
 		for (Iterator it = oldUnrecIfind.iterator(); it.hasNext();) {
 			String ifindex = (String)it.next();
@@ -1133,5 +1138,21 @@ public class QueryBoks extends Thread
 	}
 
 	private static boolean isNetel(String kat) { return getBoksMacs.isNetel(kat); }
+	
+	protected static String bytesToHexString(byte[] bytes) {
+		StringBuffer buffer = new StringBuffer();
+		int[] ints = new int[bytes.length];
+		for (int i=0; i < ints.length; i++) ints[i] = bytes[i] < 0 ? 256 + bytes[i] : bytes[i];
+		for (int i=0; i < ints.length; i++) buffer.append((i>0?":":"")+(ints[i]<16?"0":"")+Integer.toString(ints[i], 16));
+		return buffer.toString();
+	}
+
+	protected static boolean hasNullBytes(String string) {
+		byte[] bytes = string.getBytes();
+		for (int i=0;i<bytes.length;i++) {
+			if (bytes[i] == 0) return true;
+		}
+		return false;
+	}
 
 }

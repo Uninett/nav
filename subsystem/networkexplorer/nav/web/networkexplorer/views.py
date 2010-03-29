@@ -197,7 +197,7 @@ def expand_gwport(request):
         {
             'gwport': gwport,
             'vlans': vlans,
-        }, context_instance=RequestContext(request))
+        })
 
 def expand_switch(request):
     """
@@ -226,7 +226,7 @@ def expand_switch(request):
     return render_to_response('networkexplorer/expand_switch.html',
         {
             'swportvlans': vlans,
-        }, context_instance=RequestContext(request))
+        })
 
 
 def expand_swport(request):

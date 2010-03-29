@@ -56,6 +56,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
 
+EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = nav_config.get('EMAIL_PORT', 25)
+
+EMAIL_HOST_USER = nav_config.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = nav_config.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = nav_config.get('EMAIL_USE_TLS', 'False') == 'True'
+
 # Date formatting
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
