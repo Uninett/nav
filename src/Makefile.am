@@ -1,20 +1,6 @@
 ##
 ## Makefile for NAV's Java subsystems
 ## 
-SHELL = @SHELL@
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-sysconfdir = @sysconfdir@
-initdir = @initdir@
-bindir = @bindir@
-libdir = @libdir@
-javalibdir = @javalibdir@
-localstatedir = @localstatedir@
-webroot = @webroot@
-tooldir = @tooldir@
-
-top_srcdir = @top_srcdir@
-
 INSTALLARGS = -DDESTDIR=$(DESTDIR)
 
 subdirs = \
@@ -35,8 +21,6 @@ subdirs = \
 CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done ; echo -n $$CLASSPATH)
 INSTALL_TARGETS = $(patsubst %,%_inst,$(subdirs))
 QUICK_TARGETS = $(patsubst %,%_q,$(subdirs))
-
-ANT = @ANT@
 
 # Make sure we export make variables to the environment
 export
@@ -64,7 +48,7 @@ Util:
 .lastbuild:
 # Do absolutely nothing, just let ANT decide whether a rebuild is necessary
 
-install:
+install-exec-local:
 	@for dir in $(subdirs); do \
 	  echo "Installing $$dir ..."; \
 	  (cd $$dir && $(ANT) install $(INSTALLARGS)) || exit 1; \
