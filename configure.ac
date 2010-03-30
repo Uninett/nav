@@ -22,6 +22,10 @@ AC_PATH_PROG(HG, hg)
 AC_SUBST(nav_user)
 AC_SUBST(webapps)
 AC_SUBST(webroot)
+AC_SUBST(webrootdir)
+AC_SUBST(imagedir)
+AC_SUBST(javascriptdir)
+AC_SUBST(stylesheetdir)
 AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
 AC_SUBST(perllibdir)
@@ -38,6 +42,10 @@ dnl Setting some default variables for NAV
 nav_user=navcron
 webapps='${prefix}/apache/webapps'
 webroot='${prefix}/apache/webroot'
+webrootdir='${webroot}'
+imagedir='${webroot}/images'
+javascriptdir='${webroot}/js'
+stylesheetdir='${webroot}/style'
 pythonlibdir='${libdir}/python'
 javalibdir='${libdir}/java'
 perllibdir='${libdir}/perl'
