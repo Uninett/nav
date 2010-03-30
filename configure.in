@@ -41,7 +41,7 @@ AC_SUBST(docdir)
 AC_SUBST(crondir)
 AC_SUBST(VERSION)
 dnl The location of the cricket binaries
-AC_SUBST(CRICKETDIR)
+AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
@@ -114,7 +114,6 @@ AC_OUTPUT(Makefile
 	subsystem/snmptrapd/snmptrapd
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
-	subsystem/statTools/cricket.cron
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/statemon/Makefile
