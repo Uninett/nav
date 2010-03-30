@@ -6,17 +6,7 @@ AC_REVISION($Revision: $)
 AC_PREFIX_DEFAULT(/usr/local/nav)
 
 AC_PROG_INSTALL
-AC_PATH_PROG(PYTHON,python)
-if test -z "$PYTHON"; then
-  AC_MSG_ERROR([No python executable found])
-else
-  if ! ${PYTHON} -c '
-import sys
-if not hasattr(sys, "version_info") or sys.version_info < (2,4,0):
-  sys.exit(1)'; then
-    AC_MSG_ERROR([Your python version is too old for NAV, we require at least version 2.4.0])
-  fi
-fi
+AM_PATH_PYTHON([2.4])
 AC_PATH_PROG(CHEETAH,cheetah)
 if test -z "$CHEETAH"; then
   AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
