@@ -139,13 +139,17 @@ def make_config(config):
         
     # Create targets
     for (sysname, ip, ro, descr, typename) in targetlist:
+        displayname = utils.convert_unicode_to_latin1(sysname)
         if descr:
-            shortdesc = utils.filter_name(", ".join([typename, descr]))
+            typename = utils.encode_and_escape(typename)
+            descr = utils.encode_and_escape(descr)
+            shortdesc = ", ".join([typename, descr])
         else:
-            shortdesc = typename
+            shortdesc = utils.encode_and_escape(typename)
 
         logger.info("Writing target %s" % sysname)
         f.write("target \"%s\"\n" % sysname)
+        f.write("\tdisplay-name\t = \"%s\"\n" % displayname)
         f.write("\tsnmp-host\t= %s\n" % ip)
         f.write("\tsnmp-community\t= %s\n" % ro)
         f.write("\ttarget-type\t= %s\n" % sysname)

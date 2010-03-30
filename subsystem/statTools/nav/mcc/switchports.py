@@ -127,8 +127,8 @@ def make_config(config):
 
             ifalias = ifalias or '-'
             targetname = utils.create_target_name(ifname)
-            displayname = utils.filter_name(ifname)
-            shortdesc = utils.filter_name(ifalias)
+            displayname = utils.encode_and_escape(ifname)
+            shortdesc = utils.encode_and_escape(ifalias)
 
             logger.info('Creating target %s (%s)' % (targetname, displayname))
 
