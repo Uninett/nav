@@ -24,7 +24,7 @@ src/getBoksMacs/getBoksMacs.sh
 src/getDeviceData/getDeviceData
 src/getDeviceData/getDeviceData.sh
 src/networkDiscovery/networkDiscovery.sh
-subsystem/alertengine/alertengine
+subsystem/alertengine/init.d/alertengine
 subsystem/lib-perl/src/NAV/Path.pm
 subsystem/lib-python/nav/buildconf.py
 subsystem/logger/conf/logger.conf

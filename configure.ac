@@ -67,7 +67,7 @@ AC_OUTPUT(Makefile
 	src/getDeviceData/getDeviceData.sh
 	src/networkDiscovery/networkDiscovery.sh
 	subsystem/alertengine/Makefile
-	subsystem/alertengine/alertengine
+	subsystem/alertengine/init.d/alertengine
 	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
 	subsystem/arnold/images/Makefile
