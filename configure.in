@@ -7,22 +7,22 @@ AC_CONFIG_AUX_DIR(conf)
 AC_PROG_INSTALL
 AC_PATH_PROG(PYTHON,python)
 if test -z "$PYTHON"; then
-  AC_MSG_WARN([No python executable found])
+  AC_MSG_ERROR([No python executable found])
 else
   if ! ${PYTHON} -c '
 import sys
 if not hasattr(sys, "version_info") or sys.version_info < (2,4,0):
   sys.exit(1)'; then
-    AC_MSG_WARN([Your python version is too old for NAV, we require at least version 2.4.0])
+    AC_MSG_ERROR([Your python version is too old for NAV, we require at least version 2.4.0])
   fi
 fi
 AC_PATH_PROG(CHEETAH,cheetah)
 if test -z "$CHEETAH"; then
-  AC_MSG_WARN([No Cheetah found, you will be unable to build any web templates])
+  AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
 fi
 AC_PATH_PROG(ANT,ant)
 if test -z "$ANT"; then
-  AC_MSG_WARN([No Ant found, you need this to build java software])
+  AC_MSG_ERROR([No Ant found, you need this to build java software])
 fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
