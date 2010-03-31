@@ -83,6 +83,8 @@ AC_OUTPUT(Makefile
 	subsystem/dbTools/Makefile
 	subsystem/devicehistory/Makefile
 	subsystem/ipdevinfo/Makefile
+	subsystem/ipdevinfo/config/Makefile
+	subsystem/ipdevinfo/templates/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/ipinfo/Makefile
 	subsystem/ipinfo/templates/Makefile
