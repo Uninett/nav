@@ -87,7 +87,6 @@ AC_OUTPUT(Makefile
 	subsystem/ipdevinfo/templates/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/ipinfo/Makefile
-	subsystem/ipinfo/templates/Makefile
 	subsystem/l2trace/Makefile
 	subsystem/l2trace/src/Makefile
 	subsystem/lib-perl/Makefile
