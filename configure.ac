@@ -47,6 +47,7 @@ imagedir='${webroot}/images'
 javascriptdir='${webroot}/js'
 stylesheetdir='${webroot}/style'
 pythonlibdir='${libdir}/python'
+pythondir='${pythonlibdir}'
 javalibdir='${libdir}/java'
 perllibdir='${libdir}/perl'
 djangotmpldir='${libdir}/templates'
@@ -78,8 +79,7 @@ AC_OUTPUT(Makefile
 	subsystem/alertengine/init.d/alertengine
 	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
-	subsystem/arnold/images/Makefile
-	subsystem/arnold/lib/Makefile
+	subsystem/arnold/config/Makefile
 	subsystem/dbTools/Makefile
 	subsystem/devicehistory/Makefile
 	subsystem/ipdevinfo/Makefile
