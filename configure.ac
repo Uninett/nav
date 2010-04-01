@@ -90,6 +90,7 @@ AC_OUTPUT(Makefile
 	subsystem/l2trace/Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
+	subsystem/lib-python/templates/Makefile
 	subsystem/logger/Makefile
 	subsystem/logger/bin/Makefile
 	subsystem/logger/conf/Makefile
