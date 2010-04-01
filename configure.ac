@@ -92,10 +92,6 @@ AC_OUTPUT(Makefile
 	subsystem/lib-python/Makefile
 	subsystem/lib-python/templates/Makefile
 	subsystem/logger/Makefile
-	subsystem/logger/bin/Makefile
-	subsystem/logger/conf/Makefile
-	subsystem/logger/src/Makefile
-	subsystem/logger/templates/Makefile
 	subsystem/machinetracker/Makefile
 	subsystem/machinetracker/src/Makefile
 	subsystem/mailin/Makefile
