@@ -11,4 +11,9 @@ bin_SCRIPTS = arnold.py autoenable.py start_arnold.py t1000.py
 myimage_DATA = images/details.png  images/enable.png
 tool_DATA = arnold.tool
 
+install-data-local: installdirs
+
+installdirs-local:
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/arnold
+
 

@@ -82,3 +82,11 @@ $(QUICK_TARGETS):
 	@realtarget="$(patsubst %_q,%,$@)";                            \
 	echo "Building $$realtarget ..." ;                             \
 	(cd $$realtarget && $(ANT) $(BUILDARGS)) && touch $$realtarget
+
+install-data-local: installdirs
+
+installdirs:
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/eventEngine
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/getDeviceData
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/networkDiscovery
+
