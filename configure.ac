@@ -2,7 +2,6 @@ dnl Process this file with GNU autoconf
 AC_INIT([nav], [3.6])
 AC_CONFIG_AUX_DIR(conf)
 AM_INIT_AUTOMAKE([foreign])
-AC_REVISION($Revision: $)
 AC_PREFIX_DEFAULT(/usr/local/nav)
 
 AC_PROG_INSTALL
