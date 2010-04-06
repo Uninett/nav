@@ -65,7 +65,8 @@ if test -z "$CRICKETDIR"; then
 fi
 
 
-AC_OUTPUT(Makefile
+AC_CONFIG_FILES([
+	Makefile
 	doc/Makefile
 	src/Makefile
 	src/build.properties
@@ -119,7 +120,8 @@ AC_OUTPUT(Makefile
 	subsystem/useradmin/Makefile
 	subsystem/webfront/Makefile
 	subsystem/webfront/media/Makefile
-)
+])
+AC_OUTPUT
 
 echo
 echo "Now run 'make' to build NAV"
