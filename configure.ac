@@ -118,6 +118,7 @@ AC_OUTPUT(Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
 	subsystem/webfront/Makefile
+	subsystem/webfront/media/Makefile
 )
 
 echo
