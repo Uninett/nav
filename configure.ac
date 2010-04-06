@@ -3,6 +3,12 @@ AC_INIT([nav], [3.6])
 AC_CONFIG_AUX_DIR(conf)
 AM_INIT_AUTOMAKE([foreign])
 AC_PREFIX_DEFAULT(/usr/local/nav)
+AC_COPYRIGHT([
+Copyright belongs to various parties for different parts of NAV:
+Part copyright 1999-2008 Norwegian University of Science and Technology
+Part copyright 2002-2010 UNINETT AS
+Part copyright various contributors, see individual files.
+])
 
 AC_PROG_INSTALL
 AM_PATH_PYTHON([2.4])
