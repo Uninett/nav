@@ -6,6 +6,7 @@ tool_DATA = stats.tool
 nobase_python_PYTHON = $(wildcard nav/*.py nav/rrd/*.py)
 
 cron_DATA = cron.d/cricket
+CLEANFILES = $(cron_DATA)
 
 nobase_doc_DATA = $(wildcard cricket/* cricket/*/* cricket/*/*/* cricket/cricket-config/.nav cricket/cricket-config/*/.nav)
 
