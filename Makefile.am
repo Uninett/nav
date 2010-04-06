@@ -1,7 +1,3 @@
-NAME=nav
-VERSION=`cat VERSION`
-PACKAGE=$(NAME)-$(VERSION)
-
 SUBDIRS = src \
 	subsystem/alertengine \
 	subsystem/alertprofiles \
@@ -34,6 +30,8 @@ SUBDIRS = src \
 	subsystem/webfront
 
 sysconf_DATA = doc/conf/db.conf doc/conf/nav.conf 
+
+EXTRA_DIST = version.m4
 
 install-data-hook: webfix
 

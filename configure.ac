@@ -1,5 +1,6 @@
 dnl Process this file with GNU autoconf
-AC_INIT([nav], [3.6])
+m4_include([version.m4])
+AC_INIT([nav], VERSION_NUMBER)
 AC_CONFIG_AUX_DIR(conf)
 AM_INIT_AUTOMAKE([foreign])
 AC_PREFIX_DEFAULT(/usr/local/nav)
@@ -60,11 +61,7 @@ initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
-VERSION=`cat VERSION`
-if $GREP -q devel VERSION && ! test -z "$HG" && test -e .hg
-then
-	VERSION=`$HG identify -i`
-fi
+VERSION=VERSION_NUMBER
 if test -z "$CRICKETDIR"; then
 	CRICKETDIR='${prefix}/cricket/cricket'
 fi
@@ -127,6 +124,3 @@ AC_CONFIG_FILES([
 	subsystem/webfront/media/Makefile
 ])
 AC_OUTPUT
-
-echo
-echo "Now run 'make' to build NAV"

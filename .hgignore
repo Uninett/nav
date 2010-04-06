@@ -10,6 +10,7 @@ syntax: glob
 Makefile
 Makefile.in
 autom4te.cache
+version.m4
 
 # Generated javadoc and build dirs
 */javadoc/*
