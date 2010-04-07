@@ -4,7 +4,4 @@ bin_SCRIPTS = mailin.py
 sysconf_DATA = config/mailin.conf 
 
 mydocdir = $(docdir)/mailin
-examplesdir = $(mydocdir)/alertmsg.d
-mydoc_DATA = README 
-examples_DATA = $(wildcard config/alertmsg.d/*)
-
+nobase_mydoc_DATA = README $(wildcard config/alertmsg.d/*)
