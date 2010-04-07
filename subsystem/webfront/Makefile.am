@@ -5,6 +5,7 @@ bin_SCRIPTS = bin/navTemplate.py
 
 webconfdir = $(sysconfdir)/webfront
 webconf_DATA = $(wildcard config/webfront/*.txt config/webfront/*.conf) config/webfront/webfront.conf
+EDITFILES = config/webfront/webfront.conf
 
 templates_src = $(wildcard nav/web/templates/*.tmpl)
 cheetah_TEMPLATES = $(templates_src:%.tmpl=%.py)
@@ -18,8 +19,6 @@ mydjangotmpl_DATA = $(wildcard templates/webfront/*)
 webroot_DATA = .htaccess
 CLEANFILES += .htaccess
 
-config/webfront/webfront.conf: config/webfront/webfront.conf.source
-	$(top_srcdir)/tools/expand.pl $< > $@
 
 .htaccess: htaccess
 	cp htaccess .htaccess

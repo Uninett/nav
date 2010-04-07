@@ -10,8 +10,6 @@ nobase_python_DATA = $(cheetah_TEMPLATES)
 bin_SCRIPTS = bin/logengine.py
 
 config = conf/logger.conf
-CLEANFILES += $(config)
+EDITFILES = $(config)
 sysconf_DATA = $(config)
 
-$(config): $(config).source Makefile
-	$(top_srcdir)/tools/expand.pl $(config).source > $(config)

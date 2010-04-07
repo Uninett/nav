@@ -7,12 +7,8 @@
 # Copyright 2006 UNINETT AS
 #
 ####################
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
-localstatedir=@localstatedir@
 ALERTENGINE=${bindir}/alertengine.py
 
 # Source function library.
