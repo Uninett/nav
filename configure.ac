@@ -69,12 +69,6 @@ AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
 	src/Makefile
-	src/eventEngine/eventEngine.sh
-	src/eventEngine/eventengine
-	src/getBoksMacs/getBoksMacs.sh
-	src/getDeviceData/getDeviceData
-	src/getDeviceData/getDeviceData.sh
-	src/networkDiscovery/networkDiscovery.sh
 	subsystem/alertengine/Makefile
 	subsystem/alertengine/init.d/alertengine
 	subsystem/alertprofiles/Makefile

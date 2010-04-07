@@ -19,7 +19,15 @@ subdirs = \
 	SimpleSnmp \
 	Netmap
 
-EDITFILES = build.properties
+EDITFILES = \
+	build.properties \
+	eventEngine/eventEngine.sh \
+	eventEngine/eventengine \
+	getDeviceData/getDeviceData.sh \
+	getDeviceData/getDeviceData \
+	getBoksMacs/getBoksMacs.sh \
+	networkDiscovery/networkDiscovery.sh
+
 # We build our own classpath, to resolve interdependencies between the java modules.
 CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done ; echo -n $$CLASSPATH)
 INSTALL_TARGETS = $(patsubst %,%_inst,$(subdirs))
@@ -29,7 +37,7 @@ QUICK_TARGETS = $(patsubst %,%_q,$(subdirs))
 export
 .PHONY = debug .lastbuild $(INSTALL_TARGETS) $(QUICK_TARGETS)
 
-all-local: build.properties $(subdirs)
+all-local: $(EDITFILES) $(subdirs)
 
 $(subdirs): .lastbuild
 	@echo "Building $@ ..."
