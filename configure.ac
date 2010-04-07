@@ -26,7 +26,6 @@ AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)
 
 AC_SUBST(nav_user)
-AC_SUBST(webapps)
 AC_SUBST(webroot)
 AC_SUBST(webrootdir)
 AC_SUBST(imagedir)
@@ -46,7 +45,6 @@ AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
-webapps='${prefix}/apache/webapps'
 webroot='${prefix}/apache/webroot'
 webrootdir='${webroot}'
 imagedir='${webroot}/images'
