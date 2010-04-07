@@ -1,3 +1,5 @@
+include $(top_srcdir)/common.mk
+
 SUBDIRS = sortedStats
 
 bin_SCRIPTS = cleanrrds.pl makecricketconfig.pl
@@ -6,12 +8,7 @@ tool_DATA = stats.tool
 nobase_python_PYTHON = $(wildcard nav/*.py nav/rrd/*.py)
 
 cron_DATA = cron.d/cricket
-CLEANFILES = $(cron_DATA)
+EDITFILES = $(cron_DATA)
 
 nobase_doc_DATA = $(wildcard cricket/* cricket/*/* cricket/*/*/* cricket/cricket-config/.nav cricket/cricket-config/*/.nav)
-
-
-cron.d/cricket: cron.d/cricket.in Makefile
-	$(SED) \
-	  -e 's|@CRICKETDIR[@]|$(CRICKETDIR)|g' cron.d/cricket.in > cron.d/cricket
 
