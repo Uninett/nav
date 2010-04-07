@@ -1,4 +1,5 @@
 SUBDIRS = src \
+	doc \
 	subsystem/alertengine \
 	subsystem/alertprofiles \
 	subsystem/arnold \
