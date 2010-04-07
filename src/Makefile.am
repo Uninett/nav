@@ -1,6 +1,8 @@
 ##
 ## Makefile for NAV's Java subsystems
 ## 
+include $(top_srcdir)/common.mk
+
 INSTALLARGS = -DDESTDIR=$(DESTDIR)
 
 subdirs = \
@@ -17,6 +19,7 @@ subdirs = \
 	SimpleSnmp \
 	Netmap
 
+EDITFILES = build.properties
 # We build our own classpath, to resolve interdependencies between the java modules.
 CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done ; echo -n $$CLASSPATH)
 INSTALL_TARGETS = $(patsubst %,%_inst,$(subdirs))
@@ -24,9 +27,9 @@ QUICK_TARGETS = $(patsubst %,%_q,$(subdirs))
 
 # Make sure we export make variables to the environment
 export
-.PHONY = all install clean distclean debug .lastbuild $(INSTALL_TARGETS) $(QUICK_TARGETS)
+.PHONY = debug .lastbuild $(INSTALL_TARGETS) $(QUICK_TARGETS)
 
-all: $(subdirs)
+all-local: build.properties $(subdirs)
 
 $(subdirs): .lastbuild
 	@echo "Building $@ ..."
@@ -54,16 +57,15 @@ install-exec-local:
 	  (cd $$dir && $(ANT) install $(INSTALLARGS)) || exit 1; \
 	done
 
-clean:
+clean-local:
 	rm -f *~ .lastbuild
 	@for dir in $(subdirs); do \
 	  echo "Entering $$dir ..."; \
-	  (cd $$dir && $(ANT) $@) || exit 1; \
+	  (cd $$dir && $(ANT) clean) || exit 1; \
 	done
 
-distclean:
-	@echo Target distclean is not supported in the java projects, but should be...
-	rm -f Makefile build.properties
+distclean-local:
+	@echo Target distclean is not properly supported in the java projects, since they are built using ant.
 
 # Debug target just prints some debug information from the Makefile
 debug:

@@ -71,7 +71,6 @@ AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
 	src/Makefile
-	src/build.properties
 	src/eventEngine/eventEngine.sh
 	src/eventEngine/eventengine
 	src/getBoksMacs/getBoksMacs.sh
