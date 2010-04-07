@@ -13,6 +13,7 @@ myimage_DATA = $(wildcard images/alertprofiles/*)
 stylesheet_DATA = $(wildcard media/style/*)
 javascript_DATA = $(wildcard media/js/*)
 myweb_DATA = .htaccess
+CLEANFILES = .htaccess
 
 .htaccess: htaccess
 	cp htaccess .htaccess
