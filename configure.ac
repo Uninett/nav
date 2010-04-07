@@ -70,7 +70,6 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	src/Makefile
 	subsystem/alertengine/Makefile
-	subsystem/alertengine/init.d/alertengine
 	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
 	subsystem/arnold/config/Makefile
@@ -98,16 +97,11 @@ AC_CONFIG_FILES([
 	subsystem/seeddb/Makefile
 	subsystem/seeddb/src/Makefile
 	subsystem/smsd/Makefile
-	subsystem/smsd/smsd
 	subsystem/snmptrapd/Makefile
-	subsystem/snmptrapd/snmptrapd
 	subsystem/startstop/Makefile
-	subsystem/startstop/functions
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/statemon/Makefile
-	subsystem/statemon/pping
-	subsystem/statemon/servicemon
 	subsystem/status/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
