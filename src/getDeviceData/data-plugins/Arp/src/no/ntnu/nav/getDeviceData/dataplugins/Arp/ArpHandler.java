@@ -69,7 +69,7 @@ public class ArpHandler implements DataHandler {
 			newIps.removeAll(oldIps);
 
 			Set<InetAddress> stillAliveIps = new HashSet<InetAddress>(oldIps);
-			stillAliveIps.retainAll(newIps);
+			stillAliveIps.retainAll(currentIps);
 
 			Map<InetAddress,String> newIpMacMap = new HashMap<InetAddress,String>();
 			for(InetAddress ip: newIps)
@@ -83,6 +83,8 @@ public class ArpHandler implements DataHandler {
 					updatedIpMacMap.put(ip,newMac);
 			}
 
+			Log.d("ARPHandler", "Stats: " + oldIps.size() + " old/" + currentIps.size() + " current/" + deadIps.size() + " dead/" + newIps.size() + " new/" + stillAliveIps.size() + " still alive/" + updatedIpMacMap.size() + " updated");
+			
 			if(!deadIps.isEmpty()) {
 				terminateArpEntries(deadIps);
 			}

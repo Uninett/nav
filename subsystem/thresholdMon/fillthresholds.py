@@ -29,9 +29,7 @@ of NAV-v3, but may be done several times if there is a reason
 for that. The script will not overwrite any set thresholds.
 """
 
-import forgetSQL
 import re
-import nav.db.forgotten
 import nav.path
 from nav.db import getConnection
 

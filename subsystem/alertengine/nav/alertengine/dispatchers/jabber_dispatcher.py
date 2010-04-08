@@ -31,15 +31,20 @@ logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
 class jabber(dispatcher):
     def __init__(self, *args, **kwargs):
         self.config = kwargs['config'];
+        self.ready = False
 
-        self.connect()
-
-        self.thread = Thread(target=self.thread_loop, args=[self.get_client])
+        self.thread = Thread(target=self.thread_loop, args=[self.connect])
         self.thread.setDaemon(True)
         self.thread.start()
 
-    def get_client(self):
-        return self.client
+        count = 0
+
+        while count < 10 and not self.ready:
+            time.sleep(1)
+            count += 1
+
+        if not self.ready:
+            raise Exception('Not ready in time')
 
     @staticmethod
     def presence_handler(connection, presence):
@@ -61,12 +66,14 @@ class jabber(dispatcher):
             logger.debug('Sent unsubscription confirmation to %s' % who)
 
     @staticmethod
-    def thread_loop(get_client):
+    def thread_loop(connect):
         logger.debug('starting thread loop')
+
+        client = connect()
 
         # Put thread to sleep waiting for flag to be set.
         while True:
-            get_client().Process(1)
+            client.Process(1)
             logger.debug('thread sleeping 120 seconds')
             sleep(120)
         logger.debug('stopping thread loop')
@@ -96,6 +103,10 @@ class jabber(dispatcher):
 
         self.client.RegisterHandler('presence',self.presence_handler)
         self.client.sendInitPresence()
+
+        self.ready = True
+
+        return self.client
 
     def send(self, address, alert, language='en', retry=True, retry_reason=None):
         message = self.get_message(alert, language, 'jabber')

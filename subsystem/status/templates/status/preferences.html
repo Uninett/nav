@@ -1,0 +1,57 @@
+{% extends "status/base.html" %}
+
+{% block content %}
+
+<div class="infobox">
+    <form action="{% url status-preferences-addsection %}" method="post">
+        <div class="info">            
+            {{ add_section.section }}
+            <input type="submit" name="add_section" value="Add section" />
+        </div>
+    </form>
+</div>
+
+<form action="" method="post">
+    <table class="listtable">
+        <caption>
+            Status sections
+        </caption>
+
+        <thead>
+            <tr>
+                <th>Delete</th>
+                <th>Name</th>
+                <th></th><th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for section in sections %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td>
+                    <input type="checkbox" name="delete_checkbox" value="{{ section.id }}" />
+                </td>
+                <td>
+                    <a href="{% url status-preferences-edit section.id %}">
+                    {{ section.name }}
+                    </a>
+                    ({{ section.readable_type }})
+                </td>
+                <td>
+                    {% if not forloop.first %}
+                    <input type="submit" name="moveup={{ section.id }}" value="Move Up" />
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not forloop.last %}
+                    <input type="submit" name="movedown={{ section.id }}" value="Move Down" />
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <input type="submit" name="delete" value="Delete selected" />
+</form>
+
+{% endblock %}

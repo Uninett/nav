@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+<link rel="stylesheet" type="text/css" href="/style/alertprofiles.css" />
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/alertprofiles.js"></script>
+{% endblock %}
+
 {% block base_content %}
+
+<h2>Alert profiles</h2>
 
 <div class="tabs">
     {% block tabs %}

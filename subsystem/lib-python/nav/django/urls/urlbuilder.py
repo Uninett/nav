@@ -55,6 +55,8 @@ def get_urlpatterns():
             dummy, name='machinetracker'),
         url(r'^machinetracker/swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[\w\d/._-]+)$',
             dummy, name='machinetracker-swport'),
+        url(r'^machinetracker/swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&port=(?P<port_interface>[\w\d/._-]+)$',
+            dummy, name='machinetracker-swport'),
 
         # Subsystem: Report
         # Naming convention: report-<result>-<query>

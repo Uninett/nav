@@ -133,10 +133,30 @@ class Netbox(models.Model):
             return '(Invalid value in DB)'
 
     def get_gwports(self):
-        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False)
+        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False).distinct()
+    
+    def get_gwports_sorted(self):
+        """Returns gwports naturally sorted by interface name"""
+
+        ports = self.get_gwports()
+        interface_names = [p.get_identifier_string() for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
 
     def get_swports(self):
-        return Interface.objects.filter(netbox=self, baseport__isnull=False)
+        return Interface.objects.filter(netbox=self, baseport__isnull=False).distinct()
+    
+    def get_swports_sorted(self):
+        """Returns swports naturally sorted by interface name"""
+
+        ports = self.get_swports()
+        interface_names = [p.get_identifier_string() for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
 
     def get_availability(self):
         from nav.models.rrd import RrdDataSource
@@ -260,15 +280,11 @@ class Device(models.Model):
     boxes or may appear in different modules throughout its lifetime."""
 
     id = models.AutoField(db_column='deviceid', primary_key=True)
-    product = models.ForeignKey('Product', db_column='productid', null=True)
     serial = models.CharField(unique=True, max_length=-1)
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1)
     software_version = models.CharField(db_column='sw_ver', max_length=-1)
     auto = models.BooleanField(default=False)
-    active = models.BooleanField(default=False)
-    device_order = models.ForeignKey('DeviceOrder', db_column='deviceorderid',
-        null=True)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -515,47 +531,6 @@ class Vendor(models.Model):
 
     def __unicode__(self):
         return self.id
-
-class Product(models.Model):
-    """From MetaNAV: The product table is used be Device Management to register
-    products. A product has a product number and is of a vendor."""
-
-    id = models.AutoField(db_column='productid', primary_key=True)
-    vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    product_number = models.CharField(db_column='productno', max_length=-1)
-    description = models.CharField(db_column='descr', max_length=-1)
-
-    class Meta:
-        db_table = 'product'
-        unique_together = (('vendor', 'product_number'),)
-
-    def __unicode__(self):
-        return u'%s (%s), from vendor %s' % (
-            self.description, self.product_number, self.vendor)
-
-class DeviceOrder(models.Model):
-    """From MetaNAV: The deviceorder table is used by Device Management to
-    place orders. Not compulsary. An order consists of a set of devices (on or
-    more) of a certain product."""
-
-    id = models.AutoField(db_column='deviceorderid', primary_key=True)
-    registered = models.DateTimeField(default=dt.datetime.now)
-    ordered = models.DateField()
-    arrived = models.DateTimeField()
-    order_number = models.CharField(db_column='ordernumber', max_length=-1)
-    comment = models.CharField(max_length=-1)
-    retailer = models.CharField(max_length=-1)
-    username = models.CharField(max_length=-1)
-    organization = models.ForeignKey('Organization', db_column='orgid')
-    product = models.ForeignKey('Product', db_column='productid')
-    updated_by = models.CharField(db_column='updatedby', max_length=-1)
-    last_updated = models.DateField(db_column='lastupdated')
-
-    class Meta:
-        db_table = 'deviceorder'
-
-    def __unicode__(self):
-        return self.order_number
 
 #######################################################################
 ### Router/topology
@@ -1030,7 +1005,7 @@ class Interface(models.Model):
     def get_absolute_url(self):
         kwargs={
             'netbox_sysname': self.netbox.sysname,
-            'interface_id': self.id,
+            'port_id': self.id,
         }
         return reverse('ipdevinfo-interface-details', kwargs=kwargs)
 
@@ -1106,6 +1081,21 @@ class Interface(models.Model):
         return RrdDataSource.objects.filter(
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
+
+    def get_link_status(self):
+        if not self.ifadminstatus:
+            return LINK_DOWN_ADM
+        if self.ifoperstatus:
+            return LINK_UP
+        else:
+            return LINK_DOWN
+
+    def get_link_display(self):
+        if self.get_link_status() == LINK_UP:
+            return "Active"
+        elif self.get_link_status() == LINK_DOWN_ADM:
+            return "Disabled"
+        return "Inactive"
 
 
 class IanaIftype(models.Model):

@@ -17,72 +17,54 @@
 
 """Shortcuts for using Django with NAV and Cheetah"""
 
-from django.http import HttpResponse
-from django.template.loader import render_to_string
 from django.views.generic import list_detail
+from django.shortcuts import render_to_response as django_render_to_response
 
-def _cheetah_render(cheetah_template_func, rendered_by_django, path=[]):
-    """Inserts a rendered template from Django into a Cheetah template"""
-
-    # Insert the result into content_string in the given Cheetah template
-    cheetah_template = cheetah_template_func()
-    # Make sure we don't mix unicode into the Cheetah template, which
-    # will cause UnicodeDecodeErrors (legacy code inserts utf-8
-    # encoded strings)
-    if isinstance(rendered_by_django, unicode):
-        rendered_by_django = rendered_by_django.encode('utf-8')
-    cheetah_template.content_string = rendered_by_django
-
-    # Insert path into cheetah
-    if path:
-        # Same unicode fixing as above, only for the path this time
-        for i, path_part in enumerate(path):
-            # Path_part is a tuple with the title of the link in position 0 and
-            # the url itself in position 1
-            if isinstance(path_part[0], unicode):
-                path[i] = (path_part[0].encode('utf-8'), path_part[1])
-
-        cheetah_template.path = path
-
-    # Return a Django HttpResponse with the Cheetah template result
-    return HttpResponse(cheetah_template.respond())
+from nav.buildconf import VERSION
 
 def render_to_response(cheetah_template_func, template_name, context,
-        context_instance=None, path=[]):
-    """Mixes Django's render_to_response shortcut with a Cheetah template"""
+        context_instance=None, path=[('Home', '/')]):
 
-    # Render a Django template with the given context
-    rendered = render_to_string(template_name, context, context_instance)
+    context['deprecated'] = True
+    context['navpath'] = path
+    context['title'] = 'NAV'
+    context['nav_version'] = VERSION
 
-    # Pass it on to the Cheetah template
-    return _cheetah_render(cheetah_template_func, rendered, path)
+    return django_render_to_response(
+        template_name,
+        context,
+        context_instance,
+    )
 
 def object_list(cheetah_template_func, *args, **kwargs):
     """Mixes Django's generic view object_list with a Cheetah template"""
 
     # Pop path component
     path = kwargs.pop('path', None)
+    try:
+        kwargs['extra_context']['deprecated'] = True
+        kwargs['extra_context']['title'] = 'NAV'
+        kwargs['extra_context']['nav_version'] = VERSION
+        if path:
+            kwargs['extra_context']['navpath'] = path
+    except KeyError:
+        pass
 
     # Pass on call to original object_list view
-    response = list_detail.object_list(*args, **kwargs)
-
-    # Get rendered template from the response object
-    rendered = response.content
-
-    # Pass it on to the Cheetah template
-    return _cheetah_render(cheetah_template_func, rendered, path)
+    return list_detail.object_list(*args, **kwargs)
 
 def object_detail(cheetah_template_func, *args, **kwargs):
     """Mixes Django's generic view object_detail with a Cheetah template"""
 
     # Pop path component
     path = kwargs.pop('path', None)
+    try:
+        kwargs['extra_context']['deprecated'] = True
+        kwargs['extra_context']['title'] = 'NAV'
+        kwargs['extra_context']['nav_version'] = VERSION
+        if path:
+            kwargs['extra_context']['navpath'] = path
+    except KeyError:
+        pass
 
-    # Pass on call to original object_detail view
-    response = list_detail.object_detail(*args, **kwargs)
-
-    # Get rendered template from the response object
-    rendered = response.content
-
-    # Pass it on to the Cheetah template
-    return _cheetah_render(cheetah_template_func, rendered, path)
+    return list_detail.object_detail(*args, **kwargs)

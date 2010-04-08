@@ -12,9 +12,9 @@
 			<img src="/images/networkexplorer/vertical-bound.gif">
 		{% endif %}
         {% endif %}
-        <a href="{{ gwport.get_absolute_url }}" target="_blank">{{ gwport.interface }}</a>
+        <a href="{{ gwport.get_absolute_url }}" target="_blank">{{ gwport.ifname }}</a>
         {% if gwport.to_netbox %}
-            {% if gwport.to_swport.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}
+            {% if gwport.to_interface.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}
              {{ gwport.to_netbox.sysname }}
         {% endif %}
 	{% with gwport.prefixes|dictsort:"display_addr" as prefix_list %}
