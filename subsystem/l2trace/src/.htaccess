@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler l2trace
-DirectoryIndex l2trace.py/

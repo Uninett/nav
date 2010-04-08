@@ -6,7 +6,6 @@ bindir=@bindir@
 libdir=@libdir@
 javalibdir=@javalibdir@
 localstatedir=@localstatedir@
-webapps=@webapps@
 webroot=@webroot@
 tooldir=@tooldir@
 crondir=@crondir@

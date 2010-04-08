@@ -9,12 +9,8 @@
 # Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 ####################
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
-localstatedir=@localstatedir@
 user=@nav_user@
 SMSD=${bindir}/smsd.py
 
