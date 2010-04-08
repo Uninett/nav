@@ -1,3 +1,15 @@
+Version 3.5.6
+(released 07 April 2010)
+
+Bugfixes:
+
+  * LP#538001 (Inconsistency in ARP records)
+  * LP#540213 (Confusing debug output in Alert Profiles)
+  * LP#451933 (getBoksMacs SQL error: "insufficient data left in message")
+  * LP#390577 (Wrong network sort order in prefix report)
+  * LP#550738 (createdb.sh fails to set schema search path)
+  * LP#551499 (Cricket cron job fails when using default autconf settings)
+
 Version 3.5.5
 (released 16 February 2010)
 
