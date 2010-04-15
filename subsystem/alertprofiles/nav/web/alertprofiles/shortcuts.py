@@ -20,13 +20,11 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.template import RequestContext
 
 from nav.web.message import new_message, Messages
-from nav.django.shortcuts import render_to_response, object_list
-from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
+from django.shortcuts import render_to_response
 
 def _alertprofiles_response(request, status_code=200):
     # Get a normal response object
     response = render_to_response(
-        AlertProfilesTemplate,
         'alertprofiles/base.html',
         None,
         context_instance=RequestContext(
