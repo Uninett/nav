@@ -26,7 +26,6 @@ from nav.config import readConfig
 from nav.models.manage import SwPort, GwPort
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
-from nav.web.templates.RrdViewerTemplate import RrdViewerTemplate
 
 def rrd_index(request):
     """Redirect to the IP Device Info search page"""

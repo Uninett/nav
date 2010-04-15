@@ -35,7 +35,6 @@ from nav.models.profiles import Account, AccountGroup, AccountProperty, \
     AlertSubscription, FilterGroupContent, Operator, Expression, \
     Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
-from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 from nav.web.message import new_message, Messages
 
 from nav.web.alertprofiles.forms import *
