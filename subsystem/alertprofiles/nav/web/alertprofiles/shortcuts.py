@@ -22,11 +22,16 @@ from django.template import RequestContext
 from nav.web.message import new_message, Messages
 from django.shortcuts import render_to_response
 
+BASE_PATH = [
+    ('Home', '/'),
+    ('Alert profiles', '/alertprofiles/'),
+]
+
 def _alertprofiles_response(request, status_code=200):
     # Get a normal response object
     response = render_to_response(
         'alertprofiles/base.html',
-        None,
+        {'navpath': BASE_PATH},
         context_instance=RequestContext(
             request,
         ),
