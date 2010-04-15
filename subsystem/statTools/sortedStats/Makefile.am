@@ -8,3 +8,10 @@ template_PYTHON = $(cheetah_TEMPLATES)
 
 sysconf_DATA = sortedStats.conf
 weblib_PYTHON = sortedStats.py
+
+statswebdir = $(webrootdir)/stats
+statsweb_DATA = .htaccess
+CLEANFILES += .htaccess
+
+.htaccess: htaccess
+	cp htaccess .htaccess
