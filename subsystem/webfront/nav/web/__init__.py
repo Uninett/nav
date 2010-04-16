@@ -134,7 +134,8 @@ def shouldShow(link, user):
     """
     Checks if a link should be shown on the webpage. If the link
     starts with 'http://' or 'https://' it is considered an external
-    link and allowed. Internal links are checked using nav.auth.hasPrivilege.
+    link and allowed. Internal links are checked using the corresponding
+    account object's has_perm method.
     """
     startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
     #FIXME handle Account.DoesNotExist
