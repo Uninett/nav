@@ -231,28 +231,15 @@ def handler(req):
         AND blocked_status IN ('quarantined', 'disabled')"""
         cur.execute(q, (row['mac'],))
 
-<<<<<<< /home/magnusme/dev/nav-staging-3.6/subsystem/arnold/arnoldhandler.py
-        if cur.rowcount > 1:
-            # Get switchinformation from database
-            blockedports = [dict(row) for row in cur.fetchall()]
-            for element in blockedports:
-                q = """
-                SELECT sysname, module, port FROM netbox
-                JOIN module USING (netboxid)
-                JOIN interface USING (moduleid)
-                WHERE interfaceid=%s
-                """
-=======
         # Get switchinformation from database
         blockedports = [dict(row) for row in cur.fetchall()]
         for element in blockedports:
             q = """
             SELECT sysname, module, port FROM netbox
             LEFT JOIN module USING (netboxid)
-            LEFT JOIN swport USING (moduleid)
-            WHERE swportid=%s
+            LEFT JOIN interface USING (moduleid)
+            WHERE interfaceid=%s
             """
->>>>>>> /tmp/arnoldhandler.py~other.twsu_B
 
             try:
                 managec.execute(q, (element['swportid'],))
