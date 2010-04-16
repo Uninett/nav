@@ -237,7 +237,7 @@ def handler(req):
             q = """
             SELECT sysname, module, port FROM netbox
             LEFT JOIN module USING (netboxid)
-            LEFT JOIN interface USING (moduleid)
+            LEFT JOIN interface USING (netboxid)
             WHERE interfaceid=%s
             """
 
