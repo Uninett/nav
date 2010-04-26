@@ -46,10 +46,10 @@ urlpatterns = patterns('',
 
     url(r'^swp/$', switch_search,
         name='machinetracker-swp'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d+)&port=(?P<port>[\w\d/._-]+)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)$',
         switch_do_search,
         name='machinetracker-swp_short_search'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d+)&port=(?P<port>[\w\d/._-]+)&days=(?P<days>\d+)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)&days=(?P<days>\d+)$',
         switch_do_search,
         name='machinetracker-swp_search'),
 )

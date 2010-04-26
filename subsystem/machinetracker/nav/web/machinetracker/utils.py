@@ -73,6 +73,10 @@ def track_mac(keys, resultset, dns):
             row['still_active'] = "Still active"
         if dns:
             row['dns_lookup'] = hostname(row['ip'])
+        if 'module' not in row or not row['module']:
+            row['module'] = ''
+        if 'port' not in row or not row['port']:
+            row['port'] = ''
         key = []
         for k in keys:
             key.append(row.get(k))
