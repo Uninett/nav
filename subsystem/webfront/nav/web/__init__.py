@@ -25,6 +25,7 @@ import time
 import ConfigParser
 import os.path, nav.path
 import base64
+import urllib
 import cgi
 import logging
 import nav.logs
@@ -54,7 +55,16 @@ def headerparserhandler(req):
         redirect(req, '/index/index')
 
     state.setupSession(req)
-    nav.web.auth.authenticate(req)
+    authenticated = 'user' in req.session
+    if authenticated:
+        # We don't consider the default user as authenticated
+        authenticated = req.session['user']['id'] != 0
+    authorized = nav.web.auth.authorize(req)
+
+    if not authorized and not authenticated:
+        nav.web.auth.redirectToLogin(req)
+    elif not authorized and authenticated:
+        raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
     user = req.session['user']
 
     # Make sure the user's session file has its mtime updated every
@@ -124,7 +134,8 @@ def shouldShow(link, user):
     """
     Checks if a link should be shown on the webpage. If the link
     starts with 'http://' or 'https://' it is considered an external
-    link and allowed. Internal links are checked using nav.auth.hasPrivilege.
+    link and allowed. Internal links are checked using the corresponding
+    account object's has_perm method.
     """
     startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
     #FIXME handle Account.DoesNotExist

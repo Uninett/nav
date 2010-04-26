@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+"""Mercurial extensions for NAV development."""
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009,2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -72,9 +73,6 @@ cmdtable = {
                    "hg bug-commit [OPTION] BUGNUMBER [FILE]..."),
     "qbug":
         (qbug,
-         [('e', 'edit', None, _('edit commit message')),
-          ('f', 'force', None, _('import uncommitted changes into patch')),
-          ('g', 'git', None, _('use git extended diff format')),
-          ] + commands.walkopts + commands.commitopts + mq.headeropts,
-         'hg qbug [-e] [-f] BUGNUMBER [FILE]...'),
+         mq.cmdtable['qnew'][1],
+         'hg qbug [-e] [-m TEXT] [-l FILE] [-f] BUGNUMBER [FILE]...'),
 }

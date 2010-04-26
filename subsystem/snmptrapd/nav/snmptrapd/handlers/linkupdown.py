@@ -55,7 +55,7 @@ def handleTrap(trap, config=None):
                        LEFT JOIN type USING (typeid)
                        WHERE ip = %s"""
             logger.debug(query)
-            c.execute(query, (trap.src,))
+            c.execute(query, (trap.agent,))
             res = c.fetchone()
 
             netboxid = res['netboxid']
@@ -66,34 +66,19 @@ def handleTrap(trap, config=None):
             logger.error("Error when querying database: %s" %why)
 
 
-        # Find swportid
-        idquery = """SELECT swportid, module.deviceid, module.module,
-                            swport.interface
+        # Find interfaceid
+        idquery = """SELECT interfaceid, module.deviceid, module.module,
+                            interface.ifdescr
                      FROM netbox
-                     LEFT JOIN module USING (netboxid)
-                     LEFT JOIN swport USING (moduleid)
+                     JOIN module USING (netboxid)
+                     JOIN interface USING (moduleid)
                      WHERE ip=%s AND ifindex = %s""" 
         logger.debug(idquery)
         try:
-            c.execute(idquery, (trap.src, ifindex))
+            c.execute(idquery, (trap.agent, ifindex))
         except nav.db.driver.ProgrammingError, why:
             logger.error(why)
             return False
-
-        # If no swportid is found, check gwport
-        if c.rowcount < 1:
-            idquery = """SELECT gwportid, module.deviceid, module.module,
-            gwport.interface
-            FROM netbox
-            LEFT JOIN module USING (netboxid)
-            LEFT JOIN gwport USING (moduleid)
-            WHERE ip=%s AND ifindex = %s""" 
-            logger.debug(idquery)
-            try:
-                c.execute(idquery, (trap.src, ifindex))
-            except nav.db.driver.ProgrammingError, why:
-                logger.error(why)
-                return False
 
         # If no rows returned, exit
         if c.rowcount < 1:

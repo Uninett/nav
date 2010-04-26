@@ -33,7 +33,7 @@ from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherExce
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
 from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
-    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, Product, \
+    Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, \
     Room, Subcategory, SwPort, Usage, Vlan, Vendor
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
@@ -46,7 +46,7 @@ SUPPORTED_MODELS = [
         AlertQueue, AlertType, EventType,
     # manage models
         Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Product, Room, Subcategory, SwPort,
+        NetboxType, Organization, Prefix, Room, Subcategory, SwPort,
         Vendor, Vlan,
         Usage,
 ]
@@ -83,20 +83,32 @@ class Account(models.Model):
         '''Returns the accounts active alert profile'''
         return self.alertpreference.active_profile
 
-    # FIXME Could be prettier
-    def has_perm(self, action, target):
-        '''Checks user permissions by using legacy NAV hasPrivilege function'''
+    def get_groups(self):
+        '''Fetches and returns this users groups.
+        Also stores groups in this object for later use.
+        '''
         try:
-            groups = self._cached_groups
+            return self._cached_groups
         except AttributeError:
-            groups = self.accountgroup_set.values_list('id', flat=True)
-            self._cached_groups = groups
+            self._cached_groups = self.accountgroup_set.values_list(
+                'id', flat=True)
+            return self._cached_groups
 
+    def get_privileges(self):
+        '''Fetches privileges for this users groups.
+        Also stores privileges in this object for later use.
+        '''
         try:
-            privileges = self._cached_privileges
+            return self._cached_privileges
         except AttributeError:
-            privileges = Privilege.objects.filter(group__in=groups, type__name=action)
-            self._cached_privileges = privileges
+            self._cached_privileges = Privilege.objects.filter(
+                group__in=self.get_groups())
+            return self._cached_privileges
+
+    def has_perm(self, action, target):
+        '''Checks if user has permission to do action on target.'''
+        groups = self.get_groups()
+        privileges = self.get_privileges()
 
         if AccountGroup.ADMIN_GROUP in groups:
             return True
@@ -143,6 +155,8 @@ class Account(models.Model):
 
         Copied from nav.db.navprofiles
         """
+        # FIXME If password is old style NAV MD5, shouldn't we update the
+        # password in the database to be new style password?
         if len(self.password.strip()) > 0:
             stored_hash = nav.pwhash.Hash()
             try:
@@ -303,14 +317,14 @@ class AlertAddress(models.Model):
                     subscription.get_type_display(), subscription.id))
 
         except FatalDispatcherException, e:
-            logger.error('%s raised a FatalDispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            logger.error('%s raised a FatalDispatcherException inidicating that the alert never will be sent: %s' % (self.type, e))
             alert.delete()
             transaction.commit()
 
             return False
 
         except DispatcherException, e:
-            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent: %s' % (self.type, e))
+            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent at this time: %s' % (self.type, e))
             transaction.rollback()
 
             return False
@@ -328,12 +342,13 @@ class AlertSender(models.Model):
     handler = models.CharField(max_length=100)
 
     _blacklist = set()
+    _handlers = {}
 
     def __unicode__(self):
         return self.name
 
     def send(self, *args, **kwargs):
-        if not hasattr(self, 'handler_instance'):
+        if self.handler not in self._handlers:
             # Get config
             if not hasattr(AlertSender, 'config'):
                 AlertSender.config = get_alertengine_config(os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
@@ -342,10 +357,10 @@ class AlertSender(models.Model):
             module = __import__('nav.alertengine.dispatchers.%s_dispatcher' % self.handler, globals(), locals(), [self.handler])
 
             # Init module with config
-            self.handler_instance = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
+            self.__class__._handlers[self.handler] = getattr(module, self.handler)(config=AlertSender.config.get(self.handler, {}))
 
         # Delegate sending of message
-        return self.handler_instance.send(*args, **kwargs)
+        return self._handlers[self.handler].send(*args, **kwargs)
 
     def blacklist(self):
         self.__class__._blacklist.add(self.handler)
@@ -486,7 +501,7 @@ class AlertSubscription(models.Model):
     time_period = models.ForeignKey('TimePeriod')
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW)
-    ignore_closed_alerts = models.BooleanField()
+    ignore_resolved_alerts = models.BooleanField()
 
     class Meta:
         db_table = u'alertsubscription'
@@ -999,7 +1014,75 @@ class AccountAlertQueue(models.Model):
                 raise Exception("No sender set for address %s, " + \
                       "this might be due to a failed db upgrade from 3.4 to 3.5" % (address))
 
+        except AlertQueue.DoesNotExist, e:
+            logger = logging.getLogger('nav.alertengine.accountalertqueue.send')
+            logger.error(('Inconsistent database state, alertqueue entry %d ' +
+                          'missing for account-alert. If you know how the ' +
+                          'database got into this state please update ' +
+                          'LP#494036') % self.alert_id)
+
+            super(AccountAlertQueue, self).delete()
+            return False
+
         if sent:
             self.delete()
 
         return sent
+
+class StatusPreference(models.Model):
+    '''Preferences for the Status tool'''
+
+    SECTION_NETBOX = 'netbox'
+    SECTION_NETBOX_MAINTENANCE = 'netbox_maintenance'
+    SECTION_MODULE = 'module'
+    SECTION_SERVICE = 'service'
+    SECTION_SERVICE_MAINTENANCE = 'service_maintenance'
+    SECTION_THRESHOLD = 'threshold'
+
+    SECTION_CHOICES = (
+        (SECTION_NETBOX, 'IP Devices down'),
+        (SECTION_NETBOX_MAINTENANCE, 'IP Devices on maintenance'),
+        (SECTION_MODULE, 'Modules down'),
+        (SECTION_SERVICE, 'Services down'),
+        (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
+        (SECTION_THRESHOLD, 'Thresholds exceeded'),
+    )
+
+    name = models.TextField()
+    position = models.IntegerField()
+    type = models.CharField(choices=SECTION_CHOICES)
+    account = models.ForeignKey('Account', db_column='accountid')
+    organizations = models.ManyToManyField(
+        Organization, db_table='statuspreference_organization')
+    categories = models.ManyToManyField(
+        Category, db_table='statuspreference_category', blank=True)
+
+    services = models.TextField(blank=True)
+    states = models.TextField()
+
+    class Meta:
+        db_table = u'statuspreference'
+        ordering = ('position',)
+
+    def readable_type(self):
+        return StatusPreference.lookup_readable_type(self.type)
+
+    @staticmethod
+    def lookup_readable_type(type):
+        for (id, readable_type) in StatusPreference.SECTION_CHOICES:
+            if type == id:
+                return readable_type
+
+class StatusPreferenceOrganization(models.Model):
+    statuspreference = models.ForeignKey(StatusPreference)
+    organization = models.ForeignKey(Organization)
+
+    class Meta:
+        db_table = u'statuspreference_organization'
+
+class StatusPreferenceCategory(models.Model):
+    statuspreference = models.ForeignKey(StatusPreference)
+    category = models.ForeignKey(Category)
+
+    class Meta:
+        db_table = u'statuspreference_category'

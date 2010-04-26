@@ -147,6 +147,8 @@ class AlertQueue(models.Model):
     value = models.IntegerField()
     severity = models.IntegerField()
 
+    history = models.ForeignKey('AlertHistory', null=True, blank=True, db_column='alerthistid')
+
     class Meta:
         db_table = 'alertq'
 
@@ -215,8 +217,8 @@ class AlertHistory(models.Model):
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
-    device = models.ForeignKey('Device', db_column='deviceid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    device = models.ForeignKey('Device', db_column='deviceid', null=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     subid = models.CharField(max_length=-1)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)

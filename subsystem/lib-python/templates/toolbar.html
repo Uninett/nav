@@ -1,0 +1,13 @@
+<div id="toolbar">
+    <ul>
+        {% for t in available_tools %}
+        <li>
+            <a href="{{ t.uri}}">
+                <img src="{{ t.icon }}" alt="{{ t.name }}" />
+                <span class="tool_name">{{ t.name }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    <div>&ensp;</div>
+</div>

@@ -1,0 +1,3 @@
+SetHandler python-program
+PythonHandler machinetracker
+DirectoryIndex machinetracker.py/

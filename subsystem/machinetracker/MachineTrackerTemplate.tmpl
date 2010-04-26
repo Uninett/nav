@@ -1,0 +1,334 @@
+#encoding UTF-8
+## $Id$
+##
+## Copyright 2003-2004 Norwegian University of Science and Technology
+## Copyright 2006-2007 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Magnar Sveen <magnars@idi.ntnu.no>
+##         Sigurd Gartmann <sigurd-nav@brogar.org>
+##         Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##
+
+#extends MainTemplate
+#from nav.web import escape
+
+#attr $path =  [("Home", "/"), ("Machine Tracker", "")]
+
+#block additionalCSS
+$default_tabs_CSS
+$default_table_CSS
+<link rel="stylesheet" type="text/css" href="/style/machinetracker.css" />
+#end block additionalCSS
+
+#def $makeMenu($menu, $current = False)
+<div class="tabs">
+<ul>
+#for $item in $menu:
+    #if $item.link == $current:
+    <li class="tabactive"><a href="$item.link">$item.text</a></li>
+    #else:
+    <li><a href="$item.link">$item.text</a></li>
+    #end if
+#end for
+</ul>
+</div>
+#end def
+
+#def tableTitle($title, $hits, $columnCount)
+  #set $columnCount += 1
+
+<table class="listtable">
+    <caption>
+        $title<br />
+        <span class="subtitle">$hits hits</span>
+    </caption>
+#end def
+
+#def tableHeader($rowCount, $columns)
+  #set $rowCount = $rowCount + 1
+    <thead>
+        <tr>
+  #for $column in $columns
+            <th>$column</th>
+  #end for
+        </tr>
+    </thead>
+#end def
+
+#def arpTable($table)
+  #if $form.dns == "on":
+    #set $columns = ('DNS', 'IP', '', 'MAC', 'Start time', 'End time')
+  #else
+    #set $columns = ('IP', '', 'MAC', 'Start time', 'End time')
+  #end if
+  #set $columnCount = len($columns)
+
+  #set $hits = len($table)
+  $tableTitle("IP Search results", $hits, $columnCount)
+
+  #if $hits
+  $tableHeader($hits, $columns)
+
+    <tbody>
+  #for $row in $table
+    <tr class="$rowcycler">
+    #if $form.dns=="on":
+        <td>$row.dnsname</td>
+    #end if
+        <td><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns" title="Search again for this IP address">$row.ipaddr</a></td>
+	<td>#slurp
+        #if $row.ipaddr
+            <a href="/ipinfo/?ip=${row.ipaddr}" title="Show information about this particular IP address"><img src="$imagefolder/arpcam/ipinfolink.png" width="11" height="11" alt="IP Info"></a>
+        #end if
+        </td>
+	<td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$row.mac</a></td>
+        <td>$row.start_time</td>
+        <td>$row.end_time</td>
+    </tr>
+  #end for
+    </tbody>
+  #end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$hits hits</th>
+        </tr>
+    </tbody>
+</table>
+#end def
+
+#def camTable($table)
+  #set $columns = ('Switch', 'Module', 'Interface', 'Start time', 'End time', 'MAC')
+  #set $columnCount = len($columns)
+
+  #set $hits = len($table)
+  $tableTitle("MAC Search results", $hits, $columnCount)
+
+  #if $hits
+  $tableHeader($hits, $columns)
+
+    <tbody>
+  #for $row in $table
+    <tr class="$rowcycler">
+	<td>
+        #if $row.current_sysname
+            <a href="/ipdevinfo/$row.current_sysname/" title="Browse this switch (IP device)">$row.switch</a>
+        #else
+            $row.switch
+        #end if
+        </td>
+	<td style="text-align: center;">$row.module</td>
+        <td style="text-align: center;"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a>
+	#if $row.current_sysname and $row.module and $row.port
+            (<a href="/ipdevinfo/$row.current_sysname/module=$row.module/swport=$row.port/">details</a>)</td>
+	#end if
+	<td>$row.start_time</td>
+	<td>$row.end_time</td>
+        <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a></td>
+    </tr>
+  #end for
+    </tbody>
+  #end if
+
+    <tbody class="footer">
+        <tr>
+            <th colspan="0">$hits hits</th>
+        </tr>
+    </tbody>
+</table>
+
+<div class="infobox">
+<h4>Interface details</h4>
+
+<p>Please note that the MAC search results are <em>historic</em> data, while
+the information found at the interface details link is the <em>current</em>
+data on the interface. They may have no other connection than being related to
+the same interface at different points in time.</p>
+</div>
+#end def
+
+#block content
+
+<h2>Machine Tracker</h2>
+
+$makeMenu($menu, $current)
+
+<div class="tabcontent">
+
+#if len($errors)
+<div class="errors">
+    <ul>
+    #for $error in $errors
+        <li>$escape($error)</li>
+    #end for
+    </ul>
+</div>
+#end if
+
+<div id="forms">
+#if $form.dns=="on"
+    #set $checked="checked"
+#else
+    #set $checked=""
+#end if
+#if $form.aip=="on"
+    #set $activechecked="checked"
+#else
+    #set $activechecked=""
+#end if
+#if $form.naip=="on"
+    #set $inactivechecked="checked"
+#else
+    #set $inactivechecked=""
+#end if
+
+#if $form.search=="mac"
+<form id="macform" action="" method="get">
+	<label>MAC </label><input type="text" name="mac" value="$escape($form.mac)">
+	<input type="checkbox" name="dns" $checked><label>dns</label>
+#if $form.days
+	<input type="text" size="3" style="text-align: center;" name="days" value="$form.days"><label> days</label>
+#else
+	<input type="text" size="3" style="text-align: center;" name="days" value="7"><label> days</label>
+#end if
+	<input type="submit" name="send" value="Search">
+</form>
+
+#elif $form.search=="swp"
+<form id="swpform" action="" method="get">
+	<label>Switch </label><input type="text" name="switch" value="$escape($form.switch)">
+	<label>Module </label><input type="text" name="module" size="3" value="$form.module">
+	<label>Interface </label><input type="text" name="port" size="16" value="$form.port">
+	<input type="checkbox" name="dns" $checked><label>dns</label>
+#if $form.days
+	<input type="text" size="3" style="text-align: center;" name="days" value="$form.days"><label> days</label>
+#else
+	<input type="text" size="3" style="text-align: center;" name="days" value="7"><label> days</label>
+#end if
+	<input type="submit" name="send" value="Search">
+</form>
+
+#else
+
+<form id="ipform" action="" method="get">
+	<label>IP from </label><input type="text" name="from_ip" value="$escape($form.ip_from)">
+	<label>to </label><input type="text" name="to_ip" value="$escape($form.ip_to)">
+	<input type="checkbox" name="aip" $activechecked><label>active</label>
+	<input type="checkbox" name="naip" $inactivechecked><label>inactive</label>
+	<input type="checkbox" name="dns" $checked><label>dns</label>
+#if $form.days
+	<input type="text" size="3" style="text-align: center;" name="days" value="$form.days"><label> days</label>
+#else
+	<input type="text" size="3" style="text-align: center;" name="days" value="7"><label> days</label>
+#end if
+	<input type="submit" name="send" value="Search">
+</form>
+
+#end if
+</div> <!-- forms -->
+
+<div id="results">
+#if $tableCam
+    $camTable($tableCam.table)
+#end if
+#if $tableArp
+    $arpTable($tableArp.table)
+#end if
+#if $tableSwp
+    $camTable($tableSwp.table)
+#end if
+
+#if not $tableCam and not $tableArp and not $tableSwp
+    #set $noresults = 0
+    #if $form.search == "mac"
+        #if $form.mac
+            #set $noresults = 1
+        #end if
+    #elif $form.search == "swp"
+        #if $form.switch
+            #set $noresults = 1
+        #end if
+    #else
+        #if $form.ip_from
+            #set $noresults = 1
+        #end if
+    #end if
+
+    #if $noresults
+<p>Your search did not return any results</p>
+    #else
+<div class="infobox">
+
+#if $current == 'mac'
+<h4>Search Hints</h4>
+<ul>
+  <li>MAC search allows searching for a MAC prefix, e.g. a search for
+      &quot;<tt>00aabbcc</tt>&quot; will return all matches between
+      <tt>00:aa:bb:cc:00:00</tt> and
+      <tt>00:aa:bb:cc:ff:ff</tt>.</li>
+  <li>The use of colon in the MAC search is optional, e.g. &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot; are equal.</li>
+</ul>
+<h4>Accuracy of the Results</h4>
+<ul>
+    <li>MAC search results are based on switch bridge tables. Default timeout
+    for bridge table entries may vary, in many cases it is 5 minutes. The
+    bridge table collector runs every 15 minutes (11,26,41,59) which also
+    introduces some inaccuracy. In other words, the results may be 5-20 minutes
+    off.</li>
+</ul>
+#elif $current == 'swp'
+<h4>Search Hints</h4>
+<ul>
+  <li>Switch search will search for switches having a sysname that
+      starts with whatever you enter as switch name.  E.g. searching
+      for &quot;<tt>blapp-sw</tt>&quot; will retrieve both
+      &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
+      &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;</li>
+  <li>Leaving the <i>module</i> or <i>interface</i> fields empty in the
+      switch search will find any module or interface that have matching
+      records for your selected switch.</li>
+</ul>
+#else
+<h4>Accuracy of the Results</h4>
+<ul>
+    <li>IP search results are based on ARP data from routers. Typically ARP
+    data entries are kept by the routers 4 hours after the last packet seen.
+    Also keep in mind, the ARP collector only runs twice an hour (0,30).
+    Subtracting 4-4.5 hours from the end time gives you a fairly good
+    idea.</li>
+    <li>Since NAV 3.3 port numbers have been removed from the search in favor
+    of interface names.  Historical search results will still contain port
+    numbers instead of interface names, as historical port number data cannot
+    be accurately mapped to interface names.</li>
+    <li>Checking the &quot;inactive&quot; checkbox will have no effect
+    when searching IPv6 address ranges.  The output would be huge
+    (about <em>10<sup>19</sup></em> resulting rows for a /64 subnet).</li>
+</ul>
+#end if
+
+</div> <!-- infobox -->
+
+    #end if
+#end if
+</div> <!-- results -->
+
+</div> <!-- tabcontent -->
+
+#end block content
