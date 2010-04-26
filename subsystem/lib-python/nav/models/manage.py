@@ -86,7 +86,7 @@ class Netbox(models.Model):
     TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.AutoField(db_column='netboxid', primary_key=True)
-    ip = InetAddressField(unique=True)
+    ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid', null=True)
     device = models.ForeignKey('Device', db_column='deviceid')
@@ -695,7 +695,7 @@ class Arp(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = models.CharField(max_length=-1)
-    ip = InetAddressField()
+    ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
     start_time = models.DateTimeField(auto_now_add=True)
