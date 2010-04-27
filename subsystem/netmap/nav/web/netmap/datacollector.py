@@ -25,6 +25,7 @@ from common import *
 import nav
 import rrdtool
 import cgi
+from xml.sax.saxutils import escape
 
 from nav.rrd import presenter
 from nav.config import readConfig
@@ -240,6 +241,9 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     db_cursor.execute(layer_2_query_3)
     results.extend(db_cursor.dictfetchall())
     for res in results:
+        for key, value in res.items():
+            if isinstance(value, basestring):
+                res[key] = escape(value or '')
         if res.get('from_swportid', None) is None and res.get('from_gwportid', None) is None:
             assert False, str(res)
         if 'from_swportid' not in res and 'from_gwportid' not in res:
@@ -280,6 +284,9 @@ ORDER BY from_sysname, sysname, swport.speed DESC
     db_cursor.execute(query)
     netboxes = db_cursor.dictfetchall()
     for netbox in netboxes:
+        for key, value in netbox.items():
+            if isinstance(value, basestring):
+                netbox[key] = escape(value or '')
         if netbox['rrd']:
             try:
                 netbox['load'] = rrdtool.fetch(netbox['rrd'], 'AVERAGE', '-s -10min')[2][0][1]

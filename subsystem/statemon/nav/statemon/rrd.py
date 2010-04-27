@@ -39,15 +39,14 @@ try:
 except:
     # Not properly installed
     RRDDIR = '/var/rrd'
+RRD_STEP = 300
 database = db.db(config.dbconf())
 
 def create(filename, netboxid, serviceid=None, handler=""):
-    step = 300
-    
     if RRDDIR and not os.path.exists(RRDDIR):
         os.mkdir(RRDDIR)
     tupleFromHell = ('%s' % (os.path.join(RRDDIR,filename)),
-             '-s %s' % step,
+             '-s %s' % RRD_STEP,
              'DS:STATUS:GAUGE:600:0:1',
              'DS:RESPONSETIME:GAUGE:600:0:300',
              'RRA:AVERAGE:0.5:1:288',
@@ -60,8 +59,10 @@ def create(filename, netboxid, serviceid=None, handler=""):
              'RRA:MAX:0.5:288:1095')
     rrd.create(*tupleFromHell)
     debug("Created rrd file %s" % filename)
+    register_rrd(filename, netboxid, serviceid, handler)
 
-    # a bit ugly...
+def register_rrd(filename, netboxid, serviceid=None, handler=""):
+    """Registers an RRD file in the db registry."""
     if serviceid:
         key="serviceid"
         val=serviceid
@@ -76,12 +77,31 @@ def create(filename, netboxid, serviceid=None, handler=""):
         statusdescr = "Packet loss"
         responsedescr = "Roundtrip time"
         unit = '100%'
-    rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid,
+    rrd_fileid = database.registerRrd(RRDDIR, filename, RRD_STEP, netboxid,
                       subsystem, key, val)
     database.registerDS(rrd_fileid, "RESPONSETIME",
                 responsedescr, "GAUGE", "s")
 
     database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
+
+def verify_rrd_registry(filename, netboxid, serviceid=None, handler=""):
+    """Verifies that an RRD file is known in the RRD registry.
+
+    If the file is known, but disconnected, it will be reconnected.  If the
+    file is unknown, it will be registered from scratch.
+
+    """
+    try:
+        registered_netboxid = database.verify_rrd(RRDDIR, filename)
+    except db.UnknownRRDFileError, e:
+        register_rrd(filename, netboxid, serviceid, handler)
+    else:
+        if registered_netboxid is None:
+            database.reconnect_rrd(RRDDIR, filename, netboxid)
+        # We don't handle the unusual case where a netboxid in the db differs
+        # from the one we are working with
+    return True
+
 
 def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
     """
@@ -96,8 +116,10 @@ def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
         filename = '%s.rrd' % (sysname)
         # typically ludvig.ntnu.no.rrd
     
-    os.path.exists(os.path.join(RRDDIR, filename)) or \
-               create(filename, netboxid, serviceid,handler)
+    if os.path.exists(os.path.join(RRDDIR, filename)):
+        verify_rrd_registry(filename, netboxid, serviceid, handler)
+    else:
+        create(filename, netboxid, serviceid, handler)
     if status == event.Event.UP:
         rrdstatus = 0
     else:
