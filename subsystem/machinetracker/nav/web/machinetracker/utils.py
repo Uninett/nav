@@ -50,12 +50,8 @@ def min_max_mac(mac):
     mac_max will be 00:10:20:40:ff:ff
     """
     mac = re.sub("[^0-9a-fA-F]+", "", mac).lower()
-    if len(mac) < 12:
-        mac_min = mac + '0' * (12 - len(mac))
-        mac_max = mac + 'f' * (12 - len(mac))
-    else:
-        mac_min = mac
-        mac_max = mac
+    mac_min = mac + '0' * (12 - len(mac))
+    mac_max = mac + 'f' * (12 - len(mac))
     return (mac_min, mac_max)
     
 
