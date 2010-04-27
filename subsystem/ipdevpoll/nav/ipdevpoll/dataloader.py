@@ -73,7 +73,8 @@ class NetboxLoader(dict):
             changed in the database since the last load operation.
 
         """
-        queryset = manage.Netbox.objects.select_related(depth=2).all()
+        queryset = manage.Netbox.objects.select_related(depth=2). \
+            filter(read_only__isnull=False)
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 
