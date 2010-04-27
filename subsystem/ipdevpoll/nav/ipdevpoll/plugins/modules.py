@@ -81,7 +81,8 @@ class Modules(Plugin):
 
     def _device_from_entity(self, ent):
         serial_column = 'entPhysicalSerialNum'
-        if serial_column in ent and ent[serial_column].strip():
+        if serial_column in ent and ent[serial_column] and \
+            ent[serial_column].strip():
             serial_number = ent[serial_column].strip()
             device_key = serial_number
         else:
