@@ -26,7 +26,7 @@ dummy = lambda *args, **kwargs: None
 
 urlpatterns = patterns('',
     url(r'^$', ip_search,
-        name='machinetracker-frontpage'),
+        name='machinetracker'),
     url(r'^ip/$', ip_search,
         name='machinetracker-ip'),
     url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&to_ip=(?P<to_ip>[a-f-\d\.:]*)&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)&days=(?P<days>\d+)&dns=(?P<dns>\w*)$',
@@ -52,4 +52,10 @@ urlpatterns = patterns('',
     url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)&days=(?P<days>\d+)$',
         switch_do_search,
         name='machinetracker-swp_search'),
+
+     # Old machinetrakcer links.
+     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[\w\d/._-]+)&days=7$',
+         switch_do_search, name='machinetracker-swport'),
+     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&port=(?P<port_interface>[\w\d/._-]+)&days=7$',
+         switch_do_search, name='machinetracker-swport'),
 )
