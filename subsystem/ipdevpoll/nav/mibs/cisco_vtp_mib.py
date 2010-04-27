@@ -33,12 +33,19 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         """
 
         def get_vlan_list(row):
-            enabled = BitVector(
-                row['vlanTrunkPortVlansEnabled'] +
-                row['vlanTrunkPortVlansEnabled2k'] +
-                row['vlanTrunkPortVlansEnabled3k'] +
-                row['vlanTrunkPortVlansEnabled4k']
-                )
+            concatenated_bits = ''
+            # There is no point in concatening more bitstrings if one of them
+            # are empty, that would just produced a skewed result.
+            for column in ('vlanTrunkPortVlansEnabled',
+                           'vlanTrunkPortVlansEnabled2k',
+                           'vlanTrunkPortVlansEnabled3k',
+                           'vlanTrunkPortVlansEnabled4k'):
+                if row[column]:
+                    concatenated_bits += row[column]
+                else:
+                    break
+
+            enabled = BitVector(concatenated_bits)
             return as_bitvector and enabled or enabled.get_set_bits()
 
         dw = defer.waitForDeferred(
