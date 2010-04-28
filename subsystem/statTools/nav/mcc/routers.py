@@ -59,7 +59,7 @@ def make_config(config):
 
     # Create target-types
     try:
-        f = open(join(fullpath, 'mccTargetTypes'), 'w')
+        f = open(join(fullpath, 'navTargetTypes'), 'w')
     except Exception, e:
         logger.error("Could not write to file: %s" % e)
         return False

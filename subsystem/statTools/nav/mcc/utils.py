@@ -12,7 +12,7 @@ from nav import path
 from nav.db import getConnection
 
 logger = logging.getLogger(__name__)
-TARGETFILENAME = 'mccTargets'
+TARGETFILENAME = 'navTargets'
 
 def start_config_creation(modules, config):    
     # Start modules
