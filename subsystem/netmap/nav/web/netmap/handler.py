@@ -28,13 +28,20 @@ import psycopg2.extras
 from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
 
-from nav import auth
-
 from mod_python import apache, util, Cookie
 from mod_python.util import FieldStorage
 
 from nav.web.templates.GraphML import GraphML
 from nav.web.templates.Netmap import Netmap
+
+from nav.models.profiles import Account
+
+def get_account(req):
+    """Inspects the mod_python req structure and returns a Django Account
+    object for the corresponding user.
+    """
+    account = Account.objects.get(login=req.session['user']['login'])
+    return account
 
 def handler(req):
 
@@ -55,6 +62,7 @@ def handler(req):
         else:
             baseURL = "http://" + req.hostname + req.uri
 
+    account = get_account(req)
     if path == '/server':
         page = GraphML()
         data = getData(db)
@@ -72,7 +80,7 @@ def handler(req):
     # Save positions for later usage
     elif path == '/position':
         # Check if user is admin
-        if not auth.hasPrivilege(req.session['user'], None, None):
+        if not account.has_perm(None, None):
             return apache.HTTP_UNAUTHORIZED
 
         form = FieldStorage(req)
@@ -137,7 +145,7 @@ def handler(req):
         page = Netmap()
         page.sessionID = cookies['nav_sessid']
         page.baseURL = baseURL[:-1]
-        if auth.hasPrivilege(req.session['user'], None, None):
+        if account.has_perm(None, None):
             page.is_admin = "True"
         else:
             page.is_admin = "False"

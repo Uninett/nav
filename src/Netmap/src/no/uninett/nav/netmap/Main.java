@@ -425,13 +425,23 @@ public class Main extends JPrefuseApplet {
     public static URL getBaseURL(){
         return baseURL;
     }
+
+    /*
+     * Returns a textual representation of bits/s
+     */
     static public String bwToString(String bandwidth){
         try {
             Double bw = Double.parseDouble(bandwidth);
-            if (bw > 10000){
-                return String.format("%.2f", (bw/(100000))) + "Gbit/s";
+            if (bw > 1000000000){
+                return String.format("%.2f", (bw/1000000000)) + "Gbit/s";
             }
-            return String.format("%.2f", (bw/100)) + "Mbit/s";
+            if (bw > 1000000){
+                return String.format("%.2f", (bw/1000000)) + "Mbit/s";
+            }
+            if (bw > 1000){
+                return String.format("%.2f", (bw/1000)) + "Kbit/s";
+            }
+            return String.format("%.2f", bw) + "bit/s";
 
         } catch(Exception e){
             return "unknown";

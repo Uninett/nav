@@ -25,9 +25,12 @@ import time
 import ConfigParser
 import os.path, nav.path
 import base64
+import urllib
 import cgi
 import logging
 import nav.logs
+
+from nav.models.profiles import Account
 
 logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
@@ -52,7 +55,16 @@ def headerparserhandler(req):
         redirect(req, '/index/index')
 
     state.setupSession(req)
-    nav.web.auth.authenticate(req)
+    authenticated = 'user' in req.session
+    if authenticated:
+        # We don't consider the default user as authenticated
+        authenticated = req.session['user']['id'] != 0
+    authorized = nav.web.auth.authorize(req)
+
+    if not authorized and not authenticated:
+        nav.web.auth.redirectToLogin(req)
+    elif not authorized and authenticated:
+        raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
     user = req.session['user']
 
     # Make sure the user's session file has its mtime updated every
@@ -74,9 +86,9 @@ def headerparserhandler(req):
         # Delete any existing Authorization headers
         logger.debug("Request already had an Authorization header, removing it")
         del req.headers_in[authHeader]
-    if user.id > 0:
+    if user['id'] > 0:
         # Only fake the header if we're not the public user
-        basicCookie = base64.encodestring(user.login + ':').strip()
+        basicCookie = base64.encodestring(user['login'] + ':').strip()
         req.headers_in.add(authHeader, 'Basic ' + basicCookie)
 
     return apache.OK
@@ -122,10 +134,12 @@ def shouldShow(link, user):
     """
     Checks if a link should be shown on the webpage. If the link
     starts with 'http://' or 'https://' it is considered an external
-    link and allowed. Internal links are checked using nav.auth.hasPrivilege.
+    link and allowed. Internal links are checked using the corresponding
+    account object's has_perm method.
     """
     startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
-    return startsWithHTTP or nav.auth.hasPrivilege(user, 'web_access', link)
+    #FIXME handle Account.DoesNotExist
+    return startsWithHTTP or Account.objects.get(id=user['id']).has_perm('web_access', link)
 
 def escape(s):
     """Replace special characters '&', '<' and '>' by SGML entities.

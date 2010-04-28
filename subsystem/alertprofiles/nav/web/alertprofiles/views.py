@@ -27,27 +27,22 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q
+from django.shortcuts import render_to_response
+from django.views.generic.list_detail import object_list
 
 from nav.models.profiles import Account, AccountGroup, AccountProperty, \
     AlertAddress, AlertPreference, AlertProfile, TimePeriod, \
     AlertSubscription, FilterGroupContent, Operator, Expression, \
     Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
-from nav.django.shortcuts import render_to_response, object_list
-from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 from nav.web.message import new_message, Messages
 
 from nav.web.alertprofiles.forms import *
 from nav.web.alertprofiles.utils import *
 from nav.web.alertprofiles.shortcuts import alertprofiles_response_forbidden, \
-    alertprofiles_response_not_found
+    alertprofiles_response_not_found, BASE_PATH
 
 _ = lambda a: a
-
-BASE_PATH = [
-    ('Home', '/'),
-    ('Alert profiles', '/alertprofiles/'),
-]
 
 PAGINATE_BY = 25
 
@@ -96,18 +91,16 @@ def overview(request):
             'filter_groups': filter_groups,
             'language_form': language_form,
             'alert_subscriptions': subscriptions,
-        }
-    return render_to_response(
-            AlertProfilesTemplate,
-            'alertprofiles/account_detail.html',
-            info_dict,
-            RequestContext(
-                request,
-            ),
-            path=[
+            'navpath': [
                 ('Home', '/'),
                 ('Alert profiles', None),
-            ]
+            ],
+            'title': 'NAV - Alert profiles',
+        }
+    return render_to_response(
+            'alertprofiles/account_detail.html',
+            info_dict,
+            RequestContext(request),
         )
 
 def profile(request):
@@ -138,16 +131,16 @@ def profile(request):
             'active_profile': active_profile,
             'page_link': reverse('alertprofiles-profile'),
             'order_by': order_by,
+            'navpath': BASE_PATH+[('Profiles', None)],
+            'title': 'NAV - Alert profiles',
         }
     return object_list(
-            AlertProfilesTemplate,
             request,
             queryset=profiles,
             paginate_by=PAGINATE_BY,
             page=page,
             template_name='alertprofiles/profile.html',
             extra_context=info_dict,
-            path=BASE_PATH+[('Profiles', None)]
         )
 
 def profile_show_form(request, profile_id=None, profile_form=None, time_period_form=None):
@@ -196,18 +189,16 @@ def profile_show_form(request, profile_id=None, profile_form=None, time_period_f
         'time_period_templates': templates,
         'active': {'profile': True},
         'subsection': subsection,
-    }
-    return render_to_response(
-        AlertProfilesTemplate,
-        'alertprofiles/profile_detail.html',
-        info_dict,
-        RequestContext(
-            request,
-        ),
-        path=BASE_PATH+[
+        'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
             (page_name, None)
-        ]
+        ],
+        'title': 'NAV - Alert profiles',
+    }
+    return render_to_response(
+        'alertprofiles/profile_detail.html',
+        info_dict,
+        RequestContext(request),
     )
 
 def profile_detail(request, profile_id=None):
@@ -374,18 +365,16 @@ def profile_remove(request):
                 'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
                     ('Remove profiles', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def profile_activate(request):
@@ -458,19 +447,17 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         'subsection': {'detail': time_period.profile.id, 'timeperiod': time_period.id},
         'time_period': time_period,
         'time_period_form': time_period_form,
-    }
-    return render_to_response(
-        AlertProfilesTemplate,
-        'alertprofiles/timeperiod_edit.html',
-        info_dict,
-        RequestContext(
-            request,
-        ),
-        path=BASE_PATH+[
+        'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
             (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
             ('Edit time period', None),
-        ]
+        ],
+        'title': 'NAV - Alert profiles',
+    }
+    return render_to_response(
+        'alertprofiles/timeperiod_edit.html',
+        info_dict,
+        RequestContext(request),
     )
 
 def profile_time_period_add(request):
@@ -612,19 +599,17 @@ def profile_time_period_remove(request):
                 'active': {'profile': True},
                 'subsection': {'detail': profile.id},
                 'elements': elements,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
                     (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
                     ('Remove time periods', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def profile_time_period_setup(request, time_period_id=None):
@@ -662,19 +647,17 @@ def profile_time_period_setup(request, time_period_id=None):
         'num_addresses': AlertAddress.objects.filter(account=account).count(),
         'num_filter_groups': FilterGroup.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)).count(),
-    }
-    return render_to_response(
-        AlertProfilesTemplate,
-        'alertprofiles/subscription_form.html',
-        info_dict,
-        RequestContext(
-            request,
-        ),
-        path=BASE_PATH+[
+        'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
             (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
             (unicode(time_period.start) + u', ' + time_period.get_valid_during_display(), None),
         ],
+        'title': 'NAV - Alert profiles',
+    }
+    return render_to_response(
+        'alertprofiles/subscription_form.html',
+        info_dict,
+        RequestContext(request),
     )
 
 def profile_time_period_subscription_add(request):
@@ -744,15 +727,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         'num_addresses': AlertAddress.objects.filter(account=account).count(),
         'num_filter_groups': FilterGroup.objects.filter(
             Q(owner=account) | Q(owner__isnull=True)).count(),
-    }
-    return render_to_response(
-        AlertProfilesTemplate,
-        'alertprofiles/subscription_form.html',
-        info_dict,
-        RequestContext(
-            request,
-        ),
-        path=BASE_PATH+[
+        'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
             (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
             (
@@ -760,7 +735,13 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
                 reverse('alertprofiles-profile-timeperiod-setup', args=(subscription.time_period.id,))
             ),
             ('Edit subscription', None)
-        ]
+        ],
+        'title': 'NAV - Alert profiles',
+    }
+    return render_to_response(
+        'alertprofiles/subscription_form.html',
+        info_dict,
+        RequestContext(request),
     )
 
 def profile_time_period_subscription_remove(request):
@@ -845,15 +826,7 @@ def profile_time_period_subscription_remove(request):
                 'subsection': {'detail': period.profile.id, 'subscriptions': period.id},
                 'elements': elements,
                 'perform_on': period.id,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
                     (period.profile.name, reverse('alertprofiles-profile-detail', args=(period.profile.id,))),
                     (
@@ -861,7 +834,13 @@ def profile_time_period_subscription_remove(request):
                         reverse('alertprofiles-profile-timeperiod-setup', args=(period.id,))
                     ),
                     ('Remove subscriptions', None)
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def address_list(request):
@@ -885,16 +864,16 @@ def address_list(request):
             'form_action': reverse('alertprofiles-address-remove'),
             'page_link': reverse('alertprofiles-address'),
             'order_by': order_by,
+            'navpath': BASE_PATH+[('Address', None)],
+            'title': 'NAV - Alert profiles',
         }
     return object_list(
-            AlertProfilesTemplate,
             request,
             queryset=address,
             paginate_by=PAGINATE_BY,
             page=page,
             template_name='alertprofiles/address_list.html',
             extra_context=info_dict,
-            path=BASE_PATH+[('Address', None)]
         )
 
 def address_show_form(request, address_id=None, address_form=None):
@@ -936,18 +915,16 @@ def address_show_form(request, address_id=None, address_form=None):
         'detail_id': detail_id,
         'form': address_form,
         'owner': True,
-    }
-    return render_to_response(
-        AlertProfilesTemplate,
-        'alertprofiles/address_form.html',
-        info_dict,
-        RequestContext(
-            request,
-        ),
-        path=BASE_PATH+[
+        'navpath': BASE_PATH+[
             ('Address', reverse('alertprofiles-address')),
             (page_name, None),
-        ]
+        ],
+        'title': 'NAV - Alert profiles',
+    }
+    return render_to_response(
+        'alertprofiles/address_form.html',
+        info_dict,
+        RequestContext(request),
     )
 
 def address_detail(request, address_id=None):
@@ -1087,18 +1064,16 @@ def address_remove(request):
                 'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Address', reverse('alertprofiles-address')),
                     ('Remove addresses', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def language_save(request):
@@ -1145,16 +1120,16 @@ def sms_list(request):
         'active': {'sms': True},
         'page_link': reverse('alertprofiles-sms'),
         'order_by': order_by,
+        'natpath': BASE_PATH+[('SMS', None)],
+        'title': 'NAV - Alert profiles',
     }
     return object_list(
-        AlertProfilesTemplate,
         request,
         queryset=sms,
         paginate_by=PAGINATE_BY,
         page=page,
         template_name='alertprofiles/sms_list.html',
         extra_context=info_dict,
-        path=BASE_PATH+[('SMS', None)]
     )
 
 def filter_list(request):
@@ -1184,16 +1159,16 @@ def filter_list(request):
             'form_action': reverse('alertprofiles-filters-remove'),
             'page_link': reverse('alertprofiles-filters'),
             'order_by': order_by,
+            'navpath': BASE_PATH+[('Filters', None)],
+            'title': 'NAV - Alert profiles',
         }
     return object_list(
-            AlertProfilesTemplate,
             request,
             queryset=filters,
             paginate_by=PAGINATE_BY,
             page=page,
             template_name='alertprofiles/filter_list.html',
             extra_context=info_dict,
-            path=BASE_PATH+[('Filters', None)]
         )
 
 def filter_show_form(request, filter_id=None, filter_form=None):
@@ -1276,7 +1251,6 @@ def filter_show_form(request, filter_id=None, filter_form=None):
         subsection = {'new': True}
 
     return render_to_response(
-            AlertProfilesTemplate,
             'alertprofiles/filter_form.html',
             {
                 'active': active,
@@ -1287,14 +1261,13 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 'form': filter_form,
                 'matchfields': matchfields,
                 'expressions': expressions,
+                'navpath': BASE_PATH+[
+                    ('Filters', reverse('alertprofiles-filters')),
+                    (page_name, None),
+                ],
+                'title': 'NAV - Alert profiles',
             },
-            RequestContext(
-                request,
-            ),
-            path=BASE_PATH+[
-                ('Filters', reverse('alertprofiles-filters')),
-                (page_name, None),
-            ]
+            RequestContext(request),
         )
 
 def filter_detail(request, filter_id=None):
@@ -1406,18 +1379,16 @@ def filter_remove(request):
                 'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
                     ('Remove filters', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def filter_addexpression(request):
@@ -1456,19 +1427,17 @@ def filter_addexpression(request):
             'filter': filter,
             'matchfield': matchfield,
             'list_limited': list_limited,
-        }
-    return render_to_response(
-            AlertProfilesTemplate,
-            'alertprofiles/expression_form.html',
-            info_dict,
-            RequestContext(
-                request,
-            ),
-            path=BASE_PATH+[
+            'navpath': BASE_PATH+[
                 ('Filters', reverse('alertprofiles-filters')),
                 (filter.name, reverse('alertprofiles-filters-detail', args=(filter.id,))),
                 ('Add expression', None)
-            ]
+            ],
+            'title': 'NAV - Alert profiles',
+        }
+    return render_to_response(
+            'alertprofiles/expression_form.html',
+            info_dict,
+            RequestContext(request),
         )
 
 def filter_saveexpression(request):
@@ -1577,19 +1546,17 @@ def filter_removeexpression(request):
                 'subsection': {'detail': filter.id},
                 'elements': elements,
                 'perform_on': filter.id,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
                     (filter.name, reverse('alertprofiles-filters-detail', args=(filter.id,))),
                     ('Remove expressions', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def filter_group_list(request):
@@ -1620,18 +1587,18 @@ def filter_group_list(request):
             'form_action': reverse('alertprofiles-filter_groups-remove'),
             'page_link': reverse('alertprofiles-filter_groups'),
             'order_by': order_by,
+            'navpath': BASE_PATH+[
+                ('Filter groups', None)
+            ],
+            'title': 'NAV - Alert profiles',
         }
     return object_list(
-            AlertProfilesTemplate,
             request,
             queryset=filter_groups,
             paginate_by=PAGINATE_BY,
             page=page,
             template_name='alertprofiles/filter_group_list.html',
             extra_context=info_dict,
-            path=BASE_PATH+[
-                ('Filter groups', None)
-            ]
         )
 
 def filter_group_show_form(request, filter_group_id=None, filter_group_form=None):
@@ -1720,18 +1687,16 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
             'filter_group_content': filter_groupcontent,
             'filters': filters,
             'form': filter_group_form,
-        }
-    return render_to_response(
-            AlertProfilesTemplate,
-            'alertprofiles/filter_group_form.html',
-            info_dict,
-            RequestContext(
-                request,
-            ),
-            path=BASE_PATH+[
+            'navpath': BASE_PATH+[
                 ('Filter groups', reverse('alertprofiles-filter_groups')),
                 (page_name, None),
-            ]
+            ],
+            'title': 'NAV - Alert profiles',
+        }
+    return render_to_response(
+            'alertprofiles/filter_group_form.html',
+            info_dict,
+            RequestContext(request),
         )
 
 def filter_group_detail(request, filter_group_id=None):
@@ -1848,18 +1813,16 @@ def filter_group_remove(request):
                 'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Filter groups', reverse('alertprofiles-filters')),
                     ('Remove filter groups', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def filter_group_addfilter(request):
@@ -2027,22 +1990,20 @@ def filter_group_removefilter(request):
                 'subsection': {'detail': filter_group.id},
                 'elements': elements,
                 'perform_on': filter_group.id,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Filter groups', reverse('alertprofiles-filter_groups')),
                     (
                         filter_group.name,
                         reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
                     ),
                     ('Remove filters', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def filter_group_movefilter(request):
@@ -2151,18 +2112,18 @@ def matchfield_list(request):
             'subsection': {'list': True},
             'form_action': reverse('alertprofiles-matchfields-remove'),
             'order_by': order_by,
+            'navpath': BASE_PATH+[
+                ('Matchfields', None),
+            ],
+            'title': 'NAV - Alert profiles',
         }
     return object_list(
-            AlertProfilesTemplate,
             request,
             queryset=matchfields,
             paginate_by=PAGINATE_BY,
             page=page,
             template_name='alertprofiles/matchfield_list.html',
             extra_context=info_dict,
-            path=BASE_PATH+[
-                ('Matchfields', None),
-            ]
         )
 
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
@@ -2224,18 +2185,16 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
             'form': matchfield_form,
             'operators': operators,
             'owner': True,
-        }
-    return render_to_response(
-            AlertProfilesTemplate,
-            'alertprofiles/matchfield_form.html',
-            info_dict,
-            RequestContext(
-                request,
-            ),
-            path=BASE_PATH+[
+            'navpath': BASE_PATH+[
                 ('Matchfields', reverse('alertprofiles-matchfields')),
                 (page_name, None),
-            ]
+            ],
+            'title': 'NAV - Alert profiles',
+        }
+    return render_to_response(
+            'alertprofiles/matchfield_form.html',
+            info_dict,
+            RequestContext(request),
         )
 
 def matchfield_detail(request, matchfield_id=None):
@@ -2340,18 +2299,16 @@ def matchfield_remove(request):
                 'subsection': {'list': True},
                 'elements': elements,
                 'perform_on': None,
-            }
-        return render_to_response(
-                AlertProfilesTemplate,
-                'alertprofiles/confirmation_list.html',
-                info_dict,
-                RequestContext(
-                    request,
-                ),
-                path=BASE_PATH+[
+                'navpath': BASE_PATH+[
                     ('Matchfields', reverse('alertprofiles-matchfields')),
                     ('Remove matchfields', None),
-                ]
+                ],
+                'title': 'NAV - Alert profiles',
+            }
+        return render_to_response(
+                'alertprofiles/confirmation_list.html',
+                info_dict,
+                RequestContext(request),
             )
 
 def permission_list(request, group_id=None):
@@ -2380,18 +2337,16 @@ def permission_list(request, group_id=None):
             'filter_groups': filter_groups,
             'permissions': permissions,
             'active': active,
+            'navpath': BASE_PATH+[
+                ('Permissions', None),
+            ],
+            'title': 'NAV - Alert profiles',
         }
 
     return render_to_response(
-            AlertProfilesTemplate,
             'alertprofiles/permissions.html',
             info_dict,
-            RequestContext(
-                request,
-            ),
-            path=BASE_PATH+[
-                ('Permissions', None),
-            ]
+            RequestContext(request),
         )
 
 def permissions_save(request):

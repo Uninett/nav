@@ -1,9 +1,0 @@
-SetHandler python-program
-PythonHandler mod_python.publisher
-PythonDebug On
-PythonHeaderParserHandler nav.web
-PythonCleanupHandler nav.web
-
-# In a running installation, PythonPath should be set here, adding all the
-# subdirectories containing Python modules.
-

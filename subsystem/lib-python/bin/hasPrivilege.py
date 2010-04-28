@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2009 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,12 +20,10 @@
 This script determines whether a NAV user has been granted a specific
 privilege.
 """
-import sys, getopt
-import nav, nav.auth
-from nav import db
-from nav.db import navprofiles
-from nav.db.navprofiles import Account
+import sys
+import getopt
 
+from nav.models.profiles import Account
 
 def main(args):
     (opts, args) = getopt.getopt(args, 'h', ['help'])
@@ -40,25 +39,18 @@ def main(args):
 
     (user, privilege, target) = args[:3]
 
-    # Make sure we have a proper database connection
-    try:
-        conn = db.getConnection('navprofile', 'navprofile')
-        cursor = conn.cursor()
-    except Exception, error:
-        print >> sys.stderr, "There was an error connecting to the database"
-        sys.exit(10)
-
     # Make sure the specified login name has an existing account
     try:
-        account = Account.loadByLogin(user)
+        account = Account.objects.get(login=user)
     except Exception, error:
         print >> sys.stderr, "Could not find user '%s'" % user
+        print >> sys.stderr, "Error was: %s" % error
         sys.exit(10)
         
     # Make use of the privilege system to discover whether the user
     # has been granted the privilege that is being asked for
     try:
-        answer = nav.auth.hasPrivilege(account, privilege, target)
+        answer = account.has_perm(privilege, target)
     except Exception, error:
         print >> sys.stderr, "There was an error when asking for the privilege"
         sys.exit(10)

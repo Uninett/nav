@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+
+<div class="boxes">
+    <table>
+        <tr>
+            <th>NAV Links</th>
+        </tr>
+        <tr>
+            <td>
+                {% for title,link in nav_links.items %}
+                <a href="{{ link }}">{{ title }}</a><br />
+                {% endfor %}
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>External links</th>
+        </tr>
+        <tr>
+            <td>{{ external_links|safe }}</td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>Contact information</th>
+        </tr>
+        <tr>
+            <td>{{ contact_information|safe }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="welcome">
+    {{ welcome|safe }}
+</div>
+
+<table class="listtable">
+    <caption>
+        <a href="/messages/">Messages</a><br />
+        <span class="subtitle">
+            {{ current_messages|length }} active
+            message{{ current_messages|pluralize }}
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Published</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Tasks</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in current_messages %}
+        <tr>
+            <td>{{ m.publish_start }}</td>
+            <td><a href="/messages/view?id={{ m.id }}">{{ m.title }}</a></td>
+            <td>{{ m.description }}</td>
+            <td>
+                <img src="/images/status/wrench.gif" alt="Tasks" />
+                {{ m.maintenance_tasks.all|length }}
+            </td>
+        {% endfor %}
+    </tbody>
+</table>
+
+<table class="listtable">
+    <caption>
+        <a href="/status/">Status now</a><br />
+        <span class="subtitle">
+            {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
+            {{ num_shadow }} in shadow.
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Sysname</th>
+            <th>IP</th>
+            <th>Down since</th>
+            <th>Downtime</th>
+        </tr>
+    </thead>
+    
+    <tbody>
+        {% for b in boxes_down %}
+        <tr>
+            <td><a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
+                {{ b.netbox.sysname }}</a></td>
+            <td>{{ b.netbox.ip }}</td>
+            <td>{{ b.start_time }}</td>
+            <td>{{ b.start_time|timesince:date_now }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

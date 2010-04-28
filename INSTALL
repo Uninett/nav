@@ -8,6 +8,7 @@ Build requirements
 To build NAV, you need at least the following:
 
  * make
+ * automake
  * autoconf
  * ant
  * Perl >= 5.6.0
@@ -43,7 +44,6 @@ The following python modules are required:
 
  * django (>= 1.0)
  * egenix-mxdatetime
- * forgetsql
  * ipy
  * ldap
  * psycopg2 >= 2.0.8
@@ -73,6 +73,9 @@ To install NAV, do the following::
   ./configure CRICKETDIR=/path/to/cricket/binaries
   make
   make install
+
+You may need to run ./autogen.sh first, if you obtained your copy of NAV
+directly from a Mercurial repository.
 
 If you wish to configure NAV to run from a different location than the default
 /usr/local/nav you should specify a new directory using the --prefix= option of

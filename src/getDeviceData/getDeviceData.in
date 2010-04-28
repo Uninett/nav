@@ -10,9 +10,6 @@
 #          Morten Vold <morten.vold@itea.ntnu.no>
 #
 ####################
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
 localstatedir=@localstatedir@

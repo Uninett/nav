@@ -38,6 +38,8 @@ DATABASE_ENGINE = 'postgresql_psycopg2'
 (DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER,
  DATABASE_PASSWORD) = get_connection_parameters('django')
 
+INSTALLED_APPS = ('nav.django',)
+
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 
@@ -45,13 +47,23 @@ ROOT_URLCONF = 'nav.django.urls'
 TEMPLATE_DIRS = (
     nav.path.djangotmpldir,
 )
+
+# Context processors
 TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
+    'nav.django.context_processors.nav_version',
 )
 
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
+
+EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = nav_config.get('EMAIL_PORT', 25)
+
+EMAIL_HOST_USER = nav_config.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = nav_config.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = nav_config.get('EMAIL_USE_TLS', 'False') == 'True'
 
 # Date formatting
 DATE_FORMAT = 'Y-m-d'

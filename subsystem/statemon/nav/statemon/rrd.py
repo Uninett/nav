@@ -46,7 +46,7 @@ def create(filename, netboxid, serviceid=None, handler=""):
     
     if RRDDIR and not os.path.exists(RRDDIR):
         os.mkdir(RRDDIR)
-    tupleFromHell = ('%s' % (os.path.join(RRDDIR,filename)),
+    tupleFromHell = (str(os.path.join(RRDDIR,filename)),
              '-s %s' % step,
              'DS:STATUS:GAUGE:600:0:1',
              'DS:RESPONSETIME:GAUGE:600:0:300',
@@ -103,7 +103,7 @@ def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
     else:
         rrdstatus = 1
     
-    rrdParam = (os.path.join(RRDDIR,filename),
+    rrdParam = (str(os.path.join(RRDDIR,filename)),
             '%s:%i:%s' % (time, rrdstatus, responsetime))
     rrd.update(*rrdParam)
     debug("Updated %s" % filename, 7)

@@ -64,12 +64,8 @@ public class QueryBoks extends Thread
 	// Inneholder alle boksid'er som er av kat=GW
 	public static HashSet boksGwSet;
 
-	// Mapping fra boksid+ifindex swportid i swport
-	public static HashMap swportidMap;
-	public static Set swportNetboxSet;
-
-	// Denne inneholder alle "boksid:ifindex" fra swport som er trunk-porter
-	//public static HashSet boksIfindexTrunkSet;
+	// Mapping from netboxid+ifindex to interfaceid in interface db table
+	public static HashMap interfaceidMap;
 
 	// The set of VLANs who possibly have separate BRIDGE-MIB instances on Cisco devices
 	public static Map vlanBoksid;
@@ -154,7 +150,7 @@ public class QueryBoks extends Thread
 
 	private String getOid(String oidkey) {
 		if (!oidkeys.containsKey(oidkey)) {
-			Log.d("GET_OID", "This device does not support this oidkey: " + oidkey);
+			Log.d("GET_OID", "I don't know this oidkey: " + oidkey);
 			return null;
 		}
 		return (String)oidkeys.get(oidkey);
@@ -191,11 +187,7 @@ public class QueryBoks extends Thread
 			String vendor = bd.vendor;
 			boolean csAtVlan = bd.csAtVlan;
 			boolean cdp = bd.cdp;
-			oidkeys = (Map)oidDb.get(boksId);
-			if (oidkeys == null) {
-				Log.d("RUN", "Missing OID keys for netbox: " + boksId + ", skipping " + sysName);
-				continue;
-			}
+			oidkeys = oidDb;
 
 			sSnmp = SimpleSnmp.simpleSnmpFactory();
 			sSnmp.setHost(ip);
@@ -218,35 +210,21 @@ public class QueryBoks extends Thread
 				}
 				
 				if (kat.equalsIgnoreCase("GW")) {
-					// GW'er behandles annerledes, vi skal oppdatere boksbak og evt. swportbak i gwport
+					// GWs are treated differently; we should update to_netboxid and possibly to_interfaceid on its router ports
 					for (Iterator netboxIt = netboxList.iterator(); netboxIt.hasNext();) {
 						PortBoks pm = (PortBoks)netboxIt.next();
 						String remoteIf = pm.getRemoteIf();
 						
 						if (boksGwSet.contains(pm.getToNetboxid())) continue;
 						
-						String to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
-						if (pm.getRemoteIf() != null && to_swportid == null) {
-							if (swportNetboxSet.contains(pm.getToNetboxid())) {
-								Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-							} else {
-								Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-							}
+						String to_interfaceid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
+						if (pm.getRemoteIf() != null && to_interfaceid == null) {
+							Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
 							continue;
 						}
 
 						// OK, da er vi klar, oppdater gwport!
-						if (boksType.equals("cat6kMsfc") || // MSFC
-							boksType.equals("cat6kMsfc2") || // MSFC1
-							boksType.equals("cisWSX5302") || boksType.equals("Cis-WX5302") ) { // RSM
-							
-							Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE gwportid IN (SELECT gwportid FROM module JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) WHERE netboxid = '"+boksId+"')");
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-							Log.d("RUN", "["+boksType+"] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
-							continue;
-						}
-					
-						Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid = '"+boksId+"') AND ifindex='" + pm.getIfindex() + "'");
+						Database.update("UPDATE interface SET to_netboxid = '"+pm.getToNetboxid()+"', to_interfaceid = "+to_interfaceid+" WHERE netboxid = '"+boksId+"') AND ifindex='" + pm.getIfindex() + "'");
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						
 						Log.d("RUN", "[GW] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
@@ -309,7 +287,7 @@ public class QueryBoks extends Thread
 			for (Iterator netboxIt = netboxList.iterator(); netboxIt.hasNext();) {
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
-				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
+				String new_to_interfaceid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
@@ -317,24 +295,20 @@ public class QueryBoks extends Thread
 				// Dersom boksen bak er nede skal vi ikke endre
 				if (downBoksid.contains(pm.getToNetboxid())) continue;
 
-				if (pm.getRemoteIf() != null && new_to_swportid == null) {
-					if (swportNetboxSet.contains(pm.getToNetboxid())) {
-						Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-					} else {
-						Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-					}
+				if (pm.getRemoteIf() != null && new_to_interfaceid == null) {
+					Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
 				}
 
 				// Sjekk om dette er en duplikat
 				if (swp.contains(key)) {
-					String swp_boksid = null, to_swportid = null;
+					String swp_boksid = null, to_interfaceid = null;
 					int misscnt=0;
 					synchronized (swp_d) {
 						if (swp_d.containsKey(key)) {
 							HashMap hm = (HashMap)swp_d.remove(key);
 							swp_boksid = (String)hm.get("swp_netboxid");
 							misscnt = Integer.parseInt((String)hm.get("misscnt"));
-							to_swportid = (String)hm.get("to_swportid");
+							to_interfaceid = (String)hm.get("to_interfaceid");
 						} else {
 							// Dup
 							continue;
@@ -357,15 +331,15 @@ public class QueryBoks extends Thread
 						swpIncResetMisscnt();
 					}
 
-					if (new_to_swportid != null) {
+					if (new_to_interfaceid != null) {
 						// Nå må vi sjekke om ifindex feltet har endret seg
-						if (!new_to_swportid.equals(to_swportid)) {
+						if (!new_to_interfaceid.equals(to_interfaceid)) {
 							try {
 								if (swp_boksid == null || swp_boksid.length() == 0) {
 									System.err.println("swp_boksid null for " + key + " swp: " + swp.contains(key) + " swp_d: " + swp_d.get(key));
 								}
 								String[] upd = {
-									"to_swportid", new_to_swportid
+									"to_interfaceid", new_to_interfaceid
 								};
 								String[] where = {
 									"swp_netboxid", swp_boksid
@@ -373,14 +347,12 @@ public class QueryBoks extends Thread
 								Database.update("swp_netbox", upd, where);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
-								System.err.println("Update modulbak/portbak in swp_boks, swp_boksid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
+								System.err.println("Update modulbak/portbak in swp_netbox, swp_netboxid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
 								e.printStackTrace(System.err);
 							}
 						}
 					}
 
-					//String s = "T"+id+":    [DUP] Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + ", " + getBoksMacs.boksIdName.get(pm.getBoksId());
-					//printList.add(s);
 					dupCnt++;
 					continue;
 				}
@@ -389,7 +361,6 @@ public class QueryBoks extends Thread
 				synchronized (swp) {
 					swp.add(key);
 				}
-				//outl("T"+id+":    ["+pm.getSource()+"] Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + ", " + getBoksMacs.boksIdName.get(pm.getBoksId()) );
 
 
 				boolean verify1=true, verify2=true;
@@ -398,7 +369,7 @@ public class QueryBoks extends Thread
 						"netboxid", boksId,
 						"ifindex", pm.getIfindex(),
 						"to_netboxid", pm.getToNetboxid(),
-						"to_swportid", new_to_swportid
+						"to_intefaceid", new_to_interfaceid
 					};
 					
 					try {
@@ -556,11 +527,12 @@ public class QueryBoks extends Thread
 			// slik at vi kan sette boksbak og swportbak.
 			if (!boksGwSet.contains(workingOnBoksid) && boksGwSet.contains(pm.getToNetboxid())) {
 				// OK, ikke-gw -> gw
-				String swportid = (String)swportidMap.get(workingOnBoksid+":"+ifindex);
+				String swportid = (String)interfaceidMap.get(workingOnBoksid+":"+ifindex);
 				if (swportid != null) {
 					// Setter boksbak og swportbak for alle matchende interfacer
-					Log.d("PROCESS_CDP", "Updating boksbak("+workingOnBoksid+"), swportbak("+swportid+") for gw: " + boksIdName.get(netboxid)+", rIf: " + remoteIf);
-					Database.update("UPDATE gwport SET to_netboxid = '"+workingOnBoksid+"', to_swportid = '"+swportid+"' WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid='"+netboxid+"') AND interface = '"+remoteIf+"'");
+					Log.d("PROCESS_CDP", "Updating to_netboxid("+workingOnBoksid+"), to_interfaceid("+swportid+") for gw: " + boksIdName.get(netboxid)+", rIf: " + remoteIf);
+					// FIXME: This should probably also update interfaces whose ifDescr matches the remote interface name, since that is what seems to appear in CDP data
+					Database.update("UPDATE interface SET to_netboxid = '"+workingOnBoksid+"', to_interfaceid = '"+swportid+"' WHERE netboxid='"+netboxid+"' AND ifname = '"+remoteIf+"'");
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				}
 			}
@@ -570,7 +542,12 @@ public class QueryBoks extends Thread
 		for (Iterator it = unrecognizedCDP.iterator(); it.hasNext();) {
 			// Write this to netboxinfo
 			String[] s = (String[])it.next();
-			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", s[0], s[1]);
+			String variable = s[0];
+			String value = s[1];
+			if (hasNullBytes(value)) {
+				value = "[Invalid SNMP data: " + bytesToHexString(value.getBytes()) + "]";
+			}
+			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", variable, value);
 		}
 		for (Iterator it = oldUnrecIfind.iterator(); it.hasNext();) {
 			String ifindex = (String)it.next();
@@ -792,7 +769,7 @@ public class QueryBoks extends Thread
 							// Slett eksisterende innslag i databasen
 							try {
 								Log.d("MAC_ENTRY", "All ports on " + boksIdName.get(netboxid) + " are now non-blocking");
-								String sql = "DELETE FROM swportblocked WHERE EXISTS (SELECT swportid FROM swport JOIN module USING(moduleid) WHERE netboxid="+netboxid+" AND swportblocked.swportid=swportid)";
+								String sql = "DELETE FROM swportblocked WHERE EXISTS (SELECT interfaceid FROM interface_swport WHERE netboxid="+netboxid+" AND swportblocked.interfaceid=interfaceid)";
 								if (csAtVlan) sql += " AND vlan='"+vlan+"'";
 								Database.update(sql);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
@@ -847,21 +824,21 @@ public class QueryBoks extends Thread
 							if (ifindex == null) continue;
 								
 							// OK, nå kan vi sjekke om denne eksisterer fra før
-							String swportid = (String)blockedIfind.remove(ifindex);
-							if (swportid == null) {
-								// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
-								swportid = (String)swportidMap.get(netboxid+":"+ifindex);
-								if (swportid != null) {
+							String interfaceid = (String)blockedIfind.remove(ifindex);
+							if (interfaceid == null) {
+								// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i interface
+								interfaceid = (String)interfaceidMap.get(netboxid+":"+ifindex);
+								if (interfaceid != null) {
 									// Find correct vlan
 									String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
 									if (dbVlan == null) {
-										Log.d("MAC_ENTRY", "Netboxid: " + netboxid + " blocked ifindex: " + ifindex + " is missing VLAN for swportid: " + swportid);
+										Log.d("MAC_ENTRY", "Netboxid: " + netboxid + " blocked ifindex: " + ifindex + " is missing VLAN for interfaceid: " + interfaceid);
 										continue;
 									}
-									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode (swportid="+swportid+")");
+									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode (interfaceid="+interfaceid+")");
 									try {
 										String[] ins = {
-											"swportid", swportid,
+											"interfaceid", interfaceid,
 											"vlan", dbVlan
 										};
 										Database.insert("swportblocked", ins);
@@ -872,7 +849,7 @@ public class QueryBoks extends Thread
 										e.printStackTrace(System.err);
 									}
 								} else {
-									Log.d("MAC_ENTRY", "Missing swportid for ifindex " + ifindex + " on boks: " + boksIdName.get(netboxid));
+									Log.d("MAC_ENTRY", "Missing interfaceid for ifindex " + ifindex + " on netbox: " + boksIdName.get(netboxid));
 								}
 							} else {
 								blockedCnt++;
@@ -1133,5 +1110,21 @@ public class QueryBoks extends Thread
 	}
 
 	private static boolean isNetel(String kat) { return getBoksMacs.isNetel(kat); }
+	
+	protected static String bytesToHexString(byte[] bytes) {
+		StringBuffer buffer = new StringBuffer();
+		int[] ints = new int[bytes.length];
+		for (int i=0; i < ints.length; i++) ints[i] = bytes[i] < 0 ? 256 + bytes[i] : bytes[i];
+		for (int i=0; i < ints.length; i++) buffer.append((i>0?":":"")+(ints[i]<16?"0":"")+Integer.toString(ints[i], 16));
+		return buffer.toString();
+	}
+
+	protected static boolean hasNullBytes(String string) {
+		byte[] bytes = string.getBytes();
+		for (int i=0;i<bytes.length;i++) {
+			if (bytes[i] == 0) return true;
+		}
+		return false;
+	}
 
 }

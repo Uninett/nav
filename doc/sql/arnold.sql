@@ -6,7 +6,7 @@ comment VARCHAR
 
 CREATE TABLE identity (
 identityid SERIAL PRIMARY KEY,
-mac VARCHAR NOT NULL, -- MAC-address of computer
+mac MACADDR NOT NULL, -- MAC-address of computer
 blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled' or blocked_status='quarantined'),
 blocked_reasonid INT REFERENCES blocked_reason ON UPDATE CASCADE ON DELETE SET NULL, -- reason of block
 swportid INT NOT NULL, -- FK to swport-table. We find sysname,ip,module and port from this

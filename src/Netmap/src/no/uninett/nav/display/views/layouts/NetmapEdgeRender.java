@@ -25,10 +25,10 @@ public class NetmapEdgeRender extends EdgeRenderer {
 	private Color out_color = ColorLib.getColor(ColorLib.rgb(230,230,230));
 	private Color in_color = ColorLib.getColor(ColorLib.rgb(230,230,230));
 
-	private int lowLevel = 100*1024;
-	private int lowMedLevel = 512*1024;
-	private int medLevel = 1024*1024;
-	private int medHighLevel = 4096*1024;
+	private int lowLevel = 100*1000000;
+	private int lowMedLevel = 512*1000000;
+	private int medLevel = 1024*1000000;
+	private int medHighLevel = 4096*1000000;
 
 	public NetmapEdgeRender() {
 		setEdgeType(Constants.EDGE_TYPE_CURVE);
@@ -51,8 +51,8 @@ public class NetmapEdgeRender extends EdgeRenderer {
 			}
 			if (net_load_in != -1 && net_load_out != -1) {
 
-				double out_percent = net_load_out / (capacity*1024);
-				double in_percent = net_load_in / (capacity*1024);
+				double out_percent = net_load_out / (capacity*1000000);
+				double in_percent = net_load_in / (capacity*1000000);
 				if (Main.getUseRelativeSpeeds().isSelected()) {
 					if (out_percent < 0.3) {
 						out_color = low_load_color;

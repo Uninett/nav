@@ -1,3 +1,42 @@
+Version 3.5.6
+(released 07 April 2010)
+
+Bugfixes:
+
+  * LP#538001 (Inconsistency in ARP records)
+  * LP#540213 (Confusing debug output in Alert Profiles)
+  * LP#451933 (getBoksMacs SQL error: "insufficient data left in message")
+  * LP#390577 (Wrong network sort order in prefix report)
+  * LP#550738 (createdb.sh fails to set schema search path)
+  * LP#551499 (Cricket cron job fails when using default autconf settings)
+
+Version 3.5.5
+(released 16 February 2010)
+
+Bugfixes:
+
+  * LP#383854 (Netmap RRD-values does not look for high speed data)
+  * LP#390606 (Radius-GUI menu-tabs doesn't show)
+  * LP#392475 (No such file or directory: '/etc/nav/rrdBrowser.conf')
+  * LP#395091 (cleanrrds.pl does not support timeformat from gfind)
+  * LP#395185 (Adding new components to a existing maintenance task forces you
+               to create a new task)
+  * LP#410168 (Alert Profiles crashes on filter deletion)
+  * LP#412996 (Invalid Reports URL after login)
+  * LP#416833 (Switch port report's links to machinetracker are faulty)
+  * LP#419750 (Multiple Cheetah templates fail to compile due to wrong
+               encoding)
+  * LP#436589 (Radius link to session-details lead to wrong session)
+  * LP#450279 (UnboundLocalErrors cause smsd crash)
+  * LP#485725 (uninettmaildispatcher plugin throws python NameError on SMTP
+               server error)
+  * LP#485785 (Alertengine requires SMTP server on localhost)
+  * LP#492188 (Missing 404.html - Django error in NAV-3.5.4)
+  * LP#494036 (AlertEngine does not handle inconsistent database state)
+  * LP#515400 (Jabber dispatcher blocks due to hanging jabber-server blocking
+               alertengine)
+  * LP#520505 (Alertengine reinitialises handlers for every send)
+
 Version 3.5.4
 (released 14 May 2009)
 
