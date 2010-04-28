@@ -301,6 +301,10 @@ class JobHandler(object):
             self.logger.exception("Caught exception during save. "
                                   "Last object = %s. Last model: %s",
                                   obj, obj_model)
+            import django.db
+            if django.db.connection.queries:
+                self.logger.error("The last query was: %s", 
+                                  django.db.connection.queries[-1])
             transaction.rollback()
             raise e
 
