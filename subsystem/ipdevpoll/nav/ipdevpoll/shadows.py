@@ -33,6 +33,31 @@ class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
     __lookups__ = ['sysname', 'ip']
 
+    def prepare_for_save(self, containers=None):
+        """Attempts to solve serial number conflicts before savetime.
+
+        Specifically, if another Netbox in the database is registered with the
+        same serial number as this one, we empty this one's serial number to
+        avoid db integrity conflicts.
+
+        """
+        if self.device and self.device.serial:
+            try:
+                other = manage.Netbox.objects.get(
+                    device__serial=self.device.serial)
+            except manage.Netbox.DoesNotExist:
+                pass
+            else:
+                if other.id != self.id:
+                    self._logger.warning(
+                        "Serial number conflict, attempting peaceful "
+                        "resolution (%s): "
+                        "%s [%s] (id: %s) <-> %s [%s] (id: %s)",
+                        self.device.serial, 
+                        self.sysname, self.ip, self.id,
+                        other.sysname, other.ip, other.id)
+                    self.device.serial = None
+
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
 
