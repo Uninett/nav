@@ -4,6 +4,8 @@ import rrdtool
 import time
 import re
 import os
+import tempfile
+from os.path import join
 from optparse import OptionParser
 from subprocess import Popen, PIPE
 from xml.dom.minidom import parseString
@@ -123,7 +125,8 @@ def edit_datasource(rrdfile, name, action):
       x is a number.
     """
 
-    restorefile = '/tmp/rrdtool_utils_restore.xml'
+    tempdir = tempfile.gettempdir()
+    restorefile = join(tempdir, 'rrdtool_utils_restore.xml')
 
     # Check if file exists
     if not os.access(rrdfile, os.F_OK):
