@@ -33,7 +33,7 @@ except:
     CRONDIR = 'cron.d'
     INITDIR = 'init.d'
 else:
-    CRONDIR = os.path.join(nav.buildconf.sysconfdir, 'cron.d')
+    CRONDIR = nav.buildconf.crondir
     INITDIR = nav.buildconf.initdir
     
 class Service(object):
