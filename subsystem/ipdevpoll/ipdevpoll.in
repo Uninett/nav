@@ -4,15 +4,11 @@
 # This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV ipdevpoll daemon
 #
-# Copyright (C) 2006-2009 UNINETT AS
+# Copyright (C) 2006-2010 UNINETT AS
 #
 ####################
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
-localstatedir=@localstatedir@
 user=@nav_user@
 IPDEVPOLLD=${bindir}/ipdevpolld
 
