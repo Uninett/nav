@@ -868,8 +868,8 @@ class entryList:
             result = [currentRow[parseString]]
         elif type(parseString) is str:
             parseString = parseString.replace('{p}',self.basePath)
-            parseString = parseString.replace('{id}',str(currentRow[0]))
-            parseString = parseString.replace('{descr}',str(currentRow[1]))
+            parseString = parseString.replace('{id}',unicode(currentRow[0]))
+            parseString = parseString.replace('{descr}',unicode(currentRow[1]))
             if parseString.find('SELECT') == 0:
                 # This string is a sql query (used by vlan)
                 resultString = ''
@@ -1161,13 +1161,13 @@ class editbox:
             for key,desc in self.fields.items():
                 value = result[keyNumber[key]]
                 if value:
-                    desc[0].value = str(value)
+                    desc[0].value = unicode(value)
         else:
             # Old style filling with forgetsql
             for fieldname,desc in self.fields.items():
                 value = getattr(entry,fieldname)
                 if value:
-                    desc[0].value = str(value)
+                    desc[0].value = unicode(value)
 
     def setControlNames(self,controlList=None):
         """ Set controlnames for the inputs to the same as the fieldnames. """
@@ -1591,7 +1591,7 @@ class seeddbPage:
                         else:
                             fieldData = getattr(entry,field[0])
 
-                    description += string + str(fieldData)
+                    description += string + unicode(fieldData)
             else:
                 # Vanilla description (only the id field)
                 description = "'" + id +"'" 
