@@ -41,13 +41,9 @@ except:
     # below CWD
     CRONDIR = 'cron.d'
     INITDIR = 'init.d'
-    BINDIR = '/usr/local/nav/bin'
-    LOCALSTATEDIR = '/usr/local/nav/var'
 else:
     CRONDIR = os.path.join(nav.path.sysconfdir, 'cron.d')
     INITDIR = nav.path.initdir
-    BINDIR = nav.path.bindir
-    LOCALSTATEDIR = nav.path.localstatedir
     
 class Service(object):
     """ Represents a NAV service in general, and should never be
@@ -275,9 +271,6 @@ class Crontab(object):
             if os.environ.has_key(var):
                 val = os.environ[var]
                 initBlock.append('%s="%s"' % (var, val))
-
-        initBlock.append('BINDIR=' + BINDIR)
-        initBlock.append('LOCALSTATEDIR=' + LOCALSTATEDIR)
 
         # Set up a default MAILTO directive
         mailto='root@localhost'
