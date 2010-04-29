@@ -3450,7 +3450,7 @@ class pagePrefix(seeddbPage):
             orgs = [('','No organisation')]
             for org in manage.Organization.objects.all().order_by('id'):
                 orgs.append((org.id,
-                             "%s (%s)" % (org.id, str(org.description))
+                             u"%s (%s)" % (org.id, unicode(org.description))
                              ))
 
             usageids = [('','No usage')]
