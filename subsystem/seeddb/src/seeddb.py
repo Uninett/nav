@@ -2032,7 +2032,7 @@ class pageNetbox(seeddbPage):
             self.sysname = sysname
             if typeid:
                 self.typename = \
-                    manage.NetboxType.objects.get(id=typeid).typename
+                    manage.NetboxType.objects.get(id=typeid).name
             else:
                 self.typename = 'n/a'
             if snmpversion:

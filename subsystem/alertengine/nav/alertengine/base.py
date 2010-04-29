@@ -24,10 +24,12 @@ import logging
 from datetime import datetime
 
 from django.db import transaction, reset_queries
+from django.utils.functional import memoize
 
 from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, \
         AlertSubscription, AlertAddress, FilterGroup, AlertPreference, TimePeriod
 from nav.models.event import AlertQueue
+
 
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
@@ -104,6 +106,7 @@ def check_alerts(debug=False):
 
 @transaction.commit_on_success
 def handle_new_alerts(new_alerts):
+    memoized_check_alert = memoize(check_alert_against_filtergroupcontents, {}, 2)
     logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
@@ -157,11 +160,11 @@ def handle_new_alerts(new_alerts):
         for alert in new_alerts:
             for alertsubscription, filtergroupcontents in alertsubscriptions:
                 # Check if alert matches, and if user has permission
-                if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
+                if memoized_check_alert(alert, filtergroupcontents, 'match check'):
                     queued = False
 
                     for permission in permissions:
-                        if check_alert_against_filtergroupcontents(alert, permission, type='permission check'):
+                        if memoized_check_alert(alert, permission, 'permission check'):
                             logger.debug("Matched permission subscription %d" % alertsubscription.id)
 
                             # Queue all alerts, avoiding duplicates. The individual users' queues will be processed later.
@@ -186,6 +189,7 @@ def handle_new_alerts(new_alerts):
         del account
         del permissions
 
+    del memoized_check_alert
     del new_alerts
     gc.collect()
 
@@ -335,7 +339,7 @@ def handle_queued_alerts(queued_alerts, now=None):
 
     return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored)
 
-def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
+def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type):
     '''Checks a given alert against an array of filtergroupcontents'''
 
     logger = logging.getLogger('nav.alertengine.check_alert_against_filtergroupcontents')

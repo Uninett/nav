@@ -332,7 +332,8 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
-        return Interface.objects.select_related(depth=2).filter(module=self, gwportprefix__isnull=False)
+        return Interface.objects.select_related(depth=2). \
+            filter(module=self, gwportprefix__isnull=False).distinct()
 
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
