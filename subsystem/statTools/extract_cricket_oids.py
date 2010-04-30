@@ -63,7 +63,7 @@ def main(configpath):
     # Delete the dreaded temperature oids
     for oidkey in ['tempOutlet','tempInlet','tempState']:
         try:
-            s = SnmpOid.objects.get(oid_key=oid, oid_source='Cricket')
+            s = SnmpOid.objects.get(oid_key=oidkey, oid_source='Cricket')
             s.delete()
             print "Deleted %s" %oidkey
         except:
