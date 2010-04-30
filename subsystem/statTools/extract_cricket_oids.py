@@ -59,6 +59,15 @@ def main(configpath):
                         get_next=False)
             s.save()
             inserted += 1
+
+    # Delete the dreaded temperature oids
+    for oidkey in ['tempOutlet','tempInlet','tempState']:
+        try:
+            s = SnmpOid.objects.get(oid_key=oid, oid_source='Cricket')
+            s.delete()
+            print "Deleted %s" %oidkey
+        except:
+            pass
         
     print "Inserted: %s" % inserted
     print "Updated: %s" % updated
