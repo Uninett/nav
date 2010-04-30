@@ -22,6 +22,7 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
+import IPy
 
 from nav.models import manage, oid
 from storage import Shadow
@@ -129,9 +130,56 @@ class Vlan(Shadow):
             if vlan_id:
                 self.id = vlan_id
 
+    def _get_net_type(self, net_type_id, containers):
+        """Returns a storage container for the given net_type id."""
+        n = NetType()
+        n.id = net_type_id
+        return n
+
+    def _guesstimate_net_type(self, containers):
+        """Guesstimates a net type for this VLAN, based on its prefixes.
+
+        Various algorithms may be used (and the database may be queried).
+
+        Returns:
+
+          A NetType storage container, suitable for assignment to
+          Vlan.net_type.
+
+        """
+        prefix_containers = self._get_my_prefixes(containers)
+        # ATM we only look at the first prefix we can find.
+        if prefix_containers:
+            prefix = IPy.IP(prefix_containers[0].net_address)
+        else:
+            return None
+
+        net_type = 'vlan'
+        # Get the number of router ports attached to this prefix
+        port_count = manage.GwPortPrefix.objects.filter(
+            prefix__net_address=str(prefix)).count()
+
+        if prefix.version() == 6 and prefix.prefixlen() == 128:
+            net_type = 'loopback'
+        elif prefix.version() == 4:
+            if prefix.prefixlen() == 32:
+                net_type = 'loopback'
+            elif prefix.prefixlen() == 30:
+                net_type = port_count == 1 and 'elink' or 'link'
+        if port_count > 2:
+            net_type = 'core'
+        elif port_count == 2:
+            net_type = 'link'
+
+        return self._get_net_type(net_type, containers)
+
     def prepare_for_save(self, containers):
         """Prepares this VLAN object for saving."""
         self._find_numberless_vlan_id(containers)
+        if not self.net_type:
+            net_type = self._guesstimate_net_type(containers)
+            if net_type:
+                self.net_type = net_type
 
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix

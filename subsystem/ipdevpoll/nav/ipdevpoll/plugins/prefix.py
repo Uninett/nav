@@ -127,15 +127,10 @@ class Prefix(Plugin):
 
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
-            # TODO: Some of this logic should actually be in a storage class, not in this plugin.
             vlan = self.job_handler.container_factory(shadows.Vlan,
                                                       key=net_prefix)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
-
-            if not vlan.net_type:
-                vlan.net_type = self.guesstimate_net_type(net_prefix)
-                self.logger.debug("VLAN %s TYPE IS: %r", vlan.vlan, vlan.net_type)
 
             prefix.vlan = vlan
 
@@ -164,40 +159,6 @@ class Prefix(Plugin):
                 vlan_ifs[ifindex] = vlan
 
         yield vlan_ifs
-
-    def get_net_type(self, net_type_id):
-        """Return a storage container for the given net_type id."""
-        net_type = self.job_handler.container_factory(
-            shadows.NetType, key=net_type_id)
-        net_type.id = net_type_id
-        return net_type
-
-    def guesstimate_net_type(self, prefix):
-        """Guesstimate a net type for the given prefix.
-
-        Various algorithms may be used (and the database may be
-        queried).
-
-        Arguments:
-
-         prefix -- An IPy.IP object representing the prefix.
-
-        Returns:
-
-          A NetType storage container, suitable for assigment to
-          Vlan.net_type.
-
-        """
-        net_type = 'unknown'
-        if prefix.version() == 6 and prefix.prefixlen() == 128:
-            net_type = 'loopback'
-        elif prefix.version() == 4:
-            if prefix.prefixlen() == 32:
-                net_type = 'loopback'
-            elif prefix.prefixlen() == 30:
-                net_type = 'link'
-
-        return self.get_net_type(net_type)
 
     def error(self, failure):
         """
