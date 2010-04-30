@@ -114,9 +114,12 @@ class Vlan(Shadow):
                 # We just care about the first associated prefix we found
                 return live_prefix.vlan_id
 
-    def get_existing_model(self, containers):
-        """Overriden to provide special handling of looking up
-        existing models via known prefixes.
+    def _find_numberless_vlan_id(self, containers):
+        """Finds and sets pre-existing Vlan primary key value for VLANs that
+        have no VLAN number.
+
+        Without this, a new Vlan entry would be added for unnumbered VLANs on
+        every collection run.
 
         """
         # Magic lookup only if a simple lookup isn't available
@@ -126,9 +129,9 @@ class Vlan(Shadow):
             if vlan_id:
                 self.id = vlan_id
 
-        # We now return to our regular program :P
-        return super(Vlan, self).get_existing_model(containers)
-
+    def prepare_for_save(self, containers):
+        """Prepares this VLAN object for saving."""
+        self._find_numberless_vlan_id(containers)
 
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
