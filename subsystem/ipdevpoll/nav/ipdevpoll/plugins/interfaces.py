@@ -64,6 +64,7 @@ class Interfaces(Plugin):
         df.addCallback(reduce_index)
         df.addCallback(self._retrieve_duplex)
         df.addCallback(self._got_interfaces)
+        df.addCallback(self._get_stack_status)
         df.addCallback(self._check_missing_interfaces)
         df.addErrback(self._error)
         return df
@@ -127,6 +128,52 @@ class Interfaces(Plugin):
 
         interface.netbox = netbox
         return interface
+
+    def _get_stack_status(self, interfaces):
+        """Retrieves data from the ifStackTable and initiates a search for a
+        proper ifAlias value for those interfaces that lack it.
+        
+        """
+        df = self.ifmib.retrieve_columns(['ifStackStatus'])
+        df.addCallback(self._get_ifalias_from_lower_layers, interfaces)
+        return df
+
+    def _get_ifalias_from_lower_layers(self, stackstatus, interfaces):
+        """For each interface without an ifAlias value, attempts to find
+        ifAlias from a lower layer interface.
+
+        By popular convention, some devices are configured with virtual router
+        ports that are conceptually a layer above the physical interface.  The
+        virtual port may have no ifAlias value, but the physical interface may
+        have.  We want an ifAlias value, since it tells us the netident of the
+        router port's network.
+        
+        """
+        layer_map = {}        
+        for index, row in stackstatus.items():
+            (upper, lower) = index
+            if upper > 0 and lower > 0:
+                layer_map[upper] = lower
+
+        ifindex_map = {}
+        for interface in interfaces:
+            ifindex_map[interface.ifindex] = interface
+
+        for interface in interfaces:
+            if interface.ifalias or interface.ifindex not in layer_map:
+                continue
+            lower_ifindex = layer_map[interface.ifindex]
+            if lower_ifindex in ifindex_map:
+                ifalias = ifindex_map[lower_ifindex].ifalias
+                if ifalias:
+                    interface.ifalias = ifalias
+                    self.logger.debug("%s alias set from lower layer %s: %s",
+                                      interface.ifname,
+                                      ifindex_map[lower_ifindex].ifname,
+                                      ifalias)
+
+        return interfaces
+
 
     def _check_missing_interfaces(self, interfaces):
         """Check if any known interfaces are missing from a result set.
