@@ -24,6 +24,8 @@ def main(configpath):
         path = join(configpath, dir)
         for file in os.listdir(path):
             file = join(path, file)
+            if file.endswith('~'):
+                continue
             try:
                 f = open(file, 'r')
             except Exception, e:
