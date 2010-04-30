@@ -1,5 +1,6 @@
 # Common NAV make file rules
 edit = $(SED) \
+        -e 's|@CRICKETDIR[@]|$(CRICKETDIR)|g' \
         -e 's|@VERSION[@]|$(VERSION)|g' \
         -e 's|@bindir[@]|$(bindir)|g' \
         -e 's|@crondir[@]|$(crondir)|g' \

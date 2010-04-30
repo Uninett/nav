@@ -10,6 +10,6 @@ nobase_python_DATA = $(cheetah_TEMPLATES)
 bin_SCRIPTS = bin/logengine.py
 
 config = conf/logger.conf
-EDITFILES = $(config)
+EDITFILES = $(config) $(cron_DATA)
 sysconf_DATA = $(config)
 
