@@ -38,6 +38,9 @@ urlpatterns = patterns('',
         ip_do_search,
         name='machinetracker-ip_short_search'),
 
+    url(r'^ip/\?prefixid=(?P<prefix_id>\d+)$', ip_do_search,
+        name='machinetracker-prefixid_search'),
+
     url(r'^mac/$', mac_search,
         name='machinetracker-mac'),
     url(r'^mac/\?mac=(?P<mac>[a-f\d:]+)&days=(?P<days>\d+)&dns=(?P<dns>\w*)$',
