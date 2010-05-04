@@ -28,7 +28,8 @@ from django.utils.datastructures import SortedDict
 from nav.models.manage import Arp, Cam
 
 from nav.web.machinetracker import forms
-from nav.web.machinetracker.utils import hostname, track_mac, min_max_mac
+from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict,\
+    process_ip_row, track_mac, min_max_mac
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -66,11 +67,7 @@ def ip_do_search(request):
         days = form.cleaned_data['days']
         form_data = form.cleaned_data
 
-        from_ip = IP(from_ip_string)
-        if to_ip_string:
-            to_ip = IP(to_ip_string)
-        else:
-            to_ip = from_ip
+        from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
 
         if 6 in (from_ip.version(), to_ip.version()):
             inactive = False
@@ -88,11 +85,7 @@ def ip_do_search(request):
             ).order_by('ip', 'mac', '-start_time')
 
             row_count = len(result)
-            for row in result:
-                ip = IP(row.ip)
-                if ip not in ip_result:
-                    ip_result[ip] = []
-                ip_result[ip].append(row)
+            ip_result = ip_dict(result)
 
         ip_range = []
         if inactive:
@@ -106,10 +99,7 @@ def ip_do_search(request):
             if ip_key in ip_result:
                 rows = ip_result[ip_key]
                 for row in rows:
-                    if row.end_time > datetime.now():
-                        row.still_active = "Still active"
-                    if dns:
-                        row.dns_lookup = hostname(row.ip) or ""
+                    row = process_ip_row(row, dns)
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
                     tracker[(row.ip, row.mac)].append(row)

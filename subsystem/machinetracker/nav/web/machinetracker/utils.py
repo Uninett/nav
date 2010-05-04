@@ -20,26 +20,47 @@
 import re
 from datetime import date, datetime, timedelta
 from socket import gethostbyaddr, herror
+from IPy import IP
 
 from django.utils.datastructures import SortedDict
 
+_cached_hostname = {}
 def hostname(ip):
-    dns = _Hostname()
     addr = unicode(ip)
-    return dns.lookup(addr)
+    if addr in _cached_hostname:
+        return _cached_hostname[addr]
 
-class _Hostname:
-    cache = {}
+    try:
+        dns = gethostbyaddr(addr)
+    except herror:
+        return False
 
-    def lookup(self, addr):
-        if addr in self.cache:
-            return self.cache[addr]
-        try:
-            dns = gethostbyaddr(addr)
-        except herror:
-            return False
-        self.cache[addr] = dns[0]
-        return dns[0]
+    _cached_hostname[addr] = dns[0]
+    return dns[0]
+
+def from_to_ip(from_ip, to_ip):
+    from_ip = IP(from_ip)
+    if to_ip:
+        to_ip = IP(to_ip)
+    else:
+        to_ip = from_ip
+    return (from_ip, to_ip)
+
+def ip_dict(rows):
+    result = SortedDict()
+    for row in rows:
+        ip = IP(row.ip)
+        if ip not in result:
+            result[ip] = []
+        result[ip].append(row)
+    return result
+
+def process_ip_row(row, dns):
+    if row.end_time > datetime.now():
+        row.still_active = "Still active"
+    if dns:
+        row.dns_lookup = hostname(row.ip) or ""
+    return row
 
 def min_max_mac(mac):
     """If max is shorter than 12 characters we pad the mac with 0 for the
@@ -53,7 +74,6 @@ def min_max_mac(mac):
     mac_min = mac + '0' * (12 - len(mac))
     mac_max = mac + 'f' * (12 - len(mac))
     return (mac_min, mac_max)
-    
 
 def track_mac(keys, resultset, dns):
     """Groups results from Query for the mac_search page.
