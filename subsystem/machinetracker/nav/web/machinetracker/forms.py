@@ -17,8 +17,17 @@
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from IPy import IP
+
 from django import forms
 from django.forms.util import ErrorList
+
+def _check_ip(ip):
+    if ip:
+        try:
+            IP(ip)
+        except ValueError:
+            raise forms.ValidationError(u"Invalid IP address")
 
 class IpTrackerForm(forms.Form):
     # IPAddressField only supports IPv4 as of Django 1.1
@@ -40,6 +49,16 @@ class IpTrackerForm(forms.Form):
             del data['active']
             del data['inactive']
         return data
+
+    def clean_from_ip(self):
+        ip = self.cleaned_data['from_ip']
+        _check_ip(ip)
+        return ip
+
+    def clean_to_ip(self):
+        ip = self.cleaned_data['to_ip']
+        _check_ip(ip)
+        return ip
 
 class MacTrackerForm(forms.Form):
     mac = forms.CharField()
