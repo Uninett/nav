@@ -28,8 +28,7 @@ from django.utils.datastructures import SortedDict
 from nav.models.manage import Arp, Cam
 
 from nav.web.machinetracker import forms
-from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict,\
-    process_ip_row, track_mac, min_max_mac
+from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict, process_ip_row, track_mac, min_max_mac, ProcessInput
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -41,7 +40,7 @@ SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
 
 
 def ip_search(request):
-    if request.GET.has_key('from_ip'):
+    if request.GET.has_key('from_ip') or request.GET.has_key('prefixid'):
         return ip_do_search(request)
     info_dict = {
         'form': forms.IpTrackerForm(),
@@ -54,7 +53,8 @@ def ip_search(request):
     )
 
 def ip_do_search(request):
-    form = forms.IpTrackerForm(request.GET)
+    input = ProcessInput(request.GET).ip()
+    form = forms.IpTrackerForm(input)
     tracker = None
     form_data = {}
     row_count = 0
@@ -137,7 +137,8 @@ def mac_search(request):
     )
 
 def mac_do_search(request):
-    form = forms.MacTrackerForm(request.GET)
+    input = ProcessInput(request.GET).mac()
+    form = forms.MacTrackerForm(input)
     info_dict = {
         'form': form,
         'form_data': None,
@@ -204,7 +205,8 @@ def switch_search(request):
     )
 
 def switch_do_search(request):
-    form = forms.SwitchTrackerForm(request.GET)
+    input = ProcessInput(request.GET).swp()
+    form = forms.SwitchTrackerForm(input)
     info_dict = {
         'form': form,
         'form_data': None,

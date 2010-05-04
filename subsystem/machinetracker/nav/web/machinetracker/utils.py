@@ -24,6 +24,8 @@ from IPy import IP
 
 from django.utils.datastructures import SortedDict
 
+from nav.models.manage import Prefix
+
 _cached_hostname = {}
 def hostname(ip):
     addr = unicode(ip)
@@ -101,3 +103,36 @@ def track_mac(keys, resultset, dns):
             tracker[key] = []
         tracker[key].append(row)
     return tracker
+
+class ProcessInput:
+    def __init__(self, input):
+        self.input = input.copy()
+
+    def __common(self):
+        if not self.input.get('days', False):
+            self.input['days'] = 7
+
+    def __prefix(self):
+        try:
+            ip = Prefix.objects.get(id=self.input['prefixid'])
+        except Prefix.DoesNotExist:
+            return None
+        subnet = IP(ip.net_address)
+        self.input['from_ip'] = unicode(subnet[0])
+        self.input['to_ip'] = unicode(subnet[-1])
+
+    def ip(self):
+        if self.input.get('prefixid', False):
+            self.__prefix()
+        self.__common()
+        if not self.input.get('active', False) and not self.input.get('inactive', False):
+            self.input['active'] = "on"
+        return self.input
+
+    def mac(self):
+        self.__common()
+        return self.input
+
+    def swp(self):
+        self.__common()
+        return self.input
