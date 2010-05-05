@@ -81,17 +81,14 @@ class Box:
         
         snmp = Snmp(identifier, ro, self.snmpversion)
 
-        sql = "select snmpoid from snmpoid where oidkey='typeoid'"
-        connection = nav.db.getConnection("bokser")
-        handle = connection.cursor()
-        handle.execute(sql)
-        oid = handle.fetchone()[0]
-        
-        sysobjectid = snmp.get(oid)
+        sysobjectid_oid = ".1.3.6.1.2.1.1.2.0" # sysobjectid of first agent
+        sysobjectid = snmp.get(sysobjectid_oid)
         
         self.sysobjectid = sysobjectid.lstrip(".")
 
         typeidsql = "select typeid from type where sysobjectid = '%s'"%self.sysobjectid
+        connection = nav.db.getConnection("bokser")
+        handle = connection.cursor()
         handle.execute(typeidsql)
         try:
             typeid = handle.fetchone()[0]
