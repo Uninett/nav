@@ -57,14 +57,14 @@ class IpMib(mibretriever.MibRetriever):
 
         if addr_type == ipv4:
             if addr_len != 4 or len(addr) != 4:
-                raise IndexToIpException("IPv4 address length is not 4: %r" %
-                                         oid)
+                raise IndexToIpException("IPv4 address length is not 4: %r" % 
+                                         (oid,))
             addr_str = ".".join(str(i) for i in addr)
 
         elif addr_type == ipv6:
             if addr_len != 16 or len(addr) != 16:
                 raise IndexToIpException("IPv6 address length is not 16: %r" %
-                                         oid)
+                                         (oid,))
             hex_groups = ["%02x%02x" % (addr[i], addr[i+1])
                           for i in range(0, len(addr), 2)]
             addr_str = ':'.join(hex_groups)

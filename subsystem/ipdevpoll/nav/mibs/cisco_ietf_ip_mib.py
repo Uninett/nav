@@ -17,7 +17,7 @@
 """Implements a MibRetriever for the CISCO-IETF-IP-MIB."""
 from twisted.internet import defer
 
-from nav.mibs.ip_mib import IpMib
+from ip_mib import IpMib
 
 class CiscoIetfIpMib(IpMib):
     """CISCO-IETF-IP-MIB is based on a a draft version of IETF's
