@@ -27,6 +27,7 @@ import IPy
 from nav.models import manage, oid
 from storage import Shadow
 import descrparsers
+import utils
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -70,9 +71,35 @@ class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'name'), 'device']
 
+    def _fix_binary_garbage(self):
+        """Fixes string attributes that appear as binary garbage."""
+
+        if utils.is_invalid_utf8(self.model):
+            self._logger.warn("Invalid value for model: %r", self.model)
+            self.model = repr(self.model)
+        
+    def prepare_for_save(self, containers):
+        self._fix_binary_garbage()
+
 class Device(Shadow):
     __shadowclass__ = manage.Device
     __lookups__ = ['serial']
+
+    def _fix_binary_garbage(self):
+        """Fixes version strings that appear as binary garbage."""
+
+        for attr in ('hardware_version',
+                     'software_version',
+                     'firmware_version',
+                     'serial'):
+            value = getattr(self, attr)
+            if utils.is_invalid_utf8(value):
+                self._logger.warn("Invalid value for %s: %r",
+                                  attr, value)
+                setattr(self, attr, repr(value))
+        
+    def prepare_for_save(self, containers):
+        self._fix_binary_garbage()
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
