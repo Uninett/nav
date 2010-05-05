@@ -26,6 +26,7 @@ import IPy
 
 from nav.models import manage, oid
 from storage import Shadow
+import descrparsers
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -89,6 +90,9 @@ class Category(Shadow):
 class Organization(Shadow):
     __shadowclass__ = manage.Organization
 
+class Usage(Shadow):
+    __shadowclass__ = manage.Usage
+
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
     __lookups__ = ['vlan']
@@ -130,12 +134,6 @@ class Vlan(Shadow):
             if vlan_id:
                 self.id = vlan_id
 
-    def _get_net_type(self, net_type_id, containers):
-        """Returns a storage container for the given net_type id."""
-        n = NetType()
-        n.id = net_type_id
-        return n
-
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
 
@@ -171,12 +169,18 @@ class Vlan(Shadow):
         elif port_count == 2:
             net_type = 'link'
 
-        return self._get_net_type(net_type, containers)
+        return NetType.get(net_type)
 
     def prepare_for_save(self, containers):
-        """Prepares this VLAN object for saving."""
+        """Prepares this VLAN object for saving.
+
+        The data stored in a VLAN object consists much of what can be found
+        from other objects, such as interfaces and prefixes, so the logic in
+        here can becore rather involved.
+
+        """
         self._find_numberless_vlan_id(containers)
-        if not self.net_type:
+        if not self.net_type or self.net_type.id == 'unknown':
             net_type = self._guesstimate_net_type(containers)
             if net_type:
                 self.net_type = net_type
@@ -189,9 +193,66 @@ class GwPortPrefix(Shadow):
     __shadowclass__ = manage.GwPortPrefix
     __lookups__ = ['gw_ip']
 
+    def _parse_description(self, containers):
+        """Parses router port descriptions to find a suitable Organization,
+        netident, usageid and description for this vlan.
+
+        """
+        if (not self.interface or \
+            not self.interface.netbox or \
+            not self.interface.ifalias or \
+            not self.prefix or \
+            not self.prefix.vlan
+            ): 
+            return
+
+        sysname = self.interface.netbox.sysname
+        ifalias = self.interface.ifalias
+        vlan = self.prefix.vlan
+        for parse in (descrparsers.parse_ntnu_convention,
+                      descrparsers.parse_uninett_convention):
+            data = parse(sysname, ifalias)
+            if data:
+                break
+        if not data:
+            self._logger.info("ifalias did not match any known router port "
+                              "description conventions: %s", ifalias)
+            vlan.netident = ifalias
+            return
+
+        if data.get('net_type', None):
+            vlan.net_type = NetType.get(data['net_type'])
+        if data.get('netident', None):
+            vlan.net_ident = data['netident']
+        if data.get('usage', None):
+            vlan.usage = Usage()
+            vlan.usage.id = data['usage']
+            if Usage not in containers:
+                containers[Usage] = {}
+            containers[Usage][vlan.usage.id] = vlan.usage
+        if data.get('comment', None):
+            vlan.description = data['comment']
+        if data.get('org', None):
+            vlan.organization = Organization()
+            vlan.organization.id = data['org']
+            if Organization not in containers:
+                containers[Organization] = {}
+            containers[Organization][vlan.organization.id] = vlan.organization
+
+    def prepare_for_save(self, containers):
+        self._parse_description(containers)
+
 class NetType(Shadow):
     __shadowclass__ = manage.NetType
 
+    @classmethod
+    def get(cls, net_type_id):
+        """Creates a NetType container for the given net_type id."""
+        n = cls()
+        n.id = net_type_id
+        return n
+
+ 
 class SwPortVlan(Shadow):
     __shadowclass__ = manage.SwPortVlan
 
