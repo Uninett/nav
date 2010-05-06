@@ -58,7 +58,7 @@ hg archive -r $REVISION -X '.hg*' $DIST_NAME
 if [ $? -eq 0 ]; then
     # Generate the ./configure script before creating the tarball
     cd $DIST_NAME
-    autoconf
+    ./autogen.sh
     cd ..
 
     echo "Creating tarball ($TARBALL) ..."
