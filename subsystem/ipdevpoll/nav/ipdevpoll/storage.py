@@ -53,6 +53,7 @@ class MetaShadow(type):
         for f in field_names:
             setattr(cls, f, None)
 
+        setattr(cls, '_logger', ipdevpoll.get_class_logger(cls))
         shadowed_classes[shadowclass] = cls
 
 class Shadow(object):
@@ -92,7 +93,6 @@ class Shadow(object):
         inside the object hierarchy.
 
         """
-        self._logger = ipdevpoll.get_class_logger(self.__class__)
         if args:
             obj = args[0]
             if isinstance(obj, self.__class__.__shadowclass__):
