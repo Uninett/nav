@@ -1,2 +1,2 @@
 #!/bin/sh
-./version.sh && aclocal && automake && autoconf
+./version.sh ; aclocal && automake && autoconf
