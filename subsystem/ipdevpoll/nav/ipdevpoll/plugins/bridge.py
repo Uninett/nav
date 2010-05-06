@@ -30,7 +30,7 @@ from twistedsnmp import agentproxy
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 
 class Bridge(Plugin):
     @classmethod
@@ -39,7 +39,7 @@ class Bridge(Plugin):
 
     def handle(self):
         self.logger.debug("Collecting bridge data")
-        self.entity = EntityMib(self.job_handler.agent)
+        self.entity = EntityMib(self.agent)
         self.baseports = {}
 
         df = self.entity.retrieve_alternate_bridge_mibs()
@@ -67,7 +67,7 @@ class Bridge(Plugin):
         with a different community.
 
         """
-        old_agent = self.job_handler.agent
+        old_agent = self.agent
         agent = agentproxy.AgentProxy(
             old_agent.ip, old_agent.port,
             community=community,
@@ -84,7 +84,7 @@ class Bridge(Plugin):
         """
         self.logger.debug("Alternate BRIDGE-MIB instances: %r", result)
 
-        seen_communities = set(self.job_handler.agent.community)
+        seen_communities = set(self.agent.community)
         new_result = []
 
         for descr, community in result:
@@ -102,7 +102,7 @@ class Bridge(Plugin):
                           [b[0] for b in bridgemibs])
 
         # Set up a bunch of instances to poll
-        instances = [ (BridgeMib(self.job_handler.agent), None) ]
+        instances = [ (BridgeMib(self.agent), None) ]
         for descr, community in bridgemibs:
             agent = self._get_alternate_agent(community)
             mib = BridgeMib(agent)
@@ -151,8 +151,7 @@ class Bridge(Plugin):
         for portnum, ifindex in result.items():
             # The index is a single integer
             portnum = portnum[0]
-            interface = self.job_handler.container_factory(storage.Interface, 
-                                                           key=ifindex)
+            interface = self.containers.factory(ifindex, shadows.Interface)
             interface.baseport = portnum
 
         return result

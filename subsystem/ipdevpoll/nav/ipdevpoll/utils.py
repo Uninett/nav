@@ -19,9 +19,13 @@
 from IPy import IP
 
 def binary_mac_to_hex(binary_mac):
-    """Convert a binary string MAC address to hex string."""
+    """Convert a binary string MAC address to hex string.
+
+    Only the first 6 octets will be converted, any more will be
+    ignored.
+    """
     if binary_mac:
-        return ":".join("%02x" % ord(x) for x in binary_mac)
+        return ":".join("%02x" % ord(x) for x in binary_mac[:6])
 
 def truncate_mac(mac):
     """Takes a MAC address on the form xx:xx:xx... of any length and returns
@@ -44,3 +48,18 @@ def find_prefix(ip, prefix_list):
             if not ret or IP(ret.net_address).prefixlen() < sub.prefixlen():
                 ret = p
     return ret
+
+def is_invalid_utf8(string):
+    """Returns True if string is invalid UTF-8.
+
+    If string is not a an str object, or is decodeable as UTF-8, False is
+    returned.
+
+    """
+    if isinstance(string, str):
+        try:
+            string.decode('utf-8')
+        except UnicodeDecodeError, e:
+            return True
+    return False
+

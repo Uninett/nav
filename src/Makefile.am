@@ -12,7 +12,6 @@ subdirs = \
 	Event \
 	eventEngine \
 	getBoksMacs \
-	getDeviceData \
 	networkDiscovery \
 	Logger \
 	NetboxInfo \

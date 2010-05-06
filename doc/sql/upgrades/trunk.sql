@@ -413,6 +413,22 @@ ALTER TABLE module ALTER COLUMN name SET NOT NULL;
 ALTER TABLE module ADD CONSTRAINT module_netboxid_key UNIQUE (netboxid, name);
 
 
+-- Add netbox updating rules to snmpoid
+CREATE RULE reprofile_netboxes_on_snmpoid_insert
+  AS ON INSERT TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
+CREATE RULE reprofile_netboxes_on_snmpoid_update
+  AS ON UPDATE TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
+DELETE FROM netboxsnmpoid;
+ALTER TABLE netboxsnmpoid ALTER COLUMN netboxid SET NOT NULL;
+ALTER TABLE netboxsnmpoid ALTER COLUMN snmpoidid SET NOT NULL;
+
+
 -- Remove product and deviceorder
 ALTER TABLE device DROP COLUMN productid;
 ALTER TABLE device DROP COLUMN deviceorderid;

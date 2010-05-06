@@ -51,7 +51,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
@@ -76,10 +76,11 @@ class Prefix(Plugin):
 
 
         self.logger.debug("Collecting prefixes")
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
 
-        ipmib = IpMib(self.job_handler.agent)
-        ciscoip = CiscoIetfIpMib(self.job_handler.agent)
+        ipmib = IpMib(self.agent)
+        ciscoip = CiscoIetfIpMib(self.agent)
+        ipv6mib = Ipv6Mib(self.agent)
 
         # Retrieve interface names and keep those who match a VLAN
         # naming pattern
@@ -87,82 +88,46 @@ class Prefix(Plugin):
         yield dw
         vlan_interfaces = dw.getResult()
 
-        # Traverse ipAddressTable and cIpAddressTable as more or less
-        # identical tables, but skip the Cisco MIB if the first gives
-        # results.
-        for mib, ifindex_col, prefix_col in (
-            (ipmib, 'ipAddressIfIndex', 'ipAddressPrefix'),
-            (ciscoip, 'cIpAddressIfIndex', 'cIpAddressPrefix'),
-            ):
-            self.logger.debug("Trying address table from %s",
+        # Traverse address tables from IP-MIB, IPV6-MIB and
+        # CISCO-IETF-IP-MIB in that order.
+        addresses = set()
+        for mib in ipmib, ipv6mib, ipmib:
+            self.logger.debug("Trying address tables from %s",
                               mib.mib['moduleName'])
-            df = mib.retrieve_columns((ifindex_col, prefix_col))
-            dw = defer.waitForDeferred(df)
-            yield dw
+            waiter = defer.waitForDeferred(mib.get_interface_addresses())
+            yield waiter
+            new_addresses = waiter.getResult()
+            addresses.update(new_addresses)
 
-            addresses = dw.getResult()
-
-            for index, row in addresses.items():
-                ip = ipmib.address_index_to_ip(index)
-                if not ip:
-                    continue
-
-                prefix = ipmib.prefix_index_to_ip(row[prefix_col])
-                ifindex = row[ifindex_col]
-
-                self.create_containers(netbox, ifindex, prefix, ip, 
-                                       vlan_interfaces)
-            
-        self.logger.debug("Trying original ipAddrTable")
-        df = ipmib.retrieve_columns(('ipAdEntIfIndex',
-                                     'ipAdEntAddr',
-                                     'ipAdEntNetMask'))
-        dw = defer.waitForDeferred(df)
-        yield dw
-
-        result = dw.getResult()
-
-        for row in result.values():
-            ip = IP(row['ipAdEntAddr'])
-            ifindex = row['ipAdEntIfIndex']
-            net_prefix = ip.make_net(row['ipAdEntNetMask'])
-
-            self.create_containers(netbox, ifindex, net_prefix, ip, 
+        for ifindex, ip, prefix in addresses:
+            self.create_containers(netbox, ifindex, prefix, ip,
                                    vlan_interfaces)
 
 
-    def create_containers(self, netbox, ifindex, net_prefix, ip, 
+    def create_containers(self, netbox, ifindex, net_prefix, ip,
                           vlan_interfaces):
         """
         Utitilty method for creating the shadow-objects
         """
-        interface = self.job_handler.container_factory(storage.Interface, key=ifindex)
+        interface = self.containers.factory(ifindex, shadows.Interface)
         interface.ifindex = ifindex
         interface.netbox = netbox
 
         # No use in adding the GwPortPrefix unless we actually found a prefix
         if net_prefix:
-            port_prefix = self.job_handler.container_factory(
-                storage.GwPortPrefix, key=ip)
+            port_prefix = self.containers.factory(ip, shadows.GwPortPrefix)
             port_prefix.interface = interface
             port_prefix.gw_ip = str(ip)
 
-            prefix = self.job_handler.container_factory(storage.Prefix, 
-                                                        key=net_prefix)
+            prefix = self.containers.factory(net_prefix, shadows.Prefix)
             prefix.net_address = str(net_prefix)
             port_prefix.prefix = prefix
 
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
-            # TODO: Some of this logic should actually be in a storage class, not in this plugin.
-            vlan = self.job_handler.container_factory(storage.Vlan, 
-                                                      key=net_prefix)
+            vlan = self.containers.factory(net_prefix, shadows.Vlan)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
-
-            if not vlan.net_type:
-                vlan.net_type = self.guesstimate_net_type(net_prefix)
-                self.logger.debug("VLAN %s TYPE IS: %r", vlan.vlan, vlan.net_type)
 
             prefix.vlan = vlan
 
@@ -178,53 +143,19 @@ class Prefix(Plugin):
           A deferred whose result is a dictionary: { ifindex: vlan }
 
         """
-        ifmib = IfMib(self.job_handler.agent)
+        ifmib = IfMib(self.agent)
         dw = defer.waitForDeferred(ifmib.retrieve_column('ifName'))
         yield dw
         interfaces = reduce_index(dw.getResult())
 
-        vlan_ifs = {}        
+        vlan_ifs = {}
         for ifindex, ifname in interfaces.items():
             match = VLAN_PATTERN.match(ifname)
             if match:
                 vlan = int(match.group('vlan'))
                 vlan_ifs[ifindex] = vlan
-        
+
         yield vlan_ifs
-
-    def get_net_type(self, net_type_id):
-        """Return a storage container for the given net_type id."""
-        net_type = self.job_handler.container_factory(
-            storage.NetType, key=net_type_id)
-        net_type.id = net_type_id
-        return net_type
-
-    def guesstimate_net_type(self, prefix):
-        """Guesstimate a net type for the given prefix.
-
-        Various algorithms may be used (and the database may be
-        queried).  
-
-        Arguments:
-
-         prefix -- An IPy.IP object representing the prefix.
-
-        Returns:
-
-          A NetType storage container, suitable for assigment to
-          Vlan.net_type.
-
-        """
-        net_type = 'unknown'
-        if prefix.version() == 6 and prefix.prefixlen() == 128:
-            net_type = 'loopback'
-        elif prefix.version() == 4:
-            if prefix.prefixlen() == 32:
-                net_type = 'loopback'
-            elif prefix.prefixlen() == 30:
-                net_type = 'link'
-
-        return self.get_net_type(net_type)
 
     def error(self, failure):
         """

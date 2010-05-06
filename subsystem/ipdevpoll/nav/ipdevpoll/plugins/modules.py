@@ -14,12 +14,15 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""ipdevpoll plugin to collect module information from ENTITY-MIB.
+"""ipdevpoll plugin to collect chassis and module information from ENTITY-MIB.
 
 This will collect anything that looks like a field-replaceable module
 with a serial number from the entPhysicalTable.  If a module has a
 name that can be interpreted as a number, it will have its
 module_number field set to this number.
+
+The chassis device will have its serial number and hw/sw/fw-version
+set from the same MIB.
 
 entAliasMappingTable is collected; mappings between any physical
 entity and an interface from IF-MIB is kept.  For each mapping found,
@@ -34,9 +37,9 @@ from datetime import datetime
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.mibs.entity_mib import EntityMib
+from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.models import manage
 
 class Modules(Plugin):
@@ -51,13 +54,14 @@ class Modules(Plugin):
     @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting ENTITY-MIB module data")
-        entitymib = EntityMib(self.job_handler.agent)
+        entitymib = EntityMib(self.agent)
 
         dw = defer.waitForDeferred(entitymib.retrieve_table('entPhysicalTable'))
         yield dw
         physical_table = entitymib.translate_result(dw.getResult())
 
-        dw = defer.waitForDeferred(entitymib.retrieve_column('entAliasMappingIdentifier'))
+        dw = defer.waitForDeferred(
+            entitymib.retrieve_column('entAliasMappingIdentifier'))
         yield dw
         alias_mapping = dw.getResult()
 
@@ -75,56 +79,80 @@ class Modules(Plugin):
             failure = Failure(exc)
         self.deferred.errback(failure)
 
-
-    def _process_entities(self, result):
-        """Process the list of collected entities."""
-        def device_from_entity(ent):
-            device = self.job_handler.container_factory(
-                storage.Device, key=ent['entPhysicalSerialNum'])
-            device.serial = ent['entPhysicalSerialNum'].strip()
-            if ent['entPhysicalHardwareRev']:
-                device.hardware_version = ent['entPhysicalHardwareRev'].strip()
-            if ent['entPhysicalSoftwareRev']:
-                device.software_version = ent['entPhysicalSoftwareRev'].strip()
-            if ent['entPhysicalFirmwareRev']:
-                device.firmware_version = ent['entPhysicalFirmwareRev'].strip()
-            device.active = True
-            return device
-
-        def module_from_entity(ent):
-            module = self.job_handler.container_factory(
-                storage.Module, key=ent['entPhysicalSerialNum'])
-            module.netbox = netbox
-            module.model = ent['entPhysicalModelName'].strip()
-            module.description = ent['entPhysicalDescr'].strip()
-            module.up = "y"
-            module.name = ent['entPhysicalName'].strip()
-            if module.name.strip().isdigit():
-                module.module_number = int(module.name.strip())
-            module.parent = None
-            return module
-
-        ###
-
-        # be able to look up all entities using entPhysicalIndex
-        entities = EntityTable(result)
+    def _device_from_entity(self, ent):
+        serial_column = 'entPhysicalSerialNum'
+        if serial_column in ent and ent[serial_column] and \
+            ent[serial_column].strip():
+            serial_number = ent[serial_column].strip()
+            device_key = serial_number
+        else:
+            serial_number = None
+            device_key = 'unknown-%s' % ent[0]
         
+        device = self.containers.factory(device_key, shadows.Device)
+        if serial_number:
+            device.serial = serial_number
+        if ent['entPhysicalHardwareRev']:
+            device.hardware_version = ent['entPhysicalHardwareRev'].strip()
+        if ent['entPhysicalSoftwareRev']:
+            device.software_version = ent['entPhysicalSoftwareRev'].strip()
+        if ent['entPhysicalFirmwareRev']:
+            device.firmware_version = ent['entPhysicalFirmwareRev'].strip()
+        device.active = True
+        return device
+
+    def _module_from_entity(self, ent):
+        module = self.containers.factory(ent['entPhysicalSerialNum'],
+                                         shadows.Module)
+        netbox = self.containers.factory(None, shadows.Netbox)
+
+        module.netbox = netbox
+        module.model = ent['entPhysicalModelName'].strip()
+        module.description = ent['entPhysicalDescr'].strip()
+        module.up = "y"
+        module.name = ent['entPhysicalName'].strip()
+        if module.name.strip().isdigit():
+            module.module_number = int(module.name.strip())
+        module.parent = None
+        return module
+
+    def _process_modules(self, entities):
         # map entity indexes to module containers
         module_containers = {}
-
         modules = entities.get_modules()
-        ports = entities.get_ports()
-        netbox = self.job_handler.container_factory(storage.Netbox, key=None)
-        
         for ent in modules:
             entity_index = ent[0]
-            device = device_from_entity(ent)
-            module = module_from_entity(ent)
+            device = self._device_from_entity(ent)
+            module = self._module_from_entity(ent)
             module.device = device
 
             module_containers[entity_index] = module
-            self.logger.debug("module (entPhysIndex=%s): %r", entity_index, module)
+            self.logger.debug("module (entPhysIndex=%s): %r", 
+                              entity_index, module)
 
+        return module_containers
+
+    def _process_chassis(self, entities):
+        chassis = entities.get_chassis()
+        if not chassis:
+            self.logger.info('No chassis found')
+            return
+        elif len(chassis) > 1:
+            self.logger.info('Found multiple chassis')
+
+        # We don't really know how to handle a multiple chassis
+        # situation.  Best effort is to use the first one in the list.
+        # This should be revised by someone who has stacked chassis
+        # devices to test on.
+        the_chassis = chassis[0]
+        device = self._device_from_entity(the_chassis)
+        netbox = self.containers.factory(None, shadows.Netbox)
+        netbox.device = device
+
+    def _process_ports(self, entities, module_containers):
+        ports = entities.get_ports()
+        netbox = self.containers.factory(None, shadows.Netbox) 
+        
         # Map interfaces to modules, if possible
         module_ifindex_map = {} #just for logging debug info
         for port in ports:
@@ -136,8 +164,8 @@ class Modules(Plugin):
                     module = module_containers[ module_entity[0] ]
                     indices = self.alias_mapping[entity_index]
                     for ifindex in indices:
-                        interface = self.job_handler.container_factory(
-                            storage.Interface, key=ifindex)
+                        interface = self.containers.factory(ifindex,
+                                                            shadows.Interface)
                         interface.netbox = netbox
                         interface.ifindex = ifindex
                         interface.module = module
@@ -150,6 +178,17 @@ class Modules(Plugin):
         if module_ifindex_map:
             self.logger.debug("module/ifindex mapping: %r", 
                               module_ifindex_map)
+
+
+    def _process_entities(self, result):
+        """Process the list of collected entities."""
+        # be able to look up all entities using entPhysicalIndex
+        entities = EntityTable(result)
+
+        module_containers = self._process_modules(entities)
+        self._process_chassis(entities)
+        self._process_ports(entities, module_containers)
+
 
     def _process_alias_mapping(self, alias_mapping):
         mapping = {}
@@ -164,62 +203,4 @@ class Modules(Plugin):
         self.logger.debug("alias mapping: %r", mapping)
         return mapping
 
-
-class EntityTable(dict):
-    """Represent the contents of the entPhysicalTable as a dictionary"""
-    def __init__(self, mibresult):
-        # want single integers, not oid tuples as keys/indexes
-        super(EntityTable, self).__init__()
-        for row in mibresult.values():
-            index = row[0][0]
-            row[0] = index
-            self[index] = row
-
-    def is_module(self, e):
-        return e['entPhysicalClass'] == 'module' and \
-            e['entPhysicalIsFRU'] and \
-            e['entPhysicalSerialNum']
-
-    def is_port(self, e):
-        return e['entPhysicalClass'] == 'port'
-
-    def get_modules(self):
-        """Return the subset of entities that are modules.
-
-        A module is defined as an entity with class=module, being a
-        field replaceable unit and having a non-empty serial number.
-
-        Return value is a list of table rows.
-
-        """
-
-        modules = [entity for entity in self.values()
-                   if self.is_module(entity)]
-        return modules
-
-    def get_ports(self):
-        """Return the subset of entities that are physical ports.
-
-        A port is defined as en entity class=port.
-
-        Return value is a list of table rows.
-
-        """
-        ports = [entity for entity in self.values()
-                 if self.is_port(entity)]
-        return ports
-
-    def get_nearest_module_parent(self, entity):
-        """Traverse the entity hierarchy to find a suitable parent module.
-
-        Returns a module row if a parent is found, else None is returned.
-
-        """
-        parent_index = entity['entPhysicalContainedIn']
-        if parent_index in self:
-            parent = self[parent_index]
-            if self.is_module(parent):
-                return parent
-            else:
-                return self.get_nearest_module_parent(parent)
 

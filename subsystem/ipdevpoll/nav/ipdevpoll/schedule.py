@@ -19,18 +19,22 @@
 import logging
 import pprint
 import time
+import datetime
 
 from twisted.internet import reactor, defer, task, threads
 from twistedsnmp import snmpprotocol, agentproxy
 
+import nav.models
 import django.db.models.fields.related
 from django.db import transaction
-
 
 from nav.util import round_robin
 from nav import ipdevpoll, toposort
 from nav.ipdevpoll.plugins import plugin_registry
 import storage
+import shadows
+import jobs
+from dataloader import NetboxLoader
 
 logger = logging.getLogger(__name__)
 ports = round_robin([snmpprotocol.port() for i in range(10)])
@@ -50,7 +54,7 @@ class JobHandler(object):
         self.name = name
         self.netbox = netbox
 
-        instance_name = (self.name, "[%s]" % netbox.sysname)
+        instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
         self.logger = \
             ipdevpoll.get_instance_logger(self, ".".join(instance_name))
@@ -61,11 +65,11 @@ class JobHandler(object):
         self.logger.debug("Job %r initialized with plugins: %r",
                           self.name, self.plugins)
         self.plugin_iterator = iter([])
-        self.containers = {}
+        self.containers = storage.ContainerRepository()
         self.storage_queue = []
 
         # Initialize netbox in container
-        nb = self.container_factory(storage.Netbox, key=None)
+        nb = self.container_factory(shadows.Netbox, key=None)
         nb.id = netbox.id
 
         port = ports.next()
@@ -94,76 +98,124 @@ class JobHandler(object):
 
             # Check if plugin wants to handle the netbox at all
             if plugin_class.can_handle(self.netbox):
-                plugin = plugin_class(self.netbox, job_handler=self)
+                plugin = plugin_class(self.netbox, agent=self.agent,
+                                      containers=self.containers)
                 plugins.append(plugin)
             else:
                 self.logger.debug("Plugin %s wouldn't handle %s",
                                   plugin_name, self.netbox.sysname)
 
         if not plugins:
-            self.logger.warning("No plugins for this job")
+            self.logger.debug("No plugins for this job")
             return
 
         self.logger.debug("Plugins to call: %s",
                           ",".join([p.name() for p in plugins]))
 
-        self.plugin_iterator = iter(plugins)
+        return plugins
 
+    @defer.deferredGenerator
     def run(self):
         """Start a polling run against a netbox and retun a deferred."""
+        plugins = self.find_plugins()
+        self._reset_timers()
+        if not plugins:
+            return
 
-        self.logger.info("Starting polling run")
-        self.find_plugins()
-        self.deferred = defer.Deferred()
+        self.logger.info("Starting job %r for %s", 
+                         self.name, self.netbox.sysname)
 
-        # Hop on to the first plugin
-        self._nextplugin()
-        return self.deferred
+        for plugin_instance in plugins:
+            self.logger.debug("Now calling plugin: %s", plugin_instance)
+            
+            self._start_plugin_timer(plugin_instance)
+            plugin_df = plugin_instance.handle()
+            waiter = defer.waitForDeferred(plugin_df)
+            yield waiter
+            self._stop_plugin_timer()
+            if self._handle_errors(waiter, plugin_instance):
+                return
 
-    def _nextplugin(self, result=None):
-        """Callback that advances to the next plugin in the sequence."""
-        try:
-            self.current_plugin = self.plugin_iterator.next()
-        except StopIteration:
-            return self._done()
-        else:
-            self.logger.debug("Now calling plugin: %s", self.current_plugin)
-            df = self.current_plugin.handle()
-            # Make sure we advance to next plugin when this one is done
-            df.addCallback(self._nextplugin)
-            df.addErrback(self._error)
+        waiter = defer.waitForDeferred(self.save_container())
+        yield waiter
+        waiter.getResult()
 
-    def _error(self, failure):
-        """Error callback that handles plugin failures."""
-        if failure.check(ipdevpoll.FatalPluginError):
-            # Handle known exceptions from plugins
-            self.logger.error("Aborting poll run due to error in plugin "
-                              "%s: %s",
-                              self.current_plugin, failure.getErrorMessage())
-        else:
-            # For unknown failures we dump a traceback.  The
-            # JobHandler will eat all plugin errors to protect the
-            # daemon process.
-            self.logger.error("Aborting poll run due to unknown error in "
-                              "plugin %s\n%s",
-                              self.current_plugin, failure.getTraceback())
+        self._log_timings()
+        self.logger.info("Job %r done", self.name)
+        
+    def _handle_errors(self, waiter, plugin):
+        """Handles and logs errors in plugins.
 
-        # FIXME why is this commented out?
-        #self.deferred.errback(err)
-        #return self.deferred
+        Arguments:
+          waiter -- a deferredWaiter whose result will be checked.
+          plugin -- the current plugin instance.
 
-    def _done(self):
-        """Performs internal cleanup and callback firing.
-
-        This is called after successful poll run.
+        Returns: True if there was an error, False it everything was ok.
 
         """
-        self.save_container()
-        self.logger.info("Job done")
+        error_template = "Job %r aborted for %s due to " % (self.name, 
+                                                            self.netbox.sysname)
+        try:
+            result = waiter.getResult()
+            return False
 
-        # Fire the callback chain
-        self.deferred.callback(self)
-        return self.deferred
+        except ipdevpoll.FatalPluginError, err:
+            # Plugin encountered a fatal exception
+            self.logger.error("%s fatal error in plugin %s: %s",
+                              error_template, plugin, err)
+
+        except defer.TimeoutError, err:
+            # Plugin encountered a Timeout that it didn't handle itself.
+            self.logger.error("%s a TimeoutError in plugin %s: %s",
+                              error_template, plugin, err)
+            
+        except Exception, err:
+            self.logger.exception("%s unhandled error in plugin %s: %s", 
+                                  error_template, plugin, type(err))
+
+        return True
+
+    def _reset_timers(self):
+        self._start_time = datetime.datetime.now()
+        self._plugin_times = []
+
+    def _start_plugin_timer(self, plugin):
+        timings = [plugin.__class__.__name__, datetime.datetime.now()]
+        self._plugin_times.append(timings)
+
+    def _stop_plugin_timer(self):
+        timings = self._plugin_times[-1]
+        timings.append(datetime.datetime.now())
+
+    def _log_timings(self):
+        stop_time = datetime.datetime.now()
+        job_total = stop_time-self._start_time
+
+        times = [(plugin, stop-start)
+                 for (plugin, start, stop) in self._plugin_times]
+        plugin_total = sum((i[1] for i in times), datetime.timedelta(0))
+        
+        times.append(("Plugin total", plugin_total))
+        times.append(("Job total", job_total))
+        times.append(("Job overhead", job_total - plugin_total))
+
+        log_text = []
+        longest_label = max(len(i[0]) for i in times)
+        format = "%%-%ds: %%s" % longest_label
+
+        for plugin, delta in times:
+            log_text.append(format % (plugin, delta))
+
+        dashes = "-" * max(len(i) for i in log_text)
+        log_text.insert(-3, dashes)
+        log_text.insert(-2, dashes)
+
+        log_text.insert(0, "Job %r timings for %s:" % 
+                        (self.name, self.netbox.sysname))
+
+        logger = ipdevpoll.get_instance_logger(self, "timings")
+        logger.debug("\n".join(log_text))
+
 
     @defer.deferredGenerator
     def save_container(self):
@@ -173,17 +225,32 @@ class JobHandler(object):
         are stored.
         """
 
+        # Prepare all shadow objects for storage.
+        df = threads.deferToThread(self.prepare_containers_for_save)
+        dw = defer.waitForDeferred(df)
+        yield dw
+        dw.getResult()
+
         # Traverse all the objects in the storage container and generate
         # the storage queue
-        # Actually save to the database
         df = threads.deferToThread(self.populate_storage_queue)
         dw = defer.waitForDeferred(df)
         yield dw
+        dw.getResult()
 
+        # Actually save to the database
         df = threads.deferToThread(self.perform_save)
         df.addCallback(self.log_timed_result, "Storing to database complete")
         dw = defer.waitForDeferred(df)
         yield dw
+        dw.getResult()
+
+    def prepare_containers_for_save(self):
+        """
+        Execute the prepare_for_save-method on all known shadow instances
+        """
+        for cls in self.containers.keys():
+            cls.prepare_for_save(self.containers)
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)
@@ -195,12 +262,11 @@ class JobHandler(object):
             self.storage_queue.reverse()
             if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
                 self.queue_logger.debug(pprint.pformat(
-                        [(id(o), o) 
-                         for o in self.storage_queue]))
-                                        
+                        [(id(o), o) for o in self.storage_queue]))
+
             while self.storage_queue:
                 obj = self.storage_queue.pop()
-                obj_model = obj.get_model()
+                obj_model = obj.convert_to_model(self.containers)
                 if obj.delete and obj_model:
                         obj_model.delete()
                 else:
@@ -227,14 +293,18 @@ class JobHandler(object):
             total_time = (end_time - start_time) * 1000.0
 
             if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self.queue_logger.debug("containers after save: %s", 
+                self.queue_logger.debug("containers after save: %s",
                                         pprint.pformat(self.containers))
- 
+
             return total_time
         except Exception, e:
             self.logger.exception("Caught exception during save. "
                                   "Last object = %s. Last model: %s",
                                   obj, obj_model)
+            import django.db
+            if django.db.connection.queries:
+                self.logger.error("The last query was: %s", 
+                                  django.db.connection.queries[-1])
             transaction.rollback()
             raise e
 
@@ -252,127 +322,183 @@ class JobHandler(object):
                 shadows = self.containers[shadow_class].values()
                 self.storage_queue.extend(shadows)
 
-    def traverse_all_instances(self):
-        for key in self.containers.keys():
-            for instance in  self.containers[key].values():
-                if instance in self.storage_queue:
-                    continue
-                l = self.traverse_instance_for_storage(instance, self.storage_queue)
-                self.storage_queue.extend([r for r in l if r not in self.storage_queue])
-
-    def traverse_instance_for_storage(self, instance, storage_queue):
-        try:
-            storage_queue.insert(0, instance)
-
-            for field in instance.__class__._fields:
-                t = instance.__class__.__shadowclass__._meta.get_field(field)
-                if issubclass(t.__class__, django.db.models.fields.related.ForeignKey):
-                    if t.rel.to in storage.shadowed_classes:
-                        if not storage.shadowed_classes[t.rel.to] in self.containers:
-                            pass
-                        else:
-                            # If the foreignkey is not None, then traverse that object as well
-                            if not getattr(instance, field):
-                                continue
-                            if getattr(instance, field) in self.containers[storage.shadowed_classes[t.rel.to]].values():
-                                storage_queue = self.traverse_instance_for_storage(getattr(instance, field), storage_queue)
-        except Exception, e:
-            self.logger.exception("Unhandled exception while traversing "
-                                  "storage queue.  locals: %r",
-                                  locals())
-        return storage_queue
-
-
     def container_factory(self, container_class, key):
         """Container factory function"""
-        if not issubclass(container_class, storage.Shadow):
-            raise ValueError("%s is not a shadow container class" % container_class)
-
-        if container_class not in self.containers or \
-                key not in self.containers[container_class]:
-
-            obj = container_class()
-            if container_class not in self.containers:
-                self.containers[container_class] = {}
-            self.containers[container_class][key] = obj
-
-        else:
-            obj = self.containers[container_class][key]
-
-        return obj
+        return self.containers.factory(key, container_class)
 
 
-class Schedule(object):
+class NetboxScheduler(object):
+    """Netbox job schedule handler.
 
-    """Netbox polling schedule handler.
-
-    Does not employ task.LoopingCall because we want to reschedule at
-    the end of each JobHandler, not run the handler at fixed times.
+    An instance of this class takes care of scheduling, running and
+    rescheduling of a single JobHandler for a single netbox.
 
     """
 
     ip_map = {}
     """A map of ip addresses there are currently active JobHandlers for.
 
-    Scheduling will not allow simultaineous runs against the same IP
+    Scheduling will not allow simultaneous runs against the same IP
     address, so as to not overload the SNMP agent at that address.
 
     key: value  -->  str(ip): JobHandler instance
     """
-    INTERVAL = 3600.0 # seconds
+
+    deferred_map = {} # Map active JobHandlers' deferred objects
+
+    DEFAULT_INTERVAL = 3600.0 # seconds
 
 
     def __init__(self, jobname, netbox, interval=None, plugins=None):
         self.jobname = jobname
         self.netbox = netbox
         self.logger = \
-            ipdevpoll.get_instance_logger(self, "%s.[%s]" % 
+            ipdevpoll.get_instance_logger(self, "%s.(%s)" % 
                                           (self.jobname, netbox.sysname))
 
         self.plugins = plugins or []
-        self.interval = interval or self.INTERVAL
+        self.interval = interval or self.DEFAULT_INTERVAL
+        self.active = True
 
     def start(self):
         """Start polling schedule."""
-        return self._do_poll()
+        self.loop = task.LoopingCall(self.run_job)
+        deferred = self.loop.start(interval=self.interval, now=True)
+        return deferred
 
-    def _reschedule(self, dummy=None):
-        self.delayed = reactor.callLater(self.interval, self._do_poll)
-        self.logger.debug("Rescheduling job %r for %s in %s seconds",
-                          self.jobname, self.netbox.sysname, self.interval)
-        return dummy
+    def cancel(self):
+        """Cancel scheduling of this job for this box.
 
-    def _map_cleanup(self, handler):
-        """Remove a handler from the ip map."""
-        if handler.netbox.ip in Schedule.ip_map:
-            del Schedule.ip_map[handler.netbox.ip]
-        return handler
+        Future runs will not be scheduled after this."""
+        self.loop.stop()
+        self.logger.debug("Job %r cancelled for %s",
+                          self.jobname, self.netbox.sysname)
 
-    def _do_poll(self, dummy=None):
+    def _map_cleanup(self, _, job_handler):
+        """Remove a JobHandler from internal data structures."""
+        if job_handler.netbox.ip in NetboxScheduler.ip_map:
+            del NetboxScheduler.ip_map[job_handler.netbox.ip]
+        if job_handler in self.deferred_map:
+            del self.deferred_map[job_handler]
+        return job_handler
+
+    def run_job(self, dummy=None):
         ip = self.netbox.ip
-        if ip in Schedule.ip_map:
-            # We won't start a runhandler now because a runhandler is
+        if ip in NetboxScheduler.ip_map:
+            # We won't start a JobHandler now because a JobHandler is
             # already polling this IP address.
-            other_handler = Schedule.ip_map[ip]
-            self.logger.info("schedule clash: waiting for run for %s to "
-                             "finish before starting run for %s",
-                             other_handler.netbox, self.netbox)
-            if id(self.netbox) == id(other_handler.netbox):
-                self.logger.debug("Clashing instances are identical")
+            other_job_handler = NetboxScheduler.ip_map[ip]
+            self.logger.info(
+                "Job %r is still running for %s, waiting for it to finish "
+                "before starting %r",
+                other_job_handler.name, self.netbox.sysname,
+                self.jobname)
+            if id(self.netbox) == id(other_job_handler.netbox):
+                self.logger.debug(
+                    "other job is working on an identical netbox instance")
 
             # Reschedule this function to be called as soon as the
-            # other runhandler is finished
-            other_handler.deferred.addCallback(self._do_poll)
+            # other JobHandler is finished
+            self.deferred_map[other_job_handler].addCallback(self.run_job)
         else:
             # We're ok to start a polling run.
-            handler = JobHandler(self.jobname, self.netbox, plugins=self.plugins)
-            Schedule.ip_map[ip] = handler
-            deferred = handler.run()
-            # Make sure to remove from map and reschedule next run as
-            # soon as this one is over.
-            deferred.addCallback(self._map_cleanup)
-            deferred.addCallback(self._reschedule)
-        return dummy
+            job_handler = JobHandler(self.jobname, self.netbox, 
+                                     plugins=self.plugins)
+            NetboxScheduler.ip_map[ip] = job_handler
+            deferred = job_handler.run()
+            self.deferred_map[job_handler] = deferred
+            # Make sure to remove from ip_map as soon as this run is over
+            deferred.addCallback(self._map_cleanup, job_handler)
+            deferred.addCallback(self._log_time_to_next_run)
+
+            deferred.addErrback(self._job_error_handler, job_handler)
+            deferred.addErrback(self._map_cleanup, job_handler)
+            deferred.addErrback(self._log_time_to_next_run)
+
+    def _job_error_handler(self, failure, job_handler):
+        self.logger.exception(
+            "Unhandled exception raised by JobHandler: %s\n%s",
+            failure.getErrorMessage(),
+            failure.getTraceback()
+            )
+        return failure
+
+    def _log_time_to_next_run(self, thing=None):
+        if hasattr(self.loop, 'call') and self.loop.call is not None:
+            next_call = self.loop.call
+            next_time = datetime.datetime.fromtimestamp(next_call.getTime())
+            self.logger.debug("Next %r job for %s will be at %s",
+                              self.jobname, self.netbox.sysname, next_time)
+        return thing
+                              
+           
+
+class Scheduler(object):
+    """Controller of the polling schedule.
+
+    A scheduler allocates individual job schedules for each netbox.
+    It will reload the list of netboxes from the database at set
+    intervals; any netbox removed from the database will have its jobs
+    descheduled, while new netboxes that appear will be scheduled
+    immediately.
+
+    There should only be one single Scheduler instance in an ipdevpoll
+    process, although a singleton pattern will not be enforced by this
+    class.
+
+    """
+    def __init__(self):
+        self.netboxes = NetboxLoader()
+        self.netbox_schedulers_map = {}
+
+    def run(self):
+        """Initiate scheduling of polling."""
+        self.netbox_reload_loop = task.LoopingCall(self.reload_netboxes)
+        # FIXME: Interval should be configurable
+        deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
+        return deferred
+
+    def reload_netboxes(self):
+        """Reload the set of netboxes to poll and update schedules."""
+        deferred = self.netboxes.load_all()
+        deferred.addCallback(self.process_reloaded_netboxes)
+        return deferred
+
+    def process_reloaded_netboxes(self, result):
+        """Process the result of a netbox reload and update schedules."""
+        (new_ids, removed_ids, changed_ids) = result
+
+        # Deschedule removed and changed boxes
+        for netbox_id in removed_ids.union(changed_ids):
+            self.cancel_netbox_schedulers(netbox_id)
+
+        # Schedule new and changed boxes
+        for netbox_id in new_ids.union(changed_ids):
+            self.add_netbox_schedulers(netbox_id)
+
+    def add_netbox_schedulers(self, netbox_id):
+        for jobname,(interval, plugins) in jobs.get_jobs().items():
+            self.add_netbox_scheduler(jobname, netbox_id, interval, plugins)
+            
+    def add_netbox_scheduler(self, jobname, netbox_id, interval, plugins):
+        netbox = self.netboxes[netbox_id]
+        scheduler = NetboxScheduler(jobname, netbox, interval, plugins)
+
+        if netbox.id not in self.netbox_schedulers_map:
+            self.netbox_schedulers_map[netbox.id] = [scheduler]
+        else:
+            self.netbox_schedulers_map[netbox.id].append(scheduler)
+        return scheduler.start()
+
+    def cancel_netbox_schedulers(self, netbox_id):
+        if netbox_id in self.netbox_schedulers_map:
+            schedulers = self.netbox_schedulers_map[netbox_id]
+            for scheduler in schedulers:
+                scheduler.cancel()
+            del self.netbox_schedulers_map[netbox_id]
+            return len(schedulers)
+        else:
+            return 0
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
