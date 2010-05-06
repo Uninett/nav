@@ -19,14 +19,10 @@
 The plugin uses IF-MIB to retrieve generic interface data, and
 EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
-This plugin will also examine the list of know interfaces for a netbox
-and compare it to the collected list.  Any known interface not found
-by polling will be marked as missing with a timestamp (gone_since).
 """
 
 import logging
 import pprint
-import datetime
 
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
@@ -65,7 +61,6 @@ class Interfaces(Plugin):
         df.addCallback(self._retrieve_duplex)
         df.addCallback(self._got_interfaces)
         df.addCallback(self._get_stack_status)
-        df.addCallback(self._check_missing_interfaces)
         df.addErrback(self._error)
         return df
 
@@ -172,58 +167,6 @@ class Interfaces(Plugin):
                                       ifalias)
 
         return interfaces
-
-
-    def _check_missing_interfaces(self, interfaces):
-        """Check if any known interfaces are missing from a result set.
-
-        This method will load the known interfaces of this netbox from
-        the database.  A new container will be created for any known
-        interface missing from the result set, and its gone_since
-        timestamp will be set.
-
-        NOTE: The comparisons are only made using ifindex values.  If
-        a netbox has re-assigned ifindices to its interfaces since the
-        last collection, this may cause trouble.
-
-        TODO: Make a deletion algorithm.  Missing interfaces that do
-        not correspond to a module known to be down should be deleted.
-        If all interfaces belonging to a specific module is down, we
-        may have detected that the module is down as well.
-
-        """
-        def mark_as_gone(ifindices):
-            now = datetime.datetime.now()
-            netbox = self.containers.factory(None, shadows.Netbox)
-
-            if ifindices:
-                self.logger.info("Marking interfaces as gone.  Ifindex: %r", 
-                                 ifindices)
-
-            for ifindex in ifindices:
-                interface = self.containers.factory(ifindex,
-                                                    shadows.Interface)
-                interface.ifindex = ifindex
-                interface.gone_since = now
-                interface.netbox = netbox
-
-        def do_comparison(known_interfaces):
-            known_ifindices = set(i.ifindex for i in known_interfaces)
-            found_ifindices = set(i.ifindex for i in interfaces)
-            missing_ifindices = known_ifindices.difference(found_ifindices)
-
-            mark_as_gone(missing_ifindices)
-
-            # This should be the end of the deferred chain
-            return True
-            
-        # pick only the ones not known to be missing already
-        queryset = manage.Interface.objects.filter(netbox=self.netbox.id,
-                                                   gone_since__isnull=True)
-        deferred = threads.deferToThread(storage.shadowify_queryset, 
-                                         queryset)
-        deferred.addCallback(do_comparison)
-        return deferred
 
     def _retrieve_duplex(self, interfaces):
         """Get duplex from EtherLike-MIB and update the ifTable results."""

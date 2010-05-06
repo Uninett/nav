@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009, 2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,6 +22,7 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
+import datetime
 import IPy
 
 from nav.models import manage, oid
@@ -104,6 +105,57 @@ class Device(Shadow):
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     __lookups__ = [('netbox', 'ifname'), ('netbox', 'ifindex')]
+
+    @classmethod
+    def _find_missing_interfaces(cls, containers):
+        """Check if any previously known interfaces are missing from the
+        collected set
+
+        This method will compare the set of new Interface containers with the
+        Interface objects stored in the database.  A new container will be
+        created for any known interface missing from the containers set, and
+        its gone_since timestamp will be set.
+
+        NOTE: The comparisons are only made using ifindex values.  If
+        a netbox has re-assigned ifindices to its interfaces since the
+        last collection, this may cause trouble.
+
+        TODO: Make a deletion algorithm.  Missing interfaces that do
+        not correspond to a module known to be down should be deleted.
+        If all interfaces belonging to a specific module is down, we
+        may have detected that the module is down as well.
+
+        """
+        netbox = containers.get(None, Netbox)
+        found_interfaces = containers[cls].values()
+        timestamp = datetime.datetime.now()
+        # pick only interfaces that aren't gone already
+        known_interfaces = manage.Interface.objects.filter(
+            netbox=netbox.id, gone_since__isnull=True)
+
+        known_ifindices = set(i.ifindex for i in known_interfaces)
+        found_ifindices = set(i.ifindex for i in found_interfaces)
+        missing_ifindices = known_ifindices.difference(found_ifindices)
+
+        if missing_ifindices:
+            cls._logger.info("Marking %s interfaces as gone.  Ifindex: %r",
+                             netbox.sysname, missing_ifindices)
+
+        for ifindex in missing_ifindices:
+            interface = containers.factory(ifindex, Interface)
+            interface.ifindex = ifindex
+            interface.gone_since = timestamp
+            interface.netbox = netbox
+
+
+        # This should be the end of the deferred chain
+        return True
+
+
+    @classmethod
+    def prepare_for_save(cls, containers):
+        cls._find_missing_interfaces(containers)
+        super(Interface, cls).prepare_for_save(containers)
 
 class Location(Shadow):
     __shadowclass__ = manage.Location
