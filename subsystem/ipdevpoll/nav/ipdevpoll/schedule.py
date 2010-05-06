@@ -65,7 +65,7 @@ class JobHandler(object):
         self.logger.debug("Job %r initialized with plugins: %r",
                           self.name, self.plugins)
         self.plugin_iterator = iter([])
-        self.containers = {}
+        self.containers = storage.ContainerRepository()
         self.storage_queue = []
 
         # Initialize netbox in container
@@ -324,21 +324,7 @@ class JobHandler(object):
 
     def container_factory(self, container_class, key):
         """Container factory function"""
-        if not issubclass(container_class, storage.Shadow):
-            raise ValueError("%s is not a shadow container class" % container_class)
-
-        if container_class not in self.containers or \
-                key not in self.containers[container_class]:
-
-            obj = container_class()
-            if container_class not in self.containers:
-                self.containers[container_class] = {}
-            self.containers[container_class][key] = obj
-
-        else:
-            obj = self.containers[container_class][key]
-
-        return obj
+        return self.containers.factory(key, container_class)
 
 
 class NetboxScheduler(object):

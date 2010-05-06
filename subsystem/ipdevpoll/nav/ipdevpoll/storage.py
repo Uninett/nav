@@ -340,4 +340,52 @@ def shadowify_queryset(queryset):
     new_list = [shadowify(obj) for obj in result]
     return new_list
 
+class ContainerRepository(dict):
+    """A repository of container objects.
+
+    This is basically a dictionary with custom methods to manipulate it as a
+    repository of container objects that need to be stored to the database.  It
+    is typically used by a JobHandler and various container classes'
+    do_maintenance and prepare_for_save methods.
+
+    """
+    def factory(self, key, container_class, *args, **kwargs):
+        """Instantiates a container_class object and stores it in the
+        repository using the given key.
+
+        The *args and **kwargs arguments are fed to the container_class
+        constructor.
+
+        If the given key already exists in the repository, the existing
+        container_class object associated with is is returned instead, and the
+        args and kwargs arguments are ignored.
+
+        """
+        if not issubclass(container_class, Shadow):
+            raise ValueError("%s is not a shadow container class" %
+                             container_class)
+
+        obj = self.get(key, container_class)
+        if obj is None:
+            obj = container_class(*args, **kwargs)
+            if container_class not in self:
+                self[container_class] = {}
+            self[container_class][key] = obj
+
+        return obj
+
+    def get(self, key, container_class):
+        """Returns the container_class object associated with key, or None if
+        no such object was found.
+
+        """
+        if container_class not in self or key not in self[container_class]:
+            return None
+        else:
+            return self[container_class][key]
+
+    def __repr__(self):
+        orig = super(ContainerRepository, self).__repr__()
+        return "ContainerRepository(%s)" % orig
+
 
