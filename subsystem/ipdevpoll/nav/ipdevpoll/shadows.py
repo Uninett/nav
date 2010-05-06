@@ -36,7 +36,7 @@ class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
     __lookups__ = ['sysname', 'ip']
 
-    def prepare_for_save(self, containers=None):
+    def prepare(self, containers):
         """Attempts to solve serial number conflicts before savetime.
 
         Specifically, if another Netbox in the database is registered with the
@@ -78,7 +78,7 @@ class Module(Shadow):
             self._logger.warn("Invalid value for model: %r", self.model)
             self.model = repr(self.model)
         
-    def prepare_for_save(self, containers):
+    def prepare(self, containers):
         self._fix_binary_garbage()
 
 class Device(Shadow):
@@ -98,7 +98,7 @@ class Device(Shadow):
                                   attr, value)
                 setattr(self, attr, repr(value))
         
-    def prepare_for_save(self, containers):
+    def prepare(self, containers):
         self._fix_binary_garbage()
 
 class Interface(Shadow):
@@ -198,7 +198,7 @@ class Vlan(Shadow):
 
         return NetType.get(net_type)
 
-    def prepare_for_save(self, containers):
+    def prepare(self, containers):
         """Prepares this VLAN object for saving.
 
         The data stored in a VLAN object consists much of what can be found
@@ -260,7 +260,7 @@ class GwPortPrefix(Shadow):
             vlan.organization = containers.factory(data['org'], Organization)
             vlan.organization.id = data['org']
 
-    def prepare_for_save(self, containers):
+    def prepare(self, containers):
         self._parse_description(containers)
 
 class NetType(Shadow):

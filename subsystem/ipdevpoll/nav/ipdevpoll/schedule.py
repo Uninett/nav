@@ -249,9 +249,8 @@ class JobHandler(object):
         """
         Execute the prepare_for_save-method on all known shadow instances
         """
-        for key in self.containers.keys():
-            for instance in self.containers[key].values():
-                instance.prepare_for_save(self.containers)
+        for cls in self.containers.keys():
+            cls.prepare_for_save(self.containers)
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)

@@ -314,12 +314,42 @@ class Shadow(object):
                     # attempt to achieve consistency
                     setattr(self, pk.name, model.pk)
                     return model
-    def prepare_for_save(self, containers=None):
+
+    @classmethod
+    def prepare_for_save(cls, containers):
+        """This method is run in a separate thread before saving containers,
+        once for each type of container class that was created by a job.
+
+        This will invoke the prepare method of each container object of the cls
+        type.
+
+        It can be overridden by container classes to perform custom data
+        preparation, maintenance or validation logic before the containers are
+        saved to the database.
+
+        The containers argument is the complete repository of containers
+        created during the job run, and can be sneakily modified by this method
+        if you are so inclined.
+        
         """
-        This method is run on all shadow instances known the the running
-        job handler before storage-queue generation and storing occurs.
+        if cls in containers:
+            for container in containers[cls].values():
+                container.prepare(containers)
+        
+    def prepare(self, containers):
+        """Run by prepare_for_save before conversion of this object into a
+        Django model object and saving it.
+
+        By default does nothing, but can be overridden to perform custom logic
+        per container class.
+
+        The containers argument is the complete repository of containers
+        created during the job run, and can be sneakily modified by this method
+        if you are so inclined.
+
         """
         pass
+
 
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
