@@ -252,19 +252,13 @@ class GwPortPrefix(Shadow):
         if data.get('netident', None):
             vlan.net_ident = data['netident']
         if data.get('usage', None):
-            vlan.usage = Usage()
+            vlan.usage = containers.factory(data['usage'], Usage)
             vlan.usage.id = data['usage']
-            if Usage not in containers:
-                containers[Usage] = {}
-            containers[Usage][vlan.usage.id] = vlan.usage
         if data.get('comment', None):
             vlan.description = data['comment']
         if data.get('org', None):
-            vlan.organization = Organization()
+            vlan.organization = containers.factory(data['org'], Organization)
             vlan.organization.id = data['org']
-            if Organization not in containers:
-                containers[Organization] = {}
-            containers[Organization][vlan.organization.id] = vlan.organization
 
     def prepare_for_save(self, containers):
         self._parse_description(containers)
