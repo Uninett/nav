@@ -50,8 +50,8 @@ class Cam(Plugin):
     def handle(self):
         self.logger.debug("Collecting CAM logs")
 
-        bridge_mib = BridgeMib(self.job_handler.agent)
-        if_mib = IfMib(self.job_handler.agent)
+        bridge_mib = BridgeMib(self.agent)
+        if_mib = IfMib(self.agent)
 
         # If cs_at_vlan is False we can skip community string indexing.
         # If it's None we try community string indexing, since we can't really
@@ -114,7 +114,7 @@ class Cam(Plugin):
         count, we reset the miss count and end time.
         """
         for key, row in self.cam.items():
-            cam = self.job_handler.container_factory(shadows.Cam, key=key)
+            cam = self.containers.factory(key, shadows.Cam)
 
             if key in self.existing_cam:
                 if self.existing_cam[key].miss_count > 0:
@@ -144,7 +144,7 @@ class Cam(Plugin):
         """
         for key, row in self.existing_cam.items():
             if key not in self.cam:
-                cam = self.job_handler.container_factory(shadows.Cam, key=key)
+                cam = self.containers.factory(key, shadows.Cam)
                 cam.id = row.id
                 if row.miss_count == 0:
                     cam.miss_count = 1

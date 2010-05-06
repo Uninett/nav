@@ -54,7 +54,7 @@ class Modules(Plugin):
     @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting ENTITY-MIB module data")
-        entitymib = EntityMib(self.job_handler.agent)
+        entitymib = EntityMib(self.agent)
 
         dw = defer.waitForDeferred(entitymib.retrieve_table('entPhysicalTable'))
         yield dw
@@ -89,7 +89,7 @@ class Modules(Plugin):
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
         
-        device = self.job_handler.container_factory(shadows.Device, device_key)
+        device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
             device.serial = serial_number
         if ent['entPhysicalHardwareRev']:
@@ -102,9 +102,9 @@ class Modules(Plugin):
         return device
 
     def _module_from_entity(self, ent):
-        module = self.job_handler.container_factory(
-            shadows.Module, key=ent['entPhysicalSerialNum'])
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        module = self.containers.factory(ent['entPhysicalSerialNum'],
+                                         shadows.Module)
+        netbox = self.containers.factory(None, shadows.Netbox)
 
         module.netbox = netbox
         module.model = ent['entPhysicalModelName'].strip()
@@ -146,12 +146,12 @@ class Modules(Plugin):
         # devices to test on.
         the_chassis = chassis[0]
         device = self._device_from_entity(the_chassis)
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
         netbox.device = device
 
     def _process_ports(self, entities, module_containers):
         ports = entities.get_ports()
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox) 
         
         # Map interfaces to modules, if possible
         module_ifindex_map = {} #just for logging debug info
@@ -164,8 +164,8 @@ class Modules(Plugin):
                     module = module_containers[ module_entity[0] ]
                     indices = self.alias_mapping[entity_index]
                     for ifindex in indices:
-                        interface = self.job_handler.container_factory(
-                            shadows.Interface, key=ifindex)
+                        interface = self.containers.factory(ifindex,
+                                                            shadows.Interface)
                         interface.netbox = netbox
                         interface.ifindex = ifindex
                         interface.module = module

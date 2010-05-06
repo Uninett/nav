@@ -76,7 +76,7 @@ class Arp(Plugin):
         self.logger.debug("Collecting IP/MAC mappings")
 
         # Fetch standard MIBs
-        ip_mib = IpMib(self.job_handler.agent)
+        ip_mib = IpMib(self.agent)
         waiter = defer.waitForDeferred(ip_mib.get_ifindex_ip_mac_mappings())
         yield waiter
         mappings = waiter.getResult()
@@ -84,7 +84,7 @@ class Arp(Plugin):
 
         # Try IPV6-MIB if no IPv6 results were found in IP-MIB
         if not ipv6_address_in_mappings(mappings):
-            ipv6_mib = Ipv6Mib(self.job_handler.agent)
+            ipv6_mib = Ipv6Mib(self.agent)
             waiter = defer.waitForDeferred(
                 ipv6_mib.get_ifindex_ip_mac_mappings())
             yield waiter
@@ -95,7 +95,7 @@ class Arp(Plugin):
 
         # If we got no results, or no IPv6 results, try vendor specific MIBs
         if len(mappings) == 0 or not ipv6_address_in_mappings(mappings):
-            cisco_ip_mib = CiscoIetfIpMib(self.job_handler.agent)
+            cisco_ip_mib = CiscoIetfIpMib(self.agent)
             waiter = defer.waitForDeferred(
                 cisco_ip_mib.get_ifindex_ip_mac_mappings())
             yield waiter
@@ -195,16 +195,14 @@ class Arp(Plugin):
           mappings -- An iterable containing tuples: (ip, mac)
 
         """
-        netbox = self.job_handler.container_factory(shadows.Netbox,
-                                                    key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
         timestamp = datetime.now()
         infinity = datetime.max
 
         for (ip, mac) in mappings:
             if not mac:
                 continue # Some devices seem to return empty macs!
-            arp = self.job_handler.container_factory(shadows.Arp, 
-                                                     key=(ip, mac))
+            arp = self.containers.factory((ip, mac), shadows.Arp)
             arp.netbox = netbox
             arp.sysname = self.netbox.sysname
             arp.ip = ip.strCompressed()
@@ -225,8 +223,7 @@ class Arp(Plugin):
         timestamp = datetime.now()
 
         for arp_id in arp_ids:
-            arp = self.job_handler.container_factory(shadows.Arp, 
-                                                     key=arp_id)
+            arp = self.containers.factory(arp_id, shadows.Arp)
             arp.id = arp_id
             arp.end_time = timestamp
 

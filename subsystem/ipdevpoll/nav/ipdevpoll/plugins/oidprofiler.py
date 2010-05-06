@@ -38,10 +38,6 @@ from nav.ipdevpoll import Plugin, FatalPluginError
 
 class OidProfiler(Plugin):
     """Make SNMP profile for a device."""
-    def __init__(self, *args, **kwargs):
-        super(OidProfiler, self).__init__(*args, **kwargs)
-        self.agent = self.job_handler.agent
-
     @classmethod
     def can_handle(cls, netbox):
         """We only handle boxes whose profiles are not up to date"""
@@ -107,11 +103,11 @@ class OidProfiler(Plugin):
             self.logger.info("profile update: add %d / del %d",
                              len(ids_to_add), len(ids_to_remove))
 
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
 
         for snmpoid_id in ids_to_add:
-            profile_entry = self.job_handler.container_factory(
-                shadows.NetboxSnmpOid, key=snmpoid_id)
+            profile_entry = self.containers.factory(snmpoid_id,
+                                                    shadows.NetboxSnmpOid)
             profile_entry.snmp_oid_id = snmpoid_id
             profile_entry.netbox = netbox
             # Hard code frequency, which no longer has any meaning,
@@ -119,8 +115,8 @@ class OidProfiler(Plugin):
             profile_entry.frequency = 3600
 
         for snmpoid_id in ids_to_remove:
-            profile_entry = self.job_handler.container_factory(
-                shadows.NetboxSnmpOid, key=snmpoid_id)
+            profile_entry = self.containers.factory(snmpoid_id,
+                                                    shadows.NetboxSnmpOid)
             profile_entry.id = oid_id_profile_id_map[snmpoid_id]
             profile_entry.delete = True
 

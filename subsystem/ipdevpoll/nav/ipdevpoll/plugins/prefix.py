@@ -76,11 +76,11 @@ class Prefix(Plugin):
 
 
         self.logger.debug("Collecting prefixes")
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
 
-        ipmib = IpMib(self.job_handler.agent)
-        ciscoip = CiscoIetfIpMib(self.job_handler.agent)
-        ipv6mib = Ipv6Mib(self.job_handler.agent)
+        ipmib = IpMib(self.agent)
+        ciscoip = CiscoIetfIpMib(self.agent)
+        ipv6mib = Ipv6Mib(self.agent)
 
         # Retrieve interface names and keep those who match a VLAN
         # naming pattern
@@ -109,26 +109,23 @@ class Prefix(Plugin):
         """
         Utitilty method for creating the shadow-objects
         """
-        interface = self.job_handler.container_factory(shadows.Interface, key=ifindex)
+        interface = self.containers.factory(ifindex, shadows.Interface)
         interface.ifindex = ifindex
         interface.netbox = netbox
 
         # No use in adding the GwPortPrefix unless we actually found a prefix
         if net_prefix:
-            port_prefix = self.job_handler.container_factory(
-                shadows.GwPortPrefix, key=ip)
+            port_prefix = self.containers.factory(ip, shadows.GwPortPrefix)
             port_prefix.interface = interface
             port_prefix.gw_ip = str(ip)
 
-            prefix = self.job_handler.container_factory(shadows.Prefix,
-                                                        key=net_prefix)
+            prefix = self.containers.factory(net_prefix, shadows.Prefix)
             prefix.net_address = str(net_prefix)
             port_prefix.prefix = prefix
 
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
-            vlan = self.job_handler.container_factory(shadows.Vlan,
-                                                      key=net_prefix)
+            vlan = self.containers.factory(net_prefix, shadows.Vlan)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
 
@@ -146,7 +143,7 @@ class Prefix(Plugin):
           A deferred whose result is a dictionary: { ifindex: vlan }
 
         """
-        ifmib = IfMib(self.job_handler.agent)
+        ifmib = IfMib(self.agent)
         dw = defer.waitForDeferred(ifmib.retrieve_column('ifName'))
         yield dw
         interfaces = reduce_index(dw.getResult())

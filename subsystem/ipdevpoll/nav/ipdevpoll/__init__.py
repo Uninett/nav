@@ -40,9 +40,10 @@ class Plugin(object):
 
     """
 
-    def __init__(self, netbox, job_handler=None):
+    def __init__(self, netbox, agent, containers):
         self.netbox = netbox
-        self.job_handler = job_handler
+        self.agent = agent
+        self.containers = containers
         self.logger = get_instance_logger(self, "(%s)" % self.netbox.sysname)
 
     def __str__(self):

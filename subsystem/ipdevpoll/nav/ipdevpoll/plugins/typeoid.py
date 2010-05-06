@@ -51,7 +51,7 @@ class TypeOid(Plugin):
     @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting sysObjectId")
-        snmpv2_mib = Snmpv2Mib(self.job_handler.agent)
+        snmpv2_mib = Snmpv2Mib(self.agent)
         thing = defer.waitForDeferred(
             snmpv2_mib.retrieve_column('sysObjectID'))
         yield thing
@@ -82,8 +82,7 @@ class TypeOid(Plugin):
             self.logger.warn("sysObjectID %r is unknown to NAV", sysobjectid)
         else:
             type_ = types[0]
-            netbox_container = self.job_handler.container_factory(
-                shadows.Netbox, key=None)
+            netbox_container = self.containers.factory(None, shadows.Netbox)
             netbox_container.type = type_
         yield True
 

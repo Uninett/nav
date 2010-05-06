@@ -50,8 +50,8 @@ class CiscoVlan(Plugin):
 
         self.logger.debug("Collecting Cisco-proprietary 802.1q VLAN information")
 
-        self.ciscovtp = CiscoVTPMib(self.job_handler.agent)
-        self.ciscovm = CiscoVlanMembershipMib(self.job_handler.agent)
+        self.ciscovtp = CiscoVTPMib(self.agent)
+        self.ciscovm = CiscoVlanMembershipMib(self.agent)
 
         dw = defer.waitForDeferred(
             self.ciscovtp.get_trunk_enabled_vlans(as_bitvector=True))
@@ -74,8 +74,7 @@ class CiscoVlan(Plugin):
     def _store_access_ports(self, vlan_membership):
         """Store vlan memberships for all ports."""
         for ifindex, vlan in vlan_membership.items():
-            interface = self.job_handler.container_factory(shadows.Interface,
-                                                           key=ifindex)
+            interface = self.containers.factory(ifindex, shadows.Interface)
             interface.trunk = False
             interface.vlan = vlan
 
@@ -83,8 +82,7 @@ class CiscoVlan(Plugin):
     def _store_trunk_ports(self, native_vlans, enabled_vlans):
         """Store the set of enabled vlans for each trunk port."""
         for ifindex, vector in enabled_vlans.items():
-            interface = self.job_handler.container_factory(shadows.Interface,
-                                                           key=ifindex)
+            interface = self.containers.factory(ifindex, shadows.Interface)
             interface.trunk = True
             if ifindex in native_vlans:
                 interface.vlan = native_vlans[ifindex]
@@ -93,7 +91,7 @@ class CiscoVlan(Plugin):
                               interface.ifname or trunk, 
                               len(vector.get_set_bits()))
 
-            allowed = self.job_handler.container_factory(
-                shadows.SwPortAllowedVlan, key=ifindex)
+            allowed = self.containers.factory(ifindex,
+                                              shadows.SwPortAllowedVlan)
             allowed.interface = interface
             allowed.hex_string = vector.to_hex()

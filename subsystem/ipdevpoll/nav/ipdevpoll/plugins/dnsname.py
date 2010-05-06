@@ -99,7 +99,7 @@ class DnsName(Plugin):
         # Our work here is done
         self.logger.debug("Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name)
 
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
         netbox.sysname = dns_name
 
         self.deferred.callback(True)

@@ -47,8 +47,8 @@ class Interfaces(Plugin):
 
     def handle(self):
         self.logger.debug("Collecting interface data")
-        self.ifmib = IfMib(self.job_handler.agent)
-        self.etherlikemib = EtherLikeMib(self.job_handler.agent)
+        self.ifmib = IfMib(self.agent)
+        self.etherlikemib = EtherLikeMib(self.agent)
         df = self.ifmib.retrieve_columns([
                 'ifDescr',
                 'ifType',
@@ -86,7 +86,7 @@ class Interfaces(Plugin):
 
         # Now save stuff to containers and pass the list of containers
         # to the next callback
-        netbox = self.job_handler.container_factory(shadows.Netbox, key=None)
+        netbox = self.containers.factory(None, shadows.Netbox)
         interfaces = [self._convert_row_to_container(netbox, ifindex, row)
                       for ifindex, row in result.items()]
         return interfaces
@@ -99,8 +99,7 @@ class Interfaces(Plugin):
     def _convert_row_to_container(self, netbox, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
-        interface = self.job_handler.container_factory(shadows.Interface,
-                                                       key=ifindex)
+        interface = self.containers.factory(ifindex, shadows.Interface)
         interface.ifindex = ifindex
         interface.ifdescr = row['ifDescr']
         interface.iftype = row['ifType']
@@ -195,16 +194,15 @@ class Interfaces(Plugin):
         """
         def mark_as_gone(ifindices):
             now = datetime.datetime.now()
-            netbox = self.job_handler.container_factory(shadows.Netbox, 
-                                                        key=None)
+            netbox = self.containers.factory(None, shadows.Netbox)
 
             if ifindices:
                 self.logger.info("Marking interfaces as gone.  Ifindex: %r", 
                                  ifindices)
 
             for ifindex in ifindices:
-                interface = self.job_handler.container_factory(
-                    shadows.Interface, key=ifindex)
+                interface = self.containers.factory(ifindex,
+                                                    shadows.Interface)
                 interface.ifindex = ifindex
                 interface.gone_since = now
                 interface.netbox = netbox
