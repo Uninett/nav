@@ -245,12 +245,44 @@ class JobHandler(object):
         yield dw
         dw.getResult()
 
+        # Do cleanup for the known container classes.
+        df = threads.deferToThread(self.cleanup_containers_after_save)
+        dw = defer.waitForDeferred(df)
+        yield dw
+        dw.getResult()
+
     def prepare_containers_for_save(self):
-        """
-        Execute the prepare_for_save-method on all known shadow instances
+        """Execute the prepare_for_save-method on all shadow classes with known
+        instances.
+
         """
         for cls in self.containers.keys():
             cls.prepare_for_save(self.containers)
+
+    @transaction.commit_manually
+    def cleanup_containers_after_save(self):
+        """Execute the cleanup_after_save-method on all shadow classes with
+        known instances.
+
+        """
+        self.logger.debug("Running cleanup routines for %d classes (%r)",
+                          len(self.containers), self.containers.keys())
+        try:
+            for cls in self.containers.keys():
+                cls.cleanup_after_save(self.containers)
+        except Exception, e:
+            self.logger.exception("Caught exception during cleanup. "
+                                  "Last class = %s",
+                                  cls.__name__)
+            import django.db
+            if django.db.connection.queries:
+                self.logger.error("The last query was: %s",
+                                  django.db.connection.queries[-1])
+            transaction.rollback()
+            raise e
+        else:
+            transaction.commit()
+
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)
