@@ -24,6 +24,7 @@ database I/O.
 """
 import datetime
 import IPy
+from django.db.models import Q
 
 from nav.models import manage, oid
 from storage import Shadow
@@ -268,6 +269,56 @@ class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
     __lookups__ = [('net_address', 'vlan'), 'net_address']
 
+    @classmethod
+    def _delete_unused_prefixes(cls):
+        """Deletes prefixes that appear to have fallen into disuse.
+
+        A disused prefix is one not attached to any gwport and not attached to
+        any vlan that is in use somewhere.
+
+        """
+        keep_vlans = manage.Vlan.objects.filter(
+            Q(net_type='scope') | Q(swportvlan__isnull=False))
+        keep_vlans_q = keep_vlans.values('pk').query
+
+        unrouted_prefixes = manage.Prefix.objects.exclude(gwportprefix__isnull=False)
+        deleteable_prefixes = unrouted_prefixes.exclude(vlan__in=keep_vlans_q)
+
+        count = len(deleteable_prefixes)
+        deleteable_prefixes.delete()
+        if count:
+            cls._logger.info("Deleted %d unused prefixes", count)
+
+
+    @classmethod
+    def _delete_unused_vlans(cls):
+        """Deletes vlans that appear to have fallen into disuse.
+
+        A disused vlan is one not attached to any prefix, to any swport and is
+        not a scope type vlan.
+
+        """
+        deleteable_vlans = manage.Vlan.objects.exclude(
+            Q(net_type='scope') | Q(swportvlan__isnull=False) |
+            Q(prefix__isnull=False))
+
+        count = len(deleteable_vlans)
+        deleteable_vlans.delete()
+        if count:
+            cls._logger.info("Deleted %d unused VLANs", count)
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        """Deletes unused vlans and prefixes from the database.
+
+        TODO: This could possibly be more suitable as a database trigger!
+
+        """
+        cls._delete_unused_prefixes()
+        cls._delete_unused_vlans()
+        super(Prefix, cls).cleanup_after_save(containers)
+
+
 class GwPortPrefix(Shadow):
     __shadowclass__ = manage.GwPortPrefix
     __lookups__ = ['gw_ip']
@@ -336,10 +387,6 @@ class Arp(Shadow):
 class Cam(Shadow):
     __shadowclass__ = manage.Cam
     __lookups__ = [('netbox', 'ifindex', 'mac', 'miss_count')]
-
-class Prefix(Shadow):
-    __shadowclass__ = manage.Prefix
-    __lookups__ = ['net_address']
 
 class SwPortAllowedVlan(Shadow):
     __shadowclass__ = manage.SwPortAllowedVlan

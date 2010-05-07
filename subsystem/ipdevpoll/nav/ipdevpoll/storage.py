@@ -335,7 +335,18 @@ class Shadow(object):
         if cls in containers:
             for container in containers[cls].values():
                 container.prepare(containers)
-        
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        """This method is run in a separate thread after containers have been
+        saved, once for each type of container class.
+
+        Overriding this will enable a Shadow class to do things like database
+        maintenance after changes have taken place.
+
+        """
+        pass
+
     def prepare(self, containers):
         """Run by prepare_for_save before conversion of this object into a
         Django model object and saving it.
