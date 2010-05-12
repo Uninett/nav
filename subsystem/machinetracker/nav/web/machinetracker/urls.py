@@ -29,12 +29,12 @@ urlpatterns = patterns('',
         name='machinetracker'),
     url(r'^ip/$', ip_search,
         name='machinetracker-ip'),
-    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&to_ip=(?P<to_ip>[a-f-\d\.:]*)&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)&days=(?P<days>\d+)&dns=(?P<dns>\w*)$',
+    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&to_ip=(?P<to_ip>[a-f-\d\.:]*)&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
         ip_do_search,
         name='machinetracker-ip_search'),
     # Short hand search url.
     # Accepts from_ip, days and dns. Active is set to true
-    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&days=(?P<days>\d+)&dns=(?P<dns>\w*)&active=on',
+    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)&active=on',
         ip_do_search,
         name='machinetracker-ip_short_search'),
 
@@ -43,7 +43,7 @@ urlpatterns = patterns('',
 
     url(r'^mac/$', mac_search,
         name='machinetracker-mac'),
-    url(r'^mac/\?mac=(?P<mac>[a-f\d:]+)&days=(?P<days>\d+)&dns=(?P<dns>\w*)$',
+    url(r'^mac/\?mac=(?P<mac>[a-f\d:]+)&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
         mac_do_search,
         name='machinetracker-mac_search'),
 
@@ -52,7 +52,7 @@ urlpatterns = patterns('',
     url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)$',
         switch_do_search,
         name='machinetracker-swp_short_search'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)&days=(?P<days>\d+)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)&days=(?P<days>-?\d+)$',
         switch_do_search,
         name='machinetracker-swp_search'),
 
