@@ -324,10 +324,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         alert_info = get_recent_alerts(netbox)
 
         # Select port view to display
-        if port_view_perspective not in (
-            'swportstatus', 'swportactive', 'gwportstatus'):
-
-            run_port_view = True
+        run_port_view = True
+        valid_perspectives = ('swportstatus', 'swportactive', 'gwportstatus')
+        if port_view_perspective not in valid_perspectives:
             if netbox.get_swports().count():
                 port_view_perspective = 'swportstatus'
             elif netbox.get_gwports().count():
@@ -335,9 +334,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             else:
                 run_port_view = False
 
-            if run_port_view:
-                port_view = get_port_view(
-                    netbox, port_view_perspective, activity_interval)
+        if run_port_view:
+            port_view = get_port_view(
+                netbox, port_view_perspective, activity_interval)
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
