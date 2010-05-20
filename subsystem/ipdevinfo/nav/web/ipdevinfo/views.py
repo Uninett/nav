@@ -257,7 +257,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     def get_prefix_info(addr):
         try:
             return Prefix.objects.select_related().extra(
+                select={"mask_size": "masklen(netaddr)"},
                 where=["%s << netaddr AND nettype <> 'scope'"],
+                order_by=["-mask_size"],
                 params=[addr])[0]
         except:
             return None
