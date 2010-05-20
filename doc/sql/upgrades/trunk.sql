@@ -553,6 +553,34 @@ ALTER TABLE identity ALTER mac TYPE macaddr USING mac::macaddr;
 ALTER TABLE accountalertqueue ADD CONSTRAINT accountalertqueue_alert_id_fkey
     FOREIGN KEY(alert_id) REFERENCES alertq(alertqid);
 
+-- View to match each netbox with a prefix
+-- Multiple prefixes may match netbox.ip, but only the one with the longest
+-- mask is interesting.
+CREATE VIEW netboxprefix AS
+  SELECT netbox.netboxid,
+         (SELECT prefix.prefixid
+          FROM prefix
+          WHERE netbox.ip << prefix.netaddr::inet
+          ORDER BY masklen(prefix.netaddr::inet) DESC
+          LIMIT 1) AS prefixid
+  FROM netbox;
+
+-- Function to update prefix of all netbox records
+CREATE OR REPLACE FUNCTION update_netbox_prefixes() RETURNS TRIGGER AS'
+  BEGIN
+    UPDATE NETBOX n
+    SET prefixid=np.prefixid
+    FROM netboxprefix np
+    WHERE n.netboxid=np.netboxid;
+
+    RETURN NULL;
+  END;
+  ' language 'plpgsql';
+
+-- Trigger to update netbox prefixid's on all changes to the prefix table
+CREATE TRIGGER update_netbox_on_prefix_changes
+  AFTER INSERT OR DELETE OR UPDATE ON prefix FOR EACH STATEMENT EXECUTE PROCEDURE update_netbox_prefixes();
+
 
 -- Since we are running as the postgres superuser, we've just created a bunch
 -- of new relations owned by postgres, and not by the current database owner.

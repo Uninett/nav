@@ -195,6 +195,35 @@ CREATE TABLE netbox (
   UNIQUE(deviceid)
 );
 
+-- View to match each netbox with a prefix
+-- Multiple prefixes may match netbox.ip, but only the one with the longest
+-- mask is interesting.
+CREATE VIEW netboxprefix AS
+  SELECT netbox.netboxid,
+         (SELECT prefix.prefixid
+          FROM prefix
+          WHERE netbox.ip << prefix.netaddr::inet
+          ORDER BY masklen(prefix.netaddr::inet) DESC
+          LIMIT 1) AS prefixid
+  FROM netbox;
+
+-- Function to update prefix of all netbox records
+CREATE OR REPLACE FUNCTION update_netbox_prefixes() RETURNS TRIGGER AS'
+  BEGIN
+    UPDATE NETBOX n
+    SET prefixid=np.prefixid
+    FROM netboxprefix np
+    WHERE n.netboxid=np.netboxid;
+
+    RETURN NULL;
+  END;
+  ' language 'plpgsql';
+
+-- Trigger to update netbox prefixid's on all changes to the prefix table
+CREATE TRIGGER update_netbox_on_prefix_changes
+  AFTER INSERT OR DELETE OR UPDATE ON prefix FOR EACH STATEMENT EXECUTE PROCEDURE update_netbox_prefixes();
+
+
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
