@@ -41,6 +41,7 @@ def get_module_view(module_object, perspective, activity_interval=None, netbox=N
         'ports': [],
     }
 
+    ports = None
     if perspective in ('swportstatus', 'swportactive'):
         if not module_object and netbox:
             ports = [p for p in netbox.get_swports_sorted() if not p.module]
@@ -52,26 +53,27 @@ def get_module_view(module_object, perspective, activity_interval=None, netbox=N
         else:
             ports = module_object.get_gwports_sorted()
 
-    for port_object in ports:
-        port = {'object': port_object}
+    if ports:
+        for port_object in ports:
+            port = {'object': port_object}
 
-        if perspective == 'swportstatus':
-            port['class'] = _get_swportstatus_class(port_object)
-            port['style'] = ''
-            port['title'] = _get_swportstatus_title(port_object)
-        elif perspective == 'swportactive':
-            port['class'] = _get_swportactive_class(
-                port_object, activity_interval)
-            port['style'] = _get_swportactive_style(
-                port_object, activity_interval)
-            port['title'] = _get_swportactive_title(
-                port_object, activity_interval)
-        elif perspective == 'gwportstatus':
-            port['class'] = _get_gwportstatus_class(port_object)
-            port['style'] = ''
-            port['title'] = _get_gwportstatus_title(port_object)
+            if perspective == 'swportstatus':
+                port['class'] = _get_swportstatus_class(port_object)
+                port['style'] = ''
+                port['title'] = _get_swportstatus_title(port_object)
+            elif perspective == 'swportactive':
+                port['class'] = _get_swportactive_class(
+                    port_object, activity_interval)
+                port['style'] = _get_swportactive_style(
+                    port_object, activity_interval)
+                port['title'] = _get_swportactive_title(
+                    port_object, activity_interval)
+            elif perspective == 'gwportstatus':
+                port['class'] = _get_gwportstatus_class(port_object)
+                port['style'] = ''
+                port['title'] = _get_gwportstatus_title(port_object)
 
-        module['ports'].append(port)
+            module['ports'].append(port)
 
     return module
 
