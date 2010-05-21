@@ -595,4 +595,18 @@ UPDATE pg_class
 			                  FROM pg_namespace 
 					  WHERE nspname IN ('manage', 'arnold', 'logger', 'radius', 'profiles')));
 
+-- Insert event and alerttypes for airespace traphandler
+INSERT INTO eventtype (
+SELECT 'apState','Tells us whether an access point has disassociated or associated from the controller','y' WHERE NOT EXISTS (
+SELECT * FROM eventtype WHERE eventtypeid = 'apState'));
+
+INSERT INTO alertType (
+SELECT nextval('alerttype_alerttypeid_seq'), 'apState', 'apUp', 'AP associated with controller' WHERE NOT EXISTS (
+SELECT * FROM alerttype WHERE alerttype = 'apUp'));
+
+INSERT INTO alertType (
+SELECT nextval('alerttype_alerttypeid_seq'), 'apState', 'apDown', 'AP disassociated from controller' WHERE NOT EXISTS (
+SELECT * FROM alerttype WHERE alerttype = 'apDown'));
+
+
 COMMIT;

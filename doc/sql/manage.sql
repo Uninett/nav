@@ -742,6 +742,8 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceNotice','Registers a notice on a device','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
+    ('apState','Tells us whether an access point has disassociated or associated from the controller','y');
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
@@ -831,6 +833,10 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceSwUpgrade','Software upgrade on device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceHwUpgrade','Hardware upgrade on device.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('apState','apUp','AP associated with controller');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('apState','apDown','AP disassociated from controller');
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,

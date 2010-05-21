@@ -1,20 +1,10 @@
 # switches sub-tree
 #
-# Contributed by Jeff Jensen <jpj@corp.webtv.net>.
-# Hacked by Jeff Allen... any mistakes are mine.
-
-#############################################
-# Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <bredal@itea.ntnu.no>
-############################################# 
+# Last changed for version 3.6 of NAV
 
 Target  --default--
 	short-desc      =       ""
  
-# Alfa version notes:
-# We are not checking if the oid's we use to gather data
-# are defined here. This must be done before final version.
-
 # Bandwidth
 OID	c1900Bandwidth		1.3.6.1.4.1.437.1.1.3.7.1.0
 OID	c1900BandwidthMax	1.3.6.1.4.1.437.1.1.3.7.5.0
@@ -30,8 +20,6 @@ OID	mem5minUsed		1.3.6.1.4.1.9.9.48.1.1.1.5.1
 OID	mem5minFree		1.3.6.1.4.1.9.9.48.1.1.1.6.1
 OID 	hpmem5minUsed		1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1
 OID	hpmem5minFree		1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1
-# Temperature
-OID	tempInlet		1.3.6.1.4.1.9.9.13.1.3.1.3.1
 
 
 ########################################
@@ -91,10 +79,7 @@ datasource  hpmem5minFree
 	ds-source	=	snmp://%snmp%/hpmem5minFree
 	desc		=	"The amount of memory free over the last 5 minutes."
 
-datasource tempInlet
-	ds-source	=	snmp://%snmp%/tempInlet
-	desc		=	"The temperature of the inlet on the unit"
- 
+
 ########################################
 # GRAPHS
 ########################################
@@ -181,89 +166,6 @@ graph   mem5minFree
 	y-axis		=	"Bytes"
 	legend		=	"5 minute free memory"
 	draw-as		=	STACK
-
-graph	tempInlet
-	y-axis 		=	"Degrees Celcius"
-	legend		=	"Temperature in the inlet"
-	units		=	"&#176;"
-	draw-as		=	LINE2
-
-# ALFA version:
-# We are currently relying on the ability of the admins to make views. This
-# should be done automatically before final release.
-
-########################################
-# TARGET-TYPES
-########################################
-
-#!#!#! Do NOT remove this line
-targetType c2970
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax:uptime:sysUpTime"
-
-targetType c3750
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax:uptime:sysUpTime"
-
-targetType cat2924XLv
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat295024G
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat3508GXL
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat3524XL
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c2900Bandwidth,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,bandwidth:c2900Bandwidth,uptime:sysUpTime"
-
-targetType cat4006
-        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet,uptime:sysUpTime"
-
-targetType cat4506
-        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet,uptime:sysUpTime"
-
-targetType hp2524
-        ds      =       "hpmem5minUsed,hpcpu,hpmem5minFree,sysUpTime"
-        view    =       "cpu:hpcpu,memory:hpmem5minUsed hpmem5minFree,uptime:sysUpTime"
-
-targetType wsc2926
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax:uptime:sysUpTime"
-
-targetType wsc4006
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType wsc5000
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType wsc5500
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType wsc5505
-        ds      =       "mem5minUsed,c5000BandwidthMax,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "memory:mem5minUsed mem5minFree,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime:sysUpTime"
-
-targetType SW1100
-        ds      =       "sysUpTime"
-        view    =       "uptime:sysUpTime"
-
-targetType SW3300
-        ds      =       "sysUpTime"
-        view    =       "uptime:sysUpTime"
-
-targetType SW9300
-        ds      =       "sysUpTime"
-        view    =       "uptime:sysUpTime"
 
 
 html    page-header
