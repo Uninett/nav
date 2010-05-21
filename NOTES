@@ -86,12 +86,52 @@ http://www.wiggy.net/code/pyrad/ .
 
 Files to remove
 ---------------
-These files and directories should be removed from your installation
-after the upgrade:
+The following files and directories should be removed from your installation
+after an upgrade from NAV 3.5 (installation prefix has been stripped from these
+file names):
 
-* TO BE DOCUMENTED *
-
-These files and directories are all prefixed with /usr/local/nav/ in a
-default configuration, but your mileage may vary.
-
+  apache/tools/devicemanagement.tool
+  apache/webapps/
+  apache/webroot/about/
+  apache/webroot/devicemanagement/
+  apache/webroot/index.py
+  apache/webroot/ipinfo/
+  apache/webroot/l2trace/l2trace.py
+  apache/webroot/machinetracker/machinetracker.py
+  apache/webroot/preferences/
+  apache/webroot/rrd/
+  apache/webroot/seeddb/*.py
+  apache/webroot/toolbox/
+  bin/getDeviceData.sh
+  etc/getDeviceData.conf
+  etc/init.d/getDeviceData
+  etc/machinetracker.conf
+  etc/vPServer.conf
+  etc/webfront/ipinfo.conf
+  lib/java/getDeviceData/
+  lib/python/nav/auth.py
+  lib/python/nav/db/forgotten/
+  lib/python/nav/db/manage.py
+  lib/python/nav/db/navprofiles.py
+  lib/python/nav/dump.py
+  lib/python/nav/web/SearchBox.py
+  lib/python/nav/web/TreeSelect.py
+  lib/python/nav/web/devicemanagement/
+  lib/python/nav/web/ipinfo/
+  lib/python/nav/web/templates/AlertProfilesTemplate.py
+  lib/python/nav/web/templates/FrontpageTemplate.py
+  lib/python/nav/web/templates/IPInfo.py
+  lib/python/nav/web/templates/IpDevInfoTemplate.py
+  lib/python/nav/web/templates/MachineTrackerTemplate.py
+  lib/python/nav/web/templates/NetworkExplorerTemplate.py
+  lib/python/nav/web/templates/RrdViewerTemplate.py
+  lib/python/nav/web/templates/SearchBoxTemplate.py
+  lib/python/nav/web/templates/ToolboxTemplate.py
+  lib/python/nav/web/templates/TreeSelectTemplate.py
+  lib/python/nav/web/templates/UserAdmin.py
+  lib/python/nav/web/templates/deviceManagementTemplate.py
+  lib/python/nav/web/toolbox.py
+  lib/templates/alertprofiles/debug.html
+  lib/templates/ipdevinfo/debug.html
+  lib/templates/networkexplorer/debug.html
 
