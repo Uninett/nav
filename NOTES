@@ -7,9 +7,22 @@ If you are upgrading from versions of NAV older than 3.5, please refer
 to the release notes of the in-between versions before reading any
 further.
 
+WARNING: This is an unstable *BETA* version of NAV 3.6, and should in no way be
+used on a production system.  The standard GPL disclaimers apply.
+
 
 Upgrading from NAV 3.5
 ======================
+
+SNMP collector
+--------------
+NAV 3.6 replaces the getDeviceData SNMP collector, written in Java, with
+ipdevpoll, written in Python.
+
+NAV still uses cricket for collecting traffic and load statistics, and
+getBoksMacs for CAM table and CDP cache collection.  getBoksMacs will likely be
+incorporated into ipdevpoll in future versions.
+
 
 Database changes
 ----------------
