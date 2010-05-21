@@ -87,8 +87,9 @@ http://www.wiggy.net/code/pyrad/ .
 Files to remove
 ---------------
 The following files and directories should be removed from your installation
-after an upgrade from NAV 3.5 (installation prefix has been stripped from these
-file names):
+after upgrading to NAV 3.6 from a source code distribution (installation prefix
+has been stripped from these file names).  If you installed and upgraded NAV
+using a packaging system, you should be able to safely ignore this section.
 
   apache/tools/devicemanagement.tool
   apache/webapps/
@@ -102,7 +103,11 @@ file names):
   apache/webroot/rrd/
   apache/webroot/seeddb/*.py
   apache/webroot/toolbox/
+  bin/cleanrrds.pl
   bin/getDeviceData.sh
+  bin/makecricketconfig.pl
+  doc/cricket/cricket-config/*/.nav
+  doc/cricket/cricket-config/.nav
   etc/getDeviceData.conf
   etc/init.d/getDeviceData
   etc/machinetracker.conf
