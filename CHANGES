@@ -1,3 +1,72 @@
+Version 3.6.0b1
+(released 21 May 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes substantial changes to the NAV database. If  ##
+## you are upgrading from a previous release you also need to      ##
+## upgrade your database schema. For information on how to upgrade ##
+## the database schema, please take a look in                      ##
+## doc/sql/upgrades/README . See also the release NOTES for more   ##
+## upgrade info.                                                   ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * Main SNMP collector rewritten from scratch, using Python.  The new design
+    specifically avoids Cisco-centric assumptions, and should improve equipment
+    support over time.
+
+  * Various improvements to the data model:
+
+    - All interfaces are now registered in the same table.  Switch ports have
+      switch port numbers, while router ports have (layer 3) IP addresses
+      attached.  Interfaces of seemingly other categories are also registered.
+
+    - Allows interfaces to relate directly to an IP device.  This also means
+      that NAV will no longer create fake modules for chassis-only devices.
+
+    - Modules are now identified by textual names, not integers.  This is to
+      support vendors that do not necessarily number modules.
+
+  * MailIn, a framework for parsing e-mail alerts from third party systems and
+    injecting events into NAV's event and alert queue.
+
+  * Enhanced report tool flexibility.  Reports now support any valid
+    PostgreSQL statement.
+
+  * The report tool can now export results to downloadable CSV files.
+
+  * Added a simple availability report summarizing all downtime during the last
+    month.
+
+  * Ignoring resolved alerts is now supported when queueing alerts in an alert
+    profile.
+
+  * The defunct device management tool has been replaced by a pure Device
+    history tool.
+
+  * The IP Info tool has been merged into the IP Device Info tool.
+
+  * The Machine Tracker has been rewritten using Django.
+
+  * Makecricketconfig has been rewritten in Python, and allows for more
+    flexibility in configuring Cricket for statistics collection.
+
+  * forgetSQL and psycopg1 dependencies have been removed.
+
+ Bugfixes:
+
+  * LP#483524 (Arnold: Make mistaken enabling of ports less likely)
+  * LP#425700 (Arnold mac-search)
+  * LP#411817 (logengine shouldn't delete messages on every run)
+  * LP#393471 (Maintenance engine does not post on event queue)
+  * LP#333208 (Unable to rename parent organizations)
+
+
 Version 3.5.6
 (released 07 April 2010)
 
