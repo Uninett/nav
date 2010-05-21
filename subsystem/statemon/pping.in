@@ -25,9 +25,6 @@
 #
 # This script controls start/stop/status of the NAV pping daemon.
 
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
 initdir=@initdir@
 BIN=@bindir@/pping.py
 

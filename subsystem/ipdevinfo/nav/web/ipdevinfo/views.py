@@ -29,7 +29,7 @@ from django.views.generic.list_detail import object_list
 
 from nav.models.cabling import Cabling, Patch
 from nav.models.event import AlertHistory
-from nav.models.manage import Netbox, Module, SwPort, GwPort
+from nav.models.manage import Netbox, Module, Interface, Prefix, Vlan, Arp, Cam
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.service import Service
 
@@ -102,7 +102,7 @@ def search(request):
 def ipdev_details(request, name=None, addr=None, netbox_id=None):
     """Show detailed view of one IP device"""
 
-    if netbox_id is not None:
+    if netbox_id:
         netbox = get_object_or_404(Netbox, id=netbox_id)
         return HttpResponseRedirect(netbox.get_absolute_url())
 
@@ -147,17 +147,17 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxes = Netbox.objects.select_related(depth=2)
         netbox = None
 
-        if name is not None:
+        if name:
             try:
                 netbox = netboxes.get(sysname=name)
             except Netbox.DoesNotExist:
                 pass
-        elif addr is not None:
+        elif addr:
             try:
                 netbox = netboxes.get(ip=addr)
             except Netbox.DoesNotExist:
                 pass
-        elif host_info is not None:
+        elif host_info:
             for address in host_info['addresses']:
                 if 'name' in address:
                     try:
@@ -248,7 +248,37 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             port_view['modules'].append(utils.get_module_view(
                 module, perspective, activity_interval))
 
+        # Add interfaces with no module
+        port_view['modules'].append(utils.get_module_view(
+            None, perspective, activity_interval, netbox))
+
         return port_view
+
+    def get_prefix_info(addr):
+        try:
+            return Prefix.objects.select_related().extra(
+                select={"mask_size": "masklen(netaddr)"},
+                where=["%s << netaddr AND nettype <> 'scope'"],
+                order_by=["-mask_size"],
+                params=[addr])[0]
+        except:
+            return None
+
+    def get_arp_info(addr):
+        # Return the entry with the latest start time
+        try:
+            return Arp.objects.filter(ip=addr).order_by('-start_time')[0]
+        except:
+            return None
+
+
+    def get_cam_info(mac):
+        # Return last seen entry
+        try:
+            return Cam.objects.filter(mac=mac)[0]
+        except:
+            return None
+
 
     port_view_perspective = request.GET.get('view', None)
 
@@ -269,22 +299,44 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     # Get data needed by the template
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
+
+    # Assign default values to variables
+    prefix = None
+    arp = None
+    cam = None
+    alert_info = None
+    port_view = None
+
+    # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
-        alert_info = None
-        port_view = None
+        if addr is None and len(host_info['addresses']) > 0:
+            # Picks the first address in array if addr not specified
+            addr = host_info['addresses'][0]['addr']
+
+        prefix = get_prefix_info(addr)
+
+        if prefix:
+            arp = get_arp_info(addr)
+            if arp:
+                cam = get_cam_info(arp.mac)
+
     else:
         alert_info = get_recent_alerts(netbox)
 
         # Select port view to display
-        if port_view_perspective not in (
-            'swportstatus', 'swportactive', 'gwportstatus'):
+        run_port_view = True
+        valid_perspectives = ('swportstatus', 'swportactive', 'gwportstatus')
+        if port_view_perspective not in valid_perspectives:
             if netbox.get_swports().count():
                 port_view_perspective = 'swportstatus'
             elif netbox.get_gwports().count():
                 port_view_perspective = 'gwportstatus'
+            else:
+                run_port_view = False
 
-        port_view = get_port_view(
-            netbox, port_view_perspective, activity_interval)
+        if run_port_view:
+            port_view = get_port_view(
+                netbox, port_view_perspective, activity_interval)
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
@@ -294,6 +346,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alert_info': alert_info,
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,
+            'prefix': prefix,
+            'arp': arp,
+            'cam': cam,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -366,23 +421,19 @@ def module_details(request, netbox_sysname, module_number):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def port_details(request, netbox_sysname, module_number, port_type,
+def port_details(request, netbox_sysname, module_number=None, port_type=None,
     port_id=None, port_name=None):
     """Show detailed view of one IP device port"""
 
     if not (port_id or port_name):
         return Http404
 
-    if port_type == 'swport':
-        ports = SwPort.objects.select_related(depth=2)
-    elif port_type == 'gwport':
-        ports = GwPort.objects.select_related(depth=2)
+    ports = Interface.objects.select_related(depth=2)
 
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
     elif port_name is not None:
-        port = get_object_or_404(ports, module__netbox__sysname=netbox_sysname,
-            module__module_number=module_number, interface=port_name)
+        port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifname=port_name)
 
     return render_to_response(
         'ipdevinfo/port-details.html',

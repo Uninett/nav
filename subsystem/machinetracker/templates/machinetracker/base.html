@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+<link rel="stylesheet" type="text/css" href="/style/machinetracker.css" />
+{% endblock %}
+
+{% block base_content %}
+
+<div class="tabs">
+    <ul>
+        <li class="{{ active.ip|yesno:"tabactive," }}">
+            <a href="{% url machinetracker-ip %}">IP Search</a>
+        </li>
+        <li class="{{ active.mac|yesno:"tabactive," }}">
+            <a href="{% url machinetracker-mac %}">MAC Search</a>
+        </li>
+        <li class="{{ active.swp|yesno:"tabactive," }}">
+            <a href="{% url machinetracker-swp %}">Switch Search</a>
+        </li>
+    </ul>
+</div>
+
+<div class="tabcontent">
+
+{% if messages %}
+<ul class="messages">
+    {% for m in messages %}
+    <li class="{{ m.type }}">{{ m.message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+</div>
+
+{% endblock %}

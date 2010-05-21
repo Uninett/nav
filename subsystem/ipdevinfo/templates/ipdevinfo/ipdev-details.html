@@ -254,28 +254,88 @@
                     Edit IP device</a></li>
                 <li><a href="{% url maintenance-new-netbox netbox.id %}">
                     Schedule maintenance</a></li>
-                <li><a href="{% url devicemanagement-history-netbox netbox.id %}">
+                <li><a href="{% url devicehistory-view-netbox netbox.id %}">
                     View device history</a></li>
-                <li><a href="{% url ipinfo-host netbox.sysname %}">
-                    View in IP Info</a></li>
             </ul>
         </td>
     </tr>
 {% else %}
-    <caption>IP Device</caption>
+    <caption>IP Address</caption>
     <tr>
         <th>Status</th>
-        <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
+        <td>Sysname or IP "{{ host_info.host }}" is not monitored by NAV</td>
     </tr>
+
+    {% if prefix.net_address %}
     <tr>
-        <th>Actions</th>
-        <td>
-            <ul>
-                <li><a href="{% url ipinfo-host host_info.host %}">
-                    View in IP Info</a></li>
-            </ul>
-        </td>
+        <th>Subnet</th>
+        <td>{{ prefix.net_address }}</td>
     </tr>
+    {% endif %}
+
+    {% if prefix.vlan.vlan %}
+    <tr>
+        <th>VLAN</th>
+        <td>{{ prefix.vlan.vlan }}</td>
+    </tr>
+
+    <tr>
+        <th>- Usage</th>
+        <td>{{ prefix.vlan.usage }}</td>
+    </tr>
+
+    <tr>
+        <th>- Description</th>
+        <td>{{ prefix.vlan.description }}</td>
+    </tr>
+
+    <tr>
+        <th>Organization</th>
+        <td>{{ prefix.vlan.organization }}</td>
+    </tr>
+
+    <tr>
+        <th>- Optional #1</th>
+        <td>{{ prefix.vlan.organization.optional_1 }}</td>
+    </tr>
+
+    <tr>
+        <th>- Optional #2</th>
+        <td>{{ prefix.vlan.organization.optional_2 }}</td>
+    </tr>
+
+    <tr>
+        <th>- Optional #3</th>
+        <td>{{ prefix.vlan.organization.optional_3 }}</td>
+    </tr>
+    {% endif %}
+
+    {% if arp %}
+    <tr>
+        <th>Found in ARP data</th>
+        <td>{{ arp.start_time }}</td>
+    </tr>
+
+    <tr>
+        <th>Last seen with MAC</th>
+        <td>{{ arp.mac }}</td>
+    </tr>
+
+    <tr>
+        <th>- On switch</th>
+        <td>{{ cam.sysname }}{% if cam.netbox.ip %} ({{ cam.netbox.ip }}){% endif %}</td>
+    </tr>
+
+    <tr>
+        <th>- On module</th>
+        <td>{{ cam.module }}</td>
+    </tr>
+
+    <tr>
+        <th>- On port</th>
+        <td>{{ cam.port }}</td>
+    </tr>
+    {% endif %}
 {% endif %}
 </table>
 </div>
@@ -352,12 +412,12 @@
                 {% if alert_info.is_more_alerts %}
                     Showing {{ alert_info.alerts|length }} of
                     {{ alert_info.count }} alerts, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">
                     Device History</a> for all
                 {% else %}
                     {{ alert_info.alerts|length }}
                     alert{{ alert_info.alerts|length|pluralize }} found, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">Device History</a> for details
                 {% endif %}
             </th>
         </tr>
@@ -415,7 +475,8 @@
 {% endif %}
 
 
-{% if netbox and netbox.module_set.count %}
+{% if netbox %}
+{% if netbox.module_set.count or netbox.interface_set.count %}
 
 <div id="ports">
     <div class="tabs">
@@ -465,6 +526,7 @@
     </div>
 </div>
 
+{% endif %}
 {% endif %}
 
 {% endblock %}

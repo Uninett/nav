@@ -4,12 +4,8 @@
 # hack to kill the process has been written instead.  getBoksMacs indicates
 # that its work is done by creating the $JOB_FINISHED file.
 
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-bindir=@bindir@
 localstatedir=@localstatedir@
 sysconfdir=@sysconfdir@
-libdir=@libdir@
 javalibdir=@javalibdir@
 
 NAV_CONF="${sysconfdir}/nav.conf"

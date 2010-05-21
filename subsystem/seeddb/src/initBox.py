@@ -1,28 +1,19 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
-#          Sigurd Gartmann <sigurd-nav@brogar.org>
-#
+"""Handle some of the aspects of SNMP initialization when adding a netbox"""
 
 from socket import inet_aton,error,gethostbyname,gethostbyaddr
 from nav.Snmp import Snmp,NameResolverException,TimeOutException
@@ -90,17 +81,14 @@ class Box:
         
         snmp = Snmp(identifier, ro, self.snmpversion)
 
-        sql = "select snmpoid from snmpoid where oidkey='typeoid'"
-        connection = nav.db.getConnection("bokser")
-        handle = connection.cursor()
-        handle.execute(sql)
-        oid = handle.fetchone()[0]
-        
-        sysobjectid = snmp.get(oid)
+        sysobjectid_oid = ".1.3.6.1.2.1.1.2.0" # sysobjectid of first agent
+        sysobjectid = snmp.get(sysobjectid_oid)
         
         self.sysobjectid = sysobjectid.lstrip(".")
 
         typeidsql = "select typeid from type where sysobjectid = '%s'"%self.sysobjectid
+        connection = nav.db.getConnection("bokser")
+        handle = connection.cursor()
         handle.execute(typeidsql)
         try:
             typeid = handle.fetchone()[0]
@@ -178,7 +166,7 @@ class Box:
             escapedSerials = [nav.db.escape(ser.strip()) for ser in serials
                               if is_ascii(ser)]
             whereSerials = ",".join(escapedSerials)
-            sql = "SELECT deviceid, productid " \
+            sql = "SELECT deviceid " \
                   "FROM device " \
                   "WHERE serial IN (%s) " \
                   "      AND deviceid NOT in " \

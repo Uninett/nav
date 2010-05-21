@@ -35,20 +35,14 @@ from nav.models.profiles import Account, AccountGroup, AccountProperty, \
     AlertSubscription, FilterGroupContent, Operator, Expression, \
     Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
-from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
 from nav.web.message import new_message, Messages
 
 from nav.web.alertprofiles.forms import *
 from nav.web.alertprofiles.utils import *
 from nav.web.alertprofiles.shortcuts import alertprofiles_response_forbidden, \
-    alertprofiles_response_not_found
+    alertprofiles_response_not_found, BASE_PATH
 
 _ = lambda a: a
-
-BASE_PATH = [
-    ('Home', '/'),
-    ('Alert profiles', '/alertprofiles/'),
-]
 
 PAGINATE_BY = 25
 

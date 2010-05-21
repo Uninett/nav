@@ -17,7 +17,7 @@
 
 from django.db import transaction
 
-from nav.models.profiles import StatusPreference
+from nav.models.profiles import Account, StatusPreference
 
 def extract_post(post):
     '''Some browser don't support buttons with names and values, so we have to
@@ -55,3 +55,46 @@ def order_status_preferences(account):
         return prev_position
     else:
         return 0
+
+@transaction.commit_on_success
+def make_default_preferences(account):
+    sections = StatusPreference.objects.filter(
+        account=Account.DEFAULT_ACCOUNT
+    )
+    for section in sections:
+        StatusPreference.objects.create(
+            name=section.name,
+            position=section.position,
+            type=section.type,
+            account=account,
+            services=section.services,
+            states=section.states,
+        )
+
+#def convert_old_preferences(account):
+#    ALL_SELECTED = 'all_selected_tkn'
+#
+#    preferences = AccountProperty.objects.filter(
+#        account=account,
+#        property='statusprefs',
+#    )
+#    for p in preferences:
+#        data = cPickle.loads(p.value.encode('utf-8'))
+#        (iDunno, type, name, prefs) = data
+#        organizations = prefs.get('orgid', [])
+#        categories = prefs.get('catid', [])
+#        services = prefs.get('handler', None)
+#        states = prefs.get('states', None)
+#
+#        section = StatusPreference(
+#            name=name,
+#            type=type,
+#            account=account,
+#        )
+#
+#        if services and services[0] != ALL_SELECTED:
+#            section.services = ",".join(services)
+#        if states and states[0] != ALL_SELECTED:
+#            section.states = ",".join(states)
+#
+#        section.save()

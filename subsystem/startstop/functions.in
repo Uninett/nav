@@ -27,11 +27,6 @@
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 # Credits: Miquel van Smoorenburg <miquels@drinkel.nl.mugnet.org>
 #
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
-initdir=@initdir@
-bindir=@bindir@
 localstatedir=@localstatedir@
 
 daemon() {

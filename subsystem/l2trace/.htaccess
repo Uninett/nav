@@ -1,3 +1,2 @@
 SetHandler python-program
-PythonHandler l2trace
-DirectoryIndex l2trace.py/
+PythonHandler nav.web.l2trace

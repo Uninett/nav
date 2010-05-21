@@ -1,93 +1,87 @@
 # routers sub-tree
 #
 # This is where we collect stats on the chassis of our routers
-# (i.e. memory, CPU, temperature). These are kept separate from
+# (i.e. memory, CPU). These are kept separate from
 # the interfaces themselves since they have quite different
 # configuration needs.
+#
+# Last changed for version 3.6 of NAV
 
-#############################################
-# Edited specifically for NAV v3 - NTNU
-# by John Magne Bredal <bredal@itea.ntnu.no>
-#############################################
 
 Target	--default--
 	short-desc      	=	""
 
-# Alfa version notes:
-# We are not checking if the oid's we use to gather data
-# are defined here. This must be done before final version.
-OID	cpu1min			1.3.6.1.4.1.9.2.1.57.0
-OID	cpu5min			1.3.6.1.4.1.9.2.1.58.0
-OID	tempInlet		1.3.6.1.4.1.9.9.13.1.3.1.3.1
-OID	tempOutlet		1.3.6.1.4.1.9.9.13.1.3.1.3.3
-OID	tempState		1.3.6.1.4.1.9.9.13.1.3.1.6.1
-OID	mem5minUsed		1.3.6.1.4.1.9.9.48.1.1.1.5.1
-OID	mem5minFree		1.3.6.1.4.1.9.9.48.1.1.1.6.1
+# Bandwidth
 OID	c5000Bandwidth		1.3.6.1.4.1.9.5.1.1.8.0
 OID	c5000BandwidthMax 	1.3.6.1.4.1.9.5.1.1.19.0
+# CPU
+OID	cpu1min			1.3.6.1.4.1.9.2.1.57.0
+OID	cpu5min			1.3.6.1.4.1.9.2.1.58.0
+OID	hpcpu			1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0
+# Memory
+OID	mem5minUsed		1.3.6.1.4.1.9.9.48.1.1.1.5.1
+OID	mem5minFree		1.3.6.1.4.1.9.9.48.1.1.1.6.1
+OID 	hpmem5minUsed		1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1
+OID	hpmem5minFree		1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1
+
+
+########################################
+# DATASOURCES
+########################################
 
 datasource	--default--
 	rrd-ds-type		=	GAUGE
 	rrd-min			=	undef
 	rrd-max			=	undef
+
 	
-datasource	cpu1min			ds-source	=	snmp://%snmp%/cpu1min
-datasource	cpu5min			ds-source	=	snmp://%snmp%/cpu5min
-datasource	tempInlet		ds-source	=	snmp://%snmp%/tempInlet
-datasource	tempOutlet		ds-source	=	snmp://%snmp%/tempOutlet
-datasource	tempState		ds-source	=	snmp://%snmp%/tempState
-datasource	mem5minUsed		ds-source	=	snmp://%snmp%/mem5minUsed
-datasource	mem5minFree		ds-source	=	snmp://%snmp%/mem5minFree
-datasource	c5000Bandwidth		ds-source       =       snmp://%snmp%/c5000Bandwidth
-datasource      c5000BandwidthMax	ds-source       =       snmp://%snmp%/c5000BandwidthMax
+datasource c5000Bandwidth
+	   ds-source = snmp://%snmp%/c5000Bandwidth
 
-# ALFA version:
-# We are currently relying on the ability of the admins to make views. This
-# should be done automatically before final release.
+datasource c5000BandwidthMax
+	   ds-source = snmp://%snmp%/c5000BandwidthMax
 
-#!#!#! Do NOT remove this line
-targetType C1000
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+datasource cpu1min
+	   ds-source = snmp://%snmp%/cpu1min
 
-targetType cis1005
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,uptime:sysUptime"
+datasource cpu5min
+	   ds-source = snmp://%snmp%/cpu5min
 
-targetType C1605
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+datasource hpcpu
+	   ds-source = snmp://%snmp%/hpcpu
 
-targetType C1700
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+datasource mem5minUsed
+	   ds-source = snmp://%snmp%/mem5minUsed
 
-targetType cis4000
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,uptime:sysUptime"
+datasource mem5minFree
+	   ds-source = snmp://%snmp%/mem5minFree
 
-targetType C6500gsw
-        ds      =       "cpu1min,cpu5min,tempInlet,mem5minUsed,tempOutlet,mem5minFree,c5000Bandwidth,c5000BandwidthMax"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet, bandwidth:c5000Bandwidth c5000BandwidthMax"
+datasource hpmem5minUsed
+	   ds-source = snmp://%snmp%/hpmem5minUsed
 
-targetType cat6509
-        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,tempInlet,tempOutlet,mem5minFree,c5000Bandwidth,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime: sysUptime"
-
-targetType C7200
-        ds      =       "cpu1min,cpu5min,tempInlet,mem5minUsed,tempOutlet,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet"
-
-targetType cis7206
-        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,tempOutlet,mem5minFree,sysUpTime"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet,uptime:sysUptime"
-
-targetType RSM
-        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
-        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+datasource hpmem5minFree
+	   ds-source = snmp://%snmp%/hpmem5minFree
 
 
-html 	short-desc	Router Chassis
+########################################
+# GRAPHS
+########################################
+
+
+graph	c5000Bandwidth
+	y-axis	=	"percent"
+	legend	=	"% Bandwidth in use"
+	draw-as	=	AREA
+	units	=	%
+	y-min	=	0
+	y-max	=	100
+
+graph 	c5000BandwidthMax
+	y-axis	=	"percent"
+	legend	=	"Max % bandwidth in use"
+	units	=	%
+	y-min	=	0
+	y-max	=	100
 
 graph   cpu1min
 	units   =	"%"
@@ -106,6 +100,15 @@ graph   cpu5min
 	y-min	=	0
 	y-max	=	100
 
+graph	hpcpu
+	units	=	%
+	color	=	dark-green
+	y-axis	=	"Percent CPU utilization"
+	legend	=	"CPU utilization"
+	draw-as	=	AREA
+	y-min	=	0
+	y-max	=	100
+
 graph   mem5minUsed
 	color   =	dark-green
 	draw-as =	AREA
@@ -118,34 +121,18 @@ graph   mem5minFree
 	y-axis  =	"Bytes"
 	legend  =	"5 minute free memory"
 
-graph	c5000Bandwidth
-	y-axis	=	"percent"
-	legend	=	"% Bandwidth in use"
-	draw-as	=	AREA
-	units	=	%
+graph   hpmem5minUsed
+	draw-as	=	AREA	
+	y-axis	=	"Bytes"
+	legend	=	"Used memory"
 	y-min	=	0
-	y-max	=	100
+	y-max	=	12000000
 
-graph 	c5000BandwidthMax
-	y-axis	=	"percent"
-	legend	=	"Max % bandwidth in use"
-	units	=	%
-	y-min	=	0
-	y-max	=	100
+graph   hpmem5minFree
+	draw-as	=	STACK
+	y-axis	=	"Bytes"
+	legend	=	"Free memory"
 
-graph 	tempInlet
-	draw-as	=	LINE2
-	y-axis 	=	"Degrees Celcius"
-	legend 	=	"The temperature of the inlet in Celcius"
-	units   =   	"&#176;"
-	precision =	integer
-
-graph 	tempOutlet
-	draw-as	=	LINE2
-	y-axis 	=	"Degrees Celcius"
-	legend 	=	"The temperature of the outlet in Celcius"
-	units   =   	"&#176;"
-	precision =	integer
 
 html    page-header
 	<table width=100%>

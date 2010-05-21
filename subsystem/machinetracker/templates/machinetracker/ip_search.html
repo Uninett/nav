@@ -1,0 +1,52 @@
+{% extends "machinetracker/base.html" %}
+
+{% block content %}
+
+<div id="search_form">
+    <form action="{% url machinetracker-ip %}" method="get">
+        <table class="listtable">
+            <caption>IP search</caption>
+            <tbody>
+                {{ form }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Search" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+
+{% if ip_tracker %}
+<div class="results">
+    {% include "machinetracker/ip_tracker.html" %}
+</div>
+{% else %}
+
+<div class="infobox">
+    <h4>Accuracy of the Results</h4>
+    <ul>
+        <li>
+            IP search results are based on ARP data from routers. Typically ARP
+            data entries are kept by the routers 4 hours after the last packet
+            seen.  Also keep in mind, the ARP collector only runs twice an hour
+            (0,30).  Subtracting 4-4.5 hours from the end time gives you a
+            fairly good idea.
+        </li>
+        <li>
+            Since NAV 3.3 port numbers have been removed from the search in
+            favor of interface names.  Historical search results will still
+            contain port numbers instead of interface names, as historical port
+            number data cannot be accurately mapped to interface names.
+        </li>
+        <li>
+            Checking the &quot;inactive&quot; checkbox will have no effect when
+            searching IPv6 address ranges.  The output would be huge (about
+            <em>10<sup>19</sup></em> resulting rows for a /64 subnet).
+        </li>
+    </ul>
+</div>
+
+{% endif %}
+
+{% endblock %}

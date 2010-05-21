@@ -1,0 +1,89 @@
+{% extends "devicehistory/base.html" %}
+
+{% block tabcontent %}
+    <form action="{% url devicehistory-view %}" method="get">
+        {% for type, elements in selection.items %}
+            {% for id in elements %}
+                <input type="hidden" name="{{ type }}" value="{{ id }}" />
+            {% endfor %}
+        {% endfor %}
+        <table class="vertitable">
+            {% include "devicehistory/history_view_filter.html" %}
+            <tr>
+                <th></th>
+                <td><button type="submit">Filter</button></td>
+            </tr>
+        </table>
+    </form>
+
+    {% include "devicehistory/paginator.html" %}
+
+    {% for group_name, group in history.grouped_history.items %}
+    <table class="listtable reporttable">
+        <caption>
+            {{ group_name }}<br />
+            <span class="subtitle">{{ group|length }} items.</span>
+        </caption>
+
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Room</th>
+                <th>Netbox</th>
+                {# <th>Module</th> #}
+                <th>Serial</th>
+                <th>Start time</th>
+                <th>End time</th>
+                <th>Event type</th>
+                <th>Alert type</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for h in group %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td>{{ h.netbox.room.location.description }}</td>
+                <td>{{ h.netbox.room.description }}</td>
+                <td>{{ h.netbox.sysname }}</td>
+                {# <td>{{ h.module_name }}</td> #}
+                <td>{{ h.device.serial }}</td>
+                <td>{{ h.start_time }}</td>
+                <td>
+                    {% if h.is_open %}
+                    Unresolved
+                    {% else %}
+                    {{ h.end_time }}
+                    {% endif %}
+                </td>
+                <td>{{ h.event_type.id }}</td>
+                <td>{{ h.alert_type.name }}</td>
+                <td>
+                    <ul>
+                    {% for state,m in h.extra_messages.items %}
+                        <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                            <span>{{ m.sms }}</span>
+                            <ul class="email_message" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                <li>{{ m.email|linebreaks }}</li>
+                            </ul>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th colspan="10">
+                    {{ group|length }} items.
+                </th>
+            </tr>
+        </tfoot>
+    </table>
+    {% endfor %}
+
+    {% include "devicehistory/paginator.html" %}
+
+{% endblock %}

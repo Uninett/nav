@@ -36,7 +36,7 @@ class QuickSelect:
         self.room_label     = kwargs.pop('room_label',     '%(id)s (%(description)s)')
         self.netbox_label   = kwargs.pop('netbox_label',   '%(sysname)s')
         self.service_label  = kwargs.pop('service_label',  '%(handler)s')
-        self.module_label   = kwargs.pop('module_label',   '%(module_number)d')
+        self.module_label   = kwargs.pop('module_label',   '%(name)s')
 
         self.location_multi = kwargs.pop('location_multiple', True)
         self.room_multi     = kwargs.pop('room_multiple',     True)
@@ -61,6 +61,15 @@ class QuickSelect:
         self.output = []
 
     def handle_post(self, request):
+        # Django requests has post and get data stored in an attribute called
+        # REQUEST, while mod_python request stores it in form.
+        #
+        # This little if/else makes sure we can use both.
+        if hasattr(request, 'REQUEST'):
+            form = request.REQUEST
+        else:
+            form = request.form
+
         result = {
             'location': [],
             'service': [],
