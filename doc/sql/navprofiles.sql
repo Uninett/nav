@@ -338,7 +338,7 @@ CREATE TABLE alertsubscription (
 		FOREIGN KEY(time_period_id) REFERENCES timeperiod(id)
 			ON DELETE CASCADE
 			ON UPDATE CASCADE,
-	CONSTRAINT alertsubscriptino_filter_group_id_fkey
+	CONSTRAINT alertsubscription_filter_group_id_fkey
 		FOREIGN KEY(filter_group_id) REFERENCES filtergroup(id)
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
