@@ -1,3 +1,15 @@
+Version 3.6.0b1.1
+(released 26 May 2010)
+
+ An update to the b1 release with corrections to the database schema
+ initialization and upgrade scripts, some of which were missing from the
+ previous release.
+
+ Bugfixes:
+
+   * LP#585535 (manage.sql script broken in 3.6.0b1)
+   * LP#585539 (DB upgrade script missing from 3.6.0b1)
+
 Version 3.6.0b1
 (released 21 May 2010)
 
