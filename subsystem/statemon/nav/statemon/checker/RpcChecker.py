@@ -71,11 +71,3 @@ class RpcChecker(AbstractChecker):
                 return Event.DOWN, 'rpcinfo timed out'
 
         return Event.UP, "Ok"
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = ['required']
-    return requiredArgs
-

@@ -83,11 +83,3 @@ class RadiusChecker(AbstractChecker):
         version = "FreeRadius 1.0" # Fetch from radiusmonitor later.
         self.setVersion(version) 
         return Event.UP, "Radius: " + version
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

@@ -61,12 +61,3 @@ class HttpChecker(AbstractChecker):
             info = 'ERROR (%s) %s'  % (str(response.status),url)
 
         return status,info
-
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

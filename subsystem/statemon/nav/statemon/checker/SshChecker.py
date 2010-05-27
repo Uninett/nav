@@ -42,11 +42,3 @@ class SshChecker(AbstractChecker):
         s.close()
         self.setVersion(version)
         return Event.UP, version
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

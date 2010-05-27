@@ -63,17 +63,3 @@ class DnsChecker(AbstractChecker):
                 return Event.UP, "No record found, request=%s" % request
             else:
                 return Event.DOWN, "Timeout while requesting %s" % request
-
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = ['request']
-    return requiredArgs
-
-def provides():
-    """
-    Returns a string, telling what test this module provides
-    """
-    return "dns"

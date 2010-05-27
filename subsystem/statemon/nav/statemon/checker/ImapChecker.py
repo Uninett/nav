@@ -65,11 +65,3 @@ class ImapChecker(AbstractChecker):
         self.setVersion(version)
         
         return Event.UP, version
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = ['username', 'password']
-    return requiredArgs
-

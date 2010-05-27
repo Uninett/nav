@@ -119,11 +119,3 @@ class LdapChecker(AbstractChecker):
             l.unbind()
 
         return Event.UP, "Ok"
-
-
-def getRequiredArgs():
-    """ 
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs

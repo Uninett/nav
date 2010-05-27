@@ -60,11 +60,3 @@ class SmtpChecker(AbstractChecker):
             version = match.group(0)
         self.setVersion(version)
         return Event.UP,msg
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

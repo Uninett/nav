@@ -37,11 +37,3 @@ class PortChecker(AbstractChecker):
         s.close()
 
         return status,txt
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

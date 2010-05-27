@@ -75,11 +75,3 @@ class FtpChecker(AbstractChecker):
             return Event.UP,'code 230'
         else:
             return Event.DOWN,output.split('\n')[0]
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

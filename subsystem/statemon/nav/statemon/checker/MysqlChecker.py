@@ -112,11 +112,3 @@ class MysqlChecker(AbstractChecker):
         
         except MysqlError, err:
             return Event.DOWN, str(err)
-            
-    
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs

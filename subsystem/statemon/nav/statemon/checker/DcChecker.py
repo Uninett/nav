@@ -58,11 +58,3 @@ class DcChecker(AbstractChecker):
             return Event.UP, 'Ok'
         else:
             return Event.DOWN, lastline
-
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = ['username']
-    return requiredArgs

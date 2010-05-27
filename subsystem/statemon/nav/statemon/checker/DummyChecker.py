@@ -26,11 +26,3 @@ class DummyChecker(AbstractChecker):
         import random
         sleep(random.random()*10)
         return Event.UP,'OK'
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

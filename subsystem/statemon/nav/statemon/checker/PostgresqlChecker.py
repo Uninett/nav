@@ -31,11 +31,3 @@ class PostgresqlChecker(AbstractChecker):
         s.connect(self.getAddress())
         s.close()
         return Event.UP,'alive'
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

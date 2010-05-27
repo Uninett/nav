@@ -70,11 +70,3 @@ class SmbChecker(AbstractChecker):
             return Event.UP, 'OK'
         else:
             return Event.DOWN, 'error %s' % output.strip().split('\n')[-1]
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

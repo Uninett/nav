@@ -79,10 +79,3 @@ class OracleChecker(AbstractChecker):
         except:
             return Event.DOWN, str(sys.exc_value) 
         return Event.UP, "Oracle " + version
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
