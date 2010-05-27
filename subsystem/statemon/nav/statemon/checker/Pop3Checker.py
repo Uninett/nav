@@ -15,17 +15,20 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
+import poplib
+
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon import Socket
-import poplib
+
 class PopConnection(poplib.POP3):
     def __init__(self, timeout, ip, port):
         self.ip=ip
         self.port=port
-        self.sock=Socket.Socket(timeout)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(timeout)
         self.sock.connect((self.ip, self.port))
-        self.file=self.sock.makefile('rb')
+        self.file = self.sock.makefile('rb')
         self._debugging=0
         self.welcome = self._getresp()
 

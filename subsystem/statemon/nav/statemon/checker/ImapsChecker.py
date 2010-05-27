@@ -15,25 +15,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
+import imaplib
+
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
-from nav.statemon import  Socket
-import imaplib
-import socket
-
-#class IMAPConnection(imaplib.IMAP4):
-#    def __init__(self, timeout, host, port):
-#        self.timeout=timeout
-#        imaplib.IMAP4.__init__(self, host, port)
-#
-#
-#    def open(self, host, port):
-#        """
-#        Overload imaplib's method to connect to the server
-#        """
-#        self.sock=Socket.Socket(self.timeout)
-#        self.sock.connect((self.host, self.port))
-#        self.file = self.sock.makefile("rb")
 
 class IMAPSConnection(imaplib.IMAP4):
     """IMAP4 client class over SSL connection
@@ -69,15 +55,6 @@ class IMAPSConnection(imaplib.IMAP4):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
         self.sslobj = socket.ssl(self.sock, self.keyfile, self.certfile)
-
-        # som old things...
-        #self.sock = Socket.Socket(self.timeout)
-        #self.sslobj = SSL.Connection(self.ctx, self.sock)
-        #self.sslobj = Socket.ssl(self.host, self.port, self.timeout)
-        #self.sslobj.connect((host, port))
-        #self.sock.connect((host, port))
-        #self.sslobj = socket.ssl(self.sock.s, self.keyfile, self.certfile)
-        #self.sslobj = Socket.ssl(self.sock.s, self.timeout, self.keyfile, self.certfile)
 
 
     def read(self, size):

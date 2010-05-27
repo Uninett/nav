@@ -15,8 +15,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
+
 from nav.statemon.abstractChecker import AbstractChecker
-from nav.statemon import Socket
 from nav.statemon.event import Event
 
 
@@ -25,7 +26,8 @@ class PostgresqlChecker(AbstractChecker):
         AbstractChecker.__init__(self,'postgresql', service,  port=5432, **kwargs)
     def execute(self):
         args = self.getArgs()
-        s = Socket.Socket(self.getTimeout())
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(self.getTimeout())
         s.connect(self.getAddress())
         s.close()
         return Event.UP,'alive'

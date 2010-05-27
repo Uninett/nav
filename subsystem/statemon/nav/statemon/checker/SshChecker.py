@@ -15,23 +15,28 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
+
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon import Socket
+
 class SshChecker(AbstractChecker):
     """
     """
     def __init__(self,service, **kwargs):
         AbstractChecker.__init__(self, "ssh", service, port=22, **kwargs)
     def execute(self):
-        s = Socket.Socket(self.getTimeout())
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(self.getTimeout())
         s.connect(self.getAddress())
-        version = s.readline().strip()
+        f = s.makefile('r+')
+        version = f.readline().strip()
         try:
             ver = version.split('-')
             protocol = ver[0]
             major = ver[1]
-            s.write("%s-%s-%s" % (protocol, major, "NAV_Servicemon"))
+            f.write("%s-%s-%s" % (protocol, major, "NAV_Servicemon"))
+            f.flush()
         except Exception, e:
             return Event.DOWN, "Failed to send version reply to %s: %s" % (self.getAddress(), str(e))
         s.close()

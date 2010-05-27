@@ -16,19 +16,22 @@
 #
 
 import select
+import socket
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
-from nav.statemon import Socket
+
 class PortChecker(AbstractChecker):
     def __init__(self,service, **kwargs):
         AbstractChecker.__init__(self,'port', service, port=23, **kwargs)
     def execute(self):
-        s = Socket.Socket(self.getTimeout())
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(self.getTimeout())
         s.connect(self.getAddress())
+        f = s.makefile('r')
         r,w,x = select.select([s],[],[],self.getTimeout())
         if r:
-            s.readline()
+            f.readline()
         status = Event.UP
         txt = 'Alive'
         s.close()

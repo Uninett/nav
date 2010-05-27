@@ -15,10 +15,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
+import ftplib
+
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon import Socket
-import ftplib
 
 class FTP(ftplib.FTP):
     def __init__(self,timeout,host='',user='',passwd='',acct=''):
@@ -35,7 +36,8 @@ class FTP(ftplib.FTP):
         if host: self.host = host
         if port: self.port = port
         msg = "getaddrinfo returns an empty list"
-        self.sock = Socket.Socket(self.timeout)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
         self.file = self.sock.makefile('rb')
         self.welcome = self.getresp()

@@ -15,18 +15,20 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import re
+import socket
+import smtplib
+
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon.Socket import Socket
-import smtplib
-import re
 
 class SMTP(smtplib.SMTP):
     def __init__(self,timeout, host = '',port = 25):
-        self.timeout = timeout
+        self._timeout = timeout  # _ to avoid name collision with superclass
         smtplib.SMTP.__init__(self,host,port)
     def connect(self, host='localhost', port = 25):
-        self.sock = Socket(self.timeout)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self._timeout)
         self.sock.connect((host,port))
         return self.getreply()
 

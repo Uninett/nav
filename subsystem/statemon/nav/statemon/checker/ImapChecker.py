@@ -15,10 +15,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
+import imaplib
+
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
-from nav.statemon import Socket
-import imaplib
 
 class IMAPConnection(imaplib.IMAP4):
     def __init__(self, timeout, host, port):
@@ -29,7 +30,8 @@ class IMAPConnection(imaplib.IMAP4):
         """
         Overload imaplib's method to connect to the server
         """
-        self.sock=Socket.Socket(self.timeout)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self.timeout)
         self.sock.connect((host, port))
         self.file = self.sock.makefile("rb")
 

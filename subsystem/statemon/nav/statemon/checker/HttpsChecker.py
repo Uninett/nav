@@ -15,12 +15,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
 import httplib
 import socket
 from urlparse import urlsplit
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
-from nav.statemon import Socket
 
 class HTTPSConnection(httplib.HTTPSConnection):
     def __init__(self,timeout,host,port=443):
@@ -28,10 +28,11 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.timeout = timeout
         self.connect()
     def connect(self):
-        sock = Socket.Socket(self.timeout)
-        sock.connect((self.host,self.port))
-        ssl = socket.ssl(sock.s, None, None)
-        self.sock = httplib.FakeSocket(sock, ssl)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self.timeout)
+        self.sock.connect((self.host, self.port))
+        ssl = socket.ssl(self.sock, None, None)
+        self.sock = httplib.FakeSocket(self.sock, ssl)
         
 class HttpsChecker(AbstractChecker):
     def __init__(self,service, **kwargs):

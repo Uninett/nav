@@ -19,7 +19,6 @@ from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
 from urlparse import urlsplit
 import httplib
-from nav.statemon import Socket
 import socket
 
 class HTTPConnection(httplib.HTTPConnection):
@@ -28,7 +27,8 @@ class HTTPConnection(httplib.HTTPConnection):
         self.timeout = timeout
         self.connect()
     def connect(self):
-        self.sock = Socket.Socket(self.timeout)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self.timeout)
         self.sock.connect((self.host,self.port))
 
 class HttpChecker(AbstractChecker):
