@@ -31,17 +31,6 @@ class HTTPConnection(httplib.HTTPConnection):
         self.sock = Socket.Socket(self.timeout)
         self.sock.connect((self.host,self.port))
 
-class HTTPSConnection(httplib.HTTPSConnection):
-    def __init__(self,timeout,host,port=443):
-        httplib.HTTPSConnection.__init__(self,host,port)
-        self.timeout = timeout
-        self.connect()
-    def connect(self):
-        sock = Socket.Socket(self.timeout)
-        sock.connect((self.host,self.port))
-        ssl = socket.ssl(sock.s, None, None)
-        self.sock = httplib.FakeSocket(sock, ssl)
-        
 class HttpChecker(AbstractChecker):
     def __init__(self,service, **kwargs):
         AbstractChecker.__init__(self, "http", service, port=0, **kwargs)

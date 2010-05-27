@@ -22,15 +22,6 @@ from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon import Socket
 
-class HTTPConnection(httplib.HTTPConnection):
-    def __init__(self,timeout,host,port=80):
-        httplib.HTTPConnection.__init__(self,host,port)
-        self.timeout = timeout
-        self.connect()
-    def connect(self):
-        self.sock = Socket.Socket(self.timeout)
-        self.sock.connect((self.host,self.port))
-
 class HTTPSConnection(httplib.HTTPSConnection):
     def __init__(self,timeout,host,port=443):
         httplib.HTTPSConnection.__init__(self,host,port)
