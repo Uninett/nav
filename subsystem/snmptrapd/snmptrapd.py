@@ -185,6 +185,11 @@ def main():
         nav.logs.reopen_log_files()
         logger.debug('Daemonization complete; reopened log files.')
 
+        # Reopen lost db connection
+        # This is a workaround for a double free bug in psycopg 2.0.7
+        # which is why we don't need to keep the return value
+        getConnection('default')
+
         # Reopen log files on SIGHUP
         logger.debug('Adding signal handler for reopening log files on SIGHUP.')
         signal.signal(signal.SIGHUP, signal_handler)
