@@ -126,6 +126,17 @@ def updatedb(datadir, containers):
     conn = getConnection('default')
     c = conn.cursor()
     
+    def insert_datasources(container, rrd_fileid):
+        logger.debug("Inserting datasources for %s" %container.filename)
+        for datasource in container.datasources:
+                dssql = """
+                INSERT INTO rrd_datasource
+                (rrd_fileid, name, descr, dstype)
+                VALUES (%s, %s, %s, %s)
+                """
+                c.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
+                                  datasource[2]))
+    
     for container in containers:
         datapath = datadir
         if container.path:
@@ -178,6 +189,17 @@ def updatedb(datadir, containers):
             # the datasources. Somewhere in the future there will exist an
             # option to expand the rrd-files with more datasources
 
+            # Special case: if the number of datasources is 0, we insert
+            # what we have.
+            sql = """
+            SELECT * FROM rrd_datasource WHERE rrd_fileid = %s 
+            """
+            c.execute(sql, (rrd_fileid, ))
+            
+            if c.rowcount == 0:
+                insert_datasources(container, rrd_fileid)
+                
+
         elif key and value:
             # Check for key/value pair
             keyvalueq = """
@@ -196,6 +218,16 @@ def updatedb(datadir, containers):
                 """
                 c.execute(sql, (container.netboxid, datapath, filename,
                                 rrd_fileid))
+                
+                # Special case: if the number of datasources is 0, we insert
+                # what we have.
+                sql = """
+                SELECT * FROM rrd_datasource WHERE rrd_fileid = %s 
+                """
+                c.execute(sql, (rrd_fileid, ))
+                
+                if c.rowcount == 0:
+                    insert_datasources(container, rrd_fileid)
 
                 # Move file to new place. If it does not exist, we assume it's
                 # ok and keep the change in the database
@@ -229,15 +261,7 @@ def updatedb(datadir, containers):
                 # Each containter contains a list of tuples of
                 # datasources. It's up to each module to ensure that these are
                 # correct.
-                for datasource in container.datasources:
-                    dssql = """
-                    INSERT INTO rrd_datasource
-                    (rrd_fileid, name, descr, dstype)
-                    VALUES (%s, %s, %s, %s)
-                    """
-
-                    c.execute(dssql, (nextval, datasource[0], datasource[1],
-                                      datasource[2]))
+                insert_datasources(container, nextval)
 
         else:
             # Target did not exist in database. Insert file and datasources.
@@ -258,15 +282,7 @@ def updatedb(datadir, containers):
 
             # Each container contains a list of tuples of datasources. It's up
             # to each module to ensure that these are correct.
-            for datasource in container.datasources:
-                dssql = """
-                INSERT INTO rrd_datasource
-                (rrd_fileid, name, descr, dstype)
-                VALUES (%s, %s, %s, %s)
-                """
-
-                c.execute(dssql, (nextval, datasource[0], datasource[1],
-                                  datasource[2]))
+            insert_datasources(container, nextval)
 
         conn.commit()
 

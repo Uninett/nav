@@ -54,6 +54,12 @@ class CannotWriteToTmpException(Exception):
     def __str__(self):
         return "Cannot write to /tmp - this is needed to restore the rrd file."
 
+class ErrorRunningRRDToolException(Exception):
+    def __init__(self, errormessage):
+        self.errormessage = errormessage
+    def __str__(self):
+        return "Error running rrdtool: %s" %self.errormessage
+
 
 def main(options, args):
     """
@@ -143,7 +149,11 @@ def edit_datasource(rrdfile, name, action):
         raise CannotWriteToTmpException(restorefile)
 
     # Dump rrd to xml
-    output = Popen(['rrdtool', 'dump', rrdfile], stdout=PIPE).communicate()[0]
+    try:
+        output = Popen(['rrdtool', 'dump', rrdfile], 
+                       stdout=PIPE).communicate()[0]
+    except OSError, oserror:
+        raise ErrorRunningRRDToolException(oserror)
 
     # Read xml-file
     xmlfile = parseString(output)

@@ -166,15 +166,17 @@ def get_datadir(path):
 
 def clear_rrd_database():
     """
-    Remove all tuples regarding Cricket in the rrd-database as they are 
-    possibly erroneous.
+    Remove all datasource tuples regarding Cricket in the rrd-database as 
+    they are possibly erroneous.
     """
     
     conn = getConnection('default')
     c = conn.cursor()
     
     q = """
-    DELETE FROM rrd_file WHERE subsystem = 'cricket' 
+    DELETE FROM rrd_datasource 
+    WHERE rrd_fileid IN 
+    (SELECT rrd_fileid FROM rrd_file WHERE subsystem = 'cricket')
     """
     c.execute(q)
     conn.commit()
