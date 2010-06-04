@@ -369,7 +369,7 @@ public class QueryBoks extends Thread
 						"netboxid", boksId,
 						"ifindex", pm.getIfindex(),
 						"to_netboxid", pm.getToNetboxid(),
-						"to_intefaceid", new_to_interfaceid
+						"to_interfaceid", new_to_interfaceid
 					};
 					
 					try {

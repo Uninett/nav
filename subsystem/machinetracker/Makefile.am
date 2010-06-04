@@ -1,13 +1,12 @@
-include $(top_srcdir)/common.mk
+mywebdir = ${webroot}/machinetracker
+mytemplatedir = $(djangotmpldir)/machinetracker
 
+nobase_python_PYTHON = $(wildcard nav/django/urls/*.py nav/web/*/*.py)
 tool_DATA = machinetracker.tool
-sysconf_DATA = machinetracker.conf
-
-cheetah_TEMPLATES = MachineTrackerTemplate.py
-cheetahdir = $(pythondir)/nav/web/templates
-nobase_cheetah_PYTHON = $(cheetah_TEMPLATES)
-
-mywebdir = $(webrootdir)/machinetracker
+mytemplate_DATA = $(wildcard templates/machinetracker/*)
+stylesheet_DATA = $(wildcard media/style/*)
 myweb_DATA = .htaccess
-myweb_PYTHON = machinetracker.py
+CLEANFILES = .htaccess
 
+.htaccess: htaccess
+	cp htaccess .htaccess

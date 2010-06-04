@@ -160,18 +160,6 @@ CREATE TABLE snmpoid (
   UNIQUE(oidkey)
 );
 
--- These rules make sure to invalidate all netbox SNMP profiles when
--- new snmpoids are inserted, or existing ones updated.
-CREATE RULE reprofile_netboxes_on_snmpoid_insert
-  AS ON INSERT TO snmpoid
-  DO ALSO
-    UPDATE netbox SET uptodate=false;
-
-CREATE RULE reprofile_netboxes_on_snmpoid_update
-  AS ON UPDATE TO snmpoid
-  DO ALSO
-    UPDATE netbox SET uptodate=false;
-
 CREATE TABLE netbox (
   netboxid SERIAL PRIMARY KEY,
   ip INET NOT NULL,
@@ -194,6 +182,18 @@ CREATE TABLE netbox (
   UNIQUE(ip),
   UNIQUE(deviceid)
 );
+
+-- These rules make sure to invalidate all netbox SNMP profiles when
+-- new snmpoids are inserted, or existing ones updated.
+CREATE RULE reprofile_netboxes_on_snmpoid_insert
+  AS ON INSERT TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
+
+CREATE RULE reprofile_netboxes_on_snmpoid_update
+  AS ON UPDATE TO snmpoid
+  DO ALSO
+    UPDATE netbox SET uptodate=false;
 
 -- View to match each netbox with a prefix
 -- Multiple prefixes may match netbox.ip, but only the one with the longest
@@ -742,6 +742,8 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceNotice','Registers a notice on a device','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
+    ('apState','Tells us whether an access point has disassociated or associated from the controller','y');
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
@@ -831,6 +833,10 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceSwUpgrade','Software upgrade on device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceHwUpgrade','Hardware upgrade on device.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('apState','apUp','AP associated with controller');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('apState','apDown','AP disassociated from controller');
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
