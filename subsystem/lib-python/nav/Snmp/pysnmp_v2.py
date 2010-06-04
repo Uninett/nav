@@ -15,11 +15,7 @@
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""This module is a higher level interface to SNMP query functionality
-for NAV, as pysnmp2 is quite low-level and tedious to work with.
-
-The module uses the version 2 branch of pysnmp.
-"""
+"""High level NAV API for PySNMP v2."""
 import re
 import os
 # Make sure Ubuntu/Debian picks the correct pysnmp API version:
@@ -31,32 +27,7 @@ try:
     v1.RESPONSE
 except:
     v1.RESPONSE = v1.GETRESPONSE
-from nav.errors import GeneralException
-    
-class SnmpError(GeneralException):
-    """SNMP Error"""
-
-class TimeOutException(SnmpError):
-    """Timed out waiting for SNMP response"""
-    
-class NameResolverException(SnmpError):
-    """NameResolverException"""
-
-class NetworkError(SnmpError):
-    """NetworkError"""
-
-class AgentError(SnmpError):
-    """SNMP agent responded with error"""
-
-class EndOfMibViewError(AgentError):
-    """SNMP request was outside the agent's MIB view"""
-
-class UnsupportedSnmpVersionError(SnmpError):
-    """Unsupported SNMP protocol version"""
-
-class NoSuchObjectError(SnmpError):
-    """SNMP agent did not know of this object"""
-    
+from errors import *
 
 class Snmp(object):
     """Simple class that provides snmpget, snmpwalk and snmpjog(tm)
