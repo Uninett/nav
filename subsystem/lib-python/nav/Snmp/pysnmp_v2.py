@@ -15,11 +15,7 @@
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""This module is a higher level interface to SNMP query functionality
-for NAV, as pysnmp2 is quite low-level and tedious to work with.
-
-The module uses the version 2 branch of pysnmp.
-"""
+"""High level NAV API for PySNMP v2."""
 import re
 import os
 # Make sure Ubuntu/Debian picks the correct pysnmp API version:
