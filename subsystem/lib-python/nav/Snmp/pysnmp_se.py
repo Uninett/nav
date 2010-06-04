@@ -118,8 +118,8 @@ class Snmp(object):
 
 
     def set(self, query, type, value):
-        """
-        Does snmpset query on the host.
+        """Does snmpset query on the host.
+
         query: oid to use in snmpset
         type: type of value to set. This may be
         i: INTEGER
@@ -131,58 +131,61 @@ class Snmp(object):
         U: COUNTER64 (version 2 and above)
         x: OCTETSTRING
         value: the value to set. Must ofcourse match type: i = 2, s = 'string'
-        
-        Heavily influenced by:
-        http://pysnmp.sourceforge.net/examples/2.x/snmpset.html
+
         """
-
-        if not query.startswith("."):
-            query = "." + query
-            
-        # Choose protocol version specific module
-        try:
-            snmp = eval('v' + self.version)
-        except (NameError, AttributeError):
-            raise UnsupportedSnmpVersionError(self.version)
-
-        # Translate type to fit asn1 library
-        if type == 'i': type = 'INTEGER'
-        if type == 'u': type = 'UNSIGNED32'
-        if type == 't': type = 'TIMETICKS'
-        if type == 'a': type = 'IPADDRESS'
-        if type == 'o': type = 'OBJECTID'
-        if type == 's': type = 'OCTETSTRING'
-        if type == 'U': type = 'COUNTER64'
-        if type == 'x': type = 'OCTETSTRING'
+        # Translate type to fit backend library
+        typemap = {
+            'i': 'Integer',
+            'u': 'Unsigned32',
+            't': 'TimeTicks',
+            'a': 'IpAddress',
+            'o': 'ObjectIdentifier',
+            's': 'OctetString',
+            'U': 'Counter64',
+            'x': 'OctetString',
+        }
+        if type in typemap:
+            value_class = typemap[type]
+            if not hasattr(self._ver, value_class):
+                raise ValueError("%s not supported in SNMP version %s" %
+                                 (value_class, self.version))
+            else:
+                value_class = getattr(self._ver, value_class)
+        else:
+            raise ValueError("type must be one of %r, not %r" %
+                             (typemap.keys(), type))
 
         # Make request and responsehandler
-        req = snmp.SETREQUEST()
-        req['community'] = self.community
-        rsp = snmp.GETRESPONSE()
-            
+        pdu = self._ver.SetRequestPdu()
+        req = self._ver.Message()
+        req.apiAlphaSetCommunity(self.community)
+        req.apiAlphaSetPdu(pdu)
+
         # Encode oids and values
-        encoded_oids = []
-        encoded_vals = []
-            
-        encoded_oids.append(asn1.OBJECTID().encode(query))
-        encoded_vals.append(eval('asn1.'+type+'()').encode(value))
-            
+        obj = OID(query)
+        obj_val = value_class(value)
+        pdu.apiAlphaSetVarBindList((obj, obj_val))
+
         # Try to send query and get response
         try:
-            (answer, src) = self.handle.send_and_receive(
-                req.encode(encoded_oids=encoded_oids,
-                           encoded_vals=encoded_vals),
-                dst=(self.host, self.port))
-                
-            # Decode response (an octet-string) into an snmp-message
-            rsp.decode(answer)
-                
-            if rsp['error_status']:
-                raise AgentError, str(snmp.SNMPError(rsp['error_status']))
-            
-        except (role.NoResponse, role.NetworkError), why:
-            raise NetworkError, why
+            self.handle.send(
+                req.berEncode(), dst=(self.host, self.port))
+            (answer, src) = self.handle.receive()
+        except snmperror.NoResponseError, e:
+            raise TimeOutException(e)
+        except snmperror.NetworkError, e:
+            raise NetworkError(e)
 
+        # Decode raw response/answer
+        rsp = self._ver.Message()
+        rsp.berDecode(answer)
+
+        # ensure the response matches the request
+        if not req.apiAlphaMatch(rsp):
+            raise SnmpException("Response did not match request")
+
+        # Check for errors in the response
+        self._error_check(rsp)
 
     def walk(self,query = "1.3.6.1.2.1.1.1.0"):
         """
