@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003 Norwegian University of Science and Technology
-# Copyright (C) 2006, 2007 UNINETT AS
+# Copyright (C) 2006, 2007, 2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -9,29 +8,31 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This module is a higher level interface to SNMP query functionality
-for NAV, as pysnmp2 is quite low-level and tedious to work with.
+for NAV, as pysnmp is quite low-level and tedious to work with.
 
-The module uses the version 2 branch of pysnmp.
+The module uses the pysnmp-se fork of pysnmp (API version 3)
 """
 import re
 import os
-# Make sure Ubuntu/Debian picks the correct pysnmp API version:
-os.environ['PYSNMP_API_VERSION'] = 'v2'
-import pysnmp # Version 2
-from pysnmp import role, v1, v2c, asn1
-# Ugly hack to escape inconsistencies in pysnmp2
-try:
-    v1.RESPONSE
-except:
-    v1.RESPONSE = v1.GETRESPONSE
 from errors import *
+
+from pysnmp.asn1.oid import OID
+from pysnmp.mapping.udp import error as snmperror
+from pysnmp.mapping.udp.role import Manager
+from pysnmp.proto.api import alpha
+
+def oid_to_str(oid):
+    """Converts an OID object/tuplet to a dotted string representation."""
+    if not isinstance(oid, basestring):
+        oid = "." + ".".join(str(i) for i in oid)
+    return oid
 
 class Snmp(object):
     """Simple class that provides snmpget, snmpwalk and snmpjog(tm)
@@ -49,16 +50,22 @@ class Snmp(object):
         community: community (password), defaults to "public"
         port: port, defaults to "161"
         """
-        
+
         self.host = host
         self.community = community
         self.version = str(version)
+        if self.version == '1':
+            self._ver = alpha.protoVersions[alpha.protoVersionId1]
+        elif self.version.startswith('2'):
+            self._ver = alpha.protoVersions[alpha.protoVersionId2c]
+        else:
+            raise UnsupportedSnmpVersionError(self.version)
         self.port = int(port)
         self.retries = retries
         self.timeout = timeout
         self.reporttype = reporttype
 
-        self.handle = role.manager()
+        self.handle = Manager()
         self.handle.timeout = float(timeout)
 
 
@@ -73,45 +80,41 @@ class Snmp(object):
         if not query.startswith("."):
             query = "." + query
 
-        # Choose protocol version specific module
-        try:
-            snmp = eval('v' + self.version)
-        except (NameError, AttributeError):
-            raise UnsupportedSnmpVersionError(self.version)
-
-        objectid = asn1.OBJECTID()
-        oid = objectid.encode(query)
-
         # Create SNMP GET request
-        req = snmp.GETREQUEST()
-        req['community'] = self.community
-        req['encoded_oids'] = [oid]
-
-        # Create SNMP response message framework
-        rsp = snmp.RESPONSE()
+        req = self._ver.Message()
+        req.apiAlphaSetCommunity(self.community)
+        pdu = self._ver.GetRequestPdu()
+        pdu.apiAlphaSetVarBindList((query, self._ver.Null()))
+        req.apiAlphaSetPdu(pdu)
 
         # Encode SNMP request message and try to send it to SNMP agent and
         # receive a response
         try:
-            (answer, src) = self.handle.send_and_receive(
-                req.encode(), dst=(self.host, self.port))
-        except role.NoResponse, e:
+            self.handle.send(
+                req.berEncode(), dst=(self.host, self.port))
+            (answer, src) = self.handle.receive()
+        except snmperror.NoResponseError, e:
             raise TimeOutException(e)
-        except role.NetworkError, n:
-            raise NetworkError(n)
-
+        except snmperror.NetworkError, e:
+            raise NetworkError(e)
 
         # Decode raw response/answer
-        rsp.decode(answer)
+        rsp = self._ver.Message()
+        rsp.berDecode(answer)
+
+        # ensure the response matches the request
+        if not req.apiAlphaMatch(rsp):
+            raise SnmpException("Response did not match request")
 
         # Check for errors in the response
         self._error_check(rsp)
 
         # Fetch the value from the response
-        rsp_value = asn1.decode(rsp['encoded_vals'][0])[0]
+        var_bind = rsp.apiAlphaGetPdu().apiAlphaGetVarBindList()[0]
+        oid, value = var_bind.apiAlphaGetOidVal()
 
-        # Return the value as a proper Python type:
-        return rsp_value()
+        # Return the value
+        return value.get()
 
 
     def set(self, query, type, value):
@@ -179,8 +182,8 @@ class Snmp(object):
             
         except (role.NoResponse, role.NetworkError), why:
             raise NetworkError, why
-            
-            
+
+
     def walk(self,query = "1.3.6.1.2.1.1.1.0"):
         """
         Does snmpwalk on the host.
@@ -189,26 +192,16 @@ class Snmp(object):
         returns an array containing key-value-pairs, where the
         returned OID is the key.
         """
-        if not query.startswith("."):
-            query = "." + query
-        
-        # Choose protocol version specific module
-        try:
-            snmp = eval('v' + self.version)
-        except (NameError, AttributeError):
-            raise UnsupportedSnmpVersionError(self.version)
 
         result = []
-        root_oid = asn1.OBJECTID()
-        root_oid.encode(query)
+        root_oid = OID(query)
 
         # Create SNMP GETNEXT request
-        req = snmp.GETNEXTREQUEST()
-        req['community'] = self.community
-        req['encoded_oids'] = [root_oid.encode()]
-
-        # Create a response message framework
-        rsp = snmp.RESPONSE()
+        req = self._ver.Message()
+        req.apiAlphaSetCommunity(self.community)
+        pdu = self._ver.GetNextRequestPdu()
+        pdu.apiAlphaSetVarBindList((query, self._ver.Null()))
+        req.apiAlphaSetPdu(pdu)
 
         current_oid = root_oid
         # Traverse agent MIB
@@ -216,16 +209,21 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(
-                    req.encode(), dst=(self.host, self.port))
-            except role.NoResponse, e:
+                self.handle.send(
+                    req.berEncode(), dst=(self.host, self.port))
+                (answer, src) = self.handle.receive()
+            except snmperror.NoResponseError, e:
                 raise TimeOutException(e)
-            except role.NetworkError, n:
-                raise NetworkError(n)
-
+            except snmperror.NetworkError, e:
+                raise NetworkError(e)
 
             # Decode raw response/answer
-            rsp.decode(answer)
+            rsp = self._ver.Message()
+            rsp.berDecode(answer)
+
+            # ensure the response matches the request
+            if not req.apiAlphaMatch(rsp):
+                raise SnmpException("Response did not match request")
 
             # Check for errors in the response
             try:
@@ -237,30 +235,38 @@ class Snmp(object):
 
             # Fetch the (first) Object ID and value pair from the response,
             # (there shouldn't be more than one pair)
-            rsp_oid = asn1.decode(rsp['encoded_oids'][0])[0]
-            rsp_value = asn1.decode(rsp['encoded_vals'][0])[0]
+            varbind = rsp.apiAlphaGetPdu().apiAlphaGetVarBindList()[0]
+            name, value = varbind.apiAlphaGetOidVal()
+            response_oid = name.get()
 
             # Check for reasons to stop walking
-            if not root_oid.isaprefix(rsp_oid()):
+            if not root_oid.isaprefix(response_oid):
                 # If the current GETNEXT response came from outside the
                 # tree we are traversing, get the hell out of here, we're
                 # done walking the subtree.
                 return result
-            elif rsp_oid == current_oid:
+            elif response_oid == current_oid:
                 # If the GETNEXT response contains the same object ID as the
                 # request, something has gone wrong, and we didn't see it
                 # further up.  Just return whatever results we got.
                 return result
             else:
-                result.append((rsp_oid(), rsp_value()))
+                # The Snmp API uses string-based OIDs, not tuples or objects,
+                # so convert if needed:
+                if isinstance(value, (OID, self._ver.ObjectIdentifier)):
+                    realvalue = oid_to_str(value)
+                else:
+                    realvalue = value.get()
+                result.append((oid_to_str(response_oid), realvalue))
 
             # Update request ID
-            req['request_id'] += 1
+            new_id = pdu.apiAlphaGetRequestId() + 1
+            pdu.apiAlphaSetRequestId(new_id)
 
             # Load the next request with the OID received in the last response
-            req['encoded_oids'] = rsp['encoded_oids']
-            current_oid = rsp_oid
-    
+            pdu.apiAlphaSetVarBindList((response_oid, self._ver.Null()))
+            current_oid = response_oid
+
     def jog(self,query = "1.3.6.1.2.1.1.1.0"):
         """Does a modified snmpwalk on the host. The query OID is
         chopped off the returned OID for each line in the result.
@@ -277,7 +283,7 @@ class Snmp(object):
                 #found = re.search(query,oid)
                 key = re.sub('\.?' + query + '\.?','',oid)
                 result.append((key,value))
-        
+
         return result
 
     def bulkwalk(self,query = "1.3.6.1.2.1.1.1.0", strip_prefix=False):
@@ -285,7 +291,7 @@ class Snmp(object):
         Performs an SNMP walk on the host, using GETBULK requests.
         Will raise an UnsupportedSnmpVersionError if the current
         version is anything other than 2c.
-        
+
           query: OID to use in the query
 
           strip_prefix: If True, strips the query OID prefix from the
@@ -297,25 +303,17 @@ class Snmp(object):
         if str(self.version) != "2c":
             raise UnsupportedSnmpVersionError(
                 "Cannot use BULKGET in SNMP version " + self.version)
-        
-        if not query.startswith("."):
-            query = "." + query
-        
-        # Choose protocol version specific module
-        snmp = v2c
 
         result = []
-        root_oid = asn1.OBJECTID()
-        root_oid.encode(query)
+        root_oid = OID(query)
 
         # Create SNMP GETNEXT request
-        req = snmp.GETBULKREQUEST()
-        req['community'] = self.community
-        req['encoded_oids'] = [root_oid.encode()]
-        req['max_repetitions'] = 256
-
-        # Create a response message framework
-        rsp = snmp.RESPONSE()
+        req = self._ver.Message()
+        req.apiAlphaSetCommunity(self.community)
+        pdu = self._ver.GetBulkRequestPdu()
+        pdu.apiAlphaSetVarBindList((query, self._ver.Null()))
+        pdu.apiAlphaSetMaxRepetitions(256)
+        req.apiAlphaSetPdu(pdu)
 
         current_oid = root_oid
         # Traverse agent MIB
@@ -323,15 +321,17 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(
-                    req.encode(), dst=(self.host, self.port))
-            except role.NoResponse, e:
+                self.handle.send(
+                    req.berEncode(), dst=(self.host, self.port))
+                (answer, src) = self.handle.receive()
+            except snmperror.NoResponseError, e:
                 raise TimeOutException(e)
-            except role.NetworkError, n:
-                raise NetworkError(n)
+            except snmperror.NetworkError, e:
+                raise NetworkError(e)
 
             # Decode raw response/answer
-            rsp.decode(answer)
+            rsp = self._ver.Message()
+            rsp.berDecode(answer)
 
             # Check for errors in the response
             try:
@@ -342,16 +342,15 @@ class Snmp(object):
                 pass
 
             last_response_oid = None
-            for encoded_oid, encoded_val in \
-                    zip(rsp['encoded_oids'], rsp['encoded_vals']):
-                rsp_oid = asn1.decode(encoded_oid)[0]
-                rsp_value = asn1.decode(encoded_val)[0]
+            for varbind in rsp.apiAlphaGetPdu().apiAlphaGetVarBindList():
+                name, value = varbind.apiAlphaGetOidVal()
+                rsp_oid = name.get()
 
                 # Check for reasons to stop walking
-                if isinstance(rsp_value, asn1.endOfMibView):
+                if isinstance(value, self._ver.EndOfMibView):
                     # Nothing more to see here, move along
                     return result
-                if not root_oid.isaprefix(rsp_oid()):
+                if not root_oid.isaprefix(rsp_oid):
                     # If the current value came from outside the tree we
                     # are traversing, get the hell out of here, we're done
                     # walking the subtree.
@@ -363,45 +362,47 @@ class Snmp(object):
                     # whatever results we got.
                     return result
                 else:
-                    oid = rsp_oid()
+                    oid = rsp_oid
                     if strip_prefix:
-                        oid = oid[len(query)+1:]
-                    result.append((oid, rsp_value()))
+                        oid = oid[len(root_oid):]
+                    # The Snmp API uses string-based OIDs, not tuples or objects,
+                    # so convert if needed:
+                    if isinstance(value, (OID, self._ver.ObjectIdentifier)):
+                        realvalue = oid_to_str(value)
+                    else:
+                        realvalue = value.get()
+
+                    result.append((oid_to_str(oid), realvalue))
                     last_response_oid = rsp_oid
 
             # Update request ID
-            req['request_id'] += 1
+            new_id = pdu.apiAlphaGetRequestId() + 1
+            pdu.apiAlphaSetRequestId(new_id)
 
             # Load the next request with the last OID received in the
             # last response
-            req['encoded_oids'] = rsp['encoded_oids'][-1:]
+            pdu.apiAlphaSetVarBindList((last_response_oid, self._ver.Null()))
             current_oid = last_response_oid
 
     def _error_check(self, rsp):
         """Check a decoded response structure for agent errors or exceptions,
         and raise Python exceptions accordingly."""
-        # Check for remote SNMP agent failure (v1)
-        if rsp['error_status']:
-            error_index = rsp['error_index']-1
-            error_oid = asn1.decode(rsp['encoded_oids'][error_index])[0]
-            error_value = asn1.decode(rsp['encoded_oids'][error_index])[0]
+        error_status = rsp.apiAlphaGetPdu().apiAlphaGetErrorStatus()
+        if error_status:
             # Error status 2 means noSuchName (i.e. the OID asked for
             # doesn't exist in the agent's MIB view)
-            if rsp['error_status'] == 2:
-               raise NoSuchObjectError(error_oid())
+            if int(error_status) == 2:
+                raise NoSuchObjectError("No such name")
             else:
-               raise AgentError("Error code %s at index %s (%s, %s)" % \
-                                (rsp['error_status'],
-                                 rsp['error_index'],
-                                 error_oid,
-                                 error_value))
+                raise AgentError("Error in response: %s" % error_status)
+            # Cases we should handle include
 
-        rsp_oids = [asn1.decode(o)[0] for o in rsp['encoded_oids']]
-        rsp_values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
-
-        for rsp_oid, rsp_value in zip(rsp_oids, rsp_values):
-            # Check for SNMP v2c agent exceptions
-            if isinstance(rsp_value, (asn1.noSuchObject, asn1.noSuchInstance)):
-                raise NoSuchObjectError(rsp_oid)
-            elif isinstance(rsp_value, asn1.endOfMibView):
-                raise EndOfMibViewError(rsp_oid())
+        # Check the varbind list for snmp v2c exceptions
+        varbinds = rsp.apiAlphaGetPdu().apiAlphaGetVarBindList()
+        for varbind in varbinds:
+            obj, value = varbind.apiAlphaGetOidVal()
+            if isinstance(value,
+                         (self._ver.NoSuchObject, self._ver.NoSuchInstance)):
+                raise NoSuchObjectError(obj)
+            elif isinstance(value, self._ver.EndOfMibView):
+                raise EndOfMibViewError(obj)
