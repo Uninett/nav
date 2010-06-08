@@ -195,8 +195,7 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     # and remove them if it does.
     if match(r'.+\d\.\d+', startTime):
         startTime = sub(r'\.\d+', '', startTime)
-        #startTime = startTime[:-7]
-
+        
     # Make tuple of the time string
     timeTuple = time.strptime(startTime, DATEFORMAT_DB)
     # Convert to seconds since epoch
@@ -218,10 +217,6 @@ def removeFractions(timestamp):
     """
     Removes the fractions of a second part from the timestamps so we don't
     have to display them on the webpage.
-    
-    Keyword arguments:
-    acctstarttime   - Session start time
-    acctstoptime    - Session stop time
     """
     
     ts = str(timestamp)

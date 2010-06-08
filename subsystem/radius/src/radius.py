@@ -240,7 +240,7 @@ def handler(req):
 
     req.content_type = "text/html"
     req.send_http_header()
-    req.write(page.respond())
+    req.write(page.respond().encode('utf-8'))
     page.shutdown()
     return apache.OK
 
@@ -457,15 +457,13 @@ class AcctDetailQuery(SQLQuery):
     Get all details about a specified session
     """
 
-    def __init__(self, startTime):
+    def __init__(self, radAcctID):
         """
         Construct SQL query
-
-        Keyword arguments:
-        sessionid   - ID of the session we want to get details on.
+        
         """
-        #self.sessionid = sessionid
-        self.startTime = startTime
+        
+        self.radAcctID = radAcctID
 
         self.sqlQuery = """SELECT 
                            acctuniqueid,
@@ -485,9 +483,9 @@ class AcctDetailQuery(SQLQuery):
                            framedprotocol,
                            framedipaddress
                            FROM %s 
-                           WHERE acctstarttime = %%s
+                           WHERE radacctid = %%s
                         """ % (ACCT_TABLE)
-        self.sqlParameters = (self.startTime,)
+        self.sqlParameters = (self.radAcctID,)
 
 
     def getTable(self):
@@ -519,6 +517,7 @@ class AcctSearchQuery(SQLQuery):
         self.nasdns = nasdns
 
         self.sqlQuery = """(SELECT
+                        radacctid,
                         acctuniqueid,
                         username,
                         realm,

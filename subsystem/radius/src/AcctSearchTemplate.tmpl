@@ -250,7 +250,7 @@ $makeMenu($menu, $current)
             <td nowrap>$removeFractions($row.acctstarttime) &nbsp;</td>
             <td nowrap>$showStopTime($row.acctstarttime, $row.acctstoptime, $row.acctsessiontime) &nbsp;</td>
             <td nowrap align="right">$makeTimeHumanReadable($row.acctsessiontime) &nbsp;</td>
-            <td nowrap><a href="acctdetail?acctuniqueid=$row.acctstarttime" title="View all available information on this session">Details</a></td>
+            <td nowrap><a href="acctdetail?acctuniqueid=$row.radacctid" title="View all available information on this session">Details</a></td>
 	</tr>
     #end for
 </table>
