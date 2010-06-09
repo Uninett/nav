@@ -15,10 +15,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 import re
 import subprocess
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
+from nav.util import which
 
 pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',re.I) #tihihi
 
@@ -41,7 +43,12 @@ class SmbChecker(AbstractChecker):
         password = args.get('password','')
         workgroup = args.get('workgroup', '')
 
-        args = ['smbclient',
+        cmd = 'smbclient'
+        cmdpath = which(cmd)
+        if not cmdpath:
+            return Event.DOWN, 'Command %s not found in %s' % (cmd, os.environ['PATH'])
+
+        args = [cmdpath,
                 '-L', host,
                 '-p', str(port)]
 

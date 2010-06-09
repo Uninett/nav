@@ -17,6 +17,7 @@
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
+from nav.util import which
 import os
 import subprocess
 
@@ -36,8 +37,13 @@ class DcChecker(AbstractChecker):
 
         ip, host = self.getAddress()
 
+        cmd = 'rpcclient'
+        cmdpath = which(cmd)
+        if not cmdpath:
+            return Event.DOWN, 'Command %s not found in %s' % (cmd, os.environ['PATH'])
+
         try:
-            p = subprocess.Popen(['rpcclient',
+            p = subprocess.Popen([cmdpath,
                                   '-U', '%',
                                   '-c', 'lookupnames '+username,
                                   ip],

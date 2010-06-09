@@ -15,9 +15,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 import subprocess
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
+from nav.util import which
+
 class RpcChecker(AbstractChecker):
     """
     args:
@@ -45,6 +48,11 @@ class RpcChecker(AbstractChecker):
         else:
             required = required.split(',')
 
+        cmd = 'rpcinfo'
+        cmdpath = which(cmd)
+        if not cmdpath:
+            return Event.DOWN, 'Command %s not found in %s' % (cmd, os.environ['PATH'])
+
         ip, port = self.getAddress()
         for service in required:
             protocol = mapper.get(service, '')
@@ -52,7 +60,7 @@ class RpcChecker(AbstractChecker):
                 return Event.DOWN, "Unknown argument: [%s], can only check %s" % (service, str(mapper.keys()))
 
             try:
-                p = subprocess.Popen(['rpcinfo',
+                p = subprocess.Popen([cmdpath,
                                       '-'+protocol,
                                       ip,
                                       service],
