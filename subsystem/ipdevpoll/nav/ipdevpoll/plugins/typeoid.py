@@ -73,7 +73,8 @@ class TypeOid(Plugin):
         # Look up existing type
         types = manage.NetboxType.objects.filter(sysobjectid=str(sysobjectid))
         thing = defer.waitForDeferred(
-            threads.deferToThread(storage.shadowify_queryset, types))
+            threads.deferToThread(storage.shadowify_queryset_and_commit,
+                                  types))
         yield thing
         types = thing.getResult()
 

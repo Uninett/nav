@@ -239,39 +239,30 @@ class JobHandler(object):
         logger.debug("\n".join(log_text))
 
 
-    @defer.deferredGenerator
     def save_container(self):
         """
         Parses the container and finds a sane storage order. We do this
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
+        @transaction.commit_on_success
+        def complete_save_cycle():
+            try:
+                # Prepare all shadow objects for storage.
+                self.prepare_containers_for_save()
+                # Traverse all the objects in the storage container and generate
+                # the storage queue
+                self.populate_storage_queue()
+                # Actually save to the database
+                result = self.perform_save()
+                self.log_timed_result(result, "Storing to database complete")
+                # Do cleanup for the known container classes.
+                self.cleanup_containers_after_save()
+            finally:
+                django_debug_cleanup()
 
-        # Prepare all shadow objects for storage.
-        df = threads.deferToThread(self.prepare_containers_for_save)
-        dw = defer.waitForDeferred(df)
-        yield dw
-        dw.getResult()
-
-        # Traverse all the objects in the storage container and generate
-        # the storage queue
-        df = threads.deferToThread(self.populate_storage_queue)
-        dw = defer.waitForDeferred(df)
-        yield dw
-        dw.getResult()
-
-        # Actually save to the database
-        df = threads.deferToThread(self.perform_save)
-        df.addCallback(self.log_timed_result, "Storing to database complete")
-        dw = defer.waitForDeferred(df)
-        yield dw
-        dw.getResult()
-
-        # Do cleanup for the known container classes.
-        df = threads.deferToThread(self.cleanup_containers_after_save)
-        dw = defer.waitForDeferred(df)
-        yield dw
-        dw.getResult()
+        df = threads.deferToThread(complete_save_cycle)
+        return df
 
     def prepare_containers_for_save(self):
         """Execute the prepare_for_save-method on all shadow classes with known
@@ -281,7 +272,6 @@ class JobHandler(object):
         for cls in self.containers.keys():
             cls.prepare_for_save(self.containers)
 
-    @transaction.commit_manually
     def cleanup_containers_after_save(self):
         """Execute the cleanup_after_save-method on all shadow classes with
         known instances.
@@ -300,19 +290,11 @@ class JobHandler(object):
             if django.db.connection.queries:
                 self.logger.error("The last query was: %s",
                                   django.db.connection.queries[-1])
-            transaction.rollback()
             raise e
-        else:
-            transaction.commit()
-        # Sanitize the ever-growing query log, if necessary
-        from daemon import django_debug_cleanup
-        django_debug_cleanup()
-
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)
 
-    @transaction.commit_manually
     def perform_save(self):
         start_time = time.time()
         try:
@@ -345,7 +327,6 @@ class JobHandler(object):
                             obj.set_primary_key(obj_model.pk)
                         obj._touched = []
 
-            transaction.commit()
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
 
@@ -362,7 +343,6 @@ class JobHandler(object):
             if django.db.connection.queries:
                 self.logger.error("The last query was: %s", 
                                   django.db.connection.queries[-1])
-            transaction.rollback()
             raise e
 
     def populate_storage_queue(self):
