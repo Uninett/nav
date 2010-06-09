@@ -18,6 +18,7 @@
 
 import logging
 
+from django.db import transaction
 import django.db.models
 
 from nav import ipdevpoll
@@ -380,6 +381,9 @@ def shadowify_queryset(queryset):
     result = list(queryset)
     new_list = [shadowify(obj) for obj in result]
     return new_list
+
+shadowify_queryset_and_commit = \
+    transaction.commit_on_success(shadowify_queryset)
 
 class ContainerRepository(dict):
     """A repository of container objects.

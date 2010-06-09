@@ -73,7 +73,7 @@ class OidProfiler(Plugin):
         current_profile_queryset = \
             NetboxSnmpOid.objects.filter(netbox=self.netbox.id)
         return threads.deferToThread(
-            storage.shadowify_queryset, current_profile_queryset
+            storage.shadowify_queryset_and_commit, current_profile_queryset
             )
 
     def _update_profile(self, current_profile, supported_oids):
@@ -197,5 +197,5 @@ def get_all_snmpoids():
     """
     all_oids_queryset = SnmpOid.objects.all()
     return threads.deferToThread(
-        storage.shadowify_queryset, all_oids_queryset
+        storage.shadowify_queryset_and_commit, all_oids_queryset
         )

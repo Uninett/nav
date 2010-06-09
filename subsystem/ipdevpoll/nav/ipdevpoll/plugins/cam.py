@@ -252,7 +252,7 @@ class Cam(Plugin):
                 netbox__id=self.netbox.id,
                 miss_count__isnull=False,
             )
-        shadow = storage.shadowify_queryset(queryset)
+        shadow = storage.shadowify_queryset_and_commit(queryset)
 
         result = {}
         for row in shadow:
