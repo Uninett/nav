@@ -14,9 +14,11 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-NAV snmptrapd handler plugin to handle traps from Weathergoose Climate Monitor.
+"""NAV snmptrapd handler plugin to handle traps from Weathergoose Climate
+Monitor.
+
 Tested on a WxGoos-1 v2.80
+
 """
 
 import logging
