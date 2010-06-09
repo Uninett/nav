@@ -858,16 +858,16 @@ public class QueryBoks extends Thread
 						// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så de må slettes
 						for (Iterator iter = blockedIfind.entrySet().iterator(); iter.hasNext();) {
 							Map.Entry me = (Map.Entry)iter.next();
-							String swportid = (String)me.getKey();
+							String interfaceid = (String)me.getKey();
 							String ifindex = (String)me.getValue();
 							String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
-							String sql = "DELETE FROM swportblocked WHERE swportid='"+swportid+"'";
+							String sql = "DELETE FROM swportblocked WHERE interfaceid='"+interfaceid+"'";
 							if (dbVlan == null) {
-								Log.d("MAC_ENTRY", "swportid: " + swportid + " (vlan not found, ifindex: " + ifindex+") is no longer in blocking mode.");
+								Log.d("MAC_ENTRY", "interfaceid: " + interfaceid + " (vlan not found, ifindex: " + ifindex+") is no longer in blocking mode.");
 							} else {
 								sql += " AND vlan='"+dbVlan+"'";
 							}
-							Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
+							Log.d("MAC_ENTRY", "interfaceid: " + interfaceid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
 							try {
 								Database.update(sql);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
