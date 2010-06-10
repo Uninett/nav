@@ -1,3 +1,19 @@
+Version 3.6.0b2
+(released 10 June 2010)
+
+  * LP#567840 (missing alertmsg.conf for cisco AP trap)
+  * LP#588270 (Error: 'column "to_intefaceid" of relation "swp_netbox" does not
+               exist' in getBoksMacs)
+  * LP#588669 (Switch port statistics are lost on upgrade to NAV 3.6.0b1)
+  * LP#588676 (migrate_cricket.py says "No such file", with no indication of
+               what file is missing)
+  * LP#588700 (snmptrapd dies when using psycopg 2.0.7)
+  * LP#588742 (pysnmp2 and pysnmp-se conflict)
+  * LP#589087 (getBoksMacs error: column "swportid" does not exist)
+  * LP#589597 (ipdevpoll not installed during regular make install)
+  * LP#590747 (ipdevpoll leaks memory)
+  * LP#591244 (ipdevpoll idles in transactions)
+
 Version 3.6.0b1.1
 (released 26 May 2010)
 
