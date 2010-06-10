@@ -634,14 +634,6 @@ DELETE FROM snmpoid WHERE oidkey='sysname';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('sysname','1.3.6.1.2.1.1.5.0','all',NULL,'0',NULL,'0','sysName','SNMPv2-MIB');
 
-DELETE FROM snmpoid WHERE oidkey='tempInlet';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('tempInlet','1.3.6.1.4.1.9.9.13.1.3.1.3.1','','Cricket','0',NULL,'0','ciscoEnvMonTemperatureStatusValue','CISCO-ENVMON-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='tempOutlet';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('tempOutlet','1.3.6.1.4.1.9.9.13.1.3.1.3.3','','Cricket','0',NULL,'0','ciscoEnvMonTemperatureStatusValue','CISCO-ENVMON-MIB');
-
 DELETE FROM snmpoid WHERE oidkey='typeoid';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('typeoid','1.3.6.1.2.1.1.2.0','all',NULL,'0',NULL,'0','sysObjectID','SNMPv2-MIB');
