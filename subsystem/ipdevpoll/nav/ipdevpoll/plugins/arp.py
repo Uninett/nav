@@ -155,7 +155,8 @@ class Arp(Plugin):
         )
         waiter = defer.waitForDeferred(
             threads.deferToThread(
-                storage.shadowify_queryset, open_arp_records_queryset
+                storage.shadowify_queryset_and_commit,
+                open_arp_records_queryset
                 ))
         yield waiter
         open_arp_records = waiter.getResult()
@@ -173,7 +174,8 @@ class Arp(Plugin):
         cls.prefix_cache_update_time = datetime.now()
         waiter = defer.waitForDeferred(
             threads.deferToThread(
-                storage.shadowify_queryset, manage.Prefix.objects.all()
+                storage.shadowify_queryset_and_commit,
+                manage.Prefix.objects.all()
                 ))
         yield waiter
         prefixes = waiter.getResult()
