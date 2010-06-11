@@ -24,9 +24,6 @@ import ConfigParser
 import logging
 import signal
 
-# Make sure Ubuntu/Debian picks the correct pysnmp API version:
-os.environ['PYSNMP_API_VERSION'] = 'v2'
-
 # Import NAV libraries
 from nav import daemon
 import nav.buildconf
