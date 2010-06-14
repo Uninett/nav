@@ -7,7 +7,7 @@
 
     <thead>
         <tr>
-            <th>Switch</th>
+            <th colspan="2">Switch</th>
             <th>Module</th>
             <th colspan="2">Interface</th>
             <th>Start time</th>
@@ -23,10 +23,16 @@
             {% if forloop.first %}
             <td>
                 {% if row.netbox__sysname %}
-                <a href="{% url ipdevinfo-details-by-name row.netbox__sysname %}" title="Browse this switch (IP Device Info)">
+                <a href="{% url machinetracker-swp_search row.netbox__sysname None None form_data.days %}" title="Search for other machines on this switch">
                 {{ row.netbox__sysname }}</a>
                 {% else %}
                 {{ row.sysname }}
+                {% endif %}
+            </td>
+            <td>
+                {% if row.netbox__sysname %}
+                <a href="{% url ipdevinfo-details-by-name row.netbox__sysname %}" title="Browse this switch (IP Device Info)">
+                <img src="/images/arpcam/ipinfolink.png" alt="IP Device info search" /></a>
                 {% endif %}
             </td>
             <td>
@@ -39,13 +45,13 @@
                 {% endwith %}
             </td>
             <td>
-                {% if row.netbox__sysname and row.module and row.port %}
-                <a href="{% url ipdevinfo-swport-details-by-interface row.netbox__sysname row.module row.port %}" title="Browse this interface (IP Device Info)">
+                {% if row.netbox__sysname and row.port %}
+                <a href="{% url ipdevinfo-interface-details row.netbox__sysname row.port %}" title="Browse this interface (IP Device Info)">
                 <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
                 {% endif %}
             </td>
             {% else %}
-            <td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
             {% endif %}
             <td>{{ row.start_time|date:"Y-m-d H:i" }}</td>
             <td>
