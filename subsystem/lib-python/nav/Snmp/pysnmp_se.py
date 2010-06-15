@@ -110,7 +110,11 @@ class Snmp(object):
         oid, value = var_bind.apiAlphaGetOidVal()
 
         # Return the value
-        return value.get()
+        if isinstance(value, (OID, self._ver.ObjectIdentifier)):
+            realvalue = oid_to_str(value)
+        else:
+            realvalue = value.get()
+        return realvalue
 
 
     def set(self, query, type, value):
