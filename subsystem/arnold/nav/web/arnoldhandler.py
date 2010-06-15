@@ -26,6 +26,7 @@ from nav.web.URI import URI
 from urllib import unquote_plus
 from IPy import IP
 import nav.arnold
+from nav.errors import GeneralException
 
 import psycopg2.extras
 import ConfigParser
@@ -297,7 +298,7 @@ def handler(req):
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
                                  req.session['user']['login'], 'block')
-        except Exception, why:
+        except GeneralException, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         redirect(req, 'blockedports')
@@ -327,7 +328,7 @@ def handler(req):
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
                                  req.session['user']['login'], 'quarantine', vlan)
-        except Exception, why:
+        except GeneralException, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         redirect(req, 'blockedports')
