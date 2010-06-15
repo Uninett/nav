@@ -48,7 +48,7 @@ class Snmp(object):
         """
 
         self.host = host
-        self.community = community
+        self.community = str(community)
         self.version = str(version)
         if self.version == '1':
             self._ver = alpha.protoVersions[alpha.protoVersionId1]
