@@ -908,8 +908,6 @@ def sendmail(fromaddr, toaddr, subject, msg):
         raise NoSuchProgramError, mailprogram
 
 
-    toaddr = "john.m.bredal@ntnu.no"
-
     # Define charset and set content-transfer-encoding to
     # quoted-printable
     c = email.Charset.Charset('utf-8')
