@@ -223,7 +223,7 @@ def handler(req):
         blockedports = [dict(row) for row in cur.fetchall()]
         for element in blockedports:
             q = """
-            SELECT sysname, module, port FROM netbox
+            SELECT sysname, module, baseport FROM netbox
             LEFT JOIN module USING (netboxid)
             LEFT JOIN interface USING (netboxid)
             WHERE interfaceid=%s
@@ -609,7 +609,7 @@ def printBlocked(cur, page, sort, section):
                           + "' title='Details'><img src='/images/arnold/details.png'></a>"
         
         managequery = """
-        SELECT sysname, port FROM netbox 
+        SELECT sysname, baseport FROM netbox
         JOIN interface USING (netboxid)
         WHERE interfaceid = %s
         """
