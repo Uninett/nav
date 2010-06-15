@@ -110,7 +110,7 @@ def main():
                                 autoenable")
             logger.info("Opening %s %s:%s for %s" %(
                 swinfo['sysname'], swinfo['module'],
-                swinfo['port'], row['mac']))
+                swinfo['baseport'], row['mac']))
         except (nav.arnold.NoDatabaseInformationError,
                 nav.arnold.ChangePortStatusError,
                 nav.arnold.DbError), why:

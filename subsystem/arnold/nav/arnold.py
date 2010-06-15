@@ -435,7 +435,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             
             try:
                 changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['port'], sw['ifindex'])
+                                 sw['module'], sw['baseport'], sw['ifindex'])
             except ChangePortStatusError, e:
                 logger.error("blockPort: Error changing portstatus: %s" %e)
                 raise ChangePortStatusError
@@ -504,7 +504,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         if type == 'block':
             try:
                 changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['port'], sw['ifindex'])
+                                 sw['module'], sw['baseport'], sw['ifindex'])
             except ChangePortStatusError:
                 logger.error("blockPort: Error changing portstatus: %s" %e)
                 raise ChangePortStatusError
@@ -619,7 +619,7 @@ def openPort(id, username, eventcomment=""):
             # Enable port based on information gathered
             try:
                 changePortStatus('enable', row['ip'], row['vendorid'],
-                                 row['rw'], row['module'], row['port'],
+                                 row['rw'], row['module'], row['baseport'],
                                  row['ifindex'])
             except ChangePortStatusError, why:
                 logger.error("openPort: Error when changing portstatus: %s"
@@ -883,7 +883,7 @@ def changeSwportStatus(action, swportid):
 
     try:
         changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
-                         row['module'], row['port'], row['ifindex'])
+                         row['module'], row['baseport'], row['ifindex'])
     except ChangePortStatusError:
         raise ChangePortStatusError
 
