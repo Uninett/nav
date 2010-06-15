@@ -248,12 +248,12 @@ def findSwportinfo(netboxid, ifindex, module):
         query = """SELECT * FROM netbox
         LEFT JOIN type USING (typeid)
         LEFT JOIN module USING (netboxid)
-        LEFT JOIN interface USING (moduleid)
+        LEFT JOIN interface USING (netboxid)
         WHERE netboxid=%s
         AND ifindex=%s
-        AND module=%s"""
+        AND module.name=%s"""
 
-        c.execute(query, (netboxid, ifindex, module))
+        c.execute(query, (netboxid, ifindex, str(module)))
     except Exception, e:
         logger.error("findSwportinfo: Error in query %s: %s" %(query, e))
         raise DbError, e
@@ -263,7 +263,7 @@ def findSwportinfo(netboxid, ifindex, module):
         
         return result
     else:
-        raise PortNotFoundError, (netboxid, ifindex, module)
+        raise PortNotFoundError((netboxid, ifindex, module))
 
 
     return 1
@@ -287,7 +287,7 @@ def findSwportIDinfo(swportid):
     swquery = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
     LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (moduleid)
+    LEFT JOIN interface USING (netboxid)
     WHERE interfaceid = %s"""
 
     try:
@@ -408,7 +408,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
     query = "SELECT * FROM identity WHERE swportid = %s AND mac = %s"
     try:
-        c.execute(query, (sw['swportid'], id['mac']))
+        c.execute(query, (sw['interfaceid'], id['mac']))
     except nav.db.driver.ProgrammingError, why:
         logger.error("blockPort: Error in sql: %s, %s" %(query, why))
         raise DbError, why
@@ -435,7 +435,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             
             try:
                 changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['port'], sw['ifindex'])
+                                 sw['module'], sw['baseport'], sw['ifindex'])
             except ChangePortStatusError, e:
                 logger.error("blockPort: Error changing portstatus: %s" %e)
                 raise ChangePortStatusError
@@ -465,7 +465,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         """ %autoenable
             
 
-        arglist=[action, reason, sw['swportid'], id['ip'], id['mac'], \
+        arglist=[action, reason, sw['interfaceid'], id['ip'], id['mac'], \
                  dns, netbios, autoenablestep, "", determined, \
                  fromvlan, vlan, res['identityid']]
 
@@ -504,7 +504,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         if type == 'block':
             try:
                 changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['port'], sw['ifindex'])
+                                 sw['module'], sw['baseport'], sw['ifindex'])
             except ChangePortStatusError:
                 logger.error("blockPort: Error changing portstatus: %s" %e)
                 raise ChangePortStatusError
@@ -519,7 +519,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             %s, %%s, %%s, %%s)
             """ %autoenable
             
-            arglist = [nextval, action, reason, sw['swportid'], id['ip'], \
+            arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", determined]
             
 
@@ -542,7 +542,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             %s, %%s, %%s, %%s, %%s, %%s)
             """ %autoenable
             
-            arglist = [nextval, action, reason, sw['swportid'], id['ip'], \
+            arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", \
                        determined, fromvlan, vlan]
 
@@ -605,7 +605,7 @@ def openPort(id, username, eventcomment=""):
     swportidquery = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
     LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (moduleid)
+    LEFT JOIN interface USING (netboxid)
     WHERE interfaceid = %s"""
 
     cmanage.execute(swportidquery, (identityrow['swportid'], ))
@@ -619,7 +619,7 @@ def openPort(id, username, eventcomment=""):
             # Enable port based on information gathered
             try:
                 changePortStatus('enable', row['ip'], row['vendorid'],
-                                 row['rw'], row['module'], row['port'],
+                                 row['rw'], row['module'], row['baseport'],
                                  row['ifindex'])
             except ChangePortStatusError, why:
                 logger.error("openPort: Error when changing portstatus: %s"
@@ -871,7 +871,7 @@ def changeSwportStatus(action, swportid):
     query = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
     LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (moduleid)
+    LEFT JOIN interface USING (netboxid)
     WHERE interfaceid = %s"""
 
     try:
@@ -883,7 +883,7 @@ def changeSwportStatus(action, swportid):
 
     try:
         changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
-                         row['module'], row['port'], row['ifindex'])
+                         row['module'], row['baseport'], row['ifindex'])
     except ChangePortStatusError:
         raise ChangePortStatusError
 

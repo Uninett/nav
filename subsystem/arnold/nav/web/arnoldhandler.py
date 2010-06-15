@@ -26,6 +26,7 @@ from nav.web.URI import URI
 from urllib import unquote_plus
 from IPy import IP
 import nav.arnold
+from nav.errors import GeneralException
 
 import psycopg2.extras
 import ConfigParser
@@ -222,7 +223,7 @@ def handler(req):
         blockedports = [dict(row) for row in cur.fetchall()]
         for element in blockedports:
             q = """
-            SELECT sysname, module, port FROM netbox
+            SELECT sysname, module, baseport FROM netbox
             LEFT JOIN module USING (netboxid)
             LEFT JOIN interface USING (netboxid)
             WHERE interfaceid=%s
@@ -297,7 +298,7 @@ def handler(req):
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
                                  req.session['user']['login'], 'block')
-        except Exception, why:
+        except GeneralException, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         redirect(req, 'blockedports')
@@ -327,7 +328,7 @@ def handler(req):
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
                                  req.session['user']['login'], 'quarantine', vlan)
-        except Exception, why:
+        except GeneralException, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         redirect(req, 'blockedports')
@@ -365,7 +366,7 @@ def handler(req):
                 try:
                     cur.execute(q, (description, vlan, quarantineid))
                 except Exception, e:
-                    logger.error(e)
+                    logger.exception(e)
                 
             else:
                 # Check that this quarantinevlan does not already exist.
@@ -375,7 +376,7 @@ def handler(req):
                 try:
                     cur.execute(checkexistence, (vlan,))
                 except Exception, e:
-                    logger.error(e)
+                    logger.exception(e)
                     redirect(req, 'addquarantinevlan')
 
                 if cur.rowcount > 0:
@@ -388,7 +389,7 @@ def handler(req):
                 try:
                     cur.execute(q, (description, vlan))
                 except Exception, e:
-                    logger.error(e)
+                    logger.exception(e)
                     
                 
         redirect(req, 'addquarantinevlan')
@@ -608,7 +609,7 @@ def printBlocked(cur, page, sort, section):
                           + "' title='Details'><img src='/images/arnold/details.png'></a>"
         
         managequery = """
-        SELECT sysname, port FROM netbox 
+        SELECT sysname, baseport FROM netbox
         JOIN interface USING (netboxid)
         WHERE interfaceid = %s
         """
