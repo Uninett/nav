@@ -248,7 +248,7 @@ def findSwportinfo(netboxid, ifindex, module):
         query = """SELECT * FROM netbox
         LEFT JOIN type USING (typeid)
         LEFT JOIN module USING (netboxid)
-        LEFT JOIN interface USING (moduleid)
+        LEFT JOIN interface USING (netboxid)
         WHERE netboxid=%s
         AND ifindex=%s
         AND module=%s"""
@@ -287,7 +287,7 @@ def findSwportIDinfo(swportid):
     swquery = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
     LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (moduleid)
+    LEFT JOIN interface USING (netboxid)
     WHERE interfaceid = %s"""
 
     try:
@@ -605,7 +605,7 @@ def openPort(id, username, eventcomment=""):
     swportidquery = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
     LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (moduleid)
+    LEFT JOIN interface USING (netboxid)
     WHERE interfaceid = %s"""
 
     cmanage.execute(swportidquery, (identityrow['swportid'], ))
@@ -871,7 +871,7 @@ def changeSwportStatus(action, swportid):
     query = """SELECT * FROM netbox
     LEFT JOIN type USING (typeid)
     LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (moduleid)
+    LEFT JOIN interface USING (netboxid)
     WHERE interfaceid = %s"""
 
     try:
