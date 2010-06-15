@@ -251,9 +251,9 @@ def findSwportinfo(netboxid, ifindex, module):
         LEFT JOIN interface USING (netboxid)
         WHERE netboxid=%s
         AND ifindex=%s
-        AND module=%s"""
+        AND module.name=%s"""
 
-        c.execute(query, (netboxid, ifindex, module))
+        c.execute(query, (netboxid, ifindex, str(module)))
     except Exception, e:
         logger.error("findSwportinfo: Error in query %s: %s" %(query, e))
         raise DbError, e
@@ -263,7 +263,7 @@ def findSwportinfo(netboxid, ifindex, module):
         
         return result
     else:
-        raise PortNotFoundError, (netboxid, ifindex, module)
+        raise PortNotFoundError((netboxid, ifindex, module))
 
 
     return 1
@@ -408,7 +408,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
 
     query = "SELECT * FROM identity WHERE swportid = %s AND mac = %s"
     try:
-        c.execute(query, (sw['swportid'], id['mac']))
+        c.execute(query, (sw['interfaceid'], id['mac']))
     except nav.db.driver.ProgrammingError, why:
         logger.error("blockPort: Error in sql: %s, %s" %(query, why))
         raise DbError, why
@@ -465,7 +465,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         """ %autoenable
             
 
-        arglist=[action, reason, sw['swportid'], id['ip'], id['mac'], \
+        arglist=[action, reason, sw['interfaceid'], id['ip'], id['mac'], \
                  dns, netbios, autoenablestep, "", determined, \
                  fromvlan, vlan, res['identityid']]
 
@@ -519,7 +519,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             %s, %%s, %%s, %%s)
             """ %autoenable
             
-            arglist = [nextval, action, reason, sw['swportid'], id['ip'], \
+            arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", determined]
             
 
@@ -542,7 +542,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             %s, %%s, %%s, %%s, %%s, %%s)
             """ %autoenable
             
-            arglist = [nextval, action, reason, sw['swportid'], id['ip'], \
+            arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", \
                        determined, fromvlan, vlan]
 
