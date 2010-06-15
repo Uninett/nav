@@ -350,7 +350,7 @@ class Snmp(object):
                 rsp_oid = name.get()
 
                 # Check for reasons to stop walking
-                if isinstance(value, self._ver.EndOfMibView):
+                if isinstance(value, alpha.v2c.EndOfMibView):
                     # Nothing more to see here, move along
                     return result
                 if not root_oid.isaprefix(rsp_oid):
@@ -405,7 +405,7 @@ class Snmp(object):
         for varbind in varbinds:
             obj, value = varbind.apiAlphaGetOidVal()
             if isinstance(value,
-                         (self._ver.NoSuchObject, self._ver.NoSuchInstance)):
+                         (alpha.v2c.NoSuchObject, alpha.v2c.NoSuchInstance)):
                 raise NoSuchObjectError(obj)
-            elif isinstance(value, self._ver.EndOfMibView):
+            elif isinstance(value, alpha.v2c.EndOfMibView):
                 raise EndOfMibViewError(obj)
