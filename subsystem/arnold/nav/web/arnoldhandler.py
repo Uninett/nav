@@ -366,7 +366,7 @@ def handler(req):
                 try:
                     cur.execute(q, (description, vlan, quarantineid))
                 except Exception, e:
-                    logger.error(e)
+                    logger.exception(e)
                 
             else:
                 # Check that this quarantinevlan does not already exist.
@@ -376,7 +376,7 @@ def handler(req):
                 try:
                     cur.execute(checkexistence, (vlan,))
                 except Exception, e:
-                    logger.error(e)
+                    logger.exception(e)
                     redirect(req, 'addquarantinevlan')
 
                 if cur.rowcount > 0:
@@ -389,7 +389,7 @@ def handler(req):
                 try:
                     cur.execute(q, (description, vlan))
                 except Exception, e:
-                    logger.error(e)
+                    logger.exception(e)
                     
                 
         redirect(req, 'addquarantinevlan')
