@@ -59,11 +59,17 @@ class DnsChecker(AbstractChecker):
                 answer=0
 
             # This breaks on windows dns servers and probably other not bind servers
-            #ver = d.req(name="version.bind",qclass="chaos", qtype='txt').answers
-            #if len(ver) > 0:
-            #    self.setVersion(ver[0]['data'][0])
-                    
-            
+            # We just put a exception handler around it, and ignore the resulting
+            # timeout.
+            try:
+                ver = d.req(name="version.bind",qclass="chaos", qtype='txt').answers
+                if len(ver) > 0:
+                    self.setVersion(ver[0]['data'][0])
+            except DNS.Base.DNSError, e:
+                if str(e) == 'Timeout':
+                    pass  # Ignore timeout
+                else:
+                    raise            
 
             if not timeout and answer == 1:
                 return Event.UP, "Ok"
