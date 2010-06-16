@@ -43,7 +43,7 @@ CREATE TABLE org (
   CONSTRAINT org_parent_fkey FOREIGN KEY (parent) REFERENCES org (orgid)
              ON UPDATE CASCADE
 );
-
+INSERT INTO org (orgid, descr, contact) VALUES ('myorg', 'Example organization unit', 'nobody');
 
 CREATE TABLE usage (
   usageid VARCHAR(30) PRIMARY KEY,
@@ -55,6 +55,7 @@ CREATE TABLE location (
   locationid VARCHAR(30) PRIMARY KEY,
   descr VARCHAR NOT NULL
 );
+INSERT INTO location (locationid, descr) VALUES ('mylocation', 'Example location');
 
 CREATE TABLE room (
   roomid VARCHAR(30) PRIMARY KEY,
@@ -65,6 +66,7 @@ CREATE TABLE room (
   opt3 VARCHAR,
   opt4 VARCHAR
 );
+INSERT INTO room (roomid, locationid, descr) VALUES ('myroom', 'mylocation', 'Example wiring closet');
 
 CREATE TABLE nettype (
   nettypeid VARCHAR PRIMARY KEY,
