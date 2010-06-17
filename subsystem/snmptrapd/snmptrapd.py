@@ -1,53 +1,36 @@
 #!/usr/bin/env python
 #
-# Copyright 2007 Norwegian University of Science and Technology
+# Copyright 2007 (C) Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
-#
-"""
-NAV daemon to receive and act upon SNMP traps.
-"""
-__copyright__ = "Copyright 2007 Norwegian University of Science and Technology"
-__license__ = "GPL"
-__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
+"""NAV daemon to receive and act upon SNMP traps."""
 
 import os
 import sys
-import string
 from optparse import OptionParser
 from nav.db import getConnection
 import ConfigParser
 import logging
 import signal
-import select
-
-# Import PySNMP modules
-# Make sure Ubuntu/Debian picks the correct pysnmp API version:
-os.environ['PYSNMP_API_VERSION'] = 'v2'
-from pysnmp import asn1, v1, v2c
-from pysnmp import role
 
 # Import NAV libraries
 from nav import daemon
 import nav.buildconf
 from nav.errors import GeneralException
 import nav.logs
+
+from nav.snmptrapd import agent
 
 # Paths
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
@@ -106,7 +89,7 @@ def main():
         sys.exit(-1)
 
     # Create SNMP agent object
-    server = role.manager(iface=(iface, port))
+    server = agent.TrapListener((iface, port))
     server.open()
 
     # We have bound to a port and can safely swith user
@@ -198,7 +181,7 @@ def main():
 
         logger.info("Snmptrapd started, listening on port %s" %port)
         try:
-            listen(server, community)
+            server.listen(community, trapHandler)
         except Exception, why:
             logger.critical("Fatal exception ocurred", exc_info=True)
 
@@ -206,108 +189,11 @@ def main():
         # Start listening and exit cleanly if interrupted.
         try:
             logger.info ("Listening on port %s" %port)
-            listen(server, community)
+            server.listen(community, trapHandler)
         except KeyboardInterrupt, why:
             logger.error("Received keyboardinterrupt, exiting.")
             server.close()
 
-
-def listen (server, community):
-    """Listen for traps on designed port"""
-
-    
-    # Listen for SNMP messages from remote SNMP managers
-    while 1:
-        # Receive a request message
-        try:
-            (question, src) = server.receive()
-        except select.error, why:
-            # resume loop if a signal interrupted the receive operation
-            if why.args[0] == 4: # error 4 = system call interrupted
-                continue
-            else:
-                raise why
-        if question is None:
-            continue
-        
-        try:
-            # Decode request of any version
-            (req, rest) = v2c.decode(question)
-
-            # Decode BER encoded Object IDs.
-            oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
-                                           req['encoded_oids']))
-
-            # Decode BER encoded values associated with Object IDs.
-            vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
-
-        except Exception, why:
-            # We must not die because of any malformed packets; log
-            # and ignore any exception
-            logger.exception("Exception while decoding snmp trap packet from "
-                             "%r, ignoring trap", src)
-            logger.debug("Packet content: %r", question)
-            continue
-
-        agent = None
-        type = None
-        genericType = None
-        
-        varbinds = {}
-        # Prepare variables for making of SNMPTrap-object
-        if req['version'] == 0:
-            agent = str(req['agent_addr'])
-            type = str(req['tag'])
-            uptime = str(req['time_stamp'])
-            # Create snmpoid based on RFC2576
-            snmpTrapOID, genericType = transform(req)
-        else:
-            uptime = vals.pop(0)
-            oids.pop(0)
-            snmpTrapOID = vals.pop(0)
-            oids.pop(0)
-
-        # Add varbinds to array
-        for (oid, val) in map(None, oids, vals):
-            varbinds[oid] = str(val)
-
-        community = req['community']
-        version = str(req['version'] + 1)
-        src = src[0]
-
-
-        # Create trap-object, let handler decide what to do with it.
-        trap = SNMPTrap(str(src), agent, type, genericType, snmpTrapOID, uptime, community, version, varbinds)
-        trapHandler(trap)
-
-    # Exit nicely
-    sys.exit(0)
-
-def transform(req):
-    """Transforms from SNMP-v1 to SNMP-v2 format. Returns snmpTrapOID and genericType as string."""
-
-    enterprise = str(req['enterprise'])
-
-    # According to RFC2576 "Coexistence between Version 1, Version 2,
-    # and Version 3 of the Internet-standard Network Management
-    # Framework", we build snmpTrapOID from the snmp-v1 trap by
-    # combining enterprise + 0 + specific trap parameter IF the
-    # generic trap parameter is 6. If not, the traps are defined as
-    # 1.3.6.1.6.3.1.1.5 + generic trap parameter + 1
-    for t in v1.GENERIC_TRAP_TYPES.keys():
-        if req['generic_trap'] == v1.GENERIC_TRAP_TYPES[t]:
-            genericType = t
-            if req['generic_trap'] == 6:
-                snmpTrapOID = enterprise + ".0." + str(req['specific_trap'])
-            else:
-                snmpTrapOID = ".1.3.6.1.6.3.1.1.5." + str(req['generic_trap'] + 1)
-            break
-    else:
-        snmpTrapOID = enterprise + ".0." + str(req['specific_trap'])
-
-    return snmpTrapOID, genericType
-
-    
 
 def loginitfile(logfile, traplogfile, loglevel):
     """Initalize the logging handler for logfile."""
@@ -390,51 +276,6 @@ def verifySubsystem ():
     NOT EXISTS (SELECT * FROM subsystem WHERE name = 'snmptrapd'))"""
     c.execute(sql)
     db.commit()
-    
-
-class SNMPTrap:
-    """Generic trap-class"""
-
-    def __init__(self, src, agent, type, genericType, snmpTrapOID, uptime, community, version, varbinds):
-        self.src = src
-        self.agent = agent
-        self.type = type
-        self.genericType = genericType
-        self.snmpTrapOID = snmpTrapOID
-        self.uptime = uptime
-        self.community = community
-        self.varbinds = varbinds
-        self.version = version
-        # Print string if printable else assume hex and write hex-string
-        for key,val in self.varbinds.items():
-            if not val.strip(string.printable) == '':
-                val = ':'.join(["%02x" % ord(c) for c in val])
-                self.varbinds[key] = val
-
-
-    def __str__(self):
-        text = self.trapText()
-        return text
-
-    def trapText(self):
-        """
-        Creates a textual description of the trap suitable for
-        printing to log or stdout.
-        """
-
-        text = "Got snmp version %s trap\n" %self.version
-        text = text + "Src: %s, Community: %s, Uptime: %s\n" \
-               %(self.src, self.community, self.uptime)
-        text = text + "Type %s, snmpTrapOID: %s\n" \
-               %(self.genericType, self.snmpTrapOID)
-
-        keys = self.varbinds.keys()
-        keys.sort()
-        for key in keys:
-            val = self.varbinds[key]
-            text = text + "%s -> %s\n" %(key, val)
-
-        return text
 
 
 def signal_handler(signum, _):

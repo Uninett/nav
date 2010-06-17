@@ -48,7 +48,7 @@ class Snmp(object):
         """
 
         self.host = host
-        self.community = community
+        self.community = str(community)
         self.version = str(version)
         if self.version == '1':
             self._ver = alpha.protoVersions[alpha.protoVersionId1]
@@ -110,7 +110,11 @@ class Snmp(object):
         oid, value = var_bind.apiAlphaGetOidVal()
 
         # Return the value
-        return value.get()
+        if isinstance(value, (OID, self._ver.ObjectIdentifier)):
+            realvalue = oid_to_str(value)
+        else:
+            realvalue = value.get()
+        return realvalue
 
 
     def set(self, query, type, value):
@@ -346,7 +350,7 @@ class Snmp(object):
                 rsp_oid = name.get()
 
                 # Check for reasons to stop walking
-                if isinstance(value, self._ver.EndOfMibView):
+                if isinstance(value, alpha.v2c.EndOfMibView):
                     # Nothing more to see here, move along
                     return result
                 if not root_oid.isaprefix(rsp_oid):
@@ -401,7 +405,7 @@ class Snmp(object):
         for varbind in varbinds:
             obj, value = varbind.apiAlphaGetOidVal()
             if isinstance(value,
-                         (self._ver.NoSuchObject, self._ver.NoSuchInstance)):
+                         (alpha.v2c.NoSuchObject, alpha.v2c.NoSuchInstance)):
                 raise NoSuchObjectError(obj)
-            elif isinstance(value, self._ver.EndOfMibView):
+            elif isinstance(value, alpha.v2c.EndOfMibView):
                 raise EndOfMibViewError(obj)
