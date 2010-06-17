@@ -28,7 +28,7 @@ from twisted.internet import defer
 from twisted.names import client, dns
 
 from nav.util import round_robin
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import Plugin, shadows
 
 resolvers = round_robin([client.Resolver('/etc/resolv.conf') for i in range(3)])
 
@@ -97,7 +97,11 @@ class DnsName(Plugin):
             self.logger.warning("Box dnsname has changed from %s to %s",
                                 repr(self.netbox.sysname), repr(dns_name))
         # Our work here is done
-        self.logger.info("Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name)
+        self.logger.debug("Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name)
+
+        netbox = self.containers.factory(None, shadows.Netbox)
+        netbox.sysname = dns_name
+
         self.deferred.callback(True)
         return dns_name
 

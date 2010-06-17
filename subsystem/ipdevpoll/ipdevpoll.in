@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+####################
+#
+# This file is part of Network Administration Visualized.
+# This script controls start/stop/status of the NAV ipdevpoll daemon
+#
+# Copyright (C) 2006-2010 UNINETT AS
+#
+####################
+initdir=@initdir@
+bindir=@bindir@
+user=@nav_user@
+IPDEVPOLLD=${bindir}/ipdevpolld
+
+# Source function library.
+. ${initdir}/functions
+
+[ -x $IPDEVPOLLD ] || exit 2
+
+case "$1" in
+	start)
+		# Start daemon
+		echo -n "Starting ipdevpoll: "
+		daemon "su - ${user} -c $IPDEVPOLLD"
+		rc=$?
+		echo
+		exit $rc
+		;;
+	stop)
+		# Stop daemon.
+		echo -n "Shutting down ipdevpoll: "
+		if killproc ipdevpolld; then
+		    echo
+		    exit 0
+		else
+		    echo
+		    exit 1
+		fi
+        	;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	status)
+	        status ipdevpolld
+		exit $?
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+esac
+
+exit 0
+

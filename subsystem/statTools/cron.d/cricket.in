@@ -1,4 +1,4 @@
 ## info: Runs the cricket collector, and a nightly makecricketconfig run.
 */5 * * * * @CRICKETDIR@/collect-subtrees normal 
-12 5 * * * $BINDIR/makecricketconfig.pl
-0 5 * * * $BINDIR/cleanrrds.pl -d -p $LOCALSTATEDIR/cricket-data/
+12 5 * * * @bindir@/mcc.py
+0 5 * * * @bindir@/cleanrrds.py --DELETE -f @localstatedir@/cricket-data/

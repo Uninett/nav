@@ -30,7 +30,7 @@ import pprint
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.ipdevpoll import Plugin, FatalPluginError, storage
+from nav.ipdevpoll import Plugin, FatalPluginError, storage, shadows
 from nav.ipdevpoll.models import Type, OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
@@ -51,7 +51,7 @@ class TypeOid(Plugin):
     @defer.deferredGenerator
     def handle(self):
         self.logger.debug("Collecting sysObjectId")
-        snmpv2_mib = Snmpv2Mib(self.job_handler.agent)
+        snmpv2_mib = Snmpv2Mib(self.agent)
         thing = defer.waitForDeferred(
             snmpv2_mib.retrieve_column('sysObjectID'))
         yield thing
@@ -65,14 +65,16 @@ class TypeOid(Plugin):
 
         
         self.logger.debug("sysObjectID is %s", sysobjectid)
-        if self.netbox.type.sysobjectid != str(sysobjectid):
+        if self.netbox.type is None or \
+                self.netbox.type.sysobjectid != str(sysobjectid):
             self.logger.warning("Netbox has changed type from %r",
                                 self.netbox.type)
 
         # Look up existing type
         types = manage.NetboxType.objects.filter(sysobjectid=str(sysobjectid))
         thing = defer.waitForDeferred(
-            threads.deferToThread(storage.shadowify_queryset, types))
+            threads.deferToThread(storage.shadowify_queryset_and_commit,
+                                  types))
         yield thing
         types = thing.getResult()
 
@@ -81,8 +83,7 @@ class TypeOid(Plugin):
             self.logger.warn("sysObjectID %r is unknown to NAV", sysobjectid)
         else:
             type_ = types[0]
-            netbox_container = self.job_handler.container_factory(
-                storage.Netbox, key=None)
+            netbox_container = self.containers.factory(None, shadows.Netbox)
             netbox_container.type = type_
         yield True
 

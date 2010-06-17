@@ -14,9 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-FIXME
-"""
+"""Parsing of ipdevpoll job configuration."""
 
 import os
 import logging
@@ -30,19 +28,23 @@ logger = logging.getLogger(__name__)
 
 def get_jobs(config=None):
     if config is None:
-        config = ConfigParser.ConfigParser()
-        config.read([os.path.join(nav.path.sysconfdir, 'jobs.conf'), 'jobs.conf'])
+        import config as config_module
+        config = config_module.ipdevpoll_conf
     jobs = {}
 
-    for section in config.sections():
+    job_prefix = 'job_'
+    job_sections = [s for s in config.sections() if s.startswith(job_prefix)]
+    for section in job_sections:
+        job_name = section[len(job_prefix):]
+
         interval = config.has_option(section, 'interval') and \
             parse_time(config.get(section, 'interval')) or ''
         plugins  = config.has_option(section, 'plugins') and \
             parse_plugins(config.get(section, 'plugins', '')) or ''
 
         if interval and plugins:
-            jobs[section] = (interval, plugins)
-            logger.debug("Registered job in registry: %s", section)
+            jobs[job_name] = (interval, plugins)
+            logger.debug("Registered job in registry: %s", job_name)
 
     return jobs
 

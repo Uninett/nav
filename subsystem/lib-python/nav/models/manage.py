@@ -280,10 +280,10 @@ class Device(models.Model):
     boxes or may appear in different modules throughout its lifetime."""
 
     id = models.AutoField(db_column='deviceid', primary_key=True)
-    serial = models.CharField(unique=True, max_length=-1)
-    hardware_version = models.CharField(db_column='hw_ver', max_length=-1)
-    firmware_version = models.CharField(db_column='fw_ver', max_length=-1)
-    software_version = models.CharField(db_column='sw_ver', max_length=-1)
+    serial = models.CharField(unique=True, max_length=-1, null=True)
+    hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
+    firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
+    software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
     auto = models.BooleanField(default=False)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
@@ -332,7 +332,8 @@ class Module(models.Model):
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
-        return Interface.objects.select_related(depth=2).filter(module=self, gwportprefix__isnull=False)
+        return Interface.objects.select_related(depth=2). \
+            filter(module=self, gwportprefix__isnull=False).distinct()
 
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""

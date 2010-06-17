@@ -6,7 +6,7 @@ SUBDIRS = src \
 	subsystem/dbTools \
 	subsystem/devicehistory \
 	subsystem/ipdevinfo \
-	subsystem/ipinfo \
+	subsystem/ipdevpoll \
 	subsystem/l2trace \
 	subsystem/lib-perl \
 	subsystem/lib-python \

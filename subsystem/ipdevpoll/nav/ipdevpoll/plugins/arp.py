@@ -14,10 +14,32 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""ipdevpoll plugin to log IP / MAC address pairings from routers.
+
+There are basically four methods to collect this via SNMP, some of
+which are deprecated, but still in use by vendors.  This plugin will
+support all four methods.
+
+IP-MIB contains two tables:
+  ipNetToMediaTable     -- deprecated, as it contains only entries for IPv4.
+  ipNetToPhysicalTable  -- current, address version agnostic table
+
+IPV6-MIB has been abandoned in favor of the revised IP-MIB, but has one table:
+  ipv6NetToMediaTable 
+
+CISCO-IETF-IP-MIB       -- based on an early draft of the revised IP-MIB
+  cInetNetToMediaTable
+
+Although the ARP protocol is only related to IPv4, this plugin keeps
+the name for historical reasons.
+
+"""
 
 import logging
+import operator
 from IPy import IP
-from datetime import datetime
+from datetime import datetime, timedelta
+import pprint
 
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
@@ -25,154 +47,208 @@ from twisted.python.failure import Failure
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
-from nav.models import manage
-from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
-from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
 
-# MIB objects used
-IP_MIB = 'ipNetToMediaPhysAddress'
-IPV6_MIB = 'ipv6NetToMediaPhysAddress'
-CISCO_MIB = 'cInetNetToMediaPhysAddress'
+from nav.models import manage
+from nav.ipdevpoll import Plugin, FatalPluginError, get_class_logger
+from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
 
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
+    prefix_cache = [] # prefix cache, should be sorted by descending mask length
+    prefix_cache_update_time = datetime.min
+    prefix_cache_max_age = timedelta(minutes=5)
 
     @classmethod
     def can_handle(cls, netbox):
-        """ARP and NDP are for level 2 devices.
-        Return true for netboxes with category GW or GSW.
-        """
-        if netbox.category.id in ('GW', 'GSW'):
-            return True
-        else:
-            return False
+        """This will only be useful on layer 3 devices, i.e. GW/GSW devices."""
+        return netbox.category.id in ('GW', 'GSW')
 
     @defer.deferredGenerator
     def handle(self):
-        self.logger.debug("Collecting ARP")
-        try_vendor = False
+        # Start by checking the prefix cache
+        prefix_cache_age = datetime.now() - self.prefix_cache_update_time
+        if prefix_cache_age > self.prefix_cache_max_age:
+            waiter = defer.waitForDeferred(self.__class__._update_prefix_cache())
+            yield waiter
+            waiter.getResult()
 
-        # Fetch prefixes
-        thing = defer.waitForDeferred(threads.deferToThread(
-            storage.shadowify_queryset, manage.Prefix.objects.all()))
-        yield thing
-        prefix = thing.getResult()
+        self.logger.debug("Collecting IP/MAC mappings")
 
         # Fetch standard MIBs
-        ip_mib = IpMib(self.job_handler.agent)
-        df = defer.waitForDeferred(ip_mib.retrieve_column(IP_MIB))
-        yield df
-        ip_result = df.getResult()
+        ip_mib = IpMib(self.agent)
+        waiter = defer.waitForDeferred(ip_mib.get_ifindex_ip_mac_mappings())
+        yield waiter
+        mappings = waiter.getResult()
+        self.logger.debug("Found %d mappings in IP-MIB", len(mappings))
 
-        ipv6_mib = Ipv6Mib(self.job_handler.agent)
-        df = defer.waitForDeferred(ipv6_mib.retrieve_column(IPV6_MIB))
-        yield df
-        ip6_result = df.getResult()
+        # Try IPV6-MIB if no IPv6 results were found in IP-MIB
+        if not ipv6_address_in_mappings(mappings):
+            ipv6_mib = Ipv6Mib(self.agent)
+            waiter = defer.waitForDeferred(
+                ipv6_mib.get_ifindex_ip_mac_mappings())
+            yield waiter
+            ipv6_mappings = waiter.getResult()
+            self.logger.debug("Found %d mappings in IPV6-MIB", 
+                              len(ipv6_mappings))
+            mappings.update(ipv6_mappings)
 
-        # Process results from the standard MIB set
-        if len(ip_result) > 0:
-            self.logger.debug("Found %d ARP entries" % len(ip_result))
-            self.process_arp(ip_result, type=IP_MIB, prefix=prefix)
-        else:
-            try_vendor = True
+        # If we got no results, or no IPv6 results, try vendor specific MIBs
+        if len(mappings) == 0 or not ipv6_address_in_mappings(mappings):
+            cisco_ip_mib = CiscoIetfIpMib(self.agent)
+            waiter = defer.waitForDeferred(
+                cisco_ip_mib.get_ifindex_ip_mac_mappings())
+            yield waiter
+            cisco_ip_mappings = waiter.getResult()
+            self.logger.debug("Found %d mappings in CISCO-IETF-IP-MIB", 
+                              len(cisco_ip_mappings))
+            mappings.update(cisco_ip_mappings)
 
-        if len(ip6_result) > 0:
-            self.logger.debug("Found %d NDP entries" % len(ip6_result))
-            self.process_arp(ip6_result, type=IPV6_MIB, prefix=prefix)
-        else:
-            try_vendor = True
+        waiter = defer.waitForDeferred(self._process_data(mappings))
+        yield waiter
+        waiter.getResult()
 
-        # Try vendor specific MIBs if either of the standard MIBs didn't get
-        # any results.
-        if try_vendor:
-            # Try Cisco specific MIBs
-            cisco_mib = CiscoIetfIpMib(self.job_handler.agent)
-            thing = defer.waitForDeferred(cisco_mib.retrieve_column(CISCO_MIB))
-            yield thing
-            result = thing.getResult()
-            self.logger.debug("Found %d Cisco ARP entries" % len(result))
-            self.process_arp(result, type=CISCO_MIB, prefix=prefix)
 
-        # Timeout records that we can't find any more
-        existing_arp = manage.Arp.objects.filter(
+    @defer.deferredGenerator
+    def _process_data(self, mappings):
+        """Process collected mapping data.
+
+        1. Find all open ARP database records for this netbox
+        2. Add Arp containers for all newly discovered mappings
+        3. Add Arp containers to expire missing mappings
+
+        """
+        # Collected mappings include ifindexes.  Arp table doesn't
+        # care about this, so we prune those.
+        found_mappings = set((ip, mac) for (ifindex, ip, mac) in mappings)
+
+        # Get open mappings from database to compare with
+        waiter = defer.waitForDeferred(self._load_existing_mappings())
+        yield waiter
+        open_mappings = waiter.getResult()
+        
+        new_mappings = found_mappings.difference(open_mappings)
+        expireable_mappings = set(open_mappings).difference(found_mappings)
+
+        self.logger.debug("Mappings: %d new / %d expired / %d kept",
+                          len(new_mappings), len(expireable_mappings),
+                          len(open_mappings) - len(expireable_mappings))
+
+        self._make_new_mappings(new_mappings)
+        self._expire_arp_records(open_mappings[mapping]
+                                 for mapping in expireable_mappings)
+
+        return
+
+    @defer.deferredGenerator
+    def _load_existing_mappings(self):
+        """Load the existing ARP records for this box from the db.
+
+        Returns:
+
+          A deferred whose result is a dictionary: { (ip, mac): arpid }
+        """
+        self.logger.debug("Loading open arp records from database")
+        open_arp_records_queryset = manage.Arp.objects.filter(
             netbox__id=self.netbox.id,
-            end_time=datetime.max,
+            end_time__gte=datetime.max,
         )
-        thing = defer.waitForDeferred(
-            threads.deferToThread(storage.shadowify_queryset, existing_arp))
-        yield thing
-        result = thing.getResult()
+        waiter = defer.waitForDeferred(
+            threads.deferToThread(
+                storage.shadowify_queryset_and_commit,
+                open_arp_records_queryset
+                ))
+        yield waiter
+        open_arp_records = waiter.getResult()
+        self.logger.debug("Loaded %d open records from arp",
+                          len(open_arp_records))
 
-        if storage.Arp not in self.job_handler.containers:
-            self.logger.warning("No ARP data found on %s." + \
-                "All ARP records for this box will now time out." % self.netbox.sysname)
-        self.timeout_arp(existing_arp)
+        open_mappings = dict(((IP(arp.ip), arp.mac), arp.id)
+                             for arp in open_arp_records)
+        yield open_mappings
 
-        yield True
 
-    def timeout_arp(self, result):
-        """Sets end_time for all existing records that are not found in the new
-        records.
+    @classmethod
+    @defer.deferredGenerator
+    def _update_prefix_cache(cls):
+        cls.prefix_cache_update_time = datetime.now()
+        waiter = defer.waitForDeferred(
+            threads.deferToThread(
+                storage.shadowify_queryset_and_commit,
+                manage.Prefix.objects.all()
+                ))
+        yield waiter
+        prefixes = waiter.getResult()
+        get_class_logger(cls).debug(
+            "Populating prefix cache with %d prefixes", len(prefixes))
+
+        prefixes = [(IP(p.net_address), p.id) for p in prefixes]
+        prefixes.sort(key=operator.itemgetter(1), reverse=True)
+        
+        del cls.prefix_cache[:]
+        cls.prefix_cache.extend(prefixes)
+
+
+    def _make_new_mappings(self, mappings):
+        """Convert a sequence of (ip, mac) tuples into a Arp shadow containers.
+
+        Arguments:
+
+          mappings -- An iterable containing tuples: (ip, mac)
+
         """
-        # FIXME Should perhaps take new records as a parameter, instead of just
-        # looking them up in self.job_handler.containers?
-        for row in result:
-            ip = IP(row.ip).strCompressed()
-            key = (self.netbox, ip, row.mac)
-            if storage.Arp not in self.job_handler.containers or \
-                    key not in self.job_handler.containers[storage.Arp]:
-                arp = self.job_handler.container_factory(storage.Arp, key=row.id)
-                arp.id = row.id
-                arp.end_time = datetime.utcnow()
-                self.logger.debug('Timeout on %s for %s' % (row.mac, ip))
+        netbox = self.containers.factory(None, shadows.Netbox)
+        timestamp = datetime.now()
+        infinity = datetime.max
 
-
-    def process_arp(self, result, type=IP_MIB, prefix=[]):
-        """Takes a MibRetriever result row and processes it into Arp shadow
-        objects.
-
-        Parameters:
-            result - The result from MibRetriever
-            type   - The MIB OID name used. Used to format IP addresses.
-            prefix - Prefix objects fetched from the database.
-        """
-        def index_to_ip(index, type):
-            if type == IP_MIB:
-                ip_set = index[1:]
-                return IpMib.index_to_ip(ip_set)
-            elif type == IPV6_MIB:
-                ip_set = index[1:]
-                return Ipv6Mib.index_to_ip(ip_set)
-            elif type == CISCO_MIB:
-                if_index, ip_version, length = index[0:3]
-                ip_set = index[3:]
-                return CiscoIetfIpMib.index_to_ip(ip_version, ip_set)
-            else:
-                raise Exception("Unknown MIB type, %s,  specified." % type)
-
-        for index, mac in result.items():
-            try:
-                ip = index_to_ip(index, type)
-            except IndexToIpException, e:
-                self.logger.warning(unicode(e))
-                continue
-            except Exception, e:
-                self.logger.warning(unicode(e) + " Aborting ARP processing.")
-                return
-
-            ip_str = ip.strCompressed()
-            mac = binary_mac_to_hex(mac)
-            mac = truncate_mac(mac)
-
-            arp = self.job_handler.container_factory(storage.Arp, key=(
-                self.netbox,
-                ip_str,
-                mac,
-            ))
+        for (ip, mac) in mappings:
+            if not mac:
+                continue # Some devices seem to return empty macs!
+            arp = self.containers.factory((ip, mac), shadows.Arp)
+            arp.netbox = netbox
             arp.sysname = self.netbox.sysname
-            arp.ip = ip_str
+            arp.ip = ip.strCompressed()
             arp.mac = mac
-            arp.prefix = find_prefix(ip, prefix)
-            arp.netbox = self.netbox
-            arp.end_time = datetime.max
+            arp.prefix_id = self._find_largest_matching_prefix(ip)
+            arp.start_time = timestamp
+            arp.end_time = infinity
+
+
+    def _expire_arp_records(self, arp_ids):
+        """Create containers to force expiry of a set of Arp records.
+
+        Arguments:
+
+          arp_ids -- An iterable containing db primary keys for Arp records.
+
+        """
+        timestamp = datetime.now()
+
+        for arp_id in arp_ids:
+            arp = self.containers.factory(arp_id, shadows.Arp)
+            arp.id = arp_id
+            arp.end_time = timestamp
+
+
+    def _find_largest_matching_prefix(self, ip):
+        """Find the largest prefix that ip is part of.
+
+        Returns:
+
+          An integer prefix ID, or None if no matches were found.
+        """
+        for prefix_addr, prefix_id in self.prefix_cache:
+            if ip in prefix_addr:
+                return prefix_id
+
+
+def ipv6_address_in_mappings(mappings):
+    """Return True if there are any IPv6 addresses in mappings.
+
+    Mappings must be an iterable of tuples: (foo, ip, bar).
+
+    """
+    for foo, ip, bar in mappings:
+        if ip.version() == 6:
+            return True
+    return False

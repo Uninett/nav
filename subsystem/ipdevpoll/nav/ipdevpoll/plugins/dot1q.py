@@ -37,7 +37,7 @@ from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib, PortList
 from nav.ipdevpoll import Plugin, FatalPluginError
-from nav.ipdevpoll import storage
+from nav.ipdevpoll import storage, shadows
 from nav.models.manage import Interface
 
 
@@ -54,8 +54,8 @@ class Dot1q(Plugin):
 
         self.logger.debug("Collecting 802.1q VLAN information")
 
-        self.bridgemib = BridgeMib(self.job_handler.agent)
-        self.qbridgemib = QBridgeMib(self.job_handler.agent)
+        self.bridgemib = BridgeMib(self.agent)
+        self.qbridgemib = QBridgeMib(self.agent)
         
         # We first need the baseport list to translate port numbers to
         # ifindexes
@@ -104,8 +104,8 @@ class Dot1q(Plugin):
             for port, pvid in pvids.items():
                 if port in baseports:
                     ifindex = baseports[port]
-                    interface = self.job_handler.container_factory(
-                        storage.Interface, key=ifindex)
+                    interface = self.containers.factory(ifindex,
+                                                        shadows.Interface)
                     interface.vlan = pvid
                 else:
                     self.logger.info("dot1qPortVlanTable referred to unknown "
@@ -167,14 +167,14 @@ class Dot1q(Plugin):
             if port in baseports:
                 # Mark as trunk
                 ifindex = baseports[port]
-                interface = self.job_handler.container_factory(
-                    storage.Interface, key=ifindex)
+                interface = self.containers.factory(ifindex,
+                                                    shadows.Interface)
                 interface.trunk = True
 
                 # Store a hex string representation of enabled VLANs
                 # in swportallowedvlan
-                allowed = self.job_handler.container_factory(
-                    storage.SwPortAllowedVlan, key=ifindex)
+                allowed = self.containers.factory(ifindex,
+                                                 shadows.SwPortAllowedVlan)
                 allowed.interface = interface
                 allowed.hex_string = vlan_list_to_hex(vlans)
 

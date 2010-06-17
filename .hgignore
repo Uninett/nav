@@ -26,6 +26,7 @@ subsystem/alertengine/init.d/alertengine
 subsystem/lib-perl/src/NAV/Path.pm
 subsystem/lib-python/nav/buildconf.py
 subsystem/logger/conf/logger.conf
+subsystem/ipdevpoll/ipdevpoll
 subsystem/smsd/smsd
 subsystem/snmptrapd/snmptrapd
 subsystem/startstop/functions

@@ -1,3 +1,0 @@
-## info: Monitors your RRD data for exceeded threshholds
-
-*/5 * * * * $BINDIR/thresholdMon.py >> $LOCALSTATEDIR/log/thresholdMon.log

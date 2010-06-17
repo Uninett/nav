@@ -18,9 +18,9 @@
 
 import logging
 
+from django.db import transaction
 import django.db.models
 
-from nav.models import manage
 from nav import ipdevpoll
 
 # dict structure: { django_model_class: shadow_class }
@@ -54,6 +54,7 @@ class MetaShadow(type):
         for f in field_names:
             setattr(cls, f, None)
 
+        setattr(cls, '_logger', ipdevpoll.get_class_logger(cls))
         shadowed_classes[shadowclass] = cls
 
 class Shadow(object):
@@ -93,7 +94,6 @@ class Shadow(object):
         inside the object hierarchy.
 
         """
-        self._logger = ipdevpoll.get_class_logger(self.__class__)
         if args:
             obj = args[0]
             if isinstance(obj, self.__class__.__shadowclass__):
@@ -118,6 +118,10 @@ class Shadow(object):
         if not self.__shadowclass__ == other.__shadowclass__:
             return False
 
+        if self.get_primary_key() and other.get_primary_key() and \
+                self.get_primary_key() == other.get_primary_key():
+            return True
+
         for lookup in self.__lookups__:
             if isinstance(lookup, tuple):
                 ret = True
@@ -137,6 +141,9 @@ class Shadow(object):
                     continue
         return False
 
+    def __ne__(self, other):
+        return not (self == other)
+
     def __repr__(self):
         attrs = [field for field in self._fields
                  if getattr(self, field) is not None or
@@ -154,7 +161,8 @@ class Shadow(object):
         # The _touched attribute will not exist during initialization
         # of the object, so ignore AttributeErrors
         try:
-            self._touched.add(attr)
+            if attr not in ('delete', 'update_only'):
+                self._touched.add(attr)
         except AttributeError:
             pass
 
@@ -201,7 +209,7 @@ class Shadow(object):
         """
         return list(self._touched)
 
-    def get_model(self):
+    def convert_to_model(self, containers=None):
         """Return a live Django model object based on the data of this one.
 
         If this shadow object represents something that is already in
@@ -209,9 +217,17 @@ class Shadow(object):
         synchronously, and its attributes modified with the contents
         of the touched attributes of the shadow object.
 
+        The current job handler's containers are provided for asvanced lookups
+        overrides in certain shadow classes. The containers argument is a dictionary
+        with keyed by the shadowclass. The value connected to the key is a dictionary
+        with shadow instances keyed by their index created upon container creation.
         """
+
+        if containers is None:
+            containers = {}
+
         # Get existing or create new instance
-        model = self.get_existing_model()
+        model = self.get_existing_model(containers)
         if not model and self.update_only:
             return None
         elif not model:
@@ -221,7 +237,7 @@ class Shadow(object):
         for attr in self._touched:
             value = getattr(self, attr)
             if issubclass(value.__class__, Shadow):
-                value = value.get_model()
+                value = value.convert_to_model()
             setattr(model, attr, value)
         return model
 
@@ -241,13 +257,16 @@ class Shadow(object):
         pk = self.get_primary_key_attribute()
         setattr(self, pk.name, value)
 
-    def get_existing_model(self):
+    def get_existing_model(self, containers=None):
         """Return an existing live Django model object.
 
         If the object represented by this shadow already exists in the
         database, this method will return it from the database.  If
         such an object doesn't exist, the None value will be returned.
         """
+        if containers is None:
+            containers = {}
+
         # Find the primary key attribute.  If the primary key is also
         # a foreign key, we need to get the existing model for the
         # foreign key first.  Either way, the primary key attribute
@@ -286,7 +305,7 @@ class Shadow(object):
                 # Ensure we only have django models
                 for key, val in kwargs.items():
                     if issubclass(val.__class__, Shadow):
-                        kwargs[key] = val.get_model()
+                        kwargs[key] = val.convert_to_model()
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
@@ -296,6 +315,52 @@ class Shadow(object):
                     # attempt to achieve consistency
                     setattr(self, pk.name, model.pk)
                     return model
+
+    @classmethod
+    def prepare_for_save(cls, containers):
+        """This method is run in a separate thread before saving containers,
+        once for each type of container class that was created by a job.
+
+        This will invoke the prepare method of each container object of the cls
+        type.
+
+        It can be overridden by container classes to perform custom data
+        preparation, maintenance or validation logic before the containers are
+        saved to the database.
+
+        The containers argument is the complete repository of containers
+        created during the job run, and can be sneakily modified by this method
+        if you are so inclined.
+        
+        """
+        if cls in containers:
+            for container in containers[cls].values():
+                container.prepare(containers)
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        """This method is run in a separate thread after containers have been
+        saved, once for each type of container class.
+
+        Overriding this will enable a Shadow class to do things like database
+        maintenance after changes have taken place.
+
+        """
+        pass
+
+    def prepare(self, containers):
+        """Run by prepare_for_save before conversion of this object into a
+        Django model object and saving it.
+
+        By default does nothing, but can be overridden to perform custom logic
+        per container class.
+
+        The containers argument is the complete repository of containers
+        created during the job run, and can be sneakily modified by this method
+        if you are so inclined.
+
+        """
+        pass
 
 
 def shadowify(model):
@@ -317,74 +382,55 @@ def shadowify_queryset(queryset):
     new_list = [shadowify(obj) for obj in result]
     return new_list
 
+shadowify_queryset_and_commit = \
+    transaction.commit_on_success(shadowify_queryset)
 
-# Shadow classes.  Not all of these will be used to store data, but
-# may be used to retrieve and cache existing database records.
+class ContainerRepository(dict):
+    """A repository of container objects.
 
-class Netbox(Shadow):
-    __shadowclass__ = manage.Netbox
-    __lookups__ = ['sysname', 'ip']
+    This is basically a dictionary with custom methods to manipulate it as a
+    repository of container objects that need to be stored to the database.  It
+    is typically used by a JobHandler and various container classes'
+    do_maintenance and prepare_for_save methods.
 
-class NetboxType(Shadow):
-    __shadowclass__ = manage.NetboxType
+    """
+    def factory(self, key, container_class, *args, **kwargs):
+        """Instantiates a container_class object and stores it in the
+        repository using the given key.
 
-class Vendor(Shadow):
-    __shadowclass__ = manage.Vendor
+        The *args and **kwargs arguments are fed to the container_class
+        constructor.
 
-class Module(Shadow):
-    __shadowclass__ = manage.Module
-    __lookups__ = [('netbox', 'name')]
+        If the given key already exists in the repository, the existing
+        container_class object associated with is is returned instead, and the
+        args and kwargs arguments are ignored.
 
-class Device(Shadow):
-    __shadowclass__ = manage.Device
-    __lookups__ = ['serial']
+        """
+        if not issubclass(container_class, Shadow):
+            raise ValueError("%s is not a shadow container class" %
+                             container_class)
 
-class Interface(Shadow):
-    __shadowclass__ = manage.Interface
-    __lookups__ = [('netbox', 'ifname'), ('netbox', 'ifindex')]
+        obj = self.get(key, container_class)
+        if obj is None:
+            obj = container_class(*args, **kwargs)
+            if container_class not in self:
+                self[container_class] = {}
+            self[container_class][key] = obj
 
-class Location(Shadow):
-    __shadowclass__ = manage.Location
+        return obj
 
-class Room(Shadow):
-    __shadowclass__ = manage.Room
+    def get(self, key, container_class):
+        """Returns the container_class object associated with key, or None if
+        no such object was found.
 
-class Category(Shadow):
-    __shadowclass__ = manage.Category
+        """
+        if container_class not in self or key not in self[container_class]:
+            return None
+        else:
+            return self[container_class][key]
 
-class Organization(Shadow):
-    __shadowclass__ = manage.Organization
+    def __repr__(self):
+        orig = super(ContainerRepository, self).__repr__()
+        return "ContainerRepository(%s)" % orig
 
-class Vlan(Shadow):
-    __shadowclass__ = manage.Vlan
-    __lookups__ = ['vlan']
 
-class Prefix(Shadow):
-    __shadowclass__ = manage.Prefix
-    __lookups__ = [('net_address', 'vlan'), 'net_address']
-
-class GwPortPrefix(Shadow):
-    __shadowclass__ = manage.GwPortPrefix
-    __lookups__ = ['gw_ip']
-
-class NetType(Shadow):
-    __shadowclass__ = manage.NetType
-
-class SwPortVlan(Shadow):
-    __shadowclass__ = manage.SwPortVlan
-
-class Arp(Shadow):
-    __shadowclass__ = manage.Arp
-    __lookups__ = [('netbox', 'ip', 'mac', 'end_time')]
-
-class Cam(Shadow):
-    __shadowclass__ = manage.Cam
-    __lookups__ = [('netbox', 'ifindex', 'mac', 'miss_count')]
-
-class Prefix(Shadow):
-    __shadowclass__ = manage.Prefix
-    __lookups__ = ['net_address']
-
-class SwPortAllowedVlan(Shadow):
-    __shadowclass__ = manage.SwPortAllowedVlan
-    __lookups__ = ['interface']

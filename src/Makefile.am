@@ -12,7 +12,6 @@ subdirs = \
 	Event \
 	eventEngine \
 	getBoksMacs \
-	getDeviceData \
 	networkDiscovery \
 	Logger \
 	NetboxInfo \
@@ -23,9 +22,9 @@ EDITFILES = \
 	build.properties \
 	eventEngine/eventEngine.sh \
 	eventEngine/eventengine \
-	getDeviceData/getDeviceData.sh \
-	getDeviceData/getDeviceData \
 	getBoksMacs/getBoksMacs.sh \
+	getBoksMacs/mactrace \
+	networkDiscovery/networkDiscovery \
 	networkDiscovery/networkDiscovery.sh
 
 # We build our own classpath, to resolve interdependencies between the java modules.
@@ -49,7 +48,6 @@ Database: Logger
 Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
 getBoksMacs: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
-getDeviceData: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 networkDiscovery: ConfigParser Database Event Logger NetboxInfo
 Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
@@ -97,6 +95,5 @@ install-data-local: installdirs
 
 installdirs:
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/eventEngine
-	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/getDeviceData
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/networkDiscovery
 

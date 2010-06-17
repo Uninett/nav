@@ -336,7 +336,7 @@ class Report:
                         for link in links:
                             to = line[self.fieldNum[link]]
                             if to:
-                                to = str(to)
+                                to = unicode(to).encode('utf-8')
                             else:
                                 to = ""
                             hei = re.compile("\$"+link)

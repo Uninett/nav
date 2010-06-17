@@ -21,34 +21,46 @@ This is the daemon program that runs the IP device poller.
 """
 
 import sys
-import logging, logging.config
+import os
+import logging
+import signal
 from optparse import OptionParser
 
-from twisted.internet import reactor
-
-from newmodels import NetboxLoader
-from schedule import Schedule
-from plugins import import_plugins
-from jobs import get_jobs
-
 from nav import buildconf
+import nav.daemon
+import nav.logs
 
-def start_polling(result=None):
-    """Initiate polling.
 
-    First time around, all netboxes are polled immediately.
-    """
+pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'ipdevpolld.pid')
 
-    for netbox in netboxes:
-        for jobname,(interval,plugins) in get_jobs().items():
-            Schedule(jobname, netbox, interval, plugins).start()
+def sighup_handler(signum, frame):
+    """Reopen log files."""
+    logger.info("SIGHUP received; reopening log files")
+    nav.logs.reopen_log_files()
+    nav.daemon.redirect_std_fds(
+        stderr=nav.logs.get_logfile_from_logger())
+    logger.info("Log files reopened.")
+
+def sigterm_handler(signum, frame):
+    """Cleanly shutdown logging system and the reactor."""
+    from twisted.internet import reactor
+    logger.warn("SIGTERM received: Shutting down")
+    logging.shutdown()
+    reactor.callFromThread(reactor.stop)
 
 def run_poller():
-    """Load plugins, set up data caching and polling schedules."""
-    global netboxes
-    import_plugins()
-    netboxes = NetboxLoader()
-    netboxes.initiate_looping_load().addCallback(start_polling)
+    """Load plugins, and initiate polling schedules."""
+    from schedule import Scheduler
+    global scheduler
+    import plugins
+
+    # We need to react to SIGHUP and SIGTERM 
+    signal.signal(signal.SIGHUP, sighup_handler)
+    signal.signal(signal.SIGTERM, sigterm_handler)
+
+    plugins.import_plugins()
+    scheduler = Scheduler()
+    return scheduler.run()
 
 def get_parser():
     """Setup and return a command line option parser."""
@@ -60,16 +72,70 @@ def get_parser():
                       metavar="FILE")
     return parser
 
+def init_logging():
+    """Initialize ipdevpoll log system.
+
+    Returns:
+
+      A default logger instance to use by the daemon.
+
+    """
+    # First initialize logging to stderr.
+    log_format = "%(asctime)s [%(levelname)s] [%(name)s] %(message)s"
+    formatter = logging.Formatter(log_format)
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setFormatter(formatter)
+
+    root_logger = logging.getLogger('')
+    root_logger.addHandler(stderr_handler)
+
+    nav.logs.setLogLevels()
+
+    # Now try to load config and output logs to the configured file
+    # instead.
+    import config
+    logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
+    if logfile_name[0] not in './':
+        logfile_name = os.path.join(nav.buildconf.localstatedir, 
+                                    'log', logfile_name)
+
+    file_handler = logging.FileHandler(logfile_name, 'a')
+    file_handler.setFormatter(formatter)
+    
+    root_logger.addHandler(file_handler)
+    root_logger.removeHandler(stderr_handler)
+
+    return logging.getLogger('nav.ipdevpoll')
 
 def main():
     """Main execution function"""
     parser = get_parser()
     (options, args) = parser.parse_args()
+    global logger
 
-    logging.config.fileConfig('logging.conf')
-    logger = logging.getLogger('ipdevpoll')
+    logger = init_logging()
     logger.info("--- Starting ipdevpolld ---")
 
+    # Check if already running
+    try:
+        nav.daemon.justme(pidfile)
+    except nav.daemon.DaemonError, error:
+        logger.error(error)
+        sys.exit(1)
+
+    # Daemonize
+    try:
+        nav.daemon.daemonize(pidfile,
+                             stderr=nav.logs.get_logfile_from_logger())
+    except nav.daemon.DaemonError, error:
+        logger.error(error)
+        sys.exit(1)
+
+    nav.logs.reopen_log_files()
+    logger.info("ipdevpolld now running in the background")
+
+    from twisted.internet import reactor
     reactor.callWhenRunning(run_poller)
     reactor.run()
 

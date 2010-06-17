@@ -314,12 +314,8 @@ graph   ifHCOutOctets
 # See the docs for more information about the map dictionary.
 
 map interface-name
-	base-oid	=	ifDescr
-	match		=	%interface-name%
-
-map switch-port-name
 	base-oid	=	ifName
-	match		=	%port-name%
+	match		=	%ifname%
 
 map interface-index
         base-oid        = 	ifIndex

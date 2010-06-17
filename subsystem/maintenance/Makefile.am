@@ -4,6 +4,7 @@ mywebdir = $(webrootdir)/maintenance
 bin_SCRIPTS = $(wildcard bin/*.py)
 
 cron_DATA = cron.d/maintengine
+EDITFILES = $(cron_DATA)
 tool_DATA = maintenance.tool
 
 templates_src = $(wildcard nav/web/templates/*.tmpl)
