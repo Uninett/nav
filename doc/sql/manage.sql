@@ -570,6 +570,12 @@ CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
      WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
+-- View for listing all IP addresses that appear to be alive at the moment.
+CREATE OR REPLACE VIEW manage.live_clients AS
+  SELECT arp.ip, arp.mac
+    FROM arp
+   WHERE arp.end_time = 'infinity';
+
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
