@@ -60,7 +60,9 @@ specific procedure before attempting to start NAV 3.6:
 
 2. Make sure to backup all your RRD files and your cricket-config directory.
 
-3. Run `migrate_cricket.py` as the navcron user. This will:
+3. Locate your cricket configuration file, `cricket-conf.pl`, and run
+   `migrate_cricket.py -f /path/to/cricket-conf.pl` as the navcron user. This
+   will:
 
    - Delete cricket-related entries from NAV's RRD registry (don't worry, it
      will be filled again when the new makecricketconfig runs).
