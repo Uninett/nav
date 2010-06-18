@@ -66,6 +66,10 @@ class Netbox(Shadow):
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
 
+class NetboxInfo(Shadow):
+    __shadowclass__ = manage.NetboxInfo
+    __lookups__ = [('netbox', 'key', 'variable')]
+
 class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
 
