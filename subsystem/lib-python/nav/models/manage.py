@@ -126,7 +126,7 @@ class Netbox(models.Model):
             value = self.info_set.filter(variable='lastUpdated').order_by(
                 '-value')[0].value
             value = int(value) / 1000.0
-            return dt.datetime(*time.gmtime(value)[:6])
+            return dt.datetime.fromtimestamp(value)
         except IndexError:
             return None
         except ValueError:
