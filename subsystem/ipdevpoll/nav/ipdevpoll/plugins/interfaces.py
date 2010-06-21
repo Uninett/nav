@@ -101,9 +101,9 @@ class Interfaces(Plugin):
 
         # ifSpeed spec says to use ifHighSpeed if the 32-bit unsigned
         # integer is maxed out
-        if row['ifSpeed'] < 4294967295:
+        if row['ifSpeed'] is not None and row['ifSpeed'] < 4294967295:
             interface.speed = row['ifSpeed'] / 1000000.0
-        else:
+        elif row['ifHighSpeed'] is not None:
             interface.speed = float(row['ifHighSpeed'])
 
         interface.ifphysaddress = binary_mac_to_hex(row['ifPhysAddress'])
