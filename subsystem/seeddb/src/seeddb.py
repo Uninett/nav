@@ -2356,7 +2356,8 @@ class pageNetbox(seeddbPage):
                 device = manage.Device.objects.filter(serial=serial)
                 if device:
                     # Found a device with this serial
-                    deviceId = str(device[0].id)
+                    device = device[0]
+                    deviceId = str(device.id)
                     # Must check if there already is a box with this serial
                     box = device.netbox_set.all()
                     if box:
