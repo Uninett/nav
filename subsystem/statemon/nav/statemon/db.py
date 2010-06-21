@@ -281,7 +281,7 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         if len(rows) > 0:
             (rrd_fileid, netboxid) = rows[0]
             return netboxid
-        raise UnknownRRDFileError(basename, filename)
+        raise UnknownRRDFileError(filename)
 
     def reconnect_rrd(self, path, filename, netboxid):
         """Reconnects a known, disconnected RRD file with a netboxid."""
