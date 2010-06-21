@@ -14,18 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Trap manager functionality for snmptrapd."""
-import pysnmp
-
-# Set default backend
-backend = 'v2'
-try:
-    from pysnmp import version
-    version.verifyVersionRequirement(3, 4, 3)
-    backend = 'se'
-except ImportError, e:
-    pass
+from nav.Snmp import backend
 
 if backend == 'v2':
     from agent_v2 import *
 elif backend == 'se':
     from agent_se import *
+else:
+    raise ImportError("No supported version of PySNMP available")
