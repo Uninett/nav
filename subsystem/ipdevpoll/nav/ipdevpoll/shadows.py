@@ -236,7 +236,7 @@ class Vlan(Shadow):
         else:
             return None
 
-        net_type = 'vlan'
+        net_type = 'lan'
         # Get the number of router ports attached to this prefix
         port_count = manage.GwPortPrefix.objects.filter(
             prefix__net_address=str(prefix)).count()
