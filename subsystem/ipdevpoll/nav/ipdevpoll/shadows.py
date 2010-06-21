@@ -66,6 +66,10 @@ class Netbox(Shadow):
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
 
+class NetboxInfo(Shadow):
+    __shadowclass__ = manage.NetboxInfo
+    __lookups__ = [('netbox', 'key', 'variable')]
+
 class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
 
@@ -232,7 +236,7 @@ class Vlan(Shadow):
         else:
             return None
 
-        net_type = 'vlan'
+        net_type = 'lan'
         # Get the number of router ports attached to this prefix
         port_count = manage.GwPortPrefix.objects.filter(
             prefix__net_address=str(prefix)).count()
