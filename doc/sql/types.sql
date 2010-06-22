@@ -17,6 +17,7 @@ INSERT INTO vendor (vendorid) VALUES ('hp');
 INSERT INTO vendor (vendorid) VALUES ('symbol');
 INSERT INTO vendor (vendorid) VALUES ('3com');
 INSERT INTO vendor (vendorid) VALUES ('nortel');
+INSERT INTO vendor (vendorid) VALUES ('juniper');
 
 
 -- Then types
