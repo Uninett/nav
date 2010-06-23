@@ -94,5 +94,14 @@
                 </p>
             </form>
         {% endif %}
+
+        {% if is_admin %}
+            <form action="." method="post">
+                <input type="hidden" name="account" value="{{ account.id }}" />
+                <p>
+                    <input type="submit" value="Assume direct control" name="sudo" />
+                </p>
+            </form>
+        {% endif %}
     {% endif %}
 {% endblock %}

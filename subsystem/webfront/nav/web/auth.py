@@ -179,3 +179,33 @@ def logout(request):
         request = request._req
     del request.session
     state.deleteSessionCookie(request)
+
+def sudo(request, other_user):
+    if hasattr(request, '_req'):
+        request = request._req
+
+    current_user = request.session['user']
+    request.session['user'] = {
+        'id': other_user.id,
+        'login': other_user.login,
+        'name': other_user.name,
+        'sudoer': current_user,
+    }
+    request.session.save()
+
+def desudo(request):
+    if hasattr(request, '_req'):
+        request = request._req
+
+    current_user = request.session['user']
+    if current_user.has_key('sudoer'):
+        original_user = current_user['sudoer']
+
+    del request.session['user']
+    request.session.save()
+    request.session['user'] = {
+        'id': original_user['id'],
+        'login': original_user['login'],
+        'name': original_user['name'],
+    }
+    request.session.save()
