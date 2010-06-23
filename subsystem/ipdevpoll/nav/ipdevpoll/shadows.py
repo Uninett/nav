@@ -179,7 +179,6 @@ class Usage(Shadow):
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
-    __lookups__ = ['vlan']
 
     def _get_my_prefixes(self, containers):
         """Get a list of Prefix shadow objects that point to this Vlan."""
@@ -191,9 +190,9 @@ class Vlan(Shadow):
         else:
             return []
 
-    def _get_vlan_id_from_my_prefixes(self, containers):
-        """Find and return an existing primary key value from any
-        shadow prefix object pointing to this Vlan.
+    def _get_vlan_from_my_prefixes(self, containers):
+        """Find and return an existing vlan any shadow prefix object pointing
+        to this Vlan.
 
         """
         my_prefixes = self._get_my_prefixes(containers)
@@ -201,22 +200,34 @@ class Vlan(Shadow):
             live_prefix = prefix.get_existing_model()
             if live_prefix and live_prefix.vlan_id:
                 # We just care about the first associated prefix we found
-                return live_prefix.vlan_id
+                self._logger.debug(
+                    "_get_vlan_from_my_prefixes: selected prefix "
+                    "%s for possible vlan match for %r (%s), "
+                    "pre-existing is %r",
+                    live_prefix.net_address, self, id(self),
+                    live_prefix.vlan)
+                return live_prefix.vlan
 
-    def _find_numberless_vlan_id(self, containers):
-        """Finds and sets pre-existing Vlan primary key value for VLANs that
-        have no VLAN number.
+    def _find_preexisting_vlan_id(self, containers):
+        """Finds and sets pre-existing Vlan primary key value for VLANs.
 
-        Without this, a new Vlan entry would be added for unnumbered VLANs on
-        every collection run.
+        This is complicated because of the relationship between Prefix and
+        Vlan.  Often, a pre-existing Vlan cannot be matched by its attributes
+        alone - there could be multiple Vlan 40, and there are definitely
+        multiple Vlans without Vlan numbers.
+
+        Our best hope is to find the prefixes that belong to this Vlan and see
+        if they have pre-existing Vlans we can map to this one.
 
         """
-        # Magic lookup only if a simple lookup isn't available
-        # Find and set the primary key of this object, if available
-        if not (self.vlan or self.id):
-            vlan_id = self._get_vlan_id_from_my_prefixes(containers)
-            if vlan_id:
-                self.id = vlan_id
+        # Only lookup if primary key isn't already set.
+        if not self.id:
+            vlan = self._get_vlan_from_my_prefixes(containers)
+            if vlan:
+                # Only claim to be the same Vlan object if the vlan number is
+                # the same, or the pre-existing object has no Vlan number.
+                if vlan.vlan is None or vlan.vlan == self.vlan:
+                    self.id = vlan.id
 
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
@@ -263,7 +274,7 @@ class Vlan(Shadow):
         here can becore rather involved.
 
         """
-        self._find_numberless_vlan_id(containers)
+        self._find_preexisting_vlan_id(containers)
         if not self.net_type or self.net_type.id == 'unknown':
             net_type = self._guesstimate_net_type(containers)
             if net_type:
