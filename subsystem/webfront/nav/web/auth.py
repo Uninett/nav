@@ -22,8 +22,6 @@ import sys, os, re
 import nav
 import logging
 
-from django.core.handlers.modpython import ModPythonRequest
-
 from nav.web import state, ldapAuth
 from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
@@ -152,11 +150,6 @@ def login(request, account):
     '''Set user as authenticated in the session object.
     Will fail if user is not authenticated first.
     '''
-    # The session is stored in the mod_python request. This little if makes it
-    # possible to pass both django and mod_python requests.
-    if isinstance(request, ModPythonRequest):
-        request = request._req
-
     # Invalidate old sessions
     if request.session.has_key('user'):
         del request.session['user']

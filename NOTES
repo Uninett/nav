@@ -105,6 +105,7 @@ The following dependencies are new to NAV 3.6:
 The following are no longer dependencies in NAV 3.6:
 
 * Perl
+* The Perl module Pg
 * The Python module forgetSQL
 * psycopg1 (but please keep psycopg2!)
 

@@ -310,6 +310,15 @@ class Shadow(object):
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
                     pass
+                except self.__shadowclass__.MultipleObjectsReturned, e:
+                    self._logger.error("Multiple %s objects returned while "
+                                       "looking up myself."
+                                       "Lookup args used: %r "
+                                       "Myself: %r",
+                                       self.__shadowclass__.__name__,
+                                       kwargs, self)
+                    raise e
+
                 else:
                     # Set our primary key from the existing object in an
                     # attempt to achieve consistency

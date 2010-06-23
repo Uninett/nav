@@ -14,7 +14,6 @@ edit = $(SED) \
         -e 's|@libdir[@]|$(libdir)|g' \
         -e 's|@localstatedir[@]|$(localstatedir)|g' \
         -e 's|@nav_user[@]|$(nav_user)|g' \
-        -e 's|@perllibdir[@]|$(perllibdir)|g' \
         -e 's|@prefix[@]|$(prefix)|g' \
         -e 's|@pythondir[@]|$(pythondir)|g' \
         -e 's|@pythonlibdir[@]|$(pythonlibdir)|g' \
