@@ -8,7 +8,6 @@ SUBDIRS = src \
 	subsystem/ipdevinfo \
 	subsystem/ipdevpoll \
 	subsystem/l2trace \
-	subsystem/lib-perl \
 	subsystem/lib-python \
 	subsystem/logger \
 	subsystem/machinetracker \

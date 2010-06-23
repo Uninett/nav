@@ -33,7 +33,6 @@ AC_SUBST(javascriptdir)
 AC_SUBST(stylesheetdir)
 AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
-AC_SUBST(perllibdir)
 AC_SUBST(djangotmpldir)
 AC_SUBST(initdir)
 AC_SUBST(tooldir)
@@ -53,7 +52,6 @@ stylesheetdir='${webroot}/style'
 pythonlibdir='${libdir}/python'
 pythondir='${pythonlibdir}'
 javalibdir='${libdir}/java'
-perllibdir='${libdir}/perl'
 djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
@@ -80,7 +78,6 @@ AC_CONFIG_FILES([
 	subsystem/ipdevinfo/templates/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/l2trace/Makefile
-	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/lib-python/templates/Makefile
 	subsystem/logger/Makefile

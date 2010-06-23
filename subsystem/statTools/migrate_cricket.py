@@ -48,7 +48,6 @@ def main(configfile):
             f = file(filename)
         except Exception, e:
             print "Could not open %s: %s" % (filename, e)
-            print "See %s for help" % HELPURL
             continue
         
         tempoids = find_tempoids(f.readlines())
