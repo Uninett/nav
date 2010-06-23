@@ -97,8 +97,9 @@ class Prefix(Plugin):
             waiter = defer.waitForDeferred(mib.get_interface_addresses())
             yield waiter
             new_addresses = waiter.getResult()
-            self.logger.debug("Found %d addresses in %s",
-                              len(new_addresses), mib.mib['moduleName'])
+            self.logger.debug("Found %d addresses in %s: %r",
+                              len(new_addresses), mib.mib['moduleName'],
+                              new_addresses)
             addresses.update(new_addresses)
 
         for ifindex, ip, prefix in addresses:
