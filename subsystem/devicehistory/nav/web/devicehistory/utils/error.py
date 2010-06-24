@@ -37,7 +37,7 @@ _ = lambda a: a
 
 @transaction.commit_on_success
 def register_error_events(request, **kwargs):
-    messages = Messages(request)
+    messages = Messages(request._req)
 
     # Get the username of this user.
     account = get_account(request)

@@ -49,15 +49,11 @@ class Messages(list):
     session = None
 
     def __init__(self, request=None):
-        if isinstance(request, ModPythonRequest):
-            request = request._req
         self.session = request.session
 
     def __new__(cls, request=None):
         # We try to fetch a Messages object from this users session.
         # If it doesn't exist we make a new one.
-        if isinstance(request, ModPythonRequest):
-            request = request._req
         setupSession(request)
         messages = request.session.get('messages', None)
 

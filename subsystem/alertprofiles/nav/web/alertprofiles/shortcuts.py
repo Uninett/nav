@@ -43,13 +43,13 @@ def _alertprofiles_response(request, status_code=200):
     return response
 
 def alertprofiles_response_forbidden(request, message):
-    new_message(request, '403 Forbidden', Messages.ERROR)
-    new_message(request, message, Messages.ERROR)
+    new_message(request._req, '403 Forbidden', Messages.ERROR)
+    new_message(request._req, message, Messages.ERROR)
 
     return _alertprofiles_response(request, 403)
 
 def alertprofiles_response_not_found(request, message):
-    new_message(request, '404 Not Found', Messages.ERROR)
-    new_message(request, message, Messages.ERROR)
+    new_message(request._req, '404 Not Found', Messages.ERROR)
+    new_message(request._req, message, Messages.ERROR)
 
     return _alertprofiles_response(request, 404)
