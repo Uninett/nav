@@ -166,18 +166,14 @@ def logout(request):
     '''Removes session object for this user.
     In effect, this is the same as logging out.
     '''
-    # The session is stored in the mod_python request. This little if makes it
-    # possible to pass both django and mod_python requests.
-    if isinstance(request, ModPythonRequest):
-        request = request._req
     del request.session
     state.deleteSessionCookie(request)
 
 def sudo(request, other_user):
-    if hasattr(request, '_req'):
-        request = request._req
-
     current_user = request.session['user']
+    if current_user.has_key('sudoer'):
+        # Already logged in as another user.
+        raise SudoRecursionError()
     request.session['user'] = {
         'id': other_user.id,
         'login': other_user.login,
@@ -187,12 +183,12 @@ def sudo(request, other_user):
     request.session.save()
 
 def desudo(request):
-    if hasattr(request, '_req'):
-        request = request._req
-
     current_user = request.session['user']
-    if current_user.has_key('sudoer'):
-        original_user = current_user['sudoer']
+    if not current_user.has_key('sudoer'):
+        # We are not sudoing
+        return
+
+    original_user = current_user['sudoer']
 
     del request.session['user']
     request.session.save()
@@ -202,3 +198,8 @@ def desudo(request):
         'name': original_user['name'],
     }
     request.session.save()
+
+class SudoRecursionError(Exception):
+    msg = u"Already posing as another user"
+    def __unicode__(self):
+        return self.msg
