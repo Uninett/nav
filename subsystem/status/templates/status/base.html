@@ -15,9 +15,9 @@
 
 <div class="tabcontent">
 
-{% if messages %}
+{% if current_user_data.messages %}
 <ul class="messages">
-    {% for m in messages %}
+    {% for m in current_user_data.messages %}
     <li class="{{ m.type }}">{{ m.message }}</li>
     {% endfor %}
 </ul>

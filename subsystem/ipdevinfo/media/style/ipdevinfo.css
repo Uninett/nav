@@ -54,6 +54,7 @@ hr.floatclear {
 /* Port view */
 .module {
 	border: 0px;
+	white-space: nowrap;
 }
 .module td {
 	line-height: 1.5em;

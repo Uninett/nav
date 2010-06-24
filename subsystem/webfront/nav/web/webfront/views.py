@@ -112,7 +112,9 @@ def do_login(request):
         else:
             if account:
                 try:
-                    auth.login(request, account)
+                    # Pass the mod_python request structure to legacy
+                    # auth.login
+                    auth.login(request._req, account)
                 except ldapAuth.Error, e:
                     errors.append('Error while talking to LDAP:\n%s' % e)
                 else:

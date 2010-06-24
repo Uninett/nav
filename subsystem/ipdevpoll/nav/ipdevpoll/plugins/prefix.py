@@ -91,12 +91,15 @@ class Prefix(Plugin):
         # Traverse address tables from IP-MIB, IPV6-MIB and
         # CISCO-IETF-IP-MIB in that order.
         addresses = set()
-        for mib in ipmib, ipv6mib, ipmib:
+        for mib in ipmib, ipv6mib, ciscoip:
             self.logger.debug("Trying address tables from %s",
                               mib.mib['moduleName'])
             waiter = defer.waitForDeferred(mib.get_interface_addresses())
             yield waiter
             new_addresses = waiter.getResult()
+            self.logger.debug("Found %d addresses in %s: %r",
+                              len(new_addresses), mib.mib['moduleName'],
+                              new_addresses)
             addresses.update(new_addresses)
 
         for ifindex, ip, prefix in addresses:
