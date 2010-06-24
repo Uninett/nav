@@ -1,6 +1,18 @@
 Version 3.6.0b3
 (released 24 June 2010)
 
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
  Bugfixes:
 
   * LP#338655 (DNS checker doesn't report version)
