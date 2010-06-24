@@ -24,5 +24,17 @@
 BEGIN;
 -- Insert schema changes here.
 
+-- View for listing all IP addresses that appear to be alive at the moment.
+CREATE OR REPLACE VIEW manage.live_clients AS
+  SELECT arp.ip, arp.mac
+    FROM arp
+   WHERE arp.end_time = 'infinity';
+
+-- Drop trigger that causes spurious deadlocks
+DROP TRIGGER update_netbox_on_prefix_changes ON prefix;
+DROP FUNCTION update_netbox_prefixes();
+
+-- Insert the new version number if we got this far.
+-- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
 
 COMMIT;

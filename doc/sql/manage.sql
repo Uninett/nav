@@ -43,7 +43,7 @@ CREATE TABLE org (
   CONSTRAINT org_parent_fkey FOREIGN KEY (parent) REFERENCES org (orgid)
              ON UPDATE CASCADE
 );
-
+INSERT INTO org (orgid, descr, contact) VALUES ('myorg', 'Example organization unit', 'nobody');
 
 CREATE TABLE usage (
   usageid VARCHAR(30) PRIMARY KEY,
@@ -55,6 +55,7 @@ CREATE TABLE location (
   locationid VARCHAR(30) PRIMARY KEY,
   descr VARCHAR NOT NULL
 );
+INSERT INTO location (locationid, descr) VALUES ('mylocation', 'Example location');
 
 CREATE TABLE room (
   roomid VARCHAR(30) PRIMARY KEY,
@@ -65,6 +66,7 @@ CREATE TABLE room (
   opt3 VARCHAR,
   opt4 VARCHAR
 );
+INSERT INTO room (roomid, locationid, descr) VALUES ('myroom', 'mylocation', 'Example wiring closet');
 
 CREATE TABLE nettype (
   nettypeid VARCHAR PRIMARY KEY,
@@ -206,23 +208,6 @@ CREATE VIEW netboxprefix AS
           ORDER BY masklen(prefix.netaddr::inet) DESC
           LIMIT 1) AS prefixid
   FROM netbox;
-
--- Function to update prefix of all netbox records
-CREATE OR REPLACE FUNCTION update_netbox_prefixes() RETURNS TRIGGER AS'
-  BEGIN
-    UPDATE NETBOX n
-    SET prefixid=np.prefixid
-    FROM netboxprefix np
-    WHERE n.netboxid=np.netboxid;
-
-    RETURN NULL;
-  END;
-  ' language 'plpgsql';
-
--- Trigger to update netbox prefixid's on all changes to the prefix table
-CREATE TRIGGER update_netbox_on_prefix_changes
-  AFTER INSERT OR DELETE OR UPDATE ON prefix FOR EACH STATEMENT EXECUTE PROCEDURE update_netbox_prefixes();
-
 
 CREATE TABLE netboxsnmpoid (
   id SERIAL,
@@ -567,6 +552,12 @@ CREATE TABLE arp (
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
   DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
      WHERE prefixid=OLD.prefixid AND end_time='infinity';
+
+-- View for listing all IP addresses that appear to be alive at the moment.
+CREATE OR REPLACE VIEW manage.live_clients AS
+  SELECT arp.ip, arp.mac
+    FROM arp
+   WHERE arp.end_time = 'infinity';
 
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,

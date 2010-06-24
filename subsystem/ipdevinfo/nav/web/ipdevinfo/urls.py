@@ -63,7 +63,7 @@ urlpatterns = patterns('',
 
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_id>\d+)/$',
         port_details, name='ipdevinfo-interface-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_name>[\w\d\.-]+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_name>[\w\d\.-/_]+)/$',
         port_details, name='ipdevinfo-interface-details'),
 )
 

@@ -48,7 +48,6 @@ def main(configfile):
             f = file(filename)
         except Exception, e:
             print "Could not open %s: %s" % (filename, e)
-            print "See %s for help" % HELPURL
             continue
         
         tempoids = find_tempoids(f.readlines())
@@ -123,7 +122,7 @@ def get_configroot(configfile):
         f = open(configfile, 'r')
     except Exception, e:
         print "Could not find cricket-conf.pl: %s" % e
-        sys.exit()
+        sys.exit(1)
     
     for line in f:
         if comment.match(line):
@@ -148,7 +147,7 @@ def get_datadir(path):
         f = open(join(path, filename), 'r')
     except Exception, e:
         print "Error opening %s: %s" % (join(path, filename), e[1])
-        sys.exit()
+        sys.exit(1)
                 
     for line in f:
         m = match.search(line)
@@ -190,7 +189,7 @@ if __name__ == '__main__':
     user = getpass.getuser()
     if user != 'navcron':
         print "This script needs to be run as user navcron"
-        sys.exit()
+        sys.exit(1)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hf:', ['help', 'file='])

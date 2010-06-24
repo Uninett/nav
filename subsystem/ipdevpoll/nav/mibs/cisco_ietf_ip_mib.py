@@ -36,7 +36,7 @@ class CiscoIetfIpMib(IpMib):
     def address_index_to_ip(cls, index):
         """Convert a row index from cIpAddressTable to an IP object."""
 
-        entry = cls.nodes['cIpAddressEntry']
+        entry = cls.nodes['cIpAddressPfxOrigin']
         if entry.oid.isaprefix(index):
             # Chop off the entry OID+column prefix
             index = index[(len(entry.oid) + 1):]
@@ -44,13 +44,13 @@ class CiscoIetfIpMib(IpMib):
         return super(CiscoIetfIpMib, cls).address_index_to_ip(index)
 
     @classmethod
-    def prefix_index_to_ip(cls, index):
+    def prefix_index_to_ip(cls, index, prefix_entry=None):
         """Convert a row index from cIpAddressPfxTable to an IP object."""
 
-        entry = cls.nodes['cIpAddressPfxEntry']
+        entry = cls.nodes['cIpAddressPfxOrigin']
         if entry.oid.isaprefix(index):
-            # Chop off the entry OID+column prefix
-            index = index[(len(entry.oid) + 1):]
+            # Chop off the PfxOrigin OID prefix
+            index = index[len(entry.oid):]
 
         return super(CiscoIetfIpMib, cls).prefix_index_to_ip(index)
 
@@ -85,7 +85,7 @@ class CiscoIetfIpMib(IpMib):
         waiter = defer.waitForDeferred(self._get_interface_addresses(
                 ifindex_column='cIpAddressIfIndex',
                 prefix_column='cIpAddressPrefix',
-                prefix_entry='cIpAddressPfxEntry'))
+                prefix_entry='cIpAddressPfxOrigin'))
         yield waiter
         addresses = waiter.getResult()
 

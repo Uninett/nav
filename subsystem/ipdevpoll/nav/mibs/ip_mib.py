@@ -129,7 +129,7 @@ class IpMib(mibretriever.MibRetriever):
         for row_index, phys_address in all_phys_addrs.items():
             ifindex = row_index[0]
             inet_address = row_index[1:]
-            ip = IpMib.inetaddress_to_ip(inet_address)
+            ip = self.inetaddress_to_ip(inet_address)
             mac = binary_mac_to_hex(phys_address)
             
             row = (ifindex, ip, mac)
@@ -236,11 +236,11 @@ class IpMib(mibretriever.MibRetriever):
         addresses = set()
 
         for row_index, row in address_rows.items():
-            ip = IpMib.inetaddress_to_ip(row_index)
+            ip = self.inetaddress_to_ip(row_index)
             ifindex = row[ifindex_column]
             prefix_pointer = row[prefix_column]
 
-            prefix = IpMib.prefix_index_to_ip(prefix_pointer, prefix_entry)
+            prefix = self.prefix_index_to_ip(prefix_pointer, prefix_entry)
 
             new_row = (ifindex, ip, prefix)
             addresses.add(new_row)

@@ -18,18 +18,32 @@ quite low-level and tedious to work with.
 
 This interface supports both PySNMP v2 and PySNMP SE.
 """
+# Debian enables multi-version installs of pysnmp.  On Debian, settings this
+# environment variable will select PySNMP-SE, which is the highest version
+# supported by NAV.
+import os
+os.environ['PYSNMP_API_VERSION'] = 'v3'
+
 import pysnmp
 
-# Set default backend
-backend = 'v2'
+# Identify which PySNMP version is actually installed.  Looks ugly, but each
+# version provides (or forgets to provide) a different API for reporting its
+# version.
+backend = None
 try:
     from pysnmp import version
     version.verifyVersionRequirement(3, 4, 3)
     backend = 'se'
 except ImportError, e:
-    pass
+    if hasattr(pysnmp, 'majorVersionId'):
+        raise ImportError('Unsupported PySNMP version ' %
+                          pysnmp.majorVersionId)
+    else:
+        backend = 'v2'
 
 if backend == 'v2':
     from pysnmp_v2 import *
 elif backend == 'se':
     from pysnmp_se import *
+else:
+    raise ImportError("Unsupported PySNMP version installed")

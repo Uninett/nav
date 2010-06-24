@@ -19,12 +19,16 @@
 from IPy import IP
 
 def binary_mac_to_hex(binary_mac):
-    """Convert a binary string MAC address to hex string.
+    """Converts a binary string MAC address to hex string.
 
     Only the first 6 octets will be converted, any more will be
-    ignored.
+    ignored. If the address contains less than 6 octets, the result will be
+    padded with leading zeros.
+
     """
     if binary_mac:
+        if len(binary_mac) < 6:
+            binary_mac = "\x00" * (6 - len(binary_mac)) + binary_mac
         return ":".join("%02x" % ord(x) for x in binary_mac[:6])
 
 def truncate_mac(mac):
