@@ -34,7 +34,7 @@ from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 
 from nav.models.profiles import Account, AccountGroup
-from nav.django.utils import get_account, is_admin
+from nav.django.utils import get_account
 
 from nav.web.auth import sudo
 from nav.web.message import new_message, Messages
@@ -112,7 +112,7 @@ def account_detail(request, account_id=None):
 
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
-        elif 'sudo' in request.POST:
+        elif 'submit_sudo' in request.POST:
             sudo_account_id = request.POST.get('account')
             try:
                 sudo_account = Account.objects.get(pk=sudo_account_id)
@@ -125,16 +125,13 @@ def account_detail(request, account_id=None):
     if account:
         active = {'account_detail': True}
         current_user = get_account(request)
-        admin = is_admin(current_user)
     else:
         active = {'account_new': True}
-        admin = False
 
     return render_to_response('useradmin/account_detail.html',
                         {
                             'active': active,
                             'account': account,
-                            'is_admin': admin,
                             'account_form': account_form,
                             'org_form': org_form,
                             'group_form': group_form,

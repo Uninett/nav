@@ -27,11 +27,11 @@
 <body>
 {% endblock %}
 
-{% if sudoer %}
+{% if current_user_data.sudoer %}
 <div id="top-bar">
 <form action="{% url webfront-logout %}" method="post">
 <img src="/images/main/emblem-important.png" alt="Important information" />
-Hi <em>{{ sudoer.name }}</em>, you are posing as <em>{{ account.name }}</em>.
+Hi <em>{{ current_user_data.sudoer.name }}</em>, you are posing as <em>{{ current_user_data.account.name }}</em>.
     <input type="submit" name="submit_desudo" value="Release control" />
 </form>
 </div>
