@@ -208,26 +208,44 @@ class Vlan(Shadow):
                     live_prefix.vlan)
                 return live_prefix.vlan
 
-    def _find_preexisting_vlan_id(self, containers):
-        """Finds and sets pre-existing Vlan primary key value for VLANs.
+    def get_existing_model(self, containers):
+        """Finds pre-existing Vlan object using custom logic.
 
         This is complicated because of the relationship between Prefix and
-        Vlan.  Often, a pre-existing Vlan cannot be matched by its attributes
-        alone - there could be multiple Vlan 40, and there are definitely
-        multiple Vlans without Vlan numbers.
+        Vlan, and the fact that multiple vlans with the same vlan number may
+        exist, and even Vlan entries without a number.
 
-        Our best hope is to find the prefixes that belong to this Vlan and see
-        if they have pre-existing Vlans we can map to this one.
+        If we have a known netident and find an existing record with the same
+        vlan value (either a number or NULL) and netident, they are considered
+        the same.
+
+        Otherwise, we consider the prefixes that are associated with this vlan.
+        If these prefixes already exist in the database, they are likely
+        connected to the existing vlan object that we should update.
+
+        If all else fails, a new record is created.
 
         """
         # Only lookup if primary key isn't already set.
-        if not self.id:
-            vlan = self._get_vlan_from_my_prefixes(containers)
-            if vlan:
-                # Only claim to be the same Vlan object if the vlan number is
-                # the same, or the pre-existing object has no Vlan number.
-                if vlan.vlan is None or vlan.vlan == self.vlan:
-                    self.id = vlan.id
+        if self.id:
+            return super(Vlan, self).get_existing_model(containers)
+
+        if self.net_ident:
+            vlans = manage.Vlan.objects.filter(vlan=self.vlan,
+                                               net_ident=self.net_ident)
+            if vlans:
+                self._logger.debug(
+                    "get_existing_model: %d matches found for "
+                    "vlan+net_ident: %r",
+                    len(vlans), self)
+                return vlans[0]
+
+        vlan = self._get_vlan_from_my_prefixes(containers)
+        if vlan:
+            # Only claim to be the same Vlan object if the vlan number is the
+            # same, or the pre-existing object has no Vlan number.
+            if vlan.vlan is None or vlan.vlan == self.vlan:
+                return vlan
 
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
@@ -274,7 +292,6 @@ class Vlan(Shadow):
         here can becore rather involved.
 
         """
-        self._find_preexisting_vlan_id(containers)
         if not self.net_type or self.net_type.id == 'unknown':
             net_type = self._guesstimate_net_type(containers)
             if net_type:
