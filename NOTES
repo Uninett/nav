@@ -114,6 +114,8 @@ This module is required if you wish to monitor radius servers using
 NAV's service monitor.  The module can be found at
 http://www.wiggy.net/code/pyrad/ .
 
+While Perl is no longer required by NAV, some of NAV's dependencies (such as
+cricket) still require it, so don't toss it out quite yet.
 
 Files to remove
 ---------------
@@ -132,7 +134,8 @@ using a packaging system, you should be able to safely ignore this section.
   apache/webroot/machinetracker/machinetracker.py
   apache/webroot/preferences/
   apache/webroot/rrd/
-  apache/webroot/seeddb/*.py
+  apache/webroot/seeddb/seeddbTables.py
+  apache/webroot/status/*.py
   apache/webroot/toolbox/
   bin/cleanrrds.pl
   bin/getDeviceData.sh
@@ -145,11 +148,13 @@ using a packaging system, you should be able to safely ignore this section.
   etc/vPServer.conf
   etc/webfront/ipinfo.conf
   lib/java/getDeviceData/
+  lib/perl/
   lib/python/nav/auth.py
   lib/python/nav/db/forgotten/
   lib/python/nav/db/manage.py
   lib/python/nav/db/navprofiles.py
   lib/python/nav/dump.py
+  lib/python/nav/Snmp.py
   lib/python/nav/web/SearchBox.py
   lib/python/nav/web/TreeSelect.py
   lib/python/nav/web/devicemanagement/

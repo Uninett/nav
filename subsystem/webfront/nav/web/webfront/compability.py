@@ -46,10 +46,12 @@ class Cheetah(object):
             {
                 'title': self.title,
                 'navpath': self.navpath,
-                'account': self.user,
-                'navbar': self.navbar,
-                'qlink1': self.qlink1,
-                'qlink2': self.qlink2,
+                'current_user_data': {
+                    'account': self.user,
+                    'navbar': self.navbar,
+                    'qlink1': self.qlink1,
+                    'qlink2': self.qlink2,
+                },
                 'additional': {
                     'meta': self.additional_meta,
                     'css': self.additional_css,
@@ -65,7 +67,9 @@ class Cheetah(object):
         return render_to_string(
             'compability/footer.html',
             {
-                'account': self.user,
+                'current_user_data': {
+                    'account': self.user,
+                },
                 'nav_version': VERSION,
             }
         )

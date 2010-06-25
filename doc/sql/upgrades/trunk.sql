@@ -1,7 +1,7 @@
 /*
  *
  * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.6.0b1 to the current trunk revision (i.e. the tip of the default
+ * version 3.6.0b3 to the current trunk revision (i.e. the tip of the default
  * development branch).  Please update this with every change you make to the
  * database initialization scripts.  It will eventually become the update
  * script for the next release.
@@ -24,15 +24,6 @@
 BEGIN;
 -- Insert schema changes here.
 
--- View for listing all IP addresses that appear to be alive at the moment.
-CREATE OR REPLACE VIEW manage.live_clients AS
-  SELECT arp.ip, arp.mac
-    FROM arp
-   WHERE arp.end_time = 'infinity';
-
--- Drop trigger that causes spurious deadlocks
-DROP TRIGGER update_netbox_on_prefix_changes ON prefix;
-DROP FUNCTION update_netbox_prefixes();
 
 -- Insert the new version number if we got this far.
 -- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
