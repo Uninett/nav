@@ -260,7 +260,7 @@
         </td>
     </tr>
 {% else %}
-    <caption>IP Address</caption>
+    <caption class="nowrap">IP Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
     <tr>
         <th>Status</th>
         <td>Not monitored</td>
