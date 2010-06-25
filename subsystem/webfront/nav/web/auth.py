@@ -168,7 +168,5 @@ def logout(request):
     '''
     # The session is stored in the mod_python request. This little if makes it
     # possible to pass both django and mod_python requests.
-    if isinstance(request, ModPythonRequest):
-        request = request._req
     del request.session
     state.deleteSessionCookie(request)
