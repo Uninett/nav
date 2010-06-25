@@ -55,6 +55,9 @@ hr.floatclear {
 .indent {
     text-indent: 1em;
 }
+.nowrap {
+	white-space: nowrap;
+}
 
 /* Port view */
 .module {
