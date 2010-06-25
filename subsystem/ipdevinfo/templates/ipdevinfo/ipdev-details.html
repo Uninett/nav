@@ -313,7 +313,8 @@
     {% if arp %}
     <tr>
         <th>Found in ARP data</th>
-        <td>{{ arp.start_time }}</td>
+        <td>{{ arp.start_time|date|default:"N/A" }}
+            {{ arp.start_time|time }}</td>
     </tr>
 
     <tr>
