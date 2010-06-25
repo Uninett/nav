@@ -347,6 +347,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'prefix': prefix,
             'arp': arp,
             'cam': cam,
+            'dt_max': dt.datetime.max,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
