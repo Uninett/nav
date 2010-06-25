@@ -311,7 +311,6 @@
         <td>{{ prefix.vlan.organization.optional_3|default:"N/A" }}</td>
     </tr>
 
-    {% if arp %}
     <tr>
         <th>Found in ARP data</th>
         <td>{{ arp.start_time|date|default:"N/A" }}
@@ -320,10 +319,9 @@
 
     <tr>
         <th>Last seen with MAC</th>
-        <td>{{ arp.mac }}</td>
+        <td>{{ arp.mac|default:"N/A" }}</td>
     </tr>
 
-    {% endif %}
 {% endif %}
 </table>
 </div>
