@@ -137,7 +137,7 @@ def do_login(request):
 
 def logout(request):
     if request.method == 'POST' and 'submit_desudo' in request.POST:
-        auth.desudo(request._req)
+        auth.desudo(request)
         return HttpResponseRedirect(reverse('webfront-index'))
     else:
         auth.logout(request._req)

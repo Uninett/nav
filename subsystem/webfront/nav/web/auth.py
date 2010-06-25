@@ -22,6 +22,7 @@ import sys, os, re
 import nav
 import logging
 
+from nav.django.utils import get_account, is_admin
 from nav.web import state, ldapAuth
 from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
@@ -170,36 +171,44 @@ def logout(request):
     state.deleteSessionCookie(request)
 
 def sudo(request, other_user):
-    current_user = request.session['user']
+    current_user = request._req.session['user']
     if current_user.has_key('sudoer'):
         # Already logged in as another user.
         raise SudoRecursionError()
-    request.session['user'] = {
+    if not is_admin(get_account(request)):
+        # Check if sudoer is acctually admin
+        raise SudoNotAdminError()
+    request._req.session['user'] = {
         'id': other_user.id,
         'login': other_user.login,
         'name': other_user.name,
         'sudoer': current_user,
     }
-    request.session.save()
+    request._req.session.save()
 
 def desudo(request):
-    current_user = request.session['user']
+    current_user = request._req.session['user']
     if not current_user.has_key('sudoer'):
         # We are not sudoing
         return
 
     original_user = current_user['sudoer']
 
-    del request.session['user']
-    request.session.save()
-    request.session['user'] = {
+    del request._req.session['user']
+    request._req.session.save()
+    request._req.session['user'] = {
         'id': original_user['id'],
         'login': original_user['login'],
         'name': original_user['name'],
     }
-    request.session.save()
+    request._req.session.save()
 
 class SudoRecursionError(Exception):
     msg = u"Already posing as another user"
+    def __unicode__(self):
+        return self.msg
+
+class SudoNotAdminError(Exception):
+    msg = u"Not admin"
     def __unicode__(self):
         return self.msg

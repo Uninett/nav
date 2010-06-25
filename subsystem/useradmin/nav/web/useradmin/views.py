@@ -119,7 +119,7 @@ def account_detail(request, account_id=None):
             except Account.DoesNotExist:
                 new_message(request, 'The hell are you doing?', type=Message.ERROR)
             else:
-                sudo(request._req, sudo_account)
+                sudo(request, sudo_account)
             return HttpResponseRedirect(reverse('webfront-index'))
 
     if account:
