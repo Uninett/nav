@@ -265,17 +265,15 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             return None
 
     def get_arp_info(addr):
-        # Return the entry with the latest start time
         try:
-            return Arp.objects.filter(ip=addr).order_by('-start_time')[0]
+            return Arp.objects.filter(ip=addr).order_by('-end_time', '-start_time')[0]
         except:
             return None
 
 
     def get_cam_info(mac):
-        # Return last seen entry
         try:
-            return Cam.objects.filter(mac=mac)[0]
+            return Cam.objects.filter(mac=mac).order_by('-end_time', '-start_time')[0]
         except:
             return None
 
