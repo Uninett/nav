@@ -323,20 +323,6 @@
         <td>{{ arp.mac }}</td>
     </tr>
 
-    <tr>
-        <th>- On switch</th>
-        <td>{{ cam.sysname }}{% if cam.netbox.ip %} ({{ cam.netbox.ip }}){% endif %}</td>
-    </tr>
-
-    <tr>
-        <th>- On module</th>
-        <td>{{ cam.module|default:"N/A" }}</td>
-    </tr>
-
-    <tr>
-        <th>- On port</th>
-        <td>{{ cam.port|default:"N/A" }}</td>
-    </tr>
     {% endif %}
 {% endif %}
 </table>
