@@ -269,44 +269,44 @@
     {% if prefix.net_address %}
     <tr>
         <th>Subnet</th>
-        <td>{{ prefix.net_address }}</td>
+        <td>{{ prefix.net_address|default:"N/A" }}</td>
     </tr>
     {% endif %}
 
     {% if prefix.vlan.vlan %}
     <tr>
         <th>VLAN</th>
-        <td>{{ prefix.vlan.vlan }}</td>
+        <td>{{ prefix.vlan.vlan|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>- Usage</th>
-        <td>{{ prefix.vlan.usage }}</td>
+        <td>{{ prefix.vlan.usage|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>- Description</th>
-        <td>{{ prefix.vlan.description }}</td>
+        <td>{{ prefix.vlan.description|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>Organization</th>
-        <td>{{ prefix.vlan.organization }}</td>
+        <td>{{ prefix.vlan.organization|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>- Optional #1</th>
-        <td>{{ prefix.vlan.organization.optional_1 }}</td>
+        <td>{{ prefix.vlan.organization.optional_1|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>- Optional #2</th>
-        <td>{{ prefix.vlan.organization.optional_2 }}</td>
+        <td>{{ prefix.vlan.organization.optional_2|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>- Optional #3</th>
-        <td>{{ prefix.vlan.organization.optional_3 }}</td>
+        <td>{{ prefix.vlan.organization.optional_3|default:"N/A" }}</td>
     </tr>
     {% endif %}
 
@@ -329,12 +329,12 @@
 
     <tr>
         <th>- On module</th>
-        <td>{{ cam.module }}</td>
+        <td>{{ cam.module|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th>- On port</th>
-        <td>{{ cam.port }}</td>
+        <td>{{ cam.port|default:"N/A" }}</td>
     </tr>
     {% endif %}
 {% endif %}
