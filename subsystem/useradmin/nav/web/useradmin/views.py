@@ -117,7 +117,7 @@ def account_detail(request, account_id=None):
             try:
                 sudo_account = Account.objects.get(pk=sudo_account_id)
             except Account.DoesNotExist:
-                new_message(request, 'The hell are you doing?', type=Message.ERROR)
+                new_message(request, 'Account not found.', type=Message.ERROR)
             else:
                 sudo(request, sudo_account)
             return HttpResponseRedirect(reverse('webfront-index'))
