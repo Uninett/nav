@@ -312,9 +312,15 @@
     </tr>
 
     <tr>
-        <th>Found in ARP data</th>
-        <td>{{ arp.start_time|date|default:"N/A" }}
-            {{ arp.start_time|time }}</td>
+        <th>Last active</th>
+        <td>
+        {% ifequal dt_max arp.end_time %}
+        Right now
+        {% else %}
+        {{ arp.end_time|date|default:"Never" }}
+        {{ arp.end_time|time }}
+        {% endifequal %}
+        </td>
     </tr>
 
     <tr>
