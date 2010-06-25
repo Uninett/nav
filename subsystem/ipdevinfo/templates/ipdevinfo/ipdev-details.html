@@ -266,14 +266,11 @@
         <td>Sysname or IP "{{ host_info.host }}" is not monitored by NAV</td>
     </tr>
 
-    {% if prefix.net_address %}
     <tr>
         <th>Subnet</th>
         <td>{{ prefix.net_address|default:"N/A" }}</td>
     </tr>
-    {% endif %}
 
-    {% if prefix.vlan.vlan %}
     <tr>
         <th>VLAN</th>
         <td>{{ prefix.vlan.vlan|default:"N/A" }}</td>
@@ -308,7 +305,6 @@
         <th class="indent">Optional #3</th>
         <td>{{ prefix.vlan.organization.optional_3|default:"N/A" }}</td>
     </tr>
-    {% endif %}
 
     {% if arp %}
     <tr>
