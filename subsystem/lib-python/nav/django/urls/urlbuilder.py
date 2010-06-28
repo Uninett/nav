@@ -109,9 +109,9 @@ def get_urlpatterns():
             dummy, name='report-prefix-prefix'),
 
         # Subsystem: SeedDB
-        url(r'^seeddb/$', dummy, name='seeddb'),
-        url(r'^seeddb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
-            dummy, name='seeddb-edit-object'),
+#        url(r'^seeddb/$', dummy, name='seeddb'),
+#        url(r'^seeddb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
+#            dummy, name='seeddb-edit-object'),
     )
 
     return urlpatterns
