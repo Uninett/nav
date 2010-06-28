@@ -224,7 +224,7 @@ public class QueryBoks extends Thread
 						}
 
 						// OK, da er vi klar, oppdater gwport!
-						Database.update("UPDATE interface SET to_netboxid = '"+pm.getToNetboxid()+"', to_interfaceid = "+to_interfaceid+" WHERE netboxid = '"+boksId+"') AND ifindex='" + pm.getIfindex() + "'");
+						Database.update("UPDATE interface SET to_netboxid = '"+pm.getToNetboxid()+"', to_interfaceid = "+to_interfaceid+" WHERE netboxid = '"+boksId+"' AND ifindex='" + pm.getIfindex() + "'");
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						
 						Log.d("RUN", "[GW] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
