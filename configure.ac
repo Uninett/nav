@@ -91,7 +91,6 @@ AC_CONFIG_FILES([
         subsystem/radius/Makefile
 	subsystem/report/Makefile
 	subsystem/seeddb/Makefile
-	subsystem/seeddb/src/Makefile
 	subsystem/smsd/Makefile
 	subsystem/snmptrapd/Makefile
 	subsystem/startstop/Makefile
