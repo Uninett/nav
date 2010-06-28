@@ -265,7 +265,6 @@ public class QueryBoks extends Thread
 					System.err.println("QueryBoks.run(): Exiting...");
 					System.exit(2);
 				}
-				se.printStackTrace(System.err);
 			} catch (TimeoutException te) {
 				Log.d("RUN", "*** GIVING UP ON: " + sysName + ", typename: " + boksType + " ***");
 				continue;
@@ -348,7 +347,6 @@ public class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								System.err.println("Update modulbak/portbak in swp_netbox, swp_netboxid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -378,7 +376,6 @@ public class QueryBoks extends Thread
 						newCnt++;
 					} catch (SQLException e) {
 						Log.d("RUN", "Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
-						e.printStackTrace(System.err);
 					}
 				} else {
 					if (!verify1) Log.d("VERIFY_NETBOXID", "Verify netboxid ("+boksId+") failed");
@@ -410,7 +407,6 @@ public class QueryBoks extends Thread
 			if (rs.next()) return true;
 		} catch (SQLException e) {
 			Log.d("VERIFY_NETBOXID", "Verify netboxid ("+netboxid+"), SQLException: " + e.getMessage() );
-			e.printStackTrace(System.err);
 		}
 		Log.w("VERIFY_NETBOXID", "Netbox ("+netboxid+") " + boksIdName.get(netboxid) + " no longer exists!");
 		return false;
@@ -520,7 +516,6 @@ public class QueryBoks extends Thread
 				}
 			} catch (SQLException e) {
 				Log.d("PROCESS_CDP", "SQLException: " + e.getMessage());
-				e.printStackTrace(System.err);
 			}
 			
 			// Dersom denne porten går fra ikke-gw (sw,kant) til gw må vi slå remote interface opp i gwport
@@ -775,7 +770,6 @@ public class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								Log.d("MAC_ENTRY", "While deleting from swportblocked ("+netboxid+","+vlan+"): SQLException: " + e.getMessage());
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -846,7 +840,6 @@ public class QueryBoks extends Thread
 										blockedCnt++;
 									} catch (SQLException e) {
 										Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-										e.printStackTrace(System.err);
 									}
 								} else {
 									Log.d("MAC_ENTRY", "Missing interfaceid for ifindex " + ifindex + " on netbox: " + boksIdName.get(netboxid));
@@ -873,7 +866,6 @@ public class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -1020,7 +1012,6 @@ public class QueryBoks extends Thread
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				} catch (SQLException e) {
 					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-					e.printStackTrace(System.err);
 				}
 			}
 			camIncResetMisscnt();
@@ -1043,7 +1034,6 @@ public class QueryBoks extends Thread
 					camNewCnt++;
 				} catch (SQLException e) {
 					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-					e.printStackTrace(System.err);
 				}
 			} else {
 				Log.d("VERIFY_NETBOXID", "While insert cam, verify netboxid ("+insertData[1]+") failed");
