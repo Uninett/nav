@@ -16,6 +16,11 @@
 #
 
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 def index(request):
-    return render_to_response()
+    return render_to_response(
+        'seeddb/index.html',
+        {},
+        RequestContext(request)
+    )
