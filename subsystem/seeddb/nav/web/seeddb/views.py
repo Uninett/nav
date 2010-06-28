@@ -21,6 +21,9 @@ from django.template import RequestContext
 def index(request):
     return render_to_response(
         'seeddb/index.html',
-        {},
+        {
+            'title': 'Seed Database',
+            'navpath': [('Home', '/'), ('Seed DB', None)],
+        },
         RequestContext(request)
     )
