@@ -626,29 +626,34 @@ public class QueryBoks extends Thread
 	 * 
 	 * <p>Each BRIDGE-MIB instance will be listed with a separate SNMP
 	 * community in the entLogicalTable, but these will not be reflected 
-	 * in the result.</p>
+	 * in the result.  Those instances whose community equal excludeCommunity
+	 * will be excluded from the result.  Use the normal read community of the
+	 * device here to exclude MIB instances that aren't actually on a
+	 * separately addressed agent.</p>
 	 * 
-	 * <p>FIXME: The community for each instance should really be returned, 
-	 * so that the calling function won't have to guesstimate the correct
-	 * community (as for Cisco, it's always "community@vlan".</p>
-	 * 
+	 * @param excludeCommunity The default device community
 	 * @return An Set of VLAN id String objects 
 	 * @throws TimeoutException
 	 */
-	private Set<String> getBridgeMibInstances() throws TimeoutException {
+	private Set<String> getBridgeMibInstances(String excludeCommunity) throws TimeoutException {
 		String dot1dBridge = "1.3.6.1.2.1.17";
 		String entLogicalEntry = "1.3.6.1.2.1.47.1.2.1.1";
 		String entLogicalType = entLogicalEntry + ".3";
 		String entLogicalDescr = entLogicalEntry + ".2";
+		String entLogicalCommunity = entLogicalEntry + ".4";
 
 		Set<String> vlans = new HashSet();
 		Map<String, String> typeMap = sSnmp.getAllMap(entLogicalType);
 		Map<String, String> descrMap = sSnmp.getAllMap(entLogicalDescr, true);
+		Map<String, String> communityMap = sSnmp.getAllMap(entLogicalCommunity, true);
 		
 		for (Map.Entry<String, String> typeEntry: typeMap.entrySet()) {
 			String index = typeEntry.getKey();
 			String entType = typeEntry.getValue();
+			String community = communityMap.get(index);
 			
+			if (excludeCommunity.equals(community)) continue;
+
 			if (entType.equals(dot1dBridge) && descrMap.containsKey(index)) {
 				String descr = descrMap.get(index);
 				if (descr.startsWith("vlan")) {
@@ -711,7 +716,7 @@ public class QueryBoks extends Thread
 
 		// Find multiple BRIDGE-MIB instances
 		// First, the standard ENTITY-MIB way:
-		Set vlanSet = getBridgeMibInstances();
+		Set vlanSet = getBridgeMibInstances(cs_ro);
 		
 		// If we found nothing, try the proprietary Cisco way:
 		if (vlanSet == null || vlanSet.size() == 0) {
