@@ -78,7 +78,7 @@ public class QueryBoks extends Thread
 	public static Map oidDb;
 	public static Map vlanMap;
 	public static Map interfaceMap;
-	public static Map mpMap;
+	public static Map<String, String> ifNameMap;
 
 	// For CAM-loggeren
 	public static HashMap unclosedCam;
@@ -972,13 +972,12 @@ public class QueryBoks extends Thread
 
 		} else {
 			// Nei, da er denne MAC'en ny på porten, og vi må sette inn en record i cam-tabellen
-			s = (String[])mpMap.get(netboxid+":"+ifindex);
-			if (s == null) s = new String[2];
+			String ifName = ifNameMap.get(netboxid+":"+ifindex);
 			String[] insertData = {
 				"netboxid", netboxid,
 				"sysname", (String)boksIdName.get(netboxid),
 				"ifindex", ifindex,
-				"port", s[1],
+				"port", ifName,
 				"mac", mac.trim(),
 				"start_time", "NOW()"
 			};
