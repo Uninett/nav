@@ -149,12 +149,12 @@ class NAVDBQueue(object):
 
         if sent == 'Y' or sent == 'I':
             sql = """UPDATE smsq
-                SET sent = %(sent)s, smsid = %(smsid)d, timesent = now()
-                WHERE id = %(id)d"""
+                SET sent = %(sent)s, smsid = %(smsid)s, timesent = now()
+                WHERE id = %(id)s"""
         else:
             sql = """UPDATE smsq
-                SET sent = %(sent)s, smsid = %(smsid)d
-                WHERE id = %(id)d"""
+                SET sent = %(sent)s, smsid = %(smsid)s
+                WHERE id = %(id)s"""
 
         data = { 'sent': sent, 'smsid': smsid, 'id': id }
         db.execute(sql, data)
