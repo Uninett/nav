@@ -978,7 +978,6 @@ public class QueryBoks extends Thread
 				"netboxid", netboxid,
 				"sysname", (String)boksIdName.get(netboxid),
 				"ifindex", ifindex,
-				"module", s[0],
 				"port", s[1],
 				"mac", mac.trim(),
 				"start_time", "NOW()"
