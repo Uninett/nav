@@ -110,7 +110,7 @@ def main(args):
         'delay': '30',
         'delayfactor': '1.5',
         'maxdelay': '3600',
-        'retrylimit': '0',
+        'retrylimit': '5',
         'retrylimitaction': '0',
         'autocancel': '0',
         'loglevel': 'INFO',
