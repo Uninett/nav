@@ -1,0 +1,33 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<table class="listtable">
+    <caption>
+        {{ title }}<br />
+        <span class="subtitle">
+            {{ object_list|length }} found in database
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            {% for label in labels %}
+            <th>{{ label }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for object in object_list %}
+        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <td><input type="checkbox" name="object" value="{{ object.pk }}" /></td>
+            <td><a href="{{ object.url.1 }}">{{ object.url.0 }}</a></td>
+            {% for element in object.values_list %}
+            <td>{{ element|default_if_none:"" }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
