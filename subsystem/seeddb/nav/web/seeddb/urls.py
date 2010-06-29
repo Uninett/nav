@@ -19,7 +19,33 @@ from django.conf.urls.defaults import *
 
 from nav.web.seeddb.views import *
 
+dummy = lambda *args, **kwargs: None
+
 urlpatterns = patterns('',
     url(r'^$', index,
         name='seeddb-index'),
+
+    # Netbox
+    url(r'^netbox/$', netbox_list,
+        name='seeddb-netbox'),
+    url(r'^netbox/(?P<netbox_sysname>[\w\d.-]+)/', dummy,
+        name='seeddb-netbox-edit'),
+
+    # Service
+    url(r'service/$', service_list,
+        name='seeddb-service'),
+    url(r'service/(?P<service>[\d]+)', dummy,
+        name='seeddb-service-edit'),
+
+    # Room
+    url(r'room/$', room_list,
+        name='seeddb-room'),
+    url(r'room/(?P<room>[\w\d.-]+)/', dummy,
+        name='seeddb-room-edit'),
+
+    # Location
+    url(r'^location/$', location_list,
+        name='seeddb-location'),
+    url(r'^location/(?P<location>[\w\d]+)/', dummy,
+        name='seeddb-location-edit'),
 )
