@@ -26,7 +26,6 @@ import copy
 import csv
 import os
 import os.path
-import psycopg
 import re
 import string
 import urllib
@@ -234,9 +233,6 @@ def report_list(req):
 
 def make_report(req, report_name, export, uri, nuri):
 
-    page = None
-    gen = Generator()
-
     # Initiating variables used when caching
     report = contents = neg = operator = adv = dbresult = result_time = None
 
@@ -248,23 +244,25 @@ def make_report(req, report_name, export, uri, nuri):
             del nuri.args[key]
 
     uri_strip = nuri.make()
-    username = req.session['user'].login
+    username = req.session['user']['login']
     mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
     cache_name = 'report_' + username + '_' + str(mtime_config)
 
-    # Caching
-    # Checks if cache exists for this user, that cached report is the one
-    # requested and that config files are unchanged
+    gen = Generator()
+    # Caching. Checks if cache exists for this user, that the cached report is
+    # the one requested and that config files are unchanged.
     if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
-        dbresult_cache = cache.get(cache_name)[6]
-        result_time = cache.get(cache_name)[7]
-        (report, contents, neg, operator, adv, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, uri, dbresult_cache)
+        report_cache = cache.get(cache_name)
+        dbresult_cache = report_cache[7]
+        config_cache = report_cache[6]
+        (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, uri, config_cache, dbresult_cache)
+        result_time = cache.get(cache_name)[8]
         dbresult = dbresult_cache
 
     else: # Report not in cache, fetch data from DB
+        (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, uri, None, None)
         result_time = strftime("%H:%M:%S", localtime())
-        (report, contents, neg, operator, adv, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, uri, None)
-        cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, dbresult, result_time))
+        cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, config, dbresult, result_time))
 
 
     if export:
@@ -296,17 +294,12 @@ def make_report(req, report_name, export, uri, nuri):
         old_uri = req.unparsed_uri
         page.old_uri = old_uri
 
-        page.operators = None
-        page.operatorlist = None
-        page.descriptions = None
-
         if adv:
             page.adv_block = True
         else:
             page.adv_block = False
 
         if report:
-
             if old_uri.find("?")>0:
                 old_uri += "&"
             else:

@@ -1,31 +1,19 @@
 #!/usr/bin/env python
 #
-# Copyright 2008 Norwegian University of Science and Technology
+# Copyright 2008 (C) Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
-# Credits
-#
-
-__copyright__ = "Copyright 2008 Norwegian University of Science and Technology"
-__license__ = "GPL"
-__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
-
 
 # Libraries
 from optparse import OptionParser
@@ -33,6 +21,7 @@ import ConfigParser
 import sys, re, os
 import getpass
 import logging
+import psycopg2.extras
 
 # NAV-libraries
 from nav.db import getConnection
@@ -81,7 +70,7 @@ def main():
 
     # Connect to arnold-database
     aconn = getConnection('default', 'arnold')
-    acur = aconn.cursor()
+    acur = aconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
     # Get options from commandline
@@ -100,7 +89,7 @@ Pipe in id's to block or use the -f option to specify file"""
         format = "%3s %-3s %s"
         print format  %("ID", "Act", "Title")
         acur.execute("SELECT * FROM block ORDER BY blockid")
-        for row in acur.dictfetchall():
+        for row in acur.fetchall():
             print format %(row['blockid'], row['active'], row['blocktitle'])
 
         sys.exit()
@@ -127,7 +116,7 @@ Pipe in id's to block or use the -f option to specify file"""
         logger.debug("Exited due to no such id in database: %s" %opts.blockid)
         sys.exit()
 
-    blockinfo = acur.dictfetchone()
+    blockinfo = acur.fetchone()
 
 
     # If this predefined detention is not active, print that and exit.
@@ -252,7 +241,7 @@ Pipe in id's to block or use the -f option to specify file"""
         print "Sending mail"
         logger.debug("Grouping contacts and ip-addresses")
         manageconn = getConnection('default')
-        managecur = manageconn.cursor()
+        managecur = manageconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         # Send mail to contact address for all ip-addresses that were detained
 
@@ -280,7 +269,7 @@ Pipe in id's to block or use the -f option to specify file"""
 
             # For each contact that matches this address, add the ip,
             # dns and netbios name to the contact.
-            for orgdict in managecur.dictfetchall():
+            for orgdict in managecur.fetchall():
                 email = orgdict['contact']
                 if not email:
                     print "Field contact is empty in database"

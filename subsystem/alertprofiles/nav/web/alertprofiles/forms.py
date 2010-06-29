@@ -1,30 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007-2008 UNINETT AS
+# Copyright (C) 2007, 2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Magnus Motzfeldt Eide <magnus.eide@uninett.no>
-#
-
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Magnus Motzfeldt Eide (magnus.eide@uninett.no)"
-__id__ = "$Id$"
 
 from django import forms
 from django.db.models import Q
@@ -163,7 +152,11 @@ class AlertSubscriptionForm(forms.ModelForm):
         alert_address = self.cleaned_data.get('alert_address', None)
         time_period = self.cleaned_data.get('time_period', None)
         filter_group = self.cleaned_data.get('filter_group', None)
+        subscription_type = self.cleaned_data.get('type', None)
+        ignore = self.cleaned_data.get('ignore_resolved_alerts', False)
         id = self.cleaned_data['id']
+
+        error_msg = []
 
         existing_subscriptions = AlertSubscription.objects.filter(
                 Q(alert_address=alert_address),
@@ -172,17 +165,21 @@ class AlertSubscriptionForm(forms.ModelForm):
                 ~Q(pk=id)
             )
 
-        if len(existing_subscriptions) > 0:
-            error_msg = []
-            for e in existing_subscriptions:
-                error_msg.append(
-                    u'''Filter group and alert address must be unique for each
-                    subscription. This one collides with group %s watched by %s
-                    ''' % (e.filter_group.name, e.alert_address.address)
-                )
+        for e in existing_subscriptions:
+            error_msg.append(
+                u'''Filter group and alert address must be unique for each
+                subscription. This one collides with group %s watched by %s
+                ''' % (e.filter_group.name, e.alert_address.address)
+            )
+
+        if subscription_type == AlertSubscription.NOW and ignore:
+            error_msg.append(u'Resolved alerts can not be ignored ' +
+                'for now subscriptions')
+
+        if error_msg:
             raise forms.util.ValidationError(error_msg)
-        else:
-            return self.cleaned_data
+
+        return self.cleaned_data
 
 class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)

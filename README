@@ -4,7 +4,7 @@ Project wiki: http://metanav.uninett.no/
 
 Copyright belongs to various parties for different parts of NAV:
 Part copyright 1999-2008 Norwegian University of Science and Technology
-Part copyright 2002-2008 UNINETT AS
+Part copyright 2002-2010 UNINETT AS
 
 See individual source files for more detailed copyright notices.  All files
 that were written explicitly as part of NAV are licensed under GPLv2.  Other
@@ -24,4 +24,6 @@ Brewer (http://colorbrewer.org/). These color schemes are Copyright (c) 2002
 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University and are
 licensed under the Apache License v2.0.
 
-See the file INSTALL for installation instructions.
+
+See the file INSTALL for installation instructions.  See the file NOTES for
+release notes and upgrade instructions.

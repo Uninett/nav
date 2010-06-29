@@ -1,7 +1,7 @@
 /*
  *
  * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.5 to the current trunk revision (i.e. the tip of the default
+ * version 3.6.0b3 to the current trunk revision (i.e. the tip of the default
  * development branch).  Please update this with every change you make to the
  * database initialization scripts.  It will eventually become the update
  * script for the next release.
@@ -11,22 +11,21 @@
  * diffs!).  We also recommend running navschema.py on each schema upgrade,
  * to ensure that your database's search path is alway up to date.
  *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
- * like this:
+ * Connect to PostgreSQL as the postgres superuser like this:
  *
- *  psql -f trunk.sql nav <username>
+ *  psql -f trunk.sql nav postgres
+ *
+ * Or more likely, like this:
+ *
+ *  sudo -u postgres psql -f trunk.sql nav
  *
 */
 
 BEGIN;
 -- Insert schema changes here.
 
-ALTER TABLE org DROP CONSTRAINT "$1";
-ALTER TABLE org ADD CONSTRAINT org_parent_fkey 
-                               FOREIGN KEY (parent) REFERENCES org (orgid)
-                               ON UPDATE CASCADE;
 
--- Index to speed up ipdevinfo queries for the first cam entry from a box
-CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
+-- Insert the new version number if we got this far.
+-- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
 
 COMMIT;

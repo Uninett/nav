@@ -34,7 +34,7 @@ __id__ = "$Id:$"
 
 import time
 from mod_python import apache, util
-import mx.DateTime
+import datetime
 
 import nav.db
 import nav.messages
@@ -90,7 +90,7 @@ def handler(req):
                 + '/messages/view?id=' + str(page.msgs[i]['messageid'])
             page.msgs[i]['guid'] = page.msgs[i]['link']
         if page.pubDate == 0:
-            page.pubDate = mx.DateTime.now()
+            page.pubDate = datetime.datetime.now()
 
         # Done, output the page
         req.content_type = 'text/xml'
@@ -298,7 +298,7 @@ def handler(req):
                     page.errors.append('ID of edited message is missing.')
 
             # Get session data
-            author = req.session['user'].login
+            author = req.session['user']['login']
 
             # If any data not okay, form is showed with list of errors on top.
             # There is no need to do anything further here.
@@ -312,9 +312,9 @@ def handler(req):
                     msgid = False
 
                 # Update/Insert message
-                msgid = nav.messages.setMsg(msgid, title, description,
-                    tech_description, publish_start, publish_end, author,
-                    replaces_messageid)
+                msgid = nav.messages.setMsg(msgid, str(title),
+                    str(description), str(tech_description), publish_start,
+                    publish_end, author, replaces_messageid)
 
                 # For updates, remove all existing task connections
                 if section == 'edit':
@@ -342,7 +342,7 @@ def handler(req):
         page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
     # Check if user is logged in
-    if req.session['user'].id != 0:
+    if req.session['user']['id'] != 0:
         page.authorized = True
     else:
         page.authorized = False

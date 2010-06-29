@@ -8,13 +8,13 @@ Build requirements
 To build NAV, you need at least the following:
 
  * make
+ * automake
  * autoconf
  * ant
- * Perl >= 5.6.0
  * Python >= 2.4.0
  * Java 2 SDK >= 1.5.0
  * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
- * Cheetah Templates
+ * Cheetah Templates >= 2.0rc7
 
 Runtime requirements
 --------------------
@@ -25,14 +25,9 @@ To run NAV, these software packages are required:
  * Cricket
  * PostgreSQL >= 8.0
  * rrdtool
- * Cheetah Templates
+ * Cheetah Templates >= 2.0rc7
  * Java 2 SDK >= 1.5.0
- * Perl >= 5.6.0
  * Python >= 2.4.0
-
-The following Perl modules are required:
-
- * Pg
 
 The following Java librares are required:
 
@@ -43,16 +38,19 @@ The following python modules are required:
 
  * django (>= 1.0)
  * egenix-mxdatetime
- * forgetsql
  * ipy
  * ldap
- * psycopg
  * psycopg2
  * pysnmp2
- * rrd
+ * pysnmp-se
  * pyrad
+ * rrd (from the rrdtool distribution)
+ * twisted >= 8.1
+ * twisted-snmp >= 0.3
  * xmpp (optional)
 
+psycopg2 should be at least version 2.0.8: Earlier versions have bugs that may
+cause some NAV programs to crash.
 
 Recommended add-ons
 -------------------
@@ -72,6 +70,9 @@ To install NAV, do the following::
   ./configure CRICKETDIR=/path/to/cricket/binaries
   make
   make install
+
+You may need to run ./autogen.sh first, if you obtained your copy of NAV
+directly from a Mercurial repository.
 
 If you wish to configure NAV to run from a different location than the default
 /usr/local/nav you should specify a new directory using the --prefix= option of

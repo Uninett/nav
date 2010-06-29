@@ -1,0 +1,23 @@
+{% extends "devicehistory/register_error.html" %}
+
+{% block devices %}
+    <h3>Selected devices</h3>
+    <ul>
+        {% for d in netbox %}
+            <li>
+                {{ d.sysname }}
+                <input type="hidden" name="netbox" value="{{ d.id }}" />
+            </li>
+        {% endfor %}
+        {% for d in module %}
+            <li>
+                {{ d.netbox.sysname }} module: {{ d.module_number }}
+                <input type="hidden" name="module" value="{{ d.id }}" />
+            </li>
+        {% endfor %}
+    </ul>
+    <div>
+        <input type="hidden" name="confirm" value="yes" />
+        <input type="submit" value="Confirm" />
+    </div>
+{% endblock %}

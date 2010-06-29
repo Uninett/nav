@@ -241,9 +241,40 @@ def writepidfile(pidfile):
     fd.write("%d\n" % pid)
     fd.close()
 
+def redirect_std_fds(stdin=None, stdout=None, stderr=None):
+    """Close and redirect the standard file descriptors.
 
-def daemonize(pidfile, stdout=os.path.devnull, stderr=None,
-              stdin=os.path.devnull):
+    If called without arguments, this function will first close, then
+    redirect the low-level file descriptors of stdout, stderr and
+    stdin to /dev/null.  If you wish to redirect one or more of these
+    standard channels to an existing file, pass already open file
+    objects as arguments.
+
+    Arguments:
+        ``stdin``  file object to redirect stdin to
+        ``stdout`` file object to redirect stdout to
+        ``stderr`` file object to redirect stderr to
+    """
+    if stdin is None:
+        stdin = file(os.path.devnull, 'r')
+    if stdout is None:
+        stdout = file(os.path.devnull, 'w')
+    if stderr is None:
+        stderr = file(os.path.devnull, 'w')
+
+    # Make sure to flush and close before redirecting
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.close(sys.stdin.fileno())
+    os.close(sys.stdout.fileno())
+    os.close(sys.stderr.fileno())
+
+    # Duplicate the file descriptors
+    os.dup2(stdin.fileno(), sys.stdin.fileno())
+    os.dup2(stdout.fileno(), sys.stdout.fileno())
+    os.dup2(stderr.fileno(), sys.stderr.fileno())
+
+def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
     """
     Move the process to the background as a daemon and write the pid of the
     daemon to the pidfile.
@@ -253,9 +284,9 @@ def daemonize(pidfile, stdout=os.path.devnull, stderr=None,
 
     Arguments:
         ``pidfile'' is the path to the process' pidfile.
-        ``stdout'' is where to redirect stdout. Defaults to /dev/null.
-        ``stderr'' is where to redirect stderr. Defaults to stdout.
-        ``stdin'' is where to redirect stdin. Defaults to /dev/null.
+        ``stdin``  file object to redirect stdin to (default: /dev/null)
+        ``stdout`` file object to redirect stdout to (default: /dev/null)
+        ``stderr`` file object to redirect stderr to (default: /dev/null)
 
     Returns/raises:
         If success, returns True.
@@ -294,13 +325,6 @@ def daemonize(pidfile, stdout=os.path.devnull, stderr=None,
         raise ForkError(2, error)
 
     # Now only the child is left :-)
-
-    # Open file descriptors
-    if not stderr:
-        stderr = stdout
-    si = file(stdin, 'r')
-    so = file(stdout, 'a+')
-    se = file(stderr, 'a+', 0)
     pid = os.getpid()
     logger.debug("Daemon started with pid %d.", pid)
 
@@ -309,17 +333,8 @@ def daemonize(pidfile, stdout=os.path.devnull, stderr=None,
     # Set cleanup function to be run at exit so pidfile always is removed
     atexit.register(daemonexit, pidfile)
 
-    # Close newfds before dup2-ing them
-    sys.stdout.flush()
-    sys.stderr.flush()
-    os.close(sys.stdin.fileno())
-    os.close(sys.stdout.fileno())
-    os.close(sys.stderr.fileno())
-
-    # Redirect standard file descriptors
-    os.dup2(si.fileno(), sys.stdin.fileno())
-    os.dup2(so.fileno(), sys.stdout.fileno())
-    os.dup2(se.fileno(), sys.stderr.fileno())
+    # Close and redirect standard file descriptors
+    redirect_std_fds(stdin, stdout, stderr)
 
     return True
 

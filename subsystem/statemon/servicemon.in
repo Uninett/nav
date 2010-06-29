@@ -25,13 +25,9 @@
 #
 # This script controls start/stop/status of the NAV servicemon daemon.
 
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sysconfdir=@sysconfdir@
 initdir=@initdir@
 user=@nav_user@
 BIN=@bindir@/servicemon.py
-PIDFILE=@localstatedir@/run/servicemon.pid
 
 # Source function library.
 . ${initdir}/functions
@@ -52,8 +48,6 @@ case "$1" in
 		# Stop daemons.
 		echo -n "Shutting down servicemon: "
 		if killproc servicemon.py; then
-		# Make sure the pidfile is gone when stopping normal
-		    rm -f $PIDFILE
 		    echo
 		    exit 0
 		else

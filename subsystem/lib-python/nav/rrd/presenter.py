@@ -38,7 +38,7 @@ Quick example:
 'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id=348552316' # Returns a link to an image representing the two datasources. This link is valid for about ten minutes
 """
 
-configfile = 'rrdBrowser.conf'
+configfile = 'rrdviewer/rrdviewer.conf'
 import nav.db
 import nav.config
 import time
@@ -48,8 +48,8 @@ import glob
 import os
 import warnings
 import operator
-from mx import DateTime
 from os import path
+import psycopg2.extras
 
 unitmap = {'s'   : 'Seconds',
            '%'   : 'Percent',
@@ -59,9 +59,10 @@ unitmap = {'s'   : 'Seconds',
 class rrd_file:
     """Class representing an rrd-file"""
     def __init__(self,rrd_fileid):
-        cursor = nav.db.getConnection('rrdpresenter').cursor()
+        cursor = nav.db.getConnection('rrdpresenter').cursor(
+            cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("select * from rrd_file natural join netbox where rrd_fileid=%s"% rrd_fileid)
-        result = cursor.dictfetchone()
+        result = cursor.fetchone()
         self.path     = result['path']
         self.filename = result['filename']
         self.netboxid = result['netboxid']
@@ -79,9 +80,10 @@ class datasource:
     Can perform simple calculations on the datasource"""
 
     def __init__(self,rrd_datasourceid,linetype='LINE2'):
-        cursor = nav.db.getConnection('rrdpresenter').cursor()    
+        cursor = nav.db.getConnection('rrdpresenter').cursor(
+            cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("select * from rrd_datasource where rrd_datasourceid=%s"% rrd_datasourceid)
-        result = cursor.dictfetchone()
+        result = cursor.fetchone()
         self.name     = result['name']
         self.descr    = result['descr']
         self.dstype   = result['dstype']
@@ -164,9 +166,9 @@ class presentation:
         returnList = []
         for datasource in self.datasources:
             try:
-                raw = rrdtool.fetch(datasource.fullPath(),
-                                    'AVERAGE','-s '+self.fromTime,
-                                    '-e '+self.toTime)
+                raw = rrdtool.fetch(str(datasource.fullPath()),
+                                    'AVERAGE','-s ' + str(self.fromTime),
+                                    '-e ' + str(self.toTime))
 
                 returnDict = {}
                 returnDict['start']  = raw[0][0]
@@ -226,18 +228,19 @@ class presentation:
         (zero).
         """
         rrdvalues = []
-        rrdstart = "-s %s" %self.fromTime
-        rrdend = "-e %s" %self.toTime
+        rrdstart = str("-s %s" % self.fromTime)
+        rrdend = str("-e %s" % self.toTime)
 
         for datasource in self.datasources:
             # The variablename (after def) is not important, it just
             # needs to be the same in the DEF and PRINT. We use
             # datasource.name.
 
-            rrddef = "DEF:%s=%s:%s:AVERAGE" %(datasource.name,
-                                              datasource.fullPath(),
-                                              datasource.name)
-            rrdprint = "PRINT:%s:AVERAGE:%%lf" %(datasource.name)
+            rrddef = str("DEF:%s=%s:%s:AVERAGE" % (datasource.name,
+                                                   datasource.fullPath(),
+                                                   datasource.name)
+                         )
+            rrdprint = str("PRINT:%s:AVERAGE:%%lf" % (datasource.name))
 
             try:
                 # rrdtool.graph returns a tuple where the third
@@ -281,7 +284,7 @@ class presentation:
             
     def timeLast(self,timeframe='day', value=1):
         """Sets the timeframe of the presentation
-        Currently valid timeframes: year,month,week,hour,day"""
+        Currently valid timeframes: year,month,week,hour,day,minute"""
         self.toTime = 'now'
         if timeframe   == 'year':
             self.fromTime = 'now-%sY' % value
@@ -303,9 +306,13 @@ class presentation:
             self.fromTime = 'now-%sh' % value
             self._timeFrame = 'hour'
             
-        else:
+        elif timeframe == 'day':
             self.fromTime = 'now-%sd' % value
-            self._timeFrame = 'day'            
+            self._timeFrame = 'day'
+        
+        else:
+            self.fromTime = 'now-%smin' % value
+            self._timeFrame = 'minute'
              
     def removeAllDs(self):
         """Removes all datasources from the presentation object"""
@@ -419,7 +426,7 @@ class presentation:
             params += [virtual]
             params += [linetype+':v_'+rrd_variable+color[index % len(color)]+':'+''+legend+'']
 
-            a = rrdtool.info(rrd_filename)
+            a = rrdtool.info(str(rrd_filename))
             # HVA I HELVETE SKJER HER!?!?!??!?!
             if self.showmax and 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))] :
                 legend += ' - MAX'
@@ -469,14 +476,14 @@ class presentation:
     def genImage (self,*rrd_params):
         conf = nav.config.readConfig(configfile)
         id = str(random.randint(1,10**9))
-        imagefilename = conf['fileprefix'] + id + conf['filesuffix']
+        imagefilename = conf['file_prefix'] + id + conf['file_suffix']
         rrd_params = (imagefilename,) + rrd_params
         try:
-            size = rrdtool.graph(*rrd_params)
+            size = rrdtool.graph(*[str(s) for s in rrd_params])
         except rrdtool.error, err:
             pass
         deadline = 60*10
-        for i in glob.glob('/tmp/rrd*'):
+        for i in glob.glob(conf['file_prefix'] + '*'):
             if os.path.getmtime(i) <  (time.time() - deadline):
                 try:
                     os.unlink(i)
@@ -525,7 +532,7 @@ class page:
         
 def graph(req,id):
     conf = nav.config.readConfig(configfile)
-    filename = conf['fileprefix'] + id + conf['filesuffix']
+    filename = conf['file_prefix'] + id + conf['file_suffix']
     req.content_type  = 'image/gif'
     req.send_http_header()
     f = open(filename)

@@ -1,37 +1,24 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2006-2008 UNINETT AS
+# Copyright (C) 2006-2009 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-
-"""
-Class with common functions inherited/overrided by other dispatchers.
-"""
-
-__copyright__ = "Copyright 2006-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+"""Class with common functions inherited/overrided by other dispatchers."""
 
 import logging
 import sys
 import time
-import nav.smsd # eval() wants it
 
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
@@ -83,8 +70,8 @@ class DispatcherHandler(object):
 
                 # Initialize dispatcher
                 try:
-                    instance = eval("%s.%s(%s)" % (
-                        module.__name__, dispatcher, config[dispatcher]))
+                    dispatcher_class = getattr(module, dispatcher)
+                    instance = dispatcher_class(config[dispatcher])
                     self.dispatchers.append((dispatcher, instance))
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
                 except DispatcherError, error:
@@ -153,13 +140,17 @@ class DispatcherHandler(object):
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
             except Exception, error:
-                self.logger.exception("Unknown exception: %s", error)
+                self.logger.exception(
+                    "Unknown dispatcher exception during send: %s", error)
+                continue
 
-            if result is False:
-                self.logger.warning("%s failed to send SMS: Returned false.",
-                    dispatchername)
-                dispatcher.lastfailed = int(time.time())
-                continue # Skip to next dispatcher
+            else:
+                if result is False:
+                    self.logger.warning(
+                        "%s failed to send SMS: Returned false.",
+                        dispatchername)
+                    dispatcher.lastfailed = int(time.time())
+                    continue # Skip to next dispatcher
 
             # No exception and true result? Success!
             return (sms, sent, ignored, smsid)

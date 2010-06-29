@@ -1,44 +1,35 @@
 #! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2008 UNINETT AS
+# Copyright (C) 2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Thomas Adamcik <thomas.adamcik@uninett.no>
-
 """
 Package placeholder. If you remove it, the package won't work.
 """
-
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
-__id__ = "$Id$"
 
 import gc
 import logging
 from datetime import datetime
 
 from django.db import transaction, reset_queries
+from django.utils.functional import memoize
 
 from nav.models.profiles import Account, AccountAlertQueue, FilterGroupContent, \
         AlertSubscription, AlertAddress, FilterGroup, AlertPreference, TimePeriod
 from nav.models.event import AlertQueue
+
 
 def check_alerts(debug=False):
     '''Handles all new and user queued alerts'''
@@ -76,9 +67,9 @@ def check_alerts(debug=False):
     logger.debug('Checking %d queued alerts' % len(queued_alerts))
 
     if len(queued_alerts):
-        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = handle_queued_alerts(queued_alerts, now)
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored = handle_queued_alerts(queued_alerts, now)
     else:
-        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends = [], [], 0, 0
+        sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored = [], [], 0, 0, 0
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
@@ -100,8 +91,8 @@ def check_alerts(debug=False):
 
     num_deleted = len(initial_alerts) - AlertQueue.objects.filter(id__in=initial_alerts).count()
 
-    logger.info('%d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s)',
-        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends)
+    logger.info('%d new alert(s), sent %d alert(s), %d queued alert(s), %d alert(s) deleted, %d failed send(s), %d ignored',
+        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues), num_deleted, num_failed_sends, num_resolved_alerts_ignored)
 
     if num_failed_sends:
         logger.warning('Send %d alerts failed.', num_failed_sends)
@@ -115,6 +106,7 @@ def check_alerts(debug=False):
 
 @transaction.commit_on_success
 def handle_new_alerts(new_alerts):
+    memoized_check_alert = memoize(check_alert_against_filtergroupcontents, {}, 2)
     logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
@@ -168,11 +160,11 @@ def handle_new_alerts(new_alerts):
         for alert in new_alerts:
             for alertsubscription, filtergroupcontents in alertsubscriptions:
                 # Check if alert matches, and if user has permission
-                if check_alert_against_filtergroupcontents(alert, filtergroupcontents):
+                if memoized_check_alert(alert, filtergroupcontents, 'match check'):
                     queued = False
 
                     for permission in permissions:
-                        if check_alert_against_filtergroupcontents(alert, permission, type='permission check'):
+                        if memoized_check_alert(alert, permission, 'permission check'):
                             logger.debug("Matched permission subscription %d" % alertsubscription.id)
 
                             # Queue all alerts, avoiding duplicates. The individual users' queues will be processed later.
@@ -197,6 +189,7 @@ def handle_new_alerts(new_alerts):
         del account
         del permissions
 
+    del memoized_check_alert
     del new_alerts
     gc.collect()
 
@@ -213,9 +206,12 @@ def handle_queued_alerts(queued_alerts, now=None):
     sent_daily = []
 
     num_sent_alerts = 0
+    num_resolved_alerts_ignored = 0
     num_failed_sends = 0
 
     for queued_alert in queued_alerts:
+        send, daily, weekly = False, False, False
+
         try:
             subscription = queued_alert.subscription
         except AlertSubscription.DoesNotExist:
@@ -227,20 +223,14 @@ def handle_queued_alerts(queued_alerts, now=None):
         try:
             subscription.time_period.profile.alertpreference
         except AlertPreference.DoesNotExist:
-            logger.info('Sending alert %d right away the users profile has been disabled' % queued_alert.alert_id)
+            subscription = None
 
-            if queued_alert.send():
-                num_sent_alerts += 1
-            else:
-                num_failed_sends += 1
+        if subscription is None:
+            logger.info('Sending alert %d right away as the users profile has been disabled' % queued_alert.alert_id)
+            send = True
 
-            continue
-
-        if subscription.type == AlertSubscription.NOW:
-            if queued_alert.send():
-                num_sent_alerts += 1
-            else:
-                num_failed_sends += 1
+        elif subscription.type == AlertSubscription.NOW:
+            send = True
 
         elif subscription.type == AlertSubscription.DAILY:
             daily_time = subscription.time_period.profile.daily_dispatch_time
@@ -258,11 +248,8 @@ def handle_queued_alerts(queued_alerts, now=None):
                     (last_sent_test, daily_time_test, insertion_time_test))
 
             if last_sent_test and daily_time_test and insertion_time_test:
-                if queued_alert.send():
-                    num_sent_alerts += 1
-                    sent_daily.append(queued_alert.account)
-                else:
-                    num_failed_sends += 1
+                send = True
+                daily = True
 
         elif subscription.type == AlertSubscription.WEEKLY:
             weekly_time = subscription.time_period.profile.weekly_dispatch_time
@@ -282,11 +269,8 @@ def handle_queued_alerts(queued_alerts, now=None):
                     (weekday_test, last_sent_test, weekly_time_test, insertion_time_test))
 
             if weekday_test and last_sent_test and weekly_time_test and insertion_time_test:
-                if queued_alert.send():
-                    num_sent_alerts += 1
-                    sent_weekly.append(queued_alert.account)
-                else:
-                    num_failed_sends += 1
+                send = True
+                weekly = True
 
         elif subscription.type == AlertSubscription.NEXT:
             active_profile = subscription.alert_address.account.get_active_profile()
@@ -320,26 +304,42 @@ def handle_queued_alerts(queued_alerts, now=None):
                 logger.debug('Tests: only one time period %s, insertion time %s' % (only_one_time_period, insertion_time.time() < queued_alert_time_period.start))
 
                 if subscription.time_period.id != current_time_period.id:
-                    if queued_alert.send():
-                        num_sent_alerts += 1
-                    else:
-                        num_failed_sends += 1
+                    send = True
 
                 elif only_one_time_period and insertion_time.time() < queued_alert_time_period.start:
-                    if queued_alert.send():
-                        num_sent_alerts += 1
-                    else:
-                        num_failed_sends += 1
+                    send = True
 
         else:
             logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
+        if send:
+            end = queued_alert.alert.history.end_time
+
+            # Check if alert should be ignored
+            if subscription.ignore_resolved_alerts and subscription.type != AlertSubscription.NOW and end and end < now:
+                logger.info('Ignoring resolved alert %d due to user preference' % queued_alert.alert_id)
+
+                num_resolved_alerts_ignored += 1
+                queued_alert.delete()
+
+            # Try to send alert
+            elif queued_alert.send():
+                num_sent_alerts += 1
+
+                if weekly:
+                   sent_weekly.append(queued_alert.account)
+                elif daily:
+                   sent_daily.append(queued_alert.account)
+            # Count failure
+            else:
+                num_failed_sends += 1
+
         del queued_alert
     del queued_alerts
 
-    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends)
+    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored)
 
-def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type='match check'):
+def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type):
     '''Checks a given alert against an array of filtergroupcontents'''
 
     logger = logging.getLogger('nav.alertengine.check_alert_against_filtergroupcontents')

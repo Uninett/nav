@@ -42,7 +42,6 @@ import sys
 import nav.db
 import nav.event
 import nav.logs
-from mx import DateTime
 
 logfile = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
 logformat = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
@@ -55,7 +54,6 @@ debug = False
 boxesOffMaintenance = []
 
 dbconn = nav.db.getConnection('eventEngine', 'manage')
-dbconn.autocommit(0)
 # Make sure isolation level is "read committed", not "serialized"
 dbconn.set_isolation_level(1)
 db = dbconn.cursor()
@@ -134,7 +132,7 @@ def send_event():
 
         # Get all components related to task/event
         sql = """SELECT key, value FROM maint_component
-                 WHERE maint_taskid = %(maint_taskid)d"""
+                 WHERE maint_taskid = %(maint_taskid)s"""
         data = { 'maint_taskid': taskid }
         db.execute(sql, data)
     
@@ -183,7 +181,7 @@ def send_event():
             elif key == 'netbox':
                 sql = """SELECT netboxid, sysname, deviceid
                     FROM netbox
-                    WHERE netboxid = %(netboxid)d"""
+                    WHERE netboxid = %(netboxid)s"""
                 data = { 'netboxid': int(val) }
 
                 logger.debug("netbox query: %s", sql % data)
@@ -201,7 +199,7 @@ def send_event():
             elif key == 'service':
                 sql = """SELECT netboxid, sysname, deviceid, handler
                     FROM service INNER JOIN netbox USING (netboxid)
-                    WHERE serviceid = %(serviceid)d"""
+                    WHERE serviceid = %(serviceid)s"""
                 data = { 'serviceid': int(val) }
 
                 logger.debug("service query: %s", sql % data)
@@ -249,7 +247,7 @@ def send_event():
         # Update state
         sql = """UPDATE maint_task
             SET state = %(state)s
-            WHERE maint_taskid = %(maint_taskid)d"""
+            WHERE maint_taskid = %(maint_taskid)s"""
         data = { 'state': type,
                  'maint_taskid': taskid }
         db.execute(sql, data)

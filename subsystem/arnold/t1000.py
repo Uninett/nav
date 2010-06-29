@@ -2,36 +2,25 @@
 #
 # Copyright 2008 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
-# Credits
-#
-
-__copyright__ = "Copyright 2008 Norwegian University of Science and Technology"
-__license__ = "GPL"
-__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
-
 # import regular libraries
 import os
 import sys
 import logging
 import ConfigParser
 import getpass
+import psycopg2.extras
 
 # import nav-libraries
 import nav.arnold
@@ -79,7 +68,7 @@ def main():
     except nav.db.driver.ProgrammingError, why:
         logger.error("Error connecting to db: %s" %why)
 
-    arnoldc = arnoldconn.cursor()
+    arnoldc = arnoldconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     # Connect to manage-database, make cursor
     try:
@@ -87,7 +76,7 @@ def main():
     except nav.db.driver.ProgrammingError, why:
         logger.error("Error connecting to db: %s" %why)
 
-    managec = manageconn.cursor()
+    managec = manageconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
     # Fetch all mac-addresses that we have detained, check if they are
@@ -107,7 +96,7 @@ def main():
         logger.info("No detained ports in database where lastchanged > 1 hour.")
         sys.exit(0)
 
-    rows = arnoldc.dictfetchall()
+    rows = arnoldc.fetchall()
 
     for row in rows:
 
@@ -132,7 +121,7 @@ def main():
             q = """SELECT * FROM block WHERE reasonid=%s"""
             arnoldc.execute(q, (row['blocked_reasonid'], ))
             if arnoldc.rowcount > 0:
-                blockrow = arnoldc.dictfetchone()
+                blockrow = arnoldc.fetchone()
 
                 # Check if new ip is in the vlan ranges. If not
                 # continue with the next row

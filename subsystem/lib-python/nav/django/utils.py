@@ -20,21 +20,22 @@
 from copy import copy
 from django.http import HttpResponseForbidden
 
-from nav.models.profiles import Account
-
-# Admingroup is identified by having id/primary key 1.
-ADMINGROUP = 1
+from nav.models.profiles import Account, AccountGroup
 
 def get_account(request):
-    """Extracts users login from sessionvariables and looks up the
-    corresponding account in the database
+    """Tries to fetch account from request object. If it's not found we look it
+    up in the database.
     """
-
-    return Account.objects.get(login=request._req.session['user'].login)
+    try:
+        account = request.account
+    except AttributeError:
+        account = Account.objects.get(login=request._req.session['user']['login'])
+        request.account = account
+    return account
 
 def is_admin(account):
     """Check if user is a member of the administrator group"""
-    return account.accountgroup_set.filter(pk=ADMINGROUP).count() > 0;
+    return account.accountgroup_set.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0;
 
 def permission_required(function):
     """Decorator to check if user have access"""

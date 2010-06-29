@@ -1,28 +1,23 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
-#
-import nav.db,psycopg
+"""SQL helper functions for seeddb"""
+
+import nav.db
+import psycopg2
+from nav.errors import GeneralException
 
 UPDATE_ENTRY = 'update_entry'
 # REQ_TRUE: a required field
@@ -46,8 +41,19 @@ def executeSQLreturn(sql):
     connection.commit()
     return database.fetchall()
 
-def rollbackSQL():
-    connection = nav.db.getConnection('default','manage')
+def rollbackSQL(exception=None):
+    """Rollback the current transaction.
+
+    Will rollback the transaction on the current default connection for the
+    manage user, retrieved by nav.db.getConnection().  However, if the
+    exception argument is set to a psycopg2 exception, the connection which
+    raised the exception will have its current transaction rolled back.
+
+    """
+    if exception is None:
+        connection = nav.db.getConnection('default','manage')
+    else:
+        connection = exception.cursor.connection
     connection.rollback()
 
 def addEntryBulk(data,table):
@@ -73,8 +79,10 @@ def addEntryBulk(data,table):
         sqllist.append(sql)
     try:
         executeSQL(sqllist)
-    except psycopg.IntegrityError:
-        pass
+    except psycopg2.IntegrityError, err:
+        rollbackSQL(err)
+        raise BulkImportDuplicateError(err)
+
 
 def addEntry(req,templatebox,table,unique=None):
     # req: request object containing a form
@@ -104,7 +112,7 @@ def addEntry(req,templatebox,table,unique=None):
     sqllist = [sql]
     try:
         executeSQL(sqllist)
-    except psycopg.IntegrityError,e:
+    except psycopg2.IntegrityError,e:
         if type(unique) is list:
             error = 'There already exists an entry with '
             first = True
@@ -119,12 +127,14 @@ def addEntry(req,templatebox,table,unique=None):
     return error
 
 def addEntryFields(fields,table,sequence=None):
-    # Add a new entry using the dict fields which contain
-    # key,value pairs (used when data from more than two templatexboxes
-    # are to be inserted. eg. when inserting a netbox)
+    """Add a new entry using the dict fields which contain
+    key,value pairs (used when data from more than two templatexboxes
+    are to be inserted. eg. when inserting a netbox)
 
-    # Sequence is a tuple (idfield,sequencename). If given, get
-    # the nextval from sequence and set the idfield to this value
+    Sequence is a tuple (idfield,sequencename). If given, get
+    the nextval from sequence and set the idfield to this value
+
+    """
     nextid = None
     if sequence:
         idfield,seq = sequence
@@ -133,27 +143,13 @@ def addEntryFields(fields,table,sequence=None):
         nextid = str(result[0][0])
         fields[idfield] = nextid
 
-    sql = 'INSERT INTO ' + table + ' ('
-    first = True
-    for field,value in fields.items():
-        if not first:
-            sql += ','
-        sql += field
-        first = False
-    sql += ') VALUES ('
-    first = True
-    for field,value in fields.items():
-        if not first:
-            sql += ','
-        if value:
-            sql += "'" + value + "'"
-        else:
-            # Remove value
-            sql += 'NULL'
-        first = False
-    sql += ')'
-    sqllist = [sql]
-    executeSQL(sqllist)
+    field_names = ",".join(fields.keys())
+    field_values = ",".join(value and "'%s'" % value or "NULL"
+                            for value in fields.values())
+    sql = 'INSERT INTO %s (%s) VALUES (%s)' % \
+        (table, field_names, field_values)
+
+    executeSQL([sql])
     return nextid
 
 def updateEntryFields(fields,table,idfield,updateid):
@@ -225,7 +221,7 @@ def updateEntry(req,templatebox,table,idfield,staticid=False,
         sqllist.append(sql)
     try:
         executeSQL(sqllist)
-    except psycopg.IntegrityError:
+    except psycopg2.IntegrityError:
         # assume idfield = the unique field
         if type(unique) is list:
             error = 'There already exists an entry with '
@@ -262,15 +258,20 @@ def updateEntry(req,templatebox,table,idfield,staticid=False,
     return idlist,error
 
 def deleteEntry(selected,table,idfield,where=None):
+    idlist = ",".join([nav.db.escape(str(id)) for id in selected])
     if where:
-        sql = 'DELETE FROM ' + table + ' WHERE ' + where + ' AND '
+        sql = 'DELETE FROM %s WHERE %s AND %s IN (%s)' % \
+            (table, where, idfield, idlist)
     else:
-        sql = 'DELETE FROM ' + table + ' WHERE '
-    first = True
-    for id in selected:
-        if not first:
-            sql += ' OR '
-        sql += idfield + "='" + id + "'"
-        first = False
-    sqllist = [sql]
-    executeSQL(sqllist)
+        sql = 'DELETE FROM %s WHERE %s IN (%s)' % \
+            (table, idfield, idlist)
+    executeSQL([sql])
+
+
+class BulkImportError(GeneralException):
+    """Unexpected error during bulk import"""
+    pass
+
+class BulkImportDuplicateError(BulkImportError):
+    """Duplicates in bulk data set"""
+    pass

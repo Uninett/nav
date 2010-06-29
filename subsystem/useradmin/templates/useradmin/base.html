@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
+{% block base_header_title %}NAV - User Administration{% endblock %}
+
+{% block base_header_navpath %}
+<a href="/">Home</a> > <a href="/useradmin/">User Administration</a>
+{% endblock %}
+
 {% block base_content %}
+
+<h2>User Administration</h2>
 
 {% block tabs %}
     <div class="tabs">
@@ -24,9 +32,9 @@
 {% endblock %}
 {% block outercontent %}
     <div class="tabcontent">
-        {% if messages %}
+        {% if current_user_data.messages %}
             <ul class="messages">
-                {% for m in messages %}
+                {% for m in current_user_data.messages %}
                     <li class="{{ m.type }}">{{ m.message }}</li>
                 {% endfor %}
             </ul>

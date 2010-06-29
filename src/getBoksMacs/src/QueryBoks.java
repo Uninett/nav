@@ -64,14 +64,10 @@ public class QueryBoks extends Thread
 	// Inneholder alle boksid'er som er av kat=GW
 	public static HashSet boksGwSet;
 
-	// Mapping fra boksid+ifindex swportid i swport
-	public static HashMap swportidMap;
-	public static Set swportNetboxSet;
+	// Mapping from netboxid+ifindex to interfaceid in interface db table
+	public static HashMap interfaceidMap;
 
-	// Denne inneholder alle "boksid:ifindex" fra swport som er trunk-porter
-	//public static HashSet boksIfindexTrunkSet;
-
-	// Mengde av vlan som må sjekkes på Cisco-boksene
+	// The set of VLANs who possibly have separate BRIDGE-MIB instances on Cisco devices
 	public static Map vlanBoksid;
 
 	// Hvilke porter det står en GW|SW|EDGE bak, som gitt i swp_boks-tabellen
@@ -82,7 +78,7 @@ public class QueryBoks extends Thread
 	public static Map oidDb;
 	public static Map vlanMap;
 	public static Map interfaceMap;
-	public static Map mpMap;
+	public static Map<String, String> ifNameMap;
 
 	// For CAM-loggeren
 	public static HashMap unclosedCam;
@@ -154,7 +150,7 @@ public class QueryBoks extends Thread
 
 	private String getOid(String oidkey) {
 		if (!oidkeys.containsKey(oidkey)) {
-			Log.d("GET_OID", "This device does not support this oidkey: " + oidkey);
+			Log.d("GET_OID", "I don't know this oidkey: " + oidkey);
 			return null;
 		}
 		return (String)oidkeys.get(oidkey);
@@ -191,11 +187,7 @@ public class QueryBoks extends Thread
 			String vendor = bd.vendor;
 			boolean csAtVlan = bd.csAtVlan;
 			boolean cdp = bd.cdp;
-			oidkeys = (Map)oidDb.get(boksId);
-			if (oidkeys == null) {
-				Log.d("RUN", "Missing OID keys for netbox: " + boksId + ", skipping " + sysName);
-				continue;
-			}
+			oidkeys = oidDb;
 
 			sSnmp = SimpleSnmp.simpleSnmpFactory();
 			sSnmp.setHost(ip);
@@ -218,35 +210,21 @@ public class QueryBoks extends Thread
 				}
 				
 				if (kat.equalsIgnoreCase("GW")) {
-					// GW'er behandles annerledes, vi skal oppdatere boksbak og evt. swportbak i gwport
+					// GWs are treated differently; we should update to_netboxid and possibly to_interfaceid on its router ports
 					for (Iterator netboxIt = netboxList.iterator(); netboxIt.hasNext();) {
 						PortBoks pm = (PortBoks)netboxIt.next();
 						String remoteIf = pm.getRemoteIf();
 						
 						if (boksGwSet.contains(pm.getToNetboxid())) continue;
 						
-						String to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
-						if (pm.getRemoteIf() != null && to_swportid == null) {
-							if (swportNetboxSet.contains(pm.getToNetboxid())) {
-								Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-							} else {
-								Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-							}
+						String to_interfaceid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
+						if (pm.getRemoteIf() != null && to_interfaceid == null) {
+							Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
 							continue;
 						}
 
 						// OK, da er vi klar, oppdater gwport!
-						if (boksType.equals("cat6kMsfc") || // MSFC
-							boksType.equals("cat6kMsfc2") || // MSFC1
-							boksType.equals("cisWSX5302") || boksType.equals("Cis-WX5302") ) { // RSM
-							
-							Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE gwportid IN (SELECT gwportid FROM module JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) WHERE netboxid = '"+boksId+"')");
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-							Log.d("RUN", "["+boksType+"] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
-							continue;
-						}
-					
-						Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid = '"+boksId+"') AND ifindex='" + pm.getIfindex() + "'");
+						Database.update("UPDATE interface SET to_netboxid = '"+pm.getToNetboxid()+"', to_interfaceid = "+to_interfaceid+" WHERE netboxid = '"+boksId+"' AND ifindex='" + pm.getIfindex() + "'");
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						
 						Log.d("RUN", "[GW] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
@@ -264,29 +242,6 @@ public class QueryBoks extends Thread
 				// tag
 				
 				macList.addAll(processMacEntry(boksId, ip, cs_ro, boksType, csAtVlan));
-				
-				/*
-					if (boksTypegruppe.equals("cat1900-sw")) {
-					macListe = processCisco1900(boksId, ip, cs_ro, boksType, ifindexMp);
-					} else
-					if (boksTypegruppe.equals("catmeny-sw")) {
-					macListe = processCisco1Q(boksId, ip, cs_ro, boksType);
-					} else
-					if (boksTypegruppe.equals("cat-sw") || boksTypegruppe.equals("ios-sw")) {
-					// Cisco utstyr der man må hente per vlan
-					macListe = processCisco2Q(boksId, ip, cs_ro, boksTypegruppe, boksType, ifindexMp);
-				} else
-				if (boksTypegruppe.equals("3hub") || boksTypegruppe.equals("3ss") || boksTypegruppe.equals("3ss9300")) {
-				// Alt 3Com utstyr
-				macListe = process3Com(boksId, ip, cs_ro, boksTypegruppe, boksType);
-				} else
-				if (boksTypegruppe.equals("hpsw")) {
-				// Alt HP utstyr
-				macListe = processHP(boksId, ip, cs_ro, boksTypegruppe, boksType);
-				} else {
-					outl("  Error, unknown typegruppe: " + boksTypegruppe);
-					}
-				*/
 				
 				// Før MAC-listen kan legges til boksListe må alle konflikter med CDP tas bort
 				for (Iterator macIt = macList.iterator(); macIt.hasNext();) {
@@ -310,7 +265,6 @@ public class QueryBoks extends Thread
 					System.err.println("QueryBoks.run(): Exiting...");
 					System.exit(2);
 				}
-				se.printStackTrace(System.err);
 			} catch (TimeoutException te) {
 				Log.d("RUN", "*** GIVING UP ON: " + sysName + ", typename: " + boksType + " ***");
 				continue;
@@ -332,7 +286,7 @@ public class QueryBoks extends Thread
 			for (Iterator netboxIt = netboxList.iterator(); netboxIt.hasNext();) {
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
-				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
+				String new_to_interfaceid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
@@ -340,24 +294,20 @@ public class QueryBoks extends Thread
 				// Dersom boksen bak er nede skal vi ikke endre
 				if (downBoksid.contains(pm.getToNetboxid())) continue;
 
-				if (pm.getRemoteIf() != null && new_to_swportid == null) {
-					if (swportNetboxSet.contains(pm.getToNetboxid())) {
-						Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-					} else {
-						Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
-					}
+				if (pm.getRemoteIf() != null && new_to_interfaceid == null) {
+					Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
 				}
 
 				// Sjekk om dette er en duplikat
 				if (swp.contains(key)) {
-					String swp_boksid = null, to_swportid = null;
+					String swp_boksid = null, to_interfaceid = null;
 					int misscnt=0;
 					synchronized (swp_d) {
 						if (swp_d.containsKey(key)) {
 							HashMap hm = (HashMap)swp_d.remove(key);
 							swp_boksid = (String)hm.get("swp_netboxid");
 							misscnt = Integer.parseInt((String)hm.get("misscnt"));
-							to_swportid = (String)hm.get("to_swportid");
+							to_interfaceid = (String)hm.get("to_interfaceid");
 						} else {
 							// Dup
 							continue;
@@ -380,15 +330,15 @@ public class QueryBoks extends Thread
 						swpIncResetMisscnt();
 					}
 
-					if (new_to_swportid != null) {
+					if (new_to_interfaceid != null) {
 						// Nå må vi sjekke om ifindex feltet har endret seg
-						if (!new_to_swportid.equals(to_swportid)) {
+						if (!new_to_interfaceid.equals(to_interfaceid)) {
 							try {
 								if (swp_boksid == null || swp_boksid.length() == 0) {
 									System.err.println("swp_boksid null for " + key + " swp: " + swp.contains(key) + " swp_d: " + swp_d.get(key));
 								}
 								String[] upd = {
-									"to_swportid", new_to_swportid
+									"to_interfaceid", new_to_interfaceid
 								};
 								String[] where = {
 									"swp_netboxid", swp_boksid
@@ -396,14 +346,11 @@ public class QueryBoks extends Thread
 								Database.update("swp_netbox", upd, where);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
-								System.err.println("Update modulbak/portbak in swp_boks, swp_boksid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
-								e.printStackTrace(System.err);
+								System.err.println("Update modulbak/portbak in swp_netbox, swp_netboxid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
 							}
 						}
 					}
 
-					//String s = "T"+id+":    [DUP] Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + ", " + getBoksMacs.boksIdName.get(pm.getBoksId());
-					//printList.add(s);
 					dupCnt++;
 					continue;
 				}
@@ -412,7 +359,6 @@ public class QueryBoks extends Thread
 				synchronized (swp) {
 					swp.add(key);
 				}
-				//outl("T"+id+":    ["+pm.getSource()+"] Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + ", " + getBoksMacs.boksIdName.get(pm.getBoksId()) );
 
 
 				boolean verify1=true, verify2=true;
@@ -421,7 +367,7 @@ public class QueryBoks extends Thread
 						"netboxid", boksId,
 						"ifindex", pm.getIfindex(),
 						"to_netboxid", pm.getToNetboxid(),
-						"to_swportid", new_to_swportid
+						"to_interfaceid", new_to_interfaceid
 					};
 					
 					try {
@@ -430,7 +376,6 @@ public class QueryBoks extends Thread
 						newCnt++;
 					} catch (SQLException e) {
 						Log.d("RUN", "Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
-						e.printStackTrace(System.err);
 					}
 				} else {
 					if (!verify1) Log.d("VERIFY_NETBOXID", "Verify netboxid ("+boksId+") failed");
@@ -438,13 +383,6 @@ public class QueryBoks extends Thread
 				}
 			}
 
-			/*
-				Collections.sort(printList);
-				for (Iterator j=printList.iterator(); j.hasNext();) {
-				outl(String.valueOf(j.next()));
-				}
-			*/
-			
 			if (newCnt > 0 || dupCnt > 0) {
 				Log.d("RUN", "Fount a total of " + newCnt + " new units, " + dupCnt + " duplicate units.");
 			}
@@ -469,7 +407,6 @@ public class QueryBoks extends Thread
 			if (rs.next()) return true;
 		} catch (SQLException e) {
 			Log.d("VERIFY_NETBOXID", "Verify netboxid ("+netboxid+"), SQLException: " + e.getMessage() );
-			e.printStackTrace(System.err);
 		}
 		Log.w("VERIFY_NETBOXID", "Netbox ("+netboxid+") " + boksIdName.get(netboxid) + " no longer exists!");
 		return false;
@@ -501,81 +438,6 @@ public class QueryBoks extends Thread
 		sb.append("]");
 		return sb.toString();
 	}
-
-	/*
-	private ArrayList processCDPCisco(String workingOnBoksid, String ip, String cs_ro, HashMap ifindexMp) throws SQLException, TimeoutException
-	{
-
-	}
-
-	private ArrayList processCDPHP(String workingOnBoksid, String ip, String cs_ro, HashMap ifindexMp) throws SQLException, TimeoutException
-	{
-		ArrayList l = new ArrayList();
-
-		/*
-		 * Først henter vi ut antall i stack'en med MIB:
-		 *
-		 * .1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1
-		 *
-		 * Denne gir ut et tall for hvert member, 0 er commanderen
-		 *
-		 */
-	/*
-		String stackOid = "1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1";
-		String cdpOid = ".1.3.6.1.4.1.9.9.23.1.2.1.1.6";
-		String remoteIfOid = ".1.3.6.1.4.1.9.9.23.1.2.1.1.7";
-		ArrayList stackList;
-
-		// Henter først antallet i stack'en:
-		sSnmp.setParams(ip, cs_ro, stackOid);
-		stackList = sSnmp.getAll();
-
-		if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
-		outld("processCDPHP: stackList.size: " + stackList.size() );
-
-		for (int i=stackList.size()-1; i >= 0; i--) {
-			String[] stack = (String[])stackList.get(i);
-
-			String modul = stack[1];
-			//String modul = String.valueOf(i+1);
-			outld("processCDPHP:   modul: " + modul);
-
-			// Get the list of macs
-			sSnmp.setParams(ip, cs_ro+(!stack[1].equals("0")?"@sw"+stack[1]:""), cdpOid);
-			ArrayList cdpList = sSnmp.getAll(true);
-			if (cdpList.size() == 0) continue;
-
-			// Vi har fått noe via CDP, da kan vi trygt lukke CAM records
-			safeCloseBoksidAdd(workingOnBoksid);
-
-			sSnmp.setParams(ip, cs_ro+(!stack[1].equals("0")?"@sw"+stack[1]:""), remoteIfOid);
-			ArrayList cdpRMpList = sSnmp.getAll(true);
-
-			outld("In processCDPCDP(), cdpList.size: " + cdpList.size());
-			if (cdpList.size() != cdpRMpList.size()) outla("  *WARNING*: cdpList != cdpRMpList ("+cdpList.size()+" != "+cdpRMpList.size()+").");
-
-			for (int j=0; j<cdpList.size(); j++) {
-				String[] cdps = (String[])cdpList.get(j);
-
-				String port = cdps[0].substring(0, cdps[0].indexOf("."));
-
-				// Hent ut mp på andre siden
-				if (cdpRMpList.size() <= j) continue;
-				String[] remoteIf = (String[])cdpRMpList.get(j);
-
-				// Opprett record for boksen bak porten
-				PortBoks pm = processCDP(workingOnBoksid, cdps[1], port, modul, port, remoteIf[1].trim() );
-				if (pm == null) continue;
-				pm.setIfindex(port);
-				l.add(pm);
-
-				outld("processCDPHP:  Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + "  CDP: " + boksIdName.get(pm.getBoksId()));
-			}
-		}
-
-		return l;
-	}
-*/
 
 	/*
 	 * Shared CDP processing
@@ -654,18 +516,18 @@ public class QueryBoks extends Thread
 				}
 			} catch (SQLException e) {
 				Log.d("PROCESS_CDP", "SQLException: " + e.getMessage());
-				e.printStackTrace(System.err);
 			}
 			
 			// Dersom denne porten går fra ikke-gw (sw,kant) til gw må vi slå remote interface opp i gwport
 			// slik at vi kan sette boksbak og swportbak.
 			if (!boksGwSet.contains(workingOnBoksid) && boksGwSet.contains(pm.getToNetboxid())) {
 				// OK, ikke-gw -> gw
-				String swportid = (String)swportidMap.get(workingOnBoksid+":"+ifindex);
+				String swportid = (String)interfaceidMap.get(workingOnBoksid+":"+ifindex);
 				if (swportid != null) {
 					// Setter boksbak og swportbak for alle matchende interfacer
-					Log.d("PROCESS_CDP", "Updating boksbak("+workingOnBoksid+"), swportbak("+swportid+") for gw: " + boksIdName.get(netboxid)+", rIf: " + remoteIf);
-					Database.update("UPDATE gwport SET to_netboxid = '"+workingOnBoksid+"', to_swportid = '"+swportid+"' WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid='"+netboxid+"') AND interface = '"+remoteIf+"'");
+					Log.d("PROCESS_CDP", "Updating to_netboxid("+workingOnBoksid+"), to_interfaceid("+swportid+") for gw: " + boksIdName.get(netboxid)+", rIf: " + remoteIf);
+					// FIXME: This should probably also update interfaces whose ifDescr matches the remote interface name, since that is what seems to appear in CDP data
+					Database.update("UPDATE interface SET to_netboxid = '"+workingOnBoksid+"', to_interfaceid = '"+swportid+"' WHERE netboxid='"+netboxid+"' AND ifname = '"+remoteIf+"'");
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				}
 			}
@@ -675,7 +537,12 @@ public class QueryBoks extends Thread
 		for (Iterator it = unrecognizedCDP.iterator(); it.hasNext();) {
 			// Write this to netboxinfo
 			String[] s = (String[])it.next();
-			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", s[0], s[1]);
+			String variable = s[0];
+			String value = s[1];
+			if (hasNullBytes(value)) {
+				value = "[Invalid SNMP data: " + bytesToHexString(value.getBytes()) + "]";
+			}
+			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", variable, value);
 		}
 		for (Iterator it = oldUnrecIfind.iterator(); it.hasNext();) {
 			String ifindex = (String)it.next();
@@ -750,8 +617,92 @@ public class QueryBoks extends Thread
 		return null;
 	}
 
+	/**
+	 * <p>Return a set of VLANs with separate BRIDGE-MIB instances.</p>
+	 * 
+	 * <p>Will look at ENTITY-MIB's entLogicalTable.  Every entity whose type
+	 * column matches BRIDGE-MIB::dot1dBridge will have its description column
+	 * parsed for a VLAN id, which is added to the list.</p>
+	 * 
+	 * <p>Each BRIDGE-MIB instance will be listed with a separate SNMP
+	 * community in the entLogicalTable, but these will not be reflected 
+	 * in the result.  Those instances whose community equal excludeCommunity
+	 * will be excluded from the result.  Use the normal read community of the
+	 * device here to exclude MIB instances that aren't actually on a
+	 * separately addressed agent.</p>
+	 * 
+	 * @param excludeCommunity The default device community
+	 * @return An Set of VLAN id String objects 
+	 * @throws TimeoutException
+	 */
+	private Set<String> getBridgeMibInstances(String excludeCommunity) throws TimeoutException {
+		String dot1dBridge = "1.3.6.1.2.1.17";
+		String entLogicalEntry = "1.3.6.1.2.1.47.1.2.1.1";
+		String entLogicalType = entLogicalEntry + ".3";
+		String entLogicalDescr = entLogicalEntry + ".2";
+		String entLogicalCommunity = entLogicalEntry + ".4";
 
+		Set<String> vlans = new HashSet();
+		Map<String, String> typeMap = sSnmp.getAllMap(entLogicalType);
+		Map<String, String> descrMap = sSnmp.getAllMap(entLogicalDescr, true);
+		Map<String, String> communityMap = sSnmp.getAllMap(entLogicalCommunity, true);
+		
+		for (Map.Entry<String, String> typeEntry: typeMap.entrySet()) {
+			String index = typeEntry.getKey();
+			String entType = typeEntry.getValue();
+			String community = communityMap.get(index);
+			
+			if (excludeCommunity.equals(community)) continue;
+
+			if (entType.equals(dot1dBridge) && descrMap.containsKey(index)) {
+				String descr = descrMap.get(index);
+				if (descr.startsWith("vlan")) {
+					// The text following "vlan" is the vlan number
+					String vlan = descr.substring(4);
+					vlans.add(vlan);
+				} else {
+					Log.d("BRIDGEMIB_INSTANCES", "Unrecognized BRIDGE-MIB instance description: " + descr);
+				}
+			}
+		}
+
+		Log.d("BRIDGEMIB_INSTANCES", vlans.size() + "/" + typeMap.size() + " logical entities are useable BRIDGE-MIB instances");
+		return vlans;
+	}
 	
+	/**
+	 * <p>Return the set of operational VLANs from CISCO-VTP-MIB.</p>
+	 * 
+	 * <p>Multiple VTP domains are ignored.</p>
+	 *  
+	 * @return A Set of VLAN id String objects.
+	 * @throws TimeoutException
+	 */
+	private Set<String> getOperationalVTPVlans() throws TimeoutException {
+		String vtpVlanEntry = "1.3.6.1.2.1.47.1.2.1.1.1";
+		String vtpVlanState = vtpVlanEntry + ".2";
+		Set<String> vlans = new HashSet();
+
+		Map<String,String> states = sSnmp.getAllMap(vtpVlanState);
+		
+		for (Map.Entry<String, String> stateEntry: states.entrySet()) {
+			String index = stateEntry.getKey();
+			int state = Integer.parseInt(stateEntry.getValue());
+			
+			// Add operational VLANs to the set.  We ignore multiple 
+			// management domains, as we don't know what to do with those atm.
+			if (state == 1) { // 1=operational
+				String[] indexParts = index.split("\\.", 2);
+				//int vtpDomain = Integer.parseInt(indexParts[0]);
+				String vlan = indexParts[1];
+				vlans.add(vlan);
+			}
+		}
+
+		Log.d("VTP_VLANS", vlans.size() + "/" + states.size() + " VTP VLANs are operational");
+		return vlans;
+	}
+
 	private List processMacEntry(String netboxid, String ip, String cs_ro, String type, boolean csAtVlan) throws TimeoutException {
 		List l = new ArrayList();
 
@@ -763,16 +714,30 @@ public class QueryBoks extends Thread
 		int activeVlanCnt=0;
 		int unitVlanCnt=0;
 
-		Set vlanSet;
-		if (csAtVlan) {
-			vlanSet = (Set)vlanBoksid.get(netboxid);
-			if (vlanSet == null) {
-				Log.d("PROCESS_MAC", "Missing vlanSet for netboxid: " + netboxid + ", aborting");
-				return l;
+		// Find multiple BRIDGE-MIB instances
+		// First, the standard ENTITY-MIB way:
+		Set vlanSet = getBridgeMibInstances(cs_ro);
+		
+		// If we found nothing, try the proprietary Cisco way:
+		if (vlanSet == null || vlanSet.size() == 0) {
+			vlanSet = getOperationalVTPVlans();
+		}
+		
+		// If we still have nothing, revert to the legacy method of checking
+		// the database contents:
+		if (vlanSet == null || vlanSet.size() == 0) {
+			if (csAtVlan) {
+				vlanSet = (Set)vlanBoksid.get(netboxid);
+				if (vlanSet == null || vlanSet.size() == 0) {
+					Log.d("PROCESS_MAC", "Missing vlanSet for netboxid: " + netboxid + ", aborting");
+					return l;
+				}
+			} else {
+				// If everything came up empty, there is only a single
+				// BRIDGE-MIB instance.
+				vlanSet = new HashSet();
+				vlanSet.add("");
 			}
-		} else {
-			vlanSet = new HashSet();
-			vlanSet.add("");
 		}
 
 		// Så vi ikke venter så lenge dersom vi ikke får svar fra et vlan
@@ -804,13 +769,12 @@ public class QueryBoks extends Thread
 							// Slett eksisterende innslag i databasen
 							try {
 								Log.d("MAC_ENTRY", "All ports on " + boksIdName.get(netboxid) + " are now non-blocking");
-								String sql = "DELETE FROM swportblocked WHERE EXISTS (SELECT swportid FROM swport JOIN module USING(moduleid) WHERE netboxid="+netboxid+" AND swportblocked.swportid=swportid)";
+								String sql = "DELETE FROM swportblocked WHERE EXISTS (SELECT interfaceid FROM interface_swport WHERE netboxid="+netboxid+" AND swportblocked.interfaceid=interfaceid)";
 								if (csAtVlan) sql += " AND vlan='"+vlan+"'";
 								Database.update(sql);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								Log.d("MAC_ENTRY", "While deleting from swportblocked ("+netboxid+","+vlan+"): SQLException: " + e.getMessage());
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -859,21 +823,21 @@ public class QueryBoks extends Thread
 							if (ifindex == null) continue;
 								
 							// OK, nå kan vi sjekke om denne eksisterer fra før
-							String swportid = (String)blockedIfind.remove(ifindex);
-							if (swportid == null) {
-								// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
-								swportid = (String)swportidMap.get(netboxid+":"+ifindex);
-								if (swportid != null) {
+							String interfaceid = (String)blockedIfind.remove(ifindex);
+							if (interfaceid == null) {
+								// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i interface
+								interfaceid = (String)interfaceidMap.get(netboxid+":"+ifindex);
+								if (interfaceid != null) {
 									// Find correct vlan
 									String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
 									if (dbVlan == null) {
-										Log.d("MAC_ENTRY", "Netboxid: " + netboxid + " blocked ifindex: " + ifindex + " is missing VLAN for swportid: " + swportid);
+										Log.d("MAC_ENTRY", "Netboxid: " + netboxid + " blocked ifindex: " + ifindex + " is missing VLAN for interfaceid: " + interfaceid);
 										continue;
 									}
-									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode (swportid="+swportid+")");
+									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode (interfaceid="+interfaceid+")");
 									try {
 										String[] ins = {
-											"swportid", swportid,
+											"interfaceid", interfaceid,
 											"vlan", dbVlan
 										};
 										Database.insert("swportblocked", ins);
@@ -881,10 +845,9 @@ public class QueryBoks extends Thread
 										blockedCnt++;
 									} catch (SQLException e) {
 										Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-										e.printStackTrace(System.err);
 									}
 								} else {
-									Log.d("MAC_ENTRY", "Missing swportid for ifindex " + ifindex + " on boks: " + boksIdName.get(netboxid));
+									Log.d("MAC_ENTRY", "Missing interfaceid for ifindex " + ifindex + " on netbox: " + boksIdName.get(netboxid));
 								}
 							} else {
 								blockedCnt++;
@@ -893,22 +856,21 @@ public class QueryBoks extends Thread
 						// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så de må slettes
 						for (Iterator iter = blockedIfind.entrySet().iterator(); iter.hasNext();) {
 							Map.Entry me = (Map.Entry)iter.next();
-							String swportid = (String)me.getKey();
+							String interfaceid = (String)me.getKey();
 							String ifindex = (String)me.getValue();
 							String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
-							String sql = "DELETE FROM swportblocked WHERE swportid='"+swportid+"'";
+							String sql = "DELETE FROM swportblocked WHERE interfaceid='"+interfaceid+"'";
 							if (dbVlan == null) {
-								Log.d("MAC_ENTRY", "swportid: " + swportid + " (vlan not found, ifindex: " + ifindex+") is no longer in blocking mode.");
+								Log.d("MAC_ENTRY", "interfaceid: " + interfaceid + " (vlan not found, ifindex: " + ifindex+") is no longer in blocking mode.");
 							} else {
 								sql += " AND vlan='"+dbVlan+"'";
 							}
-							Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
+							Log.d("MAC_ENTRY", "interfaceid: " + interfaceid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
 							try {
 								Database.update(sql);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -978,583 +940,6 @@ public class QueryBoks extends Thread
 		return l;
 	}
 
-	
-	/*
-	private ArrayList processCisco1900(String boksid, String ip, String cs_ro, String boksType, HashMap ifindexMp) throws TimeoutException
-	{
-		ArrayList l = new ArrayList();
-
-		String baseOid = ".1.3.6.1.2.1.17.4.3.1.2";
-
-		// Get the list of macs
-		// Vi får ut alle MAC-adressene tre ganger, under <baseOid>.1, .2 og .3. Den første kobler desimal-mac til hex-mac
-		// Den andre kobler desimal-mac til port, og det er denne som brukes her. Desimal-mac'en blir konvertert til hex
-		// istedenfor å hente ut i hex-format fra enheten. Den tredje angir status, dette benyttes ikke her.
-		//ArrayList macList = getOIDs(ip, cs_ro, baseOid);
-		sSnmp.setParams(ip, cs_ro, baseOid);
-		ArrayList macList = sSnmp.getAll();
-
-		HashSet foundBoksBak = new HashSet();
-
-		for (int i=0; i<macList.size(); i++) {
-			String[] macs = (String[])macList.get(i);
-
-			String mac = decimalToHexMac(macs[0]);
-			String ifind = macs[1];
-			if (!ifind.equals("0")) {
-				String[] mp = (String[])ifindexMp.get(ifind);
-				if (mp == null) {
-					outla("processCisco1900: Error, " + boksIdName.get(boksid) + "("+boksid+"), could not find mp for ifindex: " + ifind);
-					continue;
-				}
-				String modul = mp[0];
-				String port = mp[1];
-
-				// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-				safeCloseBoksidAdd(boksid);
-
-				// Prosesser Mac-adressen (CAM)
-				processMac(boksid, modul, port, mac);
-
-				if (macBoksId.containsKey(mac)) {
-					String boksidBak = (String)macBoksId.get(mac);
-					String boksBakKat = (String)boksidKat.get(boksidBak);
-					if (boksBakKat == null || isNetel(boksBakKat)) {
-						foundBoksBak.add(modul+":"+port);
-					}
-					PortBoks pm = new PortBoks(modul, port, boksidBak, "MAC");
-					l.add(pm);
-				}
-			}
-		}
-
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
-		runCamQueue(boksid, foundBoksBak);
-
-		return l;
-	}
-
-	private ArrayList processCisco1Q(String boksid, String ip, String cs_ro, String boksType) throws TimeoutException
-	{
-		ArrayList l = new ArrayList();
-
-		//String baseOid = ".1.3.6.1.4.1.9.5.14.4.3.1.3.1";
-		String baseOid = "1.3.6.1.4.1.9.5.14.4.3.1.4.1";
-
-		// Get the list of macs
-		//ArrayList macList = getOIDs(ip, cs_ro, baseOid);
-		sSnmp.setParams(ip, cs_ro, baseOid);
-		ArrayList macList = sSnmp.getAll();
-
-		// Modul er alltid 1 på denne typen enhet
-		String modul = "1";
-
-		HashSet foundBoksBak = new HashSet();
-
-		for (int i=0; i<macList.size(); i++) {
-			String[] s = (String[])macList.get(i);
-
-			// Kun enheter av type 1 er lokal (type 2 = remote)
-			if (Integer.parseInt(s[1]) != 1) continue;
-
-			String port = s[0].substring(0, s[0].indexOf("."));
-			String deciMac = s[0].substring(s[0].indexOf(".")+1, s[0].length());
-
-			String mac = decimalToHexMac(deciMac);
-
-			// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-			safeCloseBoksidAdd(boksid);
-
-			// Prosesser Mac (CAM)
-			processMac(boksid, modul, port, mac);
-
-			if (macBoksId.containsKey(mac)) {
-				String boksidBak = (String)macBoksId.get(mac);
-				String boksBakKat = (String)boksidKat.get(boksidBak);
-				if (boksBakKat == null || isNetel(boksBakKat)) {
-					foundBoksBak.add(modul+":"+port);
-				}
-				PortBoks pm = new PortBoks(modul, port, boksidBak, "MAC");
-				l.add(pm);
-			}
-		}
-
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
-		runCamQueue(boksid, foundBoksBak);
-
-		return l;
-	}
-
-	private ArrayList processCisco2Q(String boksid, String ip, String cs_ro, String typegruppe, String boksType, HashMap ifindexMp) throws TimeoutException
-	{
-		ArrayList l = new ArrayList();
-		String ciscoIndexMapBaseOid = ".1.3.6.1.2.1.17.1.4.1.2";
-		String ciscoMacBaseOid = ".1.3.6.1.2.1.17.4.3.1.2";
-		String spanningTreeOid = ".1.3.6.1.2.1.17.2.15.1.3";
-
-		// HashSet for å sjekke for duplikater
-		HashSet dupCheck = new HashSet();
-		HashSet foundBoksBak = new HashSet();
-
-		// Hent macadresser for hvert vlan og knytt disse til riktig mp (port)
-		int activeVlanCnt=0;
-		int unitVlanCnt=0;
-		Set vlanSet = (Set)vlanBoksid.get(boksid);
-		if (vlanSet == null) return l;
-
-		// Så vi ikke venter så lenge dersom vi ikke får svar fra et vlan
-		sSnmp.setTimeoutLimit(1);
-
-		for (Iterator it = vlanSet.iterator(); it.hasNext();) {
-			String vlan = String.valueOf(it.next());
-
-			out("  Fetch vlan: " + vlan + "...");
-
-			// Hent porter som er i blocking (spanning-tree) mode
-			//ArrayList spanningTree = getOIDs(ip, cs_ro+"@"+vlan, spanningTreeOid);
-			sSnmp.setParams(ip, cs_ro+"@"+vlan, spanningTreeOid);
-			ArrayList spanningTree;
-			try {
-				spanningTree = sSnmp.getAll();
-			} catch (TimeoutException te) {
-				// Vi gjør ingenting her, ikke svar på dette vlan
-				outl("timeout");
-				continue;
-			}
-			outl("ok");
-
-			ArrayList mpBlocked = new ArrayList();
-			for (int j=0; j < spanningTree.size(); j++) {
-				String[] s = (String[])spanningTree.get(j);
-				if (s[1].equals("2")) mpBlocked.add(s[0]);
-			}
-
-			// Hent macadresser på dette vlan
-			//ArrayList macVlan = getOIDs(ip, cs_ro+"@"+vlan, ciscoMacBaseOid);
-			sSnmp.setParams(ip, cs_ro+"@"+vlan, ciscoMacBaseOid);
-			ArrayList macVlan = sSnmp.getAll();
-
-			if (mpBlocked.size() == 0) {
-				// Nå vet vi at ingen porter er blokkert på denne enheten på dette vlan
-				HashMap blockedIfind = (HashMap)spanTreeBlocked.get(boksid+":"+vlan);
-				if (blockedIfind != null) {
-					// Slett eksisterende innslag i databasen
-					try {
-						outl("    All ports on " + sysnameMap.get(boksid) + " are now non-blocking");
-						Database.update("DELETE FROM swportblocked WHERE EXISTS (SELECT swportid FROM swport JOIN module USING(moduleid) WHERE netboxid="+boksid+" AND swportblocked.swportid=swportid) AND vlan='"+vlan+"'");
-						if (DB_COMMIT) Database.commit(); else Database.rollback();
-					} catch (SQLException e) {
-						outld("*ERROR* While deleting from swportblocked ("+boksid+","+vlan+"): SQLException: " + e.getMessage());
-					}
-				}
-
-				if (macVlan.size() == 0) continue;
-			}
-
-			// Lag mapping mellom ifIndex og cisco intern portindex
-			//ArrayList indexList = getOIDs(ip, cs_ro+"@"+vlan, ciscoIndexMapBaseOid);
-			sSnmp.setParams(ip, cs_ro+"@"+vlan, ciscoIndexMapBaseOid);
-			ArrayList indexList = sSnmp.getAll();
-
-			HashMap hIndexMap = new HashMap();
-			for (int j=0; j < indexList.size(); j++) {
-				String[] s = (String[])indexList.get(j);
-				hIndexMap.put(s[0], s[1]);
-			}
-
-			int blockedCnt=0;
-			if (mpBlocked.size() > 0) {
-				HashMap blockedIfind = (HashMap)spanTreeBlocked.get(boksid+":"+vlan);
-				if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert på dette vlan
-
-				for (int j=0; j < mpBlocked.size(); j++) {
-					String s = (String)mpBlocked.get(j);
-					String ifind = (String)hIndexMap.get(s);
-					if (ifind == null) continue;
-
-					// OK, nå kan vi sjekke om denne eksisterer fra før
-					String swportid = (String)blockedIfind.remove(ifind);
-					if (swportid == null) {
-						// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
-						// Finn porten
-						String[] mp = (String[])ifindexMp.get(ifind);
-						if (mp == null) {
-							errl("    Error, mp not found for ifIndex: " + ifind + " on boks: " + boksIdName.get(boksid));
-							continue;
-						}
-						swportid = (String)swportSwportidMap.get(boksid+":"+mp[0]+":"+mp[1]);
-						if (swportid != null) {
-							outl("    Ifindex: " + ifind + " on VLAN: " + vlan + " is now in blocking mode.");
-							//String query = "INSERT INTO swportblocked (swportid,vlan) VALUES ((SELECT swportid FROM swport WHERE boksid='"+boksid+"' AND ifindex='"+ifind+"'),'"+vlan+"')";
-							String query = "INSERT INTO swportblocked (swportid,vlan) VALUES ('"+swportid+"','"+vlan+"')";
-							if (DB_UPDATE) {
-								try {
-									Database.update(query);
-									if (DB_COMMIT) Database.commit(); else Database.rollback();
-									blockedCnt++;
-								} catch (SQLException e) {
-									outld("*ERROR* SQLException: " + e.getMessage());
-								}
-							}
-						} else {
-							outla("    Error, swportid is null for mp=["+mp[0]+","+mp[1]+"] on boks: " + boksIdName.get(boksid));
-						}
-					} else {
-						blockedCnt++;
-					}
-				}
-				// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så det må slettes
-				Iterator iter = blockedIfind.values().iterator();
-				while (iter.hasNext()) {
-					String swportid = (String)iter.next();
-					outl("    swportid: " + swportid + " on VLAN: " + vlan + " is no longer in blocking mode.");
-					String query = "DELETE FROM swportblocked WHERE swportid='"+swportid+"' AND vlan='"+vlan+"'";
-					if (DB_UPDATE) {
-						try {
-							Database.update(query);
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-						} catch (SQLException e) {
-							outld("*ERROR* SQLException: " + e.getMessage());
-						}
-					}
-				}
-			}
-			if (macVlan.size() == 0) continue;
-			outl("  Querying vlan: " + vlan + ", MACs: " + macVlan.size() + " Mappings: " + indexList.size() + " Blocked: " + blockedCnt + " / " + mpBlocked.size() );
-
-			activeVlanCnt++;
-			boolean b = false;
-			for (int j=0; j < macVlan.size(); j++) {
-				String[] s = (String[])macVlan.get(j);
-				String mac = decimalToHexMac(s[0]);
-
-				// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
-				// Dette skjer på C35* enhetene.
-				if (boksid.equals(macBoksId.get(mac))) continue;
-
-				// Finn ifIndex
-				String ifInd = (String)hIndexMap.get(s[1]);
-				if (ifInd == null) {
-					outl("  WARNING! MAC: " + mac + " ("+ boksIdName.get(macBoksId.get(mac)) +") found at index: " + s[1] + ", but no ifIndex mapping exists.");
-					continue;
-				}
-
-				// Finn mp
-				String[] mp = (String[])ifindexMp.get(ifInd);
-				if (mp == null) {
-					outl("  WARNING! MAC: " + mac + " ("+ boksIdName.get(macBoksId.get(mac)) +") found at index: " + s[1] + ", ifIndex: " + ifInd + ", but no mp mapping exists.");
-					continue;
-				}
-				String modul = mp[0];
-				String port = mp[1];
-
-				// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-				safeCloseBoksidAdd(boksid);
-
-				// Prosesser Mac (CAM)
-				processMac(boksid, modul, port, mac);
-
-				// Sjekk om vi skal ta med denne mac
-				if (!macBoksId.containsKey(mac)) continue;
-				String boksidBak = (String)macBoksId.get(mac);
-
-				String boksBakKat = (String)boksidKat.get(boksidBak);
-				if (boksBakKat == null || isNetel(boksBakKat)) {
-					foundBoksBak.add(modul+":"+port);
-				}
-
-				//outl("  Unit: " + unit + " Port: " + port + " Mac: " + mac);
-				// Legg til i listen over macer
-				if (modul == null || port == null || boksidBak == null) {
-					errl("--**-- errError modul|port|boksidBak null, boksid: " + boksid + " ifInd: " + ifInd + " modul: " + modul + " port: " + port + " boksidBak: "+ boksidBak);
-					continue;
-				}
-				PortBoks pm = new PortBoks(modul, port, boksidBak, "MAC");
-				if (dupCheck.contains(boksid+":"+pm)) continue;
-
-				dupCheck.add(boksid+":"+pm);
-				l.add(pm);
-
-				if (!b) { unitVlanCnt++; b=true; }
-			}
-		}
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
-		runCamQueue(boksid, foundBoksBak);
-
-		sSnmp.setDefaultTimeoutLimit();
-
-		outl("  MACs found on " + activeVlanCnt + " / " + vlanSet.size() + " VLANs, units on " + unitVlanCnt + ".");
-		return l;
-	}
-
-	private HashMap fetchIfindexMpMap(String ip, String cs_ro, String typegruppe) throws TimeoutException
-	{
-		List l;
-		//String ciscoIndexMapBaseOid = ".1.3.6.1.2.1.17.1.4.1.2";
-
-		// Hent kobling mellom ifIndex<->mp
-		HashMap ifindexH = new HashMap();
-		
-		if (l != null) {
-			outl("  Found " + l.size() + " ifindex<->mp mappings.");
-			for (int i=0; i < l.size(); i++) {
-				String[] s = (String[])l.get(i);
-				StringTokenizer st = new StringTokenizer(s[0], ".");
-				String[] mp = { st.nextToken(), st.nextToken() };
-				ifindexH.put(s[1], mp);
-			}			
-		} else {
-			l = sSnmp.getAll(nb.getOid("ifDescr"), true);
-			if (l != null) {
-				outl("  Found " + l + " ifindex<->mp mappings.");
-				for (int i=0; i < l.size(); i++) {
-					String[] s = (String[])l.get(i);
-					
-					if (s[1] == null || s[1].length() == 0) {
-						outla("QueryBoks.fetchIfindexMpMap(): mp is '" + s[1] + "' for ip: "+ip+" ifindex: " + s[0]);
-						continue;
-					}
-					
-					String[] mp = stringToMp(Integer.parseInt(s[0]), s[1]);
-					
-					ifindexH.put(s[0], mp);
-				}
-			}
-		}
-		return ifindexH;
-	}
-	private int[] stringToMp(int ifindex, String s)
-	{
-		return stringToMp(ifindex, s, 1);
-	}
-	private int[] stringToMp(int ifindex, String s, int defaultModule)
-	{
-		int module, port;
-		Matcher m = Pattern.compile(".*(\\d+).*(\\d+).*").matcher(s);
-		if (m.matches()) {
-			module = Integer.parseInt(m.group(1));
-			port = Integer.parseInt(m.group(2));
-		} else {
-			module = defaultModule;
-			m = Pattern.compile(".*(\\d+).*").matcher(s);
-			if (m.maches()) {
-				port = Integer.parseInt(m.group(1));
-			} else {
-				port = ifindex;
-			}
-		}
-
-		return new int[] { module, port };
-	}
-
-	private ArrayList process3Com(String boksid, String ip, String cs_ro, String typegruppe, String boksType) throws TimeoutException
-	{
-		ArrayList l = new ArrayList();
-
-		String baseOid = "";
-		if (typegruppe.equals("3ss9300")) {
-			baseOid = ".1.3.6.1.4.1.43.29.4.10.8.1.5.1";
-		} else
-		if (typegruppe.equals("3ss")) {
-			baseOid = ".1.3.6.1.4.1.43.10.22.2.1.3";
-		} else
-		if (typegruppe.equals("3hub")) {
-			baseOid = ".1.3.6.1.4.1.43.10.9.5.1.6";
-		} else {
-			outl("  Unsupported typegruppe: " + typegruppe + " boksType: " + boksType);
-			return l;
-		}
-
-		// Angir om vi har funnet en boks bak porten, gjør vi det skal CAM-data ikke logges på porten
-		HashSet foundBoksBak = new HashSet();
-
-		// Get the list of macs
-		sSnmp.setParams(ip, cs_ro, baseOid);
-		ArrayList macList;
-		try {
-			macList = sSnmp.getAll();
-		} catch (NullPointerException e) {
-			errl("  NullPointerException in QueryBoks.process3Com: boksid: " + boksid + " ip: " + ip + " boksType: " + boksType);
-			e.printStackTrace(System.err);
-			return l;
-		}
-
-
-		for (int i=0; i<macList.size(); i++) {
-			String[] s = (String[])macList.get(i);
-
-			String formatMac = formatMac(s[1].toLowerCase());
-			//outl("Raw MAC: " + s[1].toLowerCase() + " Found MAC: " + formatMac);
-
-			// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-			safeCloseBoksidAdd(boksid);
-
-			// For testing av CAM
-			//if (formatMac.equals("006097af1d45")) continue;
-
-			StringTokenizer st = new StringTokenizer(s[0], ".");
-			String modul = st.nextToken();
-			String port = st.nextToken();
-			if (boksType.equals("SW9300")) modul = "1";
-
-			// Prosesser Mac (CAM)
-			processMac(boksid, modul, port, formatMac);
-
-
-			if (macBoksId.containsKey(formatMac)) {
-				String boksidBak = (String)macBoksId.get(formatMac);
-				String boksBakKat = (String)boksidKat.get(boksidBak);
-				if (boksBakKat == null || isNetel(boksBakKat)) {
-					foundBoksBak.add(modul+":"+port);
-				}
-				PortBoks pm = new PortBoks(modul, port, boksidBak, "MAC");
-				l.add(pm);
-			}
-		}
-
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
-		runCamQueue(boksid, foundBoksBak);
-
-		return l;
-	}
-
-	private ArrayList processHP(String boksid, String ip, String cs_ro, String typegruppe, String boksType) throws TimeoutException
-	{
-		ArrayList l = new ArrayList();
-
-		/*
-		 * Først henter vi ut antall i stack'en med MIB:
-		 *
-		 * .1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1
-		 *
-		 * Denne gir ut et tall for hvert member, 0 er alltid til stedet og er commanderen
-		 *
-		 *
-		 * .1.3.6.1.2.1.17.4.3.1.1.<desimal-mac> = <hex-mac>
-         * .1.3.6.1.2.1.17.4.3.1.2.<desimal-mac> = portnummer
-         * .1.3.6.1.2.1.17.4.3.1.3.<desimal-mac> = status
-		 *
-		 * Kun status=3 er interessant, da disse er MAC'ene switchen "lærer"
-		 *
-		 */
-
-	/*
-		String stackOid = "1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1";
-		//String hexMacOid = "1.3.6.1.2.1.17.4.3.1.1";
-		//String portMacOid = "1.3.6.1.2.1.17.4.3.1.2";
-		//String statusMacOid = "1.3.6.1.2.1.17.4.3.1.3";
-		String macOid = "1.3.6.1.2.1.17.4.3.1";
-
-		// Angir om vi har funnet en boks bak porten, gjør vi det skal CAM-data ikke logges på porten
-		HashSet foundBoksBak = new HashSet();
-
-		ArrayList stackList, macList;
-
-		try {
-			// Henter først antallet i stack'en:
-			sSnmp.setParams(ip, cs_ro, stackOid);
-			stackList = sSnmp.getAll();
-
-			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
-			outld("processHP: stackList.size: " + stackList.size() );
-
-			for (int i=stackList.size()-1; i >= 0; i--) {
-				String[] s = (String[])stackList.get(i);
-
-				String modul = s[1];
-				//String modul = String.valueOf(i+1);
-				outld("processHP:   modul: " + modul);
-
-				// Get the list of macs
-				sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""), macOid);
-				macList = sSnmp.getAll();
-
-				// Først dytter vi all MAC inn i en hash
-				HashMap macMap = new HashMap();
-				int j;
-				for (j=0; j<macList.size(); j++) {
-					s = (String[])macList.get(j);
-
-					String oidType = s[0].substring(0, s[0].indexOf("."));
-					String key = s[0].substring(s[0].indexOf(".")+1, s[0].length());
-					if (Integer.parseInt(oidType) != 1) break;
-
-					String formatMac = formatMac(s[1].toLowerCase());
-					macMap.put(key, formatMac);
-
-					outld("processHP:     Key: " + key + " MAC: " + formatMac);
-
-					// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-					safeCloseBoksidAdd(boksid);
-				}
-
-				// Hent port-nummer for hver MAC
-				HashMap portMap = new HashMap();
-				for (; j<macList.size(); j++) {
-					s = (String[])macList.get(j);
-
-					String oidType = s[0].substring(0, s[0].indexOf("."));
-					String key = s[0].substring(s[0].indexOf(".")+1, s[0].length());
-					if (Integer.parseInt(oidType) != 2) break;
-
-					portMap.put(key, new Integer(s[1]));
-				}
-
-				// Til slutt går vi gjennom og registrerer alle MAC der status=3
-				for (; j<macList.size(); j++) {
-					s = (String[])macList.get(j);
-
-					String oidType = s[0].substring(0, s[0].indexOf("."));
-					String key = s[0].substring(s[0].indexOf(".")+1, s[0].length());
-					if (Integer.parseInt(oidType) != 3) {
-						errl("In processHP, boksid: " + boksid + ", oidType not in (1,2,3) found!!");
-						return l;
-					}
-
-					if (Integer.parseInt(s[1]) != 3) continue;
-
-					if (!macMap.containsKey(key) || !portMap.containsKey(key)) {
-						//errl("In processHP, boksid: " + boksid + ", macMap("+macMap.containsKey(key)+") or portMap("+portMap.containsKey(key)+") not found for key: " + key);
-						//errl("  macMap.size: " + macMap.size() + " + portMap.size: " + portMap.size() + " macs: " + (macList.size()-macMap.size()-portMap.size()));
-						outla("In processHP, boksid: " + boksid + ", macMap("+macMap.containsKey(key)+") or portMap("+portMap.containsKey(key)+") not found for key: " + key);
-						continue;
-					}
-
-					String formatMac = (String)macMap.get(key);
-					String port = String.valueOf((Integer)portMap.get(key));
-
-					// Prosesser Mac (CAM)
-					processMac(boksid, modul, port, formatMac);
-
-					if (macBoksId.containsKey(formatMac)) {
-						String boksidBak = (String)macBoksId.get(formatMac);
-						String boksBakKat = (String)boksidKat.get(boksidBak);
-						if (boksBakKat == null || isNetel(boksBakKat)) {
-							foundBoksBak.add(modul+":"+port);
-						}
-						outld("processHP:     Modul: " + modul + " Port: " + port + " boks: " + boksIdName.get(boksidBak));
-						PortBoks pm = new PortBoks(modul, port, boksidBak, "MAC");
-						l.add(pm);
-					} else {
-						outld("processHP:     Modul: " + modul + " Port: " + port + "  MAC: " + formatMac);
-					}
-				}
-
-			}
-
-		} catch (NullPointerException e) {
-			errl("  NullPointerException in QueryBoks.processHP: boksid: " + boksid + " ip: " + ip + " boksType: " + boksType);
-			e.printStackTrace(System.err);
-			return l;
-		}
-
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
-		runCamQueue(boksid, foundBoksBak);
-
-		return l;
-  }
-	*/
-
 
 	/*
 	 * CAM-logger
@@ -1584,14 +969,12 @@ public class QueryBoks extends Thread
 
 		} else {
 			// Nei, da er denne MAC'en ny på porten, og vi må sette inn en record i cam-tabellen
-			s = (String[])mpMap.get(netboxid+":"+ifindex);
-			if (s == null) s = new String[2];
+			String ifName = ifNameMap.get(netboxid+":"+ifindex);
 			String[] insertData = {
 				"netboxid", netboxid,
 				"sysname", (String)boksIdName.get(netboxid),
 				"ifindex", ifindex,
-				"module", s[0],
-				"port", s[1],
+				"port", ifName,
 				"mac", mac.trim(),
 				"start_time", "NOW()"
 			};
@@ -1634,7 +1017,6 @@ public class QueryBoks extends Thread
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				} catch (SQLException e) {
 					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-					e.printStackTrace(System.err);
 				}
 			}
 			camIncResetMisscnt();
@@ -1657,7 +1039,6 @@ public class QueryBoks extends Thread
 					camNewCnt++;
 				} catch (SQLException e) {
 					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-					e.printStackTrace(System.err);
 				}
 			} else {
 				Log.d("VERIFY_NETBOXID", "While insert cam, verify netboxid ("+insertData[1]+") failed");
@@ -1722,22 +1103,21 @@ public class QueryBoks extends Thread
 	}
 
 	private static boolean isNetel(String kat) { return getBoksMacs.isNetel(kat); }
+	
+	protected static String bytesToHexString(byte[] bytes) {
+		StringBuffer buffer = new StringBuffer();
+		int[] ints = new int[bytes.length];
+		for (int i=0; i < ints.length; i++) ints[i] = bytes[i] < 0 ? 256 + bytes[i] : bytes[i];
+		for (int i=0; i < ints.length; i++) buffer.append((i>0?":":"")+(ints[i]<16?"0":"")+Integer.toString(ints[i], 16));
+		return buffer.toString();
+	}
 
-	/*
-	private static void outa(String s) { System.out.print(s); }
-	private static void outla(String s) { System.out.println(s); }
+	protected static boolean hasNullBytes(String string) {
+		byte[] bytes = string.getBytes();
+		for (int i=0;i<bytes.length;i++) {
+			if (bytes[i] == 0) return true;
+		}
+		return false;
+	}
 
-	private static void oute(Object s) { if (ERROR_OUT) System.err.print(s); }
-	private static void outle(Object s) { if (ERROR_OUT) System.err.println(s); }
-
-	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
-	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
-
-	private static void outd(String s) { if (DBUG_OUT) System.out.print(s); }
-	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	private static void errflush() { System.err.flush(); }
-	*/
 }

@@ -1,38 +1,29 @@
 #!/usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2009 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id$
-# Authors: Morten Vold <morten.vold@itea.ntnu.no>
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 This script determines whether a NAV user has been granted a specific
 privilege.
 """
-import sys, getopt
-import nav, nav.auth
-from nav import db
-from nav.db import navprofiles
-from nav.db.navprofiles import Account
+import sys
+import getopt
 
+from nav.models.profiles import Account
 
 def main(args):
     (opts, args) = getopt.getopt(args, 'h', ['help'])
@@ -48,25 +39,18 @@ def main(args):
 
     (user, privilege, target) = args[:3]
 
-    # Make sure we have a proper database connection
-    try:
-        conn = db.getConnection('navprofile', 'navprofile')
-        cursor = conn.cursor()
-    except Exception, error:
-        print >> sys.stderr, "There was an error connecting to the database"
-        sys.exit(10)
-
     # Make sure the specified login name has an existing account
     try:
-        account = Account.loadByLogin(user)
+        account = Account.objects.get(login=user)
     except Exception, error:
         print >> sys.stderr, "Could not find user '%s'" % user
+        print >> sys.stderr, "Error was: %s" % error
         sys.exit(10)
         
     # Make use of the privilege system to discover whether the user
     # has been granted the privilege that is being asked for
     try:
-        answer = nav.auth.hasPrivilege(account, privilege, target)
+        answer = account.has_perm(privilege, target)
     except Exception, error:
         print >> sys.stderr, "There was an error when asking for the privilege"
         sys.exit(10)

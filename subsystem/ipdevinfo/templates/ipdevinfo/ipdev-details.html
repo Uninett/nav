@@ -254,28 +254,80 @@
                     Edit IP device</a></li>
                 <li><a href="{% url maintenance-new-netbox netbox.id %}">
                     Schedule maintenance</a></li>
-                <li><a href="{% url devicemanagement-history-netbox netbox.id %}">
+                <li><a href="{% url devicehistory-view-netbox netbox.id %}">
                     View device history</a></li>
-                <li><a href="{% url ipinfo-host netbox.sysname %}">
-                    View in IP Info</a></li>
             </ul>
         </td>
     </tr>
 {% else %}
-    <caption>IP Device</caption>
+    <caption class="nowrap">IP Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
     <tr>
         <th>Status</th>
-        <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
+        <td>Not monitored</td>
     </tr>
+
     <tr>
-        <th>Actions</th>
+        <th>Subnet</th>
+        <td>{{ prefix.net_address|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>VLAN</th>
+        <td>{{ prefix.vlan.vlan|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Ident</th>
+        <td>{{ prefix.vlan.net_ident|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Usage</th>
+        <td>{{ prefix.vlan.usage|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Description</th>
+        <td>{{ prefix.vlan.description|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Organization</th>
+        <td>{{ prefix.vlan.organization|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Optional #1</th>
+        <td>{{ prefix.vlan.organization.optional_1|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Optional #2</th>
+        <td>{{ prefix.vlan.organization.optional_2|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Optional #3</th>
+        <td>{{ prefix.vlan.organization.optional_3|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>Last active</th>
         <td>
-            <ul>
-                <li><a href="{% url ipinfo-host host_info.host %}">
-                    View in IP Info</a></li>
-            </ul>
+        {% ifequal dt_max arp.end_time %}
+        Right now
+        {% else %}
+        {{ arp.end_time|date|default:"Never" }}
+        {{ arp.end_time|time }}
+        {% endifequal %}
         </td>
     </tr>
+
+    <tr>
+        <th>Last seen with MAC</th>
+        <td>{{ arp.mac|default:"N/A" }}</td>
+    </tr>
+
 {% endif %}
 </table>
 </div>
@@ -352,12 +404,12 @@
                 {% if alert_info.is_more_alerts %}
                     Showing {{ alert_info.alerts|length }} of
                     {{ alert_info.count }} alerts, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">
                     Device History</a> for all
                 {% else %}
                     {{ alert_info.alerts|length }}
                     alert{{ alert_info.alerts|length|pluralize }} found, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">Device History</a> for details
                 {% endif %}
             </th>
         </tr>
@@ -415,7 +467,8 @@
 {% endif %}
 
 
-{% if netbox and netbox.module_set.count %}
+{% if netbox %}
+{% if netbox.module_set.count or netbox.interface_set.count %}
 
 <div id="ports">
     <div class="tabs">
@@ -465,6 +518,7 @@
     </div>
 </div>
 
+{% endif %}
 {% endif %}
 
 {% endblock %}

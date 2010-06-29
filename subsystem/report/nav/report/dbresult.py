@@ -18,7 +18,7 @@
 """Represents the meta information and result from a database query."""
 
 from nav import db
-import psycopg
+import psycopg2
 
 class DatabaseResult:
     """
@@ -30,11 +30,10 @@ class DatabaseResult:
         Does everything in the constructor. queries and returnes the values
         from the database, according to the configuration
 
-        - reportConfig : the configuration to use when
+        - reportConfig : a ReportConfig object containing the SQL query.
         """
 
         self.sql = ""
-        self.originalSQL = ""
         self.result = []
         self.rowcount = 0
         self.sums = {}
@@ -42,12 +41,9 @@ class DatabaseResult:
         self.hidden = []
 
         connection = db.getConnection('default')
-
         database = connection.cursor()
 
         self.sql = reportConfig.makeSQL()
-        sql = reportConfig.orig_sql
-        self.originalSQL = sql
 
         ## Make a dictionary of which columns to summarize
         self.sums = dict([(sum_key, '') for sum_key in reportConfig.sum])
@@ -56,9 +52,15 @@ class DatabaseResult:
             database.execute(self.sql)
             self.result = database.fetchall()
 
-            ## Total count of the rows returned - no need for SQL query.
+            # A list of the column headers.
+            col_head = []
+            for col in range(0, len(database.description)):
+                col_head.append(database.description[col][0])
+            reportConfig.sql_select = col_head
+
+            ## Total count of the rows returned.
             self.rowcount = len(self.result)
 
-        except psycopg.ProgrammingError,p:
+        except psycopg2.ProgrammingError,p:
             #raise ProblemExistBetweenKeyboardAndChairException
             self.error = "Configuration error! The report generator is not able to do such things. " + str(p)

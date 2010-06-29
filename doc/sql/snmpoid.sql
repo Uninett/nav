@@ -24,7 +24,7 @@ VALUES ('3cHwVer','1.3.6.1.4.1.43.10.27.1.1.1.11','Hardware version number','3co
 
 DELETE FROM snmpoid WHERE oidkey='3cIfDescr';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('3cIfDescr','1.3.6.1.2.1.2.2.1.2','3Com ifDescr for port and unit','3com','1','.*(Unit|Port) (\\d+)\\b.*','1','ifDescr','IF-MIB');
+VALUES ('3cIfDescr','1.3.6.1.2.1.2.2.1.2','3Com ifDescr for port and unit','3com','1',E'.*(Unit|Port) (\\d+)\\b.*','1','ifDescr','IF-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='3cIfMauType';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -108,7 +108,7 @@ VALUES ('cCardIndex','1.3.6.1.4.1.9.3.6.11.1.1','Slot card type','Cisco','1',NUL
 
 DELETE FROM snmpoid WHERE oidkey='cCardSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('cCardSerial','1.3.6.1.4.1.9.3.6.11.1.4','Slot card serial','Cisco','1','[^0]|\\w{2,}','0','cardSerial','OLD-CISCO-CHASSIS-MIB');
+VALUES ('cCardSerial','1.3.6.1.4.1.9.3.6.11.1.4','Slot card serial','Cisco','1',E'[^0]|\\w{2,}','0','cardSerial','OLD-CISCO-CHASSIS-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='cCardSlotNumber';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -633,14 +633,6 @@ VALUES ('sysUpTime','1.3.6.1.2.1.1.3.0','','mib-II','0',NULL,'0','sysUpTime','SN
 DELETE FROM snmpoid WHERE oidkey='sysname';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('sysname','1.3.6.1.2.1.1.5.0','all',NULL,'0',NULL,'0','sysName','SNMPv2-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='tempInlet';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('tempInlet','1.3.6.1.4.1.9.9.13.1.3.1.3.1','','Cricket','0',NULL,'0','ciscoEnvMonTemperatureStatusValue','CISCO-ENVMON-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='tempOutlet';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('tempOutlet','1.3.6.1.4.1.9.9.13.1.3.1.3.3','','Cricket','0',NULL,'0','ciscoEnvMonTemperatureStatusValue','CISCO-ENVMON-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='typeoid';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)

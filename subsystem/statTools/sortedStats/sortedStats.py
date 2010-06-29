@@ -26,13 +26,13 @@
 from mod_python import apache
 import nav, nav.path
 from nav import web, db
-from nav.db import manage
 from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.URI import URI
 
 import threading
 import time
 import re
+import psycopg2.extras
 
 import nav.rrd.presenter
 import nav.db
@@ -217,7 +217,7 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
     # Connect to database
     conn = nav.db.getConnection('default')
 
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Values skipped because of 'nan' or 0
     totalskip = 0
@@ -238,7 +238,7 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
     dslist = []
     units = ""
     # Put each ds in a dict with descriptor
-    for row in cur.dictfetchall():
+    for row in cur.fetchall():
         units = row['units']
         directory = row['path']
         #directory = re.sub(".*/([^\/]+)$", "\\1", directory)

@@ -22,10 +22,10 @@
 ##
 ## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
-#import mx.DateTime
+#import datetime
 ## FIXME: %Z can be empty, but we should always give a timezone such as
 ## '+02:00' for CEST and '+01:00' for CET
-#set $lastBuildDate = mx.DateTime.now().strftime('%a, %d %b %Y %H:%M:%S %Z')
+#set $lastBuildDate = datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %Z')
 <?xml version="1.0" encoding="utf-8"?>
 
 <rss version="2.0">

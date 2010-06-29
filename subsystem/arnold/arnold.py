@@ -1,37 +1,26 @@
 #!/usr/bin/env python
 #
-# Copyright 2008 Norwegian University of Science and Technology
+# Copyright 2008 (C) Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
-# Credits
-#
-
-__copyright__ = "Copyright 2008 Norwegian University of Science and Technology"
-__license__ = "GPL"
-__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
-
-
 from optparse import OptionParser
 import ConfigParser
 import logging
 import os, sys, re
 import getpass
+
+import psycopg2.extras
 
 # NAV libraries
 import nav.buildconf
@@ -143,7 +132,7 @@ must be set if state is quarantine")
 
     elif opts.listblocked:
         conn = getConnection('default', 'arnold')
-        c = conn.cursor()
+        c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         q = """SELECT identityid, mac, ip, netbios, blocked_status AS status
         FROM identity
@@ -158,7 +147,7 @@ must be set if state is quarantine")
             sys.exit(1)
             
         if c.rowcount > 0:
-            rows = c.dictfetchall()
+            rows = c.fetchall()
             format = "%-4s %-15s %-17s %-16s %s"
             print format  %('ID','IP','MAC', 'NETBIOS','STATUS')
             for row in rows:

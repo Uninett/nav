@@ -1,28 +1,20 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007-2008 UNINETT AS
+# Copyright (C) 2007, 2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>,
-#          Thomas Adamcik <thomas.adamcik@uninett.no>
-#
-
 """
 The NAV Alert Engine daemon (alertengine)
 
@@ -32,11 +24,6 @@ eventengine and sends put alerts to users based on user defined profiles.
 Usage: alertengine [--test] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
 """
 # FIXME missing detailed usage
-
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
-__id__ = "$Id$"
 
 import getopt
 import logging
@@ -144,10 +131,14 @@ def main(args):
     # Daemonize
     if not opttest:
         try:
-            nav.daemon.daemonize(pidfile)
+            nav.daemon.daemonize(pidfile,
+                                 stderr=nav.logs.get_logfile_from_logger())
         except nav.daemon.DaemonError, e:
             logger.error(e)
             sys.exit(1)
+
+    # Stop logging explicitly to stderr
+    loguninitstderr()
 
     # Reopen log files on SIGHUP
     signal.signal(signal.SIGHUP, signalhandler)
@@ -206,6 +197,8 @@ def signalhandler(signum, _):
     if signum == signal.SIGHUP:
         logger.info('SIGHUP received; reopening log files.')
         nav.logs.reopen_log_files()
+        nav.daemon.redirect_std_fds(
+            stderr=nav.logs.get_logfile_from_logger())
         logger.info('Log files reopened.')
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down')
@@ -246,6 +239,13 @@ def loginitstderr(loglevel):
          "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
          % error
         return False
+
+def loguninitstderr():
+    """Remove the stderr StreamHandler from the root logger."""
+    for hdlr in logging.root.handlers:
+        if isinstance(hdlr, logging.StreamHandler) and hdlr.stream is sys.stderr:
+            logging.root.removeHandler(hdlr)
+            return True
 
 def loginitsmtp(loglevel, mailaddr, mailserver):
     """Initalize the logging handler for SMTP."""

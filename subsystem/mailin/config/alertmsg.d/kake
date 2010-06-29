@@ -1,0 +1,18 @@
+kake {
+  default {
+    email {
+      no {
+        Subject: $subject
+        $body
+      }
+      en {
+        Subject: $subject
+        $body
+      }
+    }
+    sms {
+      en: $subject
+      no: $subject
+    }
+  }
+}

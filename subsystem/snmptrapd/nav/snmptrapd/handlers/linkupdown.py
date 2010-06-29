@@ -1,21 +1,31 @@
-"""
-NAV snmptrapd handler plugin to handle LINKUP and LINKDOWN traps from
+#
+# Copyright 2007, 2010 (C) Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""NAV snmptrapd handler plugin to handle LINKUP and LINKDOWN traps from
 network equipment.
+
 """
 import logging
 import nav.errors
 import re
+import psycopg2.extras
+
 from nav.db import getConnection
 from nav.event import Event
 
 logger = logging.getLogger('nav.snmptrapd.linkupdown')
-
-__copyright__ = "Copyright 2007 Norwegian University of Science and " \
-                "Technology\n" \
-                "Copyright 2007 UNINETT AS"
-__license__ = "GPL"
-__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
-
 
 def handleTrap(trap, config=None):
     """
@@ -24,7 +34,7 @@ def handleTrap(trap, config=None):
     accepted.
     """
     db = getConnection('default')
-    c = db.cursor()
+    c = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Linkstate-traps are generictypes. Check for linkup/down and post
     # events on eventq.
@@ -53,8 +63,8 @@ def handleTrap(trap, config=None):
                        LEFT JOIN type USING (typeid)
                        WHERE ip = %s"""
             logger.debug(query)
-            c.execute(query, (trap.src,))
-            res = c.dictfetchone()
+            c.execute(query, (trap.agent,))
+            res = c.fetchone()
 
             netboxid = res['netboxid']
 
@@ -64,34 +74,19 @@ def handleTrap(trap, config=None):
             logger.error("Error when querying database: %s" %why)
 
 
-        # Find swportid
-        idquery = """SELECT swportid, module.deviceid, module.module,
-                            swport.interface
+        # Find interfaceid
+        idquery = """SELECT interfaceid, module.deviceid, module.module,
+                            interface.ifdescr
                      FROM netbox
-                     LEFT JOIN module USING (netboxid)
-                     LEFT JOIN swport USING (moduleid)
+                     JOIN module USING (netboxid)
+                     JOIN interface USING (moduleid)
                      WHERE ip=%s AND ifindex = %s""" 
         logger.debug(idquery)
         try:
-            c.execute(idquery, (trap.src, ifindex))
+            c.execute(idquery, (trap.agent, ifindex))
         except nav.db.driver.ProgrammingError, why:
             logger.error(why)
             return False
-
-        # If no swportid is found, check gwport
-        if c.rowcount < 1:
-            idquery = """SELECT gwportid, module.deviceid, module.module,
-            gwport.interface
-            FROM netbox
-            LEFT JOIN module USING (netboxid)
-            LEFT JOIN gwport USING (moduleid)
-            WHERE ip=%s AND ifindex = %s""" 
-            logger.debug(idquery)
-            try:
-                c.execute(idquery, (trap.src, ifindex))
-            except nav.db.driver.ProgrammingError, why:
-                logger.error(why)
-                return False
 
         # If no rows returned, exit
         if c.rowcount < 1:
@@ -99,7 +94,7 @@ def handleTrap(trap, config=None):
                          %(ifindex, trap.src))
             return False
         
-        idres = c.dictfetchone()
+        idres = c.fetchone()
 
         # Subid is swportid in this case
         subid = idres['swportid']

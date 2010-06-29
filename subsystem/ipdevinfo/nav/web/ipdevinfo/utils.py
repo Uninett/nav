@@ -1,33 +1,25 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 UNINETT AS
+# Copyright (C) 2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
-#
-
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 
 import nav.util
 
-def get_module_view(module_object, perspective, activity_interval=None):
+from nav.models.manage import LINK_UP, LINK_DOWN, LINK_DOWN_ADM 
+
+def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
     Returns a dict structure of ports on the module with additional meta
     information.
@@ -49,31 +41,39 @@ def get_module_view(module_object, perspective, activity_interval=None):
         'ports': [],
     }
 
+    ports = None
     if perspective in ('swportstatus', 'swportactive'):
-        ports = module_object.get_swports_sorted()
+        if not module_object and netbox:
+            ports = [p for p in netbox.get_swports_sorted() if not p.module]
+        else:
+            ports = module_object.get_swports_sorted()
     elif perspective == 'gwportstatus':
-        ports = module_object.get_gwports_sorted()
+        if not module_object and netbox:
+            ports = [p for p in netbox.get_gwports_sorted() if not p.module]
+        else:
+            ports = module_object.get_gwports_sorted()
 
-    for port_object in ports:
-        port = {'object': port_object}
+    if ports:
+        for port_object in ports:
+            port = {'object': port_object}
 
-        if perspective == 'swportstatus':
-            port['class'] = _get_swportstatus_class(port_object)
-            port['style'] = ''
-            port['title'] = _get_swportstatus_title(port_object)
-        elif perspective == 'swportactive':
-            port['class'] = _get_swportactive_class(
-                port_object, activity_interval)
-            port['style'] = _get_swportactive_style(
-                port_object, activity_interval)
-            port['title'] = _get_swportactive_title(
-                port_object, activity_interval)
-        elif perspective == 'gwportstatus':
-            port['class'] = _get_gwportstatus_class(port_object)
-            port['style'] = ''
-            port['title'] = _get_gwportstatus_title(port_object)
+            if perspective == 'swportstatus':
+                port['class'] = _get_swportstatus_class(port_object)
+                port['style'] = ''
+                port['title'] = _get_swportstatus_title(port_object)
+            elif perspective == 'swportactive':
+                port['class'] = _get_swportactive_class(
+                    port_object, activity_interval)
+                port['style'] = _get_swportactive_style(
+                    port_object, activity_interval)
+                port['title'] = _get_swportactive_title(
+                    port_object, activity_interval)
+            elif perspective == 'gwportstatus':
+                port['class'] = _get_gwportstatus_class(port_object)
+                port['style'] = ''
+                port['title'] = _get_gwportstatus_title(port_object)
 
-        module['ports'].append(port)
+            module['ports'].append(port)
 
     return module
 
@@ -81,11 +81,11 @@ def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
 
     classes = ['port']
-    if swport.link == swport.LINK_UP and swport.speed:
+    if swport.get_link_status() == LINK_UP and swport.speed:
         classes.append('Mb%d' % swport.speed)
-    if swport.link == swport.LINK_DOWN_ADM:
+    if swport.get_link_status() == LINK_DOWN_ADM:
         classes.append('disabled')
-    elif swport.link != swport.LINK_UP:
+    elif swport.get_link_status() != LINK_UP:
         classes.append('passive')
     if swport.trunk:
         classes.append('trunk')
@@ -101,14 +101,14 @@ def _get_swportstatus_title(swport):
 
     title = []
 
-    if swport.interface:
-        title.append(swport.interface)
+    if swport.ifname:
+        title.append(swport.ifname)
 
-    if swport.link == swport.LINK_UP and swport.speed:
+    if swport.get_link_status() == LINK_UP and swport.speed:
         title.append('%d Mbit' % swport.speed)
-    elif swport.link == swport.LINK_DOWN_ADM:
+    elif swport.get_link_status() == LINK_DOWN_ADM:
         title.append('disabled')
-    elif swport.link != swport.LINK_UP:
+    elif swport.get_link_status() != LINK_UP:
         title.append('not active')
 
     if swport.duplex:
@@ -120,8 +120,8 @@ def _get_swportstatus_title(swport):
     if swport.trunk:
         title.append('trunk')
 
-    if swport.port_name:
-        title.append('"%s"' % swport.port_name)
+    if swport.ifalias:
+        title.append('"%s"' % swport.ifalias)
 
     try:
         if swport.to_netbox:
@@ -142,7 +142,7 @@ def _get_swportactive_class(swport, interval=30):
 
     classes = ['port']
 
-    if swport.link == swport.LINK_UP:
+    if swport.get_link_status() == LINK_UP:
         classes.append('active')
         classes.append('link')
     else:
@@ -165,7 +165,7 @@ def _get_swportactive_style(swport, interval=30):
 
     style = ''
 
-    if swport.link == swport.LINK_UP:
+    if swport.get_link_status() == LINK_UP:
         style = 'background-color: #%s;' % nav.util.colortohex(
             gradient[0])
     else:
@@ -181,10 +181,10 @@ def _get_swportactive_title(swport, interval=30):
 
     title = []
 
-    if swport.interface:
-        title.append(swport.interface)
+    if swport.ifname:
+        title.append(swport.ifname)
 
-    if swport.link == swport.LINK_UP:
+    if swport.get_link_status() == LINK_UP:
         title.append('link now')
     else:
         active = swport.get_active_time(interval)
@@ -198,8 +198,8 @@ def _get_swportactive_title(swport, interval=30):
         else:
             title.append('free')
 
-    if swport.port_name:
-        title.append('"%s"' % swport.port_name)
+    if swport.ifalias:
+        title.append('"%s"' % swport.ifalias)
 
     return ', '.join(title)
 
@@ -216,14 +216,14 @@ def _get_gwportstatus_title(gwport):
 
     title = []
 
-    if gwport.interface:
-        title.append(gwport.interface)
+    if gwport.ifname:
+        title.append(gwport.ifname)
 
     if gwport.speed:
         title.append('%d Mbit' % gwport.speed)
 
-    if gwport.port_name:
-        title.append('"%s"' % gwport.port_name)
+    if gwport.ifalias:
+        title.append('"%s"' % gwport.ifalias)
 
     try:
         if gwport.to_netbox:

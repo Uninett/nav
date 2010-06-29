@@ -33,7 +33,7 @@ is used at a time.
 
 import threading
 import checkermap
-import psycopg
+import psycopg2
 import Queue
 import time
 import atexit
@@ -54,6 +54,9 @@ def db():
 class dbError(Exception):
     pass
 
+class UnknownRRDFileError(Exception):
+    pass
+
 class _db(threading.Thread):
     _instance=None
     def __init__(self):
@@ -66,11 +69,12 @@ class _db(threading.Thread):
     def connect(self):
         try:
             conn_str = get_connection_string(script_name='servicemon')
-            self.db = psycopg.connect(conn_str)
+            self.db = psycopg2.connect(conn_str)
             atexit.register(self.db.close)
 
             debug("Successfully (re)connected to NAVdb")
-            self.db.autocommit(0)
+            # Set transaction isolation level to READ COMMITTED
+            self.db.set_isolation_level(1)
         except Exception, e:
             debug("Couldn't connect to db.", 2)
             debug(str(e),2)
@@ -129,7 +133,7 @@ class _db(threading.Thread):
                     self.db.commit()
                 except:
                     debug("Failed to commit", 2)
-        except psycopg.IntegrityError, e:
+        except psycopg2.IntegrityError, e:
             debug(str(e), 2)
             debug("Throwing away update...", 2)
         except Exception, e:
@@ -259,6 +263,35 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         debug("Returned %s checkers" % len(self._checkers))
         return self._checkers
 
+
+    def verify_rrd(self, path, filename):
+        """Verifies that a given RRD file is registered in the db.
+
+        Returns: The netboxid of the netbox to which this RRD file belongs.
+
+        If the RRD file is unknown, a UnknownRRDFileError is raised.
+
+        BUGS: Big gaping hole: Does not use parameterized SQL statement.
+        """
+        statement = \
+            """SELECT rrd_fileid, netboxid FROM rrd_file
+               WHERE path='%s' AND
+                     filename='%s'""" % (path, filename)
+        rows = self.query(statement)
+        if len(rows) > 0:
+            (rrd_fileid, netboxid) = rows[0]
+            return netboxid
+        raise UnknownRRDFileError(path, filename)
+
+    def reconnect_rrd(self, path, filename, netboxid):
+        """Reconnects a known, disconnected RRD file with a netboxid."""
+        statement = \
+            """UPDATE rrd_file
+               SET netboxid=%d
+               WHERE path='%s' AND
+                     filename='%s' AND
+                     netboxid IS NULL""" % (netboxid, path, filename)
+        return self.execute(statement)
 
     def registerRrd(self, path, filename, step, netboxid, subsystem, key="",val=""):
         rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]

@@ -1,3 +1,216 @@
+Version 3.6.0b3
+(released 24 June 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#338655 (DNS checker doesn't report version)
+  * LP#502877 (Default Location and Organisation in install)
+  * LP#567840 (missing alertmsg.conf for cisco AP trap)
+  * LP#589033 (SQL syntax errors in Arnold)
+  * LP#591671 (snmptrapd only supports pysnmp2)
+  * LP#593555 (Setting for default smtp-server)
+  * LP#593645 (Arnold sends all e-mail to author's hard-coded address)
+  * LP#595943 (ipdevpoll IntegrityError on insert/update to vlan table)
+  * LP#595944 (ipdevpoll TypeError: unsupported operand type(s) for /:
+               'NoneType' and 'float')
+  * LP#596813 (Adding a new netbox crashes)
+  * LP#596841 (Multiple vlans returned on lookup cause ipdevpoll crash)
+  * LP#596857 (ipv6 prefixes are not collected for some Cisco devices)
+  * LP#597579 (db trigger causes deadlocks in ipdevpoll)
+  * LP#597589 (ipdevpoll does not check for interface mac address validity)
+
+Version 3.6.0b2
+(released 10 June 2010)
+
+  * LP#567840 (missing alertmsg.conf for cisco AP trap)
+  * LP#588270 (Error: 'column "to_intefaceid" of relation "swp_netbox" does not
+               exist' in getBoksMacs)
+  * LP#588669 (Switch port statistics are lost on upgrade to NAV 3.6.0b1)
+  * LP#588676 (migrate_cricket.py says "No such file", with no indication of
+               what file is missing)
+  * LP#588700 (snmptrapd dies when using psycopg 2.0.7)
+  * LP#588742 (pysnmp2 and pysnmp-se conflict)
+  * LP#589087 (getBoksMacs error: column "swportid" does not exist)
+  * LP#589597 (ipdevpoll not installed during regular make install)
+  * LP#590747 (ipdevpoll leaks memory)
+  * LP#591244 (ipdevpoll idles in transactions)
+
+Version 3.6.0b1.1
+(released 26 May 2010)
+
+ An update to the b1 release with corrections to the database schema
+ initialization and upgrade scripts, some of which were missing from the
+ previous release.
+
+ Bugfixes:
+
+   * LP#585535 (manage.sql script broken in 3.6.0b1)
+   * LP#585539 (DB upgrade script missing from 3.6.0b1)
+
+Version 3.6.0b1
+(released 21 May 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes substantial changes to the NAV database. If  ##
+## you are upgrading from a previous release you also need to      ##
+## upgrade your database schema. For information on how to upgrade ##
+## the database schema, please take a look in                      ##
+## doc/sql/upgrades/README . See also the release NOTES for more   ##
+## upgrade info.                                                   ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * Main SNMP collector rewritten from scratch, using Python.  The new design
+    specifically avoids Cisco-centric assumptions, and should improve equipment
+    support over time.
+
+  * Various improvements to the data model:
+
+    - All interfaces are now registered in the same table.  Switch ports have
+      switch port numbers, while router ports have (layer 3) IP addresses
+      attached.  Interfaces of seemingly other categories are also registered.
+
+    - Allows interfaces to relate directly to an IP device.  This also means
+      that NAV will no longer create fake modules for chassis-only devices.
+
+    - Modules are now identified by textual names, not integers.  This is to
+      support vendors that do not necessarily number modules.
+
+  * MailIn, a framework for parsing e-mail alerts from third party systems and
+    injecting events into NAV's event and alert queue.
+
+  * Enhanced report tool flexibility.  Reports now support any valid
+    PostgreSQL statement.
+
+  * The report tool can now export results to downloadable CSV files.
+
+  * Added a simple availability report summarizing all downtime during the last
+    month.
+
+  * Ignoring resolved alerts is now supported when queueing alerts in an alert
+    profile.
+
+  * The defunct device management tool has been replaced by a pure Device
+    history tool.
+
+  * The IP Info tool has been merged into the IP Device Info tool.
+
+  * The Machine Tracker has been rewritten using Django.
+
+  * Makecricketconfig has been rewritten in Python, and allows for more
+    flexibility in configuring Cricket for statistics collection.
+
+  * forgetSQL and psycopg1 dependencies have been removed.
+
+ Bugfixes:
+
+  * LP#483524 (Arnold: Make mistaken enabling of ports less likely)
+  * LP#425700 (Arnold mac-search)
+  * LP#411817 (logengine shouldn't delete messages on every run)
+  * LP#393471 (Maintenance engine does not post on event queue)
+  * LP#333208 (Unable to rename parent organizations)
+
+
+Version 3.5.6
+(released 07 April 2010)
+
+Bugfixes:
+
+  * LP#538001 (Inconsistency in ARP records)
+  * LP#540213 (Confusing debug output in Alert Profiles)
+  * LP#451933 (getBoksMacs SQL error: "insufficient data left in message")
+  * LP#390577 (Wrong network sort order in prefix report)
+  * LP#550738 (createdb.sh fails to set schema search path)
+  * LP#551499 (Cricket cron job fails when using default autconf settings)
+
+Version 3.5.5
+(released 16 February 2010)
+
+Bugfixes:
+
+  * LP#383854 (Netmap RRD-values does not look for high speed data)
+  * LP#390606 (Radius-GUI menu-tabs doesn't show)
+  * LP#392475 (No such file or directory: '/etc/nav/rrdBrowser.conf')
+  * LP#395091 (cleanrrds.pl does not support timeformat from gfind)
+  * LP#395185 (Adding new components to a existing maintenance task forces you
+               to create a new task)
+  * LP#410168 (Alert Profiles crashes on filter deletion)
+  * LP#412996 (Invalid Reports URL after login)
+  * LP#416833 (Switch port report's links to machinetracker are faulty)
+  * LP#419750 (Multiple Cheetah templates fail to compile due to wrong
+               encoding)
+  * LP#436589 (Radius link to session-details lead to wrong session)
+  * LP#450279 (UnboundLocalErrors cause smsd crash)
+  * LP#485725 (uninettmaildispatcher plugin throws python NameError on SMTP
+               server error)
+  * LP#485785 (Alertengine requires SMTP server on localhost)
+  * LP#492188 (Missing 404.html - Django error in NAV-3.5.4)
+  * LP#494036 (AlertEngine does not handle inconsistent database state)
+  * LP#515400 (Jabber dispatcher blocks due to hanging jabber-server blocking
+               alertengine)
+  * LP#520505 (Alertengine reinitialises handlers for every send)
+
+Version 3.5.4
+(released 14 May 2009)
+
+Regressions:
+
+  * LP#376430 (Web login fails under Python >= 2.5)
+
+
+Version 3.5.3
+(released 13 May 2009)
+
+New feature:
+
+  * getBoksMacs (the camlogger) will attempt to retrieve the list of active
+    VLANs on a Cisco device directly, to ensure it has an updated and accurate
+    list of separate forwarding databases.  This should mostly solve the
+    problem described in the currently last question of the NAV FAQ.
+
+Bugfixes:
+
+  * LP#276248 (Small css rendering bug in MachineTracker)
+  * LP#324769 (netmap: lines do not terminate on the router)
+  * LP#338638 (DC service checker doesn't work)
+  * LP#338649 (DNS service checker doesn't work)
+  * LP#338715 (RPC service checker doesn't work)
+  * LP#338725 (SMB service checker doesn't work)
+  * LP#341575 (ipdevinfo service list crashes)
+  * LP#344140 (dnsMismatch shown as Downtime in IP Device Info)
+  * LP#345783 (IP Device Availability shown as N/A, should be 100%)
+  * LP#345853 (DataIOExceptions from Netmap when using Windows)
+  * LP#347226 (AlertEngine mailbombs: AlertQueueMessage matching query does
+               not exist)
+  * LP#347776 (logengine crash on log messages with years in their timestamps)
+  * LP#348853 (AttributeError on Alert Profiles permissions page)
+  * LP#348892 (AlertEngine fails to confirm SMS privilege for non-admin users)
+  * LP#351499 (Advanced search in reports crashes in Internet Explorer)
+  * LP#352236 ("Delete selected" button on My SMS page, but there's nothing to
+               delete.)
+  * LP#352316 (Servicemon dies without a trace)
+  * LP#353121 (No alert information when alerttype is missing from
+               alertmsg.conf)
+  * LP#366032 (Service availability shown as N/A, should be 100%)
+
+
 Version 3.5.2
 (released 17 March 2009)
 
