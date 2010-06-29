@@ -108,7 +108,7 @@ def main(args):
     defaults = {
         'username': 'navcron',
         'delay': '30',
-        'delayfactor': '2',
+        'delayfactor': '1.5',
         'maxdelay': '3600',
         'retrylimit': '0',
         'retrylimitaction': '0',
@@ -127,7 +127,7 @@ def main(args):
     failed = 0
     delay = int(config['main']['delay'])
     maxdelay = int(config['main']['maxdelay'])
-    delayfactor = int(config['main']['delayfactor'])
+    delayfactor = float(config['main']['delayfactor'])
     retrylimit = int(config['main']['retrylimit'])
     retrylimitaction = int(config['main']['retrylimitaction'])
     retryvars = {
