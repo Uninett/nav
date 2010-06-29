@@ -76,7 +76,7 @@ def room_list(request):
         request,
         Room.objects.order_by('id').all(),
         value_list=(
-            'id', 'location_id', 'description', 'optional_1', 'optional_2',
+            'location_id', 'description', 'optional_1', 'optional_2',
             'optional_3', 'optional_4'
         ),
         labels=(
