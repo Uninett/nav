@@ -31,34 +31,34 @@
 
 <h3>Types and vendors</h3>
 <dl>
-    <dt><a href="">Type</a></dt>
+    <dt><a href="{% url seeddb-type %}">Type</a></dt>
     <dd>The type describes the type of network device, uniquely described from the SNMP sysobjectID</dd>
 
-    <dt><a href="">Vendor</a></dt>
+    <dt><a href="{% url seeddb-vendor %}">Vendor</a></dt>
     <dd>Register the vendors that manufacture equipment that are represented in your network.</dd>
 
     <dt><a href="">SNMP oid</a></dt>
     <dd>Manually add snmpoids (candidates for the cricket collector)</dd>
 
-    <dt><a href="">Subcategory</a></dt>
+    <dt><a href="{% url seeddb-subcategory %}">Subcategory</a></dt>
     <dd>The main categories of a device are predefined by NAV (i.e. GW,SW,SRV). You may however create subcategories yourself.</dd>
 </dl>
 
 <h3>Vlans and special subnets</h3>
 <dl>
-    <dt><a href="">Vlan</a></dt>
+    <dt><a href="{% url seeddb-vlan %}">Vlan</a></dt>
     <dd>Register the vlan number that are in use (this info may also be derived automatically from the routers)</dd>
 
-    <dt><a href="">Prefix</a></dt>
+    <dt><a href="{% url seeddb-prefix %}">Prefix</a></dt>
     <dd>Register special ip prefixes. Typically reserved prefixes or prefixes that are not directly connected to monitored routers/firewalls fall into this category</dd>
 </dl>
 
 <h3>Cabling system</h3>
 <dl>
-    <dt><a href="">Cabling</a></dt>
+    <dt><a href="{% url seeddb-cabling %}">Cabling</a></dt>
     <dd>Here you may document the horizontal cabling system</dd>
 
-    <dt><a href="">Patch</a></dt>
+    <dt><a href="{% url seeddb-patch %}">Patch</a></dt>
     <dd>Register the cross connects in the wiring closets</dd>
 </dl>
 

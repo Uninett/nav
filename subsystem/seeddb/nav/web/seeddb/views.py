@@ -21,7 +21,8 @@ from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 from django.views.generic.create_update import update_object
 
-from nav.models.manage import Netbox, Room, Location, Organization, Usage
+from nav.models.cabling import Cabling, Patch
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 
 from nav.web.seeddb.forms import LocationForm
@@ -107,3 +108,77 @@ def usage_list(request):
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-usage-edit', extra_context=extra)
+
+def type_list(request):
+    qs = NetboxType.objects.all()
+    value_list = (
+        'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
+        'tftp')
+    extra = {
+        'title': 'Seed Types',
+        'navpath': NAVPATH_DEFAULT + [('Types', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-type-edit', extra_context=extra)
+
+def vendor_list(request):
+    qs = Vendor.objects.all()
+    value_list = ('id',)
+    extra = {
+        'title': 'Seed Vendors',
+        'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-vendor-edit', extra_context=extra)
+
+def subcategory_list(request):
+    qs = Subcategory.objects.all()
+    value_list = ('id', 'category', 'description')
+    extra = {
+        'title': 'Seed Subcategories',
+        'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-subcategory-edit', extra_context=extra)
+
+def vlan_list(request):
+    qs = Vlan.objects.all()
+    value_list = ('id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident', 'description')
+    extra = {
+        'title': 'Seed Vlan',
+        'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-vlan-edit', extra_context=extra)
+
+def prefix_list(request):
+    qs = Prefix.objects.filter(vlan__net_type__edit=True)
+    value_list = (
+        'net_address', 'vlan__net_type', 'vlan__organization',
+        'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
+    extra = {
+        'title': 'Seed Prefix',
+        'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-prefix-edit', extra_context=extra)
+
+def cabling_list(request):
+    qs = Cabling.objects.all()
+    value_list = ('room', 'jack', 'building', 'target_room', 'category', 'description')
+    extra = {
+        'title': 'Seed Cabling',
+        'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-cabling-edit', extra_context=extra)
+
+def patch_list(request):
+    qs = Patch.objects.all()
+    value_list = ('interface__netbox', 'interface__module', 'interface__baseport', 'cabling__room', 'cabling__jack', 'split')
+    extra = {
+        'title': 'Seed Patch',
+        'navpath': NAVPATH_DEFAULT + [('Patch', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-patch-edit', extra_context=extra)

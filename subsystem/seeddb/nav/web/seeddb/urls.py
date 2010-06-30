@@ -62,18 +62,46 @@ urlpatterns = patterns('',
         name='seeddb-usage-edit'),
 
     # Type
+    url(r'type/$', type_list,
+        name='seeddb-type'),
+    url(r'type/(?P<type>[\d]+)/', dummy, 
+        name='seeddb-type-edit'),
 
     # Vendor
+    url(r'vendor/$', vendor_list,
+        name='seeddb-vendor'),
+    url(r'vendor/(?P<vendor>[\w\d]+)/', dummy,
+        name='seeddb-vendor-edit'),
 
     # SNMPoid
 
     # Subcategory
+    url(r'subcategory/$', subcategory_list,
+        name='seeddb-subcategory'),
+    url(r'subcategory/(?P<subcategory>[\w\d-]+)/', dummy,
+        name='seeddb-subcategory-edit'),
 
     # Vlan
+    url(r'vlan/$', vlan_list,
+        name='seeddb-vlan'),
+    url(r'vlan/(?P<vlan>[\d]+)/', dummy,
+        name='seeddb-vlan-edit'),
 
     # Prefix
+    url(r'prefix/$', prefix_list,
+        name='seeddb-prefix'),
+    url(r'prefix/(?P<prefix>[\d]+)/', dummy,
+        name='seeddb-prefix-edit'),
 
     # Cabling
+    url(r'cabling/$', cabling_list,
+        name='seeddb-cabling'),
+    url(r'cabling/(?P<cabling>[\d]+)/', dummy,
+        name='seeddb-cabling-edit'),
 
     # Patch
+    url(r'patch/$', patch_list,
+        name='seeddb-patch'),
+    url(r'patch/(?P<patch>[\d]+)/', dummy,
+        name='seeddb-patch-edit'),
 )
