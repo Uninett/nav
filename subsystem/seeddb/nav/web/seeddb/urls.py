@@ -48,4 +48,32 @@ urlpatterns = patterns('',
         name='seeddb-location'),
     url(r'^location/(?P<location>[\w\d]+)/', dummy,
         name='seeddb-location-edit'),
+
+    # Organization
+    url(r'organization/$', organization_list,
+        name='seeddb-organization'),
+    url(r'organization/(?P<organization>[\w\d]+)/', dummy,
+        name='seeddb-organization-edit'),
+
+    # Usage category
+    url(r'usage/$', usage_list,
+        name='seeddb-usage'),
+    url(r'usage/(?P<usage>[\w\d]+)/', dummy,
+        name='seeddb-usage-edit'),
+
+    # Type
+
+    # Vendor
+
+    # SNMPoid
+
+    # Subcategory
+
+    # Vlan
+
+    # Prefix
+
+    # Cabling
+
+    # Patch
 )

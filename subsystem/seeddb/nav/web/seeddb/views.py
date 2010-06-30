@@ -21,7 +21,7 @@ from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 from django.views.generic.create_update import update_object
 
-from nav.models.manage import Netbox, Room, Location
+from nav.models.manage import Netbox, Room, Location, Organization, Usage
 from nav.models.service import Service
 
 from nav.web.seeddb.forms import LocationForm
@@ -83,3 +83,25 @@ def location_list(request):
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-location-edit', extra_context=extra)
+
+def organization_list(request):
+    qs = Organization.objects.all()
+    value_list = (
+        'id', 'parent', 'description', 'optional_1', 'optional_2',
+        'optional_3')
+    extra = {
+        'title': 'Seed Organizations',
+        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Organizations', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-organization-edit', extra_context=extra)
+
+def usage_list(request):
+    qs = Usage.objects.all()
+    value_list = ('id', 'description')
+    extra = {
+        'title': 'Seed Usage Categories',
+        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Usage Categories', None)]
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-usage-edit', extra_context=extra)
