@@ -38,67 +38,48 @@ def index(request):
     )
 
 def netbox_list(request):
-    return render_seeddb_list(
-        request,
-        Netbox.objects.select_related(
-            'device', 'type'
-        ).order_by('sysname').all(),
-        value_list=('room_id', 'ip', 'category_id', 'organization_id', 'read_only', 'read_write', 'type__name', 'device__serial'),
-        labels=(
-            'Room', 'Sysname', 'IP', 'Category', 'Organization', 'RO',
-            'RW', 'Type', 'Serial'
-        ),
-        edit_url='seeddb-netbox-edit',
-        edit_url_attr='sysname',
-        extra_context={
-            'title': 'Seed IP devices',
-            'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('IP devices', None)],
-        }
+    qs = Netbox.objects.all()
+    value_list = (
+        'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
+        'read_write', 'type__name', 'device__serial'
     )
+    extra = {
+        'title': 'Seed IP devices',
+        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('IP devices', None)],
+    }
+
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-netbox-edit', edit_url_attr='sysname',
+        extra_context=extra)
 
 def service_list(request):
-    return render_seeddb_list(
-        request,
-        Service.objects.select_related(
-            'netbox'
-        ).order_by('netbox__sysname').all(),
-        value_list=('netbox__sysname', 'handler', 'version'),
-        labels=('Server', 'Handler', 'Version'),
-        edit_url='seeddb-service-edit',
-        extra_context={
-            'title': 'Seed services',
-            'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Services', None)],
-        }
-    )
+    qs = Service.objects.all()
+    value_list = ('netbox__sysname', 'handler', 'version')
+    extra = {
+        'title': 'Seed services',
+        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Services', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-service-edit', extra_context=extra)
 
 def room_list(request):
-    return render_seeddb_list(
-        request,
-        Room.objects.order_by('id').all(),
-        value_list=(
-            'location_id', 'description', 'optional_1', 'optional_2',
-            'optional_3', 'optional_4'
-        ),
-        labels=(
-            'Room', 'Location', 'Description', 'Optional 1', 'Optional 2',
-            'Optional 3', 'Optional 4'
-        ),
-        edit_url='seeddb-room-edit',
-        extra_context={
-            'title': 'Seed rooms',
-            'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Rooms', None)],
-        }
-    )
+    qs = Room.objects.all()
+    value_list = (
+        'id', 'location', 'description', 'optional_1', 'optional_2',
+        'optional_3', 'optional_4')
+    extra = {
+        'title': 'Seed rooms',
+        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Rooms', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-room-edit', extra_context=extra)
 
 def location_list(request):
-    return render_seeddb_list(
-        request,
-        Location.objects.order_by('id').all(),
-        value_list=('description',),
-        labels=('Location', 'Description'),
-        edit_url='seeddb-location-edit',
-        extra_context={
-            'title': 'Seed Locations',
-            'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Locations', None)],
-        }
-    )
+    qs = Location.objects.all()
+    value_list = ('id', 'description')
+    extra = {
+        'title': 'Seed Locations',
+        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Locations', None)],
+    }
+    return render_seeddb_list(request, qs, value_list,
+        edit_url='seeddb-location-edit', extra_context=extra)
