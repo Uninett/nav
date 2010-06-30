@@ -84,6 +84,14 @@ class _db(threading.Thread):
             debug(str(e),2)
             self.db=None
 
+    def status(self):
+        try:
+	    if self.db.status:
+	        return 1
+	except:
+	    return 0
+	return 0
+
     def cursor(self):
         try:
             cursor = self.db.cursor()

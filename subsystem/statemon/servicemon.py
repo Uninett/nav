@@ -114,6 +114,10 @@ class controller:
                     s.append(i)
 
             self._checkers=s
+	elif self.db.status and self._checkers:
+	    debug.debug("No checkers left in database, flushing list.")
+	    self._checkers=[]
+
         #randomiserer rekkefølgen på checkerbene
         for i in self._checkers:
             self._checkers.append(self._checkers.pop(int(len(self._checkers)*random.random())))
