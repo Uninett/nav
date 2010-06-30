@@ -27,6 +27,8 @@ from nav.models.service import Service
 from nav.web.seeddb.forms import LocationForm
 from nav.web.seeddb.utils import render_seeddb_list
 
+NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
+
 def index(request):
     return render_to_response(
         'seeddb/index.html',
@@ -45,7 +47,7 @@ def netbox_list(request):
     )
     extra = {
         'title': 'Seed IP devices',
-        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('IP devices', None)],
+        'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
     }
 
     return render_seeddb_list(request, qs, value_list,
@@ -57,7 +59,7 @@ def service_list(request):
     value_list = ('netbox__sysname', 'handler', 'version')
     extra = {
         'title': 'Seed services',
-        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Services', None)],
+        'navpath': NAVPATH_DEFAULT + [('Services', None)],
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-service-edit', extra_context=extra)
@@ -69,7 +71,7 @@ def room_list(request):
         'optional_3', 'optional_4')
     extra = {
         'title': 'Seed rooms',
-        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Rooms', None)],
+        'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-room-edit', extra_context=extra)
@@ -79,7 +81,7 @@ def location_list(request):
     value_list = ('id', 'description')
     extra = {
         'title': 'Seed Locations',
-        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Locations', None)],
+        'navpath': NAVPATH_DEFAULT + [('Locations', None)],
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-location-edit', extra_context=extra)
@@ -91,7 +93,7 @@ def organization_list(request):
         'optional_3')
     extra = {
         'title': 'Seed Organizations',
-        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Organizations', None)],
+        'navpath': NAVPATH_DEFAULT + [('Organizations', None)],
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-organization-edit', extra_context=extra)
@@ -101,7 +103,7 @@ def usage_list(request):
     value_list = ('id', 'description')
     extra = {
         'title': 'Seed Usage Categories',
-        'navpath': [('Home', '/'), ('Seed DB', reverse('seeddb-index')), ('Usage Categories', None)]
+        'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-usage-edit', extra_context=extra)
