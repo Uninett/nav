@@ -19,24 +19,52 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-def render_seeddb_list(request, queryset, value_list, labels, edit_url, edit_url_attr='pk', extra_context={}):
+from nav.django.utils import get_verbose_name
+
+def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='pk', extra_context={}):
+    """Renders a list from the supplied queryset.
+
+       Parameters:
+         - request: django request object
+         - queryset: a queryset with all objects that should be rendered in the
+           list
+         - value_list: tuple with field names, the fields from the queryset
+           that should appear in the list
+         - edit_url: a url (that works with reverse()) to the edit page
+         - edit_url_attr: the name of the field that should be used in the
+           reverse url lookup, defaults to 'pk'
+         - extra_context: everything else that should be in the template
+    """
+    # Get the sort order. Default to the first object in value_list.
+    order_by = request.GET.get('sort')
+    if not order_by or order_by.find('-') not in (-1, 0) or order_by.lstrip('-') not in value_list:
+        order_by = value_list[0]
+
+    # Get a ValuesQuerySet. Make sure 'pk' and the edit_url_attr appears in the
+    # result.
+    query_values = queryset.order_by(order_by).values('pk', edit_url_attr, *value_list)
+
     object_list = list()
-    query_values = queryset.values('pk', edit_url_attr, *value_list)
     for object in query_values:
-        urltitle = object[edit_url_attr]
         row = {
             'pk': object['pk'],
-            'url': (urltitle, reverse(edit_url, args=(urltitle,))),
+            'url': reverse(edit_url, args=(object[edit_url_attr],)),
             'values_list': [object[attr] for attr in value_list],
         }
         object_list.append(row)
+
+    # Get verbose names from fields in value_list. We shall use 'em as labels.
+    labels = [get_verbose_name(queryset.model, value) for value in value_list]
+
     info_dict =  {
         'object_list': object_list,
-        'labels': labels,
+        'labels': zip(labels, value_list),
+        'current_sort': order_by.lstrip('-'),
+        'sort_asc': "-" not in order_by,
     }
-    info_dict.update(extra_context)
+    extra_context.update(info_dict)
     return render_to_response(
         'seeddb/list.html',
-        info_dict,
+        extra_context,
         RequestContext(request)
     )
