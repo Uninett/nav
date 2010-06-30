@@ -49,7 +49,7 @@ def account_processor(request):
     """
     account = get_account(request)
     admin = is_admin(account)
-    messages = Messages(request)
+    messages = Messages(request._req)
     messages = messages.get_and_delete()
 
     navbar = []
@@ -76,13 +76,16 @@ def account_processor(request):
         if p.positions.count('qlink2'):
             qlink2.append(link)
 
-    return {
+    current_user_data = {
         'account': account,
         'is_admin': admin,
         'messages': messages,
         'navbar': navbar,
         'qlink1': qlink1,
         'qlink2': qlink2,
+    }
+    return {
+        'current_user_data': current_user_data,
     }
 
 def nav_version(request):

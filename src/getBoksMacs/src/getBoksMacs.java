@@ -332,11 +332,10 @@ class getBoksMacs
 			}
 		}
 		
-		QueryBoks.mpMap = new HashMap();
-		Map mpMap = QueryBoks.mpMap;
-		rs = Database.query("SELECT interface_swport.netboxid, ifindex, module.name AS module_name, ifname FROM interface_swport LEFT JOIN module USING(moduleid) WHERE ifname IS NOT NULL");
+		QueryBoks.ifNameMap = new HashMap<String, String>();
+		rs = Database.query("SELECT netboxid, ifindex, ifname FROM interface_swport WHERE ifname IS NOT NULL");
 		while (rs.next()) {
-			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module_name"), rs.getString("ifname") } );
+			QueryBoks.ifNameMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("ifname") );
 		}
 
 		// For CAM-logger, alle uavsluttede CAM-records (dvs. alle steder hvor til er null)

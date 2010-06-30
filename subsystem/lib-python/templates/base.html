@@ -63,36 +63,36 @@
                         <button type="submit">Search</button>
                     </form>
                 </td>
-                {% for link in navbar %}
+                {% for link in current_user_data.navbar %}
                 <td class="entry">
                     <a href="{{ link.uri }}" class="navbar">{{ link.name }}</a>
                 </td>
                 {% endfor %}
-                {% if qlink1 %}
+                {% if current_user_data.qlink1 %}
                 <td class="list">
                     <select onchange="return jump(this);">
                         <option selected="selected">Quicklink #1</option>
-                        {% for link in qlink1 %}
+                        {% for link in current_user_data.qlink1 %}
                         <option value="{{ link.uri }}">{{ link.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
                 {% endif %}
-                {% if qlink2 %}
+                {% if current_user_data.qlink2 %}
                 <td class="list">
                     <select onchange="return jump(this);">
                         <option selected="selected">Quicklink #2</option>
-                        {% for link in qlink2 %}
+                        {% for link in current_user_data.qlink2 %}
                         <option value="{{ link.uri }}">{{ link.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
                 {% endif %}
                 <td class="entry">
-                    {% if account.is_default_account %}
+                    {% if current_user_data.account.is_default_account %}
                     <a class="navbar" href="/index/login">Login</a>
                     {% else %}
-                    <a class="navbar" href="/index/logout">Logout {{ account }}</a>
+                    <a class="navbar" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
                     {% endif %}
                 </td>
             </tr>
@@ -115,7 +115,7 @@
 
 {% block base_debug %}
     {% if debug %}
-        {% if not account.is_default_account %}
+        {% if not current_user_data.account.is_default_account %}
             {% include "debug.html" %}
         {% endif %}
     {% endif %}
@@ -128,10 +128,10 @@
         <a href="/about/">Network Administration Visualized</a>
         version {{ nav_version }}
         <br />
-        {% if account.is_default_account %}
+        {% if current_user_data.account.is_default_account %}
         You are not logged in.
         {% else %}
-        You are logged in as <a href="/userinfo/">{{ account.name }}</a>.
+        You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
         {% endif %}
     </p>
 </div>

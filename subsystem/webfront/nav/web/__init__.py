@@ -31,6 +31,7 @@ import logging
 import nav.logs
 
 from nav.models.profiles import Account
+import django.db
 
 logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
@@ -100,6 +101,12 @@ def cleanuphandler(req):
     conns = [v.object for v in db._connectionCache.values()]
     for conn in conns:
         conn.commit()
+
+    # Sometimes django ORM is invoked while inside legacy mod_python handlers,
+    # which causes dangling Django connections and transactions.  Close the
+    # Django connection here to avoid troubles.
+    django.db.connection.close()
+
     # Also make sure the session data is fully persisted
     try:
         req.session.save

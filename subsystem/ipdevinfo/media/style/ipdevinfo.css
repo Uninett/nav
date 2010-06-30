@@ -51,9 +51,18 @@ hr.floatclear {
 	visibility: hidden;
 }
 
+/* Device details table */
+.indent {
+    text-indent: 1em;
+}
+.nowrap {
+	white-space: nowrap;
+}
+
 /* Port view */
 .module {
 	border: 0px;
+	white-space: nowrap;
 }
 .module td {
 	line-height: 1.5em;

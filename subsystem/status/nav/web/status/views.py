@@ -195,8 +195,7 @@ def save_preferences(request):
             section.categories = Category.objects.filter(
                 id__in=form.cleaned_data['categories'])
 
-        new_message(
-            request,
+        new_message(request._req,
             'Saved preferences',
             Messages.SUCCESS
         )
@@ -210,8 +209,7 @@ def save_preferences(request):
             name = StatusPreference.lookup_readable_type(request.POST.get('type'))
             type = None
 
-        new_message(
-            request,
+        new_message(request._req,
             'There were errors in the form below.',
             Messages.ERROR,
         )
@@ -253,8 +251,7 @@ def move_section(request):
             account=account,
         )
     except StatusPreference.DoesNotExist:
-        new_message(
-            request,
+        new_message(request._req,
             'Could not find selected filter',
             Messages.Error
         )
@@ -269,8 +266,7 @@ def move_section(request):
             account=account,
         )
     except StatusPreference.DoesNotExist:
-        new_message(
-            request,
+        new_message(request._req,
             'New position is out of bounds.',
             Messages.ERROR
         )
@@ -284,8 +280,7 @@ def move_section(request):
     other_section.save()
     section.save()
 
-    new_message(
-        request,
+    new_message(request._req,
         'Moved section "%(section)s" %(direction)s' % {
             'section': section.name,
             'direction': direction,
@@ -306,8 +301,7 @@ def delete_section(request):
         account=account,
     ).delete()
 
-    new_message(
-        request,
+    new_message(request._req,
         'Deleted selected sections',
         Messages.SUCCESS
     )
