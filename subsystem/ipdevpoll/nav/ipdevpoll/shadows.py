@@ -184,6 +184,9 @@ class Interface(Shadow):
         if not result:
             return None
         elif len(result) > 1:
+            self._logger.debug(
+                "get_existing_model: multiple matching objects returned. "
+                "query is: %r", result.query.as_sql())
             raise manage.Interface.MultipleObjectsReturned(
                 "get_existing_model: "
                 "Found multiple matching objects for %r" % self)
