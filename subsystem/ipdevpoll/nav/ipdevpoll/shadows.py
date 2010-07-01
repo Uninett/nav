@@ -109,7 +109,6 @@ class Device(Shadow):
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
-    __lookups__ = [('netbox', 'ifname'), ('netbox', 'ifindex')]
 
     @classmethod
     def _find_missing_interfaces(cls, containers):
@@ -161,6 +160,46 @@ class Interface(Shadow):
     def prepare_for_save(cls, containers):
         cls._find_missing_interfaces(containers)
         super(Interface, cls).prepare_for_save(containers)
+
+    def lookup_matching_objects(self, containers):
+        """Finds existing db objects that match this container.
+
+        ifName is a more important identifier than ifindex, as ifindexes may
+        change at any time.  A database migrated from NAV 3.5 may also have a
+        lot of weird or duplicate data, due to sloppiness on getDeviceData's
+        part.
+
+        """
+        query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
+        result = None
+        if self.ifname:
+            result = query.filter(ifname=self.ifname)
+        if not result and self.ifdescr:
+            # this is only likely on a db recently migrated from NAV 3.5
+            result = query.filter(ifname=self.ifdescr,
+                                  ifdescr=self.ifdescr)
+        if len(result) > 1:
+            # Multiple ports with same name? damn...
+            # also filter for ifindex, maybe we get lucky
+            result = result.filter(ifindex=self.ifindex)
+
+        # If none of this voodoo helped, try matching ifindex only
+        if not result:
+            result = query.filter(ifindex=self.ifindex)
+
+        return result
+
+    def get_existing_model(self, containers):
+        """Implements custom logic for finding known interfaces."""
+        result = self.lookup_matching_objects(containers)
+        if not result:
+            return None
+        elif len(result) > 1:
+            raise manage.Interface.MultipleObjectsReturned(
+                "get_existing_model: "
+                "Found multiple matching objects for %r" % self)
+        else:
+            return result[0]
 
 class Location(Shadow):
     __shadowclass__ = manage.Location
