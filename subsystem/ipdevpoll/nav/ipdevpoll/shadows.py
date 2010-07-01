@@ -145,9 +145,35 @@ class Interface(Shadow):
         missing_interfaces.update(gone_since=timestamp)
 
     @classmethod
+    def _delete_missing_interfaces(cls, containers):
+        """Deletes missing interfaces from the database."""
+        netbox = containers.get(None, Netbox)
+        base_query = manage.Interface.objects.filter(
+            netbox__id = netbox.id)
+
+        missing_ifs = base_query.exclude(
+            gone_since__isnull=True).values('pk', 'ifindex')
+
+        # at this time, we only want to delete those gone_interface who appear
+        # to have ifindex duplicates that aren't missing.
+        deleteable = []
+        for missing_if in missing_ifs:
+            dupes = base_query.filter(
+                ifindex=missing_if['ifindex'], gone_since__isnull=True)
+            if dupes.count() > 0:
+                deleteable.append(missing_if['pk'])
+
+        if deleteable:
+            cls._logger.info("(%s) Deleting %d missing interfaces",
+                             netbox.sysname, len(deleteable))
+            manage.Interface.objects.filter(pk__in=deleteable).delete()
+
+
+    @classmethod
     def cleanup_after_save(cls, containers):
         """Cleans up Interface data."""
         cls._mark_missing_interfaces(containers)
+        cls._delete_missing_interfaces(containers)
         super(Interface, cls).cleanup_after_save(containers)
 
     def lookup_matching_objects(self, containers):
