@@ -16,6 +16,7 @@
 #
 
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
@@ -24,9 +25,10 @@ from django.views.generic.create_update import update_object
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
+from nav.web.message import new_message, Messages
 
-from nav.web.seeddb.forms import LocationForm
-from nav.web.seeddb.utils import render_seeddb_list
+from nav.web.seeddb.forms import *
+from nav.web.seeddb.utils import render_seeddb_list, form_magic
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
@@ -77,6 +79,20 @@ def room_list(request):
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-room-edit', extra_context=extra)
 
+def room_edit(request, room_id=None):
+    room = None
+    if room_id:
+        try:
+            room = Room.objects.get(id=room_id)
+        except Room.DoesNotExist:
+            return HttpResponseRedirect(reverse('seeddb-room-edit'))
+    if request.method == 'POST':
+        if room:
+            pass
+        else:
+            pass
+    return
+
 def location_list(request):
     qs = Location.objects.all()
     value_list = ('id', 'description')
@@ -86,6 +102,16 @@ def location_list(request):
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-location-edit', extra_context=extra)
+
+def location_edit(request, location_id=None):
+    return form_magic(
+        request, LocationForm, Location, location_id,
+        error_redirect='seeddb-location-edit',
+        save_redirect='seeddb-location-edit',
+        extra_context={
+            'navpath': NAVPATH_DEFAULT + [('Locations', reverse('seeddb-location'))],
+        }
+    )
 
 def organization_list(request):
     qs = Organization.objects.all()
