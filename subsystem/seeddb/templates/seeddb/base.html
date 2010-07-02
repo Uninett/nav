@@ -2,6 +2,16 @@
 
 {% block base_content %}
 
+{% if current_user_data.messages %}
+<div class="messages">
+    <ul>
+    {% for m in current_user_data.messages %}
+        <li class="{{ m.type }}">{{ m.message }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 <h2>Seed Database</h2>
 
 {% block content %}
