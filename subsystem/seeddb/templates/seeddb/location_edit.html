@@ -1,0 +1,16 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<form action="" method="post">
+    <table class="listtable">
+    <caption>
+        {{ object.id }}
+    </caption>
+    {{ form.as_table }}
+    <tr>
+        <th></th>
+        <td><input type="submit" value="Save" /></td>
+    </tr>
+    </table>
+</form>
+{% endblock %}
