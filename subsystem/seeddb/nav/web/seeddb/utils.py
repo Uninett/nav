@@ -81,8 +81,12 @@ def form_magic(request, form_class, object_class, object_id, error_redirect, sav
     if request.method == 'POST':
         form = form_class(request.POST, instance=object)
         if form.is_valid():
-            if object and object.id != form.cleaned_data['id']:
-                pass
+            if object and object.id != form.cleaned_data['id']:
+                new_pk = primary_key_update(object, form)
+                return form_magic(request, form_class, object_class, new_pk,
+                    error_redirect, save_redirect, save_redirect_attr,
+                    extra_context)
+
             object = form.save()
             new_message(request._req, "Saved", Messages.SUCCESS)
             return HttpResponseRedirect(reverse(save_redirect, args=(getattr(object, save_redirect_attr),)))
@@ -100,16 +104,21 @@ def form_magic(request, form_class, object_class, object_id, error_redirect, sav
         RequestContext(request),
     )
 
-def db_on_acid(object, form):
+def primary_key_update(object, form):
+    from django.db import connection
+    cur = connection.cursor()
+
     table = object._meta.db_table
     fields = object._meta.fields
-    pk_col = object._meta.get_field_by_name('id').db_column
-    old_pk_val = getattr(object, object._meta.get_field_by_name('id').attname)
+    pk_col = object._meta.get_field('id').db_column
+    old_pk_val = getattr(object, object._meta.get_field('id').attname)
     new_pk_val = form.cleaned_data['id']
 
     sql = 'UPDATE "%s" ' % table
-    sql = 'SET "%s" = %%s' % pk_col
+    sql += 'SET "%s" = %%s ' % pk_col
     sql += 'WHERE "%s" = %%s' % pk_col
 
     params = (new_pk_val, old_pk_val)
     cur.execute(sql, params)
+
+    return new_pk_val
