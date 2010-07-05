@@ -15,6 +15,13 @@
 
 from django.db.models import get_models
 
+'''
+Query DB using Django models test
+
+Intended purpose is to catch obvious omissions in DB state or the Django models
+themselves.
+'''
+
 def check_model(model):
     model.objects.all()[:5]
 
