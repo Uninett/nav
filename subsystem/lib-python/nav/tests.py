@@ -18,7 +18,7 @@
 
 import unittest
 
-import pwhash
+from nav import pwhash
 class PwHashTestCase(unittest.TestCase):
     """Tests for nav.pwhash.Hash class"""
 
@@ -60,7 +60,7 @@ class PwHashTestCase(unittest.TestCase):
                           hash.set_hash, 'badc0ffee')
 
 
-import bitvector
+from nav import bitvector
 class BitVectorTestCase(unittest.TestCase):
     """Tests for nav.bitvector.BitVector class"""
 
@@ -94,7 +94,7 @@ class BitVectorTestCase(unittest.TestCase):
         self.assertEquals('0' * 64, self.zerobits.to_binary())
 
 
-import natsort
+from nav import natsort
 class NatsortTestCase(unittest.TestCase):
     def test_split(self):
         s = natsort.split('foo12bar')
@@ -113,7 +113,7 @@ class NatsortTestCase(unittest.TestCase):
         self.assertEquals(l2, natsort.decorated_sort(l1))
 
 
-import util
+from nav import util
 class UtilTestCase(unittest.TestCase):
     """Test various functions in the util module"""
     def setUp(self):
@@ -160,7 +160,7 @@ class UtilTestCase(unittest.TestCase):
 
 
 import StringIO
-import config
+from nav import config
 class ConfigTestCase(unittest.TestCase):
     def setUp(self):
         mockfile = StringIO.StringIO("".join([
