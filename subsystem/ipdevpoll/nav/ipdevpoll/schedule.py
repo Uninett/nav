@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -60,6 +60,13 @@ def django_debug_cleanup():
         logger.debug("Removing %d logged Django queries", query_count)
         django.db.reset_queries()
         gc.collect()
+
+class AbortedJobError(Exception):
+    """Signals an aborted collection job."""
+    def __init__(self, msg, cause=None):
+        super(AbortedJobError, self).__init__(msg, cause )
+        self.cause = cause
+
 
 class JobHandler(object):
 
