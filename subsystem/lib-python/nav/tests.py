@@ -16,6 +16,8 @@
 #
 """Unit tests for modules in this package."""
 
+from __future__ import absolute_import
+
 import unittest
 
 from nav import pwhash
@@ -202,6 +204,14 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEquals(values['section1']['foo2'], 'bar2')
         self.assertEquals(values['section2']['foo4'], 'bar4')
         self.assertFalse(values['section2'].has_key('foo3'))
+
+from django.db.models import get_models
+def check_model(model):
+    model.objects.all()[:5]
+
+def model_test_generator():
+    for model in get_models():
+        yield check_model, model
 
 # Run all tests if run as a program
 if __name__ == '__main__':
