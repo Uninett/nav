@@ -80,18 +80,13 @@ def room_list(request):
         edit_url='seeddb-room-edit', extra_context=extra)
 
 def room_edit(request, room_id=None):
-    room = None
-    if room_id:
-        try:
-            room = Room.objects.get(id=room_id)
-        except Room.DoesNotExist:
-            return HttpResponseRedirect(reverse('seeddb-room-edit'))
-    if request.method == 'POST':
-        if room:
-            pass
-        else:
-            pass
-    return
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
+    }
+    return form_magic(request, RoomForm, Room, room_id,
+        error_redirect='seeddb-room-edit',
+        save_redirect='seeddb-room-edit',
+        extra_context=extra)
 
 def location_list(request):
     qs = Location.objects.all()
