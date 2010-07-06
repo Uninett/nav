@@ -40,7 +40,7 @@ urlpatterns = patterns('',
     # Room
     url(r'^room/$', room_list,
         name='seeddb-room'),
-    url(r'^room/edit/(?P<room_id>[\w\d-]+)/$', room_edit,
+    url(r'^room/edit/(?P<room_id>[\w\d_-]+)/$', room_edit,
         name='seeddb-room-edit'),
     url(r'^room/add/$', room_edit,
         name='seeddb-room-edit'),
@@ -56,7 +56,9 @@ urlpatterns = patterns('',
     # Organization
     url(r'^organization/$', organization_list,
         name='seeddb-organization'),
-    url(r'organization/(?P<organization>[\w\d]+)/$', dummy,
+    url(r'^organization/edit/(?P<organization_id>[\w\d_-]+)/$', organization_edit,
+        name='seeddb-organization-edit'),
+    url(r'^organization/add/$', organization_edit,
         name='seeddb-organization-edit'),
 
     # Usage category
