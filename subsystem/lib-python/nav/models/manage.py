@@ -27,7 +27,7 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
-from nav.models.fields import DateTimeInfinityField
+from nav.models.fields import DateTimeInfinityField, VarcharField
 
 # Choices used in multiple models, "imported" into the models which use them
 LINK_UP = 'y'
@@ -384,12 +384,12 @@ class Room(models.Model):
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
-    location = models.ForeignKey('Location', db_column='locationid')
-    description = models.CharField(db_column='descr', max_length=-1)
-    optional_1 = models.CharField(db_column='opt1', max_length=-1)
-    optional_2 = models.CharField(db_column='opt2', max_length=-1)
-    optional_3 = models.CharField(db_column='opt3', max_length=-1)
-    optional_4 = models.CharField(db_column='opt4', max_length=-1)
+    location = models.ForeignKey('Location', db_column='locationid', blank=True, null=True)
+    description = VarcharField(db_column='descr', blank=True)
+    optional_1 = VarcharField(db_column='opt1', blank=True)
+    optional_2 = VarcharField(db_column='opt2', blank=True)
+    optional_3 = VarcharField(db_column='opt3', blank=True)
+    optional_4 = VarcharField(db_column='opt4', blank=True)
 
     class Meta:
         db_table = 'room'
@@ -403,24 +403,24 @@ class Location(models.Model):
 
     id = models.CharField(db_column='locationid',
         max_length=30, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'location'
 
     def __unicode__(self):
-        return self.description
+        return u'%s (%s)' % (self.id, self.description)
 
 class Organization(models.Model):
     """From MetaNAV: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent', null=True)
-    description = models.CharField(db_column='descr', max_length=-1)
-    optional_1 = models.CharField(db_column='opt1', max_length=-1)
-    optional_2 = models.CharField(db_column='opt2', max_length=-1)
-    optional_3 = models.CharField(db_column='opt3', max_length=-1)
+    parent = models.ForeignKey('self', db_column='parent', blank=True, null=True)
+    description = VarcharField(db_column='descr', blank=True)
+    optional_1 = VarcharField(db_column='opt1', blank=True)
+    optional_2 = VarcharField(db_column='opt2', blank=True)
+    optional_3 = VarcharField(db_column='opt3', blank=True)
 
     class Meta:
         db_table = 'org'
