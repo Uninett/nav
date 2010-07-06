@@ -60,4 +60,6 @@ def check_link(current_url):
 
 def test_webpages():
     while queue:
-        yield check_link, queue.pop()
+        url = queue.pop()
+        check_link.description = url
+        yield check_link, url
