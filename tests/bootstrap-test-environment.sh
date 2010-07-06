@@ -6,8 +6,8 @@ test -z "$PGUSER"     && echo PGUSER missing     && exit 1
 test -z "$1"          && echo dir missing        && exit 1
 
 # Create virualenv for installing nose
-virtualenv "$1"
-source "$1/bin/activate"
+virtualenv "$1/env"
+source "$1/env/bin/activate"
 easy_install nose
 
 # Cleanup any existing DB
