@@ -437,13 +437,13 @@ class NetboxScheduler(object):
         self.logger.debug("Job %r cancelled for %s",
                           self.jobname, self.netbox.sysname)
 
-    def _map_cleanup(self, _, job_handler):
+    def _map_cleanup(self, result, job_handler):
         """Remove a JobHandler from internal data structures."""
         if job_handler.netbox.ip in NetboxScheduler.ip_map:
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
         if job_handler in self.deferred_map:
             del self.deferred_map[job_handler]
-        return job_handler
+        return result
 
     def run_job(self, dummy=None):
         ip = self.netbox.ip
@@ -471,14 +471,22 @@ class NetboxScheduler(object):
             deferred = job_handler.run()
             self.deferred_map[job_handler] = deferred
             # Make sure to remove from ip_map as soon as this run is over
+            deferred.addErrback(self._reschedule)
+            deferred.addErrback(self._log_unhandled_error, job_handler)
+
             deferred.addCallback(self._map_cleanup, job_handler)
             deferred.addCallback(self._log_time_to_next_run)
 
-            deferred.addErrback(self._job_error_handler, job_handler)
-            deferred.addErrback(self._map_cleanup, job_handler)
-            deferred.addErrback(self._log_time_to_next_run)
+    def _reschedule(self, failure):
+        """Examines the job failure and reschedules the job if needed."""
+        failure.trap(AbortedJobError)
+        delay = 60
+        self.loop.stop()
+        self.logger.info("Rescheduling %r for %s in %d seconds",
+                         self.jobname, self.netbox.sysname, delay)
+        return reactor.callLater(delay, self.start)
 
-    def _job_error_handler(self, failure, job_handler):
+    def _log_unhandled_error(self, failure, job_handler):
         self.logger.exception(
             "Unhandled exception raised by JobHandler: %s\n%s",
             failure.getErrorMessage(),
@@ -487,14 +495,19 @@ class NetboxScheduler(object):
         return failure
 
     def _log_time_to_next_run(self, thing=None):
-        if hasattr(self.loop, 'call') and self.loop.call is not None:
+        if hasattr(thing, 'getTime'):
+            next_call = thing
+        elif hasattr(self.loop, 'call') and self.loop.call is not None:
             next_call = self.loop.call
+        else:
+            next_call = None
+
+        if next_call:
             next_time = datetime.datetime.fromtimestamp(next_call.getTime())
             self.logger.debug("Next %r job for %s will be at %s",
                               self.jobname, self.netbox.sysname, next_time)
         return thing
-                              
-           
+
 
 class Scheduler(object):
     """Controller of the polling schedule.
