@@ -28,7 +28,7 @@ from nav.models.service import Service
 from nav.web.message import new_message, Messages
 
 from nav.web.seeddb.forms import *
-from nav.web.seeddb.utils import render_seeddb_list, form_magic
+from nav.web.seeddb.utils import *
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
@@ -80,13 +80,27 @@ def room_list(request):
         edit_url='seeddb-room-edit', extra_context=extra)
 
 def room_edit(request, room_id=None):
-    extra = {
+    try:
+        room = get_object(Room, room_id)
+    except Room.DoesNotExist:
+        return HttpResponseRedirect(reverse('seeddb-room-edit'))
+    form = get_form(request, RoomForm, room)
+    if request.method == 'POST' and form.is_valid():
+        if should_update_primary_key(room, form):
+            new_pk = primary_key_update(room, form)
+            return room_edit(request, new_pk)
+        room = form.save()
+        new_message(request._req, "Saved room %s" % room.id, Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('seeddb-room-edit', args=(room.id,)))
+
+    context = {
+        'title': 'Seed Database',
         'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
+        'form': form,
+        'object': room,
     }
-    return form_magic(request, RoomForm, Room, room_id,
-        error_redirect='seeddb-room-edit',
-        save_redirect='seeddb-room-edit',
-        extra_context=extra)
+    return render_to_response('seeddb/location_edit.html',
+        context, RequestContext(request))
 
 def location_list(request):
     qs = Location.objects.all()
@@ -99,14 +113,24 @@ def location_list(request):
         edit_url='seeddb-location-edit', extra_context=extra)
 
 def location_edit(request, location_id=None):
-    return form_magic(
-        request, LocationForm, Location, location_id,
-        error_redirect='seeddb-location-edit',
-        save_redirect='seeddb-location-edit',
-        extra_context={
-            'navpath': NAVPATH_DEFAULT + [('Locations', reverse('seeddb-location'))],
-        }
-    )
+    try:
+        location = get_object(Location, location_id)
+    except Location.DoesNotExist:
+        return HttpResponseRedirect(reverse('seeddb-location-edit'))
+    form = get_form(request, LocationForm, location)
+    if request.method == 'POST' and form.is_valid():
+        location = form.save()
+        new_message(request._req, "Saved location %s" % location.id, Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('seeddb-location-edit', args=(location.id,)))
+
+    context = {
+        'title': 'Seed Database',
+        'navpath': NAVPATH_DEFAULT + [('Locations', reverse('seeddb-location'))],
+        'form': form,
+        'object': location,
+    }
+    return render_to_response('seeddb/location_edit.html',
+        context, RequestContext(request))
 
 def organization_list(request):
     qs = Organization.objects.all()
@@ -119,6 +143,29 @@ def organization_list(request):
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-organization-edit', extra_context=extra)
+
+def organization_edit(request, organization_id=None):
+    try:
+        org = get_object(Organization, organization_id)
+    except Organization.DoesNotExist:
+        return HttpResponseRedirect(reverse('seeddb-organization-edit'))
+    form = get_form(request, OrganizationForm, org)
+    if request.method == 'POST' and form.is_valid():
+        if should_update_primary_key(org, form):
+            new_pk = primary_key_update(org, form)
+            return organization_edit(request, new_pk)
+        org = form.save()
+        new_message(request._req, "Saved organiztion %s" % org.id, Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('seeddb-organization-edit', args=(org.id,)))
+
+    context = {
+        'title': 'Seed Database',
+        'navpath': NAVPATH_DEFAULT + [('Organizations', reverse('seeddb-organization'))],
+        'form': form,
+        'object': org,
+    }
+    return render_to_response('seeddb/location_edit.html',
+        context, RequestContext(request))
 
 def usage_list(request):
     qs = Usage.objects.all()
