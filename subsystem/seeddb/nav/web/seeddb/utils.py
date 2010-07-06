@@ -71,45 +71,26 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
         RequestContext(request)
     )
 
-def form_magic(request, form_class, object_class, object_id, error_redirect, save_redirect, save_redirect_attr='pk', extra_context={}):
-    object = None
-    if object_id:
-        try:
-            object = object_class.objects.get(id=object_id)
-        except object_class.DoesNotExist:
-            return HttpResponseRedirect(reverse(error_redirect))
+def get_object(object_class, object_id):
+    if not object_id:
+        return None
+    return object_class.objects.get(id=object_id)
+
+def get_form(request, form_class, object):
     if request.method == 'POST':
         form = form_class(request.POST, instance=object)
-        if form.is_valid():
-            if object and object.id != form.cleaned_data['id']:
-                new_pk = primary_key_update(object, form)
-                return form_magic(request, form_class, object_class, new_pk,
-                    error_redirect, save_redirect, save_redirect_attr,
-                    extra_context)
-
-            object = form.save()
-            new_message(request._req, "Saved", Messages.SUCCESS)
-            return HttpResponseRedirect(reverse(save_redirect, args=(getattr(object, save_redirect_attr),)))
     else:
         form = form_class(instance=object)
+    return form
 
-    info_dict = {
-        'form': form,
-        'object': object,
-    }
-    extra_context.update(info_dict)
-    return render_to_response(
-        'seeddb/location_edit.html',
-        extra_context,
-        RequestContext(request),
-    )
+def should_update_primary_key(object, form):
+    return object and object.id != form.cleaned_data['id']
 
 def primary_key_update(object, form):
     from django.db import connection
     cur = connection.cursor()
 
     table = object._meta.db_table
-    fields = object._meta.fields
     pk_col = object._meta.get_field('id').db_column
     old_pk_val = getattr(object, object._meta.get_field('id').attname)
     new_pk_val = form.cleaned_data['id']
