@@ -29,5 +29,5 @@ sed -i'' -e "s/^db_nav\s*=\s*nav/db_nav=$PGDATABASE/" "$1/etc/db.conf"
 sed -i'' -e "s/^script_default\s*=\s*nav/script_default=$PGUSER/" "$1/etc/db.conf"
 sed -i'' -e "s/^userpw_nav\s*=.*/userpw_$PGUSER=$PGPASSWORD/" "$1/etc/db.conf"
 
-if [ -n "$PGHOST" ];        then sed -i'' -e "s/^dbhost\s*=\s*localhost/dbhost=$PGHOST/" "$1/etc/db.conf" fi
+if [ -n "$PGHOST" ];        then sed -i'' -e "s/^dbhost\s*=\s*localhost/dbhost=$PGHOST/" "$1/etc/db.conf"; fi
 if [ -n "$ADMINPASSWORD" ]; then psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'"; fi
