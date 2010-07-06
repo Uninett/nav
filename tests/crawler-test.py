@@ -9,10 +9,10 @@ import urlparse
 
 socket.setdefaulttimeout(5)
 
-host = os.environ['TARGETHOST']
+host_url = os.environ['TARGETURL']
 password = os.environ['ADMINPASSWORD']
 
-host_url = 'http://%s/' % host
+host = urlparse.urlsplit(host_url).hostname
 login_url = '%sindex/login/' % host_url
 
 blacklisted_paths = [
