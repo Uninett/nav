@@ -94,7 +94,12 @@ class Prefix(Plugin):
         for mib in ipmib, ipv6mib, ciscoip:
             self.logger.debug("Trying address tables from %s",
                               mib.mib['moduleName'])
-            waiter = defer.waitForDeferred(mib.get_interface_addresses())
+            df = mib.get_interface_addresses()
+            # Special case; some devices will time out while building a bulk
+            # response outside our scope when it has no proprietary MIB support
+            if mib != ipmib:
+                df.addErrback(self._ignore_timeout, set())
+            waiter = defer.waitForDeferred(df)
             yield waiter
             new_addresses = waiter.getResult()
             self.logger.debug("Found %d addresses in %s: %r",
@@ -160,3 +165,13 @@ class Prefix(Plugin):
 
         yield vlan_ifs
 
+    def _ignore_timeout(self, failure, result=None):
+        """Ignores a defer.TimeoutError in an errback chain.
+
+        The result argument will be returned, and there injected into the
+        regular callback chain.
+
+        """
+        failure.trap(defer.TimeoutError)
+        self.logger.debug("request timed out, ignoring and moving on...")
+        return result
