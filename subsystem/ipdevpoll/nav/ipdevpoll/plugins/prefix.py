@@ -33,9 +33,6 @@ parsed from the interface name.  Not all dot1q enabled routers name
 their interfaces like this, but routing switches from several vendors
 do.
 
-TODO: Guesstimate an appropriate nettype for each VLAN
-TODO: Parse router port descriptions according to conventions
-
 """
 import re
 
