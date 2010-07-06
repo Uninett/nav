@@ -36,7 +36,7 @@ from nav.bitvector import BitVector
 from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib, PortList
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin 
 from nav.ipdevpoll import storage, shadows
 from nav.models.manage import Interface
 
@@ -60,22 +60,10 @@ class Dot1q(Plugin):
         # We first need the baseport list to translate port numbers to
         # ifindexes
         deferred = self.bridgemib.retrieve_column('dot1dBasePortIfIndex')
-        deferred.addErrback(self.error)
         deferred.addCallback(reduce_index)
         deferred.addCallback(self._get_pvids)
         #deferred.addCallback(self._get_trunkports)
         return deferred
-
-    def error(self, failure):
-        """Return a failure to the ipdevpoll-deamon"""
-
-        if failure.check(defer.TimeoutError):
-            # Transform TimeoutErrors to something else
-            self.logger.error(failure.getErrorMessage())
-            # Report this failure to the waiting plugin manager (RunHandler)
-            exc = FatalPluginError("Cannot continue due to device timeouts")
-            failure = Failure(exc)
-        return failure
 
     def _get_pvids(self, baseports):
         """Initiate collection of the current vlan config."""
