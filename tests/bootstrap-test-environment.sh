@@ -30,4 +30,4 @@ sed -i'' -e "s/^script_default\s*=\s*nav/script_default=$PGUSER/" "$1/etc/db.con
 sed -i'' -e "s/^userpw_nav\s*=.*/userpw_$PGUSER=$PGPASSWORD/" "$1/etc/db.conf"
 test -n "$PGHOST" && sed -i'' -e "s/^dbhost\s*=\s*localhost/dbhost=$PGHOST/" "$1/etc/db.conf"
 
-psql -c "UPDATE account SET password = 's3cret' WHERE login = 'admin'"
+test -n "$ADMINPASSWORD" && psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'"

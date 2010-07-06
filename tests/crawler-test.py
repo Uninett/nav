@@ -1,4 +1,5 @@
 from lxml.html import fromstring
+import os
 import socket
 import urllib
 import urllib2
@@ -6,7 +7,9 @@ import urlparse
 
 socket.setdefaulttimeout(5)
 
-host = 'elixis'
+host = os.environ['TARGETHOST']
+password = os.environ['ADMINPASSWORD']
+
 host_url = 'http://%s/' % host
 login_url = '%sindex/login/' % host_url
 
@@ -19,7 +22,7 @@ seen_paths = {}
 queue = [host_url]
 
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
-data = urllib.urlencode({'username': 'admin', 'password': 's3cret'})
+data = urllib.urlencode({'username': 'admin', 'password': password})
 resp = opener.open(login_url, data)
 
 def check_link(current_url):
