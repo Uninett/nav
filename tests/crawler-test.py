@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from lxml.html import fromstring
 import os
 import socket
