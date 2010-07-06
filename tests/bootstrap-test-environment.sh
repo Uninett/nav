@@ -5,18 +5,18 @@ test -z "$PGDATABASE" && echo PGDATABASE missing && exit 1
 test -z "$PGUSER"     && echo PGUSER missing     && exit 1
 test -z "$1"          && echo dir missing        && exit 1
 
+# Clear directory
+test -e "$1" && rm -rf "$1"
+
 # Create virualenv for installing nose
-virtualenv "$1/env"
-source "$1/env/bin/activate"
+virtualenv "$1"
+source "$1/bin/activate"
 easy_install nose
 
 # Cleanup any existing DB
 dropdb $PGDATABASE || true
 
 (cd doc/sql; ./createdb.sh -d $PGDATABASE -u $PGUSER -U)
-
-# Clear directory
-test -e "$1" && rm -rf "$1"
 
 # Make install code into given directory
 ./autogen.sh
