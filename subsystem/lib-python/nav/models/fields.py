@@ -17,6 +17,7 @@
 
 from datetime import datetime
 
+from django import forms
 from django.db import models, connection
 
 class DateTimeInfinityField(models.DateTimeField):
@@ -28,3 +29,14 @@ class DateTimeInfinityField(models.DateTimeField):
         else:
             return super(DateTimeInfinityField, self).get_db_prep_value(value)
         return connection.ops.value_to_db_datetime(value)
+
+class VarcharField(models.TextField):
+    def db_type(self):
+        return 'varchar'
+
+    def formfield(self, **kwargs):
+        defaults = {
+            'widget': forms.TextInput,
+        }
+        defaults.update(kwargs)
+        return super(VarcharField, self).formfield(**defaults)
