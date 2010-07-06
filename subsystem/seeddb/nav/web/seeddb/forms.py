@@ -17,7 +17,7 @@
 
 from django import forms
 
-from nav.models.manage import Netbox, Room, Location
+from nav.models.manage import Netbox, Room, Location, Organization
 
 class NetboxForm(forms.ModelForm):
     class Meta:
@@ -28,13 +28,10 @@ class NetboxForm(forms.ModelForm):
         )
 
 class RoomForm(forms.ModelForm):
-    description = forms.CharField(required=False)
     class Meta:
         model = Room
 
 class LocationForm(forms.ModelForm):
-    description = forms.CharField()
-
     class Meta:
         model = Location
 
@@ -42,3 +39,7 @@ class LocationForm(forms.ModelForm):
         super(LocationForm, self).__init__(*args, **kwargs)
         if kwargs.get('instance'):
             del self.fields['id']
+
+class OrganizationForm(forms.ModelForm):
+    class Meta:
+        model = Organization
