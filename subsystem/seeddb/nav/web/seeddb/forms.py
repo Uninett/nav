@@ -48,3 +48,7 @@ class LocationForm(forms.ModelForm):
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
+
+class UsageForm(forms.ModelForm):
+    class Meta:
+        model = Usage

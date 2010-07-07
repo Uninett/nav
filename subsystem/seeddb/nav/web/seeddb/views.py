@@ -178,6 +178,30 @@ def usage_list(request):
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-usage-edit', extra_context=extra)
 
+def usage_edit(request, usage_id=None):
+    try:
+        usage = get_object(Usage, usage_id)
+    except Usage.DoesNotExist:
+        return HttpResponseRedirect(reverse('seeddb-usage-edit'))
+    form = get_form(request, UsageForm, usage)
+    if request.method == 'POST' and form.is_valid():
+        if should_update_primary_key(usage, form):
+            new_pk = primary_key_update(usage, form)
+            return usage_edit(request, new_pk)
+        usage = form.save()
+        new_message(request._req,
+            "Saved usage category %s" % usage.id, Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('seeddb-usage-edit', args=(usage.id,)))
+
+    context = {
+        'title': 'Seed Database',
+        'navpath': NAVPATH_DEFAULT + [('Usage categories', reverse('seeddb-usage'))],
+        'form': form,
+        'object': usage,
+    }
+    return render_to_response('seeddb/location_edit.html',
+        context, RequestContext(request))
+
 def type_list(request):
     qs = NetboxType.objects.all()
     value_list = (

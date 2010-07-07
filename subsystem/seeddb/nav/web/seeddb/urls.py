@@ -64,7 +64,9 @@ urlpatterns = patterns('',
     # Usage category
     url(r'^usage/$', usage_list,
         name='seeddb-usage'),
-    url(r'^usage/(?P<usage>[\w\d]+)/$', dummy,
+    url(r'^usage/edit/(?P<usage_id>[\w\d_-]+)/$', usage_edit,
+        name='seeddb-usage-edit'),
+    url(r'^usage/add/$', usage_edit,
         name='seeddb-usage-edit'),
 
     # Type
