@@ -73,11 +73,12 @@ def room_list(request):
     value_list = (
         'id', 'location', 'description', 'optional_1', 'optional_2',
         'optional_3', 'optional_4')
+    filter = RoomFilterForm(request.GET)
     extra = {
         'title': 'Seed rooms',
         'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
     }
-    return render_seeddb_list(request, qs, value_list,
+    return render_seeddb_list(request, qs, value_list, filter_form=filter,
         edit_url='seeddb-room-edit', extra_context=extra)
 
 def room_edit(request, room_id=None):

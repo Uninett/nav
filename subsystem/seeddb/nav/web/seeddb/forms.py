@@ -24,6 +24,9 @@ class NetboxFilterForm(forms.Form):
     room = forms.ModelChoiceField(Room.objects.all(), required=False)
     organization = forms.ModelChoiceField(Organization.objects.all(), required=False)
 
+class RoomFilterForm(forms.Form):
+    location = forms.ModelChoiceField(Location.objects.all(), required=False)
+
 class NetboxForm(forms.ModelForm):
     class Meta:
         model = Netbox
