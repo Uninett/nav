@@ -1,11 +1,30 @@
 {% extends "seeddb/base.html" %}
+{% load url_parameters %}
 
 {% block content %}
+
+{% if filter_form %}
+<table class="listtable">
+    <form action="" method="get">
+    {{ filter_form }}
+    <tr>
+        <th></th>
+        <td>
+            <input type="submit" value="Filter" />
+            <input type="hidden" name="sort" value="{{ current_sort }}" />
+        </td>
+    </tr>
+    </form>
+</table>
+{% endif %}
+
+{% include "seeddb/paginator.html" %}
+
 <table class="listtable">
     <caption>
         {{ title }}<br />
         <span class="subtitle">
-            {{ object_list|length }} found in database
+            {{ page.paginator.count }} found in database, showing {{ page.start_index }} to {{ page.end_index }}.
         </span>
     </caption>
 
@@ -14,16 +33,16 @@
             <th></th>
             {% for label in labels %}
             <th>
-                {% ifequal label.1 current_sort %}
+            {% ifequal label.1 current_sort_label %}
                 {% if sort_asc %}
-                <img src="/images/alertprofiles/go-down.png" />
+                    <img src="/images/alertprofiles/go-down.png" />
                 {% else %}
-                <img src="/images/alertprofiles/go-up.png" />
+                    <img src="/images/alertprofiles/go-up.png" />
                 {% endif %}
-                <a href="?sort={{ sort_asc|yesno:"-," }}{{ label.1 }}">{{ label.0|capfirst }}</a>
-                {% else %}
-                <a href="?sort={{ label.1 }}">{{ label.0|capfirst }}</a>
-                {% endifequal %}
+                <a href="{% url_parameters sort other_sort %}">{{ label.0|capfirst }}</a>
+            {% else %}
+                <a href="{% url_parameters sort label.1 %}">{{ label.0|capfirst }}</a>
+            {% endifequal %}
             </th>
             {% endfor %}
         </tr>
@@ -44,4 +63,7 @@
         {% endfor %}
     </tbody>
 </table>
+
+{% include "seeddb/paginator.html" %}
+
 {% endblock %}

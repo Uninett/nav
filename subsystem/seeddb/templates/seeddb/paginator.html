@@ -1,0 +1,20 @@
+{% load url_parameters %}
+<p class="paginator">
+    {% if page.has_previous %}
+    <a href="{% url_parameters page page.previous_page_number %}" class="prev">« Previous</a>
+    {% else %}
+    <span class="prev off">« Previous</span>
+    {% endif %}
+{% for p in page.paginator.page_range %}
+    {% ifequal page.number p %}
+    <span class="active">{{ p }}</span>
+    {% else %}
+    <a href="{% url_parameters page p %}">{{ p }}</a>
+    {% endifequal %}
+{% endfor %}
+    {% if page.has_next %}
+    <a href="{% url_parameters page page.next_page_number %}" class="next">Next »</a>
+    {% else %}
+    <span class="next off">Next »</span>
+    {% endif %}
+</p>

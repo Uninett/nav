@@ -48,12 +48,13 @@ def netbox_list(request):
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
         'read_write', 'type__name', 'device__serial'
     )
+    filter = NetboxFilterForm(request.GET)
     extra = {
         'title': 'Seed IP devices',
         'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
     }
 
-    return render_seeddb_list(request, qs, value_list,
+    return render_seeddb_list(request, qs, value_list, filter_form=filter,
         edit_url='seeddb-netbox-edit', edit_url_attr='sysname',
         extra_context=extra)
 

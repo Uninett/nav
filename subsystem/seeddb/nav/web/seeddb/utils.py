@@ -16,6 +16,7 @@
 #
 
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
@@ -23,7 +24,23 @@ from django.http import HttpResponseRedirect
 from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 
-def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='pk', extra_context={}):
+ITEMS_PER_PAGE = 10
+
+def get_page_num(get):
+    try:
+        page_num = int(get.get('page', '1'))
+    except ValueError:
+        page_num = 1
+    return page_num
+
+def get_page(paginator, page_num):
+    try:
+        page = paginator.page(page_num)
+    except InvalidPage:
+        page = paginator.page(paginator.num_pages)
+    return page
+
+def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='pk', filter_form=None, extra_context={}):
     """Renders a list from the supplied queryset.
 
        Parameters:
@@ -35,8 +52,14 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
          - edit_url: a url (that works with reverse()) to the edit page
          - edit_url_attr: the name of the field that should be used in the
            reverse url lookup, defaults to 'pk'
+         - filter_form: A form instance used to filter the queryset.
          - extra_context: everything else that should be in the template
     """
+    # Apply filters
+    if filter_form and filter_form.is_valid():
+        filter = dict([(key, val) for key, val in filter_form.cleaned_data.items() if val])
+        queryset = queryset.filter(**filter)
+
     # Get the sort order. Default to the first object in value_list.
     order_by = request.GET.get('sort')
     if not order_by or order_by.find('-') not in (-1, 0) or order_by.lstrip('-') not in value_list:
@@ -46,8 +69,13 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
     # result.
     query_values = queryset.order_by(order_by).values('pk', edit_url_attr, *value_list)
 
+    # Get the correct page
+    paginator = Paginator(query_values, ITEMS_PER_PAGE)
+    page_num = get_page_num(request.GET)
+    page = get_page(paginator, page_num)
+
     object_list = list()
-    for object in query_values:
+    for object in page.object_list:
         row = {
             'pk': object['pk'],
             'url': reverse(edit_url, args=(object[edit_url_attr],)),
@@ -58,11 +86,16 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
     # Get verbose names from fields in value_list. We shall use 'em as labels.
     labels = [get_verbose_name(queryset.model, value) for value in value_list]
 
+    sort_asc = "-" not in order_by
     info_dict =  {
         'object_list': object_list,
         'labels': zip(labels, value_list),
-        'current_sort': order_by.lstrip('-'),
-        'sort_asc': "-" not in order_by,
+        'current_sort_label': order_by.lstrip('-'),
+        'current_sort': order_by,
+        'other_sort': sort_asc and "-" + order_by or order_by.lstrip('-'),
+        'sort_asc': sort_asc,
+        'filter_form': filter_form,
+        'page': page,
     }
     extra_context.update(info_dict)
     return render_to_response(
