@@ -21,7 +21,7 @@ smsd dispatches SMS messages from the database to users' phones with the help
 of plugins using Gammu and a cell on the COM port, or free SMS services on the
 web.
 
-Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] [-t phone no.]
+Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] [-tT phone no.] [-u user ID]
 
   -h, --help            Show this help text
   -c, --cancel          Cancel (mark as ignored) all unsent messages
@@ -35,7 +35,9 @@ Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] 
                              resumes running and checking the message queue.
                           1: Error details are logged and mailed to admin. The
                              deamon shuts down.
+  -u, --uid             User/account ID
   -t, --test            Send a test message to <phone no.>
+  -T, --TEST            Put a test message to <phone no.> into the SMS queue
 
 """
 
@@ -77,9 +79,10 @@ def main(args):
     optlimit = False
     optaction = False
     opttest = False
+    optuid = False
     try:
-        opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:',
-         ['help', 'cancel', 'delay=', 'test='])
+        opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:T:u:',
+         ['help', 'cancel', 'delay=', 'test=', 'TEST=', 'uid='])
     except getopt.GetoptError, error:
         print >> sys.stderr, "%s\nTry `%s --help' for more information." % (
             error, sys.argv[0])
@@ -100,8 +103,10 @@ def main(args):
             optlimit = int(val)
         if opt in ('-a', '--action'):
             optaction = int(val)
-        if opt in ('-t', '--test'):
-            opttest = val
+        if opt in ('-t', '--test', '-T', '--TEST'):
+            opttest = { 'opt': opt, 'val': val}
+        if opt in ('-u', '--uid'):
+            optuid = int(val)
 
 
     # Set config defaults
@@ -180,25 +185,36 @@ def main(args):
     if optaction:
         retryvars['retrylimitaction'] = optaction
 
-    # Send test message (in other words: test the dispatcher)
-    if opttest:
-        msg = [(0, "This is a test message from NAV smsd.", 0)]
-
-        try:
-            (sms, sent, ignored, smsid) = dh.sendsms(opttest, msg)
-        except DispatcherError, error:
-            logger.critical("Sending failed. Exiting. (%s)", error)
-            sys.exit(1)
-
-        logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
-        sys.exit(0)
-
     # Let the dispatcherhandler take care of our dispatchers
     try:
         dh = nav.smsd.dispatcher.DispatcherHandler(config)
     except PermanentDispatcherError, error:
         logger.critical("Dispatcher configuration failed. Exiting. (%s)", error)
         sys.exit(1)
+
+    # Send test message (in other words: test the dispatcher)
+    if opttest:
+        msg = [(0, "This is a test message from NAV smsd.", 0)]
+
+        if opttest['opt'] in ('-t', '--test'):
+            try:
+                (sms, sent, ignored, smsid) = dh.sendsms(opttest, msg)
+            except DispatcherError, error:
+                logger.critical("Sending failed. Exiting. (%s)", error)
+                sys.exit(1)
+
+            logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
+
+        elif opttest['opt'] in ('-T', '--TEST') and optuid: 
+            queue = nav.smsd.navdbqueue.NAVDBQueue()
+            rowsinserted = queue.inserttestmsgs(optuid, opttest['val'], 
+                'This is a test message from NAV smsd.')
+            if rowsinserted:
+                logger.info("SMS put in queue. %d row(s) inserted.", rowsinserted)
+            else:
+                logger.info("SMS not put in queue.")
+
+        sys.exit(0)
 
     # Switch user to navcron (only works if we're root)
     try:
