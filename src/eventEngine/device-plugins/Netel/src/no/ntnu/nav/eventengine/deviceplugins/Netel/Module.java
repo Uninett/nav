@@ -73,17 +73,17 @@ public class Module extends Device
 					      "  module.netboxid AS parent_netboxid, " +
 					      "  module, " +
 					      "  module.up, " +
-					      "  swportid, " +
+					      "  interfaceid AS swportid, " +
 					      "  ifindex, " +
-					      "  port, " +
+					      "  baseport AS port, " +
 					      "  to_netboxid, " +
 					      "  vlan.vlan, " +
 					      "  direction " +
 					      "FROM module " +
 					      "JOIN netbox USING (netboxid) " +
-					      "LEFT JOIN swport USING(moduleid) " +
-					      "LEFT JOIN swportvlan USING(swportid) " +
-					      "LEFT JOIN vlan USING(vlanid) " +
+					      "LEFT JOIN interface USING (moduleid) " +
+					      "LEFT JOIN swportvlan USING (interfaceid) " +
+					      "LEFT JOIN vlan USING (vlanid) " +
 					      "ORDER BY " +
 					      "  moduleid, " +
 					      "  module, " +
