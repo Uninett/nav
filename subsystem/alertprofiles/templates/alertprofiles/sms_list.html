@@ -124,17 +124,17 @@
             <td
                 {% ifequal sms.sent 'Y' %}
                     style="color: green">
-                    <img src="/images/lys/green.png" />
+                    <img src="/images/lys/green.png" alt="" />
                     Sent
                 {% endifequal %}
                 {% ifequal sms.sent 'N' %}
                     style="color: red">
-                    <img src="/images/lys/red.png" />
+                    <img src="/images/lys/red.png" alt="" />
                     Not sent
                 {% endifequal %}
                 {% ifequal sms.sent 'I' %}
                     style="color: orange">
-                    <img src="/images/lys/yellow.png" />
+                    <img src="/images/lys/yellow.png" alt="" />
                     Ignored
                 {% endifequal %}
             </td>
