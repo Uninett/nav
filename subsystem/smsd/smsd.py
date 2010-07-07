@@ -110,6 +110,7 @@ def main(args):
 
 
     # Set config defaults
+    global defaults
     defaults = {
         'username': 'navcron',
         'delay': '30',
@@ -125,6 +126,7 @@ def main(args):
     }
 
     # Read config file
+    global config
     config = getconfig(configfile, defaults)
 
     # Set variables
@@ -288,8 +290,9 @@ def main(args):
                 sys.exit(1)
             except DispatcherError, error:
                 try:
-                    # Dispatching failed. Backing off and retrying.
-                    backoff(delay, retryvars, error)
+                    # Dispatching failed. Backing off.
+                    backoff(delay, error, retryvars)
+
                     break # End this run
                 except:
                     logger.exception("")
@@ -300,14 +303,10 @@ def main(args):
 
             logger.info("SMS sent to %s.", user)
 
-            try:
-                setdelay(int(config['main']['delay']))
-            except:
-                setdelay(int(defaults['delay']))
-
-            failed = 0
-            logger.debug("Resetting number of failed runs.")
-
+            if failed:
+                resetdelay()
+                failed = 0
+                logger.debug("Resetting delay and number of failed runs.")
 
             for msgid in sent:
                 queue.setsentstatus(msgid, 'Y', smsid)
@@ -329,7 +328,33 @@ def main(args):
 
 ### HELPER FUNCTIONS
 
-def backoff(sec, retryvars, error):
+def setdelay(seconds):
+    """Set delay (in seconds) between queue checks."""
+
+    global delay, logger
+
+    delay = seconds
+    logger.info("Setting delay to %d seconds.", delay)
+
+
+def resetdelay():
+    global config, defaults
+    try:
+        setdelay(int(config['main']['delay']))
+    except:
+        setdelay(int(defaults['delay']))
+
+
+def increasedelay(seconds, delayfactor, maxdelay):
+    if seconds * delayfactor < maxdelay:
+        setdelay(seconds * delayfactor)
+    elif seconds == maxdelay:
+        pass
+    elif seconds * delayfactor >= maxdelay:
+        setdelay(maxdelay)
+
+
+def backoff(seconds, error, retryvars):
     """Delay next loop if dispatching SMS fails."""
 
     # Function is invoked with the assumtion that there are unsent messages in queue.
@@ -340,56 +365,62 @@ def backoff(sec, retryvars, error):
                                                           retryvars['retrylimitaction']
     failed += 1
     logger.debug("Dispatcher failed %d time(s).", failed)
+    increasedelay(seconds, delayfactor, maxdelay)
 
-    if sec * delayfactor < maxdelay:
-        setdelay(sec * delayfactor)
-    else:
-        if sec != maxdelay:
-            setdelay(maxdelay)
-
-        queue = nav.smsd.navdbqueue.NAVDBQueue()
-        msgs = queue.getmsgs('N')
-
-        if failed <= retrylimit:
-            backoffaction(retryvars, error)
-        elif retrylimit == 0 and delay >= maxdelay:
-            if len(msgs) > 0:
-                logger.critical("Dispatching SMS fails. %d unsent message(s), the oldest from %s. (%s)",
-                        len(msgs), msgs[0]['time'], error)
-            else:
-                logger.critical("Dispatching SMS fails. (%s)", error)
-
-
-def backoffaction(retryvars, error):
-    """Perform an action if maximum number of failed attempts has been reached."""
-
-    global failed
-    retrylimitaction = retryvars['retrylimitaction']
     queue = nav.smsd.navdbqueue.NAVDBQueue()
     msgs = queue.getmsgs('N')
 
-    if retrylimitaction == 0:
+    # If limit is set and reached, perform an action
+    if retrylimit != 0 and failed >= retrylimit:
+        backoffaction(error, retrylimitaction)
+
+    # If limit is disabled, report error and continue
+    elif retrylimit == 0 and delay >= maxdelay:
+        if len(msgs):
+            logger.critical("Dispatching SMS fails. %d unsent message(s),"
+                " the oldest from %s. (%s)", len(msgs), msgs[0]['time'], error)
+        else:
+            logger.critical("Dispatching SMS fails. (%s)", error)
+
+
+def backoffaction(error, retrylimitaction):
+    """Perform an action if the retry limit has been reached."""
+
+    global failed
+    queue = nav.smsd.navdbqueue.NAVDBQueue()
+    msgs = queue.getmsgs('N')
+
+    if retrylimitaction == "ignore":
         # Queued messages are marked as ignored, logs a critical error with
         # message details, then resumes run.
-
-        failed = 0
         numbmsg = queue.cancel()
-        msgdetails = "Dispatching SMS fails. %d message(s) were ignored:\n" % numbmsg
+        error_message = (u"Dispatch retry limit has been reached."
+            " Dispatching SMS has failed %s times. Ignoring %s message(s)." %
+            (failed, numbmsg))
+
         for index, msg in enumerate(msgs):
-            msgdetails += "%d: \"%s\" -> %s\n" % (index+1,
-                    msg["msg"], msg["name"])
+            print msg.keys
+            error_message += u"\n%s: \"%s\" --> %s" % \
+                (index+1, msg['msg'], msg['name'])
 
-        logger.critical("%s\nTraceback:\n%s", msgdetails, error)
+        error_message += u"\nError message: %s" % error
+        logger.critical(error_message.encode('utf-8'))
+        failed = 0
+        resetdelay()
 
-    elif retrylimitaction == 1:
+
+    elif retrylimitaction == "shutdown":
         # Logs the number of unsent messages and time of the oldest in queue
         # before shutting down daemon.
-        logger.critical("Dispatching SMS fails. %d unsent message(s), the oldest from %s. Shutting down daemon. (%s)",
-                    len(msgs), msgs[0]["time"], error)
+        logger.critical("Dispatch retry limit has been reached."
+            " Dispatching SMS has failed %d times. %d unsent message(s), the oldest from %s."
+            " \nError message: %s \nShutting down daemon.\n",
+            failed, len(msgs), msgs[0]["time"], error)
         sys.exit(0)
 
     else:
-        logger.warning("No retry limit action is set or the option is not valid.")
+        logger.warning("No retry limit action is set or the configured option is not valid.")
+
 
 def signalhandler(signum, _):
     """
@@ -480,14 +511,6 @@ def usage():
     """Print a usage screen to stderr."""
 
     print >> sys.stderr, __doc__
-
-def setdelay(sec):
-    """Set delay (in seconds) between queue checks."""
-
-    global delay, logger
-
-    delay = sec
-    logger.info("Setting delay to %d seconds.", delay)
 
 ### BEGIN
 if __name__ == '__main__':
