@@ -481,10 +481,9 @@ class NetboxScheduler(object):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
         delay = 60
-        self.loop.stop()
         self.logger.info("Rescheduling %r for %s in %d seconds",
                          self.jobname, self.netbox.sysname, delay)
-        return reactor.callLater(delay, self.start)
+        self.loop.call.reset(delay)
 
     def _log_unhandled_error(self, failure, job_handler):
         self.logger.exception(
