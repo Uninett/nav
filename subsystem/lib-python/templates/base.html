@@ -108,10 +108,10 @@
     {% endif %}
 {% endblock %}
 
-<div id="navbody">
+{% block base_navbody_start %}<div id="navbody">{% endblock}
 {% block base_content %}
 {% endblock %}
-</div>
+{% block base_navbody_end %}</div>{% endblock}
 
 {% block base_debug %}
     {% if debug %}
