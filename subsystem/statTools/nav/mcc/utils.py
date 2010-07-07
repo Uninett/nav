@@ -7,6 +7,7 @@ import sys
 import logging
 import os
 from os.path import join, abspath
+from shutil import move
 
 from nav import path
 from nav.db import getConnection
@@ -216,16 +217,16 @@ def updatedb(datadir, containers):
                 try:
                     logger.info("Renaming %s to %s" % (
                         join(dbpath, dbfilename), join(datapath, filename)))
-                    os.rename(join(dbpath, dbfilename),
-                              join(datapath, filename))
-                except OSError, oserror:
+                    move(join(dbpath, dbfilename),
+                         join(datapath, filename))
+                except IOError, ioerror:
                     # If file did not exist, accept that and continue
-                    if oserror.errno == 2:
+                    if ioerror.errno == 2:
                         logger.info("%s did not exist.", 
                                     join(dbpath, dbfilename))
                     else:
                         logger.error("Exception when moving file %s: %s" \
-                                         % (join(dbpath, dbfilename), oserror))
+                                         % (join(dbpath, dbfilename), ioerror))
                         continue
                 except Exception, e:
                     logger.error("Exception when moving file %s: %s" \
