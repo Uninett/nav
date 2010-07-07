@@ -116,7 +116,7 @@ def main(args):
         'delayfactor': '1.5',
         'maxdelay': '3600',
         'retrylimit': '5',
-        'retrylimitaction': '0',
+        'retrylimitaction': 'ignore',
         'autocancel': '0',
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
@@ -134,7 +134,7 @@ def main(args):
     maxdelay = int(config['main']['maxdelay'])
     delayfactor = float(config['main']['delayfactor'])
     retrylimit = int(config['main']['retrylimit'])
-    retrylimitaction = int(config['main']['retrylimitaction'])
+    retrylimitaction = config['main']['retrylimitaction'].strip()
     retryvars = {
         'maxdelay': maxdelay,
         'delayfactor': delayfactor,
