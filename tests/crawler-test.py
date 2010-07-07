@@ -3,63 +3,115 @@
 from lxml.html import fromstring
 import os
 import socket
+import tidy
 import urllib
 import urllib2
 import urlparse
 
-socket.setdefaulttimeout(5)
+HOST_URL = os.environ['TARGETURL']
+USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
+PASSWORD = os.environ['ADMINPASSWORD']
 
-host_url = os.environ['TARGETURL']
-password = os.environ['ADMINPASSWORD']
+TIDY_OPTIONS = {
+    'doctype': 'strict',
+    'output_xhtml': True,
+    'input_encoding': 'utf8',
+}
 
-host = urlparse.urlsplit(host_url).hostname
-login_url = '%sindex/login/' % host_url
+TIDY_IGNORE = [
+    'trimming empty <option>',
+    '<table> lacks "summary" attribute',
+]
 
-blacklisted_paths = [
+TIDY_BLACKLIST = [
+    '/seeddb',
+]
+
+BLACKLISTED_PATHS = [
     '/cricket',
     '/index/logout',
 ]
 
+socket.setdefaulttimeout(5)
+
+HOST = urlparse.urlsplit(HOST_URL).hostname
+
 seen_paths = {}
-queue = [host_url]
+html_store = {}
+queue = [HOST_URL]
 
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
-data = urllib.urlencode({'username': 'admin', 'password': password})
-resp = opener.open(login_url, data)
+def login():
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
+    data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
+    resp = opener.open('%sindex/login/' % HOST_URL, data)
+    urllib2.install_opener(opener)
 
-def check_link(current_url):
-    current_path = urlparse.urlsplit(current_url).path.rstrip('/')
+def get_path(url):
+    return urlparse.urlsplit(url).path.rstrip('/')
 
-    try:
-        resp = opener.open(current_url)
-    except urllib2.HTTPError, e:
-        print seen_paths[current_path]
-        raise e
+def is_html(resp):
+    return 'html' in resp.info()['Content-type'].lower()
 
-    root = fromstring(resp.read())
+def should_validate(url):
+    path = get_path(url)
+    for blacklisted_path in TIDY_BLACKLIST:
+        if path.startswith(blacklisted_path):
+            return False
+    return True
+
+def retrieve_links(current_url):
+    root = fromstring(html_store[current_url])
     root.make_links_absolute(current_url)
 
     for element, attribute, link, pos in root.iterlinks():
         url = urlparse.urlsplit(link)
-        path = url.path.rstrip('/')
+        path = get_path(link)
 
         if url.scheme not in ['http', 'https']:
             continue
-        elif url.hostname != host:
+        elif url.hostname != HOST:
             continue
         elif element.tag in ('form', 'object') or attribute == 'style':
             continue
-        elif path in blacklisted_paths:
+        elif path in BLACKLISTED_PATHS:
             continue
         elif path not in seen_paths:
             queue.append('%s://%s%s' % (url.scheme, url.hostname, url.path))
 
         if path not in seen_paths:
             seen_paths[path] = []
-        seen_paths[path].append((current_path, element, attribute))
+        seen_paths[path].append((get_path(current_url), element, attribute))
+
+def filter_errors(errors):
+    return filter(lambda e: e.message not in TIDY_IGNORE, errors)
+
+def check_response(current_url):
+    try:
+        resp = urllib2.urlopen(current_url)
+    except urllib2.HTTPError, e:
+        print seen_paths[get_path(current_url)]
+        raise e
+
+    if is_html(resp):
+        html_store[current_url] = resp.read()
+        retrieve_links(current_url)
+
+def check_validates(url):
+    if not should_validate(url):
+        return
+
+    errors = tidy.parseString(html_store[url], **TIDY_OPTIONS).errors
+    errors = filter_errors(errors)
+
+    if errors:
+        errors.insert(0, 'Found following validation errors:')
+        raise Exception(u'\n'.join([unicode(e) for e in errors]))
 
 def test_webpages():
+    login()
     while queue:
-        url = queue.pop()
-        check_link.description = url
-        yield check_link, url
+        yield check_response, queue.pop()
+
+def test_validates():
+    for url in html_store.keys():
+        yield check_validates, url
