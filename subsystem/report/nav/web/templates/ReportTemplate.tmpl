@@ -208,6 +208,7 @@
     </caption>
 
 ## --- HEADER ROW ---- ##
+    #if $report.table.header.cells
     <thead>
         <tr>
 
@@ -225,6 +226,7 @@
 
         </tr>
     </thead>
+    #end if
 
 ## --- DATA ROWS ---- ##
     #if $report.table.rows
@@ -258,7 +260,8 @@
     #end if
 
 ## --- FOOTER ---- ##
-    #if $report.table.footer
+    #if $report.table.footer.cells
+        # FIXME unused variable?
         #set $cols = len($report.table.header.cells)
 
         <tr class="tablesum">
