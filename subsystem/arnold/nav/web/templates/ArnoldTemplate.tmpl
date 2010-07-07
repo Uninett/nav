@@ -346,7 +346,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 <input type="submit" value="Yes" />
 <input type="hidden" name="reasonid" value="$reason['blocked_reasonid']" />
 <input type="hidden" name="reasonname" value="$reason['name']" />
-<a href="addreason"><input type="button" value="No"></a>
+<a href="addreason"><input type="button" value="No" /></a>
 </form>
 
 #end def
@@ -627,8 +627,8 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     <tr>
         <th>Detainmenttype</th>
         <td>
-            <input type="radio" name="detainmenttype" value="disable" onclick="\$('#quarantinedropdown').hide();" $blockdetention >Block
-            <input type="radio" name="detainmenttype" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention >Quarantine
+            <input type="radio" name="detainmenttype" value="disable" onclick="\$('#quarantinedropdown').hide();" $blockdetention />Block
+            <input type="radio" name="detainmenttype" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention />Quarantine
         </td>
     </tr>
 
@@ -792,12 +792,12 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
       <td>N/A</td>
       <td>Port does not exist</td>
       #end if
-      <td><input type="checkbox" name="identityid$candidate['identityid']" value="$candidate['identityid']" checked>
+      <td><input type="checkbox" name="identityid$candidate['identityid']" value="$candidate['identityid']" checked="checked" />
     </tr>
     #end for
 
     <tr>
-      <td colspan='6' align="right"><input type="submit" value="Enable selected ports"></td>
+      <td colspan='6' align="right"><input type="submit" value="Enable selected ports" /></td>
     </tr>
   </tbody>
 
