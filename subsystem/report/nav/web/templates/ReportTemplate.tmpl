@@ -102,7 +102,7 @@
         #if $neg.has_key($a.raw)
          checked="1"#slurp
         #end if
-        >
+        />
 
                     </td>
                     <td><label for="not_adv${counter}">not</label></td>
@@ -121,7 +121,7 @@
         #if $contents.has_key($a.raw)
          value="$contents[$a.raw]"#slurp
         #end if
-        >
+        />
 
                     </td>
                 </tr>
@@ -158,7 +158,7 @@
 
         ## CSV Export form
         <h3>CSV Export</h3>
-        <form action="" method=="get" name="export">
+        <form action="" method="get" name="export">
             <label for="export">Delimiter: </label>
             <select name="export">
 #for $delim in $delimiters
