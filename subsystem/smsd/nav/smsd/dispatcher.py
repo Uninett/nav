@@ -40,14 +40,6 @@ class DispatcherHandler(object):
         # Create logger
         self.logger = logging.getLogger("nav.smsd.dispatcher")
 
-        # Get config
-        try:
-            self.dispatcherretry = config['dispatcher']['dispatcherretry']
-        except KeyError, error:
-            self.dispatcherretry = 300 # 5 min
-            self.logger.debug('Dispatcher retry time not set. Default %ds.' %
-                self.dispatcherretry)
-
         # Get dispatchers
         self.dispatchers = []
         for pri in range(len(config['dispatcher']) + 1):
@@ -116,13 +108,6 @@ class DispatcherHandler(object):
 
         for i, (dispatchername, dispatcher) in enumerate(self.dispatchers):
 
-            if dispatcher.lastfailed:
-                sincelastfail = int(time.time()) - dispatcher.lastfailed
-                if sincelastfail < self.dispatcherretry:
-                    self.logger.debug("%s last failed %ds ago. Skipping.",
-                        dispatchername, sincelastfail)
-                    continue # Skip this dispatcher for now
-
             try:
                 self.logger.debug("Trying %s...", dispatchername)
                 (sms, sent, ignored, result, smsid) = \
@@ -137,7 +122,6 @@ class DispatcherHandler(object):
             except DispatcherError, error:
                 self.logger.warning("%s failed to send SMS: %s",
                     dispatchername, error)
-                dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
             except Exception, error:
                 self.logger.exception(
@@ -149,7 +133,6 @@ class DispatcherHandler(object):
                     self.logger.warning(
                         "%s failed to send SMS: Returned false.",
                         dispatchername)
-                    dispatcher.lastfailed = int(time.time())
                     continue # Skip to next dispatcher
 
             # No exception and true result? Success!
@@ -172,8 +155,6 @@ class Dispatcher(object):
 
         # Create logger
         self.logger = logging.getLogger("nav.smsd.dispatcher")
-        # Field for last failed timestamp
-        self.lastfailed = None
         # Max length of SMS
         self.maxlen = 160
         # Max length of ignored message. 15 gives us up to four digits.
