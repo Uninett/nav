@@ -494,15 +494,9 @@ class NetboxScheduler(object):
         return failure
 
     def _log_time_to_next_run(self, thing=None):
-        if hasattr(thing, 'getTime'):
-            next_call = thing
-        elif hasattr(self.loop, 'call') and self.loop.call is not None:
-            next_call = self.loop.call
-        else:
-            next_call = None
-
-        if next_call:
-            next_time = datetime.datetime.fromtimestamp(next_call.getTime())
+        if hasattr(self.loop, 'call') and self.loop.call is not None:
+            next_time = \
+                datetime.datetime.fromtimestamp(self.loop.call.getTime())
             self.logger.debug("Next %r job for %s will be at %s",
                               self.jobname, self.netbox.sysname, next_time)
         return thing
