@@ -198,16 +198,16 @@ def main(args):
 
         if opttest['opt'] in ('-t', '--test'):
             try:
-                (sms, sent, ignored, smsid) = dh.sendsms(opttest, msg)
+                (sms, sent, ignored, smsid) = dh.sendsms(opttest['val'], msg)
             except DispatcherError, error:
                 logger.critical("Sending failed. Exiting. (%s)", error)
                 sys.exit(1)
 
             logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
 
-        elif opttest['opt'] in ('-T', '--TEST') and optuid: 
+        elif opttest['opt'] in ('-T', '--TEST') and optuid:
             queue = nav.smsd.navdbqueue.NAVDBQueue()
-            rowsinserted = queue.inserttestmsgs(optuid, opttest['val'], 
+            rowsinserted = queue.inserttestmsgs(optuid, opttest['val'],
                 'This is a test message from NAV smsd.')
             if rowsinserted:
                 logger.info("SMS put in queue. %d row(s) inserted.", rowsinserted)
