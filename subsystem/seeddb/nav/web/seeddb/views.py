@@ -101,7 +101,7 @@ def room_edit(request, room_id=None):
         'form': form,
         'object': room,
     }
-    return render_to_response('seeddb/location_edit.html',
+    return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
 def location_list(request):
@@ -131,7 +131,7 @@ def location_edit(request, location_id=None):
         'form': form,
         'object': location,
     }
-    return render_to_response('seeddb/location_edit.html',
+    return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
 def organization_list(request):
@@ -166,7 +166,7 @@ def organization_edit(request, organization_id=None):
         'form': form,
         'object': org,
     }
-    return render_to_response('seeddb/location_edit.html',
+    return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
 def usage_list(request):
@@ -200,7 +200,7 @@ def usage_edit(request, usage_id=None):
         'form': form,
         'object': usage,
     }
-    return render_to_response('seeddb/location_edit.html',
+    return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
 def type_list(request):
