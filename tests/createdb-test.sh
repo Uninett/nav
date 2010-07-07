@@ -12,5 +12,14 @@ dropdb $PGDATABASE || true
 
 cd doc/sql
 
+# Create file to store output
+out=`mktemp`
+
 # Try creating DB
-../../tools/retval-wrapper.sh ./createdb.sh -d $PGDATABASE -u $PGUSER -U
+./createdb.sh -d $PGDATABASE -u $PGUSER -U 2>&1 | tee $out
+
+# Check result and return status
+retval=`grep ERROR $out | wc -l`
+rm $out
+exit $retval
+
