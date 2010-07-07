@@ -189,3 +189,22 @@ class NAVDBQueue(object):
         dbconn.commit()
 
         return db.rowcount
+
+    def inserttestmsgs(self, uid, phone, msg):
+        """
+        Insert test messages into the SMS queue for debugging purposes.
+
+        Returns a integer indicating how many rows have been inserted.
+        """
+
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        data = { 'uid': uid, 'phone': phone, 'msg': msg }
+        sql = """INSERT INTO smsq (accountid, time, phone, msg) VALUES (
+                 %(uid)s, now(), %(phone)s, %(msg)s)"""
+
+        db.execute(sql, data)
+        dbconn.commit()
+
+        return db.rowcount
