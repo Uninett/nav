@@ -227,6 +227,7 @@
     </thead>
 
 ## --- DATA ROWS ---- ##
+    #if $report.table.rows
     <tbody>
 
     #for $row in $report.table.rows
@@ -254,6 +255,7 @@
     #end for
 
     </tbody>
+    #end if
 
 ## --- FOOTER ---- ##
     #if $report.table.footer
@@ -272,8 +274,10 @@
     #end if
 
 ## --- FOOTER NAVIGATION ---- ##
+## FIXME Use tfoot?
     <tbody class="footer">
         <tr>
+            ## FIXME colspan=0?!
             <th colspan="0">
 
     #if $report.navigator.previous
