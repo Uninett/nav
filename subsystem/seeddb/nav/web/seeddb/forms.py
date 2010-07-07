@@ -20,12 +20,16 @@ from django import forms
 from nav.models.manage import Netbox, Room, Location, Organization, Usage, Category
 
 class NetboxFilterForm(forms.Form):
-    category = forms.ModelChoiceField(Category.objects.all(), required=False)
-    room = forms.ModelChoiceField(Room.objects.all(), required=False)
-    organization = forms.ModelChoiceField(Organization.objects.all(), required=False)
+    category = forms.ModelChoiceField(
+        Category.objects.order_by('id').all(), required=False)
+    room = forms.ModelChoiceField(
+        Room.objects.order_by('id').all(), required=False)
+    organization = forms.ModelChoiceField(
+        Organization.objects.order_by('id').all(), required=False)
 
 class RoomFilterForm(forms.Form):
-    location = forms.ModelChoiceField(Location.objects.all(), required=False)
+    location = forms.ModelChoiceField(
+        Location.objects.order_by('id').all(), required=False)
 
 class NetboxForm(forms.ModelForm):
     class Meta:
