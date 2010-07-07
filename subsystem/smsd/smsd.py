@@ -357,12 +357,13 @@ def increasedelay(seconds, delayfactor, maxdelay):
 def backoff(seconds, error, retryvars):
     """Delay next loop if dispatching SMS fails."""
 
-    # Function is invoked with the assumtion that there are unsent messages in queue.
+    # Function is invoked with the assumption that there are unsent messages in queue.
     global failed
-    maxdelay, delayfactor, retrylimit, retrylimitaction = retryvars['maxdelay'],\
-                                                          retryvars['delayfactor'],\
-                                                          retryvars['retrylimit'],\
-                                                          retryvars['retrylimitaction']
+
+    maxdelay, delayfactor, retrylimit, retrylimitaction = retryvars['maxdelay'], \
+        retryvars['delayfactor'], retryvars['retrylimit'], \
+        retryvars['retrylimitaction']
+
     failed += 1
     logger.debug("Dispatcher failed %d time(s).", failed)
     increasedelay(seconds, delayfactor, maxdelay)
@@ -439,6 +440,7 @@ def signalhandler(signum, _):
         logger.warn('SIGTERM received: Shutting down.')
         sys.exit(0)
 
+
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""
 
@@ -456,6 +458,7 @@ def loginitfile(loglevel, filename):
             "Failed creating file loghandler. Daemon mode disabled. (%s)" \
             % error
         return False
+
 
 def loginitstderr(loglevel):
     """Initalize the logging handler for stderr."""
@@ -475,12 +478,14 @@ def loginitstderr(loglevel):
             % error
         return False
 
+
 def loguninitstderr():
     """Remove the stderr StreamHandler from the root logger."""
     for hdlr in logging.root.handlers:
         if isinstance(hdlr, logging.StreamHandler) and hdlr.stream is sys.stderr:
             logging.root.removeHandler(hdlr)
             return True
+
 
 def loginitsmtp(loglevel, mailaddr, mailserver):
     """Initalize the logging handler for SMTP."""
@@ -507,6 +512,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
             % error
         return False
 
+
 def usage():
     """Print a usage screen to stderr."""
 
@@ -515,4 +521,3 @@ def usage():
 ### BEGIN
 if __name__ == '__main__':
     main(sys.argv[1:])
-
