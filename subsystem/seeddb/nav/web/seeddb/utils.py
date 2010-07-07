@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect
 from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 
-ITEMS_PER_PAGE = 10
+ITEMS_PER_PAGE = 100
 
 def get_page_num(get):
     try:
