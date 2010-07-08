@@ -55,6 +55,8 @@ def netbox_list(request):
         'title': TITLE_DEFAULT + ' - IP Devices',
         'caption': 'IP Devices',
         'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
+        'active': {'list': True},
+        'tab_template': 'seeddb/tabs_netbox.html',
     }
 
     return render_seeddb_list(request, qs, value_list, filter_form=filter,
@@ -68,6 +70,8 @@ def service_list(request):
         'title': TITLE_DEFAULT + ' - Services',
         'caption': 'Services',
         'navpath': NAVPATH_DEFAULT + [('Services', None)],
+        'active': {'list': True},
+        'tab_template': 'seeddb/tabs_service.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-service-edit', extra_context=extra)
