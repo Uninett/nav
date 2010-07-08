@@ -75,10 +75,6 @@ class Plugin(object):
                           self.__class__.__name__)
 
 
-class FatalPluginError(GeneralException):
-    """Fatal plugin error"""
-    pass
-
 
 def get_class_logger(cls):
     """Return a logger instance for a given class object.
