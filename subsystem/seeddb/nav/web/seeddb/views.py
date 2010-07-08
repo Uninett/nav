@@ -30,13 +30,14 @@ from nav.web.message import new_message, Messages
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import *
 
+TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
 def index(request):
     return render_to_response(
         'seeddb/index.html',
         {
-            'title': 'Seed Database',
+            'title': TITLE_DEFAULT,
             'navpath': [('Home', '/'), ('Seed DB', None)],
         },
         RequestContext(request)
