@@ -91,34 +91,12 @@ def room_list(request):
         extra_context=extra)
 
 def room_edit(request, room_id=None):
-    try:
-        room = get_object(Room, room_id)
-    except Room.DoesNotExist:
-        return HttpResponseRedirect(reverse('seeddb-room-edit'))
-    form = get_form(request, RoomForm, room)
-    if request.method == 'POST' and form.is_valid():
-        if should_update_primary_key(room, form):
-            new_pk = primary_key_update(room, form)
-            return room_edit(request, new_pk)
-        room = form.save()
-        new_message(request._req, "Saved room %s" % room.id, Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('seeddb-room-edit', args=(room.id,)))
-
-    context = {
-        'title': TITLE_DEFAULT + ' - Add new room',
+    extra = {
         'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
         'tab_template': 'seeddb/tabs_room.html',
-        'active': {'add': True},
-        'form': form,
-        'object': room,
     }
-    if room:
-        context.update({
-            'title': TITLE_DEFAULT + ' - Edit room "%s"' % room.id,
-            'active': {'edit': True},
-        })
-    return render_to_response('seeddb/edit.html',
-        context, RequestContext(request))
+    return render_seeddb_edit(request, Room, RoomForm,
+        room_id, extra_context=extra)
 
 def location_list(request):
     qs = Location.objects.all()
@@ -133,31 +111,12 @@ def location_list(request):
         edit_url='seeddb-location-edit', extra_context=extra)
 
 def location_edit(request, location_id=None):
-    try:
-        location = get_object(Location, location_id)
-    except Location.DoesNotExist:
-        return HttpResponseRedirect(reverse('seeddb-location-edit'))
-    form = get_form(request, LocationForm, location)
-    if request.method == 'POST' and form.is_valid():
-        location = form.save()
-        new_message(request._req, "Saved location %s" % location.id, Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('seeddb-location-edit', args=(location.id,)))
-
-    context = {
-        'title': TITLE_DEFAULT + ' - Add new location',
-        'navpath': NAVPATH_DEFAULT + [('Locations', reverse('seeddb-location'))],
-        'form': form,
-        'object': location,
-        'active': {'add': True},
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Locations', None)],
         'tab_template': 'seeddb/tabs_location.html',
     }
-    if location:
-        context.update({
-            'title': TITLE_DEFAULT + ' - Edit location "%s"' % location.id,
-            'active': {'edit': True},
-        })
-    return render_to_response('seeddb/edit.html',
-        context, RequestContext(request))
+    return render_seeddb_edit(request, Location, LocationForm,
+        location_id, extra_context=extra)
 
 def organization_list(request):
     qs = Organization.objects.all()
@@ -168,36 +127,18 @@ def organization_list(request):
         'title': TITLE_DEFAULT + ' - Organizations',
         'caption': 'Organizations',
         'navpath': NAVPATH_DEFAULT + [('Organizations', None)],
+        'tab_template': 'seeddb/tabs_organization.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-organization-edit', extra_context=extra)
 
 def organization_edit(request, organization_id=None):
-    try:
-        org = get_object(Organization, organization_id)
-    except Organization.DoesNotExist:
-        return HttpResponseRedirect(reverse('seeddb-organization-edit'))
-    form = get_form(request, OrganizationForm, org)
-    if request.method == 'POST' and form.is_valid():
-        if should_update_primary_key(org, form):
-            new_pk = primary_key_update(org, form)
-            return organization_edit(request, new_pk)
-        org = form.save()
-        new_message(request._req, "Saved organiztion %s" % org.id, Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('seeddb-organization-edit', args=(org.id,)))
-
-    context = {
-        'title': TITLE_DEFAULT + ' - Add new organiztion',
+    extra = {
         'navpath': NAVPATH_DEFAULT + [('Organizations', reverse('seeddb-organization'))],
-        'form': form,
-        'object': org,
+        'tab_template': 'seeddb/tabs_organization.html',
     }
-    if org:
-        context.update({
-            'title': TITLE_DEFAULT + ' - Edit organiztion "%s"' % org.id,
-        })
-    return render_to_response('seeddb/edit.html',
-        context, RequestContext(request))
+    return render_seeddb_edit(request, Organization, OrganizationForm,
+        organization_id, extra_context=extra)
 
 def usage_list(request):
     qs = Usage.objects.all()
@@ -206,37 +147,18 @@ def usage_list(request):
         'title': TITLE_DEFAULT + ' - Usage categories',
         'caption': 'Usage categories',
         'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
+        'tab_template': 'seeddb/tabs_usage.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-usage-edit', extra_context=extra)
 
 def usage_edit(request, usage_id=None):
-    try:
-        usage = get_object(Usage, usage_id)
-    except Usage.DoesNotExist:
-        return HttpResponseRedirect(reverse('seeddb-usage-edit'))
-    form = get_form(request, UsageForm, usage)
-    if request.method == 'POST' and form.is_valid():
-        if should_update_primary_key(usage, form):
-            new_pk = primary_key_update(usage, form)
-            return usage_edit(request, new_pk)
-        usage = form.save()
-        new_message(request._req,
-            "Saved usage category %s" % usage.id, Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('seeddb-usage-edit', args=(usage.id,)))
-
-    context = {
-        'title': TITLE_DEFAULT + ' - Add new usage category',
+    extra = {
         'navpath': NAVPATH_DEFAULT + [('Usage categories', reverse('seeddb-usage'))],
-        'form': form,
-        'object': usage,
+        'tab_template': 'seeddb/tabs_usage.html',
     }
-    if usage:
-        context.update({
-            'title': TITLE_DEFAULT + ' - Edit usage category "%s"' % usage.id,
-        })
-    return render_to_response('seeddb/edit.html',
-        context, RequestContext(request))
+    return render_seeddb_edit(request, Usage, UsageForm,
+        usage_id, extra_context=extra)
 
 def type_list(request):
     qs = NetboxType.objects.all()
