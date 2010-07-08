@@ -52,7 +52,8 @@ def netbox_list(request):
     )
     filter = NetboxFilterForm(request.GET)
     extra = {
-        'title': 'Seed IP devices',
+        'title': TITLE_DEFAULT + ' - IP Devices',
+        'caption': 'IP Devices',
         'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
     }
 
@@ -64,7 +65,8 @@ def service_list(request):
     qs = Service.objects.all()
     value_list = ('netbox__sysname', 'handler', 'version')
     extra = {
-        'title': 'Seed services',
+        'title': TITLE_DEFAULT + ' - Services',
+        'caption': 'Services',
         'navpath': NAVPATH_DEFAULT + [('Services', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -121,7 +123,8 @@ def location_list(request):
     qs = Location.objects.all()
     value_list = ('id', 'description')
     extra = {
-        'title': 'Seed Locations',
+        'title': TITLE_DEFAULT + ' - Locations',
+        'caption': 'Locations',
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -139,11 +142,15 @@ def location_edit(request, location_id=None):
         return HttpResponseRedirect(reverse('seeddb-location-edit', args=(location.id,)))
 
     context = {
-        'title': 'Seed Database',
+        'title': TITLE_DEFAULT + ' - Add new location',
         'navpath': NAVPATH_DEFAULT + [('Locations', reverse('seeddb-location'))],
         'form': form,
         'object': location,
     }
+    if location:
+        context.update({
+            'title': TITLE_DEFAULT + ' - Edit location "%s"' % location.id,
+        })
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
@@ -153,7 +160,8 @@ def organization_list(request):
         'id', 'parent', 'description', 'optional_1', 'optional_2',
         'optional_3')
     extra = {
-        'title': 'Seed Organizations',
+        'title': TITLE_DEFAULT + ' - Organizations',
+        'caption': 'Organizations',
         'navpath': NAVPATH_DEFAULT + [('Organizations', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -174,11 +182,15 @@ def organization_edit(request, organization_id=None):
         return HttpResponseRedirect(reverse('seeddb-organization-edit', args=(org.id,)))
 
     context = {
-        'title': 'Seed Database',
+        'title': TITLE_DEFAULT + ' - Add new organiztion',
         'navpath': NAVPATH_DEFAULT + [('Organizations', reverse('seeddb-organization'))],
         'form': form,
         'object': org,
     }
+    if org:
+        context.update({
+            'title': TITLE_DEFAULT + ' - Edit organiztion "%s"' % org.id,
+        })
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
@@ -186,7 +198,8 @@ def usage_list(request):
     qs = Usage.objects.all()
     value_list = ('id', 'description')
     extra = {
-        'title': 'Seed Usage Categories',
+        'title': TITLE_DEFAULT + ' - Usage categories',
+        'caption': 'Usage categories',
         'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -208,11 +221,15 @@ def usage_edit(request, usage_id=None):
         return HttpResponseRedirect(reverse('seeddb-usage-edit', args=(usage.id,)))
 
     context = {
-        'title': 'Seed Database',
+        'title': TITLE_DEFAULT + ' - Add new usage category',
         'navpath': NAVPATH_DEFAULT + [('Usage categories', reverse('seeddb-usage'))],
         'form': form,
         'object': usage,
     }
+    if usage:
+        context.update({
+            'title': TITLE_DEFAULT + ' - Edit usage category "%s"' % usage.id,
+        })
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
@@ -222,7 +239,8 @@ def type_list(request):
         'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
         'tftp')
     extra = {
-        'title': 'Seed Types',
+        'title': TITLE_DEFAULT + ' - Types',
+        'caption': 'Types',
         'navpath': NAVPATH_DEFAULT + [('Types', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -232,7 +250,8 @@ def vendor_list(request):
     qs = Vendor.objects.all()
     value_list = ('id',)
     extra = {
-        'title': 'Seed Vendors',
+        'title': TITLE_DEFAULT + ' - Vendors',
+        'caption': 'Vendors',
         'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -242,7 +261,8 @@ def subcategory_list(request):
     qs = Subcategory.objects.all()
     value_list = ('id', 'category', 'description')
     extra = {
-        'title': 'Seed Subcategories',
+        'title': TITLE_DEFAULT + ' - Subcategories',
+        'caption': 'Subcategories',
         'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -252,7 +272,8 @@ def vlan_list(request):
     qs = Vlan.objects.all()
     value_list = ('id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident', 'description')
     extra = {
-        'title': 'Seed Vlan',
+        'title': TITLE_DEFAULT + ' - Vlan',
+        'caption': 'Vlan',
         'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -264,7 +285,8 @@ def prefix_list(request):
         'net_address', 'vlan__net_type', 'vlan__organization',
         'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
     extra = {
-        'title': 'Seed Prefix',
+        'title': TITLE_DEFAULT + ' - Prefix',
+        'caption': 'Prefix',
         'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -274,7 +296,8 @@ def cabling_list(request):
     qs = Cabling.objects.all()
     value_list = ('room', 'jack', 'building', 'target_room', 'category', 'description')
     extra = {
-        'title': 'Seed Cabling',
+        'title': TITLE_DEFAULT + ' - Cabling',
+        'caption': 'Cabling',
         'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
     }
     return render_seeddb_list(request, qs, value_list,
@@ -284,7 +307,8 @@ def patch_list(request):
     qs = Patch.objects.all()
     value_list = ('interface__netbox', 'interface__module', 'interface__baseport', 'cabling__room', 'cabling__jack', 'split')
     extra = {
-        'title': 'Seed Patch',
+        'title': TITLE_DEFAULT + ' - Patch',
+        'caption': 'Patch',
         'navpath': NAVPATH_DEFAULT + [('Patch', None)],
     }
     return render_seeddb_list(request, qs, value_list,
