@@ -228,43 +228,51 @@ $makeMenu($menu, $current)
     &quot;<tt>dat3*</tt>&quot; to search all usernames starting with
     &quot;dat&quot;.
     <li>You can do a text search using these criteria:
-        <li class="sub">Username - The user name a user is trying to log in with</li>
-        <li class="sub">Client - Where the user is connecting. Examples of these are:<br /></li>
-        <li class="sub">Port - Search for a specific port</li>
-        <li class="sub">Message - Search the entire message. Remember to use
-        the wildcard characters if you're searching for a substring. To find all
-        messages that mention id 106, you can use the search string '*ID: 10
+        <ul>
+            <li class="sub">Username - The user name a user is trying to log in with</li>
+            <li class="sub">Client - Where the user is connecting. Examples of these are:<br /></li>
+            <li class="sub">Port - Search for a specific port</li>
+            <li class="sub">Message - Search the entire message. Remember to use
+            the wildcard characters if you're searching for a substring. To find all
+            messages that mention id 106, you can use the search string '*ID: 10
+        </ul>
     <li>You may want to limit the search further by selecting which type of 
     information you want to search.
-        <li class="sub">All - All categories of logged information</li>
-        <li class="sub">Auth - Information relating to authentication</li>
-        <li class="sub">Error - Error messages regarding the radius server</li>
-        <li class="sub">Info - General information from the radius server</li>
-        <li class="sub">Proxy - Show proxy errors
+        <ul>
+            <li class="sub">All - All categories of logged information</li>
+            <li class="sub">Auth - Information relating to authentication</li>
+            <li class="sub">Error - Error messages regarding the radius server</li>
+            <li class="sub">Info - General information from the radius server</li>
+            <li class="sub">Proxy - Show proxy errors
+        </ul>
+    </li>
 
     <li>Common messages, and explanations
-        <li class="sub">"Login incorrect: [host/PEROTTO] (from client unis port 
-        50010 cli 00-10-60-76-AA-4F)"<br />
-        The computer uses default values from Microsoft, and is therefore not
-        correctly set up for 802.1x. "PEROTTO" is in this case the computer name.
-        The "host/" part informs that this is host based authentication.
-        </li>
-        <li class="sub">"Reply from home server 129.242.5.142:3001 - ID: 251 arrived too late for request 674132. Try increasing 'retry_delay' or 'max_request_time'"<br />
-        Time-to-live for a buffered request timed out: It took too long to get an
-        answer from the authentication server, or to finish a request.
-        </li>
+        <ul>
+            <li class="sub">"Login incorrect: [host/PEROTTO] (from client unis port 
+            50010 cli 00-10-60-76-AA-4F)"<br />
+            The computer uses default values from Microsoft, and is therefore not
+            correctly set up for 802.1x. "PEROTTO" is in this case the computer name.
+            The "host/" part informs that this is host based authentication.
+            </li>
+            <li class="sub">"Reply from home server 129.242.5.142:3001 - ID: 251 arrived too late for request 674132. Try increasing 'retry_delay' or 'max_request_time'"<br />
+            Time-to-live for a buffered request timed out: It took too long to get an
+            answer from the authentication server, or to finish a request.
+            </li>
 
-        <li class="sub">"No outstanding request was found for proxy reply from home server xxx.xxx.xxx.xxx:xxxx - ID xxx"<br />
-        Also related to timeouts, shouldn't be anything to worry about.
-        </li>
+            <li class="sub">"No outstanding request was found for proxy reply from home server xxx.xxx.xxx.xxx:xxxx - ID xxx"<br />
+            Also related to timeouts, shouldn't be anything to worry about.
+            </li>
 
-        <li class="sub">"Dropping conflicting packet from client clientname:1646 - ID: 15 due to unfinished request 709815"<br />
-        Harmless messages that occur when the NAS'es (switches) resends a request before radius has replied to the previous request. Happens because of its own timeout.
-        </li>
+            <li class="sub">"Dropping conflicting packet from client clientname:1646 - ID: 15 due to unfinished request 709815"<br />
+            Harmless messages that occur when the NAS'es (switches) resends a request before radius has replied to the previous request. Happens because of its own timeout.
+            </li>
 
-        <li class="sub">"Rejecting request 709815 due to lack of any response from home server aasgardvn:1646"<br />
-        This message will usually follow, and be related to, the previous message.
-        </li>
+            <li class="sub">"Rejecting request 709815 due to lack of any response from home server aasgardvn:1646"<br />
+            This message will usually follow, and be related to, the previous message.
+            </li>
+        </ul>
+    </li>
 </ul>
 
     #end if
