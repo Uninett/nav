@@ -126,6 +126,8 @@ def location_list(request):
         'title': TITLE_DEFAULT + ' - Locations',
         'caption': 'Locations',
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
+        'active': {'list': True},
+        'tab_template': 'seeddb/location_tabs.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-location-edit', extra_context=extra)
@@ -146,10 +148,13 @@ def location_edit(request, location_id=None):
         'navpath': NAVPATH_DEFAULT + [('Locations', reverse('seeddb-location'))],
         'form': form,
         'object': location,
+        'active': {'add': True},
+        'tab_template': 'seeddb/location_tabs.html',
     }
     if location:
         context.update({
             'title': TITLE_DEFAULT + ' - Edit location "%s"' % location.id,
+            'active': {'edit': True},
         })
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
