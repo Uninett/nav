@@ -75,10 +75,20 @@ $sectionslist.sort()
 
 </form>
 
+
+
+########################################
+## Display results if view is set
+########################################
+
+#if $view
+
+#set $viewname = $config.get($view, 'name')
+
 #if $showArr
 <table class="listtable">
     <caption>
-        Ranked Statistics for $config.get($view, 'name')<br />
+        Ranked Statistics for $viewname<br />
         <span class="subtitle">$fromtimes[$fromtime]</span>
     </caption>
 
@@ -132,6 +142,15 @@ $sectionslist.sort()
     </tbody>
 #end if
 </table>
+
+#else
+
+<p>Could not find any data for $viewname</p>
+
 #end if
+## ShowArr
+
+#end if
+## View
 
 #end def
