@@ -1,3 +1,36 @@
+Version 3.6.0b3
+(released 24 June 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#338655 (DNS checker doesn't report version)
+  * LP#502877 (Default Location and Organisation in install)
+  * LP#567840 (missing alertmsg.conf for cisco AP trap)
+  * LP#589033 (SQL syntax errors in Arnold)
+  * LP#591671 (snmptrapd only supports pysnmp2)
+  * LP#593555 (Setting for default smtp-server)
+  * LP#593645 (Arnold sends all e-mail to author's hard-coded address)
+  * LP#595943 (ipdevpoll IntegrityError on insert/update to vlan table)
+  * LP#595944 (ipdevpoll TypeError: unsupported operand type(s) for /:
+               'NoneType' and 'float')
+  * LP#596813 (Adding a new netbox crashes)
+  * LP#596841 (Multiple vlans returned on lookup cause ipdevpoll crash)
+  * LP#596857 (ipv6 prefixes are not collected for some Cisco devices)
+  * LP#597579 (db trigger causes deadlocks in ipdevpoll)
+  * LP#597589 (ipdevpoll does not check for interface mac address validity)
+
 Version 3.6.0b2
 (released 10 June 2010)
 

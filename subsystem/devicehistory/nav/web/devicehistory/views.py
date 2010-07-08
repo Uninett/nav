@@ -233,15 +233,13 @@ def register_error(request):
     confirmed = request.POST.get('confirm', False)
 
     if not selection['netbox'] and not selection['module']:
-        new_message(
-            request,
+        new_message(request._req,
             _("No devices selected."),
             Messages.WARNING
         )
         return error_form(request)
     if not error_comment and not confirmed:
-        new_message(
-            request,
+        new_message(request._req,
             _("There's no error message supplied. Are you sure you want to continue?"),
             Messages.WARNING,
         )
@@ -333,8 +331,7 @@ def do_delete_module(request):
     )
 
     if history.count() == 0:
-        new_message(
-            request,
+        new_message(request._req,
             _('No modules selected'),
             Messages.NOTICE
         )
@@ -343,8 +340,7 @@ def do_delete_module(request):
     # FIXME should there be posted an event, telling the event/alert system
     # that this module is now deleted?
 
-    new_message(
-        request,
+    new_message(request._req,
         _('Deleted selected modules.'),
         Messages.SUCCESS,
     )

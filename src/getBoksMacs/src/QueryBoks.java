@@ -78,7 +78,7 @@ public class QueryBoks extends Thread
 	public static Map oidDb;
 	public static Map vlanMap;
 	public static Map interfaceMap;
-	public static Map mpMap;
+	public static Map<String, String> ifNameMap;
 
 	// For CAM-loggeren
 	public static HashMap unclosedCam;
@@ -224,7 +224,7 @@ public class QueryBoks extends Thread
 						}
 
 						// OK, da er vi klar, oppdater gwport!
-						Database.update("UPDATE interface SET to_netboxid = '"+pm.getToNetboxid()+"', to_interfaceid = "+to_interfaceid+" WHERE netboxid = '"+boksId+"') AND ifindex='" + pm.getIfindex() + "'");
+						Database.update("UPDATE interface SET to_netboxid = '"+pm.getToNetboxid()+"', to_interfaceid = "+to_interfaceid+" WHERE netboxid = '"+boksId+"' AND ifindex='" + pm.getIfindex() + "'");
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						
 						Log.d("RUN", "[GW] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
@@ -265,7 +265,6 @@ public class QueryBoks extends Thread
 					System.err.println("QueryBoks.run(): Exiting...");
 					System.exit(2);
 				}
-				se.printStackTrace(System.err);
 			} catch (TimeoutException te) {
 				Log.d("RUN", "*** GIVING UP ON: " + sysName + ", typename: " + boksType + " ***");
 				continue;
@@ -348,7 +347,6 @@ public class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								System.err.println("Update modulbak/portbak in swp_netbox, swp_netboxid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -378,7 +376,6 @@ public class QueryBoks extends Thread
 						newCnt++;
 					} catch (SQLException e) {
 						Log.d("RUN", "Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
-						e.printStackTrace(System.err);
 					}
 				} else {
 					if (!verify1) Log.d("VERIFY_NETBOXID", "Verify netboxid ("+boksId+") failed");
@@ -410,7 +407,6 @@ public class QueryBoks extends Thread
 			if (rs.next()) return true;
 		} catch (SQLException e) {
 			Log.d("VERIFY_NETBOXID", "Verify netboxid ("+netboxid+"), SQLException: " + e.getMessage() );
-			e.printStackTrace(System.err);
 		}
 		Log.w("VERIFY_NETBOXID", "Netbox ("+netboxid+") " + boksIdName.get(netboxid) + " no longer exists!");
 		return false;
@@ -520,7 +516,6 @@ public class QueryBoks extends Thread
 				}
 			} catch (SQLException e) {
 				Log.d("PROCESS_CDP", "SQLException: " + e.getMessage());
-				e.printStackTrace(System.err);
 			}
 			
 			// Dersom denne porten går fra ikke-gw (sw,kant) til gw må vi slå remote interface opp i gwport
@@ -631,29 +626,34 @@ public class QueryBoks extends Thread
 	 * 
 	 * <p>Each BRIDGE-MIB instance will be listed with a separate SNMP
 	 * community in the entLogicalTable, but these will not be reflected 
-	 * in the result.</p>
+	 * in the result.  Those instances whose community equal excludeCommunity
+	 * will be excluded from the result.  Use the normal read community of the
+	 * device here to exclude MIB instances that aren't actually on a
+	 * separately addressed agent.</p>
 	 * 
-	 * <p>FIXME: The community for each instance should really be returned, 
-	 * so that the calling function won't have to guesstimate the correct
-	 * community (as for Cisco, it's always "community@vlan".</p>
-	 * 
+	 * @param excludeCommunity The default device community
 	 * @return An Set of VLAN id String objects 
 	 * @throws TimeoutException
 	 */
-	private Set<String> getBridgeMibInstances() throws TimeoutException {
+	private Set<String> getBridgeMibInstances(String excludeCommunity) throws TimeoutException {
 		String dot1dBridge = "1.3.6.1.2.1.17";
 		String entLogicalEntry = "1.3.6.1.2.1.47.1.2.1.1";
 		String entLogicalType = entLogicalEntry + ".3";
 		String entLogicalDescr = entLogicalEntry + ".2";
+		String entLogicalCommunity = entLogicalEntry + ".4";
 
 		Set<String> vlans = new HashSet();
 		Map<String, String> typeMap = sSnmp.getAllMap(entLogicalType);
 		Map<String, String> descrMap = sSnmp.getAllMap(entLogicalDescr, true);
+		Map<String, String> communityMap = sSnmp.getAllMap(entLogicalCommunity, true);
 		
 		for (Map.Entry<String, String> typeEntry: typeMap.entrySet()) {
 			String index = typeEntry.getKey();
 			String entType = typeEntry.getValue();
+			String community = communityMap.get(index);
 			
+			if (excludeCommunity.equals(community)) continue;
+
 			if (entType.equals(dot1dBridge) && descrMap.containsKey(index)) {
 				String descr = descrMap.get(index);
 				if (descr.startsWith("vlan")) {
@@ -716,7 +716,7 @@ public class QueryBoks extends Thread
 
 		// Find multiple BRIDGE-MIB instances
 		// First, the standard ENTITY-MIB way:
-		Set vlanSet = getBridgeMibInstances();
+		Set vlanSet = getBridgeMibInstances(cs_ro);
 		
 		// If we found nothing, try the proprietary Cisco way:
 		if (vlanSet == null || vlanSet.size() == 0) {
@@ -775,7 +775,6 @@ public class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								Log.d("MAC_ENTRY", "While deleting from swportblocked ("+netboxid+","+vlan+"): SQLException: " + e.getMessage());
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -846,7 +845,6 @@ public class QueryBoks extends Thread
 										blockedCnt++;
 									} catch (SQLException e) {
 										Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-										e.printStackTrace(System.err);
 									}
 								} else {
 									Log.d("MAC_ENTRY", "Missing interfaceid for ifindex " + ifindex + " on netbox: " + boksIdName.get(netboxid));
@@ -873,7 +871,6 @@ public class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
 								Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -972,14 +969,12 @@ public class QueryBoks extends Thread
 
 		} else {
 			// Nei, da er denne MAC'en ny på porten, og vi må sette inn en record i cam-tabellen
-			s = (String[])mpMap.get(netboxid+":"+ifindex);
-			if (s == null) s = new String[2];
+			String ifName = ifNameMap.get(netboxid+":"+ifindex);
 			String[] insertData = {
 				"netboxid", netboxid,
 				"sysname", (String)boksIdName.get(netboxid),
 				"ifindex", ifindex,
-				"module", s[0],
-				"port", s[1],
+				"port", ifName,
 				"mac", mac.trim(),
 				"start_time", "NOW()"
 			};
@@ -1022,7 +1017,6 @@ public class QueryBoks extends Thread
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				} catch (SQLException e) {
 					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-					e.printStackTrace(System.err);
 				}
 			}
 			camIncResetMisscnt();
@@ -1045,7 +1039,6 @@ public class QueryBoks extends Thread
 					camNewCnt++;
 				} catch (SQLException e) {
 					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-					e.printStackTrace(System.err);
 				}
 			} else {
 				Log.d("VERIFY_NETBOXID", "While insert cam, verify netboxid ("+insertData[1]+") failed");

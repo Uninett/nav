@@ -276,7 +276,7 @@ class Shadow(object):
         lookups = [pk.name] + self.__lookups__
 
         if issubclass(pk_value.__class__, Shadow):
-            pk_value = pk_value.get_existing_model()
+            pk_value = pk_value.get_existing_model(containers)
 
         # If we have the primary key, we can return almost at once
         # If PK is AutoField, we raise an exception if the object

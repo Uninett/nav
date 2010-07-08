@@ -30,7 +30,7 @@ import pprint
 from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
-from nav.ipdevpoll import Plugin, FatalPluginError, storage, shadows
+from nav.ipdevpoll import Plugin, storage, shadows
 from nav.ipdevpoll.models import Type, OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
@@ -87,11 +87,3 @@ class TypeOid(Plugin):
             netbox_container.type = type_
         yield True
 
-    def error(self, failure):
-        failure.trap(defer.TimeoutError)
-        # Handle TimeoutErrors
-        self.logger.error(failure.getErrorMessage())
-        # Report this failure to the waiting plugin manager (RunHandler)
-        exc = FatalPluginError("Cannot continue due to device timeouts")
-        failure = Failure(exc)
-        self.deferred.errback(failure)

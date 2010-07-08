@@ -136,7 +136,7 @@ def do_login(request):
     )
 
 def logout(request):
-    auth.logout(request)
+    auth.logout(request._req)
     return HttpResponseRedirect('/')
 
 def about(request):
