@@ -34,7 +34,7 @@ import socket
 
 from nav.models.oid import SnmpOid, NetboxSnmpOid
 from nav.ipdevpoll import storage, shadows
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 
 class OidProfiler(Plugin):
     """Make SNMP profile for a device."""

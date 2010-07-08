@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -60,6 +60,13 @@ def django_debug_cleanup():
         logger.debug("Removing %d logged Django queries", query_count)
         django.db.reset_queries()
         gc.collect()
+
+class AbortedJobError(Exception):
+    """Signals an aborted collection job."""
+    def __init__(self, msg, cause=None):
+        super(AbortedJobError, self).__init__(msg, cause )
+        self.cause = cause
+
 
 class JobHandler(object):
 
@@ -136,66 +143,84 @@ class JobHandler(object):
 
         return plugins
 
-    @defer.deferredGenerator
+    def _iterate_plugins(self, plugins):
+        """Iterates plugins."""
+        plugins = iter(plugins)
+
+        def log_plugin_failure(failure, plugin_instance):
+            if failure.check(defer.TimeoutError):
+                self.logger.error("Plugin %s reported a timeout",
+                                  plugin_instance)
+            else:
+                self.logger.error("Plugin %s reported an unhandled failure:"
+                                  "\n%s",
+                                  plugin_instance, failure.getTraceback())
+            return failure
+
+        def next_plugin(result=None):
+            try:
+                plugin_instance = plugins.next()
+            except StopIteration:
+                return result
+
+            self.logger.debug("Now calling plugin: %s", plugin_instance)
+            self._start_plugin_timer(plugin_instance)
+
+            df = plugin_instance.handle()
+            df.addErrback(self._stop_plugin_timer)
+            df.addErrback(log_plugin_failure, plugin_instance)
+            df.addCallback(self._stop_plugin_timer)
+            df.addCallback(next_plugin)
+            return df
+
+        return next_plugin()
+
     def run(self):
-        """Start a polling run against a netbox and retun a deferred."""
+        """Starts a polling job for netbox and returns a Deferred."""
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
-            return
+            return defer.succeed(None)
 
-        self.logger.info("Starting job %r for %s", 
+        self.logger.info("Starting job %r for %s",
                          self.name, self.netbox.sysname)
 
-        for plugin_instance in plugins:
-            self.logger.debug("Now calling plugin: %s", plugin_instance)
-            
-            self._start_plugin_timer(plugin_instance)
-            plugin_df = plugin_instance.handle()
-            waiter = defer.waitForDeferred(plugin_df)
-            yield waiter
-            self._stop_plugin_timer()
-            if self._handle_errors(waiter, plugin_instance):
-                return
+        def wrap_up_job(result):
+            self.logger.info("Job %s for %s done.", self.name,
+                             self.netbox.sysname)
+            self._log_timings()
+            return result
 
-        waiter = defer.waitForDeferred(self.save_container())
-        yield waiter
-        waiter.getResult()
+        def plugin_failure(failure):
+            self._log_timings()
+            raise AbortedJobError("Job aborted due to plugin failure",
+                                  cause=failure.value)
 
-        self._log_timings()
-        self.logger.info("Job %r done", self.name)
-        
-    def _handle_errors(self, waiter, plugin):
-        """Handles and logs errors in plugins.
+        def save_failure(failure):
+            self.logger.error("Save stage failed with unhandled error:\n%s",
+                              failure.getTraceback())
+            self._log_timings()
+            raise AbortedJobError("Job aborted due to save failure",
+                                  cause=failure.value)
 
-        Arguments:
-          waiter -- a deferredWaiter whose result will be checked.
-          plugin -- the current plugin instance.
+        def log_abort(failure):
+            if failure.check(AbortedJobError):
+                self.logger.error("Job %r for %s aborted.",
+                                  self.name, self.netbox.sysname)
+            return failure
 
-        Returns: True if there was an error, False it everything was ok.
+        def save(resutl):
+            df = self.save_container()
+            df.addErrback(save_failure)
+            df.addCallback(wrap_up_job)
+            return df
 
-        """
-        error_template = "Job %r aborted for %s due to " % (self.name, 
-                                                            self.netbox.sysname)
-        try:
-            result = waiter.getResult()
-            return False
-
-        except ipdevpoll.FatalPluginError, err:
-            # Plugin encountered a fatal exception
-            self.logger.error("%s fatal error in plugin %s: %s",
-                              error_template, plugin, err)
-
-        except defer.TimeoutError, err:
-            # Plugin encountered a Timeout that it didn't handle itself.
-            self.logger.error("%s a TimeoutError in plugin %s: %s",
-                              error_template, plugin, err)
-            
-        except Exception, err:
-            self.logger.exception("%s unhandled error in plugin %s: %s", 
-                                  error_template, plugin, type(err))
-
-        return True
+        # The action begins here
+        df = self._iterate_plugins(plugins)
+        df.addErrback(plugin_failure)
+        df.addCallback(save)
+        df.addErrback(log_abort)
+        return df
 
     def _reset_timers(self):
         self._start_time = datetime.datetime.now()
@@ -205,9 +230,10 @@ class JobHandler(object):
         timings = [plugin.__class__.__name__, datetime.datetime.now()]
         self._plugin_times.append(timings)
 
-    def _stop_plugin_timer(self):
+    def _stop_plugin_timer(self, result=None):
         timings = self._plugin_times[-1]
         timings.append(datetime.datetime.now())
+        return result
 
     def _log_timings(self):
         stop_time = datetime.datetime.now()
@@ -411,13 +437,13 @@ class NetboxScheduler(object):
         self.logger.debug("Job %r cancelled for %s",
                           self.jobname, self.netbox.sysname)
 
-    def _map_cleanup(self, _, job_handler):
+    def _map_cleanup(self, result, job_handler):
         """Remove a JobHandler from internal data structures."""
         if job_handler.netbox.ip in NetboxScheduler.ip_map:
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
         if job_handler in self.deferred_map:
             del self.deferred_map[job_handler]
-        return job_handler
+        return result
 
     def run_job(self, dummy=None):
         ip = self.netbox.ip
@@ -445,14 +471,21 @@ class NetboxScheduler(object):
             deferred = job_handler.run()
             self.deferred_map[job_handler] = deferred
             # Make sure to remove from ip_map as soon as this run is over
+            deferred.addErrback(self._reschedule)
+            deferred.addErrback(self._log_unhandled_error, job_handler)
+
             deferred.addCallback(self._map_cleanup, job_handler)
             deferred.addCallback(self._log_time_to_next_run)
 
-            deferred.addErrback(self._job_error_handler, job_handler)
-            deferred.addErrback(self._map_cleanup, job_handler)
-            deferred.addErrback(self._log_time_to_next_run)
+    def _reschedule(self, failure):
+        """Examines the job failure and reschedules the job if needed."""
+        failure.trap(AbortedJobError)
+        delay = 60
+        self.logger.info("Rescheduling %r for %s in %d seconds",
+                         self.jobname, self.netbox.sysname, delay)
+        self.loop.call.reset(delay)
 
-    def _job_error_handler(self, failure, job_handler):
+    def _log_unhandled_error(self, failure, job_handler):
         self.logger.exception(
             "Unhandled exception raised by JobHandler: %s\n%s",
             failure.getErrorMessage(),
@@ -462,13 +495,12 @@ class NetboxScheduler(object):
 
     def _log_time_to_next_run(self, thing=None):
         if hasattr(self.loop, 'call') and self.loop.call is not None:
-            next_call = self.loop.call
-            next_time = datetime.datetime.fromtimestamp(next_call.getTime())
+            next_time = \
+                datetime.datetime.fromtimestamp(self.loop.call.getTime())
             self.logger.debug("Next %r job for %s will be at %s",
                               self.jobname, self.netbox.sysname, next_time)
         return thing
-                              
-           
+
 
 class Scheduler(object):
     """Controller of the polling schedule.

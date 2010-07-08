@@ -25,7 +25,7 @@ from twistedsnmp import snmpprotocol, agentproxy
 
 from nav.mibs.if_mib import IfMib
 from nav.mibs.bridge_mib import BridgeMib
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin 
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage

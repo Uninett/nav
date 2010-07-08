@@ -87,6 +87,66 @@ class Module(Shadow):
     def prepare(self, containers):
         self._fix_binary_garbage()
 
+    @classmethod
+    def _make_modulestate_event(cls, django_module):
+        from nav.models.event import EventQueue as Event
+        e = Event()
+        # FIXME: ipdevpoll is not a registered subsystem in the database yet
+        e.source_id = 'getDeviceData'
+        e.target_id = 'eventEngine'
+        e.device = django_module.device
+        e.netbox = django_module.netbox
+        e.event_type_id = 'moduleState'
+        return e
+
+    @classmethod
+    def _dispatch_down_event(cls, django_module):
+        e = cls._make_modulestate_event(django_module)
+        e.state = e.STATE_START
+        e.save()
+
+    @classmethod
+    def _dispatch_up_event(cls, django_module):
+        e = cls._make_modulestate_event(django_module)
+        e.state = e.STATE_END
+        e.save()
+
+    @classmethod
+    def _handle_missing_modules(cls, containers):
+        """Handles modules that have gone missing from a device."""
+        netbox = containers.get(None, Netbox)
+        all_modules = manage.Module.objects.filter(netbox__id = netbox.id)
+        modules_up = all_modules.filter(up=manage.Module.UP_UP)
+        modules_down = all_modules.filter(up=manage.Module.UP_DOWN)
+
+        collected_modules = containers[Module].values()
+        collected_module_pks = [m.id for m in collected_modules if m.id]
+
+        missing_modules = modules_up.exclude(id__in=collected_module_pks)
+        reappeared_modules = modules_down.filter(id__in=collected_module_pks)
+
+        if missing_modules:
+            shortlist = ", ".join(m.name for m in missing_modules)
+            cls._logger.info("%d modules went missing on %s (%s)",
+                             netbox.sysname, len(missing_modules), shortlist)
+            for module in missing_modules:
+                cls._dispatch_down_event(module)
+
+        if reappeared_modules:
+            shortlist = ", ".join(m.name for m in reappeared_modules)
+            cls._logger.info("%d modules reappeared on %s (%s)",
+                             netbox.sysname, len(reappeared_modules),
+                             shortlist)
+            for module in reappeared_modules:
+                cls._dispatch_up_event(module)
+
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._handle_missing_modules(containers)
+        return super(Module, cls).cleanup_after_save(containers)
+
+
 class Device(Shadow):
     __shadowclass__ = manage.Device
     __lookups__ = ['serial']

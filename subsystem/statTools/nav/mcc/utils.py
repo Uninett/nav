@@ -7,6 +7,7 @@ import sys
 import logging
 import os
 from os.path import join, abspath
+from shutil import move
 
 from nav import path
 from nav.db import getConnection
@@ -210,7 +211,29 @@ def updatedb(datadir, containers):
             c.execute(keyvalueq, (key, str(value)))
             if c.rowcount > 0:
                 rrd_fileid, dbpath, dbfilename = c.fetchone()
-                
+
+                # Move file to new place. If it does not exist, we assume it's
+                # ok and keep the change in the database
+                try:
+                    logger.info("Renaming %s to %s" % (
+                        join(dbpath, dbfilename), join(datapath, filename)))
+                    move(join(dbpath, dbfilename),
+                         join(datapath, filename))
+                except IOError, ioerror:
+                    # If file did not exist, accept that and continue
+                    if ioerror.errno == 2:
+                        logger.info("%s did not exist.", 
+                                    join(dbpath, dbfilename))
+                    else:
+                        logger.error("Exception when moving file %s: %s" \
+                                         % (join(dbpath, dbfilename), ioerror))
+                        continue
+                except Exception, e:
+                    logger.error("Exception when moving file %s: %s" \
+                                     % (join(dbpath, dbfilename), e))
+                    continue
+
+
                 sql = """
                 UPDATE rrd_file
                 SET netboxid = %s, path = %s, filename = %s
@@ -229,17 +252,6 @@ def updatedb(datadir, containers):
                 if c.rowcount == 0:
                     insert_datasources(container, rrd_fileid)
 
-                # Move file to new place. If it does not exist, we assume it's
-                # ok and keep the change in the database
-                try:
-                    logger.info("Renaming %s to %s" % (
-                        join(dbpath, dbfilename), join(datapath, filename)))
-                    os.rename(join(dbpath, dbfilename),
-                              join(datapath, filename))
-                except Exception, e:
-                    logger.error("Exception when moving file %s: %s" \
-                          % (join(dbpath, dbfilename), e))
-                    
             else:
                 # Target did not exist in database. Insert file and
                 # datasources.  Get nextval primary key
