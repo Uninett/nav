@@ -13,7 +13,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+
+from django.db import connection
 from django.db.models import get_models
+
+import nav.models
 
 '''
 Query DB using Django models test
@@ -22,8 +27,15 @@ Intended purpose is to catch obvious omissions in DB state or the Django models
 themselves.
 '''
 
+# Ensure that all modules are loaded
+for file_name in os.listdir(os.path.dirname(nav.models.__file__)):
+    if file_name.endswith('.py') and not file_name.startswith('__init__'):
+        module_name = file_name.replace('.py', '')
+        __import__('nav.models.%s' % module_name)
+
 def check_model(model):
-    model.objects.all()[:5]
+    connection.close() # Ensure clean connection
+    list(model.objects.all()[:5])
 
 def model_test_generator():
     for model in get_models():
