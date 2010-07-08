@@ -17,7 +17,9 @@
 
 from django import forms
 
-from nav.models.manage import Netbox, Room, Location, Organization, Usage, Category
+from nav.models.cabling import Cabling, Patch
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix, Category
+from nav.models.service import Service
 
 class NetboxFilterForm(forms.Form):
     category = forms.ModelChoiceField(
@@ -67,3 +69,39 @@ class UsageForm(forms.ModelForm):
 
     class Meta:
         model = Usage
+
+class NetboxTypeForm(forms.ModelForm):
+    REDIRECT = 'seeddb-type-edit'
+
+    class Meta:
+        model = NetboxType
+
+class VendorForm(forms.ModelForm):
+    REDIRECT = 'seeddb-vendor-edit'
+
+    class Meta:
+        model = Vendor
+
+class SubcategoryForm(forms.ModelForm):
+    REDIRECT = 'seeddb-subcategory-edit'
+
+    class Meta:
+        model = Subcategory
+
+class PrefixForm(forms.ModelForm):
+    REDIRECT = 'seeddb-prefix-edit'
+
+    class Meta:
+        model = Prefix
+
+class CablingForm(forms.ModelForm):
+    REDIRECT = 'seeddb-cabling-edit'
+
+    class Meta:
+        model = Cabling
+
+class PatchForm(forms.ModelForm):
+    REDIRECT = 'seeddb-patch-edit'
+
+    class Meta:
+        model = Patch
