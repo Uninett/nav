@@ -47,7 +47,7 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
     if not swport:
         try:
             swport = Interface.objects.get(id=swportid)
-        except SwPort.DoesNotExist:
+        except Interface.DoesNotExist:
             return ([],[])
 
     found_swports = []
