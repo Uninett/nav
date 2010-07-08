@@ -1,0 +1,12 @@
+<li class="{{ active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-type %}">Types</a></li>
+<li class="{{ active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-type-bulk %}">Bulk import</a></li>
+<li class="{{ active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-type-edit %}">Add new type</a>
+</li>
+{% if object %}
+<li class="{{ active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-type-edit object.id %}">Edit type "{{ object.name }}"</a>
+</li>
+{% endif %}

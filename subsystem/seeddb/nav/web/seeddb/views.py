@@ -169,6 +169,7 @@ def type_list(request):
         'title': TITLE_DEFAULT + ' - Types',
         'caption': 'Types',
         'navpath': NAVPATH_DEFAULT + [('Types', None)],
+        'tab_template': 'seeddb/tabs_type.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-type-edit', extra_context=extra)
@@ -180,6 +181,7 @@ def vendor_list(request):
         'title': TITLE_DEFAULT + ' - Vendors',
         'caption': 'Vendors',
         'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
+        'tab_template': 'seeddb/tabs_vendor.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-vendor-edit', extra_context=extra)
@@ -191,6 +193,7 @@ def subcategory_list(request):
         'title': TITLE_DEFAULT + ' - Subcategories',
         'caption': 'Subcategories',
         'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
+        'tab_template': 'seeddb/tabs_subcategory.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-subcategory-edit', extra_context=extra)
@@ -202,6 +205,7 @@ def vlan_list(request):
         'title': TITLE_DEFAULT + ' - Vlan',
         'caption': 'Vlan',
         'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
+        'tab_template': 'seeddb/tabs_vlan.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-vlan-edit', extra_context=extra)
@@ -215,6 +219,7 @@ def prefix_list(request):
         'title': TITLE_DEFAULT + ' - Prefix',
         'caption': 'Prefix',
         'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
+        'tab_template': 'seeddb/tabs_prefix.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-prefix-edit', extra_context=extra)
@@ -226,6 +231,7 @@ def cabling_list(request):
         'title': TITLE_DEFAULT + ' - Cabling',
         'caption': 'Cabling',
         'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
+        'tab_template': 'seeddb/tabs_cabling.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-cabling-edit', extra_context=extra)
@@ -237,6 +243,7 @@ def patch_list(request):
         'title': TITLE_DEFAULT + ' - Patch',
         'caption': 'Patch',
         'navpath': NAVPATH_DEFAULT + [('Patch', None)],
+        'tab_template': 'seeddb/tabs_patch.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-patch-edit', extra_context=extra)
