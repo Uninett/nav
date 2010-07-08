@@ -1,3 +1,34 @@
+Version 3.6.0b4
+(released 08 July 2010)
+
+ Features:
+  * The SMS daemon will now increase the delay between retries when SMS
+    dispatch fails.  This should decrease the amount of spam from smsd when
+    there are transient GSM failures.
+  * ipdevpoll will now naively report module outages.
+  * On timeouts and failures, ipdevpoll will reschedule jobs within 60 seconds.
+
+ Bugfixes:
+
+  * LP#537166 (Community indexing used for non-Cisco devices)
+  * LP#589046 (ranked statistics displays no message when no results were
+               found)
+  * LP#595797 (link incident count in avail report to incidents)
+  * LP#596852 (extract_cricket_oids.py uses the first result for "gConfigRoot"
+               even if it's a comment)
+  * LP#597569 (servicemon continues to monitor services removed from SeedDB)
+  * LP#598104 (non-django web systems missing account context objects in
+               templates)
+  * LP#598111 (login page doesn't do utf-8)
+  * LP#598362 (cam table not equipped for module names, getBoksMacs fails on
+               insert)
+  * LP#598426 (arnold presents active as 9999-12-31 23:59:59)
+  * LP#598437 (mcc.py fails to move rrd file)
+  * LP#598508 (smsd dies because of incorrect DB API usage)
+  * LP#599260 (getBoksMacs SQL syntax error during interface update)
+  * LP#600193 (duplicate ifindexes on migrated data cause ipdevpoll job fail)
+
+
 Version 3.6.0b3
 (released 24 June 2010)
 

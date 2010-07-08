@@ -39,7 +39,7 @@
                 <th rowspan="2">Downtime</th>
             </tr>
             <tr>
-                <th>#</th>
+                <th>Name</th>
                 <th>Description</th>
             </tr>
         </thead>
@@ -54,7 +54,7 @@
                         {% endif %}
                         /></td>
                     <td>{{ m.sysname|default_if_none:"" }}</td>
-                    <td>{{ m.module_number }}</td>
+                    <td>{{ m.name }}</td>
                     <td>{{ m.descr|default_if_none:"" }}</td>
                     <td>{{ m.start_time }}</td>
                     <td>{{ m.start_time|timesince }}</td>

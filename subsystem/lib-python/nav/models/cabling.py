@@ -18,7 +18,7 @@
 
 from django.db import models
 
-from nav.models.manage import Room, SwPort
+from nav.models.manage import Room, Interface
 
 class Cabling(models.Model):
     """From MetaNAV: The cabling table documents the cabling from the wiring
@@ -44,13 +44,13 @@ class Patch(models.Model):
     port to jack."""
 
     id = models.AutoField(db_column='patchid', primary_key=True)
-    swport = models.ForeignKey(SwPort, db_column='swportid')
+    interface = models.ForeignKey(Interface, db_column='interfaceid')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
     split = models.CharField(max_length=-1, default='no')
 
     class Meta:
         db_table = 'patch'
-        unique_together = (('swport', 'cabling'),)
+        unique_together = (('interface', 'cabling'),)
 
     def __unicode__(self):
-        return u'%s, patched to %s' % (self.swport, self.cabling)
+        return u'%s, patched to %s' % (self.interface, self.cabling)
