@@ -77,11 +77,15 @@ def room_list(request):
         'optional_3', 'optional_4')
     filter = RoomFilterForm(request.GET)
     extra = {
-        'title': 'Seed rooms',
+        'title': TITLE_DEFAULT + ' - Rooms',
+        'caption': 'Rooms',
         'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
+        'active': {'room_list': True},
+        'tab_template': 'seeddb/room_tabs.html',
     }
     return render_seeddb_list(request, qs, value_list, filter_form=filter,
-        edit_url='seeddb-room-edit', extra_context=extra)
+        edit_url='seeddb-room-edit',
+        extra_context=extra)
 
 def room_edit(request, room_id=None):
     try:
@@ -98,11 +102,18 @@ def room_edit(request, room_id=None):
         return HttpResponseRedirect(reverse('seeddb-room-edit', args=(room.id,)))
 
     context = {
-        'title': 'Seed Database',
+        'title': TITLE_DEFAULT + ' - Add new room',
         'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
+        'tab_template': 'seeddb/room_tabs.html',
+        'active': {'room_add': True},
         'form': form,
         'object': room,
     }
+    if room:
+        context.update({
+            'title': TITLE_DEFAULT + ' - Edit room "%s"' % room.id,
+            'active': {'room_edit': True},
+        })
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
 
