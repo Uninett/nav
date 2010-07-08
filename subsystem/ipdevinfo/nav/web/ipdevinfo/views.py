@@ -47,9 +47,9 @@ def search(request):
     # FIXME use request.REQUEST?
     search_form = None
     if request.method == 'GET':
-        search_form = SearchForm(request.GET)
+        search_form = SearchForm(request.GET, auto_id=False)
     elif request.method == 'POST':
-        search_form = SearchForm(request.POST)
+        search_form = SearchForm(request.POST, auto_id=False)
 
     if search_form is not None and search_form.is_valid():
         # Preprocess query string
