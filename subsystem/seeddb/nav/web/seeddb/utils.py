@@ -137,3 +137,50 @@ def primary_key_update(object, form):
     cur.execute(sql, params)
 
     return new_pk_val
+
+def render_seeddb_edit(request, object_class, form_class, object_id, identifier_attr='pk', title_attr='pk', extra_context={}):
+    object = None
+    identifier = None
+    title = None
+    verbose_name = object_class._meta.verbose_name
+    if object_id:
+        try:
+            params = {identifier_attr: object_id}
+            object = object_class.objects.get(**params)
+        except object_class.DoesNotExist:
+            return HttpResponseRedirect(reverse(form_class.REDIRECT))
+        identifier = getattr(object, identifier_attr)
+        title = getattr(object, title_attr)
+    if request.method == 'POST':
+        form = form_class(request.POST, instance=object)
+        if form.is_valid():
+            if 'id' in form.cleaned_data and should_update_primary_key(object, form):
+                new_pk = primary_key_update(object, form)
+                return render_seeddb_edit(request, object_class, form_class,
+                    new_pk, identifier_attr, title_attr, extra_context)
+
+            object = form.save()
+            identifier = getattr(object, identifier_attr)
+            title = getattr(object, title_attr)
+            new_message(request._req,
+                 "Saved %s %s" % (verbose_name, title),
+                 Messages.SUCCESS)
+            return HttpResponseRedirect(reverse(form_class.REDIRECT, args=(identifier,)))
+    else:
+        form = form_class(instance=object)
+
+    context = {
+        'object': object,
+        'form': form,
+        'title': 'Add new %s' % verbose_name,
+        'active': {'add': True},
+    }
+    if object:
+        context.update({
+            'title': 'Edit %s "%s"' % (verbose_name, title),
+            'active': {'edit': True},
+        })
+    extra_context.update(context)
+    return render_to_response('seeddb/edit.html',
+        extra_context, RequestContext(request))
+
