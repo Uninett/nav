@@ -3,9 +3,11 @@
 {% block content %}
 <form action="" method="post">
     <table class="listtable">
+    {% if object %}
     <caption>
         {{ object.id }}
     </caption>
+    {% endif %}
     {{ form.as_table }}
     <tr>
         <th></th>
