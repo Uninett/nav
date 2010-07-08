@@ -96,6 +96,7 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
         'sort_asc': sort_asc,
         'filter_form': filter_form,
         'page': page,
+        'active': {'list': True},
     }
     extra_context.update(info_dict)
     return render_to_response(

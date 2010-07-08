@@ -55,7 +55,6 @@ def netbox_list(request):
         'title': TITLE_DEFAULT + ' - IP Devices',
         'caption': 'IP Devices',
         'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
-        'active': {'list': True},
         'tab_template': 'seeddb/tabs_netbox.html',
     }
 
@@ -70,7 +69,6 @@ def service_list(request):
         'title': TITLE_DEFAULT + ' - Services',
         'caption': 'Services',
         'navpath': NAVPATH_DEFAULT + [('Services', None)],
-        'active': {'list': True},
         'tab_template': 'seeddb/tabs_service.html',
     }
     return render_seeddb_list(request, qs, value_list,
@@ -86,7 +84,6 @@ def room_list(request):
         'title': TITLE_DEFAULT + ' - Rooms',
         'caption': 'Rooms',
         'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
-        'active': {'list': True},
         'tab_template': 'seeddb/tabs_room.html',
     }
     return render_seeddb_list(request, qs, value_list, filter_form=filter,
@@ -130,7 +127,6 @@ def location_list(request):
         'title': TITLE_DEFAULT + ' - Locations',
         'caption': 'Locations',
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
-        'active': {'list': True},
         'tab_template': 'seeddb/tabs_location.html',
     }
     return render_seeddb_list(request, qs, value_list,
