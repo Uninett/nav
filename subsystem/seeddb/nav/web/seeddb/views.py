@@ -83,7 +83,7 @@ def room_list(request):
         'caption': 'Rooms',
         'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
         'active': {'room_list': True},
-        'tab_template': 'seeddb/room_tabs.html',
+        'tab_template': 'seeddb/tabs_room.html',
     }
     return render_seeddb_list(request, qs, value_list, filter_form=filter,
         edit_url='seeddb-room-edit',
@@ -106,7 +106,7 @@ def room_edit(request, room_id=None):
     context = {
         'title': TITLE_DEFAULT + ' - Add new room',
         'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
-        'tab_template': 'seeddb/room_tabs.html',
+        'tab_template': 'seeddb/tabs_room.html',
         'active': {'room_add': True},
         'form': form,
         'object': room,
@@ -127,7 +127,7 @@ def location_list(request):
         'caption': 'Locations',
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
         'active': {'list': True},
-        'tab_template': 'seeddb/location_tabs.html',
+        'tab_template': 'seeddb/tabs_location.html',
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-location-edit', extra_context=extra)
@@ -149,7 +149,7 @@ def location_edit(request, location_id=None):
         'form': form,
         'object': location,
         'active': {'add': True},
-        'tab_template': 'seeddb/location_tabs.html',
+        'tab_template': 'seeddb/tabs_location.html',
     }
     if location:
         context.update({
