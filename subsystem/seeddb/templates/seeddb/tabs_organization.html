@@ -1,0 +1,12 @@
+<li class="{{ active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-organization %}">Organization</a></li>
+<li class="{{ active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-organization-bulk %}">Bulk import</a></li>
+<li class="{{ active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-organization-edit %}">Add new organization</a>
+</li>
+{% if object %}
+<li class="{{ active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-organization-edit object.id %}">Edit organization "{{ object.id }}"</a>
+</li>
+{% endif %}
