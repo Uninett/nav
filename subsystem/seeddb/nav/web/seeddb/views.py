@@ -82,7 +82,7 @@ def room_list(request):
         'title': TITLE_DEFAULT + ' - Rooms',
         'caption': 'Rooms',
         'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
-        'active': {'room_list': True},
+        'active': {'list': True},
         'tab_template': 'seeddb/tabs_room.html',
     }
     return render_seeddb_list(request, qs, value_list, filter_form=filter,
@@ -107,14 +107,14 @@ def room_edit(request, room_id=None):
         'title': TITLE_DEFAULT + ' - Add new room',
         'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
         'tab_template': 'seeddb/tabs_room.html',
-        'active': {'room_add': True},
+        'active': {'add': True},
         'form': form,
         'object': room,
     }
     if room:
         context.update({
             'title': TITLE_DEFAULT + ' - Edit room "%s"' % room.id,
-            'active': {'room_edit': True},
+            'active': {'edit': True},
         })
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
