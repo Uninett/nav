@@ -14,6 +14,21 @@
 
 <h2>Seed Database</h2>
 
+<div class="tabs">
+    <ul>
+        <li class="{{ active.index|yesno:"tabactive," }}">
+            <a href="{% url seeddb-index %}">Seed Database</a>
+        </li>
+        {% if tab_template %}
+        {% include tab_template %}
+        {% endif %}
+    </ul>
+</div>
+
+<div class="tabcontent">
+
 {% block content %}
 {% endblock %}
+
+</div>
 {% endblock %}
