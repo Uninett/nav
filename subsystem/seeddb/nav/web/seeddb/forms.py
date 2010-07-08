@@ -40,10 +40,14 @@ class NetboxForm(forms.ModelForm):
         )
 
 class RoomForm(forms.ModelForm):
+    REDIRECT = 'seeddb-room-edit'
+
     class Meta:
         model = Room
 
 class LocationForm(forms.ModelForm):
+    REDIRECT = 'seeddb-location-edit'
+
     class Meta:
         model = Location
 
@@ -53,9 +57,13 @@ class LocationForm(forms.ModelForm):
             del self.fields['id']
 
 class OrganizationForm(forms.ModelForm):
+    REDIRECT = 'seeddb-organization-edit'
+
     class Meta:
         model = Organization
 
 class UsageForm(forms.ModelForm):
+    REDIRECT = 'seeddb-usage-edit'
+
     class Meta:
         model = Usage
