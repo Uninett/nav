@@ -23,7 +23,7 @@ from nav.buildconf import sysconfdir
 config_file = os.path.join(sysconfdir, 'report', 'report.conf')
 config_file_local = os.path.join(sysconfdir, 'report', 'report.local.conf')
 
-def test_repeort_generator():
+def test_report_generator():
     report_list = ReportList(config_file)
     for report in report_list.reports:
         yield check_report, report[0]
