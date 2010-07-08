@@ -32,6 +32,8 @@ urlpatterns = patterns('',
         name='seeddb-netbox-edit'),
     url(r'^netbox/add/$', dummy,
         name='seeddb-netbox-edit'),
+    url(r'^netbox/bulk/$', dummy,
+        name='seeddb-netbox-bulk'),
 
     # Service
     url(r'^service/$', service_list,
@@ -40,6 +42,8 @@ urlpatterns = patterns('',
         name='seeddb-service-edit'),
     url(r'^service/add/$', dummy,
         name='seeddb-service-edit'),
+    url(r'^service/bulk/$', dummy,
+        name='seeddb-service-bulk'),
 
     # Room
     url(r'^room/$', room_list,
@@ -48,6 +52,8 @@ urlpatterns = patterns('',
         name='seeddb-room-edit'),
     url(r'^room/add/$', room_edit,
         name='seeddb-room-edit'),
+    url(r'^room/bulk/$', dummy,
+        name='seeddb-room-bulk'),
 
     # Location
     url(r'^location/$', location_list,
@@ -56,6 +62,8 @@ urlpatterns = patterns('',
         name='seeddb-location-edit'),
     url(r'^location/add/$', location_edit,
         name='seeddb-location-edit'),
+    url(r'^location/bulk/$', dummy,
+        name='seeddb-location-bulk'),
 
     # Organization
     url(r'^organization/$', organization_list,
@@ -64,6 +72,8 @@ urlpatterns = patterns('',
         name='seeddb-organization-edit'),
     url(r'^organization/add/$', organization_edit,
         name='seeddb-organization-edit'),
+    url(r'^organization/bulk/$', dummy,
+        name='seeddb-organization-bulk'),
 
     # Usage category
     url(r'^usage/$', usage_list,
@@ -72,6 +82,8 @@ urlpatterns = patterns('',
         name='seeddb-usage-edit'),
     url(r'^usage/add/$', usage_edit,
         name='seeddb-usage-edit'),
+    url(r'^usage/bulk/$', dummy,
+        name='seeddb-usage-bulk'),
 
     # Type
     url(r'^type/$', type_list,
@@ -80,6 +92,8 @@ urlpatterns = patterns('',
         name='seeddb-type-edit'),
     url(r'^type/add/$', dummy,
         name='seeddb-type-edit'),
+    url(r'^type/bulk/$', dummy,
+        name='seeddb-type-bulk'),
 
     # Vendor
     url(r'^vendor/$', vendor_list,
@@ -88,6 +102,8 @@ urlpatterns = patterns('',
         name='seeddb-vendor-edit'),
     url(r'^vendor/add/$', dummy,
         name='seeddb-vendor-edit'),
+    url(r'^vendor/bulk/$', dummy,
+        name='seeddb-vendor-bulk'),
 
     # SNMPoid
 
@@ -98,6 +114,8 @@ urlpatterns = patterns('',
         name='seeddb-subcategory-edit'),
     url(r'^subcategory/add/$', dummy,
         name='seeddb-subcategory-edit'),
+    url(r'^subcategory/bulk/$', dummy,
+        name='seeddb-subcategory-bulk'),
 
     # Vlan
     url(r'^vlan/$', vlan_list,
@@ -112,6 +130,8 @@ urlpatterns = patterns('',
         name='seeddb-prefix-edit'),
     url(r'^prefix/add/$', dummy,
         name='seeddb-prefix-edit'),
+    url(r'^prefix/bulk/$', dummy,
+        name='seeddb-prefix-bulk'),
 
     # Cabling
     url(r'^cabling/$', cabling_list,
@@ -120,6 +140,8 @@ urlpatterns = patterns('',
         name='seeddb-cabling-edit'),
     url(r'^cabling/add/$', dummy,
         name='seeddb-cabling-edit'),
+    url(r'^cabling/bulk/$', dummy,
+        name='seeddb-cabling-bulk'),
 
     # Patch
     url(r'^patch/$', patch_list,
@@ -128,4 +150,6 @@ urlpatterns = patterns('',
         name='seeddb-patch-edit'),
     url(r'^patch/add/$', dummy,
         name='seeddb-patch-edit'),
+    url(r'^patch/bulk/$', dummy,
+        name='seeddb-patch-bulk'),
 )
