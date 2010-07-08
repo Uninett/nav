@@ -39,6 +39,7 @@ def index(request):
         {
             'title': TITLE_DEFAULT,
             'navpath': [('Home', '/'), ('Seed DB', None)],
+            'active': {'index': True},
         },
         RequestContext(request)
     )
