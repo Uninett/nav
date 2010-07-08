@@ -21,12 +21,23 @@ smsd dispatches SMS messages from the database to users' phones with the help
 of plugins using Gammu and a cell on the COM port, or free SMS services on the
 web.
 
-Usage: smsd [-h] [-c] [-d sec] [-t phone no.]
+Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] [-tT phone no.] [-u user ID]
 
   -h, --help            Show this help text
   -c, --cancel          Cancel (mark as ignored) all unsent messages
   -d, --delay           Set delay (in seconds) between queue checks
+  -f, --factor          Set the factor delay will be multiplied with
+  -m, --maxdelay        Maximum delay (in seconds)
+  -l, --limit           Set the limit of retries
+  -a, --action          The action to perform when reaching limit (0 or 1)
+                          0: Messages in queue are marked as ignored and error
+                             details are logged and mailed to admin. Deamon
+                             resumes running and checking the message queue.
+                          1: Error details are logged and mailed to admin. The
+                             deamon shuts down.
+  -u, --uid             User/account ID
   -t, --test            Send a test message to <phone no.>
+  -T, --TEST            Put a test message to <phone no.> into the SMS queue
 
 """
 
@@ -57,17 +68,21 @@ configfile = os.path.join(nav.path.sysconfdir, 'smsd.conf')
 logfile = os.path.join(nav.path.localstatedir, 'log', 'smsd.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'smsd.pid')
 
-
 ### MAIN FUNCTION
 
 def main(args):
     # Get command line arguments
     optcancel = False
     optdelay = False
+    optfactor = False
+    optmaxdelay = False
+    optlimit = False
+    optaction = False
     opttest = False
+    optuid = False
     try:
-        opts, args = getopt.getopt(args, 'hcd:t:',
-         ['help', 'cancel', 'delay=', 'test='])
+        opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:T:u:',
+         ['help', 'cancel', 'delay=', 'test=', 'TEST=', 'uid='])
     except getopt.GetoptError, error:
         print >> sys.stderr, "%s\nTry `%s --help' for more information." % (
             error, sys.argv[0])
@@ -79,14 +94,30 @@ def main(args):
         if opt in ('-c', '--cancel'):
             optcancel = True
         if opt in ('-d', '--delay'):
-            optdelay = val
-        if opt in ('-t', '--test'):
-            opttest = val
+            optdelay = int(val)
+        if opt in ('-f', '--factor'):
+            optfactor = int(val)
+        if opt in ('-m', '--maxdelay'):
+            optmaxdelay = int(val)
+        if opt in ('-l', '--limit'):
+            optlimit = int(val)
+        if opt in ('-a', '--action'):
+            optaction = int(val)
+        if opt in ('-t', '--test', '-T', '--TEST'):
+            opttest = { 'opt': opt, 'val': val}
+        if opt in ('-u', '--uid'):
+            optuid = int(val)
+
 
     # Set config defaults
+    global defaults
     defaults = {
         'username': 'navcron',
         'delay': '30',
+        'delayfactor': '1.5',
+        'maxdelay': '3600',
+        'retrylimit': '5',
+        'retrylimitaction': 'ignore',
         'autocancel': '0',
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
@@ -95,11 +126,26 @@ def main(args):
     }
 
     # Read config file
+    global config
     config = getconfig(configfile, defaults)
 
     # Set variables
-    username = config['main']['username']
+    global delay, failed
+    failed = 0
     delay = int(config['main']['delay'])
+    maxdelay = int(config['main']['maxdelay'])
+    delayfactor = float(config['main']['delayfactor'])
+    retrylimit = int(config['main']['retrylimit'])
+    retrylimitaction = config['main']['retrylimitaction'].strip()
+    retryvars = {
+        'maxdelay': maxdelay,
+        'delayfactor': delayfactor,
+        'retrylimit': retrylimit,
+        'retrylimitaction': retrylimitaction
+    }
+
+
+    username = config['main']['username']
     autocancel = config['main']['autocancel']
     loglevel = eval('logging.' + config['main']['loglevel'])
     mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
@@ -116,8 +162,10 @@ def main(args):
     if not loginitsmtp(mailwarnlevel, mailaddr, mailserver):
         sys.exit('Failed to init SMTP logging.')
 
+
     # First log message
     logger.info('Starting smsd.')
+
 
     # Set custom loop delay
     if optdelay:
@@ -130,6 +178,15 @@ def main(args):
         logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
 
+    if optfactor:
+        retryvars['delayfactor'] = optfactor
+    if optmaxdelay:
+        retryvars['maxdelay'] = optmaxdelay
+    if optlimit:
+        retryvars['retrylimit'] = optlimit
+    if optaction:
+        retryvars['retrylimitaction'] = optaction
+
     # Let the dispatcherhandler take care of our dispatchers
     try:
         dh = nav.smsd.dispatcher.DispatcherHandler(config)
@@ -141,13 +198,24 @@ def main(args):
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
 
-        try:
-            (sms, sent, ignored, smsid) = dh.sendsms(opttest, msg)
-        except DispatcherError, error:
-            logger.critical("Sending failed. Exiting. (%s)", error)
-            sys.exit(1)
+        if opttest['opt'] in ('-t', '--test'):
+            try:
+                (sms, sent, ignored, smsid) = dh.sendsms(opttest['val'], msg)
+            except DispatcherError, error:
+                logger.critical("Sending failed. Exiting. (%s)", error)
+                sys.exit(1)
 
-        logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
+            logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
+
+        elif opttest['opt'] in ('-T', '--TEST') and optuid:
+            queue = nav.smsd.navdbqueue.NAVDBQueue()
+            rowsinserted = queue.inserttestmsgs(optuid, opttest['val'],
+                'This is a test message from NAV smsd.')
+            if rowsinserted:
+                logger.info("SMS put in queue. %d row(s) inserted.", rowsinserted)
+            else:
+                logger.info("SMS not put in queue.")
+
         sys.exit(0)
 
     # Switch user to navcron (only works if we're root)
@@ -197,12 +265,14 @@ def main(args):
         logger.info("%d unsent messages older than '%s' autocanceled.",
             ignCount, autocancel)
 
+
     # Loop forever
     while True:
         logger.debug("Starting loop.")
 
         # Queue: Get users with unsent messages
         users = queue.getusers('N')
+
         logger.info("Found %d user(s) with unsent messages.", len(users))
 
         # Loop over cell numbers
@@ -219,12 +289,24 @@ def main(args):
                     error)
                 sys.exit(1)
             except DispatcherError, error:
-                logger.critical("Sending failed. (%s)", error)
-                break # End this run
+                try:
+                    # Dispatching failed. Backing off.
+                    backoff(delay, error, retryvars)
+
+                    break # End this run
+                except:
+                    logger.exception("")
+                    raise
             except Exception, error:
                 logger.exception("Unknown exception: %s", error)
 
+
             logger.info("SMS sent to %s.", user)
+
+            if failed:
+                resetdelay()
+                failed = 0
+                logger.debug("Resetting delay and number of failed runs.")
 
             for msgid in sent:
                 queue.setsentstatus(msgid, 'Y', smsid)
@@ -246,6 +328,101 @@ def main(args):
 
 ### HELPER FUNCTIONS
 
+def setdelay(seconds):
+    """Set delay (in seconds) between queue checks."""
+
+    global delay, logger
+
+    delay = seconds
+    logger.info("Setting delay to %d seconds.", delay)
+
+
+def resetdelay():
+    global config, defaults
+    try:
+        setdelay(int(config['main']['delay']))
+    except:
+        setdelay(int(defaults['delay']))
+
+
+def increasedelay(seconds, delayfactor, maxdelay):
+    if seconds * delayfactor < maxdelay:
+        setdelay(seconds * delayfactor)
+    elif seconds == maxdelay:
+        pass
+    elif seconds * delayfactor >= maxdelay:
+        setdelay(maxdelay)
+
+
+def backoff(seconds, error, retryvars):
+    """Delay next loop if dispatching SMS fails."""
+
+    # Function is invoked with the assumption that there are unsent messages in queue.
+    global failed
+
+    maxdelay, delayfactor, retrylimit, retrylimitaction = retryvars['maxdelay'], \
+        retryvars['delayfactor'], retryvars['retrylimit'], \
+        retryvars['retrylimitaction']
+
+    failed += 1
+    logger.debug("Dispatcher failed %d time(s).", failed)
+    increasedelay(seconds, delayfactor, maxdelay)
+
+    queue = nav.smsd.navdbqueue.NAVDBQueue()
+    msgs = queue.getmsgs('N')
+
+    # If limit is set and reached, perform an action
+    if retrylimit != 0 and failed >= retrylimit:
+        backoffaction(error, retrylimitaction)
+
+    # If limit is disabled, report error and continue
+    elif retrylimit == 0 and delay >= maxdelay:
+        if len(msgs):
+            logger.critical("Dispatching SMS fails. %d unsent message(s),"
+                " the oldest from %s. (%s)", len(msgs), msgs[0]['time'], error)
+        else:
+            logger.critical("Dispatching SMS fails. (%s)", error)
+
+
+def backoffaction(error, retrylimitaction):
+    """Perform an action if the retry limit has been reached."""
+
+    global failed
+    queue = nav.smsd.navdbqueue.NAVDBQueue()
+    msgs = queue.getmsgs('N')
+
+    if retrylimitaction == "ignore":
+        # Queued messages are marked as ignored, logs a critical error with
+        # message details, then resumes run.
+        numbmsg = queue.cancel()
+        error_message = (u"Dispatch retry limit has been reached."
+            " Dispatching SMS has failed %s times. Ignoring %s message(s)." %
+            (failed, numbmsg))
+
+        for index, msg in enumerate(msgs):
+            print msg.keys
+            error_message += u"\n%s: \"%s\" --> %s" % \
+                (index+1, msg['msg'], msg['name'])
+
+        error_message += u"\nError message: %s" % error
+        logger.critical(error_message.encode('utf-8'))
+        failed = 0
+        resetdelay()
+
+
+    elif retrylimitaction == "shutdown":
+        # Logs the number of unsent messages and time of the oldest in queue
+        # before shutting down daemon.
+        logger.critical("Dispatch retry limit has been reached."
+            " Dispatching SMS has failed %d times. %d unsent message(s), the oldest from %s."
+            " \nError message: %s \nShutting down daemon.\n",
+            failed, len(msgs), msgs[0]["time"], error)
+        sys.exit(0)
+
+    else:
+        logger.warning("No retry limit action is set or the configured option is not valid.")
+
+
 def signalhandler(signum, _):
     """
     Signal handler to close and reopen log file(s) on HUP
@@ -262,6 +439,7 @@ def signalhandler(signum, _):
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down.')
         sys.exit(0)
+
 
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""
@@ -281,6 +459,7 @@ def loginitfile(loglevel, filename):
             % error
         return False
 
+
 def loginitstderr(loglevel):
     """Initalize the logging handler for stderr."""
 
@@ -299,12 +478,14 @@ def loginitstderr(loglevel):
             % error
         return False
 
+
 def loguninitstderr():
     """Remove the stderr StreamHandler from the root logger."""
     for hdlr in logging.root.handlers:
         if isinstance(hdlr, logging.StreamHandler) and hdlr.stream is sys.stderr:
             logging.root.removeHandler(hdlr)
             return True
+
 
 def loginitsmtp(loglevel, mailaddr, mailserver):
     """Initalize the logging handler for SMTP."""
@@ -331,27 +512,12 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
             % error
         return False
 
+
 def usage():
     """Print a usage screen to stderr."""
 
     print >> sys.stderr, __doc__
 
-def setdelay(sec):
-    """Set delay (in seconds) between queue checks."""
-
-    global delay, logger
-
-    if sec.isdigit():
-        sec = int(sec)
-        delay = sec
-        logger.info("Setting delay to %d seconds.", sec)
-        return True
-    else:
-        logger.warning("Given delay not a digit. Using default.")
-        return False
-
-
 ### BEGIN
 if __name__ == '__main__':
     main(sys.argv[1:])
-
