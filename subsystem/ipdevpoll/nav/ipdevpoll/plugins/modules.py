@@ -99,7 +99,6 @@ class Modules(Plugin):
         module.netbox = netbox
         module.model = ent['entPhysicalModelName'].strip()
         module.description = ent['entPhysicalDescr'].strip()
-        module.up = "y"
         module.name = ent['entPhysicalName'].strip()
         if module.name.strip().isdigit():
             module.module_number = int(module.name.strip())
