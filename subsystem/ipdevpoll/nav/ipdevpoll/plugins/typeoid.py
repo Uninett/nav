@@ -35,6 +35,9 @@ from nav.ipdevpoll.models import Type, OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
 
+class InvalidResponseError(Exception):
+    pass
+
 class TypeOid(Plugin):
     def __init__(self, *args, **kwargs):
         Plugin.__init__(self, *args, **kwargs)
@@ -53,12 +56,15 @@ class TypeOid(Plugin):
         self.logger.debug("Collecting sysObjectId")
         snmpv2_mib = Snmpv2Mib(self.agent)
         thing = defer.waitForDeferred(
-            snmpv2_mib.retrieve_column('sysObjectID'))
+            snmpv2_mib.get_sysObjectID())
         yield thing
 
         thing = thing.getResult()
+        if not thing:
+            raise InvalidResponseError("No response on sysObjectID query.", 
+                                       thing, self.agent)
         # Just pick the first result, there should never really be multiple
-        sysobjectid = str( OID(thing.values()[0]) )
+        sysobjectid = str( OID(thing) )
         # ObjectIDs in the database are stored without the preceding dot.
         if sysobjectid[0] == '.':
             sysobjectid = sysobjectid[1:]
