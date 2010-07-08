@@ -44,6 +44,7 @@ def search(request):
     query = None
     netboxes = Netbox.objects.none()
 
+    # FIXME use request.REQUEST?
     search_form = None
     if request.method == 'GET':
         search_form = SearchForm(request.GET)
