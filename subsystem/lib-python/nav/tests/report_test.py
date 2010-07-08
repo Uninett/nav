@@ -36,5 +36,5 @@ def check_report(report_name):
     report, contents, neg, operator, adv, config, dbresult = generator.makeReport(
         report_name, config_file, config_file_local, uri, None, None)
 
-    assert dbresult
-    assert not dbresult.error, dbresult.error
+    assert dbresult, 'dbresult is None'
+    assert not dbresult.error, dbresult.error + '\n' + dbresult.sql
