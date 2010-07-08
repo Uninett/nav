@@ -28,13 +28,17 @@ urlpatterns = patterns('',
     # Netbox
     url(r'^netbox/$', netbox_list,
         name='seeddb-netbox'),
-    url(r'^netbox/(?P<netbox_sysname>[\w\d.-]+)/', dummy,
+    url(r'^netbox/edit/(?P<netbox_sysname>[\w\d.-]+)/', dummy,
+        name='seeddb-netbox-edit'),
+    url(r'^netbox/add/$', dummy,
         name='seeddb-netbox-edit'),
 
     # Service
     url(r'^service/$', service_list,
         name='seeddb-service'),
-    url(r'^service/(?P<service>[\d]+)$', dummy,
+    url(r'^service/edit/(?P<service>[\d]+)$', dummy,
+        name='seeddb-service-edit'),
+    url(r'^service/add/$', dummy,
         name='seeddb-service-edit'),
 
     # Room
@@ -72,13 +76,17 @@ urlpatterns = patterns('',
     # Type
     url(r'^type/$', type_list,
         name='seeddb-type'),
-    url(r'^type/(?P<type>[\d]+)/$', dummy, 
+    url(r'^type/edit/(?P<type>[\d]+)/$', dummy, 
+        name='seeddb-type-edit'),
+    url(r'^type/add/$', dummy,
         name='seeddb-type-edit'),
 
     # Vendor
     url(r'^vendor/$', vendor_list,
         name='seeddb-vendor'),
-    url(r'^vendor/(?P<vendor>[\w\d]+)/$', dummy,
+    url(r'^vendor/edit/(?P<vendor>[\w\d]+)/$', dummy,
+        name='seeddb-vendor-edit'),
+    url(r'^vendor/add/$', dummy,
         name='seeddb-vendor-edit'),
 
     # SNMPoid
@@ -86,30 +94,38 @@ urlpatterns = patterns('',
     # Subcategory
     url(r'^subcategory/$', subcategory_list,
         name='seeddb-subcategory'),
-    url(r'^subcategory/(?P<subcategory>[\w\d-]+)/$', dummy,
+    url(r'^subcategory/edit/(?P<subcategory>[\w\d-]+)/$', dummy,
+        name='seeddb-subcategory-edit'),
+    url(r'^subcategory/add/$', dummy,
         name='seeddb-subcategory-edit'),
 
     # Vlan
     url(r'^vlan/$', vlan_list,
         name='seeddb-vlan'),
-    url(r'^vlan/(?P<vlan>[\d]+)/$', dummy,
+    url(r'^vlan/edit/(?P<vlan>[\d]+)/$', dummy,
         name='seeddb-vlan-edit'),
 
     # Prefix
     url(r'^prefix/$', prefix_list,
         name='seeddb-prefix'),
-    url(r'^prefix/(?P<prefix>[\d]+)/$', dummy,
+    url(r'^prefix/edit/(?P<prefix>[\d]+)/$', dummy,
+        name='seeddb-prefix-edit'),
+    url(r'^prefix/add/$', dummy,
         name='seeddb-prefix-edit'),
 
     # Cabling
     url(r'^cabling/$', cabling_list,
         name='seeddb-cabling'),
-    url(r'^cabling/(?P<cabling>[\d]+)/$', dummy,
+    url(r'^cabling/edit/(?P<cabling>[\d]+)/$', dummy,
+        name='seeddb-cabling-edit'),
+    url(r'^cabling/add/$', dummy,
         name='seeddb-cabling-edit'),
 
     # Patch
     url(r'^patch/$', patch_list,
         name='seeddb-patch'),
-    url(r'^patch/(?P<patch>[\d]+)/$', dummy,
+    url(r'^patch/edit/(?P<patch>[\d]+)/$', dummy,
+        name='seeddb-patch-edit'),
+    url(r'^patch/add/$', dummy,
         name='seeddb-patch-edit'),
 )
