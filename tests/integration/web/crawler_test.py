@@ -49,6 +49,15 @@ seen_paths = {}
 html_store = {}
 queue = [HOST_URL]
 
+def test_webpages():
+    login()
+    while queue:
+        yield check_response, queue.pop()
+
+def test_validates():
+    for url in html_store.keys():
+        yield check_validates, url
+
 def login():
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
@@ -115,12 +124,3 @@ def check_validates(url):
     if errors:
         errors.insert(0, 'Found following validation errors:')
         raise Exception(u'\n'.join([unicode(e) for e in errors]))
-
-def test_webpages():
-    login()
-    while queue:
-        yield check_response, queue.pop()
-
-def test_validates():
-    for url in html_store.keys():
-        yield check_validates, url
