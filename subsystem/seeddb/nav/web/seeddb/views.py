@@ -174,6 +174,14 @@ def type_list(request):
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-type-edit', extra_context=extra)
 
+def type_edit(request, type_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Types', reverse('seeddb-type'))],
+        'tab_template': 'seeddb/tabs_type.html',
+    }
+    return render_seeddb_edit(request, NetboxType, NetboxTypeForm,
+        type_id, title_attr='name', extra_context=extra)
+
 def vendor_list(request):
     qs = Vendor.objects.all()
     value_list = ('id',)
@@ -186,6 +194,14 @@ def vendor_list(request):
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-vendor-edit', extra_context=extra)
 
+def vendor_edit(request, vendor_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Vendors', reverse('seeddb-vendor'))],
+        'tab_template': 'seeddb/tabs_vendor.html',
+    }
+    return render_seeddb_edit(request, Vendor, VendorForm,
+        vendor_id, extra_context=extra)
+
 def subcategory_list(request):
     qs = Subcategory.objects.all()
     value_list = ('id', 'category', 'description')
@@ -197,6 +213,14 @@ def subcategory_list(request):
     }
     return render_seeddb_list(request, qs, value_list,
         edit_url='seeddb-subcategory-edit', extra_context=extra)
+
+def subcategory_edit(request, subcategory_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Subcategories', reverse('seeddb-subcategory'))],
+        'tab_template': 'seeddb/tabs_subcategory.html',
+    }
+    return render_seeddb_edit(request, Subcategory, SubcategoryForm,
+        subcategory_id, extra_context=extra)
 
 def vlan_list(request):
     qs = Vlan.objects.all()

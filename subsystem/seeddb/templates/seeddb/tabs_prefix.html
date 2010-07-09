@@ -7,6 +7,6 @@
 </li>
 {% if object %}
 <li class="{{ active.edit|yesno:"tabactive," }}">
-    <a href="{% url seeddb-prefix-edit object.id %}">Edit prefix "{{ object.name }}"</a>
+    <a href="{% url seeddb-prefix-edit object.id %}">Edit prefix "{{ object.net_address }}"</a>
 </li>
 {% endif %}
