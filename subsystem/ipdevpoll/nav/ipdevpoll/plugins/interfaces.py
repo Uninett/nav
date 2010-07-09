@@ -31,7 +31,7 @@ from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
 
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage
@@ -61,18 +61,7 @@ class Interfaces(Plugin):
         df.addCallback(self._retrieve_duplex)
         df.addCallback(self._got_interfaces)
         df.addCallback(self._get_stack_status)
-        df.addErrback(self._error)
         return df
-
-    def _error(self, failure):
-        """Errback for SNMP failures."""
-        if failure.check(defer.TimeoutError):
-            # Transform TimeoutErrors to something else
-            self.logger.error(failure.getErrorMessage())
-            # Report this failure to the waiting plugin manager (RunHandler)
-            exc = FatalPluginError("Cannot continue due to device timeouts")
-            failure = Failure(exc)
-        return failure
 
     def _got_interfaces(self, result):
         """Process the list of collected interfaces."""
@@ -110,7 +99,7 @@ class Interfaces(Plugin):
         interface.ifadminstatus = row['ifAdminStatus']
         interface.ifoperstatus = row['ifOperStatus']
 
-        interface.ifname = row['ifName']
+        interface.ifname = row['ifName'] or row['ifDescr']
         interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
         interface.ifalias = row['ifAlias']
         

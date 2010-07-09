@@ -23,7 +23,6 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.shortcuts import render_to_response
 
-from nav.web.templates.StatusTemplate import StatusTemplate
 from nav.django.utils import get_account
 from nav.models.profiles import StatusPreference, Account
 from nav.web.message import Messages, new_message

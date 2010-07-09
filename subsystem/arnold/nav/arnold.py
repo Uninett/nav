@@ -210,7 +210,7 @@ def findIdInformation(id, limit):
             # 999999-12-31 00:00:00.00. This of course also removes
             # the datetime-object.
             for row in result:
-                if row['endtime'].year == 999999:
+                if row['endtime'].year == 9999:
                     row['endtime'] = 'Still Active'
                 else:
                     row['endtime'] = row['endtime'].strftime('%Y-%m-%d %H:%M:%S')

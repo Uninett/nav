@@ -76,7 +76,7 @@ class NetboxLoader(dict):
 
         """
         queryset = manage.Netbox.objects.select_related(depth=1).filter(
-            read_only__isnull=False)
+            read_only__isnull=False, up='y')
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 

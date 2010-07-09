@@ -87,6 +87,66 @@ class Module(Shadow):
     def prepare(self, containers):
         self._fix_binary_garbage()
 
+    @classmethod
+    def _make_modulestate_event(cls, django_module):
+        from nav.models.event import EventQueue as Event
+        e = Event()
+        # FIXME: ipdevpoll is not a registered subsystem in the database yet
+        e.source_id = 'getDeviceData'
+        e.target_id = 'eventEngine'
+        e.device = django_module.device
+        e.netbox = django_module.netbox
+        e.event_type_id = 'moduleState'
+        return e
+
+    @classmethod
+    def _dispatch_down_event(cls, django_module):
+        e = cls._make_modulestate_event(django_module)
+        e.state = e.STATE_START
+        e.save()
+
+    @classmethod
+    def _dispatch_up_event(cls, django_module):
+        e = cls._make_modulestate_event(django_module)
+        e.state = e.STATE_END
+        e.save()
+
+    @classmethod
+    def _handle_missing_modules(cls, containers):
+        """Handles modules that have gone missing from a device."""
+        netbox = containers.get(None, Netbox)
+        all_modules = manage.Module.objects.filter(netbox__id = netbox.id)
+        modules_up = all_modules.filter(up=manage.Module.UP_UP)
+        modules_down = all_modules.filter(up=manage.Module.UP_DOWN)
+
+        collected_modules = containers[Module].values()
+        collected_module_pks = [m.id for m in collected_modules if m.id]
+
+        missing_modules = modules_up.exclude(id__in=collected_module_pks)
+        reappeared_modules = modules_down.filter(id__in=collected_module_pks)
+
+        if missing_modules:
+            shortlist = ", ".join(m.name for m in missing_modules)
+            cls._logger.info("%d modules went missing on %s (%s)",
+                             netbox.sysname, len(missing_modules), shortlist)
+            for module in missing_modules:
+                cls._dispatch_down_event(module)
+
+        if reappeared_modules:
+            shortlist = ", ".join(m.name for m in reappeared_modules)
+            cls._logger.info("%d modules reappeared on %s (%s)",
+                             netbox.sysname, len(reappeared_modules),
+                             shortlist)
+            for module in reappeared_modules:
+                cls._dispatch_up_event(module)
+
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._handle_missing_modules(containers)
+        return super(Module, cls).cleanup_after_save(containers)
+
+
 class Device(Shadow):
     __shadowclass__ = manage.Device
     __lookups__ = ['serial']
@@ -109,21 +169,14 @@ class Device(Shadow):
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
-    __lookups__ = [('netbox', 'ifname'), ('netbox', 'ifindex')]
 
     @classmethod
-    def _find_missing_interfaces(cls, containers):
-        """Check if any previously known interfaces are missing from the
-        collected set
+    def _mark_missing_interfaces(cls, containers):
+        """Marks interfaces in db as gone if they haven't been collected in
+        this round.
 
-        This method will compare the set of new Interface containers with the
-        Interface objects stored in the database.  A new container will be
-        created for any known interface missing from the containers set, and
-        its gone_since timestamp will be set.
-
-        NOTE: The comparisons are only made using ifindex values.  If
-        a netbox has re-assigned ifindices to its interfaces since the
-        last collection, this may cause trouble.
+        This is designed to run in the cleanup_after_save phase, as it needs
+        primary keys of the containers to have been found.
 
         TODO: Make a deletion algorithm.  Missing interfaces that do
         not correspond to a module known to be down should be deleted.
@@ -134,33 +187,98 @@ class Interface(Shadow):
         netbox = containers.get(None, Netbox)
         found_interfaces = containers[cls].values()
         timestamp = datetime.datetime.now()
-        # pick only interfaces that aren't gone already
-        known_interfaces = manage.Interface.objects.filter(
-            netbox=netbox.id, gone_since__isnull=True)
 
-        known_ifindices = set(i.ifindex for i in known_interfaces)
-        found_ifindices = set(i.ifindex for i in found_interfaces)
-        missing_ifindices = known_ifindices.difference(found_ifindices)
+        # start by finding the existing interface's primary keys
+        pks = [i.id for i in found_interfaces if i.id]
 
-        if missing_ifindices:
-            cls._logger.info("Marking %s interfaces as gone.  Ifindex: %r",
-                             netbox.sysname, missing_ifindices)
+        # the rest of the interfaces that haven't already been marked as gone,
+        # should be marked as such
+        missing_interfaces = manage.Interface.objects.filter(
+            netbox=netbox.id, gone_since__isnull=True
+            ).exclude(pk__in=pks)
 
-        for ifindex in missing_ifindices:
-            interface = containers.factory(ifindex, Interface)
-            interface.ifindex = ifindex
-            interface.gone_since = timestamp
-            interface.netbox = netbox
+        count = missing_interfaces.count()
+        if count > 0:
+            cls._logger.debug("_mark_missing_interfaces(%s): "
+                              "marking %d interfaces as gone",
+                              netbox.sysname, count)
+        missing_interfaces.update(gone_since=timestamp)
 
+    @classmethod
+    def _delete_missing_interfaces(cls, containers):
+        """Deletes missing interfaces from the database."""
+        netbox = containers.get(None, Netbox)
+        base_query = manage.Interface.objects.filter(
+            netbox__id = netbox.id)
 
-        # This should be the end of the deferred chain
-        return True
+        missing_ifs = base_query.exclude(
+            gone_since__isnull=True).values('pk', 'ifindex')
+
+        # at this time, we only want to delete those gone_interface who appear
+        # to have ifindex duplicates that aren't missing.
+        deleteable = []
+        for missing_if in missing_ifs:
+            dupes = base_query.filter(
+                ifindex=missing_if['ifindex'], gone_since__isnull=True)
+            if dupes.count() > 0:
+                deleteable.append(missing_if['pk'])
+
+        if deleteable:
+            cls._logger.info("(%s) Deleting %d missing interfaces",
+                             netbox.sysname, len(deleteable))
+            manage.Interface.objects.filter(pk__in=deleteable).delete()
 
 
     @classmethod
-    def prepare_for_save(cls, containers):
-        cls._find_missing_interfaces(containers)
-        super(Interface, cls).prepare_for_save(containers)
+    def cleanup_after_save(cls, containers):
+        """Cleans up Interface data."""
+        cls._mark_missing_interfaces(containers)
+        cls._delete_missing_interfaces(containers)
+        super(Interface, cls).cleanup_after_save(containers)
+
+    def lookup_matching_objects(self, containers):
+        """Finds existing db objects that match this container.
+
+        ifName is a more important identifier than ifindex, as ifindexes may
+        change at any time.  A database migrated from NAV 3.5 may also have a
+        lot of weird or duplicate data, due to sloppiness on getDeviceData's
+        part.
+
+        """
+        query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
+        result = None
+        if self.ifname:
+            result = query.filter(ifname=self.ifname)
+        if not result and self.ifdescr:
+            # this is only likely on a db recently migrated from NAV 3.5
+            result = query.filter(ifname=self.ifdescr,
+                                  ifdescr=self.ifdescr)
+        if len(result) > 1:
+            # Multiple ports with same name? damn...
+            # also filter for ifindex, maybe we get lucky
+            result = result.filter(ifindex=self.ifindex)
+
+        # If none of this voodoo helped, try matching ifindex only
+        if not result:
+            result = query.filter(ifindex=self.ifindex)
+
+        return result
+
+    def get_existing_model(self, containers):
+        """Implements custom logic for finding known interfaces."""
+        result = self.lookup_matching_objects(containers)
+        if not result:
+            return None
+        elif len(result) > 1:
+            self._logger.debug(
+                "get_existing_model: multiple matching objects returned. "
+                "query is: %r", result.query.as_sql())
+            raise manage.Interface.MultipleObjectsReturned(
+                "get_existing_model: "
+                "Found multiple matching objects for %r" % self)
+        else:
+            self.id = result[0].id
+            return result[0]
 
 class Location(Shadow):
     __shadowclass__ = manage.Location

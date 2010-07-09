@@ -29,7 +29,7 @@ from twistedsnmp import agentproxy
 
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 
 class Bridge(Plugin):
@@ -45,19 +45,8 @@ class Bridge(Plugin):
         df = self.entity.retrieve_alternate_bridge_mibs()
         df.addCallback(self._prune_bridge_mib_list)
         df.addCallback(self._query_baseports)
-        df.addErrback(self._error)
 
         return df
-
-    def _error(self, failure):
-        """Errback for SNMP failures."""
-        if failure.check(defer.TimeoutError):
-            # Transform TimeoutErrors to something else
-            self.logger.error(failure.getErrorMessage())
-            # Report this failure to the waiting plugin manager (RunHandler)
-            exc = FatalPluginError("Cannot continue due to device timeouts")
-            failure = Failure(exc)
-        return failure
 
     def _get_alternate_agent(self, community):
         """Create an alternative Agent Proxy for our host.
