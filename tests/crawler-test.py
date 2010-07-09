@@ -8,6 +8,15 @@ import urllib
 import urllib2
 import urlparse
 
+'''
+Crawls test instance of NAV and report any errors.
+
+The basic crawler code enumerates all pages paths that can be reached by GET
+queries without parameters while logged in as an administrator. HTML for all
+pages that report Content-type html are stored an validated by tidy in an
+additional test.
+'''
+
 HOST_URL = os.environ['TARGETURL']
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
 PASSWORD = os.environ['ADMINPASSWORD']

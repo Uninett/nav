@@ -1,4 +1,11 @@
 #!/bin/sh
+#
+# Helper script to allow simpler setup of required enviroment for performing
+# NAV tests.
+#
+# Use of virtualenv should probably be deprecated in favor of a newer nose
+# version installed through backports.
+
 set -e
 
 test -z "$PGDATABASE" && echo PGDATABASE missing && exit 1

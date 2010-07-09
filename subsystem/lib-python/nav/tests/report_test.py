@@ -19,6 +19,14 @@ from nav import db
 from nav.report.generator import ReportList, Generator
 from nav.buildconf import sysconfdir
 
+'''
+Test report generators for basic errors.
+
+These tests simply enumerate all known reports and ensure that the dbresult is
+error free. This only ensures that the SQL can be run, no further verification
+is performed.
+'''
+
 
 config_file = os.path.join(sysconfdir, 'report', 'report.conf')
 config_file_local = os.path.join(sysconfdir, 'report', 'report.local.conf')
