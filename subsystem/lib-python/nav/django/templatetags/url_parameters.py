@@ -25,7 +25,7 @@ class UrlNode(template.Node):
         self.get = template.Variable('request.GET')
         self.params = params
 
-    def render(self, context):
+    def _get_GET(self, context):
         get = self.get.resolve(context).copy()
         for key, value in self.params:
             value = value.resolve(context)
@@ -33,7 +33,30 @@ class UrlNode(template.Node):
                 del get[key]
             elif value:
                 get[key] = value
+        return get
+
+    def render(self, context):
+        get = self._get_GET(context)
         return "?" + "&amp;".join([('%s=%s' % (k,get[k])) for k in get])
+
+class InputNode(UrlNode):
+    def render(self, context):
+        get = self._get_GET(context)
+        str = u'<input type="hidden" name="%s" value="%s" />'
+        return u'\n'.join([str % (k, get[k]) for k in get])
+
+def _get_url_params(token):
+    raw_params = token.split_contents()
+    tag_name = raw_params.pop(0)
+
+    if len(raw_params) > 0 and len(raw_params) %2 != 0:
+        error = "%r tag requires an even number of parameters" % tag_name
+        raise template.TemplateSyntaxError, error
+
+    params = []
+    for index in xrange(0, len(raw_params), 2):
+        params.append((raw_params[index], template.Variable(raw_params[index + 1])))
+    return params
 
 @register.tag
 def url_parameters(parser, token):
@@ -59,14 +82,10 @@ def url_parameters(parser, token):
         Set filter to 'name', page to my_page_value variable and remove sort:
         {% url_parameters filter 'name' page my_page_value sort '' %}
     """
-    raw_params = token.split_contents()
-    tag_name = raw_params.pop(0)
-
-    if len(raw_params) > 0 and len(raw_params) %2 != 0:
-        error = "%r tag requires an even number of parameters" % tag_name
-        raise template.TemplateSyntaxError, error
-
-    params = []
-    for index in xrange(0, len(raw_params), 2):
-        params.append((raw_params[index], template.Variable(raw_params[index + 1])))
+    params = _get_url_params(token)
     return UrlNode(params)
+
+@register.tag
+def form_parameters(parser, token):
+    params = _get_url_params(token)
+    return InputNode(params)
