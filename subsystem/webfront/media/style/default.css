@@ -376,3 +376,28 @@ table.toolbox4cols tr td {
 .float-clear-right {
     clear: right;
 }
+
+/* Pagination */
+p.paginator a:link,
+p.paginator a:visited,
+p.paginator span {
+	border: 1px solid #999;
+	padding: 3px 6px;
+	text-decoration: none;
+}
+p.paginator a:hover,
+p.paginator a:active {
+	text-decoration: none;
+	border-color: #666;
+}
+p.paginator .next, p.paginator .prev {
+	font-weight: bold;
+}
+p.paginator .off {
+	border-color: #fff;
+	color: #999;
+}
+p.paginator .active {
+	border-color: #fff;
+	color: #F57900;
+}
