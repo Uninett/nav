@@ -4,21 +4,28 @@
 {% block content %}
 
 {% if filter_form %}
+<form action="" method="get">
 <table class="listtable">
-    <form action="" method="get">
     {{ filter_form }}
     <tr>
         <th></th>
         <td>
             <input type="submit" value="Filter" />
             <input type="hidden" name="sort" value="{{ current_sort }}" />
+            <input type="hidden" name="per_page" value="{{ request.GET.per_page }}" />
         </td>
     </tr>
-    </form>
 </table>
+</form>
 {% endif %}
 
 {% include "seeddb/paginator.html" %}
+
+<form action="" method="post">
+    <div>
+        <input type="submit" name="one" value="Edit selected" />
+        <input type="submit" name="two" value="Delete selected" />
+    </div>
 
 <table class="listtable">
     <caption>
@@ -30,14 +37,15 @@
 
     <thead>
         <tr>
-            <th></th>
+            <th id="select">
+            </th>
             {% for label in labels %}
             <th>
             {% ifequal label.1 current_sort_label %}
                 {% if sort_asc %}
-                    <img src="/images/alertprofiles/go-down.png" />
+                    <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
                 {% else %}
-                    <img src="/images/alertprofiles/go-up.png" />
+                    <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
                 {% endif %}
                 <a href="{% url_parameters sort other_sort %}">{{ label.0|capfirst }}</a>
             {% else %}
@@ -51,7 +59,7 @@
     <tbody>
         {% for object in object_list %}
         <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            <td><input type="checkbox" name="object" value="{{ object.pk }}" /></td>
+            <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
             {% for element in object.values_list %}
             {% if forloop.first %}
             <td><a href="{{ object.url }}">{{ element }}</a></td>
@@ -63,6 +71,12 @@
         {% endfor %}
     </tbody>
 </table>
+
+    <div>
+        <input type="submit" name="one" value="Edit selected" />
+        <input type="submit" name="two" value="Delete selected" />
+    </div>
+</form>
 
 {% include "seeddb/paginator.html" %}
 

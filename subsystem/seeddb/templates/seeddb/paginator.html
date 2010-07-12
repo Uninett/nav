@@ -1,4 +1,5 @@
 {% load url_parameters %}
+<form action="" method="get">
 <p class="paginator">
     {% if page.has_previous %}
     <a href="{% url_parameters page page.previous_page_number %}" class="prev">« Previous</a>
@@ -17,4 +18,15 @@
     {% else %}
     <span class="next off">Next »</span>
     {% endif %}
+
+    <select name="per_page">
+        {% with request.GET.per_page as per_page %}
+        <option value="100"{% ifequal per_page '100' %} selected="selected"{% endifequal %}>100</option>
+        <option value="500"{% ifequal per_page '500' %} selected="selected"{% endifequal %}>500</option>
+        <option value="all"{% ifequal per_page 'all' %} selected="selected"{% endifequal %}>all</option>
+        {% endwith %}
+    </select>
+    <input type="submit" value="View" />
+    {% form_parameters page '' per_page '' %}
 </p>
+</form>
