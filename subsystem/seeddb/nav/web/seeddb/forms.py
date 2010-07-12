@@ -64,11 +64,21 @@ class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
 
+    def __init__(self, *args, **kwargs):
+        super(OrganizationForm, self).__init__(*args, **kwargs)
+        if kwargs.get('instance'):
+            del self.fields['id']
+
 class UsageForm(forms.ModelForm):
     REDIRECT = 'seeddb-usage-edit'
 
     class Meta:
         model = Usage
+
+    def __init__(self, *args, **kwargs):
+        super(UsageForm, self).__init__(*args, **kwargs)
+        if kwargs.get('instance'):
+            del self.fields['id']
 
 class NetboxTypeForm(forms.ModelForm):
     REDIRECT = 'seeddb-type-edit'
