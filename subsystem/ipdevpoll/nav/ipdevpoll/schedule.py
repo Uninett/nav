@@ -271,7 +271,7 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @transaction.commit_on_success
+        @transaction.commit_manually
         def complete_save_cycle():
             try:
                 # Prepare all shadow objects for storage.
@@ -284,6 +284,11 @@ class JobHandler(object):
                 self.log_timed_result(result, "Storing to database complete")
                 # Do cleanup for the known container classes.
                 self.cleanup_containers_after_save()
+            except:
+                transaction.rollback()
+                raise
+            else:
+                transaction.commit()
             finally:
                 django_debug_cleanup()
 
