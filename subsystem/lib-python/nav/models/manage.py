@@ -622,7 +622,7 @@ class Usage(models.Model):
 
     id = models.CharField(db_column='usageid',
         max_length=30, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'usage'
