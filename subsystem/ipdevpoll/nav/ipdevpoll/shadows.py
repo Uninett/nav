@@ -386,7 +386,8 @@ class Vlan(Shadow):
         net_type = 'lan'
         # Get the number of router ports attached to this prefix
         port_count = manage.GwPortPrefix.objects.filter(
-            prefix__net_address=str(prefix)).count()
+            prefix__net_address=str(prefix),
+            interface__netbox__category__id__in=('GSW', 'GW')).count()
 
         if prefix.version() == 6 and prefix.prefixlen() == 128:
             net_type = 'loopback'
