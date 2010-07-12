@@ -32,9 +32,9 @@ from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
-from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
+from nav.models.manage import Arp, Cam, Category, Device, Location, \
     Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, \
-    Room, Subcategory, SwPort, Usage, Vlan, Vendor
+    Room, Subcategory, Interface, Usage, Vlan, Vendor
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
@@ -45,8 +45,8 @@ SUPPORTED_MODELS = [
     # event models
         AlertQueue, AlertType, EventType,
     # manage models
-        Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Room, Subcategory, SwPort,
+        Arp, Cam, Category, Device, Location, Memory, Netbox, NetboxInfo,
+        NetboxType, Organization, Prefix, Room, Subcategory, Interface,
         Vendor, Vlan,
         Usage,
 ]
@@ -790,7 +790,6 @@ class MatchField(models.Model):
     SUBCATEGORY = 'subcat'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
-    GWPORT = 'gwport'
     LOCATION = 'location'
     MEMORY = 'mem'
     MODULE = 'module'
@@ -801,7 +800,7 @@ class MatchField(models.Model):
     PRODUCT = 'product'
     ROOM = 'room'
     SERVICE = 'service'
-    SWPORT = 'swport'
+    INTERFACE = 'interface'
     TYPE = 'type'
     VENDOR = 'vendor'
     VLAN = 'vlan'
@@ -816,7 +815,6 @@ class MatchField(models.Model):
         (SUBCATEGORY, _('subcategory')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
-        (GWPORT, _('GW-port')),
         (LOCATION, _('location')),
         (MEMORY, _('memeroy')),
         (MODULE, _('module')),
@@ -827,7 +825,7 @@ class MatchField(models.Model):
         (PRODUCT, _('product')),
         (ROOM, _('room')),
         (SERVICE, _('service')),
-        (SWPORT, _('SW-port')),
+        (INTERFACE, _('Interface')),
         (TYPE, _('type')),
         (VENDOR, _('vendor')),
         (VLAN, _('vlan')),
@@ -844,7 +842,6 @@ class MatchField(models.Model):
         SUBCATEGORY:  'netbox__netboxcategory__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
-        GWPORT:       'netbox__connected_to_gwport',
         LOCATION:     'netbox__room__location',
         MEMORY:       'netbox__memory',
         MODULE:       'netbox__module',
@@ -855,7 +852,7 @@ class MatchField(models.Model):
         PRODUCT:      'netbox__device__product',
         ROOM:         'netbox__room',
         SERVICE:      'netbox__service',
-        SWPORT:       'netbox__connected_to_swport',
+        INTERFACE:    'netbox__connected_to_interface',
         TYPE:         'netbox__type',
         USAGE:        'netbox__organization__vlan__usage',
         VENDOR:       'netbox__device__product__vendor',
