@@ -26,12 +26,12 @@ from nav.web.message import new_message, Messages
 
 ITEMS_PER_PAGE = 100
 
-def get_page_num(get):
+def get_num(get, key, default=1):
     try:
-        page_num = int(get.get('page', '1'))
+        num = int(get.get(key, default))
     except ValueError:
-        page_num = 1
-    return page_num
+        num = default
+    return num
 
 def get_page(paginator, page_num):
     try:
@@ -69,9 +69,14 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
     # result.
     query_values = queryset.order_by(order_by).values('pk', edit_url_attr, *value_list)
 
+    per_page = request.GET.get('per_page', 100)
+    if per_page == 'all':
+        per_page = query_values.count()
+    else:
+        per_page = get_num(request.GET, 'per_page', default=100)
     # Get the correct page
-    paginator = Paginator(query_values, ITEMS_PER_PAGE)
-    page_num = get_page_num(request.GET)
+    paginator = Paginator(query_values, per_page)
+    page_num = get_num(request.GET, 'page')
     page = get_page(paginator, page_num)
 
     object_list = list()
