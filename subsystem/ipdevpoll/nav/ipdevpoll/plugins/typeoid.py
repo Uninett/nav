@@ -60,14 +60,15 @@ class TypeOid(Plugin):
 
 
         self.logger.debug("sysObjectID is %s", self.sysobjectid)
-        if self.netbox.type is None or \
-                self.netbox.type.sysobjectid != self.sysobjectid:
-            self.logger.warning("Netbox has changed type from %r",
-                                self.netbox.type)
 
         df = self._get_type_from_db()
         df.addCallback(self._set_type)
         return df
+
+    def has_type_changed(self):
+        """Returns True if the netbox' type has changed."""
+        return (self.netbox.type is None and self.sysobjectid) or \
+            self.netbox.type.sysobjectid != self.sysobjectid
 
     def _get_type_from_db(self):
         """Loads from db a type object matching the sysobjectid."""
@@ -84,10 +85,14 @@ class TypeOid(Plugin):
 
     def _set_type(self, type_):
         """Sets the netbox type to type_."""
-        if not type_:
-            self.logger.warn("sysObjectID %r is unknown to NAV",
-                             self.sysobjectid)
-        else:
-            netbox_container = self.containers.factory(None, shadows.Netbox)
-            netbox_container.type = type_
+        if self.has_type_changed():
+            oldname = self.netbox.type and self.netbox.type.name or 'unknown'
+            newname = type_ and type_.name or \
+                'unknown (sysObjectID %s)' % self.sysobjectid
+            self.logger.warning("Netbox has changed type from %s to %s",
+                                oldname, newname)
+            self.logger.debug("old=%r new=%r", self.netbox.type, type_)
+
+        netbox_container = self.containers.factory(None, shadows.Netbox)
+        netbox_container.type = type_
 
