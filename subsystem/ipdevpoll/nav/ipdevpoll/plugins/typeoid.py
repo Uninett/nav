@@ -42,8 +42,8 @@ class TypeOid(Plugin):
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
         self.logger.debug("Collecting sysObjectId")
-        snmpv2_mib = Snmpv2Mib(self.agent)
-        df = snmpv2_mib.get_sysObjectID()
+        self.snmpv2_mib = Snmpv2Mib(self.agent)
+        df = self.snmpv2_mib.get_sysObjectID()
         df.addCallback(self._response_handler)
         return df
 
@@ -62,6 +62,7 @@ class TypeOid(Plugin):
         self.logger.debug("sysObjectID is %s", self.sysobjectid)
 
         df = self._get_type_from_db()
+        df.addCallback(self._check_for_typechange)
         df.addCallback(self._set_type)
         return df
 
@@ -85,6 +86,10 @@ class TypeOid(Plugin):
 
     def _set_type(self, type_):
         """Sets the netbox type to type_."""
+        netbox_container = self.containers.factory(None, shadows.Netbox)
+        netbox_container.type = type_
+
+    def _check_for_typechange(self, type_):
         if self.has_type_changed():
             oldname = self.netbox.type and self.netbox.type.name or 'unknown'
             newname = type_ and type_.name or \
@@ -93,6 +98,27 @@ class TypeOid(Plugin):
                                 oldname, newname)
             self.logger.debug("old=%r new=%r", self.netbox.type, type_)
 
-        netbox_container = self.containers.factory(None, shadows.Netbox)
-        netbox_container.type = type_
+            if not type_:
+                return self.create_new_type()
+        return type_
+
+    def create_new_type(self):
+        """Creates a new NetboxType from the collected sysObjectID."""
+        vendor_id = 'unknown'
+        vendor = self.containers.factory(vendor_id, shadows.Vendor)
+        vendor.id = vendor_id
+
+        type_ = self.containers.factory(self.sysobjectid, shadows.NetboxType)
+        type_.vendor = vendor
+        type_.name = self.sysobjectid
+        type_.sysobjectid = self.sysobjectid
+
+        def set_sysdescr(descr):
+            self.logger.debug("Creating new type with descr=%r", descr)
+            type_.description = descr
+            return type_
+
+        df = self.snmpv2_mib.get_sysDescr()
+        df.addCallback(set_sysdescr)
+        return df
 
