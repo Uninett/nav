@@ -21,6 +21,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from nav.django.utils import get_verbose_name
+from nav.models.manage import Netbox, Room
 
 from nav.web.seeddb.forms import *
 
@@ -129,3 +130,29 @@ class SeeddbList(object):
     def _label(self):
         labels = [get_verbose_name(self.model, value) for value in self.value_list]
         return zip(labels, self.value_list)
+
+class NetboxList(SeeddbList):
+    model = Netbox
+    value_list = (
+        'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
+        'read_write', 'type__name', 'device__serial')
+    edit_url = 'seeddb-netbox-edit'
+    edit_url_attr = 'sysname'
+    filter_form_model = NetboxFilterForm
+    title = TITLE_DEFAULT + ' - IP Devices'
+    caption = 'IP Devices'
+    navpath = NAVPATH_DEFAULT + [('IP Devices', None)]
+    tab_template = 'seeddb/tabs_netbox.html'
+
+class RoomList(SeeddbList):
+    model = Room
+    value_list = (
+        'id', 'location', 'description', 'optional_1', 'optional_2',
+        'optional_3', 'optional_4')
+    edit_url = 'seeddb-room-edit'
+    edit_url_attr = 'pk'
+    filter_form_model = RoomFilterForm
+    title = TITLE_DEFAULT + ' - Rooms'
+    caption = 'Rooms'
+    navpath = NAVPATH_DEFAULT + [('Rooms', None)]
+    tab_template = 'seeddb/tabs_room.html'
