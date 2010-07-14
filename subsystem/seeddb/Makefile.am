@@ -1,7 +1,7 @@
 mywebdir = ${webroot}/seeddb
 mytemplatedir = $(djangotmpldir)/seeddb
 
-nobase_python_PYTHON = $(wildcard nav/django/urls/*.py nav/web/*/*.py)
+nobase_python_PYTHON = $(wildcard nav/django/urls/*.py nav/web/*/*.py nav/web/*/*/*.py)
 tool_DATA = seeddb.tool
 mytemplate_DATA = $(wildcard templates/seeddb/*)
 javascript_DATA = $(wildcard media/js/*)
