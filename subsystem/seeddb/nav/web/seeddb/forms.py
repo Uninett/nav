@@ -33,6 +33,9 @@ class RoomFilterForm(forms.Form):
     location = forms.ModelChoiceField(
         Location.objects.order_by('id').all(), required=False)
 
+class RoomMoveForm(forms.Form):
+    location = forms.ModelChoiceField(Location.objects.order_by('id').all(), required=True)
+
 class NetboxForm(forms.ModelForm):
     class Meta:
         model = Netbox
