@@ -51,7 +51,11 @@ class SeeddbList(object):
     navpath = NAVPATH_DEFAULT
     tab_template = ''
 
-    def __init__(self, request):
+    def __new__(cls, request):
+        obj = super(SeeddbList, cls).__new__(cls)
+        return obj(request)
+
+    def __call__(self, request):
         self.request = request
         self.queryset = self.model.objects.all()
 
@@ -59,7 +63,6 @@ class SeeddbList(object):
         if self.filter_form_model:
             self.filter_form = self.filter_form_model(request.GET)
 
-    def __call__(self, extra_context={}):
         queryset = self.queryset
         queryset = self._filter_query(queryset)
         queryset = self._order_query(queryset)
@@ -84,9 +87,8 @@ class SeeddbList(object):
             'navpath': self.navpath,
             'tab_template': self.tab_template,
         }
-        extra_context.update(context)
         return render_to_response(self.template,
-            extra_context, RequestContext(self.request))
+            context, RequestContext(self.request))
 
     def _filter_query(self, queryset):
         if self.filter_form and self.filter_form.is_valid():
