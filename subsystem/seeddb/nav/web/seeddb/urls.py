@@ -17,8 +17,8 @@
 
 from django.conf.urls.defaults import *
 
+from nav.web.seeddb.views import *
 from nav.web.seeddb.views.common import *
-from nav.web.seedb.views.list import *
 
 dummy = lambda *args, **kwargs: None
 
@@ -27,7 +27,7 @@ urlpatterns = patterns('',
         name='seeddb-index'),
 
     # Netbox
-    url(r'^netbox/$', netbox_list,
+    url(r'^netbox/$', NetboxList,
         name='seeddb-netbox'),
     url(r'^netbox/edit/(?P<netbox_sysname>[\w\d.-]+)/', dummy,
         name='seeddb-netbox-edit'),
@@ -37,7 +37,7 @@ urlpatterns = patterns('',
         name='seeddb-netbox-bulk'),
 
     # Service
-    url(r'^service/$', service_list,
+    url(r'^service/$', ServiceList,
         name='seeddb-service'),
     url(r'^service/edit/(?P<service>[\d]+)$', dummy,
         name='seeddb-service-edit'),
@@ -47,7 +47,7 @@ urlpatterns = patterns('',
         name='seeddb-service-bulk'),
 
     # Room
-    url(r'^room/$', room_list,
+    url(r'^room/$', RoomList,
         name='seeddb-room'),
     url(r'^room/edit/(?P<room_id>[\w\d_-]+)/$', room_edit,
         name='seeddb-room-edit'),
@@ -57,7 +57,7 @@ urlpatterns = patterns('',
         name='seeddb-room-bulk'),
 
     # Location
-    url(r'^location/$', location_list,
+    url(r'^location/$', LocationList,
         name='seeddb-location'),
     url(r'^location/edit/(?P<location_id>[\w\d_-]+)/$', location_edit,
         name='seeddb-location-edit'),
@@ -67,7 +67,7 @@ urlpatterns = patterns('',
         name='seeddb-location-bulk'),
 
     # Organization
-    url(r'^organization/$', organization_list,
+    url(r'^organization/$', OrganizationList,
         name='seeddb-organization'),
     url(r'^organization/edit/(?P<organization_id>[\w\d_-]+)/$', organization_edit,
         name='seeddb-organization-edit'),
@@ -77,7 +77,7 @@ urlpatterns = patterns('',
         name='seeddb-organization-bulk'),
 
     # Usage category
-    url(r'^usage/$', usage_list,
+    url(r'^usage/$', UsageList,
         name='seeddb-usage'),
     url(r'^usage/edit/(?P<usage_id>[\w\d_-]+)/$', usage_edit,
         name='seeddb-usage-edit'),
@@ -87,7 +87,7 @@ urlpatterns = patterns('',
         name='seeddb-usage-bulk'),
 
     # Type
-    url(r'^type/$', type_list,
+    url(r'^type/$', NetboxTypeList,
         name='seeddb-type'),
     url(r'^type/edit/(?P<type_id>[\d]+)/$', type_edit,
         name='seeddb-type-edit'),
@@ -97,7 +97,7 @@ urlpatterns = patterns('',
         name='seeddb-type-bulk'),
 
     # Vendor
-    url(r'^vendor/$', vendor_list,
+    url(r'^vendor/$', VendorList,
         name='seeddb-vendor'),
     url(r'^vendor/edit/(?P<vendor_id>[\w\d]+)/$', vendor_edit,
         name='seeddb-vendor-edit'),
@@ -109,7 +109,7 @@ urlpatterns = patterns('',
     # SNMPoid
 
     # Subcategory
-    url(r'^subcategory/$', subcategory_list,
+    url(r'^subcategory/$', SubcategoryList,
         name='seeddb-subcategory'),
     url(r'^subcategory/edit/(?P<subcategory_id>[\w\d-]+)/$', subcategory_edit,
         name='seeddb-subcategory-edit'),
@@ -119,13 +119,13 @@ urlpatterns = patterns('',
         name='seeddb-subcategory-bulk'),
 
     # Vlan
-    url(r'^vlan/$', vlan_list,
+    url(r'^vlan/$', VlanList,
         name='seeddb-vlan'),
     url(r'^vlan/edit/(?P<vlan_id>[\d]+)/$', dummy,
         name='seeddb-vlan-edit'),
 
     # Prefix
-    url(r'^prefix/$', prefix_list,
+    url(r'^prefix/$', PrefixList,
         name='seeddb-prefix'),
     url(r'^prefix/edit/(?P<prefix_id>[\d]+)/$', dummy,
         name='seeddb-prefix-edit'),
@@ -135,7 +135,7 @@ urlpatterns = patterns('',
         name='seeddb-prefix-bulk'),
 
     # Cabling
-    url(r'^cabling/$', cabling_list,
+    url(r'^cabling/$', CablingList,
         name='seeddb-cabling'),
     url(r'^cabling/edit/(?P<cabling>[\d]+)/$', dummy,
         name='seeddb-cabling-edit'),
@@ -145,7 +145,7 @@ urlpatterns = patterns('',
         name='seeddb-cabling-bulk'),
 
     # Patch
-    url(r'^patch/$', patch_list,
+    url(r'^patch/$', PatchList,
         name='seeddb-patch'),
     url(r'^patch/edit/(?P<patch>[\d]+)/$', dummy,
         name='seeddb-patch-edit'),
