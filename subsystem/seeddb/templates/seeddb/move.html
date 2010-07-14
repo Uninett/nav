@@ -1,0 +1,53 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<form action="" method="post">
+<table class="listtable">
+    <tr>
+    {% if not confirm %}
+        <th></th>
+    {% endif %}
+        <th>Name</th>
+        <th>Current location</th>
+    {% if confirm %}
+        <th>New location</th>
+    {% endif %}
+    </tr>
+    {% for o in objects %}
+    <tr class="{% cycle 'oddrow' 'evenrow' %}">
+    {% if not confirm %}
+        <td><input type="checkbox" name="object" value="{{ o.pk }}" checked="checked" /></td>
+    {% endif %}
+        <td>{{ o.id }}</td>
+        <td>{{ o.location_id|default_if_none:"" }}</td>
+    {% if confirm %}
+        <td>
+            <input type="hidden" name="object" value="{{ o.pk }}" />
+            {{ new_location }}
+        </td>
+    {% endif %}
+    </tr>
+    {% endfor %}
+</table>
+
+{% if confirm %}
+<p>
+    <input type="hidden" name="new_location" value="{{ new_location }}" />
+    <input type="hidden" name="move" value="yes" />
+    <input type="submit" name="save" value="Confirm save" />
+</p>
+{% else %}
+<table class="listtable">
+    {{ form.as_table }}
+    <tr>
+        <th></th>
+        <td>
+            <input type="hidden" name="move" value="yes" />
+            <input type="submit" name="preview" value="Save" />
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+</form>
+{% endblock %}

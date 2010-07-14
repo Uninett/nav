@@ -79,6 +79,80 @@ def room_edit(request, room_id=None):
     return render_seeddb_edit(request, Room, RoomForm,
         room_id, extra_context=extra)
 
+def room_move(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('seeddb-room'))
+
+    new_location = None
+    confirm = False
+    rooms = Room.objects.filter(id__in=request.POST.getlist('object'))
+
+    if request.POST.get('preview'):
+        form = RoomMoveForm(request.POST)
+        if form.is_valid():
+            new_location = form.cleaned_data['location'].id
+            confirm = True
+    elif request.POST.get('save'):
+        new_location = request.POST.get('new_location')
+        location = Location.objects.get(pk=new_location)
+        rooms.update(location=location)
+        new_message(request._req, "Updated", Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('seeddb-room'))
+    else:
+        form = RoomMoveForm()
+
+    context = {
+        'form': form,
+        'objects': rooms,
+        'new_location': new_location,
+        'confirm': confirm,
+    }
+    return render_to_response('seeddb/move.html',
+        context, RequestContext(request))
+
+def room_delete(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('seeddb-room'))
+
+    rooms = Room.objects.order_by('id').filter(id__in=request.POST.getlist('object'))
+    if request.POST.get('confirm'):
+        rooms.delete()
+        new_message(request._req, "Deleted", Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('seeddb-room'))
+
+    cabling_qs = Cabling.objects.filter(room__in=rooms).values('id', 'room')
+    netbox_qs = Netbox.objects.filter(room__in=rooms).values('id', 'room', 'sysname')
+    cabling = group_query(cabling_qs, 'room')
+    netbox = group_query(netbox_qs, 'room')
+
+    objects = []
+    errors = False
+    for r in rooms:
+        object = {
+            'object': r,
+            'disabled': False,
+            'error': [],
+        }
+        for n in netbox.get(r.id, []):
+            errors = True
+            object['disabled'] = True
+            object['error'].append({
+                'message': "Used in netbox",
+                'title': n['sysname'],
+                'url': reverse('seeddb-netbox-edit', args=(n['id'],)),
+            })
+        if r.id in cabling and len(cabling[r.id]) > 0:
+            object['error'].append("Used in cabling")
+            errors = True
+        objects.append(object)
+
+    context = {
+        'objects': objects,
+        'errors': errors,
+    }
+    return render_to_response('seeddb/delete.html',
+        context, RequestContext(request))
+
 def location_list(request):
     qs = Location.objects.all()
     value_list = ('id', 'description')
