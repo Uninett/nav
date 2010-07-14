@@ -21,7 +21,10 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 #from nav.django.utils import get_verbose_name
-from nav.models.manage import Netbox, Room
+from nav.models.cabling import Cabling, Patch
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
+from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
+from nav.models.service import Service
 
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import get_verbose_name
@@ -52,6 +55,7 @@ class SeeddbList(object):
         self.request = request
         self.queryset = self.model.objects.all()
 
+        self.filter_form = None
         if self.filter_form_model:
             self.filter_form = self.filter_form_model(request.GET)
 
@@ -145,15 +149,52 @@ class NetboxList(SeeddbList):
     navpath = NAVPATH_DEFAULT + [('IP Devices', None)]
     tab_template = 'seeddb/tabs_netbox.html'
 
+class ServiceList(SeeddbList):
+    model = Service
+    value_list = ('netbox__sysname', 'handler', 'version')
+    edit_url = 'seeddb-service-edit'
+    title = TITLE_DEFAULT + ' - Services'
+    caption = 'Services'
+    navpath = NAVPATH_DEFAULT + [('Services', None)]
+    tab_template = 'seeddb/tabs_service.html'
+
 class RoomList(SeeddbList):
     model = Room
     value_list = (
         'id', 'location', 'description', 'optional_1', 'optional_2',
         'optional_3', 'optional_4')
     edit_url = 'seeddb-room-edit'
-    edit_url_attr = 'pk'
     filter_form_model = RoomFilterForm
     title = TITLE_DEFAULT + ' - Rooms'
     caption = 'Rooms'
     navpath = NAVPATH_DEFAULT + [('Rooms', None)]
     tab_template = 'seeddb/tabs_room.html'
+
+class LocationList(SeeddbList):
+    model = Location
+    value_list = ('id', 'description')
+    edit_url = 'seeddb-location-edit'
+    title = TITLE_DEFAULT + ' - Locations'
+    caption = 'Locations'
+    navpath = NAVPATH_DEFAULT + [('Locations', None)]
+    tab_template = 'seeddb/tabs_location.html'
+
+class OrganizationList(SeeddbList):
+    model = Organization
+    value_list = (
+        'id', 'parent', 'description', 'optional_1', 'optional_2',
+        'optional_3')
+    edit_url = 'seeddb-organization-edit'
+    title = TITLE_DEFAULT + ' - Organizations'
+    caption = 'Organizations'
+    navpath = NAVPATH_DEFAULT + [('Organizations', None)]
+    tab_template = 'seeddb/tabs_organization.html'
+
+class UsageList(SeeddbList):
+    model = Usage
+    value_list = ('id', 'description')
+    edit_url = 'seeddb-usage-edit'
+    title = TITLE_DEFAULT + ' - Usage categories'
+    caption = 'Usage categories'
+    navpath = NAVPATH_DEFAULT + [('Usage categories', None)]
+    tab_template = 'seeddb/tabs_usage.html'

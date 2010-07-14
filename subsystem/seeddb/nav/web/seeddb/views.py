@@ -50,16 +50,8 @@ def netbox_list(request):
     return list()
 
 def service_list(request):
-    qs = Service.objects.all()
-    value_list = ('netbox__sysname', 'handler', 'version')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Services',
-        'caption': 'Services',
-        'navpath': NAVPATH_DEFAULT + [('Services', None)],
-        'tab_template': 'seeddb/tabs_service.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-service-edit', extra_context=extra)
+    list = ServiceList(request)
+    return list()
 
 def room_list(request):
     if request.method == 'POST':
@@ -154,16 +146,8 @@ def room_delete(request):
         context, RequestContext(request))
 
 def location_list(request):
-    qs = Location.objects.all()
-    value_list = ('id', 'description')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Locations',
-        'caption': 'Locations',
-        'navpath': NAVPATH_DEFAULT + [('Locations', None)],
-        'tab_template': 'seeddb/tabs_location.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-location-edit', extra_context=extra)
+    list = LocationList(request)
+    return list()
 
 def location_edit(request, location_id=None):
     extra = {
@@ -196,16 +180,8 @@ def organization_edit(request, organization_id=None):
         organization_id, extra_context=extra)
 
 def usage_list(request):
-    qs = Usage.objects.all()
-    value_list = ('id', 'description')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Usage categories',
-        'caption': 'Usage categories',
-        'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
-        'tab_template': 'seeddb/tabs_usage.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-usage-edit', extra_context=extra)
+    list = UsageList(request)
+    return list()
 
 def usage_edit(request, usage_id=None):
     extra = {
