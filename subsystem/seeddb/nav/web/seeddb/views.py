@@ -29,6 +29,7 @@ from nav.web.message import new_message, Messages
 
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import *
+from nav.web.seeddb.utils.list import *
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
@@ -45,22 +46,8 @@ def index(request):
     )
 
 def netbox_list(request):
-    qs = Netbox.objects.all()
-    value_list = (
-        'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
-        'read_write', 'type__name', 'device__serial'
-    )
-    filter = NetboxFilterForm(request.GET)
-    extra = {
-        'title': TITLE_DEFAULT + ' - IP Devices',
-        'caption': 'IP Devices',
-        'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
-        'tab_template': 'seeddb/tabs_netbox.html',
-    }
-
-    return render_seeddb_list(request, qs, value_list, filter_form=filter,
-        edit_url='seeddb-netbox-edit', edit_url_attr='sysname',
-        extra_context=extra)
+    list = NetboxList(request)
+    return list()
 
 def service_list(request):
     qs = Service.objects.all()
@@ -75,20 +62,14 @@ def service_list(request):
         edit_url='seeddb-service-edit', extra_context=extra)
 
 def room_list(request):
-    qs = Room.objects.all()
-    value_list = (
-        'id', 'location', 'description', 'optional_1', 'optional_2',
-        'optional_3', 'optional_4')
-    filter = RoomFilterForm(request.GET)
-    extra = {
-        'title': TITLE_DEFAULT + ' - Rooms',
-        'caption': 'Rooms',
-        'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
-        'tab_template': 'seeddb/tabs_room.html',
-    }
-    return render_seeddb_list(request, qs, value_list, filter_form=filter,
-        edit_url='seeddb-room-edit',
-        extra_context=extra)
+    if request.method == 'POST':
+        if request.POST.get('move'):
+            return room_move(request)
+        if request.POST.get('delete'):
+            return room_delete(request)
+
+    list = RoomList(request)
+    return list()
 
 def room_edit(request, room_id=None):
     extra = {
