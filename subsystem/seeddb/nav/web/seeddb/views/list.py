@@ -35,9 +35,10 @@ NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
 def get_num(get, key, default=1):
     try:
-        return int(get.get(key, default))
+        num = int(get.get(key, default))
     except ValueError:
-        return default
+        num = default
+    return num
 
 class SeeddbList(object):
     model = None
@@ -57,7 +58,7 @@ class SeeddbList(object):
 
     def __call__(self, request):
         self.request = request
-        self.queryset = self.model.objects.all()
+        self.queryset = self._init_queryset(self.model)
 
         self.filter_form = None
         if self.filter_form_model:
@@ -90,6 +91,9 @@ class SeeddbList(object):
         return render_to_response(self.template,
             context, RequestContext(self.request))
 
+    def _init_queryset(self, model):
+        return model.objects.all()
+
     def _filter_query(self, queryset):
         if self.filter_form and self.filter_form.is_valid():
             filter = dict([(key, value) for key, value in self.filter_form.cleaned_data.items() if value])
@@ -113,7 +117,7 @@ class SeeddbList(object):
         if self.per_page == 'all':
             self.per_page = value_qs.count()
         else:
-            self_per_page = get_num(self.request.GET, 'per_page', ITEMS_PER_PAGE)
+            self.per_page = get_num(self.request.GET, 'per_page', ITEMS_PER_PAGE)
         self.page_num = get_num(self.request.GET, 'page', 1)
 
         paginator = Paginator(value_qs, self.per_page)
@@ -200,3 +204,78 @@ class UsageList(SeeddbList):
     caption = 'Usage categories'
     navpath = NAVPATH_DEFAULT + [('Usage categories', None)]
     tab_template = 'seeddb/tabs_usage.html'
+
+class NetboxTypeList(SeeddbList):
+    model = NetboxType
+    value_list = (
+        'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
+        'tftp')
+    edit_url = 'seeddb-type-edit'
+    title = TITLE_DEFAULT + ' - Types'
+    caption = 'Types'
+    navpath = NAVPATH_DEFAULT + [('Types', None)]
+    tab_template = 'seeddb/tabs_type.html'
+
+class VendorList(SeeddbList):
+    model = Vendor
+    value_list = ('id',)
+    edit_url = 'seeddb-vendor-edit'
+    title = TITLE_DEFAULT + ' - Vendors'
+    caption = 'Vendors'
+    navpath = NAVPATH_DEFAULT + [('Vendors', None)]
+    tab_template = 'seeddb/tabs_vendor.html'
+
+class SubcategoryList(SeeddbList):
+    model = Subcategory
+    value_list = ('id', 'category', 'description')
+    edit_url = 'seeddb-subcategory-edit'
+    title = TITLE_DEFAULT + ' - Subcategories'
+    caption = 'Subcategories'
+    navpath = NAVPATH_DEFAULT + [('Subcategories', None)]
+    tab_template = 'seeddb/tabs_subcategory.html'
+
+class VlanList(SeeddbList):
+    model = Vlan
+    value_list = (
+        'id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident',
+        'description')
+    edit_url = 'seeddb-vlan-edit'
+    title = TITLE_DEFAULT + ' - Vlan'
+    caption = 'Vlan'
+    navpath = NAVPATH_DEFAULT + [('Vlan', None)]
+    tab_template = 'seeddb/tabs_vlan.html'
+
+class PrefixList(SeeddbList):
+    model = Prefix
+    value_list = (
+        'net_address', 'vlan__net_type', 'vlan__organization',
+        'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
+    edit_url = 'seeddb-prefix-edit'
+    title = TITLE_DEFAULT + ' - Prefix'
+    caption = 'Prefix'
+    navpath = NAVPATH_DEFAULT + [('Prefix', None)]
+    tab_template = 'seeddb/tabs_prefix.html'
+
+    def _init_queryset(self, model):
+        return model.objects.filter(vlan__net_type__edit=True)
+
+class CablingList(SeeddbList):
+    model = Cabling
+    value_list = (
+        'room', 'jack', 'building', 'target_room', 'category', 'description')
+    edit_url = 'seeddb-cabling-edit'
+    title = TITLE_DEFAULT + ' - Cabling'
+    caption = 'Cabling'
+    navpath = NAVPATH_DEFAULT + [('Cabling', None)]
+    tab_template = 'seeddb/tabs_cabling.html'
+
+class PatchList(SeeddbList):
+    model = Patch
+    value_list = (
+        'interface__netbox', 'interface__module', 'interface__baseport',
+        'cabling__room', 'cabling__jack', 'split')
+    edit_url = 'seeddb-patch-edit'
+    title = TITLE_DEFAULT + ' - Patch'
+    caption = 'Patch'
+    navpath = NAVPATH_DEFAULT + [('Patch', None)]
+    tab_template = 'seeddb/tabs_patch.html'
