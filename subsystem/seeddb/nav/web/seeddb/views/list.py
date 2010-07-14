@@ -26,7 +26,7 @@ from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 
-from nav.web.seeddb.forms import *
+from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm
 from nav.web.seeddb.utils import get_verbose_name
 
 ITEMS_PER_PAGE = 100
