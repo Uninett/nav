@@ -79,7 +79,7 @@ def render_seeddb_list(request, queryset, value_list, edit_url, edit_url_attr='p
     page_num = get_num(request.GET, 'page')
     page = get_page(paginator, page_num)
 
-    object_list = list()
+    object_list = []
     for object in page.object_list:
         row = {
             'pk': object['pk'],
@@ -189,3 +189,10 @@ def render_seeddb_edit(request, object_class, form_class, object_id, identifier_
     return render_to_response('seeddb/edit.html',
         extra_context, RequestContext(request))
 
+def group_query(qs, identifier):
+    objects = {}
+    for object in qs:
+        if object[identifier] not in objects:
+            objects[object[identifier]] = []
+        objects[object[identifier]].append(object)
+    return objects
