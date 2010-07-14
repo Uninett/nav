@@ -20,10 +20,11 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from nav.django.utils import get_verbose_name
+#from nav.django.utils import get_verbose_name
 from nav.models.manage import Netbox, Room
 
 from nav.web.seeddb.forms import *
+from nav.web.seeddb.utils import get_verbose_name
 
 ITEMS_PER_PAGE = 100
 TITLE_DEFAULT = 'NAV - Seed Database'
