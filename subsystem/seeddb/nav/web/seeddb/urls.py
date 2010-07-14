@@ -17,7 +17,8 @@
 
 from django.conf.urls.defaults import *
 
-from nav.web.seeddb.views import *
+from nav.web.seeddb.views.common import *
+from nav.web.seedb.views.list import *
 
 dummy = lambda *args, **kwargs: None
 
