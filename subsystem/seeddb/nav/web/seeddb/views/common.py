@@ -29,7 +29,6 @@ from nav.web.message import new_message, Messages
 
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import *
-from nav.web.seeddb.utils.list import *
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
@@ -44,24 +43,6 @@ def index(request):
         },
         RequestContext(request)
     )
-
-def netbox_list(request):
-    list = NetboxList(request)
-    return list()
-
-def service_list(request):
-    list = ServiceList(request)
-    return list()
-
-def room_list(request):
-    if request.method == 'POST':
-        if request.POST.get('move'):
-            return room_move(request)
-        if request.POST.get('delete'):
-            return room_delete(request)
-
-    list = RoomList(request)
-    return list()
 
 def room_edit(request, room_id=None):
     extra = {
@@ -145,10 +126,6 @@ def room_delete(request):
     return render_to_response('seeddb/delete.html',
         context, RequestContext(request))
 
-def location_list(request):
-    list = LocationList(request)
-    return list()
-
 def location_edit(request, location_id=None):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
@@ -156,20 +133,6 @@ def location_edit(request, location_id=None):
     }
     return render_seeddb_edit(request, Location, LocationForm,
         location_id, extra_context=extra)
-
-def organization_list(request):
-    qs = Organization.objects.all()
-    value_list = (
-        'id', 'parent', 'description', 'optional_1', 'optional_2',
-        'optional_3')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Organizations',
-        'caption': 'Organizations',
-        'navpath': NAVPATH_DEFAULT + [('Organizations', None)],
-        'tab_template': 'seeddb/tabs_organization.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-organization-edit', extra_context=extra)
 
 def organization_edit(request, organization_id=None):
     extra = {
@@ -179,10 +142,6 @@ def organization_edit(request, organization_id=None):
     return render_seeddb_edit(request, Organization, OrganizationForm,
         organization_id, extra_context=extra)
 
-def usage_list(request):
-    list = UsageList(request)
-    return list()
-
 def usage_edit(request, usage_id=None):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Usage categories', reverse('seeddb-usage'))],
@@ -190,20 +149,6 @@ def usage_edit(request, usage_id=None):
     }
     return render_seeddb_edit(request, Usage, UsageForm,
         usage_id, extra_context=extra)
-
-def type_list(request):
-    qs = NetboxType.objects.all()
-    value_list = (
-        'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
-        'tftp')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Types',
-        'caption': 'Types',
-        'navpath': NAVPATH_DEFAULT + [('Types', None)],
-        'tab_template': 'seeddb/tabs_type.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-type-edit', extra_context=extra)
 
 def type_edit(request, type_id=None):
     extra = {
@@ -213,18 +158,6 @@ def type_edit(request, type_id=None):
     return render_seeddb_edit(request, NetboxType, NetboxTypeForm,
         type_id, title_attr='name', extra_context=extra)
 
-def vendor_list(request):
-    qs = Vendor.objects.all()
-    value_list = ('id',)
-    extra = {
-        'title': TITLE_DEFAULT + ' - Vendors',
-        'caption': 'Vendors',
-        'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
-        'tab_template': 'seeddb/tabs_vendor.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-vendor-edit', extra_context=extra)
-
 def vendor_edit(request, vendor_id=None):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Vendors', reverse('seeddb-vendor'))],
@@ -233,18 +166,6 @@ def vendor_edit(request, vendor_id=None):
     return render_seeddb_edit(request, Vendor, VendorForm,
         vendor_id, extra_context=extra)
 
-def subcategory_list(request):
-    qs = Subcategory.objects.all()
-    value_list = ('id', 'category', 'description')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Subcategories',
-        'caption': 'Subcategories',
-        'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
-        'tab_template': 'seeddb/tabs_subcategory.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-subcategory-edit', extra_context=extra)
-
 def subcategory_edit(request, subcategory_id=None):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Subcategories', reverse('seeddb-subcategory'))],
@@ -252,53 +173,3 @@ def subcategory_edit(request, subcategory_id=None):
     }
     return render_seeddb_edit(request, Subcategory, SubcategoryForm,
         subcategory_id, extra_context=extra)
-
-def vlan_list(request):
-    qs = Vlan.objects.all()
-    value_list = ('id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident', 'description')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Vlan',
-        'caption': 'Vlan',
-        'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
-        'tab_template': 'seeddb/tabs_vlan.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-vlan-edit', extra_context=extra)
-
-def prefix_list(request):
-    qs = Prefix.objects.filter(vlan__net_type__edit=True)
-    value_list = (
-        'net_address', 'vlan__net_type', 'vlan__organization',
-        'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Prefix',
-        'caption': 'Prefix',
-        'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
-        'tab_template': 'seeddb/tabs_prefix.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-prefix-edit', extra_context=extra)
-
-def cabling_list(request):
-    qs = Cabling.objects.all()
-    value_list = ('room', 'jack', 'building', 'target_room', 'category', 'description')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Cabling',
-        'caption': 'Cabling',
-        'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
-        'tab_template': 'seeddb/tabs_cabling.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-cabling-edit', extra_context=extra)
-
-def patch_list(request):
-    qs = Patch.objects.all()
-    value_list = ('interface__netbox', 'interface__module', 'interface__baseport', 'cabling__room', 'cabling__jack', 'split')
-    extra = {
-        'title': TITLE_DEFAULT + ' - Patch',
-        'caption': 'Patch',
-        'navpath': NAVPATH_DEFAULT + [('Patch', None)],
-        'tab_template': 'seeddb/tabs_patch.html',
-    }
-    return render_seeddb_list(request, qs, value_list,
-        edit_url='seeddb-patch-edit', extra_context=extra)
