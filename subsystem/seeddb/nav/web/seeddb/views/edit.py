@@ -125,6 +125,16 @@ class SeeddbPrimaryKeyEdit(SeeddbEdit):
 
         return new_pk_val
 
+class NetboxEdit(SeeddbEdit):
+    # FIXME
+    def __new__(cls, request, netbox_id=None):
+        raise Exception, "Not implemented"
+
+class ServiceEdit(SeeddbEdit):
+    # FIXME
+    def __new__(cls, request, service_id=None):
+        raise Exception, "Not implemented"
+
 class RoomEdit(SeeddbPrimaryKeyEdit):
     model = Room
     form_model = RoomForm
@@ -144,3 +154,88 @@ class LocationEdit(SeeddbEdit):
 
     def __new__(cls, request, location_id=None):
         return super(LocationEdit, cls).__new__(cls, request, location_id)
+
+class OrganizationEdit(SeeddbEdit):
+    model = Organization
+    form_model = OrganizationForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_organization.html'
+    redirect = 'seeddb-organization-edit'
+
+    def __new__(cls, request, organization_id=None):
+        super(OrganizationEdit, cls).__new__(cls, request, organization_id)
+
+class UsageEdit(SeeddbEdit):
+    model = Usage
+    form_model = UsageForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_usage.html'
+    redirect = 'seeddb-usage-edit'
+
+    def __new__(cls, request, usage_id=None):
+        super(UsageEdit, cls).__new__(cls, request, usage_id)
+
+class NetboxTypeEdit(SeeddbEdit):
+    model = NetboxType
+    form_model = NetboxTypeForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_type.html'
+    redirect = 'seeddb-type-edit'
+
+    def __new__(cls, request, type_id=None):
+        super(NetboxTypeEdit, cls).__new__(cls, request, type_id)
+
+class VendorEdit(SeeddbEdit):
+    model = Vendor
+    form_model = VendorForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_vendor.html'
+    redirect = 'seeddb-vendor-edit'
+
+    def __new__(cls, request, vendor_id=None):
+        super(VendorEdit, cls).__new__(cls, request, vendor_id)
+
+class SubcategoryEdit(SeeddbEdit):
+    model = Subcategory
+    form_model = SubcategoryForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seedb/tabs_subcategory.html'
+    redirect = 'seeddb-subcategory-edit'
+
+    def __new__(cls, request, subcategory_id=None):
+        super(SubcategoryEdit, cls).__new__(cls, request, subcategory_id)
+
+class VlanEdit(SeeddbEdit):
+    # FIXME
+    def __new__(cls, request, vlan_id):
+        raise Exception, "Not implemented"
+
+class PrefixEdit(SeeddbEdit):
+    model = Prefix
+    form_model = PrefixForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_prefix.html'
+    redirect = 'seeddb-prefix-edit'
+
+    def __new__(cls, request, prefix_id=None):
+        super(PrefixEdit, cls).__new__(cls, request, prefix_id)
+
+class CablingEdit(SeeddbEdit):
+    model = Cabling
+    form_model = CablingForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_cabling.html'
+    redirect = 'seeddb-cabling-edit'
+
+    def __new__(cls, request, cabling_id=None):
+        super(CablingEdit, cls).__new__(cls, request, cabling_id)
+
+class PatchEdit(SeeddbEdit):
+    model = Patch
+    form_model = PatchForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_patch.html'
+    redirect = 'seeddb-patch-edit'
+
+    def __new__(cls, request, patch_id=None):
+        super(PatchEdit, cls).__new__(cls, request, patch_id)
