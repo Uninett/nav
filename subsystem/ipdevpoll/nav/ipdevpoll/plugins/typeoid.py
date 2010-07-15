@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,14 +19,11 @@
 Collects sysObjectId and compares with the registered type of the
 netbox.
 
-TODO: If netbox type has changed, NAVdb needs to be updated, an event
-      must be dispatched, and the poll run restarted.
-
 """
 
 from twisted.internet import threads
 
-from nav.ipdevpoll import Plugin, storage, shadows
+from nav.ipdevpoll import Plugin, storage, shadows, signals
 from nav.ipdevpoll.models import OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
@@ -88,6 +85,10 @@ class TypeOid(Plugin):
         """Sets the netbox type to type_."""
         netbox_container = self.containers.factory(None, shadows.Netbox)
         netbox_container.type = type_
+
+        if self.has_type_changed():
+            signals.netbox_type_changed.send(
+                sender=self, netbox_id=self.netbox.id, new_type=type_)
 
     def _check_for_typechange(self, type_):
         if self.has_type_changed():
