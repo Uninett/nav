@@ -24,26 +24,25 @@
         </tr>
     </thead>
 
-    <tbody>
-    {% for row in section.history %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            {% for name, url in row %}
-            <td>
-                {% if url %}
-                <a href="{{ url }}">
-                {% endif %}
-                {{ name }}
-                {% if url %}
-                </a>
-                {% endif %}
-            </td>
-            {% endfor %}
-        </tr>
-    {% endfor %}
-    </tbody>
-
-    <tfoot>
-    </tfoot>
+    {% if section.history %}
+        <tbody>
+        {% for row in section.history %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                {% for name, url in row %}
+                <td>
+                    {% if url %}
+                    <a href="{{ url }}">
+                    {% endif %}
+                    {{ name }}
+                    {% if url %}
+                    </a>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    {% endif %}
 </table>
 {% endfor %}
 

@@ -17,7 +17,7 @@
 
 import unittest
 
-import descrparsers
+from nav.ipdevpoll import descrparsers
 
 class NtnuConventionTest(unittest.TestCase):
 
