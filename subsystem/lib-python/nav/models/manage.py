@@ -29,15 +29,31 @@ from django.db.models import Q
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField
 
-# Choices used in multiple models, "imported" into the models which use them
-LINK_UP = 'y'
-LINK_DOWN = 'n'
-LINK_DOWN_ADM = 'd'
-LINK_CHOICES = (
-    (LINK_UP, 'up'), # In old devBrowser: 'Active'
-    (LINK_DOWN, 'down (operDown)'), # In old devBrowser: 'Not active'
-    (LINK_DOWN_ADM, 'down (admDown)'), # In old devBrowser: 'Denied'
+# Choices used in Interface model and 'ipdevinfo' for determining interface status
+LINK_UP = 1
+LINK_DOWN = 2
+LINK_TESTING = 3
+LINK_UNKNOWN = 4
+LINK_DORMANT = 5
+LINK_NOTPRESENT = 6
+LINK_LOWERLAYERDOWN = 7
+
+OPER_LINK_CHOICES = (
+    (LINK_UP, 'up'),
+    (LINK_DOWN, 'down'),
+    (LINK_TESTING, 'testing'),
+    (LINK_UNKNOWN, 'unknown'),
+    (LINK_DORMANT, 'dormant'),
+    (LINK_NOTPRESENT, 'not present'),
+    (LINK_LOWERLAYERDOWN, 'lower layer down'),
 )
+
+ADM_LINK_CHOICES = (
+    (LINK_UP, 'up'),
+    (LINK_DOWN, 'down'),
+    (LINK_TESTING, 'testing'),
+)
+
 
 #######################################################################
 ### Model helper functions
