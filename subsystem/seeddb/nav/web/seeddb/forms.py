@@ -45,14 +45,10 @@ class NetboxForm(forms.ModelForm):
         )
 
 class RoomForm(forms.ModelForm):
-    REDIRECT = 'seeddb-room-edit'
-
     class Meta:
         model = Room
 
 class LocationForm(forms.ModelForm):
-    REDIRECT = 'seeddb-location-edit'
-
     class Meta:
         model = Location
 
@@ -62,8 +58,6 @@ class LocationForm(forms.ModelForm):
             del self.fields['id']
 
 class OrganizationForm(forms.ModelForm):
-    REDIRECT = 'seeddb-organization-edit'
-
     class Meta:
         model = Organization
 
@@ -73,8 +67,6 @@ class OrganizationForm(forms.ModelForm):
             del self.fields['id']
 
 class UsageForm(forms.ModelForm):
-    REDIRECT = 'seeddb-usage-edit'
-
     class Meta:
         model = Usage
 
@@ -84,37 +76,25 @@ class UsageForm(forms.ModelForm):
             del self.fields['id']
 
 class NetboxTypeForm(forms.ModelForm):
-    REDIRECT = 'seeddb-type-edit'
-
     class Meta:
         model = NetboxType
 
 class VendorForm(forms.ModelForm):
-    REDIRECT = 'seeddb-vendor-edit'
-
     class Meta:
         model = Vendor
 
 class SubcategoryForm(forms.ModelForm):
-    REDIRECT = 'seeddb-subcategory-edit'
-
     class Meta:
         model = Subcategory
 
 class PrefixForm(forms.ModelForm):
-    REDIRECT = 'seeddb-prefix-edit'
-
     class Meta:
         model = Prefix
 
 class CablingForm(forms.ModelForm):
-    REDIRECT = 'seeddb-cabling-edit'
-
     class Meta:
         model = Cabling
 
 class PatchForm(forms.ModelForm):
-    REDIRECT = 'seeddb-patch-edit'
-
     class Meta:
         model = Patch
