@@ -111,19 +111,19 @@
 {% endif %}
 
     <tr>
-        <th># of modules</th>
+        <th>Modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
             {{ netbox.module_set.count }}</a></td>
     </tr>
 
     <tr>
-        <th># of switch ports</th>
+        <th>Switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
             {{ netbox.get_swports.count }}</a></td>
     </tr>
 
     <tr>
-        <th># of router ports</th>
+        <th>Router ports</th>
         <td><a href="{% url report-gwport-netbox netbox.id %}">
             {{ netbox.get_gwports.count }}</a></td>
     </tr>
@@ -259,7 +259,11 @@
             </ul>
         </td>
     </tr>
+
+
 {% else %}
+
+
     <caption class="nowrap">IP Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
     <tr>
         <th>Status</th>
