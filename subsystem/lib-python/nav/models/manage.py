@@ -916,14 +916,6 @@ class Interface(models.Model):
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
 
-    def get_link_status(self):
-        if not self.ifadminstatus:
-            return LINK_DOWN_ADM
-        if self.ifoperstatus:
-            return LINK_UP
-        else:
-            return LINK_DOWN
-
     def get_link_display(self):
         if self.get_link_status() == LINK_UP:
             return "Active"
