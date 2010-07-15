@@ -65,6 +65,7 @@ class Netbox(Shadow):
 
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
+    __lookups__ = ['sysobjectid']
 
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
