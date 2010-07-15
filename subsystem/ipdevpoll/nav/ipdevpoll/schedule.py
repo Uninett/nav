@@ -82,6 +82,7 @@ class JobHandler(object):
     def __init__(self, name, netbox, plugins=None):
         self.name = name
         self.netbox = netbox
+        self.cancelled = False
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
@@ -158,6 +159,8 @@ class JobHandler(object):
             return failure
 
         def next_plugin(result=None):
+            if self.cancelled:
+                return
             try:
                 plugin_instance = plugins.next()
             except StopIteration:
@@ -209,7 +212,10 @@ class JobHandler(object):
                                   self.name, self.netbox.sysname)
             return failure
 
-        def save(resutl):
+        def save(result):
+            if self.cancelled:
+                return wrap_up_job(result)
+
             df = self.save_container()
             df.addErrback(save_failure)
             df.addCallback(wrap_up_job)
@@ -221,6 +227,14 @@ class JobHandler(object):
         df.addCallback(save)
         df.addErrback(log_abort)
         return df
+
+    def cancel(self):
+        """Cancels a running job.
+
+        Job stops at the earliest convenience.
+        """
+        self.cancelled = True
+        self.logger.warning("Cancelling running job")
 
     def _reset_timers(self):
         self._start_time = datetime.datetime.now()
@@ -426,7 +440,7 @@ class NetboxScheduler(object):
 
         self.plugins = plugins or []
         self.interval = interval or self.DEFAULT_INTERVAL
-        self.active = True
+        self.cancelled = False
 
     def start(self):
         """Start polling schedule."""
@@ -438,9 +452,14 @@ class NetboxScheduler(object):
         """Cancel scheduling of this job for this box.
 
         Future runs will not be scheduled after this."""
-        self.loop.stop()
-        self.logger.debug("Job %r cancelled for %s",
-                          self.jobname, self.netbox.sysname)
+        if self.loop.running:
+            self.loop.stop()
+            self.cancelled = True
+            self.logger.debug("cancel: Job %r cancelled for %s",
+                              self.jobname, self.netbox.sysname)
+        else:
+            self.logger.debug("cancel: Job %r already cancelled for %s",
+                              self.jobname, self.netbox.sysname)
 
     def _map_cleanup(self, result, job_handler):
         """Remove a JobHandler from internal data structures."""
@@ -448,6 +467,8 @@ class NetboxScheduler(object):
             del NetboxScheduler.ip_map[job_handler.netbox.ip]
         if job_handler in self.deferred_map:
             del self.deferred_map[job_handler]
+        if self.job_handler:
+            self.job_handler = None
         return result
 
     def run_job(self, dummy=None):
@@ -472,6 +493,7 @@ class NetboxScheduler(object):
             # We're ok to start a polling run.
             job_handler = JobHandler(self.jobname, self.netbox, 
                                      plugins=self.plugins)
+            self.job_handler = job_handler
             NetboxScheduler.ip_map[ip] = job_handler
             deferred = job_handler.run()
             self.deferred_map[job_handler] = deferred
@@ -485,10 +507,11 @@ class NetboxScheduler(object):
     def _reschedule(self, failure):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
-        delay = 60
-        self.logger.info("Rescheduling %r for %s in %d seconds",
-                         self.jobname, self.netbox.sysname, delay)
-        self.loop.call.reset(delay)
+        if self.loop.running:
+            delay = 60
+            self.logger.info("Rescheduling %r for %s in %d seconds",
+                             self.jobname, self.netbox.sysname, delay)
+            self.loop.call.reset(delay)
 
     def _log_unhandled_error(self, failure, job_handler):
         self.logger.exception(
@@ -499,7 +522,7 @@ class NetboxScheduler(object):
         return failure
 
     def _log_time_to_next_run(self, thing=None):
-        if hasattr(self.loop, 'call') and self.loop.call is not None:
+        if self.loop.running and self.loop.call is not None:
             next_time = \
                 datetime.datetime.fromtimestamp(self.loop.call.getTime())
             self.logger.debug("Next %r job for %s will be at %s",
