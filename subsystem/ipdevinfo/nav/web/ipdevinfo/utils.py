@@ -17,7 +17,7 @@
 
 import nav.util
 
-from nav.models.manage import LINK_UP, LINK_DOWN, LINK_DOWN_ADM 
+from nav.models.manage import LINK_UP, LINK_DOWN
 
 def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
@@ -81,11 +81,11 @@ def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
 
     classes = ['port']
-    if swport.get_link_status() == LINK_UP and swport.speed:
+    if swport.ifoperstatus == LINK_UP and swport.speed:
         classes.append('Mb%d' % swport.speed)
-    if swport.get_link_status() == LINK_DOWN_ADM:
+    if swport.ifadminstatus == LINK_DOWN:
         classes.append('disabled')
-    elif swport.get_link_status() != LINK_UP:
+    elif swport.ifoperstatus != LINK_UP:
         classes.append('passive')
     if swport.trunk:
         classes.append('trunk')
@@ -104,11 +104,11 @@ def _get_swportstatus_title(swport):
     if swport.ifname:
         title.append(swport.ifname)
 
-    if swport.get_link_status() == LINK_UP and swport.speed:
+    if swport.ifoperstatus == LINK_UP and swport.speed:
         title.append('%d Mbit' % swport.speed)
-    elif swport.get_link_status() == LINK_DOWN_ADM:
+    elif swport.ifadminstatus == LINK_DOWN:
         title.append('disabled')
-    elif swport.get_link_status() != LINK_UP:
+    elif swport.ifoperstatus != LINK_UP:
         title.append('not active')
 
     if swport.duplex:
@@ -142,7 +142,7 @@ def _get_swportactive_class(swport, interval=30):
 
     classes = ['port']
 
-    if swport.get_link_status() == LINK_UP:
+    if swport.ifoperstatus == LINK_UP:
         classes.append('active')
         classes.append('link')
     else:
@@ -165,7 +165,7 @@ def _get_swportactive_style(swport, interval=30):
 
     style = ''
 
-    if swport.get_link_status() == LINK_UP:
+    if swport.ifoperstatus == LINK_UP:
         style = 'background-color: #%s;' % nav.util.colortohex(
             gradient[0])
     else:
@@ -184,7 +184,7 @@ def _get_swportactive_title(swport, interval=30):
     if swport.ifname:
         title.append(swport.ifname)
 
-    if swport.get_link_status() == LINK_UP:
+    if swport.ifoperstatus == LINK_UP:
         title.append('link now')
     else:
         active = swport.get_active_time(interval)
