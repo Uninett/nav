@@ -21,7 +21,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404
 
-#from nav.django.utils import get_verbose_name
+from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
