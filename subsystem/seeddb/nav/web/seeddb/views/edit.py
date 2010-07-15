@@ -124,3 +124,23 @@ class SeeddbPrimaryKeyEdit(SeeddbEdit):
         cur.execute(sql, params)
 
         return new_pk_val
+
+class RoomEdit(SeeddbPrimaryKeyEdit):
+    model = Room
+    form_model = RoomForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_room.html'
+    redirect = 'seeddb-room-edit'
+
+    def __new__(cls, request, room_id=None):
+        return super(RoomEdit, cls).__new__(cls, request, room_id)
+
+class LocationEdit(SeeddbEdit):
+    model = Location
+    form_model = LocationForm
+    navpath = [('stuffz', None)]
+    tab_template = 'seeddb/tabs_location.html'
+    redirect = 'seeddb-location-edit'
+
+    def __new__(cls, request, location_id=None):
+        return super(LocationEdit, cls).__new__(cls, request, location_id)
