@@ -92,8 +92,14 @@ class NetboxLoader(dict):
         changed_ids = set(i for i in same_ids
                           if is_netbox_changed(self[i], netbox_dict[i]))
 
-        self.clear()
-        self.update(netbox_dict)
+        # update self
+        for i in lost_ids:
+            del self[i]
+        for i in new_ids:
+            self[i] = netbox_dict[i]
+        for i in same_ids:
+            self[i].copy(netbox_dict[i])
+
         self.peak_count = max(self.peak_count, len(self))
 
         self._logger.info(
