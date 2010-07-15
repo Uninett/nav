@@ -22,9 +22,9 @@ from IPy import IP
 os.environ['PYSNMP_API_VERSION'] = 'v3'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
-from ip_mib import IpMib, IndexToIpException
-from ipv6_mib import Ipv6Mib
-from cisco_ietf_ip_mib import CiscoIetfIpMib
+from nav.mibs.ip_mib import IpMib, IndexToIpException
+from nav.mibs.ipv6_mib import Ipv6Mib
+from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 class IpMibTests(unittest.TestCase):
     def setUp(self):

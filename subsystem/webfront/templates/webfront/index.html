@@ -55,18 +55,20 @@
         </tr>
     </thead>
 
-    <tbody>
-        {% for m in current_messages %}
-        <tr>
-            <td>{{ m.publish_start }}</td>
-            <td><a href="/messages/view?id={{ m.id }}">{{ m.title }}</a></td>
-            <td>{{ m.description }}</td>
-            <td>
-                <img src="/images/status/wrench.gif" alt="Tasks" />
-                {{ m.maintenance_tasks.all|length }}
-            </td>
-        {% endfor %}
-    </tbody>
+    {% if current_messages %}
+        <tbody>
+            {% for m in current_messages %}
+            <tr>
+                <td>{{ m.publish_start }}</td>
+                <td><a href="/messages/view?id={{ m.id }}">{{ m.title }}</a></td>
+                <td>{{ m.description }}</td>
+                <td>
+                    <img src="/images/status/wrench.gif" alt="Tasks" />
+                    {{ m.maintenance_tasks.all|length }}
+                </td>
+            {% endfor %}
+        </tbody>
+    {% endif %}
 </table>
 
 <table class="listtable">
@@ -86,17 +88,19 @@
             <th>Downtime</th>
         </tr>
     </thead>
-    
-    <tbody>
-        {% for b in boxes_down %}
-        <tr>
-            <td><a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
-                {{ b.netbox.sysname }}</a></td>
-            <td>{{ b.netbox.ip }}</td>
-            <td>{{ b.start_time }}</td>
-            <td>{{ b.start_time|timesince:date_now }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+
+    {% if boxes_down %}
+        <tbody>
+            {% for b in boxes_down %}
+            <tr>
+                <td><a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
+                    {{ b.netbox.sysname }}</a></td>
+                <td>{{ b.netbox.ip }}</td>
+                <td>{{ b.start_time }}</td>
+                <td>{{ b.start_time|timesince:date_now }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    {% endif %}
 </table>
 {% endblock %}

@@ -85,7 +85,7 @@
     <h3>Advanced Search</h3>
 
     ## Advanced search box
-    <form action="" method="get" name="advblock">
+    <form action="" method="get">
         <input id="adv" type="hidden" name="adv" value="1"/>
 
         <table class="vertitable float-left">
@@ -102,7 +102,7 @@
         #if $neg.has_key($a.raw)
          checked="1"#slurp
         #end if
-        >
+        />
 
                     </td>
                     <td><label for="not_adv${counter}">not</label></td>
@@ -121,7 +121,7 @@
         #if $contents.has_key($a.raw)
          value="$contents[$a.raw]"#slurp
         #end if
-        >
+        />
 
                     </td>
                 </tr>
@@ -158,7 +158,7 @@
 
         ## CSV Export form
         <h3>CSV Export</h3>
-        <form action="" method=="get" name="export">
+        <form action="" method="get" name="export">
             <label for="export">Delimiter: </label>
             <select name="export">
 #for $delim in $delimiters
@@ -208,6 +208,7 @@
     </caption>
 
 ## --- HEADER ROW ---- ##
+    #if $report.table.header.cells
     <thead>
         <tr>
 
@@ -225,8 +226,10 @@
 
         </tr>
     </thead>
+    #end if
 
 ## --- DATA ROWS ---- ##
+    #if $report.table.rows
     <tbody>
 
     #for $row in $report.table.rows
@@ -254,9 +257,11 @@
     #end for
 
     </tbody>
+    #end if
 
 ## --- FOOTER ---- ##
-    #if $report.table.footer
+    #if $report.table.footer.cells
+        ## FIXME unused variable?
         #set $cols = len($report.table.header.cells)
 
         <tr class="tablesum">
@@ -272,8 +277,10 @@
     #end if
 
 ## --- FOOTER NAVIGATION ---- ##
+## FIXME Use tfoot?
     <tbody class="footer">
         <tr>
+            ## FIXME colspan=0?!
             <th colspan="0">
 
     #if $report.navigator.previous

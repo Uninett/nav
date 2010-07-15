@@ -34,30 +34,32 @@
         </tr>
     </thead>
 
-    <tbody>
-    {% for profile in profiles %}
-        <tr class="{% cycle oddrow,evenrow %}">
-            <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
-            <td><a href="{% url alertprofiles-profile-detail profile.id %}">
-                {{ profile.name }}</a></td>
-            {% ifequal profile.id active_profile.id %}
-            <td>
-                Active
-            </td>
-            <td>
-                <input type="submit" name="deactivate={{ profile.id }}" value="Click to deactivate" />
-            </td>
-            {% else %}
-            <td>
-                Inactive
-            </td>
-            <td>
-                <input type="submit" name="activate={{ profile.id }}" value="Click to activate" />
-            </td>
-            {% endifequal %}
-        </tr>
-    {% endfor %}
-    </tbody>
+    {% if profiles %}
+        <tbody>
+        {% for profile in profiles %}
+            <tr class="{% cycle oddrow,evenrow %}">
+                <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
+                <td><a href="{% url alertprofiles-profile-detail profile.id %}">
+                    {{ profile.name }}</a></td>
+                {% ifequal profile.id active_profile.id %}
+                <td>
+                    Active
+                </td>
+                <td>
+                    <input type="submit" name="deactivate={{ profile.id }}" value="Click to deactivate" />
+                </td>
+                {% else %}
+                <td>
+                    Inactive
+                </td>
+                <td>
+                    <input type="submit" name="activate={{ profile.id }}" value="Click to activate" />
+                </td>
+                {% endifequal %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    {% endif %}
 </table>
 <p>
     <input type="submit" name="remove" value="Remove selected" />
