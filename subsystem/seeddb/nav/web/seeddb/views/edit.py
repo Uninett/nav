@@ -163,7 +163,7 @@ class OrganizationEdit(SeeddbEdit):
     redirect = 'seeddb-organization-edit'
 
     def __new__(cls, request, organization_id=None):
-        super(OrganizationEdit, cls).__new__(cls, request, organization_id)
+        return super(OrganizationEdit, cls).__new__(cls, request, organization_id)
 
 class UsageEdit(SeeddbEdit):
     model = Usage
@@ -173,7 +173,7 @@ class UsageEdit(SeeddbEdit):
     redirect = 'seeddb-usage-edit'
 
     def __new__(cls, request, usage_id=None):
-        super(UsageEdit, cls).__new__(cls, request, usage_id)
+        return super(UsageEdit, cls).__new__(cls, request, usage_id)
 
 class NetboxTypeEdit(SeeddbEdit):
     model = NetboxType
@@ -183,7 +183,7 @@ class NetboxTypeEdit(SeeddbEdit):
     redirect = 'seeddb-type-edit'
 
     def __new__(cls, request, type_id=None):
-        super(NetboxTypeEdit, cls).__new__(cls, request, type_id)
+        return super(NetboxTypeEdit, cls).__new__(cls, request, type_id)
 
 class VendorEdit(SeeddbEdit):
     model = Vendor
@@ -193,17 +193,17 @@ class VendorEdit(SeeddbEdit):
     redirect = 'seeddb-vendor-edit'
 
     def __new__(cls, request, vendor_id=None):
-        super(VendorEdit, cls).__new__(cls, request, vendor_id)
+        return super(VendorEdit, cls).__new__(cls, request, vendor_id)
 
 class SubcategoryEdit(SeeddbEdit):
     model = Subcategory
     form_model = SubcategoryForm
     navpath = [('stuffz', None)]
-    tab_template = 'seedb/tabs_subcategory.html'
+    tab_template = 'seeddb/tabs_subcategory.html'
     redirect = 'seeddb-subcategory-edit'
 
     def __new__(cls, request, subcategory_id=None):
-        super(SubcategoryEdit, cls).__new__(cls, request, subcategory_id)
+        return super(SubcategoryEdit, cls).__new__(cls, request, subcategory_id)
 
 class VlanEdit(SeeddbEdit):
     # FIXME
@@ -218,7 +218,7 @@ class PrefixEdit(SeeddbEdit):
     redirect = 'seeddb-prefix-edit'
 
     def __new__(cls, request, prefix_id=None):
-        super(PrefixEdit, cls).__new__(cls, request, prefix_id)
+        return super(PrefixEdit, cls).__new__(cls, request, prefix_id)
 
 class CablingEdit(SeeddbEdit):
     model = Cabling
@@ -228,7 +228,7 @@ class CablingEdit(SeeddbEdit):
     redirect = 'seeddb-cabling-edit'
 
     def __new__(cls, request, cabling_id=None):
-        super(CablingEdit, cls).__new__(cls, request, cabling_id)
+        return super(CablingEdit, cls).__new__(cls, request, cabling_id)
 
 class PatchEdit(SeeddbEdit):
     model = Patch
@@ -238,4 +238,4 @@ class PatchEdit(SeeddbEdit):
     redirect = 'seeddb-patch-edit'
 
     def __new__(cls, request, patch_id=None):
-        super(PatchEdit, cls).__new__(cls, request, patch_id)
+        return super(PatchEdit, cls).__new__(cls, request, patch_id)
