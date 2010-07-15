@@ -95,7 +95,6 @@ class JobHandler(object):
         self.plugins = plugins or []
         self.logger.debug("Job %r initialized with plugins: %r",
                           self.name, self.plugins)
-        self.plugin_iterator = iter([])
         self.containers = storage.ContainerRepository()
         self.storage_queue = []
 
