@@ -30,28 +30,32 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField
 
 # Choices used in Interface model and 'ipdevinfo' for determining interface status
-LINK_UP = 1
-LINK_DOWN = 2
-LINK_TESTING = 3
-LINK_UNKNOWN = 4
-LINK_DORMANT = 5
-LINK_NOTPRESENT = 6
-LINK_LOWERLAYERDOWN = 7
+OPER_UP = 1
+OPER_DOWN = 2
+OPER_TESTING = 3
+OPER_UNKNOWN = 4
+OPER_DORMANT = 5
+OPER_NOTPRESENT = 6
+OPER_LOWERLAYERDOWN = 7
 
-OPER_LINK_CHOICES = (
-    (LINK_UP, 'up'),
-    (LINK_DOWN, 'down'),
-    (LINK_TESTING, 'testing'),
-    (LINK_UNKNOWN, 'unknown'),
-    (LINK_DORMANT, 'dormant'),
-    (LINK_NOTPRESENT, 'not present'),
-    (LINK_LOWERLAYERDOWN, 'lower layer down'),
+OPER_STATUS_CHOICES = (
+    (OPER_UP, 'up'),
+    (OPER_DOWN, 'down'),
+    (OPER_TESTING, 'testing'),
+    (OPER_UNKNOWN, 'unknown'),
+    (OPER_DORMANT, 'dormant'),
+    (OPER_NOTPRESENT, 'not present'),
+    (OPER_LOWERLAYERDOWN, 'lower layer down'),
 )
 
-ADM_LINK_CHOICES = (
-    (LINK_UP, 'up'),
-    (LINK_DOWN, 'down'),
-    (LINK_TESTING, 'testing'),
+ADM_UP = 1
+ADM_DOWN = 2
+ADM_TESTING = 3
+
+ADM_STATUS_CHOICES = (
+    (ADM_UP, 'up'),
+    (ADM_DOWN, 'down'),
+    (ADM_TESTING, 'testing'),
 )
 
 
@@ -809,8 +813,8 @@ class Interface(models.Model):
     iftype = models.IntegerField()
     speed = models.FloatField()
     ifphysaddress = models.CharField(max_length=17, null=True)
-    ifadminstatus = models.IntegerField(choices=ADM_LINK_CHOICES)
-    ifoperstatus = models.IntegerField(choices=OPER_LINK_CHOICES)
+    ifadminstatus = models.IntegerField(choices=ADM_STATUS_CHOICES)
+    ifoperstatus = models.IntegerField(choices=OPER_STATUS_CHOICES)
     iflastchange = models.IntegerField()
     ifconnectorpresent = models.BooleanField()
     ifpromiscuousmode = models.BooleanField()
@@ -917,9 +921,9 @@ class Interface(models.Model):
             ).order_by('description')
 
     def get_link_display(self):
-        if self.ifoperstatus == LINK_UP:
+        if self.ifoperstatus == OPER_UP:
             return "Active"
-        elif self.ifadminstatus == LINK_DOWN:
+        elif self.ifadminstatus == ADM_DOWN:
             return "Disabled"
         return "Inactive"
 
