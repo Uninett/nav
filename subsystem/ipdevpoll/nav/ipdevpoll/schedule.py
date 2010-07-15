@@ -34,6 +34,7 @@ from nav.ipdevpoll.plugins import plugin_registry
 import storage
 import shadows
 import jobs
+import signals
 from dataloader import NetboxLoader
 
 logger = logging.getLogger(__name__)
@@ -545,11 +546,13 @@ class Scheduler(object):
 
     """
     def __init__(self):
+        self._logger = ipdevpoll.get_instance_logger(self, id(self))
         self.netboxes = NetboxLoader()
         self.netbox_schedulers_map = {}
 
     def run(self):
         """Initiate scheduling of polling."""
+        signals.netbox_type_changed.connect(self.on_netbox_type_changed)
         self.netbox_reload_loop = task.LoopingCall(self.reload_netboxes)
         # FIXME: Interval should be configurable
         deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
@@ -596,6 +599,26 @@ class Scheduler(object):
             return len(schedulers)
         else:
             return 0
+
+    def on_netbox_type_changed(self, netbox_id, new_type, **kwargs):
+        """Performs various cleanup and reload actions on a netbox type change
+        signal.
+
+        The netbox' data are cleaned up, and the next netbox data reload is
+        scheduled to take place immediately.
+
+        """
+        sysname = netbox_id in self.netboxes and \
+            self.netboxes[netbox_id].sysname or str(netbox_id)
+        self._logger.info("Cancelling all jobs for %s due to type change.",
+                          sysname)
+        self.cancel_netbox_schedulers(netbox_id)
+        def reset(_):
+            self.netbox_reload_loop.call.reset(1)
+        df = threads.deferToThread(shadows.Netbox.cleanup_replaced_netbox,
+                                   netbox_id, new_type)
+        df.addCallback(reset)
+        return df
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
