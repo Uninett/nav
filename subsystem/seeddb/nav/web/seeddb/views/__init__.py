@@ -16,6 +16,8 @@
 #
 
 from nav.web.seeddb.views.list import NetboxList, ServiceList, RoomList,\
-    LocationList, OrganizationList, UsageList, NetboxTypeList, VendorList, \
+    LocationList, OrganizationList, UsageList, NetboxTypeList, VendorList,\
     SubcategoryList, VlanList, PrefixList, CablingList, PatchList
-from nav.web.seeddb.views.edit import RoomEdit, LocationEdit
+from nav.web.seeddb.views.edit import NetboxEdit, ServiceEdit, RoomEdit,\
+    LocationEdit, OrganizationEdit, UsageEdit, NetboxTypeEdit, VendorEdit,\
+    SubcategoryEdit, VlanEdit, PrefixEdit, CablingEdit, PatchEdit
