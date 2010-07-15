@@ -271,58 +271,69 @@
     </tr>
 
     <tr>
-        <th>Subnet</th>
-        <td>{{ prefix.net_address|default:"N/A" }}</td>
+        <th>Prefix</th>
+        <td>{{ no_netbox.prefix.net_address|default:"N/A" }}</td>
     </tr>
 
+    {% with no_netbox.prefix.vlan as vlan %}
     <tr>
         <th>VLAN</th>
-        <td>{{ prefix.vlan.vlan|default:"N/A" }}</td>
+        <td>{{ vlan.vlan|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Ident</th>
-        <td>{{ prefix.vlan.net_ident|default:"N/A" }}</td>
+        <td>{{ vlan.net_ident|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Usage</th>
-        <td>{{ prefix.vlan.usage|default:"N/A" }}</td>
+        <td>{{ vlan.usage|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Description</th>
-        <td>{{ prefix.vlan.description|default:"N/A" }}</td>
+        <td>{{ vlan.description|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Organization</th>
-        <td>{{ prefix.vlan.organization|default:"N/A" }}</td>
+        <td>{{ vlan.organization|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Optional #1</th>
-        <td>{{ prefix.vlan.organization.optional_1|default:"N/A" }}</td>
+        <td>{{ vlan.organization.optional_1|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Optional #2</th>
-        <td>{{ prefix.vlan.organization.optional_2|default:"N/A" }}</td>
+        <td>{{ vlan.organization.optional_2|default:"N/A" }}</td>
     </tr>
 
     <tr>
         <th class="indent">Optional #3</th>
-        <td>{{ prefix.vlan.organization.optional_3|default:"N/A" }}</td>
+        <td>{{ vlan.organization.optional_3|default:"N/A" }}</td>
     </tr>
+    {% endwith %}
 
+    {% with no_netbox.arp as arp %}
     <tr>
         <th>Last active</th>
         <td>
-        {% ifequal dt_max arp.end_time %}
+        {% ifequal no_netbox.dt_max arp.end_time %}
+        <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
         Right now
+        </a>
         {% else %}
-        {{ arp.end_time|date|default:"Never" }}
-        {{ arp.end_time|time }}
+            {% if arp.end_time %}
+            <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
+            {{ arp.end_time|date }} 
+            {{ arp.end_time|time }}
+            </a>
+            {% else %}
+            Never
+            {% endif %}
         {% endifequal %}
         </td>
     </tr>
@@ -331,6 +342,7 @@
         <th>Last seen with MAC</th>
         <td>{{ arp.mac|default:"N/A" }}</td>
     </tr>
+    {% endwith %}
 
 {% endif %}
 </table>
