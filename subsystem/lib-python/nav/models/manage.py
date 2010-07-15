@@ -14,7 +14,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# -*- coding: utf-8 -*-
 """Django ORM wrapper for the NAV manage database"""
 
 import datetime as dt
