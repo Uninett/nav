@@ -917,9 +917,9 @@ class Interface(models.Model):
             ).order_by('description')
 
     def get_link_display(self):
-        if self.get_link_status() == LINK_UP:
+        if self.ifoperstatus == LINK_UP:
             return "Active"
-        elif self.get_link_status() == LINK_DOWN_ADM:
+        elif self.ifadminstatus == LINK_DOWN:
             return "Disabled"
         return "Inactive"
 
