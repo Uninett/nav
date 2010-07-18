@@ -6,7 +6,6 @@ SUBDIRS = java \
 	python \
 	bin \
 	media \
-	subsystem/alertengine \
 	subsystem/arnold \
 	subsystem/dbTools \
 	subsystem/devicehistory \

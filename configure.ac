@@ -67,13 +67,13 @@ AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
 	etc/Makefile
+	etc/init.d/Makefile
 	sql/Makefile
 	java/Makefile
 	templates/Makefile
 	python/Makefile
 	bin/Makefile
 	media/Makefile
-	subsystem/alertengine/Makefile
 	subsystem/arnold/Makefile
 	subsystem/arnold/config/Makefile
 	subsystem/dbTools/Makefile
