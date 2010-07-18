@@ -7,7 +7,6 @@ SUBDIRS = java \
 	bin \
 	media \
 	subsystem/ipdevpoll \
-	subsystem/machinetracker \
 	subsystem/mailin \
 	subsystem/maintenance \
 	subsystem/messages \
