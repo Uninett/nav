@@ -31,8 +31,7 @@ SUBDIRS = java \
 	subsystem/statemon \
 	subsystem/status \
 	subsystem/thresholdMon \
-	subsystem/useradmin \
-	subsystem/webfront
+	subsystem/useradmin
 
 EXTRA_DIST = version.m4
 

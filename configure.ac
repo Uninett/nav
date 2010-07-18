@@ -105,6 +105,5 @@ AC_CONFIG_FILES([
 	subsystem/status/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
-	subsystem/webfront/Makefile
 ])
 AC_OUTPUT
