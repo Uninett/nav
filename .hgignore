@@ -46,8 +46,8 @@ config(ure|\.log|\.status)
 aclocal.m4
 autom4te.cache
 version.m4
-Makefile
-Makefile.in
+Makefile$
+Makefile\.in$
 
 # Compiled Cheetah templates
 .*\/templates\/.*\.py
