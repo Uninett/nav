@@ -32,7 +32,7 @@ SUBDIRS = java \
 	subsystem/useradmin \
 	subsystem/webfront
 
-sysconf_DATA = doc/conf/db.conf doc/conf/nav.conf 
+sysconf_DATA = etc/db.conf etc/nav.conf 
 
 EXTRA_DIST = version.m4
 
