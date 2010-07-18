@@ -6,7 +6,6 @@ SUBDIRS = java \
 	python \
 	bin \
 	media \
-	subsystem/arnold \
 	subsystem/dbTools \
 	subsystem/devicehistory \
 	subsystem/ipdevinfo \
@@ -39,7 +38,9 @@ install-data-local: installdirs
 
 installdirs-local:
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/arnold
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/run
+
 
 webfix:
 	tools/htpython.sh $(DESTDIR)$(webroot) $(webroot)

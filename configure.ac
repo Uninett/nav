@@ -74,8 +74,6 @@ AC_CONFIG_FILES([
 	python/Makefile
 	bin/Makefile
 	media/Makefile
-	subsystem/arnold/Makefile
-	subsystem/arnold/config/Makefile
 	subsystem/dbTools/Makefile
 	subsystem/devicehistory/Makefile
 	subsystem/ipdevinfo/Makefile
