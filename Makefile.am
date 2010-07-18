@@ -1,5 +1,6 @@
 SUBDIRS = java \
 	doc \
+	sql \
 	templates \
 	python \
 	bin \

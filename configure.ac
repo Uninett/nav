@@ -66,6 +66,7 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
+	sql/Makefile
 	java/Makefile
 	templates/Makefile
 	python/Makefile
