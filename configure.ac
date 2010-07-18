@@ -74,7 +74,6 @@ AC_CONFIG_FILES([
 	bin/Makefile
 	media/Makefile
 	subsystem/ipdevpoll/Makefile
-	subsystem/l2trace/Makefile
 	subsystem/logger/Makefile
 	subsystem/machinetracker/Makefile
 	subsystem/mailin/Makefile
