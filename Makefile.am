@@ -1,5 +1,6 @@
 SUBDIRS = java \
 	doc \
+	etc \
 	sql \
 	templates \
 	python \
@@ -32,8 +33,6 @@ SUBDIRS = java \
 	subsystem/thresholdMon \
 	subsystem/useradmin \
 	subsystem/webfront
-
-sysconf_DATA = etc/db.conf etc/nav.conf 
 
 EXTRA_DIST = version.m4
 

@@ -66,6 +66,7 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
+	etc/Makefile
 	sql/Makefile
 	java/Makefile
 	templates/Makefile

@@ -2,10 +2,6 @@ include $(top_srcdir)/common.mk
 
 bin_SCRIPTS = bin/navTemplate.py
 
-webconfdir = $(sysconfdir)/webfront
-webconf_DATA = $(sort $(wildcard config/webfront/*.txt config/webfront/*.conf) config/webfront/webfront.conf)
-EDITFILES = config/webfront/webfront.conf
-
 templates_src = $(wildcard nav/web/templates/*.tmpl)
 cheetah_TEMPLATES = $(templates_src:%.tmpl=%.py)
 nobase_python_PYTHON = $(wildcard nav/web/*.py nav/django/urls/*.py nav/web/webfront/*.py) \
