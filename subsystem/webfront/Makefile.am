@@ -12,9 +12,6 @@ nobase_python_PYTHON = $(wildcard nav/web/*.py nav/django/urls/*.py nav/web/webf
                        nav/web/templates/__init__.py \
 		       $(cheetah_TEMPLATES)
 
-mydjangotmpldir = $(djangotmpldir)/webfront
-mydjangotmpl_DATA = $(wildcard templates/webfront/*)
-
 webroot_DATA = .htaccess
 CLEANFILES += .htaccess
 
