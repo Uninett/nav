@@ -74,7 +74,6 @@ AC_CONFIG_FILES([
 	bin/Makefile
 	media/Makefile
 	subsystem/alertengine/Makefile
-	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
 	subsystem/arnold/config/Makefile
 	subsystem/dbTools/Makefile

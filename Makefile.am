@@ -7,7 +7,6 @@ SUBDIRS = java \
 	bin \
 	media \
 	subsystem/alertengine \
-	subsystem/alertprofiles \
 	subsystem/arnold \
 	subsystem/dbTools \
 	subsystem/devicehistory \
