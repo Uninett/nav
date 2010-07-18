@@ -35,7 +35,8 @@ subsystem/statemon/pping.conf
 subsystem/statemon/servicemon
 subsystem/statemon/servicemon.conf
 subsystem/statTools/cricket.cron
-subsystem/webfront/config/webfront/webfront.conf
+etc/webfront/webfront.conf
+etc/apache/apache.conf
 
 
 syntax: regexp
