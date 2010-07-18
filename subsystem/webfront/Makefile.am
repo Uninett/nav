@@ -8,9 +8,3 @@ nobase_python_PYTHON = $(wildcard nav/web/*.py nav/django/urls/*.py nav/web/webf
                        nav/web/templates/__init__.py \
 		       $(cheetah_TEMPLATES)
 
-webroot_DATA = .htaccess
-CLEANFILES += .htaccess
-
-
-.htaccess: htaccess
-	cp htaccess .htaccess
