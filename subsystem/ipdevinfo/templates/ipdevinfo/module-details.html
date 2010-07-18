@@ -31,12 +31,12 @@
         </td>
     </tr>
     <tr>
-        <th># of switch ports</th>
+        <th>Switch ports</th>
         <td><a href="{% url report-swport-module module.netbox.id,module.module_number %}">
             {{ module.get_swports.count }}</a></td>
     </tr>
     <tr>
-        <th># of router ports</th>
+        <th>Router ports</th>
         <td><a href="{% url report-gwport-module module.netbox.id,module.module_number %}">
             {{ module.get_gwports.count }}</a></td>
     </tr>

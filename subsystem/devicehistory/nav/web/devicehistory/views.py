@@ -285,6 +285,7 @@ def delete_module(request):
                 result.append({
                     'sysname': a.netbox.sysname,
                     'moduleid': a.id,
+                    'name': a.name,
                     'module_number': a.module_number,
                     'descr': a.description,
                     'start_time': b.start_time,

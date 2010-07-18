@@ -92,8 +92,14 @@ class NetboxLoader(dict):
         changed_ids = set(i for i in same_ids
                           if is_netbox_changed(self[i], netbox_dict[i]))
 
-        self.clear()
-        self.update(netbox_dict)
+        # update self
+        for i in lost_ids:
+            del self[i]
+        for i in new_ids:
+            self[i] = netbox_dict[i]
+        for i in same_ids:
+            self[i].copy(netbox_dict[i])
+
         self.peak_count = max(self.peak_count, len(self))
 
         self._logger.info(
@@ -126,11 +132,15 @@ def is_netbox_changed(netbox1, netbox2):
                  'type', 
                  'read_only', 
                  'snmp_version', 
-                 'up_to_date', 
                  'device',
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
                 return True
+
+    # Switching from up_to_date to not up_to_date warrants a reload, but not
+    # the other way around.
+    if netbox1.up_to_date and not netbox2.up_to_date:
+        return True
 
     return False
 

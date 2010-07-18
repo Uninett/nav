@@ -41,7 +41,6 @@ The following python modules are required:
  * ipy
  * ldap
  * psycopg2
- * pysnmp2
  * pysnmp-se
  * pyrad
  * rrd (from the rrdtool distribution)

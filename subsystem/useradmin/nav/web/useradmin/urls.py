@@ -50,5 +50,5 @@ urlpatterns = patterns('nav.web.useradmin.views',
 
     url(r'^group/(?P<group_id>\d+)/delete/$', 'group_delete', name='useradmin-group_delete'),
     url(r'^group/(?P<group_id>\d+)/remove/account/(?P<account_id>\d+)/$', 'group_account_remove', name='useradmin-group_account_remove'),
-    url(r'^group/(?P<group_id>\d+)/remove/privigege/(?P<privilege_id>\d+)/$', 'group_privilege_remove', name='useradmin-group_privilege_remove'),
+    url(r'^group/(?P<group_id>\d+)/remove/privilege/(?P<privilege_id>\d+)/$', 'group_privilege_remove', name='useradmin-group_privilege_remove'),
 )

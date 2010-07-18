@@ -41,7 +41,7 @@ from django.utils import simplejson
 from django.db.models import Q
 
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
+from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
 from nav.models.service import Service
 
 import nav.natsort

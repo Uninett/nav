@@ -13,15 +13,6 @@ used on a production system.  The standard GPL disclaimers apply.
 
 Known problems
 ==============
-NAV has a dependency on both PySNMP v2 and PySNMP-SE.  These two versions
-cannot normally be installed simultaneously, but Debian has provisions for
-this, allowing for switching between the versions by setting a specific
-environment variable.  NAV 3.6 was developed on Debian and used this
-convention, but since it is not normally available on other platforms, the
-snmptrapd will not work on any other platform than Debian yet.  We are working
-on a PySNMP version-neutral fix for snmptrapd (for SeedDB and Arnold this was
-fixed in the 3.6.0b2 release).
-
 To see the overview of scheduled features and reported bugs on the 3.6 series
 of NAV, please go to https://launchpad.net/nav/3.6 .
 

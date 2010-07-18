@@ -23,7 +23,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
 from nav.config import readConfig
-from nav.models.manage import SwPort, GwPort
+from nav.models.manage import Interface
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
 
@@ -41,10 +41,8 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
     rrddatasource = get_object_or_404(RrdDataSource, id=rrddatasource_id)
 
     # Get related port
-    if rrddatasource.rrd_file.key == 'swport':
-        port = get_object_or_404(SwPort, id=rrddatasource.rrd_file.value)
-    elif rrddatasource.rrd_file.key == 'gwport':
-        port = get_object_or_404(GwPort, id=rrddatasource.rrd_file.value)
+    if rrddatasource.rrd_file.key == 'interface':
+        port = get_object_or_404(Interface, id=rrddatasource.rrd_file.value)
     else:
         port = None
 
