@@ -1,4 +1,4 @@
-SUBDIRS = src \
+SUBDIRS = java \
 	doc \
 	subsystem/alertengine \
 	subsystem/alertprofiles \

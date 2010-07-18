@@ -66,7 +66,7 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
-	src/Makefile
+	java/Makefile
 	subsystem/alertengine/Makefile
 	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
