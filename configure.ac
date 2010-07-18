@@ -73,9 +73,6 @@ AC_CONFIG_FILES([
 	python/Makefile
 	bin/Makefile
 	media/Makefile
-	subsystem/ipdevinfo/Makefile
-	subsystem/ipdevinfo/config/Makefile
-	subsystem/ipdevinfo/templates/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/l2trace/Makefile
 	subsystem/logger/Makefile

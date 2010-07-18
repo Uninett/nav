@@ -10,6 +10,7 @@ nobase_dist_sysconf_DATA = $(wildcard *.conf) \
 	   alertprofiles/* \
 	   arnold/*.conf arnold/mailtemplates/* \
 	   toolbox/*.tool \
+	   rrdviewer/*.conf \
 	   )
 
 init_SCRIPTS = $(scripts_out)
