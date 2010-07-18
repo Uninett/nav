@@ -67,6 +67,9 @@ AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
 	java/Makefile
+	templates/Makefile
+	python/Makefile
+	bin/Makefile
 	subsystem/alertengine/Makefile
 	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
@@ -78,8 +81,6 @@ AC_CONFIG_FILES([
 	subsystem/ipdevinfo/templates/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/l2trace/Makefile
-	subsystem/lib-python/Makefile
-	subsystem/lib-python/templates/Makefile
 	subsystem/logger/Makefile
 	subsystem/machinetracker/Makefile
 	subsystem/mailin/Makefile

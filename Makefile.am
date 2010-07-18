@@ -1,5 +1,8 @@
 SUBDIRS = java \
 	doc \
+	templates \
+	python \
+	bin \
 	subsystem/alertengine \
 	subsystem/alertprofiles \
 	subsystem/arnold \
@@ -8,7 +11,6 @@ SUBDIRS = java \
 	subsystem/ipdevinfo \
 	subsystem/ipdevpoll \
 	subsystem/l2trace \
-	subsystem/lib-python \
 	subsystem/logger \
 	subsystem/machinetracker \
 	subsystem/mailin \
