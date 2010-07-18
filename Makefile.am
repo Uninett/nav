@@ -6,7 +6,6 @@ SUBDIRS = java \
 	python \
 	bin \
 	media \
-	subsystem/dbTools \
 	subsystem/devicehistory \
 	subsystem/ipdevinfo \
 	subsystem/ipdevpoll \
