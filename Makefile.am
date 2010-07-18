@@ -6,7 +6,6 @@ SUBDIRS = java \
 	python \
 	bin \
 	media \
-	subsystem/devicehistory \
 	subsystem/ipdevinfo \
 	subsystem/ipdevpoll \
 	subsystem/l2trace \

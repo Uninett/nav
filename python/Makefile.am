@@ -9,6 +9,7 @@ cheetah_TEMPLATES = $(templates_src:%.tmpl=%.py)
 nobase_python_PYTHON = $(sort $(wildcard nav/*.py) \
                               $(wildcard nav/*/*.py) \
 			      $(wildcard nav/*/*/*.py) \
+			      $(wildcard nav/*/*/*/*.py) \
 			      $(pathmodule) \
 			      $(cheetah_TEMPLATES) \
 			      )
