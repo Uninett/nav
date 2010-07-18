@@ -1,5 +1,4 @@
 include $(top_srcdir)/common.mk
-SUBDIRS = media
 
 bin_SCRIPTS = bin/navTemplate.py
 

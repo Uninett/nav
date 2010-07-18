@@ -4,6 +4,7 @@ SUBDIRS = java \
 	templates \
 	python \
 	bin \
+	media \
 	subsystem/alertengine \
 	subsystem/alertprofiles \
 	subsystem/arnold \

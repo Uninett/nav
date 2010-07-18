@@ -71,6 +71,7 @@ AC_CONFIG_FILES([
 	templates/Makefile
 	python/Makefile
 	bin/Makefile
+	media/Makefile
 	subsystem/alertengine/Makefile
 	subsystem/alertprofiles/Makefile
 	subsystem/arnold/Makefile
@@ -104,6 +105,5 @@ AC_CONFIG_FILES([
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
 	subsystem/webfront/Makefile
-	subsystem/webfront/media/Makefile
 ])
 AC_OUTPUT
