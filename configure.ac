@@ -75,7 +75,6 @@ AC_CONFIG_FILES([
 	media/Makefile
 	subsystem/ipdevpoll/Makefile
 	subsystem/mailin/Makefile
-	subsystem/messages/Makefile
 	subsystem/netmap/Makefile
 	subsystem/networkexplorer/Makefile
 	subsystem/radius/src/Makefile
