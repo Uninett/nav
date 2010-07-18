@@ -67,7 +67,6 @@ AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
 	etc/Makefile
-	etc/init.d/Makefile
 	sql/Makefile
 	java/Makefile
 	templates/Makefile
