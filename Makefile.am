@@ -9,7 +9,6 @@ SUBDIRS = java \
 	subsystem/ipdevpoll \
 	subsystem/mailin \
 	subsystem/radius \
-	subsystem/report \
 	subsystem/seeddb \
 	subsystem/smsd \
 	subsystem/snmptrapd \

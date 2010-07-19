@@ -15,6 +15,7 @@ nobase_dist_sysconf_DATA = $(sort $(wildcard *.conf) logger.conf) \
 	   toolbox/*.tool \
 	   rrdviewer/*.conf \
 	   $(cron_out) \
+	   report/*.conf report/*.html \
 	   )
 
 init_SCRIPTS = $(scripts_out)

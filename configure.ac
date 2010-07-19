@@ -77,7 +77,6 @@ AC_CONFIG_FILES([
 	subsystem/mailin/Makefile
 	subsystem/radius/src/Makefile
         subsystem/radius/Makefile
-	subsystem/report/Makefile
 	subsystem/seeddb/Makefile
 	subsystem/seeddb/src/Makefile
 	subsystem/smsd/Makefile
