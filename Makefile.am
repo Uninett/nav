@@ -10,7 +10,6 @@ SUBDIRS = java \
 	subsystem/mailin \
 	subsystem/radius \
 	subsystem/seeddb \
-	subsystem/startstop \
 	subsystem/statTools \
 	subsystem/statemon \
 	subsystem/status \

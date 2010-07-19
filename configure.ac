@@ -79,7 +79,6 @@ AC_CONFIG_FILES([
         subsystem/radius/Makefile
 	subsystem/seeddb/Makefile
 	subsystem/seeddb/src/Makefile
-	subsystem/startstop/Makefile
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
 	subsystem/statemon/Makefile

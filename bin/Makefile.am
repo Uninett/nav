@@ -1,2 +1,2 @@
-bin_SCRIPTS = $(wildcard *.py)
+bin_SCRIPTS = $(wildcard *.py) nav
 
