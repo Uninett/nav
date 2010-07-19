@@ -8,7 +8,6 @@ SUBDIRS = java \
 	media \
 	subsystem/ipdevpoll \
 	subsystem/mailin \
-	subsystem/networkexplorer \
 	subsystem/radius \
 	subsystem/report \
 	subsystem/seeddb \
