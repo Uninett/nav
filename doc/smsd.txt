@@ -1,7 +1,6 @@
-What is this?
+What is smsd?
 =============
-This directory contains the NAV SMS daemon that takes care of sending alerts by
-SMS.
+The NAV SMS daemon, which takes care of sending alerts queued for SMS dispatch.
 
 What does it do?
 ================
