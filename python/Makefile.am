@@ -14,3 +14,4 @@ nobase_python_PYTHON = $(sort $(wildcard nav/*.py) \
 			      $(cheetah_TEMPLATES) \
 			      )
 
+nobase_python_DATA = $(wildcard nav/statemon/checker/*.descr)

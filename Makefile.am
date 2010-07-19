@@ -11,7 +11,6 @@ SUBDIRS = java \
 	subsystem/radius \
 	subsystem/seeddb \
 	subsystem/statTools \
-	subsystem/statemon \
 	subsystem/status \
 	subsystem/thresholdMon \
 	subsystem/useradmin
@@ -26,6 +25,7 @@ installdirs-local:
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/arnold
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/run
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/rrd
 
 
 webfix:

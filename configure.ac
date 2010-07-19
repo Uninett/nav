@@ -81,7 +81,6 @@ AC_CONFIG_FILES([
 	subsystem/seeddb/src/Makefile
 	subsystem/statTools/Makefile
 	subsystem/statTools/sortedStats/Makefile
-	subsystem/statemon/Makefile
 	subsystem/status/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
