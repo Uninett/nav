@@ -9,8 +9,7 @@ SUBDIRS = java \
 	subsystem/ipdevpoll \
 	subsystem/mailin \
 	subsystem/radius \
-	subsystem/seeddb \
-	subsystem/useradmin
+	subsystem/seeddb
 
 EXTRA_DIST = version.m4
 
