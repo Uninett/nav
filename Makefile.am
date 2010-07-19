@@ -10,7 +10,6 @@ SUBDIRS = java \
 	subsystem/mailin \
 	subsystem/radius \
 	subsystem/seeddb \
-	subsystem/thresholdMon \
 	subsystem/useradmin
 
 EXTRA_DIST = version.m4
