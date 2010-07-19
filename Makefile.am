@@ -10,7 +10,6 @@ SUBDIRS = java \
 	subsystem/mailin \
 	subsystem/radius \
 	subsystem/seeddb \
-	subsystem/status \
 	subsystem/thresholdMon \
 	subsystem/useradmin
 

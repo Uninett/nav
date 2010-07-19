@@ -79,7 +79,6 @@ AC_CONFIG_FILES([
         subsystem/radius/Makefile
 	subsystem/seeddb/Makefile
 	subsystem/seeddb/src/Makefile
-	subsystem/status/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/useradmin/Makefile
 ])
