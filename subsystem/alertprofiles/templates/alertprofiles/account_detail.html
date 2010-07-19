@@ -28,8 +28,8 @@
         <tr class="oddrow">
             <th>Alert by sms</th>
             <td>
-                <img src="/images/lys/{{ sms_privilege|yesno:"green,red" }}.png" />
-                You <em>{{ sms_privilege|yesno:",do not" }}</em> have
+                <img src="/images/lys/{{ sms_privilege|yesno:"green,red" }}.png" alt="" />
+                You {% if not sms_privilege %}<em>do not</em> {% endif %}have
                 permissions to be alerted by SMS.
             </td>
         </tr>

@@ -43,23 +43,25 @@
                 <th>Description</th>
             </tr>
         </thead>
-        
-        <tbody>
-        {% for m in modules %}
-            <tr class="{% cycle oddrow,evenrow %}">
-                <td><input type="checkbox" name="module" value="{{ m.moduleid }}"
-                    {% if confirm_delete %}
-                    checked="checked"
-                    {% endif %}
-                    /></td>
-                <td>{{ m.sysname|default_if_none:"" }}</td>
-                <td>{{ m.name }}</td>
-                <td>{{ m.descr|default_if_none:"" }}</td>
-                <td>{{ m.start_time }}</td>
-                <td>{{ m.start_time|timesince }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
+
+        {% if modules %}
+            <tbody>
+            {% for m in modules %}
+                <tr class="{% cycle oddrow,evenrow %}">
+                    <td><input type="checkbox" name="module" value="{{ m.moduleid }}"
+                        {% if confirm_delete %}
+                        checked="checked"
+                        {% endif %}
+                        /></td>
+                    <td>{{ m.sysname|default_if_none:"" }}</td>
+                    <td>{{ m.name }}</td>
+                    <td>{{ m.descr|default_if_none:"" }}</td>
+                    <td>{{ m.start_time }}</td>
+                    <td>{{ m.start_time|timesince }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
 
         <tfoot>
             <tr>

@@ -24,7 +24,9 @@ database I/O.
 """
 import datetime
 import IPy
+
 from django.db.models import Q
+from django.db import transaction
 
 from nav.models import manage, oid
 from storage import Shadow
@@ -63,8 +65,48 @@ class Netbox(Shadow):
                         other.sysname, other.ip, other.id)
                     self.device.serial = None
 
+    @classmethod
+    @transaction.commit_manually
+    def cleanup_replaced_netbox(cls, netbox_id, new_type):
+        """Removes basic inventory knowledge for a netbox.
+
+        When a netbox has changed type (sysObjectID), this can be called to set
+        its new type, delete its modules and interfaces, and reset its
+        up_to_date status.
+
+        Arguments:
+
+            netbox_id -- Netbox primary key integer.
+            new_type -- A NetboxType shadow container representing the new
+                        type.
+
+        """
+        try:
+            type_ = new_type.convert_to_model()
+            if type_:
+                type_.save()
+
+            netbox = manage.Netbox.objects.get(id=netbox_id)
+            cls._logger.warn("Removing stored inventory info for %s",
+                             netbox.sysname)
+            netbox.type = type_
+            netbox.up_to_date = False
+            netbox.save()
+
+            netbox.module_set.all().delete()
+            netbox.interface_set.all().delete()
+        except:
+            cls._logger.exception("cleanup_replaced_netbox: unhandled "
+                                  "exception")
+            transaction.rollback()
+            raise
+        else:
+            transaction.commit()
+
+
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
+    __lookups__ = ['sysobjectid']
 
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
@@ -386,7 +428,8 @@ class Vlan(Shadow):
         net_type = 'lan'
         # Get the number of router ports attached to this prefix
         port_count = manage.GwPortPrefix.objects.filter(
-            prefix__net_address=str(prefix)).count()
+            prefix__net_address=str(prefix),
+            interface__netbox__category__id__in=('GSW', 'GW')).count()
 
         if prefix.version() == 6 and prefix.prefixlen() == 128:
             net_type = 'loopback'

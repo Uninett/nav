@@ -14,7 +14,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# -*- coding: utf-8 -*-
 """Django ORM wrapper for the NAV manage database"""
 
 import datetime as dt
@@ -29,15 +28,35 @@ from django.db.models import Q
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField
 
-# Choices used in multiple models, "imported" into the models which use them
-LINK_UP = 'y'
-LINK_DOWN = 'n'
-LINK_DOWN_ADM = 'd'
-LINK_CHOICES = (
-    (LINK_UP, 'up'), # In old devBrowser: 'Active'
-    (LINK_DOWN, 'down (operDown)'), # In old devBrowser: 'Not active'
-    (LINK_DOWN_ADM, 'down (admDown)'), # In old devBrowser: 'Denied'
+# Choices used in Interface model and 'ipdevinfo' for determining interface status
+OPER_UP = 1
+OPER_DOWN = 2
+OPER_TESTING = 3
+OPER_UNKNOWN = 4
+OPER_DORMANT = 5
+OPER_NOTPRESENT = 6
+OPER_LOWERLAYERDOWN = 7
+
+OPER_STATUS_CHOICES = (
+    (OPER_UP, 'up'),
+    (OPER_DOWN, 'down'),
+    (OPER_TESTING, 'testing'),
+    (OPER_UNKNOWN, 'unknown'),
+    (OPER_DORMANT, 'dormant'),
+    (OPER_NOTPRESENT, 'not present'),
+    (OPER_LOWERLAYERDOWN, 'lower layer down'),
 )
+
+ADM_UP = 1
+ADM_DOWN = 2
+ADM_TESTING = 3
+
+ADM_STATUS_CHOICES = (
+    (ADM_UP, 'up'),
+    (ADM_DOWN, 'down'),
+    (ADM_TESTING, 'testing'),
+)
+
 
 #######################################################################
 ### Model helper functions
@@ -793,8 +812,8 @@ class Interface(models.Model):
     iftype = models.IntegerField()
     speed = models.FloatField()
     ifphysaddress = models.CharField(max_length=17, null=True)
-    ifadminstatus = models.IntegerField()
-    ifoperstatus = models.IntegerField()
+    ifadminstatus = models.IntegerField(choices=ADM_STATUS_CHOICES)
+    ifoperstatus = models.IntegerField(choices=OPER_STATUS_CHOICES)
     iflastchange = models.IntegerField()
     ifconnectorpresent = models.BooleanField()
     ifpromiscuousmode = models.BooleanField()
@@ -900,18 +919,10 @@ class Interface(models.Model):
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
 
-    def get_link_status(self):
-        if not self.ifadminstatus:
-            return LINK_DOWN_ADM
-        if self.ifoperstatus:
-            return LINK_UP
-        else:
-            return LINK_DOWN
-
     def get_link_display(self):
-        if self.get_link_status() == LINK_UP:
+        if self.ifoperstatus == OPER_UP:
             return "Active"
-        elif self.get_link_status() == LINK_DOWN_ADM:
+        elif self.ifadminstatus == ADM_DOWN:
             return "Disabled"
         return "Inactive"
 
