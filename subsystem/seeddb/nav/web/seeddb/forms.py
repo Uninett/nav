@@ -37,6 +37,10 @@ class RoomFilterForm(forms.Form):
 class RoomMoveForm(forms.Form):
     location = forms.ModelChoiceField(Location.objects.order_by('id').all(), required=True)
 
+class NetboxMoveForm(forms.Form):
+    room = forms.ModelChoiceField(Room.objects.order_by('id').all())
+    organization = forms.ModelChoiceField(Organization.objects.order_by('id').all())
+
 class NetboxSysnameForm(forms.Form):
     name = forms.CharField()
     category = forms.ModelChoiceField(Category.objects.all())
