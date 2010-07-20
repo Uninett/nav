@@ -90,13 +90,13 @@ class Netbox(models.Model):
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid', null=True)
     device = models.ForeignKey('Device', db_column='deviceid')
-    sysname = models.CharField(unique=True, max_length=-1)
+    sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
     subcategories = models.ManyToManyField('Subcategory',
         through='NetboxCategory')
     organization = models.ForeignKey('Organization', db_column='orgid')
-    read_only = models.CharField(db_column='ro', max_length=-1)
-    read_write = models.CharField(db_column='rw', max_length=-1)
+    read_only = VarcharField(db_column='ro')
+    read_write = VarcharField(db_column='rw')
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
@@ -474,9 +474,9 @@ class Subcategory(models.Model):
 
     def __unicode__(self):
         try:
-            return u'%s, sub of %s' % (self.description, self.category)
+            return u'%s, sub of %s' % (self.id, self.category)
         except Category.DoesNotExist:
-            return self.description
+            return self.id
 
 class NetboxCategory(models.Model):
     """From MetaNAV: A netbox may be in many subcategories. This relation is
