@@ -5,8 +5,7 @@ SUBDIRS = java \
 	templates \
 	python \
 	bin \
-	media \
-	subsystem/radius
+	media
 
 EXTRA_DIST = version.m4
 

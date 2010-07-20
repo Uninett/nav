@@ -73,7 +73,5 @@ AC_CONFIG_FILES([
 	python/Makefile
 	bin/Makefile
 	media/Makefile
-	subsystem/radius/src/Makefile
-        subsystem/radius/Makefile
 ])
 AC_OUTPUT
