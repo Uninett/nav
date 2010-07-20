@@ -8,15 +8,9 @@
         {% if not confirm %}
             <th></th>
         {% endif %}
-            <th>Name</th>
-        {% for field in fields %}
-            <th>Current {{ field }}</th>
+        {% for values in values.0.values %}
+            <th>{{ values.0 }}</th>
         {% endfor %}
-        {% if confirm %}
-        {% for field in fields %}
-            <th>New {{ field }}</th>
-        {% endfor %}
-        {% endif %}
         </tr>
     </thead>
 
@@ -24,18 +18,11 @@
     {% for row in values %}
         <tr class="{% cycle 'oddrow' 'evenrow' %}">
         {% if not confirm %}
-            <td><input type="checkbox" name="object" value="{{ row.0 }}" checked="checked" /></td>
+            <td><input type="checkbox" name="object" value="{{ row.pk }}" checked="checked" /></td>
         {% endif %}
-        {% for value in row %}
-            <td>{{ value|default_if_none:"" }}</td>
+        {% for value in row.values %}
+            <td>{{ value.1|default_if_none:"" }}</td>
         {% endfor %}
-        {% if confirm %}
-        {% for value in data.values %}
-            <td>
-                {{ value }}
-            </td>
-        {% endfor %}
-        {% endif %}
         </tr>
     {% endfor %}
     </tbody>
@@ -47,7 +34,7 @@
     <input type="hidden" name="{{ key }}" value="{{ value.pk }}" />
     {% endfor %}
     {% for row in values %}
-    <input type="hidden" name="object" value="{{ row.0 }}" />
+    <input type="hidden" name="object" value="{{ row.pk }}" />
     {% endfor %}
     <input type="hidden" name="move" value="yes" />
     <input type="submit" name="save" value="Confirm save" />

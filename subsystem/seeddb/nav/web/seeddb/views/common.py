@@ -33,6 +33,7 @@ from nav.Snmp import Snmp
 
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import *
+from nav.web.seeddb.views.list import NetboxList
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
@@ -118,6 +119,19 @@ def netbox_edit(request, netbox_sysname=None):
     }
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
+
+def netbox_list(request):
+    if request.method == 'POST':
+        if 'move' in request.POST:
+            return netbox_move(request)
+        elif 'delete' in request.POST:
+            pass
+    return NetboxList(request)
+
+def netbox_move(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('seeddb-netbox'))
+    return move(request, Netbox, NetboxMoveForm, 'seeddb-netbox', title_attr='sysname')
 
 def room_edit(request, room_id=None):
     extra = {

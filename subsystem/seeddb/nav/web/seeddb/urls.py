@@ -27,7 +27,7 @@ urlpatterns = patterns('',
         name='seeddb-index'),
 
     # Netbox
-    url(r'^netbox/$', NetboxList,
+    url(r'^netbox/$', netbox_list,
         name='seeddb-netbox'),
     url(r'^netbox/edit/(?P<netbox_sysname>[\w\d.-]+)/', netbox_edit,
         name='seeddb-netbox-edit'),
@@ -35,6 +35,8 @@ urlpatterns = patterns('',
         name='seeddb-netbox-edit'),
     url(r'^netbox/bulk/$', dummy,
         name='seeddb-netbox-bulk'),
+    url(r'^netbox/move/$', netbox_move,
+        name='seeddb-netbox-move'),
 
     # Service
     url(r'^service/$', ServiceList,
