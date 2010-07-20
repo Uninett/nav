@@ -55,33 +55,7 @@ def room_edit(request, room_id=None):
 def room_move(request):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse('seeddb-room'))
-
-    new_location = None
-    confirm = False
-    rooms = Room.objects.filter(id__in=request.POST.getlist('object'))
-
-    if request.POST.get('preview'):
-        form = RoomMoveForm(request.POST)
-        if form.is_valid():
-            new_location = form.cleaned_data['location'].id
-            confirm = True
-    elif request.POST.get('save'):
-        new_location = request.POST.get('new_location')
-        location = Location.objects.get(pk=new_location)
-        rooms.update(location=location)
-        new_message(request._req, "Updated", Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('seeddb-room'))
-    else:
-        form = RoomMoveForm()
-
-    context = {
-        'form': form,
-        'objects': rooms,
-        'new_location': new_location,
-        'confirm': confirm,
-    }
-    return render_to_response('seeddb/move.html',
-        context, RequestContext(request))
+    return move(request, Room, RoomMoveForm)
 
 def room_delete(request):
     if request.method != 'POST':

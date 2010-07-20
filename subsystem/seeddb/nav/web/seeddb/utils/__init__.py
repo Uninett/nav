@@ -112,3 +112,37 @@ def group_query(qs, identifier):
             objects[object[identifier]] = []
         objects[object[identifier]].append(object)
     return objects
+
+def move(request, model, form_model):
+    data = None
+    confirm = False
+    objects = model.objects.filter(id__in=request.POST.getlist('object'))
+
+    if request.POST.get('preview'):
+        form = form_model(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            confirm = True
+    elif request.POST.get('save'):
+        form = form_model(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            objects.update(**data)
+            new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
+            return HttpResponseRedirect(reverse('seeddb-room'))
+    else:
+        form = form_model()
+
+    fields = form.fields.keys()
+    values = objects.values_list('pk', *fields)
+
+    context = {
+        'form': form,
+        'fields': form.fields.keys(),
+        'objects': objects,
+        'values': values,
+        'data': data,
+        'confirm': confirm,
+    }
+    return render_to_response('seeddb/move.html',
+        context, RequestContext(request))
