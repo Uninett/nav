@@ -21,7 +21,7 @@
 
 {% include "seeddb/paginator.html" %}
 
-<form action="" method="post">
+<form action="{{ request.path }}" method="post">
     <div>
         <input type="submit" name="move" value="Edit selected" />
         <input type="submit" name="delete" value="Delete selected" />
