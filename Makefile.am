@@ -6,7 +6,6 @@ SUBDIRS = java \
 	python \
 	bin \
 	media \
-	subsystem/ipdevpoll \
 	subsystem/radius
 
 EXTRA_DIST = version.m4

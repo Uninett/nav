@@ -73,7 +73,6 @@ AC_CONFIG_FILES([
 	python/Makefile
 	bin/Makefile
 	media/Makefile
-	subsystem/ipdevpoll/Makefile
 	subsystem/radius/src/Makefile
         subsystem/radius/Makefile
 ])
