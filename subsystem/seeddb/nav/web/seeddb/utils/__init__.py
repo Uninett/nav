@@ -113,7 +113,7 @@ def group_query(qs, identifier):
         objects[object[identifier]].append(object)
     return objects
 
-def move(request, model, form_model):
+def move(request, model, form_model, redirect, title_attr='id'):
     data = None
     confirm = False
     objects = model.objects.filter(id__in=request.POST.getlist('object'))
@@ -129,18 +129,28 @@ def move(request, model, form_model):
             data = form.cleaned_data
             objects.update(**data)
             new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
-            return HttpResponseRedirect(reverse('seeddb-room'))
+            return HttpResponseRedirect(reverse(redirect))
     else:
         form = form_model()
 
     fields = form.fields.keys()
-    values = objects.values_list('pk', *fields)
+    values = objects.values('pk', title_attr, *fields)
+    object_list = []
+    attr_list = [title_attr] + fields
+    for object in values:
+        row = {
+            'pk': object['pk'],
+            'values': [("Current %s" % attr, object[attr]) for attr in attr_list],
+        }
+        if data:
+            new_values = [("New %s" % attr, data[attr]) for attr in fields]
+            row['values'].extend(new_values)
+        object_list.append(row)
 
     context = {
         'form': form,
-        'fields': form.fields.keys(),
         'objects': objects,
-        'values': values,
+        'values': object_list,
         'data': data,
         'confirm': confirm,
     }
