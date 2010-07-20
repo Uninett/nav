@@ -7,7 +7,6 @@ SUBDIRS = java \
 	bin \
 	media \
 	subsystem/ipdevpoll \
-	subsystem/mailin \
 	subsystem/radius
 
 EXTRA_DIST = version.m4

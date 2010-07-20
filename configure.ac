@@ -74,7 +74,6 @@ AC_CONFIG_FILES([
 	bin/Makefile
 	media/Makefile
 	subsystem/ipdevpoll/Makefile
-	subsystem/mailin/Makefile
 	subsystem/radius/src/Makefile
         subsystem/radius/Makefile
 ])
