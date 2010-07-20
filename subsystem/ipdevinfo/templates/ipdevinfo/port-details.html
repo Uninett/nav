@@ -5,7 +5,7 @@
 <table class="vertitable">
     <caption>
         Interface {{ port.ifname }}
-        {% if module %}
+        {% if port.module %}
         <br />at {{ port.module.netbox.get_short_sysname }}
         {% endif %}
     </caption>
