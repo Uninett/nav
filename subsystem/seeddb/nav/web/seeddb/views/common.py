@@ -15,6 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from IPy import IP
+from socket import gethostbyname, gethostbyaddr
+
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -26,6 +29,7 @@ from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 from nav.web.message import new_message, Messages
+from nav.Snmp import Snmp
 
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import *
@@ -43,6 +47,77 @@ def index(request):
         },
         RequestContext(request)
     )
+
+def netbox_sysname(form):
+    try:
+        ip = IP(form.cleaned_data['name'])
+    except ValueError:
+        sysname = form.cleaned_data['name']
+        ip = IP(gethostbyname(sysname))
+    else:
+        sysname = gethostbyaddr(unicode(ip))[0]
+    return (ip, sysname)
+
+def snmp_type(ip, ro, snmp_version):
+    snmp = Snmp(unicode(ip), ro, snmp_version)
+    try:
+        sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
+    except SnmpError:
+        return None
+    sysobjectid = sysobjectid.lstrip('.')
+    try:
+        type = NetboxType.objects.get(sysobjectid=sysobjectid)
+        return type.id
+    except NetboxType.DoesNotExist:
+        return None 
+
+def snmp_serials(ip, ro, snmp_version):
+    snmp = Snmp(ip, ro, snmp_version)
+    oids = SnmpOid.objects.filter(oid_key__icontains='serial').values('snmp_oid', 'get_next')
+    serials = []
+    for (oid, get_next) in oids:
+        try:
+            if get_next:
+                result = snmp.walk(oid)
+                serials.extend([r[1] for r in result if r[1]])
+            else:
+                result = snmp.get(oid)
+                if result:
+                    serials.append(result)
+        except SnmpError:
+            pass
+    return serials
+
+def netbox_edit(request, netbox_sysname=None):
+    netbox = None
+    if netbox_sysname:
+        netbox = Netbox.objects.get(sysname=netbox_sysname)
+
+    if request.method == 'POST':
+        step = int(request.POST.get('step'))
+        if step == 0:
+            form = NetboxSysnameForm(request.POST)
+            if form.is_valid():
+                (ip, sysname) = netbox_sysname(form)
+                if form.snmp_version:
+                    ro = form.cleaned_data.get('read_only')
+                    type = snmp_type(ip, ro, form.snmp_version)
+                    serials = snmp_serials(ip, ro, form.snmp_version)
+                    serial = None
+                    if serials:
+                        serial = serials[0]
+                    raise Exception(serial)
+    else:
+        form = NetboxSysnameForm()
+
+    context = {
+        'object': netbox,
+        'form': form,
+        'active': {'add': True},
+        'tab_template': 'seeddb/tabs_netbox.html',
+    }
+    return render_to_response('seeddb/edit.html',
+        context, RequestContext(request))
 
 def room_edit(request, room_id=None):
     extra = {

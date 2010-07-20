@@ -17,6 +17,7 @@
 
 from django import forms
 
+from nav.Snmp import Snmp, TimeOutException, SnmpError
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix, Category
 from nav.models.service import Service
@@ -36,13 +37,64 @@ class RoomFilterForm(forms.Form):
 class RoomMoveForm(forms.Form):
     location = forms.ModelChoiceField(Location.objects.order_by('id').all(), required=True)
 
-class NetboxForm(forms.ModelForm):
+class NetboxSysnameForm(forms.Form):
+    name = forms.CharField()
+    category = forms.ModelChoiceField(Category.objects.all())
+    read_only = forms.CharField(required=False)
+    read_write = forms.CharField(required=False)
+    room = forms.ModelChoiceField(Room.objects.all())
+    organiztion = forms.ModelChoiceField(Organization.objects.all())
+    step = forms.IntegerField(initial=0, widget=forms.HiddenInput)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        name = cleaned_data.get('name')
+        cat = cleaned_data.get('category')
+        ro = cleaned_data.get('read_only')
+
+        if cat and cat.req_snmp and not ro:
+            self._errors['read_only'] = self.error_class(["Category %s requires Read Only community." % cat.id])
+            del cleaned_data['category']
+            del cleaned_data['read_only']
+
+        if ro and name:
+            self.snmp_version = False
+            try:
+                try:
+                    snmp = Snmp(name, ro, '2c')
+                    sysname = snmp.get('1.3.6.1.2.1.1.5.0')
+                    self.snmp_version = '2c'
+                except TimeOutException:
+                    snmp = Snmp(name, ro, '1')
+                    sysname = snmp.get('1.3.6.1.2.1.1.5.0')
+                    self.snmp_version = '1'
+            except SnmpError:
+                if cat and cat.req_snmp:
+                    msg = (
+                        "No SNMP response.",
+                        "Is read only community correct?")
+                else:
+                    msg = (
+                        "No SNMP response.",
+                        "SNMP is not required for this category, if you don't need SNMP please leave the 'Read only' field empty.")
+                self._errors['read_only'] = self.error_class(msg)
+                del cleaned_data['read_only']
+
+        return cleaned_data
+
+class NetboxMetaForm(forms.ModelForm):
+    step = forms.IntegerField(initial=1, widget=forms.HiddenInput)
+
     class Meta:
         model = Netbox
-        fields = (
-            'ip', 'sysname', 'category', 'room', 'organisation', 'read_only',
-            'read_write'
-        )
+        fields = ('room', 'type', 'category', 'organization')
+
+class NetboxSubcatForm(forms.ModelForm):
+    step = forms.IntegerField(initial=2, widget=forms.HiddenInput)
+
+    class Meta:
+        model = Netbox
+        fields = ('subcategories')
 
 class RoomForm(forms.ModelForm):
     class Meta:
