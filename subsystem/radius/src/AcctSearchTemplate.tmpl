@@ -90,7 +90,7 @@ $makeMenu($menu, $current)
         <table border="0" cellspacing="5" style="font-size: 13px;">
             <tr> 
             <td valign="bottom">Search for:</td>
-            <td><input type="text" name="searchstring" size="15" value="$form.searchstring"></td>
+            <td><input type="text" name="searchstring" size="15" value="$form.searchstring" /></td>
             <td> as </td>
             <td>
                 <select name=searchtype>
@@ -116,38 +116,38 @@ $makeMenu($menu, $current)
             <tr>
             <td>Time: </td>
             <td colspan="4">
-                <input type="radio" name="timemode" value="days" $setSelectItem($form.timemode, "days", output="checked", default=True)> last <input type="text" name="days" size="3" value="$days"> day(s)
+                <input type="radio" name="timemode" value="days" $setSelectItem($form.timemode, "days", output="checked", default=True) /> last <input type="text" name="days" size="3" value="$days" /> day(s)
             </td>
             </tr>
             <tr>
             <td></td>
             <td colspan="4">
-                <input type="radio" name="timemode" value="timestamp" $setSelectItem($form.timemode, "timestamp", output="checked")>
-                <input type="text" name="timestamp" size="18" value="$timestamp">
+                <input type="radio" name="timemode" value="timestamp" $setSelectItem($form.timemode, "timestamp", output="checked") />
+                <input type="text" name="timestamp" size="18" value="$timestamp" />
                 <label> +/- </label>
-                <input type="text" name="timestampslack" size="3" value="$form.timestampslack"><label>minutes</label>
+                <input type="text" name="timestampslack" size="3" value="$form.timestampslack" /><label>minutes</label>
             </td>
             </tr>
             <tr>
             <td></td>
             <td>
-                <input type="radio" name="timemode" value="" $setSelectItem($form.timemode, "", output="checked")><label>All</label>
+                <input type="radio" name="timemode" value="" $setSelectItem($form.timemode, "", output="checked") /><label>All</label>
             </td>
             </tr>
             <tr>
             <td valign="top">DNS Lookup:</td>
             <td colspan="4">
-                <input type="checkbox" name="userdns" value="userdns" $setSelectItem($form.userdns, "userdns", output="checked")><label>User IP</label>
-                <br>
-                <input type="checkbox" name="nasdns" value="nasdns" $setSelectItem($form.nasdns, "nasdns", output="checked")><label>NAS IP</label>
+                <input type="checkbox" name="userdns" value="userdns" $setSelectItem($form.userdns, "userdns", output="checked") /><label>User IP</label>
+                 <br />
+                <input type="checkbox" name="nasdns" value="nasdns" $setSelectItem($form.nasdns, "nasdns", output="checked") /><label>NAS IP</label>
             </td> 
             </tr>
             <tr>
             <td></td>
             <td colspan="2">
-                <input type="hidden" name="sortfield" value="acctstarttime">
-                <input type="hidden" name="sortorder" value="DESC">
-                <input type="submit" name="send" value="Search">  <input type="reset" value="Clear">
+                <input type="hidden" name="sortfield" value="acctstarttime" />
+                <input type="hidden" name="sortorder" value="DESC" />
+                <input type="submit" name="send" value="Search" />  <input type="reset" value="Clear" />
             </td>
 
         </table>
@@ -306,22 +306,24 @@ $makeMenu($menu, $current)
     <li>In the search results, you will probably notice some things that      
         might seem a bit weird at first: 
 
-        <li class="sub">
-        You will see that some search results do not contain a timestamp in
-        the Stop field. This occurs when 1) the session is still active,
-        or 2) no explicit Stop message has been received by freeradius. 
-        You will have to check the Duration field to see which one it is.
-        </li> 
+        <ul>
+            <li class="sub">
+            You will see that some search results do not contain a timestamp in
+            the Stop field. This occurs when 1) the session is still active,
+            or 2) no explicit Stop message has been received by freeradius. 
+            You will have to check the Duration field to see which one it is.
+            </li> 
 
-        <li class="sub">
-        Sometimes the displayed session duration does not equal the difference 
-        between stop and start time. This occurs if the registered start time
-        was actually not an explicit Start message, but the first sign of life 
-        (an Alive message) we got for this session. The Stop message always,
-        as far as I know, contain the length of the session, and so when we
-        have a Stop message this session length is being used during a search
-        for a specific time interval.
-        </li> 
+            <li class="sub">
+            Sometimes the displayed session duration does not equal the difference 
+            between stop and start time. This occurs if the registered start time
+            was actually not an explicit Start message, but the first sign of life 
+            (an Alive message) we got for this session. The Stop message always,
+            as far as I know, contain the length of the session, and so when we
+            have a Stop message this session length is being used during a search
+            for a specific time interval.
+            </li> 
+        </ul>
     </li>
     <li>Please notice that we only know the amount of data transferred for
         sessions where an explicit Stop message has been received. All transfer
@@ -369,7 +371,6 @@ $makeMenu($menu, $current)
 #end if
 
 </div> <!-- end main -->
-</div> <!-- end radius -->
 </div> <!-- end tabcontent -->
 #end block content
 

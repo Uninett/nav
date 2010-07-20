@@ -4,8 +4,10 @@
 
 <table class="vertitable">
     <caption>
-        Interface {{ port.ifname }}<br />
-        at {{ port.module.netbox.get_short_sysname }}
+        Interface {{ port.ifname }}
+        {% if module %}
+        <br />at {{ port.module.netbox.get_short_sysname }}
+        {% endif %}
     </caption>
 
     <tr>
@@ -16,7 +18,7 @@
 
     <tr>
         <th>Interface</th>
-        <td>{{ port.ifname }}</td>
+        <td>{{ port.ifdescr }}</td>
     </tr>
 
     <tr>
@@ -25,6 +27,8 @@
         {% if port.module %}
         <a href="{{ port.module.get_absolute_url }}">
             Module {{ port.module.module_number }}</a>
+        {% else %}
+        No module
         {% endif %}
         </td>
     </tr>
@@ -38,7 +42,7 @@
 
     <tr>
         <th>Port name</th>
-        <td>{{ port.ifalias }}</td>
+        <td>{{ port.ifalias|default:"N/A" }}</td>
     </tr>
 
     <tr>
@@ -88,7 +92,7 @@
                     {% endfor %}
                     </ul>
                 {% else %}
-                    None
+                    N/A
                 {% endif %}
             {% endwith %}
         </td>

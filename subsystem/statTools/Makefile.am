@@ -10,5 +10,5 @@ nobase_python_PYTHON = $(wildcard nav/*.py nav/mcc/*.py nav/rrd/*.py)
 cron_DATA = cron.d/cricket
 EDITFILES = $(cron_DATA)
 
-nobase_doc_DATA = $(wildcard cricket/* cricket/*/* cricket/*/*/*)
+nobase_doc_DATA = $(wildcard cricket/Defaults cricket/*/Defaults cricket/*/*/Defaults)
 

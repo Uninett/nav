@@ -103,7 +103,7 @@ $logform($priority,$type,$category,$origin,$tfrom,$tto)
     <tr>
         <th><label for="origin">Origin</label></th>
         <td>
-<select id="origin" nameid="origin">
+<select id="origin" name="origin">
 #for $o in $origins
 #if $o[1] == $origin
 	<option value="$o[1]" selected="1">$o[1]</option>

@@ -17,7 +17,7 @@
 """Unit tests for the dispatcher module."""
 import types
 import unittest
-import dispatcher
+from nav.smsd import dispatcher
 
 class DispatcherHandlerTest(unittest.TestCase):
     """Tests for the DispatcherHandler class.

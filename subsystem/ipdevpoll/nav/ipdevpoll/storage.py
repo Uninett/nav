@@ -178,6 +178,15 @@ class Shadow(object):
                     value, attr)
         return super(Shadow, self).__setattr__(attr, value)
 
+    def copy(self, other):
+        """Copies the attributes of another instance (shallow)"""
+        if isinstance(other, self.__class__):
+            for field in self.__class__._fields:
+                setattr(self, field, getattr(other, field))
+        else:
+            raise ValueError("First argument is not a %s instance" %
+                             self.__class__.__name__)
+
     @classmethod
     def get_dependencies(cls):
         """Get a list of other shadow classes this class depends on.

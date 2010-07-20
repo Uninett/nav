@@ -145,6 +145,7 @@ def account_delete(request, account_id):
                         {
                             'name': '%s (%s)' % (account.name, account.login),
                             'type': 'account',
+                            'back': reverse('useradmin-account_detail', args=[account.id]),
                         }, UserAdminContext(request))
 
 def account_organization_remove(request, account_id, org_id):
@@ -169,6 +170,7 @@ def account_organization_remove(request, account_id, org_id):
                         {
                             'name': '%s from %s' % (organization, account),
                             'type': 'organization',
+                            'back': reverse('useradmin-account_detail', args=[account.id]),
                         }, UserAdminContext(request))
 
 def account_group_remove(request, account_id, group_id, missing_redirect=None, plain_redirect=None):
@@ -216,6 +218,7 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None, p
                         {
                             'name': '%s from the group %s' % (account, group),
                             'type': 'account',
+                            'back': reverse('useradmin-account_detail', args=[account.id]),
                         }, UserAdminContext(request))
 
 
@@ -310,6 +313,7 @@ def group_delete(request, group_id):
                         {
                             'name': group,
                             'type': 'group',
+                            'back': reverse('useradmin-group_detail', args=[group.id]),
                         }, UserAdminContext(request))
 
 def group_account_remove(request, group_id, account_id):
@@ -339,6 +343,7 @@ def group_privilege_remove(request, group_id, privilege_id):
                         {
                             'name': '%s from %s' % (privilege, group),
                             'type': 'privilege',
+                            'back': reverse('useradmin-group_detail', args=[group.id]),
                         }, UserAdminContext(request))
 
 def userinfo(request):
