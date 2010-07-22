@@ -4,14 +4,13 @@
 
 {% if presenter_page %}
     <h3>
-        {{ rrddatasource.description }} at
+        {{ rrddatasource.description }} 
         {% if port %}
-            <a href="{{ port.get_absolute_url }}">{{ port }}</a>
-        {% else %}
-            {% with rrddatasource.rrd_file.netbox as netbox %}
-                <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
-            {% endwith %}
+            for <a href="{{ port.get_absolute_url }}">{{ port.ifname }}</a>
         {% endif %}
+        {% with rrddatasource.rrd_file.netbox as netbox %}
+            at <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+        {% endwith %}
         for the last {{ time_frame }}
     </h3>
 

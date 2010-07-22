@@ -102,7 +102,7 @@ if __name__ == '__main__':
         print "Could not open Cricket config file: %s" % e
         sys.exit()
 
-    c = re.compile('gConfigRoot\s*=\s*\"(.*)\"', re.I)
+    c = re.compile('^\s*\\$gConfigRoot\s*=\s*\"(.*)\"', re.I)
     configpath = False
     for line in f.readlines():
         m = c.search(line)

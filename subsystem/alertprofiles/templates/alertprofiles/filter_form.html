@@ -28,7 +28,7 @@
             {% endif %}
             <td>{{ e.get_operator_display }}</td>
             {% ifequal e.operator 11 %}
-            <td>{{ e.value|unordered_list }}</td>
+            <td><ul>{{ e.value|unordered_list }}</ul></td>
             {% else %}
             <td>{{ e.value }}</td>
             {% endifequal %}

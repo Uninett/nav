@@ -44,11 +44,12 @@ def search(request):
     query = None
     netboxes = Netbox.objects.none()
 
+    # FIXME use request.REQUEST?
     search_form = None
     if request.method == 'GET':
-        search_form = SearchForm(request.GET)
+        search_form = SearchForm(request.GET, auto_id=False)
     elif request.method == 'POST':
-        search_form = SearchForm(request.POST)
+        search_form = SearchForm(request.POST, auto_id=False)
 
     if search_form is not None and search_form.is_valid():
         # Preprocess query string
@@ -299,9 +300,13 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
 
     # Assign default values to variables
-    prefix = None
-    arp = None
-    cam = None
+    no_netbox = {
+        'prefix': None,
+        'arp': None,
+        'cam': None,
+        'dt_max': dt.datetime.max,
+        'days_since_active': 7,
+    }
     alert_info = None
     port_view = None
 
@@ -311,12 +316,14 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             # Picks the first address in array if addr not specified
             addr = host_info['addresses'][0]['addr']
 
-        prefix = get_prefix_info(addr)
+        no_netbox['prefix'] = get_prefix_info(addr)
 
-        if prefix:
-            arp = get_arp_info(addr)
-            if arp:
-                cam = get_cam_info(arp.mac)
+        if no_netbox['prefix']:
+            no_netbox['arp'] = get_arp_info(addr)
+            if no_netbox['arp']:
+                no_netbox['cam'] = get_cam_info(no_netbox['arp'].mac)
+                if no_netbox['arp'].end_time < dt.datetime.max:
+                    no_netbox['days_since_active'] = (dt.now() - no_netbox['arp'].end_time).days
 
     else:
         alert_info = get_recent_alerts(netbox)
@@ -344,10 +351,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alert_info': alert_info,
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,
-            'prefix': prefix,
-            'arp': arp,
-            'cam': cam,
-            'dt_max': dt.datetime.max,
+            'no_netbox': no_netbox,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))

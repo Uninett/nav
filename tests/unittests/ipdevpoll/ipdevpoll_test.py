@@ -24,7 +24,7 @@ os.environ['PYSNMP_API_VERSION'] = 'v3'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 from nav.models.manage import Prefix
-from utils import find_prefix, truncate_mac, binary_mac_to_hex, is_invalid_utf8
+from nav.ipdevpoll.utils import find_prefix, truncate_mac, binary_mac_to_hex, is_invalid_utf8
 
 class UtilsTest(unittest.TestCase):
     def test_find_prefix(self):
