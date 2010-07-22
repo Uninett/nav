@@ -1,2 +1,3 @@
 #!/bin/sh
-./version.sh ; aclocal && automake && autoconf
+test -d conf || mkdir conf
+./version.sh ; aclocal && automake -ac && autoconf
