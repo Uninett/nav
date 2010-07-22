@@ -44,7 +44,7 @@ AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
-webroot='${prefix}/apache/webroot'
+webroot='${prefix}/share/htdocs'
 webrootdir='${webroot}'
 imagedir='${webroot}/images'
 javascriptdir='${webroot}/js'
