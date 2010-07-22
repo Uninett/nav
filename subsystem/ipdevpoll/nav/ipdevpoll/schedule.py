@@ -33,7 +33,7 @@ from nav import ipdevpoll, toposort
 from nav.ipdevpoll.plugins import plugin_registry
 import storage
 import shadows
-import jobs
+import config
 import signals
 from dataloader import NetboxLoader
 
@@ -576,7 +576,7 @@ class Scheduler(object):
             self.add_netbox_schedulers(netbox_id)
 
     def add_netbox_schedulers(self, netbox_id):
-        for jobname,(interval, plugins) in jobs.get_jobs().items():
+        for jobname,(interval, plugins) in config.get_jobs().items():
             self.add_netbox_scheduler(jobname, netbox_id, interval, plugins)
             
     def add_netbox_scheduler(self, jobname, netbox_id, interval, plugins):
