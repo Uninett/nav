@@ -84,10 +84,11 @@
                     <ul>
                     {% for swportvlan in swportvlans %}
                         <li>
-                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.id %}">
-                            {{ swportvlan.vlan.vlan }},
-                            {{ swportvlan.vlan.net_ident }}</a>,
-                            direction: {{ swportvlan.get_direction_display }}
+                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.vlan %}">
+                            {{ swportvlan.vlan }}</a>
+                            <ul>
+                                <li>Direction: {{ swportvlan.get_direction_display }}</li>
+                            </ul>
                         </li>
                     {% endfor %}
                     </ul>
