@@ -27,254 +27,184 @@ from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 
 from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm
+from nav.web.seeddb.utils.list import render_list
 
 ITEMS_PER_PAGE = 100
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
-def get_num(get, key, default=1):
-    try:
-        num = int(get.get(key, default))
-    except ValueError:
-        num = default
-    return num
-
-class SeeddbList(object):
-    model = None
-    value_list = None
-    edit_url = ''
-    edit_url_attr = 'pk'
-    filter_form_model = None
-    template = 'seeddb/list.html'
-    title = TITLE_DEFAULT
-    caption = ''
-    navpath = NAVPATH_DEFAULT
-    tab_template = ''
-
-    def __new__(cls, request):
-        obj = super(SeeddbList, cls).__new__(cls)
-        return obj(request)
-
-    def __call__(self, request):
-        self.request = request
-        self.queryset = self._init_queryset(self.model)
-
-        self.filter_form = None
-        if self.filter_form_model:
-            self.filter_form = self.filter_form_model(request.GET)
-
-        queryset = self.queryset
-        queryset = self._filter_query(queryset)
-        queryset = self._order_query(queryset)
-
-        value_queryset = queryset.values('pk', self.edit_url_attr, *self.value_list)
-        page = self._paginate(value_queryset)
-        objects = self._process_objects(page)
-        labels = self._label()
-
-        context = {
-            'object_list': objects,
-            'labels': labels,
-            'current_sort': self.order_by,
-            'current_sort_label': self.current_sort_label,
-            'other_sort': self.other_sort,
-            'sort_asc': self.sort_asc,
-            'filter_form': self.filter_form,
-            'page': page,
-            'active': {'list': True},
-            'title': self.title,
-            'caption': self.caption,
-            'navpath': self.navpath,
-            'tab_template': self.tab_template,
-        }
-        return render_to_response(self.template,
-            context, RequestContext(self.request))
-
-    def _init_queryset(self, model):
-        return model.objects.all()
-
-    def _filter_query(self, queryset):
-        if self.filter_form and self.filter_form.is_valid():
-            filter = dict([(key, value) for key, value in self.filter_form.cleaned_data.items() if value])
-            queryset = queryset.filter(**filter)
-        return queryset
-
-    def _order_query(self, queryset):
-        order_by = self.request.GET.get('sort')
-        if not order_by or order_by.find('-') not in (-1, 0) or order_by.lstrip('-') not in self.value_list:
-            order_by = self.value_list[0]
-
-        self.order_by = order_by
-        self.sort_asc = '-' not in order_by
-        self.current_sort_label = order_by.lstrip('-')
-        self.other_sort = self.sort_asc and '-' + order_by or order_by.lstrip('-')
-
-        return queryset.order_by(self.order_by)
-
-    def _paginate(self, value_qs):
-        self.per_page = self.request.GET.get('per_page', ITEMS_PER_PAGE)
-        if self.per_page == 'all':
-            self.per_page = value_qs.count()
-        else:
-            self.per_page = get_num(self.request.GET, 'per_page', ITEMS_PER_PAGE)
-        self.page_num = get_num(self.request.GET, 'page', 1)
-
-        paginator = Paginator(value_qs, self.per_page)
-        try:
-            page = paginator.page(self.page_num)
-        except InvalidPage:
-            page = paginator.page(paginator.num_pages)
-        return page
-
-    def _process_objects(self, page):
-        objects = []
-        for object in page.object_list:
-            row = {
-                'pk': object['pk'],
-                'url': reverse(self.edit_url, args=(object[self.edit_url_attr],)),
-                'values_list': [object[attr] for attr in self.value_list],
-            }
-            objects.append(row)
-        return objects
-
-    def _label(self):
-        labels = [get_verbose_name(self.model, value) for value in self.value_list]
-        return zip(labels, self.value_list)
-
-class NetboxList(SeeddbList):
-    model = Netbox
+def netbox_list(request):
+    qs = Netbox.objects.all()
+    filter = NetboxFilterForm(request.GET)
     value_list = (
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
         'read_write', 'type__name', 'device__serial')
-    edit_url = 'seeddb-netbox-edit'
-    edit_url_attr = 'sysname'
-    filter_form_model = NetboxFilterForm
-    title = TITLE_DEFAULT + ' - IP Devices'
-    caption = 'IP Devices'
-    navpath = NAVPATH_DEFAULT + [('IP Devices', None)]
-    tab_template = 'seeddb/tabs_netbox.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - IP Devices',
+        'caption': 'IP Devices',
+        'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
+        'tab_template': 'seeddb/tabs_netbox.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-netbox-edit',
+        edit_url_attr='sysname',
+        filter_form=filter,
+        extra_context=extra)
 
-class ServiceList(SeeddbList):
-    model = Service
+def service_list(request):
+    qs = Service.objects.all()
     value_list = ('netbox__sysname', 'handler', 'version')
-    edit_url = 'seeddb-service-edit'
-    title = TITLE_DEFAULT + ' - Services'
-    caption = 'Services'
-    navpath = NAVPATH_DEFAULT + [('Services', None)]
-    tab_template = 'seeddb/tabs_service.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Services',
+        'caption': 'Services',
+        'navpath': NAVPATH_DEFAULT + [('Services', None)],
+        'tab_template': 'seeddb/tabs_service.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-service-edit',
+        extra_context=extra)
 
-class RoomList(SeeddbList):
-    model = Room
+def room_list(request):
+    qs = Room.objects.all()
+    filter = RoomFilterForm(request.GET)
     value_list = (
         'id', 'location', 'description', 'optional_1', 'optional_2',
         'optional_3', 'optional_4')
-    edit_url = 'seeddb-room-edit'
-    filter_form_model = RoomFilterForm
-    title = TITLE_DEFAULT + ' - Rooms'
-    caption = 'Rooms'
-    navpath = NAVPATH_DEFAULT + [('Rooms', None)]
-    tab_template = 'seeddb/tabs_room.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Rooms',
+        'caption': 'Rooms',
+        'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
+        'tab_template': 'seeddb/tabs_room.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-room-edit',
+        filter_form=filter,
+        extra_context=extra)
 
-class LocationList(SeeddbList):
-    model = Location
+def location_list(request):
+    qs = Location.objects.all()
     value_list = ('id', 'description')
-    edit_url = 'seeddb-location-edit'
-    title = TITLE_DEFAULT + ' - Locations'
-    caption = 'Locations'
-    navpath = NAVPATH_DEFAULT + [('Locations', None)]
-    tab_template = 'seeddb/tabs_location.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Locations',
+        'caption': 'Locations',
+        'navpath': NAVPATH_DEFAULT + [('Locations', None)],
+        'tab_template': 'seeddb/tabs_location.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-location-edit',
+        extra_context=extra)
 
-class OrganizationList(SeeddbList):
-    model = Organization
+def organization_list(request):
+    qs = Organization.objects.all()
     value_list = (
         'id', 'parent', 'description', 'optional_1', 'optional_2',
         'optional_3')
-    edit_url = 'seeddb-organization-edit'
-    title = TITLE_DEFAULT + ' - Organizations'
-    caption = 'Organizations'
-    navpath = NAVPATH_DEFAULT + [('Organizations', None)]
-    tab_template = 'seeddb/tabs_organization.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Organizations',
+        'caption': 'Organizations',
+        'navpath': NAVPATH_DEFAULT + [('Organizations', None)],
+        'tab_template': 'seeddb/tabs_organization.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-organization-edit',
+        extra_context=extra)
 
-class UsageList(SeeddbList):
-    model = Usage
+def usage_list(request):
+    qs = Usage.objects.all()
     value_list = ('id', 'description')
-    edit_url = 'seeddb-usage-edit'
-    title = TITLE_DEFAULT + ' - Usage categories'
-    caption = 'Usage categories'
-    navpath = NAVPATH_DEFAULT + [('Usage categories', None)]
-    tab_template = 'seeddb/tabs_usage.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Usage categories',
+        'caption': 'Usage categories',
+        'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
+        'tab_template': 'seeddb/tabs_usage.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-usage-edit',
+        extra_context=extra)
 
-class NetboxTypeList(SeeddbList):
-    model = NetboxType
+def netboxtype_list(request):
+    qs = NetboxType.objects.all()
     value_list = (
         'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
         'tftp')
-    edit_url = 'seeddb-type-edit'
-    title = TITLE_DEFAULT + ' - Types'
-    caption = 'Types'
-    navpath = NAVPATH_DEFAULT + [('Types', None)]
-    tab_template = 'seeddb/tabs_type.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Types',
+        'caption': 'Types',
+        'navpath': NAVPATH_DEFAULT + [('Types', None)],
+        'tab_template': 'seeddb/tabs_type.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-type-edit',
+        extra_context=extra)
 
-class VendorList(SeeddbList):
-    model = Vendor
+def vendor_list(request):
+    qs = Vendor.objects.all()
     value_list = ('id',)
-    edit_url = 'seeddb-vendor-edit'
-    title = TITLE_DEFAULT + ' - Vendors'
-    caption = 'Vendors'
-    navpath = NAVPATH_DEFAULT + [('Vendors', None)]
-    tab_template = 'seeddb/tabs_vendor.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Vendors',
+        'caption': 'Vendors',
+        'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
+        'tab_template': 'seeddb/tabs_vendor.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-vendor-edit',
+        extra_context=extra)
 
-class SubcategoryList(SeeddbList):
-    model = Subcategory
+def subcategory_list(request):
+    qs = Subcategory.objects.all()
     value_list = ('id', 'category', 'description')
-    edit_url = 'seeddb-subcategory-edit'
-    title = TITLE_DEFAULT + ' - Subcategories'
-    caption = 'Subcategories'
-    navpath = NAVPATH_DEFAULT + [('Subcategories', None)]
-    tab_template = 'seeddb/tabs_subcategory.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Subcategories',
+        'caption': 'Subcategories',
+        'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
+        'tab_template': 'seeddb/tabs_subcategory.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-subcategory-edit',
+        extra_context=extra)
 
-class VlanList(SeeddbList):
-    model = Vlan
+def vlan_list(request):
+    qs = Vlan.objects.all()
     value_list = (
         'id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident',
         'description')
-    edit_url = 'seeddb-vlan-edit'
-    title = TITLE_DEFAULT + ' - Vlan'
-    caption = 'Vlan'
-    navpath = NAVPATH_DEFAULT + [('Vlan', None)]
-    tab_template = 'seeddb/tabs_vlan.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Vlan',
+        'caption': 'Vlan',
+        'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
+        'tab_template': 'seeddb/tabs_vlan.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-vlan-edit',
+        extra_context=extra)
 
-class PrefixList(SeeddbList):
-    model = Prefix
+def prefix_list(request):
+    qs = Prefix.objects.filter(vlan__net_type__edit=True)
     value_list = (
         'net_address', 'vlan__net_type', 'vlan__organization',
         'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
-    edit_url = 'seeddb-prefix-edit'
-    title = TITLE_DEFAULT + ' - Prefix'
-    caption = 'Prefix'
-    navpath = NAVPATH_DEFAULT + [('Prefix', None)]
-    tab_template = 'seeddb/tabs_prefix.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Prefix',
+        'caption': 'Prefix',
+        'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
+        'tab_template': 'seeddb/tabs_prefix.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-prefix-edit',
+        extra_context=extra)
 
-    def _init_queryset(self, model):
-        return model.objects.filter(vlan__net_type__edit=True)
-
-class CablingList(SeeddbList):
-    model = Cabling
+def cabling_list(request):
+    qs = Cabling.objects.all()
     value_list = (
         'room', 'jack', 'building', 'target_room', 'category', 'description')
-    edit_url = 'seeddb-cabling-edit'
-    title = TITLE_DEFAULT + ' - Cabling'
-    caption = 'Cabling'
-    navpath = NAVPATH_DEFAULT + [('Cabling', None)]
-    tab_template = 'seeddb/tabs_cabling.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Cabling',
+        'caption': 'Cabling',
+        'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
+        'tab_template': 'seeddb/tabs_cabling.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-cabling-edit',
+        extra_context=extra)
 
-class PatchList(SeeddbList):
-    model = Patch
+def patch_list(request):
+    qs = Patch.objects.all()
     value_list = (
         'interface__netbox', 'interface__module', 'interface__baseport',
         'cabling__room', 'cabling__jack', 'split')
-    edit_url = 'seeddb-patch-edit'
-    title = TITLE_DEFAULT + ' - Patch'
-    caption = 'Patch'
-    navpath = NAVPATH_DEFAULT + [('Patch', None)]
-    tab_template = 'seeddb/tabs_patch.html'
+    extra = {
+        'title': TITLE_DEFAULT + ' - Patch',
+        'caption': 'Patch',
+        'navpath': NAVPATH_DEFAULT + [('Patch', None)],
+        'tab_template': 'seeddb/tabs_patch.html',
+    }
+    return render_list(request, qs, value_list, 'seeddb-patch-edit',
+        extra_context=extra)

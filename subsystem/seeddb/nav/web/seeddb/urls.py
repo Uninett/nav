@@ -39,7 +39,7 @@ urlpatterns = patterns('',
         name='seeddb-netbox-move'),
 
     # Service
-    url(r'^service/$', ServiceList,
+    url(r'^service/$', service_list,
         name='seeddb-service'),
     url(r'^service/edit/(?P<service>[\d]+)$', ServiceEdit,
         name='seeddb-service-edit'),
@@ -49,7 +49,7 @@ urlpatterns = patterns('',
         name='seeddb-service-bulk'),
 
     # Room
-    url(r'^room/$', RoomList,
+    url(r'^room/$', room_list,
         name='seeddb-room'),
     url(r'^room/edit/(?P<room_id>[\w\d_-]+)/$', RoomEdit,
         name='seeddb-room-edit'),
@@ -61,7 +61,7 @@ urlpatterns = patterns('',
         name='seeddb-room-move'),
 
     # Location
-    url(r'^location/$', LocationList,
+    url(r'^location/$', location_list,
         name='seeddb-location'),
     url(r'^location/edit/(?P<location_id>[\w\d_-]+)/$', LocationEdit,
         name='seeddb-location-edit'),
@@ -71,7 +71,7 @@ urlpatterns = patterns('',
         name='seeddb-location-bulk'),
 
     # Organization
-    url(r'^organization/$', OrganizationList,
+    url(r'^organization/$', organization_list,
         name='seeddb-organization'),
     url(r'^organization/edit/(?P<organization_id>[\w\d_-]+)/$', OrganizationEdit,
         name='seeddb-organization-edit'),
@@ -81,7 +81,7 @@ urlpatterns = patterns('',
         name='seeddb-organization-bulk'),
 
     # Usage category
-    url(r'^usage/$', UsageList,
+    url(r'^usage/$', usage_list,
         name='seeddb-usage'),
     url(r'^usage/edit/(?P<usage_id>[\w\d_-]+)/$', UsageEdit,
         name='seeddb-usage-edit'),
@@ -91,7 +91,7 @@ urlpatterns = patterns('',
         name='seeddb-usage-bulk'),
 
     # Type
-    url(r'^type/$', NetboxTypeList,
+    url(r'^type/$', netboxtype_list,
         name='seeddb-type'),
     url(r'^type/edit/(?P<type_id>[\d]+)/$', NetboxTypeEdit,
         name='seeddb-type-edit'),
@@ -101,7 +101,7 @@ urlpatterns = patterns('',
         name='seeddb-type-bulk'),
 
     # Vendor
-    url(r'^vendor/$', VendorList,
+    url(r'^vendor/$', vendor_list,
         name='seeddb-vendor'),
     url(r'^vendor/edit/(?P<vendor_id>[\w\d]+)/$', VendorEdit,
         name='seeddb-vendor-edit'),
@@ -113,7 +113,7 @@ urlpatterns = patterns('',
     # SNMPoid
 
     # Subcategory
-    url(r'^subcategory/$', SubcategoryList,
+    url(r'^subcategory/$', subcategory_list,
         name='seeddb-subcategory'),
     url(r'^subcategory/edit/(?P<subcategory_id>[\w\d-]+)/$', SubcategoryEdit,
         name='seeddb-subcategory-edit'),
@@ -123,13 +123,13 @@ urlpatterns = patterns('',
         name='seeddb-subcategory-bulk'),
 
     # Vlan
-    url(r'^vlan/$', VlanList,
+    url(r'^vlan/$', vlan_list,
         name='seeddb-vlan'),
     url(r'^vlan/edit/(?P<vlan_id>[\d]+)/$', VlanEdit,
         name='seeddb-vlan-edit'),
 
     # Prefix
-    url(r'^prefix/$', PrefixList,
+    url(r'^prefix/$', prefix_list,
         name='seeddb-prefix'),
     url(r'^prefix/edit/(?P<prefix_id>[\d]+)/$', PrefixEdit,
         name='seeddb-prefix-edit'),
@@ -139,7 +139,7 @@ urlpatterns = patterns('',
         name='seeddb-prefix-bulk'),
 
     # Cabling
-    url(r'^cabling/$', CablingList,
+    url(r'^cabling/$', cabling_list,
         name='seeddb-cabling'),
     url(r'^cabling/edit/(?P<cabling>[\d]+)/$', CablingEdit,
         name='seeddb-cabling-edit'),
@@ -149,7 +149,7 @@ urlpatterns = patterns('',
         name='seeddb-cabling-bulk'),
 
     # Patch
-    url(r'^patch/$', PatchList,
+    url(r'^patch/$', patch_list,
         name='seeddb-patch'),
     url(r'^patch/edit/(?P<patch>[\d]+)/$', PatchEdit,
         name='seeddb-patch-edit'),

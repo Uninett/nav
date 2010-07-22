@@ -22,8 +22,6 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.views.generic.list_detail import object_list
-from django.views.generic.create_update import update_object
 
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix
@@ -33,7 +31,6 @@ from nav.Snmp import Snmp
 
 from nav.web.seeddb.forms import *
 from nav.web.seeddb.utils import *
-from nav.web.seeddb.views.list import NetboxList
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
@@ -119,14 +116,6 @@ def netbox_edit(request, netbox_sysname=None):
     }
     return render_to_response('seeddb/edit.html',
         context, RequestContext(request))
-
-def netbox_list(request):
-    if request.method == 'POST':
-        if 'move' in request.POST:
-            return netbox_move(request)
-        elif 'delete' in request.POST:
-            pass
-    return NetboxList(request)
 
 def netbox_move(request):
     if request.method != 'POST':
