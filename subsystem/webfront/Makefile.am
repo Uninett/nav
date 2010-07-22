@@ -4,7 +4,7 @@ SUBDIRS = media
 bin_SCRIPTS = bin/navTemplate.py
 
 webconfdir = $(sysconfdir)/webfront
-webconf_DATA = $(wildcard config/webfront/*.txt config/webfront/*.conf) config/webfront/webfront.conf
+webconf_DATA = $(sort $(wildcard config/webfront/*.txt config/webfront/*.conf) config/webfront/webfront.conf)
 EDITFILES = config/webfront/webfront.conf
 
 templates_src = $(wildcard nav/web/templates/*.tmpl)
