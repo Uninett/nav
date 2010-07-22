@@ -100,7 +100,7 @@ def get_urlpatterns():
 
         url(r'^report/swporttrunk$',
             dummy, name='report-swporttrunk-all'),
-        url(r'^report/swporttrunk\?vlanid=(?P<vlan_id>\d+)$',
+        url(r'^report/swporttrunk\?vlan=(?P<vlan>\d+)$',
             dummy, name='report-swporttrunk-vlan'),
 
         url(r'^report/prefix$',
