@@ -32,13 +32,16 @@ def group_query(qs, identifier):
         objects[object[identifier]].append(object)
     return objects
 
-def move(request, model, form_model, redirect, title_attr='id'):
+def move(request, model, form_model, redirect, title_attr='id', extra_context={}):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
         new_message(request._req, "You need to select at least one object to edit", Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
 
     data = None
     confirm = False
+    verbose_name = model._meta.verbose_name
     objects = model.objects.filter(id__in=request.POST.getlist('object'))
 
     if request.POST.get('preview'):
@@ -59,6 +62,22 @@ def move(request, model, form_model, redirect, title_attr='id'):
 
     fields = form.fields.keys()
     values = objects.values('pk', title_attr, *fields)
+    object_list = _process_values(values, data, title_attr, fields)
+
+    context = {
+        'form': form,
+        'objects': objects,
+        'values': object_list,
+        'data': data,
+        'confirm': confirm,
+        'active': {'list': True},
+        'title': 'Move %s' % verbose_name,
+    }
+    extra_context.update(context)
+    return render_to_response('seeddb/move.html',
+        extra_context, RequestContext(request))
+
+def _process_values(values, data, title_attr, fields):
     object_list = []
     attr_list = [title_attr] + fields
     for object in values:
@@ -70,14 +89,4 @@ def move(request, model, form_model, redirect, title_attr='id'):
             new_values = [("New %s" % attr, data[attr]) for attr in fields]
             row['values'].extend(new_values)
         object_list.append(row)
-
-    context = {
-        'form': form,
-        'objects': objects,
-        'values': object_list,
-        'data': data,
-        'confirm': confirm,
-    }
-    return render_to_response('seeddb/move.html',
-        context, RequestContext(request))
-
+    return object_list
