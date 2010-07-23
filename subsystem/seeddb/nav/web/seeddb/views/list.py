@@ -26,7 +26,8 @@ from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 
-from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm
+from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm,\
+    OrganizationFilterForm, NetboxTypeFilterForm, SubcategoryFilterForm, VlanFilterForm, CablingFilterForm
 from nav.web.seeddb.utils.list import render_list
 
 TITLE_DEFAULT = 'NAV - Seed Database'
@@ -91,6 +92,7 @@ def location_list(request):
 
 def organization_list(request):
     qs = Organization.objects.all()
+    filter = OrganizationFilterForm(request.GET)
     value_list = (
         'id', 'parent', 'description', 'optional_1', 'optional_2',
         'optional_3')
@@ -101,6 +103,7 @@ def organization_list(request):
         'tab_template': 'seeddb/tabs_organization.html',
     }
     return render_list(request, qs, value_list, 'seeddb-organization-edit',
+        filter_form=filter,
         extra_context=extra)
 
 def usage_list(request):
@@ -117,6 +120,7 @@ def usage_list(request):
 
 def netboxtype_list(request):
     qs = NetboxType.objects.all()
+    filter = NetboxTypeFilterForm(request.GET)
     value_list = (
         'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
         'tftp')
@@ -127,6 +131,7 @@ def netboxtype_list(request):
         'tab_template': 'seeddb/tabs_type.html',
     }
     return render_list(request, qs, value_list, 'seeddb-type-edit',
+        filter_form=filter,
         extra_context=extra)
 
 def vendor_list(request):
@@ -143,6 +148,7 @@ def vendor_list(request):
 
 def subcategory_list(request):
     qs = Subcategory.objects.all()
+    filter = SubcategoryFilterForm(request.GET)
     value_list = ('id', 'category', 'description')
     extra = {
         'title': TITLE_DEFAULT + ' - Subcategories',
@@ -151,10 +157,12 @@ def subcategory_list(request):
         'tab_template': 'seeddb/tabs_subcategory.html',
     }
     return render_list(request, qs, value_list, 'seeddb-subcategory-edit',
+        filter_form=filter,
         extra_context=extra)
 
 def vlan_list(request):
     qs = Vlan.objects.all()
+    filter = VlanFilterForm(request.GET)
     value_list = (
         'id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident',
         'description')
@@ -165,6 +173,7 @@ def vlan_list(request):
         'tab_template': 'seeddb/tabs_vlan.html',
     }
     return render_list(request, qs, value_list, 'seeddb-vlan-edit',
+        filter_form=filter,
         extra_context=extra)
 
 def prefix_list(request):
@@ -183,6 +192,7 @@ def prefix_list(request):
 
 def cabling_list(request):
     qs = Cabling.objects.all()
+    filter = CablingFilterForm(request.GET)
     value_list = (
         'room', 'jack', 'building', 'target_room', 'category', 'description')
     extra = {
@@ -192,6 +202,7 @@ def cabling_list(request):
         'tab_template': 'seeddb/tabs_cabling.html',
     }
     return render_list(request, qs, value_list, 'seeddb-cabling-edit',
+        filter_form=filter,
         extra_context=extra)
 
 def patch_list(request):
