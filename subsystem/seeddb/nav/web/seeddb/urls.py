@@ -48,7 +48,7 @@ urlpatterns = patterns('',
         name='seeddb-service-bulk'),
 
     # Room
-    url(r'^room/$', room_list,
+    url(r'^room/$', room,
         name='seeddb-room'),
     url(r'^room/edit/(?P<room_id>[\w\d_-]+)/$', room_edit,
         name='seeddb-room-edit'),

@@ -31,3 +31,26 @@ def index(request):
         },
         RequestContext(request)
     )
+
+def not_implemented(*args, **kwargs):
+    raise Exception, "Not implemented"
+
+def list_view(request, list=None, move=None, delete=None):
+    if request.method == 'POST':
+        if 'move' in request.POST:
+            return move(request)
+        elif 'delete' in request.POST:
+            return delete(request)
+    return list(request)
+
+def netbox(request):
+    return list_view(request,
+        list=netbox_list,
+        move=netbox_move,
+        delete=netbox_delete)
+
+def room(request):
+    return list_view(request,
+        list=room_list,
+        move=room_move,
+        delete=not_implemented)
