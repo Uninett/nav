@@ -17,3 +17,17 @@
 
 from nav.web.seeddb.views.list import *
 from nav.web.seeddb.views.edit import *
+from nav.web.seeddb.views.move import *
+
+TITLE_DEFAULT = 'NAV - Seed Database'
+
+def index(request):
+    return render_to_response(
+        'seeddb/index.html',
+        {
+            'title': TITLE_DEFAULT,
+            'navpath': [('Home', '/'), ('Seed DB', None)],
+            'active': {'index': True},
+        },
+        RequestContext(request)
+    )
