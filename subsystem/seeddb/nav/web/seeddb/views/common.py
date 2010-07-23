@@ -122,14 +122,6 @@ def netbox_move(request):
         return HttpResponseRedirect(reverse('seeddb-netbox'))
     return move(request, Netbox, NetboxMoveForm, 'seeddb-netbox', title_attr='sysname')
 
-def room_edit(request, room_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Rooms', reverse('seeddb-room'))],
-        'tab_template': 'seeddb/tabs_room.html',
-    }
-    return render_seeddb_edit(request, Room, RoomForm,
-        room_id, extra_context=extra)
-
 def room_move(request):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse('seeddb-room'))
@@ -177,51 +169,3 @@ def room_delete(request):
     }
     return render_to_response('seeddb/delete.html',
         context, RequestContext(request))
-
-def location_edit(request, location_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Locations', None)],
-        'tab_template': 'seeddb/tabs_location.html',
-    }
-    return render_seeddb_edit(request, Location, LocationForm,
-        location_id, extra_context=extra)
-
-def organization_edit(request, organization_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Organizations', reverse('seeddb-organization'))],
-        'tab_template': 'seeddb/tabs_organization.html',
-    }
-    return render_seeddb_edit(request, Organization, OrganizationForm,
-        organization_id, extra_context=extra)
-
-def usage_edit(request, usage_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Usage categories', reverse('seeddb-usage'))],
-        'tab_template': 'seeddb/tabs_usage.html',
-    }
-    return render_seeddb_edit(request, Usage, UsageForm,
-        usage_id, extra_context=extra)
-
-def type_edit(request, type_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Types', reverse('seeddb-type'))],
-        'tab_template': 'seeddb/tabs_type.html',
-    }
-    return render_seeddb_edit(request, NetboxType, NetboxTypeForm,
-        type_id, title_attr='name', extra_context=extra)
-
-def vendor_edit(request, vendor_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Vendors', reverse('seeddb-vendor'))],
-        'tab_template': 'seeddb/tabs_vendor.html',
-    }
-    return render_seeddb_edit(request, Vendor, VendorForm,
-        vendor_id, extra_context=extra)
-
-def subcategory_edit(request, subcategory_id=None):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Subcategories', reverse('seeddb-subcategory'))],
-        'tab_template': 'seeddb/tabs_subcategory.html',
-    }
-    return render_seeddb_edit(request, Subcategory, SubcategoryForm,
-        subcategory_id, extra_context=extra)
