@@ -49,7 +49,8 @@ def move(request, model, form_model, redirect, title_attr='id'):
     elif request.POST.get('save'):
         form = form_model(request.POST)
         if form.is_valid():
-            data = form.cleaned_data
+            # Filter out empty choices.
+            data = dict([(key, value) for key, value in form.cleaned_data.items() if value])
             objects.update(**data)
             new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect))
