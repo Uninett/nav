@@ -26,9 +26,10 @@ from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 
-from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm,\
-    OrganizationFilterForm, NetboxTypeFilterForm, SubcategoryFilterForm, VlanFilterForm, CablingFilterForm
 from nav.web.seeddb.utils.list import render_list
+from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm,\
+    OrganizationFilterForm, NetboxTypeFilterForm, SubcategoryFilterForm,\
+    VlanFilterForm, CablingFilterForm
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
