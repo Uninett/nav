@@ -26,7 +26,7 @@ urlpatterns = patterns('',
         name='seeddb-index'),
 
     # Netbox
-    url(r'^netbox/$', netbox_list,
+    url(r'^netbox/$', netbox,
         name='seeddb-netbox'),
     url(r'^netbox/edit/(?P<netbox_sysname>[\w\d.-]+)/', netbox_edit,
         name='seeddb-netbox-edit'),
@@ -70,7 +70,7 @@ urlpatterns = patterns('',
         name='seeddb-location-bulk'),
 
     # Organization
-    url(r'^organization/$', organization_list,
+    url(r'^organization/$', organization,
         name='seeddb-organization'),
     url(r'^organization/edit/(?P<organization_id>[\w\d_-]+)/$', organization_edit,
         name='seeddb-organization-edit'),

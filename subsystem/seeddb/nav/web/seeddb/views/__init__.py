@@ -47,10 +47,16 @@ def netbox(request):
     return list_view(request,
         list=netbox_list,
         move=netbox_move,
-        delete=netbox_delete)
+        delete=not_implemented)
 
 def room(request):
     return list_view(request,
         list=room_list,
         move=room_move,
+        delete=not_implemented)
+
+def organization(request):
+    return list_view(request,
+        list=organization_list,
+        move=organization_move,
         delete=not_implemented)
