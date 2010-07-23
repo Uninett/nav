@@ -16,6 +16,4 @@
 #
 
 from nav.web.seeddb.views.list import *
-from nav.web.seeddb.views.edit import NetboxEdit, ServiceEdit, RoomEdit,\
-    LocationEdit, OrganizationEdit, UsageEdit, NetboxTypeEdit, VendorEdit,\
-    SubcategoryEdit, VlanEdit, PrefixEdit, CablingEdit, PatchEdit
+from nav.web.seeddb.views.edit import *
