@@ -29,7 +29,6 @@ from nav.models.service import Service
 from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm
 from nav.web.seeddb.utils.list import render_list
 
-ITEMS_PER_PAGE = 100
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 

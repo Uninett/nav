@@ -28,6 +28,8 @@ from nav.models.service import Service
 
 from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm
 
+ITEMS_PER_PAGE = 100
+
 def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk',\
         filter_form=None, template='seeddb/list.html', extra_context={}):
     """Renders a Seed DB list.
@@ -50,8 +52,8 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk',\
     if per_page == 'all':
         per_page = value_qs.count()
     else:
-        per_page = get_num(request.GET, 'per_page', ITEMS_PER_PAGE)
-    page_num = get_num(request.GET, 'page', 1)
+        per_page = _get_num(request.GET, 'per_page', ITEMS_PER_PAGE)
+    page_num = _get_num(request.GET, 'page', 1)
 
     order_by = request.GET.get('sort')
     order_by = _get_order_by(order_by, value_list)
