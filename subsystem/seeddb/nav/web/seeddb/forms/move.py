@@ -24,8 +24,24 @@ from nav.models.service import Service
 
 
 class RoomMoveForm(forms.Form):
-    location = forms.ModelChoiceField(Location.objects.order_by('id').all(), required=True)
+    location = forms.ModelChoiceField(
+        Location.objects.order_by('id').all())
 
 class NetboxMoveForm(forms.Form):
-    room = forms.ModelChoiceField(Room.objects.order_by('id').all())
-    organization = forms.ModelChoiceField(Organization.objects.order_by('id').all())
+    room = forms.ModelChoiceField(
+        Room.objects.order_by('id').all(), required=False)
+    organization = forms.ModelChoiceField(
+        Organization.objects.order_by('id').all(), required=False)
+
+    def clean(self):
+        data = self.cleaned_data
+        room = data['room']
+        organization = data['organization']
+
+        if not room and not organization:
+            raise forms.ValidationError("Organiztion and/or room must be selected.")
+        return data
+
+class OrganizationMoveForm(forms.Form):
+    parent = forms.ModelChoiceField(
+        Organization.objects.order_by('id').all())
