@@ -1,8 +1,13 @@
 {% extends "seeddb/base.html" %}
 
 {% block content %}
+
 <form action="" method="post">
 <table class="listtable">
+    <caption>
+        {{ title }}
+    </caption>
+
     <thead>
         <tr>
         {% if not confirm %}
