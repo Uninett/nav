@@ -22,25 +22,6 @@ from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix, Category
 from nav.models.service import Service
 
-class NetboxFilterForm(forms.Form):
-    category = forms.ModelChoiceField(
-        Category.objects.order_by('id').all(), required=False)
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all(), required=False)
-    organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
-
-class RoomFilterForm(forms.Form):
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
-
-class RoomMoveForm(forms.Form):
-    location = forms.ModelChoiceField(Location.objects.order_by('id').all(), required=True)
-
-class NetboxMoveForm(forms.Form):
-    room = forms.ModelChoiceField(Room.objects.order_by('id').all())
-    organization = forms.ModelChoiceField(Organization.objects.order_by('id').all())
-
 class NetboxSysnameForm(forms.Form):
     name = forms.CharField()
     category = forms.ModelChoiceField(Category.objects.all())
