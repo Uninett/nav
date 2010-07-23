@@ -21,221 +21,185 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404
 
-#from nav.django.utils import get_verbose_name
+from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
 
+from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm, \
     UsageForm, NetboxTypeForm, VendorForm, SubcategoryForm, PrefixForm, \
     CablingForm, PatchForm
 
-class SeeddbEdit(object):
-    model = None
-    form_model = None
-    identifier_attr = 'pk'
-    title_attr = 'pk'
-    navpath = None
-    tab_template = ''
-    template = 'seeddb/edit.html'
-    redirect = ''
+NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
-    def __new__(cls, request, object_id=None):
-        obj = super(SeeddbEdit, cls).__new__(cls)
-        return obj(request, object_id)
+def netbox_sysname(form):
+    try:
+        ip = IP(form.cleaned_data['name'])
+    except ValueError:
+        sysname = form.cleaned_data['name']
+        ip = IP(gethostbyname(sysname))
+    else:
+        sysname = gethostbyaddr(unicode(ip))[0]
+    return (ip, sysname)
 
-    def __call__(self, request, object_id=None):
-        self.request = request
-        self.identifier = None
-        self.title = None
-        self.verbose_name = self.model._meta.verbose_name
-        object = None
-        if object_id:
-            try:
-                object = self._get_object(object_id)
-            except self.model.DoesNotExist:
-                raise Http404
+def snmp_type(ip, ro, snmp_version):
+    snmp = Snmp(unicode(ip), ro, snmp_version)
+    try:
+        sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
+    except SnmpError:
+        return None
+    sysobjectid = sysobjectid.lstrip('.')
+    try:
+        type = NetboxType.objects.get(sysobjectid=sysobjectid)
+        return type.id
+    except NetboxType.DoesNotExist:
+        return None 
 
-        if request.method == 'POST':
-            form = self.form_model(request.POST, instance=object)
+def snmp_serials(ip, ro, snmp_version):
+    snmp = Snmp(ip, ro, snmp_version)
+    oids = SnmpOid.objects.filter(oid_key__icontains='serial').values('snmp_oid', 'get_next')
+    serials = []
+    for (oid, get_next) in oids:
+        try:
+            if get_next:
+                result = snmp.walk(oid)
+                serials.extend([r[1] for r in result if r[1]])
+            else:
+                result = snmp.get(oid)
+                if result:
+                    serials.append(result)
+        except SnmpError:
+            pass
+    return serials
+
+def netbox_edit(request, netbox_sysname=None):
+    netbox = None
+    if netbox_sysname:
+        netbox = Netbox.objects.get(sysname=netbox_sysname)
+
+    if request.method == 'POST':
+        step = int(request.POST.get('step'))
+        if step == 0:
+            form = NetboxSysnameForm(request.POST)
             if form.is_valid():
-                object = self.save(form, object)
-                return HttpResponseRedirect(reverse(self.redirect, args=(self.identifier,)))
-        else:
-            form = self.form_model(instance=object)
+                (ip, sysname) = netbox_sysname(form)
+                if form.snmp_version:
+                    ro = form.cleaned_data.get('read_only')
+                    type = snmp_type(ip, ro, form.snmp_version)
+                    serials = snmp_serials(ip, ro, form.snmp_version)
+                    serial = None
+                    if serials:
+                        serial = serials[0]
+                    raise Exception(serial)
+    else:
+        form = NetboxSysnameForm()
 
-        context = {
-            'object': object,
-            'form': form,
-            'title': 'Add new %s' % self.verbose_name,
-            'active': {'add': True},
-            'navpath': self.navpath,
-            'tab_template': self.tab_template,
-        }
-        if object:
-            context.update({
-                'title': 'Edit %s "%s"' % (self.verbose_name, self.title),
-                'active': {'edit': True},
-            })
-        return render_to_response(self.template,
-            context, RequestContext(request))
+    context = {
+        'object': netbox,
+        'form': form,
+        'active': {'add': True},
+        'tab_template': 'seeddb/tabs_netbox.html',
+    }
+    return render_to_response('seeddb/edit.html',
+        context, RequestContext(request))
 
-    def _get_object(self, object_id):
-        params = {self.identifier_attr: object_id}
-        object = self.model.objects.get(**params)
-        self.identifier = getattr(object, self.identifier_attr)
-        self.title = getattr(object, self.title_attr)
-        return object
-
-    def save(self, form, object):
-        object = form.save()
-        self.identifier = getattr(object, self.identifier_attr)
-        self.title = getattr(object, self.title_attr)
-        new_message(self.request._req,
-             "Saved %s %s" % (self.verbose_name, self.title),
-             Messages.SUCCESS)
-        return object
-
-class SeeddbPrimaryKeyEdit(SeeddbEdit):
-    def save(self, form, object):
-        data = form.cleaned_data
-        if 'id' in data and object and data['id'] != object.id:
-            new_pk = self.primary_key_update(form, object)
-            object = self._get_object(new_pk)
-            form = self.form_model(self.request.POST, instance=object)
-        return super(SeeddbPrimaryKeyEdit, self).save(form, object)
-
-    def primary_key_update(self, form, object):
-        from django.db import connection
-        cur = connection.cursor()
-
-        table = object._meta.db_table
-        pk_col = object._meta.get_field('id').db_column
-        old_pk_val = getattr(object, object._meta.get_field('id').attname)
-        new_pk_val = form.cleaned_data['id']
-
-        sql = 'UPDATE "%s" ' % table
-        sql += 'SET "%s" = %%s ' % pk_col
-        sql += 'WHERE "%s" = %%s' % pk_col
-
-        params = (new_pk_val, old_pk_val)
-        cur.execute(sql, params)
-
-        return new_pk_val
-
-class NetboxEdit(SeeddbEdit):
+def service_edit(request, service_id=None):
     # FIXME
-    def __new__(cls, request, netbox_id=None):
-        raise Exception, "Not implemented"
+    raise Exception, "Not implemented"
 
-class ServiceEdit(SeeddbEdit):
+def room_edit(request, room_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
+        'tab_template': 'seeddb/tabs_room.html',
+    }
+    return render_edit(request, Room, RoomForm, room_id,
+        'seeddb-room-edit',
+        extra_context=extra)
+
+def location_edit(request, location_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Location', reverse('seeddb-location'))],
+        'tab_template': 'seeddb/tabs_location.html',
+    }
+    return render_edit(request, Location, LocationForm, location_id,
+        'seeddb-location-edit',
+        extra_context=extra)
+
+def organization_edit(request, organization_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
+        'tab_template': 'seeddb/tabs_organization.html',
+    }
+    return render_edit(request, Organization, OrganizationForm, organization_id, 
+        'seeddb-organization-edit',
+        extra_context=extra)
+
+def usage_edit(request, usage_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Usage', reverse('seeddb-usage'))],
+        'tab_template': 'seeddb/tabs_usage.html',
+    }
+    return render_edit(request, Usage, UsageForm, usage_id,
+        'seeddb-usage-edit',
+        extra_context=extra)
+
+def netboxtype_edit(request, type_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Type', reverse('seeddb-type'))],
+        'tab_template': 'seeddb/tabs_type.html',
+    }
+    return render_edit(request, NetboxType, NetboxTypeForm, type_id,
+        'seeddb-type-edit',
+        extra_context=extra)
+
+def vendor_edit(request, vendor_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Vendor', reverse('seeddb-vendor'))],
+        'tab_template': 'seeddb/tabs_vendor.html',
+    }
+    return render_edit(request, Vendor, VendorForm, vendor_id,
+        'seeddb-vendor-edit',
+        extra_context=extra)
+
+def subcategory_edit(request, subcategory_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Subcategory', reverse('seeddb-subcategory'))],
+        'tab_template': 'seeddb/tabs_subcategory.html',
+    }
+    return render_edit(request, Subcategory, SubcategoryForm, subcategory_id,
+        'seeddb-subcategory-edit',
+        extra_context=extra)
+
+def vlan_edit(request, vlan_id=None):
     # FIXME
-    def __new__(cls, request, service_id=None):
-        raise Exception, "Not implemented"
+    raise Exception, "Not implemented"
 
-class RoomEdit(SeeddbPrimaryKeyEdit):
-    model = Room
-    form_model = RoomForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_room.html'
-    redirect = 'seeddb-room-edit'
+def prefix_edit(request, prefix_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Prefix', reverse('seeddb-prefix'))],
+        'tab_template': 'seeddb/tabs_prefix.html',
+    }
+    return render_edit(request, Prefix, PrefixForm, prefix_id,
+        'seeddb-prefix-edit',
+        extra_context=extra)
 
-    def __new__(cls, request, room_id=None):
-        return super(RoomEdit, cls).__new__(cls, request, room_id)
+def cabling_edit(request, cabling_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Cabling', reverse('seeddb-cabling'))],
+        'tab_template': 'seeddb/tabs_cabling.html',
+    }
+    return render_edit(request, Cabling, CablingForm, cabling_id,
+        'seeddb-cabling-edit',
+        extra_context=extra)
 
-class LocationEdit(SeeddbEdit):
-    model = Location
-    form_model = LocationForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_location.html'
-    redirect = 'seeddb-location-edit'
-
-    def __new__(cls, request, location_id=None):
-        return super(LocationEdit, cls).__new__(cls, request, location_id)
-
-class OrganizationEdit(SeeddbEdit):
-    model = Organization
-    form_model = OrganizationForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_organization.html'
-    redirect = 'seeddb-organization-edit'
-
-    def __new__(cls, request, organization_id=None):
-        super(OrganizationEdit, cls).__new__(cls, request, organization_id)
-
-class UsageEdit(SeeddbEdit):
-    model = Usage
-    form_model = UsageForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_usage.html'
-    redirect = 'seeddb-usage-edit'
-
-    def __new__(cls, request, usage_id=None):
-        super(UsageEdit, cls).__new__(cls, request, usage_id)
-
-class NetboxTypeEdit(SeeddbEdit):
-    model = NetboxType
-    form_model = NetboxTypeForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_type.html'
-    redirect = 'seeddb-type-edit'
-
-    def __new__(cls, request, type_id=None):
-        super(NetboxTypeEdit, cls).__new__(cls, request, type_id)
-
-class VendorEdit(SeeddbEdit):
-    model = Vendor
-    form_model = VendorForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_vendor.html'
-    redirect = 'seeddb-vendor-edit'
-
-    def __new__(cls, request, vendor_id=None):
-        super(VendorEdit, cls).__new__(cls, request, vendor_id)
-
-class SubcategoryEdit(SeeddbEdit):
-    model = Subcategory
-    form_model = SubcategoryForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seedb/tabs_subcategory.html'
-    redirect = 'seeddb-subcategory-edit'
-
-    def __new__(cls, request, subcategory_id=None):
-        super(SubcategoryEdit, cls).__new__(cls, request, subcategory_id)
-
-class VlanEdit(SeeddbEdit):
-    # FIXME
-    def __new__(cls, request, vlan_id):
-        raise Exception, "Not implemented"
-
-class PrefixEdit(SeeddbEdit):
-    model = Prefix
-    form_model = PrefixForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_prefix.html'
-    redirect = 'seeddb-prefix-edit'
-
-    def __new__(cls, request, prefix_id=None):
-        super(PrefixEdit, cls).__new__(cls, request, prefix_id)
-
-class CablingEdit(SeeddbEdit):
-    model = Cabling
-    form_model = CablingForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_cabling.html'
-    redirect = 'seeddb-cabling-edit'
-
-    def __new__(cls, request, cabling_id=None):
-        super(CablingEdit, cls).__new__(cls, request, cabling_id)
-
-class PatchEdit(SeeddbEdit):
-    model = Patch
-    form_model = PatchForm
-    navpath = [('stuffz', None)]
-    tab_template = 'seeddb/tabs_patch.html'
-    redirect = 'seeddb-patch-edit'
-
-    def __new__(cls, request, patch_id=None):
-        super(PatchEdit, cls).__new__(cls, request, patch_id)
+def patch_edit(request, patch_id=None):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Patch', reverse('seeddb-patch'))],
+        'tab_template': 'seeddb/tabs_patch.html',
+    }
+    return render_edit(request, Patch, PatchForm, patch_id,
+        'seeddb-patch-edit',
+        extra_context=extra)

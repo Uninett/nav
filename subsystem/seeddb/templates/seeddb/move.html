@@ -1,38 +1,46 @@
 {% extends "seeddb/base.html" %}
 
 {% block content %}
+
 <form action="" method="post">
 <table class="listtable">
-    <tr>
-    {% if not confirm %}
-        <th></th>
-    {% endif %}
-        <th>Name</th>
-        <th>Current location</th>
-    {% if confirm %}
-        <th>New location</th>
-    {% endif %}
-    </tr>
-    {% for o in objects %}
-    <tr class="{% cycle 'oddrow' 'evenrow' %}">
-    {% if not confirm %}
-        <td><input type="checkbox" name="object" value="{{ o.pk }}" checked="checked" /></td>
-    {% endif %}
-        <td>{{ o.id }}</td>
-        <td>{{ o.location_id|default_if_none:"" }}</td>
-    {% if confirm %}
-        <td>
-            <input type="hidden" name="object" value="{{ o.pk }}" />
-            {{ new_location }}
-        </td>
-    {% endif %}
-    </tr>
+    <caption>
+        {{ title }}
+    </caption>
+
+    <thead>
+        <tr>
+        {% if not confirm %}
+            <th></th>
+        {% endif %}
+        {% for values in values.0.values %}
+            <th>{{ values.0 }}</th>
+        {% endfor %}
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for row in values %}
+        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        {% if not confirm %}
+            <td><input type="checkbox" name="object" value="{{ row.pk }}" checked="checked" /></td>
+        {% endif %}
+        {% for value in row.values %}
+            <td>{{ value.1|default_if_none:"" }}</td>
+        {% endfor %}
+        </tr>
     {% endfor %}
+    </tbody>
 </table>
 
 {% if confirm %}
 <p>
-    <input type="hidden" name="new_location" value="{{ new_location }}" />
+    {% for key,value in data.items %}
+    <input type="hidden" name="{{ key }}" value="{{ value.pk }}" />
+    {% endfor %}
+    {% for row in values %}
+    <input type="hidden" name="object" value="{{ row.pk }}" />
+    {% endfor %}
     <input type="hidden" name="move" value="yes" />
     <input type="submit" name="save" value="Confirm save" />
 </p>

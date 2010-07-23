@@ -15,6 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.web.seeddb.utils.list import *
-from nav.web.seeddb.utils.edit import *
-from nav.web.seeddb.utils.move import *
+from nav.web.seeddb.forms.edit import *
+from nav.web.seeddb.forms.filter import *
+from nav.web.seeddb.forms.move import *
