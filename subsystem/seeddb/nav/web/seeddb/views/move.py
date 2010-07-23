@@ -29,18 +29,33 @@ from nav.models.service import Service
 from nav.web.message import new_message, Messages
 from nav.Snmp import Snmp
 
-from nav.web.seeddb.forms import *
-from nav.web.seeddb.utils import *
+from nav.web.seeddb.forms.move import *
+from nav.web.seeddb.utils.move import *
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
 def netbox_move(request):
-    if request.method != 'POST':
-        return HttpResponseRedirect(reverse('seeddb-netbox'))
-    return move(request, Netbox, NetboxMoveForm, 'seeddb-netbox', title_attr='sysname')
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('IP Devices', reverse('seeddb-netbox'))],
+        'tab_template': 'seeddb/tabs_netbox.html',
+    }
+    return move(request, Netbox, NetboxMoveForm, 'seeddb-netbox',
+        title_attr='sysname',
+        extra_context=extra)
 
 def room_move(request):
-    if request.method != 'POST':
-        return HttpResponseRedirect(reverse('seeddb-room'))
-    return move(request, Room, RoomMoveForm, 'seeddb-room')
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
+        'tab_template': 'seeddb/tabs_room.html',
+    }
+    return move(request, Room, RoomMoveForm, 'seeddb-room',
+        extra_context=extra)
+
+def organization_move(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
+        'tab_template': 'seeddb/tabs_organization.html',
+    }
+    return move(request, Organization, OrganizationMoveForm, 'seeddb-organization',
+        extra_context=extra)
