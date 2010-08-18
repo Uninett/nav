@@ -26,7 +26,7 @@ from django.db import transaction
 from nav.util import round_robin
 from nav import toposort
 
-import ipdevpoll
+from nav import ipdevpoll
 import storage
 import shadows
 from plugins import plugin_registry
