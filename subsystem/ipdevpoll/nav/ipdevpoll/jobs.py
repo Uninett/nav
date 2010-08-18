@@ -30,31 +30,10 @@ from nav import ipdevpoll
 import storage
 import shadows
 from plugins import plugin_registry
+from utils import django_debug_cleanup
 
 logger = logging.getLogger(__name__)
 ports = round_robin([snmpprotocol.port() for i in range(10)])
-
-def django_debug_cleanup():
-    """Resets Django's list of logged queries.
-
-    When DJANGO_DEBUG is set to true, Django will log all generated SQL queries
-    in a list, which grows indefinitely.  This is ok for short-lived processes;
-    not so much for daemons.  We may want those queries in the short-term, but
-    in the long-term the ever-growing list is uninteresting and also bad.
-
-    This should be called once-in-a-while from every thread that has Django
-    database access, as the queries list is stored in thread-local data.
-
-    """
-    import gc
-    import django.db
-    from django.conf import settings
-
-    query_count = len(django.db.connection.queries)
-    if query_count:
-        logger.debug("Removing %d logged Django queries", query_count)
-        django.db.reset_queries()
-        gc.collect()
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
