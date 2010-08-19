@@ -50,7 +50,6 @@
 			<fileset dir="media"/>
 		</copy>
     		<mkdir dir="${DESTDIR}${tooldir}"/>
-		<copy file="htaccess" tofile="${DESTDIR}${instdir}/.htaccess"/>
 		<copy file="netmap.tool" todir="${DESTDIR}${tooldir}"/>
 	</target>
 
