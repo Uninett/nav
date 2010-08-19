@@ -20,8 +20,13 @@ import logging
 import os
 import sys
 from datetime import datetime
-import md5
 import re
+# To stay compatible with both python 2.4 and 2.6:
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
+
 
 from django.db import models, transaction
 from django.db.models import Q
@@ -172,7 +177,7 @@ class Account(models.Model):
             # hash we compute the MD5 hash of the supplied password
             # for comparison.
             if self.password[:3] == 'md5':
-                hash = md5.md5(password)
+                hash = md5(password)
                 return (hash.hexdigest() == self.password[3:])
             else:
                 return (password == self.password)

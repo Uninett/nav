@@ -16,7 +16,15 @@
 #
 """Utility functions for ipdevpoll."""
 
+import logging
+import gc
+
 from IPy import IP
+
+import django.db
+from django.conf import settings
+
+_logger = logging.getLogger(__name__)
 
 def binary_mac_to_hex(binary_mac):
     """Converts a binary string MAC address to hex string.
@@ -66,4 +74,23 @@ def is_invalid_utf8(string):
         except UnicodeDecodeError, e:
             return True
     return False
+
+def django_debug_cleanup():
+    """Resets Django's list of logged queries.
+
+    When DJANGO_DEBUG is set to true, Django will log all generated SQL queries
+    in a list, which grows indefinitely.  This is ok for short-lived processes;
+    not so much for daemons.  We may want those queries in the short-term, but
+    in the long-term the ever-growing list is uninteresting and also bad.
+
+    This should be called once-in-a-while from every thread that has Django
+    database access, as the queries list is stored in thread-local data.
+
+    """
+    query_count = len(django.db.connection.queries)
+    if query_count:
+        _logger.debug("Removing %d logged Django queries", query_count)
+        django.db.reset_queries()
+        gc.collect()
+
 
