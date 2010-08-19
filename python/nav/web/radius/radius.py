@@ -54,7 +54,8 @@ def handler(req):
             "nav.web.templates.LogTemplate", autoreload = 1)
         LogDetailTemplate = apache.import_module(
             "nav.web.templates.LogDetailTemplate", autoreload = 1)
-        radiuslib = apache.import_module("radiuslib", autoreload = 1)
+        radiuslib = apache.import_module(
+            "nav.web.radius.radiuslib", autoreload = 1)
     
 
     from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
