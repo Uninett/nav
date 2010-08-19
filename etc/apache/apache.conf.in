@@ -10,7 +10,7 @@ DocumentRoot @webrootdir@
     Options Indexes FollowSymlinks ExecCGI
     Order allow,deny
     Allow from all
-</Directory
+</Directory>
 
 <Location />
     SetHandler python-program
