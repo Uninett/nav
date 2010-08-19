@@ -10,7 +10,7 @@ if [ -z $PGUSER ]; then echo PGUSER not set; exit 1; fi
 # Cleanup any existing DB
 dropdb $PGDATABASE || true
 
-cd doc/sql
+cd sql
 
 # Create file to store output
 out=`mktemp`
