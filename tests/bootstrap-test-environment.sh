@@ -23,7 +23,7 @@ easy_install nose
 # Cleanup any existing DB
 dropdb $PGDATABASE || true
 
-(cd doc/sql; ./createdb.sh -d $PGDATABASE -u $PGUSER -U)
+(cd sql; ./createdb.sh -d $PGDATABASE -u $PGUSER -U)
 
 # Make install code into given directory
 ./autogen.sh
