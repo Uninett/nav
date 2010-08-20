@@ -24,6 +24,7 @@
 BEGIN;
 -- Insert schema changes here.
 
+ALTER TABLE netbox DROP COLUMN subcat;
 
 -- Insert the new version number if we got this far.
 -- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
