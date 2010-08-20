@@ -126,7 +126,6 @@ CREATE TABLE device (
   hw_ver VARCHAR,
   fw_ver VARCHAR,
   sw_ver VARCHAR,
-  auto BOOLEAN NOT NULL DEFAULT false,
   discovered TIMESTAMP NULL DEFAULT NOW(),
   UNIQUE(serial)
 );

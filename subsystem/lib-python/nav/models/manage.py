@@ -274,7 +274,6 @@ class Device(models.Model):
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
     software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
-    auto = models.BooleanField(default=False)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
