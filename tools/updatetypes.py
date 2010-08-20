@@ -30,9 +30,9 @@ import nav.db
 __author__ = 'Morten Vold <morten.vold@uninett.no>'
 
 selectsql = 'SELECT vendorid, typename, cdp, tftp, cs_at_vlan, chassis, ' \
-            'frequency, descr, sysobjectid FROM "type"'
+            'descr, sysobjectid FROM "type"'
 updatesql = 'UPDATE "type" SET vendorid=%s, typename=%s, cdp=%s, tftp=%s, ' \
-            'cs_at_vlan=%s, chassis=%s, frequency=%s, descr=%s ' \
+            'cs_at_vlan=%s, chassis=%s, descr=%s ' \
             'WHERE sysobjectid=%s;'
 
 def escape(v):
