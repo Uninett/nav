@@ -92,8 +92,6 @@ class Netbox(models.Model):
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
-    # TODO: Probably deprecated. Check and remove.
-    #snmp_agent = models.CharField(max_length=-1)
     up_since = models.DateTimeField(db_column='upsince')
     up_to_date = models.BooleanField(db_column='uptodate')
     discovered = models.DateTimeField()

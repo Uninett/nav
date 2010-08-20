@@ -176,7 +176,6 @@ CREATE TABLE netbox (
   prefixid INT4 CONSTRAINT netbox_prefixid_fkey REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 1,
-  snmp_agent VARCHAR,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
   uptodate BOOLEAN NOT NULL DEFAULT false, 
   discovered TIMESTAMP NULL DEFAULT NOW(),
