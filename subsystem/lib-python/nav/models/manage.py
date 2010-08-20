@@ -92,8 +92,6 @@ class Netbox(models.Model):
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
-    # TODO: Probably deprecated. Check and remove.
-    #snmp_agent = models.CharField(max_length=-1)
     up_since = models.DateTimeField(db_column='upsince')
     up_to_date = models.BooleanField(db_column='uptodate')
     discovered = models.DateTimeField()
@@ -276,7 +274,6 @@ class Device(models.Model):
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
     software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
-    auto = models.BooleanField(default=False)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -500,7 +497,6 @@ class NetboxType(models.Model):
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    frequency = models.IntegerField()
     description = models.CharField(db_column='descr', max_length=-1)
 
     class Meta:
