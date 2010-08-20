@@ -139,7 +139,6 @@ CREATE TABLE type (
   tftp BOOL DEFAULT false,
   cs_at_vlan BOOL,
   chassis BOOL NOT NULL DEFAULT true,
-  frequency INT4,
   descr VARCHAR,
   UNIQUE (vendorid, typename),
   UNIQUE (sysObjectID)

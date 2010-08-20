@@ -497,7 +497,6 @@ class NetboxType(models.Model):
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    frequency = models.IntegerField()
     description = models.CharField(db_column='descr', max_length=-1)
 
     class Meta:
