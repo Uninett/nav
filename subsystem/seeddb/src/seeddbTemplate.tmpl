@@ -1071,7 +1071,7 @@ $control[2]
 #elif $control.type == 'textarea'
     <textarea name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</textarea>
 #elif $control.type == 'checkbox'
-#if $control.value == '1'
+#if $control.value
 ## VALUE is hardcoded to 1, which is good for boolean fields in the db
     <input type="checkbox" style="$style" name="$control.name" value="1" checked />
 #else
