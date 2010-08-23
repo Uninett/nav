@@ -22,118 +22,57 @@ from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix, Category
 from nav.models.service import Service
 
-class MoveWidget(forms.MultiWidget):
-    def __init__(self, attrs=None, choices=[]):
-        widgets = (
-            forms.CheckboxInput(attrs=attrs),
-            forms.Select(attrs=attrs, choices=choices),
-        )
-        super(MoveWidget, self).__init__(widgets, attrs)
-
-    def decompress(self, value):
-        if not value:
-            return [False, None]
-        else:
-            return [True, value]
-
-    def format_output(self, widgets):
-        return u'Do change %s and stuff %s' % (widgets[0], widgets[1])
-
-class HiddenMoveWidget(forms.MultiWidget):
-    def __init__(self, attrs=None, choices=[]):
-        widgets = (
-            forms.HiddenInput(attrs=attrs),
-            forms.HiddenInput(attrs=attrs),
-        )
-
-    def decompress(self, value):
-        if not value:
-            return [False, None]
-        else:
-            return [True, value]
-
-class MoveField(forms.MultiValueField):
-    hidden_widget = HiddenMoveWidget
-
-    def __init__(self, choices=None, *args, **kwargs):
-        empty_choice = [(u'', u'----------')]
-        widget_choices = empty_choice + [(option.pk, option) for option in choices]
-
-        widget = MoveWidget(attrs=None, choices=widget_choices)
-        fields = (
-            forms.BooleanField(),
-            forms.ModelChoiceField(choices),
-        )
-        super(MoveField, self).__init__(fields, widget=widget, *args, **kwargs)
-
-    def compress(self, data_list):
-        """Returns the selected value if the checbox is selected.
-        False if the checkbox is not selected.
-        """
-        edit_checkbox = data_list[0]
-        if edit_checkbox:
-            new_value = data_list[1]
-            # TODO
-            # Some fields can be NULL, some can not
-            return new_value
-        else:
-            return False
-
-    def clean(self, value):
-        cleaned = super(MoveField, self).clean(value)
-        if cleaned in ("", None):
-            raise forms.ValidationError(self.error_messages['required'])
-        return cleaned
-
-class RoomMoveForm(forms.Form):
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all())
-
-class NetboxMoveOperationForm(forms.Form):
-    room = forms.BooleanField(required=False)
-    organization = forms.BooleanField(required=False)
-
 class MoveOperationForm(forms.Form):
+    """Generates a form with checkboxes for each field in the supplied form.
+    """
     def __init__(self, *args, **kwargs):
         form = kwargs.pop('form', None)
+        hidden = kwargs.pop('hidden', False)
+
         super(MoveOperationForm, self).__init__(*args, **kwargs)
+
         fields = form.fields.keys()
         for field in fields:
-            self.fields[field] = forms.BooleanField(required=False)
+            key = 'operation_%s' % field
+            self.fields[key] = forms.BooleanField(required=False, label="Change %s" % field)
+            if hidden:
+                self.fields[key].widget = forms.HiddenInput()
 
-class NetboxMoveForm(forms.Form):
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all(), required=False)
-    organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
+    def clean(self):
+        clean = [key for key in self.cleaned_data if self.cleaned_data[key]]
+        if len(clean) == 0:
+            raise forms.ValidationError("You must select at least one foreign key to edit.")
+        return self.cleaned_data
 
-    def __init__(self, operation_form=None, *args, **kwargs):
-        super(NetboxMoveForm, self).__init__(*args, **kwargs)
+class MoveForm(forms.Form):
+    """Parent class for move forms.
 
-        if operation_form:
-            op_form_data = operation_form.cleaned_data
-            active_fields = [key for key in op_form_data if op_form_data[key]]
+    If a MoveOperationForm instance with cleaned data is passed in the
+    'operation_form' argument the resulting form will omitt the fields that was
+    not selected in the MoveOperationForm.
+    """
+    def __init__(self, *args, **kwargs):
+        op_form = None
+        if kwargs:
+            op_form = kwargs.pop('operation_form')
+        super(MoveForm, self).__init__(*args, **kwargs)
+        if op_form:
+            data = op_form.cleaned_data
+            active_fields = [key.split("_")[1] for key in data if data[key]]
             for key in self.fields:
                 if key not in active_fields:
                     del self.fields[key]
 
-#class NetboxMoveForm(forms.Form):
-#    room = MoveField(choices=Room.objects.order_by('id').all(), required=False)
-#    organization = MoveField(choices=Organization.objects.order_by('id').all(), required=False)
-
-#    def clean(self):
-#        data = self.cleaned_data
-#        if not data['room'] and data['room'] != False:
-#            raise forms.ValidationError("It's liek empty dood")
-#
-#        data = self.cleaned_data
-#        room = data['room']
-#        organization = data['organization']
-#
-#        if not room and not organization:
-#            raise forms.ValidationError("Organiztion and/or room must be selected.")
-#        return data
-
-class OrganizationMoveForm(forms.Form):
-    parent = forms.ModelChoiceField(
+class NetboxMoveForm(MoveForm):
+    room = forms.ModelChoiceField(
+        Room.objects.order_by('id').all())
+    organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all())
+
+class RoomMoveForm(MoveForm):
+    location = forms.ModelChoiceField(
+        Location.objects.order_by('id').all())
+
+class OrganizationMoveForm(MoveForm):
+    parent = forms.ModelChoiceField(
+        Organization.objects.order_by('id').all(), required=False)

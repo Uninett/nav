@@ -49,44 +49,56 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
     except ValueError:
         step = 0
 
-    if step > 0:
-        op_form = MoveOperationForm(request.POST, form=form_model())
-        if not op_form.is_valid():
-            form = op_form
-            step = 0
+    form = ''
+    op_form = ''
+    if step == 0:
+        op_form = MoveOperationForm(form=form_model(), hidden=False)
+        step = 1
     else:
-        form = MoveOperationForm(form=form_model())
+        op_form = MoveOperationForm(request.POST, form=form_model(), hidden=True)
+        if not op_form.is_valid():
+            # Since the MoveOperationForm instance was made with hidden=True we
+            # need to make it again (and validate it) if there was a error,
+            # with hidden=False this time.
+            op_form = MoveOperationForm(request.POST, form=form_model(), hidden=False)
+            op_form.is_valid()
+            step = 1
+        else:
+            if step == 1:
+                form = form_model(operation_form=op_form)
+                step = 2
+            elif step == 2:
+                form = form_model(request.POST, operation_form=op_form)
+                if form.is_valid():
+                    data = form.cleaned_data
+                    confirm = True
+                    step = 3
+            elif step == 3:
+                form = form_model(request.POST, operation_form=op_form)
+                op_form_data = op_form.cleaned_data
+                if form.is_valid():
+                    data = dict([(key, value) for key, value in form.cleaned_data.items()])
+                    objects.update(**data)
+                    new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
+                    return HttpResponseRedirect(reverse(redirect))
 
-    if step == 1:
-        form = form_model(operation_form=op_form)
-    elif step == 2:
-        form = form_model(request.POST, operation_form=op_form)
-        if form.is_valid():
-            data = form.cleaned_data
-            confirm = True
-    elif step == 3:
-        form = form_model(request.POST)
-        if form.is_valid():
-            # Filter out empty choices.
-            raise Exception(form.cleaned_data)
-            data = dict([(key, value) for key, value in form.cleaned_data.items() if value != False])
-            objects.update(**data)
-            new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
-            return HttpResponseRedirect(reverse(redirect))
-
-    fields = form.fields.keys()
+    if form:
+        fields = form.fields.keys()
+    else:
+        fields = form_model().fields.keys()
     values = objects.values('pk', title_attr, *fields)
     object_list = _process_values(values, data, title_attr, fields)
 
     context = {
         'form': form,
+        'operation_form': op_form,
         'objects': objects,
         'values': object_list,
         'data': data,
         'confirm': confirm,
         'active': {'list': True},
         'title': 'Move %s' % verbose_name,
-        'step': step + 1,
+        'step': step,
     }
     extra_context.update(context)
     return render_to_response('seeddb/move.html',
