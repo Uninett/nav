@@ -1,0 +1,60 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<table class="listtable">
+    <tbody>
+        <tr>
+            <th>IP</th>
+            <td>{{ data.ip }}</td>
+        </tr>
+        <tr>
+            <th>Sysname</th>
+            <td>{{ data.sysname }}</td>
+        </tr>
+        <tr>
+            <th>Category</th>
+            <td>{{ data.category }}</td>
+        </tr>
+        <tr>
+            <th>Organization</th>
+            <td>{{ data.organization }}</td>
+        </tr>
+        <tr>
+            <th>Room</th>
+            <td>{{ data.room }}</td>
+        </tr>
+        <tr>
+            <th>Read only / read write</th>
+            <td>{{ data.read_only }} {{ data.read_write }}</td>
+        </tr>
+        <tr>
+            <th>Device serial</th>
+            <td>{{ data.serial }}</td>
+        </tr>
+        <tr>
+            <th>SNMP version</th>
+            <td>{{ data.snmp_version }}</td>
+        </tr>
+    {{ hidden_form }}
+    </tbody>
+</table>
+<form action="" method="post">
+    <table class="listtable">
+    {% if object %}
+    <caption>
+        {{ object.id }}
+    </caption>
+    {% endif %}
+    {{ form.as_table }}
+    {% if hidden_form %}
+    {% endif %}
+    <tr>
+        <th></th>
+        <td>
+            <input type="hidden" name="step" value="{{ step }}" />
+            <input type="submit" value="Save" />
+        </td>
+    </tr>
+    </table>
+</form>
+{% endblock %}
