@@ -15,6 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from IPy import IP
+from socket import gethostbyaddr, gethostbyname
+
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
@@ -24,18 +27,21 @@ from django.http import HttpResponseRedirect, Http404
 from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.service import Service
+from nav.models.oid import SnmpOid
+from nav.Snmp import Snmp, SnmpError
 
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm, \
     UsageForm, NetboxTypeForm, VendorForm, SubcategoryForm, PrefixForm, \
-    CablingForm, PatchForm
+    CablingForm, PatchForm, NetboxSysnameForm, NetboxMetaForm, \
+    NetboxHiddenForm, NetboxStep1, NetboxStep2, NetboxStep3
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
-def netbox_sysname(form):
+def ip_and_sysname(form):
     try:
         ip = IP(form.cleaned_data['name'])
     except ValueError:
@@ -46,7 +52,7 @@ def netbox_sysname(form):
     return (ip, sysname)
 
 def snmp_type(ip, ro, snmp_version):
-    snmp = Snmp(unicode(ip), ro, snmp_version)
+    snmp = Snmp(ip, ro, snmp_version)
     try:
         sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
     except SnmpError:
@@ -56,11 +62,11 @@ def snmp_type(ip, ro, snmp_version):
         type = NetboxType.objects.get(sysobjectid=sysobjectid)
         return type.id
     except NetboxType.DoesNotExist:
-        return None 
+        return None
 
 def snmp_serials(ip, ro, snmp_version):
     snmp = Snmp(ip, ro, snmp_version)
-    oids = SnmpOid.objects.filter(oid_key__icontains='serial').values('snmp_oid', 'get_next')
+    oids = SnmpOid.objects.filter(oid_key__icontains='serial').values_list('snmp_oid', 'get_next')
     serials = []
     for (oid, get_next) in oids:
         try:
@@ -80,30 +86,75 @@ def netbox_edit(request, netbox_sysname=None):
     if netbox_sysname:
         netbox = Netbox.objects.get(sysname=netbox_sysname)
 
+    try:
+        step = int(request.POST.get('step', '0'))
+    except ValueError:
+        step = 0
+
+    form_data = {}
+    netbox = None
+    hidden_form = None
     if request.method == 'POST':
-        step = int(request.POST.get('step'))
-        if step == 0:
-            form = NetboxSysnameForm(request.POST)
+        if step == 1:
+            form = NetboxStep1(request.POST)
             if form.is_valid():
-                (ip, sysname) = netbox_sysname(form)
+                ip = form.ip
+                sysname = form.sysname
+                form_data = {
+                    'ip': unicode(ip),
+                    'sysname': sysname,
+                }
+                form = NetboxStep2(initial=form_data)
+                step = 2
+        elif step == 2:
+            form = NetboxStep2(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                serial = None
+                type = None
                 if form.snmp_version:
-                    ro = form.cleaned_data.get('read_only')
+                    ip = data.get('ip')
+                    ro = data.get('read_only')
                     type = snmp_type(ip, ro, form.snmp_version)
                     serials = snmp_serials(ip, ro, form.snmp_version)
                     serial = None
                     if serials:
                         serial = serials[0]
-                    raise Exception(serial)
+                form_data = data
+                form_data['room'] = data['room'].pk
+                form_data['category'] = data['category'].pk
+                form_data['organization'] = data['organization'].pk
+                form_data['serial'] = serial
+                form_data['type'] = type
+                form_data['snmp_version'] = form.snmp_version[0]
+                form = NetboxStep3(initial=form_data)
+                if serial and type:
+                    form.is_valid()
+                step = 3
+        elif step == 3:
+            form = NetboxStep3(request.POST)
+            if form.is_valid():
+                form_data = form.cleaned_data
+                device, created = Device.objects.get_or_create(serial=form_data['serial'])
+                netbox = form.save(commit=False)
+                netbox.device = device
+                netbox.save()
+                form.save_m2m()
+                new_message(request._req, "Hello", Messages.SUCCESS)
     else:
-        form = NetboxSysnameForm()
+        form = NetboxStep1()
+        step = 1
 
     context = {
+        'step': step,
+        'data': form_data,
         'object': netbox,
         'form': form,
+        'hidden_form': hidden_form,
         'active': {'add': True},
         'tab_template': 'seeddb/tabs_netbox.html',
     }
-    return render_to_response('seeddb/edit.html',
+    return render_to_response('seeddb/netbox_wizard.html',
         context, RequestContext(request))
 
 def service_edit(request, service_id=None):
