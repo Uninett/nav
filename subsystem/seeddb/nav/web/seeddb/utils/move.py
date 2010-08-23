@@ -23,6 +23,7 @@ from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
+from nav.web.seeddb.forms.move import MoveOperationForm
 
 def group_query(qs, identifier):
     objects = {}
@@ -43,22 +44,35 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
     confirm = False
     verbose_name = model._meta.verbose_name
     objects = model.objects.filter(id__in=request.POST.getlist('object'))
+    try:
+        step = int(request.POST.get('step', '0'))
+    except ValueError:
+        step = 0
 
-    if request.POST.get('preview'):
-        form = form_model(request.POST)
+    if step > 0:
+        op_form = MoveOperationForm(request.POST, form=form_model())
+        if not op_form.is_valid():
+            form = op_form
+            step = 0
+    else:
+        form = MoveOperationForm(form=form_model())
+
+    if step == 1:
+        form = form_model(operation_form=op_form)
+    elif step == 2:
+        form = form_model(request.POST, operation_form=op_form)
         if form.is_valid():
             data = form.cleaned_data
             confirm = True
-    elif request.POST.get('save'):
+    elif step == 3:
         form = form_model(request.POST)
         if form.is_valid():
             # Filter out empty choices.
-            data = dict([(key, value) for key, value in form.cleaned_data.items() if value])
+            raise Exception(form.cleaned_data)
+            data = dict([(key, value) for key, value in form.cleaned_data.items() if value != False])
             objects.update(**data)
             new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect))
-    else:
-        form = form_model()
 
     fields = form.fields.keys()
     values = objects.values('pk', title_attr, *fields)
@@ -72,6 +86,7 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
         'confirm': confirm,
         'active': {'list': True},
         'title': 'Move %s' % verbose_name,
+        'step': step + 1,
     }
     extra_context.update(context)
     return render_to_response('seeddb/move.html',
