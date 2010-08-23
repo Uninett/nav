@@ -107,23 +107,23 @@ class Netbox(models.Model):
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
-    type = models.ForeignKey('NetboxType', db_column='typeid', null=True)
+    type = models.ForeignKey('NetboxType', db_column='typeid', blank=True, null=True)
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
     subcategories = models.ManyToManyField('Subcategory',
         through='NetboxCategory')
     organization = models.ForeignKey('Organization', db_column='orgid')
-    read_only = VarcharField(db_column='ro')
-    read_write = VarcharField(db_column='rw')
-    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
+    read_only = VarcharField(db_column='ro', blank=True, null=True)
+    read_write = VarcharField(db_column='rw', blank=True, null=True)
+    prefix = models.ForeignKey('Prefix', db_column='prefixid', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
     # TODO: Probably deprecated. Check and remove.
     #snmp_agent = models.CharField(max_length=-1)
-    up_since = models.DateTimeField(db_column='upsince')
-    up_to_date = models.BooleanField(db_column='uptodate')
-    discovered = models.DateTimeField()
+    up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
+    up_to_date = models.BooleanField(db_column='uptodate', default=False)
+    discovered = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'netbox'
