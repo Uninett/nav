@@ -423,7 +423,7 @@ class Vlan(Shadow):
         if prefix_containers:
             prefix = IPy.IP(prefix_containers[0].net_address)
         else:
-            return None
+            return NetType.get('unknown')
 
         net_type = 'lan'
         # Get the number of router ports attached to this prefix
