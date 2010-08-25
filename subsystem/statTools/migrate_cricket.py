@@ -11,6 +11,7 @@ from os.path import join, abspath
 import nav.path
 from nav.rrd.rrdtool_utils import edit_datasource
 from nav.db import getConnection
+from nav.mcc.utils import get_configroot
 
 def main(configfile):
 
@@ -28,9 +29,12 @@ def main(configfile):
 # Search default files for targettypes which contain temperature oids and
 # remove the datasources from the rrd-files
 #===============================================================================
-    configdir = get_configroot(configfile)
-    if not configdir:
-        print "Could not get cricket-config path from %s" % configfile
+    try:
+        configdir = get_configroot(configfile)
+        if not configdir:
+            raise Exception("Config variable appears empty")
+    except Exception, e:
+        print "Could not get cricket-config path from %s: %s" % (configfile, e)
         sys.exit(1)
     datadir = get_datadir(configdir)
     if not datadir:
@@ -113,27 +117,6 @@ def remove_tempoids(tempoids, dir):
                 print e
                 continue 
     
-def get_configroot(configfile):
-    """ Get path for configroot from cricket-conf.pl """
-    comment = re.compile('#')
-    match = re.compile('gconfigroot\s*=\s*"(.*)"', re.I)
-
-    try:
-        f = open(configfile, 'r')
-    except Exception, e:
-        print "Could not find cricket-conf.pl: %s" % e
-        sys.exit(1)
-    
-    for line in f:
-        if comment.match(line):
-            continue
-        m = match.search(line)
-        if m:
-            #print "Found configroot to be %s" % m.groups()[0]
-            return m.groups()[0]
-
-    return False
-
 def get_datadir(path):
     """
     The datadir contains information about where the rrd-files are stored. This
