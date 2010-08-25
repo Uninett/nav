@@ -7,6 +7,7 @@ from os.path import join
 
 from nav import path
 from nav.models.oid import SnmpOid
+from nav.mcc.utils import get_configroot
 
 DIRS = ['routers', 'switches'] # What directories to parse
 
@@ -97,19 +98,12 @@ if __name__ == '__main__':
 
     # Find cricket-config directory
     try: 
-        f = open(configfile, 'r')
-    except Exception, e:
+        configpath = get_configroot(configfile)
+    except IOError, e:
         print "Could not open Cricket config file: %s" % e
         sys.exit(1)
-
-    c = re.compile('^\s*\\$gConfigRoot\s*=\s*\"(.*)\"', re.I)
-    configpath = False
-    for line in f.readlines():
-        m = c.search(line)
-        if m:
-            configpath = m.groups()[0]
-            print "Setting cricket config path to %s" % configpath
-            break
+    else:
+        print "Setting cricket config path to %s" % configpath
 
     if not configpath:
         print "Could not find cricket's configpath"
