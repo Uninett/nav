@@ -135,7 +135,7 @@ class NetboxScheduler(object):
             self.loop.call.reset(delay)
 
     def _log_unhandled_error(self, failure, job_handler):
-        self.logger.exception(
+        self.logger.error(
             "Unhandled exception raised by JobHandler: %s\n%s",
             failure.getErrorMessage(),
             failure.getTraceback()

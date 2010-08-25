@@ -126,7 +126,6 @@ CREATE TABLE device (
   hw_ver VARCHAR,
   fw_ver VARCHAR,
   sw_ver VARCHAR,
-  auto BOOLEAN NOT NULL DEFAULT false,
   discovered TIMESTAMP NULL DEFAULT NOW(),
   UNIQUE(serial)
 );
@@ -140,7 +139,6 @@ CREATE TABLE type (
   tftp BOOL DEFAULT false,
   cs_at_vlan BOOL,
   chassis BOOL NOT NULL DEFAULT true,
-  frequency INT4,
   descr VARCHAR,
   UNIQUE (vendorid, typename),
   UNIQUE (sysObjectID)
@@ -170,14 +168,12 @@ CREATE TABLE netbox (
   deviceid INT4 NOT NULL CONSTRAINT netbox_deviceid_fkey REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   sysname VARCHAR UNIQUE,
   catid VARCHAR(8) NOT NULL CONSTRAINT netbox_catid_fkey REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
-  subcat VARCHAR,
   orgid VARCHAR(30) NOT NULL CONSTRAINT netbox_orgid_fkey REFERENCES org ON UPDATE CASCADE,
   ro VARCHAR,
   rw VARCHAR,
   prefixid INT4 CONSTRAINT netbox_prefixid_fkey REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 1,
-  snmp_agent VARCHAR,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
   uptodate BOOLEAN NOT NULL DEFAULT false, 
   discovered TIMESTAMP NULL DEFAULT NOW(),

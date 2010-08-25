@@ -79,7 +79,9 @@ specific procedure before attempting to start NAV 3.6:
    and pointing to the directory where the RRD files are stored.
 
 7. Run `extract_cricket_oids.py`.  This extracts OIDs from the cricket
-   configuration tree and inserts them into NAV's OID registry.
+   configuration tree and inserts them into NAV's OID registry.  If it
+   complains about being unable to find `cricket-conf.pl`, please configure its
+   location in `mcc.conf`.
 
 You can now run `mcc.py` to create the new Cricket configuration from your
 database contents.

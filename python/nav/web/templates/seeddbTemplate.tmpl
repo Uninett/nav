@@ -756,30 +756,22 @@ $hiddenfields($editbox.hiddenFields)
 #set $fields = $editbox.fields
     <table class="header-active" width="60%">
         <tr>
-            <th colspan="3" width="30%">$heading($fields['typename'])</th>
+            <th colspan="2" width="30%">$heading($fields['typename'])</th>
             <th>$heading($fields['descr'])</th>
         </tr>
         <tr>
-            <td colspan="3">$input($fields['typename'],'width: 100%;')</td>
+            <td colspan="2">$input($fields['typename'],'width: 100%;')</td>
             <td>$input($fields['descr'],'width: 100%;')</td>
         <tr>
-            <th colspan="3">$heading($fields['vendorid'])</th>
+            <th colspan="2">$heading($fields['vendorid'])</th>
             <th>$heading($fields['sysobjectid'])</th>
         </tr>
-            <td colspan="3">$input($fields['vendorid'],'width: 100%;')</td>
+            <td colspan="2">$input($fields['vendorid'],'width: 100%;')</td>
             <td>$input($fields['sysobjectid'],'width: 100%')</td>
         </tr>
         <tr>
-            <th>$heading($fields['cdp'])</th>
-            <th>$heading($fields['tftp'])</th>
-            <th>$heading($fields['frequency'])</th>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td align="center">$input($fields['cdp'])</td>
-            <td align="center">$input($fields['tftp'])</td>
-            <td>$input($fields['frequency'])</td>
-            <td>&nbsp;</td>
+            <td>$input($fields['cdp']) $heading($fields['cdp'])</td>
+            <td>$input($fields['tftp']) $heading($fields['tftp'])</td>
         </tr>
 </table>
 #end def
@@ -1071,7 +1063,7 @@ $control[2]
 #elif $control.type == 'textarea'
     <textarea name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</textarea>
 #elif $control.type == 'checkbox'
-#if $control.value == '1'
+#if $control.value
 ## VALUE is hardcoded to 1, which is good for boolean fields in the db
     <input type="checkbox" style="$style" name="$control.name" value="1" checked />
 #else

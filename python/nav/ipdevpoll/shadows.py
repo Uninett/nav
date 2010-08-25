@@ -407,6 +407,12 @@ class Vlan(Shadow):
             if vlan.vlan is None or vlan.vlan == self.vlan:
                 return vlan
 
+    def _log_if_multiple_prefixes(self, prefix_containers):
+        if len(prefix_containers) > 1:
+            self._logger.debug("multiple prefixes for %r: %r",
+                self, [p.net_address for p in prefix_containers])
+
+
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
 
@@ -419,11 +425,12 @@ class Vlan(Shadow):
 
         """
         prefix_containers = self._get_my_prefixes(containers)
+        self._log_if_multiple_prefixes(prefix_containers)
         # ATM we only look at the first prefix we can find.
         if prefix_containers:
             prefix = IPy.IP(prefix_containers[0].net_address)
         else:
-            return None
+            return NetType.get('unknown')
 
         net_type = 'lan'
         # Get the number of router ports attached to this prefix
