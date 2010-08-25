@@ -86,21 +86,21 @@ if __name__ == '__main__':
         config.readfp(open(mcc_configfile, 'r'))
     except Exception, e:
         print "Could not find %s: %s" % (configfile, e)
-        sys.exit()
+        sys.exit(1)
 
     # Locate path to cricket config file in the mcc config file
     try:
         configfile = config.get('mcc', 'configfile')
     except Exception, e:
         print "Could not find Cricket config file: %s" % e
-        sys.exit()
+        sys.exit(1)
 
     # Find cricket-config directory
     try: 
         f = open(configfile, 'r')
     except Exception, e:
         print "Could not open Cricket config file: %s" % e
-        sys.exit()
+        sys.exit(1)
 
     c = re.compile('^\s*\\$gConfigRoot\s*=\s*\"(.*)\"', re.I)
     configpath = False
@@ -112,7 +112,7 @@ if __name__ == '__main__':
             break
 
     if not configpath:
-        print "Could not find crickets configpath"
-        sys.exit()
+        print "Could not find cricket's configpath"
+        sys.exit(1)
 
     main(configpath)
