@@ -73,17 +73,20 @@
 #if $adv_block>0
     $advBlock
 #else
+#filter WebSafe
 <div id="advlink">
     <p><a id="advBlockOpen" href="${old_uri}adv=1">Advanced Options</a></p>
 </div>
+#end filter
 #end if
 
 ## Advanced Option block start
 <div id="advblock" style="display: none">
 #block advBlock
+    #filter WebSafe
     <p><a id="advBlockClose" href="${old_uri}adv=">Close Advanced Options</a></p>
     <h3>Advanced Search</h3>
-
+    #end filter
     ## Advanced search box
     <form action="" method="get">
         <input id="adv" type="hidden" name="adv" value="1"/>
@@ -182,7 +185,7 @@
     #set $columncount = len($report.table.header.cells)
 
 <table class="listtable reporttable float-clear">
-
+#filter WebSafe
 ## --- TITLE ROW ---- ##
     <caption>
 
@@ -307,6 +310,7 @@
 </table>
 
 <p>Result generated $result_time</p>
+#end filter
 
 #else
 
