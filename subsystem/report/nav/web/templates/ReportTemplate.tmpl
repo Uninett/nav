@@ -231,6 +231,51 @@
     </thead>
     #end if
 
+## --- FOOTER ---- ##
+    <tfoot>
+    #if $report.table.footer.cells
+        ## FIXME unused variable?
+        #set $cols = len($report.table.header.cells)
+
+        <tr class="tablesum">
+
+        #for $cell in $report.table.footer.cells
+
+            <th>$cell.sum</th>
+
+        #end for
+
+        </tr>
+
+    #end if
+
+## --- FOOTER NAVIGATION ---- ##
+        <tr>
+            ## FIXME colspan=0?!
+            <th colspan="0">
+
+    #if $report.navigator.previous
+
+                <span class="previous">
+                    <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
+                </span>
+
+    #end if
+
+                <span>$report.navigator.view</span>
+
+    #if $report.navigator.next
+
+                <span class="next">
+                    <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
+                </span>
+
+    #end if
+
+            </th>
+        </tr>
+    </tfoot>
+
 ## --- DATA ROWS ---- ##
     #if $report.table.rows
     <tbody>
@@ -262,51 +307,6 @@
     </tbody>
     #end if
 
-## --- FOOTER ---- ##
-    #if $report.table.footer.cells
-        ## FIXME unused variable?
-        #set $cols = len($report.table.header.cells)
-
-        <tr class="tablesum">
-
-        #for $cell in $report.table.footer.cells
-
-            <th>$cell.sum</th>
-
-        #end for
-
-        </tr>
-
-    #end if
-
-## --- FOOTER NAVIGATION ---- ##
-## FIXME Use tfoot?
-    <tbody class="footer">
-        <tr>
-            ## FIXME colspan=0?!
-            <th colspan="0">
-
-    #if $report.navigator.previous
-
-                <span class="previous">
-                    <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
-                </span>
-
-    #end if
-
-                <span>$report.navigator.view</span>
-
-    #if $report.navigator.next
-
-                <span class="next">
-                    <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
-                </span>
-
-    #end if
-
-            </th>
-        </tr>
-    </tbody>
 </table>
 
 <p>Result generated $result_time</p>
