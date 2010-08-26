@@ -1,3 +1,28 @@
+Version 3.6.0b5
+(released 26 August 2010)
+
+ Features:
+
+  * ipdevpoll:
+    - properly handle IP device type changes.
+    - improved vlan/prefix handling.
+    - no longer idles forever inside database transactions.
+
+ Bugfixes:
+
+  * LP#562242 (Prefix matrix crashes when viewing IPv6 scope)
+  * LP#595796 (csv export does not work)
+  * LP#596863 (remove deprecated database table fields)
+  * LP#601001 (prefix report from IP address scope breaks)
+  * LP#603585 (Link to machine tracker from ipdevinfo missing)
+  * LP#623826 (extract_cricket_oids crashes on parsing cricket-conf.pl)
+
+  * Checkboxes in seeddb interface would never be checked as they should be on
+    page loads.
+  * After having introduced continuous integration into our workflow, many
+    small problems have been detected and fixed.
+
+
 Version 3.6.0b4
 (released 08 July 2010)
 
