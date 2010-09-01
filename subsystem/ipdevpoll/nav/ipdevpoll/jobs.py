@@ -261,21 +261,22 @@ class JobHandler(object):
         @transaction.commit_manually
         def complete_save_cycle():
             try:
-                # Prepare all shadow objects for storage.
-                self.prepare_containers_for_save()
-                # Traverse all the objects in the storage container and generate
-                # the storage queue
-                self.populate_storage_queue()
-                # Actually save to the database
-                result = self.perform_save()
-                self.log_timed_result(result, "Storing to database complete")
-                # Do cleanup for the known container classes.
-                self.cleanup_containers_after_save()
-            except:
-                transaction.rollback()
-                raise
-            else:
-                transaction.commit()
+                try:
+                    # Prepare all shadow objects for storage.
+                    self.prepare_containers_for_save()
+                    # Traverse all the objects in the storage container and generate
+                    # the storage queue
+                    self.populate_storage_queue()
+                    # Actually save to the database
+                    result = self.perform_save()
+                    self.log_timed_result(result, "Storing to database complete")
+                    # Do cleanup for the known container classes.
+                    self.cleanup_containers_after_save()
+                except:
+                    transaction.rollback()
+                    raise
+                else:
+                    transaction.commit()
             finally:
                 django_debug_cleanup()
 
