@@ -26,7 +26,6 @@ import datetime
 import IPy
 
 from django.db.models import Q
-from django.db import transaction
 
 from nav.models import manage, oid
 from storage import Shadow
@@ -66,7 +65,7 @@ class Netbox(Shadow):
                     self.device.serial = None
 
     @classmethod
-    @transaction.commit_manually
+    @utils.commit_on_success
     def cleanup_replaced_netbox(cls, netbox_id, new_type):
         """Removes basic inventory knowledge for a netbox.
 
@@ -81,27 +80,19 @@ class Netbox(Shadow):
                         type.
 
         """
-        try:
-            type_ = new_type.convert_to_model()
-            if type_:
-                type_.save()
+        type_ = new_type.convert_to_model()
+        if type_:
+            type_.save()
 
-            netbox = manage.Netbox.objects.get(id=netbox_id)
-            cls._logger.warn("Removing stored inventory info for %s",
-                             netbox.sysname)
-            netbox.type = type_
-            netbox.up_to_date = False
-            netbox.save()
+        netbox = manage.Netbox.objects.get(id=netbox_id)
+        cls._logger.warn("Removing stored inventory info for %s",
+                         netbox.sysname)
+        netbox.type = type_
+        netbox.up_to_date = False
+        netbox.save()
 
-            netbox.module_set.all().delete()
-            netbox.interface_set.all().delete()
-        except:
-            cls._logger.exception("cleanup_replaced_netbox: unhandled "
-                                  "exception")
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
+        netbox.module_set.all().delete()
+        netbox.interface_set.all().delete()
 
 
 class NetboxType(Shadow):
