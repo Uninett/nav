@@ -37,7 +37,7 @@ ports = round_robin([snmpprotocol.port() for i in range(10)])
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
     def __init__(self, msg, cause=None):
-        super(AbortedJobError, self).__init__(msg, cause )
+        Exception.__init__(self, msg, cause)
         self.cause = cause
 
 
