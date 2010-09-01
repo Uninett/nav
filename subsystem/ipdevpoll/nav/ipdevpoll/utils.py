@@ -131,3 +131,16 @@ def commit_on_success(func):
             transaction.leave_transaction_management()
     return wraps(func)(_commit_on_success)
 
+def cleanup_django_debug_after(func):
+    """Decorates func such that django_debug_cleanup is run after func.
+
+    Even if func raises an exception, the cleanup will be run.
+
+    """
+    def _cleanup(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            django_debug_cleanup()
+    return wraps(func)(_cleanup)
+
