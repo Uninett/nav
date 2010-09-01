@@ -18,10 +18,12 @@
 
 import logging
 import gc
+from functools import wraps
 
 from IPy import IP
 
 import django.db
+from django.db import transaction
 from django.conf import settings
 
 _logger = logging.getLogger(__name__)
@@ -93,4 +95,39 @@ def django_debug_cleanup():
         django.db.reset_queries()
         gc.collect()
 
+def commit_on_success(func):
+    """Decorates func such that the current Django transaction is committed on
+    successful return.
+
+    If func raises an exception, the current transaction is rolled back.
+
+    Why don't we use django.db.transaction.commit_on_success()? Because it does
+    not commit or rollback unless Django actually tried to change something in
+    the database. It was designed with short-lived web request cycles in mind.
+    This gives us two problems:
+
+    1. If the transaction consisted of read-only operations, the connection
+       will stay idle inside a transaction, and that's bad.
+
+    2. If a database error occurred inside a transaction, the connection would
+       be useless until the transaction is rolled back.  Any further attempts
+       to use the same connection will result in more errors, and a long-lived
+       process will keep spewing error messages.
+
+    """
+    def _commit_on_success(*args, **kwargs):
+        try:
+            transaction.enter_transaction_management()
+            transaction.managed(True)
+            try:
+                result = func(*args, **kwargs)
+            except:
+                transaction.rollback()
+                raise
+            else:
+                transaction.commit()
+            return result
+        finally:
+            transaction.leave_transaction_management()
+    return wraps(func)(_commit_on_success)
 
