@@ -307,11 +307,11 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
-        ordering = ('netbox', 'module_number')
-        unique_together = (('netbox', 'module_number'),)
+        ordering = ('netbox', 'module_number', 'name')
+        unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'%d, at %s' % (self.module_number, self.netbox)
+        return u'%d, at %s' % (self.name or self.module_number, self.netbox)
 
     def get_absolute_url(self):
         kwargs={
