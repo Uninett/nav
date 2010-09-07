@@ -356,7 +356,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def module_details(request, netbox_sysname, module_number):
+def module_details(request, netbox_sysname, module_name):
     """Show detailed view of one IP device module"""
 
     def get_module_view(module_object, perspective, activity_interval=None):
@@ -406,7 +406,7 @@ def module_details(request, netbox_sysname, module_number):
             initial={'interval': activity_interval})
 
     module = get_object_or_404(Module.objects.select_related(depth=1),
-        netbox__sysname=netbox_sysname, module_number=module_number)
+        netbox__sysname=netbox_sysname, name=module_name)
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
         module, 'swportactive', activity_interval)
