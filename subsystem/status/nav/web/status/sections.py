@@ -480,7 +480,7 @@ class ModuleSection(_Section):
                     module.module_number,
                     reverse('ipdevinfo-module-details', args=[
                         module.netbox.sysname,
-                        module.module_number
+                        module.name,
                     ])
                 ),
                 (module.start_time, None),

@@ -316,7 +316,7 @@ class Module(models.Model):
     def get_absolute_url(self):
         kwargs={
             'netbox_sysname': self.netbox.sysname,
-            'module_number': self.module_number,
+            'module_name': self.name,
         }
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
