@@ -4419,12 +4419,11 @@ class pageType(seeddbPage):
                                       ('Typename',True,None),
                                       ('Description',True,None),
                                       ('Sysobjectid',True,None),
-                                      ('Frequency',True,None),
                                       ('cdp',True,None),
                                       ('tftp',True,None)]
 
             self.cellDefinition = [(('typeid,vendorid,typename,descr,' +\
-                                     'sysobjectid,frequency,' +\
+                                     'sysobjectid, ' +\
                                      'CASE WHEN cdp THEN \'yes\' ' +\
                                      'ELSE \'no\' END,' +\
                                      'CASE WHEN tftp THEN \'yes\' ' +\
@@ -4439,8 +4438,7 @@ class pageType(seeddbPage):
                                      (3,None,None,None,None),
                                      (4,None,None,None,None),
                                      (5,None,None,None,None),
-                                     (6,None,None,None,None),
-                                     (7,None,None,None,None)])]
+                                     (6,None,None,None,None)])]
 
     class editbox(editbox):
         """ Describes fields for adding and editing type entries.
@@ -4458,9 +4456,7 @@ class pageType(seeddbPage):
                                  FIELD_STRING],
                  'cdp': [inputCheckbox(),REQ_NONEMPTY,'cdp',FIELD_STRING],
                  'tftp': [inputCheckbox(),REQ_NONEMPTY,'tftp',FIELD_STRING],
-                 'frequency': [inputText(),REQ_NONEMPTY,'frequency',
-                               FIELD_INTEGER]}
-
+                }
             self.fields = f
             self.setControlNames()
 
@@ -5610,7 +5606,7 @@ class bulkdefType:
 
     process = True
     onlyProcess = False
-    syntax = '#vendorid:typename:sysoid[:description:frequency:cdp=(yes|no)' +\
+    syntax = '#vendorid:typename:sysoid[:description:cdp=(yes|no)' +\
              ':tftp=(yes|no)]\n'
 
     postCheck = False
@@ -5620,7 +5616,6 @@ class bulkdefType:
               ('typename',0,True,True),
               ('sysobjectid',0,True,True),
               ('descr',0,False,True),
-              ('frequency',0,False,True),
               ('cdp',0,False,True),
               ('tftp',0,False,True)]
 

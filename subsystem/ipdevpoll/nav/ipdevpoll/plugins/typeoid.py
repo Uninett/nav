@@ -24,7 +24,7 @@ netbox.
 from twisted.internet import threads
 
 from nav.ipdevpoll import Plugin, storage, shadows, signals
-from nav.ipdevpoll.models import OID
+from pysnmp.asn1.oid import OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
 

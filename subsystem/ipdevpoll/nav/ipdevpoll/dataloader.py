@@ -41,7 +41,7 @@ from django.db import transaction
 from nav.models import manage
 from nav import ipdevpoll
 import storage
-
+from utils import django_debug_cleanup
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
@@ -80,8 +80,7 @@ class NetboxLoader(dict):
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 
-        import schedule
-        schedule.django_debug_cleanup()
+        django_debug_cleanup()
 
         previous_ids = set(self.keys())
         current_ids = set(netbox_dict.keys())

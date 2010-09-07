@@ -59,33 +59,6 @@ ADM_STATUS_CHOICES = (
 
 
 #######################################################################
-### Model helper functions
-
-def to_ifname_style(interface):
-    """Filter interface names from ifDescr to ifName style"""
-
-    if not interface:
-        return interface
-
-    filters = (
-        ('Vlan', 'Vl'),
-        ('TenGigabitEthernet', 'Te'),
-        ('GigabitEthernet', 'Gi'),
-        ('FastEthernet', 'Fa'),
-        ('Ethernet', 'Et'),
-        ('Loopback', 'Lo'),
-        ('Tunnel', 'Tun'),
-        ('Serial', 'Se'),
-        ('Dialer', 'Di'),
-        ('-802.1Q vLAN subif', ''),
-        ('-ISL vLAN subif', ''),
-        ('-aal5 layer', ''),
-    )
-    for old, new in filters:
-        interface = interface.replace(old, new)
-    return interface
-
-#######################################################################
 ### Netbox-related models
 
 class Netbox(models.Model):
@@ -119,8 +92,6 @@ class Netbox(models.Model):
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
-    # TODO: Probably deprecated. Check and remove.
-    #snmp_agent = models.CharField(max_length=-1)
     up_since = models.DateTimeField(db_column='upsince')
     up_to_date = models.BooleanField(db_column='uptodate')
     discovered = models.DateTimeField()
@@ -158,7 +129,7 @@ class Netbox(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -171,7 +142,7 @@ class Netbox(models.Model):
         """Returns swports naturally sorted by interface name"""
 
         ports = self.get_swports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -303,7 +274,6 @@ class Device(models.Model):
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
     software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
-    auto = models.BooleanField(default=False)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -358,7 +328,7 @@ class Module(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -371,7 +341,7 @@ class Module(models.Model):
         """Returns swports naturally sorted by interface name"""
 
         ports = self.get_swports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -527,7 +497,6 @@ class NetboxType(models.Model):
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    frequency = models.IntegerField()
     description = models.CharField(db_column='descr', max_length=-1)
 
     class Meta:
@@ -837,7 +806,7 @@ class Interface(models.Model):
         ordering = ('baseport', 'ifname')
 
     def __unicode__(self):
-        return u'%s at %s' % (self.get_identifier_string(), self.netbox)
+        return u'%s at %s' % (self.ifname, self.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -845,17 +814,6 @@ class Interface(models.Model):
             'port_id': self.id,
         }
         return reverse('ipdevinfo-interface-details', kwargs=kwargs)
-
-    def get_interface_display(self):
-        return self.ifname
-
-    def get_identifier_string(self):
-        if self.get_interface_display() is not None:
-            return self.get_interface_display()
-        elif self.ifindex is not None:
-            return str(self.ifindex)
-        else:
-            return 'N/A'
 
     def get_vlan_numbers(self):
         """List of VLAN numbers related to the port"""
