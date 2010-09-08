@@ -17,7 +17,7 @@
 
 import nav.util
 
-from nav.models.manage import OPER_UP, ADM_DOWN
+from nav.models.manage import OPER_UP, ADM_DOWN, SwPortVlan
 
 def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
@@ -54,6 +54,7 @@ def get_module_view(module_object, perspective, activity_interval=None, netbox=N
             ports = module_object.get_gwports_sorted()
 
     if ports:
+        _cache_vlan_data_in_ports(ports)
         for port_object in ports:
             port = {'object': port_object}
 
@@ -76,6 +77,22 @@ def get_module_view(module_object, perspective, activity_interval=None, netbox=N
             module['ports'].append(port)
 
     return module
+
+def _cache_vlan_data_in_ports(ports):
+    """Loads and caches vlan data associated with an Interface queryset.
+
+    The caches are kept within each Interface object from the ports
+    queryset, and can be used to avoid multiple subqueries when
+    processing multiple Interfaces at once.
+
+    """
+    swpvlans = SwPortVlan.objects.filter(
+        interface__in=ports).select_related('vlan')
+    for port in ports:
+        port._vlan_cache = set(swpvlan.vlan.vlan for swpvlan in swpvlans
+                               if swpvlan.interface == port)
+        if port.vlan is not None:
+            port._vlan_cache.add(port.vlan)
 
 def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
@@ -114,7 +131,7 @@ def _get_swportstatus_title(swport):
     if swport.duplex:
         title.append(swport.get_duplex_display())
 
-    vlan_numbers = swport.get_vlan_numbers()
+    vlan_numbers = _get_vlan_numbers(swport)
     if vlan_numbers:
         title.append('vlan ' + ','.join(map(str, vlan_numbers)))
 
@@ -137,6 +154,13 @@ def _get_swportstatus_title(swport):
         title.append('blocked ' + ','.join(blocked_vlans))
 
     return ', '.join(title)
+
+def _get_vlan_numbers(swport):
+    """Returns active vlans on an swport, using cached data, if available."""
+    if hasattr(swport, '_vlan_cache'):
+        return swport._vlan_cache
+    else:
+        return swport.get_vlan_numbers()
 
 def _get_swportactive_class(swport, interval=30):
     """Classes for the swportactive port view"""
