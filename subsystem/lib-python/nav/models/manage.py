@@ -128,7 +128,7 @@ class Netbox(models.Model):
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
 
-        ports = self.get_gwports()
+        ports = self.get_gwports().select_related('module', 'netbox')
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
@@ -141,7 +141,7 @@ class Netbox(models.Model):
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
 
-        ports = self.get_swports()
+        ports = self.get_swports().select_related('module', 'netbox')
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
