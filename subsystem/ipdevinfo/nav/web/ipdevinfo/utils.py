@@ -17,7 +17,7 @@
 
 import nav.util
 
-from nav.models.manage import OPER_UP, ADM_DOWN, SwPortVlan
+from nav.models.manage import OPER_UP, ADM_DOWN, SwPortVlan, SwPortBlocked
 
 def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
@@ -88,11 +88,17 @@ def _cache_vlan_data_in_ports(ports):
     """
     swpvlans = SwPortVlan.objects.filter(
         interface__in=ports).select_related('vlan')
+    blocked_vlans = SwPortBlocked.objects.filter(
+        interface__in=ports).select_related('vlan')
+
     for port in ports:
         port._vlan_cache = set(swpvlan.vlan.vlan for swpvlan in swpvlans
                                if swpvlan.interface == port)
         if port.vlan is not None:
             port._vlan_cache.add(port.vlan)
+
+        port._blocked_vlans_cache = set(blocked_vlan.vlan 
+                                        for blocked_vlan in blocked_vlans)
 
 def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
@@ -108,8 +114,7 @@ def _get_swportstatus_class(swport):
         classes.append('trunk')
     if swport.duplex:
         classes.append('%sduplex' % swport.duplex)
-    # XXX: This causes a DB query per port
-    if swport.swportblocked_set.count():
+    if swport._blocked_vlans_cache:
         classes.append('blocked')
     return ' '.join(classes)
 
@@ -147,11 +152,8 @@ def _get_swportstatus_title(swport):
     except Netbox.DoesNotExist:
         pass
 
-    # XXX: This causes a DB query per port
-    blocked_vlans = [str(block.vlan)
-        for block in swport.swportblocked_set.select_related(depth=1)]
-    if blocked_vlans:
-        title.append('blocked ' + ','.join(blocked_vlans))
+    if swport._blocked_vlans_cache:
+        title.append('blocked ' + ','.join(str[b] for b in blocked_vlans))
 
     return ', '.join(title)
 
