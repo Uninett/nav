@@ -114,8 +114,9 @@ def _get_swportstatus_title(swport):
     if swport.duplex:
         title.append(swport.get_duplex_display())
 
-    if swport.get_vlan_numbers():
-        title.append('vlan ' + ','.join(map(str, swport.get_vlan_numbers())))
+    vlan_numbers = swport.get_vlan_numbers()
+    if vlan_numbers:
+        title.append('vlan ' + ','.join(map(str, vlan_numbers)))
 
     if swport.trunk:
         title.append('trunk')
