@@ -181,8 +181,10 @@ class networkDiscovery
 				"JOIN " +
 				"  netbox USING (netboxid) " +
 				"LEFT JOIN " +
+				"  netboxprefix USING (netboxid) " +
+				"LEFT JOIN " +
 				"  gwportprefix" +
-				"  ON (netbox.prefixid = gwportprefix.prefixid AND " +
+				"  ON (netboxprefix.prefixid = gwportprefix.prefixid AND " +
 				"      (hsrp=true OR gwip::text IN (SELECT MIN(gwip::text) " +
 				"                                   FROM gwportprefix " +
 				"                                   GROUP BY prefixid " +
@@ -848,7 +850,7 @@ class networkDiscovery
 		}
 
 		// The VLAN of the netbox' IP should also be added to activeVlan
-		rs = Database.query("SELECT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL");
+		rs = Database.query("SELECT netboxid,vlan FROM netbox LEFT JOIN netboxprefix USING (netboxid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL");
 		while (rs.next()) {
 			Map m;
 			String netboxid = rs.getString("netboxid");
