@@ -89,7 +89,6 @@ class Netbox(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
     up_since = models.DateTimeField(db_column='upsince')
@@ -217,12 +216,30 @@ class Netbox(models.Model):
         except NetboxInfo.DoesNotExist:
             return None
 
+    def get_prefix(self):
+        prefix_id = self._get_prefix_id()
+        if prefix_id:
+            return Prefix.objects.get(id=prefix_id)
+
+    def _get_prefix_id(self):
+        from django.db import connection, transaction
+        if not self.id:
+            return
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT prefixid FROM netboxprefix WHERE netboxid=%s",
+            [self.id])
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+
     def get_filtered_prefix(self):
-        if self.prefix.vlan.net_type.description in (
+        prefix = self.get_prefix()
+        if prefix and prefix.vlan.net_type.description in (
             'scope', 'private', 'reserved'):
             return None
         else:
-            return self.prefix
+            return prefix
 
     def get_short_sysname(self):
         """Returns sysname without the domain suffix if specified in the

@@ -552,23 +552,8 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
               'rw': rw}
     #uptodate = false per default
 
-    # Get prefixid
-    query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
-            % (fields['ip'],)
-    try:
-        result = executeSQLreturn(query) 
-        fields['prefixid'] = str(result[0][0])
-    except:
-        pass        
-
     if typeid:
         fields['typeid'] = typeid
-
-        # Set uptyodate = false
-        # This part is done in netbox now. And for a new box this
-        # field defaults to 'f'
-        #tifields = {'uptodate': 'f'}
-        #updateEntryFields(tifields,'type','typeid',typeid)
 
     if snmpversion:
         # Only use the first char from initbox, can't insert eg. '2c' in
@@ -2752,15 +2737,6 @@ class pageNetbox(seeddbPage):
             # existed in the database
             if deviceId:
                 fields['deviceid'] = deviceId
-
-            # Get prefixid
-            query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
-                    % (fields['ip'],)
-            try:
-                result = executeSQLreturn(query) 
-                fields['prefixid'] = str(result[0][0])
-            except:
-                pass        
 
             # Set netbox.uptodate = false (to make gdd update this device)
             fields['uptodate'] = 'f'
@@ -5805,15 +5781,6 @@ class bulkdefNetbox:
             sysname = row['ip'] 
         row['sysname'] = sysname
 
-        # Get prefixid
-        query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
-                % (row['ip'],)
-        try:
-            result = executeSQLreturn(query) 
-            row['prefixid'] = str(result[0][0])
-        except:
-            pass        
-    
         deviceid = None
         box = None
         if row.has_key('ro'):
