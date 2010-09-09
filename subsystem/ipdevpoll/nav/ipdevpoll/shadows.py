@@ -519,28 +519,35 @@ class GwPortPrefix(Shadow):
         netident, usageid and description for this vlan.
 
         """
-        if (not self.interface or \
-            not self.interface.netbox or \
-            not self.interface.ifalias or \
-            not self.prefix or \
-            not self.prefix.vlan
-            ): 
+        if not self._are_description_variables_present():
             return
 
-        sysname = self.interface.netbox.sysname
-        ifalias = self.interface.ifalias
-        vlan = self.prefix.vlan
-        for parse in (descrparsers.parse_ntnu_convention,
-                      descrparsers.parse_uninett_convention):
-            data = parse(sysname, ifalias)
-            if data:
-                break
+        data = self._parse_description_with_all_parsers()
         if not data:
             self._logger.info("ifalias did not match any known router port "
-                              "description conventions: %s", ifalias)
-            vlan.netident = ifalias
+                              "description conventions: %s",
+                              self.interface.ifalias)
+            self.prefix.vlan.netident = self.interface.ifalias
             return
 
+        self._update_with_parsed_description_data(data, containers)
+
+    def _are_description_variables_present(self):
+        return self.interface and \
+            self.interface.netbox and \
+            self.interface.ifalias and \
+            self.prefix and \
+            self.prefix.vlan
+
+    def _parse_description_with_all_parsers(self):
+        for parse in (descrparsers.parse_ntnu_convention,
+                      descrparsers.parse_uninett_convention):
+            data = parse(self.interface.netbox.sysname, self.interface.ifalias)
+            if data:
+                return data
+
+    def _update_with_parsed_description_data(self, data, containers):
+        vlan = self.prefix.vlan
         if data.get('net_type', None):
             vlan.net_type = NetType.get(data['net_type'].lower())
         if data.get('netident', None):
