@@ -555,12 +555,6 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
     if typeid:
         fields['typeid'] = typeid
 
-        # Set uptyodate = false
-        # This part is done in netbox now. And for a new box this
-        # field defaults to 'f'
-        #tifields = {'uptodate': 'f'}
-        #updateEntryFields(tifields,'type','typeid',typeid)
-
     if snmpversion:
         # Only use the first char from initbox, can't insert eg. '2c' in
         # this field
