@@ -542,7 +542,7 @@ class GwPortPrefix(Shadow):
             return
 
         if data.get('net_type', None):
-            vlan.net_type = NetType.get(data['net_type'])
+            vlan.net_type = NetType.get(data['net_type'].lower())
         if data.get('netident', None):
             vlan.net_ident = data['netident']
         if data.get('usage', None):
