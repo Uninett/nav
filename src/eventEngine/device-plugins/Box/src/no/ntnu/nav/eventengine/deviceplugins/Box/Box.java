@@ -72,6 +72,7 @@ public class Box extends Device
 				"SELECT deviceid,netboxid,ip,sysname,vlan,up, " +
 				"       CASE WHEN maintenance > 0 THEN TRUE ELSE FALSE END AS on_maintenance " +
 				"FROM netbox " +
+				"LEFT JOIN netboxprefix USING (netboxid) " +
 				"LEFT JOIN prefix USING(prefixid) " +
 				"LEFT JOIN vlan USING(vlanid) " +
 				"LEFT JOIN (SELECT netboxid, count(*) as maintenance " +
