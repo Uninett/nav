@@ -293,9 +293,9 @@ class Shadow(object):
         if pk_value:
             try:
                 model = self.__shadowclass__.objects.get(pk=pk_value)
-            except self.__shadowclass__.DoesNotExist, e:
+            except self.__shadowclass__.DoesNotExist:
                 if self.__shadowclass__._meta.pk.__class__ == django.db.models.fields.AutoField:
-                    raise e
+                    raise
                 else:
                     return None
             return model
@@ -319,14 +319,14 @@ class Shadow(object):
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
                     pass
-                except self.__shadowclass__.MultipleObjectsReturned, e:
+                except self.__shadowclass__.MultipleObjectsReturned:
                     self._logger.error("Multiple %s objects returned while "
                                        "looking up myself."
                                        "Lookup args used: %r "
                                        "Myself: %r",
                                        self.__shadowclass__.__name__,
                                        kwargs, self)
-                    raise e
+                    raise
 
                 else:
                     # Set our primary key from the existing object in an
