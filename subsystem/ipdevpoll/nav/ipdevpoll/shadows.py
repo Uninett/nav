@@ -279,7 +279,7 @@ class Interface(Shadow):
 
         """
         query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
-        result = None
+        result = []
         if self.ifname:
             result = query.filter(ifname=self.ifname)
         if not result and self.ifdescr:
