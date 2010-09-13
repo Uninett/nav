@@ -15,45 +15,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from nav.models.cabling import Cabling, Patch
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
+from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
+from nav.models.service import Service
+
+from nav.web.seeddb.utils.delete import render_delete
+
 def room_delete(request):
-    if request.method != 'POST':
-        return HttpResponseRedirect(reverse('seeddb-room'))
-
-    rooms = Room.objects.order_by('id').filter(id__in=request.POST.getlist('object'))
-    if request.POST.get('confirm'):
-        rooms.delete()
-        new_message(request._req, "Deleted", Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('seeddb-room'))
-
-    cabling_qs = Cabling.objects.filter(room__in=rooms).values('id', 'room')
-    netbox_qs = Netbox.objects.filter(room__in=rooms).values('id', 'room', 'sysname')
-    cabling = group_query(cabling_qs, 'room')
-    netbox = group_query(netbox_qs, 'room')
-
-    objects = []
-    errors = False
-    for r in rooms:
-        object = {
-            'object': r,
-            'disabled': False,
-            'error': [],
-        }
-        for n in netbox.get(r.id, []):
-            errors = True
-            object['disabled'] = True
-            object['error'].append({
-                'message': "Used in netbox",
-                'title': n['sysname'],
-                'url': reverse('seeddb-netbox-edit', args=(n['id'],)),
-            })
-        if r.id in cabling and len(cabling[r.id]) > 0:
-            object['error'].append("Used in cabling")
-            errors = True
-        objects.append(object)
-
-    context = {
-        'objects': objects,
-        'errors': errors,
-    }
-    return render_to_response('seeddb/delete.html',
-        context, RequestContext(request))
+    return render_delete(request, Room, 'seeddb-room')

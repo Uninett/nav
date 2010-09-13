@@ -18,6 +18,7 @@
 from nav.web.seeddb.views.list import *
 from nav.web.seeddb.views.edit import *
 from nav.web.seeddb.views.move import *
+from nav.web.seeddb.views.delete import *
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 
@@ -53,7 +54,7 @@ def room(request):
     return list_view(request,
         list=room_list,
         move=room_move,
-        delete=not_implemented)
+        delete=room_delete)
 
 def organization(request):
     return list_view(request,
