@@ -25,14 +25,6 @@ from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.forms.move import MoveOperationForm
 
-def group_query(qs, identifier):
-    objects = {}
-    for object in qs:
-        if object[identifier] not in objects:
-            objects[object[identifier]] = []
-        objects[object[identifier]].append(object)
-    return objects
-
 def move(request, model, form_model, redirect, title_attr='id', extra_context={}):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
@@ -82,6 +74,8 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
                     new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
                     return HttpResponseRedirect(reverse(redirect))
 
+    # Form instances may be modified by the operation_form, so if we have a
+    # specific instance we will use the fields from that one.
     if form:
         fields = form.fields.keys()
     else:
