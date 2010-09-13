@@ -7,32 +7,15 @@
     {% for o in objects %}
     <tr class="{% cycle 'oddrow' 'evenrow' %}">
         <td>
-        {% if o.disabled %}
-            <input type="checkbox" disabled="disabled" />
-        {% else %}
-            <input type="checkbox" name="object" value="{{ o.object.id }}" checked="checked" />
-        {% endif %}
+            <input type="checkbox" name="object" value="{{ o.id }}" checked="checked" />
         </td>
-        <td>{{ o.object.id }}</td>
-        <td>
-        {% if o.error %}
-            <ul class="error">
-            {% for error in o.error %}
-            <li>{{ error.message }} <a href="{{ error.url }}">{{ error.title }}</a></li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-        </td>
+        <td>{{ o.id }}</td>
     </tr>
     {% endfor %}
 </table>
 <p>
     <input type="hidden" name="delete" value="true" />
-{% if errors %}
-    <input type="submit" name="continue" value="Continue" />
-{% else %}
     <input type="submit" name="confirm" value="Confirm delete" />
-{% endif %}
 </p>
 
 </form>
