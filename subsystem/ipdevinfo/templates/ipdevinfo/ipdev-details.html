@@ -31,6 +31,16 @@
         <td><a href="{% url report-netbox-category netbox.category.id %}">
             {{ netbox.category }}</a></td>
     </tr>
+    
+    {% if netboxsubcat %}
+    <tr>
+        <th>Subcategories</th>
+        <td>{% for subcat in netboxsubcat %}
+        {{ subcat.category_id }}
+        {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
 
     <tr>
         <th>Function</th>

@@ -298,6 +298,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     # Get data needed by the template
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
+    netboxsubcat = netbox.netboxcategory_set.all()
 
     # Assign default values to variables
     no_netbox = {
@@ -352,6 +353,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,
             'no_netbox': no_netbox,
+            'netboxsubcat': netboxsubcat,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
