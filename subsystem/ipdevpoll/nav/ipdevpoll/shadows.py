@@ -26,7 +26,6 @@ import datetime
 import IPy
 
 from django.db.models import Q
-from django.db import transaction
 
 from nav.models import manage, oid
 from storage import Shadow
@@ -66,7 +65,7 @@ class Netbox(Shadow):
                     self.device.serial = None
 
     @classmethod
-    @transaction.commit_manually
+    @utils.commit_on_success
     def cleanup_replaced_netbox(cls, netbox_id, new_type):
         """Removes basic inventory knowledge for a netbox.
 
@@ -81,27 +80,19 @@ class Netbox(Shadow):
                         type.
 
         """
-        try:
-            type_ = new_type.convert_to_model()
-            if type_:
-                type_.save()
+        type_ = new_type.convert_to_model()
+        if type_:
+            type_.save()
 
-            netbox = manage.Netbox.objects.get(id=netbox_id)
-            cls._logger.warn("Removing stored inventory info for %s",
-                             netbox.sysname)
-            netbox.type = type_
-            netbox.up_to_date = False
-            netbox.save()
+        netbox = manage.Netbox.objects.get(id=netbox_id)
+        cls._logger.warn("Removing stored inventory info for %s",
+                         netbox.sysname)
+        netbox.type = type_
+        netbox.up_to_date = False
+        netbox.save()
 
-            netbox.module_set.all().delete()
-            netbox.interface_set.all().delete()
-        except:
-            cls._logger.exception("cleanup_replaced_netbox: unhandled "
-                                  "exception")
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
+        netbox.module_set.all().delete()
+        netbox.interface_set.all().delete()
 
 
 class NetboxType(Shadow):
@@ -288,7 +279,7 @@ class Interface(Shadow):
 
         """
         query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
-        result = None
+        result = []
         if self.ifname:
             result = query.filter(ifname=self.ifname)
         if not result and self.ifdescr:
@@ -407,6 +398,12 @@ class Vlan(Shadow):
             if vlan.vlan is None or vlan.vlan == self.vlan:
                 return vlan
 
+    def _log_if_multiple_prefixes(self, prefix_containers):
+        if len(prefix_containers) > 1:
+            self._logger.debug("multiple prefixes for %r: %r",
+                self, [p.net_address for p in prefix_containers])
+
+
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
 
@@ -419,11 +416,12 @@ class Vlan(Shadow):
 
         """
         prefix_containers = self._get_my_prefixes(containers)
+        self._log_if_multiple_prefixes(prefix_containers)
         # ATM we only look at the first prefix we can find.
         if prefix_containers:
             prefix = IPy.IP(prefix_containers[0].net_address)
         else:
-            return None
+            return NetType.get('unknown')
 
         net_type = 'lan'
         # Get the number of router ports attached to this prefix
@@ -521,30 +519,37 @@ class GwPortPrefix(Shadow):
         netident, usageid and description for this vlan.
 
         """
-        if (not self.interface or \
-            not self.interface.netbox or \
-            not self.interface.ifalias or \
-            not self.prefix or \
-            not self.prefix.vlan
-            ): 
+        if not self._are_description_variables_present():
             return
 
-        sysname = self.interface.netbox.sysname
-        ifalias = self.interface.ifalias
-        vlan = self.prefix.vlan
-        for parse in (descrparsers.parse_ntnu_convention,
-                      descrparsers.parse_uninett_convention):
-            data = parse(sysname, ifalias)
-            if data:
-                break
+        data = self._parse_description_with_all_parsers()
         if not data:
             self._logger.info("ifalias did not match any known router port "
-                              "description conventions: %s", ifalias)
-            vlan.netident = ifalias
+                              "description conventions: %s",
+                              self.interface.ifalias)
+            self.prefix.vlan.netident = self.interface.ifalias
             return
 
+        self._update_with_parsed_description_data(data, containers)
+
+    def _are_description_variables_present(self):
+        return self.interface and \
+            self.interface.netbox and \
+            self.interface.ifalias and \
+            self.prefix and \
+            self.prefix.vlan
+
+    def _parse_description_with_all_parsers(self):
+        for parse in (descrparsers.parse_ntnu_convention,
+                      descrparsers.parse_uninett_convention):
+            data = parse(self.interface.netbox.sysname, self.interface.ifalias)
+            if data:
+                return data
+
+    def _update_with_parsed_description_data(self, data, containers):
+        vlan = self.prefix.vlan
         if data.get('net_type', None):
-            vlan.net_type = NetType.get(data['net_type'])
+            vlan.net_type = NetType.get(data['net_type'].lower())
         if data.get('netident', None):
             vlan.net_ident = data['netident']
         if data.get('usage', None):

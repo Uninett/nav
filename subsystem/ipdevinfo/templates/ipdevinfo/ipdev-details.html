@@ -282,18 +282,31 @@
 
     <tr>
         <th>Prefix</th>
-        <td>{{ no_netbox.prefix.net_address|default:"N/A" }}</td>
+        <td>
+            {% with no_netbox.prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix.net_address }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
     </tr>
 
     {% with no_netbox.prefix.vlan as vlan %}
     <tr>
         <th>VLAN</th>
-        <td>{{ vlan.vlan|default:"N/A" }}</td>
-    </tr>
-
-    <tr>
-        <th class="indent">Ident</th>
-        <td>{{ vlan.net_ident|default:"N/A" }}</td>
+        <td>
+            {% if vlan %}
+                <a href="{% url report-swporttrunk-vlan vlan.vlan %}">
+                    {{ vlan }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
     </tr>
 
     <tr>
@@ -308,7 +321,15 @@
 
     <tr>
         <th class="indent">Organization</th>
-        <td>{{ vlan.organization|default:"N/A" }}</td>
+        <td>
+            {% if vlan.organization %}
+                <a href="{% url report-organization-organization vlan.organization.id %}">
+                {{ vlan.organization|default:"N/A" }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
     </tr>
 
     <tr>
@@ -350,7 +371,15 @@
 
     <tr>
         <th>Last seen with MAC</th>
-        <td>{{ arp.mac|default:"N/A" }}</td>
+        <td>
+            {% if arp.mac %}
+                <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
+                {{ arp.mac }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
     </tr>
     {% endwith %}
 

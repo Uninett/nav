@@ -119,14 +119,13 @@ class Handlers:
             lineout(line)
    
     def type(self):
-        header("#vendorid:typename:sysoid[:description:frequency:cdp:tftp]")
+        header("#vendorid:typename:sysoid[:description:cdp:tftp]")
         for type in manage.NetboxType.objects.all():
             line = []
             line.append(type.vendor.id)
             line.append(type.name)
             line.append(type.sysobjectid)
             line.append(type.description)
-            line.append(str(type.frequency))
             line.append(str(type.cdp or False))
             line.append(str(type.tftp or False))
             lineout(line)
