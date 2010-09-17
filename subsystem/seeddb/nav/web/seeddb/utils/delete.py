@@ -33,8 +33,12 @@ def render_delete(request, model, redirect, extra_context={}):
         new_message(request._req, "You need to select at least one object to edit", Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
 
-    objects = model.objects.filter(pk__in=request.POST.getlist('object'))
+    objects = model.objects.filter(pk__in=request.POST.getlist('object')).order_by('pk')
+    related = dependencies(objects)
 
+    for o in objects:
+        if o.pk in related:
+            o.related_objects = related[o.pk]
 
     if request.POST.get('confirm'):
         try:
@@ -67,11 +71,18 @@ def dependencies(qs):
 
     related_objects = {}
     for rel in related:
+        name = rel.var_name
         field = rel.field.name
         accessor = rel.get_accessor_name()
         lookup = "%s__in" % field
         params = {lookup: primary_keys}
-        objects = related.model.objects.filter(**params)
+        objects = rel.model.objects.filter(**params)
+        for o in objects:
+            o.object_name = name
+            attr = getattr(o, '%s_id' % field)
+            if attr not in related_objects:
+                related_objects[attr] = []
+            related_objects[attr].append(o)
 
     return related_objects
 
