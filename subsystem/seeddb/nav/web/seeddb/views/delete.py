@@ -15,6 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django.core.urlresolvers import reverse
+
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
@@ -22,5 +24,28 @@ from nav.models.service import Service
 
 from nav.web.seeddb.utils.delete import render_delete
 
+NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
+
 def room_delete(request):
-    return render_delete(request, Room, 'seeddb-room')
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
+        'tab_template': 'seeddb/tabs_room.html',
+    }
+    return render_delete(request, Room, 'seeddb-room',
+        extra_context=extra)
+
+def location_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Location', reverse('seeddb-location'))],
+        'tab_template': 'seeddb/tabs_location.html',
+    }
+    return render_delete(request, Location, 'seeddb-location',
+        extra_context=extra)
+
+def organization_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
+        'tab_template': 'seeddb/tabs_organization.html',
+    }
+    return render_delete(request, Organization, 'seeddb-organization',
+        extra_context=extra)
