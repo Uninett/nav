@@ -60,7 +60,7 @@ urlpatterns = patterns('',
         name='seeddb-room-move'),
 
     # Location
-    url(r'^location/$', location_list,
+    url(r'^location/$', location,
         name='seeddb-location'),
     url(r'^location/edit/(?P<location_id>[\w\d_-]+)/$', location_edit,
         name='seeddb-location-edit'),
