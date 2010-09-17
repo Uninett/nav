@@ -87,6 +87,7 @@ def location_list(request):
         'caption': 'Locations',
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
         'tab_template': 'seeddb/tabs_location.html',
+        'hide_move': True,
     }
     return render_list(request, qs, value_list, 'seeddb-location-edit',
         extra_context=extra)

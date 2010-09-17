@@ -23,8 +23,12 @@
 
 <form action="{{ request.path }}" method="post">
     <div>
+    {% if not hide_move %}
         <input type="submit" name="move" value="Edit selected" />
+    {% endif %}
+    {% if not hide_delete %}
         <input type="submit" name="delete" value="Delete selected" />
+    {% endif %}
     </div>
 
 <table class="listtable">
@@ -73,9 +77,12 @@
 </table>
 
     <div>
+    {% if not hide_move %}
         <input type="submit" name="move" value="Edit selected" />
+    {% endif %}
+    {% if not hide_delete %}
         <input type="submit" name="delete" value="Delete selected" />
-    </div>
+    {% endif %}
 </form>
 
 {% include "seeddb/paginator.html" %}
