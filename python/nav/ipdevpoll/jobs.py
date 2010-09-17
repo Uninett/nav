@@ -21,7 +21,6 @@ import logging
 
 from twisted.internet import defer, threads
 from twistedsnmp import snmpprotocol, agentproxy
-from django.db import transaction
 
 from nav.util import round_robin
 from nav import toposort
@@ -30,7 +29,7 @@ from nav import ipdevpoll
 import storage
 import shadows
 from plugins import plugin_registry
-from utils import django_debug_cleanup
+import utils
 
 logger = logging.getLogger(__name__)
 ports = round_robin([snmpprotocol.port() for i in range(10)])
@@ -38,7 +37,7 @@ ports = round_robin([snmpprotocol.port() for i in range(10)])
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
     def __init__(self, msg, cause=None):
-        super(AbortedJobError, self).__init__(msg, cause )
+        Exception.__init__(self, msg, cause)
         self.cause = cause
 
 
@@ -258,26 +257,19 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @transaction.commit_manually
+        @utils.commit_on_success
+        @utils.cleanup_django_debug_after
         def complete_save_cycle():
-            try:
-                # Prepare all shadow objects for storage.
-                self.prepare_containers_for_save()
-                # Traverse all the objects in the storage container and generate
-                # the storage queue
-                self.populate_storage_queue()
-                # Actually save to the database
-                result = self.perform_save()
-                self.log_timed_result(result, "Storing to database complete")
-                # Do cleanup for the known container classes.
-                self.cleanup_containers_after_save()
-            except:
-                transaction.rollback()
-                raise
-            else:
-                transaction.commit()
-            finally:
-                django_debug_cleanup()
+            # Prepare all shadow objects for storage.
+            self.prepare_containers_for_save()
+            # Traverse all the objects in the storage container and generate
+            # the storage queue
+            self.populate_storage_queue()
+            # Actually save to the database
+            result = self.perform_save()
+            self.log_timed_result(result, "Storing to database complete")
+            # Do cleanup for the known container classes.
+            self.cleanup_containers_after_save()
 
         df = threads.deferToThread(complete_save_cycle)
         return df
@@ -300,7 +292,7 @@ class JobHandler(object):
         try:
             for cls in self.containers.keys():
                 cls.cleanup_after_save(self.containers)
-        except Exception, e:
+        except Exception:
             self.logger.exception("Caught exception during cleanup. "
                                   "Last class = %s",
                                   cls.__name__)
@@ -308,7 +300,7 @@ class JobHandler(object):
             if django.db.connection.queries:
                 self.logger.error("The last query was: %s",
                                   django.db.connection.queries[-1])
-            raise e
+            raise
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)
@@ -353,7 +345,7 @@ class JobHandler(object):
                                         pprint.pformat(self.containers))
 
             return total_time
-        except Exception, e:
+        except Exception:
             self.logger.exception("Caught exception during save. "
                                   "Last object = %s. Last model: %s",
                                   obj, obj_model)
@@ -361,7 +353,7 @@ class JobHandler(object):
             if django.db.connection.queries:
                 self.logger.error("The last query was: %s",
                                   django.db.connection.queries[-1])
-            raise e
+            raise
 
     def populate_storage_queue(self):
         """Naive population of the storage queue.

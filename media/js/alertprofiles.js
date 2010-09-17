@@ -22,12 +22,12 @@ $(function() {
 		// The last class should (in theory) be the "shared_period"
 		// class
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
-		$("tr." + shared_id).addClass('hilight');
+		$("." + shared_id).addClass('hilight');
 	}
 	// Removes highlight from shared time-periods
 	var removeHighlight = function() {
 		var shared_id = $(this).attr('class').split(' ').slice(-1);
-		$("tr." + shared_id).removeClass('hilight');
+		$("." + shared_id).removeClass('hilight');
 	}
 	$("#timeperiods_table_container tr.all_days_period").hover(doHighlight, removeHighlight);
 
@@ -48,9 +48,9 @@ $(function() {
 		// "shared_period" class
 		var shared_id = $(this).parents("tr").attr('class').split(' ').slice(-2, -1);
 		if ($(this).attr('checked')) {
-			$("tr." + shared_id + " input").attr('checked', 'checked');
+			$("." + shared_id + " input").attr('checked', 'checked');
 		} else {
-			$("tr." + shared_id + " input").removeAttr('checked');
+			$("." + shared_id + " input").removeAttr('checked');
 		}
 	}
 	$("#timeperiods_table_container tr.all_days_period input").click(checkMultiple);

@@ -12,8 +12,6 @@ CREATE INDEX vlan_vlan_btree ON vlan USING btree (vlan);
 
 CREATE INDEX prefix_vlanid_btree ON prefix USING btree (vlanid);
 
-CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
-
 CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
 
 CREATE INDEX interface_to_interfaceid_btree ON interface USING btree (to_interfaceid);

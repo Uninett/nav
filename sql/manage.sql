@@ -171,7 +171,6 @@ CREATE TABLE netbox (
   orgid VARCHAR(30) NOT NULL CONSTRAINT netbox_orgid_fkey REFERENCES org ON UPDATE CASCADE,
   ro VARCHAR,
   rw VARCHAR,
-  prefixid INT4 CONSTRAINT netbox_prefixid_fkey REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 1,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),

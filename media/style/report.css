@@ -2,7 +2,7 @@
 table.listtable caption {
 	text-align: center;
 }
-table.listtable tbody.footer tr th, table.listtable tbody tr.tablesum th {
+table.listtable tfoot tr th, table.listtable tbody tr.tablesum th {
 	text-align: center;
 }
 
