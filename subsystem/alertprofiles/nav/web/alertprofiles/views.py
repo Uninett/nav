@@ -360,7 +360,7 @@ def profile_remove(request):
                 'form_action': reverse('alertprofiles-profile-remove'),
                 'active': {'profile': True},
                 'subsection': {'list': True},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': None,
                 'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
@@ -588,7 +588,7 @@ def profile_time_period_remove(request):
                 'form_action': reverse('alertprofiles-profile-timeperiod-remove'),
                 'active': {'profile': True},
                 'subsection': {'detail': profile.id},
-                'elements': elements,
+                'object_list': elements,
                 'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
                     (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
@@ -812,7 +812,7 @@ def profile_time_period_subscription_remove(request):
                 'form_action': reverse('alertprofiles-profile-timeperiod-subscription-remove'),
                 'active': {'profile': True},
                 'subsection': {'detail': period.profile.id, 'subscriptions': period.id},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': period.id,
                 'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
@@ -1046,7 +1046,7 @@ def address_remove(request):
                 'form_action': reverse('alertprofiles-address-remove'),
                 'active': {'address': True},
                 'subsection': {'list': True},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': None,
                 'navpath': BASE_PATH+[
                     ('Address', reverse('alertprofiles-address')),
@@ -1356,7 +1356,7 @@ def filter_remove(request):
                 'form_action': reverse('alertprofiles-filters-remove'),
                 'active': {'filters': True},
                 'subsection': {'list': True},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': None,
                 'navpath': BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
@@ -1521,7 +1521,7 @@ def filter_removeexpression(request):
                 'form_action': reverse('alertprofiles-filters-removeexpression'),
                 'active': {'filters': True},
                 'subsection': {'detail': filter.id},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': filter.id,
                 'navpath': BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
@@ -1783,7 +1783,7 @@ def filter_group_remove(request):
                 'form_action': reverse('alertprofiles-filter_groups-remove'),
                 'active': {'filter_groups': True},
                 'subsection': {'list': True},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': None,
                 'navpath': BASE_PATH+[
                     ('Filter groups', reverse('alertprofiles-filters')),
@@ -1956,7 +1956,7 @@ def filter_group_removefilter(request):
                 'form_action': reverse('alertprofiles-filter_groups-removefilter'),
                 'active': {'filter_groups': True},
                 'subsection': {'detail': filter_group.id},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': filter_group.id,
                 'navpath': BASE_PATH+[
                     ('Filter groups', reverse('alertprofiles-filter_groups')),
@@ -2257,7 +2257,7 @@ def matchfield_remove(request):
                 'form_action': reverse('alertprofiles-matchfields-remove'),
                 'active': {'matchfields': True},
                 'subsection': {'list': True},
-                'elements': elements,
+                'object_list': elements,
                 'perform_on': None,
                 'navpath': BASE_PATH+[
                     ('Matchfields', reverse('alertprofiles-matchfields')),
