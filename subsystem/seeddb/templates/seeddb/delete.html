@@ -4,14 +4,31 @@
 <form action="" method="post">
 
 <table class="listtable">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Referenced by</th>
+        </tr>
+    </thead>
+
+    <tbody>
     {% for o in objects %}
-    <tr class="{% cycle 'oddrow' 'evenrow' %}">
-        <td>
-            <input type="checkbox" name="object" value="{{ o.id }}" checked="checked" />
-        </td>
-        <td>{{ o.id }}</td>
-    </tr>
+        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <td>
+                <input type="checkbox" name="object" value="{{ o.id }}" checked="checked" />
+            </td>
+            <td>{{ o.id }}</td>
+            <td>
+                <ul>
+                {% for related in o.related_objects %}
+                    <li>{{ related.object_name|capfirst }}, {{ related }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
     {% endfor %}
+    </tbody>
 </table>
 <p>
     <input type="hidden" name="delete" value="true" />
