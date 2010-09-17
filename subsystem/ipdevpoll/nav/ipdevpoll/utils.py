@@ -26,7 +26,26 @@ import django.db
 from django.db import transaction
 from django.conf import settings
 
+from twisted.internet.defer import Deferred
+from twisted.internet import reactor
+
 _logger = logging.getLogger(__name__)
+
+def fire_eventually(result):
+    """This returns a Deferred which will fire in a later reactor turn.
+
+    Can be used to cause a break in deferred chain, so the number of
+    stack frames won't exceed sys.getrecursionlimit().  Do like this:
+
+    >>> deferred_chain.addCallback(lambda thing: fire_eventually(thing))
+
+    Reference:
+    http://twistedmatrix.com/pipermail/twisted-python/2008-November/018693.html
+
+    """
+    deferred = Deferred()
+    reactor.callLater(0, deferred.callback, result)
+    return deferred
 
 def binary_mac_to_hex(binary_mac):
     """Converts a binary string MAC address to hex string.

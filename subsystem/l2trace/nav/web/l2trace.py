@@ -68,6 +68,7 @@ def getNetboxidVlan(sysname):
     database.execute("""
         SELECT netboxid, vlan.vlan, swport.swportid
         FROM netbox
+            JOIN netboxprefix USING (netboxid)
             JOIN prefix USING(prefixid)
             JOIN vlan USING(vlanid)
             LEFT JOIN module USING(netboxid)

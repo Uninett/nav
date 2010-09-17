@@ -89,7 +89,6 @@ class Netbox(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
     up_since = models.DateTimeField(db_column='upsince')
@@ -128,7 +127,7 @@ class Netbox(models.Model):
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
 
-        ports = self.get_gwports()
+        ports = self.get_gwports().select_related('module', 'netbox')
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
@@ -141,7 +140,7 @@ class Netbox(models.Model):
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
 
-        ports = self.get_swports()
+        ports = self.get_swports().select_related('module', 'netbox')
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
@@ -217,12 +216,30 @@ class Netbox(models.Model):
         except NetboxInfo.DoesNotExist:
             return None
 
+    def get_prefix(self):
+        prefix_id = self._get_prefix_id()
+        if prefix_id:
+            return Prefix.objects.get(id=prefix_id)
+
+    def _get_prefix_id(self):
+        from django.db import connection, transaction
+        if not self.id:
+            return
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT prefixid FROM netboxprefix WHERE netboxid=%s",
+            [self.id])
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+
     def get_filtered_prefix(self):
-        if self.prefix.vlan.net_type.description in (
+        prefix = self.get_prefix()
+        if prefix and prefix.vlan.net_type.description in (
             'scope', 'private', 'reserved'):
             return None
         else:
-            return self.prefix
+            return prefix
 
     def get_short_sysname(self):
         """Returns sysname without the domain suffix if specified in the
@@ -307,16 +324,16 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
-        ordering = ('netbox', 'module_number')
-        unique_together = (('netbox', 'module_number'),)
+        ordering = ('netbox', 'module_number', 'name')
+        unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'%d, at %s' % (self.module_number, self.netbox)
+        return u'%d, at %s' % (self.name or self.module_number, self.netbox)
 
     def get_absolute_url(self):
         kwargs={
             'netbox_sysname': self.netbox.sysname,
-            'module_number': self.module_number,
+            'module_name': self.name,
         }
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 

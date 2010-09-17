@@ -167,7 +167,6 @@ class networkDiscovery
 			gwUplink.add(rs.getString("to_netboxid"));
 		}
 
-		//rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.ifindex,swp_netbox.to_netboxid,swport.ifindex AS to_ifindex,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) LEFT JOIN gwportprefix ON (netbox.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) LEFT JOIN swport ON (swp_netbox.to_swportid=swport.swportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,swp_netbox.ifindex");
 		rs = Database.query(
 				"SELECT " +
 				"  swp_netbox.netboxid," +
@@ -181,8 +180,10 @@ class networkDiscovery
 				"JOIN " +
 				"  netbox USING (netboxid) " +
 				"LEFT JOIN " +
+				"  netboxprefix USING (netboxid) " +
+				"LEFT JOIN " +
 				"  gwportprefix" +
-				"  ON (netbox.prefixid = gwportprefix.prefixid AND " +
+				"  ON (netboxprefix.prefixid = gwportprefix.prefixid AND " +
 				"      (hsrp=true OR gwip::text IN (SELECT MIN(gwip::text) " +
 				"                                   FROM gwportprefix " +
 				"                                   GROUP BY prefixid " +
@@ -848,7 +849,7 @@ class networkDiscovery
 		}
 
 		// The VLAN of the netbox' IP should also be added to activeVlan
-		rs = Database.query("SELECT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL");
+		rs = Database.query("SELECT netboxid,vlan FROM netbox LEFT JOIN netboxprefix USING (netboxid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL");
 		while (rs.next()) {
 			Map m;
 			String netboxid = rs.getString("netboxid");

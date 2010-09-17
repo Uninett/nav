@@ -292,7 +292,7 @@ class JobHandler(object):
         try:
             for cls in self.containers.keys():
                 cls.cleanup_after_save(self.containers)
-        except Exception, e:
+        except Exception:
             self.logger.exception("Caught exception during cleanup. "
                                   "Last class = %s",
                                   cls.__name__)
@@ -300,7 +300,7 @@ class JobHandler(object):
             if django.db.connection.queries:
                 self.logger.error("The last query was: %s",
                                   django.db.connection.queries[-1])
-            raise e
+            raise
 
     def log_timed_result(self, res, msg):
         self.logger.debug(msg + " (%0.3f ms)" % res)
@@ -345,7 +345,7 @@ class JobHandler(object):
                                         pprint.pformat(self.containers))
 
             return total_time
-        except Exception, e:
+        except Exception:
             self.logger.exception("Caught exception during save. "
                                   "Last object = %s. Last model: %s",
                                   obj, obj_model)
@@ -353,7 +353,7 @@ class JobHandler(object):
             if django.db.connection.queries:
                 self.logger.error("The last query was: %s",
                                   django.db.connection.queries[-1])
-            raise e
+            raise
 
     def populate_storage_queue(self):
         """Naive population of the storage queue.

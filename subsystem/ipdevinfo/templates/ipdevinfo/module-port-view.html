@@ -2,8 +2,8 @@
 {% if ports|length %}
 <table class="listtable module">
     {% if module.object %}
-    <caption><a href="{{ module.object.get_absolute_url }}">
-        Module {{ module.object.module_number }}</a></caption>
+    <caption><a href="{% url ipdevinfo-module-details netbox_sysname=module.object.netbox.sysname module_name=module.object.name %}">
+        Module {{ module.object.name }}</a></caption>
     {% else %}
     <caption>No module</caption>
     {% endif %}
