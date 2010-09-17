@@ -34,7 +34,7 @@ def index(request):
     )
 
 def not_implemented(*args, **kwargs):
-    raise Exception, "Not implemented"
+    raise NotImplementedError()
 
 def list_view(request, list=None, move=None, delete=None):
     if request.method == 'POST':
@@ -56,8 +56,14 @@ def room(request):
         move=room_move,
         delete=room_delete)
 
+def location(request):
+    return list_view(request,
+        list=location_list,
+        move=not_implemented,
+        delete=location_delete)
+
 def organization(request):
     return list_view(request,
         list=organization_list,
         move=organization_move,
-        delete=not_implemented)
+        delete=organization_delete)
