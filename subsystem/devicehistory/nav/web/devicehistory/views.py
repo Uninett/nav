@@ -152,6 +152,10 @@ def devicehistory_view(request):
         for id in values:
             url += "&%s=%s" % (attr, id)
 
+    # Quickselect expects 'loc' and not 'location'
+    selection['loc'] = selection['location']
+    del selection['location']
+
     info_dict = {
         'active': {'devicehistory': True},
         'history': this_page,
