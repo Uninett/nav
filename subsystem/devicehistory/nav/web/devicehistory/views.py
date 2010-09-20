@@ -35,7 +35,7 @@ from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils import get_event_and_alert_types
 from nav.web.devicehistory.utils.history import get_selected_types, \
     fetch_history, get_page, get_messages_for_history, \
-    group_history_and_messages
+    group_history_and_messages, describe_search_params
 from nav.web.devicehistory.utils.error import register_error_events
 
 DeviceQuickSelect_view_history_kwargs = {
@@ -145,6 +145,8 @@ def devicehistory_view(request):
     url = "?from_date=%s&to_date=%s&type=%s&group_by=%s" % (
         from_date or "", to_date or "", types or "", group_by or "")
 
+    search_description = describe_search_params(selection)
+
     for key, values in selection.items():
         attr = key
         if key == "location":
@@ -159,6 +161,7 @@ def devicehistory_view(request):
     info_dict = {
         'active': {'devicehistory': True},
         'history': this_page,
+        'search_description': search_description,
         'pages': pages,
         'first_page_link': first_page_link,
         'last_page_link': last_page_link,

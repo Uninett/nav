@@ -21,7 +21,7 @@ from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.manage import Netbox, Device
+from nav.models.manage import Netbox, Device, Location, Room, Module
 from nav.web.quickselect import QuickSelect
 
 LOCATION_GROUPING = {
@@ -162,3 +162,15 @@ def group_history_and_messages(history, messages, group_by=None):
             grouped_history[key] = []
         grouped_history[key].append(a)
     return grouped_history
+
+def describe_search_params(selection):
+    data = {}
+    if 'location' in selection and selection['location']:
+        data['location'] = Location.objects.filter(id__in=selection['location'])
+    if 'room' in selection and selection['room']:
+        data['room'] = Room.objects.filter(id__in=selection['room'])
+    if 'netbox' in selection and selection['netbox']:
+        data['netbox'] = Netbox.objects.filter(id__in=selection['netbox'])
+    if 'module' in selection and selection['module']:
+        data['module'] = Module.objects.select_related('netbox').filter(id__in=selection['module'])
+    return data

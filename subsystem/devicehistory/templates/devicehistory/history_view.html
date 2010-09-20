@@ -16,6 +16,18 @@
         </table>
     </form>
 
+    <div>
+    <select multiple="multiple">
+    {% for type, elements in search_description.items %}
+        <optgroup label="{{ type|capfirst }}">
+        {% for id in elements %}
+            <option>{{ id }}</option>
+        {% endfor %}
+        </optgroup>
+    {% endfor %}
+    </select>
+    </div>
+
     {% include "devicehistory/paginator.html" %}
 
     {% for group_name, group in history.grouped_history.items %}
