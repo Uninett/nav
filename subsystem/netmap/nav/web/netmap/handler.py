@@ -117,24 +117,24 @@ def handler(req):
 
     #Fetch categories
     elif path == '/catids':
-       db.execute("SELECT catid FROM cat ORDER BY catid")
-       result = db.fetchall()
+        db.execute("SELECT catid FROM cat ORDER BY catid")
+        result = db.fetchall()
 
-       req.content_type="text/plain"
-       req.send_http_header()
-       for cat in result:
-           req.write(cat[0] + ",")
-       return apache.OK
+        req.content_type="text/plain"
+        req.send_http_header()
+        for cat in result:
+            req.write(cat[0] + ",")
+        return apache.OK
 
     elif path == '/linktypes':
-       db.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
-       result = db.fetchall()
+        db.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
+        result = db.fetchall()
 
-       req.content_type="text/plain"
-       req.send_http_header()
-       for type in result:
-           req.write(type[0] + ",")
-       return apache.OK
+        req.content_type="text/plain"
+        req.send_http_header()
+        for type in result:
+            req.write(type[0] + ",")
+        return apache.OK
 
     elif path == '/':
         cookies = Cookie.get_cookies(req)
