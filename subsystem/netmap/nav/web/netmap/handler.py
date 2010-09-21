@@ -70,10 +70,10 @@ def handler(req):
         page.connections = data[1]
         page.baseURL = baseURL[:baseURL.rfind('/')]
 
-        req.content_type="text/xml"
+        req.content_type="text/xml; charset=utf-8"
         req.send_http_header()
 
-        req.write(page.respond());
+        req.write(page.respond().encode('utf-8'))
 
         return apache.OK
 
