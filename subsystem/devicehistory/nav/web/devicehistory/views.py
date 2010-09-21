@@ -17,9 +17,10 @@
 
 import time
 from datetime import date, datetime
+
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, get_object_or_404
@@ -354,6 +355,8 @@ def do_delete_module(request):
         Messages.SUCCESS,
     )
 
-    modules_down.delete()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM module WHERE moduleid IN %s", (tuple([m.id for m in modules_down]),))
+    transaction.commit_unless_managed()
 
     return HttpResponseRedirect(reverse('devicehistory-module'))
