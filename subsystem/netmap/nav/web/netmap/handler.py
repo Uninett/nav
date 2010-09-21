@@ -103,12 +103,25 @@ def handler(req):
                 positions[sysname][1] = position
 
         for sysname in positions.keys():
-            db.execute("SELECT COUNT(*) FROM netmap_position WHERE sysname = '%s'" % sysname)
+            db.execute("""
+                       SELECT COUNT(*)
+                       FROM netmap_position
+                       WHERE sysname = %s
+                       """, (sysname,))
             result = db.fetchall()
             if result[0][0] > 0:
-                db.execute("UPDATE netmap_position SET xpos = %s, ypos = %s WHERE sysname = '%s'" % (positions[sysname][0], positions[sysname][1], sysname))
+                db.execute("""
+                           UPDATE netmap_position
+                           SET xpos = %s, ypos = %s
+                           WHERE sysname = %s
+                           """, (positions[sysname][0], positions[sysname][1],
+                                 sysname))
             else:
-                db.execute("INSERT INTO netmap_position(xpos, ypos, sysname) VALUES (%s, %s, '%s')" % (positions[sysname][1], positions[sysname][1], sysname))
+                db.execute("""
+                           INSERT INTO netmap_position(xpos, ypos, sysname)
+                           VALUES (%s, %s, %s)
+                           """, (positions[sysname][1], positions[sysname][1],
+                                 sysname))
 
 
         return apache.OK
