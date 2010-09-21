@@ -71,7 +71,7 @@ def devicehistory_search(request):
     event_types = get_event_and_alert_types()
 
     info_dict = {
-        'active': {'devicesearch': True},
+        'active': {'device': {'search': True}},
         'quickselect': DeviceQuickSelect,
         'selected_types': selected_types,
         'event_type': event_types,
@@ -159,7 +159,7 @@ def devicehistory_view(request):
     del selection['location']
 
     info_dict = {
-        'active': {'devicehistory': True},
+        'active': {'device': {'history': True}},
         'history': this_page,
         'search_description': search_description,
         'pages': pages,
