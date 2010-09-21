@@ -35,7 +35,7 @@ from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils import get_event_and_alert_types
 from nav.web.devicehistory.utils.history import get_selected_types, \
     fetch_history, get_page, get_messages_for_history, \
-    group_history_and_messages, describe_search_params
+    group_history_and_messages, describe_search_params, check_empty_selection
 from nav.web.devicehistory.utils.error import register_error_events
 
 DeviceQuickSelect_view_history_kwargs = {
@@ -97,6 +97,7 @@ def devicehistory_view(request):
         'netbox': request.REQUEST.getlist('netbox'),
         'module': request.REQUEST.getlist('module'),
     }
+    selection = check_empty_selection(selection)
 
     try:
         page = int(request.REQUEST.get('page', '1'))

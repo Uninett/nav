@@ -62,6 +62,11 @@ def get_selected_types(type):
             selected_types['alert'] = int(splitted[1])
     return selected_types
 
+def check_empty_selection(selection):
+    if not selection['location'] and not selection['room'] and not selection['netbox'] and not selection['module']:
+        selection['netbox'] = Netbox.objects.values_list('id', flat=True)
+    return selection
+
 def fetch_history(selection, from_date, to_date, selected_types=[], order_by=None):
     def type_query_filter(selected_types):
         # FIXME Selecting multiple is not accutally possible from the GUI.

@@ -7,7 +7,7 @@
             <a href="{% url devicehistory-search %}">New search</a>
         </li>
         <li class="{{ active.device.history|yesno:"tabactive," }}">
-            <a href="{% url devicehistory-search %}">Results</a>
+            <a href="{% url devicehistory-view %}">Results</a>
         </li>
     </ul>
 </div>
