@@ -23,8 +23,11 @@ import psycopg2.extras
 from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
 
-from mod_python import apache, util, Cookie
-from mod_python.util import FieldStorage
+from mod_python import Cookie
+try:
+    from mod_python import apache
+except ImportError:
+    apache = None
 
 from nav.web.templates.GraphML import GraphML
 from nav.web.templates.Netmap import Netmap
@@ -78,6 +81,7 @@ def handler(req):
         if not account.has_perm(None, None):
             return apache.HTTP_UNAUTHORIZED
 
+        from mod_python.util import FieldStorage
         form = FieldStorage(req)
         req.content_type="text/plain"
         req.send_http_header()
