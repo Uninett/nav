@@ -220,11 +220,11 @@ def expand_switch(request):
 def expand_swport(request):
     """
     """
-    swport = get_object_or_404(SwPort, id=request.GET['swportid'])
+    swport = get_object_or_404(Interface, id=request.GET['swportid'])
     if swport.to_netbox:
         to_netbox = swport.to_netbox
-    elif swport.to_swport:
-        to_netbox = swport.to_swport.module.netbox
+    elif swport.to_interface:
+        to_netbox = swport.to_interface.netbox
     else:
         to_netbox = None
 
@@ -233,7 +233,7 @@ def expand_swport(request):
     else:
         services = []
 
-    active_macs = Cam.objects.filter(netbox=swport.module.netbox, ifindex=swport.ifindex, end_time__gt=datetime.datetime.max)
+    active_macs = Cam.objects.filter(netbox=swport.netbox, ifindex=swport.ifindex, end_time__gt=datetime.datetime.max)
     hosts_behind_port = []
     for mac in active_macs:
         arp_entries = Arp.objects.filter(mac=mac.mac, end_time__gt=datetime.datetime.max)
