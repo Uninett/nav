@@ -70,7 +70,8 @@ def account_detail(request, account_id=None):
             if account_form.is_valid():
                 account = account_form.save(commit=False)
 
-                if 'password1' in account_form.cleaned_data and not account.ext_sync:
+                if 'password1' in account_form.cleaned_data and \
+                account_form.cleaned_data['password1'] and not account.ext_sync:
                     account.set_password(account_form.cleaned_data['password1'])
 
                 account.save()
