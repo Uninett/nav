@@ -26,6 +26,7 @@ import nav
 import rrdtool
 import cgi
 from xml.sax.saxutils import escape
+from django.core.urlresolvers import reverse
 
 from nav.rrd import presenter
 from nav.config import readConfig
@@ -229,6 +230,8 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
                 netbox['load'] = 'unknown'
         else:
             netbox['load'] = 'unknown'
+        netbox['ipdevinfo_link'] = reverse('ipdevinfo-details-by-name', 
+                                           args=[netbox['sysname']])
         if netbox['sysname'].endswith(domain_suffix):
             netbox['sysname'] = netbox['sysname'][0:len(netbox['sysname'])-len(domain_suffix)]
 
