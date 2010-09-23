@@ -19,7 +19,10 @@
 
 
 from IPy import IP
-from mod_python import apache, util
+try:
+    from mod_python import apache
+except ImportError:
+    apache = None
 from operator import itemgetter
 from time import localtime, strftime
 import copy

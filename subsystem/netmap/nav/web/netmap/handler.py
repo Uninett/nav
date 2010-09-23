@@ -1,24 +1,19 @@
-# -*- coding: UTF-8 -*-
 #
-# Copyright 2007 UNINETT AS
+# Copyright (C) 2007, 2010 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Kristian Klette <klette@samfundet.no>
+"""Netmap mod_python handler"""
 
 import sys
 import nav.db
@@ -28,8 +23,11 @@ import psycopg2.extras
 from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
 
-from mod_python import apache, util, Cookie
-from mod_python.util import FieldStorage
+from mod_python import Cookie
+try:
+    from mod_python import apache
+except ImportError:
+    apache = None
 
 from nav.web.templates.GraphML import GraphML
 from nav.web.templates.Netmap import Netmap
@@ -70,10 +68,10 @@ def handler(req):
         page.connections = data[1]
         page.baseURL = baseURL[:baseURL.rfind('/')]
 
-        req.content_type="text/xml"
+        req.content_type="text/xml; charset=utf-8"
         req.send_http_header()
 
-        req.write(page.respond());
+        req.write(page.respond().encode('utf-8'))
 
         return apache.OK
 
@@ -83,6 +81,7 @@ def handler(req):
         if not account.has_perm(None, None):
             return apache.HTTP_UNAUTHORIZED
 
+        from mod_python.util import FieldStorage
         form = FieldStorage(req)
         req.content_type="text/plain"
         req.send_http_header()
@@ -104,12 +103,25 @@ def handler(req):
                 positions[sysname][1] = position
 
         for sysname in positions.keys():
-            db.execute("SELECT COUNT(*) FROM netmap_position WHERE sysname = '%s'" % sysname)
+            db.execute("""
+                       SELECT COUNT(*)
+                       FROM netmap_position
+                       WHERE sysname = %s
+                       """, (sysname,))
             result = db.fetchall()
             if result[0][0] > 0:
-                db.execute("UPDATE netmap_position SET xpos = %s, ypos = %s WHERE sysname = '%s'" % (positions[sysname][0], positions[sysname][1], sysname))
+                db.execute("""
+                           UPDATE netmap_position
+                           SET xpos = %s, ypos = %s
+                           WHERE sysname = %s
+                           """, (positions[sysname][0], positions[sysname][1],
+                                 sysname))
             else:
-                db.execute("INSERT INTO netmap_position(xpos, ypos, sysname) VALUES (%s, %s, '%s')" % (positions[sysname][1], positions[sysname][1], sysname))
+                db.execute("""
+                           INSERT INTO netmap_position(xpos, ypos, sysname)
+                           VALUES (%s, %s, %s)
+                           """, (positions[sysname][1], positions[sysname][1],
+                                 sysname))
 
 
         return apache.OK
@@ -118,24 +130,24 @@ def handler(req):
 
     #Fetch categories
     elif path == '/catids':
-       db.execute("SELECT catid FROM cat ORDER BY catid")
-       result = db.fetchall()
+        db.execute("SELECT catid FROM cat ORDER BY catid")
+        result = db.fetchall()
 
-       req.content_type="text/plain"
-       req.send_http_header()
-       for cat in result:
-           req.write(cat[0] + ",")
-       return apache.OK
+        req.content_type="text/plain"
+        req.send_http_header()
+        for cat in result:
+            req.write(cat[0] + ",")
+        return apache.OK
 
     elif path == '/linktypes':
-       db.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
-       result = db.fetchall()
+        db.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
+        result = db.fetchall()
 
-       req.content_type="text/plain"
-       req.send_http_header()
-       for type in result:
-           req.write(type[0] + ",")
-       return apache.OK
+        req.content_type="text/plain"
+        req.send_http_header()
+        for type in result:
+            req.write(type[0] + ",")
+        return apache.OK
 
     elif path == '/':
         cookies = Cookie.get_cookies(req)
