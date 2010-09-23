@@ -20,18 +20,20 @@ public class netboxTooltip extends JPanel {
 	private JLabel cpuLabel;
 	private JLabel cpuValue;
 	private JButton ipdevinfoLink;
+	private String ipdevinfoUrl;
 
 	public netboxTooltip() {
 		initComponents();
 	}
 
-	public netboxTooltip(String sysname, String category, String type, String room, String cpuload){
+	public netboxTooltip(String sysname, String category, String type, String room, String ipdevinfoUrl, String cpuload){
 		initComponents();
 		sysnameValue.setText(sysname);
 		categoryValue.setText(category);
 		typeValue.setText(type);
 		roomValue.setText(room);
 		cpuValue.setText(cpuload);
+		this.ipdevinfoUrl = ipdevinfoUrl;
 	}
 
 	public JLabel getSysnameValue() {
@@ -44,7 +46,7 @@ public class netboxTooltip extends JPanel {
 				AppletContext ac = no.uninett.nav.netmap.Main._getAppletContext();
 				String path = no.uninett.nav.netmap.Main.getBaseURL().toString();
 				path = path.substring(0,path.length()-7);
-				URL url = new URL(path + "/ipdevinfo/" + sysnameValue.getText());
+				URL url = new URL(path + ipdevinfoUrl);
 				ac.showDocument(url, "_blank");
 			} catch (Exception e){
 				System.out.println("Could not open link with error" + e.getMessage());

@@ -49,7 +49,7 @@ public class linkTooltip extends JPanel {
 				AppletContext ac = no.uninett.nav.netmap.Main._getAppletContext();
 				String path = no.uninett.nav.netmap.Main.getBaseURL().toString();
 				path = path.substring(0,path.length()-7);
-				URL url = new URL(path + "/ipdevinfo/netbox/module=0/" + ipdevinfo_link);
+				URL url = new URL(path + ipdevinfo_link);
 				ac.showDocument(url, "_blank");
 			} catch (Exception e){
 				System.out.println("Could not open link with error" + e.getMessage());
