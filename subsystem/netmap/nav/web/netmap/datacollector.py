@@ -189,13 +189,15 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
             link_load[1] = get_rrd_link_load(res['rrd_datasource_out'])
         res['load'] = link_load
 
-        # TODO: Update these when ipdevinfo is updated to use interfacetable
-        if 'from_swportid' in res and res['from_swportid']:
-            res['ipdevinfo_link'] = "swport=" + str(res['from_swportid'])
-        elif 'from_gwportid' in res and res['from_gwportid']:
-            res['ipdevinfo_link'] = "gwport=" + str(res['from_gwportid'])
-        else:
+        port_id = \
+            res.get('from_swportid', None) or res.get('from_gwportid', None)
+        if not port_id:
             assert False, str(res)
+
+        res['ipdevinfo_link'] = reverse('ipdevinfo-interface-details', kwargs={
+                'netbox_sysname': res['from_sysname'],
+                'port_id': str(port_id),
+                })
 
         connection_id = "%s-%s" % (res['sysname'], res['from_sysname'], )
         connection_rid = "%s-%s" % (res['from_sysname'], res['sysname'])
