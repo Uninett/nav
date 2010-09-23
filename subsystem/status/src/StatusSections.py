@@ -452,7 +452,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 now() - ah.start_time AS downtime, s.up, s.serviceid,
                 n.netboxid
             FROM alerthist AS ah, netbox AS n, service AS s
-            WHERE ah.netboxid = n.netboxid::text
+            WHERE ah.netboxid = n.netboxid
                 AND ah.subid = s.serviceid::text
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'serviceState'"""
