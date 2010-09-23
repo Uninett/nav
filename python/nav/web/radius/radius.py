@@ -576,15 +576,17 @@ class AcctSearchQuery(SQLQuery):
                 self.sqlQuery += " AND LOWER(cisconasport) = %s"
                 self.sqlParameters += tuple(match.group("swport").lower().split())
 
-               
-        
+                
         if searchtype == "iprange":
             if searchstring.find('%'):
-                self.sqlQuery += " %s << %%s" % ('framedipaddress')
-                self.sqlParameters += (searchstring,)
-                
+                if re.search('/32', searchstring):
+                    self.sqlQuery += " %s = INET(%%s) OR %s = INET(%%s)" % ('framedipaddress', 'nasipaddress')
+                    self.sqlParameters += (searchstring[:-3], searchstring[:-3])
+                else:
+                    self.sqlQuery += " %s << INET(%%s) OR %s = INET(%%s)" % ('framedipaddress', 'nasipaddress')
+                    self.sqlParameters += (searchstring, searchstring)
+               
         
-
         if nasporttype:
             if nasporttype.lower() == "isdn": nasporttype = "ISDN"
             if nasporttype.lower() == "vpn": nasporttype = "Virtual"

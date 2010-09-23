@@ -352,6 +352,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alert_info': alert_info,
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,
+            'activity_interval': activity_interval,
             'no_netbox': no_netbox,
             'netboxsubcat': netboxsubcat,
         },
@@ -422,6 +423,7 @@ def module_details(request, netbox_sysname, module_name):
             'swportactive_view': swportactive_view,
             'gwportstatus_view': gwportstatus_view,
             'activity_interval_form': activity_interval_form,
+            'activity_interval': activity_interval,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
