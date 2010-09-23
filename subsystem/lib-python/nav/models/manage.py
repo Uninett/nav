@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007,2008 UNINETT AS
+# Copyright (C) 2007,2008,2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -217,21 +217,7 @@ class Netbox(models.Model):
             return None
 
     def get_prefix(self):
-        prefix_id = self._get_prefix_id()
-        if prefix_id:
-            return Prefix.objects.get(id=prefix_id)
-
-    def _get_prefix_id(self):
-        from django.db import connection, transaction
-        if not self.id:
-            return
-        cursor = connection.cursor()
-        cursor.execute(
-            "SELECT prefixid FROM netboxprefix WHERE netboxid=%s",
-            [self.id])
-        row = cursor.fetchone()
-        if row:
-            return row[0]
+        return self.netboxprefix.prefix
 
     def get_filtered_prefix(self):
         prefix = self.get_prefix()
@@ -279,6 +265,27 @@ class NetboxInfo(models.Model):
 
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
+
+class NetboxPrefix(models.Model):
+    """Which prefix a netbox is connected to.
+
+    This models the read-only netboxprefix view.
+
+    """
+    netbox = models.OneToOneField('Netbox', db_column='netboxid',
+                                  primary_key=True)
+    prefix = models.ForeignKey('Prefix', db_column='prefixid',
+                               related_name='netbox_set')
+
+    class Meta:
+        db_table = 'netboxprefix'
+        unique_together = (('netbox', 'prefix'),)
+
+    def __unicode__(self):
+        return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
+
+    def save(self):
+        raise NotImplementedError
 
 class Device(models.Model):
     """From MetaNAV: The device table contains all physical devices in the
