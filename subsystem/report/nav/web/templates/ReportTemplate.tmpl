@@ -163,6 +163,8 @@
         <h3>CSV Export</h3>
         <form action="" method="get" name="export">
             <label for="export">Delimiter: </label>
+	    <input type="hidden" name="limit" value="0" />
+	    <input type="hidden" name="offset" value="0" />
             <select name="export">
 #for $delim in $delimiters
                 <option value="$delim">$delim</option>

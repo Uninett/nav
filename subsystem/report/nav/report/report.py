@@ -52,7 +52,11 @@ class Report:
         self.limit = int(str((self.setLimit(configuration.limit))))
         self.offset = int(str(self.setOffset(configuration.offset)))
 
-        self.formatted = database.result[self.offset:self.limit+self.offset]
+        # oh, the smell, it kills me!
+        if self.limit:
+            self.formatted = database.result[self.offset:self.limit+self.offset]
+        else:
+            self.formatted = database.result
         self.dbresult = database.result
         
         self.address = self.stripPath(path)
