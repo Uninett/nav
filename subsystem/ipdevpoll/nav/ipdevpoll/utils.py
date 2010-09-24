@@ -18,7 +18,8 @@
 
 import logging
 import gc
-from functools import wraps
+# django already has a workaround for "no functools on py2.4"
+from django.utils.functional import wraps
 
 from IPy import IP
 
