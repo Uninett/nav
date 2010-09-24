@@ -95,28 +95,35 @@ class TrapListener:
 
 
     def listen(self, community, callback):
-        """Listens for and dispatches incoming traps to callback."""
-        # Listen for SNMP messages from remote SNMP managers
+        """Listens for and dispatches incoming traps to callback.
+
+        Any exceptions that occur, except SystemExit, are logged and
+        subsequently ignored to avoid taking down the entire snmptrapd
+        process by accident.
+
+        """
         while 1:
             try:
                 (request, src) = self._agent.receive()
-                if not request:
-                    # Just resume loop if we timed out
-                    continue
+            except SystemExit:
+                raise
+            except Exception, why:
+                logger.exception("Unknown exception while receiving snmp trap")
+                continue
 
+            if not request:
+                # Just resume loop if we timed out
+                continue
+
+            try:
                 trap = self._decode(request, src)
             except Exception, why:
-                # We must not die because of any malformed packets; log
-                # and ignore any exception
-                logger.exception("Unknown exception while receiving snmp trap "
+                logger.exception("Unknown exception while decoding snmp trap "
                                  "packet from %r, ignoring trap", src)
                 logger.debug("Packet content: %r", request)
                 continue
             else:
                 callback(trap)
-
-        # Exit nicely
-        sys.exit(0)
 
 
 def transform(pdu):
