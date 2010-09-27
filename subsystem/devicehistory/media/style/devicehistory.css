@@ -1,3 +1,7 @@
+.listtable {
+	width: 100%;
+}
+
 .listtable ul {
 	margin: 0;
 	padding: 0;
@@ -44,10 +48,6 @@ li.sms_message {
 	clear: both;
 }
 
-li.sms_message span {
-	float: left;
-}
-
 li.sms_message .expand_link {
 	margin-left: 20px;
 	display: block;
@@ -56,4 +56,31 @@ li.sms_message .expand_link {
 
 li.sms_message ul {
 	clear: both;
+}
+
+div.quickbox {
+	float: left;
+}
+
+div.searchfilter {
+	float: left;
+	margin-left: 2em;
+	margin-top: 1em;
+}
+
+div.resultfilter {
+	float: left;
+}
+
+div.searchparams {
+	float: left;
+	height: 12em;
+	min-width: 400px;
+	padding: 1em;
+	padding-top: 0;
+	overflow: auto;
+	margin-left: 2em;
+	margin-top: 0.5em;
+	border: 1px solid #999;
+	background-color: #eee;
 }

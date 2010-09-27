@@ -67,6 +67,7 @@ def devicehistory_search(request):
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.get('type', None)
+    group_by = request.REQUEST.get('group_by', 'netbox')
 
     selected_types = get_selected_types(types)
     event_types = get_event_and_alert_types()
@@ -78,6 +79,7 @@ def devicehistory_search(request):
         'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
+        'group_by': group_by,
         'navpath': [('Home', '/'), ('Device History', '')],
         'title': 'NAV - Device History',
     }

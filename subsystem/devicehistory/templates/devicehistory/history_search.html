@@ -6,6 +6,14 @@
     room.</p>
 
     <form action="{% url devicehistory-view %}" method="get">
-        {{ quickselect|safe }}
+        <div class="quickbox">
+            {{ quickselect|safe }}
+        </div>
+        <div class="searchfilter">
+            <table class="vertitable">
+                {% include "devicehistory/history_view_filter.html" %}
+            </table>
+        </div>
+        <div style="clear:both"></div>
     </form>
 {% endblock %}
