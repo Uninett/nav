@@ -73,10 +73,15 @@ FROM gwportprefix
        FROM interface
        JOIN netbox USING (netboxid)
        JOIN gwportprefix USING (interfaceid)
+       WHERE netbox.catid IN ('GW', 'GSW')
        ) AS conn USING (prefixid)
   JOIN interface_gwport USING (interfaceid)
   JOIN ( SELECT interfaceid, COUNT(*) AS count
-         FROM gwportprefix GROUP BY interfaceid ) AS gwportprefixcount
+         FROM gwportprefix
+         JOIN interface USING (interfaceid)
+         JOIN netbox USING (netboxid)
+         WHERE catid IN ('GW', 'GSW')
+         GROUP BY interfaceid) AS gwportprefixcount
        ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
   JOIN netbox USING (netboxid)
   LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
@@ -90,7 +95,8 @@ FROM gwportprefix
                 rrd_out.descr IN ('ifHCOutOctets', 'ifOutOctets'))
 WHERE interface_gwport.interfaceid <> from_gwportid AND
       vlan.nettype NOT IN ('static', 'lan') AND
-      gwportprefixcount.count = 2
+      gwportprefixcount.count = 2 AND
+      netbox.catid IN ('GW', 'GSW')
 ORDER BY sysname,from_sysname, netaddr ASC, speed DESC
 """
 
