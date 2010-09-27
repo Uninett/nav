@@ -83,8 +83,18 @@ def get_user_sections(account):
     # Add pre fetched categories and organisations to section preferences.
     # Adds all categories and organisations if nothing is found in database.
     for pref in preferences:
-        pref.fetched_categories = categories.get(pref.id, all_cats)
-        pref.fetched_organizations = organizations.get(pref.id, all_orgs)
+        if pref.id in categories:
+            pref.fetched_categories = categories[pref.id]
+            pref.all_categories = False
+        else:
+            pref.fetched_categories = all_cats
+            pref.all_categories = True
+        if pref.id in organizations:
+            pref.fetched_organizations = organizations[pref.id]
+            pref.all_organizations = False
+        else:
+            pref.fetched_organizations = all_orgs
+            pref.all_organizations = True
 
     for pref in preferences:
         section = dtable[pref.type](prefs=pref)
@@ -127,15 +137,17 @@ class _Section(object):
         self.history = []
 
     def devicehistory_url(self):
-        netboxes = Netbox.objects.filter(
-            category__in=self.categories,
-            organization__in=self.organizations,
-        ).values('id')
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
-        for n in netboxes:
-            url += "&netbox=%s" % n['id']
+
+        if not self.prefs.all_categories or not self.prefs.all_organizations:
+            netboxes = Netbox.objects.filter(
+                category__in=self.categories,
+                organization__in=self.organizations,
+            ).values('id')
+            for n in netboxes:
+                url += "&netbox=%s" % n['id']
         return url
 
 class NetboxSection(_Section):
@@ -356,17 +368,19 @@ class ServiceSection(_Section):
         self.history = history
 
     def devicehistory_url(self):
-        # FIXME filter service
-        # Service is joined in on the alerthist.subid field, which is not a
-        # part of this query. Yay
-        netboxes = Netbox.objects.filter(
-            organization__in=self.organizations,
-        ).values('id')
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
-        for n in netboxes:
-            url += "&netbox=%s" % n['id']
+
+        if not self.prefs.all_organizations:
+            # FIXME filter service
+            # Service is joined in on the alerthist.subid field, which is not a
+            # part of this query. Yay
+            netboxes = Netbox.objects.filter(
+                organization__in=self.organizations,
+            ).values('id')
+            for n in netboxes:
+                url += "&netbox=%s" % n['id']
         return url
 
 class ServiceMaintenanceSection(ServiceSection):
@@ -458,7 +472,7 @@ class ModuleSection(_Section):
             select={
                 'downtime': 'NOW() - start_time',
                 'module_id': 'module.moduleid',
-                'module_number': 'module.module',
+                'module_name': 'module.name',
             },
             tables=['module'],
             where=[
@@ -477,10 +491,10 @@ class ModuleSection(_Section):
                 ),
                 (module.netbox.ip, None),
                 (
-                    module.module_number,
+                    module.module_name,
                     reverse('ipdevinfo-module-details', args=[
                         module.netbox.sysname,
-                        module.name,
+                        module.module_name
                     ])
                 ),
                 (module.start_time, None),
