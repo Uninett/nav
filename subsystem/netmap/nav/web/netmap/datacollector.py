@@ -81,7 +81,7 @@ FROM gwportprefix
   JOIN netbox USING (netboxid)
   LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
   LEFT JOIN vlan USING (vlanid)
-  LEFT JOIN rrd_file ON (key='gwport' AND value=conn.from_gwportid::varchar)
+  LEFT JOIN rrd_file ON (key='interface' AND value=conn.from_gwportid::varchar)
   LEFT JOIN rrd_datasource AS rrd_in
             ON (rrd_file.rrd_fileid = rrd_in.rrd_fileid AND
                 rrd_in.descr IN ('ifHCInOctets', 'ifInOctets'))
@@ -173,7 +173,7 @@ FROM netbox
 
 LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
 LEFT JOIN vlan USING (vlanid)
-LEFT JOIN rrd_file  ON (key='swport' AND
+LEFT JOIN rrd_file  ON (key='interface' AND
                         value=interface_swport.interfaceid::varchar)
 LEFT JOIN rrd_datasource AS rrd_in
           ON (rrd_file.rrd_fileid = rrd_in.rrd_fileid AND
