@@ -22,25 +22,12 @@ public class Module extends Device
 
 	protected Module() { }
 
-	/*
-	public Module(DeviceDB devDB, ResultSet rs) throws SQLException
-	{
-		this(devDB, rs, null);
-	}
-	*/
-
 	public Module(DeviceDB devDB, ResultSet rs, Netel parent) throws SQLException
 	{
 		super(devDB, rs, null);
 		update(rs);
 
 		this.parent = parent;
-		/*
-		if (d instanceof Module) {
-			Module m = (Module)d;
-			status = m.status;
-		}
-		*/
 	}
 
 	protected void update(ResultSet rs) throws SQLException
@@ -51,7 +38,6 @@ public class Module extends Device
 		status = "y".equals(rs.getString("up"));
 		if (rs.getString("swportid") != null) {
 			do {
-				//errl("Debug " + deviceid + ", Module("+module+"): New port: " + rs.getInt("port"));
 				Port p;
 				if ( (p=(Port)ports.get(Port.getKey(rs))) != null) {
 					p.update(rs);
@@ -104,52 +90,8 @@ public class Module extends Device
 				}
 			}
 
-			//outld("new Module("+deviceid+")");
-			/*
-			if (rs.getInt("parent_deviceid") == 278) {
-				rs.previous();
-				rs.previous();
-				errl("Boxid: " + rs.getInt("parent_deviceid") + " Port: " + rs.getInt("port") + " parent: " + rs.getInt("to_netboxid"));
-				rs.next();
-				rs.next();
-			}
-			*/
-
-			/*
-			Device d = (Device)ddb.getDevice(deviceid);
-			if (d == null) {
-				Module m = new Module(ddb, rs);
-				ddb.putDevice(m);
-			} else if (classEq(d, new Netel())) {
-				// Add ourselves to the netbox
-				Module m = new Module(ddb, rs, d);
-				((Netel)d).addModule(m);
-			} else if (!ddb.isTouchedDevice(d)) {
-				if (classEq(d, new Module())) {
-					((Module)d).update(rs);
-					ddb.touchDevice(d);
-				} else {
-					Module m = new Module(ddb, rs, d);
-					ddb.putDevice(m);
-				}
-			}
-			*/
 		}
 	}
-
-	/*
-	public void init(DeviceDB ddb)
-	{
-		Device d = (Device)ddb.getDevice(parentDeviceid);
-		if (d instanceof Netel) {
-			parent = (Netel)d;
-			parent.addModule(this);
-		} else {
-			Log.w("MODULE_DEVICEPLUGIN", "INIT", "ParentDeviceid="+parentDeviceid+" is not an instance of Netel ("+d+")!");
-			return;
-		}
-	}
-	*/
 
 	/**
 	 * Return the deviceid of the box this module is part of.
