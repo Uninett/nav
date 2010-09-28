@@ -535,12 +535,12 @@ class Cell:
     One cell of the table
     """
 
-    def __init__(self,text="",uri="",explanation=""):
+    def __init__(self,text=u"",uri=u"",explanation=u""):
 
-        self.text = text
-        self.uri = uri
-        self.explanation = explanation
-        self.sum = ""
+        self.setText(text)
+        self.setUri(uri)
+        self.setExplanation(explanation)
+        self.sum = u""
 
     def setText(self,text):
         """
@@ -550,7 +550,7 @@ class Cell:
 
         """
 
-        self.text = text
+        self.text = unicode_utf8(text)
 
 
     def setUri(self,uri):
@@ -561,7 +561,7 @@ class Cell:
 
         """
 
-        self.uri = uri
+        self.uri = unicode_utf8(uri)
 
 
     def setExplanation(self,explanation):
@@ -572,7 +572,7 @@ class Cell:
 
         """
 
-        self.explanation = explanation
+        self.explanation = unicode_utf8(explanation)
 
     def setSum(self,sum):
         """
@@ -582,7 +582,7 @@ class Cell:
 
         """
 
-        self.sum = sum
+        self.sum = unicode_utf8(sum)
 
 
 class Headers:
@@ -622,3 +622,11 @@ class Footers:
         """
 
         self.cells.append(cell)
+
+def unicode_utf8(thing):
+    """Casts thing to unicode, assuming utf-8 encoding if a string."""
+    if isinstance(thing, str):
+        return thing.decode('utf-8')
+    else:
+        return unicode(thing)
+
