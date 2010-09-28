@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from modpython_testcase import ModPythonTestCase
-from nav.models.profiles import Account
+from nav.models.profiles import Account, Organization, Location, Room
 from django.db import transaction
 from StringIO import StringIO
 
@@ -17,6 +17,17 @@ class ReportEncodingTest(ModPythonTestCase):
         admin = Account.objects.get(login='admin')
         admin.name = u"ÆØÅ Test Administrator"
         admin.save()
+
+        org = Organization(id=u"møøse", description=u"møøse biting unit")
+        org.save()
+
+        loc = Location(id=u"sømewhere", description="øver the rainbøw")
+        loc.save()
+
+        room = Room(id=u"æøå", description="The Norwegian blue room",
+                    location=loc)
+        room.save()
+
 
     def tearDown(self):
         super(ReportEncodingTest, self).tearDown()
@@ -35,6 +46,15 @@ class ReportEncodingTest(ModPythonTestCase):
 
     def test_netbox_report_no_unicode_output(self):
         self.handler_outputs_no_unicode("/report/netbox/")
+
+    def test_org_report_no_unicode_output(self):
+        self.handler_outputs_no_unicode("/report/org/")
+
+    def test_location_report_no_unicode_output(self):
+        self.handler_outputs_no_unicode("/report/location/")
+
+    def test_room_report_no_unicode_output(self):
+        self.handler_outputs_no_unicode("/report/room/")
 
     def test_admin_name_present_in_output(self):
         buffer = StringIO()
