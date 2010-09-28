@@ -379,6 +379,7 @@ CREATE TABLE rproto_attr (
   CONSTRAINT rproto_attr_interfaceid_fkey
              FOREIGN KEY (interfaceid)
              REFERENCES interface (interfaceid)
+             ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE swportvlan (

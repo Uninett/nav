@@ -24,6 +24,12 @@
 BEGIN;
 -- Insert schema changes here.
 
+ALTER TABLE rproto_attr
+  DROP CONSTRAINT rproto_attr_interfaceid_fkey;
+
+ALTER TABLE rproto_attr
+  ADD CONSTRAINT rproto_attr_interfaceid_fkey FOREIGN KEY (interfaceid) REFERENCES interface
+  ON UPDATE CASCADE ON DELETE CASCADE;
 
 -- Insert the new version number if we got this far.
 -- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
