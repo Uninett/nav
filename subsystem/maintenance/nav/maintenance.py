@@ -322,6 +322,9 @@ def getLocation(locationid):
     if not len(locationid):
         return False
 
+    if not type(locationid) == type(str()):
+        locationid = locationid.value
+
     dbconn = nav.db.getConnection('webfront', 'manage')
     db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -354,6 +357,9 @@ def getRoom(roomid):
 
     if not len(roomid):
         return False
+
+    if not type(roomid) == type(str()):
+        roomid = roomid.value
 
     dbconn = nav.db.getConnection('webfront', 'manage')
     db = dbconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
