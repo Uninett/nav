@@ -46,6 +46,12 @@ WHERE interfaceid IN (
                      i1.interfaceid > i2.interfaceid)
 );
 
+ALTER TABLE interface
+  DROP CONSTRAINT interface_interfaceid_netboxid_unique;
+
+ALTER TABLE interface
+  ADD CONSTRAINT interface_netboxid_ifindex_unique UNIQUE (netboxid, ifindex);
+
 -- Insert the new version number if we got this far.
 -- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
 

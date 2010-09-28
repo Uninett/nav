@@ -335,8 +335,8 @@ CREATE TABLE interface (
              FOREIGN KEY (to_interfaceid) 
              REFERENCES interface (interfaceid)
              ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT interface_interfaceid_netboxid_unique
-             UNIQUE (interfaceid, netboxid)
+  CONSTRAINT interface_netboxid_ifindex_unique
+             UNIQUE (netboxid, ifindex)
 );
 
 -- this should be populated with entries parsed from 
