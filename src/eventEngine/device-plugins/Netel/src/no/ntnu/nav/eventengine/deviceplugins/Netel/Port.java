@@ -74,7 +74,7 @@ public class Port
 	{
 		// These are needed for knowing when we are done with the port
 		int parentDeviceid = rs.getInt("parent_deviceid");
-		String module = rs.getString("module");
+		String moduleName = rs.getString("name");
 
 		ifindex = rs.getInt("ifindex");
 		port = rs.getInt("port");
@@ -85,7 +85,7 @@ public class Port
 			char dir = rs.getString("direction") == null ? 'x' : rs.getString("direction").charAt(0);
 			vl.add(new Vlan(rs.getInt("vlan"), dir));
 			//errl("Debug   Port: New vlan: " + vl.get(vl.size()-1));
-		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module) && rs.getInt("ifindex") == ifindex);
+		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("name").equals(moduleName) && rs.getInt("ifindex") == ifindex);
 		rs.previous();
 
 		vlan = new Vlan[vl.size()];

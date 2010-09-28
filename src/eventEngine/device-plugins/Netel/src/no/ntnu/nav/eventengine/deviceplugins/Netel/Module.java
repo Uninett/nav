@@ -15,7 +15,7 @@ public class Module extends Device
 
 	protected int parentDeviceid;
 	protected int parentBoxid;
-	protected String module;
+	protected String moduleName;
 	protected boolean status = true; // default is up
 	protected Netel parent;
 	protected Map ports = new HashMap();
@@ -47,7 +47,7 @@ public class Module extends Device
 	{
 		parentDeviceid = rs.getInt("parent_deviceid");
 		parentBoxid = rs.getInt("parent_netboxid");
-		module = rs.getString("module");
+		moduleName = rs.getString("name");
 		status = "y".equals(rs.getString("up"));
 		if (rs.getString("swportid") != null) {
 			do {
@@ -59,7 +59,7 @@ public class Module extends Device
 					p = new Port(rs);
 					ports.put(p.getKey(), p);
 				}
-			} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module));
+			} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("name").equals(moduleName));
 			rs.previous();
 		}
 	}
@@ -71,7 +71,7 @@ public class Module extends Device
 		                              "  module.deviceid, " +
 					      "  netbox.deviceid AS parent_deviceid, " +
 					      "  module.netboxid AS parent_netboxid, " +
-					      "  module, " +
+					      "  name, " +
 					      "  module.up, " +
 					      "  interfaceid AS swportid, " +
 					      "  ifindex, " +
@@ -219,7 +219,7 @@ public class Module extends Device
 
 	public String getModule()
 	{
-		return module;
+		return moduleName;
 	}
 
 	public Port getPort(int ifindex)
@@ -251,7 +251,7 @@ public class Module extends Device
 
 	public String toString()
 	{
-		StringBuffer sb = new StringBuffer("Module [module="+module+", status="+status+", "+ports.size()+" ports]");
+		StringBuffer sb = new StringBuffer("Module [module="+moduleName+", status="+status+", "+ports.size()+" ports]");
 		if (VERBOSE_TOSTRING) {
 			for (Iterator i=ports.values().iterator(); i.hasNext();) {
 				sb.append("\n      "+i.next());
