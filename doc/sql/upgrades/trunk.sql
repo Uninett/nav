@@ -31,6 +31,21 @@ ALTER TABLE rproto_attr
   ADD CONSTRAINT rproto_attr_interfaceid_fkey FOREIGN KEY (interfaceid) REFERENCES interface
   ON UPDATE CASCADE ON DELETE CASCADE;
 
+-- getDeviceData may have left duplicate interfaces hanging around in
+-- the database, so we try to resolve them here.  Let ipdevpoll fix
+-- the rest.
+DELETE FROM interface
+WHERE interfaceid IN (
+  SELECT
+    i2.interfaceid AS dupe_id
+  FROM
+    interface i1
+  JOIN
+    interface i2 ON (i1.netboxid = i2.netboxid AND
+                     i1.ifindex = i2.ifindex AND
+                     i1.interfaceid > i2.interfaceid)
+);
+
 -- Insert the new version number if we got this far.
 -- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
 
