@@ -26,6 +26,14 @@ from nav.web.seeddb.utils.delete import render_delete
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
+def netbox_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('IP Devices', reverse('seeddb-netbox'))],
+        'tab_template': 'seeddb/tabs_netbox.html',
+    }
+    return render_delete(request, Netbox, 'seeddb-netbox',
+        extra_context=extra)
+
 def room_delete(request):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
@@ -48,4 +56,52 @@ def organization_delete(request):
         'tab_template': 'seeddb/tabs_organization.html',
     }
     return render_delete(request, Organization, 'seeddb-organization',
+        extra_context=extra)
+
+def usage_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Usage', reverse('seeddb-usage'))],
+        'tab_template': 'seeddb/tabs_usage.html',
+    }
+    return render_delete(request, Usage, 'seeddb-usage',
+        extra_context=extra)
+
+def netboxtype_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Usage', reverse('seeddb-usage'))],
+        'tab_template': 'seeddb/tabs_usage.html',
+    }
+    return render_delete(request, NetboxType, 'seeddb-type',
+        extra_context=extra)
+
+def vendor_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Vendor', reverse('seeddb-vendor'))],
+        'tab_template': 'seeddb/tabs_vendor.html',
+    }
+    return render_delete(request, Vendor, 'seeddb-vendor',
+        extra_context=extra)
+
+def subcategory_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Subcategory', reverse('seeddb-subcategory'))],
+        'tab_template': 'seeddb/tabs_subcategory.html',
+    }
+    return render_delete(request, Subcategory, 'seeddb-subcategory',
+        extra_context=extra)
+
+def cabling_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Cabling', reverse('seeddb-cabling'))],
+        'tab_template': 'seeddb/tabs_cabling.html',
+    }
+    return render_delete(request, Cabling, 'seeddb-cabling',
+        extra_context=extra)
+
+def patch_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Patch', reverse('seeddb-patch'))],
+        'tab_template': 'seeddb/tabs_patch.html',
+    }
+    return render_delete(request, Patch, 'seeddb-patch',
         extra_context=extra)

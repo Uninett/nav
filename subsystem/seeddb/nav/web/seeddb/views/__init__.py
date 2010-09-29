@@ -48,7 +48,7 @@ def netbox(request):
     return list_view(request,
         list=netbox_list,
         move=netbox_move,
-        delete=not_implemented)
+        delete=netbox_delete)
 
 def room(request):
     return list_view(request,
@@ -67,3 +67,39 @@ def organization(request):
         list=organization_list,
         move=organization_move,
         delete=organization_delete)
+
+def usage(request):
+    return list_view(request,
+        list=usage_list,
+        move=not_implemented,
+        delete=usage_delete)
+
+def netboxtype(request):
+    return list_view(request,
+        list=netboxtype_list,
+        move=not_implemented,
+        delete=netboxtype_delete)
+
+def vendor(request):
+    return list_view(request,
+        list=vendor_list,
+        move=not_implemented,
+        delete=vendor_delete)
+
+def subcategory(request):
+    return list_view(request,
+        list=subcategory_list,
+        move=not_implemented,
+        delete=subcategory_delete)
+
+def cabling(request):
+    return list_view(request,
+        list=cabling_list,
+        move=not_implemented,
+        delete=cabling_delete)
+
+def patch(request):
+    return list_view(request,
+        list=patch_list,
+        move=not_implemented,
+        delete=patch_delete)
