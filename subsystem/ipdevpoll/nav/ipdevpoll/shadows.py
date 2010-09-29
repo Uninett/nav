@@ -313,6 +313,23 @@ class Interface(Shadow):
             self.id = result[0].id
             return result[0]
 
+    def prepare(self, containers):
+        self.set_netbox_if_unset(containers)
+        self.set_ifindex_if_unset(containers)
+
+    def set_netbox_if_unset(self, containers):
+        """Sets this Interface's netbox reference if unset by plugins."""
+        if self.netbox is None:
+            self.netbox = containers.get(None, Netbox)
+
+    def set_ifindex_if_unset(self, containers):
+        """Sets this Interface's ifindex value if unset by plugins."""
+        if self.ifindex is None:
+            interfaces = dict((v,k) for k,v in containers[Interface].items())
+            if self in interfaces:
+                self.ifindex = interfaces[self]
+
+
 class Location(Shadow):
     __shadowclass__ = manage.Location
 
