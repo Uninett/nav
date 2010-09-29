@@ -322,7 +322,7 @@ def getLocation(locationid):
     if not len(locationid):
         return False
 
-    if not type(locationid) == type(str()):
+    if hasattr(locationid, 'value'):
         locationid = locationid.value
 
     dbconn = nav.db.getConnection('webfront', 'manage')
@@ -358,7 +358,7 @@ def getRoom(roomid):
     if not len(roomid):
         return False
 
-    if not type(roomid) == type(str()):
+    if hasattr(roomid, 'value'):
         roomid = roomid.value
 
     dbconn = nav.db.getConnection('webfront', 'manage')
