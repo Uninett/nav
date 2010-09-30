@@ -164,12 +164,12 @@ def handler(req):
                     components.append({'key': key, 'value': value,
                         'info': nav.maintenance.getComponentInfo(key, value)})
         elif req.form.has_key('netbox'):
-	    # Netbox defined in URL, creating new maintenance task with netbox
-	    # already added
+            # Netbox defined in URL, creating new maintenance task with netbox
+            # already added
             components = []
-	    components.append({'key': 'netbox', 'value':req.form['netbox'],
+            components.append({'key': 'netbox', 'value':req.form['netbox'],
                 'info': nav.maintenance.getComponentInfo('netbox',
-		req.form['netbox'])})
+                 req.form['netbox'])})
         else:
             # Nothing submitted, using values from default or the task we are
             # editing
