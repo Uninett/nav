@@ -313,6 +313,39 @@ class Interface(Shadow):
             self.id = result[0].id
             return result[0]
 
+    @classmethod
+    def prepare_for_save(cls, containers):
+        super(Interface, cls).prepare_for_save(containers)
+        cls._resolve_changed_ifindexes(containers)
+
+    @classmethod
+    def _resolve_changed_ifindexes(cls, containers):
+        """Resolves conflicts that arise from changed ifindexes.
+
+        The db model will not allow duplicate ifindex, so any ifindex
+        that appears to have changed on the device must be nulled out
+        in the database before we start updating Interfaces.
+
+        """
+        netbox = containers.get(None, Netbox)
+        found_existing_map = (
+            (interface, interface.get_existing_model(containers))
+            for interface in containers[Interface].values())
+
+        changed_ifindexes = [(new.ifindex, old.ifindex)
+                             for new, old in found_existing_map
+                             if new.ifindex != old.ifindex]
+        if not changed_ifindexes:
+            return
+
+        cls._logger.info("%s changed ifindex mappings (new/old): %r",
+                         netbox.sysname, changed_ifindexes)
+
+        my_interfaces = manage.Interface.objects.filter(netbox__id=netbox.id)
+        changed_interfaces = my_interfaces.filter(
+            ifindex__in=[new for new, old in changed_ifindexes])
+        changed_interfaces.update(ifindex=None)
+
     def prepare(self, containers):
         self.set_netbox_if_unset(containers)
         self.set_ifindex_if_unset(containers)
