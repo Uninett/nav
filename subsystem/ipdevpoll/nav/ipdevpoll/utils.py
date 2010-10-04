@@ -18,6 +18,7 @@
 
 import logging
 import gc
+from pprint import pformat
 # django already has a workaround for "no functools on py2.4"
 from django.utils.functional import wraps
 
@@ -111,9 +112,18 @@ def django_debug_cleanup():
     """
     query_count = len(django.db.connection.queries)
     if query_count:
-        _logger.debug("Removing %d logged Django queries", query_count)
+        runtime = sum_django_queries_runtime()
+        _logger.debug("Removing %d logged Django queries "
+                      "(total time %.03f):\n%s",
+                      query_count, runtime,
+                      pformat(django.db.connection.queries))
         django.db.reset_queries()
         gc.collect()
+
+def sum_django_queries_runtime():
+    runtimes = (float(query['time'])
+                for query in django.db.connection.queries)
+    return sum(runtimes)
 
 def commit_on_success(func):
     """Decorates func such that the current Django transaction is committed on
