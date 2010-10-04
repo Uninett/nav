@@ -22,6 +22,7 @@ CREATE INDEX gwportprefix_prefixid_btree ON gwportprefix USING btree (prefixid);
 CREATE INDEX swportvlan_interfaceid_btree ON swportvlan USING btree (interfaceid);
 CREATE INDEX swportvlan_vlanid_btree ON swportvlan USING btree (vlanid);
 
+CREATE INDEX arp_netboxid_btree ON arp USING btree (netboxid);
 CREATE INDEX arp_mac_btree ON arp USING btree (mac);
 CREATE INDEX arp_ip_btree ON arp USING btree (ip);
 CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);

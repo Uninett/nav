@@ -52,6 +52,8 @@ ALTER TABLE interface
 ALTER TABLE interface
   ADD CONSTRAINT interface_netboxid_ifindex_unique UNIQUE (netboxid, ifindex);
 
+CREATE INDEX arp_netboxid_btree ON arp USING btree (netboxid);
+
 -- Insert the new version number if we got this far.
 -- INSERT INTO nav_schema_version (version) VALUES ('3.6.0b1');
 
