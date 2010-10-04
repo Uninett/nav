@@ -196,10 +196,15 @@ class Scheduler(object):
     def run(self):
         """Initiate scheduling of polling."""
         signals.netbox_type_changed.connect(self.on_netbox_type_changed)
+        self._setup_active_job_logging()
         self.netbox_reload_loop = task.LoopingCall(self.reload_netboxes)
         # FIXME: Interval should be configurable
         deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
         return deferred
+
+    def _setup_active_job_logging(self):
+        loop = task.LoopingCall(NetboxScheduler._log_active_jobs)
+        loop.start(interval=5*60.0, now=False)
 
     def reload_netboxes(self):
         """Reload the set of netboxes to poll and update schedules."""
