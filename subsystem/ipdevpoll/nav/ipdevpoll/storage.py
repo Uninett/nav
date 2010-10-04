@@ -18,10 +18,10 @@
 
 import logging
 
-from django.db import transaction
 import django.db.models
 
 from nav import ipdevpoll
+import utils
 
 # dict structure: { django_model_class: shadow_class }
 shadowed_classes = {}
@@ -401,7 +401,7 @@ def shadowify_queryset(queryset):
     return new_list
 
 shadowify_queryset_and_commit = \
-    transaction.commit_on_success(shadowify_queryset)
+    utils.commit_on_success(shadowify_queryset)
 
 class ContainerRepository(dict):
     """A repository of container objects.
