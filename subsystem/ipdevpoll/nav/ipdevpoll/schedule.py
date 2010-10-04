@@ -18,6 +18,7 @@
 
 import logging
 import datetime
+from operator import itemgetter
 
 from twisted.internet import task, threads
 
@@ -27,6 +28,7 @@ import config
 import signals
 from dataloader import NetboxLoader
 from jobs import JobHandler, AbortedJobError
+from nav.tableformat import SimpleTableFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +151,27 @@ class NetboxScheduler(object):
             self.logger.debug("Next %r job for %s will be at %s",
                               self.jobname, self.netbox.sysname, next_time)
         return thing
+
+    @classmethod
+    def _log_active_jobs(cls):
+        """Debug logs a list of running jobs.
+
+        The jobs will be sorted by descending runtime.
+
+        """
+        jobs = [(box.sysname, job.name, job.get_current_runtime())
+                for box in cls.running_job_map.keys()
+                for job in cls.running_job_map[box]]
+        jobs.sort(key=itemgetter(2), reverse=True)
+        table_formatter = SimpleTableFormatter(jobs)
+
+        logger = ipdevpoll.get_class_logger(cls)
+        if jobs:
+            logger.debug("currently active jobs (%d):\n%s",
+                         len(jobs), table_formatter)
+        else:
+            logger.debug("no currently active jobs")
+
 
 
 class Scheduler(object):
