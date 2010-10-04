@@ -250,6 +250,9 @@ class JobHandler(object):
         log = ipdevpoll.get_instance_logger(self, "timings")
         log.debug("\n".join(log_text))
 
+    def get_current_runtime(self):
+        """Returns time elapsed since the start of the job as a timedelta."""
+        return datetime.datetime.now() - self._start_time
 
     def save_container(self):
         """
