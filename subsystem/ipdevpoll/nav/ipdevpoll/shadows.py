@@ -334,7 +334,7 @@ class Interface(Shadow):
 
         changed_ifindexes = [(new.ifindex, old.ifindex)
                              for new, old in found_existing_map
-                             if new.ifindex != old.ifindex]
+                             if old and new.ifindex != old.ifindex]
         if not changed_ifindexes:
             return
 
