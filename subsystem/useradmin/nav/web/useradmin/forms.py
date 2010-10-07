@@ -109,6 +109,8 @@ class ChangePasswordForm(forms.Form):
         return True
 
 class PrivilegeForm(forms.ModelForm):
+    target = forms.CharField(required=True)
+
     class Meta:
         model = Privilege
         exclude = ('group',)
