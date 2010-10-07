@@ -24,11 +24,11 @@ class ModPythonTestCase(TestCase):
         request.is_https = lambda: True
         request.session = {'user': self.user}
         request.headers_in = {'cookie': 'nav_sessid=xxx'}
-        request.write = lambda s: self.assertNotEquals(type(s), unicode)
         request.args = ''
         return request
 
     def handler_outputs_no_unicode(self, uri):
         request = self.make_request(uri)
+        request.write = lambda s: self.assertNotEquals(type(s), unicode)
         self.assertEquals(self.module_under_test.handler(request), 200)
 
