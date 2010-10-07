@@ -153,7 +153,8 @@ def _get_swportstatus_title(swport):
         pass
 
     if swport._blocked_vlans_cache:
-        title.append('blocked ' + ','.join(str[b] for b in blocked_vlans))
+        title.append(
+            'blocked ' + ','.join(str(b) for b in swport._blocked_vlans_cache))
 
     return ', '.join(title)
 
