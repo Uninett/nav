@@ -68,7 +68,7 @@
 #end def
 
 #def l2traceTable($table)
-  #set $columns = ('#', 'Level', 'Vlan', 'Module/Interface In', 'IP', 'Sysname', 'Module/Interface Out')
+  #set $columns = ('#', 'Level', 'Vlan', 'Interface In', 'IP', 'Sysname', 'Interface Out')
   #set $columnCount = len($columns)
 
   $tableTitle("Layer 2 Trace Results", len($table), $columnCount)
@@ -87,9 +87,9 @@
     #end if
 
     #if $row.netboxid
-        <td><a href="/report/swport?netboxid=$row.netboxid" title="Switch ports">$row.portIn</a></td>
+        <td><a href="/report/swport?netboxid=$row.netboxid" title="Switch ports">$row.if_in</a></td>
     #else
-        <td>$row.portIn</td>
+        <td>$row.if_in</td>
     #end if
 
     #if $row.hostOk
@@ -105,9 +105,9 @@
     #end if
 
     #if $row.netboxid
-        <td><a href="/report/swport?netboxid=$row.netboxid" title="Switch ports">$row.portOut</a></td>
+        <td><a href="/report/swport?netboxid=$row.netboxid" title="Switch ports">$row.if_out</a></td>
     #else
-        <td>$row.portOut</td>
+        <td>$row.if_out</td>
     #end if
     </tr>
   #end for
@@ -126,7 +126,7 @@
 
 <div id="results">
 #if $l2tracer
-    $l2traceTable($l2tracer.table)
+    $l2traceTable(list($l2tracer.make_rows))
 #end if
 
 #if not $l2tracer
