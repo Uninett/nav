@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from modpython_testcase import ModPythonTestCase
+from nav.tests.cases import ModPythonTestCase
 from nav.models.profiles import Account, Organization, Location, Room
 from django.db import transaction
 from StringIO import StringIO

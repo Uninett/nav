@@ -305,7 +305,7 @@ class JunctionTests(L2TraceTestCase):
         self.assertEquals(new_path[-1], self.to_path[-1])
 
 
-from modpython_testcase import ModPythonTestCase
+from nav.tests.cases import ModPythonTestCase
 
 class L2TraceWebTest(L2TraceTestCase, ModPythonTestCase):
     module_under_test = l2trace
