@@ -32,3 +32,7 @@ class ModPythonTestCase(TestCase):
         request.write = lambda s: self.assertNotEquals(type(s), unicode)
         self.assertEquals(self.module_under_test.handler(request), 200)
 
+    def handler_should_return_ok_status(self, uri):
+        request = self.make_request(uri)
+        self.assertEquals(self.module_under_test.handler(request), 200)
+
