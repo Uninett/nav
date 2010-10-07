@@ -185,6 +185,7 @@ class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private',
         help_text=_(u'Uncheck to allow all users to use this filter group.'))
+    name = forms.CharField(required=True)
     description = forms.CharField(required=False)
 
     class Meta:
@@ -207,6 +208,7 @@ class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label=u'Private',
         help_text=_(u'Uncheck to allow all users to use this filter.'))
+    name = forms.CharField(required=True)
 
     class Meta:
         model = Filter
