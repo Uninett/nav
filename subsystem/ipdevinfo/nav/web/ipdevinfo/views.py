@@ -323,7 +323,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             if no_netbox['arp']:
                 no_netbox['cam'] = get_cam_info(no_netbox['arp'].mac)
                 if no_netbox['arp'].end_time < dt.datetime.max:
-                    no_netbox['days_since_active'] = (dt.now() - no_netbox['arp'].end_time).days
+                    no_netbox['days_since_active'] = \
+                        (dt.datetime.now() - no_netbox['arp'].end_time).days
 
     else:
         alert_info = get_recent_alerts(netbox)
