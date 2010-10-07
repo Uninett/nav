@@ -5,6 +5,7 @@ class ModPythonTestCase(TestCase):
     module_under_test = None
 
     def setUp(self):
+        super(ModPythonTestCase, self).setUp()
         # yes, modifying global state is all the rage these days
         self.user = {'login': u'admin', 'id': 1}
         from nav.web.templates.MainTemplate import MainTemplate
