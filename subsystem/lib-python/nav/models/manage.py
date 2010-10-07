@@ -685,7 +685,7 @@ class SwPortVlan(models.Model):
 
     class Meta:
         db_table = 'swportvlan'
-        unique_together = (('swport', 'vlan'),)
+        unique_together = (('interface', 'vlan'),)
 
     def __unicode__(self):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
