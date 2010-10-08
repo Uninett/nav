@@ -625,9 +625,13 @@ class Footers:
         self.cells.append(cell)
 
 def unicode_utf8(thing):
-    """Casts thing to unicode, assuming utf-8 encoding if a string."""
+    """Casts thing to unicode, assuming utf-8 encoding if a string.
+
+    If the argument is None, it is returned unchanged.
+
+    """
     if isinstance(thing, str):
         return thing.decode('utf-8')
-    else:
+    elif thing is not None:
         return unicode(thing)
 
