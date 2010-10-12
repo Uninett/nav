@@ -298,7 +298,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     # Get data needed by the template
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
-    netboxsubcat = netbox.netboxcategory_set.all()
 
     # Assign default values to variables
     no_netbox = {
@@ -318,6 +317,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             addr = host_info['addresses'][0]['addr']
 
         no_netbox['prefix'] = get_prefix_info(addr)
+        netboxsubcat = None
 
         if no_netbox['prefix']:
             no_netbox['arp'] = get_arp_info(addr)
@@ -328,6 +328,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     else:
         alert_info = get_recent_alerts(netbox)
+        netboxsubcat = netbox.netboxcategory_set.all()
 
         # Select port view to display
         run_port_view = True
