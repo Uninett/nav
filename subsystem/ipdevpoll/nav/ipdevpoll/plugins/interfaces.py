@@ -101,7 +101,7 @@ class Interfaces(Plugin):
 
         interface.ifname = row['ifName'] or row['ifDescr']
         interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
-        interface.ifalias = row['ifAlias']
+        interface.ifalias = decode_to_unicode(row['ifAlias'])
         
         # Set duplex if sucessfully retrieved
         if 'duplex' in row and row['duplex'] in self.duplex_map:
@@ -169,3 +169,13 @@ class Interfaces(Plugin):
         deferred = self.etherlikemib.get_duplex()
         deferred.addCallback(update_result)
         return deferred
+
+def decode_to_unicode(string):
+    if string is None:
+        return
+    try:
+        return string.decode('utf-8')
+    except UnicodeDecodeError:
+        return string.decode('latin-1')
+    except AttributeError:
+        return unicode(string)
