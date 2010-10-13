@@ -54,3 +54,9 @@ class EncodingTest(TestCase):
         result = utils.convert_unicode_to_latin1(u'Bl\xe6 \ufffd')
         expected = 'Bl\xe6 '
         self.assertEquals(result, expected)
+
+    def test_quotes_are_properly_escaped(self):
+        result = utils.encode_and_escape(u'"Weird" Al Yankovic')
+        expected = '&quot;Weird&quot; Al Yankovic'
+        self.assertEquals(result, expected)
+
