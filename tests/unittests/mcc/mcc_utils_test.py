@@ -14,12 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Integration tests for the nav.mcc.utils module."""
-import unittest
+from unittest import TestCase
 from StringIO import StringIO
 
 from nav.mcc import utils
 
-class ConfigRootTest(unittest.TestCase):
+class ConfigRootTest(TestCase):
     def test_plain_gconfigroot(self):
         cfg = StringIO(
             '$gConfigRoot = "/usr/local/nav/etc/cricket-config";\n')
@@ -43,3 +43,14 @@ class ConfigRootTest(unittest.TestCase):
             utils.get_configroot(cfg),
             "/usr/local/nav/etc/cricket-config")
 
+class EncodingTest(TestCase):
+    def test_latin1_non_encodeable_chars_should_return_string(self):
+        result = utils.convert_unicode_to_latin1(u'Bl\xe6 \ufffd')
+        self.assertTrue(isinstance(result, str),
+                        "Encoded result type is %s, "
+                        "should be str" % type(result))
+
+    def test_latin1_non_encodeable_chars_should_be_stripped(self):
+        result = utils.convert_unicode_to_latin1(u'Bl\xe6 \ufffd')
+        expected = 'Bl\xe6 '
+        self.assertEquals(result, expected)
