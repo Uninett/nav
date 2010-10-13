@@ -402,7 +402,6 @@ def encode_and_escape(input):
     if isinstance(input, unicode):
         input = convert_unicode_to_latin1(input)
     input = input.replace("\"", "&quot;")
-    input = re.escape(input)
     
     return input
 
