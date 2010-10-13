@@ -61,7 +61,7 @@ class GammuDispatcher(Dispatcher):
 
         # Format SMS
         (sms, sent, ignored) = self.formatsms(msgs)
-        sms = sms.decode('UTF-8')
+        sms = decode_sms_to_unicode(sms)
 
         # We got a python-gammu binding :-)
         sm = gammu.StateMachine()
@@ -106,3 +106,8 @@ class GammuDispatcher(Dispatcher):
 
         return (sms, sent, ignored, result, smsid)
 
+def decode_sms_to_unicode(sms):
+    if isinstance(sms, unicode):
+        return sms
+    else:
+        return sms.decode('utf-8')
