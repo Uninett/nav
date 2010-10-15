@@ -292,7 +292,7 @@ CREATE TABLE interface (
   interfaceid SERIAL NOT NULL,
   netboxid INT4 NOT NULL,
   moduleid INT4,
-  ifindex INT4 NOT NULL,
+  ifindex INT4,
   ifname VARCHAR,
   ifdescr VARCHAR,
   iftype INT4,
