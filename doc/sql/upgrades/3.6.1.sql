@@ -18,6 +18,11 @@ BEGIN;
 
 ALTER TABLE interface ALTER COLUMN ifindex DROP NOT NULL;
 
+-- ipdevpoll may have set null values in sysname, fix this before
+-- adding a constraint
+UPDATE netbox SET sysname=ip::text WHERE sysname IS NULL;
+ALTER TABLE netbox ALTER COLUMN sysname SET NOT NULL;
+
 -- Insert the new version number if we got this far.
 INSERT INTO nav_schema_version (version) VALUES ('3.6.1');
 
