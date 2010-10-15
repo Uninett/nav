@@ -89,12 +89,12 @@ class DnsName(Plugin):
         elif dns_name.strip().lower() != self.netbox.sysname.strip().lower():
             self.logger.warning("Box dnsname has changed from %s to %s",
                                 repr(self.netbox.sysname), repr(dns_name))
+            netbox = self.containers.factory(None, shadows.Netbox)
+            netbox.sysname = dns_name
+
         # Our work here is done
         self.logger.debug("Reverse DNS lookup result: %s -> %s",
                           self.netbox.ip, dns_name)
-
-        netbox = self.containers.factory(None, shadows.Netbox)
-        netbox.sysname = dns_name
 
         return dns_name
 
