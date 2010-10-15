@@ -650,7 +650,7 @@ class Expression(models.Model):
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.CharField(max_length=100)
+    value = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'expression'

@@ -274,6 +274,7 @@ class MatchFieldForm(forms.ModelForm):
 class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    value = forms.CharField(required=True)
 
     class Meta:
         model = Expression
