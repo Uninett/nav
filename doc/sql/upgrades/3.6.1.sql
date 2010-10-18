@@ -20,7 +20,7 @@ ALTER TABLE interface ALTER COLUMN ifindex DROP NOT NULL;
 
 -- ipdevpoll may have set null values in sysname, fix this before
 -- adding a constraint
-UPDATE netbox SET sysname=ip::text WHERE sysname IS NULL;
+UPDATE netbox SET sysname=host(ip) WHERE sysname IS NULL;
 ALTER TABLE netbox ALTER COLUMN sysname SET NOT NULL;
 
 -- Insert the new version number if we got this far.
