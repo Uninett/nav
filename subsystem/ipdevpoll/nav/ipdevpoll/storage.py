@@ -230,6 +230,9 @@ class Shadow(object):
         with keyed by the shadowclass. The value connected to the key is a dictionary
         with shadow instances keyed by their index created upon container creation.
         """
+        if hasattr(self, '_cached_converted_model') and \
+                self._cached_converted_model:
+            return self._cached_converted_model
 
         if containers is None:
             containers = {}
@@ -247,6 +250,7 @@ class Shadow(object):
             if issubclass(value.__class__, Shadow):
                 value = value.convert_to_model(containers)
             setattr(model, attr, value)
+        self._cached_converted_model = model
         return model
 
     def get_primary_key_attribute(self):
@@ -272,6 +276,9 @@ class Shadow(object):
         database, this method will return it from the database.  If
         such an object doesn't exist, the None value will be returned.
         """
+        if hasattr(self, '_cached_existing_model') and \
+                self._cached_existing_model:
+            return self._cached_existing_model
         if containers is None:
             containers = {}
 
@@ -297,6 +304,7 @@ class Shadow(object):
                     raise
                 else:
                     return None
+            self._cached_existing_model = model
             return model
 
         # Try each lookup field and see which one corresponds to
@@ -331,6 +339,7 @@ class Shadow(object):
                     # Set our primary key from the existing object in an
                     # attempt to achieve consistency
                     setattr(self, pk.name, model.pk)
+                    self._cached_existing_model = model
                     return model
 
     @classmethod
