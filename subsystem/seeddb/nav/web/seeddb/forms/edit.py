@@ -115,7 +115,7 @@ class NetboxStep2(forms.ModelForm):
         return cleaned_data
 
 class NetboxStep3(forms.ModelForm):
-    serial = forms.CharField()
+    serial = forms.CharField(required=False)
 
     class Meta:
         model = Netbox
