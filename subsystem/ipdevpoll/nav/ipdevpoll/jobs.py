@@ -260,7 +260,7 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @utils.commit_on_success
+        @utils.autocommit
         @utils.cleanup_django_debug_after
         def complete_save_cycle():
             # Prepare all shadow objects for storage.
