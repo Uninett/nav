@@ -158,25 +158,24 @@ class Shadow(object):
         See the get_touched() method for more info.
 
         """
-        # The _touched attribute will not exist during initialization
-        # of the object, so ignore AttributeErrors
-        try:
-            if attr not in ('delete', 'update_only'):
+        if self.is_shadowy_attribute(attr):
+            if hasattr(self, '_touched'):
                 self._touched.add(attr)
-        except AttributeError:
-            pass
-
-        # If the passed value belongs to a shadowed class, replace it
-        # with a shadow object.
-        if value.__class__ in shadowed_classes:
-            shadow = shadowed_classes[value.__class__]
-            value = shadow(value)
-        else:
-            if isinstance(value, django.db.models.Model):
-                self._logger.warning(
-                    "Live model object being added to %r attribute: %r",
-                    value, attr)
+            # If the passed value belongs to a shadowed class, replace it
+            # with a shadow object.
+            if value.__class__ in shadowed_classes:
+                shadow = shadowed_classes[value.__class__]
+                value = shadow(value)
+            else:
+                if isinstance(value, django.db.models.Model):
+                    self._logger.warning(
+                        "Live model object being added to %r attribute: %r",
+                        value, attr)
         return super(Shadow, self).__setattr__(attr, value)
+
+    def is_shadowy_attribute(self, attr):
+        return attr not in ('delete', 'update_only') and \
+            not attr.startswith('_')
 
     def copy(self, other):
         """Copies the attributes of another instance (shallow)"""
