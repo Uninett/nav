@@ -151,7 +151,7 @@ def netbox_edit(request, netbox_sysname=None):
         'object': netbox,
         'form': form,
         'hidden_form': hidden_form,
-        'active': {'add': True},
+        'sub_active': {'add': True},
         'tab_template': 'seeddb/tabs_netbox.html',
     }
     return render_to_response('seeddb/netbox_wizard.html',
@@ -163,6 +163,7 @@ def service_edit(request, service_id=None):
 
 def room_edit(request, room_id=None):
     extra = {
+        'active': {'room': True},
         'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
         'tab_template': 'seeddb/tabs_room.html',
     }
@@ -172,6 +173,7 @@ def room_edit(request, room_id=None):
 
 def location_edit(request, location_id=None):
     extra = {
+        'active': {'location': True},
         'navpath': NAVPATH_DEFAULT + [('Location', reverse('seeddb-location'))],
         'tab_template': 'seeddb/tabs_location.html',
     }
@@ -181,6 +183,7 @@ def location_edit(request, location_id=None):
 
 def organization_edit(request, organization_id=None):
     extra = {
+        'active': {'organization': True},
         'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
         'tab_template': 'seeddb/tabs_organization.html',
     }
@@ -190,6 +193,7 @@ def organization_edit(request, organization_id=None):
 
 def usage_edit(request, usage_id=None):
     extra = {
+        'active': {'usage': True},
         'navpath': NAVPATH_DEFAULT + [('Usage', reverse('seeddb-usage'))],
         'tab_template': 'seeddb/tabs_usage.html',
     }
@@ -199,6 +203,7 @@ def usage_edit(request, usage_id=None):
 
 def netboxtype_edit(request, type_id=None):
     extra = {
+        'active': {'type': True},
         'navpath': NAVPATH_DEFAULT + [('Type', reverse('seeddb-type'))],
         'tab_template': 'seeddb/tabs_type.html',
     }
@@ -208,6 +213,7 @@ def netboxtype_edit(request, type_id=None):
 
 def vendor_edit(request, vendor_id=None):
     extra = {
+        'active': {'vendor': True},
         'navpath': NAVPATH_DEFAULT + [('Vendor', reverse('seeddb-vendor'))],
         'tab_template': 'seeddb/tabs_vendor.html',
     }
@@ -217,6 +223,7 @@ def vendor_edit(request, vendor_id=None):
 
 def subcategory_edit(request, subcategory_id=None):
     extra = {
+        'active': {'subcategory': True},
         'navpath': NAVPATH_DEFAULT + [('Subcategory', reverse('seeddb-subcategory'))],
         'tab_template': 'seeddb/tabs_subcategory.html',
     }
@@ -230,6 +237,7 @@ def vlan_edit(request, vlan_id=None):
 
 def prefix_edit(request, prefix_id=None):
     extra = {
+        'active': {'prefix': True},
         'navpath': NAVPATH_DEFAULT + [('Prefix', reverse('seeddb-prefix'))],
         'tab_template': 'seeddb/tabs_prefix.html',
     }
@@ -239,6 +247,7 @@ def prefix_edit(request, prefix_id=None):
 
 def cabling_edit(request, cabling_id=None):
     extra = {
+        'active': {'cabling': True},
         'navpath': NAVPATH_DEFAULT + [('Cabling', reverse('seeddb-cabling'))],
         'tab_template': 'seeddb/tabs_cabling.html',
     }
@@ -248,6 +257,7 @@ def cabling_edit(request, cabling_id=None):
 
 def patch_edit(request, patch_id=None):
     extra = {
+        'active': {'patch': True},
         'navpath': NAVPATH_DEFAULT + [('Patch', reverse('seeddb-patch'))],
         'tab_template': 'seeddb/tabs_patch.html',
     }

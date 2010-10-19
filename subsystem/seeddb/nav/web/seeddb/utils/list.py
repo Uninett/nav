@@ -79,7 +79,7 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk',\
         'sort_asc': order_by_meta['sort_asc'],
         'filter_form': filter_form,
         'page': page,
-        'active': {'list': True},
+        'sub_active': {'list': True},
     }
     # Update extra_context with context.
     # Doing it this way makes sure that the context dictionary overrides any

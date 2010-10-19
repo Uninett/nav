@@ -1,12 +1,12 @@
-<li class="{{ active.list|yesno:"tabactive," }}">
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
     <a href="{% url seeddb-patch %}">Patch</a></li>
-<li class="{{ active.bulk|yesno:"tabactive," }}">
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
     <a href="{% url seeddb-patch-bulk %}">Bulk import</a></li>
-<li class="{{ active.add|yesno:"tabactive," }}">
+<li class="{{ sub_active.add|yesno:"tabactive," }}">
     <a href="{% url seeddb-patch-edit %}">Add new patch</a>
 </li>
 {% if object %}
-<li class="{{ active.edit|yesno:"tabactive," }}">
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
     <a href="{% url seeddb-patch-edit object.id %}">Edit patch "{{ object.name }}"</a>
 </li>
 {% endif %}

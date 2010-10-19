@@ -41,6 +41,7 @@ def netbox_list(request):
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
         'read_write', 'type__name', 'device__serial')
     extra = {
+        'active': {'netbox': True},
         'title': TITLE_DEFAULT + ' - IP Devices',
         'caption': 'IP Devices',
         'navpath': NAVPATH_DEFAULT + [('IP Devices', None)],
@@ -55,6 +56,7 @@ def service_list(request):
     qs = Service.objects.all()
     value_list = ('netbox__sysname', 'handler', 'version')
     extra = {
+        'active': {'service': True},
         'title': TITLE_DEFAULT + ' - Services',
         'caption': 'Services',
         'navpath': NAVPATH_DEFAULT + [('Services', None)],
@@ -70,6 +72,7 @@ def room_list(request):
         'id', 'location', 'description', 'optional_1', 'optional_2',
         'optional_3', 'optional_4')
     extra = {
+        'active': {'room': True},
         'title': TITLE_DEFAULT + ' - Rooms',
         'caption': 'Rooms',
         'navpath': NAVPATH_DEFAULT + [('Rooms', None)],
@@ -83,6 +86,7 @@ def location_list(request):
     qs = Location.objects.all()
     value_list = ('id', 'description')
     extra = {
+        'active': {'location': True},
         'title': TITLE_DEFAULT + ' - Locations',
         'caption': 'Locations',
         'navpath': NAVPATH_DEFAULT + [('Locations', None)],
@@ -99,6 +103,7 @@ def organization_list(request):
         'id', 'parent', 'description', 'optional_1', 'optional_2',
         'optional_3')
     extra = {
+        'active': {'organization': True},
         'title': TITLE_DEFAULT + ' - Organizations',
         'caption': 'Organizations',
         'navpath': NAVPATH_DEFAULT + [('Organizations', None)],
@@ -112,6 +117,7 @@ def usage_list(request):
     qs = Usage.objects.all()
     value_list = ('id', 'description')
     extra = {
+        'active': {'usage': True},
         'title': TITLE_DEFAULT + ' - Usage categories',
         'caption': 'Usage categories',
         'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
@@ -127,6 +133,7 @@ def netboxtype_list(request):
         'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
         'tftp')
     extra = {
+        'active': {'type': True},
         'title': TITLE_DEFAULT + ' - Types',
         'caption': 'Types',
         'navpath': NAVPATH_DEFAULT + [('Types', None)],
@@ -140,6 +147,7 @@ def vendor_list(request):
     qs = Vendor.objects.all()
     value_list = ('id',)
     extra = {
+        'active': {'vendor': True},
         'title': TITLE_DEFAULT + ' - Vendors',
         'caption': 'Vendors',
         'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
@@ -153,6 +161,7 @@ def subcategory_list(request):
     filter = SubcategoryFilterForm(request.GET)
     value_list = ('id', 'category', 'description')
     extra = {
+        'active': {'subcategory': True},
         'title': TITLE_DEFAULT + ' - Subcategories',
         'caption': 'Subcategories',
         'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
@@ -169,6 +178,7 @@ def vlan_list(request):
         'id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident',
         'description')
     extra = {
+        'active': {'vlan': True},
         'title': TITLE_DEFAULT + ' - Vlan',
         'caption': 'Vlan',
         'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
@@ -184,6 +194,7 @@ def prefix_list(request):
         'net_address', 'vlan__net_type', 'vlan__organization',
         'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
     extra = {
+        'active': {'prefix': True},
         'title': TITLE_DEFAULT + ' - Prefix',
         'caption': 'Prefix',
         'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
@@ -198,6 +209,7 @@ def cabling_list(request):
     value_list = (
         'room', 'jack', 'building', 'target_room', 'category', 'description')
     extra = {
+        'active': {'cabling': True},
         'title': TITLE_DEFAULT + ' - Cabling',
         'caption': 'Cabling',
         'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
@@ -213,6 +225,7 @@ def patch_list(request):
         'interface__netbox', 'interface__module', 'interface__baseport',
         'cabling__room', 'cabling__jack', 'split')
     extra = {
+        'active': {'patch': True},
         'title': TITLE_DEFAULT + ' - Patch',
         'caption': 'Patch',
         'navpath': NAVPATH_DEFAULT + [('Patch', None)],

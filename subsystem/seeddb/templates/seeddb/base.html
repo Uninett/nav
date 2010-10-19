@@ -23,18 +23,62 @@
 <div class="tabs">
     <ul>
         <li class="{{ active.index|yesno:"tabactive," }}">
-            <a href="{% url seeddb-index %}">Seed Database</a>
+            <a href="{% url seeddb-index %}">Seed DB</a>
         </li>
-        {% if tab_template %}
-        {% include tab_template %}
-        {% endif %}
+        <li class="{{ active.netbox|yesno:"tabactive," }}">
+            <a href="{% url seeddb-netbox %}">IP device</a>
+        </li>
+        <li class="{{ active.service|yesno:"tabactive," }}">
+            <a href="{% url seeddb-service %}">Service</a>
+        </li>
+        <li class="{{ active.room|yesno:"tabactive," }}">
+            <a href="{% url seeddb-room %}">Room</a>
+        </li>
+        <li class="{{ active.location|yesno:"tabactive," }}">
+            <a href="{% url seeddb-location %}">Location</a>
+        </li>
+        <li class="{{ active.organization|yesno:"tabactive," }}">
+            <a href="{% url seeddb-organization %}">Organization</a>
+        </li>
+        <li class="{{ active.usage|yesno:"tabactive," }}">
+            <a href="{% url seeddb-usage %}">Usage</a>
+        </li>
+        <li class="{{ active.type|yesno:"tabactive," }}">
+            <a href="{% url seeddb-type %}">Type</a>
+        </li>
+        <li class="{{ active.vendor|yesno:"tabactive," }}">
+            <a href="{% url seeddb-vendor %}">Vendor</a>
+        </li>
+        <li class="{{ active.subcategory|yesno:"tabactive," }}">
+            <a href="{% url seeddb-subcategory %}">Subcategory</a>
+        </li>
+        <li class="{{ active.vlan|yesno:"tabactive," }}">
+           <a href="{% url seeddb-vlan %}">Vlan</a>
+        </li>
+        <li class="{{ active.prefix|yesno:"tabactive," }}">
+            <a href="{% url seeddb-prefix %}">Prefix</a>
+        </li>
+        <li class="{{ active.cabling|yesno:"tabactive," }}">
+            <a href="{% url seeddb-cabling %}">Cabling</a>
+        </li>
+        <li class="{{ active.patch|yesno:"tabactive," }}">
+            <a href="{% url seeddb-patch %}">Patch</a>
+        </li>
     </ul>
 </div>
 
 <div class="tabcontent">
 
+<div class="tabs">
+<ul>
+{% include tab_template %}
+</ul>
+</div>
+
+<div class="tabcontent">
 {% block content %}
 {% endblock %}
+</div>
 
 </div>
 {% endblock %}

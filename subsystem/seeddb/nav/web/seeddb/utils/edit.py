@@ -65,12 +65,12 @@ def render_edit(request, model, form_model, object_id, redirect,\
         'object': object,
         'form': form,
         'title': 'Add new %s' % verbose_name,
-        'active': {'add': True},
+        'sub_active': {'add': True},
     }
     if object:
         context.update({
             'title': 'Edit %s "%s"' % (verbose_name, title),
-            'active': {'edit': True},
+            'sub_active': {'edit': True},
         })
     extra_context.update(context)
     return render_to_response(template,
