@@ -36,8 +36,7 @@ from nav.Snmp import Snmp, SnmpError
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm, \
     UsageForm, NetboxTypeForm, VendorForm, SubcategoryForm, PrefixForm, \
-    CablingForm, PatchForm, NetboxSysnameForm, NetboxMetaForm, \
-    NetboxHiddenForm, NetboxStep1, NetboxStep2, NetboxStep3
+    CablingForm, PatchForm, NetboxStep1, NetboxStep2, NetboxStep3
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
