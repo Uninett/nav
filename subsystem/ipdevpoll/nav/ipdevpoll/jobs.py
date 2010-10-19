@@ -338,7 +338,7 @@ class JobHandler(object):
                         # this shadow will know about this change.
                         if not obj.get_primary_key():
                             obj.set_primary_key(obj_model.pk)
-                        obj._touched = []
+                        obj._touched.clear()
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
