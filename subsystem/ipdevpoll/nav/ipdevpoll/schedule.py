@@ -19,6 +19,7 @@
 import logging
 import datetime
 from operator import itemgetter
+from random import randint
 
 from twisted.internet import task, threads
 
@@ -131,7 +132,8 @@ class NetboxScheduler(object):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
         if self.loop.running:
-            delay = 60
+            # FIXME: Should be configurable per. job
+            delay = randint(5*60, 10*60) # within 5-10 minutes
             self.logger.info("Rescheduling %r for %s in %d seconds",
                              self.jobname, self.netbox.sysname, delay)
             self.loop.call.reset(delay)
