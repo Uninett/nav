@@ -161,6 +161,30 @@ def commit_on_success(func):
             transaction.leave_transaction_management()
     return wraps(func)(_commit_on_success)
 
+def autocommit(func):
+    """
+    Decorates func such that Django transactions are managed to autocommitt.
+
+    Django's autocommit decorator begins and commits a transaction on every
+    statement, but will not properly rollback such a failed transaction unless
+    it marked as dirty (something tried to modify the database).  This is
+    because Django is optimized for a web request cycle and throws away the
+    connection at the end of each request.
+
+    """
+    def _autocommit(*args, **kw):
+        try:
+            transaction.enter_transaction_management()
+            transaction.managed(False)
+            try:
+                return func(*args, **kw)
+            except:
+                transaction.rollback()
+                raise
+        finally:
+            transaction.leave_transaction_management()
+    return wraps(func)(_autocommit)
+
 def cleanup_django_debug_after(func):
     """Decorates func such that django_debug_cleanup is run after func.
 
