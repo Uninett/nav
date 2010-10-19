@@ -83,7 +83,7 @@ class NetboxStep2(forms.ModelForm):
         ip = cleaned_data.get('ip')
         cat = cleaned_data.get('category')
         ro = cleaned_data.get('read_only')
-        self.snmp_version = None
+        self.snmp_version = '1'
 
         if cat and cat.req_snmp and not ro:
             self._errors['read_only'] = self.error_class(["Category %s requires Read Only community." % cat.id])
