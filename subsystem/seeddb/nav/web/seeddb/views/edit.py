@@ -82,17 +82,16 @@ def snmp_serials(ip, ro, snmp_version):
 
 def netbox_edit(request, netbox_sysname=None):
     netbox = None
+    form_data = {}
+    hidden_form = None
+
     if netbox_sysname:
         netbox = Netbox.objects.get(sysname=netbox_sysname)
-
     try:
         step = int(request.POST.get('step', '0'))
     except ValueError:
         step = 0
 
-    form_data = {}
-    netbox = None
-    hidden_form = None
     if request.method == 'POST':
         if step == 1:
             form = NetboxStep1(request.POST)
@@ -125,7 +124,9 @@ def netbox_edit(request, netbox_sysname=None):
                 form_data['organization'] = data['organization'].pk
                 form_data['serial'] = serial
                 form_data['type'] = type
-                form_data['snmp_version'] = form.snmp_version[0]
+                form_data['snmp_version'] = form.snmp_version
+                if len(form_data['snmp_version']) > 1:
+                    form_data['snmp_version'] = form_data['snmp_version'][0]
                 form = NetboxStep3(initial=form_data)
                 if serial and type:
                     form.is_valid()
