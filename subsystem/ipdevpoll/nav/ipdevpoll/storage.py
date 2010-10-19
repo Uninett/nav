@@ -245,7 +245,7 @@ class Shadow(object):
         for attr in self._touched:
             value = getattr(self, attr)
             if issubclass(value.__class__, Shadow):
-                value = value.convert_to_model()
+                value = value.convert_to_model(containers)
             setattr(model, attr, value)
         return model
 
@@ -313,7 +313,7 @@ class Shadow(object):
                 # Ensure we only have django models
                 for key, val in kwargs.items():
                     if issubclass(val.__class__, Shadow):
-                        kwargs[key] = val.convert_to_model()
+                        kwargs[key] = val.convert_to_model(containers)
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
