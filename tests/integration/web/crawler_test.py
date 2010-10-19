@@ -94,7 +94,7 @@ def retrieve_links(current_url):
         elif path in BLACKLISTED_PATHS:
             continue
         elif path not in seen_paths:
-            queue.append('%s://%s%s' % (url.scheme, url.hostname, url.path))
+            queue.append(link)
 
         if path not in seen_paths:
             seen_paths[path] = []

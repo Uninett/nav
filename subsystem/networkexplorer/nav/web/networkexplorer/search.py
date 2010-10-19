@@ -1,30 +1,18 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright 2007-2008 UNINETT AS
+# Copyright (C) 2007-2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Kristian Klette <kristian.klette@uninett.no>
-#
-
-__copyright__ = "Copyright 2007-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Kristian Klette (kristian.klette@uninett.no)"
-__id__ = "$Id$"
 
 import datetime
 import socket
@@ -33,7 +21,8 @@ import sys
 from django.db.models import Q
 
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix, SwPortVlan, Vlan, Interface
+from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix
+from nav.models.manage import SwPortVlan, Vlan, Interface, Prefix
 from nav.models.service import Service
 
 
@@ -230,14 +219,14 @@ def ip_search(ip, exact=False):
         swport_matches.extend(netbox_search[1])
 
     for prefix in gwportprefixes:
-        gwport_matches.append(prefix.gwport)
+        gwport_matches.append(prefix.interface)
 
     for arp_entry in arp_entries:
         mac_search = search_expand_mac(mac=arp_entry.mac)
         gwport_matches.extend(mac_search[0])
         swport_matches.extend(mac_search[1])
     
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -263,7 +252,7 @@ def portname_search(portname, exact=False):
         gwport_matches.extend(swport_search[0])
         swport_matches.extend(swport_search[1])
 
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -289,7 +278,7 @@ def room_search(room, exact=False):
         gwport_matches.extend(swport_search[0])
         swport_matches.extend(swport_search[1])
 
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -326,31 +315,26 @@ def vlan_search(vlan, exact=False):
     swport_matches = []
 
     if exact:
-        for swportvlan in SwPortVlan.objects.filter(vlan__vlan=vlan):
-            swport_search = search_expand_swport(swport=swportvlan.interface)
-            gwport_matches.extend(swport_search[0])
-            swport_matches.extend(swport_search[1])
-
-        for gwportprefix in GwPortPrefix.objects.filter(prefix__vlan__vlan=vlan).exclude(prefix__vlan__net_type='static'):
-            gwport_matches.append(gwportprefix.interface)
-
-        for netbox in Netbox.objects.filter(prefix__vlan__vlan=vlan).exclude(prefix__vlan__net_type='static'):
-            netbox_search = search_expand_netbox(netbox=netbox)
-            gwport_matches.extend(netbox_search[0])
-            swport_matches.extend(netbox_search[1])
+        vlan_filter = Q(vlan__vlan=vlan)
     else:
-        for swportvlan in SwPortVlan.objects.filter(vlan__vlan__icontains=vlan):
-            swport_search = search_expand_swport(swport=swportvlan.interface)
-            gwport_matches.extend(swport_search[0])
-            swport_matches.extend(swport_search[1])
+        vlan_filter = Q(vlan__vlan__icontains=vlan)
 
-        for gwportprefix in GwPortPrefix.objects.filter(prefix__vlan__vlan__icontains=vlan).exclude(prefix__vlan__net_type='static'):
-            gwport_matches.append(gwportprefix.interface)
+    for swportvlan in SwPortVlan.objects.filter(vlan_filter):
+        swport_search = search_expand_swport(swport=swportvlan.interface)
+        gwport_matches.extend(swport_search[0])
+        swport_matches.extend(swport_search[1])
 
-        for netbox in Netbox.objects.filter(prefix__vlan__vlan__iconatains=vlan).exclude(prefix__vlan__net_type='static'):
-            netbox_search = search_expand_netbox(netbox=netbox)
-            gwport_matches.extend(netbox_search[0])
-            swport_matches.extend(netbox_search[1])
+    matching_prefixes = Prefix.objects.filter(vlan_filter).exclude(
+        vlan__net_type='static')
+
+    for gwportprefix in GwPortPrefix.objects.filter(prefix__in=
+                                                    matching_prefixes):
+        gwport_matches.append(gwportprefix.interface)
+    for netbox in Netbox.objects.filter(netboxprefix__prefix__in=
+                                        matching_prefixes):
+        netbox_search = search_expand_netbox(netbox=netbox)
+        gwport_matches.extend(netbox_search[0])
+        swport_matches.extend(netbox_search[1])
 
 
     router_matches = [gwport.netbox for gwport in gwport_matches]

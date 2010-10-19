@@ -122,7 +122,7 @@ def make_config(config):
         for (interfaceid, ifname, ifindex, ifalias) in c.fetchall():
             if not ifname:
                 logger.error("%s: No ifname found for interfaceid %s"
-                             % (sysname, swportid))
+                             % (sysname, interfaceid))
                 continue
 
             ifalias = ifalias or '-'

@@ -1,3 +1,83 @@
+Version 3.6.0b6
+(released 23 September 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#590765 (Accounting log in radius-module crashes when clicking on
+               details-link)
+  * LP#627352 (mcc.py crashes with NameError)
+  * LP#627358 (ipdevpoll crashes with TypeError on Python 2.4)
+  * LP#628012 (ipdevpoll crashes with SyntaxError on Python 2.4)
+  * LP#628023 (ipdevpoll crashes with TypeError during exception handling
+               under Python 2.4)
+  * LP#628058 (invalid link to netbox report from vendor report ipcount column)
+  * LP#632289 (All modules listed as "None" in ipdevinfo)
+  * LP#633974 (ipdevpoll IntegrityError when using uppercase in
+               NTNU-convention router port descriptions)
+  * LP#634944 (Maximum recursion depth exceeded in ipdevpoll)
+  * LP#634951 (ipdevpoll exception logging masks unhandled exceptions' origin)
+  * LP#634958 (ipdevpoll: object of type 'NoneType' has no len())
+  * LP#639604 (ranked statistics ignores 64-bit traffic counters)
+  * LP#641315 (portname search from report overview page fails)
+  * LP#643381 (Changing user's name resets password)
+  * LP#643467 (Color legend for switch port activity always says "30 days")
+  * LP#644161 (Network Explorer search requests fail with
+               AttributeError/FieldError)
+  * LP#644219 (Netmap UnicodeDecodeError)
+  * LP#644339 (Router port count in report to high)
+  * LP#644340 (invalid link from report swport (Module-link))
+  * LP#644342 (Failing search forms in report front page)
+  * LP#645144 (Status page ERROR: operator does not exist: integer = text)
+
+Version 3.6.0b5
+(released 26 August 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll:
+    - properly handle IP device type changes.
+    - improved vlan/prefix handling.
+    - no longer idles forever inside database transactions.
+
+ Bugfixes:
+
+  * LP#562242 (Prefix matrix crashes when viewing IPv6 scope)
+  * LP#595796 (csv export does not work)
+  * LP#596863 (remove deprecated database table fields)
+  * LP#601001 (prefix report from IP address scope breaks)
+  * LP#603585 (Link to machine tracker from ipdevinfo missing)
+  * LP#623826 (extract_cricket_oids crashes on parsing cricket-conf.pl)
+
+  * Checkboxes in seeddb interface would never be checked as they should be on
+    page loads.
+  * After having introduced continuous integration into our workflow, many
+    small problems have been detected and fixed.
+
+
 Version 3.6.0b4
 (released 08 July 2010)
 

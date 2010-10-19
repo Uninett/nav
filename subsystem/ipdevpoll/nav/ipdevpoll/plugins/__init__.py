@@ -43,7 +43,8 @@ def import_plugins():
 
         logger.debug('Importing plugin %s=%s', alias, full_class_name)
         try:
-            module_ = __import__(module_name, fromlist=[module_name])
+            module_ = __import__(module_name, globals(), locals(),
+                                 [module_name])
             class_ = getattr(module_, class_name)
         except (ImportError, AttributeError), error:
             logger.exception("Failed to import plugin %s", full_class_name)

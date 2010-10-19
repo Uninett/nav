@@ -31,6 +31,7 @@ from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll.utils import fire_eventually
 
 class Bridge(Plugin):
     @classmethod
@@ -126,6 +127,7 @@ class Bridge(Plugin):
         # Add the next bridge mib instance to the chain
         df = bridgemib.retrieve_column('dot1dBasePortIfIndex')
         df.addCallback(self._query_next_instance, instances)
+        df.addCallback(lambda thing: fire_eventually(thing))
         return df
 
     def _set_port_numbers(self, result):

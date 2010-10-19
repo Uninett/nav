@@ -28,7 +28,7 @@
 
 from __future__ import division
 from socket import gethostbyaddr, herror, gaierror
-from re import match
+from re import match, sub
 import time
 import urllib
 
@@ -193,9 +193,9 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     # Since time.strptime does not handle fractions of a second, 
     # check if our starttime contains fractions before using strptime,
     # and remove them if it does.
-    if match(".+\d\.\d{6}$", startTime):
-        startTime = startTime[:-7]
-
+    if match(r'.+\d\.\d+', startTime):
+        startTime = sub(r'\.\d+', '', startTime)
+        
     # Make tuple of the time string
     timeTuple = time.strptime(startTime, DATEFORMAT_DB)
     # Convert to seconds since epoch
@@ -207,8 +207,24 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
             stopTime = "Still Active"
         else:
             stopTime = "Timed Out"
+    else:
+        stopTime = removeFractions(stopTime)
 
     return stopTime 
+
+
+def removeFractions(timestamp):
+    """
+    Removes the fractions of a second part from the timestamps so we don't
+    have to display them on the webpage.
+    """
+    
+    ts = str(timestamp)
+    
+    if match(r'.+\d\.\d+', ts):
+        formattedTime = sub(r'\.\d+', '', ts)
+    
+    return formattedTime
 
 
 def makeSearchURL(page, changeFields, form):

@@ -130,7 +130,7 @@ class Prefix(Plugin):
 
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
-            vlan = self.containers.factory(net_prefix, shadows.Vlan)
+            vlan = self.containers.factory(ifindex, shadows.Vlan)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
 

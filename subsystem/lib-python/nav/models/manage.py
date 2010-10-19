@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007,2008 UNINETT AS
+# Copyright (C) 2007,2008,2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -89,11 +89,8 @@ class Netbox(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
-    # TODO: Probably deprecated. Check and remove.
-    #snmp_agent = models.CharField(max_length=-1)
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
@@ -130,7 +127,7 @@ class Netbox(models.Model):
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
 
-        ports = self.get_gwports()
+        ports = self.get_gwports().select_related('module', 'netbox')
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
@@ -143,7 +140,7 @@ class Netbox(models.Model):
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
 
-        ports = self.get_swports()
+        ports = self.get_swports().select_related('module', 'netbox')
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
@@ -219,12 +216,16 @@ class Netbox(models.Model):
         except NetboxInfo.DoesNotExist:
             return None
 
+    def get_prefix(self):
+        return self.netboxprefix.prefix
+
     def get_filtered_prefix(self):
-        if self.prefix.vlan.net_type.description in (
+        prefix = self.get_prefix()
+        if prefix and prefix.vlan.net_type.description in (
             'scope', 'private', 'reserved'):
             return None
         else:
-            return self.prefix
+            return prefix
 
     def get_short_sysname(self):
         """Returns sysname without the domain suffix if specified in the
@@ -265,6 +266,27 @@ class NetboxInfo(models.Model):
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
 
+class NetboxPrefix(models.Model):
+    """Which prefix a netbox is connected to.
+
+    This models the read-only netboxprefix view.
+
+    """
+    netbox = models.OneToOneField('Netbox', db_column='netboxid',
+                                  primary_key=True)
+    prefix = models.ForeignKey('Prefix', db_column='prefixid',
+                               related_name='netbox_set')
+
+    class Meta:
+        db_table = 'netboxprefix'
+        unique_together = (('netbox', 'prefix'),)
+
+    def __unicode__(self):
+        return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
+
+    def save(self):
+        raise NotImplementedError
+
 class Device(models.Model):
     """From MetaNAV: The device table contains all physical devices in the
     network. As opposed to the netbox table, the device table focuses on the
@@ -276,7 +298,6 @@ class Device(models.Model):
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
     software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
-    auto = models.BooleanField(default=False)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -310,16 +331,16 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
-        ordering = ('netbox', 'module_number')
-        unique_together = (('netbox', 'module_number'),)
+        ordering = ('netbox', 'module_number', 'name')
+        unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'%d, at %s' % (self.module_number, self.netbox)
+        return u'%d, at %s' % (self.name or self.module_number, self.netbox)
 
     def get_absolute_url(self):
         kwargs={
             'netbox_sysname': self.netbox.sysname,
-            'module_number': self.module_number,
+            'module_name': self.name,
         }
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
@@ -500,7 +521,6 @@ class NetboxType(models.Model):
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    frequency = models.IntegerField()
     description = models.CharField(db_column='descr', max_length=-1)
 
     class Meta:

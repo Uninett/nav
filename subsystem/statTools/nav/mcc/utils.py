@@ -8,6 +8,7 @@ import logging
 import os
 from os.path import join, abspath
 from shutil import move
+from subprocess import Popen, PIPE
 
 from nav import path
 from nav.db import getConnection
@@ -33,20 +34,24 @@ def start_config_creation(modules, config):
 
 
 def get_configroot(configfile):
-    """ Get path for configroot from cricket-conf.pl """
-    comment = re.compile('#')
-    match = re.compile('gconfigroot\s*=\s*"(.*)"', re.I)
-    
-    f = open(configfile, 'r')
-    for line in f:
-        if comment.match(line):
-            continue
-        m = match.search(line)
-        if m:
-            logger.info("Found configroot to be %s" % m.groups()[0])
-            return m.groups()[0]
+    """Get path for configroot from cricket-conf.pl"""
+    cricket_config = _get_as_file(configfile).read()
+    perl = Popen("perl", stdin=PIPE, stdout=PIPE, close_fds=True)
 
-    return False
+    perl.stdin.write(cricket_config)
+    perl.stdin.write("""\nprint "$gConfigRoot\\n";\n""")
+    perl.stdin.close()
+
+    configroot = perl.stdout.readline().strip()
+    perl.wait()
+    logger.info("Found configroot to be %s", configroot)
+    return configroot
+
+def _get_as_file(thing):
+    if hasattr(thing, 'read'):
+        return thing
+    else:
+        return file(thing, 'r')
 
 def parse_views():
     """ Parse configuration file with view definitions """

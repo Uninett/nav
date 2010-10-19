@@ -317,6 +317,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             addr = host_info['addresses'][0]['addr']
 
         no_netbox['prefix'] = get_prefix_info(addr)
+        netboxsubcat = None
 
         if no_netbox['prefix']:
             no_netbox['arp'] = get_arp_info(addr)
@@ -327,6 +328,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     else:
         alert_info = get_recent_alerts(netbox)
+        netboxsubcat = netbox.netboxcategory_set.all()
 
         # Select port view to display
         run_port_view = True
@@ -351,12 +353,14 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alert_info': alert_info,
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,
+            'activity_interval': activity_interval,
             'no_netbox': no_netbox,
+            'netboxsubcat': netboxsubcat,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def module_details(request, netbox_sysname, module_number):
+def module_details(request, netbox_sysname, module_name):
     """Show detailed view of one IP device module"""
 
     def get_module_view(module_object, perspective, activity_interval=None):
@@ -406,7 +410,7 @@ def module_details(request, netbox_sysname, module_number):
             initial={'interval': activity_interval})
 
     module = get_object_or_404(Module.objects.select_related(depth=1),
-        netbox__sysname=netbox_sysname, module_number=module_number)
+        netbox__sysname=netbox_sysname, name=module_name)
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
         module, 'swportactive', activity_interval)
@@ -420,6 +424,7 @@ def module_details(request, netbox_sysname, module_number):
             'swportactive_view': swportactive_view,
             'gwportstatus_view': gwportstatus_view,
             'activity_interval_form': activity_interval_form,
+            'activity_interval': activity_interval,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))

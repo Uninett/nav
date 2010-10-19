@@ -18,13 +18,34 @@
 
 import logging
 import gc
+from functools import wraps
 
 from IPy import IP
 
 import django.db
+from django.db import transaction
 from django.conf import settings
 
+from twisted.internet.defer import Deferred
+from twisted.internet import reactor
+
 _logger = logging.getLogger(__name__)
+
+def fire_eventually(result):
+    """This returns a Deferred which will fire in a later reactor turn.
+
+    Can be used to cause a break in deferred chain, so the number of
+    stack frames won't exceed sys.getrecursionlimit().  Do like this:
+
+    >>> deferred_chain.addCallback(lambda thing: fire_eventually(thing))
+
+    Reference:
+    http://twistedmatrix.com/pipermail/twisted-python/2008-November/018693.html
+
+    """
+    deferred = Deferred()
+    reactor.callLater(0, deferred.callback, result)
+    return deferred
 
 def binary_mac_to_hex(binary_mac):
     """Converts a binary string MAC address to hex string.
@@ -93,4 +114,52 @@ def django_debug_cleanup():
         django.db.reset_queries()
         gc.collect()
 
+def commit_on_success(func):
+    """Decorates func such that the current Django transaction is committed on
+    successful return.
+
+    If func raises an exception, the current transaction is rolled back.
+
+    Why don't we use django.db.transaction.commit_on_success()? Because it does
+    not commit or rollback unless Django actually tried to change something in
+    the database. It was designed with short-lived web request cycles in mind.
+    This gives us two problems:
+
+    1. If the transaction consisted of read-only operations, the connection
+       will stay idle inside a transaction, and that's bad.
+
+    2. If a database error occurred inside a transaction, the connection would
+       be useless until the transaction is rolled back.  Any further attempts
+       to use the same connection will result in more errors, and a long-lived
+       process will keep spewing error messages.
+
+    """
+    def _commit_on_success(*args, **kwargs):
+        try:
+            transaction.enter_transaction_management()
+            transaction.managed(True)
+            try:
+                result = func(*args, **kwargs)
+            except:
+                transaction.rollback()
+                raise
+            else:
+                transaction.commit()
+            return result
+        finally:
+            transaction.leave_transaction_management()
+    return wraps(func)(_commit_on_success)
+
+def cleanup_django_debug_after(func):
+    """Decorates func such that django_debug_cleanup is run after func.
+
+    Even if func raises an exception, the cleanup will be run.
+
+    """
+    def _cleanup(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            django_debug_cleanup()
+    return wraps(func)(_cleanup)
 
