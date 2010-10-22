@@ -15,10 +15,11 @@
 
 import os
 
+import nav.models
+
 from django.db import connection
 from django.db.models import get_models
 
-import nav.models
 
 '''
 Query DB using Django models test
