@@ -177,10 +177,13 @@ def autocommit(func):
             transaction.enter_transaction_management()
             transaction.managed(False)
             try:
-                return func(*args, **kw)
+                result = func(*args, **kw)
             except:
-                transaction.rollback()
+                transaction.rollback_unless_managed()
                 raise
+            else:
+                transaction.commit_unless_managed()
+                return result
         finally:
             transaction.leave_transaction_management()
     return wraps(func)(_autocommit)
