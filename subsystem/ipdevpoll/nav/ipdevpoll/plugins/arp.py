@@ -52,7 +52,7 @@ from nav.models import manage
 from nav.ipdevpoll import Plugin, get_class_logger
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
-from nav.ipdevpoll.utils import commit_on_success
+from nav.ipdevpoll.utils import autocommit
 
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
@@ -177,9 +177,9 @@ class Arp(Plugin):
         return df
 
     @classmethod
-    @commit_on_success
+    @autocommit
     def _load_prefixes_synchronously(cls):
-        return manage.Prefix.objects.all().values('id', 'net_address')
+        return list(manage.Prefix.objects.all().values('id', 'net_address'))
 
     @classmethod
     def _update_prefix_cache_with_result(cls, prefixes):
