@@ -1,3 +1,40 @@
+Version 3.6.1
+(released 25 October 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll does not unnecessarily use database transactions any more.
+
+ Bugfixes:
+
+  * LP#656870 (report cells that were previously empty now say "None")
+  * LP#658251 (3.6.0 mcc character encoding)
+  * LP#659012 (ipdevpoll errors on non UTF-8 or ASCII in user-configured values)
+  * LP#659196 (ipdevpoll IntegrityError: null value in column "ifindex"
+               violates not-null constraint)
+  * LP#659760 (mcc creates invalid config for interfaces with spaces in name)
+  * LP#659786 (smsd gammudispatcher UnicodeDecodeError)
+  * LP#660975 (ipdevpoll removes sysname when reverse lookup contains no PTR
+               records)
+  * LP#660992 (AlertEngine crashes with message: 'NoneType' object has no
+               attribute 'end_time')
+  * LP#660993 (smsd crashes on SIGHUP)
+  * LP#661008 (Alert Profiles: Cannot add filter expressions that match text)
+  * LP#661028 (Arnold crashes with 'ValueError: invalid literal' when blocking
+               a mac address)
+
 Version 3.6.0
 (released 07 October 2010)
 
