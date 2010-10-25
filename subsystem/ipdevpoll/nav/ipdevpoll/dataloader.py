@@ -36,12 +36,11 @@ interfering with the daemon's asynchronous operations.
 import logging
 
 from twisted.internet import threads
-from django.db import transaction
 
 from nav.models import manage
 from nav import ipdevpoll
 import storage
-from utils import django_debug_cleanup
+from utils import autocommit, django_debug_cleanup
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
@@ -57,7 +56,7 @@ class NetboxLoader(dict):
         self.peak_count = 0
         self._logger = ipdevpoll.get_instance_logger(self, id(self))
 
-    @transaction.commit_manually
+    @autocommit
     def load_all_s(self):
         """Synchronously load netboxes from database.
 
@@ -107,10 +106,6 @@ class NetboxLoader(dict):
             len(netbox_dict), len(new_ids), len(lost_ids), len(changed_ids),
             self.peak_count
             )
-
-        # We didn't change anything, but roll back the current transaction to
-        # avoid idling
-        transaction.rollback()
 
         return (new_ids, lost_ids, changed_ids)
 
