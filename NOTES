@@ -9,6 +9,14 @@ further.
 
 Known problems
 ==============
+The latest TwistedSNMP version (0.3.13) contains a bug that manifests
+in table retrival operations.  Timeouts and retries aren't handled
+properly, and this may cause slow or otherwise busy devices to be
+bombarded with requests from NAV.  The contrib/patches directory
+contains a patch for TwistedSNMP that solves this problem.  The patch
+has been submitted upstream, but not yet accepted into a new release.
+
+
 To see the overview of scheduled features and reported bugs on the 3.6 series
 of NAV, please go to https://launchpad.net/nav/3.6 .
 
