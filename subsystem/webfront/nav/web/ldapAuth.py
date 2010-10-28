@@ -39,6 +39,9 @@ name_attr=cn
 require_group=
 timeout=2
 debug=no
+lookupmethod=direct
+manager=
+manager_password=
 """)
 config = ConfigParser.SafeConfigParser()
 config.readfp(_default_config)
@@ -157,6 +160,7 @@ class LDAPUser(object):
     def __init__(self, username, l):
         self.username = username
         self.ldap = l
+        self.user_dn = None
 
     def bind(self, password):
         user_dn = self.getUserDN()
@@ -169,9 +173,38 @@ class LDAPUser(object):
         identify this user, using the configured settings from
         webfront.conf.
         """
+        if self.user_dn:
+            return self.user_dn
+        method = config.get('ldap', 'lookupmethod')
+        if method not in ('direct', 'search'):
+            raise LDAPConfigError(
+                """method must be "direct" or "search", not %s""" % method)
+
+        if method == 'direct':
+            self.user_dn = self.constructDN()
+        if method == 'search':
+            self.user_dn = self.searchDN()
+        return self.user_dn
+
+    def constructDN(self):
         uid_attr = config.get('ldap', 'uid_attr')
         basedn = config.get('ldap', 'basedn')
         user_dn = '%s=%s,%s' % (uid_attr, self.username, basedn)
+        return user_dn
+
+    def searchDN(self):
+        manager = config.get('ldap', 'manager')
+        manager_password = config.get('ldap', 'manager_password')
+        if manager:
+            logger.debug("Attempting authenticated bind as manager to %s", 
+                         manager)
+            self.ldap.simple_bind_s(manager, manager_password)
+        filter = "(%s=%s)" % (config.get('ldap', 'uid_attr'), self.username)
+        result = self.ldap.search_s(config.get('ldap', 'basedn'), 
+                                    ldap.SCOPE_SUBTREE, filter) 
+        if not result:
+            raise UserNotFound(filter)
+        user_dn = result[0][0]
         return user_dn
 
     def getRealName(self):
@@ -238,6 +271,12 @@ class TimeoutError(Error):
 
 class NoStartTlsError(Error):
     """The LDAP server does not support the STARTTLS extension"""
+
+class LDAPConfigError(Error):
+    """The LDAP configuration is invalid"""
+
+class UserNotFound(Error):
+    """User object was not found"""
 
 def __test():
     """

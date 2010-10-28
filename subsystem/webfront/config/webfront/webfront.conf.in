@@ -41,10 +41,19 @@ encryption = tls
 #name_attr = cn
 
 # The base DN (Distinguished Name) of the LDAP directory's user
-# objects. NAV will bind to <uid_attr>=<login name>,<user_basedn>
-# to authenticate login attempts.
+# objects.
 #
 basedn = ou=people,dc=example,dc=com
+
+# How to lookup a user object from LDAP. 
+# 'direct' binds to <uid_attr>=<login name>,<user_basedn>
+# 'search' searches for <uid_attr>=<login name> using basedn as searchbase.
+lookupmethod=direct
+
+# If the LDAP directory requires an authenticated user to search for a user
+# object, authenticate as the following user.
+#manager=
+#manager_password=
 
 # Require users to be members of this group to allow logging into NAV.
 # If not set, group membership will not be required.  This object's
