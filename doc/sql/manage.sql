@@ -166,7 +166,7 @@ CREATE TABLE netbox (
   roomid VARCHAR(30) NOT NULL CONSTRAINT netbox_roomid_fkey REFERENCES room ON UPDATE CASCADE,
   typeid INT4 CONSTRAINT netbox_typeid_fkey REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 NOT NULL CONSTRAINT netbox_deviceid_fkey REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
-  sysname VARCHAR UNIQUE,
+  sysname VARCHAR UNIQUE NOT NULL,
   catid VARCHAR(8) NOT NULL CONSTRAINT netbox_catid_fkey REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
   orgid VARCHAR(30) NOT NULL CONSTRAINT netbox_orgid_fkey REFERENCES org ON UPDATE CASCADE,
   ro VARCHAR,
@@ -292,7 +292,7 @@ CREATE TABLE interface (
   interfaceid SERIAL NOT NULL,
   netboxid INT4 NOT NULL,
   moduleid INT4,
-  ifindex INT4 NOT NULL,
+  ifindex INT4,
   ifname VARCHAR,
   ifdescr VARCHAR,
   iftype INT4,
@@ -335,8 +335,8 @@ CREATE TABLE interface (
              FOREIGN KEY (to_interfaceid) 
              REFERENCES interface (interfaceid)
              ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT interface_interfaceid_netboxid_unique
-             UNIQUE (interfaceid, netboxid)
+  CONSTRAINT interface_netboxid_ifindex_unique
+             UNIQUE (netboxid, ifindex)
 );
 
 -- this should be populated with entries parsed from 
@@ -379,6 +379,7 @@ CREATE TABLE rproto_attr (
   CONSTRAINT rproto_attr_interfaceid_fkey
              FOREIGN KEY (interfaceid)
              REFERENCES interface (interfaceid)
+             ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE swportvlan (

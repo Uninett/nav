@@ -18,6 +18,7 @@
 import nav.util
 
 from nav.models.manage import OPER_UP, ADM_DOWN, SwPortVlan, SwPortBlocked
+from nav.models.manage import Netbox
 
 def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
@@ -153,7 +154,8 @@ def _get_swportstatus_title(swport):
         pass
 
     if swport._blocked_vlans_cache:
-        title.append('blocked ' + ','.join(str[b] for b in blocked_vlans))
+        title.append(
+            'blocked ' + ','.join(str(b) for b in swport._blocked_vlans_cache))
 
     return ', '.join(title)
 

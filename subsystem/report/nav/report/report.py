@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
+# Copyright (C) 2008-2010 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -8,11 +9,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Representing a report object."""
 
@@ -52,7 +53,11 @@ class Report:
         self.limit = int(str((self.setLimit(configuration.limit))))
         self.offset = int(str(self.setOffset(configuration.offset)))
 
-        self.formatted = database.result[self.offset:self.limit+self.offset]
+        # oh, the smell, it kills me!
+        if self.limit:
+            self.formatted = database.result[self.offset:self.limit+self.offset]
+        else:
+            self.formatted = database.result
         self.dbresult = database.result
         
         self.address = self.stripPath(path)
@@ -531,12 +536,12 @@ class Cell:
     One cell of the table
     """
 
-    def __init__(self,text="",uri="",explanation=""):
+    def __init__(self,text=u"",uri=u"",explanation=u""):
 
-        self.text = text
-        self.uri = uri
-        self.explanation = explanation
-        self.sum = ""
+        self.setText(text)
+        self.setUri(uri)
+        self.setExplanation(explanation)
+        self.sum = u""
 
     def setText(self,text):
         """
@@ -546,7 +551,7 @@ class Cell:
 
         """
 
-        self.text = text
+        self.text = unicode_utf8(text)
 
 
     def setUri(self,uri):
@@ -557,7 +562,7 @@ class Cell:
 
         """
 
-        self.uri = uri
+        self.uri = unicode_utf8(uri)
 
 
     def setExplanation(self,explanation):
@@ -568,7 +573,7 @@ class Cell:
 
         """
 
-        self.explanation = explanation
+        self.explanation = unicode_utf8(explanation)
 
     def setSum(self,sum):
         """
@@ -578,7 +583,7 @@ class Cell:
 
         """
 
-        self.sum = sum
+        self.sum = unicode_utf8(sum)
 
 
 class Headers:
@@ -618,3 +623,15 @@ class Footers:
         """
 
         self.cells.append(cell)
+
+def unicode_utf8(thing):
+    """Casts thing to unicode, assuming utf-8 encoding if a string.
+
+    If the argument is None, it is returned unchanged.
+
+    """
+    if isinstance(thing, str):
+        return thing.decode('utf-8')
+    elif thing is not None:
+        return unicode(thing)
+

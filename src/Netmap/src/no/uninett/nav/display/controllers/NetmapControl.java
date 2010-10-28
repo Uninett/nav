@@ -64,6 +64,7 @@ public class NetmapControl extends ControlAdapter {
 					    item.getString("category"),
 					    item.getString("type"),
 					    item.getString("room"),
+					    item.getString("ipdevinfolink"),
 					    load
 					   ));
 	    } else if (item.isInGroup("graph.edges")){
