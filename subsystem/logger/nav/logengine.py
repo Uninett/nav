@@ -60,6 +60,8 @@ from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
 
+logger = logging.getLogger('logengine')
+
 def get_exception_dicts(config):
 
     options = config.options("priorityexceptions")
@@ -445,8 +447,6 @@ def parse_options():
     return parser.parse_args()
 
 def main():
-    global logger
-
     # Figure out what to do
     (options, args) = parse_options()
 
@@ -456,7 +456,6 @@ def main():
     config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
 
     logging.basicConfig()
-    logger = logging.getLogger('logengine')
     nav.logs.setLogLevels()
 
     if options.delete:

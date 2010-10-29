@@ -1,6 +1,8 @@
 from minimock import Mock
 from unittest import TestCase
 import random
+import logging
+logging.raiseExceptions = False
 
 from nav import logengine
 
