@@ -333,71 +333,80 @@ def parse_and_insert(line, database,
         return False
 
     if message:
+        insert_message(message, database,
+                       categories, origins, types,
+                       exceptionorigin, exceptiontype, exceptiontypeorigin)
 
-        ## check origin (host)
-        if origins.has_key(message.origin):
-            originid = origins[message.origin]
+def insert_message(message, database,
+                   categories, origins, types,
+                   exceptionorigin, exceptiontype, exceptiontypeorigin):
+    ## check origin (host)
+    if not origins.has_key(message.origin):
+        if not categories.has_key(message.category):
+            add_category(message.category, categories, database)
+        add_origin(message.origin, message.category, origins, database)
+    originid = origins[message.origin]
 
-        else:
-            ## update category database table
-            if not categories.has_key(message.category):
-                database.execute("INSERT INTO category (category) "
-                                 "VALUES (%s)", (message.category,))
-                categories[message.category] = message.category
+    ## check type
+    if not types.has_key(message.facility) or not types[message.facility].has_key(message.mnemonic):
+        add_type(message.facility, message.mnemonic, message.priorityid, types, database)
+    typeid = types[message.facility][message.mnemonic]
 
-            ## update origin database table
-            database.execute("SELECT nextval('origin_origin_seq')")
-            originid = database.fetchone()[0]
-            database.execute("INSERT INTO origin (origin, name, "
-                             "category) VALUES (%d, %s, %s)",
-                             (originid, message.origin,
-                              message.category))
-            origins[message.origin] = originid
+    ## overload priority if exceptions are set
+    if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
+        try:
+            message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
+        except:
+            pass
 
-        ## check type
-        if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
-            typeid = types[message.facility][message.mnemonic]
+    elif exceptionorigin.has_key(message.origin.lower()):
+        try:
+            message.priorityid = int(exceptionorigin[message.origin.lower()])
+        except:
+            pass
 
-        else:
-            ## update type database table
-            database.execute("SELECT nextval('log_message_type_type_seq')")
-            typeid = int(database.fetchone()[0])
+    elif exceptiontype.has_key(message.type.lower()):
+        try:
+            message.priorityid = int(exceptiontype[message.type.lower()])
+        except:
+            pass
 
-            database.execute("INSERT INTO log_message_type (type, facility, "
-                             "mnemonic, priority) "
-                             "VALUES (%d, %s, %s, %d)",
-                             (typeid, message.facility,
-                              message.mnemonic, message.priorityid))
-            if not types.has_key(message.facility):
-                types[message.facility] = {}
-            types[message.facility][message.mnemonic] = typeid
+    ## insert message into database
+    database.execute("INSERT INTO log_message (time, origin, "
+                     "newpriority, type, message) "
+                     "VALUES (%s, %s, %s, %s, %s)",
+                     (str(message.time), originid,
+                      message.priorityid, typeid,
+                      message.description))
 
-        ## overload priority if exceptions are set
-        if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
-            try:
-                message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
-            except:
-                pass
+def add_category(category, categories, database):
+    database.execute("INSERT INTO category (category) "
+                     "VALUES (%s)", (category,))
+    categories[category] = category
 
-        elif exceptionorigin.has_key(message.origin.lower()):
-            try:
-                message.priorityid = int(exceptionorigin[message.origin.lower()])
-            except:
-                pass
 
-        elif exceptiontype.has_key(message.type.lower()):
-            try:
-                message.priorityid = int(exceptiontype[message.type.lower()])
-            except:
-                pass
+def add_origin(origin, category, origins, database):
+    database.execute("SELECT nextval('origin_origin_seq')")
+    originid = database.fetchone()[0]
+    assert type(originid) in (int, long)
+    database.execute("INSERT INTO origin (origin, name, "
+                     "category) VALUES (%s, %s, %s)",
+                     (originid, origin, category))
+    origins[origin] = originid
+    return originid
 
-        ## insert message into database
-        database.execute("INSERT INTO log_message (time, origin, "
-                         "newpriority, type, message) "
-                         "VALUES (%s, %s, %s, %s, %s)",
-                         (str(message.time), originid,
-                          message.priorityid, typeid,
-                          message.description))
+def add_type(facility, mnemonic, priorityid, types, database):
+    database.execute("SELECT nextval('log_message_type_type_seq')")
+    typeid = int(database.fetchone()[0])
+    assert type(typeid) in (long, int)
+
+    database.execute("INSERT INTO log_message_type (type, facility, "
+                     "mnemonic, priority) "
+                     "VALUES (%s, %s, %s, %s)",
+                     (typeid, facility, mnemonic, priorityid))
+    if not types.has_key(facility):
+        types[facility] = {}
+    types[facility][mnemonic] = typeid
 
 def logengine(config):
     global connection, database
