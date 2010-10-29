@@ -112,6 +112,7 @@ class Module(Shadow):
 
     def prepare(self, containers):
         self._fix_binary_garbage()
+        self._fix_missing_name()
         self._resolve_duplicate_serials()
 
     def _fix_binary_garbage(self):
@@ -120,6 +121,10 @@ class Module(Shadow):
         if utils.is_invalid_utf8(self.model):
             self._logger.warn("Invalid value for model: %r", self.model)
             self.model = repr(self.model)
+
+    def _fix_missing_name(self):
+        if not self.name and self.device and self.device.serial:
+            self.name = "S/N %s" % self.device.serial
 
     def _resolve_duplicate_serials(self):
         """Attempts to solve serial number conflicts before savetime.
