@@ -108,7 +108,7 @@ class Vendor(Shadow):
 
 class Module(Shadow):
     __shadowclass__ = manage.Module
-    __lookups__ = [('netbox', 'name'), 'device']
+    __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
 
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
