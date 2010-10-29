@@ -160,7 +160,6 @@ def createMessage(line):
         if typematch:
             database.execute("INSERT INTO errorerror (message) "
                              "VALUES (%s)", (line,))
-            connection.commit()
 
         return
 
@@ -429,6 +428,7 @@ def logengine(config):
 
     ## add new records
     logger.info("Reading new log entries")
+    parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
     for line in read_log_lines(config):
         parse_and_insert(line, database,
                          categories, origins, types,
@@ -437,6 +437,15 @@ def logengine(config):
     # Make sure it all sticks
     connection.commit()
 
+def swallow_all_but_db_exceptions(func):
+    def _swallow(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except db.driver.Error, err:
+            raise
+        except Exception:
+            logger.exception("Unhandled exception occurred, ignoring.")
+    return _swallow
 
 def parse_options():
     """Parse and return options supplied on command line."""

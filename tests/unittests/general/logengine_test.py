@@ -45,3 +45,26 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
                                      {}, {}, {},
                                      {}, {}, {})
 
+
+    def test_swallow_generic_exceptions(self):
+        @logengine.swallow_all_but_db_exceptions
+        def raiser():
+            raise Exception("This is an ex-parrot")
+
+        raiser()
+
+    def test_raise_db_exception(self):
+        from nav.db import driver
+        @logengine.swallow_all_but_db_exceptions
+        def raiser():
+            raise driver.Error("This is an ex-database")
+
+        self.assertRaises(driver.Error, raiser)
+
+    def test_non_failing_function_should_run_fine(self):
+        @logengine.swallow_all_but_db_exceptions
+        def nonraiser(input):
+            return input
+
+        value = 'foo'
+        self.assertEquals(nonraiser(value), value)
