@@ -439,7 +439,10 @@ def port_details(request, netbox_sysname, module_number=None, port_type=None,
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
     elif port_name is not None:
-        port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifname=port_name)
+        try:
+            port = ports.get(netbox__sysname=netbox_sysname, ifname=port_name)
+        except Interface.DoesNotExist:
+            port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifdescr=port_name)
 
     return render_to_response(
         'ipdevinfo/port-details.html',
