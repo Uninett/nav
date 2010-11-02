@@ -19,11 +19,12 @@
 """
 
 import logging
-from smtplib import SMTPException
+from smtplib import SMTPException, SMTPRecipientsRefused
 
 from django.core.mail import EmailMessage
 
-from nav.alertengine.dispatchers import dispatcher, DispatcherException
+from nav.alertengine.dispatchers import dispatcher, DispatcherException, \
+FatalDispatcherException
 
 logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
@@ -50,5 +51,8 @@ class email(dispatcher):
                 logger.debug('alert %d: In testing mode, would have sent email to %s' % (alert.id, address.address))
 
         except SMTPException, e:
+            if isinstance(e, SMTPRecipientsRefused) or \
+                (hasattr(e, "smtp_code") and str(e.smtp_code).startswith('5')):
+                raise FatalDispatcherException('Could not send email: %s" ' % e)
             # Reraise as DispatcherException so that we can catch it further up
             raise DispatcherException('Could not send email: %s' % e)
