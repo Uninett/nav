@@ -18,7 +18,9 @@
 
 import logging
 import gc
-from functools import wraps
+from pprint import pformat
+# django already has a workaround for "no functools on py2.4"
+from django.utils.functional import wraps
 
 from IPy import IP
 
@@ -110,9 +112,18 @@ def django_debug_cleanup():
     """
     query_count = len(django.db.connection.queries)
     if query_count:
-        _logger.debug("Removing %d logged Django queries", query_count)
+        runtime = sum_django_queries_runtime()
+        _logger.debug("Removing %d logged Django queries "
+                      "(total time %.03f):\n%s",
+                      query_count, runtime,
+                      pformat(django.db.connection.queries))
         django.db.reset_queries()
         gc.collect()
+
+def sum_django_queries_runtime():
+    runtimes = (float(query['time'])
+                for query in django.db.connection.queries)
+    return sum(runtimes)
 
 def commit_on_success(func):
     """Decorates func such that the current Django transaction is committed on
@@ -149,6 +160,33 @@ def commit_on_success(func):
         finally:
             transaction.leave_transaction_management()
     return wraps(func)(_commit_on_success)
+
+def autocommit(func):
+    """
+    Decorates func such that Django transactions are managed to autocommitt.
+
+    Django's autocommit decorator begins and commits a transaction on every
+    statement, but will not properly rollback such a failed transaction unless
+    it marked as dirty (something tried to modify the database).  This is
+    because Django is optimized for a web request cycle and throws away the
+    connection at the end of each request.
+
+    """
+    def _autocommit(*args, **kw):
+        try:
+            transaction.enter_transaction_management()
+            transaction.managed(False)
+            try:
+                result = func(*args, **kw)
+            except:
+                transaction.rollback_unless_managed()
+                raise
+            else:
+                transaction.commit_unless_managed()
+                return result
+        finally:
+            transaction.leave_transaction_management()
+    return wraps(func)(_autocommit)
 
 def cleanup_django_debug_after(func):
     """Decorates func such that django_debug_cleanup is run after func.

@@ -526,8 +526,7 @@ public class QueryBoks extends Thread
 				if (swportid != null) {
 					// Setter boksbak og swportbak for alle matchende interfacer
 					Log.d("PROCESS_CDP", "Updating to_netboxid("+workingOnBoksid+"), to_interfaceid("+swportid+") for gw: " + boksIdName.get(netboxid)+", rIf: " + remoteIf);
-					// FIXME: This should probably also update interfaces whose ifDescr matches the remote interface name, since that is what seems to appear in CDP data
-					Database.update("UPDATE interface SET to_netboxid = '"+workingOnBoksid+"', to_interfaceid = '"+swportid+"' WHERE netboxid='"+netboxid+"' AND ifname = '"+remoteIf+"'");
+					Database.update("UPDATE interface SET to_netboxid = '"+workingOnBoksid+"', to_interfaceid = '"+swportid+"' WHERE netboxid='"+netboxid+"' AND (ifname = '"+remoteIf+"' OR ifdescr = '"+remoteIf+"')");
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				}
 			}

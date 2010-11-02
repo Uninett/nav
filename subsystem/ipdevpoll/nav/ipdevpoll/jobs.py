@@ -250,6 +250,9 @@ class JobHandler(object):
         log = ipdevpoll.get_instance_logger(self, "timings")
         log.debug("\n".join(log_text))
 
+    def get_current_runtime(self):
+        """Returns time elapsed since the start of the job as a timedelta."""
+        return datetime.datetime.now() - self._start_time
 
     def save_container(self):
         """
@@ -257,7 +260,7 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @utils.commit_on_success
+        @utils.autocommit
         @utils.cleanup_django_debug_after
         def complete_save_cycle():
             # Prepare all shadow objects for storage.
@@ -335,7 +338,7 @@ class JobHandler(object):
                         # this shadow will know about this change.
                         if not obj.get_primary_key():
                             obj.set_primary_key(obj_model.pk)
-                        obj._touched = []
+                        obj._touched.clear()
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0

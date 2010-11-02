@@ -6,7 +6,7 @@ cron_DATA = logengine
 myweb_DATA = .htaccess
 myweb_PYTHON = loggerhandler.py
 cheetah_TEMPLATES = nav/web/templates/LoggerTemplate.py
-nobase_python_DATA = $(cheetah_TEMPLATES)
+nobase_python_DATA = $(wildcard nav/*.py) $(cheetah_TEMPLATES)
 bin_SCRIPTS = bin/logengine.py
 
 config = conf/logger.conf

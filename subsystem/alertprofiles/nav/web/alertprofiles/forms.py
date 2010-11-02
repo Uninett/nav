@@ -41,6 +41,7 @@ class AccountPropertyForm(forms.ModelForm):
 
 class AlertProfileForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    name = forms.CharField(required=True)
     daily_dispatch_time = forms.TimeField(
         initial='08:00',
         input_formats=['%H:%M:%S', '%H:%M', '%H'],
@@ -58,6 +59,7 @@ class AlertProfileForm(forms.ModelForm):
 
 class AlertAddressForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    address = forms.CharField(required=True)
 
     class Meta:
         model = AlertAddress
@@ -185,6 +187,7 @@ class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private',
         help_text=_(u'Uncheck to allow all users to use this filter group.'))
+    name = forms.CharField(required=True)
     description = forms.CharField(required=False)
 
     class Meta:
@@ -207,6 +210,7 @@ class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label=u'Private',
         help_text=_(u'Uncheck to allow all users to use this filter.'))
+    name = forms.CharField(required=True)
 
     class Meta:
         model = Filter
@@ -270,6 +274,7 @@ class MatchFieldForm(forms.ModelForm):
 class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    value = forms.CharField(required=True)
 
     class Meta:
         model = Expression

@@ -313,7 +313,8 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
         if send:
-            end = queued_alert.alert.history.end_time
+            end = queued_alert.alert.history and \
+                queued_alert.alert.history.end_time or None
 
             # Check if alert should be ignored
             if subscription.ignore_resolved_alerts and subscription.type != AlertSubscription.NOW and end and end < now:

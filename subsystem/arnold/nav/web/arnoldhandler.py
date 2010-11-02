@@ -285,10 +285,9 @@ def handler(req):
 
         netboxid = int(args.get('netboxid'))
         ifindex = int(args.get('ifindex'))
-        module = int(args.get('module'))
 
         try:
-            sw = nav.arnold.findSwportinfo(netboxid, ifindex, module)
+            sw = nav.arnold.findSwportinfo(netboxid, ifindex)
         except nav.arnold.PortNotFoundError, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -314,11 +313,10 @@ def handler(req):
 
         netboxid = int(args.get('netboxid'))
         ifindex = int(args.get('ifindex'))
-        module = int(args.get('module'))
         vlan = int(args.get('quarantinevlan'))
 
         try:
-            sw = nav.arnold.findSwportinfo(netboxid, ifindex, module)
+            sw = nav.arnold.findSwportinfo(netboxid, ifindex)
         except nav.arnold.PortNotFoundError, why:
             redirect(req, 'blockedports?output=' + str(why))
 

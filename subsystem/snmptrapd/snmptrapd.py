@@ -182,6 +182,8 @@ def main():
         logger.info("Snmptrapd started, listening on port %s" %port)
         try:
             server.listen(community, trapHandler)
+        except SystemExit:
+            raise
         except Exception, why:
             logger.critical("Fatal exception ocurred", exc_info=True)
 

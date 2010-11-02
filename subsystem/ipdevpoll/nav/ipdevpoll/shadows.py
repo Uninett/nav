@@ -108,7 +108,12 @@ class Vendor(Shadow):
 
 class Module(Shadow):
     __shadowclass__ = manage.Module
-    __lookups__ = [('netbox', 'name'), 'device']
+    __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
+
+    def prepare(self, containers):
+        self._fix_binary_garbage()
+        self._fix_missing_name()
+        self._resolve_duplicate_serials()
 
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
@@ -116,9 +121,43 @@ class Module(Shadow):
         if utils.is_invalid_utf8(self.model):
             self._logger.warn("Invalid value for model: %r", self.model)
             self.model = repr(self.model)
-        
-    def prepare(self, containers):
-        self._fix_binary_garbage()
+
+    def _fix_missing_name(self):
+        if not self.name and self.device and self.device.serial:
+            self.name = "S/N %s" % self.device.serial
+
+    def _resolve_duplicate_serials(self):
+        """Attempts to solve serial number conflicts before savetime.
+
+        Specifically, if another Module in the database is registered with the
+        same serial number as this one, we attach an empty device to the other
+        module.
+
+        """
+        if not self.device or not self.device.serial:
+            return
+
+        myself = self.get_existing_model()
+        try:
+            other = manage.Module.objects.get(
+                device__serial=self.device.serial)
+        except manage.Module.DoesNotExist:
+            return
+
+        if other != myself:
+            myself = myself or self
+            self._logger.warning(
+                "Serial number conflict, attempting peaceful resolution (%s): "
+                "I am %r (%s) at %s (id: %s) <-> "
+                "other is %r (%s) at %s (id: %s)",
+                self.device.serial,
+                self.name, self.description, myself.netbox.sysname, myself.id,
+                other.name, other.description, other.netbox.sysname, other.id)
+            new_device = manage.Device()
+            new_device.save()
+            other.device = new_device
+            other.save()
+
 
     @classmethod
     def _make_modulestate_event(cls, django_module):
@@ -313,6 +352,56 @@ class Interface(Shadow):
             self.id = result[0].id
             return result[0]
 
+    @classmethod
+    def prepare_for_save(cls, containers):
+        super(Interface, cls).prepare_for_save(containers)
+        cls._resolve_changed_ifindexes(containers)
+
+    @classmethod
+    def _resolve_changed_ifindexes(cls, containers):
+        """Resolves conflicts that arise from changed ifindexes.
+
+        The db model will not allow duplicate ifindex, so any ifindex
+        that appears to have changed on the device must be nulled out
+        in the database before we start updating Interfaces.
+
+        """
+        netbox = containers.get(None, Netbox)
+        found_existing_map = (
+            (interface, interface.get_existing_model(containers))
+            for interface in containers[Interface].values())
+
+        changed_ifindexes = [(new.ifindex, old.ifindex)
+                             for new, old in found_existing_map
+                             if old and new.ifindex != old.ifindex]
+        if not changed_ifindexes:
+            return
+
+        cls._logger.info("%s changed ifindex mappings (new/old): %r",
+                         netbox.sysname, changed_ifindexes)
+
+        my_interfaces = manage.Interface.objects.filter(netbox__id=netbox.id)
+        changed_interfaces = my_interfaces.filter(
+            ifindex__in=[new for new, old in changed_ifindexes])
+        changed_interfaces.update(ifindex=None)
+
+    def prepare(self, containers):
+        self.set_netbox_if_unset(containers)
+        self.set_ifindex_if_unset(containers)
+
+    def set_netbox_if_unset(self, containers):
+        """Sets this Interface's netbox reference if unset by plugins."""
+        if self.netbox is None:
+            self.netbox = containers.get(None, Netbox)
+
+    def set_ifindex_if_unset(self, containers):
+        """Sets this Interface's ifindex value if unset by plugins."""
+        if self.ifindex is None:
+            interfaces = dict((v,k) for k,v in containers[Interface].items())
+            if self in interfaces:
+                self.ifindex = interfaces[self]
+
+
 class Location(Shadow):
     __shadowclass__ = manage.Location
 
@@ -459,55 +548,6 @@ class Vlan(Shadow):
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
     __lookups__ = [('net_address', 'vlan'), 'net_address']
-
-    @classmethod
-    def _delete_unused_prefixes(cls):
-        """Deletes prefixes that appear to have fallen into disuse.
-
-        A disused prefix is one not attached to any gwport and not attached to
-        any vlan that is in use somewhere.
-
-        """
-        keep_vlans = manage.Vlan.objects.filter(
-            Q(net_type='scope') | Q(swportvlan__isnull=False))
-        keep_vlans_q = keep_vlans.values('pk').query
-
-        unrouted_prefixes = manage.Prefix.objects.exclude(gwportprefix__isnull=False)
-        deleteable_prefixes = unrouted_prefixes.exclude(vlan__in=keep_vlans_q)
-
-        count = len(deleteable_prefixes)
-        deleteable_prefixes.delete()
-        if count:
-            cls._logger.info("Deleted %d unused prefixes", count)
-
-
-    @classmethod
-    def _delete_unused_vlans(cls):
-        """Deletes vlans that appear to have fallen into disuse.
-
-        A disused vlan is one not attached to any prefix, to any swport and is
-        not a scope type vlan.
-
-        """
-        deleteable_vlans = manage.Vlan.objects.exclude(
-            Q(net_type='scope') | Q(swportvlan__isnull=False) |
-            Q(prefix__isnull=False))
-
-        count = len(deleteable_vlans)
-        deleteable_vlans.delete()
-        if count:
-            cls._logger.info("Deleted %d unused VLANs", count)
-
-    @classmethod
-    def cleanup_after_save(cls, containers):
-        """Deletes unused vlans and prefixes from the database.
-
-        TODO: This could possibly be more suitable as a database trigger!
-
-        """
-        cls._delete_unused_prefixes()
-        cls._delete_unused_vlans()
-        super(Prefix, cls).cleanup_after_save(containers)
 
 
 class GwPortPrefix(Shadow):

@@ -382,17 +382,16 @@ def create_target_name(name):
 
 def convert_unicode_to_latin1(unicode_object):
     """
-    Decode a unicode object to a latin-1 string  
+    Encode a unicode object to a latin-1 string
     """
-    
-    # Cricket always displays latin-1. Database returns data as unicode objects. 
+    # Cricket always displays latin-1. Database returns data as unicode objects.
     # Encode it to display correctly.
     try:
-        encoded_string = unicode_object.encode('latin-1')
+        encoded_string = unicode_object.encode('latin-1', 'ignore')
     except Exception, e:
         logger.error("Could not encode %s to latin-1: %s" % (unicode_object, e))
         return unicode_object
-    
+
     return encoded_string
 
 def encode_and_escape(input):
@@ -403,7 +402,6 @@ def encode_and_escape(input):
     if isinstance(input, unicode):
         input = convert_unicode_to_latin1(input)
     input = input.replace("\"", "&quot;")
-    input = re.escape(input)
     
     return input
 

@@ -324,7 +324,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             if no_netbox['arp']:
                 no_netbox['cam'] = get_cam_info(no_netbox['arp'].mac)
                 if no_netbox['arp'].end_time < dt.datetime.max:
-                    no_netbox['days_since_active'] = (dt.now() - no_netbox['arp'].end_time).days
+                    no_netbox['days_since_active'] = \
+                        (dt.datetime.now() - no_netbox['arp'].end_time).days
 
     else:
         alert_info = get_recent_alerts(netbox)
@@ -441,7 +442,10 @@ def port_details(request, netbox_sysname, module_number=None, port_type=None,
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
     elif port_name is not None:
-        port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifname=port_name)
+        try:
+            port = ports.get(netbox__sysname=netbox_sysname, ifname=port_name)
+        except Interface.DoesNotExist:
+            port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifdescr=port_name)
 
     return render_to_response(
         'ipdevinfo/port-details.html',
