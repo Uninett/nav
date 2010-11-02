@@ -74,6 +74,7 @@ class NetboxStep2(forms.ModelForm):
             data = data or {}
             if 'ip' in initial or 'ip' in data:
                 self.fields['ip'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+            #TODO Sett inn IP if not sysname
             if 'sysname' in initial or 'sysname' in data:
                 self.fields['sysname'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
 
@@ -85,19 +86,20 @@ class NetboxStep2(forms.ModelForm):
         self.snmp_version = '1'
 
         if cat and cat.req_snmp and not ro:
-            self._errors['read_only'] = self.error_class(["Category %s requires Read Only community." % cat.id])
+            self._errors['read_only'] = self.error_class(["Category %s requires SNMP access." % cat.id])
             del cleaned_data['category']
             del cleaned_data['read_only']
 
         if ro and ip:
+            sysobjectid = '1.3.6.1.2.1.1.2.0'
             try:
                 try:
                     snmp = Snmp(ip, ro, '2c')
-                    sysname = snmp.get('1.3.6.1.2.1.1.5.0')
+                    typeid = snmp.get(sysobjectid)
                     self.snmp_version = '2c'
                 except TimeOutException:
                     snmp = Snmp(ip, ro, '1')
-                    sysname = snmp.get('1.3.6.1.2.1.1.5.0')
+                    typeid = snmp.get(sysobjectid)
                     self.snmp_version = '1'
             except SnmpError:
                 if cat and cat.req_snmp:
@@ -148,11 +150,12 @@ class NetboxStep3(forms.ModelForm):
 
     def clean_serial(self):
         serial = self.cleaned_data['serial']
-        device = Device.objects.filter(serial=serial)
-        netbox = Netbox.objects.filter(device__in=device)
-        if device.count() > 0 and netbox.count() > 0:
+        try:
+            netbox = Netbox.objects.get(device__serial=serial)
+        except Netbox.DoesNotExist:
+            return serial
+        else:
             raise forms.ValidationError("Serial exists in database")
-        return serial
 
 class RoomForm(forms.ModelForm):
     class Meta:
