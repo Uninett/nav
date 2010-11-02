@@ -43,8 +43,7 @@ class NetboxStep1(forms.Form):
                 except ValueError:
                     self.sysname = name
                     self.ip = IP(gethostbyname(self.sysname))
-                else:
-                    self.sysname = gethostbyaddr(unicode(self.ip))[0]
+                self.sysname = gethostbyaddr(unicode(self.ip))[0]
             except SocketError:
                 msg = ("Nope",)
                 self._errors['name'] = self.error_class(msg)
