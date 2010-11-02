@@ -322,14 +322,14 @@ class AlertAddress(models.Model):
                     subscription.get_type_display(), subscription.id))
 
         except FatalDispatcherException, e:
-            logger.error('%s raised a FatalDispatcherException inidicating that the alert never will be sent: %s' % (self.type, e))
+            logger.error('%s raised a FatalDispatcherException indicating that the alert never will be sent: %s' % (self.type, e))
             alert.delete()
             transaction.commit()
 
             return False
 
         except DispatcherException, e:
-            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent at this time: %s' % (self.type, e))
+            logger.error('%s raised a DispatcherException indicating that an alert could not be sent at this time: %s' % (self.type, e))
             transaction.rollback()
 
             return False
