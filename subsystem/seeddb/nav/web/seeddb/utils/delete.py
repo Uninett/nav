@@ -26,7 +26,7 @@ from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.forms.move import MoveOperationForm
 
-def render_delete(request, model, redirect, extra_context={}):
+def render_delete(request, model, redirect, whitelist=[], extra_context={}):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
@@ -34,7 +34,7 @@ def render_delete(request, model, redirect, extra_context={}):
         return HttpResponseRedirect(reverse(redirect))
 
     objects = model.objects.filter(pk__in=request.POST.getlist('object')).order_by('pk')
-    related = dependencies(objects)
+    related = dependencies(objects, whitelist)
 
     for o in objects:
         if o.pk in related:
@@ -64,13 +64,15 @@ def render_delete(request, model, redirect, extra_context={}):
     return render_to_response('seeddb/delete.html',
         extra_context, RequestContext(request))
 
-def dependencies(qs):
+def dependencies(qs, whitelist):
     primary_keys = [object.pk for object in qs]
     related = qs.model._meta.get_all_related_objects()
 #    related += qs.model._meta.get_all_related_many_to_many_objects()
 
     related_objects = {}
     for rel in related:
+        if rel.model not in whitelist:
+            continue
         name = rel.var_name
         field = rel.field.name
         accessor = rel.get_accessor_name()

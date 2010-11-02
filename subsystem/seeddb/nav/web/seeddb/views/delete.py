@@ -25,6 +25,10 @@ from nav.models.service import Service
 from nav.web.seeddb.utils.delete import render_delete
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
+SEEDDB_EDITABLE_MODELS = (
+    Netbox, NetboxType, Room, Location, Organization, Device, Usage, Vendor,
+    Subcategory, Vlan, Prefix, Service
+)
 
 def netbox_delete(request):
     extra = {
@@ -32,7 +36,7 @@ def netbox_delete(request):
         'tab_template': 'seeddb/tabs_netbox.html',
     }
     return render_delete(request, Netbox, 'seeddb-netbox',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def room_delete(request):
     extra = {
@@ -40,7 +44,7 @@ def room_delete(request):
         'tab_template': 'seeddb/tabs_room.html',
     }
     return render_delete(request, Room, 'seeddb-room',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def location_delete(request):
     extra = {
@@ -48,7 +52,7 @@ def location_delete(request):
         'tab_template': 'seeddb/tabs_location.html',
     }
     return render_delete(request, Location, 'seeddb-location',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def organization_delete(request):
     extra = {
@@ -56,7 +60,7 @@ def organization_delete(request):
         'tab_template': 'seeddb/tabs_organization.html',
     }
     return render_delete(request, Organization, 'seeddb-organization',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def usage_delete(request):
     extra = {
@@ -64,7 +68,7 @@ def usage_delete(request):
         'tab_template': 'seeddb/tabs_usage.html',
     }
     return render_delete(request, Usage, 'seeddb-usage',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def netboxtype_delete(request):
     extra = {
@@ -72,7 +76,7 @@ def netboxtype_delete(request):
         'tab_template': 'seeddb/tabs_usage.html',
     }
     return render_delete(request, NetboxType, 'seeddb-type',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def vendor_delete(request):
     extra = {
@@ -80,7 +84,7 @@ def vendor_delete(request):
         'tab_template': 'seeddb/tabs_vendor.html',
     }
     return render_delete(request, Vendor, 'seeddb-vendor',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def subcategory_delete(request):
     extra = {
@@ -88,7 +92,7 @@ def subcategory_delete(request):
         'tab_template': 'seeddb/tabs_subcategory.html',
     }
     return render_delete(request, Subcategory, 'seeddb-subcategory',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def cabling_delete(request):
     extra = {
@@ -96,7 +100,7 @@ def cabling_delete(request):
         'tab_template': 'seeddb/tabs_cabling.html',
     }
     return render_delete(request, Cabling, 'seeddb-cabling',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def patch_delete(request):
     extra = {
@@ -104,4 +108,4 @@ def patch_delete(request):
         'tab_template': 'seeddb/tabs_patch.html',
     }
     return render_delete(request, Patch, 'seeddb-patch',
-        extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
