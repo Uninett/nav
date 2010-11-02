@@ -1,0 +1,19 @@
+{% extends "devicehistory/base.html" %}
+
+{% block tabcontent %}
+<div class="tabs">
+    <ul>
+        <li class="{{ active.device.search|yesno:"tabactive," }}">
+            <a href="{% url devicehistory-search %}">New search</a>
+        </li>
+        <li class="{{ active.device.history|yesno:"tabactive," }}">
+            <a href="{% url devicehistory-view %}">Results</a>
+        </li>
+    </ul>
+</div>
+
+<div class="tabcontent">
+    {% block devicehistory-content %}
+    {% endblock %}
+</div>
+{% endblock %}

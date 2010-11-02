@@ -44,7 +44,7 @@ urlpatterns = patterns('',
         name='ipdevinfo-details-by-id'),
 
     # Module details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_name>[^/]+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_name>.+)/$',
         module_details, name='ipdevinfo-module-details'),
 
     # Interface details

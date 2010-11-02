@@ -1,3 +1,83 @@
+Version 3.6.1
+(released 25 October 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll does not unnecessarily use database transactions any more.
+
+ Bugfixes:
+
+  * LP#656870 (report cells that were previously empty now say "None")
+  * LP#658251 (3.6.0 mcc character encoding)
+  * LP#659012 (ipdevpoll errors on non UTF-8 or ASCII in user-configured values)
+  * LP#659196 (ipdevpoll IntegrityError: null value in column "ifindex"
+               violates not-null constraint)
+  * LP#659760 (mcc creates invalid config for interfaces with spaces in name)
+  * LP#659786 (smsd gammudispatcher UnicodeDecodeError)
+  * LP#660975 (ipdevpoll removes sysname when reverse lookup contains no PTR
+               records)
+  * LP#660992 (AlertEngine crashes with message: 'NoneType' object has no
+               attribute 'end_time')
+  * LP#660993 (smsd crashes on SIGHUP)
+  * LP#661008 (Alert Profiles: Cannot add filter expressions that match text)
+  * LP#661028 (Arnold crashes with 'ValueError: invalid literal' when blocking
+               a mac address)
+
+Version 3.6.0
+(released 07 October 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll performance gains.
+  * more debug logging options for ipdevpoll time statistics and job status.
+  * improved ipdevpoll handling of renumbered ifindexes.
+  * more graceful handling of DNS errors in ipdevpoll dnsname plugin.
+
+ Bugfixes:
+
+  * LP#633126 (netmap shows wrong topology for switches)
+  * LP#643340 (Schedule maintenance doesnt pick up boxname)
+  * LP#643474 (Location context lost when refining device history search)
+  * LP#644142 (Maintenance crash when adding location or room components)
+  * LP#644985 (Netmap doesn't link properly to IP Device Info)
+  * LP#645892 (report: csv export does not export full report)
+  * LP#646602 (ipdevpoll fails on Python 2.4)
+  * LP#646607 (Fatal UnboundLocalError in snmptrapd under Python 2.4)
+  * LP#648658 (AttributeError at /status/ - nav-3.6.0b6)
+  * LP#648687 (Netmap does not show link traffic in 3.6 betas)
+  * LP#649624 (eventEngine InvocationTargetException)
+  * LP#649635 (report crashes on international characters in org, location)
+  * LP#649636 (Duplicate interfaces after upgrade disrupt ipdevpoll)
+  * LP#649640 (Interfaces with migrated OSPF metrics cannot be deleted)
+  * LP#650976 (ipdevpoll : Save stage failed with unhandled AttributeError)
+  * LP#655564 (NameError at /ipdevinfo/svitsj.foo.tld/)
+  * LP#656263 (getBoksMacs is unable to find interfaces corresponding
+               to CDP data)
+
 Version 3.6.0b6
 (released 23 September 2010)
 

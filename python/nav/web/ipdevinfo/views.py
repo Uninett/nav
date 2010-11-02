@@ -298,7 +298,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     # Get data needed by the template
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
-    netboxsubcat = netbox.netboxcategory_set.all()
 
     # Assign default values to variables
     no_netbox = {
@@ -318,16 +317,19 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             addr = host_info['addresses'][0]['addr']
 
         no_netbox['prefix'] = get_prefix_info(addr)
+        netboxsubcat = None
 
         if no_netbox['prefix']:
             no_netbox['arp'] = get_arp_info(addr)
             if no_netbox['arp']:
                 no_netbox['cam'] = get_cam_info(no_netbox['arp'].mac)
                 if no_netbox['arp'].end_time < dt.datetime.max:
-                    no_netbox['days_since_active'] = (dt.now() - no_netbox['arp'].end_time).days
+                    no_netbox['days_since_active'] = \
+                        (dt.datetime.now() - no_netbox['arp'].end_time).days
 
     else:
         alert_info = get_recent_alerts(netbox)
+        netboxsubcat = netbox.netboxcategory_set.all()
 
         # Select port view to display
         run_port_view = True
@@ -440,7 +442,10 @@ def port_details(request, netbox_sysname, module_number=None, port_type=None,
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
     elif port_name is not None:
-        port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifname=port_name)
+        try:
+            port = ports.get(netbox__sysname=netbox_sysname, ifname=port_name)
+        except Interface.DoesNotExist:
+            port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifdescr=port_name)
 
     return render_to_response(
         'ipdevinfo/port-details.html',

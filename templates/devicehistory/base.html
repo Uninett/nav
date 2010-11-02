@@ -11,14 +11,9 @@
 <div class="tabs">
     {% block tabs %}
     <ul>
-        <li class="{{ active.devicesearch|yesno:"tabactive," }}">
-            <a href="{% url devicehistory-search %}">Device Search</a>
+        <li class="{{ active.device|yesno:"tabactive," }}">
+            <a href="{% url devicehistory-search %}">Device History</a>
         </li>
-        {% if active.devicehistory %}
-        <li class="tabactive">
-            <a>Device History</a>
-        </li>
-        {% endif %}
         <li class="{{ active.error|yesno:"tabactive," }}">
             <a href="{% url devicehistory-registererror %}">Register Error
             Event</a>

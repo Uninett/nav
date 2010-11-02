@@ -18,6 +18,8 @@
 
 import logging
 import datetime
+from operator import itemgetter
+from random import randint
 
 from twisted.internet import task, threads
 
@@ -27,6 +29,7 @@ import config
 import signals
 from dataloader import NetboxLoader
 from jobs import JobHandler, AbortedJobError
+from nav.tableformat import SimpleTableFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -38,16 +41,15 @@ class NetboxScheduler(object):
 
     """
 
-    ip_map = {}
-    """A map of ip addresses there are currently active JobHandlers for.
+    running_job_map = {}
+    """A map of running jobs for Netboxes.
 
-    Scheduling will not allow simultaneous runs against the same IP
-    address, so as to not overload the SNMP agent at that address.
+    Scheduling will not allow simultaneous runs of the same job against the same
+    Netbox.
 
-    key: value  -->  str(ip): JobHandler instance
+      {netbox: [JobHandler, JobHandler...]}
+
     """
-
-    deferred_map = {} # Map active JobHandlers' deferred objects
 
     DEFAULT_INTERVAL = 3600.0 # seconds
 
@@ -84,52 +86,54 @@ class NetboxScheduler(object):
 
     def _map_cleanup(self, result, job_handler):
         """Remove a JobHandler from internal data structures."""
-        if job_handler.netbox.ip in NetboxScheduler.ip_map:
-            del NetboxScheduler.ip_map[job_handler.netbox.ip]
-        if job_handler in self.deferred_map:
-            del self.deferred_map[job_handler]
+        handlers = self._get_running_job_handlers()
+        if job_handler in handlers:
+            handlers.remove(job_handler)
         if self.job_handler:
             self.job_handler = None
         return result
 
     def run_job(self, dummy=None):
-        ip = self.netbox.ip
-        if ip in NetboxScheduler.ip_map:
-            # We won't start a JobHandler now because a JobHandler is
-            # already polling this IP address.
-            other_job_handler = NetboxScheduler.ip_map[ip]
-            self.logger.info(
-                "Job %r is still running for %s, waiting for it to finish "
-                "before starting %r",
-                other_job_handler.name, self.netbox.sysname,
-                self.jobname)
-            if id(self.netbox) == id(other_job_handler.netbox):
-                self.logger.debug(
-                    "other job is working on an identical netbox instance")
-
-            # Reschedule this function to be called as soon as the
-            # other JobHandler is finished
-            self.deferred_map[other_job_handler].addCallback(self.run_job)
+        if self._is_this_job_already_running():
+            self.logger.info("Previous %r job is still running for %s, "
+                             "not running again now.",
+                             self.jobname, self.netbox.sysname)
         else:
             # We're ok to start a polling run.
             job_handler = JobHandler(self.jobname, self.netbox, 
                                      plugins=self.plugins)
             self.job_handler = job_handler
-            NetboxScheduler.ip_map[ip] = job_handler
+            self._register_running_job(job_handler)
+
             deferred = job_handler.run()
-            self.deferred_map[job_handler] = deferred
-            # Make sure to remove from ip_map as soon as this run is over
             deferred.addErrback(self._reschedule)
             deferred.addErrback(self._log_unhandled_error, job_handler)
 
             deferred.addCallback(self._map_cleanup, job_handler)
             deferred.addCallback(self._log_time_to_next_run)
 
+    def _is_this_job_already_running(self):
+        handlers = self._get_running_job_handlers()
+        handler_names = [h.name for h in handlers]
+        return self.jobname in handler_names
+
+    def _is_some_job_running(self):
+        return bool(NetboxScheduler.running_job_map.get(self.netbox, False))
+
+    def _get_running_job_handlers(self):
+        return NetboxScheduler.running_job_map.get(self.netbox, set())
+
+    def _register_running_job(self, job_handler):
+        handlers = self._get_running_job_handlers()
+        handlers.add(job_handler)
+        self.running_job_map[self.netbox] = handlers
+
     def _reschedule(self, failure):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
         if self.loop.running:
-            delay = 60
+            # FIXME: Should be configurable per. job
+            delay = randint(5*60, 10*60) # within 5-10 minutes
             self.logger.info("Rescheduling %r for %s in %d seconds",
                              self.jobname, self.netbox.sysname, delay)
             self.loop.call.reset(delay)
@@ -149,6 +153,27 @@ class NetboxScheduler(object):
             self.logger.debug("Next %r job for %s will be at %s",
                               self.jobname, self.netbox.sysname, next_time)
         return thing
+
+    @classmethod
+    def _log_active_jobs(cls):
+        """Debug logs a list of running jobs.
+
+        The jobs will be sorted by descending runtime.
+
+        """
+        jobs = [(box.sysname, job.name, job.get_current_runtime())
+                for box in cls.running_job_map.keys()
+                for job in cls.running_job_map[box]]
+        jobs.sort(key=itemgetter(2), reverse=True)
+        table_formatter = SimpleTableFormatter(jobs)
+
+        logger = ipdevpoll.get_class_logger(cls)
+        if jobs:
+            logger.debug("currently active jobs (%d):\n%s",
+                         len(jobs), table_formatter)
+        else:
+            logger.debug("no currently active jobs")
+
 
 
 class Scheduler(object):
@@ -173,10 +198,15 @@ class Scheduler(object):
     def run(self):
         """Initiate scheduling of polling."""
         signals.netbox_type_changed.connect(self.on_netbox_type_changed)
+        self._setup_active_job_logging()
         self.netbox_reload_loop = task.LoopingCall(self.reload_netboxes)
         # FIXME: Interval should be configurable
         deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
         return deferred
+
+    def _setup_active_job_logging(self):
+        loop = task.LoopingCall(NetboxScheduler._log_active_jobs)
+        loop.start(interval=5*60.0, now=False)
 
     def reload_netboxes(self):
         """Reload the set of netboxes to poll and update schedules."""

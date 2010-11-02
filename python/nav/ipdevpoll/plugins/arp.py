@@ -52,6 +52,7 @@ from nav.models import manage
 from nav.ipdevpoll import Plugin, get_class_logger
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
+from nav.ipdevpoll.utils import autocommit
 
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
@@ -169,25 +170,27 @@ class Arp(Plugin):
 
 
     @classmethod
-    @defer.deferredGenerator
     def _update_prefix_cache(cls):
         cls.prefix_cache_update_time = datetime.now()
-        waiter = defer.waitForDeferred(
-            threads.deferToThread(
-                storage.shadowify_queryset_and_commit,
-                manage.Prefix.objects.all()
-                ))
-        yield waiter
-        prefixes = waiter.getResult()
+        df = threads.deferToThread(cls._load_prefixes_synchronously)
+        df.addCallback(cls._update_prefix_cache_with_result)
+        return df
+
+    @classmethod
+    @autocommit
+    def _load_prefixes_synchronously(cls):
+        return list(manage.Prefix.objects.all().values('id', 'net_address'))
+
+    @classmethod
+    def _update_prefix_cache_with_result(cls, prefixes):
         get_class_logger(cls).debug(
             "Populating prefix cache with %d prefixes", len(prefixes))
 
-        prefixes = [(IP(p.net_address), p.id) for p in prefixes]
+        prefixes = [(IP(p['net_address']), p['id']) for p in prefixes]
         prefixes.sort(key=operator.itemgetter(1), reverse=True)
-        
+
         del cls.prefix_cache[:]
         cls.prefix_cache.extend(prefixes)
-
 
     def _make_new_mappings(self, mappings):
         """Convert a sequence of (ip, mac) tuples into a Arp shadow containers.

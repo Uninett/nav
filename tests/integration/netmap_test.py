@@ -1,4 +1,4 @@
-from modpython_testcase import ModPythonTestCase
+from nav.tests.cases import ModPythonTestCase
 from nav.web.netmap import handler
 
 class NetmapServerTest(ModPythonTestCase):

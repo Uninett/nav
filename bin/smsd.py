@@ -434,7 +434,7 @@ def signalhandler(signum, _):
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
         nav.daemon.redirect_std_fds(
-            stderr=nav.daemon.get_logfile_from_logger())
+            stderr=nav.logs.get_logfile_from_logger())
         logger.info("Log files reopened.")
     elif signum == signal.SIGTERM:
         logger.warn('SIGTERM received: Shutting down.')
