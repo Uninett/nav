@@ -22,8 +22,13 @@ from django import forms
 
 from nav.Snmp import Snmp, TimeOutException, SnmpError
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix, Category, Device
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
+from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
+from nav.models.manage import Category, Device
 from nav.models.service import Service
+
+from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
+from nav.web.seeddb.utils.edit import does_sysname_exist
 
 READONLY_WIDGET_ATTRS = {
     'readonly': 'readonly',
@@ -38,23 +43,16 @@ class NetboxStep1(forms.Form):
         name = data.get('name')
         if name:
             try:
-                try:
-                    self.ip = IP(name)
-                except ValueError:
-                    self.sysname = name
-                    self.ip = IP(gethostbyname(self.sysname))
-                self.sysname = gethostbyaddr(unicode(self.ip))[0]
+                self.ip, self.sysname = resolve_ip_and_sysname(name)
             except SocketError:
-                msg = ("Nope",)
+                msg = ("Could not resolve name %s" % name,)
                 self._errors['name'] = self.error_class(msg)
                 del data['name']
             else:
-                ip_qs = Netbox.objects.filter(ip=unicode(self.ip))
-                sysname_qs = Netbox.objects.filter(sysname=self.sysname)
                 msg = []
-                if ip_qs.count() > 0:
+                if does_ip_exist(self.ip):
                     msg.append("IP (%s) is already in database" % self.ip)
-                if sysname_qs.count() > 0:
+                if does_sysname_exist(self.sysname):
                     msg.append("Sysname (%s) is already in database" % self.sysname)
                 if len(msg) > 0:
                     self._errors['name'] = self.error_class(msg)
@@ -69,14 +67,12 @@ class NetboxStep2(forms.ModelForm):
 
     def __init__(self, data=None, *args, **kwargs):
         super(NetboxStep2, self).__init__(data, *args, **kwargs)
+        self.fields['sysname'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
         if 'initial' in kwargs or data:
             initial = kwargs.get('initial', {})
             data = data or {}
             if 'ip' in initial or 'ip' in data:
                 self.fields['ip'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-            #TODO Sett inn IP if not sysname
-            if 'sysname' in initial or 'sysname' in data:
-                self.fields['sysname'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -121,7 +117,7 @@ class NetboxStep3(forms.ModelForm):
     class Meta:
         model = Netbox
         fields = ('ip', 'sysname', 'category', 'read_only', 'read_write',
-        'room', 'organization', 'snmp_version')
+        'room', 'organization', 'snmp_version', 'type')
 
     def __init__(self, data=None, *args, **kwargs):
         super(NetboxStep3, self).__init__(data, *args, **kwargs)
@@ -133,20 +129,16 @@ class NetboxStep3(forms.ModelForm):
             if subcat.count() > 0:
                 self.fields['subcategories'] = forms.ModelMultipleChoiceField(subcat, required=False)
 
-#            serial = initial.get('serial') or data.get('serial')
-#            if serial:
-#                self.fields['serial'].widget = forms.TextInput(attrs={'readonly': 'readonly'})
+            serial = initial.get('serial') or data.get('serial')
+            if serial:
+                self.fields['serial'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
 
-        self.fields['type'] = forms.ModelChoiceField(
-            NetboxType.objects.select_related('vendor').order_by('id').all(), required=False)
-
-        self.fields['ip'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['room'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['sysname'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['category'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['organization'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['read_only'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['read_write'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+        readonly_field_names = (
+            'ip', 'room', 'sysname', 'category', 'organization', 'read_only',
+            'read_write', 'snmp_version')
+        for field_name in readonly_field_names:
+            self.fields[field_name].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+        self.fields['type'].widget = forms.HiddenInput()
 
     def clean_serial(self):
         serial = self.cleaned_data['serial']

@@ -15,31 +15,16 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from IPy import IP
+from socket import gethostbyaddr, gethostbyname, error as SocketError
+
 from django.core.urlresolvers import reverse
-from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404
 
-from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
-from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
-from nav.models.service import Service
-
-from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm, \
-    UsageForm, NetboxTypeForm, VendorForm, SubcategoryForm, PrefixForm, \
-    CablingForm, PatchForm
-
-model = None
-form_model = None
-identifier_attr = 'pk'
-title_attr = 'pk'
-navpath = None
-tab_template = ''
-template = 'seeddb/edit.html'
-redirect = ''
+from nav.models.manage import Netbox
 
 def render_edit(request, model, form_model, object_id, redirect,\
         identifier_attr='pk', title_attr='pk', template='seeddb/edit.html',\
@@ -93,3 +78,22 @@ def _get_identifier_title(object, identifier_attr, title_attr):
         identifier = getattr(object, identifier_attr)
         title = getattr(object, title_attr)
     return (identifier, title)
+
+def resolve_ip_and_sysname(name):
+    try:
+        ip = IP(name)
+    except ValueError:
+        ip = IP(gethostbyname(name))
+    try:
+        sysname = gethostbyaddr(unicode(ip))[0]
+    except SocketError:
+        sysname = ip
+    return (ip, sysname)
+
+def does_ip_exist(ip):
+    ip_qs = Netbox.objects.filter(ip=unicode(ip))
+    return ip_qs.count() > 0
+
+def does_sysname_exist(sysname):
+    sysname_qs = Netbox.objects.filter(sysname=sysname)
+    return sysname_qs.count() > 0
