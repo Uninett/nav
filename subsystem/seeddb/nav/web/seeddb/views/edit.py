@@ -40,16 +40,6 @@ from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm, \
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
-def ip_and_sysname(form):
-    try:
-        ip = IP(form.cleaned_data['name'])
-    except ValueError:
-        sysname = form.cleaned_data['name']
-        ip = IP(gethostbyname(sysname))
-    else:
-        sysname = gethostbyaddr(unicode(ip))[0]
-    return (ip, sysname)
-
 def snmp_type(ip, ro, snmp_version):
     snmp = Snmp(ip, ro, snmp_version)
     try:
@@ -58,8 +48,8 @@ def snmp_type(ip, ro, snmp_version):
         return None
     sysobjectid = sysobjectid.lstrip('.')
     try:
-        type = NetboxType.objects.get(sysobjectid=sysobjectid)
-        return type.id
+        netbox_type = NetboxType.objects.get(sysobjectid=sysobjectid)
+        return netbox_type
     except NetboxType.DoesNotExist:
         return None
 
@@ -84,6 +74,7 @@ def netbox_edit(request, netbox_sysname=None):
     netbox = None
     form_data = {}
     hidden_form = None
+    netbox_type = None
 
     if netbox_sysname:
         netbox = Netbox.objects.get(sysname=netbox_sysname)
@@ -105,15 +96,17 @@ def netbox_edit(request, netbox_sysname=None):
                 form = NetboxStep2(initial=form_data)
                 step = 2
         elif step == 2:
-            form = NetboxStep2(request.POST)
+            if netbox:
+                form = NetboxStep2(request.POST, instance=netbox)
+            else:
+                form = NetboxStep2(request.POST)
             if form.is_valid():
                 data = form.cleaned_data
                 serial = None
-                type = None
-                if form.snmp_version:
+                ro = data.get('read_only')
+                if ro:
                     ip = data.get('ip')
-                    ro = data.get('read_only')
-                    type = snmp_type(ip, ro, form.snmp_version)
+                    netbox_type = snmp_type(ip, ro, form.snmp_version)
                     serials = snmp_serials(ip, ro, form.snmp_version)
                     serial = None
                     if serials:
@@ -123,16 +116,19 @@ def netbox_edit(request, netbox_sysname=None):
                 form_data['category'] = data['category'].pk
                 form_data['organization'] = data['organization'].pk
                 form_data['serial'] = serial
-                form_data['type'] = type
+                form_data['type'] = netbox_type.pk
                 form_data['snmp_version'] = form.snmp_version
                 if len(form_data['snmp_version']) > 1:
                     form_data['snmp_version'] = form_data['snmp_version'][0]
                 form = NetboxStep3(initial=form_data)
-                if serial and type:
+                if serial and netbox_type:
                     form.is_valid()
                 step = 3
         elif step == 3:
-            form = NetboxStep3(request.POST)
+            if netbox:
+                form = NetboxStep3(request.POST, instance=netbox)
+            else:
+                form = NetboxStep3(request.POST)
             if form.is_valid():
                 form_data = form.cleaned_data
                 device, created = Device.objects.get_or_create(serial=form_data['serial'])
@@ -141,6 +137,9 @@ def netbox_edit(request, netbox_sysname=None):
                 netbox.save()
                 form.save_m2m()
                 new_message(request._req, "Hello", Messages.SUCCESS)
+    elif netbox:
+        form = NetboxStep2(instance=netbox)
+        step = 2
     else:
         form = NetboxStep1()
         step = 1
@@ -149,6 +148,7 @@ def netbox_edit(request, netbox_sysname=None):
         'step': step,
         'data': form_data,
         'object': netbox,
+        'netbox_type': netbox_type,
         'form': form,
         'hidden_form': hidden_form,
         'sub_active': {'add': True},
