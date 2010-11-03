@@ -22,6 +22,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404
+from django.db.models import Q
 
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox
@@ -90,10 +91,16 @@ def resolve_ip_and_sysname(name):
         sysname = ip
     return (ip, sysname)
 
-def does_ip_exist(ip):
-    ip_qs = Netbox.objects.filter(ip=unicode(ip))
+def does_ip_exist(ip, id=None):
+    if id:
+        ip_qs = Netbox.objects.filter(Q(ip=unicode(ip)), ~Q(id=id))
+    else:
+        ip_qs = Netbox.objects.filter(ip=unicode(ip))
     return ip_qs.count() > 0
 
-def does_sysname_exist(sysname):
-    sysname_qs = Netbox.objects.filter(sysname=sysname)
+def does_sysname_exist(sysname, id=None):
+    if id:
+        sysname_qs = Netbox.objects.filter(Q(sysname=sysname), ~Q(id=id))
+    else:
+        sysname_qs = Netbox.objects.filter(sysname=sysname)
     return sysname_qs.count() > 0

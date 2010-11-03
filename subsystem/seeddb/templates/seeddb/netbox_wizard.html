@@ -9,6 +9,12 @@
     </caption>
     {% endif %}
     {{ form.as_table }}
+    {% if serial_form %}
+    {{ serial_form.as_table }}
+    {% endif %}
+    {% if subcat_form %}
+    {{ subcat_form.as_table }}
+    {% endif %}
     {% if data.type %}
     <tr>
         <th>Netbox type</th>
@@ -19,7 +25,7 @@
         <th></th>
         <td>
             <input type="hidden" name="step" value="{{ step }}" />
-            {% ifequal step 3 %}
+            {% ifequal step 2 %}
             <input type="submit" value="Save" />
             {% else %}
             <input type="submit" value="Continue" />

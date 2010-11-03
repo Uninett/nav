@@ -19,12 +19,13 @@ from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
 from django import forms
+from django.db.models import Q
 
 from nav.Snmp import Snmp, TimeOutException, SnmpError
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
-from nav.models.manage import Category, Device
+from nav.models.manage import Category, Device, NetboxCategory
 from nav.models.service import Service
 
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
@@ -35,51 +36,42 @@ READONLY_WIDGET_ATTRS = {
     'class': 'readonly',
 }
 
-class NetboxStep1(forms.Form):
-    name = forms.CharField(label=u"Sysname or IP")
+class NetboxForm(forms.Form):
+    id = forms.IntegerField(
+        required=False, widget=forms.HiddenInput)
+    ip = forms.CharField()
+    room = forms.ModelChoiceField(queryset=Room.objects.all())
+    category = forms.ModelChoiceField(queryset=Category.objects.all())
+    organization = forms.ModelChoiceField(queryset=Organization.objects.all())
+    read_only = forms.CharField(required=False)
+    read_write = forms.CharField(required=False)
 
-    def clean(self):
-        data = self.cleaned_data
-        name = data.get('name')
-        if name:
-            try:
-                self.ip, self.sysname = resolve_ip_and_sysname(name)
-            except SocketError:
-                msg = ("Could not resolve name %s" % name,)
-                self._errors['name'] = self.error_class(msg)
-                del data['name']
-            else:
-                msg = []
-                if does_ip_exist(self.ip):
-                    msg.append("IP (%s) is already in database" % self.ip)
-                if does_sysname_exist(self.sysname):
-                    msg.append("Sysname (%s) is already in database" % self.sysname)
-                if len(msg) > 0:
-                    self._errors['name'] = self.error_class(msg)
-                    del data['name']
-        return data
-
-class NetboxStep2(forms.ModelForm):
-    class Meta:
-        model = Netbox
-        fields = ('ip', 'sysname', 'category', 'read_only', 'read_write',
-        'room', 'organization')
-
-    def __init__(self, data=None, *args, **kwargs):
-        super(NetboxStep2, self).__init__(data, *args, **kwargs)
-        self.fields['sysname'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        if 'initial' in kwargs or data:
-            initial = kwargs.get('initial', {})
-            data = data or {}
-            if 'ip' in initial or 'ip' in data:
-                self.fields['ip'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+    def clean_ip(self):
+        name = self.cleaned_data['ip']
+        try:
+            ip, sysname = resolve_ip_and_sysname(name)
+        except SocketError:
+            raise forms.ValidationError("Could not resolve name %s" % name)
+        self.sysname = sysname
+        return unicode(ip)
 
     def clean(self):
         cleaned_data = self.cleaned_data
+        id = cleaned_data.get('id')
         ip = cleaned_data.get('ip')
         cat = cleaned_data.get('category')
         ro = cleaned_data.get('read_only')
         self.snmp_version = '1'
+
+        if ip:
+            msg = []
+            if does_ip_exist(ip, id):
+                msg.append("IP (%s) is already in database" % ip)
+            if does_sysname_exist(self.sysname, id):
+                msg.append("Sysname (%s) is already in database" % self.sysname)
+            if len(msg) > 0:
+                self._errors['ip'] = self.error_class(msg)
+                del cleaned_data['ip']
 
         if cat and cat.req_snmp and not ro:
             self._errors['read_only'] = self.error_class(["Category %s requires SNMP access." % cat.id])
@@ -111,43 +103,64 @@ class NetboxStep2(forms.ModelForm):
 
         return cleaned_data
 
-class NetboxStep3(forms.ModelForm):
+class NetboxReadonlyForm(NetboxForm):
+    sysname = forms.CharField()
+    netbox_type = forms.CharField(required=False)
+    type = forms.IntegerField(required=False,
+        widget=forms.HiddenInput)
+    snmp_version = forms.IntegerField(
+        widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxReadonlyForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            if field in ('id', 'type'):
+                continue
+            self.fields[field].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+
+class NetboxSerialForm(forms.Form):
     serial = forms.CharField(required=False)
 
-    class Meta:
-        model = Netbox
-        fields = ('ip', 'sysname', 'category', 'read_only', 'read_write',
-        'room', 'organization', 'snmp_version', 'type')
-
-    def __init__(self, data=None, *args, **kwargs):
-        super(NetboxStep3, self).__init__(data, *args, **kwargs)
-        data = data or {}
-        initial = kwargs.get('initial', {})
-        if initial or data:
-            cat = initial.get('category') or data.get('category')
-            subcat = Subcategory.objects.filter(category=cat).order_by('id')
-            if subcat.count() > 0:
-                self.fields['subcategories'] = forms.ModelMultipleChoiceField(subcat, required=False)
-
-            serial = initial.get('serial') or data.get('serial')
-            if serial:
-                self.fields['serial'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-
-        readonly_field_names = (
-            'ip', 'room', 'sysname', 'category', 'organization', 'read_only',
-            'read_write', 'snmp_version')
-        for field_name in readonly_field_names:
-            self.fields[field_name].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
-        self.fields['type'].widget = forms.HiddenInput()
+    def __init__(self, *args, **kwargs):
+        self.netbox_id = kwargs.pop('netbox_id', None)
+        super(NetboxSerialForm, self).__init__(*args, **kwargs)
+        initial = kwargs.get('initial')
+        if initial and initial.get('serial'):
+            self.fields['serial'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
 
     def clean_serial(self):
         serial = self.cleaned_data['serial']
         try:
-            netbox = Netbox.objects.get(device__serial=serial)
+            if self.netbox_id:
+                netbox = Netbox.objects.get(
+                    Q(device__serial=serial),
+                    ~Q(id=self.netbox_id))
+            else:
+                netbox = Netbox.objects.get(device__serial=serial)
         except Netbox.DoesNotExist:
             return serial
         else:
-            raise forms.ValidationError("Serial exists in database")
+            raise forms.ValidationError("Serial (%s) exists in database" % serial)
+
+def get_netbox_subcategory_form(category, netbox_id=None, post_data=None):
+    subcat = Subcategory.objects.filter(category=category).order_by('id')
+    if subcat.count() > 0:
+        if netbox_id and not post_data:
+            subcats = NetboxCategory.objects.filter(netbox=netbox_id).values_list('category', flat=True)
+            initial = {'subcategories': subcats}
+            return NetboxSubcategoryForm(queryset=subcat, initial=initial)
+        elif post_data:
+            return NetboxSubcategoryForm(post_data, queryset=subcat)
+        else:
+            return NetboxSubcategoryForm(queryset=subcat)
+    else:
+        return None
+
+class NetboxSubcategoryForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        queryset = kwargs.pop('queryset')
+        super(NetboxSubcategoryForm, self).__init__(*args, **kwargs)
+        self.fields['subcategories'] = forms.ModelMultipleChoiceField(queryset=queryset, required=False)
 
 class RoomForm(forms.ModelForm):
     class Meta:
