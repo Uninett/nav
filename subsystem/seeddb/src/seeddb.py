@@ -3797,7 +3797,7 @@ class pageService(seeddbPage):
                 for a_service in all_services_on_box:
                     handler = a_service.handler
                     presentHandlers.append(handler)
-                    handlerId = "%s_%s" (handler, a_service.id)
+                    handlerId = "%s_%s" % (handler, a_service.id)
                     handlerName = handler
                     if presentHandlers.count(handler) > 0:
                         handlerName = handler + ' (' +\
@@ -3809,11 +3809,12 @@ class pageService(seeddbPage):
                                           for p in properties)
 
                     prop = self.makePropertyInput(handler,propertyValues,
-                                                  serviceId=serviceId)
+                                                  serviceId=a_service.id)
                     if prop:
                         propertyListFilled.append(prop)
                 # Preselected values
                 catid = this_service.netbox.category_id
+                boxid = this_service.netbox.id
                 preSelectedCatid = [catid]
                 preSelectedBoxid = [boxid]
                 catidDisabled = True
@@ -3968,9 +3969,9 @@ class pageService(seeddbPage):
                     for a in properties['optargs']:
                         textInput = inputText()
                         if serviceId:
-                            name = handler + '_' + serviceId + '_opt_' + str(i)
+                            name = '%s_%s_opt_%s' % (handler, serviceId, i)
                         else:
-                            name = handler + '_opt_' + str(i)
+                            name = '%s_opt_%s' % (handler, i)
                         textInput.name = name
                         if form.has_key(name):
                             textInput.value = form[name]
@@ -3980,7 +3981,7 @@ class pageService(seeddbPage):
                         i += 1
                 if len(args) or len(optargs):
                     if serviceId:
-                        id = handler + '_' + serviceId
+                        id = '%s_%s' % (handler, serviceId)
                     else:
                         id = handler
                     if type(selectedHandlers) is list:

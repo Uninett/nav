@@ -1,3 +1,25 @@
+Version 3.6.3
+(released 04 November 2010)
+
+ This release fixes a regression introduced by version 3.6.2.
+
+ Bugfixes:
+
+  * LP#670947 (logengine crashes and spams admin once every minute)
+
+Version 3.6.2
+(released 04 November 2010)
+
+ Bugfixes:
+
+  * LP#609105 (Alertengine mailbombs error with insufficient info)
+  * LP#638745 (logengine: TypeError: int argument required)
+  * LP#666761 (ipdevpoll integrity error on serial number conflicts)
+  * LP#667182 (MachineTracker details link leads to 404 Page Not Found)
+  * LP#670817 (SeedDB crash when editing services)
+  * LP#670832 (dump.py crashes when attempting to dump obsolete product table)
+  * LP#670833 (dump.py produces invalid prefix dump)
+
 Version 3.6.1
 (released 25 October 2010)
 
