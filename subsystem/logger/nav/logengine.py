@@ -428,11 +428,12 @@ def logengine(config):
 
     ## add new records
     logger.info("Reading new log entries")
-    parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
+    my_parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
     for line in read_log_lines(config):
-        parse_and_insert(line, database,
-                         categories, origins, types,
-                         exceptionorigin, exceptiontype, exceptiontypeorigin)
+        my_parse_and_insert(line, database,
+                            categories, origins, types,
+                            exceptionorigin, exceptiontype,
+                            exceptiontypeorigin)
 
     # Make sure it all sticks
     connection.commit()
