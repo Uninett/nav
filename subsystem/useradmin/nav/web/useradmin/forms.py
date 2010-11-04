@@ -32,6 +32,9 @@ from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 
 class AccountGroupForm(forms.ModelForm):
+    name = forms.CharField(required=True)
+    description = forms.CharField(required=True)
+
     class Meta:
         model = AccountGroup
         fields = ('name', 'description')
@@ -39,6 +42,8 @@ class AccountGroupForm(forms.ModelForm):
 class AccountForm(forms.ModelForm):
     password1 = forms.CharField(label='New password', min_length=Account.MIN_PASSWD_LENGTH, widget=forms.widgets.PasswordInput)
     password2 = forms.CharField(label='Repeat password', min_length=Account.MIN_PASSWD_LENGTH, widget=forms.widgets.PasswordInput, required=False)
+    login = forms.CharField(required=True)
+    name = forms.CharField(required=True)
 
     def __init__(self, *args, **kwargs):
         super(AccountForm, self).__init__(*args, **kwargs)
@@ -104,6 +109,8 @@ class ChangePasswordForm(forms.Form):
         return True
 
 class PrivilegeForm(forms.ModelForm):
+    target = forms.CharField(required=True)
+
     class Meta:
         model = Privilege
         exclude = ('group',)

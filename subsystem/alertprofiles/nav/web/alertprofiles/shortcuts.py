@@ -20,15 +20,18 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.template import RequestContext
 
 from nav.web.message import new_message, Messages
-from nav.django.shortcuts import render_to_response, object_list
-from nav.web.templates.AlertProfilesTemplate import AlertProfilesTemplate
+from django.shortcuts import render_to_response
+
+BASE_PATH = [
+    ('Home', '/'),
+    ('Alert profiles', '/alertprofiles/'),
+]
 
 def _alertprofiles_response(request, status_code=200):
     # Get a normal response object
     response = render_to_response(
-        AlertProfilesTemplate,
         'alertprofiles/base.html',
-        None,
+        {'navpath': BASE_PATH},
         context_instance=RequestContext(
             request,
         ),
@@ -40,13 +43,13 @@ def _alertprofiles_response(request, status_code=200):
     return response
 
 def alertprofiles_response_forbidden(request, message):
-    new_message(request, '403 Forbidden', Messages.ERROR)
-    new_message(request, message, Messages.ERROR)
+    new_message(request._req, '403 Forbidden', Messages.ERROR)
+    new_message(request._req, message, Messages.ERROR)
 
     return _alertprofiles_response(request, 403)
 
 def alertprofiles_response_not_found(request, message):
-    new_message(request, '404 Not Found', Messages.ERROR)
-    new_message(request, message, Messages.ERROR)
+    new_message(request._req, '404 Not Found', Messages.ERROR)
+    new_message(request._req, message, Messages.ERROR)
 
     return _alertprofiles_response(request, 404)

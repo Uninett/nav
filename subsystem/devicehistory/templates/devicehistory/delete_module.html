@@ -1,0 +1,87 @@
+{% extends "devicehistory/base.html" %}
+
+{% block tabcontent %}
+
+<p>
+{% if not confirm_delete %}
+    Select modules to delete from modules that are down. When deleting a
+    module, a choice will be given to either move the device to the inventory
+    or to set it as inactive.
+{% else %}
+    <h3>Do you really want to delete the selected modules?</h3>
+{% endif %}
+</p>
+
+{% if confirm_delete %}
+<form action="{% url devicehistory-do_delete_module %}" method="post">
+{% else %}
+<form action="{% url devicehistory-module %}" method="post">
+{% endif %}
+    <table class="listtable">
+        <caption>
+            {% if confirm_delete %}
+            Selected modules
+            {% else %}
+            Modules down
+            {% endif %}
+            <br />
+            <span class="subtitle">
+                {{ modules|length }} entr{{ modules|pluralize:"y,ies" }}
+            </span>
+        </caption>
+
+        <thead>
+            <tr>
+                <th rowspan="2"></th>
+                <th rowspan="2">Sysname</th>
+                <th colspan="2">Module</th>
+                <th rowspan="2">Down since</th>
+                <th rowspan="2">Downtime</th>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+
+        {% if modules %}
+            <tbody>
+            {% for m in modules %}
+                <tr class="{% cycle oddrow,evenrow %}">
+                    <td><input type="checkbox" name="module" value="{{ m.moduleid }}"
+                        {% if confirm_delete %}
+                        checked="checked"
+                        {% endif %}
+                        /></td>
+                    <td>{{ m.sysname|default_if_none:"" }}</td>
+                    <td>{{ m.name }}</td>
+                    <td>{{ m.descr|default_if_none:"" }}</td>
+                    <td>{{ m.start_time }}</td>
+                    <td>{{ m.start_time|timesince }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
+
+        <tfoot>
+            <tr>
+                <th colspan="0">
+                    {{ modules|length }}
+                    entr{{ modules|pluralize:"y,ies" }}
+                </th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <p>
+        {% if confirm_delete %}
+        <input type="hidden" name="confirm_delete" value="1" />
+        <button type="submit">Confirm deletion</button>
+        {% else %}
+        <button type="submit">Delete selected</button>
+        {% endif %}
+    </p>
+
+</form>
+
+{% endblock %}

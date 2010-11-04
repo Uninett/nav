@@ -44,10 +44,24 @@ Currently active contributors
   Joined in 2008, and rewrote the Perl-based Alert Engine in Python.
   Also rewrote the user admin panel to a Django-based solution.
 
-Contributors to the 3.5 series
-------------------------------
-* Stein Magnus Jodal <stein.magnus.jodal at uninett.no>, 2006-2008
+* Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
+  Maintains the service monitor and the MailIn system.
 
+* Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
+  Maintains the radius accounting logger.
+
+* Fredrik Skolmli <fredrik.skolmli at uninett.no>
+
+
+Contributors to earlier releases
+--------------------------------
+As this list is being compiled 10 years after the birth of NAV,
+current email addresses are missing for many of the earliest
+contributors.
+
+* Roger Kristiansen
+
+* Stein Magnus Jodal <stein.magnus.jodal at uninett.no>, 2006-2008
   Rewrote the SMS daemon from Perl to Python for NAV 3.2.  During the
   next couple of series releases, he cleaned up the entire web
   interface, defined new policies for how to code web interfaces in
@@ -56,20 +70,6 @@ Contributors to the 3.5 series
   Info tool.
 
 * Erlend Midttun <erlend.midttun at ntnu.no>
-
-The University of Tromsø has been an active contributor to the 3.5
-release, with the radius accounting log tool, and have also pledged to
-maintain NAV's service monitoring code:
-
-* Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
-* Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
-* Roger Kristiansen
-
-Contributors to earlier releases
---------------------------------
-As this list is being compiled 10 years after the birth of NAV,
-current email addresses are missing for many of the earliest
-contributors.
 
 * Jostein Gogstad <jostein.gogstad at idi.ntnu.no>
   2007, implemented support for collecting IPv6 prefixes and

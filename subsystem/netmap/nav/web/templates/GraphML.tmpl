@@ -55,6 +55,7 @@
 <key id="layer" for="edge" attr.name="layer" attr.type="string"/>
 <key id="vlan" for="edge" attr.name="vlan" attr.type="string"/>
 <key id="ipdevinfolink" for="edge" attr.name="ipdevinfolink" attr.type="string"/>
+<key id="ipdevinfolink" for="node" attr.name="ipdevinfolink" attr.type="string"/>
 
 <graph id="main" edgedefault="directed">
 	#for $box in $netboxes
@@ -67,6 +68,7 @@
 		<data key="up">$box.up</data>
 		<data key="location">$box.location</data>
 		<data key="cpuload">$box.load</data>
+		<data key="ipdevinfolink">$box.ipdevinfo_link</data>
         <data key="image">../../../applet/media/${box.catid}.png</data>
         #if $box.xpos and $box.ypos
             <data key="position">$box.xpos x $box.ypos</data>

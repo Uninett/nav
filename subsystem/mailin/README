@@ -1,0 +1,52 @@
+New MailIn subsystem.
+
+See http://metanav.uninett.no/devel:blueprints:mailin
+
+
+Configuring MailIn
+-------------------
+
+Paths may be different on your system.
+
+First, you will need to add an alias to /etc/aliases:
+
+mailin: "| PYTHONPATH=/usr/local/nav/lib/python /usr/bin/python /usr/local/nav/bin/mailin.py"
+
+Then (as root):
+
+  $ newalises
+
+Incoming mail to mailin@yourhost will now be piped to mailin.py.
+
+Add the plugins you want to use to the 'plugins' variable in
+/usr/local/nav/etc/mailin.conf. For example:
+
+  plugins =
+    nav.mailin.plugins.whatsup
+    nav.mailin.plugins.kake
+
+The plugins will be tried in the order they are listed in the config
+file, so if 'whatsup' accepts the message here, 'kake' will never be
+called.
+
+Add alert types to alertmsg.conf if they don't already exist. Here's an
+example for the 'whatsup' plugins:
+
+whatsup {
+  default {
+    email {
+      no {
+        Subject: $subject
+        $body
+      }
+      en {
+        Subject: $subject
+        $body
+      }
+    }
+    sms {
+      en: $subject
+      no: $subject
+    }
+  }
+}

@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+<link rel="stylesheet" type="text/css" href="/style/networkexplorer.css" />
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/networkexplorer.js"></script>
+{% endblock %}
+
+{% block base_header_title %}NAV - Network explorer{% endblock %}
+
 {% block base_content %}
+
+<h2>Network explorer</h2>
 
 {% if errors %}
 <ul class="error">

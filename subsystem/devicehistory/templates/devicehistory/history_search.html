@@ -1,0 +1,19 @@
+{% extends "devicehistory/base_history.html" %}
+
+{% block devicehistory-content %}
+    <p>Select and view device history for a location, room, box or module. Use
+    quicksearch to search for a (partial) serialnumber, hostname, IP or
+    room.</p>
+
+    <form action="{% url devicehistory-view %}" method="get">
+        <div class="quickbox">
+            {{ quickselect|safe }}
+        </div>
+        <div class="searchfilter">
+            <table class="vertitable">
+                {% include "devicehistory/history_view_filter.html" %}
+            </table>
+        </div>
+        <div style="clear:both"></div>
+    </form>
+{% endblock %}

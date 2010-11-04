@@ -1,30 +1,18 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright 2007-2008 UNINETT AS
+# Copyright (C) 2007-2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Kristian Klette <kristian.klette@uninett.no>
-#
-
-__copyright__ = "Copyright 2007-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Kristian Klette (kristian.klette@uninett.no)"
-__id__ = "$Id$"
 
 import datetime
 import socket
@@ -32,9 +20,9 @@ import sys
 
 from django.db.models import Q
 
-from nav.django.shortcuts import render_to_response, object_list
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan, Vlan
+from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix
+from nav.models.manage import SwPortVlan, Vlan, Interface, Prefix
 from nav.models.service import Service
 
 
@@ -47,8 +35,8 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
 
     if not swport:
         try:
-            swport = SwPort.objects.get(id=swportid)
-        except SwPort.DoesNotExist:
+            swport = Interface.objects.get(id=swportid)
+        except Interface.DoesNotExist:
             return ([],[])
 
     found_swports = []
@@ -58,9 +46,9 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
     for swportvlan in swport.swportvlan_set.exclude(vlan__net_type='static').select_related(depth=5):
         for prefix in swportvlan.vlan.prefix_set.all():
             for gwportprefix in prefix.gwportprefix_set.all():
-                found_gwports.append(gwportprefix.gwport)
+                found_gwports.append(gwportprefix.interface)
 
-    for port in SwPort.objects.filter(to_swport=swport).exclude(to_swport__in=scanned).select_related(depth=5):
+    for port in Interface.objects.filter(to_interface=swport).exclude(to_interface__in=scanned).select_related(depth=5):
         scanned.append(port)
 
         found_swports.append(port)
@@ -69,13 +57,13 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
         found_gwports.extend(recurs_found[0])
         found_swports.extend(recurs_found[1])
     
-    for port in GwPort.objects.filter(to_swport__in=found_swports):
+    for port in Interface.objects.filter(to_interface__in=found_swports, gwportprefix__isnull=False):
         found_gwports.append(port)
     
-    for port in GwPort.objects.filter(to_netbox=swport.module.netbox):
+    for port in Interface.objects.filter(to_netbox=swport.netbox, gwportprefix__isnull=False):
         found_gwports.append(port)
     
-    for port in GwPort.objects.filter(to_swport=swport):
+    for port in Interface.objects.filter(to_interface=swport, gwportprefix__isnull=False):
         found_gwports.append(port)
 
     return (found_gwports, found_swports)
@@ -95,13 +83,13 @@ def search_expand_netbox(netboxid=None, netbox=None):
             return ([],[])
 
     for result in netbox.get_uplinks():
-        if result['other'].__class__ == GwPort:
+        if result['other'].__class__ == Interface and result['other'].gwportprefix_set.count():
             found_gwports.append(result['other'])
         else:
             found_swports.append(result['other'])
 
-    gwports = GwPort.objects.filter(to_netbox=netbox)
-    swports = SwPort.objects.filter(to_netbox=netbox)
+    gwports = Interface.objects.filter(to_netbox=netbox, gwportprefix__isnull=False)
+    swports = Interface.objects.filter(to_netbox=netbox,baseport__isnull=False)
 
     found_gwports.extend(gwports)
 
@@ -144,11 +132,11 @@ def search_expand_mac(mac=None):
 
     found_swports = []
     found_gwports = []
-    
+
     cam_entries = Cam.objects.filter(mac=mac, end_time__gte=datetime.datetime.max).select_related(depth=5)
 
     for cam_entry in cam_entries:
-        for swport in SwPort.objects.filter(module__netbox=cam_entry.netbox, module__module_number=cam_entry.module, interface=cam_entry.port).select_related(depth=5):
+        for swport in Interface.objects.filter(netbox=cam_entry.netbox, ifname=cam_entry.port).select_related(depth=5):
             found_swports.append(swport)
             swport_search = search_expand_swport(swport=swport)
             found_gwports.extend(swport_search[0])
@@ -183,18 +171,18 @@ def sysname_search(sysname, exact=False):
         gwport_matches.extend(netbox_search[0])
         swport_matches.extend(netbox_search[1])
 
-    for gwport in GwPort.objects.all().filter(module__netbox__in=netboxes):
+    for gwport in Interface.objects.all().filter(module__netbox__in=netboxes, gwportprefix__isnull=False):
         gwport_matches.append(gwport)
     
     
-    for swport in SwPort.objects.filter(module__netbox__in=netboxes):
+    for swport in Interface.objects.filter(module__netbox__in=netboxes, baseport__isnull=False):
         swport_matches.append(swport)
 
         swport_search = search_expand_swport(swport=swport)
         gwport_matches.extend(swport_search[0])
         swport_matches.extend(swport_search[1])
     
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
 
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -231,14 +219,14 @@ def ip_search(ip, exact=False):
         swport_matches.extend(netbox_search[1])
 
     for prefix in gwportprefixes:
-        gwport_matches.append(prefix.gwport)
+        gwport_matches.append(prefix.interface)
 
     for arp_entry in arp_entries:
         mac_search = search_expand_mac(mac=arp_entry.mac)
         gwport_matches.extend(mac_search[0])
         swport_matches.extend(mac_search[1])
     
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -255,16 +243,16 @@ def portname_search(portname, exact=False):
     swport_matches = []
 
     if exact:
-        swport_matches.extend(SwPort.objects.filter(port_name=portname))
+        swport_matches.extend(Interface.objects.filter(ifalias=portname, baseport__isnull=False))
     else:
-        swport_matches.extend(SwPort.objects.filter(port_name__icontains=portname))
+        swport_matches.extend(Interface.objects.filter(ifalias__icontains=portname, baseport__isnull=False))
 
     for swport in [swport for swport in swport_matches if swport]:
         swport_search = search_expand_swport(swport=swport)
         gwport_matches.extend(swport_search[0])
         swport_matches.extend(swport_search[1])
 
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -281,16 +269,16 @@ def room_search(room, exact=False):
     swport_matches = []
 
     if exact:
-        swport_matches.extend(SwPort.objects.filter(module__netbox__room__id=room))
+        swport_matches.extend(Interface.objects.filter(netbox__room__id=room,baseport__isnull=False))
     else:
-        swport_matches.extend(SwPort.objects.filter(module__netbox__room__id__icontains=room))
+        swport_matches.extend(Interface.objects.filter(netbox__room__id__icontains=room, baseport__isnull=False))
     
     for swport in [swport for swport in swport_matches if swport]:
         swport_search = search_expand_swport(swport=swport)
         gwport_matches.extend(swport_search[0])
         swport_matches.extend(swport_search[1])
 
-    router_matches.extend([gwport.module.netbox for gwport in gwport_matches])
+    router_matches.extend([gwport.netbox for gwport in gwport_matches])
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -310,7 +298,7 @@ def mac_search(mac):
     search  = search_expand_mac(mac)
     gwport_matches = search[0]
     swport_matches = search[1]
-    router_matches = [gwport.module.netbox for gwport in gwport_matches]
+    router_matches = [gwport.netbox for gwport in gwport_matches]
     
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
@@ -327,41 +315,33 @@ def vlan_search(vlan, exact=False):
     swport_matches = []
 
     if exact:
-        for swportvlan in SwPortVlan.objects.filter(vlan__vlan=vlan):
-            swport_search = search_expand_swport(swport=swportvlan.swport)
-            gwport_matches.extend(swport_search[0])
-            swport_matches.extend(swport_search[1])
-
-        for gwportprefix in GwPortPrefix.objects.filter(prefix__vlan__vlan=vlan).exclude(prefix__vlan__net_type='static'):
-            gwport_matches.append(gwportprefix.gwport)
-
-        for netbox in Netbox.objects.filter(prefix__vlan__vlan=vlan).exclude(prefix__vlan__net_type='static'):
-            netbox_search = search_expand_netbox(netbox=netbox)
-            gwport_matches.extend(netbox_search[0])
-            swport_matches.extend(netbox_search[1])
+        vlan_filter = Q(vlan__vlan=vlan)
     else:
-        for swportvlan in SwPortVlan.objects.filter(vlan__vlan__icontains=vlan):
-            swport_search = search_expand_swport(swport=swportvlan.swport)
-            gwport_matches.extend(swport_search[0])
-            swport_matches.extend(swport_search[1])
+        vlan_filter = Q(vlan__vlan__icontains=vlan)
 
-        for gwportprefix in GwPortPrefix.objects.filter(prefix__vlan__vlan__icontains=vlan).exclude(prefix__vlan__net_type='static'):
-            gwport_matches.append(gwportprefix.gwport)
+    for swportvlan in SwPortVlan.objects.filter(vlan_filter):
+        swport_search = search_expand_swport(swport=swportvlan.interface)
+        gwport_matches.extend(swport_search[0])
+        swport_matches.extend(swport_search[1])
 
-        for netbox in Netbox.objects.filter(prefix__vlan__vlan__iconatains=vlan).exclude(prefix__vlan__net_type='static'):
-            netbox_search = search_expand_netbox(netbox=netbox)
-            gwport_matches.extend(netbox_search[0])
-            swport_matches.extend(netbox_search[1])
+    matching_prefixes = Prefix.objects.filter(vlan_filter).exclude(
+        vlan__net_type='static')
+
+    for gwportprefix in GwPortPrefix.objects.filter(prefix__in=
+                                                    matching_prefixes):
+        gwport_matches.append(gwportprefix.interface)
+    for netbox in Netbox.objects.filter(netboxprefix__prefix__in=
+                                        matching_prefixes):
+        netbox_search = search_expand_netbox(netbox=netbox)
+        gwport_matches.extend(netbox_search[0])
+        swport_matches.extend(netbox_search[1])
 
 
-    router_matches = [gwport.module.netbox for gwport in gwport_matches]
-    
+    router_matches = [gwport.netbox for gwport in gwport_matches]
+
     router_matches = list(set(router_matches))
     swport_matches = list(set(swport_matches))
     gwport_matches = list(set(gwport_matches))
 
     return (router_matches, gwport_matches, swport_matches)
 
-        
-   
-    

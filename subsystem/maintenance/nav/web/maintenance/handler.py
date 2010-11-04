@@ -113,6 +113,7 @@ def handler(req):
     elif section == 'new' or section =='edit':
         page = MaintenanceNewTemplate()
         page.title = 'Create New Maintenance Task'
+        page.action = "new"
         page.errors = []
         page.components = []
 
@@ -128,6 +129,7 @@ def handler(req):
                 page.errors.append('Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
+                page.action = "edit?id=%d" % taskid
                 task = nav.maintenance.getTask(taskid)[0]
                 page.edit_taskid = taskid
 
@@ -161,6 +163,13 @@ def handler(req):
                     key, value = field.value.split(',')
                     components.append({'key': key, 'value': value,
                         'info': nav.maintenance.getComponentInfo(key, value)})
+        elif req.form.has_key('netbox'):
+            # Netbox defined in URL, creating new maintenance task with netbox
+            # already added
+            components = []
+            components.append({'key': 'netbox', 'value':req.form['netbox'],
+                'info': nav.maintenance.getComponentInfo('netbox',
+                 req.form['netbox'])})
         else:
             # Nothing submitted, using values from default or the task we are
             # editing
@@ -292,7 +301,7 @@ def handler(req):
                 state = 'scheduled'
 
             # Get session data
-            author = req.session['user'].login
+            author = req.session['user']['login']
 
             # If any data not okay, form is showed with list of errors on top.
             # There is no need to do anything further here.
@@ -344,7 +353,7 @@ def handler(req):
         
 
     # Check if user is logged in
-    if req.session['user'].id != 0:
+    if req.session['user']['id'] != 0:
         page.authorized = True
     else:
         page.authorized = False

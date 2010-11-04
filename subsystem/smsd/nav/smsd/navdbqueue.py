@@ -1,38 +1,28 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright (C) 2006 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-
-"""
-The smsd queue for the NAV database.
+"""The smsd queue for the NAV database.
 
 This smsd queue takes care of all communication between smsd and the NAV
 database. Replacing the NAV database with some other queue/input should be
 possible by implementing the interface seen in this class.
 
 Generally, a phone number is a user and vice versa.
-"""
 
-__copyright__ = "Copyright 2006 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+"""
 
 import logging
 import nav.db
@@ -130,7 +120,6 @@ class NAVDBQueue(object):
         message is a tuple with the ID, text, and severity of the message.
         """
 
-        messages = []
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
@@ -141,6 +130,35 @@ class NAVDBQueue(object):
             ORDER BY severity DESC, time ASC"""
         db.execute(sql, data)
         result = db.fetchall()
+        # Rollback so we don't have old open transactions which foobars the
+        # usage of now() in setsentstatus()
+        dbconn.rollback()
+
+        return result
+
+    def getmsgs(self, sent = 'N'):
+        """
+        Get all messages with given sent status (normally unsent).
+
+        Returns a list of dictionaries containing messages details of SMS in
+        queue with the specified status.
+        """
+
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        data = { 'sent': sent }
+        sql = """SELECT smsq.id as smsqid, name, msg, time 
+            FROM smsq 
+            JOIN account ON (account.id = smsq.accountid) 
+            WHERE sent = %(sent)s ORDER BY time ASC"""
+        db.execute(sql, data)
+        
+        result = []
+        for (smsqid, name, msg, time) in db.fetchall():
+            result.append({ 'id': smsqid, 'name': name, 'msg': msg, \
+                    'time': time.strftime("%Y-%m-%d %H:%M") })
+
         # Rollback so we don't have old open transactions which foobars the
         # usage of now() in setsentstatus()
         dbconn.rollback()
@@ -159,14 +177,33 @@ class NAVDBQueue(object):
 
         if sent == 'Y' or sent == 'I':
             sql = """UPDATE smsq
-                SET sent = %(sent)s, smsid = %(smsid)d, timesent = now()
-                WHERE id = %(id)d"""
+                SET sent = %(sent)s, smsid = %(smsid)s, timesent = now()
+                WHERE id = %(id)s"""
         else:
             sql = """UPDATE smsq
-                SET sent = %(sent)s, smsid = %(smsid)d
-                WHERE id = %(id)d"""
+                SET sent = %(sent)s, smsid = %(smsid)s
+                WHERE id = %(id)s"""
 
         data = { 'sent': sent, 'smsid': smsid, 'id': id }
+        db.execute(sql, data)
+        dbconn.commit()
+
+        return db.rowcount
+
+    def inserttestmsgs(self, uid, phone, msg):
+        """
+        Insert test messages into the SMS queue for debugging purposes.
+
+        Returns a integer indicating how many rows have been inserted.
+        """
+
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        data = { 'uid': uid, 'phone': phone, 'msg': msg }
+        sql = """INSERT INTO smsq (accountid, time, phone, msg) VALUES (
+                 %(uid)s, now(), %(phone)s, %(msg)s)"""
+
         db.execute(sql, data)
         dbconn.commit()
 

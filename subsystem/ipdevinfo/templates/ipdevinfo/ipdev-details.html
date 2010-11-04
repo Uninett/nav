@@ -31,6 +31,16 @@
         <td><a href="{% url report-netbox-category netbox.category.id %}">
             {{ netbox.category }}</a></td>
     </tr>
+    
+    {% if netboxsubcat %}
+    <tr>
+        <th>Subcategories</th>
+        <td>{% for subcat in netboxsubcat %}
+        {{ subcat.category_id }}
+        {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
 
     <tr>
         <th>Function</th>
@@ -111,19 +121,19 @@
 {% endif %}
 
     <tr>
-        <th># of modules</th>
+        <th>Modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
             {{ netbox.module_set.count }}</a></td>
     </tr>
 
     <tr>
-        <th># of switch ports</th>
+        <th>Switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
             {{ netbox.get_swports.count }}</a></td>
     </tr>
 
     <tr>
-        <th># of router ports</th>
+        <th>Router ports</th>
         <td><a href="{% url report-gwport-netbox netbox.id %}">
             {{ netbox.get_gwports.count }}</a></td>
     </tr>
@@ -254,28 +264,125 @@
                     Edit IP device</a></li>
                 <li><a href="{% url maintenance-new-netbox netbox.id %}">
                     Schedule maintenance</a></li>
-                <li><a href="{% url devicemanagement-history-netbox netbox.id %}">
+                <li><a href="{% url devicehistory-view-netbox netbox.id %}">
                     View device history</a></li>
-                <li><a href="{% url ipinfo-host netbox.sysname %}">
-                    View in IP Info</a></li>
             </ul>
         </td>
     </tr>
+
+
 {% else %}
-    <caption>IP Device</caption>
+
+
+    <caption class="nowrap">IP Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
     <tr>
         <th>Status</th>
-        <td>Sysname or IP "{{ host_info.host }}" was not found in NAV</td>
+        <td>Not monitored</td>
     </tr>
+
     <tr>
-        <th>Actions</th>
+        <th>Prefix</th>
         <td>
-            <ul>
-                <li><a href="{% url ipinfo-host host_info.host %}">
-                    View in IP Info</a></li>
-            </ul>
+            {% with no_netbox.prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix.net_address }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
         </td>
     </tr>
+
+    {% with no_netbox.prefix.vlan as vlan %}
+    <tr>
+        <th>VLAN</th>
+        <td>
+            {% if vlan %}
+                <a href="{% url report-swporttrunk-vlan vlan.vlan %}">
+                    {{ vlan }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <th class="indent">Usage</th>
+        <td>{{ vlan.usage|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Description</th>
+        <td>{{ vlan.description|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Organization</th>
+        <td>
+            {% if vlan.organization %}
+                <a href="{% url report-organization-organization vlan.organization.id %}">
+                {{ vlan.organization|default:"N/A" }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <th class="indent">Optional #1</th>
+        <td>{{ vlan.organization.optional_1|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Optional #2</th>
+        <td>{{ vlan.organization.optional_2|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th class="indent">Optional #3</th>
+        <td>{{ vlan.organization.optional_3|default:"N/A" }}</td>
+    </tr>
+    {% endwith %}
+
+    {% with no_netbox.arp as arp %}
+    <tr>
+        <th>Last active</th>
+        <td>
+        {% ifequal no_netbox.dt_max arp.end_time %}
+        <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
+        Right now
+        </a>
+        {% else %}
+            {% if arp.end_time %}
+            <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
+            {{ arp.end_time|date }} 
+            {{ arp.end_time|time }}
+            </a>
+            {% else %}
+            Never
+            {% endif %}
+        {% endifequal %}
+        </td>
+    </tr>
+
+    <tr>
+        <th>Last seen with MAC</th>
+        <td>
+            {% if arp.mac %}
+                <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
+                {{ arp.mac }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+    {% endwith %}
+
 {% endif %}
 </table>
 </div>
@@ -352,12 +459,12 @@
                 {% if alert_info.is_more_alerts %}
                     Showing {{ alert_info.alerts|length }} of
                     {{ alert_info.count }} alerts, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">
                     Device History</a> for all
                 {% else %}
                     {{ alert_info.alerts|length }}
                     alert{{ alert_info.alerts|length|pluralize }} found, see
-                    <a href="{% url devicemanagement-history-netbox netbox.id %}">Device History</a> for details
+                    <a href="{% url devicehistory-view-netbox netbox.id %}">Device History</a> for details
                 {% endif %}
             </th>
         </tr>
@@ -415,7 +522,8 @@
 {% endif %}
 
 
-{% if netbox and netbox.module_set.count %}
+{% if netbox %}
+{% if netbox.module_set.count or netbox.interface_set.count %}
 
 <div id="ports">
     <div class="tabs">
@@ -448,8 +556,7 @@
                     <button type="submit">Recheck activity</button>
                     {% if not port_view.activity_complete_data %}
                         <em>
-                            Warning: CAM data is only available for {{
-                            port_view.activity_data_interval }}
+                            Warning: CAM data is only available for {{ port_view.activity_data_interval }}
                             day{{ port_view.activity_data_interval|pluralize }}.
                         </em>
                     {% endif %}
@@ -465,6 +572,7 @@
     </div>
 </div>
 
+{% endif %}
 {% endif %}
 
 {% endblock %}

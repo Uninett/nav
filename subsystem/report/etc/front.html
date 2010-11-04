@@ -6,7 +6,7 @@
         <div>Room search</div>
         <input type="text" name="roomid" size="15" />
         <input type="submit" value="Find" />
-        <div><i>room</i></div>
+        <div><i>room (*)</i></div>
     </form>
 
     <form action="device">
@@ -14,13 +14,12 @@
         <input type="text" name="serial" size="15" />
         <input type="hidden" name="op_serial" value="like" />
         <input type="submit" value="Find" />
-        <div><i>serial number</i></div>
+        <div><i>serial number (*)</i></div>
     </form>
 
     <form action="swporttrunk">
-        <input type="hidden" name="op_vlan.vlan" value="like" />
         <div>Switchports with VLAN</div>
-        <input type="text" name="vlan.vlan" size="15" />
+        <input type="text" name="vlan" size="15" />
         <input type="submit" value="Find" />
         <div><i>vlan number</i></div>
     </form>
@@ -31,15 +30,15 @@
         <div>IP Device report</div>
         <input type="text" name="sysname" size="15" />
         <input type="submit" value="Find" />
-        <div><i>sysname</i></div>
+        <div><i>sysname (*)</i></div>
     </form>
 
     <form action="swport">
-        <input type="hidden" name="op_s1.portname" value="like" />
+        <input type="hidden" name="op_alias" value="like" />
         <div>Portname search</div>
-        <input type="text" name="s1.portname" size="15" />
+        <input type="text" name="alias" size="15" />
         <input type="submit" value="Find" />
-        <div><i>text</i></div>
+        <div><i>text (*)</i></div>
     </form>
 
     <form action="prefix">
@@ -47,11 +46,11 @@
         <div>Prefix search</div>
         <input type="text" name="netident" size="15" />
         <input type="submit" value="Find" />
-        <div><i>text</i></div>
+        <div><i>text (*)</i></div>
     </form>
 
-    <hr>
-    <p>Use * as wildcard for all search fields.</p>
+    <hr />
+    <p>(*) asterisk wildcards allowed.</p>
 </div>
 
 
@@ -69,15 +68,15 @@
     </li>
     <li><a href="netbox?catid=SW%2CGSW&amp;op_catid=in">Core Switches</a>
         <ul>
-            <li><a href="swport?op_b1.catid=in&amp;b1.catid=SW,GSW">Core switch ports</a></li>
-            <li><a href="swport?b1.catid=SW&amp;s1.trunk=t">Trunked core switch ports</a></li>
-            <li><a href="swporttrunk?b1.catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
+            <li><a href="swport?op_catid=in&amp;catid=SW,GSW">Core switch ports</a></li>
+            <li><a href="swport?catid=SW&amp;trunk=Y">Trunked core switch ports</a></li>
+            <li><a href="swporttrunk?catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
             <li><a href="stpblock">STP blocked switch ports</a></li>
         </ul>
     </li>
     <li><a href="netbox?catid=EDGE">Edge Switches and Hubs</a>
         <ul>
-            <li><a href="swporttrunk?b1.catid=EDGE">Edge switch ports</a></li>
+            <li><a href="swporttrunk?catid=EDGE">Edge switch ports</a></li>
         </ul>
     </li>
     <li><a href="netbox?catid=WLAN">Wireless</a></li>
@@ -97,6 +96,13 @@
 </div>
 
 <div class="float-list">
+<h3>Summaries</h3>
+  <ul>
+    <li><a href="availability_month">Availability summary for last month</a>
+  </ul>
+</div>
+
+ <div class="float-list">
 <h3>Manually updated information</h3>
 
 <ul>
@@ -107,7 +113,6 @@
     <li><a href="org">Organisations</a></li>
     <li><a href="usage">User groups</a></li>
     <li><a href="vendor">Vendors</a></li>
-    <li><a href="product">Products</a></li>
 </ul>
 </div>
 

@@ -1,26 +1,18 @@
-#encoding UTF-8
-## $Id$
+#encoding utf-8
 ##
-## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 ##
-## This file is part of Network Administration Visualized (NAV)
+## This file is part of Network Administration Visualized (NAV).
 ##
-## NAV is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2 of the License, or
-## (at your option) any later version.
+## NAV is free software: you can redistribute it and/or modify it under the
+## terms of the GNU General Public License version 2 as published by the Free
+## Software Foundation.
 ##
-## NAV is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with NAV; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-##
-##
-## Author: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.  You should have received a copy of the GNU General Public
+## License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 ##
 
 #extends nav.web.templates.MainTemplate
@@ -451,16 +443,12 @@ $showBody($body)
             $netboxserial($editbox)
 #elif $editbox.page == 'netboxcategory'
             $netboxcategory($editbox)
-#elif $editbox.page == 'netboxproduct'
-            $netboxproduct($editbox)
 #elif $editbox.page == 'bulk'
             $bulk($editbox)
 #elif $editbox.page == 'usage'
             $usage($editbox)
 #elif $editbox.page == 'service'
             $service($editbox)
-#elif $editbox.page == 'product'
-            $product($editbox)
 #elif $editbox.page == 'prefix'
             $prefix($editbox)
 #elif $editbox.page == 'ric'
@@ -768,56 +756,24 @@ $hiddenfields($editbox.hiddenFields)
 #set $fields = $editbox.fields
     <table class="header-active" width="60%">
         <tr>
-            <th colspan="3" width="30%">$heading($fields['typename'])</th>
+            <th colspan="2" width="30%">$heading($fields['typename'])</th>
             <th>$heading($fields['descr'])</th>
         </tr>
         <tr>
-            <td colspan="3">$input($fields['typename'],'width: 100%;')</td>
+            <td colspan="2">$input($fields['typename'],'width: 100%;')</td>
             <td>$input($fields['descr'],'width: 100%;')</td>
         <tr>
-            <th colspan="3">$heading($fields['vendorid'])</th>
+            <th colspan="2">$heading($fields['vendorid'])</th>
             <th>$heading($fields['sysobjectid'])</th>
         </tr>
-            <td colspan="3">$input($fields['vendorid'],'width: 100%;')</td>
+            <td colspan="2">$input($fields['vendorid'],'width: 100%;')</td>
             <td>$input($fields['sysobjectid'],'width: 100%')</td>
         </tr>
         <tr>
-            <th>$heading($fields['cdp'])</th>
-            <th>$heading($fields['tftp'])</th>
-            <th>$heading($fields['frequency'])</th>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td align="center">$input($fields['cdp'])</td>
-            <td align="center">$input($fields['tftp'])</td>
-            <td>$input($fields['frequency'])</td>
-            <td>&nbsp;</td>
+            <td>$input($fields['cdp']) $heading($fields['cdp'])</td>
+            <td>$input($fields['tftp']) $heading($fields['tftp'])</td>
         </tr>
 </table>
-#end def
-
-## Form for adding or editing a product
-#def product($editbox)
-#set $fields = $editbox.fields
-#if $fields.has_key('productid')
-$input($fields['productid'])
-#end if
-    <table class="header-active">
-        <tr>
-            <th>$heading($fields['vendorid'])</th>
-            <th>$heading($fields['productno'])</th>
-        </tr>
-        <tr>
-            <td>$input($fields['vendorid'])</td>
-            <td>$input($fields['productno'])</td>
-        </tr>
-        <tr>
-            <th colspan="2">$heading($fields['descr'])</th>
-        </tr>
-        <tr>
-            <td colspan="2">$input($fields['descr'],'width: 100%;')</td>
-        </tr>
-    </table>
 #end def
 
 ## Form for adding or editing a container
@@ -1107,7 +1063,7 @@ $control[2]
 #elif $control.type == 'textarea'
     <textarea name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</textarea>
 #elif $control.type == 'checkbox'
-#if $control.value == '1'
+#if $control.value
 ## VALUE is hardcoded to 1, which is good for boolean fields in the db
     <input type="checkbox" style="$style" name="$control.name" value="1" checked />
 #else

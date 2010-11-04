@@ -54,6 +54,9 @@ def db():
 class dbError(Exception):
     pass
 
+class UnknownRRDFileError(Exception):
+    pass
+
 class _db(threading.Thread):
     _instance=None
     def __init__(self):
@@ -76,6 +79,14 @@ class _db(threading.Thread):
             debug("Couldn't connect to db.", 2)
             debug(str(e),2)
             self.db=None
+
+    def status(self):
+        try:
+	    if self.db.status:
+	        return 1
+	except:
+	    return 0
+	return 0
 
     def cursor(self):
         try:
@@ -260,6 +271,35 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         debug("Returned %s checkers" % len(self._checkers))
         return self._checkers
 
+
+    def verify_rrd(self, path, filename):
+        """Verifies that a given RRD file is registered in the db.
+
+        Returns: The netboxid of the netbox to which this RRD file belongs.
+
+        If the RRD file is unknown, a UnknownRRDFileError is raised.
+
+        BUGS: Big gaping hole: Does not use parameterized SQL statement.
+        """
+        statement = \
+            """SELECT rrd_fileid, netboxid FROM rrd_file
+               WHERE path='%s' AND
+                     filename='%s'""" % (path, filename)
+        rows = self.query(statement)
+        if len(rows) > 0:
+            (rrd_fileid, netboxid) = rows[0]
+            return netboxid
+        raise UnknownRRDFileError(path, filename)
+
+    def reconnect_rrd(self, path, filename, netboxid):
+        """Reconnects a known, disconnected RRD file with a netboxid."""
+        statement = \
+            """UPDATE rrd_file
+               SET netboxid=%d
+               WHERE path='%s' AND
+                     filename='%s' AND
+                     netboxid IS NULL""" % (netboxid, path, filename)
+        return self.execute(statement)
 
     def registerRrd(self, path, filename, step, netboxid, subsystem, key="",val=""):
         rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]

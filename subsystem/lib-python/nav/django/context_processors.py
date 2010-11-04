@@ -21,6 +21,9 @@ from django.conf import settings
 
 from nav.django.utils import get_account, is_admin
 from nav.web.message import new_message, Messages
+from nav.web.webfront.utils import tool_list
+from nav.models.profiles import AccountNavbar
+from nav.buildconf import VERSION
 
 def debug(request):
     """Returns context variables helpful for debugging.
@@ -46,12 +49,49 @@ def account_processor(request):
     """
     account = get_account(request)
     admin = is_admin(account)
-    messages = Messages(request)
+    messages = Messages(request._req)
     messages = messages.get_and_delete()
 
-    return {
+    navbar = []
+    qlink1 = []
+    qlink2 = []
+
+    preferences = AccountNavbar.objects.select_related(
+        'navbarlink'
+    ).filter(account=account)
+    if preferences.count() == 0:
+        preferences = AccountNavbar.objects.select_related(
+            'navbarlink'
+        ).filter(account__id=0)
+
+    for p in preferences:
+        link = {
+            'name': p.navbarlink.name,
+            'uri': p.navbarlink.uri,
+        }
+        if p.positions.count('navbar'):
+            navbar.append(link)
+        if p.positions.count('qlink1'):
+            qlink1.append(link)
+        if p.positions.count('qlink2'):
+            qlink2.append(link)
+
+    current_user_data = {
         'account': account,
         'is_admin': admin,
         'messages': messages,
+        'navbar': navbar,
+        'qlink1': qlink1,
+        'qlink2': qlink2,
+    }
+    return {
+        'current_user_data': current_user_data,
     }
 
+def nav_version(request):
+    return {
+        'nav_version': VERSION,
+    }
+
+def toolbox(request):
+    return {'available_tools': tool_list(get_account(request))}

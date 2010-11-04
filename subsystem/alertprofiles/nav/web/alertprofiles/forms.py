@@ -41,6 +41,7 @@ class AccountPropertyForm(forms.ModelForm):
 
 class AlertProfileForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    name = forms.CharField(required=True)
     daily_dispatch_time = forms.TimeField(
         initial='08:00',
         input_formats=['%H:%M:%S', '%H:%M', '%H'],
@@ -58,6 +59,7 @@ class AlertProfileForm(forms.ModelForm):
 
 class AlertAddressForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    address = forms.CharField(required=True)
 
     class Meta:
         model = AlertAddress
@@ -152,7 +154,11 @@ class AlertSubscriptionForm(forms.ModelForm):
         alert_address = self.cleaned_data.get('alert_address', None)
         time_period = self.cleaned_data.get('time_period', None)
         filter_group = self.cleaned_data.get('filter_group', None)
+        subscription_type = self.cleaned_data.get('type', None)
+        ignore = self.cleaned_data.get('ignore_resolved_alerts', False)
         id = self.cleaned_data['id']
+
+        error_msg = []
 
         existing_subscriptions = AlertSubscription.objects.filter(
                 Q(alert_address=alert_address),
@@ -161,22 +167,27 @@ class AlertSubscriptionForm(forms.ModelForm):
                 ~Q(pk=id)
             )
 
-        if len(existing_subscriptions) > 0:
-            error_msg = []
-            for e in existing_subscriptions:
-                error_msg.append(
-                    u'''Filter group and alert address must be unique for each
-                    subscription. This one collides with group %s watched by %s
-                    ''' % (e.filter_group.name, e.alert_address.address)
-                )
+        for e in existing_subscriptions:
+            error_msg.append(
+                u'''Filter group and alert address must be unique for each
+                subscription. This one collides with group %s watched by %s
+                ''' % (e.filter_group.name, e.alert_address.address)
+            )
+
+        if subscription_type == AlertSubscription.NOW and ignore:
+            error_msg.append(u'Resolved alerts can not be ignored ' +
+                'for now subscriptions')
+
+        if error_msg:
             raise forms.util.ValidationError(error_msg)
-        else:
-            return self.cleaned_data
+
+        return self.cleaned_data
 
 class FilterGroupForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private',
         help_text=_(u'Uncheck to allow all users to use this filter group.'))
+    name = forms.CharField(required=True)
     description = forms.CharField(required=False)
 
     class Meta:
@@ -199,6 +210,7 @@ class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label=u'Private',
         help_text=_(u'Uncheck to allow all users to use this filter.'))
+    name = forms.CharField(required=True)
 
     class Meta:
         model = Filter
@@ -262,6 +274,7 @@ class MatchFieldForm(forms.ModelForm):
 class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    value = forms.CharField(required=True)
 
     class Meta:
         model = Expression

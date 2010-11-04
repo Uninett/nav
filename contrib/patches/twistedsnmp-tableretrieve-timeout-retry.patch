@@ -1,0 +1,73 @@
+TwistedSNMP 0.3.13 will not handle timeouts/retries properly during table
+retrieval operations (under pysnmp-se).  This patch adds tests for the problem
+and fixes it.  Without this patch, stressed devices will timeout quickly and
+keep being bombarded with requests by NAV's ipdevpoll process.
+diff -r 2c7069c61cdb -r a6e61c1a72ed tableretriever.py
+--- a/tableretriever.py	Fri Oct 08 11:12:02 2010 +0200
++++ b/tableretriever.py	Fri Oct 08 13:20:08 2010 +0200
+@@ -217,9 +217,9 @@
+ 			df.addErrback( self.onProcessingError )
+ 
+ 			timer = reactor.callLater(
+-				self.timeout,
++				delay,
+ 				self.tableTimeout,
+-				df, key, oids, roots, includeStart, retryCount-1, delay
++				df, key, oids, roots, includeStart, retryCount, delay
+ 			)
+ 
+ 			self.proxy.protocol.requests[key] = df, timer
+diff -r 2c7069c61cdb -r a6e61c1a72ed test/test_get.py
+--- a/test/test_get.py	Fri Oct 08 11:12:02 2010 +0200
++++ b/test/test_get.py	Fri Oct 08 13:20:08 2010 +0200
+@@ -5,6 +5,7 @@
+ from twistedsnmp import snmpprotocol, massretriever, tableretriever
+ from twistedsnmp.test import basetestcase
+ from twistedsnmp.pysnmpproto import v2c,v1, error, oid
++import time
+ 
+ class GetRetrieverV1( basetestcase.BaseTestCase ):
+ 	version = 'v1'
+@@ -324,6 +325,42 @@
+ 	"""Test for full retrieval of a large table"""
+ 	version = 'v1'
+ 
++class GetRetrieverTableTimeout( basetestcase.BaseTestCase ):
++	version = 'v2c'
++
++	def test_tableGetRetryCount( self ):
++		"""Do the number of sent messages correspond with the number of retries?"""
++		self.installDevNullMessageCounter()
++		d = self.client.getTable( [
++			'.1.3.6'
++		], retryCount=4 )
++		self.doUntilFinish( d )
++		assert not self.success
++		expected = 5
++		assert self.client.messageCount == 5, """Took %s messages to timeout completely, should be exactly %r"""%( self.client.messageCount , expected)
++
++	def test_tableGetTimeout( self ):
++		"""Does the time to final Timeout correspond to the retry/timeout settings?"""
++		self.installDevNullMessageCounter()
++		startTime = time.time()
++		d = self.client.getTable( [
++			'.1.3.6'
++		], retryCount=3, timeout=1.0 )
++		self.doUntilFinish( d )
++		assert not self.success
++		# we expect 4 messages, with a 1.5 factor increase of each timeout
++		expected = sum(1.0 * 1.5**i for i in range(4))
++		timeSpent = time.time() - startTime
++		assert timeSpent >= expected, """Took %.02f seconds to timeout completely, should be at least %.02f"""%( timeSpent , expected)
++
++	def installDevNullMessageCounter( self ):
++		"""Install a message-counting wrapper that doesn't actually send anything in our client protocol"""
++		def send(request, client= self.client):
++			"""Send a request (string) to the network"""
++			client.messageCount += 1
++		self.client.messageCount = 0
++		self.client.send = send
++
+ if __name__ == "__main__":
+ 	unittest.main()
+ 		

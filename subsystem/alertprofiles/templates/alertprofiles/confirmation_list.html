@@ -10,8 +10,8 @@
 {% endblock %}
 
 {% block tbodycontent %}
-    {% for element in elements %}
-    <tr class="{% cycle oddrow,evenrow %}">
+    {% for element in object_list %}
+    <tr class="{% cycle 'oddrow' 'evenrow' %}">
         <td><input type="checkbox" name="element" value="{{ element.id }}" id="elementid_{{ element.id }}" checked="checked" /></td>
         <td>
             <label for="elementid_{{ element.id }}">{{ element.description }}</label>

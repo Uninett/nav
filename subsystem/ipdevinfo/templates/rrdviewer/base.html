@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 
+{% block base_header_title %}
+NAV - RRD Viewer
+{% endblock %}
+
+{% block base_header_navpath %}
+<a href="/">Home</a> > <a href="/rrd/">RRD Viewer</a>
+{% endblock %}
+
 {% block base_content %}
+
+<h2>RRD Viewer </h2>
 
 {% if errors %}
 <ul class="error">

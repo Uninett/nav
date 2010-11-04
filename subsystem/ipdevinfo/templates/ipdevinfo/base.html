@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
+{# FIXME hardcoded urls #}
+{% block base_header_additional_head %}
+<link rel="stylesheet" type="text/css" href="/style/ipdevinfo.css" />
+{% endblock %}
+
+{% block base_header_title %}
+NAV - IP Device Info
+{% endblock %}
+
+{% block base_header_navpath %}
+<a href="/">Home</a> > <a href="/ipdevinfo/">IP Device Info</a>
+{% endblock %}
+
 {% block base_content %}
+<h2>IP Device Info</h2>
+
 <div id="ipdevinfosearch">
 <form action="{% url ipdevinfo-search %}" method="get">
 <table class="vertitable">

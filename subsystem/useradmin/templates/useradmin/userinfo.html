@@ -3,9 +3,9 @@
 {% block tabs %}{% endblock %}
 
 {% block outercontent %}
-    {% if messages %}
+    {% if current_user_data.messages %}
         <ul class="messages">
-            {% for m in messages %}
+            {% for m in current_user_data.messages %}
                 <li class="{{ m.type }}">{{ m.message }}</li>
             {% endfor %}
         </ul>
@@ -65,5 +65,6 @@
                     <td><input type="submit" value="Change password" /></td>
                 </tr>
             </table>
+        </form>
     {% endif %}
 {% endblock %}

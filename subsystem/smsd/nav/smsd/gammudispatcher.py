@@ -1,27 +1,20 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright (C) 2006 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-
-"""
-The smsd dispatcher for Gammu.
+"""The smsd dispatcher for Gammu.
 
 This dispatcher takes care of all communication between smsd and Gammu. Gammu
 is used to send SMS messages via a cell phone connected to the server with a
@@ -29,11 +22,8 @@ serial cable, USB cable, IR or Bluetooth. See http://www.gammu.org/ for more
 information.
 
 Depends on python-gammu.
-"""
 
-__copyright__ = "Copyright 2006 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
+"""
 
 from nav.smsd.dispatcher import *
 
@@ -71,7 +61,7 @@ class GammuDispatcher(Dispatcher):
 
         # Format SMS
         (sms, sent, ignored) = self.formatsms(msgs)
-        sms = sms.decode('UTF-8')
+        sms = decode_sms_to_unicode(sms)
 
         # We got a python-gammu binding :-)
         sm = gammu.StateMachine()
@@ -108,8 +98,6 @@ class GammuDispatcher(Dispatcher):
             raise DispatcherError, "GSM %s error %d: %s" % (error[0]['Where'],
                                                             error[0]['Code'],
                                                             error[0]['Text'])
-        except Exception, error:
-            self.logger.critical('blipp blopp: %s', error)
 
         if type(smsid) == int:
             result = True
@@ -118,3 +106,8 @@ class GammuDispatcher(Dispatcher):
 
         return (sms, sent, ignored, result, smsid)
 
+def decode_sms_to_unicode(sms):
+    if isinstance(sms, unicode):
+        return sms
+    else:
+        return sms.decode('utf-8')

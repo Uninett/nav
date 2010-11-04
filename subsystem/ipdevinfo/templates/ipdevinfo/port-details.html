@@ -4,37 +4,45 @@
 
 <table class="vertitable">
     <caption>
-        Interface {{ port.interface }}<br />
-        at {{ port.module.netbox.get_short_sysname }}
+        Interface {{ port.ifname }}
+        {% if port.module %}
+        <br />at {{ port.module.netbox.get_short_sysname }}
+        {% endif %}
     </caption>
 
     <tr>
         <th>At IP device</th>
-        <td><a href="{{ port.module.netbox.get_absolute_url }}">
-            {{ port.module.netbox }}</a></td>
+        <td><a href="{{ port.netbox.get_absolute_url }}">
+            {{ port.netbox }}</a></td>
     </tr>
 
     <tr>
         <th>Interface</th>
-        <td>{{ port.interface }}</td>
+        <td>{{ port.ifdescr }}</td>
     </tr>
 
     <tr>
         <th>At module</th>
-        <td><a href="{{ port.module.get_absolute_url }}">
-            Module {{ port.module.module_number }}</a></td>
+        <td>
+        {% if port.module %}
+        <a href="{{ port.module.get_absolute_url }}">
+            Module {{ port.module.name }}</a>
+        {% else %}
+        No module
+        {% endif %}
+        </td>
     </tr>
 
-{% ifequal port_type 'swport' %}
+{% if port.baseport %}
     <tr>
         <th>Port</th>
-        <td>{{ port.port }}</td>
+        <td>{{ port.baseport }}</td>
     </tr>
-{% endifequal %}
+{% endif %}
 
     <tr>
         <th>Port name</th>
-        <td>{{ port.port_name }}</td>
+        <td>{{ port.ifalias|default:"N/A" }}</td>
     </tr>
 
     <tr>
@@ -52,7 +60,7 @@
         <td>{{ port.speed }} Mbit</td>
     </tr>
 
-{% ifequal port_type 'swport' %}
+{% if port.duplex %}
     <tr>
         <th>Duplex</th>
         <td>{{ port.get_duplex_display|capfirst }}</td>
@@ -76,20 +84,21 @@
                     <ul>
                     {% for swportvlan in swportvlans %}
                         <li>
-                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.id %}">
-                            {{ swportvlan.vlan.vlan }},
-                            {{ swportvlan.vlan.net_ident }}</a>,
-                            direction: {{ swportvlan.get_direction_display }}
+                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.vlan %}">
+                            {{ swportvlan.vlan }}</a>
+                            <ul>
+                                <li>Direction: {{ swportvlan.get_direction_display }}</li>
+                            </ul>
                         </li>
                     {% endfor %}
                     </ul>
                 {% else %}
-                    None
+                    N/A
                 {% endif %}
             {% endwith %}
         </td>
     </tr>
-{% endifequal %}
+{% endif %}
 
     <tr>
         <th>To IP device</th>
@@ -106,16 +115,16 @@
     <tr>
         <th>To switch port</th>
         <td>
-            {% if port.to_swport %}
-                <a href="{{ port.to_swport.get_absolute_url }}">
-                    {{ port.to_swport }}</a>
+            {% if port.to_interface %}
+                <a href="{{ port.to_interface.get_absolute_url }}">
+                    {{ port.to_interface }}</a>
             {% else %}
                 N/A
             {% endif %}
         </td>
     </tr>
 
-{% ifequal port_type 'swport' %}
+{% if port.baseport %}
     <tr>
         <th>Patched to</th>
         <td>
@@ -145,9 +154,9 @@
             {% endwith %}<br />
         </td>
     </tr>
-{% endifequal %}
+{% endif %}
 
-{% ifequal port_type 'gwport' %}
+{% if port.gwportprefix %}
     <tr>
         <th colspan="2">Prefixes</th>
     </tr>
@@ -168,7 +177,7 @@
             {% endif %}
         </td>
     </tr>
-{% endifequal %}
+{% endif %}
 
     <tr>
         <th colspan="2">Statistics</th>
@@ -191,7 +200,7 @@
         </td>
     </tr>
 
-{% ifequal port_type 'swport' %}
+{% if port.baseport %}
     <tr>
         <th colspan="2">Actions</th>
     </tr>
@@ -199,12 +208,12 @@
         <th></th>
         <td>
             <ul>
-                <li><a href="{% url machinetracker-swport port.module.netbox.sysname,port.module.module_number,port.interface %}">
+                <li><a href="{% url machinetracker-swport port.netbox.sysname, port.ifname %}">
                     Track MAC behind port</a></li>
             </ul>
         </td>
     </tr>
-{% endifequal %}
+{% endif %}
 </table>
 
 {% endblock %}

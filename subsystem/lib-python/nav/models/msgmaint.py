@@ -33,6 +33,8 @@ class Message(models.Model):
     last_changed = models.DateTimeField()
     replaces_message = models.ForeignKey('self', db_column='replaces_message',
         related_name='replaced_by', null=True)
+    maintenance_tasks = models.ManyToManyField('MaintenanceTask',
+        through='MessageToMaintenanceTask')
 
     class Meta:
         db_table = 'message'

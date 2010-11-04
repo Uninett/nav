@@ -324,7 +324,7 @@ CREATE TABLE alertsubscription (
 	time_period_id integer NOT NULL,
 	filter_group_id integer NOT NULL,
 	subscription_type integer,
-	ignore_closed_alerts boolean,
+	ignore_resolved_alerts boolean,
 
 	CONSTRAINT alertsubscription_pkey PRIMARY KEY(id),
 	CONSTRAINT alertsubscription_alert_address_id_key
@@ -338,7 +338,7 @@ CREATE TABLE alertsubscription (
 		FOREIGN KEY(time_period_id) REFERENCES timeperiod(id)
 			ON DELETE CASCADE
 			ON UPDATE CASCADE,
-	CONSTRAINT alertsubscriptino_filter_group_id_fkey
+	CONSTRAINT alertsubscription_filter_group_id_fkey
 		FOREIGN KEY(filter_group_id) REFERENCES filtergroup(id)
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
@@ -564,6 +564,8 @@ CREATE TABLE accountalertqueue (
     subscription_id integer,
     insertion_time timestamp NOT NULL,
 
+    CONSTRAINT accountalertqueue_alert_id_fkey
+        FOREIGN KEY(alert_id) REFERENCES manage.alertq(alertqid),
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
     CONSTRAINT accountalertqueue_account_id_fkey
     	FOREIGN KEY(account_id) REFERENCES account(id)
@@ -612,12 +614,14 @@ the link to be.
 positions      'navbar', 'qlink1', 'qlink2' or a combination of these.
 
 */
+CREATE SEQUENCE accountnavbar_id_seq;
 CREATE TABLE AccountNavbar (
+    id integer NOT NULL DEFAULT nextval('accountnavbar_id_seq'),
     accountid integer NOT NULL,
     navbarlinkid integer NOT NULL,
     positions varchar,
 
-    CONSTRAINT accountnavbar_pkey PRIMARY KEY (accountid, navbarlinkid),
+    CONSTRAINT accountnavbar_pkey PRIMARY KEY (id),
     CONSTRAINT accountnavbar_accountid_fkey
                FOREIGN KEY (accountid) REFERENCES Account(id)
                ON DELETE CASCADE
@@ -713,6 +717,72 @@ CREATE VIEW PrivilegeByGroup AS (
 );
 
 
+/*
+-- statuspref
+
+Stores preferences for the status tool.
+*/
+CREATE SEQUENCE statuspreference_id_seq START 1000;
+CREATE TABLE statuspreference (
+	id integer NOT NULL DEFAULT nextval('statuspreference_id_seq'),
+	name varchar NOT NULL,
+	position integer NOT NULL,
+	type varchar NOT NULL,
+	accountid integer NOT NULL,
+
+	services varchar NOT NULL DEFAULT '',
+	states varchar NOT NULL DEFAULT 'n,s',
+
+	CONSTRAINT statuspreference_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_accountid_fkey
+		FOREIGN KEY (accountid) REFERENCES Account(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
+
+CREATE SEQUENCE statuspreference_organization_id_seq;
+CREATE TABLE statuspreference_organization (
+	id integer NOT NULL DEFAULT nextval('statuspreference_organization_id_seq'),
+	statuspreference_id integer NOT NULL,
+	organization_id varchar NOT NULL,
+
+	CONSTRAINT statuspreference_organization_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_organization_statuspreference_id_key
+		UNIQUE(statuspreference_id, organization_id),
+	CONSTRAINT statuspreference_organization_statuspreference_id_fkey
+		FOREIGN KEY (statuspreference_id) REFERENCES statuspreference(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT statuspreference_organization_organization_id_fkey
+		FOREIGN KEY (organization_id) REFERENCES manage.org(orgid)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
+
+CREATE SEQUENCE statuspreference_category_id_seq;
+CREATE TABLE statuspreference_category (
+	id integer NOT NULL DEFAULT nextval('statuspreference_category_id_seq'),
+	statuspreference_id integer NOT NULL,
+	category_id varchar NOT NULL,
+
+	CONSTRAINT statuspreference_category_pkey PRIMARY KEY(id),
+	CONSTRAINT statuspreference_category_statuspreference_id_key
+		UNIQUE(statuspreference_id, category_id),
+	CONSTRAINT statuspreference_category_statuspreference_id_fkey
+		FOREIGN KEY (statuspreference_id) REFERENCES statuspreference(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT statuspreference_category_category_id_fkey
+		FOREIGN KEY (category_id) REFERENCES manage.cat(catid)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+-- Only compatible with PostgreSQL >= 8.2:
+-- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
 
 
@@ -1033,6 +1103,14 @@ INSERT INTO expression (id, filter_id, match_field_id, operator, value) VALUES (
 
 INSERT INTO filtergroup_group_permission (accountgroup_id, filtergroup_id) VALUES (1, 71);
 
+
+-- StatusPreferences for Default user
+
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (1, 'IP devices down', 1, 'netbox', 0, 'n');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (2, 'IP devices in shadow', 2, 'netbox', 0, 's');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
 
 /*
 ------------------------------------------------------

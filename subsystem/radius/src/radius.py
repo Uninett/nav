@@ -17,11 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
-#          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
-#
 
 import time
 import re
@@ -33,11 +28,11 @@ from radius_config import *
 from socket import gethostbyname_ex, gaierror
 from mod_python import apache
 
-connection = db.getConnection(DB_USER, DB)
-database = connection.cursor()
-
-
 def handler(req):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
 
     # Mod_python caches these modules if we just import them
     # like we would usually do. Enable the DEBUG flag during 
@@ -76,21 +71,15 @@ def handler(req):
 
 
     menu = []
-    if nav.auth.hasPrivilege(req.session['user'],
-                             "web_access", "/" + baseurl + "/" + "acctsearch"):
-        menu.append({'link': 'acctsearch', 
-                     'text': 'Accounting Log', 
-                     'admin': False})
-    if nav.auth.hasPrivilege(req.session['user'],
-                             "web_access", "/" + baseurl + "/" + "acctcharts"):
-        menu.append({'link': 'acctcharts', 
-                     'text': 'Accounting Charts', 
-                     'admin': False})
-    if nav.auth.hasPrivilege(req.session['user'],
-                             "web_access", "/" + baseurl + "/" + "logsearch"):
-        menu.append({'link': 'logsearch', 
-                     'text': 'Error Log', 
-                     'admin': False})
+    menu.append({'link': 'acctsearch', 
+                 'text': 'Accounting Log', 
+                 'admin': False})
+    menu.append({'link': 'acctcharts', 
+                 'text': 'Accounting Charts', 
+                 'admin': False})
+    menu.append({'link': 'logsearch', 
+                 'text': 'Error Log', 
+                 'admin': False})
 
     page = AcctSearchTemplate()
     page.menu = menu
@@ -251,7 +240,7 @@ def handler(req):
 
     req.content_type = "text/html"
     req.send_http_header()
-    req.write(page.respond())
+    req.write(page.respond().encode('utf-8'))
     page.shutdown()
     return apache.OK
 
@@ -468,14 +457,13 @@ class AcctDetailQuery(SQLQuery):
     Get all details about a specified session
     """
 
-    def __init__(self, sessionid):
+    def __init__(self, radAcctID):
         """
         Construct SQL query
-
-        Keyword arguments:
-        sessionid   - ID of the session we want to get details on.
+        
         """
-        self.sessionid = sessionid
+        
+        self.radAcctID = radAcctID
 
         self.sqlQuery = """SELECT 
                            acctuniqueid,
@@ -495,9 +483,9 @@ class AcctDetailQuery(SQLQuery):
                            framedprotocol,
                            framedipaddress
                            FROM %s 
-                           WHERE acctuniqueid = %%s
+                           WHERE radacctid = %%s
                         """ % (ACCT_TABLE)
-        self.sqlParameters = (self.sessionid,)
+        self.sqlParameters = (self.radAcctID,)
 
 
     def getTable(self):
@@ -529,6 +517,7 @@ class AcctSearchQuery(SQLQuery):
         self.nasdns = nasdns
 
         self.sqlQuery = """(SELECT
+                        radacctid,
                         acctuniqueid,
                         username,
                         realm,
@@ -586,15 +575,17 @@ class AcctSearchQuery(SQLQuery):
                 self.sqlQuery += " AND LOWER(cisconasport) = %s"
                 self.sqlParameters += tuple(match.group("swport").lower().split())
 
-               
-        
+                
         if searchtype == "iprange":
             if searchstring.find('%'):
-                self.sqlQuery += " %s << %%s" % ('framedipaddress')
-                self.sqlParameters += (searchstring,)
-                
+                if re.search('/32', searchstring):
+                    self.sqlQuery += " %s = INET(%%s) OR %s = INET(%%s)" % ('framedipaddress', 'nasipaddress')
+                    self.sqlParameters += (searchstring[:-3], searchstring[:-3])
+                else:
+                    self.sqlQuery += " %s << INET(%%s) OR %s = INET(%%s)" % ('framedipaddress', 'nasipaddress')
+                    self.sqlParameters += (searchstring, searchstring)
+               
         
-
         if nasporttype:
             if nasporttype.lower() == "isdn": nasporttype = "ISDN"
             if nasporttype.lower() == "vpn": nasporttype = "Virtual"

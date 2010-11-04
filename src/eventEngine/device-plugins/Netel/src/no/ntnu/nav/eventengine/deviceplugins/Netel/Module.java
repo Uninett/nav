@@ -15,19 +15,12 @@ public class Module extends Device
 
 	protected int parentDeviceid;
 	protected int parentBoxid;
-	protected String module;
+	protected String moduleName;
 	protected boolean status = true; // default is up
 	protected Netel parent;
 	protected Map ports = new HashMap();
 
 	protected Module() { }
-
-	/*
-	public Module(DeviceDB devDB, ResultSet rs) throws SQLException
-	{
-		this(devDB, rs, null);
-	}
-	*/
 
 	public Module(DeviceDB devDB, ResultSet rs, Netel parent) throws SQLException
 	{
@@ -35,23 +28,16 @@ public class Module extends Device
 		update(rs);
 
 		this.parent = parent;
-		/*
-		if (d instanceof Module) {
-			Module m = (Module)d;
-			status = m.status;
-		}
-		*/
 	}
 
 	protected void update(ResultSet rs) throws SQLException
 	{
 		parentDeviceid = rs.getInt("parent_deviceid");
 		parentBoxid = rs.getInt("parent_netboxid");
-		module = rs.getString("module");
+		moduleName = rs.getString("name");
 		status = "y".equals(rs.getString("up"));
 		if (rs.getString("swportid") != null) {
 			do {
-				//errl("Debug " + deviceid + ", Module("+module+"): New port: " + rs.getInt("port"));
 				Port p;
 				if ( (p=(Port)ports.get(Port.getKey(rs))) != null) {
 					p.update(rs);
@@ -59,7 +45,7 @@ public class Module extends Device
 					p = new Port(rs);
 					ports.put(p.getKey(), p);
 				}
-			} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module));
+			} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("name").equals(moduleName));
 			rs.previous();
 		}
 	}
@@ -67,7 +53,27 @@ public class Module extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("MODULE_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all modules from database");
-		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,module.up,swportid,ifindex,port,to_netboxid,vlan.vlan,direction FROM module JOIN netbox USING (netboxid) LEFT JOIN swport USING(moduleid) LEFT JOIN swportvlan USING(swportid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,module,ifindex");
+		ResultSet rs = Database.query("SELECT " +
+		                              "  module.deviceid, " +
+					      "  netbox.deviceid AS parent_deviceid, " +
+					      "  module.netboxid AS parent_netboxid, " +
+					      "  name, " +
+					      "  module.up, " +
+					      "  interfaceid AS swportid, " +
+					      "  ifindex, " +
+					      "  baseport AS port, " +
+					      "  to_netboxid, " +
+					      "  vlan.vlan, " +
+					      "  direction " +
+					      "FROM module " +
+					      "JOIN netbox USING (netboxid) " +
+					      "LEFT JOIN interface USING (moduleid) " +
+					      "LEFT JOIN swportvlan USING (interfaceid) " +
+					      "LEFT JOIN vlan USING (vlanid) " +
+					      "ORDER BY " +
+					      "  moduleid, " +
+					      "  module, " +
+					      "  ifindex");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
@@ -84,52 +90,8 @@ public class Module extends Device
 				}
 			}
 
-			//outld("new Module("+deviceid+")");
-			/*
-			if (rs.getInt("parent_deviceid") == 278) {
-				rs.previous();
-				rs.previous();
-				errl("Boxid: " + rs.getInt("parent_deviceid") + " Port: " + rs.getInt("port") + " parent: " + rs.getInt("to_netboxid"));
-				rs.next();
-				rs.next();
-			}
-			*/
-
-			/*
-			Device d = (Device)ddb.getDevice(deviceid);
-			if (d == null) {
-				Module m = new Module(ddb, rs);
-				ddb.putDevice(m);
-			} else if (classEq(d, new Netel())) {
-				// Add ourselves to the netbox
-				Module m = new Module(ddb, rs, d);
-				((Netel)d).addModule(m);
-			} else if (!ddb.isTouchedDevice(d)) {
-				if (classEq(d, new Module())) {
-					((Module)d).update(rs);
-					ddb.touchDevice(d);
-				} else {
-					Module m = new Module(ddb, rs, d);
-					ddb.putDevice(m);
-				}
-			}
-			*/
 		}
 	}
-
-	/*
-	public void init(DeviceDB ddb)
-	{
-		Device d = (Device)ddb.getDevice(parentDeviceid);
-		if (d instanceof Netel) {
-			parent = (Netel)d;
-			parent.addModule(this);
-		} else {
-			Log.w("MODULE_DEVICEPLUGIN", "INIT", "ParentDeviceid="+parentDeviceid+" is not an instance of Netel ("+d+")!");
-			return;
-		}
-	}
-	*/
 
 	/**
 	 * Return the deviceid of the box this module is part of.
@@ -199,7 +161,7 @@ public class Module extends Device
 
 	public String getModule()
 	{
-		return module;
+		return moduleName;
 	}
 
 	public Port getPort(int ifindex)
@@ -231,7 +193,7 @@ public class Module extends Device
 
 	public String toString()
 	{
-		StringBuffer sb = new StringBuffer("Module [module="+module+", status="+status+", "+ports.size()+" ports]");
+		StringBuffer sb = new StringBuffer("Module [module="+moduleName+", status="+status+", "+ports.size()+" ports]");
 		if (VERBOSE_TOSTRING) {
 			for (Iterator i=ports.values().iterator(); i.hasNext();) {
 				sb.append("\n      "+i.next());

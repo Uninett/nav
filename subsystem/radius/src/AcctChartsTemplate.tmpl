@@ -1,6 +1,6 @@
 #encoding UTF-8
 ##
-## Copyright 2008 University of Tromsø 
+## Copyright 2008 University of TromsÃ¸ 
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -43,18 +43,18 @@ $makeMenu($menu, $current)
 #if $error:
 <div id="error">
 <font style="color: #FF0000">Chart generation failed: $error</font>
-<br>
+<br />
 </div>
 #end if
 
 
 <div id="form">
     <form id="charts" action="" method="get">
-        Charts for last <input type="text" name="days" size="3" value="$form.days"> day(s) </input>
-       <input type="checkbox" name="overallchart" value="overallchart" $setSelectItem($form.overallchart, "overallchart", output="checked")><label>Overall</label>
-         <input type="checkbox" name="uploadchart" value="uploadchart" $setSelectItem($form.uploadchart, "uploadchart", output="checked")><label>Upload</label>
-         <input type="checkbox" name="downloadchart" value="downloadchart" $setSelectItem($form.downloadchart, "downloadchart", output="checked")><label>Download</label>
-         <input type="submit" name="send" value="Create">
+        Charts for last <input type="text" name="days" size="3" value="$form.days" /> day(s)
+       <input type="checkbox" name="overallchart" value="overallchart" $setSelectItem($form.overallchart, "overallchart", output="checked") /><label>Overall</label>
+         <input type="checkbox" name="uploadchart" value="uploadchart" $setSelectItem($form.uploadchart, "uploadchart", output="checked") /><label>Upload</label>
+         <input type="checkbox" name="downloadchart" value="downloadchart" $setSelectItem($form.downloadchart, "downloadchart", output="checked") /><label>Download</label>
+         <input type="submit" name="send" value="Create" />
     </form>
 </div>
 
@@ -191,7 +191,6 @@ $makeMenu($menu, $current)
 #end if
 
 </div> <!-- end tabcontent -->
-</div> <!-- end radius -->
 
 
 #end block content
@@ -217,7 +216,7 @@ $makeMenu($menu, $current)
 
 #def $setSelectItem($selectValue, $currentField, $output, $default=False)
         #if ($str($selectValue).lower() == $str($currentField).lower()) or $default == True:
-                $output#slurp·
+                $output#slurpÂ·
         #end if
 #end def
 

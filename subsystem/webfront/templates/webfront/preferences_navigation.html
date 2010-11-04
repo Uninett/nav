@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+<h2>Navigation preferences</h2>
+
+<form action="" method="post">
+<table class="listtable">
+    <caption>
+        Navigation bar layout
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>Link</th>
+            <th>URL</th>
+            <th>Navbar</th>
+            <th>Quicklink #1</th>
+            <th>Quicklink #2</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for link in navbar_formset.forms %}
+        <tr class="{% cycle "oddrow" "evenrow" %}">
+            <td></td>
+            <td>
+                {{ link.name }}
+                {{ link.id }}
+            </td>
+            <td>
+                {{ link.url }}
+            </td>
+            <td>
+                {{ link.navbar }}
+            </td>
+            <td>
+                {{ link.qlink1 }}
+            </td>
+            <td>
+                {{ link.qlink2 }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tbody>
+        <tr>
+            <th>Delete</th>
+            <th colspan="5">Personal links</th>
+        </tr>
+    </tbody>
+
+    <tbody>
+        {% for link in personal_navbar_formset.forms %}
+        <tr class="{% cycle "oddrow" "evenrow" %}">
+            <td>
+                {{ link.DELETE }}
+            </td>
+            <td>
+                {{ link.name }}
+                {{ link.id }}
+            </td>
+            <td>
+                {{ link.url }}
+            </td>
+            <td>
+                {{ link.navbar }}
+            </td>
+            <td>
+                {{ link.qlink1 }}
+            </td>
+            <td>
+                {{ link.qlink2 }}
+            </td>
+            {% if link.errors %}
+            <tr>
+                <td></td>
+                <td colspan="5">
+                    {{ link.errors }}
+                </td>
+            </tr>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="6">
+                {{ navbar_formset.management_form }}
+                {{ personal_navbar_formset.management_form }}
+                <input type="submit" name="submit" value="Save changes" />
+            </th>
+        </tr>
+    </tfoot>
+</table>
+</form>
+
+{% endblock %}

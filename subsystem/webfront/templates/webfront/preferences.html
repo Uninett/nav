@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+<style type="text/css">
+    dl {
+        border-bottom: 1px solid grey;
+    }
+    dt {
+        font-size: 1.3em;
+        border-top: 1px solid grey;
+        padding-left: 0.2em;
+    }
+    dd {
+        padding: 0.2em 0 0.2em 2.2em;
+    }
+</style>
+{% endblock %}
+
+{% block base_content %}
+<h2>Preferences</h2>
+
+<div>
+    <dl>
+        <dt>
+            <a href="{% url webfront-preferences-navigation %}">Navigation
+            preferences</a>
+        </dt>
+        <dd>
+            Use this tool to change your navigation bar.
+            You can add your own links or remove the ones you never use.
+        </dd>
+        <dt>
+            <a href="{% url status-preferences %}">Status preferences</a>
+        </dt>
+        <dd>
+            Personalise the appearance of your status page.
+        </dd>
+    </dl>
+</div>
+{% endblock %}
