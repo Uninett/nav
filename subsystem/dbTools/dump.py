@@ -136,15 +136,6 @@ class Handlers:
             line = [vendor.id]
             lineout(line)
    
-    def product(self):
-        header("#vendorid:productno[:description]")
-        for product in manage.Product.objects.all():
-            line = []
-            line.append(product.vendor.id)
-            line.append(product.product_number)
-            line.append(product.description or "")
-            lineout(line)
-
     def prefix(self):
         header("#prefix/mask:nettype[:orgid:netident:usage:description:vlan]")
         for prefix in manage.Prefix.objects.all():
