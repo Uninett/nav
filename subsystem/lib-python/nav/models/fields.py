@@ -36,6 +36,7 @@ class PointField(models.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
+        kwargs['blank'] = False
         models.Field.__init__(self, *args, **kwargs)
 
     def get_internal_type(self):
