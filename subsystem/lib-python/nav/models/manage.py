@@ -26,7 +26,7 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
-from nav.models.fields import DateTimeInfinityField
+from nav.models.fields import DateTimeInfinityField, PointField
 
 # Choices used in Interface model and 'ipdevinfo' for determining interface status
 OPER_UP = 1
@@ -403,6 +403,7 @@ class Room(models.Model):
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
     optional_3 = models.CharField(db_column='opt3', max_length=-1)
     optional_4 = models.CharField(db_column='opt4', max_length=-1)
+    position = PointField()
 
     class Meta:
         db_table = 'room'
