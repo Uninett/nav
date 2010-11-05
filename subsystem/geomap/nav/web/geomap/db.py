@@ -83,10 +83,10 @@ def get_data(db_cursor, bounds, time_interval=None):
     layer_3_query = """
         SELECT DISTINCT ON (local_sysname, remote_sysname)
                sysname AS local_sysname,
-               interface AS local_interface,
+               ifname AS local_interface,
                netbox.netboxid AS local_netboxid,
-               gwport.gwportid AS local_gwportid,
-               gwport.gwportid AS local_portid,
+               interface_gwport.interfaceid AS local_gwportid,
+               interface_gwport.interfaceid AS local_portid,
                NULL AS local_swportid,
                speed AS capacity,
                ifindex,
@@ -97,31 +97,29 @@ def get_data(db_cursor, bounds, time_interval=None):
         FROM gwportprefix
         JOIN (
             SELECT DISTINCT ON (gwportprefix.prefixid)
-                   gwportid AS remote_gwportid,
-                   gwportid AS remote_portid,
+                   interfaceid AS remote_gwportid,
+                   interfaceid AS remote_portid,
                    NULL AS remote_swportid,
                    gwportprefix.prefixid,
                    ifindex AS remote_ifindex,
-                   interface AS remote_interface,
+                   ifname AS remote_interface,
                    sysname AS remote_sysname,
                    speed AS remote_speed,
                    netboxid AS remote_netboxid,
                    room.position AS remote_position
-            FROM gwport
-            JOIN module USING (moduleid)
+            FROM interface_gwport
             JOIN netbox USING (netboxid)
             JOIN room USING (roomid)
-            JOIN gwportprefix USING (gwportid)
+            JOIN gwportprefix USING (interfaceid)
         ) AS conn USING (prefixid)
-        JOIN gwport USING (gwportid)
-        JOIN module USING (moduleid)
+        JOIN interface_gwport USING (interfaceid)
         JOIN netbox USING (netboxid)
         JOIN room USING (roomid)
         LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
         LEFT JOIN vlan USING (vlanid)
-        LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='gwport' AND remote_rrd_file.value=conn.remote_gwportid::varchar)
-        LEFT JOIN rrd_file ON (rrd_file.key='gwport' AND rrd_file.value=gwport.gwportid::varchar)
-        WHERE gwport.gwportid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
+        LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='interface' AND remote_rrd_file.value=conn.remote_gwportid::varchar)
+        LEFT JOIN rrd_file ON (rrd_file.key='gwport' AND rrd_file.value=interface_gwport.interfaceid::varchar)
+        WHERE interface_gwport.interfaceid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
           AND ((room.position[1] >= %s AND room.position[0] >= %s AND
                 room.position[1] <= %s AND room.position[0] <= %s)
                OR
@@ -134,23 +132,23 @@ def get_data(db_cursor, bounds, time_interval=None):
 
 
     layer_2_query_1 = """
-SELECT DISTINCT ON (swport.swportid)
-gwport.gwportid AS remote_gwportid,
-gwport.gwportid AS remote_portid,
+SELECT DISTINCT ON (interface_swport.interfaceid)
+interface_gwport.interfaceid AS remote_gwportid,
+interface_gwport.interfaceid AS remote_portid,
 NULL AS remote_swportid,
-gwport.speed AS capacity,
-gwport.ifindex AS remote_ifindex,
-gwport.interface AS remote_interface,
+interface_gwport.speed AS capacity,
+interface_gwport.ifindex AS remote_ifindex,
+interface_gwport.ifname AS remote_interface,
 netbox.sysname AS remote_sysname,
 netbox.netboxid AS remote_netboxid,
 
-swport.swportid AS local_swportid,
-swport.swportid AS local_portid,
+interface_swport.interfaceid AS local_swportid,
+interface_swport.interfaceid AS local_portid,
 NULL AS local_gwportid,
-swport.interface AS local_interface,
+interface_swport.ifname AS local_interface,
 swport_netbox.sysname AS local_sysname,
 swport_netbox.netboxid AS local_netboxid,
-swport.ifindex AS ifindex,
+interface_swport.ifindex AS ifindex,
 
 2 AS layer,
 remote_rrd_file.path ||'/'|| remote_rrd_file.filename AS remote_rrdfile,
@@ -158,25 +156,23 @@ rrd_file.path ||'/'|| rrd_file.filename AS local_rrdfile,
 nettype, netident,
 vlan.*
 
-FROM gwport
- JOIN module ON (gwport.moduleid = module.moduleid)
- JOIN netbox USING (netboxid)
+FROM interface_gwport
+ JOIN netbox ON (interface_gwport.netboxid=netbox.netboxid)
 
- LEFT JOIN gwportprefix ON (gwportprefix.gwportid = gwport.gwportid)
+ LEFT JOIN gwportprefix ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
  LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
  LEFT JOIN vlan USING (vlanid)
- LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='gwport' AND remote_rrd_file.value=gwport.gwportid::varchar)
+ LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='interface' AND remote_rrd_file.value=interface_gwport.interfaceid::varchar)
 
- JOIN swport ON (swport.swportid = gwport.to_swportid)
- JOIN module AS swport_module ON (swport.moduleid = swport.moduleid)
- JOIN netbox AS swport_netbox ON (swport_module.netboxid = swport_netbox.netboxid)
+ JOIN interface_swport ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
+ JOIN netbox AS swport_netbox ON (interface_swport.netboxid = swport_netbox.netboxid)
 
- LEFT JOIN rrd_file ON (rrd_file.key='swport' AND rrd_file.value=swport.swportid::varchar)
+ LEFT JOIN rrd_file ON (rrd_file.key='interface' AND rrd_file.value=interface_swport.interfaceid::varchar)
 
  JOIN room AS gwport_room ON (netbox.roomid = gwport_room.roomid)
  JOIN room AS swport_room ON (swport_netbox.roomid = swport_room.roomid)
 
- WHERE gwport.to_swportid IS NOT NULL AND gwport.to_swportid = swport.swportid AND swport_module.moduleid = swport.moduleid
+ WHERE interface_gwport.to_interfaceid IS NOT NULL AND interface_gwport.to_interfaceid = interface_swport.interfaceid
    AND ((gwport_room.position[1] >= %s AND gwport_room.position[0] >= %s AND
          gwport_room.position[1] <= %s AND gwport_room.position[0] <= %s)
         OR
@@ -187,12 +183,12 @@ FROM gwport
 
     layer_2_query_2 = """
 SELECT DISTINCT ON (remote_sysname, local_sysname)
-swport.swportid AS remote_swportid,
-swport.swportid AS remote_portid,
+interface_swport.interfaceid AS remote_swportid,
+interface_swport.interfaceid AS remote_portid,
 NULL AS remote_gwportid,
-swport.speed AS capacity,
-swport.ifindex AS remote_ifindex,
-swport.interface AS remote_interface,
+interface_swport.speed AS capacity,
+interface_swport.ifindex AS remote_ifindex,
+interface_swport.ifname AS remote_interface,
 netbox.sysname AS remote_sysname,
 netbox.netboxid AS remote_netboxid,
 2 AS layer,
@@ -201,35 +197,33 @@ vlan.*,
 remote_rrd_file.path ||'/'|| remote_rrd_file.filename AS remote_rrdfile,
 rrd_file.path ||'/'|| rrd_file.filename AS local_rrdfile
 
-FROM swport
- JOIN module ON (swport.moduleid = module.moduleid)
+FROM interface_swport
  JOIN netbox USING (netboxid)
 
  JOIN (
 
      SELECT
-     swport.swportid AS local_swportid,
-     swport.swportid AS local_portid,
+     interface_swport.interfaceid AS local_swportid,
+     interface_swport.interfaceid AS local_portid,
      NULL AS local_gwportid,
-     swport.ifindex AS ifindex,
-     swport.interface AS local_interface,
+     interface_swport.ifindex AS ifindex,
+     interface_swport.ifname AS local_interface,
      netbox.sysname AS local_sysname,
      netbox.netboxid AS local_netboxid,
      room.position AS local_position
 
-     FROM swport
-     JOIN module ON (swport.moduleid = module.moduleid)
+     FROM interface_swport
      JOIN netbox USING (netboxid)
      JOIN room USING (roomid)
 
-   ) AS foo ON (foo.local_swportid = to_swportid)
+   ) AS foo ON (foo.local_swportid = to_interfaceid)
 
 
-LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
+LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
 LEFT JOIN vlan USING (vlanid)
 
-LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='swport' AND remote_rrd_file.value=swport.swportid::varchar)
-LEFT JOIN rrd_file ON (rrd_file.key='swport' AND rrd_file.value=foo.local_swportid::varchar)
+LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='interface' AND remote_rrd_file.value=interface_swport.interfaceid::varchar)
+LEFT JOIN rrd_file ON (rrd_file.key='interface' AND rrd_file.value=foo.local_swportid::varchar)
 
 JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
 
@@ -240,19 +234,19 @@ WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
         foo.local_position[1] <= %s AND foo.local_position[0] <= %s))
   AND length(lseg(remote_room.position, foo.local_position)) >= %s
 
-ORDER BY remote_sysname, local_sysname, swport.speed DESC
+ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
     """
 
     layer_2_query_3 = """
 SELECT DISTINCT ON (remote_sysname, local_sysname)
 
-swport.swportid AS remote_swportid,
-swport.swportid AS remote_portid,
-swport.ifindex AS remote_ifindex,
-swport.interface AS remote_interface,
+interface_swport.interfaceid AS remote_swportid,
+interface_swport.interfaceid AS remote_portid,
+interface_swport.ifindex AS remote_ifindex,
+interface_swport.ifname AS remote_interface,
 netbox.sysname AS remote_sysname,
 netbox.netboxid AS remote_netboxid,
-swport.speed AS capacity,
+interface_swport.speed AS capacity,
 2 AS layer,
 conn.*,
 vlan.*,
@@ -264,8 +258,7 @@ NULL AS local_swportid,
 NULL AS local_portid,
 NULL AS local_interface
 
-FROM swport
- JOIN module ON (swport.moduleid = module.moduleid)
+FROM interface_swport
  JOIN netbox USING (netboxid)
 
  JOIN (
@@ -277,9 +270,9 @@ FROM swport
     JOIN room USING (roomid)
  ) AS conn ON (conn.local_netboxid = to_netboxid)
 
-LEFT JOIN swportvlan ON (swport.swportid = swportvlan.swportid)
+LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
 LEFT JOIN vlan USING (vlanid)
-LEFT JOIN rrd_file  ON (key='swport' AND value=swport.swportid::varchar)
+LEFT JOIN rrd_file  ON (key='interface' AND value=interface_swport.interfaceid::varchar)
 
 JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
 
@@ -290,7 +283,7 @@ WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
         conn.local_position[1] <= %s AND conn.local_position[0] <= %s))
   AND length(lseg(remote_room.position, conn.local_position)) >= %s
 
-ORDER BY remote_sysname, local_sysname, swport.speed DESC
+ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
     """
 
     db_cursor.execute(layer_3_query, network_query_args)
