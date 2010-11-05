@@ -403,7 +403,7 @@ class Room(models.Model):
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
     optional_3 = models.CharField(db_column='opt3', max_length=-1)
     optional_4 = models.CharField(db_column='opt4', max_length=-1)
-    position = PointField()
+    position = PointField(null=True, default=None)
 
     class Meta:
         db_table = 'room'
