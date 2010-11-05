@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-<script src="/js/geomap/proj4js-compressed.js"></script>
-<script src="/js/geomap/projdefs/EPSG326xx.js"></script>
-<script src="/js/geomap/projdefs/EPSG327xx.js"></script>
-<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
-<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+<script type="text/javascript" src="/js/geomap/proj4js-compressed.js"></script>
+<script type="text/javascript" src="/js/geomap/projdefs/EPSG326xx.js"></script>
+<script type="text/javascript" src="/js/geomap/projdefs/EPSG327xx.js"></script>
+<script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script type="text/javascript" src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
  
-<script src="/js/geomap/util.js"></script>
-<script src="/js/geomap/coordinates.js"></script>
-<script src="/js/geomap/NetworkLayer.js"></script>
-<script src="/js/geomap/PopupControl.js"></script>
-<script src="/js/geomap/PositionControl.js"></script>
-<script src="/js/geomap/MyHTTPProtocol.js"></script>
-<script src="/js/geomap/Calendar.js"></script>
-<script src="/js/geomap/Time.js"></script>
-<script src="/js/geomap/TimeInterval.js"></script>
-<script src="/js/geomap/TimeNavigator.js"></script>
-<script src="/js/geomap/Permalink.js"></script>
-<script src="/js/geomap/geomap.js"></script>
+<script type="text/javascript" src="/js/geomap/util.js"></script>
+<script type="text/javascript" src="/js/geomap/coordinates.js"></script>
+<script type="text/javascript" src="/js/geomap/NetworkLayer.js"></script>
+<script type="text/javascript" src="/js/geomap/PopupControl.js"></script>
+<script type="text/javascript" src="/js/geomap/PositionControl.js"></script>
+<script type="text/javascript" src="/js/geomap/MyHTTPProtocol.js"></script>
+<script type="text/javascript" src="/js/geomap/Calendar.js"></script>
+<script type="text/javascript" src="/js/geomap/Time.js"></script>
+<script type="text/javascript" src="/js/geomap/TimeInterval.js"></script>
+<script type="text/javascript" src="/js/geomap/TimeNavigator.js"></script>
+<script type="text/javascript" src="/js/geomap/Permalink.js"></script>
+<script type="text/javascript" src="/js/geomap/geomap.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/style/geomap.css" />
 {% endblock %}
@@ -92,7 +92,7 @@
 </p>
 
 <div id="position">
-  Last clicked position:<br>
+  Last clicked position:<br />
   <input type="text" id="pos-clicked-lonlat" size="18"/> (lat/lon)
   <input type="text" id="pos-clicked-utm" size="18"/> (UTM)
 </div>
