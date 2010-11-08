@@ -388,6 +388,11 @@ class Shadow(object):
         """
         pass
 
+    def clear_cached_objects(self):
+        """Clear object caches from this shadow."""
+        for attr in dir(self):
+            if attr.startswith('_cached'):
+                delattr(self, attr)
 
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
