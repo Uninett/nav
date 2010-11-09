@@ -25,9 +25,11 @@ from nav.web.message import new_message, Messages
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
 from nav.models.manage import Usage, Vendor, Subcategory, Prefix, NetboxCategory
-from nav.models.service import Service
+from nav.models.service import Service, ServiceProperty
 from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp, SnmpError
+from nav.web.quickselect import QuickSelect
+from nav.web.serviceHelper import getDescription
 
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm
@@ -35,6 +37,7 @@ from nav.web.seeddb.forms import UsageForm, NetboxTypeForm, VendorForm
 from nav.web.seeddb.forms import SubcategoryForm, PrefixForm, CablingForm
 from nav.web.seeddb.forms import PatchForm, NetboxForm, NetboxSerialForm
 from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
+from nav.web.seeddb.forms import ServiceForm, ServicePropertyForm, ServiceChoiceForm
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
@@ -195,6 +198,7 @@ def netbox_save(request, form, serial_form, subcat_form):
     if primary_key:
         netbox = Netbox.objects.get(pk=primary_key)
         for key in data:
+            # FIXME Use setattr(), not __setattr__
             netbox.__setattr__(key, data[key])
     else:
         netbox = Netbox(**data)
@@ -213,8 +217,105 @@ def netbox_save(request, form, serial_form, subcat_form):
     return HttpResponseRedirect(reverse('seeddb-netbox'))
 
 def service_edit(request, service_id=None):
-    # FIXME
-    raise Exception, "Not implemented"
+    service_form = None
+    property_form = None
+    if request.method == 'POST' and 'save' in request.POST:
+        service_form = ServiceForm(request.POST)
+        if service_form.is_valid():
+            property_form = ServicePropertyForm(request.POST,
+                service_args=getDescription(service_form.cleaned_data['handler']))
+            if property_form.is_valid():
+                return service_save(request, service_form, property_form)
+    else:
+        if not service_id:
+            return service_add(request)
+        else:
+            service = Service.objects.get(pk=service_id)
+            service_prop = ServiceProperty.objects.filter(service=service)
+            service_form = ServiceForm(initial={
+                'service': service.pk,
+                'netbox': service.netbox_id,
+                'handler': service.handler,
+            })
+            initial = dict([(prop.property, prop.value) for prop in service_prop])
+            property_form = ServicePropertyForm(
+                service_args=getDescription(service.handler),
+                initial=initial)
+
+    context = {
+        'service_form': service_form,
+        'property_form': property_form,
+    }
+    return render_to_response('seeddb/service_property_form.html',
+        context, RequestContext(request))
+
+def service_add(request):
+    select_args = {
+        'location': False,
+        'room': False,
+        'netbox': True,
+        'netbox_multiple': False,
+    }
+    box_select = QuickSelect(**select_args)
+    if request.method == 'POST':
+        choice_form = ServiceChoiceForm(request.POST)
+        netbox_id = request.POST.get('netbox')
+        try:
+            netbox = Netbox.objects.get(pk=netbox_id)
+        except Netbox.DoesNotExist:
+            new_message(
+                request._req,
+                "Netbox does not exist in database",
+                Messages.ERROR)
+        else:
+            if choice_form.is_valid():
+                property_form = ServicePropertyForm(
+                    service_args=getDescription(choice_form.cleaned_data['service']))
+                service_form = ServiceForm(initial={
+                    'netbox': netbox.pk,
+                    'handler': choice_form.cleaned_data['service'],
+                })
+                context = {
+                    'service_form': service_form,
+                    'property_form': property_form,
+                }
+                return render_to_response('seeddb/service_property_form.html',
+                    context, RequestContext(request))
+    else:
+        choice_form = ServiceChoiceForm()
+
+    context = {
+        'box_select': box_select,
+        'choice_form': choice_form,
+    }
+    return render_to_response('seeddb/service_netbox_form.html',
+        context, RequestContext(request))
+
+@transaction.commit_on_success
+def service_save(request, service_form, property_form):
+    service_id = service_form.cleaned_data.get('service')
+    if service_id:
+        service = Service.objects.select_related(
+            'netbox').get(pk=service_id)
+        ServiceProperty.objects.filter(service=service).delete()
+        netbox = service.netbox
+    else:
+        netbox = Netbox.objects.get(pk=service_form.cleaned_data['netbox'])
+        service = Service.objects.create(
+            netbox=netbox,
+            handler=service_form.cleaned_data['handler']
+        )
+    for (property, value) in property_form.cleaned_data.items():
+        ServiceProperty.objects.create(
+            service=service,
+            property=property,
+            value=value
+        )
+    new_message(
+        request._req,
+        "Saved service for handler %s on %s" % (service.handler, netbox),
+        Messages.SUCCESS)
+    return HttpResponseRedirect(reverse('seeddb-service'))
 
 def room_edit(request, room_id=None):
     extra = {

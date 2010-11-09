@@ -40,7 +40,7 @@ urlpatterns = patterns('',
     # Service
     url(r'^service/$', service_list,
         name='seeddb-service'),
-    url(r'^service/edit/(?P<service>[\d]+)$', service_edit,
+    url(r'^service/edit/(?P<service_id>[\d]+)$', service_edit,
         name='seeddb-service-edit'),
     url(r'^service/add/$', service_edit,
         name='seeddb-service-edit'),

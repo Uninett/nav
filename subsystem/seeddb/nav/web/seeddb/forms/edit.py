@@ -25,7 +25,8 @@ from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
 from nav.models.manage import Category, Device, NetboxCategory
-from nav.models.service import Service
+from nav.models.service import Service, ServiceProperty
+from nav.web.serviceHelper import getCheckers
 
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
 from nav.web.seeddb.utils.edit import does_sysname_exist
@@ -160,6 +161,34 @@ class NetboxSubcategoryForm(forms.Form):
         queryset = kwargs.pop('queryset')
         super(NetboxSubcategoryForm, self).__init__(*args, **kwargs)
         self.fields['subcategories'] = forms.ModelMultipleChoiceField(queryset=queryset, required=False)
+
+class ServiceChoiceForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(ServiceChoiceForm, self).__init__(*args, **kwargs)
+        self.fields['service'] = forms.ChoiceField(
+            choices=[(service, service) for service in getCheckers()])
+
+class ServiceForm(forms.Form):
+    service = forms.IntegerField(
+        widget=forms.HiddenInput, required=False)
+    handler = forms.CharField(
+        widget=forms.TextInput(attrs=READONLY_WIDGET_ATTRS))
+    netbox = forms.IntegerField(
+        widget=forms.TextInput(attrs=READONLY_WIDGET_ATTRS))
+
+class ServicePropertyForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        service_description = kwargs.pop('service_args')
+        super(ServicePropertyForm, self).__init__(*args, **kwargs)
+        args = service_description.get('args')
+        opt_args = service_description.get('optargs')
+
+        if args:
+            for arg in args:
+                self.fields[arg] = forms.CharField(required=True)
+        if opt_args:
+            for arg in opt_args:
+                self.fields[arg] = forms.CharField(required=False)
 
 class RoomForm(forms.ModelForm):
     class Meta:
