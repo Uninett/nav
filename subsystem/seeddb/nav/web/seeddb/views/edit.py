@@ -217,25 +217,32 @@ def netbox_save(request, form, serial_form, subcat_form):
     return HttpResponseRedirect(reverse('seeddb-netbox'))
 
 def service_edit(request, service_id=None):
+    service = None
+    netbox = None
     service_form = None
     property_form = None
+    if service_id:
+        service = Service.objects.get(pk=service_id)
+
     if request.method == 'POST' and 'save' in request.POST:
         service_form = ServiceForm(request.POST)
         if service_form.is_valid():
+            handler = service_form.cleaned_data['handler']
             property_form = ServicePropertyForm(request.POST,
-                service_args=getDescription(service_form.cleaned_data['handler']))
+                service_args=getDescription(handler))
             if property_form.is_valid():
                 return service_save(request, service_form, property_form)
     else:
         if not service_id:
             return service_add(request)
         else:
-            service = Service.objects.get(pk=service_id)
+            handler = service.handler
+            netbox = service.netbox
             service_prop = ServiceProperty.objects.filter(service=service)
             service_form = ServiceForm(initial={
                 'service': service.pk,
-                'netbox': service.netbox_id,
-                'handler': service.handler,
+                'netbox': netbox.pk,
+                'handler': handler,
             })
             initial = dict([(prop.property, prop.value) for prop in service_prop])
             property_form = ServicePropertyForm(
@@ -244,8 +251,8 @@ def service_edit(request, service_id=None):
 
     context = {
         'object': service,
-        'handler': service.handler,
-        'netbox': service.netbox,
+        'handler': handler,
+        'netbox': netbox,
         'active': {'service': True},
         'sub_active': {'edit': True},
         'service_form': service_form,
