@@ -38,6 +38,14 @@ def netbox_delete(request):
     return render_delete(request, Netbox, 'seeddb-netbox',
         whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
+def service_delete(request):
+    extra = {
+        'navpath': NAVPATH_DEFAULT + [('Service', reverse('seeddb-service'))],
+        'tab_template': 'seeddb/tabs_service.html',
+    }
+    return render_delete(request, Service, 'seeddb-service',
+        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
+
 def room_delete(request):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
