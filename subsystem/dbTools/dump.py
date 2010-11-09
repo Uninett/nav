@@ -136,17 +136,14 @@ class Handlers:
             line = [vendor.id]
             lineout(line)
    
-    def product(self):
-        header("#vendorid:productno[:description]")
-        for product in manage.Product.objects.all():
-            line = []
-            line.append(product.vendor.id)
-            line.append(product.product_number)
-            line.append(product.description or "")
-            lineout(line)
-
     def prefix(self):
-        header("#prefix/mask:nettype[:orgid:netident:usage:description:vlan]")
+        global SEPARATOR
+        old_sep = SEPARATOR
+        if SEPARATOR==":":
+            # IPv6 prefixes are full of colons
+            warn("Not smart to use : as separator for prefixes, using ;")
+            SEPARATOR=";"
+        header("#prefix/mask;nettype[;orgid;netident;usage;description;vlan]")
         for prefix in manage.Prefix.objects.all():
             vlan = prefix.vlan
             line = []
@@ -159,7 +156,7 @@ class Handlers:
                 line.append(vlan.description or "")
                 line.append(vlan.vlan and str(vlan.vlan) or "")
             lineout(line)
-
+        SEPARATOR = old_sep
 
     def service(self):
         global SEPARATOR
