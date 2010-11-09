@@ -243,8 +243,16 @@ def service_edit(request, service_id=None):
                 initial=initial)
 
     context = {
+        'object': service,
+        'handler': service.handler,
+        'netbox': service.netbox,
+        'active': {'service': True},
+        'sub_active': {'edit': True},
         'service_form': service_form,
         'property_form': property_form,
+        'navpath': NAVPATH_DEFAULT + [('Service', reverse('seeddb-service'))],
+        'tab_template': 'seeddb/tabs_service.html',
+        'title': 'NAV - Seed Database - Add service',
     }
     return render_to_response('seeddb/service_property_form.html',
         context, RequestContext(request))
@@ -278,6 +286,13 @@ def service_add(request):
                 context = {
                     'service_form': service_form,
                     'property_form': property_form,
+                    'active': {'service': True},
+                    'sub_active': {'add': True},
+                    'navpath': NAVPATH_DEFAULT + [('Service', reverse('seeddb-service'))],
+                    'tab_template': 'seeddb/tabs_service.html',
+                    'title': 'NAV - Seed Database - Add service',
+                    'handler': choice_form.cleaned_data['service'],
+                    'netbox': netbox,
                 }
                 return render_to_response('seeddb/service_property_form.html',
                     context, RequestContext(request))
@@ -287,6 +302,11 @@ def service_add(request):
     context = {
         'box_select': box_select,
         'choice_form': choice_form,
+        'active': {'service': True},
+        'sub_active': {'add': True},
+        'navpath': NAVPATH_DEFAULT + [('Service', reverse('seeddb-service'))],
+        'tab_template': 'seeddb/tabs_service.html',
+        'title': 'NAV - Seed Database - Add service',
     }
     return render_to_response('seeddb/service_netbox_form.html',
         context, RequestContext(request))

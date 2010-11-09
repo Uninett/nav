@@ -172,9 +172,9 @@ class ServiceForm(forms.Form):
     service = forms.IntegerField(
         widget=forms.HiddenInput, required=False)
     handler = forms.CharField(
-        widget=forms.TextInput(attrs=READONLY_WIDGET_ATTRS))
+        widget=forms.HiddenInput)
     netbox = forms.IntegerField(
-        widget=forms.TextInput(attrs=READONLY_WIDGET_ATTRS))
+        widget=forms.HiddenInput)
 
 class ServicePropertyForm(forms.Form):
     def __init__(self, *args, **kwargs):
