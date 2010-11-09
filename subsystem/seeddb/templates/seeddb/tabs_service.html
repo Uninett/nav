@@ -7,6 +7,6 @@
 </li>
 {% if object %}
 <li class="{{ sub_active.edit|yesno:"tabactive," }}">
-    <a href="{% url seeddb-service-edit object.id %}">Edit service "{{ object.id }}"</a>
+    <a href="{% url seeddb-service-edit object.id %}">Edit service "{{ object }}"</a>
 </li>
 {% endif %}

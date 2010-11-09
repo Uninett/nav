@@ -56,7 +56,10 @@ def render_delete(request, model, redirect, whitelist=[], extra_context={}):
             msg = "Error: %s" % ex
             new_message(request._req, msg, Messages.ERROR)
         else:
-            new_message(request._req, "YAY", Messages.SUCCESS)
+            new_message(
+                request._req,
+                "Deleted %i rows" % len(objects),
+                Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect))
 
     info_dict = {
@@ -98,17 +101,17 @@ def qs_delete(queryset):
     """
     quote_name = connection.ops.quote_name
 
-    pk_list = [obj.pk for obj in queryset]
+    pk_list = tuple([obj.pk for obj in queryset])
     primary_key = queryset.model._meta.pk.db_column
     table = queryset.model._meta.db_table
 
     cursor = connection.cursor()
-    sql = "DELETE FROM %(table)s WHERE %(field)s IN (%%s)" % {
+    sql = "DELETE FROM %(table)s WHERE %(field)s IN %%s" % {
         'table': quote_name(table),
         'field': quote_name(primary_key),
     }
     try:
-        cursor.execute(sql, pk_list)
+        cursor.execute(sql, (pk_list,))
     except:
         # Something went wrong, rollback and re-raise exception
         transaction.rollback()
