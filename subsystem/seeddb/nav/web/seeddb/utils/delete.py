@@ -56,7 +56,10 @@ def render_delete(request, model, redirect, whitelist=[], extra_context={}):
             msg = "Error: %s" % ex
             new_message(request._req, msg, Messages.ERROR)
         else:
-            new_message(request._req, "YAY", Messages.SUCCESS)
+            new_message(
+                request._req,
+                "Deleted %i rows" % len(objects),
+                Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect))
 
     info_dict = {
