@@ -233,6 +233,10 @@ class SubcategoryForm(forms.ModelForm):
     class Meta:
         model = Subcategory
 
+class VlanForm(forms.ModelForm):
+    class Meta:
+        model = Vlan
+
 class PrefixForm(forms.ModelForm):
     class Meta:
         model = Prefix

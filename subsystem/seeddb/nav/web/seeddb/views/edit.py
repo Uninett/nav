@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect
 from nav.web.message import new_message, Messages
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
-from nav.models.manage import Usage, Vendor, Subcategory, Prefix, NetboxCategory
+from nav.models.manage import Usage, Vendor, Subcategory, Prefix, NetboxCategory, Vlan
 from nav.models.service import Service, ServiceProperty
 from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp, SnmpError
@@ -38,6 +38,7 @@ from nav.web.seeddb.forms import SubcategoryForm, PrefixForm, CablingForm
 from nav.web.seeddb.forms import PatchForm, NetboxForm, NetboxSerialForm
 from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
 from nav.web.seeddb.forms import ServiceForm, ServicePropertyForm, ServiceChoiceForm
+from nav.web.seeddb.forms import VlanForm
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
@@ -416,8 +417,14 @@ def subcategory_edit(request, subcategory_id=None):
         extra_context=extra)
 
 def vlan_edit(request, vlan_id=None):
-    # FIXME
-    raise Exception, "Not implemented"
+    extra = {
+        'active': {'vlan': True},
+        'navpath': NAVPATH_DEFAULT + [('Vlan', reverse('seeddb-vlan'))],
+        'tab_template': 'seeddb/tabs_vlan.html',
+    }
+    return render_edit(request, Vlan, VlanForm, vlan_id,
+        'seeddb-vlan-edit',
+        extra_context=extra)
 
 def prefix_edit(request, prefix_id=None):
     extra = {
