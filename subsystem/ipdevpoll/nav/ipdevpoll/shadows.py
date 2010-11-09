@@ -235,6 +235,7 @@ class Device(Shadow):
                 self._logger.warn("Invalid value for %s: %r",
                                   attr, value)
                 setattr(self, attr, repr(value))
+        self.clear_cached_objects()
         
     def prepare(self, containers):
         self._fix_binary_garbage()
