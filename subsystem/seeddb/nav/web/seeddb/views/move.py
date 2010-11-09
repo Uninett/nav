@@ -15,22 +15,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from IPy import IP
-from socket import gethostbyname, gethostbyaddr
-
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix
-from nav.models.service import Service
-from nav.web.message import new_message, Messages
-from nav.Snmp import Snmp
+from nav.models.manage import Netbox, Room, Organization
 
-from nav.web.seeddb.forms.move import *
-from nav.web.seeddb.utils.move import *
+from nav.web.seeddb.forms.move import NetboxMoveForm, RoomMoveForm
+from nav.web.seeddb.forms.move import OrganizationMoveForm
+from nav.web.seeddb.utils.move import move
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
@@ -54,8 +45,10 @@ def room_move(request):
 
 def organization_move(request):
     extra = {
-        'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
+        'navpath': NAVPATH_DEFAULT + [
+            ('Organization', reverse('seeddb-organization'))],
         'tab_template': 'seeddb/tabs_organization.html',
     }
-    return move(request, Organization, OrganizationMoveForm, 'seeddb-organization',
+    return move(request, Organization, OrganizationMoveForm,
+        'seeddb-organization',
         extra_context=extra)

@@ -17,36 +17,38 @@
 
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
-from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
-from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
-from nav.web.seeddb.forms.move import MoveOperationForm
 
 def render_delete(request, model, redirect, whitelist=[], extra_context={}):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
-        new_message(request._req, "You need to select at least one object to edit", Messages.ERROR)
+        new_message(
+            request._req,
+            "You need to select at least one object to edit",
+            Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
 
-    objects = model.objects.filter(pk__in=request.POST.getlist('object')).order_by('pk')
+    objects = model.objects.filter(
+        pk__in=request.POST.getlist('object')
+    ).order_by('pk')
     related = dependencies(objects, whitelist)
 
-    for o in objects:
-        if o.pk in related:
-            o.related_objects = related[o.pk]
+    for obj in objects:
+        if obj.pk in related:
+            obj.related_objects = related[obj.pk]
 
     if request.POST.get('confirm'):
         try:
             qs_delete(objects)
         except IntegrityError, ex:
             # We can't delete.
-            # Some of the objects we want to delete is referenced by another table
-            # without any ON DELETE rules.
+            # Some of the objects we want to delete is referenced by another
+            # table without any ON DELETE rules.
             msg = "Integrity failed: %s" % ex
             new_message(request._req, msg, Messages.ERROR)
         except Exception, ex:
@@ -64,10 +66,10 @@ def render_delete(request, model, redirect, whitelist=[], extra_context={}):
     return render_to_response('seeddb/delete.html',
         extra_context, RequestContext(request))
 
-def dependencies(qs, whitelist):
-    primary_keys = [object.pk for object in qs]
-    related = qs.model._meta.get_all_related_objects()
-#    related += qs.model._meta.get_all_related_many_to_many_objects()
+def dependencies(queryset, whitelist):
+    primary_keys = [obj.pk for obj in queryset]
+    related = queryset.model._meta.get_all_related_objects()
+#    related += queryset.model._meta.get_all_related_many_to_many_objects()
 
     related_objects = {}
     for rel in related:
@@ -75,36 +77,35 @@ def dependencies(qs, whitelist):
             continue
         name = rel.var_name
         field = rel.field.name
-        accessor = rel.get_accessor_name()
         lookup = "%s__in" % field
         params = {lookup: primary_keys}
         objects = rel.model.objects.filter(**params)
-        for o in objects:
-            o.object_name = name
-            attr = getattr(o, '%s_id' % field)
+        for obj in objects:
+            obj.object_name = name
+            attr = getattr(obj, '%s_id' % field)
             if attr not in related_objects:
                 related_objects[attr] = []
-            related_objects[attr].append(o)
+            related_objects[attr].append(obj)
 
     return related_objects
 
 @transaction.commit_manually
-def qs_delete(qs):
+def qs_delete(queryset):
     """Deletes objects from the database.
 
     Given a queryset containing the objects to be deleted, this method will
     either delete all without error, or delete none if there's an error.
     """
-    qn = connection.ops.quote_name
+    quote_name = connection.ops.quote_name
 
-    pk_list = [object.pk for object in qs]
-    primary_key = qs.model._meta.pk.db_column
-    table = qs.model._meta.db_table
+    pk_list = [obj.pk for obj in queryset]
+    primary_key = queryset.model._meta.pk.db_column
+    table = queryset.model._meta.db_table
 
     cursor = connection.cursor()
     sql = "DELETE FROM %(table)s WHERE %(field)s IN (%%s)" % {
-        'table': qn(table),
-        'field': qn(primary_key),
+        'table': quote_name(table),
+        'field': quote_name(primary_key),
     }
     try:
         cursor.execute(sql, pk_list)

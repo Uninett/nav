@@ -15,29 +15,26 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from IPy import IP
-from socket import gethostbyaddr, gethostbyname
-
 from django.core.urlresolvers import reverse
-from django.core.paginator import Paginator, InvalidPage
 from django.db import transaction
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect
 
-from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
-from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix, NetboxCategory
+from nav.models.manage import Usage, Vendor, Subcategory, Prefix, NetboxCategory
 from nav.models.service import Service
 from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp, SnmpError
 
 from nav.web.seeddb.utils.edit import render_edit
-from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm, \
-    UsageForm, NetboxTypeForm, VendorForm, SubcategoryForm, PrefixForm, \
-    CablingForm, PatchForm, NetboxForm, NetboxSerialForm, NetboxSubcategoryForm, get_netbox_subcategory_form, NetboxReadonlyForm
+from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm
+from nav.web.seeddb.forms import UsageForm, NetboxTypeForm, VendorForm
+from nav.web.seeddb.forms import SubcategoryForm, PrefixForm, CablingForm
+from nav.web.seeddb.forms import PatchForm, NetboxForm, NetboxSerialForm
+from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 

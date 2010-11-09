@@ -27,33 +27,35 @@ from django.db.models import Q
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox
 
-def render_edit(request, model, form_model, object_id, redirect,\
-        identifier_attr='pk', title_attr='pk', template='seeddb/edit.html',\
+def render_edit(request, model, form_model, object_id, redirect, \
+        identifier_attr='pk', title_attr='pk', template='seeddb/edit.html', \
         extra_context={}):
 
-    object = _get_object(model, object_id, identifier_attr)
-    (identifier, title) = _get_identifier_title(object, identifier_attr, title_attr)
+    obj = _get_object(model, object_id, identifier_attr)
+    (identifier, title) = _get_identifier_title(
+        obj, identifier_attr, title_attr)
     verbose_name = model._meta.verbose_name
 
     if request.method == 'POST':
-        form = form_model(request.POST, instance=object)
+        form = form_model(request.POST, instance=obj)
         if form.is_valid():
-            object = form.save()
-            (identifier, title) = _get_identifier_title(object, identifier_attr, title_attr)
+            obj = form.save()
+            (identifier, title) = _get_identifier_title(
+                obj, identifier_attr, title_attr)
             new_message(request._req,
                  "Saved %s %s" % (verbose_name, title),
                  Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect, args=(identifier,)))
     else:
-        form = form_model(instance=object)
+        form = form_model(instance=obj)
 
     context = {
-        'object': object,
+        'object': obj,
         'form': form,
         'title': 'Add new %s' % verbose_name,
         'sub_active': {'add': True},
     }
-    if object:
+    if obj:
         context.update({
             'title': 'Edit %s "%s"' % (verbose_name, title),
             'sub_active': {'edit': True},
@@ -66,18 +68,18 @@ def _get_object(model, object_id, identifier_attr):
     if object_id:
         try:
             params = {identifier_attr: object_id}
-            object = model.objects.get(**params)
+            obj = model.objects.get(**params)
         except model.DoesNotExist:
             raise Http404
-        return object
+        return obj
     return None
 
-def _get_identifier_title(object, identifier_attr, title_attr):
+def _get_identifier_title(obj, identifier_attr, title_attr):
     identifier = None
     title = None
-    if object:
-        identifier = getattr(object, identifier_attr)
-        title = getattr(object, title_attr)
+    if obj:
+        identifier = getattr(obj, identifier_attr)
+        title = getattr(obj, title_attr)
     return (identifier, title)
 
 def resolve_ip_and_sysname(name):
@@ -91,16 +93,16 @@ def resolve_ip_and_sysname(name):
         sysname = ip
     return (ip, sysname)
 
-def does_ip_exist(ip, id=None):
-    if id:
-        ip_qs = Netbox.objects.filter(Q(ip=unicode(ip)), ~Q(id=id))
+def does_ip_exist(ip, netbox_id=None):
+    if netbox_id:
+        ip_qs = Netbox.objects.filter(Q(ip=unicode(ip)), ~Q(id=netbox_id))
     else:
         ip_qs = Netbox.objects.filter(ip=unicode(ip))
     return ip_qs.count() > 0
 
-def does_sysname_exist(sysname, id=None):
-    if id:
-        sysname_qs = Netbox.objects.filter(Q(sysname=sysname), ~Q(id=id))
+def does_sysname_exist(sysname, netbox_id=None):
+    if netbox_id:
+        sysname_qs = Netbox.objects.filter(Q(sysname=sysname), ~Q(id=netbox_id))
     else:
         sysname_qs = Netbox.objects.filter(sysname=sysname)
     return sysname_qs.count() > 0

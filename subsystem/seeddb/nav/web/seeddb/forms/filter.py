@@ -17,11 +17,8 @@
 
 from django import forms
 
-from nav.Snmp import Snmp, TimeOutException, SnmpError
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization,\
-    Usage, Vendor, Subcategory, Vlan, Prefix, Category, NetType
-from nav.models.service import Service
+from nav.models.manage import Room, Location, Organization, Usage, Vendor
+from nav.models.manage import Category, NetType
 
 class NetboxFilterForm(forms.Form):
     category = forms.ModelChoiceField(
@@ -38,7 +35,9 @@ class RoomFilterForm(forms.Form):
 class OrganizationFilterForm(forms.Form):
     parent = forms.ModelChoiceField(
         Organization.objects.filter(
-            pk__in=Organization.objects.filter(parent__isnull=False).values_list('parent', flat=True)
+            pk__in=Organization.objects.filter(
+                parent__isnull=False
+            ).values_list('parent', flat=True)
         ).order_by('id'), required=False)
 
 class NetboxTypeFilterForm(forms.Form):

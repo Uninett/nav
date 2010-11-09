@@ -17,10 +17,7 @@
 
 from django import forms
 
-from nav.Snmp import Snmp, TimeOutException, SnmpError
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Usage, Vendor, Subcategory, Vlan, Prefix, Category
-from nav.models.service import Service
+from nav.models.manage import Room, Location, Organization
 
 class MoveOperationForm(forms.Form):
     """Generates a form with checkboxes for each field in the supplied form.
@@ -34,14 +31,16 @@ class MoveOperationForm(forms.Form):
         fields = form.fields.keys()
         for field in fields:
             key = 'operation_%s' % field
-            self.fields[key] = forms.BooleanField(required=False, label="Change %s" % field)
+            self.fields[key] = forms.BooleanField(
+                required=False, label="Change %s" % field)
             if hidden:
                 self.fields[key].widget = forms.HiddenInput()
 
     def clean(self):
         clean = [key for key in self.cleaned_data if self.cleaned_data[key]]
         if len(clean) == 0:
-            raise forms.ValidationError("You must select at least one foreign key to edit.")
+            raise forms.ValidationError(
+                "You must select at least one foreign key to edit.")
         return self.cleaned_data
 
 class MoveForm(forms.Form):

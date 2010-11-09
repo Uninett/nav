@@ -15,8 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from IPy import IP
-from socket import gethostbyaddr, gethostbyname, error as SocketError
+from socket import error as SocketError
 
 from django import forms
 from django.db.models import Q

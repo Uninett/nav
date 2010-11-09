@@ -21,16 +21,10 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from nav.django.utils import get_verbose_name
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
-from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
-from nav.models.service import Service
-
-from nav.web.seeddb.forms import NetboxFilterForm, RoomFilterForm
 
 ITEMS_PER_PAGE = 100
 
-def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk',\
+def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk', \
         filter_form=None, template='seeddb/list.html', extra_context={}):
     """Renders a Seed DB list.
 
@@ -48,13 +42,6 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk',\
                       should be used in the template.
     """
 
-    per_page = request.GET.get('per_page', ITEMS_PER_PAGE)
-    if per_page == 'all':
-        per_page = value_qs.count()
-    else:
-        per_page = _get_num(request.GET, 'per_page', ITEMS_PER_PAGE)
-    page_num = _get_num(request.GET, 'page', 1)
-
     order_by = request.GET.get('sort')
     order_by = _get_order_by(order_by, value_list)
     order_by_meta = _order_by_meta(order_by)
@@ -65,6 +52,13 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk',\
     # Get values specified in value_list from the queryset.
     # Also make sure that the primary key and the edit_url_attr appears.
     value_queryset = queryset.values('pk', edit_url_attr, *value_list)
+
+    per_page = request.GET.get('per_page', ITEMS_PER_PAGE)
+    if per_page == 'all':
+        per_page = value_queryset.count()
+    else:
+        per_page = _get_num(request.GET, 'per_page', ITEMS_PER_PAGE)
+    page_num = _get_num(request.GET, 'page', 1)
 
     page = _paginate(value_queryset, per_page, page_num)
     objects = _process_objects(page, value_list, edit_url, edit_url_attr)
@@ -107,8 +101,8 @@ def _filter_query(filter_form, queryset):
     """Apply filter_form to queryset.
     """
     if filter_form and filter_form.is_valid():
-        filter = dict([(key, value) for key, value in filter_form.cleaned_data.items() if value])
-        queryset = queryset.filter(**filter)
+        query_filter = dict([(key, value) for key, value in filter_form.cleaned_data.items() if value])
+        queryset = queryset.filter(**query_filter)
     return queryset
 
 def _get_order_by(order_by, value_list):
@@ -151,11 +145,11 @@ def _process_objects(page, value_list, edit_url, edit_url_attr):
                     table.
     """
     objects = []
-    for object in page.object_list:
+    for obj in page.object_list:
         row = {
-            'pk': object['pk'],
-            'url': reverse(edit_url, args=(object[edit_url_attr],)),
-            'values_list': [object[attr] for attr in value_list],
+            'pk': obj['pk'],
+            'url': reverse(edit_url, args=(obj[edit_url_attr],)),
+            'values_list': [obj[attr] for attr in value_list],
         }
         objects.append(row)
     return objects

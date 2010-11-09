@@ -16,12 +16,10 @@
 #
 
 from django.core.urlresolvers import reverse
-from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
-from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.forms.move import MoveOperationForm
 
@@ -29,7 +27,10 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
-        new_message(request._req, "You need to select at least one object to edit", Messages.ERROR)
+        new_message(
+            request._req,
+            "You need to select at least one object to edit",
+            Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
 
     data = None
@@ -47,12 +48,14 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
         op_form = MoveOperationForm(form=form_model(), hidden=False)
         step = 1
     else:
-        op_form = MoveOperationForm(request.POST, form=form_model(), hidden=True)
+        op_form = MoveOperationForm(
+            request.POST, form=form_model(), hidden=True)
         if not op_form.is_valid():
             # Since the MoveOperationForm instance was made with hidden=True we
             # need to make it again (and validate it) if there was a error,
             # with hidden=False this time.
-            op_form = MoveOperationForm(request.POST, form=form_model(), hidden=False)
+            op_form = MoveOperationForm(
+                request.POST, form=form_model(), hidden=False)
             op_form.is_valid()
             step = 1
         else:
@@ -67,11 +70,13 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
                     step = 3
             elif step == 3:
                 form = form_model(request.POST, operation_form=op_form)
-                op_form_data = op_form.cleaned_data
                 if form.is_valid():
                     data = dict([(key, value) for key, value in form.cleaned_data.items()])
                     objects.update(**data)
-                    new_message(request._req, "M-M-M-M-Monster kill", Messages.SUCCESS)
+                    new_message(
+                        request._req,
+                        "M-M-M-M-Monster kill",
+                        Messages.SUCCESS)
                     return HttpResponseRedirect(reverse(redirect))
 
     # Form instances may be modified by the operation_form, so if we have a
@@ -101,10 +106,10 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
 def _process_values(values, data, title_attr, fields):
     object_list = []
     attr_list = [title_attr] + fields
-    for object in values:
+    for obj in values:
         row = {
-            'pk': object['pk'],
-            'values': [("Current %s" % attr, object[attr]) for attr in attr_list],
+            'pk': obj['pk'],
+            'values': [("Current %s" % attr, obj[attr]) for attr in attr_list],
         }
         if data:
             new_values = [("New %s" % attr, data[attr]) for attr in fields]
