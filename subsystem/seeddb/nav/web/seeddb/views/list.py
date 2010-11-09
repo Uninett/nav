@@ -125,8 +125,7 @@ def netboxtype_list(request):
     query = NetboxType.objects.all()
     filter_form = NetboxTypeFilterForm(request.GET)
     value_list = (
-        'name', 'vendor', 'description', 'sysobjectid', 'frequency', 'cdp',
-        'tftp')
+        'name', 'vendor', 'description', 'sysobjectid', 'cdp', 'tftp')
     extra = {
         'active': {'type': True},
         'title': TITLE_DEFAULT + ' - Types',
