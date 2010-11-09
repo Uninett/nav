@@ -333,11 +333,12 @@ def service_save(request, service_form, property_form):
             handler=service_form.cleaned_data['handler']
         )
     for (property, value) in property_form.cleaned_data.items():
-        ServiceProperty.objects.create(
-            service=service,
-            property=property,
-            value=value
-        )
+        if value:
+            ServiceProperty.objects.create(
+                service=service,
+                property=property,
+                value=value
+            )
     new_message(
         request._req,
         "Saved service for handler %s on %s" % (service.handler, netbox),
