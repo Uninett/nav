@@ -166,11 +166,15 @@ def subcategory_list(request):
         extra_context=extra)
 
 def vlan_list(request):
-    query = Vlan.objects.all()
+    query = Vlan.objects.extra(
+        select={
+            'prefixes': "array_to_string(ARRAY(SELECT netaddr FROM prefix WHERE vlanid=vlan.vlanid), ', ')"
+        }
+    ).all()
     filter_form = VlanFilterForm(request.GET)
     value_list = (
         'id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident',
-        'description')
+        'description', 'prefixes')
     extra = {
         'active': {'vlan': True},
         'title': TITLE_DEFAULT + ' - Vlan',

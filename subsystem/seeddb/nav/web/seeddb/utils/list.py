@@ -19,6 +19,7 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.models.fields import FieldDoesNotExist
 
 from nav.django.utils import get_verbose_name
 
@@ -159,5 +160,10 @@ def _label(model, value_list):
     Returns a list of tuples. Each tuple contains the verbose label and a key
     that can be used for sort parameters in the URL.
     """
-    labels = [get_verbose_name(model, value) for value in value_list]
+    labels = []
+    for value in value_list:
+        try:
+            labels.append(get_verbose_name(model, value))
+        except FieldDoesNotExist:
+            labels.append(value)
     return zip(labels, value_list)
