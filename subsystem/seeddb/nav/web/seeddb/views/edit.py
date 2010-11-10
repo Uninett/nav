@@ -199,8 +199,7 @@ def netbox_save(request, form, serial_form, subcat_form):
     if primary_key:
         netbox = Netbox.objects.get(pk=primary_key)
         for key in data:
-            # FIXME Use setattr(), not __setattr__
-            netbox.__setattr__(key, data[key])
+            setattr(netbox, key, data[key])
     else:
         netbox = Netbox(**data)
 
