@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,9 +22,9 @@ and dnsname.
 
 from IPy import IP
 
-from twisted.internet import defer
-#from twisted.python.failure import Failure
+from twisted.internet.defer import TimeoutError
 from twisted.names import client, dns
+from twisted.names.error import DomainError
 
 from nav.util import round_robin
 from nav.ipdevpoll import Plugin, shadows
@@ -35,10 +34,6 @@ resolvers = round_robin([client.Resolver('/etc/resolv.conf') for i in range(3)])
 class DnsName(Plugin):
 
     """Performs reverse DNS lookup on netbox IP address"""
-
-    def __init__(self, *args, **kwargs):
-        Plugin.__init__(self, *args, **kwargs)
-        self.deferred = defer.Deferred()
 
     @classmethod
     def can_handle(cls, netbox):
@@ -53,24 +48,22 @@ class DnsName(Plugin):
         # Use the OS configured DNS resolver method
         resolver = resolvers.next()
         df = resolver.lookupPointer( ip.reverseName() )
-        df.addCallback(self.got_result)
-        df.addErrback(self.got_failure)
-        return self.deferred
+        df.addCallbacks(self._handle_result, self._handle_failure)
+        return df
 
-    def got_failure(self, failure):
-        """Failure callback"""
-        failure.trap(defer.TimeoutError)
-        # Handle TimeoutErrors
-        self.logger.warning("DNS lookup timed out")
-        # DNS timeout is not fatal to the poll run, so we signal
-        # plugin success to the runhandler
-        self.deferred.callback(True)
+    def _handle_failure(self, failure):
+        """Logs DNS failures, but does not stop the job from running."""
+        failtype = failure.trap(TimeoutError, DomainError)
+        if failtype == TimeoutError:
+            self.logger.warning("DNS lookup timed out")
+        elif failtype == DomainError:
+            self.logger.warning("DNS lookup error: %s", failure.type.__name__)
 
-    def got_result(self, result):
-        """Result callback"""
+    def _handle_result(self, result):
+        """Handles a successful DNS reponse."""
         self.logger.debug("DNS response: %s", result)
         # Disclaimer: I'm no DNS expert, so my terminology may be way
-        # off.  
+        # off.
         #
         # We can get several series of responses, each with up to
         # several response records.  One series may contain the PTR
@@ -91,17 +84,17 @@ class DnsName(Plugin):
                 break
         if not dns_name:
             self.logger.warning("Unable to find PTR record for %s (%s)",
-                                self.netbox.ip, 
+                                self.netbox.ip,
                                 IP(self.netbox.ip).reverseName())
         elif dns_name.strip().lower() != self.netbox.sysname.strip().lower():
             self.logger.warning("Box dnsname has changed from %s to %s",
                                 repr(self.netbox.sysname), repr(dns_name))
+            netbox = self.containers.factory(None, shadows.Netbox)
+            netbox.sysname = dns_name
+
         # Our work here is done
-        self.logger.debug("Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name)
+        self.logger.debug("Reverse DNS lookup result: %s -> %s",
+                          self.netbox.ip, dns_name)
 
-        netbox = self.containers.factory(None, shadows.Netbox)
-        netbox.sysname = dns_name
-
-        self.deferred.callback(True)
         return dns_name
 

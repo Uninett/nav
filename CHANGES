@@ -1,3 +1,216 @@
+Version 3.6.3
+(released 04 November 2010)
+
+ This release fixes a regression introduced by version 3.6.2.
+
+ Bugfixes:
+
+  * LP#670947 (logengine crashes and spams admin once every minute)
+
+Version 3.6.2
+(released 04 November 2010)
+
+ Bugfixes:
+
+  * LP#609105 (Alertengine mailbombs error with insufficient info)
+  * LP#638745 (logengine: TypeError: int argument required)
+  * LP#666761 (ipdevpoll integrity error on serial number conflicts)
+  * LP#667182 (MachineTracker details link leads to 404 Page Not Found)
+  * LP#670817 (SeedDB crash when editing services)
+  * LP#670832 (dump.py crashes when attempting to dump obsolete product table)
+  * LP#670833 (dump.py produces invalid prefix dump)
+
+Version 3.6.1
+(released 25 October 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll does not unnecessarily use database transactions any more.
+
+ Bugfixes:
+
+  * LP#656870 (report cells that were previously empty now say "None")
+  * LP#658251 (3.6.0 mcc character encoding)
+  * LP#659012 (ipdevpoll errors on non UTF-8 or ASCII in user-configured values)
+  * LP#659196 (ipdevpoll IntegrityError: null value in column "ifindex"
+               violates not-null constraint)
+  * LP#659760 (mcc creates invalid config for interfaces with spaces in name)
+  * LP#659786 (smsd gammudispatcher UnicodeDecodeError)
+  * LP#660975 (ipdevpoll removes sysname when reverse lookup contains no PTR
+               records)
+  * LP#660992 (AlertEngine crashes with message: 'NoneType' object has no
+               attribute 'end_time')
+  * LP#660993 (smsd crashes on SIGHUP)
+  * LP#661008 (Alert Profiles: Cannot add filter expressions that match text)
+  * LP#661028 (Arnold crashes with 'ValueError: invalid literal' when blocking
+               a mac address)
+
+Version 3.6.0
+(released 07 October 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll performance gains.
+  * more debug logging options for ipdevpoll time statistics and job status.
+  * improved ipdevpoll handling of renumbered ifindexes.
+  * more graceful handling of DNS errors in ipdevpoll dnsname plugin.
+
+ Bugfixes:
+
+  * LP#633126 (netmap shows wrong topology for switches)
+  * LP#643340 (Schedule maintenance doesnt pick up boxname)
+  * LP#643474 (Location context lost when refining device history search)
+  * LP#644142 (Maintenance crash when adding location or room components)
+  * LP#644985 (Netmap doesn't link properly to IP Device Info)
+  * LP#645892 (report: csv export does not export full report)
+  * LP#646602 (ipdevpoll fails on Python 2.4)
+  * LP#646607 (Fatal UnboundLocalError in snmptrapd under Python 2.4)
+  * LP#648658 (AttributeError at /status/ - nav-3.6.0b6)
+  * LP#648687 (Netmap does not show link traffic in 3.6 betas)
+  * LP#649624 (eventEngine InvocationTargetException)
+  * LP#649635 (report crashes on international characters in org, location)
+  * LP#649636 (Duplicate interfaces after upgrade disrupt ipdevpoll)
+  * LP#649640 (Interfaces with migrated OSPF metrics cannot be deleted)
+  * LP#650976 (ipdevpoll : Save stage failed with unhandled AttributeError)
+  * LP#655564 (NameError at /ipdevinfo/svitsj.foo.tld/)
+  * LP#656263 (getBoksMacs is unable to find interfaces corresponding
+               to CDP data)
+
+Version 3.6.0b6
+(released 23 September 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#590765 (Accounting log in radius-module crashes when clicking on
+               details-link)
+  * LP#627352 (mcc.py crashes with NameError)
+  * LP#627358 (ipdevpoll crashes with TypeError on Python 2.4)
+  * LP#628012 (ipdevpoll crashes with SyntaxError on Python 2.4)
+  * LP#628023 (ipdevpoll crashes with TypeError during exception handling
+               under Python 2.4)
+  * LP#628058 (invalid link to netbox report from vendor report ipcount column)
+  * LP#632289 (All modules listed as "None" in ipdevinfo)
+  * LP#633974 (ipdevpoll IntegrityError when using uppercase in
+               NTNU-convention router port descriptions)
+  * LP#634944 (Maximum recursion depth exceeded in ipdevpoll)
+  * LP#634951 (ipdevpoll exception logging masks unhandled exceptions' origin)
+  * LP#634958 (ipdevpoll: object of type 'NoneType' has no len())
+  * LP#639604 (ranked statistics ignores 64-bit traffic counters)
+  * LP#641315 (portname search from report overview page fails)
+  * LP#643381 (Changing user's name resets password)
+  * LP#643467 (Color legend for switch port activity always says "30 days")
+  * LP#644161 (Network Explorer search requests fail with
+               AttributeError/FieldError)
+  * LP#644219 (Netmap UnicodeDecodeError)
+  * LP#644339 (Router port count in report to high)
+  * LP#644340 (invalid link from report swport (Module-link))
+  * LP#644342 (Failing search forms in report front page)
+  * LP#645144 (Status page ERROR: operator does not exist: integer = text)
+
+Version 3.6.0b5
+(released 26 August 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+
+  * ipdevpoll:
+    - properly handle IP device type changes.
+    - improved vlan/prefix handling.
+    - no longer idles forever inside database transactions.
+
+ Bugfixes:
+
+  * LP#562242 (Prefix matrix crashes when viewing IPv6 scope)
+  * LP#595796 (csv export does not work)
+  * LP#596863 (remove deprecated database table fields)
+  * LP#601001 (prefix report from IP address scope breaks)
+  * LP#603585 (Link to machine tracker from ipdevinfo missing)
+  * LP#623826 (extract_cricket_oids crashes on parsing cricket-conf.pl)
+
+  * Checkboxes in seeddb interface would never be checked as they should be on
+    page loads.
+  * After having introduced continuous integration into our workflow, many
+    small problems have been detected and fixed.
+
+
+Version 3.6.0b4
+(released 08 July 2010)
+
+ Features:
+  * The SMS daemon will now increase the delay between retries when SMS
+    dispatch fails.  This should decrease the amount of spam from smsd when
+    there are transient GSM failures.
+  * ipdevpoll will now naively report module outages.
+  * On timeouts and failures, ipdevpoll will reschedule jobs within 60 seconds.
+
+ Bugfixes:
+
+  * LP#537166 (Community indexing used for non-Cisco devices)
+  * LP#589046 (ranked statistics displays no message when no results were
+               found)
+  * LP#595797 (link incident count in avail report to incidents)
+  * LP#596852 (extract_cricket_oids.py uses the first result for "gConfigRoot"
+               even if it's a comment)
+  * LP#597569 (servicemon continues to monitor services removed from SeedDB)
+  * LP#598104 (non-django web systems missing account context objects in
+               templates)
+  * LP#598111 (login page doesn't do utf-8)
+  * LP#598362 (cam table not equipped for module names, getBoksMacs fails on
+               insert)
+  * LP#598426 (arnold presents active as 9999-12-31 23:59:59)
+  * LP#598437 (mcc.py fails to move rrd file)
+  * LP#598508 (smsd dies because of incorrect DB API usage)
+  * LP#599260 (getBoksMacs SQL syntax error during interface update)
+  * LP#600193 (duplicate ifindexes on migrated data cause ipdevpoll job fail)
+
+
 Version 3.6.0b3
 (released 24 June 2010)
 

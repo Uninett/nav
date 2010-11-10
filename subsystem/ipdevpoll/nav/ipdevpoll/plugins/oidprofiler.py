@@ -34,7 +34,7 @@ import socket
 
 from nav.models.oid import SnmpOid, NetboxSnmpOid
 from nav.ipdevpoll import storage, shadows
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 
 class OidProfiler(Plugin):
     """Make SNMP profile for a device."""
@@ -131,6 +131,12 @@ class OidProfiler(Plugin):
         """
         oid = OID(snmpoid.snmp_oid)
 
+        def ignore_timeouts(failure):
+            failure.trap(defer.TimeoutError)
+            self.logger.debug("timed out waiting for %s response.",
+                              snmpoid.oid_key)
+            return []
+
         def getnext_result_checker(result):
             if len(result) > 0:
                 response_oid = result.keys()[0]
@@ -147,13 +153,15 @@ class OidProfiler(Plugin):
                 return True
             else:
                 df = get_next(self.agent, oid)
+                df.addErrback(ignore_timeouts)
                 df.addCallback(getnext_result_checker)
                 return df
 
         df = self.agent.get([oid])
+        df.addErrback(ignore_timeouts)
         df.addCallback(get_result_checker)
         return df
-        
+
 # Impressively enough, twistedsnmp's AgentProxy class does not provide
 # a simple getNext method - unless you want to pull an entire table.
 def get_next(agent, oid, timeout=2.0, retry_count=4):

@@ -7,6 +7,7 @@ from os.path import join
 
 from nav import path
 from nav.models.oid import SnmpOid
+from nav.mcc.utils import get_configroot
 
 DIRS = ['routers', 'switches'] # What directories to parse
 
@@ -86,33 +87,26 @@ if __name__ == '__main__':
         config.readfp(open(mcc_configfile, 'r'))
     except Exception, e:
         print "Could not find %s: %s" % (configfile, e)
-        sys.exit()
+        sys.exit(1)
 
     # Locate path to cricket config file in the mcc config file
     try:
         configfile = config.get('mcc', 'configfile')
     except Exception, e:
         print "Could not find Cricket config file: %s" % e
-        sys.exit()
+        sys.exit(1)
 
     # Find cricket-config directory
     try: 
-        f = open(configfile, 'r')
-    except Exception, e:
+        configpath = get_configroot(configfile)
+    except IOError, e:
         print "Could not open Cricket config file: %s" % e
-        sys.exit()
-
-    c = re.compile('gConfigRoot\s*=\s*\"(.*)\"', re.I)
-    configpath = False
-    for line in f.readlines():
-        m = c.search(line)
-        if m:
-            configpath = m.groups()[0]
-            print "Setting cricket config path to %s" % configpath
-            break
+        sys.exit(1)
+    else:
+        print "Setting cricket config path to %s" % configpath
 
     if not configpath:
-        print "Could not find crickets configpath"
-        sys.exit()
+        print "Could not find cricket's configpath"
+        sys.exit(1)
 
     main(configpath)

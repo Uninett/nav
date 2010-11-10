@@ -31,7 +31,7 @@ from nav.mibs.cisco_vtp_mib import CiscoVTPMib
 from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
 from nav.bitvector import BitVector
 
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.models.manage import Interface
 

@@ -17,9 +17,10 @@
 
 import time
 from datetime import date, datetime
+
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, get_object_or_404
@@ -35,7 +36,7 @@ from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils import get_event_and_alert_types
 from nav.web.devicehistory.utils.history import get_selected_types, \
     fetch_history, get_page, get_messages_for_history, \
-    group_history_and_messages
+    group_history_and_messages, describe_search_params, check_empty_selection
 from nav.web.devicehistory.utils.error import register_error_events
 
 DeviceQuickSelect_view_history_kwargs = {
@@ -66,17 +67,19 @@ def devicehistory_search(request):
     from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.get('type', None)
+    group_by = request.REQUEST.get('group_by', 'netbox')
 
     selected_types = get_selected_types(types)
     event_types = get_event_and_alert_types()
 
     info_dict = {
-        'active': {'devicesearch': True},
+        'active': {'device': {'search': True}},
         'quickselect': DeviceQuickSelect,
         'selected_types': selected_types,
         'event_type': event_types,
         'from_date': from_date,
         'to_date': to_date,
+        'group_by': group_by,
         'navpath': [('Home', '/'), ('Device History', '')],
         'title': 'NAV - Device History',
     }
@@ -97,6 +100,7 @@ def devicehistory_view(request):
         'netbox': request.REQUEST.getlist('netbox'),
         'module': request.REQUEST.getlist('module'),
     }
+    selection = check_empty_selection(selection)
 
     try:
         page = int(request.REQUEST.get('page', '1'))
@@ -145,6 +149,8 @@ def devicehistory_view(request):
     url = "?from_date=%s&to_date=%s&type=%s&group_by=%s" % (
         from_date or "", to_date or "", types or "", group_by or "")
 
+    search_description = describe_search_params(selection)
+
     for key, values in selection.items():
         attr = key
         if key == "location":
@@ -152,9 +158,14 @@ def devicehistory_view(request):
         for id in values:
             url += "&%s=%s" % (attr, id)
 
+    # Quickselect expects 'loc' and not 'location'
+    selection['loc'] = selection['location']
+    del selection['location']
+
     info_dict = {
-        'active': {'devicehistory': True},
+        'active': {'device': {'history': True}},
         'history': this_page,
+        'search_description': search_description,
         'pages': pages,
         'first_page_link': first_page_link,
         'last_page_link': last_page_link,
@@ -285,6 +296,7 @@ def delete_module(request):
                 result.append({
                     'sysname': a.netbox.sysname,
                     'moduleid': a.id,
+                    'name': a.name,
                     'module_number': a.module_number,
                     'descr': a.description,
                     'start_time': b.start_time,
@@ -345,6 +357,8 @@ def do_delete_module(request):
         Messages.SUCCESS,
     )
 
-    modules_down.delete()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM module WHERE moduleid IN %s", (tuple([m.id for m in modules_down]),))
+    transaction.commit_unless_managed()
 
     return HttpResponseRedirect(reverse('devicehistory-module'))

@@ -36,12 +36,11 @@ interfering with the daemon's asynchronous operations.
 import logging
 
 from twisted.internet import threads
-from django.db import transaction
 
 from nav.models import manage
 from nav import ipdevpoll
 import storage
-
+from utils import autocommit, django_debug_cleanup
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
@@ -57,7 +56,7 @@ class NetboxLoader(dict):
         self.peak_count = 0
         self._logger = ipdevpoll.get_instance_logger(self, id(self))
 
-    @transaction.commit_manually
+    @autocommit
     def load_all_s(self):
         """Synchronously load netboxes from database.
 
@@ -76,12 +75,11 @@ class NetboxLoader(dict):
 
         """
         queryset = manage.Netbox.objects.select_related(depth=1).filter(
-            read_only__isnull=False)
+            read_only__isnull=False, up='y')
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 
-        import schedule
-        schedule.django_debug_cleanup()
+        django_debug_cleanup()
 
         previous_ids = set(self.keys())
         current_ids = set(netbox_dict.keys())
@@ -92,8 +90,14 @@ class NetboxLoader(dict):
         changed_ids = set(i for i in same_ids
                           if is_netbox_changed(self[i], netbox_dict[i]))
 
-        self.clear()
-        self.update(netbox_dict)
+        # update self
+        for i in lost_ids:
+            del self[i]
+        for i in new_ids:
+            self[i] = netbox_dict[i]
+        for i in same_ids:
+            self[i].copy(netbox_dict[i])
+
         self.peak_count = max(self.peak_count, len(self))
 
         self._logger.info(
@@ -102,10 +106,6 @@ class NetboxLoader(dict):
             len(netbox_dict), len(new_ids), len(lost_ids), len(changed_ids),
             self.peak_count
             )
-
-        # We didn't change anything, but roll back the current transaction to
-        # avoid idling
-        transaction.rollback()
 
         return (new_ids, lost_ids, changed_ids)
 
@@ -126,11 +126,15 @@ def is_netbox_changed(netbox1, netbox2):
                  'type', 
                  'read_only', 
                  'snmp_version', 
-                 'up_to_date', 
                  'device',
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
                 return True
+
+    # Switching from up_to_date to not up_to_date warrants a reload, but not
+    # the other way around.
+    if netbox1.up_to_date and not netbox2.up_to_date:
+        return True
 
     return False
 

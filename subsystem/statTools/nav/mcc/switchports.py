@@ -122,7 +122,7 @@ def make_config(config):
         for (interfaceid, ifname, ifindex, ifalias) in c.fetchall():
             if not ifname:
                 logger.error("%s: No ifname found for interfaceid %s"
-                             % (sysname, swportid))
+                             % (sysname, interfaceid))
                 continue
 
             ifalias = ifalias or '-'
@@ -136,7 +136,7 @@ def make_config(config):
             f.write("\tdisplay-name = \"%s\"\n" % displayname)
             f.write("\tinterface-index = %s\n" % ifindex)
             f.write("\tshort-desc = \"%s\"\n" % shortdesc)
-            f.write("\tifname = %s\n" % ifname)
+            f.write("\tifname = \"%s\"\n" % displayname)
             f.write("\torder = %s\n\n" % reversecounter)
             reversecounter = reversecounter - 1
 

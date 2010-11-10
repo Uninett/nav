@@ -22,6 +22,7 @@ import ConfigParser
 from StringIO import StringIO
 
 import nav.buildconf
+from nav.errors import GeneralException
 
 logger = logging.getLogger(__name__)
 
@@ -55,5 +56,54 @@ class IpdevpollConfig(ConfigParser.ConfigParser):
             logger.warning("Found no config files")
         return files_read
 
+
+def get_jobs(config=None):
+    if config is None:
+        config = ipdevpoll_conf
+    jobs = {}
+
+    job_prefix = 'job_'
+    job_sections = [s for s in config.sections() if s.startswith(job_prefix)]
+    for section in job_sections:
+        job_name = section[len(job_prefix):]
+
+        interval = config.has_option(section, 'interval') and \
+            parse_time(config.get(section, 'interval')) or ''
+        plugins  = config.has_option(section, 'plugins') and \
+            parse_plugins(config.get(section, 'plugins', '')) or ''
+
+        if interval and plugins:
+            jobs[job_name] = (interval, plugins)
+            logger.debug("Registered job in registry: %s", job_name)
+
+    return jobs
+
+def parse_time(value):
+    value = value.strip()
+
+    if value == '':
+        return 0
+
+    if value.isdigit():
+        return int(value)
+
+    value,unit = int(value[:-1]), value[-1:].lower()
+
+    if unit == 'd':
+        return value * 60*60*24
+    elif unit == 'h':
+        return value * 60*60
+    elif unit == 'm':
+        return value * 60
+    elif unit == 's':
+        return value
+
+    raise GeneralException('Invalid time format: %s%s' % (value, unit))
+
+def parse_plugins(value):
+    if value:
+        return value.split()
+
+    return []
 
 ipdevpoll_conf = IpdevpollConfig()

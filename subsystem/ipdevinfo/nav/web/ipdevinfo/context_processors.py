@@ -22,8 +22,9 @@ from nav.web.ipdevinfo.forms import SearchForm
 def search_form_processor(request):
     """Add populated search form to context"""
     context_extras = {}
+    # FIXME Use request.REQUEST?
     if request.method == 'GET':
-        context_extras['search_form'] = SearchForm(request.GET)
+        context_extras['search_form'] = SearchForm(request.GET, auto_id=False)
     elif request.method == 'POST':
-        context_extras['search_form'] = SearchForm(request.POST)
+        context_extras['search_form'] = SearchForm(request.POST, auto_id=False)
     return context_extras

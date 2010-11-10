@@ -20,8 +20,13 @@ import logging
 import os
 import sys
 from datetime import datetime
-import md5
 import re
+# To stay compatible with both python 2.4 and 2.6:
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
+
 
 from django.db import models, transaction
 from django.db.models import Q
@@ -32,9 +37,9 @@ from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException, FatalDispatcherException
 
 from nav.models.event import AlertQueue, AlertType, EventType, Subsystem
-from nav.models.manage import Arp, Cam, Category, Device, GwPort, Location, \
+from nav.models.manage import Arp, Cam, Category, Device, Location, \
     Memory, Netbox, NetboxInfo, NetboxType, Organization, Prefix, \
-    Room, Subcategory, SwPort, Usage, Vlan, Vendor
+    Room, Subcategory, Interface, Usage, Vlan, Vendor
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
@@ -45,8 +50,8 @@ SUPPORTED_MODELS = [
     # event models
         AlertQueue, AlertType, EventType,
     # manage models
-        Arp, Cam, Category, Device, GwPort, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Room, Subcategory, SwPort,
+        Arp, Cam, Category, Device, Location, Memory, Netbox, NetboxInfo,
+        NetboxType, Organization, Prefix, Room, Subcategory, Interface,
         Vendor, Vlan,
         Usage,
 ]
@@ -65,10 +70,10 @@ class Account(models.Model):
     # FIXME get this from setting.
     MIN_PASSWD_LENGTH = 8
 
-    login = models.CharField(unique=True)
-    name = models.CharField()
-    password = models.CharField()
-    ext_sync = models.CharField()
+    login = models.CharField(unique=True, max_length=-1)
+    name = models.CharField(max_length=-1)
+    password = models.CharField(max_length=-1)
+    ext_sync = models.CharField(max_length=-1)
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg')
 
@@ -172,7 +177,7 @@ class Account(models.Model):
             # hash we compute the MD5 hash of the supplied password
             # for comparison.
             if self.password[:3] == 'md5':
-                hash = md5.md5(password)
+                hash = md5(password)
                 return (hash.hexdigest() == self.password[3:])
             else:
                 return (password == self.password)
@@ -188,8 +193,8 @@ class AccountGroup(models.Model):
     EVERYONE_GROUP = 2
     AUTHENTICATED_GROUP = 3
 
-    name = models.CharField()
-    description = models.CharField(db_column='descr')
+    name = models.CharField(max_length=-1)
+    description = models.CharField(db_column='descr', max_length=-1)
     accounts = models.ManyToManyField('Account') # FIXME this uses a view hack, was AccountInGroup
 
     class Meta:
@@ -212,8 +217,8 @@ class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
     account = models.ForeignKey('Account', db_column='accountid', null=True)
-    property = models.CharField()
-    value = models.CharField()
+    property = models.CharField(max_length=-1)
+    value = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'accountproperty'
@@ -224,7 +229,7 @@ class AccountProperty(models.Model):
 class AccountNavbar(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
     navbarlink = models.ForeignKey('NavbarLink', db_column='navbarlinkid')
-    positions = models.CharField()
+    positions = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'accountnavbar'
@@ -234,8 +239,8 @@ class AccountNavbar(models.Model):
 
 class NavbarLink(models.Model):
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField()
-    uri = models.CharField()
+    name = models.CharField(max_length=-1)
+    uri = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'navbarlink'
@@ -246,7 +251,7 @@ class NavbarLink(models.Model):
 class Privilege(models.Model):
     group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
     type = models.ForeignKey('PrivilegeType', db_column='privilegeid')
-    target = models.CharField()
+    target = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'accountgroupprivilege'
@@ -272,7 +277,7 @@ class AlertAddress(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     type = models.ForeignKey('AlertSender', db_column='type')
-    address = models.CharField()
+    address = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'alertaddress'
@@ -317,14 +322,13 @@ class AlertAddress(models.Model):
                     subscription.get_type_display(), subscription.id))
 
         except FatalDispatcherException, e:
-            logger.error('%s raised a FatalDispatcherException inidicating that the alert never will be sent: %s' % (self.type, e))
-            alert.delete()
-            transaction.commit()
+            logger.error('%s raised a FatalDispatcherException indicating that the alert never will be sent: %s' % (self.type, e))
+            transaction.rollback()
 
-            return False
+            raise
 
         except DispatcherException, e:
-            logger.error('%s raised a DispatcherException inidicating that an alert could not be sent at this time: %s' % (self.type, e))
+            logger.error('%s raised a DispatcherException indicating that an alert could not be sent at this time: %s' % (self.type, e))
             transaction.rollback()
 
             return False
@@ -412,7 +416,7 @@ class AlertProfile(models.Model):
     )
 
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField()
+    name = models.CharField(max_length=-1)
     daily_dispatch_time = models.TimeField(default='08:00')
     weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS, default=MONDAY)
     weekly_dispatch_time = models.TimeField(default='08:00')
@@ -627,7 +631,7 @@ class Operator(models.Model):
 
     class Meta:
         db_table = u'operator'
-        unique_together = (('operator', 'match_field'),)
+        unique_together = (('type', 'match_field'),)
 
     def __unicode__(self):
         return u'%s match on %s' % (self.get_type_display(), self.match_field)
@@ -645,7 +649,7 @@ class Expression(models.Model):
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.CharField()
+    value = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'expression'
@@ -663,7 +667,7 @@ class Filter(models.Model):
     special cases like the IP datatype and WILDCARD lookups.'''
 
     owner = models.ForeignKey('Account', null=True)
-    name = models.CharField()
+    name = models.CharField(max_length=-1)
 
     class Meta:
         db_table = u'filter'
@@ -751,8 +755,8 @@ class FilterGroup(models.Model):
     '''A set of filters group contents that an account can subscribe to or be given permission to'''
 
     owner = models.ForeignKey('Account', null=True)
-    name = models.CharField()
-    description = models.CharField()
+    name = models.CharField(max_length=-1)
+    description = models.CharField(max_length=-1)
 
     group_permissions = models.ManyToManyField('AccountGroup', db_table='filtergroup_group_permission')
 
@@ -790,7 +794,6 @@ class MatchField(models.Model):
     SUBCATEGORY = 'subcat'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
-    GWPORT = 'gwport'
     LOCATION = 'location'
     MEMORY = 'mem'
     MODULE = 'module'
@@ -801,7 +804,7 @@ class MatchField(models.Model):
     PRODUCT = 'product'
     ROOM = 'room'
     SERVICE = 'service'
-    SWPORT = 'swport'
+    INTERFACE = 'interface'
     TYPE = 'type'
     VENDOR = 'vendor'
     VLAN = 'vlan'
@@ -816,7 +819,6 @@ class MatchField(models.Model):
         (SUBCATEGORY, _('subcategory')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
-        (GWPORT, _('GW-port')),
         (LOCATION, _('location')),
         (MEMORY, _('memeroy')),
         (MODULE, _('module')),
@@ -827,7 +829,7 @@ class MatchField(models.Model):
         (PRODUCT, _('product')),
         (ROOM, _('room')),
         (SERVICE, _('service')),
-        (SWPORT, _('SW-port')),
+        (INTERFACE, _('Interface')),
         (TYPE, _('type')),
         (VENDOR, _('vendor')),
         (VLAN, _('vlan')),
@@ -844,7 +846,6 @@ class MatchField(models.Model):
         SUBCATEGORY:  'netbox__netboxcategory__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
-        GWPORT:       'netbox__connected_to_gwport',
         LOCATION:     'netbox__room__location',
         MEMORY:       'netbox__memory',
         MODULE:       'netbox__module',
@@ -855,7 +856,7 @@ class MatchField(models.Model):
         PRODUCT:      'netbox__device__product',
         ROOM:         'netbox__room',
         SERVICE:      'netbox__service',
-        SWPORT:       'netbox__connected_to_swport',
+        INTERFACE:    'netbox__connected_to_interface',
         TYPE:         'netbox__type',
         USAGE:        'netbox__organization__vlan__usage',
         VENDOR:       'netbox__device__product__vendor',
@@ -884,24 +885,28 @@ class MatchField(models.Model):
         field = None
     model = None
 
-    name = models.CharField()
-    description = models.CharField(blank=True)
+    name = models.CharField(max_length=-1)
+    description = models.CharField(blank=True, max_length=-1)
     value_help = models.CharField(
         blank=True,
+        max_length=-1,
         help_text=_(u'Help text for the match field. Displayed by the value input box in the GUI to help users enter sane values.')
     )
     value_id = models.CharField(
         choices=CHOICES,
+        max_length=-1,
         help_text=_(u'The "match field". This is the actual database field alert engine will watch.')
     )
     value_name = models.CharField(
         choices=CHOICES,
         blank=True,
+        max_length=-1,
         help_text=_(u'When "show list" is checked, the list will be populated with data from this column as well as the "value id" field. Does nothing else than provide a little more info for the users in the GUI.')
     )
     value_sort = models.CharField(
         choices=CHOICES,
         blank=True,
+        max_length=-1,
         help_text=_(u'Options in the list will be ordered by this field (if not set, options will be ordered by primary key). Only does something when "Show list" is checked.')
     )
     list_limit = models.IntegerField(
@@ -1023,6 +1028,9 @@ class AccountAlertQueue(models.Model):
 
             super(AccountAlertQueue, self).delete()
             return False
+        except FatalDispatcherException, e:
+            self.delete()
+            return False
 
         if sent:
             self.delete()
@@ -1050,7 +1058,7 @@ class StatusPreference(models.Model):
 
     name = models.TextField()
     position = models.IntegerField()
-    type = models.CharField(choices=SECTION_CHOICES)
+    type = models.CharField(choices=SECTION_CHOICES, max_length=-1)
     account = models.ForeignKey('Account', db_column='accountid')
     organizations = models.ManyToManyField(
         Organization, db_table='statuspreference_organization')

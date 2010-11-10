@@ -38,7 +38,7 @@ from twisted.internet import defer, threads
 from twisted.python.failure import Failure
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.models import manage
 
@@ -68,16 +68,6 @@ class Modules(Plugin):
         self.alias_mapping = self._process_alias_mapping(alias_mapping)
         self._process_entities(physical_table)
 
-
-    def _error(self, failure):
-        """Errback for SNMP failures."""
-        if failure.check(defer.TimeoutError):
-            # Transform TimeoutErrors to something else
-            self.logger.error(failure.getErrorMessage())
-            # Report this failure to the waiting plugin manager (RunHandler)
-            exc = FatalPluginError("Cannot continue due to device timeouts")
-            failure = Failure(exc)
-        self.deferred.errback(failure)
 
     def _device_from_entity(self, ent):
         serial_column = 'entPhysicalSerialNum'
@@ -109,7 +99,6 @@ class Modules(Plugin):
         module.netbox = netbox
         module.model = ent['entPhysicalModelName'].strip()
         module.description = ent['entPhysicalDescr'].strip()
-        module.up = "y"
         module.name = ent['entPhysicalName'].strip()
         if module.name.strip().isdigit():
             module.module_number = int(module.name.strip())

@@ -320,23 +320,24 @@ class getBoksMacs
 			vlanMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("vlan"));
 		}
 
-		// netboxid+ifname -> interfaceid
-		// FIXME: This should probably map ifDescr as well, if used for CDP neighbor lookups
+		// netboxid+ifname/ifdescr -> interfaceid
 		QueryBoks.interfaceMap = new HashMap();
 		Map interfaceMap = QueryBoks.interfaceMap;
-		rs = Database.query("SELECT netboxid,ifindex,ifname,interfaceid FROM interface ORDER BY ifindex DESC");
+		rs = Database.query("SELECT netboxid,ifindex,ifname,ifdescr,interfaceid FROM interface ORDER BY ifindex DESC");
 		while (rs.next()) {
 			interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("interfaceid"));
 			if (rs.getString("ifname") != null) {
 				interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifname"), rs.getString("interfaceid"));
 			}
+			if (rs.getString("ifdescr") != null) {
+				interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifdescr"), rs.getString("interfaceid"));
+			}
 		}
 		
-		QueryBoks.mpMap = new HashMap();
-		Map mpMap = QueryBoks.mpMap;
-		rs = Database.query("SELECT interface_swport.netboxid, ifindex, module.name AS module_name, ifname FROM interface_swport LEFT JOIN module USING(moduleid) WHERE ifname IS NOT NULL");
+		QueryBoks.ifNameMap = new HashMap<String, String>();
+		rs = Database.query("SELECT netboxid, ifindex, ifname FROM interface_swport WHERE ifname IS NOT NULL");
 		while (rs.next()) {
-			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module_name"), rs.getString("ifname") } );
+			QueryBoks.ifNameMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("ifname") );
 		}
 
 		// For CAM-logger, alle uavsluttede CAM-records (dvs. alle steder hvor til er null)

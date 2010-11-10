@@ -31,6 +31,16 @@
         <td><a href="{% url report-netbox-category netbox.category.id %}">
             {{ netbox.category }}</a></td>
     </tr>
+    
+    {% if netboxsubcat %}
+    <tr>
+        <th>Subcategories</th>
+        <td>{% for subcat in netboxsubcat %}
+        {{ subcat.category_id }}
+        {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
 
     <tr>
         <th>Function</th>
@@ -111,19 +121,19 @@
 {% endif %}
 
     <tr>
-        <th># of modules</th>
+        <th>Modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
             {{ netbox.module_set.count }}</a></td>
     </tr>
 
     <tr>
-        <th># of switch ports</th>
+        <th>Switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
             {{ netbox.get_swports.count }}</a></td>
     </tr>
 
     <tr>
-        <th># of router ports</th>
+        <th>Router ports</th>
         <td><a href="{% url report-gwport-netbox netbox.id %}">
             {{ netbox.get_gwports.count }}</a></td>
     </tr>
@@ -259,83 +269,120 @@
             </ul>
         </td>
     </tr>
+
+
 {% else %}
-    <caption>IP Address</caption>
+
+
+    <caption class="nowrap">IP Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
     <tr>
         <th>Status</th>
-        <td>Sysname or IP "{{ host_info.host }}" is not monitored by NAV</td>
+        <td>Not monitored</td>
     </tr>
 
-    {% if prefix.net_address %}
     <tr>
-        <th>Subnet</th>
-        <td>{{ prefix.net_address }}</td>
+        <th>Prefix</th>
+        <td>
+            {% with no_netbox.prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix.net_address }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
     </tr>
-    {% endif %}
 
-    {% if prefix.vlan.vlan %}
+    {% with no_netbox.prefix.vlan as vlan %}
     <tr>
         <th>VLAN</th>
-        <td>{{ prefix.vlan.vlan }}</td>
+        <td>
+            {% if vlan %}
+                <a href="{% url report-swporttrunk-vlan vlan.vlan %}">
+                    {{ vlan }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
     </tr>
 
     <tr>
-        <th>- Usage</th>
-        <td>{{ prefix.vlan.usage }}</td>
+        <th class="indent">Usage</th>
+        <td>{{ vlan.usage|default:"N/A" }}</td>
     </tr>
 
     <tr>
-        <th>- Description</th>
-        <td>{{ prefix.vlan.description }}</td>
+        <th class="indent">Description</th>
+        <td>{{ vlan.description|default:"N/A" }}</td>
     </tr>
 
     <tr>
-        <th>Organization</th>
-        <td>{{ prefix.vlan.organization }}</td>
+        <th class="indent">Organization</th>
+        <td>
+            {% if vlan.organization %}
+                <a href="{% url report-organization-organization vlan.organization.id %}">
+                {{ vlan.organization|default:"N/A" }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
     </tr>
 
     <tr>
-        <th>- Optional #1</th>
-        <td>{{ prefix.vlan.organization.optional_1 }}</td>
+        <th class="indent">Optional #1</th>
+        <td>{{ vlan.organization.optional_1|default:"N/A" }}</td>
     </tr>
 
     <tr>
-        <th>- Optional #2</th>
-        <td>{{ prefix.vlan.organization.optional_2 }}</td>
+        <th class="indent">Optional #2</th>
+        <td>{{ vlan.organization.optional_2|default:"N/A" }}</td>
     </tr>
 
     <tr>
-        <th>- Optional #3</th>
-        <td>{{ prefix.vlan.organization.optional_3 }}</td>
+        <th class="indent">Optional #3</th>
+        <td>{{ vlan.organization.optional_3|default:"N/A" }}</td>
     </tr>
-    {% endif %}
+    {% endwith %}
 
-    {% if arp %}
+    {% with no_netbox.arp as arp %}
     <tr>
-        <th>Found in ARP data</th>
-        <td>{{ arp.start_time }}</td>
+        <th>Last active</th>
+        <td>
+        {% ifequal no_netbox.dt_max arp.end_time %}
+        <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
+        Right now
+        </a>
+        {% else %}
+            {% if arp.end_time %}
+            <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
+            {{ arp.end_time|date }} 
+            {{ arp.end_time|time }}
+            </a>
+            {% else %}
+            Never
+            {% endif %}
+        {% endifequal %}
+        </td>
     </tr>
 
     <tr>
         <th>Last seen with MAC</th>
-        <td>{{ arp.mac }}</td>
+        <td>
+            {% if arp.mac %}
+                <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
+                {{ arp.mac }}
+                </a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
     </tr>
+    {% endwith %}
 
-    <tr>
-        <th>- On switch</th>
-        <td>{{ cam.sysname }}{% if cam.netbox.ip %} ({{ cam.netbox.ip }}){% endif %}</td>
-    </tr>
-
-    <tr>
-        <th>- On module</th>
-        <td>{{ cam.module }}</td>
-    </tr>
-
-    <tr>
-        <th>- On port</th>
-        <td>{{ cam.port }}</td>
-    </tr>
-    {% endif %}
 {% endif %}
 </table>
 </div>
@@ -509,8 +556,7 @@
                     <button type="submit">Recheck activity</button>
                     {% if not port_view.activity_complete_data %}
                         <em>
-                            Warning: CAM data is only available for {{
-                            port_view.activity_data_interval }}
+                            Warning: CAM data is only available for {{ port_view.activity_data_interval }}
                             day{{ port_view.activity_data_interval|pluralize }}.
                         </em>
                     {% endif %}

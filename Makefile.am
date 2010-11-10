@@ -5,6 +5,7 @@ SUBDIRS = src \
 	subsystem/arnold \
 	subsystem/dbTools \
 	subsystem/devicehistory \
+	subsystem/geomap \
 	subsystem/ipdevinfo \
 	subsystem/ipdevpoll \
 	subsystem/l2trace \

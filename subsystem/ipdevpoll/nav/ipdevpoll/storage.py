@@ -18,10 +18,10 @@
 
 import logging
 
-from django.db import transaction
 import django.db.models
 
 from nav import ipdevpoll
+import utils
 
 # dict structure: { django_model_class: shadow_class }
 shadowed_classes = {}
@@ -158,25 +158,33 @@ class Shadow(object):
         See the get_touched() method for more info.
 
         """
-        # The _touched attribute will not exist during initialization
-        # of the object, so ignore AttributeErrors
-        try:
-            if attr not in ('delete', 'update_only'):
+        if self.is_shadowy_attribute(attr):
+            if hasattr(self, '_touched'):
                 self._touched.add(attr)
-        except AttributeError:
-            pass
-
-        # If the passed value belongs to a shadowed class, replace it
-        # with a shadow object.
-        if value.__class__ in shadowed_classes:
-            shadow = shadowed_classes[value.__class__]
-            value = shadow(value)
-        else:
-            if isinstance(value, django.db.models.Model):
-                self._logger.warning(
-                    "Live model object being added to %r attribute: %r",
-                    value, attr)
+            # If the passed value belongs to a shadowed class, replace it
+            # with a shadow object.
+            if value.__class__ in shadowed_classes:
+                shadow = shadowed_classes[value.__class__]
+                value = shadow(value)
+            else:
+                if isinstance(value, django.db.models.Model):
+                    self._logger.warning(
+                        "Live model object being added to %r attribute: %r",
+                        value, attr)
         return super(Shadow, self).__setattr__(attr, value)
+
+    def is_shadowy_attribute(self, attr):
+        return attr not in ('delete', 'update_only') and \
+            not attr.startswith('_')
+
+    def copy(self, other):
+        """Copies the attributes of another instance (shallow)"""
+        if isinstance(other, self.__class__):
+            for field in self.__class__._fields:
+                setattr(self, field, getattr(other, field))
+        else:
+            raise ValueError("First argument is not a %s instance" %
+                             self.__class__.__name__)
 
     @classmethod
     def get_dependencies(cls):
@@ -222,6 +230,9 @@ class Shadow(object):
         with keyed by the shadowclass. The value connected to the key is a dictionary
         with shadow instances keyed by their index created upon container creation.
         """
+        if hasattr(self, '_cached_converted_model') and \
+                self._cached_converted_model:
+            return self._cached_converted_model
 
         if containers is None:
             containers = {}
@@ -237,8 +248,9 @@ class Shadow(object):
         for attr in self._touched:
             value = getattr(self, attr)
             if issubclass(value.__class__, Shadow):
-                value = value.convert_to_model()
+                value = value.convert_to_model(containers)
             setattr(model, attr, value)
+        self._cached_converted_model = model
         return model
 
     def get_primary_key_attribute(self):
@@ -264,6 +276,9 @@ class Shadow(object):
         database, this method will return it from the database.  If
         such an object doesn't exist, the None value will be returned.
         """
+        if hasattr(self, '_cached_existing_model') and \
+                self._cached_existing_model:
+            return self._cached_existing_model
         if containers is None:
             containers = {}
 
@@ -276,7 +291,7 @@ class Shadow(object):
         lookups = [pk.name] + self.__lookups__
 
         if issubclass(pk_value.__class__, Shadow):
-            pk_value = pk_value.get_existing_model()
+            pk_value = pk_value.get_existing_model(containers)
 
         # If we have the primary key, we can return almost at once
         # If PK is AutoField, we raise an exception if the object
@@ -284,11 +299,12 @@ class Shadow(object):
         if pk_value:
             try:
                 model = self.__shadowclass__.objects.get(pk=pk_value)
-            except self.__shadowclass__.DoesNotExist, e:
+            except self.__shadowclass__.DoesNotExist:
                 if self.__shadowclass__._meta.pk.__class__ == django.db.models.fields.AutoField:
-                    raise e
+                    raise
                 else:
                     return None
+            self._cached_existing_model = model
             return model
 
         # Try each lookup field and see which one corresponds to
@@ -305,24 +321,25 @@ class Shadow(object):
                 # Ensure we only have django models
                 for key, val in kwargs.items():
                     if issubclass(val.__class__, Shadow):
-                        kwargs[key] = val.convert_to_model()
+                        kwargs[key] = val.convert_to_model(containers)
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist, e:
                     pass
-                except self.__shadowclass__.MultipleObjectsReturned, e:
+                except self.__shadowclass__.MultipleObjectsReturned:
                     self._logger.error("Multiple %s objects returned while "
                                        "looking up myself."
                                        "Lookup args used: %r "
                                        "Myself: %r",
                                        self.__shadowclass__.__name__,
                                        kwargs, self)
-                    raise e
+                    raise
 
                 else:
                     # Set our primary key from the existing object in an
                     # attempt to achieve consistency
                     setattr(self, pk.name, model.pk)
+                    self._cached_existing_model = model
                     return model
 
     @classmethod
@@ -371,6 +388,11 @@ class Shadow(object):
         """
         pass
 
+    def clear_cached_objects(self):
+        """Clear object caches from this shadow."""
+        for attr in dir(self):
+            if attr.startswith('_cached'):
+                delattr(self, attr)
 
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
@@ -392,7 +414,7 @@ def shadowify_queryset(queryset):
     return new_list
 
 shadowify_queryset_and_commit = \
-    transaction.commit_on_success(shadowify_queryset)
+    utils.commit_on_success(shadowify_queryset)
 
 class ContainerRepository(dict):
     """A repository of container objects.

@@ -7,6 +7,8 @@ import sys
 import logging
 import os
 from os.path import join, abspath
+from shutil import move
+from subprocess import Popen, PIPE
 
 from nav import path
 from nav.db import getConnection
@@ -32,20 +34,24 @@ def start_config_creation(modules, config):
 
 
 def get_configroot(configfile):
-    """ Get path for configroot from cricket-conf.pl """
-    comment = re.compile('#')
-    match = re.compile('gconfigroot\s*=\s*"(.*)"', re.I)
-    
-    f = open(configfile, 'r')
-    for line in f:
-        if comment.match(line):
-            continue
-        m = match.search(line)
-        if m:
-            logger.info("Found configroot to be %s" % m.groups()[0])
-            return m.groups()[0]
+    """Get path for configroot from cricket-conf.pl"""
+    cricket_config = _get_as_file(configfile).read()
+    perl = Popen("perl", stdin=PIPE, stdout=PIPE, close_fds=True)
 
-    return False
+    perl.stdin.write(cricket_config)
+    perl.stdin.write("""\nprint "$gConfigRoot\\n";\n""")
+    perl.stdin.close()
+
+    configroot = perl.stdout.readline().strip()
+    perl.wait()
+    logger.info("Found configroot to be %s", configroot)
+    return configroot
+
+def _get_as_file(thing):
+    if hasattr(thing, 'read'):
+        return thing
+    else:
+        return file(thing, 'r')
 
 def parse_views():
     """ Parse configuration file with view definitions """
@@ -210,7 +216,29 @@ def updatedb(datadir, containers):
             c.execute(keyvalueq, (key, str(value)))
             if c.rowcount > 0:
                 rrd_fileid, dbpath, dbfilename = c.fetchone()
-                
+
+                # Move file to new place. If it does not exist, we assume it's
+                # ok and keep the change in the database
+                try:
+                    logger.info("Renaming %s to %s" % (
+                        join(dbpath, dbfilename), join(datapath, filename)))
+                    move(join(dbpath, dbfilename),
+                         join(datapath, filename))
+                except IOError, ioerror:
+                    # If file did not exist, accept that and continue
+                    if ioerror.errno == 2:
+                        logger.info("%s did not exist.", 
+                                    join(dbpath, dbfilename))
+                    else:
+                        logger.error("Exception when moving file %s: %s" \
+                                         % (join(dbpath, dbfilename), ioerror))
+                        continue
+                except Exception, e:
+                    logger.error("Exception when moving file %s: %s" \
+                                     % (join(dbpath, dbfilename), e))
+                    continue
+
+
                 sql = """
                 UPDATE rrd_file
                 SET netboxid = %s, path = %s, filename = %s
@@ -229,17 +257,6 @@ def updatedb(datadir, containers):
                 if c.rowcount == 0:
                     insert_datasources(container, rrd_fileid)
 
-                # Move file to new place. If it does not exist, we assume it's
-                # ok and keep the change in the database
-                try:
-                    logger.info("Renaming %s to %s" % (
-                        join(dbpath, dbfilename), join(datapath, filename)))
-                    os.rename(join(dbpath, dbfilename),
-                              join(datapath, filename))
-                except Exception, e:
-                    logger.error("Exception when moving file %s: %s" \
-                          % (join(dbpath, dbfilename), e))
-                    
             else:
                 # Target did not exist in database. Insert file and
                 # datasources.  Get nextval primary key
@@ -365,17 +382,16 @@ def create_target_name(name):
 
 def convert_unicode_to_latin1(unicode_object):
     """
-    Decode a unicode object to a latin-1 string  
+    Encode a unicode object to a latin-1 string
     """
-    
-    # Cricket always displays latin-1. Database returns data as unicode objects. 
+    # Cricket always displays latin-1. Database returns data as unicode objects.
     # Encode it to display correctly.
     try:
-        encoded_string = unicode_object.encode('latin-1')
+        encoded_string = unicode_object.encode('latin-1', 'ignore')
     except Exception, e:
         logger.error("Could not encode %s to latin-1: %s" % (unicode_object, e))
         return unicode_object
-    
+
     return encoded_string
 
 def encode_and_escape(input):
@@ -386,7 +402,6 @@ def encode_and_escape(input):
     if isinstance(input, unicode):
         input = convert_unicode_to_latin1(input)
     input = input.replace("\"", "&quot;")
-    input = re.escape(input)
     
     return input
 

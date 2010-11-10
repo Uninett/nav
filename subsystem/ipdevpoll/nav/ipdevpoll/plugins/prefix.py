@@ -33,9 +33,6 @@ parsed from the interface name.  Not all dot1q enabled routers name
 their interfaces like this, but routing switches from several vendors
 do.
 
-TODO: Guesstimate an appropriate nettype for each VLAN
-TODO: Parse router port descriptions according to conventions
-
 """
 import re
 
@@ -50,7 +47,7 @@ from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
-from nav.ipdevpoll import Plugin, FatalPluginError
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
@@ -94,7 +91,12 @@ class Prefix(Plugin):
         for mib in ipmib, ipv6mib, ciscoip:
             self.logger.debug("Trying address tables from %s",
                               mib.mib['moduleName'])
-            waiter = defer.waitForDeferred(mib.get_interface_addresses())
+            df = mib.get_interface_addresses()
+            # Special case; some devices will time out while building a bulk
+            # response outside our scope when it has no proprietary MIB support
+            if mib != ipmib:
+                df.addErrback(self._ignore_timeout, set())
+            waiter = defer.waitForDeferred(df)
             yield waiter
             new_addresses = waiter.getResult()
             self.logger.debug("Found %d addresses in %s: %r",
@@ -128,7 +130,7 @@ class Prefix(Plugin):
 
             # Always associate prefix with a VLAN record, but set a
             # VLAN number if we can.
-            vlan = self.containers.factory(net_prefix, shadows.Vlan)
+            vlan = self.containers.factory(ifindex, shadows.Vlan)
             if ifindex in vlan_interfaces:
                 vlan.vlan = vlan_interfaces[ifindex]
 
@@ -160,14 +162,13 @@ class Prefix(Plugin):
 
         yield vlan_ifs
 
-    def error(self, failure):
+    def _ignore_timeout(self, failure, result=None):
+        """Ignores a defer.TimeoutError in an errback chain.
+
+        The result argument will be returned, and there injected into the
+        regular callback chain.
+
         """
-        Return a failure to the ipdevpoll-deamon
-        """
-        if failure.check(defer.TimeoutError):
-            # Transform TimeoutErrors to something else
-            self.logger.error(failure.getErrorMessage())
-            # Report this failure to the waiting plugin manager (RunHandler)
-            exc = FatalPluginError("Cannot continue due to device timeouts")
-            failure = Failure(exc)
-        self.deferred.errback(failure)
+        failure.trap(defer.TimeoutError)
+        self.logger.debug("request timed out, ignoring and moving on...")
+        return result

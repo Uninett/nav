@@ -19,7 +19,10 @@
 
 
 from IPy import IP
-from mod_python import apache, util
+try:
+    from mod_python import apache
+except ImportError:
+    apache = None
 from operator import itemgetter
 from time import localtime, strftime
 import copy
@@ -56,7 +59,7 @@ frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
 
-    (report_name, export, uri, nuri) = arg_parsing(req)
+    (report_name, export_delimiter, uri, nuri) = arg_parsing(req)
 
     if report_name == "report" or report_name == "index":
         page = MainTemplate()
@@ -74,7 +77,7 @@ def handler(req):
         report_list(req)
 
     else:
-        make_report(req, report_name, export, uri, nuri)
+        make_report(req, report_name, export_delimiter, uri, nuri)
 
     return apache.OK
 
@@ -84,7 +87,7 @@ def arg_parsing(req):
 
     uri = req.unparsed_uri
     nuri = URI(uri)
-    export = None
+    export_delimiter = None
 
     # These arguments and their friends will be deleted
     remove = []
@@ -93,12 +96,12 @@ def arg_parsing(req):
     for key,val in nuri.args.items():
         if val == "":
             remove.append(key)
-        if key == "export":
+        elif key == "export":
             val = urllib.unquote(val)
             # Remember to match against 'page.delimiters'
             match = re.search("(\,|\;|\:|\|)", val)
             if match:
-                export = match.group(0)
+                export_delimiter = match.group(0)
             else:
                 remove.append(key)
 
@@ -122,7 +125,7 @@ def arg_parsing(req):
     else:
         report_name = "report"
 
-    return (report_name, export, uri, nuri)
+    return (report_name, export_delimiter, uri, nuri)
 
 
 
@@ -231,7 +234,7 @@ def report_list(req):
 
 
 
-def make_report(req, report_name, export, uri, nuri):
+def make_report(req, report_name, export_delimiter, uri, nuri):
 
     # Initiating variables used when caching
     report = contents = neg = operator = adv = dbresult = result_time = None
@@ -265,8 +268,8 @@ def make_report(req, report_name, export, uri, nuri):
         cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, config, dbresult, result_time))
 
 
-    if export:
-        export(req, report)
+    if export_delimiter:
+        generate_export(req, report, report_name, export_delimiter)
 
     else:
         req.content_type = "text/html"
@@ -318,13 +321,13 @@ def make_report(req, report_name, export, uri, nuri):
 
 
 
-def export(req, report):
-
+def generate_export(req, report, report_name, export_delimiter):
     req.content_type = "text/x-csv"
     req.headers_out["Content-Type"] = "application/force-download"
     req.headers_out["Content-Disposition"] = "attachment; filename=report-%s-%s.csv" % (report_name, strftime("%Y%m%d", localtime()))
     req.send_http_header()
-    writer = csv.writer(req, delimiter=export)
+    writer = csv.writer(req, delimiter=export_delimiter)
+
     rows = []
 
     # Make a list of headers

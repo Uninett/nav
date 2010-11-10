@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -119,15 +120,15 @@ def authenticate(username, password):
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
         if ldapAuth.available:
-            auth = ldapAuth.authenticate(username, password)
+            user = ldapAuth.authenticate(username, password)
             # If we authenticated, store the user in database.
-            if auth:
-                name = ldapAuth.getUserName(username)
+            if user:
                 account = Account(
                     login=username,
-                    name=name,
+                    name=user.getRealName(),
                     ext_sync='ldap'
                 )
+                auth = True
                 account.set_password(password)
                 account.save()
 

@@ -17,7 +17,8 @@
 
 import nav.util
 
-from nav.models.manage import LINK_UP, LINK_DOWN, LINK_DOWN_ADM 
+from nav.models.manage import OPER_UP, ADM_DOWN, SwPortVlan, SwPortBlocked
+from nav.models.manage import Netbox
 
 def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
@@ -54,6 +55,7 @@ def get_module_view(module_object, perspective, activity_interval=None, netbox=N
             ports = module_object.get_gwports_sorted()
 
     if ports:
+        _cache_vlan_data_in_ports(ports)
         for port_object in ports:
             port = {'object': port_object}
 
@@ -77,22 +79,43 @@ def get_module_view(module_object, perspective, activity_interval=None, netbox=N
 
     return module
 
+def _cache_vlan_data_in_ports(ports):
+    """Loads and caches vlan data associated with an Interface queryset.
+
+    The caches are kept within each Interface object from the ports
+    queryset, and can be used to avoid multiple subqueries when
+    processing multiple Interfaces at once.
+
+    """
+    swpvlans = SwPortVlan.objects.filter(
+        interface__in=ports).select_related('vlan')
+    blocked_vlans = SwPortBlocked.objects.filter(
+        interface__in=ports).select_related('vlan')
+
+    for port in ports:
+        port._vlan_cache = set(swpvlan.vlan.vlan for swpvlan in swpvlans
+                               if swpvlan.interface == port)
+        if port.vlan is not None:
+            port._vlan_cache.add(port.vlan)
+
+        port._blocked_vlans_cache = set(blocked_vlan.vlan 
+                                        for blocked_vlan in blocked_vlans)
+
 def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
 
     classes = ['port']
-    if swport.get_link_status() == LINK_UP and swport.speed:
+    if swport.ifoperstatus == OPER_UP and swport.speed:
         classes.append('Mb%d' % swport.speed)
-    if swport.get_link_status() == LINK_DOWN_ADM:
+    if swport.ifadminstatus == ADM_DOWN:
         classes.append('disabled')
-    elif swport.get_link_status() != LINK_UP:
+    elif swport.ifoperstatus != OPER_UP:
         classes.append('passive')
     if swport.trunk:
         classes.append('trunk')
     if swport.duplex:
         classes.append('%sduplex' % swport.duplex)
-    # XXX: This causes a DB query per port
-    if swport.swportblocked_set.count():
+    if swport._blocked_vlans_cache:
         classes.append('blocked')
     return ' '.join(classes)
 
@@ -104,18 +127,19 @@ def _get_swportstatus_title(swport):
     if swport.ifname:
         title.append(swport.ifname)
 
-    if swport.get_link_status() == LINK_UP and swport.speed:
+    if swport.ifoperstatus == OPER_UP and swport.speed:
         title.append('%d Mbit' % swport.speed)
-    elif swport.get_link_status() == LINK_DOWN_ADM:
+    elif swport.ifadminstatus == ADM_DOWN:
         title.append('disabled')
-    elif swport.get_link_status() != LINK_UP:
+    elif swport.ifoperstatus != OPER_UP:
         title.append('not active')
 
     if swport.duplex:
         title.append(swport.get_duplex_display())
 
-    if swport.get_vlan_numbers():
-        title.append('vlan ' + ','.join(map(str, swport.get_vlan_numbers())))
+    vlan_numbers = _get_vlan_numbers(swport)
+    if vlan_numbers:
+        title.append('vlan ' + ','.join(map(str, vlan_numbers)))
 
     if swport.trunk:
         title.append('trunk')
@@ -129,20 +153,25 @@ def _get_swportstatus_title(swport):
     except Netbox.DoesNotExist:
         pass
 
-    # XXX: This causes a DB query per port
-    blocked_vlans = [str(block.vlan)
-        for block in swport.swportblocked_set.select_related(depth=1)]
-    if blocked_vlans:
-        title.append('blocked ' + ','.join(blocked_vlans))
+    if swport._blocked_vlans_cache:
+        title.append(
+            'blocked ' + ','.join(str(b) for b in swport._blocked_vlans_cache))
 
     return ', '.join(title)
+
+def _get_vlan_numbers(swport):
+    """Returns active vlans on an swport, using cached data, if available."""
+    if hasattr(swport, '_vlan_cache'):
+        return swport._vlan_cache
+    else:
+        return swport.get_vlan_numbers()
 
 def _get_swportactive_class(swport, interval=30):
     """Classes for the swportactive port view"""
 
     classes = ['port']
 
-    if swport.get_link_status() == LINK_UP:
+    if swport.ifoperstatus == OPER_UP:
         classes.append('active')
         classes.append('link')
     else:
@@ -165,7 +194,7 @@ def _get_swportactive_style(swport, interval=30):
 
     style = ''
 
-    if swport.get_link_status() == LINK_UP:
+    if swport.ifoperstatus == OPER_UP:
         style = 'background-color: #%s;' % nav.util.colortohex(
             gradient[0])
     else:
@@ -184,7 +213,7 @@ def _get_swportactive_title(swport, interval=30):
     if swport.ifname:
         title.append(swport.ifname)
 
-    if swport.get_link_status() == LINK_UP:
+    if swport.ifoperstatus == OPER_UP:
         title.append('link now')
     else:
         active = swport.get_active_time(interval)

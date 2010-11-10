@@ -4,8 +4,10 @@
 
 <table class="vertitable">
     <caption>
-        Interface {{ port.interface }}<br />
-        at {{ port.module.netbox.get_short_sysname }}
+        Interface {{ port.ifname }}
+        {% if port.module %}
+        <br />at {{ port.module.netbox.get_short_sysname }}
+        {% endif %}
     </caption>
 
     <tr>
@@ -16,7 +18,7 @@
 
     <tr>
         <th>Interface</th>
-        <td>{{ port.ifname }}</td>
+        <td>{{ port.ifdescr }}</td>
     </tr>
 
     <tr>
@@ -24,7 +26,9 @@
         <td>
         {% if port.module %}
         <a href="{{ port.module.get_absolute_url }}">
-            Module {{ port.module.module_number }}</a>
+            Module {{ port.module.name }}</a>
+        {% else %}
+        No module
         {% endif %}
         </td>
     </tr>
@@ -38,7 +42,7 @@
 
     <tr>
         <th>Port name</th>
-        <td>{{ port.ifalias }}</td>
+        <td>{{ port.ifalias|default:"N/A" }}</td>
     </tr>
 
     <tr>
@@ -80,15 +84,16 @@
                     <ul>
                     {% for swportvlan in swportvlans %}
                         <li>
-                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.id %}">
-                            {{ swportvlan.vlan.vlan }},
-                            {{ swportvlan.vlan.net_ident }}</a>,
-                            direction: {{ swportvlan.get_direction_display }}
+                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.vlan %}">
+                            {{ swportvlan.vlan }}</a>
+                            <ul>
+                                <li>Direction: {{ swportvlan.get_direction_display }}</li>
+                            </ul>
                         </li>
                     {% endfor %}
                     </ul>
                 {% else %}
-                    None
+                    N/A
                 {% endif %}
             {% endwith %}
         </td>

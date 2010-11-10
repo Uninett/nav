@@ -1,20 +1,35 @@
-{% extends "devicehistory/base.html" %}
+{% extends "devicehistory/base_history.html" %}
 
-{% block tabcontent %}
-    <form action="{% url devicehistory-view %}" method="get">
-        {% for type, elements in selection.items %}
-            {% for id in elements %}
-                <input type="hidden" name="{{ type }}" value="{{ id }}" />
+{% block devicehistory-content %}
+    <div class="resultfilter">
+        <form action="{% url devicehistory-view %}" method="get">
+            {% for type, elements in selection.items %}
+                {% for id in elements %}
+                    <input type="hidden" name="{{ type }}" value="{{ id }}" />
+                {% endfor %}
             {% endfor %}
+            <table class="vertitable">
+                {% include "devicehistory/history_view_filter.html" %}
+                <tr>
+                    <th></th>
+                    <td><button type="submit">Filter</button></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+
+    <div class="searchparams">
+    <h2>Search terms</h2>
+    {% for type, elements in search_description.items %}
+        <h3>{{ type|capfirst }}</h3>
+        <ul>
+        {% for id in elements %}
+            <li>{{ id }}</li>
         {% endfor %}
-        <table class="vertitable">
-            {% include "devicehistory/history_view_filter.html" %}
-            <tr>
-                <th></th>
-                <td><button type="submit">Filter</button></td>
-            </tr>
-        </table>
-    </form>
+        </ul>
+    {% endfor %}
+    </div>
+    <div style="clear:both;"></div>
 
     {% include "devicehistory/paginator.html" %}
 
@@ -40,14 +55,22 @@
             </tr>
         </thead>
 
+        <tfoot>
+            <tr>
+                <th colspan="10">
+                    {{ group|length }} items.
+                </th>
+            </tr>
+        </tfoot>
+
         <tbody>
         {% for h in group %}
             <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                <td>{{ h.netbox.room.location.description }}</td>
-                <td>{{ h.netbox.room.description }}</td>
+                <td>{{ h.netbox.room.location.id }}</td>
+                <td>{{ h.netbox.room.id }}</td>
                 <td>{{ h.netbox.sysname }}</td>
                 {# <td>{{ h.module_name }}</td> #}
-                <td>{{ h.device.serial }}</td>
+                <td>{{ h.device.serial|default_if_none:"" }}</td>
                 <td>{{ h.start_time }}</td>
                 <td>
                     {% if h.is_open %}
@@ -59,6 +82,7 @@
                 <td>{{ h.event_type.id }}</td>
                 <td>{{ h.alert_type.name }}</td>
                 <td>
+                {% if h.extra_messages %}
                     <ul>
                     {% for state,m in h.extra_messages.items %}
                         <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
@@ -69,18 +93,11 @@
                         </li>
                     {% endfor %}
                     </ul>
+                {% endif %}
                 </td>
             </tr>
         {% endfor %}
         </tbody>
-
-        <tfoot>
-            <tr>
-                <th colspan="10">
-                    {{ group|length }} items.
-                </th>
-            </tr>
-        </tfoot>
     </table>
     {% endfor %}
 

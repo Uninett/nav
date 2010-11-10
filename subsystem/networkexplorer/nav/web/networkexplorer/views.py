@@ -1,30 +1,19 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright 2007-2008 UNINETT AS
+# Copyright (C) 2007-2008 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-# Authors: Kristian Klette <kristian.klette@uninett.no>
-#
-
-__copyright__ = "Copyright 2007-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Kristian Klette (kristian.klette@uninett.no)"
-__id__ = "$Id$"
+"""Network Explorer view functions"""
 
 import datetime
 import socket
@@ -41,7 +30,7 @@ from django.utils import simplejson
 from django.db.models import Q
 
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, SwPort, GwPort, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
+from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
 from nav.models.service import Service
 
 import nav.natsort
@@ -231,11 +220,11 @@ def expand_switch(request):
 def expand_swport(request):
     """
     """
-    swport = get_object_or_404(SwPort, id=request.GET['swportid'])
+    swport = get_object_or_404(Interface, id=request.GET['swportid'])
     if swport.to_netbox:
         to_netbox = swport.to_netbox
-    elif swport.to_swport:
-        to_netbox = swport.to_swport.module.netbox
+    elif swport.to_interface:
+        to_netbox = swport.to_interface.netbox
     else:
         to_netbox = None
 
@@ -244,7 +233,7 @@ def expand_swport(request):
     else:
         services = []
 
-    active_macs = Cam.objects.filter(netbox=swport.module.netbox, ifindex=swport.ifindex, end_time__gt=datetime.datetime.max)
+    active_macs = Cam.objects.filter(netbox=swport.netbox, ifindex=swport.ifindex, end_time__gt=datetime.datetime.max)
     hosts_behind_port = []
     for mac in active_macs:
         arp_entries = Arp.objects.filter(mac=mac.mac, end_time__gt=datetime.datetime.max)

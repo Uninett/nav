@@ -5,6 +5,8 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
+{# FIXME Hardcoded urls #}
+
 {% block base_header_head %}
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
@@ -69,7 +71,7 @@ Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as 
                 <td class="spacer"></td>
                 <td class="entry">
                     <form action="/ipdevinfo/" method="get">
-                        <input id="id_query" type="text" name="query" maxlength="100" size="12" value="IP or hostname" onclick="this.value = (this.value == 'IP or hostname' ? '' : this.value )" />
+                        <input type="text" name="query" maxlength="100" size="12" value="IP or hostname" onclick="this.value = (this.value == 'IP or hostname' ? '' : this.value )" />
                         <button type="submit">Search</button>
                     </form>
                 </td>
@@ -118,10 +120,10 @@ Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as 
     {% endif %}
 {% endblock %}
 
-<div id="navbody">
+{% block base_navbody_start %}<div id="navbody">{% endblock %}
 {% block base_content %}
 {% endblock %}
-</div>
+{% block base_navbody_end %}</div>{% endblock %}
 
 {% block base_debug %}
     {% if debug %}

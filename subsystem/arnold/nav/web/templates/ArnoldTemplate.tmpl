@@ -252,7 +252,7 @@ $printMenu($buttons, $buttonnames, $action)
     <tr>
         <th>Date</th>
         <td>
-<input type="text" name="days" value="$days" size="4" maxsize="4" />
+<input type="text" name="days" value="$days" size="4" maxlength="4" />
 days back
         </td>
     </tr>
@@ -311,7 +311,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
   </table>
 
   <form action="doaddblockreason" method="get">
-  <input type='hidden' name='reasonid' value='$reasonid'>
+  <input type='hidden' name='reasonid' value='$reasonid' />
 
   <table class="vertitable">
     <tr>
@@ -343,10 +343,10 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 <p>Do you really want to delete detentionreason "$reason['name']"</p>
 <p><b>Remember:</b> Any <a href="predefined">predefined detentions</a> that use this detentionreason will be deleted!</p>
 <form action="dodeletereason" method="post">
-<input type="submit" value="Yes">
-<input type="hidden" name="reasonid" value="$reason['blocked_reasonid']">
-<input type="hidden" name="reasonname" value="$reason['name']">
-<a href="addreason"><input type="button" value="No"></a>
+<input type="submit" value="Yes" />
+<input type="hidden" name="reasonid" value="$reason['blocked_reasonid']" />
+<input type="hidden" name="reasonname" value="$reason['name']" />
+<a href="addreason"><input type="button" value="No" /></a>
 </form>
 
 #end def
@@ -357,10 +357,10 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 
 <p>Do you really want to delete predefined detention "$predefined['blocktitle']"</p>
 <form action="dodeletepredefined" method="post">
-<input type="submit" value="Yes">
-<input type="hidden" name="predefinedid" value="$predefined['blockid']">
-<input type="hidden" name="predefinedtitle" value="$predefined['blocktitle']">
-<a href="predefined"><input type="button" value="No"></a>
+<input type="submit" value="Yes" />
+<input type="hidden" name="predefinedid" value="$predefined['blockid']" />
+<input type="hidden" name="predefinedtitle" value="$predefined['blocktitle']" />
+<a href="predefined"><input type="button" value="No" /></a>
 </form>
 
 #end def
@@ -401,17 +401,17 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 ## Ends listtable
 
   <form action="doaddquarantinevlan" method="get">
-  <input type='hidden' name='quarantineid' value='$quarantineid'>
+  <input type='hidden' name='quarantineid' value='$quarantineid' />
   
   <table class="vertitable">
     <tr>
       <th>Vlan:</th>
-      <td><input type="text" name="vlan" size="20" value="$vlan" \></td>
+      <td><input type="text" name="vlan" size="20" value="$vlan" /></td>
     </tr>
 
     <tr>
       <th>Description:</th>
-      <td><input type="text" name="description" size="20" value="$description" \></td>
+      <td><input type="text" name="description" size="20" value="$description" /></td>
     </tr>
 
     <tr>
@@ -436,10 +436,10 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
 <p>Do you really want to delete quarantinevlan $quarantine['vlan'] - $quarantine['description']</p>
 <p><b>Remember:</b> Any <a href="predefined">predefined detentions</a> that use this vlan will be deleted!</p>
 <form action="dodeletequarantinevlan" method="post">
-<input type="submit" value="Yes">
-<input type="hidden" name="vlanid" value="$quarantine['quarantineid']">
-<input type="hidden" name="vlan" value="$quarantine['vlan']">
-<a href="addquarantinevlan"><input type="button" value="No"></a>
+<input type="submit" value="Yes" />
+<input type="hidden" name="vlanid" value="$quarantine['quarantineid']" />
+<input type="hidden" name="vlan" value="$quarantine['vlan']" />
+<a href="addquarantinevlan"><input type="button" value="No" /></a>
 </form>
 
 #end def
@@ -462,8 +462,8 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     <tr>
       <th>Choose method</th>
       <td>
-        <input type="radio" name="detainmentgroup" value="block" onclick="\$('#quarantinedropdown').hide();" $blockdetention >Block
-        <input type="radio" name="detainmentgroup" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention >Quarantine
+        <input type="radio" name="detainmentgroup" value="block" onclick="\$('#quarantinedropdown').hide();" $blockdetention />Block
+        <input type="radio" name="detainmentgroup" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention />Quarantine
       </td>
     </tr>
 
@@ -533,7 +533,7 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     #if $candidates[0]['ip'] != '0.0.0.0'
 
     <caption>
-	#if $candidates[0]['ipendtime'].year == 999999
+	#if $candidates[0]['ipendtime'].year == 9999
 	$candidates[0]['ip'] is currently active
 	#else
 	$candidates[0]['ip'] last seen $candidates[0]['ipendtime']
@@ -627,8 +627,8 @@ $printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits
     <tr>
         <th>Detainmenttype</th>
         <td>
-            <input type="radio" name="detainmenttype" value="disable" onclick="\$('#quarantinedropdown').hide();" $blockdetention >Block
-            <input type="radio" name="detainmenttype" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention >Quarantine
+            <input type="radio" name="detainmenttype" value="disable" onclick="\$('#quarantinedropdown').hide();" $blockdetention />Block
+            <input type="radio" name="detainmenttype" value="quarantine" onclick="\$('#quarantinedropdown').show();" $quarantinedetention />Quarantine
         </td>
     </tr>
 
@@ -792,12 +792,12 @@ or <input type="text" name="newreason" value="-- Create new reason --" />
       <td>N/A</td>
       <td>Port does not exist</td>
       #end if
-      <td><input type="checkbox" name="identityid$candidate['identityid']" value="$candidate['identityid']" checked>
+      <td><input type="checkbox" name="identityid$candidate['identityid']" value="$candidate['identityid']" checked="checked" />
     </tr>
     #end for
 
     <tr>
-      <td colspan='6' align="right"><input type="submit" value="Enable selected ports"></td>
+      <td colspan='6' align="right"><input type="submit" value="Enable selected ports" /></td>
     </tr>
   </tbody>
 

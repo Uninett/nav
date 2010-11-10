@@ -44,11 +44,12 @@ def search(request):
     query = None
     netboxes = Netbox.objects.none()
 
+    # FIXME use request.REQUEST?
     search_form = None
     if request.method == 'GET':
-        search_form = SearchForm(request.GET)
+        search_form = SearchForm(request.GET, auto_id=False)
     elif request.method == 'POST':
-        search_form = SearchForm(request.POST)
+        search_form = SearchForm(request.POST, auto_id=False)
 
     if search_form is not None and search_form.is_valid():
         # Preprocess query string
@@ -265,17 +266,15 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             return None
 
     def get_arp_info(addr):
-        # Return the entry with the latest start time
         try:
-            return Arp.objects.filter(ip=addr).order_by('-start_time')[0]
+            return Arp.objects.filter(ip=addr).order_by('-end_time', '-start_time')[0]
         except:
             return None
 
 
     def get_cam_info(mac):
-        # Return last seen entry
         try:
-            return Cam.objects.filter(mac=mac)[0]
+            return Cam.objects.filter(mac=mac).order_by('-end_time', '-start_time')[0]
         except:
             return None
 
@@ -301,9 +300,13 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
 
     # Assign default values to variables
-    prefix = None
-    arp = None
-    cam = None
+    no_netbox = {
+        'prefix': None,
+        'arp': None,
+        'cam': None,
+        'dt_max': dt.datetime.max,
+        'days_since_active': 7,
+    }
     alert_info = None
     port_view = None
 
@@ -313,15 +316,20 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             # Picks the first address in array if addr not specified
             addr = host_info['addresses'][0]['addr']
 
-        prefix = get_prefix_info(addr)
+        no_netbox['prefix'] = get_prefix_info(addr)
+        netboxsubcat = None
 
-        if prefix:
-            arp = get_arp_info(addr)
-            if arp:
-                cam = get_cam_info(arp.mac)
+        if no_netbox['prefix']:
+            no_netbox['arp'] = get_arp_info(addr)
+            if no_netbox['arp']:
+                no_netbox['cam'] = get_cam_info(no_netbox['arp'].mac)
+                if no_netbox['arp'].end_time < dt.datetime.max:
+                    no_netbox['days_since_active'] = \
+                        (dt.datetime.now() - no_netbox['arp'].end_time).days
 
     else:
         alert_info = get_recent_alerts(netbox)
+        netboxsubcat = netbox.netboxcategory_set.all()
 
         # Select port view to display
         run_port_view = True
@@ -346,14 +354,14 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alert_info': alert_info,
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,
-            'prefix': prefix,
-            'arp': arp,
-            'cam': cam,
+            'activity_interval': activity_interval,
+            'no_netbox': no_netbox,
+            'netboxsubcat': netboxsubcat,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def module_details(request, netbox_sysname, module_number):
+def module_details(request, netbox_sysname, module_name):
     """Show detailed view of one IP device module"""
 
     def get_module_view(module_object, perspective, activity_interval=None):
@@ -403,7 +411,7 @@ def module_details(request, netbox_sysname, module_number):
             initial={'interval': activity_interval})
 
     module = get_object_or_404(Module.objects.select_related(depth=1),
-        netbox__sysname=netbox_sysname, module_number=module_number)
+        netbox__sysname=netbox_sysname, name=module_name)
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
         module, 'swportactive', activity_interval)
@@ -417,6 +425,7 @@ def module_details(request, netbox_sysname, module_number):
             'swportactive_view': swportactive_view,
             'gwportstatus_view': gwportstatus_view,
             'activity_interval_form': activity_interval_form,
+            'activity_interval': activity_interval,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -433,7 +442,10 @@ def port_details(request, netbox_sysname, module_number=None, port_type=None,
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
     elif port_name is not None:
-        port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifname=port_name)
+        try:
+            port = ports.get(netbox__sysname=netbox_sysname, ifname=port_name)
+        except Interface.DoesNotExist:
+            port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifdescr=port_name)
 
     return render_to_response(
         'ipdevinfo/port-details.html',

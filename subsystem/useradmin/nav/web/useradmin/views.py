@@ -71,7 +71,8 @@ def account_detail(request, account_id=None):
             if account_form.is_valid():
                 account = account_form.save(commit=False)
 
-                if 'password1' in account_form.cleaned_data and not account.ext_sync:
+                if 'password1' in account_form.cleaned_data and \
+                account_form.cleaned_data['password1'] and not account.ext_sync:
                     account.set_password(account_form.cleaned_data['password1'])
 
                 account.save()
@@ -157,6 +158,7 @@ def account_delete(request, account_id):
                         {
                             'name': '%s (%s)' % (account.name, account.login),
                             'type': 'account',
+                            'back': reverse('useradmin-account_detail', args=[account.id]),
                         }, UserAdminContext(request))
 
 def account_organization_remove(request, account_id, org_id):
@@ -181,6 +183,7 @@ def account_organization_remove(request, account_id, org_id):
                         {
                             'name': '%s from %s' % (organization, account),
                             'type': 'organization',
+                            'back': reverse('useradmin-account_detail', args=[account.id]),
                         }, UserAdminContext(request))
 
 def account_group_remove(request, account_id, group_id, missing_redirect=None, plain_redirect=None):
@@ -228,6 +231,7 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None, p
                         {
                             'name': '%s from the group %s' % (account, group),
                             'type': 'account',
+                            'back': reverse('useradmin-account_detail', args=[account.id]),
                         }, UserAdminContext(request))
 
 
@@ -322,6 +326,7 @@ def group_delete(request, group_id):
                         {
                             'name': group,
                             'type': 'group',
+                            'back': reverse('useradmin-group_detail', args=[group.id]),
                         }, UserAdminContext(request))
 
 def group_account_remove(request, group_id, account_id):
@@ -351,6 +356,7 @@ def group_privilege_remove(request, group_id, privilege_id):
                         {
                             'name': '%s from %s' % (privilege, group),
                             'type': 'privilege',
+                            'back': reverse('useradmin-group_detail', args=[group.id]),
                         }, UserAdminContext(request))
 
 def userinfo(request):

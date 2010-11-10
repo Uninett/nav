@@ -7,20 +7,15 @@ If you are upgrading from versions of NAV older than 3.5, please refer
 to the release notes of the in-between versions before reading any
 further.
 
-WARNING: This is an unstable *BETA* version of NAV 3.6, and should in no way be
-used on a production system.  The standard GPL disclaimers apply.
-
-
 Known problems
 ==============
-NAV has a dependency on both PySNMP v2 and PySNMP-SE.  These two versions
-cannot normally be installed simultaneously, but Debian has provisions for
-this, allowing for switching between the versions by setting a specific
-environment variable.  NAV 3.6 was developed on Debian and used this
-convention, but since it is not normally available on other platforms, the
-snmptrapd will not work on any other platform than Debian yet.  We are working
-on a PySNMP version-neutral fix for snmptrapd (for SeedDB and Arnold this was
-fixed in the 3.6.0b2 release).
+The latest TwistedSNMP version (0.3.13) contains a bug that manifests
+in table retrival operations.  Timeouts and retries aren't handled
+properly, and this may cause slow or otherwise busy devices to be
+bombarded with requests from NAV.  The contrib/patches directory
+contains a patch for TwistedSNMP that solves this problem.  The patch
+has been submitted upstream, but not yet accepted into a new release.
+
 
 To see the overview of scheduled features and reported bugs on the 3.6 series
 of NAV, please go to https://launchpad.net/nav/3.6 .
@@ -43,17 +38,21 @@ Database changes
 ----------------
 There are many database changes since NAV 3.5.  Before installing the new NAV
 version, stop NAV, install, then upgrade the database schema using the
-procedure documented in doc/sql/README.
+procedure documented in doc/sql/README.  There are multiple SQL upgrade
+scripts since 3.5.
 
 Cricket and temperatures
 ------------------------
-NAV 3.6 changes the way in which temperature values are collected.  Temperature
-statistics were previously only supported for Cisco devices.  However, this
-support was terribly broken, and you may already be experiencing problems with
-this if you have upgraded to recent IOS versions.
+NAV 3.6 has temporarily lost the ability to collect temperature data.
+Temperature statistics were previously only supported for Cisco devices.
+However, this support was terribly broken, and you may already be experiencing
+problems with this if you have upgraded to recent IOS versions.
 
-Due to these changes, you will not be able to keep historic temperature data
-for your Cisco devices (if you have any such data), but you need to follow a
+An upcoming version of NAV will include improved temperature statistics
+collection with a wider range of vendors supported.
+
+Due to this change, you will not be able to keep historic temperature data for
+your Cisco devices (if you have any such data), but you need to follow a
 specific procedure before attempting to start NAV 3.6:
 
 1. Make sure Cricket is not running (`nav status cricket` and check ps output)
@@ -88,7 +87,9 @@ specific procedure before attempting to start NAV 3.6:
    and pointing to the directory where the RRD files are stored.
 
 7. Run `extract_cricket_oids.py`.  This extracts OIDs from the cricket
-   configuration tree and inserts them into NAV's OID registry.
+   configuration tree and inserts them into NAV's OID registry.  If it
+   complains about being unable to find `cricket-conf.pl`, please configure its
+   location in `mcc.conf`.
 
 You can now run `mcc.py` to create the new Cricket configuration from your
 database contents.

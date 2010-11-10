@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007,2008 UNINETT AS
+# Copyright (C) 2007,2008,2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,7 +14,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# -*- coding: utf-8 -*-
 """Django ORM wrapper for the NAV manage database"""
 
 import datetime as dt
@@ -27,44 +26,37 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
-from nav.models.fields import DateTimeInfinityField
+from nav.models.fields import DateTimeInfinityField, PointField
 
-# Choices used in multiple models, "imported" into the models which use them
-LINK_UP = 'y'
-LINK_DOWN = 'n'
-LINK_DOWN_ADM = 'd'
-LINK_CHOICES = (
-    (LINK_UP, 'up'), # In old devBrowser: 'Active'
-    (LINK_DOWN, 'down (operDown)'), # In old devBrowser: 'Not active'
-    (LINK_DOWN_ADM, 'down (admDown)'), # In old devBrowser: 'Denied'
+# Choices used in Interface model and 'ipdevinfo' for determining interface status
+OPER_UP = 1
+OPER_DOWN = 2
+OPER_TESTING = 3
+OPER_UNKNOWN = 4
+OPER_DORMANT = 5
+OPER_NOTPRESENT = 6
+OPER_LOWERLAYERDOWN = 7
+
+OPER_STATUS_CHOICES = (
+    (OPER_UP, 'up'),
+    (OPER_DOWN, 'down'),
+    (OPER_TESTING, 'testing'),
+    (OPER_UNKNOWN, 'unknown'),
+    (OPER_DORMANT, 'dormant'),
+    (OPER_NOTPRESENT, 'not present'),
+    (OPER_LOWERLAYERDOWN, 'lower layer down'),
 )
 
-#######################################################################
-### Model helper functions
+ADM_UP = 1
+ADM_DOWN = 2
+ADM_TESTING = 3
 
-def to_ifname_style(interface):
-    """Filter interface names from ifDescr to ifName style"""
+ADM_STATUS_CHOICES = (
+    (ADM_UP, 'up'),
+    (ADM_DOWN, 'down'),
+    (ADM_TESTING, 'testing'),
+)
 
-    if not interface:
-        return interface
-
-    filters = (
-        ('Vlan', 'Vl'),
-        ('TenGigabitEthernet', 'Te'),
-        ('GigabitEthernet', 'Gi'),
-        ('FastEthernet', 'Fa'),
-        ('Ethernet', 'Et'),
-        ('Loopback', 'Lo'),
-        ('Tunnel', 'Tun'),
-        ('Serial', 'Se'),
-        ('Dialer', 'Di'),
-        ('-802.1Q vLAN subif', ''),
-        ('-ISL vLAN subif', ''),
-        ('-aal5 layer', ''),
-    )
-    for old, new in filters:
-        interface = interface.replace(old, new)
-    return interface
 
 #######################################################################
 ### Netbox-related models
@@ -97,11 +89,8 @@ class Netbox(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = models.CharField(db_column='ro', max_length=-1)
     read_write = models.CharField(db_column='rw', max_length=-1)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     snmp_version = models.IntegerField()
-    # TODO: Probably deprecated. Check and remove.
-    #snmp_agent = models.CharField(max_length=-1)
     up_since = models.DateTimeField(db_column='upsince')
     up_to_date = models.BooleanField(db_column='uptodate')
     discovered = models.DateTimeField()
@@ -138,8 +127,8 @@ class Netbox(models.Model):
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
 
-        ports = self.get_gwports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        ports = self.get_gwports().select_related('module', 'netbox')
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -151,8 +140,8 @@ class Netbox(models.Model):
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
 
-        ports = self.get_swports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        ports = self.get_swports().select_related('module', 'netbox')
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -227,12 +216,16 @@ class Netbox(models.Model):
         except NetboxInfo.DoesNotExist:
             return None
 
+    def get_prefix(self):
+        return self.netboxprefix.prefix
+
     def get_filtered_prefix(self):
-        if self.prefix.vlan.net_type.description in (
+        prefix = self.get_prefix()
+        if prefix and prefix.vlan.net_type.description in (
             'scope', 'private', 'reserved'):
             return None
         else:
-            return self.prefix
+            return prefix
 
     def get_short_sysname(self):
         """Returns sysname without the domain suffix if specified in the
@@ -273,6 +266,27 @@ class NetboxInfo(models.Model):
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
 
+class NetboxPrefix(models.Model):
+    """Which prefix a netbox is connected to.
+
+    This models the read-only netboxprefix view.
+
+    """
+    netbox = models.OneToOneField('Netbox', db_column='netboxid',
+                                  primary_key=True)
+    prefix = models.ForeignKey('Prefix', db_column='prefixid',
+                               related_name='netbox_set')
+
+    class Meta:
+        db_table = 'netboxprefix'
+        unique_together = (('netbox', 'prefix'),)
+
+    def __unicode__(self):
+        return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
+
+    def save(self):
+        raise NotImplementedError
+
 class Device(models.Model):
     """From MetaNAV: The device table contains all physical devices in the
     network. As opposed to the netbox table, the device table focuses on the
@@ -284,7 +298,6 @@ class Device(models.Model):
     hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
     firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
     software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
-    auto = models.BooleanField(default=False)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -318,16 +331,16 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
-        ordering = ('netbox', 'module_number')
-        unique_together = (('netbox', 'module_number'),)
+        ordering = ('netbox', 'module_number', 'name')
+        unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'%d, at %s' % (self.module_number, self.netbox)
+        return u'%s, at %s' % (self.name or self.module_number, self.netbox)
 
     def get_absolute_url(self):
         kwargs={
             'netbox_sysname': self.netbox.sysname,
-            'module_number': self.module_number,
+            'module_name': self.name,
         }
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
@@ -339,7 +352,7 @@ class Module(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -352,7 +365,7 @@ class Module(models.Model):
         """Returns swports naturally sorted by interface name"""
 
         ports = self.get_swports()
-        interface_names = [p.get_identifier_string() for p in ports]
+        interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
@@ -390,6 +403,7 @@ class Room(models.Model):
     optional_2 = models.CharField(db_column='opt2', max_length=-1)
     optional_3 = models.CharField(db_column='opt3', max_length=-1)
     optional_4 = models.CharField(db_column='opt4', max_length=-1)
+    position = PointField(null=True, default=None)
 
     class Meta:
         db_table = 'room'
@@ -508,7 +522,6 @@ class NetboxType(models.Model):
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    frequency = models.IntegerField()
     description = models.CharField(db_column='descr', max_length=-1)
 
     class Meta:
@@ -535,65 +548,6 @@ class Vendor(models.Model):
 
 #######################################################################
 ### Router/topology
-
-class GwPort(models.Model):
-    """From MetaNAV: The gwport table defines the router ports connected to a
-    module. Only router ports that are not shutdown are included. Router ports
-    without defined IP addresses are also excluded."""
-
-    LINK_UP = LINK_UP
-    LINK_DOWN = LINK_DOWN
-    LINK_DOWN_ADM = LINK_DOWN_ADM
-    LINK_CHOICES = LINK_CHOICES
-
-    id = models.AutoField(db_column='gwportid', primary_key=True)
-    module = models.ForeignKey('Module', db_column='moduleid')
-    ifindex = models.IntegerField()
-    link = models.CharField(max_length=1, choices=LINK_CHOICES)
-    master_index = models.IntegerField(db_column='masterindex')
-    interface = models.CharField(max_length=-1)
-    speed = models.FloatField()
-    metric = models.IntegerField()
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
-        related_name='connected_to_gwport')
-    to_swport = models.ForeignKey('SwPort', db_column='to_swportid', null=True,
-        related_name='connected_to_gwport')
-    port_name = models.CharField(db_column='portname', max_length=-1)
-
-    class Meta:
-        db_table = 'gwport'
-        ordering = ('module', 'interface')
-        unique_together = (('module', 'ifindex'),)
-
-    def __unicode__(self):
-        return u'%s at %s' % (self.get_identifier_string(), self.module.netbox)
-
-    def get_absolute_url(self):
-        kwargs={
-            'netbox_sysname': self.module.netbox.sysname,
-            'module_number': self.module.module_number,
-            'port_id': self.id,
-        }
-        return reverse('ipdevinfo-gwport-details', kwargs=kwargs)
-
-    def get_interface_display(self):
-        return to_ifname_style(self.interface)
-
-    def get_identifier_string(self):
-        if self.get_interface_display() is not None:
-            return self.get_interface_display()
-        elif self.ifindex is not None:
-            return str(self.ifindex)
-        else:
-            return 'N/A'
-
-    def get_rrd_data_sources(self):
-        """Returns all relevant RRD data sources"""
-
-        from nav.models.rrd import RrdDataSource
-        return RrdDataSource.objects.filter(
-                rrd_file__key='gwport', rrd_file__value=str(self.id)
-            ).order_by('description')
 
 class GwPortPrefix(models.Model):
     """From MetaNAV: The gwportprefix table defines the router port IP
@@ -711,130 +665,6 @@ class Arp(models.Model):
 #######################################################################
 ### Switch/topology
 
-class SwPort(models.Model):
-    """From MetaNAV: The swport table defines the switchports connected to a
-    module."""
-
-    LINK_UP = LINK_UP
-    LINK_DOWN = LINK_DOWN
-    LINK_DOWN_ADM = LINK_DOWN_ADM
-    LINK_CHOICES = LINK_CHOICES
-    DUPLEX_FULL = 'f'
-    DUPLEX_HALF = 'h'
-    DUPLEX_CHOICES = (
-        (DUPLEX_FULL, 'full duplex'),
-        (DUPLEX_HALF, 'half duplex'),
-    )
-
-    id = models.AutoField(db_column='swportid', primary_key=True)
-    module = models.ForeignKey('Module', db_column='moduleid')
-    ifindex = models.IntegerField()
-    port = models.IntegerField()
-    interface = models.CharField(max_length=-1)
-    link = models.CharField(max_length=1, choices=LINK_CHOICES)
-    speed = models.FloatField()
-    duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES)
-    # TODO: Probably deprecated. Check and remove.
-    #media = models.CharField(max_length=-1)
-    vlan = models.IntegerField()
-    trunk = models.BooleanField()
-    port_name = models.CharField(db_column='portname', max_length=-1)
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
-        related_name='connected_to_swport')
-    to_swport = models.ForeignKey('self', db_column='to_swportid', null=True,
-        related_name='connected_to_swport')
-
-    class Meta:
-        db_table = 'swport'
-        ordering = ('module', 'interface')
-        unique_together = (('module', 'ifindex'),)
-
-    def __unicode__(self):
-        return u'%s at %s' % (self.get_identifier_string(), self.module.netbox)
-
-    def get_absolute_url(self):
-        kwargs={
-            'netbox_sysname': self.module.netbox.sysname,
-            'module_number': self.module.module_number,
-            'port_id': self.id,
-        }
-        return reverse('ipdevinfo-swport-details', kwargs=kwargs)
-
-    def get_interface_display(self):
-        return to_ifname_style(self.interface)
-
-    def get_identifier_string(self):
-        if self.get_interface_display() is not None:
-            return self.get_interface_display()
-        elif self.ifindex is not None:
-            return str(self.ifindex)
-        elif self.port is not None:
-            return str(self.port)
-        else:
-            return 'N/A'
-
-    def get_vlan_numbers(self):
-        """List of VLAN numbers related to the port"""
-
-        # XXX: This causes a DB query per port
-        vlans = [swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related(depth=1)]
-        if self.vlan is not None and self.vlan not in vlans:
-            vlans.append(self.vlan)
-        vlans.sort()
-        return vlans
-
-    def get_last_cam_record(self):
-        return self.module.netbox.cam_set.filter(ifindex=self.ifindex).latest(
-            'end_time')
-
-    def get_active_time(self, interval):
-        """
-        Time since last CAM activity on port, looking at CAM entries
-        for the last ``interval'' days.
-
-        Returns None if no activity is found, else number of days since last
-        activity as a datetime.timedelta object.
-        """
-
-        # Create cache dictionary
-        # FIXME: Replace with real Django caching
-        if not hasattr(self, 'time_since_activity_cache'):
-             self.time_since_activity_cache = {}
-
-        # Check cache for result
-        if interval in self.time_since_activity_cache:
-            return self.time_since_activity_cache[interval]
-
-        min_time = dt.datetime.now() - dt.timedelta(days=interval)
-        try:
-            # XXX: This causes a DB query per port
-            # Use .values() to avoid creating additional objects we do not need
-            last_cam_entry_end_time = self.module.netbox.cam_set.filter(
-                ifindex=self.ifindex, end_time__gt=min_time).order_by(
-                '-end_time').values('end_time')[0]['end_time']
-        except (Cam.DoesNotExist, IndexError):
-            # Inactive/not in use
-            return None
-
-        if last_cam_entry_end_time == dt.datetime.max:
-            # Active now
-            self.time_since_activity_cache[interval] = dt.timedelta(days=0)
-        else:
-            # Active some time inside the given interval
-            self.time_since_activity_cache[interval] = \
-                dt.datetime.now() - last_cam_entry_end_time
-
-        return self.time_since_activity_cache[interval]
-
-    def get_rrd_data_sources(self):
-        """Returns all relevant RRD data sources"""
-
-        from nav.models.rrd import RrdDataSource
-        return RrdDataSource.objects.filter(
-                rrd_file__key='swport', rrd_file__value=str(self.id)
-            ).order_by('description')
-
 class SwPortVlan(models.Model):
     """From MetaNAV: The swportvlan table defines the vlan values on all switch
     ports. dot1q trunk ports typically have several rows in this table."""
@@ -856,7 +686,7 @@ class SwPortVlan(models.Model):
 
     class Meta:
         db_table = 'swportvlan'
-        unique_together = (('swport', 'vlan'),)
+        unique_together = (('interface', 'vlan'),)
 
     def __unicode__(self):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
@@ -976,8 +806,8 @@ class Interface(models.Model):
     iftype = models.IntegerField()
     speed = models.FloatField()
     ifphysaddress = models.CharField(max_length=17, null=True)
-    ifadminstatus = models.IntegerField()
-    ifoperstatus = models.IntegerField()
+    ifadminstatus = models.IntegerField(choices=ADM_STATUS_CHOICES)
+    ifoperstatus = models.IntegerField(choices=OPER_STATUS_CHOICES)
     iflastchange = models.IntegerField()
     ifconnectorpresent = models.BooleanField()
     ifpromiscuousmode = models.BooleanField()
@@ -1001,7 +831,7 @@ class Interface(models.Model):
         ordering = ('baseport', 'ifname')
 
     def __unicode__(self):
-        return u'%s at %s' % (self.get_identifier_string(), self.netbox)
+        return u'%s at %s' % (self.ifname, self.netbox)
 
     def get_absolute_url(self):
         kwargs={
@@ -1009,17 +839,6 @@ class Interface(models.Model):
             'port_id': self.id,
         }
         return reverse('ipdevinfo-interface-details', kwargs=kwargs)
-
-    def get_interface_display(self):
-        return self.ifname
-
-    def get_identifier_string(self):
-        if self.get_interface_display() is not None:
-            return self.get_interface_display()
-        elif self.ifindex is not None:
-            return str(self.ifindex)
-        else:
-            return 'N/A'
 
     def get_vlan_numbers(self):
         """List of VLAN numbers related to the port"""
@@ -1083,18 +902,10 @@ class Interface(models.Model):
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
 
-    def get_link_status(self):
-        if not self.ifadminstatus:
-            return LINK_DOWN_ADM
-        if self.ifoperstatus:
-            return LINK_UP
-        else:
-            return LINK_DOWN
-
     def get_link_display(self):
-        if self.get_link_status() == LINK_UP:
+        if self.ifoperstatus == OPER_UP:
             return "Active"
-        elif self.get_link_status() == LINK_DOWN_ADM:
+        elif self.ifadminstatus == ADM_DOWN:
             return "Disabled"
         return "Inactive"
 

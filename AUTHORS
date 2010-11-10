@@ -50,12 +50,17 @@ Currently active contributors
 * Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
   Maintains the radius accounting logger.
 
+* Fredrik Skolmli <fredrik.skolmli at uninett.no>
+
 
 Contributors to earlier releases
 --------------------------------
 As this list is being compiled 10 years after the birth of NAV,
 current email addresses are missing for many of the earliest
 contributors.
+
+* Øystein Skartsæterhagen <oysteini at pvv.ntnu.no>, 2009
+  Wrote Geomap, the OpenStreetMap-based traffic map.
 
 * Roger Kristiansen
 
