@@ -73,6 +73,8 @@ AC_CONFIG_FILES([
 	subsystem/arnold/config/Makefile
 	subsystem/dbTools/Makefile
 	subsystem/devicehistory/Makefile
+	subsystem/geomap/Makefile
+	subsystem/geomap/media/Makefile
 	subsystem/ipdevinfo/Makefile
 	subsystem/ipdevinfo/config/Makefile
 	subsystem/ipdevinfo/templates/Makefile
