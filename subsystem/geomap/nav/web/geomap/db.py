@@ -118,7 +118,7 @@ def get_data(db_cursor, bounds, time_interval=None):
         LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
         LEFT JOIN vlan USING (vlanid)
         LEFT JOIN rrd_file AS remote_rrd_file ON (remote_rrd_file.key='interface' AND remote_rrd_file.value=conn.remote_gwportid::varchar)
-        LEFT JOIN rrd_file ON (rrd_file.key='gwport' AND rrd_file.value=interface_gwport.interfaceid::varchar)
+        LEFT JOIN rrd_file ON (rrd_file.key='interface' AND rrd_file.value=interface_gwport.interfaceid::varchar)
         WHERE interface_gwport.interfaceid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
           AND ((room.position[1] >= %s AND room.position[0] >= %s AND
                 room.position[1] <= %s AND room.position[0] <= %s)
