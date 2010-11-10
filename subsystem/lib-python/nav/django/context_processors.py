@@ -19,7 +19,7 @@
 
 from django.conf import settings
 
-from nav.django.utils import get_account, is_admin
+from nav.django.utils import get_account, is_admin, sudoer
 from nav.web.message import new_message, Messages
 from nav.web.webfront.utils import tool_list
 from nav.models.profiles import AccountNavbar
@@ -51,6 +51,7 @@ def account_processor(request):
     admin = is_admin(account)
     messages = Messages(request._req)
     messages = messages.get_and_delete()
+    sudo = sudoer(request._req)
 
     navbar = []
     qlink1 = []
@@ -79,6 +80,7 @@ def account_processor(request):
     current_user_data = {
         'account': account,
         'is_admin': admin,
+        'sudoer': sudo,
         'messages': messages,
         'navbar': navbar,
         'qlink1': qlink1,

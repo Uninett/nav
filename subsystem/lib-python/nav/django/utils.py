@@ -33,6 +33,14 @@ def get_account(request):
         request.account = account
     return account
 
+def sudoer(req):
+    if hasattr(req, 'session') and req.session.has_key('user'):
+        user = req.session['user']
+        if user.has_key('sudoer'):
+            account = Account.objects.get(id=user['sudoer']['id'])
+            return account
+    return None
+
 def is_admin(account):
     """Check if user is a member of the administrator group"""
     return account.accountgroup_set.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0;
