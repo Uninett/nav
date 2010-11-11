@@ -434,7 +434,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             
             try:
                 changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['baseport'], sw['ifindex'])
+                                 sw['module'], sw['baseport'], sw['ifindex'],
+                                 snmp_version=sw['snmp_version'])
             except ChangePortStatusError, e:
                 logger.error("blockPort: Error changing portstatus: %s" %e)
                 raise ChangePortStatusError
@@ -442,7 +443,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         elif type == 'quarantine':
             
             try:
-                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan)
+                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan,
+                                          snmp_version=sw['snmp_version'])
             except (DbError, NotSupportedError, ChangePortStatusError,
                     ChangePortVlanError), e:
                 logger.error("blockPort: Error changing vlan: %s" %e)
@@ -503,7 +505,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         if type == 'block':
             try:
                 changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['baseport'], sw['ifindex'])
+                                 sw['module'], sw['baseport'], sw['ifindex'],
+                                 snmp_version=sw['snmp_version'])
             except ChangePortStatusError:
                 logger.error("blockPort: Error changing portstatus: %s" %e)
                 raise ChangePortStatusError
@@ -525,7 +528,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         elif type == 'quarantine':
 
             try:
-                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan)
+                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan,
+                                          snmp_version=sw['snmp_version'])
             except (DbError, NotSupportedError, ChangePortStatusError,
                     ChangePortVlanError), e:
                 logger.error("blockPort: Error changing vlan: %s" %e)
@@ -619,7 +623,8 @@ def openPort(id, username, eventcomment=""):
             try:
                 changePortStatus('enable', row['ip'], row['vendorid'],
                                  row['rw'], row['module'], row['baseport'],
-                                 row['ifindex'])
+                                 row['ifindex'],
+                                 snmp_version=row['snmp_version'])
             except ChangePortStatusError, why:
                 logger.error("openPort: Error when changing portstatus: %s"
                              %why)
@@ -629,7 +634,8 @@ def openPort(id, username, eventcomment=""):
             # Change vlan to fromvlan stored in database
             try:
                 changePortVlan(row['ip'], row['ifindex'],
-                               identityrow['fromvlan'])
+                               identityrow['fromvlan'],
+                               snmp_version=row['snmp_version'])
             except (DbError, NotSupportedError, ChangePortVlanError), e:
                 logger.error("openPort: %s", e)
                 raise ChangePortVlanError
@@ -676,7 +682,8 @@ def openPort(id, username, eventcomment=""):
 ###############################################################################
 # changePortStatus
 #
-def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
+def changePortStatus(action, ip, vendorid, community, module, port, ifindex,
+                     snmp_version=1):
     """
     Use SNMP to disable a interface.
     - Action must be 'enable' or 'disable'.
@@ -701,7 +708,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
                  %(vendorid, community, ifindex, module))
 
     # Create snmp-object
-    s = nav.Snmp.Snmp(ip,community)
+    s = nav.Snmp.Snmp(ip,community, version=snmp_version)
 
 
     # Disable or enable based on input
@@ -726,7 +733,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex):
 ###############################################################################
 # changePortVlan
 #
-def changePortVlan(ip, ifindex, vlan):
+def changePortVlan(ip, ifindex, vlan, snmp_version=1):
     """
     Use SNMP to change switchport access vlan. Returns vlan on port
     before change if successful.
@@ -794,8 +801,8 @@ def changePortVlan(ip, ifindex, vlan):
     query = oid + '.' + str(ifindex)
 
     # Create snmp-objects
-    snmpget = nav.Snmp.Snmp(ip,ro)
-    snmpset = nav.Snmp.Snmp(ip,rw)
+    snmpget = nav.Snmp.Snmp(ip,ro,version=snmp_version)
+    snmpset = nav.Snmp.Snmp(ip,rw,version=snmp_version)
 
     # Fetch the vlan currently on the port
     try:
