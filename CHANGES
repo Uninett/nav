@@ -21,6 +21,8 @@ Version 3.7.0
     the web interface, useful for troubleshooting alert profiles or privilege
     issues.
   * ipdevpoll now enables the psyco JIT-optimizing compiler if available.
+  * New "Direct neighborship candidates" report, useful for debugging issues
+    with topology detection.
 
  Bugfixes:
   * LP#671385 (ipdevpoll - DataError: invalid byte sequence for encoding
