@@ -1,9 +1,9 @@
 ===========================
- Release notes for NAV 3.6
+ Release notes for NAV 3.7
 ===========================
 Please report bugs at https://bugs.launchpad.net/nav
 
-If you are upgrading from versions of NAV older than 3.5, please refer
+If you are upgrading from versions of NAV older than 3.6, please refer
 to the release notes of the in-between versions before reading any
 further.
 
@@ -17,163 +17,23 @@ contains a patch for TwistedSNMP that solves this problem.  The patch
 has been submitted upstream, but not yet accepted into a new release.
 
 
-To see the overview of scheduled features and reported bugs on the 3.6 series
-of NAV, please go to https://launchpad.net/nav/3.6 .
+To see the overview of scheduled features and reported bugs on the 3.7 series
+of NAV, please go to https://launchpad.net/nav/3.7 .
 
 
-Upgrading from NAV 3.5
+Upgrading from NAV 3.6
 ======================
-
-SNMP collector
---------------
-NAV 3.6 replaces the getDeviceData SNMP collector, written in Java, with
-ipdevpoll, written in Python.
-
-NAV still uses cricket for collecting traffic and load statistics, and
-getBoksMacs for CAM table and CDP cache collection.  getBoksMacs will likely be
-incorporated into ipdevpoll in future versions.
-
 
 Database changes
 ----------------
-There are many database changes since NAV 3.5.  Before installing the new NAV
-version, stop NAV, install, then upgrade the database schema using the
-procedure documented in doc/sql/README.  There are multiple SQL upgrade
-scripts since 3.5.
-
-Cricket and temperatures
-------------------------
-NAV 3.6 has temporarily lost the ability to collect temperature data.
-Temperature statistics were previously only supported for Cisco devices.
-However, this support was terribly broken, and you may already be experiencing
-problems with this if you have upgraded to recent IOS versions.
-
-An upcoming version of NAV will include improved temperature statistics
-collection with a wider range of vendors supported.
-
-Due to this change, you will not be able to keep historic temperature data for
-your Cisco devices (if you have any such data), but you need to follow a
-specific procedure before attempting to start NAV 3.6:
-
-1. Make sure Cricket is not running (`nav status cricket` and check ps output)
-
-2. Make sure to backup all your RRD files and your cricket-config directory.
-
-3. Locate your cricket configuration file, `cricket-conf.pl`, and run
-   `migrate_cricket.py -f /path/to/cricket-conf.pl` as the navcron user. This
-   will:
-
-   - Delete cricket-related entries from NAV's RRD registry (don't worry, it
-     will be filled again when the new makecricketconfig runs).
-
-   - Remove any temperature-related data sources from your RRD files. This is
-     done to remove the previously mentioned brokenness.
-
-4. Remove old configuration files from the cricket-config directory. This is
-   only necessary for:
-
-   - Defaults
-   - routers/*
-   - router-interfaces/*
-   - switches/*
-   - switch-ports/*
-
-5. Copy the new default cricket-config directory treec files to the
-   cricket-config directory - these were installed in the doc directory under
-   cricket/cricket-config (or can be found in the source under
-   subsystem/statTools/cricket/cricket-config).
-
-6. Make sure that the `datapath` in the top level `Defaults` file is correct
-   and pointing to the directory where the RRD files are stored.
-
-7. Run `extract_cricket_oids.py`.  This extracts OIDs from the cricket
-   configuration tree and inserts them into NAV's OID registry.  If it
-   complains about being unable to find `cricket-conf.pl`, please configure its
-   location in `mcc.conf`.
-
-You can now run `mcc.py` to create the new Cricket configuration from your
-database contents.
+There is a small database change to add geographical coordinates to rooms.
+Please refer to the upgrade procedures documented in doc/sql/README.
 
 
 Dependency changes
 ------------------
-The following dependencies are new to NAV 3.6:
+The following dependencies have changed since NAV 3.6:
 
-* Twisted >= 8.1
-* twisted-snmp >= 0.3
-* pysnmp-se >= 3.5
-
-The following are no longer dependencies in NAV 3.6:
-
-* Perl
-* The Perl module Pg
-* The Python module forgetSQL
-* psycopg1 (but please keep psycopg2!)
-
-A dependency to the python module pyrad was previously undocumented.
-This module is required if you wish to monitor radius servers using
-NAV's service monitor.  The module can be found at
-http://www.wiggy.net/code/pyrad/ .
-
-While Perl is no longer required by NAV, some of NAV's dependencies (such as
-cricket) still require it, so don't toss it out quite yet.
-
-Files to remove
----------------
-The following files and directories should be removed from your installation
-after upgrading to NAV 3.6 from a source code distribution (installation prefix
-has been stripped from these file names).  If you installed and upgraded NAV
-using a packaging system, you should be able to safely ignore this section.
-
-  apache/tools/devicemanagement.tool
-  apache/webapps/
-  apache/webroot/about/
-  apache/webroot/devicemanagement/
-  apache/webroot/index.py
-  apache/webroot/ipinfo/
-  apache/webroot/l2trace/l2trace.py
-  apache/webroot/machinetracker/machinetracker.py
-  apache/webroot/preferences/
-  apache/webroot/rrd/
-  apache/webroot/seeddb/seeddbTables.py
-  apache/webroot/status/*.py
-  apache/webroot/toolbox/
-  bin/cleanrrds.pl
-  bin/getDeviceData.sh
-  bin/makecricketconfig.pl
-  doc/cricket/cricket-config/*/.nav
-  doc/cricket/cricket-config/.nav
-  etc/getDeviceData.conf
-  etc/init.d/getDeviceData
-  etc/machinetracker.conf
-  etc/vPServer.conf
-  etc/webfront/ipinfo.conf
-  lib/java/getDeviceData/
-  lib/perl/
-  lib/python/nav/auth.py
-  lib/python/nav/db/forgotten/
-  lib/python/nav/db/manage.py
-  lib/python/nav/db/navprofiles.py
-  lib/python/nav/dump.py
-  lib/python/nav/Snmp.py
-  lib/python/nav/web/SearchBox.py
-  lib/python/nav/web/TreeSelect.py
-  lib/python/nav/web/devicemanagement/
-  lib/python/nav/web/ipinfo/
-  lib/python/nav/web/templates/AlertProfilesTemplate.py
-  lib/python/nav/web/templates/FrontpageTemplate.py
-  lib/python/nav/web/templates/IPInfo.py
-  lib/python/nav/web/templates/IpDevInfoTemplate.py
-  lib/python/nav/web/templates/MachineTrackerTemplate.py
-  lib/python/nav/web/templates/NetworkExplorerTemplate.py
-  lib/python/nav/web/templates/RrdViewerTemplate.py
-  lib/python/nav/web/templates/SearchBoxTemplate.py
-  lib/python/nav/web/templates/ToolboxTemplate.py
-  lib/python/nav/web/templates/TreeSelectTemplate.py
-  lib/python/nav/web/templates/UserAdmin.py
-  lib/python/nav/web/templates/deviceManagementTemplate.py
-  lib/python/nav/web/toolbox.py
-  lib/templates/alertprofiles/debug.html
-  lib/templates/ipdevinfo/debug.html
-  lib/templates/networkexplorer/debug.html
+* Python >= 2.5.0
+* PostgreSQL >= 8.3
 

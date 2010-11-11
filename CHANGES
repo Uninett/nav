@@ -1,3 +1,35 @@
+Version 3.7.0
+(released 11 November 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+  * Geomap is a new tool that displays a network traffic map geographically,
+    using OpenStreetMap data.
+  * LDAP authentication now also works for Active Directory.
+  * The user administration tool allows administrators to act as other users in
+    the web interface, useful for troubleshooting alert profiles or privilege
+    issues.
+  * ipdevpoll now enables the psyco JIT-optimizing compiler if available.
+
+ Bugfixes:
+  * LP#671385 (ipdevpoll - DataError: invalid byte sequence for encoding
+               "UTF8": 0x89)
+  * LP#672444 (SeedDB crash when updating IP device whose serial has changed to
+               a duplicate)
+  * LP#666195 (Arnold error on port quarantine)
+
+
 Version 3.6.3
 (released 04 November 2010)
 
