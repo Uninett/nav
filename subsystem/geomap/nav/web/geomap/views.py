@@ -18,7 +18,6 @@
 
 
 import logging
-import profile
 
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
