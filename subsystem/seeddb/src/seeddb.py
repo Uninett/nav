@@ -3646,10 +3646,12 @@ class pageRoom(seeddbPage):
                                       ('Optional 1',True,None),
                                       ('Optional 2',True,None),
                                       ('Optional 3',True,None),
-                                      ('Optional 4',True,None)]
+                                      ('Optional 4',True,None),
+                                      ('Position',False,None),
+                                      ]
 
             self.cellDefinition = [(('roomid,roomid,locationid,descr,' +\
-                                     'opt1,opt2,opt3,opt4',
+                                     'opt1,opt2,opt3,opt4,position',
                                      'room',
                                      None,
                                      None,
@@ -3661,7 +3663,8 @@ class pageRoom(seeddbPage):
                                      (4,None,None,None,None),
                                      (5,None,None,None,None),
                                      (6,None,None,None,None),
-                                     (7,None,None,None,None)])]
+                                     (7,None,None,None,None),
+                                     (8,None,None,None,None)])]
 
     class editbox(editbox):
         """ Describes fields for adding and editing room entries.
@@ -3690,7 +3693,10 @@ class pageRoom(seeddbPage):
                  'opt1': [inputText(),REQ_FALSE,'Optional 1',FIELD_STRING],
                  'opt2': [inputText(),REQ_FALSE,'Optional 2',FIELD_STRING],
                  'opt3': [inputText(),REQ_FALSE,'Optional 3',FIELD_STRING],
-                 'opt4': [inputText(),REQ_FALSE,'Optional 4',FIELD_STRING]}
+                 'opt4': [inputText(),REQ_FALSE,'Optional 4',FIELD_STRING],
+                 'position': [inputText(size='50'),REQ_FALSE,
+                              'Position (latitude, longitude)', FIELD_STRING],
+                 }
             self.fields = f
             self.setControlNames()
 
