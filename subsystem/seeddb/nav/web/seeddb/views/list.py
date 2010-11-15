@@ -56,6 +56,7 @@ def service_list(request):
         'caption': 'Services',
         'navpath': NAVPATH_DEFAULT + [('Services', None)],
         'tab_template': 'seeddb/tabs_service.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-service-edit',
         extra_context=extra)
@@ -117,6 +118,7 @@ def usage_list(request):
         'caption': 'Usage categories',
         'navpath': NAVPATH_DEFAULT + [('Usage categories', None)],
         'tab_template': 'seeddb/tabs_usage.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-usage-edit',
         extra_context=extra)
@@ -132,6 +134,7 @@ def netboxtype_list(request):
         'caption': 'Types',
         'navpath': NAVPATH_DEFAULT + [('Types', None)],
         'tab_template': 'seeddb/tabs_type.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-type-edit',
         filter_form=filter_form,
@@ -146,6 +149,7 @@ def vendor_list(request):
         'caption': 'Vendors',
         'navpath': NAVPATH_DEFAULT + [('Vendors', None)],
         'tab_template': 'seeddb/tabs_vendor.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-vendor-edit',
         extra_context=extra)
@@ -160,6 +164,7 @@ def subcategory_list(request):
         'caption': 'Subcategories',
         'navpath': NAVPATH_DEFAULT + [('Subcategories', None)],
         'tab_template': 'seeddb/tabs_subcategory.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-subcategory-edit',
         filter_form=filter_form,
@@ -181,6 +186,8 @@ def vlan_list(request):
         'caption': 'Vlan',
         'navpath': NAVPATH_DEFAULT + [('Vlan', None)],
         'tab_template': 'seeddb/tabs_vlan.html',
+        'hide_move': True,
+        'hide_delete': True,
     }
     return render_list(request, query, value_list, 'seeddb-vlan-edit',
         filter_form=filter_form,
@@ -197,6 +204,8 @@ def prefix_list(request):
         'caption': 'Prefix',
         'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
         'tab_template': 'seeddb/tabs_prefix.html',
+        'hide_move': True,
+        'hide_delete': True,
     }
     return render_list(request, query, value_list, 'seeddb-prefix-edit',
         extra_context=extra)
@@ -212,6 +221,7 @@ def cabling_list(request):
         'caption': 'Cabling',
         'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
         'tab_template': 'seeddb/tabs_cabling.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-cabling-edit',
         filter_form=filter_form,
@@ -228,6 +238,7 @@ def patch_list(request):
         'caption': 'Patch',
         'navpath': NAVPATH_DEFAULT + [('Patch', None)],
         'tab_template': 'seeddb/tabs_patch.html',
+        'hide_move': True,
     }
     return render_list(request, query, value_list, 'seeddb-patch-edit',
         extra_context=extra)
