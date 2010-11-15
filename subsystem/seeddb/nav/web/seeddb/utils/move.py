@@ -20,6 +20,8 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
+from nav.django.utils import get_verbose_name
+
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.forms.move import MoveOperationForm
 
@@ -71,11 +73,13 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
             elif step == 3:
                 form = form_model(request.POST, operation_form=op_form)
                 if form.is_valid():
-                    data = dict([(key, value) for key, value in form.cleaned_data.items()])
+                    foreign_keys = form.cleaned_data.keys()
+                    data = dict([(key, form.cleaned_data[key]) for key in foreign_keys])
                     objects.update(**data)
+                    foreign_key_string = ", ".join([get_verbose_name(model, key) for key in foreign_keys])
                     new_message(
                         request._req,
-                        "M-M-M-M-Monster kill",
+                        "Changed %s on %i %s models" % (foreign_key_string, len(objects), verbose_name),
                         Messages.SUCCESS)
                     return HttpResponseRedirect(reverse(redirect))
 
