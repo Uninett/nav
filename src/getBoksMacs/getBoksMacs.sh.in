@@ -76,5 +76,5 @@ if test -z `getpid` || test -f "$JOB_FINISHED"; then
 	exit 1
     fi
 else
-    echo "Previous instance of getBoksMacs is still not finished" >&2
+    echo "Previous instance of getBoksMacs is still not finished"
 fi
