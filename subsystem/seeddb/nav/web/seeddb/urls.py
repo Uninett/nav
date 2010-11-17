@@ -17,7 +17,15 @@
 
 from django.conf.urls.defaults import *
 
-from nav.web.seeddb.views import *
+from nav.web.seeddb.views import netbox, service, room, location, organization
+from nav.web.seeddb.views import usage, netboxtype, vendor, subcategory
+from nav.web.seeddb.views import cabling, patch, index
+from nav.web.seeddb.views.list import vlan_list, prefix_list
+from nav.web.seeddb.views.edit import netbox_edit, service_edit, room_edit
+from nav.web.seeddb.views.edit import location_edit, organization_edit
+from nav.web.seeddb.views.edit import usage_edit, netboxtype_edit, vendor_edit
+from nav.web.seeddb.views.edit import subcategory_edit, vlan_edit, prefix_edit
+from nav.web.seeddb.views.edit import cabling_edit, patch_edit
 
 dummy = lambda *args, **kwargs: None
 
@@ -34,8 +42,6 @@ urlpatterns = patterns('',
         name='seeddb-netbox-edit'),
     url(r'^netbox/bulk/$', dummy,
         name='seeddb-netbox-bulk'),
-    url(r'^netbox/move/$', netbox_move,
-        name='seeddb-netbox-move'),
 
     # Service
     url(r'^service/$', service,
@@ -56,8 +62,6 @@ urlpatterns = patterns('',
         name='seeddb-room-edit'),
     url(r'^room/bulk/$', dummy,
         name='seeddb-room-bulk'),
-    url(r'^room/move/$', room_move,
-        name='seeddb-room-move'),
 
     # Location
     url(r'^location/$', location,
