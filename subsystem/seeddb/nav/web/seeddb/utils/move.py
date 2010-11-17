@@ -99,7 +99,7 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
         'values': object_list,
         'data': data,
         'confirm': confirm,
-        'active': {'list': True},
+        'sub_active': {'list': True},
         'title': 'Move %s' % verbose_name,
         'step': step,
     }

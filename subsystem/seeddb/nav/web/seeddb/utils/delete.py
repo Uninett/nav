@@ -64,6 +64,7 @@ def render_delete(request, model, redirect, whitelist=[], extra_context={}):
 
     info_dict = {
         'objects': objects,
+        'sub_active': {'list': True},
     }
     extra_context.update(info_dict)
     return render_to_response('seeddb/delete.html',
