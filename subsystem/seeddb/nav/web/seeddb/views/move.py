@@ -30,6 +30,7 @@ def netbox_move(request):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('IP Devices', reverse('seeddb-netbox'))],
         'tab_template': 'seeddb/tabs_netbox.html',
+        'active': {'netbox': True},
     }
     return move(request, Netbox, NetboxMoveForm, 'seeddb-netbox',
         title_attr='sysname',
@@ -39,6 +40,7 @@ def room_move(request):
     extra = {
         'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
         'tab_template': 'seeddb/tabs_room.html',
+        'active': {'room': True},
     }
     return move(request, Room, RoomMoveForm, 'seeddb-room',
         extra_context=extra)
@@ -48,6 +50,7 @@ def organization_move(request):
         'navpath': NAVPATH_DEFAULT + [
             ('Organization', reverse('seeddb-organization'))],
         'tab_template': 'seeddb/tabs_organization.html',
+        'active': {'organization': True},
     }
     return move(request, Organization, OrganizationMoveForm,
         'seeddb-organization',
