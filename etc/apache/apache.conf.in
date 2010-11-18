@@ -1,0 +1,24 @@
+# NAV web interface Apache configuration
+
+# For the time being, NAV requires being located at the DocumentRoot, so this
+# file should be included from a VirtualHost directive somewhere (or in the
+# global Apache config if you're not using virtualhosts.
+
+DocumentRoot @webrootdir@
+
+<Directory "@webrootdir@">
+    Options Indexes FollowSymlinks ExecCGI
+    Order allow,deny
+    Allow from all
+</Directory>
+
+<Location />
+    SetHandler python-program
+    PythonHandler django.core.handlers.modpython
+    SetEnv DJANGO_SETTINGS_MODULE nav.django.settings
+    PythonDebug On
+    PythonHeaderParserHandler nav.web
+    PythonCleanupHandler nav.web
+</Location>
+
+Include @sysconfdir@/apache/subsystems/*.conf

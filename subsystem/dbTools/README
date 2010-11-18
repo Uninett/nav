@@ -1,8 +1,0 @@
-This directory contains utilities for managing the NAV database.
-
-dump.py      -- Dumps seed information from the database into text
-                files which can be bulk imported through the seeddb
-                web interface.
-
-navclean.py  -- Removes expired CAM/ARP records from the database to
-                save disk space.

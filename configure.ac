@@ -44,7 +44,7 @@ AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
-webroot='${prefix}/apache/webroot'
+webroot='${prefix}/share/htdocs'
 webrootdir='${webroot}'
 imagedir='${webroot}/images'
 javascriptdir='${webroot}/js'
@@ -54,7 +54,7 @@ pythondir='${pythonlibdir}'
 javalibdir='${libdir}/java'
 djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
-tooldir='${prefix}/apache/tools'
+tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
 VERSION=VERSION_NUMBER
@@ -66,44 +66,12 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
-	src/Makefile
-	subsystem/alertengine/Makefile
-	subsystem/alertprofiles/Makefile
-	subsystem/arnold/Makefile
-	subsystem/arnold/config/Makefile
-	subsystem/dbTools/Makefile
-	subsystem/devicehistory/Makefile
-	subsystem/geomap/Makefile
-	subsystem/geomap/media/Makefile
-	subsystem/ipdevinfo/Makefile
-	subsystem/ipdevinfo/config/Makefile
-	subsystem/ipdevinfo/templates/Makefile
-	subsystem/ipdevpoll/Makefile
-	subsystem/l2trace/Makefile
-	subsystem/lib-python/Makefile
-	subsystem/lib-python/templates/Makefile
-	subsystem/logger/Makefile
-	subsystem/machinetracker/Makefile
-	subsystem/mailin/Makefile
-	subsystem/maintenance/Makefile
-	subsystem/messages/Makefile
-	subsystem/netmap/Makefile
-	subsystem/networkexplorer/Makefile
-	subsystem/radius/src/Makefile
-        subsystem/radius/Makefile
-	subsystem/report/Makefile
-	subsystem/seeddb/Makefile
-	subsystem/seeddb/src/Makefile
-	subsystem/smsd/Makefile
-	subsystem/snmptrapd/Makefile
-	subsystem/startstop/Makefile
-	subsystem/statTools/Makefile
-	subsystem/statTools/sortedStats/Makefile
-	subsystem/statemon/Makefile
-	subsystem/status/Makefile
-	subsystem/thresholdMon/Makefile
-	subsystem/useradmin/Makefile
-	subsystem/webfront/Makefile
-	subsystem/webfront/media/Makefile
+	etc/Makefile
+	sql/Makefile
+	java/Makefile
+	templates/Makefile
+	python/Makefile
+	bin/Makefile
+	media/Makefile
 ])
 AC_OUTPUT

@@ -1,6 +1,0 @@
-What?
-=====
-This directory contains the source code for the general NAV python module
-library.  Configuration parsing and database abstraction layers and so forth
-can be found here.
-
