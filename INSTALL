@@ -205,3 +205,83 @@ rrd files and pid files::
   cd /usr/local/nav/var
   sudo chown -R navcron:nav .
 
+
+Integrating Cricket with NAV
+----------------------------
+NAV will automatically create a cricket configuration tree and keep it
+synced based on the information retrieved from the monitored devices.
+
+The initial, empty cricket configuration tree that NAV will work on
+should be copied from the documentation directory.  The config
+directory must be writeable by the navcron user if config updates are
+to take place::
+
+  sudo cp -r /usr/local/nav/doc/cricket/cricket-config /usr/local/nav/etc/
+  sudo chown -R navcron:nav /usr/local/nav/etc/cricket-config
+
+Now you need to locate your cricket-conf.pl file and edit it to tell
+cricket where to locate the configuration tree that NAV keeps.  Make
+sure that::
+
+  $gConfigRoot = "/usr/local/nav/etc/cricket-config"
+
+Also make sure that the navcron user has write permissions to whatever
+directory the $logDir option points to.
+
+Cricket comes with a file called subtree-sets, which contains some
+defaults that will be useless for us.  This file groups parts of the
+configuration tree that will collected during the same collect-subtree
+run.  You should replace Cricket's default version of this file with
+/usr/local/nav/doc/cricket/cricket/subtree-sets .
+
+Cricket needs to know where to store its RRD data, we suggest in NAV's
+var directory.  Create a suitable directory here::
+
+    sudo mkdir /usr/local/nav/var/cricket-data
+    sudo chown navcron /usr/local/nav/var/cricket-data
+
+Now tell Cricket to put the files there, by editing
+/usr/local/nav/etc/cricket-config/Defaults and making sure that it
+contains::
+
+  Target  --default--
+      dataDir         = /usr/local/nav/var/cricket-data/%auto-target-path%
+
+You can now have Cricket compile this empty tree to make sure
+everything works so far::
+
+  sudo -u navcron cricket-compile
+
+NAV's mcc.py program will generate a new version of the configuration
+tree every night around 5 am.  You kan manually update the
+configuration once you've seeded a bunch of devices into NAV and NAV
+has found their interfaces, instead of waiting till 5 am, by issuing
+the command::
+
+  sudo -u navcron /usr/local/nav/bin/mcc.py
+
+
+Integrating the Cricket web interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Cricket comes with its own CGI based web interface for browsing the
+collected statistics.  To make this interface available under NAV's
+web pages, you can symlink Cricket's cgi scripts into a directory
+under NAV's document root.  Change directories to the one containing
+cricket's *.cgi scripts and run the following:
+
+  sudo mkdir /usr/local/nav/apache/webroot/cricket
+  sudo ln -s grapher.cgi /usr/local/nav/apache/webroot/cricket/
+  sudo ln -s mini-graph.cgi  /usr/local/nav/apache/webroot/cricket/
+  cd /usr/local/nav/apache/webroot/cricket
+  sudo ln -s grapher.cgi index.cgi
+  sudo cp /usr/local/nav/doc/cricket/public_html/cricket.css .
+  sudo sh -c 'echo "SetHandler none" > .htaccess'
+
+Also, find Cricket's images directory and symlink that as well::
+
+  sudo ln -s images /usr/local/nav/apache/webroot/cricket
+
+
+You should now have a completely installed and integrated NAV. For a
+guide on how to get started, please refer to the file
+doc/getting-started.txt .
