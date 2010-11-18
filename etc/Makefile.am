@@ -16,6 +16,7 @@ nobase_dist_sysconf_DATA = $(sort $(wildcard *.conf) logger.conf) \
 	   rrdviewer/*.conf \
 	   $(cron_out) \
 	   report/*.conf report/*.html \
+	   geomap/*.html geomap/*.py \
 	   )
 
 init_SCRIPTS = $(scripts_out)
