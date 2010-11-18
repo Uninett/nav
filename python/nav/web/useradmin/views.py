@@ -36,6 +36,7 @@ from django.views.generic.list_detail import object_list
 from nav.models.profiles import Account, AccountGroup
 from nav.django.utils import get_account
 
+from nav.web.auth import sudo
 from nav.web.message import new_message, Messages
 from nav.web.useradmin.forms import *
 
@@ -112,8 +113,19 @@ def account_detail(request, account_id=None):
 
                 return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
+        elif 'submit_sudo' in request.POST:
+            sudo_account_id = request.POST.get('account')
+            try:
+                sudo_account = Account.objects.get(pk=sudo_account_id)
+            except Account.DoesNotExist:
+                new_message(request, 'Account not found.', type=Message.ERROR)
+            else:
+                sudo(request, sudo_account)
+            return HttpResponseRedirect(reverse('webfront-index'))
+
     if account:
         active = {'account_detail': True}
+        current_user = get_account(request)
     else:
         active = {'account_new': True}
 

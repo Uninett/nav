@@ -310,6 +310,7 @@ class JobHandler(object):
 
     def perform_save(self):
         start_time = time.time()
+        obj_model = None
         try:
             self.storage_queue.reverse()
             if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:

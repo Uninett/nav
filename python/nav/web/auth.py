@@ -23,6 +23,7 @@ import sys, os, re
 import nav
 import logging
 
+from nav.django.utils import get_account, is_admin
 from nav.web import state, ldapAuth
 from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
@@ -167,7 +168,48 @@ def logout(request):
     '''Removes session object for this user.
     In effect, this is the same as logging out.
     '''
-    # The session is stored in the mod_python request. This little if makes it
-    # possible to pass both django and mod_python requests.
     del request.session
     state.deleteSessionCookie(request)
+
+def sudo(request, other_user):
+    current_user = request._req.session['user']
+    if current_user.has_key('sudoer'):
+        # Already logged in as another user.
+        raise SudoRecursionError()
+    if not is_admin(get_account(request)):
+        # Check if sudoer is acctually admin
+        raise SudoNotAdminError()
+    request._req.session['user'] = {
+        'id': other_user.id,
+        'login': other_user.login,
+        'name': other_user.name,
+        'sudoer': current_user,
+    }
+    request._req.session.save()
+
+def desudo(request):
+    current_user = request._req.session['user']
+    if not current_user.has_key('sudoer'):
+        # We are not sudoing
+        return
+
+    original_user = current_user['sudoer']
+
+    del request._req.session['user']
+    request._req.session.save()
+    request._req.session['user'] = {
+        'id': original_user['id'],
+        'login': original_user['login'],
+        'name': original_user['name'],
+    }
+    request._req.session.save()
+
+class SudoRecursionError(Exception):
+    msg = u"Already posing as another user"
+    def __unicode__(self):
+        return self.msg
+
+class SudoNotAdminError(Exception):
+    msg = u"Not admin"
+    def __unicode__(self):
+        return self.msg

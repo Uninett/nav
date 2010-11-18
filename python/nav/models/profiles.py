@@ -323,10 +323,9 @@ class AlertAddress(models.Model):
 
         except FatalDispatcherException, e:
             logger.error('%s raised a FatalDispatcherException indicating that the alert never will be sent: %s' % (self.type, e))
-            alert.delete()
-            transaction.commit()
+            transaction.rollback()
 
-            return False
+            raise
 
         except DispatcherException, e:
             logger.error('%s raised a DispatcherException indicating that an alert could not be sent at this time: %s' % (self.type, e))
@@ -1028,6 +1027,9 @@ class AccountAlertQueue(models.Model):
                           'LP#494036') % self.alert_id)
 
             super(AccountAlertQueue, self).delete()
+            return False
+        except FatalDispatcherException, e:
+            self.delete()
             return False
 
         if sent:

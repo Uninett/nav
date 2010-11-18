@@ -94,5 +94,17 @@
                 </p>
             </form>
         {% endif %}
+
+        {% if current_user_data.is_admin and not current_user_data.sudoer %}
+        {% ifnotequal current_user_data.account.id account.id %}
+        <h3>Switch user</h3>
+            <form action="." method="post">
+                <input type="hidden" name="account" value="{{ account.id }}" />
+                <p>
+                    <input type="submit" value="Switch to this user" name="submit_sudo" />
+                </p>
+            </form>
+        {% endifnotequal %}
+        {% endif %}
     {% endif %}
 {% endblock %}

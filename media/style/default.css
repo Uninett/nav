@@ -337,6 +337,22 @@ table.toolbox4cols tr td {
   color: #A40000;
 }
 
+/* Top bar information */
+div#top-bar {
+	width: 100%;
+	height: 3em;
+	padding-left: 1em;
+	background-color: #d3d7cf;
+	border-bottom: 1px solid #555753;
+	position: fixed;
+	top: 0;
+	left: 0;
+}
+
+div#top-bar + div#header {
+		padding-top: 3em;
+}
+
 /* Report */
 
 .float-list {

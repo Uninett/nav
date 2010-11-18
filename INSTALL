@@ -11,7 +11,7 @@ To build NAV, you need at least the following:
  * automake
  * autoconf
  * ant
- * Python >= 2.4.0
+ * Python >= 2.5.0
  * Java 2 SDK >= 1.5.0
  * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
  * Cheetah Templates >= 2.0rc7
@@ -23,7 +23,7 @@ To run NAV, these software packages are required:
  * Apache2
  * mod_python
  * Cricket
- * PostgreSQL >= 8.0
+ * PostgreSQL >= 8.3
  * rrdtool
  * Cheetah Templates >= 2.0rc7
  * Java 2 SDK >= 1.5.0
@@ -50,6 +50,11 @@ The following python modules are required:
 
 psycopg2 should be at least version 2.0.8: Earlier versions have bugs that may
 cause some NAV programs to crash.
+
+twisted-snmp has a known, unfixed bug with table retrievals on slow SNMP
+agents. The contrib/patches directory contains a recommended patch for this
+problem.
+
 
 Recommended add-ons
 -------------------

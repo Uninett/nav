@@ -64,7 +64,8 @@ CREATE TABLE room (
   opt1 VARCHAR,
   opt2 VARCHAR,
   opt3 VARCHAR,
-  opt4 VARCHAR
+  opt4 VARCHAR,
+  position POINT
 );
 INSERT INTO room (roomid, locationid, descr) VALUES ('myroom', 'mylocation', 'Example wiring closet');
 

@@ -305,7 +305,7 @@ class Report:
         returns a table containing the data of the report (without header and footer etc)
         """
 
-        linkFinder = re.compile("\$(.+?)(?:$|\$|\&|\"|\'|\s|\;)",re.M)
+        linkFinder = re.compile("\$(.+?)(?:$|\$|\&|\"|\'|\s|\;|\/)",re.M)
 
         newtable = Table()
         for line in self.formatted:

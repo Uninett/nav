@@ -29,6 +29,16 @@
 <body>
 {% endblock %}
 
+{% if current_user_data.sudoer %}
+<div id="top-bar">
+<form action="{% url webfront-logout %}" method="post">
+<img src="/images/main/emblem-important.png" alt="Important information" />
+Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as <em>{{ current_user_data.account.name }}</em>.
+    <input type="submit" name="submit_desudo" value="Log back in as {{ current_user_data.sudoer.login }}" />
+</form>
+</div>
+{% endif %}
+
 <div id="header">
     {% block base_header_logo %}
     <div id="navlogo">

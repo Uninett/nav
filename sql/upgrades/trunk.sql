@@ -1,7 +1,7 @@
 /*
  *
  * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.6.0 to the current trunk revision (i.e. the tip of the default
+ * version 3.7.0 to the current trunk revision (i.e. the tip of the default
  * development branch).  Please update this with every change you make to the
  * database initialization scripts.  It will eventually become the update
  * script for the next release.
@@ -26,6 +26,6 @@ BEGIN;
 
 
 -- Insert the new version number if we got this far.
--- INSERT INTO nav_schema_version (version) VALUES ('3.6.0');
+-- INSERT INTO nav_schema_version (version) VALUES ('3.7.0');
 
 COMMIT;

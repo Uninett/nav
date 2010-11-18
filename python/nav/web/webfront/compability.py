@@ -30,6 +30,7 @@ class Cheetah(object):
 
     def __init__(self, user, title, navpath):
         self.user = Account.objects.get(id=user['id'])
+        self.sudoer = user.get('sudoer')
         self.title = title
         self.navpath = navpath
 
@@ -48,6 +49,7 @@ class Cheetah(object):
                 'navpath': self.navpath,
                 'current_user_data': {
                     'account': self.user,
+                    'sudoer': self.sudoer,
                     'navbar': self.navbar,
                     'qlink1': self.qlink1,
                     'qlink2': self.qlink2,
