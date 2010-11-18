@@ -69,7 +69,14 @@ required.
 
 Installing NAV
 ==============
-To install NAV, do the following::
+To install NAV, first find where the JavaSNMP (from drexel.edu)
+library is installed on your system.  On Debian it will be located as
+/usr/share/java/libsnmp-1.4.jar.  This library needs to be available
+on the Java compiler's classpath before you begin the build::
+
+  export CLASSPATH=/usr/share/java/libsnmp-1.4.jar
+
+Then build and install NAV::
 
   ./configure CRICKETDIR=/path/to/cricket/binaries
   make
@@ -96,14 +103,105 @@ values are unchanged.  A typical value for a Debian install is
 /usr/share/cricket .
 
 
-Java libraries
---------------
-Before building, you must make sure that the JavaSNMP (from drexel.edu) is
-available on your JVM's CLASSPATH. If it is not, you need to explicitly add it
-to the CLASSPATH environment variable before running `make` as described above.
+Initializing the database
+-------------------------
+Before NAV can run, the database schema must be installed in your
+PostgreSQL server.  As the postgres superuser, run the following
+command::
 
-If the library is located in /usr/share/java/, then something like this should
-be appropriate:
+  cd doc/sql
+  ./createdb.sh
 
-  export CLASSPATH=/usr/share/java/libsnmp-1.4.jar
+This will attempt to create a new database user - you will be prompted
+for a password to give this user.  Choose a password, and save it to
+/usr/local/nav/etc/db.conf as the value of the userpw_nav option.
+
+For more details on setting up PostgreSQL and initializing the schema,
+please refer to the doc/sql/README file.
+
+
+Making the Python libraries available system-wide
+-------------------------------------------------
+By default, NAV's Python libraries are not installed in Python's
+site-packages directory.  To make them available system-wide, you need
+to add the path to the libraries to Python's search path.
+
+One way of accomplishing this is altering Python's sys.path value at
+startup time, by modifying or adding your Python installation's
+sitecustomize.py module, which is loaded every time python runs.  Add
+these lines::
+
+  import sys
+  __navpath = "/usr/local/nav/lib/python"
+  if __navpath not in sys.path:
+      sys.path.append(__navpath)
+
+You should now be able to run the python command line interpreter and
+import nav without a hitch::
+
+  % python
+  Python 2.5.2 (r252:60911, Jan 24 2010, 14:53:14)
+  [GCC 4.3.2] on linux2
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>> import nav
+  >>>
+
+Making the necessary Java libraries available to NAV
+----------------------------------------------------
+The fastest way is to symlink the PostgreSQL JDBC driver and the
+JavaSNMP libraries to NAV's java library directory::
+
+  cd /usr/local/nav/lib/java
+  sudo ln -s /usr/share/java/postgresql.jar
+  sudo ln -s /usr/share/java/libsnmp-1.4.jar
+
+Configuring Apache
+------------------
+Legacy parts of NAV uses mod_python, and therefore requires an Apache
+server.  For the time being, NAV also requires being at the document
+root of its own Apache virtualhost.
+
+A typical minimum configuration for such a virtualhost can be::
+
+  DirectoryIndex index.html index.html index.php index.cgi index.py
+  AccessFileName .htaccess
+  AddDefaultCharset UTF-8
+  AddHandler cgi-script .cgi
+
+  DocumentRoot /usr/local/nav/apache/webroot
+  <Directory />
+      Options FollowSymLinks
+      AllowOverride None
+  </Directory>
+
+  <Directory "/usr/local/nav/apache/webroot">
+      Options Indexes FollowSymLinks ExecCGI
+      AllowOverride All
+      Order allow,deny
+      Allow from all
+  </Directory>
+
+
+Create users and groups
+-----------------------
+NAV processes should run as the navcron user, and preferably, a
+separate nav group should be added to the system::
+
+  sudo addgroup --system nav
+  sudo adduser --system --no-create-home --home /usr/local/nav \
+	       --shell /bin/sh --ingroup nav navcron;
+
+If you want to use NAV's SMS functionality in conjunction with Gammu,
+you should make sure the navcron user is allowed to write to the
+serial device you've connected your GSM device to.  Often, this device
+has a group ownership set to the dialout group, so the easieast route
+is to add the navcron user to the dialout group::
+
+  sudo addgroup navcron dialout
+
+You should also make sure navcron has permission to write log files,
+rrd files and pid files::
+
+  cd /usr/local/nav/var
+  sudo chown -R navcron:nav .
 
