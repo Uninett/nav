@@ -26,15 +26,15 @@ class MoveOperationForm(forms.Form):
         form = kwargs.pop('form', None)
         hidden = kwargs.pop('hidden', False)
 
+        kwargs['prefix'] = 'operation'
         super(MoveOperationForm, self).__init__(*args, **kwargs)
 
         fields = form.fields.keys()
         for field in fields:
-            key = 'operation_%s' % field
-            self.fields[key] = forms.BooleanField(
+            self.fields[field] = forms.BooleanField(
                 required=False, label="Change %s" % field)
             if hidden:
-                self.fields[key].widget = forms.HiddenInput()
+                self.fields[field].widget = forms.HiddenInput()
 
     def clean(self):
         clean = [key for key in self.cleaned_data if self.cleaned_data[key]]
@@ -57,7 +57,7 @@ class MoveForm(forms.Form):
         super(MoveForm, self).__init__(*args, **kwargs)
         if op_form:
             data = op_form.cleaned_data
-            active_fields = [key.split("_")[1] for key in data if data[key]]
+            active_fields = [key for key in data if data[key]]
             for key in self.fields:
                 if key not in active_fields:
                     del self.fields[key]
