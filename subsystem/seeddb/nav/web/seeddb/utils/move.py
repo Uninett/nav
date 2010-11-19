@@ -25,6 +25,11 @@ from nav.django.utils import get_verbose_name
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.forms.move import MoveOperationForm
 
+STEP_OPERATION_CHOICE = 0
+STEP_DO_OPERATION = 1
+STEP_CONFIRM = 2
+STEP_SAVE = 3
+
 def move(request, model, form_model, redirect, title_attr='id', extra_context={}):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
@@ -42,13 +47,13 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
     try:
         step = int(request.POST.get('step', '0'))
     except ValueError:
-        step = 0
+        step = STEP_OPERATION_CHOICE
 
     form = ''
     op_form = ''
-    if step == 0:
+    if step == STEP_OPERATION_CHOICE:
         op_form = MoveOperationForm(form=form_model(), hidden=False)
-        step = 1
+        step = STEP_DO_OPERATION
     else:
         op_form = MoveOperationForm(
             request.POST, form=form_model(), hidden=True)
@@ -59,18 +64,18 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
             op_form = MoveOperationForm(
                 request.POST, form=form_model(), hidden=False)
             op_form.is_valid()
-            step = 1
+            step = STEP_DO_OPERATION
         else:
-            if step == 1:
+            if step == STEP_DO_OPERATION:
                 form = form_model(operation_form=op_form)
-                step = 2
-            elif step == 2:
+                step = STEP_CONFIRM
+            elif step == STEP_CONFIRM:
                 form = form_model(request.POST, operation_form=op_form)
                 if form.is_valid():
                     data = form.cleaned_data
                     confirm = True
-                    step = 3
-            elif step == 3:
+                    step = STEP_SAVE
+            elif step == STEP_SAVE:
                 form = form_model(request.POST, operation_form=op_form)
                 if form.is_valid():
                     foreign_keys = form.cleaned_data.keys()
