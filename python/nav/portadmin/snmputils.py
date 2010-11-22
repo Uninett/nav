@@ -1,5 +1,7 @@
 from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
+from nav.bitvector import BitVector
+
 
 class SNMPHandler(object):
     netbox = ''
@@ -85,8 +87,50 @@ class Cisco(SNMPHandler):
 
 
 class HP(SNMPHandler):
+    # List of all ports on a vlan as a hexstring
+    dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2'
+    
     def __init__(self, netbox):
         super(HP, self).__init__(netbox)
+
+    def setVlan(self, ifindex, vlan):
+        if isinstance(vlan, str):
+            if vlan.isdigit():
+                vlan = int(vlan)
+        if not isinstance(vlan, int):
+            raise TypeError('Unlegal value for vlan')
+    
+        # Fetch current vlan
+        fromvlan = self.getVlan(ifindex)
+
+        # fromvlan and vlan is the same, there's nothing to do
+        if fromvlan == vlan:
+            return None
+
+        # Add port to vlan. This makes the port active on both old and new vlan
+        status = self._setNetboxValue(self.vlanOid, ifindex, "u", vlan)
+        
+        # Remove port from list of ports on old vlan
+        hexstring = self._queryNetbox(self.dot1qVlanStaticEgressPorts, fromvlan)
+        modified_hexport = self.computeOctetString(hexstring, ifindex, 'disable')
+        return self._setNetboxValue(self.dot1qVlanStaticEgressPorts, fromvlan, 's', modified_hexport)
+        
+    def computeOctetString(self, hexstring, port, action='enable'):
+        """
+        hexstring: the returnvalue of the snmpquery
+        port: the number of the port to add
+        """
+    
+        bit = BitVector(hexstring)
+    
+        # Add port to string
+        port = port - 1
+        if action == 'enable':
+            bit[port] = 1
+        else:
+            bit[port] = 0
+            
+        return str(bit)
 
 
 class SNMPFactory(object):
