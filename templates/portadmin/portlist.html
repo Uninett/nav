@@ -1,0 +1,31 @@
+{% extends "portadmin/base.html" %}
+
+{% block content %}
+
+{% if swports %}
+<table id="portadmin-interfacetable" class="vertitable">
+	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
+	<tr>
+		<th>Name</th>
+		<th>Alias</th>
+		<th>Vlan</th>
+	</tr>
+  
+	{% for swport in swports %}
+	<tr>
+		<td>{{swport.ifname}}</td>
+		<td>{{swport.ifalias}}</td>
+		<td>
+			{% if swport.trunk %}
+			Trunk
+			{% else %}
+			{{swport.vlan}}
+			{% endif %}
+		</td>
+	</tr>
+	{% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}
+
