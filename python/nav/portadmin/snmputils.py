@@ -13,33 +13,70 @@ class SNMPHandler(object):
         return self.netbox.type.vendor.id
 
     def bulkwalk(self, oid):
-        handle = Snmp(self.netbox.ip, self.netbox.read_only, self.netbox.snmp_version)
-        result = []
+       handle = Snmp(self.netbox.ip, self.netbox.read_only, self.netbox.snmp_version)
+       result = []
+       try:
+           result = handle.bulkwalk(oid)
+       except UnsupportedSnmpVersionError, e:
+           result = handle.walk(oid)
+       return result
+
+    def _getLegalIfIndex(self, ifindex):
+        if isinstance(ifindex, int):
+            ifindex = str(ifindex)
+        if not isinstance(ifindex, str):
+            raise TypeError('Unlegal value for interface-index')
+        if not ifindex.isdigit():
+            raise TypeError('Unlegal value for interface-index')
+        return ifindex
+
+    def _getQuery(self, oid, ifindex):
+        return oid + "." + self._getLegalIfIndex(ifindex)
+
+    def _getReadOnlyHandle(self):
+        return Snmp(self.netbox.ip, self.netbox.read_only)
+
+    def _queryNetbox(self, oid, ifindex):
+        handle = self._getReadOnlyHandle()
+        result = None
         try:
-            result = handle.bulkwalk(oid)
-        except UnsupportedSnmpVersionError, e:
-            result = handle.walk(oid)
-            
+            result = handle.get(self._getQuery(oid, ifindex))
+        except NoSuchObjectError, e:
+            pass
         return result
 
+    def _getReadWriteHandle(self):
+        return Snmp(self.netbox.ip, self.netbox.read_write,
+                        self.netbox.snmp_version)
+
+    def _setNetboxValue(self, oid, ifindex, valueType, value):
+        handle = self._getReadWriteHandle()
+        return handle.set(self._getQuery(oid, ifindex), valueType, value)
+
     def getIfAlias(self, ifindex):
-        pass
-    
+        return self._queryNetbox(self.ifAliasOid, ifindex)
+
     def getAllIfAlias(self):
         return self.bulkwalk(self.ifAliasOid)
         
     def setIfAlias(self, ifindex, ifalias):
-        pass
-    
+        if not isinstance(ifalias, str):
+            raise TypeError('Unlegal value for interface-alias')
+        return self._setNetboxValue(self.ifAliasOid, ifindex, "s", ifalias)
+
     def getVlan(self, ifindex):
-        pass
-    
+        return self._queryNetbox(self.vlanOid, ifindex)
+
     def getAllVlans(self):
         return self.bulkwalk(self.vlanOid)
     
     def setVlan(self, ifindex, vlan):
-        pass
-    
+        if isinstance(vlan, str):
+            if vlan.isdigit():
+                vlan = int(vlan)
+        if not isinstance(vlan, int):
+            raise  TypeError('Unlegal value for vlan')
+        return self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
 
 class Cisco(SNMPHandler):
     def __init__(self, netbox):
