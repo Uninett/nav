@@ -1,20 +1,23 @@
 from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
 from nav.bitvector import BitVector
+from nav.models.manage import SwPortAllowedVlan
 
 
 class SNMPHandler(object):
     netbox = ''
     ifAliasOid = '1.3.6.1.2.1.31.1.1.1.18' # From IF-MIB
     vlanOid = '1.3.6.1.2.1.17.7.1.4.5.1.1' # From Q-BRIDGE-MIB
-    
+    # oid for reading vlans om a stndard netbox (not cisco)
+    dot1qVlanStaticRowStatus = '1.3.6.1.2.1.17.7.1.4.3.1.5'
+
     def __init__(self, netbox):
         self.netbox = netbox
     
     def __unicode__(self):
         return self.netbox.type.vendor.id
 
-    def bulkwalk(self, oid):
+    def _bulkwalk(self, oid):
        handle = Snmp(self.netbox.ip, self.netbox.read_only, self.netbox.snmp_version)
        result = []
        try:
@@ -56,23 +59,27 @@ class SNMPHandler(object):
         return handle.set(self._getQuery(oid, ifindex), valueType, value)
 
     def getIfAlias(self, ifindex):
+        """ Get alias on a specific interface """
         return self._queryNetbox(self.ifAliasOid, ifindex)
 
     def getAllIfAlias(self):
-        return self.bulkwalk(self.ifAliasOid)
+        return self._bulkwalk(self.ifAliasOid)
         
     def setIfAlias(self, ifindex, ifalias):
+        """ Set alias on a specific interface."""
         if not isinstance(ifalias, str):
             raise TypeError('Unlegal value for interface-alias')
         return self._setNetboxValue(self.ifAliasOid, ifindex, "s", ifalias)
 
     def getVlan(self, ifindex):
+        """ Get vlan on a specific interface."""
         return self._queryNetbox(self.vlanOid, ifindex)
 
     def getAllVlans(self):
-        return self.bulkwalk(self.vlanOid)
+        return self._bulkwalk(self.vlanOid)
     
     def setVlan(self, ifindex, vlan):
+        """Set vlan on a specific interface."""
         if isinstance(vlan, str):
             if vlan.isdigit():
                 vlan = int(vlan)
@@ -80,12 +87,48 @@ class SNMPHandler(object):
             raise  TypeError('Unlegal value for vlan')
         return self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
 
+    def _filter_vlans(self, vlans):
+        return filter(None, list(set(vlans)))
+
+    def getNetboxVlans(self):
+        boxVlans = self._bulkwalk(self.dot1qVlanStaticRowStatus)
+        available_vlans = []
+        for (vlan, valueType) in boxVlans:
+            splits = vlan.split('.')
+            currVlan = splits[-1]
+            if isinstance(currVlan, str):
+                if currVlan.isdigit():
+                    currVlan = int(currVlan)
+            if isinstance(currVlan, int):
+                available_vlans.append(currVlan)
+        # remove duplicates and none values
+        available_vlans = self._filter_vlans(available_vlans)
+        return available_vlans
+
 class Cisco(SNMPHandler):
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
         self.vlanOid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
 
+    def getNetboxVlans(self):
+        """ Find all available vlans on this netbox"""
+        available_vlans = []
+        for swport in self.netbox.get_swports():
+            if swport.trunk:
+                available_vlans.extend(self._find_vlans_on_trunk(swport))
+            else:
+                available_vlans.append(swport.vlan)
+        # remove duplicates and none values
+        available_vlans = self._filter_vlans(available_vlans)
+        return available_vlans
 
+    def _find_vlans_on_trunk(self, swport):
+        """Find all vlans on trunk-ports"""
+        port = SwPortAllowedVlan.objects.get(interface=swport.id)
+        vector = BitVector.from_hex(port.hex_string)
+        vlans = vector.get_set_bits()
+        return vlans
+        
 class HP(SNMPHandler):
     # List of all ports on a vlan as a hexstring
     dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2'
@@ -112,10 +155,10 @@ class HP(SNMPHandler):
         
         # Remove port from list of ports on old vlan
         hexstring = self._queryNetbox(self.dot1qVlanStaticEgressPorts, fromvlan)
-        modified_hexport = self.computeOctetString(hexstring, ifindex, 'disable')
+        modified_hexport = self._computeOctetString(hexstring, ifindex, 'disable')
         return self._setNetboxValue(self.dot1qVlanStaticEgressPorts, fromvlan, 's', modified_hexport)
         
-    def computeOctetString(self, hexstring, port, action='enable'):
+    def _computeOctetString(self, hexstring, port, action='enable'):
         """
         hexstring: the returnvalue of the snmpquery
         port: the number of the port to add
