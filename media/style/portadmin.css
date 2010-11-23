@@ -12,16 +12,37 @@ div#infobox {
 
 
 /*
- * 
+ * Styles for changed rows
+ */
+table#portadmin-interfacecontainer tr td.changed {
+	background-color: #BDE5F8;
+}
+
+
+/*
+ * Styles for information boxes 
  */
 div#saveinfo {
 	position: absolute;
 	display: none;
 }
 
+div#summary {
+	position: absolute;
+	display: none;
+}
+
+div#summary h4 {
+	text-align: center;
+}
+
+div#summary ul {
+	list-style: none;
+}
+
 .success, .error {
 	border: 1px solid;
-	margin: 10px 0px;
+	margin: 2px 0px;
 	padding:5px 10px 5px 30px;
 	background-repeat: no-repeat;
 	background-position: 10px center;

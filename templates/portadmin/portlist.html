@@ -12,8 +12,13 @@ You may edit the following vlans:
 </div>
 
 <div id="saveinfo"><p></p></div>
+<div id="summary">
+<h4>Summary of bulk save</h4>
+<ul></ul>
+</div>
 
 {% if swports %}
+<input type="button" value="Save all" onclick="bulk_save()"/>
 <table id="portadmin-interfacecontainer" class="vertitable">
 	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
 	<tr>
@@ -24,8 +29,8 @@ You may edit the following vlans:
 	</tr>
   
 	{% for swport in swports %}
-	<tr id="{{ swport.id }}" class="swport" >
-		<td>{{swport.ifname}}</td>
+	<tr id="{{ swport.id }}">
+		<td>{{ swport.ifname }}</td>
 		<td>
 			{% if swport.iseditable %}
 			<input class="ifalias" type="text" value="{{ swport.ifalias }}" />
@@ -54,12 +59,16 @@ You may edit the following vlans:
 		</td>
 		<td>
 			{% if swport.iseditable %}
-			<input type="button" value="Save" onclick="save_row({{ swport.id }})"/>
+			<img src="/images/portadmin/save.png" alt="Save" title="Save" onclick="save_row({{ swport.id }}, false)"/>
 			{% endif %}
 		</td>
 	</tr>
 	{% endfor %}
-</table>	
+</table>
+
+
+<input type="button" value="Save all" onclick="bulk_save()"/>
+	
 {% endif %}
 
 {% endblock %}

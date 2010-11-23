@@ -55,6 +55,10 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox):
     
     return sorted(allowed_vlans)
 
+def find_vlans_on_netbox(netbox):
+    fac = SNMPFactory.getInstance(netbox) 
+    return fac.getNetboxVlans()
+    
 def find_allowed_vlans_for_user(account):
     allowed_vlans = []
     for org in account.organizations.all():
@@ -72,29 +76,6 @@ def set_editable_on_swports(swports, vlans):
         else:
             swport.iseditable = False
 
-def find_vlans_on_netbox(netbox):
-    """
-    Fetch all vlans from all interfaces and trunks on the netbox
-    """
-    available_vlans = []
-    for swport in netbox.get_swports():
-        if swport.trunk:
-            available_vlans.extend(find_vlans_on_trunk(swport))
-        else:
-            available_vlans.append(swport.vlan)
-    available_vlans = filter(None, list(set(available_vlans))) # remove duplicates and none values
-    return available_vlans
-    
-def find_vlans_on_trunk(swport):
-    """
-    Use hexstring from database and convert it into a list
-    of vlans on this swport
-    """
-    port = SwPortAllowedVlan.objects.get(interface=swport.id)
-    vector = BitVector.from_hex(port.hex_string)
-    vlans = vector.get_set_bits()
-    return vlans
-    
 def intersect(a, b):
     return list(set(a) & set(b))
         
