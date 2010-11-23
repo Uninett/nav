@@ -2,29 +2,64 @@
 
 {% block content %}
 
+<div id="infobox" class="right">
+{% if account.is_admin_account %}
+You are an administrator and can edit any vlan or ifalias.
+{% else %}
+You may edit the following vlans:
+{{ allowed_vlans }}
+{% endif %}
+</div>
+
+<div id="saveinfo"><p></p></div>
+
 {% if swports %}
-<table id="portadmin-interfacetable" class="vertitable">
+<table id="portadmin-interfacecontainer" class="vertitable">
 	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
 	<tr>
-		<th>Name</th>
-		<th>Alias</th>
-		<th>Vlan</th>
+		<th class="ifname">Name</th>
+		<th class="ifalias">Alias</th>
+		<th class="vlan">Vlan</th>
+		<th class="button">&nbsp;</th>
 	</tr>
   
 	{% for swport in swports %}
-	<tr>
+	<tr id="{{ swport.id }}" class="swport" >
 		<td>{{swport.ifname}}</td>
-		<td>{{swport.ifalias}}</td>
+		<td>
+			{% if swport.iseditable %}
+			<input class="ifalias" type="text" value="{{ swport.ifalias }}" />
+			{% else %}
+			{{ swport.ifalias }}
+			{% endif %}
+		</td>
 		<td>
 			{% if swport.trunk %}
 			Trunk
 			{% else %}
-			{{swport.vlan}}
+				{% if swport.iseditable %}
+					<select class="vlanlist" name="{{ swport.ifname }}">
+						{% for vlan in allowed_vlans %}
+							{% ifequal swport.vlan vlan %}
+							<option value="{{ vlan }}" selected="selected">{{ vlan }}</option>
+							{% else %}
+							<option value="{{ vlan }}">{{ vlan }}</option>
+							{% endifequal %}
+						{% endfor %}
+					</select>
+				{% else %}			
+					{{swport.vlan}}
+				{% endif %}
+			{% endif %}
+		</td>
+		<td>
+			{% if swport.iseditable %}
+			<input type="button" value="Save" onclick="save_row({{ swport.id }})"/>
 			{% endif %}
 		</td>
 	</tr>
 	{% endfor %}
-</table>
+</table>	
 {% endif %}
 
 {% endblock %}

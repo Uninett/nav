@@ -2,7 +2,6 @@ from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
 from nav.bitvector import BitVector
 
-
 class SNMPHandler(object):
     netbox = ''
     ifAliasOid = '1.3.6.1.2.1.31.1.1.1.18' # From IF-MIB
