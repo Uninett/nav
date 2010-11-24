@@ -28,10 +28,10 @@ class SNMPHandler(object):
     def _getLegalIfIndex(self, ifindex):
         if isinstance(ifindex, int):
             ifindex = str(ifindex)
-        if not isinstance(ifindex, str):
-            raise TypeError('Unlegal value for interface-index')
+        if not (isinstance(ifindex, str) or isinstance(ifindex, unicode)):
+            raise TypeError('Illegal value for interface-index')
         if not ifindex.isdigit():
-            raise TypeError('Unlegal value for interface-index')
+            raise TypeError('Illegal value for interface-index')
         return ifindex
 
     def _getQuery(self, oid, ifindex):
@@ -66,8 +66,8 @@ class SNMPHandler(object):
         
     def setIfAlias(self, ifindex, ifalias):
         """ Set alias on a specific interface."""
-        if not isinstance(ifalias, str):
-            raise TypeError('Unlegal value for interface-alias')
+        if not (isinstance(ifalias, str) or isinstance(ifalias, unicode)):
+            raise TypeError('Illegal value for interface-alias: %s' %ifalias)
         return self._setNetboxValue(self.ifAliasOid, ifindex, "s", ifalias)
 
     def getVlan(self, ifindex):
@@ -79,11 +79,11 @@ class SNMPHandler(object):
     
     def setVlan(self, ifindex, vlan):
         """Set vlan on a specific interface."""
-        if isinstance(vlan, str):
+        if isinstance(vlan, str) or isinstance(vlan, unicode):
             if vlan.isdigit():
                 vlan = int(vlan)
         if not isinstance(vlan, int):
-            raise  TypeError('Unlegal value for vlan')
+            raise TypeError('Illegal value for vlan: %s' %vlan)
         return self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
 
     def _filter_vlans(self, vlans):
@@ -136,11 +136,11 @@ class HP(SNMPHandler):
         super(HP, self).__init__(netbox)
 
     def setVlan(self, ifindex, vlan):
-        if isinstance(vlan, str):
+        if isinstance(vlan, str) or isinstance(vlan, unicode):
             if vlan.isdigit():
                 vlan = int(vlan)
         if not isinstance(vlan, int):
-            raise TypeError('Unlegal value for vlan')
+            raise TypeError('Illegal value for vlan: %s' %vlan)
     
         # Fetch current vlan
         fromvlan = self.getVlan(ifindex)
