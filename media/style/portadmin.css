@@ -11,6 +11,11 @@ div#infobox {
 }
 
 
+
+table#portadmin-interfacecontainer {
+	margin-bottom: 0px;
+}
+
 /*
  * Styles for changed rows
  */
@@ -22,12 +27,7 @@ table#portadmin-interfacecontainer tr td.changed {
 /*
  * Styles for information boxes 
  */
-div#saveinfo {
-	position: absolute;
-	display: none;
-}
-
-div#summary {
+div.saveinfo {
 	position: absolute;
 	display: none;
 }
@@ -43,7 +43,7 @@ div#summary ul {
 .success, .error {
 	border: 1px solid;
 	margin: 2px 0px;
-	padding:5px 10px 5px 30px;
+	padding:0px 10px 0px 30px;
 	background-repeat: no-repeat;
 	background-position: 10px center;
 }
