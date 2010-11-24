@@ -2,13 +2,15 @@
 
 {% block content %}
 
-<div id="infobox" class="right">
-{% if account.is_admin_account %}
-You are an administrator and can edit any vlan or ifalias.
-{% else %}
-You may edit the following vlans:
-{{ allowed_vlans }}
-{% endif %}
+<div id="infobox" class="infobox right">
+	<h4>Available vlans</h4>
+	
+	<ul>
+	{% for vlan, netident in netidents %}
+		<li>{{ vlan }} - {{ netident }}</li>
+	{% endfor %}
+	</ul>
+
 </div>
 
 {% if swports %}

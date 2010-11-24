@@ -1,16 +1,11 @@
 .right { float: right; }
 .left { float: left; }
+h4 { text-align: center; }
 
 table#portadmin-interfacecontainer td {
 	height: 30px;
 	vertical-align: middle;
 }
-
-div#infobox {
-	border: 1px solid black;
-}
-
-
 
 table#portadmin-interfacecontainer {
 	margin-bottom: 0px;

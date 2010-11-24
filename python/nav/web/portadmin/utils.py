@@ -1,6 +1,8 @@
 import re
 
 from nav.models.manage import SwPortAllowedVlan
+from nav.models.manage import Vlan
+from nav.models.profiles import AccountGroup
 from operator import attrgetter
 from nav.bitvector import BitVector
 from nav.portadmin.snmputils import *
@@ -47,7 +49,7 @@ def find_and_populate_allowed_vlans(account, netbox, swports):
 def find_allowed_vlans_for_user_on_netbox(account, netbox):
     allowed_vlans = []
     netbox_vlans = find_vlans_on_netbox(netbox)
-    if account.is_admin_account():
+    if is_administrator(account):
         allowed_vlans = netbox_vlans
     else:
         all_allowed_vlans = find_allowed_vlans_for_user(account)
@@ -82,3 +84,24 @@ def intersect(a, b):
 def find_vlans_in_org(org):
     return org.vlan_set.all()
 
+def is_administrator(account):
+    groups = account.get_groups()
+    if AccountGroup.ADMIN_GROUP in groups:
+        return True
+    return False
+
+def get_netident_for_vlans(inputlist):
+    """
+    Fetch net_ident for the vlans in the input
+    If it does not exist, fill in blanks
+    """
+    result = []
+    for vlan in inputlist:
+        vlanlist = Vlan.objects.filter(vlan=vlan)
+        if vlanlist:
+            for element in vlanlist:
+                result.append((element.vlan, element.net_ident))
+        else:
+            result.append((vlan, ''))
+        
+    return result

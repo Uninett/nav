@@ -54,9 +54,10 @@ def search_by_swportid(request, swportid):
 def populate_infodict(account, netbox, swports):
     get_and_populate_livedata(netbox, swports)
     allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
+    netidents = get_netident_for_vlans(allowed_vlans)
 
     info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
-                 'account': account }
+                 'account': account, 'netidents': netidents }
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict
