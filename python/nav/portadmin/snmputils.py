@@ -95,7 +95,9 @@ class SNMPHandler(object):
         return self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
 
     def _filter_vlans(self, vlans):
-        return filter(None, list(set(vlans)))
+        vlans = filter(None, list(set(vlans)))
+        vlans.sort()
+        return vlans
 
     def getNetboxVlans(self):
         boxVlans = self._bulkwalk(self.dot1qVlanStaticRowStatus)
