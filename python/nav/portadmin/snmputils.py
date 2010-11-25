@@ -3,6 +3,7 @@ from nav.Snmp.errors import *
 from nav.bitvector import BitVector
 from nav.models.manage import SwPortAllowedVlan
 
+
 class SNMPHandler(object):
     netbox = ''
     ifAliasOid = '1.3.6.1.2.1.31.1.1.1.18' # From IF-MIB
@@ -12,12 +13,14 @@ class SNMPHandler(object):
 
     def __init__(self, netbox):
         self.netbox = netbox
+        self.readOnlyHandle = None
+        self.readWriteHandle = None
     
     def __unicode__(self):
         return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
-       handle = Snmp(self.netbox.ip, self.netbox.read_only, self.netbox.snmp_version)
+       handle = self._getReadOnlyHandle()
        result = []
        try:
            result = handle.bulkwalk(oid)
@@ -38,7 +41,9 @@ class SNMPHandler(object):
         return oid + "." + self._getLegalIfIndex(ifindex)
 
     def _getReadOnlyHandle(self):
-        return Snmp(self.netbox.ip, self.netbox.read_only)
+        if self.readOnlyHandle is None:
+            self.readOnlyHandle = Snmp(self.netbox.ip, self.netbox.read_only)
+        return self.readOnlyHandle
 
     def _queryNetbox(self, oid, ifindex):
         handle = self._getReadOnlyHandle()
@@ -50,8 +55,11 @@ class SNMPHandler(object):
         return result
 
     def _getReadWriteHandle(self):
-        return Snmp(self.netbox.ip, self.netbox.read_write,
-                        self.netbox.snmp_version)
+        if self.readWriteHandle is None:
+            self.readWriteHandle = Snmp(self.netbox.ip,
+                                        self.netbox.read_write,
+                                        self.netbox.snmp_version)
+        return self.readWriteHandle
 
     def _setNetboxValue(self, oid, ifindex, valueType, value):
         handle = self._getReadWriteHandle()
