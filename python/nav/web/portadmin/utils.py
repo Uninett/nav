@@ -1,6 +1,8 @@
 import re
 
 from nav.models.manage import SwPortAllowedVlan
+from nav.models.manage import Vlan
+from nav.models.profiles import AccountGroup
 from operator import attrgetter
 from nav.bitvector import BitVector
 from nav.portadmin.snmputils import *
@@ -47,7 +49,7 @@ def find_and_populate_allowed_vlans(account, netbox, swports):
 def find_allowed_vlans_for_user_on_netbox(account, netbox):
     allowed_vlans = []
     netbox_vlans = find_vlans_on_netbox(netbox)
-    if account.is_admin_account():
+    if is_administrator(account):
         allowed_vlans = netbox_vlans
     else:
         all_allowed_vlans = find_allowed_vlans_for_user(account)
@@ -55,6 +57,10 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox):
     
     return sorted(allowed_vlans)
 
+def find_vlans_on_netbox(netbox):
+    fac = SNMPFactory.getInstance(netbox) 
+    return fac.getNetboxVlans()
+    
 def find_allowed_vlans_for_user(account):
     allowed_vlans = []
     for org in account.organizations.all():
@@ -72,32 +78,30 @@ def set_editable_on_swports(swports, vlans):
         else:
             swport.iseditable = False
 
-def find_vlans_on_netbox(netbox):
-    """
-    Fetch all vlans from all interfaces and trunks on the netbox
-    """
-    available_vlans = []
-    for swport in netbox.get_swports():
-        if swport.trunk:
-            available_vlans.extend(find_vlans_on_trunk(swport))
-        else:
-            available_vlans.append(swport.vlan)
-    available_vlans = filter(None, list(set(available_vlans))) # remove duplicates and none values
-    return available_vlans
-    
-def find_vlans_on_trunk(swport):
-    """
-    Use hexstring from database and convert it into a list
-    of vlans on this swport
-    """
-    port = SwPortAllowedVlan.objects.get(interface=swport.id)
-    vector = BitVector.from_hex(port.hex_string)
-    vlans = vector.get_set_bits()
-    return vlans
-    
 def intersect(a, b):
     return list(set(a) & set(b))
         
 def find_vlans_in_org(org):
     return org.vlan_set.all()
 
+def is_administrator(account):
+    groups = account.get_groups()
+    if AccountGroup.ADMIN_GROUP in groups:
+        return True
+    return False
+
+def get_netident_for_vlans(inputlist):
+    """
+    Fetch net_ident for the vlans in the input
+    If it does not exist, fill in blanks
+    """
+    result = []
+    for vlan in inputlist:
+        vlanlist = Vlan.objects.filter(vlan=vlan)
+        if vlanlist:
+            for element in vlanlist:
+                result.append((element.vlan, element.net_ident))
+        else:
+            result.append((vlan, ''))
+        
+    return result

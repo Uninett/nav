@@ -1,4 +1,3 @@
-import logging
 import simplejson
 
 from django.http import HttpResponse
@@ -12,8 +11,6 @@ from nav.portadmin.snmputils import *
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
 DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
-
-logger = logging.getLogger("nav.web.portadmin")
 
 def index(request):
     info_dict = {}
@@ -54,9 +51,10 @@ def search_by_swportid(request, swportid):
 def populate_infodict(account, netbox, swports):
     get_and_populate_livedata(netbox, swports)
     allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
+    netidents = get_netident_for_vlans(allowed_vlans)
 
     info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
-                 'account': account }
+                 'account': account, 'netidents': netidents }
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict
@@ -70,12 +68,26 @@ def save_interfaceinfo(request):
     """
     result = {}
 
+
     if request.method == 'POST':
-        ifalias = request.POST.get('ifalias')
-        vlan = request.POST.get('vlan')
+        ifalias = str(request.POST.get('ifalias', '')) # Todo: Why the cast to string?
+        vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
-        
-        result = {'error': 0, 'message': 'Save was successful'}
+
+        account = get_account(request)
+        if vlan in find_allowed_vlans_for_user(account) or is_administrator(account):
+            try:
+                interface = Interface.objects.get(id=interfaceid)
+                netbox = interface.netbox
+                fac = SNMPFactory.getInstance(netbox)
+                fac.setVlan(interface.ifindex, vlan)
+                fac.setIfAlias(interface.ifindex, ifalias)
+                result = {'error': 0, 'message': 'Save was successful'}
+            except Exception, e:
+                result = {'error': 1, 'message': str(e) }
+        else:
+            # Should only happen if user tries to avoid gui restrictions
+            result = {'error': 1, 'message': "Not allowed to edit this port"}
     else:
         result = {'error': 1, 'message': "Wrong request type"}
         
