@@ -1,6 +1,17 @@
 .right { float: right; }
+
 .left { float: left; }
+
+.text-right { text-align: right; }
+
+.hidden { display: none; }
+
 h4 { text-align: center; }
+
+div#tablecontainer {
+	float: left;
+	margin: 0px 10px;
+}
 
 table#portadmin-interfacecontainer td {
 	height: 30px;
@@ -10,6 +21,7 @@ table#portadmin-interfacecontainer td {
 table#portadmin-interfacecontainer {
 	margin-bottom: 0px;
 }
+
 
 /*
  * Styles for changed rows

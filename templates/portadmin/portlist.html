@@ -2,7 +2,10 @@
 
 {% block content %}
 
-<div id="infobox" class="infobox right">
+
+{% if swports %}
+
+<div id="infobox" class="infobox left">
 	<h4>Available vlans</h4>
 	
 	<ul>
@@ -13,10 +16,7 @@
 
 </div>
 
-{% if swports %}
-
-<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
-
+<div id="tablecontainer" class="text-right">
 <table id="portadmin-interfacecontainer" class="vertitable">
 	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
 	<tr>
@@ -60,7 +60,7 @@
 
 		<td>
 			{% if swport.iseditable %}
-			<img src="/images/portadmin/save.png" alt="Save" title="Save" onclick="save_row({{ swport.id }})"/>
+			<img src="/images/portadmin/save.png" class="hidden" alt="Save" title="Save" onclick="save_row({{ swport.id }})"/>
 			{% endif %}
 		</td>
 	</tr>
@@ -68,7 +68,10 @@
 </table>
 
 <input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
-	
+</div>
+
+<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
+
 {% endif %}
 
 {% endblock %}

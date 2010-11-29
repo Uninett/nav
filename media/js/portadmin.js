@@ -1,6 +1,5 @@
 $(document).ready(function(){
 	add_change_listener_to_fields();
-	position_saveall_buttons();
 });
 
 function add_change_listener_to_fields() {
@@ -8,18 +7,7 @@ function add_change_listener_to_fields() {
 		var row = $(this).parents("tr");
 		$(row).addClass("changed");
 		$(row).find("td").addClass("changed");
-	});
-}
-
-function position_saveall_buttons() {
-	/* 
-	 * Wrap the buttons in a block-element with the width of 
-	 * the table. Position them to the rigth in the block element.
-	 */
-	var width = $("table#portadmin-interfacecontainer").outerWidth();
-	$("input.saveall_button").each(function(){
-		var div = $("<div/>").width(width);
-		$(this).wrap(div).addClass('right');
+		$(row).find("img.hidden").show();
 	});
 }
 
@@ -61,6 +49,7 @@ function bulk_save() {
 function clear_changed_state(row) {
 	$(row).removeClass("changed");
 	$(row).find("td").removeClass("changed");
+	$(row).find("img.hidden").hide();
 }
 
 function display_callback_info(row, data) {
