@@ -7,7 +7,7 @@ function add_change_listener_to_fields() {
 		var row = $(this).parents("tr");
 		$(row).addClass("changed");
 		$(row).find("td").addClass("changed");
-		$(row).find("img.hidden").show();
+		$(row).find("img").removeClass("hidden");
 	});
 }
 
@@ -49,7 +49,7 @@ function bulk_save() {
 function clear_changed_state(row) {
 	$(row).removeClass("changed");
 	$(row).find("td").removeClass("changed");
-	$(row).find("img.hidden").hide();
+	$(row).find("img").addClass("hidden");
 }
 
 function display_callback_info(row, data) {
