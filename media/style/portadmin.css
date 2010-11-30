@@ -10,7 +10,7 @@ h4 { text-align: center; }
 
 div#tablecontainer {
 	float: left;
-	margin: 0px 10px;
+	margin: 0px 0px 0px 20px;
 }
 
 table#portadmin-interfacecontainer td {
