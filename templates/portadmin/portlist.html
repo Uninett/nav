@@ -6,7 +6,7 @@
 {% if swports %}
 
 <div id="infobox" class="infobox left">
-	<h4>Available vlans</h4>
+	<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
 	
 	<ul>
 	{% for vlan, netident in netidents %}
