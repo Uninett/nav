@@ -1,7 +1,9 @@
+import time
 from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
 from nav.bitvector import BitVector
 from nav.models.manage import SwPortAllowedVlan
+
 
 
 class SNMPHandler(object):
@@ -10,6 +12,8 @@ class SNMPHandler(object):
     vlanOid = '1.3.6.1.2.1.17.7.1.4.5.1.1' # From Q-BRIDGE-MIB
     # oid for reading vlans om a stndard netbox (not cisco)
     dot1qVlanStaticRowStatus = '1.3.6.1.2.1.17.7.1.4.3.1.5'
+    ifAdminStatus = '1.3.6.1.2.1.2.2.1.7'
+    ifOperStatus  = '1.3.6.1.2.1.2.2.1.8'
 
     def __init__(self, netbox):
         self.netbox = netbox
@@ -94,6 +98,56 @@ class SNMPHandler(object):
             raise TypeError('Illegal value for vlan: %s' %vlan)
         return self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
 
+    def setIfUp(self, ifindex):
+        """Set interface.to up"""
+        return self._setNetboxValue(self.ifAdminStatus, ifindex, "i", 1)
+
+    def setIfDown(self, ifindex):
+        """Set interface.to down"""
+        return self._setNetboxValue(self.ifAdminStatus, ifindex, "i", 2)
+
+    def restartIf(self, ifindex, wait=5):
+        """ Take interface down and up.
+            wait = number of seconds to wait between down and up."""
+        if isinstance(wait, str) or isinstance(wait, unicode):
+            if wait.isdigit():
+                wait = int(wait)
+        if not isinstance(wait, int):
+            raise TypeError('Illegal value for wait: %s' %wait)
+        self.setIfDown(ifindex)
+        time.sleep(wait)
+        self.setIfUp(ifindex)
+
+    def getIfAdminStatus(self, ifindex):
+        return self._queryNetbox(self.ifAdminStatus, ifindex)
+
+    def getIfOperStatus(self, ifindex):
+        return self._queryNetbox(self.ifOperStatus, ifindex)
+
+    def _getLastNumber(self, oid):
+        splits = oid.split('.')
+        last = splits[-1]
+        if isinstance(last, str):
+            if last.isdigit():
+                last = int(last)
+        return last
+
+    def _getIfStats(self, stats):
+        available_stats = []
+        for (ifIndex, stat) in stats:
+            ifIndex = self._getLastNumber(ifIndex)
+            if isinstance(ifIndex, int):
+                available_stats.append((ifIndex, stat))
+        return available_stats
+            
+    def getNetboxAdminStatus(self):
+        ifAdminStats = self._bulkwalk(self.ifAdminStatus)
+        return self._getIfStats(ifAdminStats)
+
+    def getNetboxOperStatus(self):
+        ifOperStats = self._bulkwalk(self.ifOperStatus)
+        return self._getIfStats(ifOperStats)
+
     def _filter_vlans(self, vlans):
         vlans = filter(None, list(set(vlans)))
         vlans.sort()
@@ -103,11 +157,7 @@ class SNMPHandler(object):
         boxVlans = self._bulkwalk(self.dot1qVlanStaticRowStatus)
         available_vlans = []
         for (vlan, valueType) in boxVlans:
-            splits = vlan.split('.')
-            currVlan = splits[-1]
-            if isinstance(currVlan, str):
-                if currVlan.isdigit():
-                    currVlan = int(currVlan)
+            currVlan = self._getLastNumber(vlan)
             if isinstance(currVlan, int):
                 available_vlans.append(currVlan)
         # remove duplicates and none values
