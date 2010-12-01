@@ -17,7 +17,10 @@ def get_and_populate_livedata(netbox, swports):
     handler = SNMPFactory.getInstance(netbox)
     live_ifaliases = create_dict_from_tuplelist(handler.getAllIfAlias())
     live_vlans = create_dict_from_tuplelist(handler.getAllVlans())
-    update_swports_with_snmpdata(swports, live_ifaliases, live_vlans)
+    live_operstatus = dict(handler.getNetboxOperStatus()) 
+    live_adminstatus = dict(handler.getNetboxAdminStatus()) 
+    update_swports_with_snmpdata(swports, live_ifaliases, live_vlans, 
+                                 live_operstatus, live_adminstatus)
 
 def create_dict_from_tuplelist(tuplelist):
     """
@@ -36,7 +39,7 @@ def create_dict_from_tuplelist(tuplelist):
     # Create dict from modified list            
     return dict(result)
 
-def update_swports_with_snmpdata(swports, ifalias, vlans):
+def update_swports_with_snmpdata(swports, ifalias, vlans, operstatus, adminstatus):
     """
     Update the swports with data gathered via snmp.
     """
@@ -45,6 +48,10 @@ def update_swports_with_snmpdata(swports, ifalias, vlans):
             swport.ifalias = ifalias[swport.ifindex]
         if vlans.has_key(swport.ifindex):
             swport.vlan = vlans[swport.ifindex]
+        if operstatus.has_key(swport.ifindex):
+            swport.ifoperstatus = operstatus[swport.ifindex] 
+        if adminstatus.has_key(swport.ifindex):
+            swport.ifadminstatus = adminstatus[swport.ifindex] 
 
 def find_and_populate_allowed_vlans(account, netbox, swports):
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox)

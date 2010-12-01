@@ -52,7 +52,7 @@ def populate_infodict(account, netbox, swports):
     get_and_populate_livedata(netbox, swports)
     allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
     netidents = get_netident_for_vlans(allowed_vlans)
-    ifaliasformat = get_ifaliasformat() 
+    ifaliasformat = get_ifaliasformat()
 
     info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
                  'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat}
