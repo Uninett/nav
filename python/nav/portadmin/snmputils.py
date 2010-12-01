@@ -1,7 +1,9 @@
+import time
 from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
 from nav.bitvector import BitVector
 from nav.models.manage import SwPortAllowedVlan
+
 
 
 class SNMPHandler(object):
@@ -10,6 +12,7 @@ class SNMPHandler(object):
     vlanOid = '1.3.6.1.2.1.17.7.1.4.5.1.1' # From Q-BRIDGE-MIB
     # oid for reading vlans om a stndard netbox (not cisco)
     dot1qVlanStaticRowStatus = '1.3.6.1.2.1.17.7.1.4.3.1.5'
+    setInterfaceUpDown = '1.3.6.1.2.1.2.2.1.7'
 
     def __init__(self, netbox):
         self.netbox = netbox
@@ -93,6 +96,26 @@ class SNMPHandler(object):
         if not isinstance(vlan, int):
             raise TypeError('Illegal value for vlan: %s' %vlan)
         return self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
+
+    def setIfUp(self, ifindex):
+        """Set interface.to up"""
+        return self._setNetboxValue(self.setInterfaceUpDown, ifindex, "i", 1)
+
+    def setIfDown(self, ifindex):
+        """Set interface.to down"""
+        return self._setNetboxValue(self.setInterfaceUpDown, ifindex, "i", 2)
+
+    def restartIf(self, ifindex, wait=5):
+        """ Take interface down and up.
+            wait = number of seconds to wait between down and up."""
+        if isinstance(wait, str) or isinstance(wait, unicode):
+            if wait.isdigit():
+                wait = int(wait)
+        if not isinstance(wait, int):
+            raise TypeError('Illegal value for wait: %s' %wait)
+        self.setIfDown(ifindex)
+        time.sleep(wait)
+        self.setIfUp(ifindex)
 
     def _filter_vlans(self, vlans):
         vlans = filter(None, list(set(vlans)))
