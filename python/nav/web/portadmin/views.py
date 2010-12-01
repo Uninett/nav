@@ -52,9 +52,10 @@ def populate_infodict(account, netbox, swports):
     get_and_populate_livedata(netbox, swports)
     allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
     netidents = get_netident_for_vlans(allowed_vlans)
+    ifaliasformat = get_ifaliasformat() 
 
     info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
-                 'account': account, 'netidents': netidents }
+                 'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat}
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict
@@ -73,6 +74,11 @@ def save_interfaceinfo(request):
         ifalias = str(request.POST.get('ifalias', '')) # Todo: Why the cast to string?
         vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
+        
+        correct_format = check_format_on_ifalias(ifalias)
+        if not correct_format:
+            result = {'error': 1, 'message': 'IfAlias does not match the defined format.'}
+            return HttpResponse(simplejson.dumps(result), mimetype="application/json")
 
         account = get_account(request)
         if vlan in find_allowed_vlans_for_user(account) or is_administrator(account):

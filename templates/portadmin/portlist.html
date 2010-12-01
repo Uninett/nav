@@ -5,15 +5,24 @@
 
 {% if swports %}
 
-<div id="infobox" class="infobox left">
-	<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
-	
-	<ul>
-	{% for vlan, netident in netidents %}
-		<li>{{ vlan }} - {{ netident }}</li>
-	{% endfor %}
-	</ul>
+<div id="infoboxcontainer" class="left">
 
+	{% if ifaliasformat %}
+	<div class="infobox">
+		{% include "portadmin/aliasformat.html" %}
+	</div>
+	{% endif %}
+	
+	<div id="infobox" class="infobox">
+		<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
+		
+		<ul>
+		{% for vlan, netident in netidents %}
+			<li>{{ vlan }} - {{ netident }}</li>
+		{% endfor %}
+		</ul>
+	
+	</div>
 </div>
 
 <div id="tablecontainer" class="text-right">
