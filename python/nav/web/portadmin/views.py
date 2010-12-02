@@ -34,6 +34,19 @@ def search_by_ip(request, ip):
           RequestContext(request)
           )
 
+def search_by_sysname(request, sysname):
+    account = get_account(request)
+    netbox = Netbox.objects.get(sysname=sysname)
+    swports = netbox.get_swports_sorted()
+
+    info_dict = populate_infodict(account, netbox, swports)
+
+    return render_to_response(
+          'portadmin/portlist.html',
+          info_dict,
+          RequestContext(request)
+          )
+
 def search_by_swportid(request, swportid):
     account = get_account(request)
     swport = Interface.objects.get(id=swportid)

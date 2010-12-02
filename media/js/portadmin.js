@@ -29,10 +29,11 @@ function save_row(rowid) {
 	 * when the save-button is clicked.
 	 */
 
-	// If a save is already in progress, do nothing.
+	// If a save on this row is already in progress, do nothing.
 	if (queue.indexOf(rowid) > -1) {
 		return;
 	}
+	disable_saveall_buttons();
 	
 	queue.push(rowid)
 	
@@ -47,12 +48,12 @@ function save_row(rowid) {
 			type: 'POST',
 			success: function(data){
 					display_callback_info(row, data);
-					clear_changed_state(row)
+					clear_changed_state(row);
 				},
 			error: function(request, errorMessage, errortype){
-					var data = {}
+					var data = {};
 					data.error = 1;
-					data.message = errorMessage + " - Hm, perhaps try to log in again?"
+					data.message = errorMessage + " - Hm, perhaps try to log in again?";
 					display_callback_info(row, data);
 				},
 			complete: function(){
@@ -65,7 +66,6 @@ function save_row(rowid) {
 }
 
 function bulk_save() {
-	disable_saveall_buttons(); // Enabled in callback from save
 	$("tr.changed").each(function(){
 		var id = $(this).attr("id");
 		save_row(id);
