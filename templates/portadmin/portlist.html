@@ -8,6 +8,17 @@
 
 <div id="infoboxcontainer" class="left">
 
+	{% if errors %}
+	<div id="errors" class="infobox">
+		<h4>ERROR</h4>
+		<ul>
+		{% for error in errors %}
+			<li>{{ error }}</li>
+		{% endfor %}
+		</ul>
+	</div>
+	{% endif %}
+
 	{% if ifaliasformat %}
 	<div class="infobox">
 		{% include "portadmin/aliasformat.html" %}
@@ -77,7 +88,7 @@
 
 		<td>
 			{% if swport.iseditable %}
-			<img src="/images/portadmin/save.png" class="hidden" alt="Save" title="Save" onclick="save_row({{ swport.id }})"/>
+			<img src="/images/portadmin/save.png" class="save hidden" alt="Save" title="Save" onclick="save_row({{ swport.id }})"/>
 			{% endif %}
 		</td>
 	</tr>

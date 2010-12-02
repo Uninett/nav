@@ -49,13 +49,26 @@ def search_by_swportid(request, swportid):
           )
 
 def populate_infodict(account, netbox, swports):
-    get_and_populate_livedata(netbox, swports)
-    allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
-    netidents = get_netident_for_vlans(allowed_vlans)
+    errors = []
+    allowed_vlans = []
+    netidents = []
+    try:
+        get_and_populate_livedata(netbox, swports)
+        allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
+        netidents = get_netident_for_vlans(allowed_vlans)
+    except TimeOutException, t:
+        errors.append("Timeout when contacting netbox.")
+        if not netbox.read_only:
+            errors.append("Read only community not set")
+            errors.append("Values displayed are from database")
+    except Exception, e:
+        errors.append(str(e))
+        
     ifaliasformat = get_ifaliasformat()
 
     info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
-                 'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat}
+                 'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat,
+                 'errors': errors}
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict
@@ -89,6 +102,8 @@ def save_interfaceinfo(request):
                 fac.setVlan(interface.ifindex, vlan)
                 fac.setIfAlias(interface.ifindex, ifalias)
                 result = {'error': 0, 'message': 'Save was successful'}
+            except TimeOutException, t:
+                result = {'error': 1, 'message': 'TimeOutException - is read-write community set?' }
             except Exception, e:
                 result = {'error': 1, 'message': str(e) }
         else:

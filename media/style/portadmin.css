@@ -16,6 +16,9 @@ div#tablecontainer {
 	margin: 0px 0px 0px 20px;
 }
 
+div#errors {
+	background-color: #FFBABA;
+}
 
 /*
  * Styles for the table

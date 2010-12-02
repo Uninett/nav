@@ -1,3 +1,15 @@
+if(!Array.indexOf){
+    Array.prototype.indexOf = function(obj){
+        for(var i=0; i<this.length; i++){
+            if(this[i]==obj){
+                return i;
+            }
+        }
+        return -1;
+    }
+}
+var queue = new Array();
+
 $(document).ready(function(){
 	add_change_listener_to_fields();
 });
@@ -7,7 +19,7 @@ function add_change_listener_to_fields() {
 		var row = $(this).parents("tr");
 		$(row).addClass("changed");
 		$(row).find("td").addClass("changed");
-		$(row).find("img").removeClass("hidden");
+		$(row).find("img.save").removeClass("hidden");
 	});
 }
 
@@ -16,8 +28,14 @@ function save_row(rowid) {
 	 * This funcion does an ajax call to save the information given by the user
 	 * when the save-button is clicked.
 	 */
+
+	// If a save is already in progress, do nothing.
+	if (queue.indexOf(rowid) > -1) {
+		return;
+	}
 	
-	// Fetch values from the fields
+	queue.push(rowid)
+	
 	var row = $("#" + rowid);
 	var ifalias = $(row).find(".ifalias").val();
 	var vlan = $(row).find(".vlanlist").val();
@@ -36,20 +54,44 @@ function save_row(rowid) {
 					data.error = 1;
 					data.message = errorMessage + " - Hm, perhaps try to log in again?"
 					display_callback_info(row, data);
+				},
+			complete: function(){
+					remove_from_queue(rowid);
+					if (queue.length == 0) {
+						enable_saveall_buttons();
+					}
 				}
 	});
 }
 
 function bulk_save() {
+	disable_saveall_buttons(); // Enabled in callback from save
 	$("tr.changed").each(function(){
-		save_row($(this).attr("id"));
+		var id = $(this).attr("id");
+		save_row(id);
 	});
 }
+
+function remove_from_queue(id) {
+	var index = queue.indexOf(id);
+	if (index > -1) {
+		queue.splice(index, 1);
+	}
+}
+
+function disable_saveall_buttons() {
+	$("input.saveall_button").attr('disabled', 'disabled');
+}
+
+function enable_saveall_buttons() {
+	$("input.saveall_button").removeAttr('disabled');
+}
+
 
 function clear_changed_state(row) {
 	$(row).removeClass("changed");
 	$(row).find("td").removeClass("changed");
-	$(row).find("img").addClass("hidden");
+	$(row).find("img.save").addClass("hidden");
 }
 
 function display_callback_info(row, data) {
