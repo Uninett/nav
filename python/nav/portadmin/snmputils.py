@@ -125,6 +125,8 @@ class SNMPHandler(object):
         return self._queryNetbox(self.ifOperStatus, ifindex)
 
     def _getLastNumber(self, oid):
+        if not (isinstance(oid, str) or isinstance(oid, unicode)):
+            raise TypeError('Illegal value for oid')
         splits = oid.split('.')
         last = splits[-1]
         if isinstance(last, str):
