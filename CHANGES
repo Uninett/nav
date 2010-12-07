@@ -1,3 +1,29 @@
+Version 3.7.1
+(released 07 December 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database schema. If you are  ##
+## upgrading from a previous release you also need to upgrade your ##
+## schema. For information on how to do this, please take a look   ##
+## in doc/sql/upgrades/README .                                    ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#674433 (ipdevpoll: local variable 'obj_model' referenced before assignment)
+  * LP#674466 (Room coordinates can't be edited in NAV 3.7.0)
+  * LP#675532 (ipdevinfo crash on Nortel interfaces)
+  * LP#675543 (ipdevinfo crash: could not identify an ordering operator for type point)
+  * LP#678436 (SeedDB crashes on unknown IntegrityErrors during delete)
+  * LP#686435 (Queued alerts prevent IP devices from being deleted)
+
+  * The installation documentation had grown stale and has now been revised.
+
+
 Version 3.7.0
 (released 11 November 2010)
 
