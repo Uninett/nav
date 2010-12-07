@@ -565,7 +565,9 @@ CREATE TABLE accountalertqueue (
     insertion_time timestamp NOT NULL,
 
     CONSTRAINT accountalertqueue_alert_id_fkey
-        FOREIGN KEY(alert_id) REFERENCES manage.alertq(alertqid),
+        FOREIGN KEY(alert_id) REFERENCES manage.alertq(alertqid)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
     CONSTRAINT accountalertqueue_pkey PRIMARY KEY(id),
     CONSTRAINT accountalertqueue_account_id_fkey
     	FOREIGN KEY(account_id) REFERENCES account(id)
