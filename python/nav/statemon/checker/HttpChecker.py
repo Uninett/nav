@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -26,9 +26,14 @@
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
 from urlparse import urlsplit
-import httplib
 from nav.statemon import Socket
+import sys
 import socket
+import httplib
+# Have this check since httplib.Fakesocket() is deprecated in 2.6
+if sys.version_info[:2] >= (2, 6):
+    import ssl
+
 
 class HTTPConnection(httplib.HTTPConnection):
     def __init__(self,timeout,host,port=80):
@@ -48,7 +53,11 @@ class HTTPSConnection(httplib.HTTPSConnection):
         sock = Socket.Socket(self.timeout)
         sock.connect((self.host,self.port))
         ssl = socket.ssl(sock.s, None, None)
-        self.sock = httplib.FakeSocket(sock, ssl)
+        if sys.version_info[:2] >= (2, 6)::
+            self.sock = ssl.wrap_socket(sock)
+        else:
+            self.sock = httplib.FakeSocket(sock, ssl)
+
         
 class HttpChecker(AbstractChecker):
     def __init__(self,service, **kwargs):

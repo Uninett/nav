@@ -1614,7 +1614,8 @@ class seeddbPage:
                 if not errorState:
                     # There are no dependencies or couldn't find reference.
                     # Give general error
-                    error += '%s is referenced in another table' % (self.name,)
+                    error += '%s is referenced in another table (%s)' % (
+                        self.pageName, e)
                 status.errors.append(error) 
         return status
 
