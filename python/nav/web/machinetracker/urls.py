@@ -49,16 +49,16 @@ urlpatterns = patterns('',
 
     url(r'^swp/$', switch_search,
         name='machinetracker-swp'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\.-/ \(\):]*)$',
         switch_do_search,
         name='machinetracker-swp_short_search'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\d/._-]*)&days=(?P<days>-?\d+)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[\w\.-/ \(\):]*)&days=(?P<days>-?\d+)$',
         switch_do_search,
         name='machinetracker-swp_search'),
 
      # Old machinetrakcer links.
-     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[\w\d/._-]+)&days=7$',
+     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[\w\.-/ \(\):]+)&days=7$',
          switch_do_search, name='machinetracker-swport'),
-     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&port=(?P<port_interface>[\w\d/._-]+)&days=7$',
+     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&port=(?P<port_interface>[\w\.-/ \(\):]+)&days=7$',
          switch_do_search, name='machinetracker-swport'),
 )
