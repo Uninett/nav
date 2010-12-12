@@ -1,8 +1,7 @@
 .right { float: right; }
-
 .left { float: left; }
-
 .text-right { text-align: right; }
+.text-center { text-align: center;}
 
 .hidden { visibility: hidden; }
 
@@ -17,6 +16,14 @@ div#tablecontainer {
 	margin: 0px 0px 0px 20px;
 }
 
+div#errors {
+	background-color: #FFBABA;
+}
+
+/*
+ * Styles for the table
+ */ 
+
 table#portadmin-interfacecontainer td {
 	height: 30px;
 	vertical-align: middle;
@@ -26,6 +33,9 @@ table#portadmin-interfacecontainer {
 	margin-bottom: 0px;
 }
 
+table#portadmin-interfacecontainer input[type="text"] {
+	width: 250px;
+}
 
 /*
  * Styles for changed rows

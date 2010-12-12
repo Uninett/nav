@@ -1,198 +1,67 @@
-$Id$
-
-Getting started with NAV 3.0
-============================
-(This guide assumes NAV is installed in /usr/local/nav)
-
-NAV 3.0 assumes a simpler directory structure than previous NAV
-versions.  Below /usr/local/nav/ you will find the following
-directories:
-
-apache/ -- Web related content/programs.
-bin/    -- Executable programs.
-doc/    -- Documentation.
-etc/    -- Configuration files.
-var/    -- Local data created by NAV programs, such as logs and other
-           data files.
-
-In addition to this document, we advise you to take a look at the
-project reports of NAVMore and tigaNAV, which explains much of the
-functionality implemented in NAV 3.0.
-
-
-Creating users and groups
-=========================
-Unless you have installed NAV through some automated system which
-creates necessary users and groups (such as RPM), you need to create
-the the group "nav" and user "navcron".  The navcron user should have
-nav as its default group, its home directory set to /usr/local/nav,
-and should be allowed to execute cron jobs.  Other than that, the user
-needs no special privileges.  It is used to run unprivileged NAV
-processes, and will normally not even login password (i.e. needs no
-password set).
-
-
-Initializing the NAV databases
-==============================
-When you have installed NAV 3.0 for the first time, you need to
-initialize the NAV database.  The directory /usr/local/nav/doc/sql/
-contains the SQL scripts necessary to initialize the PostgreSQL
-databases used by NAV, and a README file explaining how.
-
-Please note that beforehand, you should configure your PostgreSQL to
-accept tcp/ip connections ($PGDATA/postgresql.conf), set a password
-for the postgres superuser and configure your pg_hba.conf to only
-accept md5 authentication (not trust, and not ident).  Please refer to
-the PostgreSQL documentation for this.
-
-After initializing, you should again connect to PostgreSQL as the
-postgres superuser, and choose passwords for the two nav users you
-created (navread and navwrite), using "ALTER USER ... WITH PASSWORD
-'...'".  Then you need to configure NAV to use these passwords when
-connecting to PostgreSQL.  This is done in the config file
-/usr/local/nav/etc/db.conf, by changing the directives
-"userpw_navread" and "userpw_navwrite".
-
-
-Configuring Apache
-==================
-Example Apache configuration has been provided elsewhere.  Please
-don't forget that if you run Apache 1.3, your /etc/init.d/httpd should
-set (and export) the environment variable PYTHONHOME to contain the
-path to your non-threaded edition of Python.
-
-Some tips if you wish to configure Apache from scratch:
-
-- You need mod_python, and we strongly recommend mod_ssl.
-- Your document root should be /usr/local/nav/apache/webroot/.
-- .htaccess files below that directory should be allowed to override
-  everything from the Apache configuration.
-- We strongly recommend that you force all users to access the NAV web
-  interface through https instead of plain http, otherwise everything
-  is sent to and from the web server unencrypted (including
-  passwords).  You can accomplish this by using a RewriteRule to have
-  your web server redirect all http requests to https urls.
-
-
-
-Integrating Cricket with NAV
-============================
-This section assumes your cricket installation has been placed in
-/usr/local/nav/cricket/, with the cricket executables in
-/usr/local/nav/cricket/cricket/ (approximately as we all know from
-"Installing Cricket for the Complete Beginner" at
-http://cricket.sourceforge.net/support/doc/beginner.html, only that
-the prefix is different).
-
-More detailed instructions for integrating Cricket with NAV can be
-found in /usr/local/nav/doc/cricket/README (with example files in the
-same directory)
-
-To integrate your Cricket installation's public_html directory with
-the NAV web interface, to the following as root:
-
-cd /usr/local/nav/apache/webroot
-ln -s /usr/local/nav/cricket/public_html cricket
-echo "SetHandler none" > cricket/.htaccess
-
-NAV's toolbox comes ready with the "Statistics" tool, which sends you
-to the /cricket/ url.
-
-
-Configuring your environment
-============================
-Most NAV 3.0 programs rely on finding NAV libraries effortlessly.
-This means that certain environment variables should be set before NAV
-programs are invoked (this also means they need to be set before
-Apache starts).  More specifically, the variables CLASSPATH, PERL5LIB
-and PYTHONPATH need to be set.  Also, your java executable should be
-found on your PATH, or at least in $JAVA_HOME/bin .
-
-A shell script has been provided to set these environment variables
-correctly, nav_environ.sh.  This script needs to be sourced into your
-environment, preferrably at an early stage of your boot process,
-and/or at every user login.
-
-At NTNU, the script is sourced into the enviroment in two places.  The
-script has been placed in /etc/profile.d/.  Every script here is
-sourced into the enviroment when a user logs in to a RedHat 9 system
-(though it seems root bypasses this).  The same script is also sourced
-directly into the /etc/init.d/httpd script, by adding "source
-/etc/profile.d/nav_environ.sh" very near the beginning of the script.
-
+Getting started with NAV
+========================
+(This guide assumes NAV is installed in /usr/local/nav and that your
+web interface is reachable at http://example.org/ )
 
 Configuring NAV
 ===============
 All configuration files are located below /usr/local/nav/etc/.
 Default configuration files are placed here on your first install.
-Most of these are self-documenting, so mostly you just need to read
-through the files to configure NAV to your needs.
+Most of these are documented with comments, so check each config file
+to see if there's any defaults you'd like to change.
 
+We recommend you at least change these two options in nav.conf before
+running NAV:
 
-Starting daemons and cron jobs
-==============================
-Starting and stopping NAV daemons and cron jobs is pretty much the
-same as in NAV v2.  Running "/usr/local/nav/bin/nav start" should
-pretty much start everything.
+ADMIN_MAIL 
+  Should be set to the NAV administrator's e-mail address.  Any cron
+  mail or other administrative e-mails from NAV will be sent to this
+  address.
+
+DOMAIN_SUFFIX
+  The DNS domain name your devices are in.  Many parts of the web
+  interface will chop off this suffix to display abbreviated device
+  names.
+
+Starting NAV
+============
+NAV has two parts; one web frontend, and a backend consisting of
+multiple processes.  While Apache serves the frontend, the backend
+processes can be controlled using the nav command
+(/usr/local/nav/bin/nav).
+
+The backend processes consist of some daemon processes, and some cron
+jobs.  Running `nav start` will start all the daemon processes in the
+background, and install all the cron jobs in the navcron user's
+crontab.
+
+The `nav start` command should be set up to be run at system boot
+time.
 
 
 Logging in to the web interface
 ===============================
-When you first direct your browser to the NAV page served by your
-Apache, you are unauthenticated and will have the access privileges of
-an anonymous user.
+When browsing the web interface at http://example.org/ you will see
+the front page of NAV.  This is openly accessible to anonymous users
+by default.  
 
-You may log in to the web interface as the user "admin", using "admin"
-as your password.  It is of course extremely recommended that you
-immediately change this password to something harder to guess.
-
-The user "admin" is a member of the group "NAV Administrators", and
-will therefore have access to absolutely everything in the web
-interface.
+To log in as an administrator, click the `Login` link and enter the
+username 'admin' and the password 'admin'.  Then click the `Userinfo`
+link and change the adminstrator's password to something more
+sensible.
 
 
 Managing accounts, groups and privileges in the web interface
 =============================================================
 All this is accomplished through the Useradmin panel, which should be
-linked from the navigation bar of the admin user.  The Useradmin panel
-is still somewhat lacking in good looks and usability, but it works.
+linked from the navigation bar of the admin user. 
 
+Adding any user to the "NAV Administrators" group will give that user
+the same level of privileges as the admin user itself.  It is
+recommended to have personal accounts, even for administrators.
 
 Seeding your database
 =====================
-Seeding the database is no longer a process of maintaining text files
-containg information on your network equipment.  All seeding of the
-database is now done through the web interface, using the seeddb tool,
-which operates directly on the contents of the NAVdb. Open the web
-interface toolbox and select Seed Database.
-
-Fortunately for you, seeddb has the ability to bulk import data from
-text files that are mostly the same format as the old seed text files
-of NAV v2.
-
-Tips for bulk importing:
-
-- Due to dependencies within the database, it is recommended that you
-  bulk import the seed files in the following order: Locations, Rooms,
-  Vendors, Types, Organizations, User categories, Boxes, Services.
-  The format of each bulk import type is documented in the bulk import
-  forms of seeddb.
-
-- When bulk importing boxes, it is a good idea to split the seed files
-  into smaller pieces.  Bulk importing triggers a burst of SNMP
-  queries, and if you are importing a large amount of boxes, your web
-  browser may time out waiting for the web server's reply.
-
-- Some vendors and types are already defined in the initial
-  database. Before importing these, you can check which ones exist by
-  looking at /seeddb/vendor/list and /seeddb/type/list
-
-- If you are trying to import a nested organizational structure, it
-  may be neccesary to import the organization file several times.
-
-- Note that NAVv3 supports only these categories:
-  GSW,GW,SW,EDGE,WLAN,SRV,OTHER.  Equipment of all categories, except
-  SRV and OTHER, is required to respond to SNMP queries, or it will
-  not be allowed into the database.
-
-- Subcategories can be defined for all main categories.
+NAV will not autodiscover your network.  You need to use the SeedDB
+tool (found in the Toolbox) to seed the database with IP addresses and
+SNMP communities to monitor.
