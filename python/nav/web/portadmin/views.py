@@ -24,9 +24,9 @@ def index(request):
 def search_by_ip(request, ip):
     account = get_account(request)
     netbox = Netbox.objects.get(ip=ip)
-    swports = netbox.get_swports_sorted()
+    interfaces = netbox.get_swports_sorted()
 
-    info_dict = populate_infodict(account, netbox, swports)
+    info_dict = populate_infodict(account, netbox, interfaces)
 
     return render_to_response(
           'portadmin/portlist.html',
@@ -37,9 +37,9 @@ def search_by_ip(request, ip):
 def search_by_sysname(request, sysname):
     account = get_account(request)
     netbox = Netbox.objects.get(sysname=sysname)
-    swports = netbox.get_swports_sorted()
+    interfaces = netbox.get_swports_sorted()
 
-    info_dict = populate_infodict(account, netbox, swports)
+    info_dict = populate_infodict(account, netbox, interfaces)
 
     return render_to_response(
           'portadmin/portlist.html',
@@ -47,13 +47,13 @@ def search_by_sysname(request, sysname):
           RequestContext(request)
           )
 
-def search_by_swportid(request, swportid):
+def search_by_interfaceid(request, interfaceid):
     account = get_account(request)
-    swport = Interface.objects.get(id=swportid)
-    netbox = swport.netbox
-    swports = [swport]
+    interface = Interface.objects.get(id=interfaceid)
+    netbox = interface.netbox
+    interfaces = [interface]
 
-    info_dict = populate_infodict(account, netbox, swports)
+    info_dict = populate_infodict(account, netbox, interfaces)
     
     return render_to_response(
           'portadmin/portlist.html',
@@ -61,13 +61,13 @@ def search_by_swportid(request, swportid):
           RequestContext(request)
           )
 
-def populate_infodict(account, netbox, swports):
+def populate_infodict(account, netbox, interfaces):
     errors = []
     allowed_vlans = []
     netidents = []
     try:
-        get_and_populate_livedata(netbox, swports)
-        allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
+        get_and_populate_livedata(netbox, interfaces)
+        allowed_vlans = find_and_populate_allowed_vlans(account, netbox, interfaces)
         netidents = get_netident_for_vlans(allowed_vlans)
     except TimeOutException, t:
         errors.append("Timeout when contacting netbox.")
@@ -78,8 +78,9 @@ def populate_infodict(account, netbox, swports):
         errors.append(str(e))
         
     ifaliasformat = get_ifaliasformat()
+    save_to_database(interfaces)
 
-    info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
+    info_dict = {'interfaces': interfaces, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
                  'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat,
                  'errors': errors}
     info_dict.update(DEFAULT_VALUES)
@@ -94,7 +95,6 @@ def save_interfaceinfo(request):
     Message: message to user
     """
     result = {}
-
 
     if request.method == 'POST':
         ifalias = str(request.POST.get('ifalias', '')) # Todo: Why the cast to string?
@@ -115,6 +115,10 @@ def save_interfaceinfo(request):
                 fac.setVlan(interface.ifindex, vlan)
                 fac.setIfAlias(interface.ifindex, ifalias)
                 result = {'error': 0, 'message': 'Save was successful'}
+                             
+                interface.vlan = vlan
+                interface.ifalias = ifalias
+                save_to_database([interface])
             except TimeOutException, t:
                 result = {'error': 1, 'message': 'TimeOutException - is read-write community set?' }
             except Exception, e:
@@ -126,4 +130,3 @@ def save_interfaceinfo(request):
         result = {'error': 1, 'message': "Wrong request type"}
         
     return HttpResponse(simplejson.dumps(result), mimetype="application/json")
-        

@@ -12,14 +12,14 @@ from os.path import join
 
 CONFIGFILE = join(sysconfdir, "portadmin", "portadmin.conf")
 
-def get_and_populate_livedata(netbox, swports):
+def get_and_populate_livedata(netbox, interfaces):
     # Fetch live data from netbox
     handler = SNMPFactory.getInstance(netbox)
     live_ifaliases = create_dict_from_tuplelist(handler.getAllIfAlias())
     live_vlans = create_dict_from_tuplelist(handler.getAllVlans())
     live_operstatus = dict(handler.getNetboxOperStatus()) 
     live_adminstatus = dict(handler.getNetboxAdminStatus()) 
-    update_swports_with_snmpdata(swports, live_ifaliases, live_vlans, 
+    update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans, 
                                  live_operstatus, live_adminstatus)
 
 def create_dict_from_tuplelist(tuplelist):
@@ -39,23 +39,23 @@ def create_dict_from_tuplelist(tuplelist):
     # Create dict from modified list            
     return dict(result)
 
-def update_swports_with_snmpdata(swports, ifalias, vlans, operstatus, adminstatus):
+def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus, adminstatus):
     """
-    Update the swports with data gathered via snmp.
+    Update the interfaces with data gathered via snmp.
     """
-    for swport in swports:
-        if ifalias.has_key(swport.ifindex):
-            swport.ifalias = ifalias[swport.ifindex]
-        if vlans.has_key(swport.ifindex):
-            swport.vlan = vlans[swport.ifindex]
-        if operstatus.has_key(swport.ifindex):
-            swport.ifoperstatus = operstatus[swport.ifindex] 
-        if adminstatus.has_key(swport.ifindex):
-            swport.ifadminstatus = adminstatus[swport.ifindex] 
+    for interface in interfaces:
+        if ifalias.has_key(interface.ifindex):
+            interface.ifalias = ifalias[interface.ifindex]
+        if vlans.has_key(interface.ifindex):
+            interface.vlan = vlans[interface.ifindex]
+        if operstatus.has_key(interface.ifindex):
+            interface.ifoperstatus = operstatus[interface.ifindex] 
+        if adminstatus.has_key(interface.ifindex):
+            interface.ifadminstatus = adminstatus[interface.ifindex] 
 
-def find_and_populate_allowed_vlans(account, netbox, swports):
+def find_and_populate_allowed_vlans(account, netbox, interfaces):
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox)
-    set_editable_on_swports(swports, allowed_vlans)
+    set_editable_on_interfaces(interfaces, allowed_vlans)
     return allowed_vlans    
 
 def find_allowed_vlans_for_user_on_netbox(account, netbox):
@@ -107,15 +107,15 @@ def read_config():
     return config
     
 
-def set_editable_on_swports(swports, vlans):
+def set_editable_on_interfaces(interfaces, vlans):
     """
-    Set a flag on the swport to indicate if user is allowed to edit it.
+    Set a flag on the interface to indicate if user is allowed to edit it.
     """
-    for swport in swports:
-        if swport.vlan in vlans and not swport.trunk :
-            swport.iseditable = True
+    for interface in interfaces:
+        if interface.vlan in vlans and not interface.trunk :
+            interface.iseditable = True
         else:
-            swport.iseditable = False
+            interface.iseditable = False
 
 def intersect(a, b):
     return list(set(a) & set(b))
@@ -168,3 +168,7 @@ def get_ifaliasformat():
     config = read_config()
     if config.has_section(section) and config.has_option(section, option):
         return config.get(section, option)
+
+def save_to_database(interfaces):
+    for interface in interfaces:
+        interface.save()
