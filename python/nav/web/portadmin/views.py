@@ -1,7 +1,7 @@
 import simplejson
 
 from django.http import HttpResponse
-from django.template import RequestContext
+from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
 
 from nav.django.utils import get_account
@@ -11,6 +11,9 @@ from nav.portadmin.snmputils import *
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
 DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
+
+import logging
+logger = logging.getLogger("nav.web.portadmin")
 
 def index(request):
     info_dict = {}
@@ -78,11 +81,18 @@ def populate_infodict(account, netbox, interfaces):
         errors.append(str(e))
         
     ifaliasformat = get_ifaliasformat()
+    aliastemplate = ''
+    if ifaliasformat:
+        tmpl = get_aliastemplate()
+        aliastemplate = tmpl.render(Context({'ifaliasformat': ifaliasformat}))
+    
     save_to_database(interfaces)
 
-    info_dict = {'interfaces': interfaces, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
-                 'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat,
-                 'errors': errors}
+    info_dict = {'interfaces': interfaces, 'netbox': netbox, 
+                 'allowed_vlans': allowed_vlans,
+                 'account': account, 'netidents': netidents, 
+                 'aliastemplate': aliastemplate, 'errors': errors
+                 }
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict

@@ -1,6 +1,8 @@
 import re
 import ConfigParser
+import django.template
 
+from django.template.loaders import filesystem
 from nav.bitvector import BitVector
 from nav.models.manage import SwPortAllowedVlan
 from nav.models.manage import Vlan
@@ -11,6 +13,9 @@ from operator import attrgetter
 from os.path import join
 
 CONFIGFILE = join(sysconfdir, "portadmin", "portadmin.conf")
+
+import logging
+logger = logging.getLogger("nav.web.portadmin")
 
 def get_and_populate_livedata(netbox, interfaces):
     # Fetch live data from netbox
@@ -168,6 +173,13 @@ def get_ifaliasformat():
     config = read_config()
     if config.has_section(section) and config.has_option(section, option):
         return config.get(section, option)
+
+def get_aliastemplate():
+    templatepath = join(sysconfdir, "portadmin")
+    templatename = "aliasformat.html"
+    rawdata, origin = filesystem.load_template_source(templatename, [templatepath])
+    tmpl = django.template.Template(rawdata)
+    return tmpl
 
 def save_to_database(interfaces):
     for interface in interfaces:

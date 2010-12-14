@@ -19,7 +19,6 @@
 
 from nav.config import readConfig
 from nav.db import get_connection_parameters
-from os.path import join
 import nav.buildconf
 import nav.path
 
@@ -47,7 +46,6 @@ ROOT_URLCONF = 'nav.django.urls'
 # Templates
 TEMPLATE_DIRS = (
     nav.path.djangotmpldir,
-    join(nav.path.sysconfdir, 'portadmin'),
 )
 
 # Context processors

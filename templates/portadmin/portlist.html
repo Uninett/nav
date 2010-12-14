@@ -23,9 +23,9 @@ PortAdmin - {{ netbox.get_short_sysname }}
 	</div>
 	{% endif %}
 
-	{% if ifaliasformat %}
+	{% if aliastemplate %}
 	<div class="infobox">
-		{% include "aliasformat.html" %}
+		{{ aliastemplate }}
 	</div>
 	{% endif %}
 	
