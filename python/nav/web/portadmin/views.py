@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import simplejson
+import logging
 
 from django.http import HttpResponse
 from django.template import RequestContext, Context
@@ -27,7 +28,6 @@ from nav.portadmin.snmputils import *
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
 DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
 
-import logging
 logger = logging.getLogger("nav.web.portadmin")
 
 def index(request):
@@ -122,7 +122,7 @@ def save_interfaceinfo(request):
     result = {}
 
     if request.method == 'POST':
-        ifalias = str(request.POST.get('ifalias', '')) # Todo: Why the cast to string?
+        ifalias = str(request.POST.get('ifalias', '')) 
         vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
         
@@ -144,6 +144,13 @@ def save_interfaceinfo(request):
                 interface.vlan = vlan
                 interface.ifalias = ifalias
                 save_to_database([interface])
+                
+                logger.info("%s: %s:%s - port description set to %s, vlan set to %s",
+                            account.login, 
+                            netbox.get_short_sysname(),
+                            interface.ifname,
+                            ifalias,
+                            vlan)
             except TimeOutException, t:
                 result = {'error': 1, 'message': 'TimeOutException - is read-write community set?' }
             except Exception, e:
