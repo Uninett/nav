@@ -17,6 +17,8 @@
 #
 """General utility functions for Network Administration Visualized"""
 
+import os
+import stat
 import IPy
 
 def gradient(start, stop, steps):
@@ -78,3 +80,43 @@ def round_robin(collection):
     while True:
         yield collection[index]
         index = (index + 1) % len(collection)
+
+def which(cmd):
+    """Return full path to cmd (if found in $PATH and is executable),
+    or None."""
+    pathstr = os.environ['PATH']
+    dirs = pathstr.split(':')
+
+    for d in dirs:
+        path = os.path.join(d, cmd)
+
+        if not os.path.isfile(path):
+            continue
+
+        if not os.access(path, os.X_OK):
+            continue
+        
+        return path
+
+    return None
+
+def is_setuid_root(path):
+    """Return True if the file is owned by root and has
+    the setuid bit set."""
+
+    # Can't be setuid root if it's not there.
+    if not os.path.isfile(path):
+        return False
+
+    s = os.stat(path)
+
+    # Owned by root?
+    if s.st_uid != 0:
+        return False
+
+    # Setuid bit set?
+    if s.st_mode & stat.S_ISUID == 0:
+        return False
+
+    # Yay, passed all test!
+    return True
