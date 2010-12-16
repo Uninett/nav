@@ -58,16 +58,17 @@ class Prefix(Plugin):
     ipdevpoll-plugin for collecting prefix information from monitored
     equipment.
     """
-    def __init__(self, *args, **kwargs):
-        super(Prefix, self).__init__(*args, **kwargs)
-        self.ignored_prefixes = get_ignored_prefixes(self.config)
-
     @classmethod
     def can_handle(cls, netbox):
         """
         This plugin handles netboxes
         """
         return True
+
+    @classmethod
+    def on_plugin_load(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf
+        cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
 
     @defer.deferredGenerator
     def handle(self):
