@@ -49,7 +49,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import storage, shadows, utils
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
@@ -69,6 +69,10 @@ class Prefix(Plugin):
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
+
+        from twisted.internet import reactor, threads
+        reactor.callWhenRunning(threads.deferToThread,
+                                delete_prefixes, cls.ignored_prefixes)
 
     @defer.deferredGenerator
     def handle(self):
@@ -187,6 +191,18 @@ class Prefix(Plugin):
                 return True
 
         return False
+
+@utils.autocommit
+def delete_prefixes(prefixes):
+    from nav.models.manage import Prefix
+    where_bits = ["netaddr <<= '%s'" % prefix
+                  for prefix in prefixes]
+    where = " OR ".join(where_bits)
+    deleteable_prefixes = Prefix.objects.extra(where=[where])
+
+    logging.getLogger(__name__).debug(
+        "deleting ignored prefixes from db: %r", prefixes)
+    deleteable_prefixes.delete()
 
 
 def get_ignored_prefixes(config):
