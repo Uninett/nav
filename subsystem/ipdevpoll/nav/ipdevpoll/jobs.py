@@ -88,7 +88,7 @@ class JobHandler(object):
 
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
-
+        from nav.ipdevpoll.config import ipdevpoll_conf
         plugins = []
 
         for plugin_name in self.plugins:
@@ -101,7 +101,8 @@ class JobHandler(object):
             # Check if plugin wants to handle the netbox at all
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox, agent=self.agent,
-                                      containers=self.containers)
+                                      containers=self.containers,
+                                      config=ipdevpoll_conf)
                 plugins.append(plugin)
             else:
                 self.logger.debug("Plugin %s wouldn't handle %s",
