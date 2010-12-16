@@ -61,3 +61,4 @@ def import_plugin(config, alias):
         raise PluginImportError(error)
 
     plugin_registry[alias] = class_
+    class_.on_plugin_load()

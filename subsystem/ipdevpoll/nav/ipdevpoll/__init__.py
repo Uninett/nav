@@ -66,6 +66,16 @@ class Plugin(object):
         """
         raise NotImplemented
 
+    @classmethod
+    def on_plugin_load(cls):
+        """Called as the plugin class is loaded in the plugin registry.
+
+        Can be used to perform any kind of initialization task that
+        doesn't fit into module-level initialization.
+
+        """
+        pass
+
     def name(self):
         """Return the class name of this instance."""
         return self.__class__.__name__
