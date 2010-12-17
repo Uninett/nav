@@ -157,6 +157,12 @@ class SNMPHandler(object):
         time.sleep(wait)
         self.setIfUp(ifindex)
 
+    def write_mem(self):
+        """ 
+        Do a write memory on netbox if available
+        """
+        pass
+
     def getIfAdminStatus(self, ifindex):
         return self._queryNetbox(self.ifAdminStatus, ifindex)
 
@@ -209,6 +215,7 @@ class Cisco(SNMPHandler):
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
         self.vlanOid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
+        self.writeMemOid = '1.3.6.1.4.1.9.2.1.54.0'
 
     def getNetboxVlans(self):
         """ Find all available vlans on this netbox"""
@@ -228,6 +235,14 @@ class Cisco(SNMPHandler):
         vector = BitVector.from_hex(port.hex_string)
         vlans = vector.get_set_bits()
         return vlans
+    
+    def write_mem(self):
+        """ Use OLD-CISCO-SYS-MIB (v1) writeMem to write to memory. 
+        Write configuration into non-volatile memory / erase config memory if 0.
+        """
+        handle = self._getReadWriteHandle()
+        return handle.set(self.writeMemOid, 'i', 1)
+        
         
 class HP(SNMPHandler):
     def __init__(self, netbox):

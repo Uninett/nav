@@ -114,8 +114,8 @@ def populate_infodict(account, netbox, interfaces):
 
 def save_interfaceinfo(request):
     """
-    Used from an ajax call to set ifalias and vlan. Use interfaceid to find connectiondata.
-    The call expects error and message to be set.
+    Used from an ajax call to set ifalias and vlan. Use interfaceid to find 
+    connectiondata. The call expects error and message to be set.
     Error=0 if everything ok
     Message: message to user
     """
@@ -139,6 +139,10 @@ def save_interfaceinfo(request):
                 fac = SNMPFactory.getInstance(netbox)
                 fac.setVlan(interface.ifindex, vlan)
                 fac.setIfAlias(interface.ifindex, ifalias)
+                try:
+                    fac.write_mem()
+                except:
+                    pass
                 result = {'error': 0, 'message': 'Save was successful'}
                              
                 interface.vlan = vlan
