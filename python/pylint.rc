@@ -20,11 +20,7 @@ profile=no
 
 # Add <file or directory> to the black list. It should be a base name, not a
 # path. You may set this option multiple times.
-# Unfortunately, there seems to be no way to set this twice in the config file.
-# We need to ignore nav/smidumps and nav/web/templates as these consist only of
-# generated python code, which there is no way we can fix.  Need to add
-# smidumps on the command line, it seems.
-ignore=templates
+ignore=templates,smidumps
 
 # Pickle collected data for later comparisons.
 persistent=yes
