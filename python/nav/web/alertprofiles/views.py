@@ -57,10 +57,12 @@ def overview(request):
         active_profile = None
 
     if not active_profile:
-        new_message(request._req, _('There\'s no active profile set.'), Messages.NOTICE)
+        new_message(request._req, _('There\'s no active profile set.'),
+                    Messages.NOTICE)
         subscriptions = None
     else:
-        periods = TimePeriod.objects.filter(profile=active_profile).order_by('start')
+        periods = TimePeriod.objects.filter(
+            profile=active_profile).order_by('start')
         subscriptions = alert_subscriptions_table(periods)
 
     # Get information about users privileges
@@ -75,7 +77,8 @@ def overview(request):
             property='language'
         )
     except AccountProperty.DoesNotExist:
-        language = AccountProperty(account=account, property='language', value='en')
+        language = AccountProperty(account=account, property='language',
+                                   value='en')
 
     language_form = AccountPropertyForm(
         instance=language,
@@ -120,9 +123,11 @@ def profile(request):
         active_profile = None
 
     if not active_profile:
-        new_message(request._req, _('There\'s no active profile set.'), Messages.NOTICE)
+        new_message(request._req, _('There\'s no active profile set.'),
+                    Messages.NOTICE)
 
-    profiles = AlertProfile.objects.filter(account=account.pk).order_by(order_by)
+    profiles = AlertProfile.objects.filter(
+        account=account.pk).order_by(order_by)
 
     info_dict = {
             'active': {'profile': True},
@@ -143,7 +148,8 @@ def profile(request):
             extra_context=info_dict,
         )
 
-def profile_show_form(request, profile_id=None, profile_form=None, time_period_form=None):
+def profile_show_form(request, profile_id=None, profile_form=None,
+                      time_period_form=None):
     account = get_account(request)
     profile = None
     periods = []
@@ -219,10 +225,12 @@ def profile_save(request):
         try:
             profile = AlertProfile.objects.get(pk=request.POST.get('id'))
         except AlertProfile.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested profile does not exist'))
+            return alertprofiles_response_not_found(
+                request,_('Requested profile does not exist'))
 
         if profile.account != account:
-            return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this profile.'))
     else:
         profile = AlertProfile(account=account)
 
@@ -241,12 +249,14 @@ def profile_save(request):
         try:
             preference = AlertPreference.objects.get(account=account)
         except AlertPreference.DoesNotExist:
-            preference = AlertPreference(account=account, active_profile=profile)
+            preference = AlertPreference(account=account,
+                                         active_profile=profile)
         else:
             preference.active_profile = profile
         preference.save()
         messages.append({
-            'message': _('''Active profile automatically set to %(profile)s''') % {
+            'message':
+                _('''Active profile automatically set to %(profile)s''') % {
                 'profile': profile.name,
             },
             'type': Messages.NOTICE,
@@ -285,7 +295,8 @@ def profile_save(request):
         'type': Messages.SUCCESS,
     })
     messages.save()
-    return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-profile-detail',
+                                        args=(profile.id,)))
 
 def profile_remove(request):
     if not request.method == 'POST':
@@ -307,11 +318,13 @@ def profile_remove(request):
 
     account = get_account(request)
     if request.POST.get('confirm'):
-        profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('element'))
+        profiles = AlertProfile.objects.filter(
+            pk__in=request.POST.getlist('element'))
 
         for p in profiles:
             if p.account != account:
-                return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+                return alertprofiles_response_forbidden(
+                    request,_('You do not own this profile.'))
 
         profile_names = ', '.join([p.name for p in profiles])
         profiles.delete()
@@ -322,8 +335,10 @@ def profile_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
     else:
-        active_profile = AlertPreference.objects.get(account=account).active_profile
-        profiles = AlertProfile.objects.filter(pk__in=request.POST.getlist('profile'))
+        active_profile = AlertPreference.objects.get(
+            account=account).active_profile
+        profiles = AlertProfile.objects.filter(
+            pk__in=request.POST.getlist('profile'))
 
         if len(profiles) == 0:
             new_message(request._req,
@@ -335,9 +350,11 @@ def profile_remove(request):
         for p in profiles:
             warnings = []
             if p.account != account:
-                return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+                return alertprofiles_response_forbidden(
+                    request, _('You do not own this profile.'))
             if p == active_profile:
-                warnings.append({'message': u'This is the currently active profile.'})
+                warnings.append(
+                    {'message': u'This is the currently active profile.'})
 
             queued = AccountAlertQueue.objects.filter(
                 subscription__time_period__profile=p).count()
@@ -424,7 +441,8 @@ def profile_deactivate(request):
     preference.save()
 
     new_message(request._req,
-        _('Active profile %(profile)s was deactivated.') % {'profile': profile_name},
+        _('Active profile %(profile)s was deactivated.') % {'profile':
+                                                            profile_name},
         Messages.SUCCESS
     )
     return HttpResponseRedirect(reverse('alertprofiles-profile'))
@@ -438,12 +456,14 @@ def profile_time_period(request, time_period_id, time_period_form=None):
 
     info_dict = {
         'active': {'profile': True},
-        'subsection': {'detail': time_period.profile.id, 'timeperiod': time_period.id},
+        'subsection': {'detail': time_period.profile.id,
+                       'timeperiod': time_period.id},
         'time_period': time_period,
         'time_period_form': time_period_form,
         'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
-            (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+            (profile.name, reverse('alertprofiles-profile-detail',
+                                   args=(profile.id,))),
             ('Edit time period', None),
         ],
         'title': 'NAV - Alert profiles',
@@ -456,7 +476,8 @@ def profile_time_period(request, time_period_id, time_period_form=None):
 
 def profile_time_period_add(request):
     if request.method != 'POST' or not request.POST.get('profile'):
-        new_message(request._req, _('Required post data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
     account = get_account(request)
@@ -464,10 +485,12 @@ def profile_time_period_add(request):
     try:
         profile = AlertProfile.objects.get(pk=request.POST.get('profile'))
     except AlertProfile.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested profile does not exist.'))
+        return alertprofiles_response_not_found(
+            request, _('Requested profile does not exist.'))
 
     if profile.account != account:
-        return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not own this profile.'))
 
     time_period = None
     if request.POST.get('id'):
@@ -481,20 +504,24 @@ def profile_time_period_add(request):
 
     if not time_period_form.is_valid():
         if time_period:
-            return profile_time_period(request, time_period.id, time_period_form)
+            return profile_time_period(request, time_period.id,
+                                       time_period_form)
         else:
-            return profile_show_form(request, profile.id, None, time_period_form)
+            return profile_show_form(request, profile.id, None,
+                                     time_period_form)
 
     time_period = time_period_form.save()
     new_message(request._req,
-        _('Saved time period %(time)s for %(during)s to profile %(profile)s') % {
+        _('Saved time period %(time)s for %(during)s to profile %(profile)s'
+          ) % {
             'time': time_period.start,
             'during': time_period.get_valid_during_display(),
             'profile': profile.name
         },
         Messages.SUCCESS,
     )
-    return HttpResponseRedirect(reverse('alertprofiles-profile-detail', args=(profile.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-profile-detail',
+                                        args=(profile.id,)))
 
 def profile_time_period_remove(request):
     if not request.method == 'POST':
@@ -515,7 +542,8 @@ def profile_time_period_remove(request):
                 profile = t.profile
                 first = False
             if t.profile.account != account:
-                return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+                return alertprofiles_response_forbidden(
+                    request, _('You do not own this profile.'))
 
         time_periods_name = ', '.join(['%s for %s' % (
                 t.start, t.get_valid_during_display()
@@ -532,10 +560,12 @@ def profile_time_period_remove(request):
         ))
     else:
         account = get_account(request)
-        time_periods = TimePeriod.objects.filter(pk__in=request.POST.getlist('period'))
+        time_periods = TimePeriod.objects.filter(
+            pk__in=request.POST.getlist('period'))
         profile = AlertProfile.objects.get(pk=request.POST.get('profile'))
         try:
-            active_profile = AlertPreference.objects.get(account=account).active_profile
+            active_profile = AlertPreference.objects.get(
+                account=account).active_profile
         except:
             pass
         else:
@@ -561,14 +591,18 @@ def profile_time_period_remove(request):
             if t.profile.account != account:
                 # Even though we assume profile is the same for GUI-stuff, we
                 # can't do that when it comes to permissions.
-                return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
-            description = _(u'From %(time)s for %(profile)s during %(valid_during)s') % {
-                'time': t.start,
-                'profile': t.profile.name,
-                'valid_during': t.get_valid_during_display(),
-            }
+                return alertprofiles_response_forbidden(
+                    request, _('You do not own this profile.'))
+            description = (
+                _(u'From %(time)s for %(profile)s during %(valid_during)s') % {
+                    'time': t.start,
+                    'profile': t.profile.name,
+                    'valid_during': t.get_valid_during_display(),
+                    }
+                )
 
-            queued = AccountAlertQueue.objects.filter(subscription__time_period=t).count()
+            queued = AccountAlertQueue.objects.filter(
+                subscription__time_period=t).count()
             warnings = []
             if queued > 0:
                 warnings.append({
@@ -585,13 +619,15 @@ def profile_time_period_remove(request):
             })
 
         info_dict = {
-                'form_action': reverse('alertprofiles-profile-timeperiod-remove'),
+                'form_action':
+                    reverse('alertprofiles-profile-timeperiod-remove'),
                 'active': {'profile': True},
                 'subsection': {'detail': profile.id},
                 'object_list': elements,
                 'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
-                    (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+                    (profile.name, reverse('alertprofiles-profile-detail',
+                                           args=(profile.id,))),
                     ('Remove time periods', None),
                 ],
                 'title': 'NAV - Alert profiles',
@@ -604,7 +640,8 @@ def profile_time_period_remove(request):
 
 def profile_time_period_setup(request, time_period_id=None):
     if not time_period_id:
-        new_message(request._req, _('No time period were specified'), Messages.ERROR)
+        new_message(request._req, _('No time period were specified'),
+                    Messages.ERROR)
         redirect_url = reverse('alertprofiles-profile')
         return HttpResponseRedirect(redirect_url)
 
@@ -617,11 +654,13 @@ def profile_time_period_setup(request, time_period_id=None):
     profile = time_period.profile
 
     if account != profile.account:
-        return alertprofiles_response_forbidden(request, _('You do not have access to this profile.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not have access to this profile.'))
 
     editing = False
     if request.method == 'POST' and request.POST.get('time_period'):
-        time_period_form = AlertSubscriptionForm(request.POST, time_period=time_period)
+        time_period_form = AlertSubscriptionForm(request.POST,
+                                                 time_period=time_period)
         if request.POST.get('id'):
             editing = True
     else:
@@ -639,8 +678,10 @@ def profile_time_period_setup(request, time_period_id=None):
             Q(owner=account) | Q(owner__isnull=True)).count(),
         'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
-            (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
-            (unicode(time_period.start) + u', ' + time_period.get_valid_during_display(), None),
+            (profile.name, reverse('alertprofiles-profile-detail',
+                                   args=(profile.id,))),
+            (unicode(time_period.start) + u', ' +
+             time_period.get_valid_during_display(), None),
         ],
         'title': 'NAV - Alert profiles',
     }
@@ -658,7 +699,8 @@ def profile_time_period_subscription_add(request):
     account = get_account(request)
 
     if request.POST.get('id'):
-        existing_subscription = AlertSubscription.objects.get(pk=request.POST.get('id'))
+        existing_subscription = AlertSubscription.objects.get(
+            pk=request.POST.get('id'))
         form = AlertSubscriptionForm(request.POST, instance=existing_subscription)
     else:
         form = AlertSubscriptionForm(request.POST)
@@ -670,12 +712,14 @@ def profile_time_period_subscription_add(request):
     time_period = form.cleaned_data['time_period']
 
     if time_period.profile.account != account:
-        return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not own this profile.'))
 
     subscription = form.save()
 
     new_message(request._req,
-        _('Saved alert subscription for filter group %(fg)s to period %(time)s for %(during)s') % {
+        _('Saved alert subscription for filter group %(fg)s to period '
+          '%(time)s for %(during)s') % {
             'fg': subscription.filter_group.name,
             'time': time_period.start,
             'during': time_period.get_valid_during_display(),
@@ -689,7 +733,8 @@ def profile_time_period_subscription_add(request):
 
 def profile_time_period_subscription_edit(request, subscription_id=None):
     if not subscription_id:
-        new_message(request._req, _('No alert subscription specified'), Messages.ERROR)
+        new_message(request._req, _('No alert subscription specified'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofile-profile'))
 
     account = get_account(request)
@@ -697,11 +742,13 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
     subscription = AlertSubscription.objects.select_related(
         'time_period', 'time_period__profile'
     ).get(pk=subscription_id)
-    form = AlertSubscriptionForm(instance=subscription, time_period=subscription.time_period)
+    form = AlertSubscriptionForm(instance=subscription,
+                                 time_period=subscription.time_period)
     profile = subscription.time_period.profile
 
     if account != profile.account:
-        return alertprofiles_response_forbidden(request, _('You do not have access to this profile.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not have access to this profile.'))
 
     info_dict = {
         'form': form,
@@ -718,10 +765,13 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
             Q(owner=account) | Q(owner__isnull=True)).count(),
         'navpath': BASE_PATH+[
             ('Profiles', reverse('alertprofiles-profile')),
-            (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
+            (profile.name, reverse('alertprofiles-profile-detail',
+                                   args=(profile.id,))),
             (
-                unicode(subscription.time_period.start) + u', ' + subscription.time_period.get_valid_during_display(),
-                reverse('alertprofiles-profile-timeperiod-setup', args=(subscription.time_period.id,))
+                unicode(subscription.time_period.start) + u', ' +
+                    subscription.time_period.get_valid_during_display(),
+                reverse('alertprofiles-profile-timeperiod-setup',
+                        args=(subscription.time_period.id,))
             ),
             ('Edit subscription', None)
         ],
@@ -746,37 +796,44 @@ def profile_time_period_subscription_remove(request):
         try:
             period = TimePeriod.objects.get(pk=request.POST.get('perform_on'))
         except TimePeriod.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested time period does not exist'))
+            return alertprofiles_response_not_found(
+                request, _('Requested time period does not exist'))
 
         if period.profile.account != account:
-            return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this profile.'))
 
         AlertSubscription.objects.filter(pk__in=subscriptions).delete()
 
-        new_message(request._req, _('Removed alert subscriptions.'), Messages.SUCCESS)
+        new_message(request._req, _('Removed alert subscriptions.'),
+                    Messages.SUCCESS)
         return HttpResponseRedirect(reverse(
             'alertprofiles-profile-timeperiod-setup',
             args=(period.id,)
         ))
     else:
         account = get_account(request)
-        subscriptions = AlertSubscription.objects.filter(pk__in=request.POST.getlist('subscription'))
+        subscriptions = AlertSubscription.objects.filter(
+            pk__in=request.POST.getlist('subscription'))
         period = None
 
         try:
             period = TimePeriod.objects.get(pk=request.POST.get('id'))
         except TimePeriod.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested time period does not exist'))
+            return alertprofiles_response_not_found(
+                request, _('Requested time period does not exist'))
 
         if period.profile.account != account:
-            return alertprofiles_response_forbidden(request, _('You do not own this profile.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this profile.'))
 
         if len(subscriptions) == 0:
             new_message(request._req,
                 _('No alert subscriptions were selected.'),
                 Messages.NOTICE)
             return HttpResponseRedirect(
-                reverse('alertprofiles-profile-timeperiod-setup', args=(period.id,)))
+                reverse('alertprofiles-profile-timeperiod-setup',
+                        args=(period.id,)))
 
         # Make tuples, (id, description_string) for the confirmation page
         elements = []
@@ -809,17 +866,23 @@ def profile_time_period_subscription_remove(request):
             })
 
         info_dict = {
-                'form_action': reverse('alertprofiles-profile-timeperiod-subscription-remove'),
+                'form_action': reverse(
+                    'alertprofiles-profile-timeperiod-subscription-remove'),
                 'active': {'profile': True},
-                'subsection': {'detail': period.profile.id, 'subscriptions': period.id},
+                'subsection': {'detail': period.profile.id,
+                               'subscriptions': period.id},
                 'object_list': elements,
                 'perform_on': period.id,
                 'navpath': BASE_PATH+[
                     ('Profiles', reverse('alertprofiles-profile')),
-                    (period.profile.name, reverse('alertprofiles-profile-detail', args=(period.profile.id,))),
+                    (period.profile.name,
+                     reverse('alertprofiles-profile-detail',
+                             args=(period.profile.id,))),
                     (
-                        unicode(period.start) + u', ' + period.get_valid_during_display(),
-                        reverse('alertprofiles-profile-timeperiod-setup', args=(period.id,))
+                        unicode(period.start) + u', ' +
+                            period.get_valid_during_display(),
+                        reverse('alertprofiles-profile-timeperiod-setup',
+                                args=(period.id,))
                     ),
                     ('Remove subscriptions', None)
                 ],
@@ -934,7 +997,8 @@ def address_save(request):
             address = None
         else:
             if address.account != account:
-                return alertprofiles_response_forbidden(request, _('You do not own this address.'))
+                return alertprofiles_response_forbidden(
+                    request, _('You do not own this address.'))
             else:
                 address_id = address.id
 
@@ -952,7 +1016,8 @@ def address_save(request):
         _('Saved address %(address)s') % {'address': address.address},
         Messages.SUCCESS
     )
-    return HttpResponseRedirect(reverse('alertprofiles-address-detail', args=(address.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-address-detail',
+                                        args=(address.id,)))
 
 def address_remove(request):
     if not request.method == 'POST':
@@ -961,13 +1026,16 @@ def address_remove(request):
 
     account = get_account(request)
     if request.POST.get('confirm'):
-        addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('element'))
+        addresses = AlertAddress.objects.filter(
+            pk__in=request.POST.getlist('element'))
 
         for a in addresses:
             if a.account != account:
-                return alertprofiles_response_forbidden(request, _('You do not own this address.'))
+                return alertprofiles_response_forbidden(
+                    request, _('You do not own this address.'))
 
-        subscriptions = AlertSubscription.objects.filter(alert_address__in=addresses)
+        subscriptions = AlertSubscription.objects.filter(
+            alert_address__in=addresses)
         if len(subscriptions) > 0:
             for s in subscriptions:
                 new_message(request._req,
@@ -993,7 +1061,8 @@ def address_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-address'))
     else:
-        addresses = AlertAddress.objects.filter(pk__in=request.POST.getlist('address'))
+        addresses = AlertAddress.objects.filter(
+            pk__in=request.POST.getlist('address'))
 
         if len(addresses) == 0:
             new_message(request._req,
@@ -1004,12 +1073,14 @@ def address_remove(request):
         elements = []
         for a in addresses:
             if a.account != account:
-                return alertprofiles_response_forbidden(request, _('You do not own this address.'))
+                return alertprofiles_response_forbidden(
+                    request, _('You do not own this address.'))
 
             warnings = []
             subscriptions = AlertSubscription.objects.filter(
                 alert_address=a
-            ).select_related('filter_group', 'time_period', 'time_period__profile')
+            ).select_related('filter_group', 'time_period',
+                             'time_period__profile')
             for s in subscriptions:
                 warnings.append({
                     'message': u'''Address used in subscription "watch %(fg)s
@@ -1018,10 +1089,12 @@ def address_remove(request):
                             'time': s.time_period.start,
                             'profile': s.time_period.profile.name,
                         },
-                    'link': reverse('alertprofiles-profile-detail', args=(s.time_period.profile.id,)),
+                    'link': reverse('alertprofiles-profile-detail',
+                                    args=(s.time_period.profile.id,)),
                 })
 
-                queued = AccountAlertQueue.objects.filter(subscription=s).count()
+                queued = AccountAlertQueue.objects.filter(
+                    subscription=s).count()
                 if queued > 0:
                     warnings.append({
                     'message': u'''There are %(queued)s queued alerts on this
@@ -1062,7 +1135,8 @@ def address_remove(request):
 
 def language_save(request):
     if request.method != 'POST' or not request.POST.get('value'):
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
     account = get_account(request)
@@ -1075,7 +1149,8 @@ def language_save(request):
             property='language'
         )
     except AccountProperty.DoesNotExist:
-        language = AccountProperty(account=account, property='language', value='en')
+        language = AccountProperty(account=account, property='language',
+                                   value='en')
 
     value = request.POST.get('value')
     language.value = value
@@ -1223,9 +1298,11 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     # If no form is supplied we must make one
     if not filter_form:
         if filter_id:
-            filter_form = FilterForm(instance=filter, admin=admin, is_owner=is_owner)
+            filter_form = FilterForm(instance=filter, admin=admin,
+                                     is_owner=is_owner)
         else:
-            filter_form = FilterForm(initial={'owner': account}, admin=admin, is_owner=is_owner)
+            filter_form = FilterForm(initial={'owner': account}, admin=admin,
+                                     is_owner=is_owner)
 
     if filter_id:
         subsection = {'detail': filter_id}
@@ -1257,7 +1334,8 @@ def filter_detail(request, filter_id=None):
 
 def filter_save(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     (account, admin, owner) = resolve_account_admin_and_owner(request)
@@ -1269,10 +1347,12 @@ def filter_save(request):
         try:
             filter = Filter.objects.get(pk=request.POST.get('id'))
         except Filter.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter does not exist.'))
+            return alertprofiles_response_not_found(
+                request, _('Requested filter does not exist.'))
 
         if not account_owns_filters(account, filter):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter.'))
 
         form = FilterForm(request.POST, instance=filter, admin=admin)
     else:
@@ -1297,18 +1377,21 @@ def filter_save(request):
         _('Saved filter %(name)s') % {'name': filter.name},
         Messages.SUCCESS
     )
-    return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
+                                        args=(filter.id,)))
 
 def filter_remove(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     if request.POST.get('confirm'):
         filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
 
         if not account_owns_filters(get_account(request), *filters):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter.'))
 
         names = ', '.join([f.name for f in filters])
         filters.delete()
@@ -1322,7 +1405,8 @@ def filter_remove(request):
         filters = Filter.objects.filter(pk__in=request.POST.getlist('filter'))
 
         if not account_owns_filters(get_account(request), *filters):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter.'))
 
         if len(filters) == 0:
             new_message(request._req,
@@ -1336,14 +1420,19 @@ def filter_remove(request):
             try:
                 owner = f.owner
             except Account.DoesNotExist:
-                warnings.append({'message': u'''This filter is public. Deleting
-                    it will make it unavailable for all users of this system.'''})
+                warnings.append({'message':
+                                 u'This filter is public. Deleting it will '
+                                 u'make it unavailable for all users of this '
+                                 u'system.'})
 
-            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter=f)
+            filter_groups = FilterGroup.objects.filter(
+                filtergroupcontent__filter=f)
             for fg in filter_groups:
                 warnings.append({
-                    'message': u'Used in filter group %(name)s.' % {'name': fg.name},
-                    'link': reverse('alertprofiles-filter_groups-detail', args=(fg.id,)),
+                    'message': u'Used in filter group %(name)s.' % {
+                            'name': fg.name},
+                    'link': reverse('alertprofiles-filter_groups-detail',
+                                    args=(fg.id,)),
                 })
 
             elements.append({
@@ -1371,27 +1460,34 @@ def filter_remove(request):
             )
 
 def filter_addexpression(request):
-    if not request.method == 'POST' or not request.POST.get('id') or not request.POST.get('matchfield'):
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+    if (not request.method == 'POST' or
+        not request.POST.get('id') or
+        not request.POST.get('matchfield')
+        ):
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     filter = None
     try:
         filter = Filter.objects.get(pk=request.POST.get('id'))
     except Filter.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested filter does not exist'))
+        return alertprofiles_response_not_found(
+            request, _('Requested filter does not exist'))
 
     matchfield = None
     try:
         matchfield = MatchField.objects.get(pk=request.POST.get('matchfield'))
     except MatchField.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested match field does not exist'))
+        return alertprofiles_response_not_found(
+            request, _('Requested match field does not exist'))
 
     initial = {'filter': filter.id, 'match_field': matchfield.id}
     form = ExpressionForm(match_field=matchfield, initial=initial)
 
     if not account_owns_filters(get_account(request), filter):
-        return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not own this filter.'))
 
     # Check if there's more values than we can show in the list
     list_limited = False
@@ -1408,7 +1504,8 @@ def filter_addexpression(request):
             'list_limited': list_limited,
             'navpath': BASE_PATH+[
                 ('Filters', reverse('alertprofiles-filters')),
-                (filter.name, reverse('alertprofiles-filters-detail', args=(filter.id,))),
+                (filter.name, reverse('alertprofiles-filters-detail',
+                                      args=(filter.id,))),
                 ('Add expression', None)
             ],
             'title': 'NAV - Alert profiles',
@@ -1421,7 +1518,8 @@ def filter_addexpression(request):
 
 def filter_saveexpression(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     # Get the MatchField, Filter and Operator objects associated with the
@@ -1432,7 +1530,8 @@ def filter_saveexpression(request):
     operator = Operator.objects.get(type=type, match_field=match_field.pk)
 
     if not account_owns_filters(get_account(request), filter):
-        return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not own this filter.'))
 
     # Get the value
     value = ""
@@ -1461,11 +1560,13 @@ def filter_saveexpression(request):
         _('Added expression to filter %(name)s') % {'name': filter.name},
         Messages.SUCCESS
    )
-    return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
+                                        args=(filter.id,)))
 
 def filter_removeexpression(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     if request.POST.get('confirm'):
@@ -1474,25 +1575,31 @@ def filter_removeexpression(request):
         try:
             filter = Filter.objects.get(pk=request.POST.get('perform_on'))
         except Filter.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter does not exist'))
+            return alertprofiles_response_not_found(
+                request, _('Requested filter does not exist'))
 
         if not account_owns_filters(get_account(request), filter):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter.'))
 
         Expression.objects.filter(pk__in=expressions).delete()
 
         new_message(request._req, _('Removed expressions'), Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('alertprofiles-filters-detail', args=(filter.id,)))
+        return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
+                                            args=(filter.id,)))
     else:
-        expressions = Expression.objects.filter(pk__in=request.POST.getlist('expression'))
+        expressions = Expression.objects.filter(
+            pk__in=request.POST.getlist('expression'))
         filter = None
         try:
             filter = Filter.objects.get(pk=request.POST.get('id'))
         except Filter.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter does not exist'))
+            return alertprofiles_response_not_found(
+                request, _('Requested filter does not exist'))
 
         if not account_owns_filters(get_account(request), filter):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter.'))
 
         if len(expressions) == 0:
             new_message(request._req,
@@ -1518,14 +1625,16 @@ def filter_removeexpression(request):
             })
 
         info_dict = {
-                'form_action': reverse('alertprofiles-filters-removeexpression'),
+                'form_action': reverse(
+                    'alertprofiles-filters-removeexpression'),
                 'active': {'filters': True},
                 'subsection': {'detail': filter.id},
                 'object_list': elements,
                 'perform_on': filter.id,
                 'navpath': BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
-                    (filter.name, reverse('alertprofiles-filters-detail', args=(filter.id,))),
+                    (filter.name, reverse('alertprofiles-filters-detail',
+                                          args=(filter.id,))),
                     ('Remove expressions', None),
                 ],
                 'title': 'NAV - Alert profiles',
@@ -1543,7 +1652,8 @@ def filter_group_list(request):
     page = request.GET.get('page', 1)
 
     # Define valid options for ordering
-    valid_ordering = ['name', '-name', 'owner', '-owner', '-description', 'description']
+    valid_ordering = ['name', '-name', 'owner', '-owner', '-description',
+                      'description']
     order_by = request.GET.get('order_by', 'name').lower()
     if order_by not in valid_ordering:
         order_by = 'name'
@@ -1596,13 +1706,14 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
         try:
             filter_group = FilterGroup.objects.get(pk=filter_group_id)
         except FilterGroup.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
+            return alertprofiles_response_not_found(
+                request, _('Requested filter group does not exist.'))
         else:
             owner = filter_group.owner
             if not owner:
                 new_message(request._req,
-                    _('''%(fg)s is a public filter group and may be used by other
-                    users than you.''') % {
+                    _('%(fg)s is a public filter group and may be used by '
+                      'other users than you.') % {
                         'fg': filter_group.name,
                     },
                     Messages.WARNING
@@ -1644,9 +1755,11 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
     # If no form is supplied we must make it
     if not filter_group_form:
         if filter_group_id:
-            filter_group_form = FilterGroupForm(instance=filter_group, admin=admin, is_owner=is_owner)
+            filter_group_form = FilterGroupForm(instance=filter_group,
+                                                admin=admin, is_owner=is_owner)
         else:
-            filter_group_form = FilterGroupForm(initial={'owner': account}, admin=admin, is_owner=is_owner)
+            filter_group_form = FilterGroupForm(initial={'owner': account},
+                                                admin=admin, is_owner=is_owner)
 
     if filter_group_id:
         subsection = {'detail': filter_group_id}
@@ -1679,7 +1792,8 @@ def filter_group_detail(request, filter_group_id=None):
 
 def filter_group_save(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     (account, admin, owner) = resolve_account_admin_and_owner(request)
@@ -1689,10 +1803,12 @@ def filter_group_save(request):
         try:
             filter_group = FilterGroup.objects.get(pk=request.POST.get('id'))
         except FilterGroup.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
+            return alertprofiles_response_not_found(
+                request, _('Requested filter group does not exist.'))
 
         if not account_owns_filters(account, filter_group):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter group.'))
         form = FilterGroupForm(request.POST, instance=filter_group, admin=admin)
     else:
         form = FilterGroupForm(request.POST, admin=admin)
@@ -1717,18 +1833,22 @@ def filter_group_save(request):
         _('Saved filter group %(name)s') % {'name': filter_group.name},
         Messages.SUCCESS
     )
-    return HttpResponseRedirect(reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-filter_groups-detail',
+                                        args=(filter_group.id,)))
 
 def filter_group_remove(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     if request.POST.get('confirm'):
-        filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('element'))
+        filter_groups = FilterGroup.objects.filter(
+            pk__in=request.POST.getlist('element'))
 
         if not account_owns_filters(get_account(request), *filter_groups):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter group.'))
 
         names = ', '.join([f.name for f in filter_groups])
         filter_groups.delete()
@@ -1739,10 +1859,12 @@ def filter_group_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
     else:
-        filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filter_group'))
+        filter_groups = FilterGroup.objects.filter(
+            pk__in=request.POST.getlist('filter_group'))
 
         if not account_owns_filters(get_account(request), *filter_groups):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter group.'))
 
         if len(filter_groups) == 0:
             new_message(request._req,
@@ -1753,7 +1875,8 @@ def filter_group_remove(request):
         elements = []
         for fg in filter_groups:
             subscriptions = AlertSubscription.objects.filter(filter_group=fg)
-            time_periods = TimePeriod.objects.filter(alertsubscription__in=subscriptions)
+            time_periods = TimePeriod.objects.filter(
+                alertsubscription__in=subscriptions)
             profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
             warnings = []
 
@@ -1769,7 +1892,8 @@ def filter_group_remove(request):
             for p in profiles:
                 warnings.append({
                     'message': u'Used in profile %(name)s.' % {'name': p.name},
-                    'link': reverse('alertprofiles-profile-detail', args=(p.id,)),
+                    'link': reverse('alertprofiles-profile-detail',
+                                    args=(p.id,)),
                 })
 
             elements.append({
@@ -1798,8 +1922,12 @@ def filter_group_remove(request):
             )
 
 def filter_group_addfilter(request):
-    if not request.method == 'POST' or not request.POST.get('id') or not request.POST.get('filter'):
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+    if (not request.method == 'POST' or
+        not request.POST.get('id') or
+        not request.POST.get('filter')
+        ):
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     account = get_account(request)
@@ -1807,22 +1935,26 @@ def filter_group_addfilter(request):
     try:
         filter_group = FilterGroup.objects.get(pk=request.POST.get('id'))
     except FilterGroup.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
+        return alertprofiles_response_not_found(
+            request, _('Requested filter group does not exist.'))
 
     filter = None
     try:
         filter = Filter.objects.get(pk=request.POST.get('filter'))
     except Filter.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested filter does not exist.'))
+        return alertprofiles_response_not_found(
+            request, _('Requested filter does not exist.'))
 
     operator = request.POST.get('operator')
 
     if not account_owns_filters(account, filter_group):
-        return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+        return alertprofiles_response_forbidden(
+            request, _('You do not own this filter group.'))
 
     if not operator or len(operator) != 2:
         return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail', attrs=(filter.id,))
+                reverse('alertprofiles-filter_groups-detail',
+                        attrs=(filter.id,))
             )
 
     # Operator is sent by POST data as a "bitfield" (it's really a string
@@ -1856,12 +1988,14 @@ def filter_group_addfilter(request):
         Messages.SUCCESS
     )
     return HttpResponseRedirect(
-            reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
+            reverse('alertprofiles-filter_groups-detail',
+                    args=(filter_group.id,))
         )
 
 def filter_group_remove_or_move_filter(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     post = request.POST.copy()
@@ -1879,18 +2013,23 @@ def filter_group_remove_or_move_filter(request):
 
 def filter_group_removefilter(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req,
+                    _('Required post-data were not supplied.'), Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     # We are deleting filters. Show confirmation page or remove?
     if request.POST.get('confirm'):
-        filter_group = FilterGroup.objects.get(pk=request.POST.get('perform_on'))
-        fg_content = FilterGroupContent.objects.filter(pk__in=request.POST.getlist('element'))
+        filter_group = FilterGroup.objects.get(
+            pk=request.POST.get('perform_on'))
+        fg_content = FilterGroupContent.objects.filter(
+            pk__in=request.POST.getlist('element'))
 
         if not account_owns_filters(get_account(request), filter_group):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter group.'))
 
-        filters = Filter.objects.filter(pk__in=[f.filter.id for f in fg_content])
+        filters = Filter.objects.filter(
+            pk__in=[f.filter.id for f in fg_content])
         names = ', '.join([f.name for f in filters])
         fg_content.delete()
 
@@ -1905,14 +2044,16 @@ def filter_group_removefilter(request):
             Messages.SUCCESS
         )
         return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
+                reverse('alertprofiles-filter_groups-detail',
+                        args=(filter_group.id,))
             )
     else:
         filter_group = None
         try:
             filter_group = FilterGroup.objects.get(pk=request.POST.get('id'))
         except FilterGroup.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested filter group does not exist'))
+            return alertprofiles_response_not_found(
+                request, _('Requested filter group does not exist'))
 
         filter_group_content = FilterGroupContent.objects.filter(
                 pk__in=request.POST.getlist('filter'),
@@ -1920,7 +2061,8 @@ def filter_group_removefilter(request):
             )
 
         if not account_owns_filters(get_account(request), filter_group):
-            return alertprofiles_response_forbidden(request, _('You do not own this filter group.'))
+            return alertprofiles_response_forbidden(
+                request, _('You do not own this filter group.'))
 
         try:
             owner = filter_group.owner
@@ -1936,7 +2078,8 @@ def filter_group_removefilter(request):
                 _('No filters were selected.'),
                 Messages.NOTICE)
             return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,)))
+                reverse('alertprofiles-filter_groups-detail',
+                        args=(filter_group.id,)))
 
         elements = []
         for f in filter_group_content:
@@ -1953,7 +2096,8 @@ def filter_group_removefilter(request):
             })
 
         info_dict = {
-                'form_action': reverse('alertprofiles-filter_groups-removefilter'),
+                'form_action': reverse(
+                    'alertprofiles-filter_groups-removefilter'),
                 'active': {'filter_groups': True},
                 'subsection': {'detail': filter_group.id},
                 'object_list': elements,
@@ -1962,7 +2106,8 @@ def filter_group_removefilter(request):
                     ('Filter groups', reverse('alertprofiles-filter_groups')),
                     (
                         filter_group.name,
-                        reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
+                        reverse('alertprofiles-filter_groups-detail',
+                                args=(filter_group.id,))
                     ),
                     ('Remove filters', None),
                 ],
@@ -1976,7 +2121,8 @@ def filter_group_removefilter(request):
 
 def filter_group_movefilter(request):
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
     account = get_account(request)
@@ -1986,7 +2132,8 @@ def filter_group_movefilter(request):
     try:
         filter_group = FilterGroup.objects.get(pk=filter_group_id)
     except FilterGroup.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested filter group does not exist.'))
+        return alertprofiles_response_not_found(
+            request, _('Requested filter group does not exist.'))
     else:
         if filter_group.owner != account:
             return alertprofiles_response_forbidden(
@@ -2008,7 +2155,8 @@ def filter_group_movefilter(request):
     else:
         # No sensible input, just return to where we came from
         return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail', args=(filter_group_id,))
+                reverse('alertprofiles-filter_groups-detail',
+                        args=(filter_group_id,))
             )
 
     filter = None
@@ -2031,7 +2179,8 @@ def filter_group_movefilter(request):
                 )[0:1].get()
     except FilterGroupContent.DoesNotExist:
         return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail', args=(filter_group.id,))
+                reverse('alertprofiles-filter_groups-detail',
+                        args=(filter_group.id,))
             )
 
     new_priority = other_filter.priority
@@ -2050,13 +2199,15 @@ def filter_group_movefilter(request):
     )
 
     return HttpResponseRedirect(
-            reverse('alertprofiles-filter_groups-detail', args=(filter_group_id,))
+            reverse('alertprofiles-filter_groups-detail',
+                    args=(filter_group_id,))
         )
 
 def matchfield_list(request):
     account = get_account(request)
     if not is_admin(account):
-        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+        return alertprofiles_response_forbidden(
+            request, 'Only admins can view this page.')
     page = request.GET.get('page', 1)
 
     # Define valid options for ordering
@@ -2097,7 +2248,8 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     page_name = 'New matchfield'
     account = get_account(request)
     if not is_admin(account):
-        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+        return alertprofiles_response_forbidden(
+            request, 'Only admins can view this page.')
 
     try:
         matchfield = MatchField.objects.get(pk=matchfield_id)
@@ -2109,7 +2261,8 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     else:
         if not matchfield_form:
             matchfield_form = MatchFieldForm(instance=matchfield)
-        matchfield_operators_id = [m_operator.type for m_operator in matchfield.operator_set.all()]
+        matchfield_operators_id = [
+            m_operator.type for m_operator in matchfield.operator_set.all()]
 
         page_name = matchfield.name
 
@@ -2167,10 +2320,12 @@ def matchfield_detail(request, matchfield_id=None):
 def matchfield_save(request):
     account = get_account(request)
     if not is_admin(account):
-        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+        return alertprofiles_response_forbidden(
+            request, 'Only admins can view this page.')
 
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
 
     matchfield = None
@@ -2201,19 +2356,23 @@ def matchfield_save(request):
         _('Saved matchfield %(name)s') % {'name': matchfield.name},
         Messages.SUCCESS
     )
-    return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail', args=(matchfield.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail',
+                                        args=(matchfield.id,)))
 
 def matchfield_remove(request):
     account = get_account(request)
     if not is_admin(account):
-        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+        return alertprofiles_response_forbidden(
+            request, 'Only admins can view this page.')
 
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     if request.POST.get('confirm'):
-        matchfields = MatchField.objects.filter(pk__in=request.POST.getlist('element'))
+        matchfields = MatchField.objects.filter(
+            pk__in=request.POST.getlist('element'))
         names = ', '.join([m.name for m in matchfields])
         matchfields.delete()
         new_message(request._req,
@@ -2238,8 +2397,11 @@ def matchfield_remove(request):
             warnings = []
             for e in expressions:
                 warnings.append({
-                    'message': 'Used in filter %(filter)s.' % {'filter': e.filter.name},
-                    'link': reverse('alertprofiles-filters-detail', args=(e.filter.id,)),
+                    'message': 'Used in filter %(filter)s.' % {
+                            'filter': e.filter.name
+                        },
+                    'link': reverse('alertprofiles-filters-detail',
+                                    args=(e.filter.id,)),
                 })
             elements.append({
                 'id': m.id,
@@ -2274,7 +2436,8 @@ def matchfield_remove(request):
 def permission_list(request, group_id=None):
     account = get_account(request)
     if not is_admin(account):
-        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+        return alertprofiles_response_forbidden(
+            request, 'Only admins can view this page.')
 
     groups = AccountGroup.objects.all().order_by('name')
 
@@ -2282,13 +2445,16 @@ def permission_list(request, group_id=None):
     filter_groups = None
     permissions = None
     if group_id:
-        filter_groups = FilterGroup.objects.filter(owner__isnull=True).order_by('name')
+        filter_groups = FilterGroup.objects.filter(
+            owner__isnull=True).order_by('name')
         try:
             selected_group = groups.get(pk=group_id)
         except AccountGroup.DoesNotExist:
-            return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
+            return alertprofiles_response_not_found(
+                request, _('Requested account group does not exist.'))
 
-        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
+        permissions = AccountGroup.objects.get(
+            pk=group_id).filtergroup_set.all()
 
     active = {'permissions': True}
     info_dict = {
@@ -2312,19 +2478,23 @@ def permission_list(request, group_id=None):
 def permissions_save(request):
     account = get_account(request)
     if not is_admin(account):
-        return alertprofiles_response_forbidden(request, 'Only admins can view this page.')
+        return alertprofiles_response_forbidden(
+            request, 'Only admins can view this page.')
 
     if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'), Messages.ERROR)
+        new_message(request._req, _('Required post-data were not supplied.'),
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-permissions'))
 
     group = None
     try:
         group = AccountGroup.objects.get(pk=request.POST.get('group'))
     except AccountGroup.DoesNotExist:
-        return alertprofiles_response_not_found(request, _('Requested account group does not exist.'))
+        return alertprofiles_response_not_found(
+            request, _('Requested account group does not exist.'))
 
-    filter_groups = FilterGroup.objects.filter(pk__in=request.POST.getlist('filter_group'))
+    filter_groups = FilterGroup.objects.filter(
+        pk__in=request.POST.getlist('filter_group'))
 
     group.filtergroup_set = filter_groups
 
@@ -2332,4 +2502,5 @@ def permissions_save(request):
         _('Saved permissions for group %(name)s') % {'name': group.name},
         Messages.SUCCESS
     )
-    return HttpResponseRedirect(reverse('alertprofiles-permissions-detail', args=(group.id,)))
+    return HttpResponseRedirect(reverse('alertprofiles-permissions-detail',
+                                        args=(group.id,)))
