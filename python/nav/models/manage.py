@@ -16,9 +16,10 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
+# pylint: disable-msg=R0903
+
 import datetime as dt
 import IPy
-import time
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -28,7 +29,7 @@ from django.db.models import Q
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, PointField
 
-# Choices used in Interface model and 'ipdevinfo' for determining interface status
+# Interface status choices used in Interface model and 'ipdevinfo'
 OPER_UP = 1
 OPER_DOWN = 2
 OPER_TESTING = 3
@@ -122,7 +123,8 @@ class Netbox(models.Model):
             return '(Invalid value in DB)'
 
     def get_gwports(self):
-        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False).distinct()
+        return Interface.objects.filter(netbox=self,
+                                        gwportprefix__isnull=False).distinct()
     
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
@@ -135,7 +137,8 @@ class Netbox(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return Interface.objects.filter(netbox=self, baseport__isnull=False).distinct()
+        return Interface.objects.filter(netbox=self,
+                                        baseport__isnull=False).distinct()
     
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -295,9 +298,12 @@ class Device(models.Model):
 
     id = models.AutoField(db_column='deviceid', primary_key=True)
     serial = models.CharField(unique=True, max_length=-1, null=True)
-    hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
-    firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
-    software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
+    hardware_version = models.CharField(db_column='hw_ver', max_length=-1,
+                                        null=True)
+    firmware_version = models.CharField(db_column='fw_ver', max_length=-1,
+                                        null=True)
+    software_version = models.CharField(db_column='sw_ver', max_length=-1,
+                                        null=True)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -359,7 +365,8 @@ class Module(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return Interface.objects.select_related(depth=2).filter(module=self, baseport__isnull=False)
+        return Interface.objects.select_related(
+            depth=2).filter(module=self, baseport__isnull=False)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -695,7 +702,8 @@ class SwPortAllowedVlan(models.Model):
     """From MetaNAV: Stores a hexstring that has “hidden” information about the
     vlans that are allowed to traverse a given trunk."""
 
-    interface = models.OneToOneField('Interface', db_column='interfaceid', primary_key=True)
+    interface = models.OneToOneField('Interface', db_column='interfaceid',
+                                     primary_key=True)
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
 
     class Meta:
@@ -708,7 +716,8 @@ class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
     given vlan for a given switch port."""
 
-    interface = models.ForeignKey('Interface', db_column='interfaceid', primary_key=True)
+    interface = models.ForeignKey('Interface', db_column='interfaceid',
+                                  primary_key=True)
     # XXX: 'vlan' is not a foreignkey to the vlan table in the database, but
     # it should maybe be a foreign key.
     vlan = models.IntegerField()
@@ -730,8 +739,8 @@ class SwPortToNetbox(models.Model):
     ifindex = models.IntegerField()
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
         related_name='candidate_for_next_hop_set')
-    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid', null=True,
-        related_name='candidate_for_next_hop_set')
+    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
+        null=True, related_name='candidate_for_next_hop_set')
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
     class Meta:
@@ -821,8 +830,8 @@ class Interface(models.Model):
 
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
         related_name='connected_to_interface')
-    to_interface = models.ForeignKey('self', db_column='to_interfaceid', null=True,
-        related_name='connected_to_interface')
+    to_interface = models.ForeignKey('self', db_column='to_interfaceid',
+        null=True, related_name='connected_to_interface')
 
     gone_since = models.DateTimeField()
 
@@ -867,7 +876,7 @@ class Interface(models.Model):
         # Create cache dictionary
         # FIXME: Replace with real Django caching
         if not hasattr(self, 'time_since_activity_cache'):
-             self.time_since_activity_cache = {}
+            self.time_since_activity_cache = {}
 
         # Check cache for result
         if interval in self.time_since_activity_cache:
