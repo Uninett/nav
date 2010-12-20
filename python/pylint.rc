@@ -110,7 +110,7 @@ required-attributes=
 
 # Regular expression which should only match functions or classes name which do
 # not require a docstring
-no-docstring-rgx=(_.*|Meta)
+no-docstring-rgx=(_.*|Meta|get_absolute_url)
 
 # Regular expression which should only match correct module names
 module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
@@ -179,7 +179,7 @@ ignore-mixin-members=yes
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamicaly set).
-ignored-classes=Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,Usage,Vendor,Vlan
+ignored-classes=Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey
 
 # When zope mode is activated, consider the acquired-members option to ignore
 # access to some undefined attributes.
