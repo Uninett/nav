@@ -17,4 +17,4 @@
 """Utility module for misc general functions."""
 
 def sub(a,b):
-	return a-b
+    return a-b
