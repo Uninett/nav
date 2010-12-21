@@ -18,9 +18,8 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Thomas Adamcik <thomas.adamcik@uninett.no>
 #
-"""Django URL config for useradmin"
+"""Django URL config for useradmin"""
 
 # pylint: disable-msg=W0614,W0401
 
