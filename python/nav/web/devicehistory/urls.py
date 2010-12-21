@@ -16,6 +16,8 @@
 #
 """Django URL configuration for devicehistory."""
 
+# pylint: disable-msg=W0614,W0401
+
 from django.conf.urls.defaults import *
 
 from nav.web.devicehistory.views import *

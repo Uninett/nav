@@ -13,6 +13,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Django URL config for network explorer."""
+
+# pylint: disable-msg=W0614,W0401
 
 from django.conf.urls.defaults import url, patterns
 

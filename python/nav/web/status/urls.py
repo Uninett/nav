@@ -16,6 +16,8 @@
 #
 """URL configuration for Status tool"""
 
+# pylint: disable-msg=W0614,W0401
+
 from django.conf.urls.defaults import *
 
 from nav.web.status.views import *
