@@ -42,9 +42,12 @@ from nav.web.alertprofiles.utils import *
 from nav.web.alertprofiles.shortcuts import alertprofiles_response_forbidden, \
     alertprofiles_response_not_found, BASE_PATH
 
+from .decorators import requires_post
+
 _ = lambda a: a
 
 PAGINATE_BY = 25
+
 
 def overview(request):
     account = get_account(request)
@@ -212,11 +215,8 @@ def profile_detail(request, profile_id=None):
 def profile_new(request):
     return profile_show_form(request)
 
+@requires_post('alertprofiles-profile')
 def profile_save(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     messages = Messages(request._req)
     account = get_account(request)
     profile_form = None
@@ -298,11 +298,8 @@ def profile_save(request):
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail',
                                         args=(profile.id,)))
 
+@requires_post('alertprofiles-profile')
 def profile_remove(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     post = request.POST.copy()
     for data in post:
         if data.find("=") != -1:
@@ -391,11 +388,8 @@ def profile_remove(request):
                 RequestContext(request),
             )
 
+@requires_post('alertprofiles-profile', ('activate',))
 def profile_activate(request):
-    if not request.method == 'POST' or not request.POST.get('activate'):
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     account = get_account(request)
 
     try:
@@ -424,11 +418,8 @@ def profile_activate(request):
     )
     return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
+@requires_post('alertprofiles-profile')
 def profile_deactivate(request):
-    if request.method != 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     account = get_account(request)
 
     try:
@@ -474,12 +465,8 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         RequestContext(request),
     )
 
+@requires_post('alertprofiles-profile', ('profile',))
 def profile_time_period_add(request):
-    if request.method != 'POST' or not request.POST.get('profile'):
-        new_message(request._req, _('Required post data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     account = get_account(request)
     profile = None
     try:
@@ -523,11 +510,8 @@ def profile_time_period_add(request):
     return HttpResponseRedirect(reverse('alertprofiles-profile-detail',
                                         args=(profile.id,)))
 
+@requires_post('alertprofiles-profile')
 def profile_time_period_remove(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     if request.POST.get('confirm'):
         account = get_account(request)
         elements = request.POST.getlist('element')
@@ -691,11 +675,8 @@ def profile_time_period_setup(request, time_period_id=None):
         RequestContext(request),
     )
 
+@requires_post('alertprofiles-profile')
 def profile_time_period_subscription_add(request):
-    if request.method != 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     account = get_account(request)
 
     if request.POST.get('id'):
@@ -784,11 +765,8 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         RequestContext(request),
     )
 
+@requires_post('alertprofiles-profile')
 def profile_time_period_subscription_remove(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     if request.POST.get('confirm'):
         account = get_account(request)
         subscriptions = request.POST.getlist('element')
@@ -982,11 +960,8 @@ def address_show_form(request, address_id=None, address_form=None):
 def address_detail(request, address_id=None):
     return address_show_form(request, address_id)
 
+@requires_post('alertprofiles-address')
 def address_save(request):
-    if request.method != 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-address'))
-
     account = get_account(request)
     address = None
     address_id = None
@@ -1020,11 +995,8 @@ def address_save(request):
     return HttpResponseRedirect(reverse('alertprofiles-address-detail',
                                         args=(address.id,)))
 
+@requires_post('alertprofiles-address')
 def address_remove(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('There was no post-data'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-address'))
-
     account = get_account(request)
     if request.POST.get('confirm'):
         addresses = AlertAddress.objects.filter(
@@ -1134,12 +1106,8 @@ def address_remove(request):
                 RequestContext(request),
             )
 
+@requires_post('alertprofiles-profile', ('value',))
 def language_save(request):
-    if request.method != 'POST' or not request.POST.get('value'):
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-profile'))
-
     account = get_account(request)
     language = None
 
@@ -1333,12 +1301,8 @@ def filter_show_form(request, filter_id=None, filter_form=None):
 def filter_detail(request, filter_id=None):
     return filter_show_form(request, filter_id)
 
+@requires_post('alertprofiles-filters')
 def filter_save(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
-
     (account, admin, owner) = resolve_account_admin_and_owner(request)
     filter = None
 
@@ -1381,12 +1345,8 @@ def filter_save(request):
     return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
                                         args=(filter.id,)))
 
+@requires_post('alertprofiles-filters')
 def filter_remove(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
-
     if request.POST.get('confirm'):
         filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
 
@@ -1460,15 +1420,8 @@ def filter_remove(request):
                 RequestContext(request),
             )
 
+@requires_post('alertprofiles-filters', ('id', 'matchfield'))
 def filter_addexpression(request):
-    if (not request.method == 'POST' or
-        not request.POST.get('id') or
-        not request.POST.get('matchfield')
-        ):
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
-
     filter = None
     try:
         filter = Filter.objects.get(pk=request.POST.get('id'))
@@ -1517,12 +1470,8 @@ def filter_addexpression(request):
             RequestContext(request),
         )
 
+@requires_post('alertprofiles-filters')
 def filter_saveexpression(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
-
     # Get the MatchField, Filter and Operator objects associated with the
     # input POST-data
     filter = Filter.objects.get(pk=request.POST.get('filter'))
@@ -1564,12 +1513,8 @@ def filter_saveexpression(request):
     return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
                                         args=(filter.id,)))
 
+@requires_post('alertprofiles-filters')
 def filter_removeexpression(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
-
     if request.POST.get('confirm'):
         expressions = request.POST.getlist('element')
         filter = None
@@ -1792,12 +1737,8 @@ def filter_group_show_form(request, filter_group_id=None,
 def filter_group_detail(request, filter_group_id=None):
     return filter_group_show_form(request, filter_group_id)
 
+@requires_post('alertprofiles-filter_groups')
 def filter_group_save(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
-
     (account, admin, owner) = resolve_account_admin_and_owner(request)
     filter_group = None
 
@@ -1838,12 +1779,8 @@ def filter_group_save(request):
     return HttpResponseRedirect(reverse('alertprofiles-filter_groups-detail',
                                         args=(filter_group.id,)))
 
+@requires_post('alertprofiles-filters')
 def filter_group_remove(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
-
     if request.POST.get('confirm'):
         filter_groups = FilterGroup.objects.filter(
             pk__in=request.POST.getlist('element'))
@@ -1926,15 +1863,8 @@ def filter_group_remove(request):
                 RequestContext(request),
             )
 
+@requires_post('alertprofiles-filter_groups', ('id', 'filter'))
 def filter_group_addfilter(request):
-    if (not request.method == 'POST' or
-        not request.POST.get('id') or
-        not request.POST.get('filter')
-        ):
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
-
     account = get_account(request)
     filter_group = None
     try:
@@ -1997,12 +1927,8 @@ def filter_group_addfilter(request):
                     args=(filter_group.id,))
         )
 
+@requires_post('alertprofiles-filter_groups')
 def filter_group_remove_or_move_filter(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
-
     post = request.POST.copy()
     for name in post:
         if name.find("=") != -1:
@@ -2016,12 +1942,8 @@ def filter_group_remove_or_move_filter(request):
     else:
         return filter_group_removefilter(request)
 
+@requires_post('alertprofiles-filter_groups')
 def filter_group_removefilter(request):
-    if not request.method == 'POST':
-        new_message(request._req,
-                    _('Required post-data were not supplied.'), Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
-
     # We are deleting filters. Show confirmation page or remove?
     if request.POST.get('confirm'):
         filter_group = FilterGroup.objects.get(
@@ -2124,12 +2046,8 @@ def filter_group_removefilter(request):
                 RequestContext(request),
             )
 
+@requires_post('alertprofiles-filter_groups')
 def filter_group_movefilter(request):
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
-
     account = get_account(request)
 
     filter_group_id = request.POST.get('id')
@@ -2322,16 +2240,12 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
 def matchfield_detail(request, matchfield_id=None):
     return matchfield_show_form(request, matchfield_id)
 
+@requires_post('alertprofiles-matchfields')
 def matchfield_save(request):
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.')
-
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
 
     try:
         if not request.POST.get('id'):
@@ -2362,16 +2276,12 @@ def matchfield_save(request):
     return HttpResponseRedirect(reverse('alertprofiles-matchfields-detail',
                                         args=(matchfield.id,)))
 
+@requires_post('alertprofiles-filters')
 def matchfield_remove(request):
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.')
-
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
     if request.POST.get('confirm'):
         matchfields = MatchField.objects.filter(
@@ -2478,16 +2388,12 @@ def permission_list(request, group_id=None):
             RequestContext(request),
         )
 
+@requires_post('alertprofiles-permissions')
 def permissions_save(request):
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.')
-
-    if not request.method == 'POST':
-        new_message(request._req, _('Required post-data were not supplied.'),
-                    Messages.ERROR)
-        return HttpResponseRedirect(reverse('alertprofiles-permissions'))
 
     group = None
     try:
