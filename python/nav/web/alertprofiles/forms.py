@@ -14,13 +14,16 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Alert Profiles forms"""
+
+# pylint: disable-msg=R0903
 
 from django import forms
 from django.db.models import Q
 
-from nav.models.profiles import MatchField, Filter, Expression, Operator, \
-    FilterGroup, AlertProfile, TimePeriod, AlertSubscription, AlertAddress, \
-    AccountProperty
+from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
+from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
+from nav.models.profiles import AlertAddress, AccountProperty
 
 _ = lambda a: a
 
@@ -36,7 +39,8 @@ class AccountPropertyForm(forms.ModelForm):
 
         super(AccountPropertyForm, self).__init__(*args, **kwargs)
 
-        self.fields['property'] = forms.CharField(widget=forms.widgets.HiddenInput, initial=property)
+        self.fields['property'] = forms.CharField(
+            widget=forms.widgets.HiddenInput, initial=property)
         self.fields['value'] = forms.ChoiceField(choices=values)
 
 class AlertProfileForm(forms.ModelForm):
@@ -81,30 +85,32 @@ class TimePeriodForm(forms.ModelForm):
         model = TimePeriod
 
     def clean(self):
-        id = self.cleaned_data.get('id', None)
+        ident = self.cleaned_data.get('id', None)
         profile = self.cleaned_data.get('profile', None)
         start_time = self.cleaned_data.get('start', None)
         valid_during = self.cleaned_data.get('valid_during', None)
 
         valid_during_choices = None
         if valid_during == TimePeriod.ALL_WEEK:
-            valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS, TimePeriod.WEEKENDS)
+            valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS,
+                                    TimePeriod.WEEKENDS)
         elif valid_during == TimePeriod.WEEKDAYS:
             valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS)
         else:
             valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS)
 
         time_periods = TimePeriod.objects.filter(
-            ~Q(pk=id),
+            ~Q(pk=ident),
             profile=profile,
             start=start_time,
             valid_during__in=valid_during_choices
         )
         if len(time_periods) > 0:
             error_msg = []
-            for t in time_periods:
+            for period in time_periods:
                 error_msg.append(
-                    u'Collides with existing time period: %s for %s' % (t.start, t.get_valid_during_display())
+                    u'Collides with existing time period: %s for %s' % (
+                        period.start, period.get_valid_during_display())
                 )
             raise forms.util.ValidationError(error_msg)
         else:
@@ -128,9 +134,11 @@ class AlertSubscriptionForm(forms.ModelForm):
             # Get account
             account = time_period.profile.account
 
-            addresses = AlertAddress.objects.filter(account=account).order_by('type', 'address')
+            addresses = AlertAddress.objects.filter(
+                account=account).order_by('type', 'address')
             filter_groups = FilterGroup.objects.filter(
-                Q(owner__isnull=True) | Q(owner__exact=account)).order_by('owner', 'name')
+                Q(owner__isnull=True) |
+                Q(owner__exact=account)).order_by('owner', 'name')
 
             address_choices = [(a.id, a.address) for a in addresses]
             filter_group_choices = [(f.id, f.name) for f in filter_groups]
@@ -139,14 +147,16 @@ class AlertSubscriptionForm(forms.ModelForm):
                     choices=address_choices,
                     error_messages={
                         'required': 'Alert address is a required field.',
-                        'invalid_choice': 'The selected alert address is a invalid choice.',
+                        'invalid_choice': ('The selected alert address is an '
+                                           'invalid choice.'),
                     }
                 )
             self.fields['filter_group'] = forms.ChoiceField(
                     choices=filter_group_choices,
                     error_messages={
                         'required': 'Filter group is a required field.',
-                        'invalid_choice': 'The selected filter group is a invalid choice.',
+                        'invalid_choice': ('The selected filter group is a '
+                                           'invalid choice.'),
                     }
                 )
 
@@ -156,7 +166,7 @@ class AlertSubscriptionForm(forms.ModelForm):
         filter_group = self.cleaned_data.get('filter_group', None)
         subscription_type = self.cleaned_data.get('type', None)
         ignore = self.cleaned_data.get('ignore_resolved_alerts', False)
-        id = self.cleaned_data['id']
+        ident = self.cleaned_data['id']
 
         error_msg = []
 
@@ -164,14 +174,14 @@ class AlertSubscriptionForm(forms.ModelForm):
                 Q(alert_address=alert_address),
                 Q(time_period=time_period),
                 Q(filter_group=filter_group),
-                ~Q(pk=id)
+                ~Q(pk=ident)
             )
 
-        for e in existing_subscriptions:
+        for sub in existing_subscriptions:
             error_msg.append(
                 u'''Filter group and alert address must be unique for each
                 subscription. This one collides with group %s watched by %s
-                ''' % (e.filter_group.name, e.alert_address.address)
+                ''' % (sub.filter_group.name, sub.alert_address.address)
             )
 
         if subscription_type == AlertSubscription.NOW and ignore:
@@ -203,8 +213,8 @@ class FilterGroupForm(forms.ModelForm):
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
 
         if not is_owner:
-            for f in self.fields.itervalues():
-                f.widget.attrs['disabled'] = 'disabled'
+            for field in self.fields.itervalues():
+                field.widget.attrs['disabled'] = 'disabled'
 
 class FilterForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
@@ -224,15 +234,18 @@ class FilterForm(forms.ModelForm):
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
 
         if not is_owner:
-            for f in self.fields.itervalues():
-                f.widget.attrs['disabled'] = 'disabled'
+            for field in self.fields.itervalues():
+                field.widget.attrs['disabled'] = 'disabled'
 
 class MatchFieldForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     list_limit = forms.ChoiceField(
-            choices=((100,100),(200,200),(300,300),(500,500),(1000,'1 000'),(10000,'10 000')),
+            choices=((100, 100), (200, 200), (300, 300), (500, 500),
+                     (1000, '1 000'), (10000, '10 000')),
             initial=300,
-            help_text=_(u'Only this many options will be available in the list. Only does something when "Show list" is checked.'),
+            help_text=_(u'Only this many options will be available in the '
+                        u'list. Only does something when "Show list" is '
+                        u'checked.'),
         )
 
     class Meta:
@@ -249,9 +262,12 @@ class MatchFieldForm(forms.ModelForm):
         else:
             if clean_value_name:
                 model, attname = MatchField.MODEL_MAP[clean_value_id]
-                name_model, name_attname = MatchField.MODEL_MAP[clean_value_name.split('|')[0]]
+                name_model, name_attname = MatchField.MODEL_MAP[
+                    clean_value_name.split('|')[0]]
                 if not model == name_model:
-                    raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
+                    raise forms.util.ValidationError(
+                        u'This field must be the same model as match field, '
+                        u'or not set at all.')
         return clean_value_name
 
 
@@ -266,9 +282,12 @@ class MatchFieldForm(forms.ModelForm):
         else:
             if clean_value_sort:
                 model, attname = MatchField.MODEL_MAP[clean_value_id]
-                sort_model, sort_attname = MatchField.MODEL_MAP[clean_value_sort]
+                sort_model, sort_attname = MatchField.MODEL_MAP[
+                    clean_value_sort]
                 if not model == sort_model:
-                    raise forms.util.ValidationError(u'This field must be the same model as match field, or not set at all.')
+                    raise forms.util.ValidationError(
+                        u'This field must be the same model as match field, '
+                        u'or not set at all.')
         return clean_value_sort
 
 class ExpressionForm(forms.ModelForm):
@@ -286,7 +305,8 @@ class ExpressionForm(forms.ModelForm):
         if isinstance(match_field, MatchField):
             # Get all operators and make a choice field
             operators = match_field.operator_set.all()
-            self.fields['operator'] = forms.models.ChoiceField([(o.type, o) for o in operators])
+            self.fields['operator'] = forms.models.ChoiceField(
+                [(o.type, o) for o in operators])
 
             if match_field.show_list:
                 # Values are selected from a multiple choice list.
@@ -306,15 +326,17 @@ class ExpressionForm(forms.ModelForm):
                 model, attname = MatchField.MODEL_MAP[match_field.value_id]
 
                 if match_field.value_name:
-                    name_model, name_attname = MatchField.MODEL_MAP[match_field.value_name.split('|')[0]]
+                    name_model, name_attname = MatchField.MODEL_MAP[
+                        match_field.value_name.split('|')[0]]
                 else:
                     name_model = None
 
                 if match_field.value_sort:
-                    order_model, order_attname = MatchField.MODEL_MAP[match_field.value_sort]
+                    order_model, order_attname = MatchField.MODEL_MAP[
+                        match_field.value_sort]
                 else:
                     order_model = None
-                
+
                 self.number_of_choices = model.objects.count()
 
                 # First we say we want all the objects, unordered
@@ -333,24 +355,25 @@ class ExpressionForm(forms.ModelForm):
                 model_objects = model_objects[:match_field.list_limit]
 
                 choices = []
-                for a in model_objects:
+                for obj in model_objects:
                     # ID is what is acctually used in the expression that will
                     # be evaluted by alert engine
-                    id = getattr(a, attname)
+                    ident = getattr(obj, attname)
 
                     if model == name_model:
                         # name is just a "friendly" name, only used in the GUI
                         # to make it easier to add expressions. We only set it
                         # if the models for both id and name are the same.
-                        name = getattr(a, name_attname)
+                        name = getattr(obj, name_attname)
 
-                        if name != id:
+                        if name != ident:
                             # If id and name are not equal we make a nice
                             # string with both. If they are the same we only
                             # use id, as both would be redundant.
-                            choices.append((id, '%s: %s' % (id, name)))
+                            choices.append((ident, '%s: %s' % (ident, name)))
                             continue
-                    choices.append((id,id))
+                    choices.append((ident, ident))
 
                 # At last we acctually add the multiple choice field.
-                self.fields['value'] = forms.MultipleChoiceField(choices=choices)
+                self.fields['value'] = forms.MultipleChoiceField(
+                    choices=choices)
