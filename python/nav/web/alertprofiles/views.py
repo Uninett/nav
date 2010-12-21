@@ -286,9 +286,9 @@ def profile_save(request):
                 # Make the time periods. We're only interested in the values of
                 # the dictionary, not the keys.
                 for start_time in periods.values():
-                    p = TimePeriod(profile=profile, start=start_time,
-                        valid_during=valid_during)
-                    p.save()
+                    profile = TimePeriod(profile=profile, start=start_time,
+                                         valid_during=valid_during)
+                    profile.save()
 
     messages.append({
         'message': _('Saved profile %(profile)s') % {'profile': profile.name},
@@ -321,8 +321,8 @@ def profile_remove(request):
         profiles = AlertProfile.objects.filter(
             pk__in=request.POST.getlist('element'))
 
-        for p in profiles:
-            if p.account != account:
+        for profile in profiles:
+            if profile.account != account:
                 return alertprofiles_response_forbidden(
                     request,_('You do not own this profile.'))
 
@@ -347,17 +347,17 @@ def profile_remove(request):
             HttpResponseRedirect(reverse('alertprofiles-profile'))
 
         elements = []
-        for p in profiles:
+        for profile in profiles:
             warnings = []
-            if p.account != account:
+            if profile.account != account:
                 return alertprofiles_response_forbidden(
                     request, _('You do not own this profile.'))
-            if p == active_profile:
+            if profile == active_profile:
                 warnings.append(
                     {'message': u'This is the currently active profile.'})
 
             queued = AccountAlertQueue.objects.filter(
-                subscription__time_period__profile=p).count()
+                subscription__time_period__profile=profile).count()
             if queued > 0:
                 warnings.append({
                 'message': u'''There are %(queued)s queued alerts on a
@@ -368,8 +368,8 @@ def profile_remove(request):
                 })
 
             elements.append({
-                'id': p.id,
-                'description': p.name,
+                'id': profile.id,
+                'description': profile.name,
                 'warnings': warnings,
             })
 
@@ -534,14 +534,14 @@ def profile_time_period_remove(request):
 
         time_periods = TimePeriod.objects.filter(pk__in=elements)
         first = True
-        for t in time_periods:
+        for period in time_periods:
             if first:
                 # We only check profile once and assume it's the same for all.
                 # It's only used to redirect the user after deleting all the
                 # periods anyways.
-                profile = t.profile
+                profile = period.profile
                 first = False
-            if t.profile.account != account:
+            if period.profile.account != account:
                 return alertprofiles_response_forbidden(
                     request, _('You do not own this profile.'))
 
@@ -587,22 +587,22 @@ def profile_time_period_remove(request):
                 reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
         elements = []
-        for t in time_periods:
-            if t.profile.account != account:
+        for period in time_periods:
+            if period.profile.account != account:
                 # Even though we assume profile is the same for GUI-stuff, we
                 # can't do that when it comes to permissions.
                 return alertprofiles_response_forbidden(
                     request, _('You do not own this profile.'))
             description = (
                 _(u'From %(time)s for %(profile)s during %(valid_during)s') % {
-                    'time': t.start,
-                    'profile': t.profile.name,
-                    'valid_during': t.get_valid_during_display(),
+                    'time': period.start,
+                    'profile': period.profile.name,
+                    'valid_during': period.get_valid_during_display(),
                     }
                 )
 
             queued = AccountAlertQueue.objects.filter(
-                subscription__time_period=t).count()
+                subscription__time_period=period).count()
             warnings = []
             if queued > 0:
                 warnings.append({
@@ -613,7 +613,7 @@ def profile_time_period_remove(request):
                     }
                 })
             elements.append({
-                'id': t.id,
+                'id': period.id,
                 'description': description,
                 'warnings': warnings,
             })
@@ -701,7 +701,8 @@ def profile_time_period_subscription_add(request):
     if request.POST.get('id'):
         existing_subscription = AlertSubscription.objects.get(
             pk=request.POST.get('id'))
-        form = AlertSubscriptionForm(request.POST, instance=existing_subscription)
+        form = AlertSubscriptionForm(request.POST,
+                                     instance=existing_subscription)
     else:
         form = AlertSubscriptionForm(request.POST)
 
@@ -837,9 +838,9 @@ def profile_time_period_subscription_remove(request):
 
         # Make tuples, (id, description_string) for the confirmation page
         elements = []
-        for s in subscriptions:
+        for sub in subscriptions:
             warnings = []
-            queued = AccountAlertQueue.objects.filter(subscription=s).count()
+            queued = AccountAlertQueue.objects.filter(subscription=sub).count()
             if queued > 0:
                 warnings.append({
                     'message': u'''There are %(queued)s queued alert(s) on this
@@ -851,16 +852,16 @@ def profile_time_period_subscription_remove(request):
 
             description = _(u'''Watch %(fg)s, send to %(address)s %(dispatch)s,
                 from %(time)s for %(profile)s during %(during)s''') % {
-                'fg': s.filter_group.name,
-                'address': s.alert_address.address,
-                'dispatch': s.get_type_display(),
-                'time': s.time_period.start,
-                'profile': s.time_period.profile.name,
-                'during': s.time_period.get_valid_during_display(),
+                'fg': sub.filter_group.name,
+                'address': sub.alert_address.address,
+                'dispatch': sub.get_type_display(),
+                'time': sub.time_period.start,
+                'profile': sub.time_period.profile.name,
+                'during': sub.time_period.get_valid_during_display(),
             }
 
             elements.append({
-                'id': s.id,
+                'id': sub.id,
                 'description': description,
                 'warnings': warnings,
             })
@@ -1029,25 +1030,25 @@ def address_remove(request):
         addresses = AlertAddress.objects.filter(
             pk__in=request.POST.getlist('element'))
 
-        for a in addresses:
-            if a.account != account:
+        for addr in addresses:
+            if addr.account != account:
                 return alertprofiles_response_forbidden(
                     request, _('You do not own this address.'))
 
         subscriptions = AlertSubscription.objects.filter(
             alert_address__in=addresses)
         if len(subscriptions) > 0:
-            for s in subscriptions:
+            for sub in subscriptions:
                 new_message(request._req,
                     _('''Address %(address)s were used in a subscription,
                     %(during)s from %(start)s watch %(fg)s for profile
                     %(profile)s.  The subscription were removed as a side
                     effect of deleting this address.''') % {
-                        'address': s.alert_address.address,
-                        'start': s.time_period.start,
-                        'during': s.time_period.get_valid_during_display(),
-                        'profile': s.time_period.profile.name,
-                        'fg': s.filter_group.name,
+                        'address': sub.alert_address.address,
+                        'start': sub.time_period.start,
+                        'during': sub.time_period.get_valid_during_display(),
+                        'profile': sub.time_period.profile.name,
+                        'fg': sub.filter_group.name,
                     },
                     Messages.NOTICE
                 )
@@ -1071,30 +1072,30 @@ def address_remove(request):
             return HttpResponseRedirect(reverse('alertprofiles-address'))
 
         elements = []
-        for a in addresses:
-            if a.account != account:
+        for addr in addresses:
+            if addr.account != account:
                 return alertprofiles_response_forbidden(
                     request, _('You do not own this address.'))
 
             warnings = []
             subscriptions = AlertSubscription.objects.filter(
-                alert_address=a
+                alert_address=addr
             ).select_related('filter_group', 'time_period',
                              'time_period__profile')
-            for s in subscriptions:
+            for sub in subscriptions:
                 warnings.append({
                     'message': u'''Address used in subscription "watch %(fg)s
                         from %(time)s for profile %(profile)s".''' % {
-                            'fg': s.filter_group.name,
-                            'time': s.time_period.start,
-                            'profile': s.time_period.profile.name,
+                            'fg': sub.filter_group.name,
+                            'time': sub.time_period.start,
+                            'profile': sub.time_period.profile.name,
                         },
                     'link': reverse('alertprofiles-profile-detail',
-                                    args=(s.time_period.profile.id,)),
+                                    args=(sub.time_period.profile.id,)),
                 })
 
                 queued = AccountAlertQueue.objects.filter(
-                    subscription=s).count()
+                    subscription=sub).count()
                 if queued > 0:
                     warnings.append({
                     'message': u'''There are %(queued)s queued alerts on this
@@ -1105,12 +1106,12 @@ def address_remove(request):
                     })
 
             description = _(u'''%(type)s address %(address)s''') % {
-                'type': a.type.name,
-                'address': a.address,
+                'type': addr.type.name,
+                'address': addr.address,
             }
 
             elements.append({
-                'id': a.id,
+                'id': addr.id,
                 'description': description,
                 'warnings': warnings,
             })
@@ -1275,9 +1276,9 @@ def filter_show_form(request, filter_id=None, filter_form=None):
             'match_field'
         ).filter(filter=filter_id).order_by('match_field__name')
 
-        for e in expressions:
-            if e.operator == Operator.IN:
-                e.value = e.value.split("|")
+        for expr in expressions:
+            if expr.operator == Operator.IN:
+                expr.value = expr.value.split("|")
 
         # Check if filter is used by any filter groups
         filter_groups = FilterGroupContent.objects.filter(filter=filter)
@@ -1415,10 +1416,10 @@ def filter_remove(request):
             return HttpResponseRedirect(reverse('alertprofiles-filters'))
 
         elements = []
-        for f in filters:
+        for filtr in filters:
             warnings = []
             try:
-                owner = f.owner
+                owner = filtr.owner
             except Account.DoesNotExist:
                 warnings.append({'message':
                                  u'This filter is public. Deleting it will '
@@ -1426,18 +1427,18 @@ def filter_remove(request):
                                  u'system.'})
 
             filter_groups = FilterGroup.objects.filter(
-                filtergroupcontent__filter=f)
-            for fg in filter_groups:
+                filtergroupcontent__filter=filtr)
+            for fgroup in filter_groups:
                 warnings.append({
                     'message': u'Used in filter group %(name)s.' % {
-                            'name': fg.name},
+                            'name': fgroup.name},
                     'link': reverse('alertprofiles-filter_groups-detail',
-                                    args=(fg.id,)),
+                                    args=(fgroup.id,)),
                 })
 
             elements.append({
-                'id': f.id,
-                'description': f.name,
+                'id': filtr.id,
+                'description': filtr.name,
                 'warnings': warnings,
             })
 
@@ -1609,17 +1610,17 @@ def filter_removeexpression(request):
                 reverse('alertprofiles-filters-detail', args=(filter.id,)))
 
         elements = []
-        for e in expressions:
+        for expr in expressions:
             description = _(u'''Expression, %(match_field)s %(operator)s
                 %(value)s, used in filter %(filter)s''') % {
-                'match_field': e.match_field.name,
-                'operator': e.get_operator_display(),
-                'value': e.value,
-                'filter': e.filter.name,
+                'match_field': expr.match_field.name,
+                'operator': expr.get_operator_display(),
+                'value': expr.value,
+                'filter': expr.filter.name,
             }
 
             elements.append({
-                'id': e.id,
+                'id': expr.id,
                 'description': description,
                 'warnings': [],
             })
@@ -1688,7 +1689,8 @@ def filter_group_list(request):
             extra_context=info_dict,
         )
 
-def filter_group_show_form(request, filter_group_id=None, filter_group_form=None):
+def filter_group_show_form(request, filter_group_id=None,
+                           filter_group_form=None):
     '''Convenience method for showing the filter group form'''
     active = {'filter_groups': True}
     page_name = 'New filter group'
@@ -1873,15 +1875,16 @@ def filter_group_remove(request):
             return HttpResponseRedirect(reverse('alertprofiles-filter_groups'))
 
         elements = []
-        for fg in filter_groups:
-            subscriptions = AlertSubscription.objects.filter(filter_group=fg)
+        for fgroup in filter_groups:
+            subscriptions = AlertSubscription.objects.filter(
+                filter_group=fgroup)
             time_periods = TimePeriod.objects.filter(
                 alertsubscription__in=subscriptions)
             profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
             warnings = []
 
             try:
-                owner = fg.owner
+                owner = fgroup.owner
             except Account.DoesNotExist:
                 warnings.append({
                     'message': u'''This is a public filter group. Deleting it
@@ -1889,16 +1892,18 @@ def filter_group_remove(request):
                         system.''',
                 })
 
-            for p in profiles:
+            for profile in profiles:
                 warnings.append({
-                    'message': u'Used in profile %(name)s.' % {'name': p.name},
+                    'message': u'Used in profile %(name)s.' % {
+                            'name': profile.name
+                        },
                     'link': reverse('alertprofiles-profile-detail',
-                                    args=(p.id,)),
+                                    args=(profile.id,)),
                 })
 
             elements.append({
-                'id': fg.id,
-                'description': fg.name,
+                'id': fgroup.id,
+                'description': fgroup.name,
                 'warnings': warnings,
             })
 
@@ -2082,16 +2087,16 @@ def filter_group_removefilter(request):
                         args=(filter_group.id,)))
 
         elements = []
-        for f in filter_group_content:
+        for content in filter_group_content:
             warnings = []
 
             description = _('''Remove filter %(filter)s from %(fg)s.''') % {
-                'filter': f.filter.name,
-                'fg': f.filter_group.name,
+                'filter': content.filter.name,
+                'fg': content.filter_group.name,
             }
 
             elements.append({
-                'id': f.id,
+                'id': content.id,
                 'description': description,
             })
 
@@ -2280,9 +2285,9 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
             )
 
     operators = []
-    for o in Operator.OPERATOR_TYPES:
-        selected = o[0] in matchfield_operators_id
-        operators.append({'id': o[0], 'name': o[1], 'selected': selected})
+    for oper in Operator.OPERATOR_TYPES:
+        selected = oper[0] in matchfield_operators_id
+        operators.append({'id': oper[0], 'name': oper[1], 'selected': selected})
 
     if matchfield_id:
         subsection = {'detail': matchfield_id}
@@ -2328,16 +2333,14 @@ def matchfield_save(request):
                     Messages.ERROR)
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
 
-    matchfield = None
-
     try:
         if not request.POST.get('id'):
             raise MatchField.DoesNotExist
-        m = MatchField.objects.get(pk=request.POST.get('id'))
+        matchfield = MatchField.objects.get(pk=request.POST.get('id'))
     except MatchField.DoesNotExist:
         form = MatchFieldForm(request.POST)
     else:
-        form = MatchFieldForm(request.POST, instance=m)
+        form = MatchFieldForm(request.POST, instance=matchfield)
 
     # If there are some invalid values, return to form and show the errors
     if not form.is_valid():
@@ -2347,8 +2350,8 @@ def matchfield_save(request):
     matchfield = form.save()
 
     operators = []
-    for o in request.POST.getlist('operator'):
-        operators.append(Operator(type=int(o), match_field=matchfield))
+    for oper in request.POST.getlist('operator'):
+        operators.append(Operator(type=int(oper), match_field=matchfield))
     matchfield.operator_set.all().delete()
     matchfield.operator_set.add(*operators)
 
@@ -2392,20 +2395,20 @@ def matchfield_remove(request):
             return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
 
         elements = []
-        for m in matchfields:
-            expressions = m.expression_set.all()
+        for match_field in matchfields:
+            expressions = match_field.expression_set.all()
             warnings = []
-            for e in expressions:
+            for expr in expressions:
                 warnings.append({
                     'message': 'Used in filter %(filter)s.' % {
-                            'filter': e.filter.name
+                            'filter': expr.filter.name
                         },
                     'link': reverse('alertprofiles-filters-detail',
-                                    args=(e.filter.id,)),
+                                    args=(expr.filter.id,)),
                 })
             elements.append({
-                'id': m.id,
-                'description': m.name,
+                'id': match_field.id,
+                'description': match_field.name,
                 'warnings': warnings,
             })
 
