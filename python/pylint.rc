@@ -179,7 +179,7 @@ ignore-mixin-members=yes
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamicaly set).
-ignored-classes=Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod
+ignored-classes=Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod,AlertPreference,MatchField,FilterGroup,FilterGroupContent
 
 # When zope mode is activated, consider the acquired-members option to ignore
 # access to some undefined attributes.
