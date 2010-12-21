@@ -106,7 +106,7 @@ def overview(request):
             RequestContext(request),
         )
 
-def profile(request):
+def show_profile(request):
     account = get_account(request)
 
     page = request.GET.get('page', 1)

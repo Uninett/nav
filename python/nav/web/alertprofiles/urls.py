@@ -26,7 +26,7 @@ urlpatterns = patterns('',
         name='alertprofiles-overview'),
 
     # User settings
-    url(r'^profile/$', profile,
+    url(r'^profile/$', show_profile,
         name='alertprofiles-profile'),
     url(r'^profile/new/$', profile_new,
         name='alertprofiles-profile-new'),
