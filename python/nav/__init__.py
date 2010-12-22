@@ -8,27 +8,29 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 Provides a common root package for the NAV python library.
 """
 import time
 # Import all path symbols from the path module (generated at build time)
-from buildconf import *
+from nav.buildconf import *
 
 class ObjectCache(dict):
     def __setitem__(self, key, item):
         #if not isinstance(item, CacheableObject):
         if 0:
-            raise ValueError, "%s is not a CacheableObject instance" % repr(item)
+            raise ValueError("%r is not a CacheableObject instance" % item)
         else:
             if self.has_key(key):
-                raise CacheError, "An object keyed %s is already stored in the cache" % repr(key)
+                raise CacheError(
+                    "An object keyed %r is already stored in the cache" % key)
+
             dict.__setitem__(self, key, item)
             item.cache = self
 
@@ -40,7 +42,7 @@ class ObjectCache(dict):
         """Caches the item, which must be a CacheableObject instance"""
         #if not isinstance(item, CacheableObject):
         if 0:
-            raise ValueError, "%s is not a CacheableObject instance" % repr(item)
+            raise ValueError("%r is not a CacheableObject instance" % item)
         else:
             self[item.key] = item
 
@@ -61,7 +63,7 @@ class ObjectCache(dict):
         for key in self.keys():
             if self[key].isInvalid() and self[key].refresh():
                 count += 1
-        return count    
+        return count
 
 class CacheableObject(object):
     """
@@ -129,9 +131,10 @@ class CacheableObject(object):
         if self._cache is None:
             return "<%s uncached>" % repr(self.object)
         else:
-            return "<%s cached at %s>" % (repr(self.object),
-                                          time.asctime(time.localtime(self.cacheTime)))
-    
+            return "<%s cached at %s>" % (
+                repr(self.object),
+                time.asctime(time.localtime(self.cacheTime)))
+
     def __str__(self):
         return self.object.__str__()
 

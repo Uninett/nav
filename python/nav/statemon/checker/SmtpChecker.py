@@ -1,40 +1,34 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id$
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#
+
+import re
+import socket
+import smtplib
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon.Socket import Socket
-import smtplib
-import re
 
 class SMTP(smtplib.SMTP):
     def __init__(self,timeout, host = '',port = 25):
-        self.timeout = timeout
+        self._timeout = timeout  # _ to avoid name collision with superclass
         smtplib.SMTP.__init__(self,host,port)
     def connect(self, host='localhost', port = 25):
-        self.sock = Socket(self.timeout)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self._timeout)
         self.sock.connect((host,port))
         return self.getreply()
 
@@ -66,11 +60,3 @@ class SmtpChecker(AbstractChecker):
             version = match.group(0)
         self.setVersion(version)
         return Event.UP,msg
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

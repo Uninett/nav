@@ -1,47 +1,26 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
+import httplib
+import socket
+from urlparse import urlsplit
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
-from urlparse import urlsplit
-from nav.statemon import Socket
-import sys
-import socket
-import httplib
-# Have this check since httplib.Fakesocket() is deprecated in 2.6
-if sys.version_info[:2] >= (2, 6):
-    import ssl
-
-class HTTPConnection(httplib.HTTPConnection):
-    def __init__(self,timeout,host,port=80):
-        httplib.HTTPConnection.__init__(self,host,port)
-        self.timeout = timeout
-        self.connect()
-    def connect(self):
-        self.sock = Socket.Socket(self.timeout)
-        self.sock.connect((self.host,self.port))
 
 class HTTPSConnection(httplib.HTTPSConnection):
     def __init__(self,timeout,host,port=443):
@@ -49,13 +28,11 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.timeout = timeout
         self.connect()
     def connect(self):
-        sock = Socket.Socket(self.timeout)
-        sock.connect((self.host,self.port))
-        ssl = socket.ssl(sock.s, None, None)
-        if sys.version_info[:2] >= (2, 6):
-            self.sock = ssl.wrap_socket(sock)
-        else:
-            self.sock = httplib.FakeSocket(sock, ssl)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(self.timeout)
+        self.sock.connect((self.host, self.port))
+        ssl = socket.ssl(self.sock, None, None)
+        self.sock = httplib.FakeSocket(self.sock, ssl)
         
 class HttpsChecker(AbstractChecker):
     def __init__(self,service, **kwargs):
@@ -94,12 +71,3 @@ class HttpsChecker(AbstractChecker):
             info = 'ERROR (%s) %s'  % (str(response.status),url)
 
         return status,info
-
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = []
-    return requiredArgs
-

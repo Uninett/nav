@@ -14,6 +14,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Alert Profiles url config."""
+
+# pylint: disable-msg=W0614,W0401
 
 from django.conf.urls.defaults import *
 
@@ -26,7 +29,7 @@ urlpatterns = patterns('',
         name='alertprofiles-overview'),
 
     # User settings
-    url(r'^profile/$', profile,
+    url(r'^profile/$', show_profile,
         name='alertprofiles-profile'),
     url(r'^profile/new/$', profile_new,
         name='alertprofiles-profile-new'),
@@ -39,18 +42,22 @@ urlpatterns = patterns('',
 
     url(r'^profile/time-period/(?P<time_period_id>\d+)/$', profile_time_period,
         name='alertprofiles-profile-timeperiod'),
-    url(r'^profile/time-period/(?P<time_period_id>\d+)/subscriptions/$', profile_time_period_setup,
+    url(r'^profile/time-period/(?P<time_period_id>\d+)/subscriptions/$',
+        profile_time_period_setup,
         name='alertprofiles-profile-timeperiod-setup'),
     url(r'^profile/time-period/add/$', profile_time_period_add,
         name='alertprofiles-profile-timeperiod-add'),
     url(r'^profile/time-period/remove/$', profile_time_period_remove,
         name='alertprofiles-profile-timeperiod-remove'),
 
-    url(r'^profile/time-period/subscription/(?P<subscription_id>\d+)$', profile_time_period_subscription_edit,
+    url(r'^profile/time-period/subscription/(?P<subscription_id>\d+)$',
+        profile_time_period_subscription_edit,
         name='alertprofiles-profile-timeperiod-subscription'),
-    url(r'^profile/time-period/subscription/add/$', profile_time_period_subscription_add,
+    url(r'^profile/time-period/subscription/add/$',
+        profile_time_period_subscription_add,
         name='alertprofiles-profile-timeperiod-subscription-add'),
-    url(r'^profile/time-period/subscription/remove/$', profile_time_period_subscription_remove,
+    url(r'^profile/time-period/subscription/remove/$',
+        profile_time_period_subscription_remove,
         name='alertprofiles-profile-timeperiod-subscription-remove'),
 
     url(r'^language/save/$', language_save,

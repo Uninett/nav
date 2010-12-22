@@ -23,10 +23,7 @@
 
 """Main Django URL configuration"""
 
-__copyright__ = "Copyright 2007-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
+# pylint: disable-msg=W0614,W0401
 
 from django.conf.urls.defaults import *
 

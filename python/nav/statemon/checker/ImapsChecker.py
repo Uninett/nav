@@ -1,47 +1,25 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id$
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#
+
+import socket
+import imaplib
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
-from nav.statemon import  Socket
-import imaplib
-import socket
-
-#class IMAPConnection(imaplib.IMAP4):
-#    def __init__(self, timeout, host, port):
-#        self.timeout=timeout
-#        imaplib.IMAP4.__init__(self, host, port)
-#
-#
-#    def open(self, host, port):
-#        """
-#        Overload imaplib's method to connect to the server
-#        """
-#        self.sock=Socket.Socket(self.timeout)
-#        self.sock.connect((self.host, self.port))
-#        self.file = self.sock.makefile("rb")
 
 class IMAPSConnection(imaplib.IMAP4):
     """IMAP4 client class over SSL connection
@@ -77,15 +55,6 @@ class IMAPSConnection(imaplib.IMAP4):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
         self.sslobj = socket.ssl(self.sock, self.keyfile, self.certfile)
-
-        # som old things...
-        #self.sock = Socket.Socket(self.timeout)
-        #self.sslobj = SSL.Connection(self.ctx, self.sock)
-        #self.sslobj = Socket.ssl(self.host, self.port, self.timeout)
-        #self.sslobj.connect((host, port))
-        #self.sock.connect((host, port))
-        #self.sslobj = socket.ssl(self.sock.s, self.keyfile, self.certfile)
-        #self.sslobj = Socket.ssl(self.sock.s, self.timeout, self.keyfile, self.certfile)
 
 
     def read(self, size):
@@ -170,11 +139,3 @@ class ImapsChecker(AbstractChecker):
         self.setVersion(version)
         
         return Event.UP, version
-
-def getRequiredArgs():
-    """
-    Returns a list of required arguments
-    """
-    requiredArgs = ['username', 'password']
-    return requiredArgs
-

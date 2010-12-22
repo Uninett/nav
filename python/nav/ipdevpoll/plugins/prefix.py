@@ -35,6 +35,7 @@ do.
 
 """
 import re
+import logging
 
 from twisted.internet import defer
 from twisted.python.failure import Failure
@@ -48,7 +49,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import storage, shadows, utils
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
@@ -57,16 +58,17 @@ class Prefix(Plugin):
     ipdevpoll-plugin for collecting prefix information from monitored
     equipment.
     """
-    def __init__(self, *args, **kwargs):
-        Plugin.__init__(self, *args, **kwargs)
-        self.deferred = defer.Deferred()
-
     @classmethod
     def can_handle(cls, netbox):
         """
         This plugin handles netboxes
         """
         return True
+
+    @classmethod
+    def on_plugin_load(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf
+        cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
 
     @defer.deferredGenerator
     def handle(self):
@@ -105,6 +107,9 @@ class Prefix(Plugin):
             addresses.update(new_addresses)
 
         for ifindex, ip, prefix in addresses:
+            if self._prefix_should_be_ignored(prefix):
+                self.logger.debug("ignoring prefix %s as configured", prefix)
+                continue
             self.create_containers(netbox, ifindex, prefix, ip,
                                    vlan_interfaces)
 
@@ -172,3 +177,31 @@ class Prefix(Plugin):
         failure.trap(defer.TimeoutError)
         self.logger.debug("request timed out, ignoring and moving on...")
         return result
+
+    def _prefix_should_be_ignored(self, prefix):
+        if prefix is None:
+            return False
+
+        for ignored in self.ignored_prefixes:
+            if prefix in ignored:
+                return True
+
+        return False
+
+def get_ignored_prefixes(config):
+    if config is not None:
+        raw_string = config.get('prefix', 'ignored', '')
+    else:
+        return []
+    items = raw_string.split(',')
+    prefixes = [_convert_string_to_prefix(i) for i in items]
+    return [prefix for prefix in prefixes if prefix is not None]
+
+def _convert_string_to_prefix(string):
+    try:
+        return IP(string)
+    except ValueError:
+        logging.getLogger(__name__).error(
+            "Ignoring invalid prefix in ignore list: %s",
+            string)
+

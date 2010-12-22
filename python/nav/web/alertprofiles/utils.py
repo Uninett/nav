@@ -29,6 +29,7 @@ import nav.path
 from nav.django.utils import get_account, is_admin
 from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
     Account, AlertSubscription, TimePeriod
+from nav.web.message import new_message as legacy_new_message
 
 ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
@@ -174,3 +175,12 @@ def alert_subscriptions_table(periods):
             s['time_period'].end = end_time
 
     return subscriptions
+
+def new_message(request, message, message_type):
+    """Adds a new notification message to the user's session.
+
+    Wraps nav.web.message.new_message(), but takes a Django request
+    object as the first argument.
+
+    """
+    legacy_new_message(request._req, message, message_type)

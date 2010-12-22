@@ -17,6 +17,8 @@
 
 """Main Django URL configuration"""
 
+# pylint: disable-msg=W0614,W0401
+
 # Import all submodules in the urls package
 import os
 __all__ = []
