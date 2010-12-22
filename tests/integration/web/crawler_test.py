@@ -1,5 +1,12 @@
 #!/usr/bin/env python
+"""Crawls test instance of NAV and report any errors.
 
+The basic crawler code enumerates all pages paths that can be reached by GET
+queries without parameters while logged in as an administrator. HTML for all
+pages that report Content-type html are stored an validated by tidy in an
+additional test.
+
+"""
 from lxml.html import fromstring
 import os
 import socket
@@ -7,15 +14,6 @@ import tidy
 import urllib
 import urllib2
 import urlparse
-
-'''
-Crawls test instance of NAV and report any errors.
-
-The basic crawler code enumerates all pages paths that can be reached by GET
-queries without parameters while logged in as an administrator. HTML for all
-pages that report Content-type html are stored an validated by tidy in an
-additional test.
-'''
 
 HOST_URL = os.environ['TARGETURL']
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
@@ -61,7 +59,7 @@ def test_validates():
 def handle_http_error(func):
     def _decorator(*args, **kwargs):
         try:
-            result = func(*args, **kwargs)
+            return func(*args, **kwargs)
         except urllib2.HTTPError, error:
             print "%s :" % error.url
             print "-" * (len(error.url)+2)
@@ -74,7 +72,7 @@ def handle_http_error(func):
 def login():
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
-    resp = opener.open('%sindex/login/' % HOST_URL, data)
+    opener.open('%sindex/login/' % HOST_URL, data)
     urllib2.install_opener(opener)
 
 def get_path(url):
