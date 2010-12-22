@@ -58,6 +58,19 @@ def test_validates():
     for url in html_store.keys():
         yield check_validates, url
 
+def handle_http_error(func):
+    def _decorator(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+        except urllib2.HTTPError, error:
+            print "%s :" % error.url
+            print "-" * (len(error.url)+2)
+            print error.fp.read()
+            raise
+
+    return _decorator
+
+@handle_http_error
 def login():
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
@@ -103,12 +116,9 @@ def retrieve_links(current_url):
 def filter_errors(errors):
     return filter(lambda e: e.message not in TIDY_IGNORE, errors)
 
+@handle_http_error
 def check_response(current_url):
-    try:
-        resp = urllib2.urlopen(current_url)
-    except urllib2.HTTPError, e:
-        print seen_paths[get_path(current_url)]
-        raise e
+    resp = urllib2.urlopen(current_url)
 
     if is_html(resp):
         html_store[current_url] = resp.read()
