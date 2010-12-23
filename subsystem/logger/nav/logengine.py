@@ -151,7 +151,7 @@ def createMessage(line):
         msgtype = match.group('type')
         description = match.group('description')
 
-        timestamp = DateTime.DateTime(year,month,day,hour,minute, second)
+        timestamp = datetime.datetime(year,month,day,hour,minute, second)
 
         return Message(timestamp, origin, msgtype, description)
 
