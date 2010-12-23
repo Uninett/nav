@@ -147,10 +147,11 @@ def createMessage(line):
         day = int(match.group('day'))
         hour = int(match.group('hour'))
         minute = int(match.group('min'))
+        second = int(match.group('second'))
         msgtype = match.group('type')
         description = match.group('description')
 
-        timestamp = datetime.datetime(year,month,day,hour,minute)
+        timestamp = datetime.datetime(year,month,day,hour,minute, second)
 
         return Message(timestamp, origin, msgtype, description)
 

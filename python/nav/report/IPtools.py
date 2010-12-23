@@ -192,8 +192,8 @@ def andIpMask(ip,mask):
         raise UnknownIpVersionError, str(ip.version())
 
 def _ipv6_andIpMask(ip,mask):
-    ip_split = str(ip.net()).split(":")
-    mask_split = str(mask.net()).split(":")
+    ip_split = ip.net().strFullsize().split(":")
+    mask_split = mask.net().strFullsize().split(":")
     assert len(ip_split) == len(mask_split) == 8
     supernet = ""
     for i in range(0,len(ip_split)):
