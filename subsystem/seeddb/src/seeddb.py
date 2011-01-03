@@ -1776,7 +1776,7 @@ class pageLocation(seeddbPage):
     # Delete dependencies
     dependencies = [(manage.Room,
                      'rooms',
-                     'locationid',
+                     'location__id',
                      '/report/room/?locationid=')]
 
     pathAdd = EDITPATH + [('Location',basePath+'list'),('Add',False)]
