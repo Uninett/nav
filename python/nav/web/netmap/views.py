@@ -42,137 +42,158 @@ def get_account(req):
     return account
 
 def handler(req):
-
     path = req.filename[req.filename.rfind('/'):]
 
-    cursor = get_db_cursor()
-
-    try:
-        if req.is_https():
-            baseURL = "https://" + req.hostname + req.uri
-        else:
-            baseURL = "http://" + req.hostname + req.uri
-    except AttributeError:
-        if req.subprocess_env.get('HTTPS', '').lower() in ('on', '1'):
-            baseURL = "https://" + req.hostname + req.uri
-        else:
-            baseURL = "http://" + req.hostname + req.uri
-
-    account = get_account(req)
     if path == '/server':
-        page = GraphML()
-        data = getData(cursor)
-        page.netboxes = data[0]
-        page.connections = data[1]
-        page.baseURL = baseURL[:baseURL.rfind('/')]
-
-        req.content_type="text/xml; charset=utf-8"
-        req.send_http_header()
-
-        req.write(page.respond().encode('utf-8'))
-
-        return apache.OK
+        return output_graph_data(req)
 
     # Save positions for later usage
     elif path == '/position':
-        # Check if user is admin
-        if not account.has_perm(None, None):
-            return apache.HTTP_UNAUTHORIZED
-
-        from mod_python.util import FieldStorage
-        form = FieldStorage(req)
-        req.content_type="text/plain"
-        req.send_http_header()
-
-        positions = {}
-        for key in form.keys():
-            try:
-                sysname,direction = key.split("_")
-                position = float(form.get(key, 0.0))
-            except ValueError:
-                continue
-            if not sysname or not direction or not position:
-                continue
-            if sysname not in positions:
-                positions[sysname] = [0.0, 0.0]
-            if direction == "x":
-                positions[sysname][0] = position
-            elif direction == "y":
-                positions[sysname][1] = position
-
-        for sysname in positions.keys():
-            cursor.execute(
-                """
-                SELECT COUNT(*)
-                FROM netmap_position
-                WHERE sysname = %s
-                """, (sysname,))
-            result = cursor.fetchall()
-            if result[0][0] > 0:
-                cursor.execute(
-                    """
-                    UPDATE netmap_position
-                    SET xpos = %s, ypos = %s
-                    WHERE sysname = %s
-                    """, (positions[sysname][0], positions[sysname][1],
-                          sysname))
-            else:
-                cursor.execute(
-                    """
-                    INSERT INTO netmap_position(xpos, ypos, sysname)
-                    VALUES (%s, %s, %s)
-                    """, (positions[sysname][1], positions[sysname][1],
-                          sysname))
-
-
-        return apache.OK
-
-
+        return save_positions(req)
 
     #Fetch categories
     elif path == '/catids':
-        cursor.execute("SELECT catid FROM cat ORDER BY catid")
-        result = cursor.fetchall()
-
-        req.content_type="text/plain"
-        req.send_http_header()
-        for cat in result:
-            req.write(cat[0] + ",")
-        return apache.OK
+        return category_list(req)
 
     elif path == '/linktypes':
-        cursor.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
-        result = cursor.fetchall()
-
-        req.content_type="text/plain"
-        req.send_http_header()
-        for type in result:
-            req.write(type[0] + ",")
-        return apache.OK
+        return linktype_list(req)
 
     elif path == '/':
-        cookies = Cookie.get_cookies(req)
-        if not cookies.get('nav_sessid', None):
-            return apache.HTTP_UNAUTHORIZED
-
-        page = Netmap()
-        page.sessionID = cookies['nav_sessid']
-        page.baseURL = baseURL[:-1]
-        if account.has_perm(None, None):
-            page.is_admin = "True"
-        else:
-            page.is_admin = "False"
-        req.content_type="text/html"
-        req.send_http_header()
-
-        req.write(page.respond())
-
-        return apache.OK
+        return index(req)
 
     else:
         return apache.HTTP_NOT_FOUND
+
+def index(req):
+    cookies = Cookie.get_cookies(req)
+    if not cookies.get('nav_sessid', None):
+        return apache.HTTP_UNAUTHORIZED
+
+    page = Netmap()
+    page.sessionID = cookies['nav_sessid']
+    baseURL = get_base_url(req)
+    page.baseURL = baseURL[:-1]
+    account = get_account(req)
+    if account.has_perm(None, None):
+        page.is_admin = "True"
+    else:
+        page.is_admin = "False"
+    req.content_type="text/html"
+    req.send_http_header()
+
+    req.write(page.respond())
+
+    return apache.OK
+
+def output_graph_data(req):
+    cursor = get_db_cursor()
+    page = GraphML()
+    data = getData(cursor)
+    page.netboxes = data[0]
+    page.connections = data[1]
+    baseURL = get_base_url(req)
+    page.baseURL = baseURL[:baseURL.rfind('/')]
+
+    req.content_type="text/xml; charset=utf-8"
+    req.send_http_header()
+
+    req.write(page.respond().encode('utf-8'))
+
+    return apache.OK
+
+def save_positions(req):
+    # Check if user is admin
+    account = get_account(req)
+    if not account.has_perm(None, None):
+        return apache.HTTP_UNAUTHORIZED
+
+    from mod_python.util import FieldStorage
+    form = FieldStorage(req)
+    req.content_type="text/plain"
+    req.send_http_header()
+
+    positions = {}
+    for key in form.keys():
+        try:
+            sysname,direction = key.split("_")
+            position = float(form.get(key, 0.0))
+        except ValueError:
+            continue
+        if not sysname or not direction or not position:
+            continue
+        if sysname not in positions:
+            positions[sysname] = [0.0, 0.0]
+        if direction == "x":
+            positions[sysname][0] = position
+        elif direction == "y":
+            positions[sysname][1] = position
+
+    cursor = get_db_cursor()
+    for sysname in positions.keys():
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM netmap_position
+            WHERE sysname = %s
+            """, (sysname,))
+        result = cursor.fetchall()
+        if result[0][0] > 0:
+            cursor.execute(
+                """
+                UPDATE netmap_position
+                SET xpos = %s, ypos = %s
+                WHERE sysname = %s
+                """, (positions[sysname][0], positions[sysname][1],
+                      sysname))
+        else:
+            cursor.execute(
+                """
+                INSERT INTO netmap_position(xpos, ypos, sysname)
+                VALUES (%s, %s, %s)
+                """, (positions[sysname][1], positions[sysname][1],
+                      sysname))
+
+
+    return apache.OK
+
+def category_list(req):
+    cursor = get_db_cursor()
+    cursor.execute("SELECT catid FROM cat ORDER BY catid")
+    result = cursor.fetchall()
+
+    req.content_type="text/plain"
+    req.send_http_header()
+    for cat in result:
+        req.write(cat[0] + ",")
+    return apache.OK
+
+def linktype_list(req):
+    cursor = get_db_cursor()
+    cursor.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
+    result = cursor.fetchall()
+
+    req.content_type="text/plain"
+    req.send_http_header()
+    for type in result:
+        req.write(type[0] + ",")
+    return apache.OK
+
 
 def get_db_cursor():
     connection = nav.db.getConnection('netmapserver', 'manage')
     cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
     return cursor
+
+def get_base_url(req):
+    try:
+        if req.is_https():
+            base_url = "https://" + req.hostname + req.uri
+        else:
+            base_url = "http://" + req.hostname + req.uri
+    except AttributeError:
+        if req.subprocess_env.get('HTTPS', '').lower() in ('on', '1'):
+            base_url = "https://" + req.hostname + req.uri
+        else:
+            base_url = "http://" + req.hostname + req.uri
+
+    return base_url
