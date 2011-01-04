@@ -46,7 +46,7 @@ def handler(req):
     path = req.filename[req.filename.rfind('/'):]
 
     connection = nav.db.getConnection('netmapserver', 'manage')
-    db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
     try:
@@ -63,7 +63,7 @@ def handler(req):
     account = get_account(req)
     if path == '/server':
         page = GraphML()
-        data = getData(db)
+        data = getData(cursor)
         page.netboxes = data[0]
         page.connections = data[1]
         page.baseURL = baseURL[:baseURL.rfind('/')]
@@ -103,25 +103,28 @@ def handler(req):
                 positions[sysname][1] = position
 
         for sysname in positions.keys():
-            db.execute("""
-                       SELECT COUNT(*)
-                       FROM netmap_position
-                       WHERE sysname = %s
-                       """, (sysname,))
-            result = db.fetchall()
+            cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM netmap_position
+                WHERE sysname = %s
+                """, (sysname,))
+            result = cursor.fetchall()
             if result[0][0] > 0:
-                db.execute("""
-                           UPDATE netmap_position
-                           SET xpos = %s, ypos = %s
-                           WHERE sysname = %s
-                           """, (positions[sysname][0], positions[sysname][1],
-                                 sysname))
+                cursor.execute(
+                    """
+                    UPDATE netmap_position
+                    SET xpos = %s, ypos = %s
+                    WHERE sysname = %s
+                    """, (positions[sysname][0], positions[sysname][1],
+                          sysname))
             else:
-                db.execute("""
-                           INSERT INTO netmap_position(xpos, ypos, sysname)
-                           VALUES (%s, %s, %s)
-                           """, (positions[sysname][1], positions[sysname][1],
-                                 sysname))
+                cursor.execute(
+                    """
+                    INSERT INTO netmap_position(xpos, ypos, sysname)
+                    VALUES (%s, %s, %s)
+                    """, (positions[sysname][1], positions[sysname][1],
+                          sysname))
 
 
         return apache.OK
@@ -130,8 +133,8 @@ def handler(req):
 
     #Fetch categories
     elif path == '/catids':
-        db.execute("SELECT catid FROM cat ORDER BY catid")
-        result = db.fetchall()
+        cursor.execute("SELECT catid FROM cat ORDER BY catid")
+        result = cursor.fetchall()
 
         req.content_type="text/plain"
         req.send_http_header()
@@ -140,8 +143,8 @@ def handler(req):
         return apache.OK
 
     elif path == '/linktypes':
-        db.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
-        result = db.fetchall()
+        cursor.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
+        result = cursor.fetchall()
 
         req.content_type="text/plain"
         req.send_http_header()
