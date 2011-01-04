@@ -104,6 +104,8 @@ def get_urlpatterns():
             dummy, name='report-swporttrunk-all'),
         url(r'^report/swporttrunk\?vlan=(?P<vlan>\d+)$',
             dummy, name='report-swporttrunk-vlan'),
+        url(r'^report/swporttrunk\?vlanid=(?P<vlanid>\d+)$',
+            dummy, name='report-swporttrunk-vlanid'),
 
         url(r'^report/prefix$',
             dummy, name='report-prefix-all'),

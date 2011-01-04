@@ -300,7 +300,7 @@
         <th>VLAN</th>
         <td>
             {% if vlan %}
-                <a href="{% url report-swporttrunk-vlan vlan.vlan %}">
+                <a href="{% url report-swporttrunk-vlanid vlan.id %}">
                     {{ vlan }}
                 </a>
             {% else %}
