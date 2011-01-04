@@ -45,9 +45,7 @@ def handler(req):
 
     path = req.filename[req.filename.rfind('/'):]
 
-    connection = nav.db.getConnection('netmapserver', 'manage')
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
+    cursor = get_db_cursor()
 
     try:
         if req.is_https():
@@ -173,3 +171,8 @@ def handler(req):
 
     else:
         return apache.HTTP_NOT_FOUND
+
+def get_db_cursor():
+    connection = nav.db.getConnection('netmapserver', 'manage')
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    return cursor
