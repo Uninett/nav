@@ -80,9 +80,16 @@ class NetboxScheduler(object):
             self.cancelled = True
             self.logger.debug("cancel: Job %r cancelled for %s",
                               self.jobname, self.netbox.sysname)
+            self.cancel_running_job()
         else:
             self.logger.debug("cancel: Job %r already cancelled for %s",
                               self.jobname, self.netbox.sysname)
+
+    def cancel_running_job(self):
+        handlers = self._get_running_job_handlers()
+        for handler in handlers:
+            if handler.name == self.jobname:
+                handler.cancel()
 
     def _map_cleanup(self, result, job_handler):
         """Remove a JobHandler from internal data structures."""
