@@ -15,13 +15,11 @@
 #
 """Netmap mod_python handler"""
 
-import sys
 import nav.db
-import datetime
 import psycopg2.extras
 
-from nav.web.netmap.common import *
-from nav.web.netmap.datacollector import *
+#from nav.web.netmap.common import *
+from nav.web.netmap.datacollector import getData
 
 from nav.web.templates.GraphML import GraphML
 from nav.web.templates.Netmap import Netmap
@@ -29,14 +27,12 @@ from nav.web.templates.Netmap import Netmap
 from django.http import HttpResponse
 from nav.django.utils import get_account
 
-def get_session_id(request):
-    return "nav_sessid=%s" % request.COOKIES.get('nav_sessid', None)
-
 def index(req):
+    """The main Netmap view, embedding the Java applet"""
     page = Netmap()
-    page.sessionID = get_session_id(req)
-    baseURL = req.build_absolute_uri()
-    page.baseURL = baseURL[:-1]
+    page.sessionID = _get_session_cookie(req)
+    base_url = req.build_absolute_uri()
+    page.baseURL = base_url[:-1]
     account = get_account(req)
     if account.has_perm(None, None):
         page.is_admin = "True"
@@ -47,18 +43,20 @@ def index(req):
                         mimetype='text/html')
 
 def output_graph_data(req):
-    cursor = get_db_cursor()
+    """Outputs the network graph as GraphML"""
+    cursor = _get_db_cursor()
     page = GraphML()
     data = getData(cursor)
     page.netboxes = data[0]
     page.connections = data[1]
-    baseURL = req.build_absolute_uri()
-    page.baseURL = baseURL[:baseURL.rfind('/')]
+    base_url = req.build_absolute_uri()
+    page.baseURL = base_url[:base_url.rfind('/')]
 
     return HttpResponse(page.respond(),
                         mimetype='text/xml')
 
 def save_positions(req):
+    """Saves absolute node positions from the map to the database"""
     # Check if user is admin
     account = get_account(req)
     if not account.has_perm(None, None):
@@ -67,7 +65,7 @@ def save_positions(req):
     positions = {}
     for key, value in req.REQUEST.items():
         try:
-            sysname,direction = key.split("_")
+            sysname, direction = key.split("_")
             position = float(value or 0.0)
         except ValueError:
             continue
@@ -80,7 +78,7 @@ def save_positions(req):
         elif direction == "y":
             positions[sysname][1] = position
 
-    cursor = get_db_cursor()
+    cursor = _get_db_cursor()
     for sysname in positions.keys():
         cursor.execute(
             """
@@ -107,16 +105,18 @@ def save_positions(req):
 
     return HttpResponse(mimetype="text/plain")
 
-def category_list(req):
-    cursor = get_db_cursor()
+def category_list(_):
+    """Outputs a comma separated list of available netbox categories"""
+    cursor = _get_db_cursor()
     cursor.execute("SELECT catid FROM cat ORDER BY catid")
     result = cursor.fetchall()
 
     return HttpResponse(",".join(r[0] for r in result) + ",",
                         mimetype="text/plain")
 
-def linktype_list(req):
-    cursor = get_db_cursor()
+def linktype_list(_):
+    """Outputs a comma separated list of available link types"""
+    cursor = _get_db_cursor()
     cursor.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
     result = cursor.fetchall()
 
@@ -124,11 +124,17 @@ def linktype_list(req):
                         mimetype="text/plain")
 
 
-def get_db_cursor():
+def _get_session_cookie(request):
+    return "nav_sessid=%s" % request.COOKIES.get('nav_sessid', None)
+
+def _get_db_cursor():
     connection = nav.db.getConnection('netmapserver', 'manage')
     cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
     return cursor
 
+
 class HttpResponseUnauthorized(HttpResponse):
+    """A HttpResponse defaulting to a 401 UNAUTHORIZED status code"""
     def __init__(self):
+        super(HttpResponseUnauthorized, self).__init__()
         self.status_code = 401
