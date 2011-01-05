@@ -147,7 +147,8 @@ class AlertQueue(models.Model):
     value = models.IntegerField()
     severity = models.IntegerField()
 
-    history = models.ForeignKey('AlertHistory', null=True, blank=True, db_column='alerthistid')
+    history = models.ForeignKey('AlertHistory', null=True, blank=True,
+                                db_column='alerthistid')
 
     class Meta:
         db_table = 'alertq'

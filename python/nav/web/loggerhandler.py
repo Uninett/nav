@@ -34,7 +34,8 @@ from ConfigParser import ConfigParser
 from nav.web.templates.LoggerTemplate import LoggerTemplate
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
-DOMAIN_SUFFICES = [s.strip() for s in nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")]
+DOMAIN_SUFFICES = nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")
+DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
 
 
 def handler(req):
@@ -77,7 +78,9 @@ def handler(req):
     categories = database.fetchall()
     categories.insert(0,("(All)",))
 
-    database.execute("select priority, facility, mnemonic, type from log_message_type order by priority, facility, mnemonic")
+    database.execute("select priority, facility, mnemonic, type "
+                     "from log_message_type "
+                     "order by priority, facility, mnemonic")
     types = []
     typeid2type = {}
     type2typeid = {}
@@ -87,7 +90,8 @@ def handler(req):
         type2typeid["%s-%d-%s" % (r[1], r[0], r[2])] = r[3]
         typeid2type[r[3]] = "%s-%d-%s" % (r[1], r[0], r[2])
 
-    database.execute("select priority, keyword, description from priority order by priority")
+    database.execute("select priority, keyword, description "
+                     "from priority order by priority")
     priorities = []
     priorities.append(("-", "(All)", ""))
     for r in database.fetchall():
@@ -110,12 +114,16 @@ def handler(req):
         priority = req.form["priority"]
         constraints.append("newpriority = %s" % priority)
         links.append("priority=%s" % priority)
-    if req.form.has_key("type") and req.form["type"] and type2typeid.has_key(req.form["type"]):
+    if (req.form.has_key("type") and
+        req.form["type"] and
+        type2typeid.has_key(req.form["type"])):
         type = req.form["type"]
         typeid = type2typeid[type]
         constraints.append("type = %d" % typeid)
         links.append("type=%s" % type)
-    if req.form.has_key("origin") and req.form["origin"] and origin2originid.has_key(req.form["origin"]):
+    if (req.form.has_key("origin") and
+        req.form["origin"] and
+        origin2originid.has_key(req.form["origin"])):
         origin = req.form["origin"]
         originid = origin2originid[origin]
         constraints.append("origin = %d" % originid)
@@ -167,12 +175,16 @@ def handler(req):
         if origin and type or origin and log or type and log:
             ## log
 
-            #where = re.sub("priority","newpriority",where)
-            database.execute("select time, origin, newpriority, priority, facility, mnemonic, message from log_message inner join log_message_type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
-            #raise repr("select time, name, newpriority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
+            database.execute("select time, origin, newpriority, priority, "
+                             "facility, mnemonic, message "
+                             "from log_message "
+                             "inner join log_message_type USING (type) "
+                             "inner join origin USING (origin) "
+                             "where %s order by time desc" % where)
             log = []
             for l in database.fetchall():
-                log.append(LogMessage(l[0], originid2origin[l[1]], l[2], l[3], l[4], l[5], l[6]))
+                log.append(LogMessage(l[0], originid2origin[l[1]], l[2], l[3],
+                                      l[4], l[5], l[6]))
             page.log = log
             page.mode = "log"
             page.total = database.rowcount
@@ -181,19 +193,28 @@ def handler(req):
             ## statistikk
 
             page.mode = "statistics"
-            database.execute("select origin, count(*) as count from message_view where %s group by origin order by count desc" % where)
+            database.execute("select origin, count(*) as count "
+                             "from message_view "
+                             "where %s group by origin "
+                             "order by count desc" % where)
             page.originlist = database.fetchall()
 
-            database.execute("select type, count(*) as count from message_view where %s group by type order by count desc" % where)
+            database.execute("select type, count(*) as count "
+                             "from message_view where %s "
+                             "group by type order by count desc" % where)
             page.typelist = database.fetchall()
 
-            database.execute("select count(*) from message_view where %s" % where)
+            database.execute("select count(*) from message_view "
+                             "where %s" % where)
             page.total = database.fetchone()[0]
 
         else:
             ## frontpage / priorities
 
-            database.execute("select newpriority, count(*) as count from message_view WHERE %s group by newpriority order by newpriority" % where)
+            database.execute("select newpriority, count(*) as count "
+                             "from message_view WHERE %s "
+                             "group by newpriority "
+                             "order by newpriority" % where)
             page.priorityresult = {}
             for p in database.fetchall():
                 page.priorityresult[p[0]] = p[1]
@@ -230,11 +251,13 @@ def handler(req):
 
 class LogMessage:
 
-    def __init__(self, time, originname, newpriority, priority, facility, mnemonic, message):
+    def __init__(self, time, originname, newpriority, priority, facility,
+                 mnemonic, message):
         self.time = time.strftime(DATEFORMAT)
         self.origin = originname
         if isinstance(newpriority,int):
-            self.type = "%s-%d(%d)-%s" % (facility, newpriority, priority, mnemonic)
+            self.type = "%s-%d(%d)-%s" % (facility, newpriority, priority,
+                                          mnemonic)
         else:
             self.type = "%s-%d-%s" % (facility, priority, mnemonic)
         self.message = message

@@ -9,11 +9,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 Provides common database functionality for NAV.
@@ -50,11 +50,13 @@ class ConnectionObject(nav.CacheableObject):
                 self.lastValidated = time.time()
                 return False
         except (psycopg2.ProgrammingError, psycopg2.OperationalError):
-            logger.debug('Invalid connection object (%s), age=%s' % (repr(self.key), self.age()))
+            logger.debug('Invalid connection object (%r), age=%s',
+                         self.key, self.age())
             self.object.close()
             return True
         except psycopg2.InterfaceError:
-            logger.debug('Connection may already be closed (%s)' % repr(self.key))
+            logger.debug('Connection may already be closed (%r)',
+                         self.key)
             return True
 
     def ping(self):

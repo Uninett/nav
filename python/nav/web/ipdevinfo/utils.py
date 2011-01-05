@@ -20,7 +20,8 @@ import nav.util
 from nav.models.manage import OPER_UP, ADM_DOWN, SwPortVlan, SwPortBlocked
 from nav.models.manage import Netbox
 
-def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
+def get_module_view(module_object, perspective, activity_interval=None,
+                    netbox=None):
     """
     Returns a dict structure of ports on the module with additional meta
     information.

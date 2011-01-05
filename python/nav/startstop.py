@@ -210,7 +210,8 @@ class CronService(Service):
             if not silent:
                 print "Up"
                 if runningContent != myContent:
-                    print >> sys.stderr, "NOTICE: Current crontab does not match the content of %s" % self.name
+                    print >> sys.stderr, ("NOTICE: Current crontab does not "
+                                          "match the content of %s" % self.name)
             return True
         else:
             if not silent: print "Down"

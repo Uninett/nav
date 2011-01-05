@@ -267,14 +267,16 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     def get_arp_info(addr):
         try:
-            return Arp.objects.filter(ip=addr).order_by('-end_time', '-start_time')[0]
+            return Arp.objects.filter(ip=addr).order_by('-end_time',
+                                                        '-start_time')[0]
         except:
             return None
 
 
     def get_cam_info(mac):
         try:
-            return Cam.objects.filter(mac=mac).order_by('-end_time', '-start_time')[0]
+            return Cam.objects.filter(mac=mac).order_by('-end_time',
+                                                        '-start_time')[0]
         except:
             return None
 
@@ -445,7 +447,8 @@ def port_details(request, netbox_sysname, module_number=None, port_type=None,
         try:
             port = ports.get(netbox__sysname=netbox_sysname, ifname=port_name)
         except Interface.DoesNotExist:
-            port = get_object_or_404(ports, netbox__sysname=netbox_sysname, ifdescr=port_name)
+            port = get_object_or_404(ports, netbox__sysname=netbox_sysname,
+                                     ifdescr=port_name)
 
     return render_to_response(
         'ipdevinfo/port-details.html',

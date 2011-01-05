@@ -215,8 +215,8 @@ class LDAPUser(object):
         server = config.get('ldap', 'server')
         name_attr = config.get('ldap', 'name_attr')
         try:
-            res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE, '(objectClass=*)',
-                             [name_attr])
+            res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
+                                     '(objectClass=*)', [name_attr])
         except ldap.LDAPError, e:
             logger.exception("Caught exception while retrieving user name "
                              "from LDAP, returning None as name")
@@ -249,7 +249,8 @@ class LDAPUser(object):
             if len(result) < 1:
                 # If no match, match posixGroup objects
                 filterstr = '(memberUid=%s)' % self.username
-                result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
+                result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE,
+                                            filterstr)
                 logger.debug("posixGroup results: %s", result)
             return len(result) > 0
         except ldap.TIMEOUT, e:

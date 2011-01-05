@@ -75,12 +75,13 @@ def build_graph(db_results):
         if (not connection['forward']['local_netboxid'] in graph.nodes or
             not connection['reverse']['local_netboxid'] in graph.nodes):
             continue
-        graph.add_edge(Edge(connection['forward']['id'],
-                            connection['reverse']['id'],
-                            graph.nodes[connection['forward']['local_netboxid']],
-                            graph.nodes[connection['reverse']['local_netboxid']],
-                            connection['forward'],
-                            connection['reverse']))
+        graph.add_edge(
+            Edge(connection['forward']['id'],
+                 connection['reverse']['id'],
+                 graph.nodes[connection['forward']['local_netboxid']],
+                 graph.nodes[connection['reverse']['local_netboxid']],
+                 connection['forward'],
+                 connection['reverse']))
 
     return graph
 

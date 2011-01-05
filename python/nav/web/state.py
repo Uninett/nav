@@ -156,7 +156,8 @@ def _oldFilter(file):
     try:
         mtime = os.stat(name)[8]
         nowtime = int(time.time())
-        return (nowtime-mtime > nav.web.webfrontConfig.getint('sessions', 'timeout'))
+        return (nowtime-mtime >
+                nav.web.webfrontConfig.getint('sessions', 'timeout'))
     except:
         return False
 

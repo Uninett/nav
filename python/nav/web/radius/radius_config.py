@@ -176,7 +176,7 @@ ACCT_SEARCHRESULTFIELDS = (
 # The format we want to use when searching for a specific date and time.
 DATEFORMAT_SEARCH = "%Y-%m-%d %H:%M"
 
-# Format of the string you get when you select the datetime field in the DB
-# If your datetime field contains fractions of a second, you can just ignore them,
-# as they will be stripped in the showStopTime helper function.
+# Format of the string you get when you select the datetime field in the DB If
+# your datetime field contains fractions of a second, you can just ignore
+# them, as they will be stripped in the showStopTime helper function.
 DATEFORMAT_DB = "%Y-%m-%d %H:%M:%S"

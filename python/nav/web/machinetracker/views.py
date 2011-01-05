@@ -28,7 +28,9 @@ from django.utils.datastructures import SortedDict
 from nav.models.manage import Arp, Cam
 
 from nav.web.machinetracker import forms
-from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict, process_ip_row, track_mac, min_max_mac, ProcessInput
+from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
+from nav.web.machinetracker.utils import process_ip_row, track_mac
+from nav.web.machinetracker.utils import min_max_mac, ProcessInput
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -161,7 +163,8 @@ def mac_do_search(request):
             where=['mac BETWEEN %s and %s'],
             params=[mac_min, mac_max]
         ).order_by('mac', 'sysname', 'module', 'port', '-start_time').values(
-            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac', 'netbox__sysname'
+            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
+            'netbox__sysname'
         )
 
         arp_result = Arp.objects.filter(
@@ -173,7 +176,8 @@ def mac_do_search(request):
 
         mac_count = len(cam_result)
         ip_count = len(arp_result)
-        mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
+        mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
+                                cam_result, dns=False)
         ip_tracker = track_mac(('ip', 'mac'), arp_result, dns)
 
         info_dict.update({
@@ -235,7 +239,8 @@ def switch_do_search(request):
             'sysname', 'module', 'port', 'start_time', 'end_time', 'mac'
         )
         swp_count = len(cam_result)
-        swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
+        swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
+                                cam_result, dns=False)
 
         info_dict.update({
             'form_data': form.cleaned_data,
