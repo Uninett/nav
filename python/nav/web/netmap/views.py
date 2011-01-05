@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007, 2010 UNINETT AS
+# Copyright (C) 2007, 2010, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,67 +23,28 @@ import psycopg2.extras
 from nav.web.netmap.common import *
 from nav.web.netmap.datacollector import *
 
-from mod_python import Cookie
-try:
-    from mod_python import apache
-except ImportError:
-    apache = None
-
 from nav.web.templates.GraphML import GraphML
 from nav.web.templates.Netmap import Netmap
 
-from nav.models.profiles import Account
+from django.http import HttpResponse
+from nav.django.utils import get_account
 
-def get_account(req):
-    """Inspects the mod_python req structure and returns a Django Account
-    object for the corresponding user.
-    """
-    account = Account.objects.get(login=req.session['user']['login'])
-    return account
-
-def handler(req):
-    path = req.filename[req.filename.rfind('/'):]
-
-    if path == '/server':
-        return output_graph_data(req)
-
-    # Save positions for later usage
-    elif path == '/position':
-        return save_positions(req)
-
-    #Fetch categories
-    elif path == '/catids':
-        return category_list(req)
-
-    elif path == '/linktypes':
-        return linktype_list(req)
-
-    elif path == '/':
-        return index(req)
-
-    else:
-        return apache.HTTP_NOT_FOUND
+def get_session_id(request):
+    return "nav_sessid=%s" % request.COOKIES.get('nav_sessid', None)
 
 def index(req):
-    cookies = Cookie.get_cookies(req)
-    if not cookies.get('nav_sessid', None):
-        return apache.HTTP_UNAUTHORIZED
-
     page = Netmap()
-    page.sessionID = cookies['nav_sessid']
-    baseURL = get_base_url(req)
+    page.sessionID = get_session_id(req)
+    baseURL = req.build_absolute_uri()
     page.baseURL = baseURL[:-1]
     account = get_account(req)
     if account.has_perm(None, None):
         page.is_admin = "True"
     else:
         page.is_admin = "False"
-    req.content_type="text/html"
-    req.send_http_header()
 
-    req.write(page.respond())
-
-    return apache.OK
+    return HttpResponse(page.respond(),
+                        mimetype='text/html')
 
 def output_graph_data(req):
     cursor = get_db_cursor()
@@ -91,32 +52,23 @@ def output_graph_data(req):
     data = getData(cursor)
     page.netboxes = data[0]
     page.connections = data[1]
-    baseURL = get_base_url(req)
+    baseURL = req.build_absolute_uri()
     page.baseURL = baseURL[:baseURL.rfind('/')]
 
-    req.content_type="text/xml; charset=utf-8"
-    req.send_http_header()
-
-    req.write(page.respond().encode('utf-8'))
-
-    return apache.OK
+    return HttpResponse(page.respond(),
+                        mimetype='text/xml')
 
 def save_positions(req):
     # Check if user is admin
     account = get_account(req)
     if not account.has_perm(None, None):
-        return apache.HTTP_UNAUTHORIZED
-
-    from mod_python.util import FieldStorage
-    form = FieldStorage(req)
-    req.content_type="text/plain"
-    req.send_http_header()
+        return HttpResponseUnauthorized()
 
     positions = {}
-    for key in form.keys():
+    for key, value in req.REQUEST.items():
         try:
             sysname,direction = key.split("_")
-            position = float(form.get(key, 0.0))
+            position = float(value or 0.0)
         except ValueError:
             continue
         if not sysname or not direction or not position:
@@ -153,30 +105,23 @@ def save_positions(req):
                 """, (positions[sysname][1], positions[sysname][1],
                       sysname))
 
-
-    return apache.OK
+    return HttpResponse(mimetype="text/plain")
 
 def category_list(req):
     cursor = get_db_cursor()
     cursor.execute("SELECT catid FROM cat ORDER BY catid")
     result = cursor.fetchall()
 
-    req.content_type="text/plain"
-    req.send_http_header()
-    for cat in result:
-        req.write(cat[0] + ",")
-    return apache.OK
+    return HttpResponse(",".join(r[0] for r in result) + ",",
+                        mimetype="text/plain")
 
 def linktype_list(req):
     cursor = get_db_cursor()
     cursor.execute("SELECT nettypeid FROM nettype ORDER BY nettypeid")
     result = cursor.fetchall()
 
-    req.content_type="text/plain"
-    req.send_http_header()
-    for type in result:
-        req.write(type[0] + ",")
-    return apache.OK
+    return HttpResponse(",".join(r[0] for r in result) + ",",
+                        mimetype="text/plain")
 
 
 def get_db_cursor():
@@ -184,16 +129,6 @@ def get_db_cursor():
     cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
     return cursor
 
-def get_base_url(req):
-    try:
-        if req.is_https():
-            base_url = "https://" + req.hostname + req.uri
-        else:
-            base_url = "http://" + req.hostname + req.uri
-    except AttributeError:
-        if req.subprocess_env.get('HTTPS', '').lower() in ('on', '1'):
-            base_url = "https://" + req.hostname + req.uri
-        else:
-            base_url = "http://" + req.hostname + req.uri
-
-    return base_url
+class HttpResponseUnauthorized(HttpResponse):
+    def __init__(self):
+        self.status_code = 401
