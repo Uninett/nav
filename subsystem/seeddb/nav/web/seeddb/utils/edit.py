@@ -90,7 +90,7 @@ def resolve_ip_and_sysname(name):
     try:
         sysname = gethostbyaddr(unicode(ip))[0]
     except SocketError:
-        sysname = ip
+        sysname = unicode(ip)
     return (ip, sysname)
 
 def does_ip_exist(ip, netbox_id=None):
