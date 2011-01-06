@@ -16,61 +16,31 @@
 #
 
 from django.core.urlresolvers import reverse
-from django.db import transaction
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
 
 from nav.web.message import new_message, Messages
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
-from nav.models.manage import Usage, Vendor, Subcategory, Prefix, NetboxCategory, Vlan
-from nav.models.service import Service, ServiceProperty
-from nav.models.oid import SnmpOid
-from nav.Snmp import Snmp, SnmpError
 from nav.web.quickselect import QuickSelect
+from nav.models.cabling import Cabling, Patch
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
+from nav.models.manage import Usage, Vendor, Subcategory, Prefix, Vlan
+from nav.models.service import Service, ServiceProperty
 from nav.web.serviceHelper import getDescription
 
 from nav.web.seeddb.utils.edit import render_edit
+from nav.web.seeddb.utils.netbox_edit import netbox_get_serial_and_type
+from nav.web.seeddb.utils.netbox_edit import netbox_serial_and_subcat_form
+from nav.web.seeddb.utils.netbox_edit import netbox_save
+from nav.web.seeddb.utils.service_edit import service_save
+from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
 from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm
 from nav.web.seeddb.forms import UsageForm, NetboxTypeForm, VendorForm
 from nav.web.seeddb.forms import SubcategoryForm, PrefixForm, CablingForm
 from nav.web.seeddb.forms import PatchForm, NetboxForm, NetboxSerialForm
-from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
 from nav.web.seeddb.forms import ServiceForm, ServicePropertyForm, ServiceChoiceForm
 from nav.web.seeddb.forms import VlanForm
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
-
-def snmp_type(ip, ro, snmp_version):
-    snmp = Snmp(ip, ro, snmp_version)
-    try:
-        sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
-    except SnmpError:
-        return None
-    sysobjectid = sysobjectid.lstrip('.')
-    try:
-        netbox_type = NetboxType.objects.get(sysobjectid=sysobjectid)
-        return netbox_type
-    except NetboxType.DoesNotExist:
-        return None
-
-def snmp_serials(ip, ro, snmp_version):
-    snmp = Snmp(ip, ro, snmp_version)
-    oids = SnmpOid.objects.filter(oid_key__icontains='serial').values_list('snmp_oid', 'get_next')
-    serials = []
-    for (oid, get_next) in oids:
-        try:
-            if get_next:
-                result = snmp.walk(oid)
-                serials.extend([r[1] for r in result if r[1]])
-            else:
-                result = snmp.get(oid)
-                if result:
-                    serials.append(result)
-        except SnmpError:
-            pass
-    return serials
 
 def netbox_edit(request, netbox_sysname=None):
     FORM_STEP = 0
@@ -131,90 +101,6 @@ def netbox_edit(request, netbox_sysname=None):
     }
     return render_to_response('seeddb/netbox_wizard.html',
         context, RequestContext(request))
-
-def netbox_get_serial_and_type(form):
-    data = form.cleaned_data
-    serial = None
-    netbox_type = None
-    ro = data.get('read_only')
-    if ro:
-        ip = data.get('ip')
-        netbox_type = snmp_type(ip, ro, form.snmp_version)
-        serials = snmp_serials(ip, ro, form.snmp_version)
-        serial = None
-        if serials:
-            serial = serials[0]
-    return (serial, netbox_type)
-
-def netbox_serial_and_subcat_form(request, form, serial, netbox_type):
-    data = form.cleaned_data
-    form_data = data
-    form_data['room'] = data['room'].pk
-    form_data['category'] = data['category'].pk
-    form_data['organization'] = data['organization'].pk
-    form_data['serial'] = serial
-    form_data['snmp_version'] = form.snmp_version
-    form_data['sysname'] = form.sysname
-    if len(form_data['snmp_version']) > 1:
-        form_data['snmp_version'] = form_data['snmp_version'][0]
-    if netbox_type:
-        form_data['netbox_type'] = netbox_type.description
-        form_data['type'] = netbox_type.pk
-
-    serial_form = NetboxSerialForm(initial={'serial': serial}, netbox_id=data.get('id'))
-    if serial:
-        serial_form.is_valid()
-    subcat_form = get_netbox_subcategory_form(data['category'], netbox_id=data.get('id'))
-    form = NetboxReadonlyForm(initial=form_data)
-
-    return (form, serial_form, subcat_form)
-
-@transaction.commit_on_success
-def netbox_save(request, form, serial_form, subcat_form):
-    clean_data = form.cleaned_data
-    primary_key = clean_data.get('id')
-    data = {
-        'ip': clean_data['ip'],
-        'sysname': clean_data['sysname'],
-        'room': clean_data['room'],
-        'category': clean_data['category'],
-        'organization': clean_data['organization'],
-        'read_only': clean_data['read_only'],
-        'read_write': clean_data['read_write'],
-        'snmp_version': clean_data['snmp_version'],
-    }
-
-    serial = serial_form.cleaned_data['serial']
-    if serial:
-        device, created = Device.objects.get_or_create(serial=serial)
-        data['device'] = device
-    elif not primary_key:
-        device = Device.objects.create(serial=None)
-        data['device'] = device
-
-    if 'type' in clean_data and clean_data['type']:
-        data['type'] = NetboxType.objects.get(pk=clean_data['type'])
-
-
-    if primary_key:
-        netbox = Netbox.objects.get(pk=primary_key)
-        for key in data:
-            setattr(netbox, key, data[key])
-    else:
-        netbox = Netbox(**data)
-
-    netbox.save()
-
-    if subcat_form:
-        subcategories = subcat_form.cleaned_data['subcategories']
-        NetboxCategory.objects.filter(netbox=netbox).delete()
-        for subcat in subcategories:
-            NetboxCategory.objects.create(netbox=netbox, category=subcat)
-
-    new_message(request._req,
-        "Saved netbox %s" % netbox.sysname,
-        Messages.SUCCESS)
-    return HttpResponseRedirect(reverse('seeddb-netbox'))
 
 def service_edit(request, service_id=None):
     service = None
@@ -317,33 +203,6 @@ def service_add(request):
     }
     return render_to_response('seeddb/service_netbox_form.html',
         context, RequestContext(request))
-
-@transaction.commit_on_success
-def service_save(request, service_form, property_form):
-    service_id = service_form.cleaned_data.get('service')
-    if service_id:
-        service = Service.objects.select_related(
-            'netbox').get(pk=service_id)
-        ServiceProperty.objects.filter(service=service).delete()
-        netbox = service.netbox
-    else:
-        netbox = Netbox.objects.get(pk=service_form.cleaned_data['netbox'])
-        service = Service.objects.create(
-            netbox=netbox,
-            handler=service_form.cleaned_data['handler']
-        )
-    for (property, value) in property_form.cleaned_data.items():
-        if value:
-            ServiceProperty.objects.create(
-                service=service,
-                property=property,
-                value=value
-            )
-    new_message(
-        request._req,
-        "Saved service for handler %s on %s" % (service.handler, netbox),
-        Messages.SUCCESS)
-    return HttpResponseRedirect(reverse('seeddb-service'))
 
 def room_edit(request, room_id=None):
     extra = {
