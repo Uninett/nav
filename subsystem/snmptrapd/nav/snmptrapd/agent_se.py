@@ -141,7 +141,7 @@ def transform(pdu):
     # generic trap parameter is 6. If not, the traps are defined as
     # 1.3.6.1.6.3.1.1.5 + (generic trap parameter + 1)
     if generic.get() == 6:
-        snmp_trap_oid = enterprise + [0] + pdu.apiAlphaGetSpecificTrap().get()
+        snmp_trap_oid = enterprise + [0, pdu.apiAlphaGetSpecificTrap().get()]
     else:
         snmp_trap_oid = [1,3,6,1,6,3,1,1,5] + [generic.get() + 1]
 
