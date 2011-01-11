@@ -88,7 +88,7 @@ class TrapListener:
         snmp_trap_oid = oid_to_str(snmp_trap_oid)
 
         # Create trap object, let callback decide what to do with it.
-        trap = SNMPTrap(str(src), agent_addr, type, generic_type,
+        trap = SNMPTrap(str(src), agent_addr or str(src), type, generic_type,
                         snmp_trap_oid, uptime, community, version,
                         varbind_dict)
         return trap

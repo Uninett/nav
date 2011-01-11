@@ -106,8 +106,8 @@ class TrapListener:
 
 
             # Create trap object, let callback decide what to do with it.
-            trap = SNMPTrap(str(src), agent, type, genericType, snmpTrapOID,
-                            uptime, community, version, varbinds)
+            trap = SNMPTrap(str(src), agent or str(src), type, genericType,
+                            snmpTrapOID, uptime, community, version, varbinds)
             callback(trap)
 
         # Exit nicely
