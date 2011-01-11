@@ -48,7 +48,9 @@ function save_row(rowid) {
 			type: 'POST',
 			success: function(data){
 					display_callback_info(row, data);
-					clear_changed_state(row);
+					if (!data.error) { 
+						clear_changed_state(row);
+					}
 				},
 			error: function(request, errorMessage, errortype){
 					var data = {};

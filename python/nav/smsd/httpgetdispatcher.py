@@ -66,23 +66,23 @@ class HttpGetDispatcher(Dispatcher):
 
         # Format SMS
         (sms, sent, ignored) = self.formatsms(msgs)
-	sms = urllib.quote_plus(sms)
+        sms = urllib.quote_plus(sms)
 
         # Format HTTP GET request
         get_data = { 'phone': phone, 'sms': sms }
         url = self.url % get_data
 
         # Send SMS
-	urllib2.HTTPError = HttpGetError
-	try:
-	    urllib2.urlopen(url)
-	    result = True
-	except HttpGetError, e:
-	    self.logger.error('%s', e)
-	    result = False
+        urllib2.HTTPError = HttpGetError
+        try:
+            urllib2.urlopen(url)
+            result = True
+        except HttpGetError, e:
+            self.logger.error('%s', e)
+            result = False
 
-	smsid = 0
-	self.logger.debug('HttpGetDispatcher response: %s, %s, %s, %s, %s',
+        smsid = 0
+        self.logger.debug('HttpGetDispatcher response: %s, %s, %s, %s, %s',
                           sms, sent, ignored, result, smsid)
         return (sms, sent, ignored, result, smsid)
 

@@ -40,10 +40,11 @@ class Plugin(object):
 
     """
 
-    def __init__(self, netbox, agent, containers):
+    def __init__(self, netbox, agent, containers, config=None):
         self.netbox = netbox
         self.agent = agent
         self.containers = containers
+        self.config = config
         self.logger = get_instance_logger(self, "(%s)" % self.netbox.sysname)
 
     def __str__(self):
@@ -64,6 +65,16 @@ class Plugin(object):
         Returns a boolean value.
         """
         raise NotImplemented
+
+    @classmethod
+    def on_plugin_load(cls):
+        """Called as the plugin class is loaded in the plugin registry.
+
+        Can be used to perform any kind of initialization task that
+        doesn't fit into module-level initialization.
+
+        """
+        pass
 
     def name(self):
         """Return the class name of this instance."""

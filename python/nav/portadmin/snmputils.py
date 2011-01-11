@@ -1,3 +1,18 @@
+#
+# Copyright 2010 (C) Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
 import time
 from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
@@ -142,6 +157,12 @@ class SNMPHandler(object):
         time.sleep(wait)
         self.setIfUp(ifindex)
 
+    def write_mem(self):
+        """ 
+        Do a write memory on netbox if available
+        """
+        pass
+
     def getIfAdminStatus(self, ifindex):
         return self._queryNetbox(self.ifAdminStatus, ifindex)
 
@@ -194,6 +215,7 @@ class Cisco(SNMPHandler):
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
         self.vlanOid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
+        self.writeMemOid = '1.3.6.1.4.1.9.2.1.54.0'
 
     def getNetboxVlans(self):
         """ Find all available vlans on this netbox"""
@@ -213,6 +235,14 @@ class Cisco(SNMPHandler):
         vector = BitVector.from_hex(port.hex_string)
         vlans = vector.get_set_bits()
         return vlans
+    
+    def write_mem(self):
+        """ Use OLD-CISCO-SYS-MIB (v1) writeMem to write to memory. 
+        Write configuration into non-volatile memory / erase config memory if 0.
+        """
+        handle = self._getReadWriteHandle()
+        return handle.set(self.writeMemOid, 'i', 1)
+        
         
 class HP(SNMPHandler):
     def __init__(self, netbox):

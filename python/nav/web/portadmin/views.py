@@ -1,7 +1,23 @@
+#
+# Copyright 2010 (C) Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
 import simplejson
+import logging
 
 from django.http import HttpResponse
-from django.template import RequestContext
+from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
 
 from nav.django.utils import get_account
@@ -11,6 +27,8 @@ from nav.portadmin.snmputils import *
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
 DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
+
+logger = logging.getLogger("nav.web.portadmin")
 
 def index(request):
     info_dict = {}
@@ -24,9 +42,9 @@ def index(request):
 def search_by_ip(request, ip):
     account = get_account(request)
     netbox = Netbox.objects.get(ip=ip)
-    swports = netbox.get_swports_sorted()
+    interfaces = netbox.get_swports_sorted()
 
-    info_dict = populate_infodict(account, netbox, swports)
+    info_dict = populate_infodict(account, netbox, interfaces)
 
     return render_to_response(
           'portadmin/portlist.html',
@@ -37,9 +55,9 @@ def search_by_ip(request, ip):
 def search_by_sysname(request, sysname):
     account = get_account(request)
     netbox = Netbox.objects.get(sysname=sysname)
-    swports = netbox.get_swports_sorted()
+    interfaces = netbox.get_swports_sorted()
 
-    info_dict = populate_infodict(account, netbox, swports)
+    info_dict = populate_infodict(account, netbox, interfaces)
 
     return render_to_response(
           'portadmin/portlist.html',
@@ -47,13 +65,13 @@ def search_by_sysname(request, sysname):
           RequestContext(request)
           )
 
-def search_by_swportid(request, swportid):
+def search_by_interfaceid(request, interfaceid):
     account = get_account(request)
-    swport = Interface.objects.get(id=swportid)
-    netbox = swport.netbox
-    swports = [swport]
+    interface = Interface.objects.get(id=interfaceid)
+    netbox = interface.netbox
+    interfaces = [interface]
 
-    info_dict = populate_infodict(account, netbox, swports)
+    info_dict = populate_infodict(account, netbox, interfaces)
     
     return render_to_response(
           'portadmin/portlist.html',
@@ -61,13 +79,13 @@ def search_by_swportid(request, swportid):
           RequestContext(request)
           )
 
-def populate_infodict(account, netbox, swports):
+def populate_infodict(account, netbox, interfaces):
     errors = []
     allowed_vlans = []
     netidents = []
     try:
-        get_and_populate_livedata(netbox, swports)
-        allowed_vlans = find_and_populate_allowed_vlans(account, netbox, swports)
+        get_and_populate_livedata(netbox, interfaces)
+        allowed_vlans = find_and_populate_allowed_vlans(account, netbox, interfaces)
         netidents = get_netident_for_vlans(allowed_vlans)
     except TimeOutException, t:
         errors.append("Timeout when contacting netbox.")
@@ -78,26 +96,33 @@ def populate_infodict(account, netbox, swports):
         errors.append(str(e))
         
     ifaliasformat = get_ifaliasformat()
+    aliastemplate = ''
+    if ifaliasformat:
+        tmpl = get_aliastemplate()
+        aliastemplate = tmpl.render(Context({'ifaliasformat': ifaliasformat}))
+    
+    save_to_database(interfaces)
 
-    info_dict = {'swports': swports, 'netbox': netbox, 'allowed_vlans': allowed_vlans,
-                 'account': account, 'netidents': netidents, 'ifaliasformat': ifaliasformat,
-                 'errors': errors}
+    info_dict = {'interfaces': interfaces, 'netbox': netbox, 
+                 'allowed_vlans': allowed_vlans,
+                 'account': account, 'netidents': netidents, 
+                 'aliastemplate': aliastemplate, 'errors': errors
+                 }
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict
 
 def save_interfaceinfo(request):
     """
-    Used from an ajax call to set ifalias and vlan. Use interfaceid to find connectiondata.
-    The call expects error and message to be set.
+    Used from an ajax call to set ifalias and vlan. Use interfaceid to find 
+    connectiondata. The call expects error and message to be set.
     Error=0 if everything ok
     Message: message to user
     """
     result = {}
 
-
     if request.method == 'POST':
-        ifalias = str(request.POST.get('ifalias', '')) # Todo: Why the cast to string?
+        ifalias = str(request.POST.get('ifalias', '')) 
         vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
         
@@ -114,7 +139,22 @@ def save_interfaceinfo(request):
                 fac = SNMPFactory.getInstance(netbox)
                 fac.setVlan(interface.ifindex, vlan)
                 fac.setIfAlias(interface.ifindex, ifalias)
+                try:
+                    fac.write_mem()
+                except:
+                    pass
                 result = {'error': 0, 'message': 'Save was successful'}
+                             
+                interface.vlan = vlan
+                interface.ifalias = ifalias
+                save_to_database([interface])
+                
+                logger.info("%s: %s:%s - port description set to %s, vlan set to %s",
+                            account.login, 
+                            netbox.get_short_sysname(),
+                            interface.ifname,
+                            ifalias,
+                            vlan)
             except TimeOutException, t:
                 result = {'error': 1, 'message': 'TimeOutException - is read-write community set?' }
             except Exception, e:
@@ -126,4 +166,3 @@ def save_interfaceinfo(request):
         result = {'error': 1, 'message': "Wrong request type"}
         
     return HttpResponse(simplejson.dumps(result), mimetype="application/json")
-        

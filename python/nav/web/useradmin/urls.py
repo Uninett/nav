@@ -18,13 +18,10 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Thomas Adamcik <thomas.adamcik@uninett.no>
 #
+"""Django URL config for useradmin"""
 
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Thomas Adamcik (thomas.adamcik@uninett.no)"
-__id__ = "$Id$"
+# pylint: disable-msg=W0614,W0401
 
 from django.conf.urls.defaults import *
 

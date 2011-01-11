@@ -16,9 +16,10 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
+# pylint: disable-msg=R0903
+
 import datetime as dt
 import IPy
-import time
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -28,7 +29,7 @@ from django.db.models import Q
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, PointField
 
-# Choices used in Interface model and 'ipdevinfo' for determining interface status
+# Interface status choices used in Interface model and 'ipdevinfo'
 OPER_UP = 1
 OPER_DOWN = 2
 OPER_TESTING = 3
@@ -103,14 +104,15 @@ class Netbox(models.Model):
         return self.get_short_sysname()
 
     def get_absolute_url(self):
-        kwargs={
+        kwargs = {
             'name': self.sysname,
         }
         return reverse('ipdevinfo-details-by-name', kwargs=kwargs)
 
     def last_updated(self):
+        """Returns the netbox' last updated value as a datetime object."""
         try:
-            # XXX: Netboxes with multiple values for lastUpdated in NetboxInfo
+            # Netboxes with multiple values for lastUpdated in NetboxInfo
             # have been observed. Using the highest value.
             value = self.info_set.filter(variable='lastUpdated').order_by(
                 '-value')[0].value
@@ -122,8 +124,10 @@ class Netbox(models.Model):
             return '(Invalid value in DB)'
 
     def get_gwports(self):
-        return Interface.objects.filter(netbox=self, gwportprefix__isnull=False).distinct()
-    
+        """Returns all interfaces that have IP addresses."""
+        return Interface.objects.filter(netbox=self,
+                                        gwportprefix__isnull=False).distinct()
+
     def get_gwports_sorted(self):
         """Returns gwports naturally sorted by interface name"""
 
@@ -135,7 +139,9 @@ class Netbox(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return Interface.objects.filter(netbox=self, baseport__isnull=False).distinct()
+        """Returns all interfaces that are switch ports."""
+        return Interface.objects.filter(netbox=self,
+                                        baseport__isnull=False).distinct()
     
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -148,9 +154,11 @@ class Netbox(models.Model):
         return sorted_ports
 
     def get_availability(self):
+        """Calculates and returns an availability data structure."""
         from nav.models.rrd import RrdDataSource
 
         def average(rds, time_frame):
+            """Calculates the average value within a time_frame."""
             from nav.rrd import presenter
             rrd = presenter.presentation()
             rrd.timeLast(time_frame)
@@ -164,7 +172,7 @@ class Netbox(models.Model):
         try:
             data_sources = RrdDataSource.objects.filter(
                 rrd_file__subsystem='pping', rrd_file__netbox=self)
-            # XXX: Multiple identical data sources in the database have been
+            # Multiple identical data sources in the database have been
             # observed. Using the result with highest primary key.
             # FIXME: Should probably check the mtime of the RRD files on disk
             # and use the newest one.
@@ -198,6 +206,7 @@ class Netbox(models.Model):
         return result
 
     def get_uplinks(self):
+        """Returns a list of uplinks on this netbox."""
         result = []
 
         for iface in self.connected_to_interface.all():
@@ -211,15 +220,21 @@ class Netbox(models.Model):
         return result
 
     def get_function(self):
+        """Returns the function description of this netbox."""
         try:
             return self.info_set.get(variable='function').value
         except NetboxInfo.DoesNotExist:
             return None
 
     def get_prefix(self):
+        """Returns the prefix address for this netbox' IP address."""
         return self.netboxprefix.prefix
 
     def get_filtered_prefix(self):
+        """Returns the netbox' prefix address only when the prefix is not a
+        scope, private or reserved prefix.
+
+        """
         prefix = self.get_prefix()
         if prefix and prefix.vlan.net_type.description in (
             'scope', 'private', 'reserved'):
@@ -284,8 +299,9 @@ class NetboxPrefix(models.Model):
     def __unicode__(self):
         return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
 
-    def save(self):
-        raise NotImplementedError
+    def save(self, *args, **kwargs):
+        """Does nothing, since this models a database view."""
+        raise Exception("Cannot save to a view.")
 
 class Device(models.Model):
     """From MetaNAV: The device table contains all physical devices in the
@@ -295,9 +311,12 @@ class Device(models.Model):
 
     id = models.AutoField(db_column='deviceid', primary_key=True)
     serial = models.CharField(unique=True, max_length=-1, null=True)
-    hardware_version = models.CharField(db_column='hw_ver', max_length=-1, null=True)
-    firmware_version = models.CharField(db_column='fw_ver', max_length=-1, null=True)
-    software_version = models.CharField(db_column='sw_ver', max_length=-1, null=True)
+    hardware_version = models.CharField(db_column='hw_ver', max_length=-1,
+                                        null=True)
+    firmware_version = models.CharField(db_column='fw_ver', max_length=-1,
+                                        null=True)
+    software_version = models.CharField(db_column='sw_ver', max_length=-1,
+                                        null=True)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -338,13 +357,14 @@ class Module(models.Model):
         return u'%s, at %s' % (self.name or self.module_number, self.netbox)
 
     def get_absolute_url(self):
-        kwargs={
+        kwargs = {
             'netbox_sysname': self.netbox.sysname,
             'module_name': self.name,
         }
         return reverse('ipdevinfo-module-details', kwargs=kwargs)
 
     def get_gwports(self):
+        """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
             module=self, gwportprefix__isnull=False).distinct()
 
@@ -359,7 +379,9 @@ class Module(models.Model):
         return sorted_ports
 
     def get_swports(self):
-        return Interface.objects.select_related(depth=2).filter(module=self, baseport__isnull=False)
+        """Returns all interfaces that are switch ports."""
+        return Interface.objects.select_related(
+            depth=2).filter(module=self, baseport__isnull=False)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -457,21 +479,27 @@ class Category(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
     def is_gw(self):
+        """Is this a router?"""
         return self.id == 'GW'
 
     def is_gsw(self):
+        """Is this a routing switch?"""
         return self.id == 'GSW'
 
     def is_sw(self):
+        """Is this a core switch?"""
         return self.id == 'SW'
 
     def is_edge(self):
+        """Is this an edge switch?"""
         return self.id == 'EDGE'
 
     def is_srv(self):
+        """Is this a server?"""
         return self.id == 'SRV'
 
     def is_other(self):
+        """Is this an uncategorized device?"""
         return self.id == 'OTHER'
 
 class Subcategory(models.Model):
@@ -582,6 +610,7 @@ class Prefix(models.Model):
             return self.net_address
 
     def get_prefix_length(self):
+        """Returns the prefix mask length."""
         ip = IPy.IP(self.net_address)
         return ip.prefixlen()
 
@@ -692,10 +721,11 @@ class SwPortVlan(models.Model):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
-    """From MetaNAV: Stores a hexstring that has “hidden” information about the
-    vlans that are allowed to traverse a given trunk."""
+    """From MetaNAV: Stores a hexstring that has “hidden” information about
+    the vlans that are allowed to traverse a given trunk."""
 
-    interface = models.OneToOneField('Interface', db_column='interfaceid', primary_key=True)
+    interface = models.OneToOneField('Interface', db_column='interfaceid',
+                                     primary_key=True)
     hex_string = models.CharField(db_column='hexstring', max_length=-1)
 
     class Meta:
@@ -708,9 +738,8 @@ class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
     given vlan for a given switch port."""
 
-    interface = models.ForeignKey('Interface', db_column='interfaceid', primary_key=True)
-    # XXX: 'vlan' is not a foreignkey to the vlan table in the database, but
-    # it should maybe be a foreign key.
+    interface = models.ForeignKey('Interface', db_column='interfaceid',
+                                  primary_key=True)
     vlan = models.IntegerField()
 
     class Meta:
@@ -730,8 +759,8 @@ class SwPortToNetbox(models.Model):
     ifindex = models.IntegerField()
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
         related_name='candidate_for_next_hop_set')
-    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid', null=True,
-        related_name='candidate_for_next_hop_set')
+    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
+        null=True, related_name='candidate_for_next_hop_set')
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
     class Meta:
@@ -821,8 +850,8 @@ class Interface(models.Model):
 
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
         related_name='connected_to_interface')
-    to_interface = models.ForeignKey('self', db_column='to_interfaceid', null=True,
-        related_name='connected_to_interface')
+    to_interface = models.ForeignKey('self', db_column='to_interfaceid',
+        null=True, related_name='connected_to_interface')
 
     gone_since = models.DateTimeField()
 
@@ -830,11 +859,17 @@ class Interface(models.Model):
         db_table = u'interface'
         ordering = ('baseport', 'ifname')
 
+    def __init__(self, *args, **kwargs):
+        super(Interface, self).__init__(*args, **kwargs)
+        # Create cache dictionary
+        # FIXME: Replace with real Django caching
+        self.time_since_activity_cache = {}
+
     def __unicode__(self):
         return u'%s at %s' % (self.ifname, self.netbox)
 
     def get_absolute_url(self):
-        kwargs={
+        kwargs = {
             'netbox_sysname': self.netbox.sysname,
             'port_id': self.id,
         }
@@ -852,6 +887,7 @@ class Interface(models.Model):
         return vlans
 
     def get_last_cam_record(self):
+        """Returns the newest cam record gotten from this switch port."""
         return self.netbox.cam_set.filter(ifindex=self.ifindex).latest(
             'end_time')
 
@@ -863,11 +899,6 @@ class Interface(models.Model):
         Returns None if no activity is found, else number of days since last
         activity as a datetime.timedelta object.
         """
-
-        # Create cache dictionary
-        # FIXME: Replace with real Django caching
-        if not hasattr(self, 'time_since_activity_cache'):
-             self.time_since_activity_cache = {}
 
         # Check cache for result
         if interval in self.time_since_activity_cache:
@@ -903,6 +934,7 @@ class Interface(models.Model):
             ).order_by('description')
 
     def get_link_display(self):
+        """Returns a display value for this interface's link status."""
         if self.ifoperstatus == OPER_UP:
             return "Active"
         elif self.ifadminstatus == ADM_DOWN:

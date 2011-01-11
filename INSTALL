@@ -44,6 +44,7 @@ The following python modules are required:
  * pysnmp-se
  * pyrad
  * rrd (from the rrdtool distribution)
+ * simplejson
  * twisted >= 8.1
  * twisted-snmp >= 0.3
  * xmpp (optional)

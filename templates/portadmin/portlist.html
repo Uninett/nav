@@ -1,10 +1,14 @@
 {% extends "portadmin/base.html" %}
 {% load portadmin %}
 
+{% block base_header_title %}
+PortAdmin - {{ netbox.get_short_sysname }}
+{% endblock %}
+
 {% block content %}
 
 
-{% if swports %}
+{% if interfaces %}
 
 <div id="infoboxcontainer" class="left">
 
@@ -19,9 +23,9 @@
 	</div>
 	{% endif %}
 
-	{% if ifaliasformat %}
+	{% if aliastemplate %}
 	<div class="infobox">
-		{% include "portadmin/aliasformat.html" %}
+		{{ aliastemplate }}
 	</div>
 	{% endif %}
 	
@@ -41,39 +45,39 @@
 <table id="portadmin-interfacecontainer" class="vertitable">
 	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
 	<tr>
-		<th class="ifname">Name</th>
+		<th class="ifname">Interface</th>
 		<th class="adminstatus" title="AdminStatus - If red the interface is down">A</th>
 		<th class="operstatus" title="OperStatus - If red there is no link on the interface">O</th>
-		<th class="ifalias">Alias</th>
+		<th class="ifalias">Port Description</th>
 		<th class="vlan">Vlan</th>
 		<th class="button">&nbsp;</th>
 	</tr>
   
-   	{% for swport in swports %}
-	<tr id="{{ swport.id }}">
-		<td>{{ swport.ifname }}</td>
+   	{% for interface in interfaces %}
+	<tr id="{{ interface.id }}">
+		<td>{{ interface.ifname }}</td>
 
-		<td class="text-center"><img src="/images/lys/{{ swport.ifadminstatus|drawLight }}" /></td>
-		<td class="text-center"><img src="/images/lys/{{ swport.ifoperstatus|drawLight }}" /></td>
+		<td class="text-center"><img title="AdminStatus - If red the interface is down" src="/images/lys/{{ interface.ifadminstatus|drawLight }}" /></td>
+		<td class="text-center"><img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" /></td>
 		
 		<td>
-			{% if swport.iseditable %}
-			<input class="ifalias" type="text" value="{{ swport.ifalias }}" />
+			{% if interface.iseditable %}
+			<input class="ifalias" type="text" value="{{ interface.ifalias }}" />
 			{% else %}
-			{{ swport.ifalias }}
+			{{ interface.ifalias }}
 			{% endif %}
 		</td>
 
 	
 
 		<td>
-			{% if swport.trunk %}
+			{% if interface.trunk %}
 			Trunk
 			{% else %}
-				{% if swport.iseditable %}
-					<select class="vlanlist" name="{{ swport.ifname }}">
+				{% if interface.iseditable %}
+					<select class="vlanlist" name="{{ interface.ifname }}">
 						{% for vlan in allowed_vlans %}
-							{% ifequal swport.vlan vlan %}
+							{% ifequal interface.vlan vlan %}
 							<option value="{{ vlan }}" selected="selected">{{ vlan }}</option>
 							{% else %}
 							<option value="{{ vlan }}">{{ vlan }}</option>
@@ -81,14 +85,14 @@
 						{% endfor %}
 					</select>
 				{% else %}			
-					{{swport.vlan}}
+					{{interface.vlan}}
 				{% endif %}
 			{% endif %}
 		</td>
 
 		<td>
-			{% if swport.iseditable %}
-			<img src="/images/portadmin/save.png" class="save hidden" alt="Save" title="Save" onclick="save_row({{ swport.id }})"/>
+			{% if interface.iseditable %}
+			<img src="/images/portadmin/save.png" class="save hidden" alt="Save" title="Save" onclick="save_row({{ interface.id }})"/>
 			{% endif %}
 		</td>
 	</tr>

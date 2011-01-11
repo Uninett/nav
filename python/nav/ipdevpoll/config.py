@@ -33,6 +33,9 @@ logfile = ipdevpolld.log
 [plugins]
 
 [jobs]
+
+[prefix]
+ignored = 127.0.0.0/8, fe80::/16
 """
 
 class IpdevpollConfig(ConfigParser.ConfigParser):

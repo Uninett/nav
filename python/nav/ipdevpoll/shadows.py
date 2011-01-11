@@ -555,6 +555,35 @@ class GwPortPrefix(Shadow):
     __shadowclass__ = manage.GwPortPrefix
     __lookups__ = ['gw_ip']
 
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._delete_missing_addresses(containers)
+
+    @classmethod
+    @utils.autocommit
+    def _delete_missing_addresses(cls, containers):
+        missing_addresses = cls._get_missing_addresses(containers)
+        gwips = [row['gw_ip'] for row in missing_addresses.values('gw_ip')]
+        if len(gwips) < 1:
+            return
+
+        netbox = containers.get(None, Netbox).get_existing_model()
+        cls._logger.info("deleting %d missing addresses from %s: %s",
+                         len(gwips), netbox.sysname, ", ".join(gwips))
+
+        missing_addresses.delete()
+
+    @classmethod
+    @utils.autocommit
+    def _get_missing_addresses(cls, containers):
+        found_addresses = [g.gw_ip
+                           for g in containers[cls].values()]
+        netbox = containers.get(None, Netbox).get_existing_model()
+        missing_addresses = manage.GwPortPrefix.objects.filter(
+            interface__netbox=netbox).exclude(
+            gw_ip__in=found_addresses)
+        return missing_addresses
+
     def _parse_description(self, containers):
         """Parses router port descriptions to find a suitable Organization,
         netident, usageid and description for this vlan.
