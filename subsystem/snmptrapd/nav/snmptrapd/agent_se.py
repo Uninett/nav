@@ -115,12 +115,12 @@ class TrapListener:
                 # Just resume loop if we timed out
                 continue
 
+            logger.debug("Packet content: %r", request)
             try:
                 trap = self._decode(request, src)
             except Exception, why:
                 logger.exception("Unknown exception while decoding snmp trap "
                                  "packet from %r, ignoring trap", src)
-                logger.debug("Packet content: %r", request)
                 continue
             else:
                 callback(trap)
