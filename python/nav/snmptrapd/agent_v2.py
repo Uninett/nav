@@ -59,6 +59,7 @@ class TrapListener:
             if question is None:
                 continue
 
+            logger.debug("Packet content: %r", question)
             try:
                 # Decode request of any version
                 (req, rest) = v2c.decode(question)
@@ -76,7 +77,6 @@ class TrapListener:
                 # and ignore any exception
                 logger.exception("Exception while decoding snmp trap packet "
                                  "from %r, ignoring trap", src)
-                logger.debug("Packet content: %r", question)
                 continue
 
             agent = None
@@ -107,8 +107,8 @@ class TrapListener:
 
 
             # Create trap object, let callback decide what to do with it.
-            trap = SNMPTrap(str(src), agent, type, genericType, snmpTrapOID,
-                            uptime, community, version, varbinds)
+            trap = SNMPTrap(str(src), agent or str(src), type, genericType,
+                            snmpTrapOID, uptime, community, version, varbinds)
             callback(trap)
 
         # Exit nicely
