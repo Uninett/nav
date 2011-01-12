@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler nav.web.report.handler
-DirectoryIndex index

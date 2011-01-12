@@ -1,3 +1,76 @@
+Version 3.7.2
+(released 23 December 2010)
+
+ Bugfixes:
+
+  * LP#586334 (HTTPS service checker doesn't work with Python 2.6)
+  * LP#649761 (ipdevinfo does not show router port IPs/prefixes)
+  * LP#649767 (ipdevpoll should be able to exclude prefixes via configuration)
+  * LP#692959 (ipdevpoll doesn't delete extinct router addresses)
+
+
+Version 3.7.1
+(released 07 December 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database schema. If you are  ##
+## upgrading from a previous release you also need to upgrade your ##
+## schema. For information on how to do this, please take a look   ##
+## in doc/sql/upgrades/README .                                    ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#674433 (ipdevpoll: local variable 'obj_model' referenced before
+               assignment)
+  * LP#674466 (Room coordinates can't be edited in NAV 3.7.0)
+  * LP#675532 (ipdevinfo crash on Nortel interfaces)
+  * LP#675543 (ipdevinfo crash: could not identify an ordering operator for
+               type point)
+  * LP#678436 (SeedDB crashes on unknown IntegrityErrors during delete)
+  * LP#686435 (Queued alerts prevent IP devices from being deleted)
+
+  * The installation documentation had grown stale and has now been revised.
+
+
+Version 3.7.0
+(released 11 November 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.  See also the release NOTES for upgrade info.      ##
+##                                                                 ##
+#####################################################################
+
+ Features:
+  * Geomap is a new tool that displays a network traffic map geographically,
+    using OpenStreetMap data.
+  * LDAP authentication now also works for Active Directory.
+  * The user administration tool allows administrators to act as other users in
+    the web interface, useful for troubleshooting alert profiles or privilege
+    issues.
+  * ipdevpoll now enables the psyco JIT-optimizing compiler if available.
+  * New "Direct neighborship candidates" report, useful for debugging issues
+    with topology detection.
+
+ Bugfixes:
+  * LP#671385 (ipdevpoll - DataError: invalid byte sequence for encoding
+               "UTF8": 0x89)
+  * LP#672444 (SeedDB crash when updating IP device whose serial has changed to
+               a duplicate)
+  * LP#666195 (Arnold error on port quarantine)
+
+
 Version 3.6.3
 (released 04 November 2010)
 

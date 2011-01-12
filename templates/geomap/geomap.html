@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+<script type="text/javascript" src="/js/geomap/proj4js-compressed.js"></script>
+<script type="text/javascript" src="/js/geomap/projdefs/EPSG326xx.js"></script>
+<script type="text/javascript" src="/js/geomap/projdefs/EPSG327xx.js"></script>
+<script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script type="text/javascript" src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+ 
+<script type="text/javascript" src="/js/geomap/util.js"></script>
+<script type="text/javascript" src="/js/geomap/coordinates.js"></script>
+<script type="text/javascript" src="/js/geomap/NetworkLayer.js"></script>
+<script type="text/javascript" src="/js/geomap/PopupControl.js"></script>
+<script type="text/javascript" src="/js/geomap/PositionControl.js"></script>
+<script type="text/javascript" src="/js/geomap/MyHTTPProtocol.js"></script>
+<script type="text/javascript" src="/js/geomap/Calendar.js"></script>
+<script type="text/javascript" src="/js/geomap/Time.js"></script>
+<script type="text/javascript" src="/js/geomap/TimeInterval.js"></script>
+<script type="text/javascript" src="/js/geomap/TimeNavigator.js"></script>
+<script type="text/javascript" src="/js/geomap/Permalink.js"></script>
+<script type="text/javascript" src="/js/geomap/geomap.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/style/geomap.css" />
+{% endblock %}
+
+
+{% block base_body_start %}
+<body onload="init('map', 'data')">
+{% endblock %}
+
+
+{% block base_content %}
+
+<h2 id="geomap-heading">Geomap</h2>
+
+<p>Variant:
+{% for other_variant in config.variants.values %}
+{% ifequal other_variant.identifier variant %}
+{{ other_variant.name }}
+{% else %}
+<a href="/geomap/{{ other_variant.identifier }}/">{{ other_variant.name }}</a>
+{% endifequal %}
+{% if not forloop.last %}
+|
+{% endif %}
+{% endfor %}
+</p>
+
+<table id="map-and-form">
+<tr>
+<td id="map-container">
+<div id="map"></div>
+</td>
+
+<td id="geomap-sidebar">
+
+<div id="time-navigation">
+
+  <p id="time-navigation-selected-time"></p>
+
+  <p>Interval size: <select id="time-navigation-interval-size"></select></p>
+
+  <p>
+  <span id="time-navigation-prev-jump"></span>
+  <span id="time-navigation-prev"></span>
+  <span id="time-navigation-next"></span>
+  <span id="time-navigation-next-jump"></span>
+  <span id="time-navigation-last"></span>
+  <span id="time-navigation-up"></span>
+  <select id="time-navigation-down"></select>
+  </p>
+
+  <table id="time-navigation-calendar">
+    <tr id="time-navigation-calendar-head-row">
+      <td id="time-navigation-calendar-prev-year" title="Previous year">&lt;&lt;</td>
+      <td id="time-navigation-calendar-prev-month" title="Previous month">&lt;</td>
+      <td id="time-navigation-calendar-header"></td>
+      <td id="time-navigation-calendar-next-month" title="Next month">&gt;</td>
+      <td id="time-navigation-calendar-next-year" title="Next year">&gt;&gt;</td>
+    </tr>
+    <tr id="time-navigation-calendar-body">
+      <td colspan="5">
+	<table id="time-navigation-calendar-month"></table>
+      </td>
+    </tr>
+  </table>
+
+</div>
+
+<p class="permalink">
+<a id="permalink">Link to this configuration</a>
+</p>
+
+<div id="position">
+  Last clicked position:<br />
+  <input type="text" id="pos-clicked-lonlat" size="18"/> (lat/lon)
+  <input type="text" id="pos-clicked-utm" size="18"/> (UTM)
+</div>
+
+</td></tr></table>
+
+
+
+<div id="legend">
+  <table>
+    <tr>
+      {% for indicator_list in variant_config.indicators.values %}
+      {% for indicator in indicator_list %}
+      <td>
+	<table>
+	  <tr><th colspan="2">{{ indicator.name }}:</th></tr>
+	  {% for option in indicator.options %}
+	  <tr>
+	    <td>
+	      {% ifequal indicator.property 'color' %}
+	    <div
+	      class="colorbox"
+	      style="background-color: {{ option.value }}">
+	    </div>
+	    {% endifequal %}
+
+	    {% ifequal indicator.property 'size' %}
+	    {% ifequal indicator.type 'node' %}
+	    <!--<span style="font-size: {{ option.value }}em">&#8226;</span>-->
+	    <div
+	      class="node-size-indicator"
+	      style="width: {{ option.value }}px; height: {{ option.value }}px"></div>
+	    {% endifequal %}
+	    {% ifequal indicator.type 'edge' %}
+	    <div
+	      class="edge-size-indicator"
+	      style="height: {{ option.value }}px"></div>
+	    {% endifequal %}
+	    {% endifequal %}
+	    </td>
+
+	    <td>{{ option.label }}</td>
+	  </tr>
+	  {% endfor %}
+	</table>
+      </td>
+      {% endfor %}
+      {% endfor %}
+    </tr>
+  </table>
+</div>
+{% endblock %}
