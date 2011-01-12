@@ -1,10 +1,8 @@
 #!/bin/sh
 #
-# Helper script to allow simpler setup of required enviroment for performing
-# NAV tests.
+# Helper script to allow quick setup of a full NAV environment for integration
+# testing
 #
-# Use of virtualenv should probably be deprecated in favor of a newer nose
-# version installed through backports.
 
 set -e
 
@@ -25,14 +23,16 @@ if [ -d "$VIRTENV" ]; then
 else
     echo "**> creating virtualenv"
     virtualenv "$VIRTENV"
-    source "$VIRTENV/bin/activate"
-    easy_install nose
 fi
+source "$VIRTENV/bin/activate"
+easy_install pip
+pip install -r tests/requirements.txt
+
 
 # Cleanup any existing DB
 dropdb $PGDATABASE || true
 
-(cd doc/sql; ./createdb.sh -d $PGDATABASE -u $PGUSER -U)
+(cd sql; ./createdb.sh -d $PGDATABASE -u $PGUSER -U)
 
 # Make install code into given directory
 ./autogen.sh

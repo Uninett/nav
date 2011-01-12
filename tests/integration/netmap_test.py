@@ -1,8 +1,15 @@
-from nav.tests.cases import ModPythonTestCase
-from nav.web.netmap import handler
+from unittest import TestCase
+from minimock import Mock
 
-class NetmapServerTest(ModPythonTestCase):
-    module_under_test = handler
+from nav.web.netmap.views import output_graph_data
 
+
+class NetmapServerTest(TestCase):
     def test_server_no_unicode_output(self):
-        self.handler_outputs_no_unicode('/netmap/server')
+        request = Mock('request')
+        request.build_absolute_uri = lambda: '/netmap/server'
+        request._req = Mock('ModPythonRequest')
+        request._req.session = {'user': {'login': 'admin'}}
+
+        response = output_graph_data(request)
+        self.assertNotEquals(type(response.content), unicode)

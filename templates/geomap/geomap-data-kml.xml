@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    {% for feature in features %}
+    {% ifequal feature.type 'node' %}
+    <Placemark>
+      <name>Point {{ feature.id }}</name>
+      <description>
+        <![CDATA[{{ feature.popup.content }}]]>
+      </description>
+      <Point>
+        <coordinates>
+	  {% for c in feature.geometry.coordinates %}{{ c }}{% if forloop.first %},{% endif %}{% endfor %}
+	</coordinates>
+      </Point>
+    </Placemark>
+    {% else %}
+    <Placemark>
+      <name>Line {{ feature.id }}</name>
+      <description>
+        <![CDATA[{{ feature.popup.content }}]]>
+      </description>
+      <LineString>
+        <coordinates>
+	  {% for lon, lat in feature.geometry.coordinates %}
+	  {{ lon }},{{ lat }}
+	  {% endfor %}
+        </coordinates>
+      </LineString>
+    </Placemark>
+    {% endifequal %}
+    {% endfor %}
+  </Document>
+</kml>

@@ -1,0 +1,218 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+<table class="vertitable">
+    <caption>
+        Interface {{ port.ifname }}
+        {% if port.module %}
+        <br />at {{ port.module.netbox.get_short_sysname }}
+        {% endif %}
+    </caption>
+
+    <tr>
+        <th>At IP device</th>
+        <td><a href="{{ port.netbox.get_absolute_url }}">
+            {{ port.netbox }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Interface</th>
+        <td>{{ port.ifdescr }}</td>
+    </tr>
+
+    <tr>
+        <th>At module</th>
+        <td>
+        {% if port.module %}
+        <a href="{{ port.module.get_absolute_url }}">
+            Module {{ port.module.name }}</a>
+        {% else %}
+        No module
+        {% endif %}
+        </td>
+    </tr>
+
+{% if port.baseport %}
+    <tr>
+        <th>Port</th>
+        <td>{{ port.baseport }}</td>
+    </tr>
+{% endif %}
+
+    <tr>
+        <th>Port name</th>
+        <td>{{ port.ifalias|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>IfIndex</th>
+        <td>{{ port.ifindex }}</td>
+    </tr>
+
+    <tr>
+        <th>Link</th>
+        <td>{{ port.get_link_display|capfirst }}</td>
+    </tr>
+
+    <tr>
+        <th>Speed</th>
+        <td>{{ port.speed }} Mbit</td>
+    </tr>
+
+{% if port.duplex %}
+    <tr>
+        <th>Duplex</th>
+        <td>{{ port.get_duplex_display|capfirst }}</td>
+    </tr>
+
+    <tr>
+        <th>Trunk</th>
+        <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>Configured VLAN</th>
+        <td>{{ port.vlan|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>Detected VLANs</th>
+        <td>
+            {% with port.swportvlan_set.all as swportvlans %}
+                {% if swportvlans %}
+                    <ul>
+                    {% for swportvlan in swportvlans %}
+                        <li>
+                            <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
+                            {{ swportvlan.vlan }}</a>
+                            <ul>
+                                <li>Direction: {{ swportvlan.get_direction_display }}</li>
+                            </ul>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+{% endif %}
+
+    <tr>
+        <th>To IP device</th>
+        <td>
+            {% if port.to_netbox %}
+                <a href="{{ port.to_netbox.get_absolute_url }}">
+                    {{ port.to_netbox }}</a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <th>To switch port</th>
+        <td>
+            {% if port.to_interface %}
+                <a href="{{ port.to_interface.get_absolute_url }}">
+                    {{ port.to_interface }}</a>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+
+{% if port.baseport %}
+    <tr>
+        <th>Patched to</th>
+        <td>
+            {% if port.patch_set.count %}
+                <ul>
+                {% for patch in port.patch_set.all %}
+                    <li>Jack {{ patch.cabling.jack }}, in room
+                        <a href="{% url report-netbox-room patch.cabling.room.id %}">
+                        {{ patch.cabling.room.id }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <th>Last CAM record</th>
+        <td>
+            {% with port.get_last_cam_record.end_time|timesince as time_since %}
+                {% if time_since %}
+                    {{ time_since }} ago
+                {% else %}
+                    Today
+                {% endif %}
+            {% endwith %}<br />
+        </td>
+    </tr>
+{% endif %}
+
+{% if port.gwportprefix_set.all %}
+    <tr>
+        <th colspan="2">Addresses</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+                <table>
+		    <tr>
+		      <th>IP</th><th>Prefix</th>
+		    </tr>
+                {% for gwprefix in port.gwportprefix_set.all %}
+                    <tr>
+                        <td>{{ gwprefix.gw_ip}}</td>
+			<td><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a></td>
+                    </tr>
+                {% endfor %}
+                </table>
+        </td>
+    </tr>
+{% endif %}
+
+    <tr>
+        <th colspan="2">Statistics</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            {% with port.get_rrd_data_sources as dss %}
+                {% if dss|length %}
+                    <ul>
+                    {% for ds in dss %}
+                        <li><a href="{{ ds.get_absolute_url }}">
+                            {{ ds.description }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+
+{% if port.baseport %}
+    <tr>
+        <th colspan="2">Actions</th>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            <ul>
+                <li><a href="{% url machinetracker-swport port.netbox.sysname, port.ifname %}">
+                    Track MAC behind port</a></li>
+            </ul>
+        </td>
+    </tr>
+{% endif %}
+</table>
+
+{% endblock %}

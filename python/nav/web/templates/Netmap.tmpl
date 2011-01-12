@@ -1,0 +1,58 @@
+#encoding UTF-8
+## $Id$
+##
+## Copyright 2008 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Kristian Klette
+##
+
+#extends MainTemplate
+#from nav.web import escape
+
+#attr $path =  [("Home", "/"), ("Netmap", "")]
+
+#block content
+<!--[if !IE]>-->
+<object classid="java:no.uninett.nav.netmap.Main" type="application/x-java-applet;version=1.5.0" archive="applet/Netmap.jar, applet/prefuse.jar" width="1024" height="768">
+<param name="codebase" value="applet" />
+<param name="archive" value="Netmap.jar, prefuse.jar" />
+<param name="sessionid" value="$sessionID">
+<param name="baseurl" value="$baseURL">
+<param name="is_admin" value="$is_admin">
+<!--<![endif]-->
+<object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" codebase="http://java.sun.com/getjava/index.jsp" width="1024" height="768">
+
+<param name="code" value="no.uninett.nav.netmap.Main">
+<param name="codebase" value="applet" />
+<param name="archive" value="Netmap.jar, prefuse.jar">
+<param name="sessionid" value="$sessionID">
+<param name="baseurl" value="$baseURL">
+<param name="is_admin" value="$is_admin">
+<strong>
+No Java Plug-in found.<br />
+<a href="http://java.sun.com/getjava/index.jsp">Please download and install one.</a>
+</strong>
+</object>
+<!--[if !IE]>-->
+
+</object>
+<!--<![endif]-->
+
+#end block content

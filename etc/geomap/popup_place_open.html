@@ -1,0 +1,8 @@
+<div class="place-popup">
+  {{ place.num_rooms }} room{{ place.num_rooms|pluralize }}
+  <ul>
+    {% for room in place.rooms %}
+    <li>Room: {{ room.id }} ({{ room.descr }})</li>
+    {% endfor %}
+  </ul>
+</div>
