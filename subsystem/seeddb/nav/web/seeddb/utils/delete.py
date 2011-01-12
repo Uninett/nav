@@ -15,6 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Functions for deleting objects from seeddb.
+"""
+
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -23,7 +26,9 @@ from django.http import HttpResponseRedirect
 
 from nav.web.message import new_message, Messages
 
-def render_delete(request, model, redirect, whitelist=[], extra_context={}):
+def render_delete(request, model, redirect, whitelist=None, extra_context=None):
+    """Handles input and rendering of general delete page.
+    """
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
@@ -32,6 +37,11 @@ def render_delete(request, model, redirect, whitelist=[], extra_context={}):
             "You need to select at least one object to edit",
             Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
+
+    if not whitelist:
+        whitelist = []
+    if not extra_context:
+        extra_context = {}
 
     objects = model.objects.filter(
         pk__in=request.POST.getlist('object')
@@ -71,6 +81,14 @@ def render_delete(request, model, redirect, whitelist=[], extra_context={}):
         extra_context, RequestContext(request))
 
 def dependencies(queryset, whitelist):
+    """Looks up related objects for the provided queryset.
+    Only looks up models provided in the whitelist.
+
+    Will only display related objects, not what will happen if the user choose
+    to delete the objects in the queryset. The exact nature is defined in the
+    database, and can range from CASCADE (all dependent rows are all deleted)
+    to nothing, which will probably cause the delete statement to fail.
+    """
     primary_keys = [obj.pk for obj in queryset]
     related = queryset.model._meta.get_all_related_objects()
 #    related += queryset.model._meta.get_all_related_many_to_many_objects()

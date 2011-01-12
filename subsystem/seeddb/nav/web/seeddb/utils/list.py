@@ -15,6 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Functions for rendering seeddb list views"""
+
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
@@ -26,7 +28,7 @@ from nav.django.utils import get_verbose_name
 ITEMS_PER_PAGE = 100
 
 def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk', \
-        filter_form=None, template='seeddb/list.html', extra_context={}):
+        filter_form=None, template='seeddb/list.html', extra_context=None):
     """Renders a Seed DB list.
 
     Parameters:
@@ -42,6 +44,9 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk', \
      - extra_context: A dictionary containing all additional context that
                       should be used in the template.
     """
+
+    if not extra_context:
+        extra_context = {}
 
     order_by = request.GET.get('sort')
     order_by = _get_order_by(order_by, value_list)
@@ -102,7 +107,9 @@ def _filter_query(filter_form, queryset):
     """Apply filter_form to queryset.
     """
     if filter_form and filter_form.is_valid():
-        query_filter = dict([(key, value) for key, value in filter_form.cleaned_data.items() if value])
+        filter_data = filter_form.cleaned_data.items()
+        filter_tuples = [(key, value) for key, value in filter_data if value]
+        query_filter = dict(filter_tuples)
         queryset = queryset.filter(**query_filter)
     return queryset
 
@@ -110,7 +117,9 @@ def _get_order_by(order_by, value_list):
     """Check if the specified order is valid.
     Returns order_by if it's valid, else it returns the first value in value_list.
     """
-    if not order_by or order_by.find('-') not in (-1, 0) or order_by.lstrip('-') not in value_list:
+    hyp_find = order_by.find('-')
+    key = order_by.lstrip('-')
+    if not order_by or hyp_find not in (-1, 0) or key not in value_list:
         order_by = value_list[0]
     return order_by
 

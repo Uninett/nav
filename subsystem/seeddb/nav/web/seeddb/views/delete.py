@@ -18,8 +18,8 @@
 from django.core.urlresolvers import reverse
 
 from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, NetboxType, Room, Location, Organization, Device
-from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
+from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
+from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix, Device
 from nav.models.service import Service
 
 from nav.web.seeddb.utils.delete import render_delete
@@ -67,8 +67,10 @@ def location_delete(request):
         whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def organization_delete(request):
+    navpath = NAVPATH_DEFAULT + [('Organization',
+        reverse('seeddb-organization'))]
     extra = {
-        'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
+        'navpath': navpath,
         'tab_template': 'seeddb/tabs_organization.html',
         'active': {'organization': True},
     }
@@ -103,8 +105,9 @@ def vendor_delete(request):
         whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
 
 def subcategory_delete(request):
+    navpath = NAVPATH_DEFAULT + [('Subcategory', reverse('seeddb-subcategory'))]
     extra = {
-        'navpath': NAVPATH_DEFAULT + [('Subcategory', reverse('seeddb-subcategory'))],
+        'navpath': navpath,
         'tab_template': 'seeddb/tabs_subcategory.html',
         'active': {'subcategory': True},
     }

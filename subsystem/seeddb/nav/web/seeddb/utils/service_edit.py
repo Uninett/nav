@@ -37,11 +37,11 @@ def service_save(request, service_form, property_form):
             netbox=netbox,
             handler=service_form.cleaned_data['handler']
         )
-    for (property, value) in property_form.cleaned_data.items():
+    for (prop, value) in property_form.cleaned_data.items():
         if value:
             ServiceProperty.objects.create(
                 service=service,
-                property=property,
+                property=prop,
                 value=value
             )
     new_message(

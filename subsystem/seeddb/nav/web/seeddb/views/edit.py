@@ -37,15 +37,16 @@ from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm
 from nav.web.seeddb.forms import UsageForm, NetboxTypeForm, VendorForm
 from nav.web.seeddb.forms import SubcategoryForm, PrefixForm, CablingForm
 from nav.web.seeddb.forms import PatchForm, NetboxForm, NetboxSerialForm
-from nav.web.seeddb.forms import ServiceForm, ServicePropertyForm, ServiceChoiceForm
-from nav.web.seeddb.forms import VlanForm
+from nav.web.seeddb.forms import ServiceForm, ServicePropertyForm
+from nav.web.seeddb.forms import VlanForm, ServiceChoiceForm
 
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
+FORM_STEP = 0
+SERIAL_STEP = 1
+SAVE_STEP = 2
+
 def netbox_edit(request, netbox_sysname=None):
-    FORM_STEP = 0
-    SERIAL_STEP = 1
-    SAVE_STEP = 2
     netbox = None
     form = None
     serial_form = None
@@ -64,15 +65,19 @@ def netbox_edit(request, netbox_sysname=None):
             if form.is_valid():
                 serial, netbox_type = netbox_get_serial_and_type(form)
                 form, serial_form, subcat_form = netbox_serial_and_subcat_form(
-                    request, form, serial, netbox_type)
+                    form, serial, netbox_type)
                 step = SAVE_STEP
         elif step == SAVE_STEP:
             form = NetboxReadonlyForm(request.POST)
             if form.is_valid():
                 data = form.cleaned_data
-                serial_form = NetboxSerialForm(request.POST, netbox_id=data['id'])
-                subcat_form = get_netbox_subcategory_form(data['category'], post_data=request.POST)
-                if serial_form.is_valid() and (not subcat_form or subcat_form.is_valid()):
+                serial_form = NetboxSerialForm(
+                    request.POST, netbox_id=data['id'])
+                subcat_form = get_netbox_subcategory_form(
+                    data['category'], post_data=request.POST)
+
+                subcat_form_valid = not subcat_form or subcat_form.is_valid()
+                if serial_form.is_valid() and subcat_form_valid:
                     return netbox_save(request, form, serial_form, subcat_form)
     else:
         if netbox:
@@ -130,7 +135,8 @@ def service_edit(request, service_id=None):
                 'netbox': netbox.pk,
                 'handler': handler,
             })
-            initial = dict([(prop.property, prop.value) for prop in service_prop])
+            initial = dict(
+                [(prop.property, prop.value) for prop in service_prop])
             property_form = ServicePropertyForm(
                 service_args=getDescription(service.handler),
                 initial=initial)
@@ -151,13 +157,11 @@ def service_edit(request, service_id=None):
         context, RequestContext(request))
 
 def service_add(request):
-    select_args = {
-        'location': False,
-        'room': False,
-        'netbox': True,
-        'netbox_multiple': False,
-    }
-    box_select = QuickSelect(**select_args)
+    box_select = QuickSelect(
+        location=False,
+        room=False,
+        netbox=True,
+        netbox_multiple=False)
     if request.method == 'POST':
         choice_form = ServiceChoiceForm(request.POST)
         netbox_id = request.POST.get('netbox')
@@ -171,7 +175,9 @@ def service_add(request):
         else:
             if choice_form.is_valid():
                 property_form = ServicePropertyForm(
-                    service_args=getDescription(choice_form.cleaned_data['service']))
+                    service_args=getDescription(
+                        choice_form.cleaned_data['service']
+                    ))
                 service_form = ServiceForm(initial={
                     'netbox': netbox.pk,
                     'handler': choice_form.cleaned_data['service'],
@@ -181,7 +187,9 @@ def service_add(request):
                     'property_form': property_form,
                     'active': {'service': True},
                     'sub_active': {'add': True},
-                    'navpath': NAVPATH_DEFAULT + [('Service', reverse('seeddb-service'))],
+                    'navpath': NAVPATH_DEFAULT + [
+                        ('Service', reverse('seeddb-service'))
+                    ],
                     'tab_template': 'seeddb/tabs_service.html',
                     'title': 'NAV - Seed Database - Add service',
                     'handler': choice_form.cleaned_data['service'],
@@ -227,11 +235,13 @@ def location_edit(request, location_id=None):
 def organization_edit(request, organization_id=None):
     extra = {
         'active': {'organization': True},
-        'navpath': NAVPATH_DEFAULT + [('Organization', reverse('seeddb-organization'))],
+        'navpath': NAVPATH_DEFAULT + [
+            ('Organization', reverse('seeddb-organization'))
+        ],
         'tab_template': 'seeddb/tabs_organization.html',
     }
-    return render_edit(request, Organization, OrganizationForm, organization_id, 
-        'seeddb-organization-edit',
+    return render_edit(request, Organization, OrganizationForm,
+        organization_id, 'seeddb-organization-edit',
         extra_context=extra)
 
 def usage_edit(request, usage_id=None):
@@ -267,7 +277,9 @@ def vendor_edit(request, vendor_id=None):
 def subcategory_edit(request, subcategory_id=None):
     extra = {
         'active': {'subcategory': True},
-        'navpath': NAVPATH_DEFAULT + [('Subcategory', reverse('seeddb-subcategory'))],
+        'navpath': NAVPATH_DEFAULT + [
+            ('Subcategory', reverse('seeddb-subcategory'))
+        ],
         'tab_template': 'seeddb/tabs_subcategory.html',
     }
     return render_edit(request, Subcategory, SubcategoryForm, subcategory_id,

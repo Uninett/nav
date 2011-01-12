@@ -15,6 +15,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Functions for editing general objects in seeddb.
+
+(Not netboxes and services).
+"""
+
 from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
@@ -29,7 +34,12 @@ from nav.models.manage import Netbox
 
 def render_edit(request, model, form_model, object_id, redirect, \
         identifier_attr='pk', title_attr='pk', template='seeddb/edit.html', \
-        extra_context={}):
+        extra_context=None):
+    """Handles editing for objects in seeddb.
+    """
+
+    if not extra_context:
+        extra_context = {}
 
     obj = _get_object(model, object_id, identifier_attr)
     (identifier, title) = _get_identifier_title(
@@ -65,6 +75,20 @@ def render_edit(request, model, form_model, object_id, redirect, \
         extra_context, RequestContext(request))
 
 def _get_object(model, object_id, identifier_attr):
+    """Fetches the object where identifier_attr=object_id.
+
+    model           - the model the lookup is performed on
+    object_id       - the value we are looking for
+    identifier_attr - the name of the column we are looking for object_id in
+
+    Returns:
+     - the object if found
+     - none if object_id is a None value
+
+    Raises:
+     - Http404 if object_id is not a None value, but a corresponding object was
+       not found.
+    """
     if object_id:
         try:
             params = {identifier_attr: object_id}
@@ -75,6 +99,15 @@ def _get_object(model, object_id, identifier_attr):
     return None
 
 def _get_identifier_title(obj, identifier_attr, title_attr):
+    """Gets the values for given attributes from an object.
+
+    obj - the object we are looking at
+    identifier_attr - the name of the attribute we will use as identifier
+    title_attr - the name of the attribute we will use as the title
+
+    Returns:
+     - A tuple with the identifier and title.
+    """
     identifier = None
     title = None
     if obj:
@@ -83,24 +116,56 @@ def _get_identifier_title(obj, identifier_attr, title_attr):
     return (identifier, title)
 
 def resolve_ip_and_sysname(name):
-    try:
-        ip = IP(name)
-    except ValueError:
-        ip = IP(gethostbyname(name))
-    try:
-        sysname = gethostbyaddr(unicode(ip))[0]
-    except SocketError:
-        sysname = unicode(ip)
-    return (ip, sysname)
+    """Given a name that can be either an ip or a hostname/domain name, this
+    function looks up IP and hostname.
 
-def does_ip_exist(ip, netbox_id=None):
+    name - ip or hostname
+
+    Returns:
+     - tuple with ip-addres and sysname
+    """
+    try:
+        ip_addr = IP(name)
+    except ValueError:
+        ip_addr = IP(gethostbyname(name))
+    try:
+        sysname = gethostbyaddr(unicode(ip_addr))[0]
+    except SocketError:
+        sysname = unicode(ip_addr)
+    return (ip_addr, sysname)
+
+def does_ip_exist(ip_addr, netbox_id=None):
+    """Checks if the given IP already exist in database.
+
+    Parameters:
+     * ip_addr   - the IP addres to look for.
+     * netbox_id - a netbox primary key that can have the given ip_addr, and
+                   the function will still return False.
+
+    Returns:
+     - True if the IP already exists in the database (and the netbox with the
+       IP is not the same as the given netbox_id).
+     - False if not.
+    """
     if netbox_id:
-        ip_qs = Netbox.objects.filter(Q(ip=unicode(ip)), ~Q(id=netbox_id))
+        ip_qs = Netbox.objects.filter(Q(ip=unicode(ip_addr)), ~Q(id=netbox_id))
     else:
-        ip_qs = Netbox.objects.filter(ip=unicode(ip))
+        ip_qs = Netbox.objects.filter(ip=unicode(ip_addr))
     return ip_qs.count() > 0
 
 def does_sysname_exist(sysname, netbox_id=None):
+    """Checks if given sysname exists in database.
+
+    Parameters:
+     * sysname   - the sysname addres to look for.
+     * netbox_id - a netbox primary key that can have the given ip_addr, and
+                   the function will still return False.
+
+    Returns:
+     - True if the sysname already exists in the database (and the netbox with
+       the sysname is not the same as the given netbox_id).
+     - False if not.
+    """
     if netbox_id:
         sysname_qs = Netbox.objects.filter(Q(sysname=sysname), ~Q(id=netbox_id))
     else:

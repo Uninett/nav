@@ -30,7 +30,9 @@ STEP_DO_OPERATION = 1
 STEP_CONFIRM = 2
 STEP_SAVE = 3
 
-def move(request, model, form_model, redirect, title_attr='id', extra_context={}):
+def move(request, model, form_model, redirect, title_attr='id', extra_context=None):
+    if not extra_context:
+        extra_context = {}
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
@@ -49,8 +51,8 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
     except ValueError:
         step = STEP_OPERATION_CHOICE
 
-    form = ''
-    op_form = ''
+    form = None
+    op_form = None
     if step == STEP_OPERATION_CHOICE:
         op_form = MoveOperationForm(form=form_model(), hidden=False)
         step = STEP_DO_OPERATION
@@ -79,12 +81,15 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
                 form = form_model(request.POST, operation_form=op_form)
                 if form.is_valid():
                     foreign_keys = form.cleaned_data.keys()
-                    data = dict([(key, form.cleaned_data[key]) for key in foreign_keys])
+                    data = dict(
+                        [(key, form.cleaned_data[key]) for key in foreign_keys])
                     objects.update(**data)
-                    foreign_key_string = ", ".join([get_verbose_name(model, key) for key in foreign_keys])
+                    foreign_key_string = ", ".join(
+                        [get_verbose_name(model, key) for key in foreign_keys])
                     new_message(
                         request._req,
-                        "Changed %s on %i %s models" % (foreign_key_string, len(objects), verbose_name),
+                        "Changed %s on %i %s models" % (
+                            foreign_key_string, len(objects), verbose_name),
                         Messages.SUCCESS)
                     return HttpResponseRedirect(reverse(redirect))
 
@@ -98,8 +103,8 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context={}
     object_list = _process_values(values, data, title_attr, fields)
 
     context = {
-        'form': form,
-        'operation_form': op_form,
+        'form': form or '',
+        'operation_form': op_form or '',
         'objects': objects,
         'values': object_list,
         'data': data,
