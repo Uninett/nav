@@ -31,6 +31,8 @@ from dataloader import NetboxLoader
 from jobs import JobHandler, AbortedJobError
 from nav.tableformat import SimpleTableFormatter
 
+from nav.ipdevpoll.utils import log_unhandled_failure
+
 logger = logging.getLogger(__name__)
 
 class NetboxScheduler(object):
@@ -146,11 +148,9 @@ class NetboxScheduler(object):
             self.loop.call.reset(delay)
 
     def _log_unhandled_error(self, failure, job_handler):
-        self.logger.error(
-            "Unhandled exception raised by JobHandler: %s\n%s",
-            failure.getErrorMessage(),
-            failure.getTraceback()
-            )
+        log_unhandled_failure(self.logger,
+                              failure,
+                              "Unhandled exception raised by JobHandler")
         return failure
 
     def _log_time_to_next_run(self, thing=None):
