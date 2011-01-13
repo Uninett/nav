@@ -313,11 +313,7 @@ def handle_queued_alerts(queued_alerts, now=None):
             logger.error('Account %s has an invalid subscription type in subscription %d' % (subscription.account, subscription.id))
 
         if send:
-            end = queued_alert.alert.history and \
-                queued_alert.alert.history.end_time or None
-
-            # Check if alert should be ignored
-            if subscription.ignore_resolved_alerts and subscription.type != AlertSubscription.NOW and end and end < now:
+            if alert_should_be_ignored(queued_alert, subscription, now):
                 logger.info('Ignoring resolved alert %d due to user preference' % queued_alert.alert_id)
 
                 num_resolved_alerts_ignored += 1
@@ -339,6 +335,19 @@ def handle_queued_alerts(queued_alerts, now=None):
     del queued_alerts
 
     return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends, num_resolved_alerts_ignored)
+
+
+def alert_should_be_ignored(queued_alert, subscription, now):
+    """Returns True if the subscription specifies that the queued_alert should
+    be ignored.
+
+    """
+    return (queued_alert.alert.history is not None and
+            queued_alert.alert.history.end_time is not None and
+            queued_alert.alert.history.end_time < now and
+            subscription is not None and
+            subscription.ignore_resolved_alerts and
+            subscription.type != AlertSubscription.NOW)
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, type):
     '''Checks a given alert against an array of filtergroupcontents'''
