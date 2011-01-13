@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from mock import Mock
 
 import unittest
