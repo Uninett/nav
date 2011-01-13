@@ -1,3 +1,25 @@
+Version 3.7.3
+(released 13 January 2011)
+
+ Bugfixes:
+
+  * LP#537220 (logengine ignores seconds from timestamps)
+  * LP#562242 (Prefix matrix crashes when viewing IPv6 scope)
+  * LP#689629 (ipdevinfo crashes on IP addresses on VLANs that have no VLAN ID)
+  * LP#691571 (old serial no association should be cleared when ip device is
+               replaced with new hardware)
+  * LP#692580 (delete location crashes)
+  * LP#692997 (Machine tracker crashes due to limitations in allowed interface
+               names)
+  * LP#701451 (snmptrapd fails to decode certain SNMPv1 traps)
+  * LP#701453 (snmptrapd fails to parse SNMPv2 traps from WeatherGoose)
+  * LP#702257 (alertengine crashes after alert profile is deleted)
+
+ Improvements:
+
+  * if loglevels are set to DEBUG, ipdevpoll will now log full details of
+    stackframes when unhandled errors occur.
+
 Version 3.7.2
 (released 23 December 2010)
 
