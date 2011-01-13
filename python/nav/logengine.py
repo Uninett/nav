@@ -1,18 +1,18 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 # Copyright (C) 2007, 2009, 2010 UNINETT AS
-# 
+#
 # This file is part of Network Administration Visualized (NAV).
-# 
+#
 # NAV is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
-# 
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """logengine.py inserts Cisco syslog messages into the NAV database.
 
@@ -107,16 +107,16 @@ def get_exception_dicts(config):
 typicalmatchRe = re.compile(
     """
     ^
-    (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+        # server month and date
-    (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+    # server hour/min/second
-    (?P<origin>\S+)                                    # origin
-    \W+ (?:(\d{4}) | .*?) \s+ \W*                      # year/msg counter/garbage
-    (?P<month>\w+) \s+ (?P<day>\d+) \s+                # origin month and date
-    ((?P<year>\d{4}) \s+ )?                            # origin year, if present
-    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)     # origin hour/minute/second
-    .* %                                               # eat chars until % appears
-    (?P<type>.*?) :                                    # message type
-    \s* (?P<description>.*)                            # message (without leading spaces)
+    (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+      # server month and date
+    (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+  # server hour/min/second
+    (?P<origin>\S+)                                  # origin
+    \W+ (?:(\d{4}) | .*?) \s+ \W*                    # year/msg counter/garbage
+    (?P<month>\w+) \s+ (?P<day>\d+) \s+              # origin month and date
+    ((?P<year>\d{4}) \s+ )?                          # origin year, if present
+    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)   # origin hour/minute/second
+    .* %                                             # eat chars until % appears
+    (?P<type>.*?) :                                  # message type
+    \s* (?P<description>.*)                          # message (lstripped)
     $
     """, re.VERBOSE)
 
@@ -136,7 +136,7 @@ def createMessage(line):
 
     typicalmatch = typicalmatchRe.search(line)
     match = typicalmatch or notsotypicalmatchRe.search(line)
-    
+
     if match:
         origin = match.group('origin')
         month = find_month(match.group('month'))
@@ -147,10 +147,11 @@ def createMessage(line):
         day = int(match.group('day'))
         hour = int(match.group('hour'))
         minute = int(match.group('min'))
+        second = int(match.group('second'))
         msgtype = match.group('type')
         description = match.group('description')
 
-        timestamp = datetime.datetime(year,month,day,hour,minute)
+        timestamp = datetime.datetime(year,month,day,hour,minute, second)
 
         return Message(timestamp, origin, msgtype, description)
 
@@ -164,7 +165,7 @@ def createMessage(line):
         return
 
 
-    
+
 class Message:
     prioritymatchRe = re.compile("^(.*)-(\d*)-(.*)$")
     categorymatchRe = re.compile("\W(gw|sw|gsw|fw|ts)\W")
@@ -175,17 +176,17 @@ class Message:
         self.category = self.find_category(origin)
         self.type = type
         self.description = db.escape(description)
-        (self.facility, self.priorityid, self.mnemonic) = self.find_priority(type)
+        self.facility, self.priorityid, self.mnemonic = self.find_priority(type)
 
     def find_priority(self, type):
         prioritymatch = self.prioritymatchRe.search(type)
         if prioritymatch:
-            return (prioritymatch.group(1), int(prioritymatch.group(2)), prioritymatch.group(3))
+            return (prioritymatch.group(1), int(prioritymatch.group(2)),
+                    prioritymatch.group(3))
         else:
             return (None, None, None)
 
     def find_category(self, origin):
-                
         categorymatch = self.categorymatchRe.search(origin)
         if categorymatch:
             return categorymatch.group(1)
@@ -193,13 +194,12 @@ class Message:
             return "rest"
 
 def find_year(mnd):
-
     now = datetime.datetime.now()
     if mnd==12 and now.month==1:
         return now.year-1
     else:
         return now.year
-    
+
 def find_month(textual):
     months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep",
               "oct", "nov", "dec"]
@@ -240,7 +240,7 @@ def verify_singleton():
     except daemon.AlreadyRunningError, e:
         print >> sys.stderr, "logengine is already running (%d)" % e.pid
         sys.exit(1)
-        
+
     daemon.writepidfile(pidfile)
     atexit.register(daemon.daemonexit, pidfile)
 
@@ -263,9 +263,10 @@ def get_origins(cursor):
 
 def get_types(cursor):
     types = {}
-    cursor.execute("select type, facility, mnemonic, priority from log_message_type")
+    cursor.execute(
+        "select type, facility, mnemonic, priority from log_message_type")
     for r in cursor.fetchall():
-        if not types.has_key(r[1]): 
+        if not types.has_key(r[1]):
             types[r[1]] = {}
         if not types[r[1]].has_key(r[2]):
             types[r[1]][r[2]] = int(r[0])
@@ -273,7 +274,7 @@ def get_types(cursor):
 
 def read_log_lines(config):
     """Read and yield message lines from the watched cisco log file.
-    
+
     Once the log file has been read, it is truncated. The watched file
     is configured using the syslog option in the paths section of
     logger.conf.
@@ -284,7 +285,7 @@ def read_log_lines(config):
         charset = config.get("paths", "charset")
     else:
         charset = "ISO-8859-1"
-    
+
     f = None
     ## open log
     try:
@@ -297,7 +298,7 @@ def read_log_lines(config):
 
     ## if the file exists
     if f:
-        
+
         ## lock logfile
         fcntl.flock(f, fcntl.LOCK_EX)
 
@@ -347,26 +348,31 @@ def insert_message(message, database,
     originid = origins[message.origin]
 
     ## check type
-    if not types.has_key(message.facility) or not types[message.facility].has_key(message.mnemonic):
-        add_type(message.facility, message.mnemonic, message.priorityid, types, database)
+    if (not types.has_key(message.facility) or
+        not types[message.facility].has_key(message.mnemonic)):
+        add_type(message.facility, message.mnemonic, message.priorityid, types,
+                 database)
     typeid = types[message.facility][message.mnemonic]
 
     ## overload priority if exceptions are set
-    if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
+    m_type = message.type.lower()
+    origin = message.origin.lower()
+    if (exceptiontypeorigin.has_key(m_type) and
+        exceptiontypeorigin[m_type].has_key(origin)):
         try:
-            message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
+            message.priorityid = int(exceptiontypeorigin[m_type][origin])
         except:
             pass
 
-    elif exceptionorigin.has_key(message.origin.lower()):
+    elif exceptionorigin.has_key(origin):
         try:
-            message.priorityid = int(exceptionorigin[message.origin.lower()])
+            message.priorityid = int(exceptionorigin[origin])
         except:
             pass
 
-    elif exceptiontype.has_key(message.type.lower()):
+    elif exceptiontype.has_key(m_type):
         try:
-            message.priorityid = int(exceptiontype[message.type.lower()])
+            message.priorityid = int(exceptiontype[m_type])
         except:
             pass
 

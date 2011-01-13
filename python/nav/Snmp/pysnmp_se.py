@@ -368,8 +368,8 @@ class Snmp(object):
                     oid = rsp_oid
                     if strip_prefix:
                         oid = oid[len(root_oid):]
-                    # The Snmp API uses string-based OIDs, not tuples or objects,
-                    # so convert if needed:
+                    # The Snmp API uses string-based OIDs, not tuples or
+                    # objects, so convert if needed:
                     if isinstance(value, (OID, self._ver.ObjectIdentifier)):
                         realvalue = oid_to_str(value)
                     else:

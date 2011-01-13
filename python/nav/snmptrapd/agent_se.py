@@ -88,7 +88,7 @@ class TrapListener:
         snmp_trap_oid = oid_to_str(snmp_trap_oid)
 
         # Create trap object, let callback decide what to do with it.
-        trap = SNMPTrap(str(src), agent_addr, type, generic_type,
+        trap = SNMPTrap(str(src), agent_addr or str(src), type, generic_type,
                         snmp_trap_oid, uptime, community, version,
                         varbind_dict)
         return trap
@@ -115,12 +115,12 @@ class TrapListener:
                 # Just resume loop if we timed out
                 continue
 
+            logger.debug("Packet content: %r", request)
             try:
                 trap = self._decode(request, src)
             except Exception, why:
                 logger.exception("Unknown exception while decoding snmp trap "
                                  "packet from %r, ignoring trap", src)
-                logger.debug("Packet content: %r", request)
                 continue
             else:
                 callback(trap)
@@ -141,7 +141,7 @@ def transform(pdu):
     # generic trap parameter is 6. If not, the traps are defined as
     # 1.3.6.1.6.3.1.1.5 + (generic trap parameter + 1)
     if generic.get() == 6:
-        snmp_trap_oid = enterprise + [0] + pdu.apiAlphaGetSpecificTrap().get()
+        snmp_trap_oid = enterprise + [0, pdu.apiAlphaGetSpecificTrap().get()]
     else:
         snmp_trap_oid = [1,3,6,1,6,3,1,1,5] + [generic.get() + 1]
 

@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,8 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
-"""Main Django URL configuration"""
+"""Django URL configuration for Netmap"""
 
 # pylint: disable-msg=W0614,W0401
 
@@ -23,6 +21,7 @@ from django.conf.urls.defaults import *
 
 def get_urlpatterns():
     urlpatterns = patterns('',
-        (r'^status/', include('nav.web.status.urls')),
+        # Give the networkexplorer namespace to the Netmap subsystem
+        (r'^netmap/', include('nav.web.netmap.urls')),
     )
     return urlpatterns

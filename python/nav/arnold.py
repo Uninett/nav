@@ -213,7 +213,8 @@ def findIdInformation(id, limit):
                 if row['endtime'].year == 9999:
                     row['endtime'] = 'Still Active'
                 else:
-                    row['endtime'] = row['endtime'].strftime('%Y-%m-%d %H:%M:%S')
+                    row['endtime'] = row['endtime'].strftime(
+                        '%Y-%m-%d %H:%M:%S')
 
                 if not row.has_key('ip'):
                     row['ip'] = '0.0.0.0'
@@ -330,7 +331,8 @@ def findInputType (input):
 ###############################################################################
 # blockPort
 #
-def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username, type, vlan=False):
+def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
+              username, type, vlan=False):
     """
     Block the port or change vlan on port and update database.
     type: block or quarantine.
@@ -368,7 +370,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     if checkNonBlock(id['ip']):
         raise InExceptionListError
 
-    allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
+    allowtypes = [x.strip()
+                  for x in config.get('arnold','allowtypes').split(',')]
 
     if sw['catid'] not in allowtypes:
         logger.info("blockPort: Not allowed to %s on %s" %(type, sw['catid']))

@@ -84,7 +84,7 @@
                     <ul>
                     {% for swportvlan in swportvlans %}
                         <li>
-                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.vlan %}">
+                            <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
                             {{ swportvlan.vlan }}</a>
                             <ul>
                                 <li>Direction: {{ swportvlan.get_direction_display }}</li>
@@ -156,25 +156,24 @@
     </tr>
 {% endif %}
 
-{% if port.gwportprefix %}
+{% if port.gwportprefix_set.all %}
     <tr>
-        <th colspan="2">Prefixes</th>
+        <th colspan="2">Addresses</th>
     </tr>
     <tr>
         <th></th>
         <td>
-            {% if port.gwportprefix_set.all %}
-                <ul>
+                <table>
+		    <tr>
+		      <th>IP</th><th>Prefix</th>
+		    </tr>
                 {% for gwprefix in port.gwportprefix_set.all %}
-                    <li>
-                        <a href="{% url report-prefix-prefix gwprefix.prefix.id %}">
-                        {{ gwprefix.gw_ip}}/{{ gwprefix.prefix.get_prefix_length }}</a>
-                    </li>
+                    <tr>
+                        <td>{{ gwprefix.gw_ip}}</td>
+			<td><a href="{% url report-prefix-prefix gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a></td>
+                    </tr>
                 {% endfor %}
-                </ul>
-            {% else %}
-                N/A
-            {% endif %}
+                </table>
         </td>
     </tr>
 {% endif %}

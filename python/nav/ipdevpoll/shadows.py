@@ -89,6 +89,11 @@ class Netbox(Shadow):
                          netbox.sysname)
         netbox.type = type_
         netbox.up_to_date = False
+
+        new_device = manage.Device()
+        new_device.save()
+        netbox.device = new_device
+
         netbox.save()
 
         netbox.module_set.all().delete()

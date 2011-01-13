@@ -29,7 +29,8 @@ def get_account(request):
     try:
         account = request.account
     except AttributeError:
-        account = Account.objects.get(login=request._req.session['user']['login'])
+        account = Account.objects.get(
+            login=request._req.session['user']['login'])
         request.account = account
     return account
 
@@ -43,7 +44,8 @@ def sudoer(req):
 
 def is_admin(account):
     """Check if user is a member of the administrator group"""
-    return account.accountgroup_set.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0;
+    return account.accountgroup_set.filter(
+        pk=AccountGroup.ADMIN_GROUP).count() > 0;
 
 def permission_required(function):
     """Decorator to check if user have access"""
@@ -53,5 +55,7 @@ def permission_required(function):
             return function(request, *args, **kwargs)
         else:
             # FIXME better 403 handling
-            return HttpResponseForbidden('<h1>403 Forbidden</h1><p>You do not have access to this page</p>')
+            return HttpResponseForbidden(
+                '<h1>403 Forbidden</h1>'
+                '<p>You do not have access to this page</p>')
     return _check_permission

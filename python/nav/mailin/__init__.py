@@ -24,8 +24,12 @@ import nav
 import nav.event
 
 def make_event(**kw):
-    """Shortcut to make an event with mailin as source and eventEngine as target.
-    Keyword arguments are the same as for nav.event.Event()."""
+    """Shortcut to make an event with mailin as source and eventEngine as
+    target.
+
+    Keyword arguments are the same as for nav.event.Event().
+
+    """
     return nav.event.Event(source='mailin',
                            target='eventEngine',
                            **kw)

@@ -59,6 +59,7 @@ class TrapListener:
             if question is None:
                 continue
 
+            logger.debug("Packet content: %r", question)
             try:
                 # Decode request of any version
                 (req, rest) = v2c.decode(question)
@@ -68,14 +69,14 @@ class TrapListener:
                                                req['encoded_oids']))
 
                 # Decode BER encoded values associated with Object IDs.
-                vals = map(lambda x: x[0](), map(asn1.decode, req['encoded_vals']))
+                vals = map(lambda x: x[0](), map(asn1.decode,
+                                                 req['encoded_vals']))
 
             except Exception, why:
                 # We must not die because of any malformed packets; log
                 # and ignore any exception
-                logger.exception("Exception while decoding snmp trap packet from "
-                                 "%r, ignoring trap", src)
-                logger.debug("Packet content: %r", question)
+                logger.exception("Exception while decoding snmp trap packet "
+                                 "from %r, ignoring trap", src)
                 continue
 
             agent = None
@@ -106,8 +107,8 @@ class TrapListener:
 
 
             # Create trap object, let callback decide what to do with it.
-            trap = SNMPTrap(str(src), agent, type, genericType, snmpTrapOID,
-                            uptime, community, version, varbinds)
+            trap = SNMPTrap(str(src), agent or str(src), type, genericType,
+                            snmpTrapOID, uptime, community, version, varbinds)
             callback(trap)
 
         # Exit nicely
@@ -133,7 +134,8 @@ def transform(req):
             if req['generic_trap'] == 6:
                 snmpTrapOID = enterprise + ".0." + str(req['specific_trap'])
             else:
-                snmpTrapOID = ".1.3.6.1.6.3.1.1.5." + str(req['generic_trap'] + 1)
+                snmpTrapOID = (".1.3.6.1.6.3.1.1.5." +
+                               str(req['generic_trap'] + 1))
             break
     else:
         snmpTrapOID = enterprise + ".0." + str(req['specific_trap'])

@@ -19,7 +19,8 @@ import string
 class SNMPTrap:
     """Generic trap-class"""
 
-    def __init__(self, src, agent, type, genericType, snmpTrapOID, uptime, community, version, varbinds):
+    def __init__(self, src, agent, type, genericType, snmpTrapOID, uptime,
+                 community, version, varbinds):
         self.src = src
         self.agent = agent
         self.type = type

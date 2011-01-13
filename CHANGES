@@ -1,3 +1,14 @@
+Version 3.7.2
+(released 23 December 2010)
+
+ Bugfixes:
+
+  * LP#586334 (HTTPS service checker doesn't work with Python 2.6)
+  * LP#649761 (ipdevinfo does not show router port IPs/prefixes)
+  * LP#649767 (ipdevpoll should be able to exclude prefixes via configuration)
+  * LP#692959 (ipdevpoll doesn't delete extinct router addresses)
+
+
 Version 3.7.1
 (released 07 December 2010)
 
@@ -14,10 +25,12 @@ Version 3.7.1
 
  Bugfixes:
 
-  * LP#674433 (ipdevpoll: local variable 'obj_model' referenced before assignment)
+  * LP#674433 (ipdevpoll: local variable 'obj_model' referenced before
+               assignment)
   * LP#674466 (Room coordinates can't be edited in NAV 3.7.0)
   * LP#675532 (ipdevinfo crash on Nortel interfaces)
-  * LP#675543 (ipdevinfo crash: could not identify an ordering operator for type point)
+  * LP#675543 (ipdevinfo crash: could not identify an ordering operator for
+               type point)
   * LP#678436 (SeedDB crashes on unknown IntegrityErrors during delete)
   * LP#686435 (Queued alerts prevent IP devices from being deleted)
 

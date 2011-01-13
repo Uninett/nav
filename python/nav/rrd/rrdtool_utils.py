@@ -177,10 +177,12 @@ def edit_datasource(rrdfile, name, action):
     f.close()
 
     # Create backup file before restoring
-    output = Popen(['cp', '-b', rrdfile, rrdfile + '.bak'], stdout=PIPE).communicate()[0]
+    output = Popen(['cp', '-b', rrdfile, rrdfile + '.bak'],
+                   stdout=PIPE).communicate()[0]
 
     # Restore xml-file to rrd (force overwrite)
-    output = Popen(['rrdtool', 'restore', restorefile, rrdfile, '-f'], stdout=PIPE).communicate()[0]
+    output = Popen(['rrdtool', 'restore', restorefile, rrdfile, '-f'],
+                   stdout=PIPE).communicate()[0]
 
     # Remove restore file
     os.remove(restorefile)
@@ -194,12 +196,14 @@ def add_datasource(xmlfile, dsvalue):
     for element in xmlfile.documentElement.childNodes:
         if element.nodeName == 'ds':
             dsclone = element.cloneNode(True)
-            dsclone.getElementsByTagName('name')[0].firstChild.data = ' ds%s ' % dsvalue
+            dsclone.getElementsByTagName(
+                'name')[0].firstChild.data = ' ds%s ' % dsvalue
             dsclone.getElementsByTagName('min')[0].firstChild.data = ' NaN '
             dsclone.getElementsByTagName('max')[0].firstChild.data = ' NaN '
             dsclone.getElementsByTagName('last_ds')[0].firstChild.data = ' NaN '
             dsclone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
-            dsclone.getElementsByTagName('unknown_sec')[0].firstChild.data = ' 0 '
+            dsclone.getElementsByTagName(
+                'unknown_sec')[0].firstChild.data = ' 0 '
             break
 
     # Set dsvalue to max allowed value if it to be appended
@@ -209,7 +213,8 @@ def add_datasource(xmlfile, dsvalue):
         # rrdrestore slapped me hard for saying it didn't matter).
         # Walk through all ds-elements and insert after the last one.
         dsvalue = datasources # max value
-        dsclone.getElementsByTagName('name')[0].firstChild.data = ' ds%s ' % dsvalue
+        dsclone.getElementsByTagName(
+            'name')[0].firstChild.data = ' ds%s ' % dsvalue
         counter = 0
         for e in xmlfile.documentElement.childNodes:
             if e.nodeName == 'ds':
@@ -244,10 +249,13 @@ def add_datasource(xmlfile, dsvalue):
     for cdp in xmlfile.getElementsByTagName('cdp_prep'):
         # Clone first element, modify clone
         dsclone = cdp.getElementsByTagName('ds')[0].cloneNode(True)
-        dsclone.getElementsByTagName('primary_value')[0].firstChild.data = ' NaN '
-        dsclone.getElementsByTagName('secondary_value')[0].firstChild.data = ' NaN '
+        dsclone.getElementsByTagName(
+            'primary_value')[0].firstChild.data = ' NaN '
+        dsclone.getElementsByTagName(
+            'secondary_value')[0].firstChild.data = ' NaN '
         dsclone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
-        dsclone.getElementsByTagName('unknown_datapoints')[0].firstChild.data = ' 0 '
+        dsclone.getElementsByTagName(
+            'unknown_datapoints')[0].firstChild.data = ' 0 '
         
         if dsvalue >= datasources:
             # Modify last textnode for prettymaking
@@ -295,7 +303,8 @@ def remove_datasource(xmlfile, dsvalue):
             if dsnumber >= dsvalue:
                 # Subtract one and pray.
                 dsnumber -= 1
-                node.getElementsByTagName('name')[0].firstChild.data = " ds%s " % dsnumber
+                node.getElementsByTagName(
+                    'name')[0].firstChild.data = " ds%s " % dsnumber
             
     # Remove all ds-elements from all cdp-preps
     for cdp in xmlfile.getElementsByTagName('cdp_prep'):

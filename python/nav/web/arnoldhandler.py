@@ -325,7 +325,8 @@ def handler(req):
             nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
-                                 req.session['user']['login'], 'quarantine', vlan)
+                                 req.session['user']['login'], 'quarantine',
+                                 vlan)
         except GeneralException, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -378,7 +379,8 @@ def handler(req):
                     redirect(req, 'addquarantinevlan')
 
                 if cur.rowcount > 0:
-                    redirect(req,'addquarantinevlan?output=Quarantine vlan already exists.')
+                    redirect(req, 'addquarantinevlan?'
+                             'output=Quarantine vlan already exists.')
                 
                 q = """
                 INSERT INTO quarantine_vlans (description, vlan)
@@ -561,8 +563,9 @@ def printHistory(cur, page, sort, section, days):
         list = {}
 
     for item in list:
-        item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
-                          + "' title='Details'><img src='/images/arnold/details.png'></a>"
+        item['details'] = ("<a href='showdetails?id=" +
+                           str(item['identityid']) + "' title='Details'>"
+                           "<img src='/images/arnold/details.png'></a>")
 
     page.hits = len(list)
     page.list = list
@@ -601,10 +604,12 @@ def printBlocked(cur, page, sort, section):
 
     for item in list:
         item['lastchanged'] = item['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
-        item['activate'] = "<a href='doenable?id=" + str(item['identityid']) \
-                           + "' title='Remove detention'><img src='/images/arnold/enable.png'></a>"
-        item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
-                          + "' title='Details'><img src='/images/arnold/details.png'></a>"
+        item['activate'] = ("<a href='doenable?id=" + str(item['identityid']) +
+                            "' title='Remove detention'>"
+                            "<img src='/images/arnold/enable.png'></a>")
+        item['details'] = ("<a href='showdetails?id=" +
+                           str(item['identityid']) + "' title='Details'>"
+                           "<img src='/images/arnold/details.png'></a>")
         
         managequery = """
         SELECT sysname, baseport FROM netbox
@@ -797,7 +802,8 @@ def showDetails (cur, page, section, id):
 
     for entry in list:
         if managec.rowcount <= 0:
-            page.output = "Error: Could not find swport in database. Perhaps switch has been replaced?"
+            page.output = ("Error: Could not find swport in database. "
+                           "Perhaps switch has been replaced?")
             entry['sysname'] = "N/A"
             entry['modport'] = "N/A"
         else:
@@ -806,10 +812,12 @@ def showDetails (cur, page, section, id):
             entry['sysname'] = managerow['sysname']
         
         entry['starttime'] = entry['starttime'].strftime('%Y-%m-%d %k:%M:%S')
-        entry['lastchanged'] = entry['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
+        entry['lastchanged'] = entry['lastchanged'].strftime(
+            '%Y-%m-%d %k:%M:%S')
 
         if entry['autoenable']:
-            entry['autoenable'] = entry['autoenable'].strftime('%Y-%m-%d %k:%M:%S')
+            entry['autoenable'] = entry['autoenable'].strftime(
+                '%Y-%m-%d %k:%M:%S')
         else:
             entry['autoenable'] = '&nbsp;'
 
@@ -918,7 +926,8 @@ def printAddpredefined (cur, page, id):
     if id:
         cur.execute("SELECT * FROM block WHERE blockid=%s" %id)
         blockinfo = dict(cur.fetchone())
-        blockinfo['lastedited'] = blockinfo['lastedited'].strftime('%Y-%m-%d %k:%M:%S')
+        blockinfo['lastedited'] = blockinfo['lastedited'].strftime(
+            '%Y-%m-%d %k:%M:%S')
 
     page.blockinfo = blockinfo
 

@@ -34,7 +34,9 @@ def redirectToLogin(req):
     Takes the supplied request and redirects it to the NAV login page.
     """
     from nav import web
-    web.redirect(req, '/index/login?origin=%s' % urllib.quote(req.unparsed_uri), temporary=True)
+    web.redirect(req,
+                 '/index/login?origin=%s' % urllib.quote(req.unparsed_uri),
+                 temporary=True)
 
 # FIXME Should probably be refactored out if this file, as it does not directly
 # have anything to do with authentication.
@@ -62,11 +64,11 @@ def _find_user_preferences(user, req):
                 'name': pref.navbarlink.name,
                 'uri': pref.navbarlink.uri,
             }
-            if pref.positions.count('navbar'): # does 'positions'-string contain 'navbar'
+            if pref.positions.count('navbar'):
                 user['preferences']['navbar'].append(link)
-            if pref.positions.count('qlink1'): # does 'positions'-string contain 'qlink1'
+            if pref.positions.count('qlink1'):
                 user['preferences']['qlink1'].append(link)
-            if pref.positions.count('qlink2'): # does 'positions'-string contain 'qlink2'
+            if pref.positions.count('qlink2'):
                 user['preferences']['qlink2'].append(link)
         if req:
             req.session.save() # remember this to next time

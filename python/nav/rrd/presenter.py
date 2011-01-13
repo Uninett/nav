@@ -8,16 +8,17 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 Abstraction of the rrd_file and rrd_datasource fields in the main NAV database.
 
-Consists of three classes, presentation beeing the one of most interest to other developers.
+Consists of three classes, presentation beeing the one of most interest to
+other developers.
 
 Quick example:
 
@@ -61,7 +62,8 @@ class rrd_file:
     def __init__(self,rrd_fileid):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
             cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute("select * from rrd_file natural join netbox where rrd_fileid=%s"% rrd_fileid)
+        cursor.execute("select * from rrd_file natural join netbox "
+                       "where rrd_fileid=%s" % rrd_fileid)
         result = cursor.fetchone()
         self.path     = result['path']
         self.filename = result['filename']
@@ -82,7 +84,8 @@ class datasource:
     def __init__(self,rrd_datasourceid,linetype='LINE2'):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
             cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute("select * from rrd_datasource where rrd_datasourceid=%s"% rrd_datasourceid)
+        cursor.execute("select * from rrd_datasource "
+                       "where rrd_datasourceid=%s" % rrd_datasourceid)
         result = cursor.fetchone()
         self.name     = result['name']
         self.descr    = result['descr']
@@ -139,7 +142,10 @@ class presentation:
             blapp
 
     def units(self):
-        """Returns the units of the rrd_datasources contained in the presentation object"""
+        """Returns the units of the rrd_datasources contained in the
+        presentation object
+
+        """
         units = []
         for i in self.datasources:
             units.append(i.units)
@@ -272,7 +278,10 @@ class presentation:
 
         
     def validPoints(self):
-        """Returns list of [number of points,number of invalid points, invalid/number of points]"""
+        """Returns list of [number of points,number of invalid points,
+        invalid/number of points]
+
+        """
         valid = []
         a = self.fetchValid()
         for i in a:
@@ -399,7 +408,8 @@ class presentation:
             if ds.units and ds.units.count("%"):
                 # limit to [0,100]
                 params += ['--upper-limit', '100', '--lower-limit', '0']
-            params += ['DEF:'+rrd_variable+'='+rrd_filename+':'+rrd_datasourcename+':AVERAGE']
+            params += ['DEF:' + rrd_variable + '=' + rrd_filename + ':' +
+                       rrd_datasourcename + ':AVERAGE']
             # Define virtuals to possibly do some percentage magical
             # flipping
             virtual = 'CDEF:v_'+rrd_variable+'='
@@ -424,13 +434,17 @@ class presentation:
                     pass
                 
             params += [virtual]
-            params += [linetype+':v_'+rrd_variable+color[index % len(color)]+':'+''+legend+'']
+            params += [linetype + ':v_' + rrd_variable +
+                       color[index % len(color)] + ':' + '' + legend + '']
 
             a = rrdtool.info(str(rrd_filename))
             # HVA I HELVETE SKJER HER!?!?!??!?!
-            if self.showmax and 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))] :
+            if (self.showmax and
+                'MAX' in [a.get('rra')[i].get('cf')
+                          for i in range(len(a.get('rra')))]):
                 legend += ' - MAX'
-                params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX']
+                params += ['DEF:' + rrd_max_variable + '=' + rrd_filename +
+                           ':' + rrd_datasourcename+':MAX']
                 virtual = 'CDEF:v_'+rrd_max_variable+'='
                 if ds.units and ds.units.startswith('-'): # begins with -
                     # availability is flipped up-side down, revert
@@ -451,7 +465,8 @@ class presentation:
                         pass
             
                 params += [virtual]
-                params += [linetype_max+':v_'+rrd_max_variable+color_max[index]+':'+''+legend+'']
+                params += [linetype_max + ':v_' + rrd_max_variable +
+                           color_max[index] + ':' + '' + legend + '']
                 
             index += 1
             
