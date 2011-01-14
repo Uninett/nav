@@ -30,6 +30,7 @@ import storage
 import shadows
 from plugins import plugin_registry
 import utils
+from utils import log_unhandled_failure
 
 logger = logging.getLogger(__name__)
 ports = round_robin([snmpprotocol.port() for i in range(10)])
@@ -126,9 +127,10 @@ class JobHandler(object):
                 self.logger.error("Plugin %s reported a timeout",
                                   plugin_instance)
             else:
-                self.logger.error("Plugin %s reported an unhandled failure:"
-                                  "\n%s",
-                                  plugin_instance, failure.getTraceback())
+                log_unhandled_failure(self.logger,
+                                      failure,
+                                      "Plugin %s reported an unhandled failure",
+                                      plugin_instance)
             return failure
 
         def next_plugin(result=None):
@@ -173,8 +175,9 @@ class JobHandler(object):
                                   cause=failure.value)
 
         def save_failure(failure):
-            self.logger.error("Save stage failed with unhandled error:\n%s",
-                              failure.getTraceback())
+            log_unhandled_failure(self.logger,
+                                  failure,
+                                  "Save stage failed with unhandled error")
             self._log_timings()
             raise AbortedJobError("Job aborted due to save failure",
                                   cause=failure.value)

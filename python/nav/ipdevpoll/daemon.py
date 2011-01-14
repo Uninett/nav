@@ -31,6 +31,7 @@ from twisted.internet import reactor
 from nav import buildconf
 import nav.daemon
 import nav.logs
+import nav.models.manage
 
 import plugins
 
