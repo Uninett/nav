@@ -1,38 +1,30 @@
-#!/usr/bin/env python
-# $Id$
 #
-# Copyright 2006 Norwegian University of Science and Technology
+# Copyright (C) 2006 Norwegian University of Science and Technology
+# Copyright (C) 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: John Magne Bredal <john.m.bredal@ntnu.no>
-#
+"""Sorted statistics views."""
 
-from mod_python import apache
-import nav, nav.path
-from nav import web, db
-from nav.web.templates.MainTemplate import MainTemplate
-from nav.web.URI import URI
-
-import threading
 import time
 import re
 import psycopg2.extras
+
+from django.http import HttpResponse
+
+import nav
+from nav import web, db
+from nav.web.templates.MainTemplate import MainTemplate
 
 import nav.rrd.presenter
 import nav.db
@@ -52,7 +44,7 @@ configfile = nav.path.sysconfdir + "/sortedStats.conf"
 config = ConfigParser.ConfigParser()
 config.read(configfile)
 
-def handler(req):
+def index(req):
 
     logger.debug("sortedstats started at %s" %time.ctime())
 
@@ -64,10 +56,6 @@ def handler(req):
 
     reload(SortedStatsTemplate)
     page = SortedStatsTemplate.SortedStatsTemplate()
-
-    # Set some page-info
-    req.content_type = "text/html"
-    req.send_http_header()
 
     page.path = [("Home","/"), ("Statistics", False)]
     page.title = "Statistics"
@@ -81,18 +69,16 @@ def handler(req):
     
 
     # Get args, see what we are supposed to display
-    args = URI(req.unparsed_uri)
-
-    numrows = args.get('numrows') or defaultnumrows
-    fromtime = args.get('fromtime') or defaultfromtime
+    numrows = req.GET.get('numrows', defaultnumrows)
+    fromtime = req.GET.get('fromtime', defaultfromtime)
     page.numrows = numrows
     page.fromtime = fromtime
     page.fromtimes = fromtimes
 
 
     # view is the name of the drop-down menu.
-    if args.get('view'):
-        view = args.get('view')
+    if 'view' in req.GET:
+        view = req.GET['view']
         page.view = view
         
 
@@ -119,8 +105,8 @@ def handler(req):
             pass
 
         # If forcedview is checked, ask getData to get values live.
-        forcedview = bool(args.get('forcedview'))
-        page.forcedview = args.get('forcedview')
+        forcedview = bool(req.GET.get('forcedview', False))
+        page.forcedview = req.GET.get('forcedview', None)
 
         
         # LOG
@@ -171,8 +157,7 @@ def handler(req):
         page.forcedview = "0"
 
 
-    req.write(page.respond())
-    return apache.OK
+    return HttpResponse(page.respond())
 
 
 def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
