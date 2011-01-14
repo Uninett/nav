@@ -53,7 +53,7 @@ class HTTPSConnection(httplib.HTTPSConnection):
         sock = Socket.Socket(self.timeout)
         sock.connect((self.host,self.port))
         ssl = socket.ssl(sock.s, None, None)
-        if sys.version_info[:2] >= (2, 6)::
+        if sys.version_info[:2] >= (2, 6):
             self.sock = ssl.wrap_socket(sock)
         else:
             self.sock = httplib.FakeSocket(sock, ssl)
