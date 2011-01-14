@@ -17,35 +17,18 @@
 """Sorted statistics views."""
 
 import time
-import re
-import psycopg2.extras
+from ConfigParser import NoOptionError
 
 from django.http import HttpResponse
 
-import nav
-from nav import web, db
-from nav.web.templates.MainTemplate import MainTemplate
-
-import nav.rrd.presenter
-import nav.db
-import nav.path
-
-import ConfigParser
-
 from nav.web.templates import SortedStatsTemplate
-from nav.web.sortedstats import getData, sortbyvalue
+from . import get_data, sort_by_value, get_configuration
 
 import logging
 
-totalskip = 0 # The total number of skipped rrd-datasources.
-configfile = nav.path.sysconfdir + "/sortedStats.conf"
-
-# Read configfile
-config = ConfigParser.ConfigParser()
-config.read(configfile)
-
 def index(req):
-    logger = logging.getLogger('nav.web.sortedStats')
+    """Sorted stats search&result view"""
+    logger = logging.getLogger(__name__)
     logger.debug("sortedstats started at %s" %time.ctime())
 
     # Some variables
@@ -54,19 +37,18 @@ def index(req):
                  'month': 'Last Month'}
     defaultfromtime = 'day'
 
-    reload(SortedStatsTemplate)
     page = SortedStatsTemplate.SortedStatsTemplate()
 
     page.path = [("Home","/"), ("Statistics", False)]
     page.title = "Statistics"
 
-
+    config = get_configuration()
     page.config = config
 
 
     # TODO: Must verify that the mandatory variables are in the
     # config-file.
-    
+
 
     # Get args, see what we are supposed to display
     numrows = req.GET.get('numrows', defaultnumrows)
@@ -80,7 +62,7 @@ def index(req):
     if 'view' in req.GET:
         view = req.GET['view']
         page.view = view
-        
+
 
         # Cachetimeout is fetched from config-file.
         cachetimeoutvariable = "cachetimeout" + fromtime
@@ -90,25 +72,21 @@ def index(req):
         # Modifier is an optional variable in the configfile that is
         # used to modify the value we fetch from the rrd-file with a
         # mathematical expression.
-        
-        modifier = False
         try:
             modifier = config.get(view, 'modifier')
-        except:
-            pass
+        except NoOptionError:
+            modifier = False
 
         try:
-            linkview = config.get(view, 'linkview')
-            page.linkview = linkview
-        except:
+            page.linkview = config.get(view, 'linkview')
+        except NoOptionError:
             page.linkview = False
-            pass
 
         # If forcedview is checked, ask getData to get values live.
         forcedview = bool(req.GET.get('forcedview', False))
         page.forcedview = req.GET.get('forcedview', None)
 
-        
+
         # LOG
         logger.debug ("forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, "
                       "view: %s, cachetimeout: %s, modifier: %s\n"
@@ -119,7 +97,7 @@ def index(req):
 
         # Get data
         values, exetime, units, cachetime, cached = \
-                getData(forcedview, config.get(view, 'path'),
+                get_data(forcedview, config.get(view, 'path'),
                         config.get(view, 'dsdescr'),
                         fromtime, view, cachetimeout, modifier)
 
@@ -128,25 +106,21 @@ def index(req):
         logger.debug("VALUES: %s\n" %(str(values)))
 
 
-        sorted = sortbyvalue(values)
-        sorted.reverse()
+        sorted_keys = sort_by_value(values)
+        sorted_keys.reverse()
 
 
         # If units are set in the config-file, use it instead of what
-        # we find in the database. Config.get raises an exception if
-        # the option does not exist, this is why we use try...
-
-        try:
+        # we find in the database.
+        if config.has_option(view, 'units'):
             units = config.get(view, 'units')
-        except:
-            pass
 
         page.exetime = exetime
         page.showArr = values
-        page.sortedKeys = sorted
+        page.sortedKeys = sorted_keys
         page.units = units
         if cached:
-            page.footer = "using cached data from %s" %(cachetime)
+            page.footer = "using cached data from %s" % (cachetime)
         else:
             page.footer = "using live data"
 

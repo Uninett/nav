@@ -15,11 +15,9 @@
 #
 """URL configuration for sortedstats"""
 
-# pylint: disable-msg=W0614,W0401
+from django.conf.urls.defaults import patterns, url
 
-from django.conf.urls.defaults import *
-
-from nav.web.sortedstats.views import *
+from nav.web.sortedstats.views import index
 
 urlpatterns = patterns('',
     url(r'^$', index,
