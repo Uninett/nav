@@ -138,7 +138,7 @@ class JobScheduler(object):
         """Initializes a job schedule from the job descriptor."""
         self._logger = ipdevpoll.get_instance_logger(self, job.name)
         self.job = job
-        self.netboxes = NetboxLoader()
+        self.netboxes = NetboxLoader(context=job.name)
         self.active_netboxes = {}
 
         self.active_schedulers.add(self)

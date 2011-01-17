@@ -51,10 +51,10 @@ class NetboxLoader(dict):
 
     """
 
-    def __init__(self):
+    def __init__(self, context=None):
         super(NetboxLoader, self).__init__()
         self.peak_count = 0
-        self._logger = ipdevpoll.get_instance_logger(self, id(self))
+        self._logger = ipdevpoll.get_instance_logger(self, context or id(self))
 
     @autocommit
     def load_all_s(self):
