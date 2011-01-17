@@ -133,7 +133,7 @@ class CommandProcessor(object):
         root_logger = logging.getLogger('')
         root_logger.addHandler(stderr_handler)
 
-        nav.logs.setLogLevels()
+        nav.logs.set_log_levels()
 
         # Now try to load config and output logs to the configured file
         # instead.

@@ -21,7 +21,7 @@ import logging
 import ConfigParser
 import nav.path
 
-def setLogLevels():
+def set_log_levels():
     """Read the logging config file and set up log levels for the different
     loggers."""
     logConfFile = os.path.join(nav.path.sysconfdir, 'logging.conf')

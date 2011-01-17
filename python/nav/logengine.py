@@ -472,7 +472,7 @@ def main():
     config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
 
     logging.basicConfig()
-    nav.logs.setLogLevels()
+    nav.logs.set_log_levels()
 
     if options.delete:
         # get rid of old records
