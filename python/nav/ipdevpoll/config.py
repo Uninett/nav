@@ -60,26 +60,39 @@ class IpdevpollConfig(ConfigParser.ConfigParser):
         return files_read
 
 
+class JobDescriptor(object):
+    """A data structure describing a job."""
+    def __init__(self, name, interval, plugins):
+        self.name = str(name)
+        self.interval = int(interval)
+        self.plugins = list(plugins)
+
+    @classmethod
+    def from_config_section(cls, config, section):
+        job_prefix = 'job_'
+        if section.startswith(job_prefix):
+            jobname = section[len(job_prefix):]
+        else:
+            raise InvalidJobSectionName(section)
+
+        interval = (config.has_option(section, 'interval') and
+                    parse_time(config.get(section, 'interval')) or '')
+        plugins = (config.has_option(section, 'plugins') and
+                    parse_plugins(config.get(section, 'plugins')) or '')
+
+        return cls(jobname, interval, plugins)
+
 def get_jobs(config=None):
     if config is None:
         config = ipdevpoll_conf
-    jobs = {}
 
     job_prefix = 'job_'
     job_sections = [s for s in config.sections() if s.startswith(job_prefix)]
-    for section in job_sections:
-        job_name = section[len(job_prefix):]
-
-        interval = config.has_option(section, 'interval') and \
-            parse_time(config.get(section, 'interval')) or ''
-        plugins  = config.has_option(section, 'plugins') and \
-            parse_plugins(config.get(section, 'plugins', '')) or ''
-
-        if interval and plugins:
-            jobs[job_name] = (interval, plugins)
-            logger.debug("Registered job in registry: %s", job_name)
-
-    return jobs
+    job_descriptors = [JobDescriptor.from_config_section(config, section)
+                       for section in job_sections]
+    logger.debug("parsed jobs from config file: %r",
+                 [j.name for j in job_descriptors])
+    return job_descriptors
 
 def parse_time(value):
     value = value.strip()
@@ -109,4 +122,12 @@ def parse_plugins(value):
 
     return []
 
+class ConfigurationError(GeneralException):
+    """Configuration error"""
+    pass
+
+class InvalidJobSectionName(ConfigurationError):
+    """Section name is invalid as a job section"""
+
 ipdevpoll_conf = IpdevpollConfig()
+

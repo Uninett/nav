@@ -55,10 +55,9 @@ class IPDevPollProcess(object):
         # logging.basicConfig().  If imported before our own loginit, this
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
-        from schedule import Scheduler
-        self.scheduler = Scheduler()
+        from schedule import JobScheduler
 
-        reactor.callWhenRunning(self.scheduler.run)
+        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run)
         reactor.run()
 
     def sighup_handler(self, signum, frame):
