@@ -34,6 +34,7 @@ import nav.logs
 import nav.models.manage
 
 import plugins
+from nav.ipdevpoll import ContextFormatter
 
 
 class IPDevPollProcess(object):
@@ -123,10 +124,9 @@ class CommandProcessor(object):
 
     def init_logging(self):
         """Initializes ipdevpoll logging for the current process."""
-        # First initialize logging to stderr.
-        log_format = "%(asctime)s [%(levelname)s] [%(name)s] %(message)s"
-        formatter = logging.Formatter(log_format)
+        formatter = ContextFormatter()
 
+        # First initialize logging to stderr.
         stderr_handler = logging.StreamHandler(sys.stderr)
         stderr_handler.setFormatter(formatter)
 
