@@ -74,14 +74,14 @@ class Arp(Plugin):
             yield waiter
             waiter.getResult()
 
-        self.logger.debug("Collecting IP/MAC mappings")
+        self._logger.debug("Collecting IP/MAC mappings")
 
         # Fetch standard MIBs
         ip_mib = IpMib(self.agent)
         waiter = defer.waitForDeferred(ip_mib.get_ifindex_ip_mac_mappings())
         yield waiter
         mappings = waiter.getResult()
-        self.logger.debug("Found %d mappings in IP-MIB", len(mappings))
+        self._logger.debug("Found %d mappings in IP-MIB", len(mappings))
 
         # Try IPV6-MIB if no IPv6 results were found in IP-MIB
         if not ipv6_address_in_mappings(mappings):
@@ -90,8 +90,8 @@ class Arp(Plugin):
                 ipv6_mib.get_ifindex_ip_mac_mappings())
             yield waiter
             ipv6_mappings = waiter.getResult()
-            self.logger.debug("Found %d mappings in IPV6-MIB", 
-                              len(ipv6_mappings))
+            self._logger.debug("Found %d mappings in IPV6-MIB", 
+                               len(ipv6_mappings))
             mappings.update(ipv6_mappings)
 
         # If we got no results, or no IPv6 results, try vendor specific MIBs
@@ -101,8 +101,8 @@ class Arp(Plugin):
                 cisco_ip_mib.get_ifindex_ip_mac_mappings())
             yield waiter
             cisco_ip_mappings = waiter.getResult()
-            self.logger.debug("Found %d mappings in CISCO-IETF-IP-MIB", 
-                              len(cisco_ip_mappings))
+            self._logger.debug("Found %d mappings in CISCO-IETF-IP-MIB", 
+                               len(cisco_ip_mappings))
             mappings.update(cisco_ip_mappings)
 
         waiter = defer.waitForDeferred(self._process_data(mappings))
@@ -131,9 +131,9 @@ class Arp(Plugin):
         new_mappings = found_mappings.difference(open_mappings)
         expireable_mappings = set(open_mappings).difference(found_mappings)
 
-        self.logger.debug("Mappings: %d new / %d expired / %d kept",
-                          len(new_mappings), len(expireable_mappings),
-                          len(open_mappings) - len(expireable_mappings))
+        self._logger.debug("Mappings: %d new / %d expired / %d kept",
+                           len(new_mappings), len(expireable_mappings),
+                           len(open_mappings) - len(expireable_mappings))
 
         self._make_new_mappings(new_mappings)
         self._expire_arp_records(open_mappings[mapping]
@@ -149,7 +149,7 @@ class Arp(Plugin):
 
           A deferred whose result is a dictionary: { (ip, mac): arpid }
         """
-        self.logger.debug("Loading open arp records from database")
+        self._logger.debug("Loading open arp records from database")
         open_arp_records_queryset = manage.Arp.objects.filter(
             netbox__id=self.netbox.id,
             end_time__gte=datetime.max,
@@ -161,8 +161,8 @@ class Arp(Plugin):
                 ))
         yield waiter
         open_arp_records = waiter.getResult()
-        self.logger.debug("Loaded %d open records from arp",
-                          len(open_arp_records))
+        self._logger.debug("Loaded %d open records from arp",
+                           len(open_arp_records))
 
         open_mappings = dict(((IP(arp.ip), arp.mac), arp.id)
                              for arp in open_arp_records)

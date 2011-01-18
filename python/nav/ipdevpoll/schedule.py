@@ -33,7 +33,7 @@ from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 class NetboxJobScheduler(object):
     """Netbox job schedule handler.
@@ -46,9 +46,9 @@ class NetboxJobScheduler(object):
     def __init__(self, job, netbox):
         self.job = job
         self.netbox = netbox
-        self.logger = ipdevpoll.get_context_logger(self,
-                                                   job=self.job.name,
-                                                   sysname=netbox.sysname)
+        self._logger = ipdevpoll.get_context_logger(self,
+                                                    job=self.job.name,
+                                                    sysname=netbox.sysname)
         self.cancelled = False
         self.job_handler = None
         self.loop = None
@@ -66,12 +66,12 @@ class NetboxJobScheduler(object):
         if self.loop.running:
             self.loop.stop()
             self.cancelled = True
-            self.logger.debug("cancel: Job %r cancelled for %s",
-                              self.job.name, self.netbox.sysname)
+            self._logger.debug("cancel: Job %r cancelled for %s",
+                               self.job.name, self.netbox.sysname)
             self.cancel_running_job()
         else:
-            self.logger.debug("cancel: Job %r already cancelled for %s",
-                              self.job.name, self.netbox.sysname)
+            self._logger.debug("cancel: Job %r already cancelled for %s",
+                               self.job.name, self.netbox.sysname)
 
     def cancel_running_job(self):
         if self.job_handler:
@@ -79,9 +79,9 @@ class NetboxJobScheduler(object):
 
     def run_job(self, dummy=None):
         if self.is_running():
-            self.logger.info("Previous %r job is still running for %s, "
-                             "not running again now.",
-                             self.job.name, self.netbox.sysname)
+            self._logger.info("Previous %r job is still running for %s, "
+                              "not running again now.",
+                              self.job.name, self.netbox.sysname)
         else:
             # We're ok to start a polling run.
             job_handler = JobHandler(self.job.name, self.netbox,
@@ -105,12 +105,12 @@ class NetboxJobScheduler(object):
         if self.loop.running and self.loop.call:
             # FIXME: Should be configurable per. job
             delay = randint(5*60, 10*60) # within 5-10 minutes
-            self.logger.info("Rescheduling %r for %s in %d seconds",
-                             self.job.name, self.netbox.sysname, delay)
+            self._logger.info("Rescheduling %r for %s in %d seconds",
+                              self.job.name, self.netbox.sysname, delay)
             self.loop.call.reset(delay)
 
     def _log_unhandled_error(self, failure):
-        log_unhandled_failure(self.logger,
+        log_unhandled_failure(self._logger,
                               failure,
                               "Unhandled exception raised by JobHandler")
         return failure
@@ -125,8 +125,8 @@ class NetboxJobScheduler(object):
         if self.loop.running and self.loop.call is not None:
             next_time = \
                 datetime.datetime.fromtimestamp(self.loop.call.getTime())
-            self.logger.debug("Next %r job for %s will be at %s",
-                              self.job.name, self.netbox.sysname, next_time)
+            self._logger.debug("Next %r job for %s will be at %s",
+                               self.job.name, self.netbox.sysname, next_time)
         return thing
 
 

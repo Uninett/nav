@@ -49,7 +49,7 @@ class Plugin(object):
         self.config = config
         if not context:
             context = dict(sysname=self.netbox.sysname)
-        self.logger = get_context_logger(self, **context)
+        self._logger = get_context_logger(self, **context)
 
     def __str__(self):
         return '%s(%s)' % (self.full_name(), repr(self.netbox.sysname))

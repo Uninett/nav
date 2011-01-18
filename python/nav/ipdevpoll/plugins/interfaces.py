@@ -42,7 +42,7 @@ class Interfaces(Plugin):
         return True
 
     def handle(self):
-        self.logger.debug("Collecting interface data")
+        self._logger.debug("Collecting interface data")
         self.ifmib = IfMib(self.agent)
         self.etherlikemib = EtherLikeMib(self.agent)
         df = self.ifmib.retrieve_columns([
@@ -66,7 +66,7 @@ class Interfaces(Plugin):
     def _got_interfaces(self, result):
         """Process the list of collected interfaces."""
 
-        self.logger.debug("Found %d interfaces", len(result))
+        self._logger.debug("Found %d interfaces", len(result))
 
         # Now save stuff to containers and pass the list of containers
         # to the next callback
@@ -150,17 +150,17 @@ class Interfaces(Plugin):
                 ifalias = ifindex_map[lower_ifindex].ifalias
                 if ifalias:
                     interface.ifalias = ifalias
-                    self.logger.debug("%s alias set from lower layer %s: %s",
-                                      interface.ifname,
-                                      ifindex_map[lower_ifindex].ifname,
-                                      ifalias)
+                    self._logger.debug("%s alias set from lower layer %s: %s",
+                                       interface.ifname,
+                                       ifindex_map[lower_ifindex].ifname,
+                                       ifalias)
 
         return interfaces
 
     def _retrieve_duplex(self, interfaces):
         """Get duplex from EtherLike-MIB and update the ifTable results."""
         def update_result(duplexes):
-            self.logger.debug("Got duplex information: %r", duplexes)
+            self._logger.debug("Got duplex information: %r", duplexes)
             for index, duplex in duplexes.items():
                 if index in interfaces:
                     interfaces[index]['duplex'] = duplex

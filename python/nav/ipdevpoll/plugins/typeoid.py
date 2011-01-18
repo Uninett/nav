@@ -38,7 +38,7 @@ class TypeOid(Plugin):
 
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
-        self.logger.debug("Collecting sysObjectId")
+        self._logger.debug("Collecting sysObjectId")
         self.snmpv2_mib = Snmpv2Mib(self.agent)
         df = self.snmpv2_mib.get_sysObjectID()
         df.addCallback(self._response_handler)
@@ -56,7 +56,7 @@ class TypeOid(Plugin):
             self.sysobjectid = self.sysobjectid[1:]
 
 
-        self.logger.debug("sysObjectID is %s", self.sysobjectid)
+        self._logger.debug("sysObjectID is %s", self.sysobjectid)
 
         df = self._get_type_from_db()
         df.addCallback(self._check_for_typechange)
@@ -95,9 +95,9 @@ class TypeOid(Plugin):
             oldname = self.netbox.type and self.netbox.type.name or 'unknown'
             newname = type_ and type_.name or \
                 'unknown (sysObjectID %s)' % self.sysobjectid
-            self.logger.warning("Netbox has changed type from %s to %s",
-                                oldname, newname)
-            self.logger.debug("old=%r new=%r", self.netbox.type, type_)
+            self._logger.warning("Netbox has changed type from %s to %s",
+                                 oldname, newname)
+            self._logger.debug("old=%r new=%r", self.netbox.type, type_)
 
             if not type_:
                 return self.create_new_type()
@@ -115,7 +115,7 @@ class TypeOid(Plugin):
         type_.sysobjectid = self.sysobjectid
 
         def set_sysdescr(descr):
-            self.logger.debug("Creating new type with descr=%r", descr)
+            self._logger.debug("Creating new type with descr=%r", descr)
             type_.description = descr
             return type_
 

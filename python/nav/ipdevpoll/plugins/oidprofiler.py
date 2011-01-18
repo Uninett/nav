@@ -57,10 +57,10 @@ class OidProfiler(Plugin):
             support = waiter.getResult()
 
             if support:
-                self.logger.debug("%s is supported", snmpoid.oid_key)
+                self._logger.debug("%s is supported", snmpoid.oid_key)
                 supported_oids.append(snmpoid)
             else:
-                self.logger.debug("%s is NOT supported", snmpoid.oid_key)
+                self._logger.debug("%s is NOT supported", snmpoid.oid_key)
 
         deferred = self._get_current_profile()
         deferred.addCallback(self._update_profile, supported_oids)
@@ -100,8 +100,8 @@ class OidProfiler(Plugin):
         ids_to_remove = profile_oid_ids.difference(supported_oid_ids)
 
         if ids_to_add or ids_to_remove:
-            self.logger.info("profile update: add %d / del %d",
-                             len(ids_to_add), len(ids_to_remove))
+            self._logger.info("profile update: add %d / del %d",
+                              len(ids_to_add), len(ids_to_remove))
 
         netbox = self.containers.factory(None, shadows.Netbox)
 
@@ -133,22 +133,22 @@ class OidProfiler(Plugin):
 
         def ignore_timeouts(failure):
             failure.trap(defer.TimeoutError)
-            self.logger.debug("timed out waiting for %s response.",
-                              snmpoid.oid_key)
+            self._logger.debug("timed out waiting for %s response.",
+                               snmpoid.oid_key)
             return []
 
         def getnext_result_checker(result):
             if len(result) > 0:
                 response_oid = result.keys()[0]
                 if oid.isaprefix(response_oid):
-                    self.logger.debug("%s support found using GET-NEXT: %r",
-                                      snmpoid.oid_key, result)
+                    self._logger.debug("%s support found using GET-NEXT: %r",
+                                       snmpoid.oid_key, result)
                     return True
             return False
 
         def get_result_checker(result):
             if oid in result:
-                self.logger.debug("%s support found using GET: %r",
+                self._logger.debug("%s support found using GET: %r",
                                   snmpoid.oid_key, result)
                 return True
             else:

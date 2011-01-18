@@ -48,7 +48,7 @@ class CiscoVlan(Plugin):
     def handle(self):
         """Plugin entrypoint"""
 
-        self.logger.debug("Collecting Cisco-proprietary 802.1q VLAN information")
+        self._logger.debug("Collecting Cisco-proprietary 802.1q VLAN information")
 
         self.ciscovtp = CiscoVTPMib(self.agent)
         self.ciscovm = CiscoVlanMembershipMib(self.agent)
@@ -87,7 +87,7 @@ class CiscoVlan(Plugin):
             if ifindex in native_vlans:
                 interface.vlan = native_vlans[ifindex]
 
-            self.logger.debug("Trunk port %r enabled VLAN count: %s",
+            self._logger.debug("Trunk port %r enabled VLAN count: %s",
                               interface.ifname or trunk, 
                               len(vector.get_set_bits()))
 
