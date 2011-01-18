@@ -220,12 +220,13 @@ class JobHandler(object):
         self._plugin_times = []
 
     def _start_plugin_timer(self, plugin):
-        timings = [plugin.__class__.__name__, datetime.datetime.now()]
+        now = datetime.datetime.now()
+        timings = [plugin.__class__.__name__, now, now]
         self._plugin_times.append(timings)
 
     def _stop_plugin_timer(self, result=None):
         timings = self._plugin_times[-1]
-        timings.append(datetime.datetime.now())
+        timings[-1] = datetime.datetime.now()
         return result
 
     def _log_timings(self):
