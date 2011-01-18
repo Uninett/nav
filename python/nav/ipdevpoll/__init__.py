@@ -29,6 +29,7 @@ Modules:
 """
 
 import logging
+from logging import Formatter
 
 from nav.errors import GeneralException
 
@@ -114,3 +115,28 @@ def get_instance_logger(instance, instance_id=None):
                                        cls.__name__,
                                        instance_id)
     return logging.getLogger(full_instance_name.lower())
+
+class ContextFormatter(Formatter):
+    """A log formatter that will add context data if available in the record.
+
+    Only recognizes the attributes 'job' and 'sysname' as context data.
+
+    """
+    def __init__(self):
+        self._normal_fmt = "%(asctime)s [%(levelname)s %(name)s] %(message)s"
+        self._context_fmt = ("%(asctime)s [%(levelname)s "
+                             "%(name)s] [%(context)s] %(message)s")
+        Formatter.__init__(self, self._normal_fmt)
+
+    def format(self, record):
+        """Overridden to choose format based on record contents."""
+        context = [getattr(record, attr)
+                   for attr in ('job', 'sysname')
+                   if hasattr(record, attr)]
+        if context:
+            record.__dict__['context'] = ' '.join(context)
+            self._fmt = self._context_fmt
+        else:
+            self._fmt = self._normal_fmt
+
+        return Formatter.format(self, record)
