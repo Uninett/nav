@@ -102,7 +102,7 @@ class NetboxJobScheduler(object):
     def _reschedule(self, failure):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
-        if self.loop.running:
+        if self.loop.running and self.loop.call:
             # FIXME: Should be configurable per. job
             delay = randint(5*60, 10*60) # within 5-10 minutes
             self.logger.info("Rescheduling %r for %s in %d seconds",
