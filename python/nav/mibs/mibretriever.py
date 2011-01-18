@@ -35,7 +35,7 @@ import operator
 from pysnmp.asn1.oid import OID
 from twisted.internet import defer, reactor
 
-from nav import ipdevpoll
+from nav.ipdevpoll import get_context_logger, get_class_logger
 from nav.errors import GeneralException
 
 logger = logging.getLogger(__name__)
@@ -239,7 +239,7 @@ class MibRetrieverMaker(type):
 
         MibRetrieverMaker.modules[ mib['moduleName'] ] = cls
 
-        cls.logger = ipdevpoll.get_class_logger(cls)
+        cls.logger = get_class_logger(cls)
 
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.
@@ -315,7 +315,7 @@ class MibRetriever(object):
         """Create a new instance tied to an AgentProxy instance."""
         super(MibRetriever, self).__init__()
         self.agent_proxy = agent_proxy
-        self.logger = ipdevpoll.get_instance_logger(self, agent_proxy.ip)
+        self.logger = get_context_logger(self, sysname=agent_proxy.ip)
 
     def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.

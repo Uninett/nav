@@ -46,9 +46,9 @@ class NetboxJobScheduler(object):
     def __init__(self, job, netbox):
         self.job = job
         self.netbox = netbox
-        self.logger = \
-            ipdevpoll.get_instance_logger(self, "%s.(%s)" %
-                                          (self.job.name, netbox.sysname))
+        self.logger = ipdevpoll.get_context_logger(self,
+                                                   job=self.job.name,
+                                                   sysname=netbox.sysname)
         self.cancelled = False
         self.job_handler = None
         self.loop = None
@@ -136,9 +136,9 @@ class JobScheduler(object):
 
     def __init__(self, job):
         """Initializes a job schedule from the job descriptor."""
-        self._logger = ipdevpoll.get_instance_logger(self, job.name)
+        self._logger = ipdevpoll.get_context_logger(self, job=job.name)
         self.job = job
-        self.netboxes = NetboxLoader(context=job.name)
+        self.netboxes = NetboxLoader(context=dict(job=job.name))
         self.active_netboxes = {}
 
         self.active_schedulers.add(self)

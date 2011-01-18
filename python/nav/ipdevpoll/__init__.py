@@ -42,12 +42,14 @@ class Plugin(object):
 
     """
 
-    def __init__(self, netbox, agent, containers, config=None):
+    def __init__(self, netbox, agent, containers, config=None, context=None):
         self.netbox = netbox
         self.agent = agent
         self.containers = containers
         self.config = config
-        self.logger = get_instance_logger(self, "(%s)" % self.netbox.sysname)
+        if not context:
+            context = dict(sysname=self.netbox.sysname)
+        self.logger = get_context_logger(self, **context)
 
     def __str__(self):
         return '%s(%s)' % (self.full_name(), repr(self.netbox.sysname))

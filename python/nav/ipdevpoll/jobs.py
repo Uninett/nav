@@ -25,7 +25,7 @@ from twistedsnmp import snmpprotocol, agentproxy
 from nav.util import round_robin
 from nav import toposort
 
-from nav import ipdevpoll
+from nav.ipdevpoll import get_context_logger
 import storage
 import shadows
 from plugins import plugin_registry
@@ -60,10 +60,12 @@ class JobHandler(object):
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
-        self.logger = \
-            ipdevpoll.get_instance_logger(self, ".".join(instance_name))
-        self.queue_logger = \
-            ipdevpoll.get_instance_logger(self, ".".join(instance_queue_name))
+        self.log_context = dict(job=self.name, sysname=self.netbox.sysname)
+        self.logger = get_context_logger(self, **self.log_context)
+        self.queue_logger = get_context_logger(self.logger.name + '.queue',
+                                               **self.log_context)
+        self.timing_logger = get_context_logger(self.logger.name + ".timings",
+                                                **self.log_context)
 
         self.plugins = plugins or []
         self.logger.debug("Job %r initialized with plugins: %r",
@@ -103,7 +105,8 @@ class JobHandler(object):
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
-                                      config=ipdevpoll_conf)
+                                      config=ipdevpoll_conf,
+                                      context=self.log_context)
                 plugins.append(plugin)
             else:
                 self.logger.debug("Plugin %s wouldn't handle %s",
@@ -251,8 +254,7 @@ class JobHandler(object):
         log_text.insert(0, "Job %r timings for %s:" %
                         (self.name, self.netbox.sysname))
 
-        log = ipdevpoll.get_instance_logger(self, "timings")
-        log.debug("\n".join(log_text))
+        self.timing_logger.debug("\n".join(log_text))
 
     def get_current_runtime(self):
         """Returns time elapsed since the start of the job as a timedelta."""
