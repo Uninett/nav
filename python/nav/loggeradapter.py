@@ -37,6 +37,7 @@ class LoggerAdapter:
         adapter = LoggerAdapter(someLogger, dict(p1=v1, p2="v2"))
         """
         self.logger = logger
+        self.name = logger.name
         self.extra = extra
 
     def process(self, msg, kwargs):
@@ -108,3 +109,6 @@ class LoggerAdapter:
         """
         msg, kwargs = self.process(msg, kwargs)
         self.logger.log(level, msg, *args, **kwargs)
+
+    def getEffectiveLevel(self):
+        return self.logger.getEffectiveLevel()
