@@ -32,6 +32,7 @@ import logging
 from logging import Formatter
 
 from nav.errors import GeneralException
+from nav.loggeradapter import LoggerAdapter
 
 class Plugin(object):
 
@@ -87,6 +88,14 @@ class Plugin(object):
                           self.__class__.__name__)
 
 
+def get_context_logger(instance, **kwargs):
+    """Returns a LoggerAdapter with the given context."""
+    if isinstance(instance, basestring):
+        logger = logging.getLogger(instance)
+    else:
+        logger = get_class_logger(instance.__class__)
+
+    return LoggerAdapter(logger, extra=kwargs)
 
 def get_class_logger(cls):
     """Return a logger instance for a given class object.
@@ -97,24 +106,6 @@ def get_class_logger(cls):
     """
     full_class_name = "%s.%s" % (cls.__module__, cls.__name__)
     return logging.getLogger(full_class_name.lower())
-
-def get_instance_logger(instance, instance_id=None):
-    """Return a logger instance for a given instance object.
-
-    The logger object is named after the fully qualified class name of
-    the instance object + '.' + an instance identifier.
-
-    If the instance_id parameter is omitted, str(instance) will be
-    used as the identifier.
-
-    """
-    if not instance_id:
-        instance_id = str(instance)
-    cls = instance.__class__
-    full_instance_name = "%s.%s.%s" % (cls.__module__,
-                                       cls.__name__,
-                                       instance_id)
-    return logging.getLogger(full_instance_name.lower())
 
 class ContextFormatter(Formatter):
     """A log formatter that will add context data if available in the record.
