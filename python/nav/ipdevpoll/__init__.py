@@ -115,6 +115,8 @@ class ContextFormatter(Formatter):
     Only recognizes the attributes 'job' and 'sysname' as context data.
 
     """
+    prefix = 'nav.ipdevpoll.'
+
     def __init__(self):
         self._normal_fmt = "%(asctime)s [%(levelname)s %(name)s] %(message)s"
         self._context_fmt = ("%(asctime)s [%(levelname)s "
@@ -123,6 +125,11 @@ class ContextFormatter(Formatter):
 
     def format(self, record):
         """Overridden to choose format based on record contents."""
+        self._set_context(record)
+        self._strip_logger_prefix(record)
+        return Formatter.format(self, record)
+
+    def _set_context(self, record):
         context = [getattr(record, attr)
                    for attr in ('job', 'sysname')
                    if hasattr(record, attr)]
@@ -132,4 +139,6 @@ class ContextFormatter(Formatter):
         else:
             self._fmt = self._normal_fmt
 
-        return Formatter.format(self, record)
+    def _strip_logger_prefix(self, record):
+        if record.name.startswith(self.prefix):
+            record.name = record.name[len(self.prefix):]
