@@ -180,7 +180,8 @@ class NetboxJobScheduler(object):
         Only jobs of the same name as this one is considered.
 
         """
-        return self.get_job_count() >= 100 # FIXME: Pull count from config
+        return (self.job.intensity > 0 and
+                self.get_job_count() >= self.job.intensity)
 
     def queue_myself(self):
         self.get_job_queue().append(self)

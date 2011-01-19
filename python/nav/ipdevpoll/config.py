@@ -77,9 +77,10 @@ def get_jobs(config=None):
 
 class JobDescriptor(object):
     """A data structure describing a job."""
-    def __init__(self, name, interval, plugins):
+    def __init__(self, name, interval, intensity, plugins):
         self.name = str(name)
         self.interval = int(interval)
+        self.intensity = int(intensity)
         self.plugins = list(plugins)
 
     @classmethod
@@ -93,10 +94,12 @@ class JobDescriptor(object):
 
         interval = (config.has_option(section, 'interval') and
                     _parse_time(config.get(section, 'interval')) or '')
+        intensity = (config.has_option(section, 'intensity') and
+                     config.getint(section, 'intensity') or 0)
         plugins = (config.has_option(section, 'plugins') and
                     _parse_plugins(config.get(section, 'plugins')) or '')
 
-        return cls(jobname, interval, plugins)
+        return cls(jobname, interval, intensity, plugins)
 
 def _parse_time(value):
     value = value.strip()
