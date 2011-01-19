@@ -1,0 +1,44 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<form action="" method="post">
+
+{% if processed_objects %}
+<table class="listtable">
+    <thead>
+        <tr>
+            <th>Status</th>
+            <th>Line number</th>
+            <th>...</th>
+        </tr>
+    </thead>
+    {% for obj in processed_objects %}
+    <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <td>{{ obj.type }}</td>
+        <td>{{ obj.line_number }}</td>
+        <td>
+            <ul>
+            {% for msg in  obj.message %}
+                <li>{{ msg|capfirst }}</li>
+            {% endfor %}
+            </ul>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<p>
+    <input type="submit" name="confirm" value="Save" />
+</p>
+{% endif %}
+
+<p>
+<textarea name="bulk_data" rows="50" cols="100">
+{% if bulk_data %}{{ bulk_data }}{% else %}{{ import_header }}{% endif %}
+</textarea>
+</p>
+<p>
+    <input type="submit" value="Import{% if bulk_data %} again{% endif %}" />
+</p>
+
+</form>
+{% endblock %}

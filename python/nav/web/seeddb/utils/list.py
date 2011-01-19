@@ -117,8 +117,9 @@ def _get_order_by(order_by, value_list):
     """Check if the specified order is valid.
     Returns order_by if it's valid, else it returns the first value in value_list.
     """
-    hyp_find = order_by.find('-')
-    key = order_by.lstrip('-')
+    if order_by:
+        hyp_find = order_by.find('-')
+        key = order_by.lstrip('-')
     if not order_by or hyp_find not in (-1, 0) or key not in value_list:
         order_by = value_list[0]
     return order_by

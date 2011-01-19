@@ -26,6 +26,7 @@ from nav.web.seeddb.views.edit import location_edit, organization_edit
 from nav.web.seeddb.views.edit import usage_edit, netboxtype_edit, vendor_edit
 from nav.web.seeddb.views.edit import subcategory_edit, vlan_edit, prefix_edit
 from nav.web.seeddb.views.edit import cabling_edit, patch_edit
+from nav.web.seeddb.views.bulk import netbox_bulk
 
 dummy = lambda *args, **kwargs: None
 
@@ -40,7 +41,7 @@ urlpatterns = patterns('',
         name='seeddb-netbox-edit'),
     url(r'^netbox/add/$', netbox_edit,
         name='seeddb-netbox-edit'),
-    url(r'^netbox/bulk/$', dummy,
+    url(r'^netbox/bulk/$', netbox_bulk,
         name='seeddb-netbox-bulk'),
 
     # Service
