@@ -44,6 +44,7 @@ class NetboxJobScheduler(object):
     rescheduling of a single JobHandler for a single netbox.
 
     """
+    job_counters = {}
 
     def __init__(self, job, netbox):
         self.job = job
@@ -92,6 +93,7 @@ class NetboxJobScheduler(object):
         job_handler = JobHandler(self.job.name, self.netbox,
                                  plugins=self.job.plugins)
         self.job_handler = job_handler
+        self.count_job()
         self._last_job_started_at = time.time()
 
         deferred = job_handler.run()
@@ -140,6 +142,7 @@ class NetboxJobScheduler(object):
         """Remove a JobHandler from internal data structures."""
         if self.job_handler:
             self.job_handler = None
+            self.uncount_job()
         return result
 
     def _log_time_to_next_run(self, thing=None):
@@ -149,6 +152,19 @@ class NetboxJobScheduler(object):
             self._logger.debug("Next %r job for %s will be at %s",
                                self.job.name, self.netbox.sysname, next_time)
         return thing
+
+    def count_job(self):
+        current_count = self.__class__.job_counters.get(self.job.name, 0)
+        current_count += 1
+        self.__class__.job_counters[self.job.name] = current_count
+
+    def uncount_job(self):
+        current_count = self.__class__.job_counters.get(self.job.name, 0)
+        current_count -= 1
+        self.__class__.job_counters[self.job.name] = max(current_count, 0)
+
+    def get_job_count(self):
+        return self.__class__.job_counters.get(self.job.name, 0)
 
 
 class JobScheduler(object):
