@@ -65,7 +65,7 @@ class NetboxImporter(BulkImporter):
 
     def get_device_from_serial(self, serial):
         if not serial:
-            return Device(serial='')
+            return Device(serial=None)
 
         try:
             device = Device.objects.get(serial=serial)
