@@ -48,14 +48,13 @@ class PointField(models.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
-        kwargs['blank'] = False
         models.Field.__init__(self, *args, **kwargs)
 
     def get_internal_type(self):
         return "PointField"
 
     def to_python(self, value):
-        if value is None or isinstance(value, tuple):
+        if not value or isinstance(value, tuple):
             return value
         if isinstance(value, (str, unicode)):
             assert value.startswith('(')

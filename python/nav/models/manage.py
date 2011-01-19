@@ -323,7 +323,7 @@ class Device(models.Model):
         db_table = 'device'
 
     def __unicode__(self):
-        return self.serial
+        return self.serial or ''
 
 class Module(models.Model):
     """From MetaNAV: The module table defines modules. A module is a part of a
@@ -425,7 +425,7 @@ class Room(models.Model):
     optional_2 = VarcharField(db_column='opt2', blank=True)
     optional_3 = VarcharField(db_column='opt3', blank=True)
     optional_4 = VarcharField(db_column='opt4', blank=True)
-    position = PointField(null=True, default=None)
+    position = PointField(null=True, blank=True, default=None)
 
     class Meta:
         db_table = 'room'
