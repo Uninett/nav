@@ -106,6 +106,15 @@ class LocationImporter(BulkImporter):
                             description=row['descr'])
         return [location]
 
+class RoomImporter(BulkImporter):
+    def create_objects_from_row(self, row):
+        raise_if_exists(Room, id=row['roomid'])
+        room = Room(id=row['roomid'], location=row['locationid'],
+                    description=row['descr'], optional_1=row['opt1'],
+                    optional_2=row['opt2'], optional_3=row['opt3'],
+                    optional_4=row['opt4'])
+        return [room]
+
 def get_object_or_fail(cls, **kwargs):
     try:
         return cls.objects.get(**kwargs)
