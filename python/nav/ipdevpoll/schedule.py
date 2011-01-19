@@ -18,10 +18,12 @@
 
 import logging
 import datetime
+import time
 from operator import itemgetter
 from random import randint
 
-from twisted.internet import task, threads
+from twisted.internet import task, threads, reactor
+from twisted.internet.defer import Deferred
 
 from nav import ipdevpoll
 import shadows
@@ -51,20 +53,21 @@ class NetboxJobScheduler(object):
                                                     sysname=netbox.sysname)
         self.cancelled = False
         self.job_handler = None
-        self.loop = None
+        self._deferred = Deferred()
+        self._next_call = None
+        self._last_job_started_at = 0
 
     def start(self):
         """Start polling schedule."""
-        self.loop = task.LoopingCall(self.run_job)
-        deferred = self.loop.start(interval=self.job.interval, now=True)
-        return deferred
+        self._next_call = reactor.callLater(0, self.run_job)
+        return self._deferred
 
     def cancel(self):
         """Cancel scheduling of this job for this box.
 
         Future runs will not be scheduled after this."""
-        if self.loop.running:
-            self.loop.stop()
+        if self._next_call.active():
+            self._next_call.cancel()
             self.cancelled = True
             self._logger.debug("cancel: Job %r cancelled for %s",
                                self.job.name, self.netbox.sysname)
@@ -72,6 +75,7 @@ class NetboxJobScheduler(object):
         else:
             self._logger.debug("cancel: Job %r already cancelled for %s",
                                self.job.name, self.netbox.sysname)
+        self._deferred.callback(self)
 
     def cancel_running_job(self):
         if self.job_handler:
@@ -82,38 +86,55 @@ class NetboxJobScheduler(object):
             self._logger.info("Previous %r job is still running for %s, "
                               "not running again now.",
                               self.job.name, self.netbox.sysname)
-        else:
-            # We're ok to start a polling run.
-            job_handler = JobHandler(self.job.name, self.netbox,
-                                     plugins=self.job.plugins)
-            self.job_handler = job_handler
+            return
 
-            deferred = job_handler.run()
-            deferred.addErrback(self._reschedule)
-            deferred.addErrback(self._log_unhandled_error)
+        # We're ok to start a polling run.
+        job_handler = JobHandler(self.job.name, self.netbox,
+                                 plugins=self.job.plugins)
+        self.job_handler = job_handler
+        self._last_job_started_at = time.time()
 
-            deferred.addCallback(self._unregister_handler)
-            deferred.addCallback(self._log_time_to_next_run)
+        deferred = job_handler.run()
+        deferred.addCallbacks(self._reschedule_on_success,
+                              self._reschedule_on_failure)
+        deferred.addErrback(self._log_unhandled_error)
+
+        deferred.addCallback(self._unregister_handler)
+        deferred.addCallback(self._log_time_to_next_run)
 
 
     def is_running(self):
         return self.job_handler is not None
 
-    def _reschedule(self, failure):
+    def _reschedule_on_success(self, result):
+        """Reschedules the next normal run of this job."""
+        time_passed = time.time() - self._last_job_started_at
+        delay = max(0, self.job.interval - time_passed)
+        self.reschedule(delay)
+        return result
+
+    def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
-        if self.loop.running and self.loop.call:
-            # FIXME: Should be configurable per. job
-            delay = randint(5*60, 10*60) # within 5-10 minutes
-            self._logger.info("Rescheduling %r for %s in %d seconds",
-                              self.job.name, self.netbox.sysname, delay)
-            self.loop.call.reset(delay)
+        # FIXME: Should be configurable per. job
+        delay = randint(5*60, 10*60) # within 5-10 minutes
+        self.reschedule(delay)
+
+    def reschedule(self, delay):
+        """Reschedules the next run of of this job"""
+        self._logger.info("Rescheduling %r for %s in %d seconds",
+                          self.job.name, self.netbox.sysname, delay)
+
+        if self._next_call.active():
+            self._next_call.reset(delay)
+        else:
+            self._next_call = reactor.callLater(delay, self.run_job)
+
 
     def _log_unhandled_error(self, failure):
         log_unhandled_failure(self._logger,
                               failure,
                               "Unhandled exception raised by JobHandler")
-        return failure
 
     def _unregister_handler(self, result):
         """Remove a JobHandler from internal data structures."""
@@ -122,9 +143,9 @@ class NetboxJobScheduler(object):
         return result
 
     def _log_time_to_next_run(self, thing=None):
-        if self.loop.running and self.loop.call is not None:
-            next_time = \
-                datetime.datetime.fromtimestamp(self.loop.call.getTime())
+        if self._next_call and self._next_call.active():
+            next_time = datetime.datetime.fromtimestamp(
+                self._next_call.getTime())
             self._logger.debug("Next %r job for %s will be at %s",
                                self.job.name, self.netbox.sysname, next_time)
         return thing
