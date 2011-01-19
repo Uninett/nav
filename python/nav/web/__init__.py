@@ -191,7 +191,7 @@ def loginit():
         handler.setFormatter(formatter)
 
         root.addHandler(handler)
-        nav.logs.setLogLevels()
+        nav.logs.set_log_levels()
         _loginited = True
 
 def exceptionhandler(handler):

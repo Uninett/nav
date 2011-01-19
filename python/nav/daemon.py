@@ -40,7 +40,7 @@ import sys
 import time
 import nav.logs
 
-nav.logs.setLogLevels()
+nav.logs.set_log_levels()
 logger = logging.getLogger('nav.daemon')
 
 

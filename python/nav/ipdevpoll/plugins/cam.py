@@ -48,7 +48,7 @@ class Cam(Plugin):
 
     @defer.deferredGenerator
     def handle(self):
-        self.logger.debug("Collecting CAM logs")
+        self._logger.debug("Collecting CAM logs")
 
         bridge_mib = BridgeMib(self.agent)
         if_mib = IfMib(self.agent)
@@ -76,18 +76,18 @@ class Cam(Plugin):
                 try:
                     num = dw.getResult()
                 except defer.TimeoutError:
-                    self.logger.debug("Timeout on vlan %d" % vlan)
+                    self._logger.debug("Timeout on vlan %d" % vlan)
                 else:
-                    self.logger.debug("Found %d macs on vlan %d" % (num, vlan))
+                    self._logger.debug("Found %d macs on vlan %d" % (num, vlan))
 
         if len(self.result) == 0 or len(vlans) == 0:
             # No result or no vlans, poll mac/port data without community
             # string indexing
-            self.logger.debug("Trying to fetch cam without community index")
+            self._logger.debug("Trying to fetch cam without community index")
             dw = defer.waitForDeferred(self._fetch_macs(bridge_mib))
             yield dw
             num = dw.getResult()
-            self.logger.debug("Found %d macs for netbox" % num)
+            self._logger.debug("Found %d macs for netbox" % num)
 
         # Fetch interface to port descriptions
         dw = defer.waitForDeferred(
@@ -118,7 +118,7 @@ class Cam(Plugin):
 
             if key in self.existing_cam:
                 if self.existing_cam[key].miss_count > 0:
-                    self.logger.debug(
+                    self._logger.debug(
                         "Resetting miss count and end time on ifindex %s/mac %s" % (
                             self.existing_cam[key].ifindex,
                             self.existing_cam[key].mac,
@@ -149,7 +149,7 @@ class Cam(Plugin):
                 if row.miss_count == 0:
                     cam.miss_count = 1
                     cam.end_time = datetime.now()
-                    self.logger.debug(
+                    self._logger.debug(
                         "ifindex %s/mac %s is no longer found, miss count 1" % (
                         row.ifindex, row.mac
                     ))
@@ -159,10 +159,10 @@ class Cam(Plugin):
                         row.ifindex, row.mac
                     )
                     message += " and is considered gone."
-                    self.logger.debug(message)
+                    self._logger.debug(message)
                 else:
                     cam.miss_count = row.miss_count + 1
-                    self.logger.debug(
+                    self._logger.debug(
                         "ifindex %s/mac %s miss count is %d" % (
                         row.ifindex, row.mac, cam.miss_count
                     ))

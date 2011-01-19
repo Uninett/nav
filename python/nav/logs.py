@@ -21,21 +21,21 @@ import logging
 import ConfigParser
 import nav.path
 
-def setLogLevels():
+def set_log_levels():
     """Read the logging config file and set up log levels for the different
     loggers."""
-    logConfFile = os.path.join(nav.path.sysconfdir, 'logging.conf')
+    logconf_file = os.path.join(nav.path.sysconfdir, 'logging.conf')
     config = ConfigParser.ConfigParser()
-    config.read(logConfFile)
+    config.read(logconf_file)
     
     if 'levels' not in config.sections():
         return
-    for loggerName in config.options('levels'):
-        level = config.get('levels', loggerName)
+    for logger_name in config.options('levels'):
+        level = config.get('levels', logger_name)
         # Allow the config file to specify the root logger as 'root'
-        if loggerName.lower() == 'root':
-            loggerName = ''
-        logger = logging.getLogger(loggerName)
+        if logger_name.lower() == 'root':
+            logger_name = ''
+        logger = logging.getLogger(logger_name)
 
         # Allow log levels to be specified as either names or values.
         # Translate any non-integer levels to integer first.
@@ -60,17 +60,17 @@ def reopen_log_files():
     mylog = logging.getLogger('nav.logs')
     for logger in [root] + manager.loggerDict.values():
         try:
-            for h in logger.handlers:
-                if isinstance(h, logging.FileHandler):
-                    mylog.debug("Reopening " + h.baseFilename)
-                    h.flush()
-                    h.acquire()
-                    h.stream.close()
-                    h.stream = open(h.baseFilename, h.mode)
-                    h.release()
-                    mylog.debug("Reopened " + h.baseFilename)
+            for hdl in logger.handlers:
+                if isinstance(hdl, logging.FileHandler):
+                    mylog.debug("Reopening " + hdl.baseFilename)
+                    hdl.flush()
+                    hdl.acquire()
+                    hdl.stream.close()
+                    hdl.stream = open(hdl.baseFilename, hdl.mode)
+                    hdl.release()
+                    mylog.debug("Reopened " + hdl.baseFilename)
         except AttributeError:
-            pass
+            continue
 
 def get_logfile_from_logger(logger=logging.root):
     """Return the file object of the first FileHandler of a given logger.

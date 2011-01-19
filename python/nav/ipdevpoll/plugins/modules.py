@@ -53,7 +53,7 @@ class Modules(Plugin):
 
     @defer.deferredGenerator
     def handle(self):
-        self.logger.debug("Collecting ENTITY-MIB module data")
+        self._logger.debug("Collecting ENTITY-MIB module data")
         entitymib = EntityMib(self.agent)
 
         dw = defer.waitForDeferred(entitymib.retrieve_table('entPhysicalTable'))
@@ -116,18 +116,18 @@ class Modules(Plugin):
             module.device = device
 
             module_containers[entity_index] = module
-            self.logger.debug("module (entPhysIndex=%s): %r", 
-                              entity_index, module)
+            self._logger.debug("module (entPhysIndex=%s): %r", 
+                               entity_index, module)
 
         return module_containers
 
     def _process_chassis(self, entities):
         chassis = entities.get_chassis()
         if not chassis:
-            self.logger.info('No chassis found')
+            self._logger.info('No chassis found')
             return
         elif len(chassis) > 1:
-            self.logger.info('Found multiple chassis')
+            self._logger.info('Found multiple chassis')
 
         # We don't really know how to handle a multiple chassis
         # situation.  Best effort is to use the first one in the list.
@@ -165,7 +165,7 @@ class Modules(Plugin):
                             module_ifindex_map[module.name] = [ifindex]
 
         if module_ifindex_map:
-            self.logger.debug("module/ifindex mapping: %r", 
+            self._logger.debug("module/ifindex mapping: %r", 
                               module_ifindex_map)
 
 
@@ -189,7 +189,7 @@ class Modules(Plugin):
                 mapping[phys_index] = []
             mapping[phys_index].append(ifindex)
 
-        self.logger.debug("alias mapping: %r", mapping)
+        self._logger.debug("alias mapping: %r", mapping)
         return mapping
 
 

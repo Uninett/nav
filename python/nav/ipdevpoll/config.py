@@ -24,9 +24,9 @@ from StringIO import StringIO
 import nav.buildconf
 from nav.errors import GeneralException
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
-ipdevpoll_conf_defaults = """
+_ipdevpoll_conf_defaults = """
 [ipdevpoll]
 logfile = ipdevpolld.log
 
@@ -42,7 +42,7 @@ class IpdevpollConfig(ConfigParser.ConfigParser):
     def __init__(self):
         ConfigParser.ConfigParser.__init__(self)
         # TODO: perform sanity check on config settings
-        faked_default_file = StringIO(ipdevpoll_conf_defaults)
+        faked_default_file = StringIO(_ipdevpoll_conf_defaults)
         self.readfp(faked_default_file)
         self.read_all()
 
@@ -54,34 +54,51 @@ class IpdevpollConfig(ConfigParser.ConfigParser):
         files_read = self.read(filenames)
 
         if files_read:
-            logger.debug("Read config files %r", files_read)
+            _logger.debug("Read config files %r", files_read)
         else:
-            logger.warning("Found no config files")
+            _logger.warning("Found no config files")
         return files_read
 
-
 def get_jobs(config=None):
+    """Returns a list of JobDescriptors for each of the jobs configured in
+    ipdevpoll.conf
+
+    """
     if config is None:
         config = ipdevpoll_conf
-    jobs = {}
 
     job_prefix = 'job_'
     job_sections = [s for s in config.sections() if s.startswith(job_prefix)]
-    for section in job_sections:
-        job_name = section[len(job_prefix):]
+    job_descriptors = [JobDescriptor.from_config_section(config, section)
+                       for section in job_sections]
+    _logger.debug("parsed jobs from config file: %r",
+                 [j.name for j in job_descriptors])
+    return job_descriptors
 
-        interval = config.has_option(section, 'interval') and \
-            parse_time(config.get(section, 'interval')) or ''
-        plugins  = config.has_option(section, 'plugins') and \
-            parse_plugins(config.get(section, 'plugins', '')) or ''
+class JobDescriptor(object):
+    """A data structure describing a job."""
+    def __init__(self, name, interval, plugins):
+        self.name = str(name)
+        self.interval = int(interval)
+        self.plugins = list(plugins)
 
-        if interval and plugins:
-            jobs[job_name] = (interval, plugins)
-            logger.debug("Registered job in registry: %s", job_name)
+    @classmethod
+    def from_config_section(cls, config, section):
+        """Creates a JobDescriptor from a ConfigParser section"""
+        job_prefix = 'job_'
+        if section.startswith(job_prefix):
+            jobname = section[len(job_prefix):]
+        else:
+            raise InvalidJobSectionName(section)
 
-    return jobs
+        interval = (config.has_option(section, 'interval') and
+                    _parse_time(config.get(section, 'interval')) or '')
+        plugins = (config.has_option(section, 'plugins') and
+                    _parse_plugins(config.get(section, 'plugins')) or '')
 
-def parse_time(value):
+        return cls(jobname, interval, plugins)
+
+def _parse_time(value):
     value = value.strip()
 
     if value == '':
@@ -90,7 +107,7 @@ def parse_time(value):
     if value.isdigit():
         return int(value)
 
-    value,unit = int(value[:-1]), value[-1:].lower()
+    value, unit = int(value[:-1]), value[-1:].lower()
 
     if unit == 'd':
         return value * 60*60*24
@@ -103,10 +120,18 @@ def parse_time(value):
 
     raise GeneralException('Invalid time format: %s%s' % (value, unit))
 
-def parse_plugins(value):
+def _parse_plugins(value):
     if value:
         return value.split()
 
     return []
 
+class ConfigurationError(GeneralException):
+    """Configuration error"""
+    pass
+
+class InvalidJobSectionName(ConfigurationError):
+    """Section name is invalid as a job section"""
+
 ipdevpoll_conf = IpdevpollConfig()
+

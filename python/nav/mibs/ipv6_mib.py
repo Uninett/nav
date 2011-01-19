@@ -82,8 +82,8 @@ class Ipv6Mib(mibretriever.MibRetriever):
             
             row = (ifindex, ip, mac)
             mappings.add(row)
-        self.logger.debug("ip/mac pairs: Got %d rows from %s", 
-                          len(ipv6_phys_addrs), column)
+        self._logger.debug("ip/mac pairs: Got %d rows from %s",
+                           len(ipv6_phys_addrs), column)
         yield mappings
 
 
@@ -113,7 +113,7 @@ class Ipv6Mib(mibretriever.MibRetriever):
             
             row = (ifindex, ip, prefix)
             addresses.add(row)
-        self.logger.debug("interface addresses: Got %d rows from %s", 
-                          len(ipv6_addrs), prefixlen_column)
+        self._logger.debug("interface addresses: Got %d rows from %s",
+                           len(ipv6_addrs), prefixlen_column)
 
         yield addresses
