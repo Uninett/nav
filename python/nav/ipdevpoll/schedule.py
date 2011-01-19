@@ -45,6 +45,7 @@ class NetboxJobScheduler(object):
 
     """
     job_counters = {}
+    job_queues = {}
 
     def __init__(self, job, netbox):
         self.job = job
@@ -87,6 +88,12 @@ class NetboxJobScheduler(object):
             self._logger.info("Previous %r job is still running for %s, "
                               "not running again now.",
                               self.job.name, self.netbox.sysname)
+            return
+
+        if self.is_job_limit_reached():
+            self._logger.debug("intensity limit for %r reached - waiting to "
+                               "run for %s", self.job.name, self.netbox.sysname)
+            self.queue_myself()
             return
 
         # We're ok to start a polling run.
@@ -143,14 +150,15 @@ class NetboxJobScheduler(object):
         if self.job_handler:
             self.job_handler = None
             self.uncount_job()
+            self.unqueue_next_job()
         return result
 
     def _log_time_to_next_run(self, thing=None):
         if self._next_call and self._next_call.active():
             next_time = datetime.datetime.fromtimestamp(
                 self._next_call.getTime())
-            self._logger.debug("Next %r job for %s will be at %s",
-                               self.job.name, self.netbox.sysname, next_time)
+            self._logger.info("Next %r job for %s will be at %s",
+                              self.job.name, self.netbox.sysname, next_time)
         return thing
 
     def count_job(self):
@@ -166,6 +174,27 @@ class NetboxJobScheduler(object):
     def get_job_count(self):
         return self.__class__.job_counters.get(self.job.name, 0)
 
+    def is_job_limit_reached(self):
+        """Returns True if the number of jobs >= the intensity setting.
+
+        Only jobs of the same name as this one is considered.
+
+        """
+        return self.get_job_count() >= 100 # FIXME: Pull count from config
+
+    def queue_myself(self):
+        self.get_job_queue().append(self)
+
+    def unqueue_next_job(self):
+        queue = self.get_job_queue()
+        if not self.is_job_limit_reached() and len(queue) > 0:
+            handler = queue.pop(0)
+            return handler.start()
+
+    def get_job_queue(self):
+        if self.job.name not in self.job_queues:
+            self.job_queues[self.job.name] = []
+        return self.job_queues[self.job.name]
 
 class JobScheduler(object):
     active_schedulers = set()
