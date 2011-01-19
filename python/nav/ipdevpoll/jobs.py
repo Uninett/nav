@@ -147,7 +147,7 @@ class JobHandler(object):
             self._logger.debug("Now calling plugin: %s", plugin_instance)
             self._start_plugin_timer(plugin_instance)
 
-            df = plugin_instance.handle()
+            df = defer.maybeDeferred(plugin_instance.handle)
             df.addErrback(self._stop_plugin_timer)
             df.addErrback(log_plugin_failure, plugin_instance)
             df.addCallback(self._stop_plugin_timer)
