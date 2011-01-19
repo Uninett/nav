@@ -120,12 +120,15 @@ def raise_if_exists(cls, **kwargs):
                             (cls.__name__, kwargs))
 
 class BulkImportError(BulkParseError):
+    "Import failed."
     pass
 
 class DoesNotExist(BulkImportError):
+    "Object does not exist"
     pass
 
 class AlreadyExists(BulkImportError):
+    "Object already exist in database"
     pass
 
 def reset_object_foreignkeys(obj):
