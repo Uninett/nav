@@ -57,9 +57,8 @@ def test_webpages():
         url = queue.pop()
         yield ('is %s reachable' % url,) + check_response(url)
 
-def test_validates():
     for url in html_store.keys():
-        yield check_validates, url
+        yield "does %s validate" % url, check_validates, url
 
 def handle_http_error(func):
     def _decorator(*args, **kwargs):
