@@ -104,12 +104,11 @@ def retrieve_links(current_url):
             continue
         elif path in BLACKLISTED_PATHS:
             continue
-        elif path not in seen_paths:
-            queue.append(link)
+        elif not has_been_seen(path):
+            queue.append('%s://%s%s' % (url.scheme, url.netloc, url.path))
 
-        if path not in seen_paths:
-            seen_paths[path] = []
-        seen_paths[path].append((get_path(current_url), element, attribute))
+
+        register_seen(path, current_url)
 
 def filter_errors(errors):
     return filter(lambda e: e.message not in TIDY_IGNORE, errors)
@@ -121,6 +120,18 @@ def check_response(current_url):
     if is_html(resp):
         html_store[current_url] = resp.read()
         retrieve_links(current_url)
+    return success, current_url
+
+def has_been_seen(url):
+    return get_path(url) in seen_paths
+
+def register_seen(seen_url, source_url=None):
+    seen_url = get_path(seen_url)
+    if seen_url not in seen_paths:
+        seen_paths[seen_url] = []
+    if source_url:
+        seen_paths[seen_url].append(source_url)
+
 
 def check_validates(url):
     if not should_validate(url):
