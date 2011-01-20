@@ -48,9 +48,14 @@ html_store = {}
 queue = [HOST_URL]
 
 def test_webpages():
-    login()
+    result = login()
+    if result:
+        func, args = result[0], result[1:]
+        func(args)
+    register_seen(HOST_URL)
     while queue:
-        yield check_response, queue.pop()
+        url = queue.pop()
+        yield ('is %s reachable' % url,) + check_response(url)
 
 def test_validates():
     for url in html_store.keys():
@@ -64,16 +69,24 @@ def handle_http_error(func):
             print "%s :" % error.url
             print "-" * (len(error.url)+2)
             print error.fp.read()
-            raise
+            return failure, error.url, error.code
 
     return _decorator
 
+def failure(url, code):
+    assert code == 200
+
+def success(url):
+    assert True
+
 @handle_http_error
 def login():
+    login_url = '%sindex/login/' % HOST_URL
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
-    opener.open('%sindex/login/' % HOST_URL, data)
+    opener.open(login_url, data)
     urllib2.install_opener(opener)
+    return success, login_url
 
 def get_path(url):
     return urlparse.urlsplit(url).path.rstrip('/')
