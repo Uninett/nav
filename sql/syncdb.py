@@ -275,7 +275,7 @@ class Synchronizer(object):
     def install_baseline(self):
         """Installs the baseline NAV schema"""
         print "Installing baseline schema"
-        baseline_dir = self.sql_dir
+        baseline_dir = os.path.join(self.sql_dir, 'baseline')
         for schema in self.schemas:
             namespace = schema[0]
             files = schema[1:]
