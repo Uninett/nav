@@ -187,11 +187,16 @@ class Synchronizer(object):
         self.sql_dir = sql_dir
         self.connection = None
         self.cursor = None
-        self.connect_options = ConnectionOptions(*get_connection_parameters())
+        self.connect_options = dict(zip(
+                ('dbhost', 'dbport', 'dbname', 'user', 'password'),
+                get_connection_parameters()))
 
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
-        dsn = get_connection_string(self.connect_options)
+        dsn = get_connection_string(tuple(
+                self.connect_options[o]
+                 for o in
+                 ('dbhost', 'dbport', 'dbname', 'user', 'password')))
         self.connection = psycopg2.connect(dsn)
         read_committed = 1
         self.connection.set_isolation_level(read_committed)
@@ -203,7 +208,7 @@ class Synchronizer(object):
         self.verify_namespaces()
 
         if self.is_empty_database():
-            print "You database appears empty"
+            print "Your database appears empty"
             self.install_baseline()
 
         self.apply_changes()
@@ -224,9 +229,9 @@ class Synchronizer(object):
         if add_schemas:
             schemas.extend(add_schemas)
             print ("Adding namespaces to %s search_path: %s" %
-                   (self.connect_options.dbname, ", ".join(add_schemas)))
+                   (self.connect_options['dbname'], ", ".join(add_schemas)))
             sql = ("ALTER DATABASE %s SET search_path TO %s" %
-                   (self.connect_options.dbname, ", ".join(add_schemas)))
+                   (self.connect_options['dbname'], ", ".join(add_schemas)))
             self.cursor.execute(sql)
         self.connection.commit()
         self.connect() # must reconnect to activate the new search path
@@ -242,7 +247,7 @@ class Synchronizer(object):
 
         if add_namespaces:
             print ("Adding namespaces to database %s: %s" %
-                   (self.connect_options.dbname, ", ".join(add_namespaces)))
+                   (self.connect_options['dbname'], ", ".join(add_namespaces)))
             for namespace in add_namespaces:
                 self.cursor.execute("CREATE SCHEMA %s" % namespace)
         self.connection.commit()
@@ -285,7 +290,7 @@ class Synchronizer(object):
     def apply_changes(self):
         """Finds and applies outstanding schema change scripts."""
         (major, minor, point) = self.get_last_applied_change()
-        finder = ChangeScriptFinder()
+        finder = ChangeScriptFinder(self.sql_dir)
         new_scripts = finder.get_updates_since(major, minor, point)
 
         if new_scripts:
@@ -356,7 +361,7 @@ class ChangeScriptFinder(list):
         self._find_change_scripts()
 
     def _find_change_scripts(self):
-        changes_dir = os.path.join(os.path.dirname(self.sql_dir, 'changes'))
+        changes_dir = os.path.join(os.path.dirname(self.sql_dir), 'changes')
         scripts = [os.path.join(changes_dir, f)
                    for f in os.listdir(changes_dir)
                    if self.script_pattern.match(f)]
