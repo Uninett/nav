@@ -61,21 +61,23 @@ def parse_args():
 
 def create_database():
     """Create a database using PostgreSQL command line clients"""
-    _, _, dbname, user, password = get_connection_parameters()
+    opts = ConnectionParameters.from_config()
 
-    if not user_exists(user):
-        create_user(user, password)
+    if not user_exists(opts.user):
+        create_user(opts.user, opts.password)
 
-    print "Creating database %s owned by %s" % (dbname, user)
+    print "Creating database %s owned by %s" % (opts.dbname, opts.user)
     trap_and_die(subprocess.CalledProcessError,
-                 "Failed creating database %s" % dbname,
+                 "Failed creating database %s" % opts.dbname,
                  check_call, ["createdb",
-                              "--owner=%s" % user, "--encoding=utf-8", dbname])
+                              "--owner=%s" % opts.user,
+                              "--encoding=utf-8", opts.dbname])
 
-    trap_and_die(subprocess.CalledProcessError,
-                 "Failed installing PL/pgSQL language in database %s" % dbname,
-                 check_call,
-                 ["createlang", "plpgsql", dbname])
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed installing PL/pgSQL language in database %s" % opts.dbname,
+        check_call,
+        ["createlang", "plpgsql", opts.dbname])
 
 def user_exists(username):
     """Returns True if a database user exists.
@@ -187,16 +189,11 @@ class Synchronizer(object):
         self.sql_dir = sql_dir
         self.connection = None
         self.cursor = None
-        self.connect_options = dict(zip(
-                ('dbhost', 'dbport', 'dbname', 'user', 'password'),
-                get_connection_parameters()))
+        self.connect_options = ConnectionParameters.from_config()
 
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
-        dsn = get_connection_string(tuple(
-                self.connect_options[o]
-                 for o in
-                 ('dbhost', 'dbport', 'dbname', 'user', 'password')))
+        dsn = str(self.connect_options)
         self.connection = psycopg2.connect(dsn)
         read_committed = 1
         self.connection.set_isolation_level(read_committed)
@@ -229,9 +226,9 @@ class Synchronizer(object):
         if add_schemas:
             schemas.extend(add_schemas)
             print ("Adding namespaces to %s search_path: %s" %
-                   (self.connect_options['dbname'], ", ".join(add_schemas)))
+                   (self.connect_options.dbname, ", ".join(add_schemas)))
             sql = ("ALTER DATABASE %s SET search_path TO %s" %
-                   (self.connect_options['dbname'], ", ".join(add_schemas)))
+                   (self.connect_options.dbname, ", ".join(add_schemas)))
             self.cursor.execute(sql)
         self.connection.commit()
         self.connect() # must reconnect to activate the new search path
@@ -247,7 +244,7 @@ class Synchronizer(object):
 
         if add_namespaces:
             print ("Adding namespaces to database %s: %s" %
-                   (self.connect_options['dbname'], ", ".join(add_namespaces)))
+                   (self.connect_options.dbname, ", ".join(add_namespaces)))
             for namespace in add_namespaces:
                 self.cursor.execute("CREATE SCHEMA %s" % namespace)
         self.connection.commit()
@@ -392,6 +389,76 @@ class ChangeScriptFinder(list):
                 int(match.group('point')))
 
 
+class ConnectionParameters(object):
+    """Database Connection parameters"""
+
+    def __init__(self, dbhost, dbport, dbname, user, password):
+        self.dbhost = dbhost
+        self.dbport = dbport
+        self.dbname = dbname
+        self.user = user
+        self.password = password
+
+    @classmethod
+    def from_config(cls):
+        """Initializes and returns parameters from NAV's config"""
+        return cls(*get_connection_parameters())
+
+    @classmethod
+    def from_environment(cls):
+        """Initializes and returns parameters from environment vars"""
+        params = [os.environ.get(v, None) for v in
+                  ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')]
+        return cls(*params)
+
+    @classmethod
+    def for_nav_user(cls):
+        """Returns parameters suitable for logging in the NAV user."""
+        config = cls.from_config()
+        environ = cls.from_environment()
+        config.copy_server_params_from(environ)
+        return config
+
+    @classmethod
+    def for_postgres_user(cls):
+        """Returns parameters suitable for logging in the postgres user."""
+        config = cls.from_config()
+        environ = cls.from_environment()
+        environ.copy_server_params_from(config)
+        return config
+
+    def copy_server_params_from(self, other):
+        """Copies server parameters from other, if set.  Otherwise, keep own.
+
+        Server options are the dbhost, dbport and dbname attributes.
+        """
+        for attr in ('dbhost', 'dbport', 'dbname'):
+            setattr(self, attr,
+                    getattr(other, attr) or getattr(self, attr))
+
+    def export(self, environ):
+        """Exports parameters to environ.
+
+        Supply os.environ to export to subprocesses.
+
+        """
+        added_environ = dict(zip(
+            ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
+            self.as_tuple()))
+        for var, val in added_environ:
+            if val:
+                environ[var] = val
+
+    def as_tuple(self):
+        """Returns parameters as a tuple"""
+        return (self.dbhost,
+                self.dbport,
+                self.dbname,
+                self.user,
+                self.password)
+
+    def __str__(self):
+        return get_connection_string(self.as_tuple())
 
 if __name__ == '__main__':
     main()
