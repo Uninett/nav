@@ -61,23 +61,25 @@ def parse_args():
 
 def create_database():
     """Create a database using PostgreSQL command line clients"""
-    opts = ConnectionParameters.from_config()
+    nav_opts = ConnectionParameters.from_config()
+    postgres_opts = ConnectionParameters.for_postgres_user()
+    postgres_opts.export(os.environ)
 
-    if not user_exists(opts.user):
-        create_user(opts.user, opts.password)
+    if not user_exists(nav_opts.user):
+        create_user(nav_opts.user, nav_opts.password)
 
-    print "Creating database %s owned by %s" % (opts.dbname, opts.user)
+    print "Creating database %s owned by %s" % (nav_opts.dbname, nav_opts.user)
     trap_and_die(subprocess.CalledProcessError,
-                 "Failed creating database %s" % opts.dbname,
+                 "Failed creating database %s" % nav_opts.dbname,
                  check_call, ["createdb",
-                              "--owner=%s" % opts.user,
-                              "--encoding=utf-8", opts.dbname])
+                              "--owner=%s" % nav_opts.user,
+                              "--encoding=utf-8", nav_opts.dbname])
 
     trap_and_die(
         subprocess.CalledProcessError,
-        "Failed installing PL/pgSQL language in database %s" % opts.dbname,
+        "Failed installing PL/pgSQL language in database %s" % nav_opts.dbname,
         check_call,
-        ["createlang", "plpgsql", opts.dbname])
+        ["createlang", "plpgsql", nav_opts.dbname])
 
 def user_exists(username):
     """Returns True if a database user exists.
