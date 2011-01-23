@@ -29,6 +29,8 @@ def main():
     """Main program"""
     (options, args) = parse_args()
 
+    verify_password_is_configured()
+
     if options.create_database:
         create_database()
 
@@ -58,6 +60,11 @@ def parse_args():
                       action="store_true", dest="create_database",
                       help="Create NAV database")
     return parser.parse_args()
+
+def verify_password_is_configured():
+    opts = ConnectionParameters.from_config()
+    if not opts.password:
+        die("No password configured for %s user in db.conf" % opts.user)
 
 def create_database():
     """Create a database using PostgreSQL command line clients"""
