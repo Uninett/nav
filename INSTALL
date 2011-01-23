@@ -159,29 +159,18 @@ JavaSNMP libraries to NAV's java library directory::
 
 Configuring Apache
 ------------------
-Legacy parts of NAV uses mod_python, and therefore requires an Apache
-server.  For the time being, NAV also requires being at the document
-root of its own Apache virtualhost.
+Legacy parts of NAV uses mod_python, and therefore requires an Apache 2
+server.  For the time being, NAV also requires being at the document root of
+its own Apache virtualhost.
 
-A typical minimum configuration for such a virtualhost can be::
+NAV provides an Apache config file, with the minimum settings required for
+getting a NAV virtualhost to work.  This can be included in your virtualhost
+config file, which needn't contain much more than this::
 
-  DirectoryIndex index.html index.html index.php index.cgi index.py
-  AccessFileName .htaccess
-  AddDefaultCharset UTF-8
-  AddHandler cgi-script .cgi
+  ServerName nav.example.org
+  ServerAdmin webmaster@example.org
 
-  DocumentRoot /usr/local/nav/apache/webroot
-  <Directory />
-      Options FollowSymLinks
-      AllowOverride None
-  </Directory>
-
-  <Directory "/usr/local/nav/apache/webroot">
-      Options Indexes FollowSymLinks ExecCGI
-      AllowOverride All
-      Order allow,deny
-      Allow from all
-  </Directory>
+  Include /usr/local/nav/etc/apache/apache.conf
 
 
 Create users and groups
