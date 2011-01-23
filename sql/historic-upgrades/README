@@ -1,53 +1,44 @@
-Upgrading your NAV database schema
-==================================
-Sometimes the NAV database schema will change between releases, and
-you will need to perform a database upgrade when upgrading your NAV
-release.  This file will tell you how.
+Historic upgrade scripts
+------------------------
+This directory (`historic-upgrades`) contains historic PostgreSQL scripts to
+convert your database schema when a new NAV release has updated it.  Each file
+will be named after the release version it came with, meaning that if version
+3.7.1 has updates to the database schema, there will be a file called
+3.7.1.sql here.
 
+Each of these upgrade scripts only upgrade changes that were made since the
+previous release.  If several releases have been made since the version you
+are already running, you must apply every upgrade script since then in
+chronological order.
 
-Upgrade scripts
----------------
-This directory (doc/sql/upgrades) contains PostgreSQL scripts to
-convert your database schema when a new NAV release has updated it.
-Each file will be named after the release version it came with,
-meaning that if version 3.0_beta7 has updates to the database schema,
-there will be a file called 3.0_beta7.sql here.
-
-Each of these upgrade scripts only upgrade changes that were made
-since the previous release.  If several releases have been made since
-the version you are already running, you must apply every upgrade
-script since then in chronological order.
-
+Since NAV version 3.8, schema upgrades can be be applied automatically.
+Please see the sql/README for updated instructions.
 
 Performing the schema upgrade
 -----------------------------
-1. Stop your NAV background processes completely, using "nav stop".
-   Then stop your Apache and Tomcat web server processes (as the NAV
-   web interface will be busy using the database). Sometimes it is
-   necessary to also restart the PostgreSQL server to make sure that
-   all database connections from NAV were properly closed.  Of course,
-   you should already have done all this before upgrading the NAV
-   software.
+1. Stop your NAV background processes completely, using `nav stop`.  Then stop
+   your Apache web server process (as the NAV web interface will be busy using
+   the database). Sometimes it is necessary to also restart the PostgreSQL
+   server to make sure that all database connections from NAV were properly
+   closed.  Of course, you should already have done all this before upgrading
+   the NAV software.
 
 2. Upgrade your NAV software if you haven't already.
 
-3. Find the appropriate upgrade script(s) from this directory.  Read
-   the comments at the top of the file to find more information about
-   the upgrade.  After following any instructions in the comments, run
-   the upgrade script as the PostgreSQL superuser (usually named
-   postgres), or as the NAV database owner:
+3. Find the appropriate upgrade script(s) from this directory.  Read the
+   comments at the top of the file to find more information about the upgrade.
+   After following any instructions in the comments, run the upgrade script as
+   the PostgreSQL superuser (usually named postgres), or as the NAV database
+   owner::
  
      psql -f <upgrade-script.sql> nav <username>
 
-4. Run the navschema.py program.  See the notes below about namespaces
-   and search paths if you want to know why.
-
-5. If everything looks OK, start NAV again by issuing the command "nav
-   start" and then start the Apache and Tomcat web servers.
+4. If everything looks OK, start NAV again by issuing the command `nav start`
+   and then start the Apache web server.
 
 
-If something fails during the schema upgrade and you don't know why,
-consult the nav-users mailing list.
+If something fails during the schema upgrade and you don't know why, consult
+the nav-users mailing list.
 
 
 Merging databases on upgrade from older versions than 3.5
@@ -60,25 +51,12 @@ If you are upgrading from NAV 3.4 to NAV 3.5, you MUST merge your
 databases BEFORE you attempt to run any 3.5.*.sql script from this
 directory.
 
-A shell script to help you with this can be found in
-doc/sql/mergedb.sh .  This script will attempt to create a new
-database called 'nav' (configurable by command line option), then use
-pg_dump to dump the contents of the four old databases (manage,
-navprofiles, logger and arnold).  Each of these database dumps are
-then loaded into separate namespaces in the new database.
+The `mergedb.sh` shell script will help you with this.  This script will
+attempt to create a new database called 'nav' (configurable by command line
+option), then use `pg_dump` to dump the contents of the four old databases
+(`manage`, `navprofiles`, `logger` and `arnold`).  Each of these database
+dumps are then loaded into separate namespaces in the new database.
 
-On most systems, the script should be run by the postgres shell
-account (via su or sudo) to achieve superuser access in PostgreSQL.
-For detailed info on usage of the script, run it with the -h option.
-
-
-Making sure all namespaces are in the NAV database search path
---------------------------------------------------------------
-To ensure that all NAV tables can be easily found by NAV processes,
-all the namespaces in the NAV database must be on the database's
-configured search path.
-
-Updating the search_path without overwriting local changes isn't
-easily done with SQL, so we've created the navschema.py program to
-take care of this.  We recommend running this program after each NAV
-upgrade to ensure the search path is properly up-to-date.
+On most systems, the script should be run by the postgres shell account (via
+su or sudo) to achieve superuser access in PostgreSQL.  For detailed info on
+usage of the script, run it with the -h option.
