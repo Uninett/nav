@@ -412,29 +412,19 @@ class ConnectionParameters(object):
         return cls(*params)
 
     @classmethod
-    def for_nav_user(cls):
-        """Returns parameters suitable for logging in the NAV user."""
-        config = cls.from_config()
-        environ = cls.from_environment()
-        config.copy_server_params_from(environ)
-        return config
-
-    @classmethod
     def for_postgres_user(cls):
-        """Returns parameters suitable for logging in the postgres user."""
+        """Returns parameters suitable for logging in the postgres user using
+        PostgreSQL command line clients.
+        """
         config = cls.from_config()
         environ = cls.from_environment()
-        environ.copy_server_params_from(config)
-        return config
 
-    def copy_server_params_from(self, other):
-        """Copies server parameters from other, if set.  Otherwise, keep own.
+        if not environ.dbhost and config.dbhost != 'localhost':
+            environ.dbhost = config.dbhost
+        if not environ.dbport and config.dbport:
+            environ.dbport = config.dbport
 
-        Server options are the dbhost, dbport and dbname attributes.
-        """
-        for attr in ('dbhost', 'dbport', 'dbname'):
-            setattr(self, attr,
-                    getattr(other, attr) or getattr(self, attr))
+        return environ
 
     def export(self, environ):
         """Exports parameters to environ.
@@ -445,7 +435,7 @@ class ConnectionParameters(object):
         added_environ = dict(zip(
             ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
             self.as_tuple()))
-        for var, val in added_environ:
+        for var, val in added_environ.items():
             if val:
                 environ[var] = val
 
