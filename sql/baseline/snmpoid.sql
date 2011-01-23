@@ -1,7 +1,6 @@
 --
 -- Automated dump by dumpsnmpoid.py initiated at 2005-07-05 11:10:01 GMT
 --
-BEGIN;
 DELETE FROM snmpoid WHERE oidkey='3c9300Mac';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('3c9300Mac','1.3.6.1.4.1.43.29.4.10.8.1.5.1','Bridge table for 3Com SuperStack 1900','3com','1',NULL,'0',NULL,NULL);
@@ -681,7 +680,5 @@ VALUES ('vtpVlanState','1.3.6.1.4.1.9.9.46.1.3.1.1.2','The state of this VLAN','
 UPDATE snmpoid SET defaultfreq=3600 WHERE oidkey IN ('moduleMon', '3cPS40PortState', 'hpStackStatsMemberOperStatus');
 UPDATE snmpoid SET defaultfreq=1800 WHERE oidkey IN ('ipNetToMediaPhysAddress', 'cInetNetToMediaPhysAddress', 'ipv6NetToMediaPhysAddress');
 
-UPDATE snmpoid SET getnext=true, uptodate=true;
+UPDATE snmpoid SET uptodate=false;
 UPDATE netbox SET uptodate=false;
-
-COMMIT;
