@@ -236,7 +236,7 @@ class Synchronizer(object):
             schemas.extend(add_schemas)
             print ("Adding namespaces to %s search_path: %s" %
                    (self.connect_options.dbname, ", ".join(add_schemas)))
-            sql = ("ALTER DATABASE %s SET search_path TO %s" %
+            sql = ('ALTER DATABASE "%s" SET search_path TO %s' %
                    (self.connect_options.dbname, ", ".join(add_schemas)))
             self.cursor.execute(sql)
         self.connection.commit()
