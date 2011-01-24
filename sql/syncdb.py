@@ -367,7 +367,7 @@ class ChangeScriptFinder(list):
         self._find_change_scripts()
 
     def _find_change_scripts(self):
-        changes_dir = os.path.join(os.path.dirname(self.sql_dir), 'changes')
+        changes_dir = os.path.join(self.sql_dir, 'changes')
         scripts = [os.path.join(changes_dir, f)
                    for f in os.listdir(changes_dir)
                    if self.script_pattern.match(f)]

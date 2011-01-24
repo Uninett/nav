@@ -69,6 +69,8 @@ def handle_http_error(func):
             print "-" * (len(error.url)+2)
             print error.fp.read()
             return failure, error.url, error.code
+        except urllib2.URLError, error:
+            return urlerror, error
 
     return _decorator
 
@@ -77,6 +79,9 @@ def failure(url, code):
 
 def success(url):
     assert True
+
+def urlerror(error):
+    raise error
 
 @handle_http_error
 def login():
