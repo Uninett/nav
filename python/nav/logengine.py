@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2009, 2010 UNINETT AS
-#
+# Copyright (C) 2007, 2009-2011 UNINETT AS
+# 
 # This file is part of Network Administration Visualized (NAV).
 #
 # NAV is free software: you can redistribute it and/or modify it under
@@ -472,7 +472,7 @@ def main():
     config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
 
     logging.basicConfig()
-    nav.logs.setLogLevels()
+    nav.logs.set_log_levels()
 
     if options.delete:
         # get rid of old records

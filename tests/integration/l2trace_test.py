@@ -306,20 +306,24 @@ class JunctionTests(L2TraceTestCase):
 
 
 from nav.tests.cases import ModPythonTestCase
+from django.test.client import Client
 
 class L2TraceWebTest(L2TraceTestCase, ModPythonTestCase):
     module_under_test = l2trace
 
-    def test_l2trace_should_not_have_unicode_output(self):
-        self.handler_outputs_no_unicode('/l2trace/')
-
     def test_l2trace_without_args_shoule_be_ok(self):
-        self.handler_should_return_ok_status('/l2trace/')
+        client = Client()
+        response = client.get('/l2trace/')
+        self.assertEquals(response.status_code, 200)
 
     def test_l2trace_with_args_should_be_ok(self):
-        self.handler_should_return_ok_status(
-            '/l2trace/?host_from=10.0.20.10&host_to=10.0.20.90')
+        client = Client()
+        response = client.get('/l2trace/', {'host_from': '10.0.20.10',
+                                            'host_to': '10.0.20.90'})
+        self.assertEquals(response.status_code, 200)
 
     def test_l2trace_with_unknown_ip_args_should_be_ok(self):
-        self.handler_should_return_ok_status(
-            '/l2trace/?host_from=192.168.1.1&host_to=192.168.10.12')
+        client = Client()
+        response = client.get('/l2trace/', {'host_from': '192.168.1.1',
+                                            'host_to': '192.168.10.12'})
+        self.assertEquals(response.status_code, 200)

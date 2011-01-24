@@ -1,7 +1,6 @@
-#! /usr/bin/env python
 #
 # Copyright 2003, 2004 (C) Norwegian University of Science and Technology
-# Copyright 2007, 2010 (C) UNINETT AS
+# Copyright 2007, 2010, 2011 (C) UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,43 +16,19 @@
 #
 """Layer 2 traceroute web tool for NAV."""
 
-try:
-    from mod_python import apache
-except ImportError:
-    apache = None
 import socket
 from socket import gethostbyaddr, gethostbyname
 
 from nav import db
-from nav.web.URI import URI
-from nav.web.templates.l2traceTemplate import l2traceTemplate
 
 from django.db.models import Q
 from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
-from psycopg2.extensions import QuotedString
 import datetime
 from IPy import IP
 
 INFINITY = datetime.datetime.max
 PATH_NOT_FOUND = None
 LAYER_3_PATH = -1
-
-def handler(req):
-    args = URI(req.unparsed_uri)
-
-    page = l2traceTemplate()
-    page.l2tracer = None
-    page.form = L2TraceForm(args.get("host_from"), args.get("host_to"))
-
-    if args.get("host_from") or args.get("host_to"):
-        page.l2tracer = L2TraceQuery(args.get("host_from"), args.get("host_to"))
-        page.l2tracer.trace()
-
-    req.content_type = "text/html"
-    req.send_http_header()
-
-    req.write(page.respond())
-    return apache.OK
 
 class L2TraceQuery(object):
     def __init__(self, host_from, host_to):
@@ -179,10 +154,10 @@ def get_vlan_from_host(host):
 def get_vlan_from_ip(ip):
     if not ip:
         return
-    ip = QuotedString(ip).getquoted()
     matching_prefixes = Prefix.objects.extra(
         select={'mlen': 'masklen(netaddr)'},
-        where=["%s << netaddr" % ip],
+        where=["%s << netaddr"],
+        params=[ip],
         order_by=["-mlen"]).select_related('vlan')
     if matching_prefixes:
         return matching_prefixes[0].vlan
@@ -216,7 +191,9 @@ def get_vlan_downlink_to_host(host):
     if not host.ip:
         return
     arps = Arp.objects.filter(end_time=INFINITY).extra(
-        where=["%s = ip" % QuotedString(host.ip)]).values('mac')
+        where=["%s = ip"],
+        params=[host.ip]
+        ).values('mac')
     macs = [arp['mac'] for arp in arps]
     cams = Cam.objects.filter(
         end_time=INFINITY,

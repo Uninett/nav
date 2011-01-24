@@ -35,7 +35,7 @@ import operator
 from pysnmp.asn1.oid import OID
 from twisted.internet import defer, reactor
 
-from nav import ipdevpoll
+from nav.ipdevpoll import get_context_logger, get_class_logger
 from nav.errors import GeneralException
 
 logger = logging.getLogger(__name__)
@@ -239,7 +239,7 @@ class MibRetrieverMaker(type):
 
         MibRetrieverMaker.modules[ mib['moduleName'] ] = cls
 
-        cls.logger = ipdevpoll.get_class_logger(cls)
+        cls.logger = get_class_logger(cls)
 
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.
@@ -264,16 +264,16 @@ class MibRetrieverMaker(type):
         """
         def result_formatter(result, the_oid, self):
             if the_oid in result:
-                self.logger.debug("%s query result: %r",
-                                  node_name, result)
+                self._logger.debug("%s query result: %r",
+                                   node_name, result)
                 return result[the_oid]
             else:
-                self.logger.debug("%s was not in the result: %r",
-                                  node_name, result)
+                self._logger.debug("%s was not in the result: %r",
+                                   node_name, result)
                 return None
 
         def getter(self):
-            self.logger.debug("Retrieving scalar value %s", node_name)
+            self._logger.debug("Retrieving scalar value %s", node_name)
             the_oid = self.nodes[node_name].oid
             df = self.agent_proxy.get([the_oid])
             df.addCallback(result_formatter, the_oid, self)
@@ -315,7 +315,7 @@ class MibRetriever(object):
         """Create a new instance tied to an AgentProxy instance."""
         super(MibRetriever, self).__init__()
         self.agent_proxy = agent_proxy
-        self.logger = ipdevpoll.get_instance_logger(self, agent_proxy.ip)
+        self._logger = get_context_logger(self, sysname=agent_proxy.ip)
 
     def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.
@@ -327,14 +327,14 @@ class MibRetriever(object):
         """
         node = self.nodes[column_name]
         if node.raw_mib_data['nodetype'] != 'column':
-            self.logger.debug("%s is not a table column", column_name)
+            self._logger.debug("%s is not a table column", column_name)
 
         def resultFormatter(result):
             formatted_result = {}
             if node.oid not in result:
-                self.logger.debug("%s (%s) seems to be unsupported, result "
-                                  "keys were: %r",
-                                  column_name, node.oid, result.keys())
+                self._logger.debug("%s (%s) seems to be unsupported, result "
+                                   "keys were: %r",
+                                   column_name, node.oid, result.keys())
                 return {}
             varlist = result[node.oid]
 

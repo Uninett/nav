@@ -4,7 +4,7 @@
 --------------------------------------------------------
 
 CREATE TABLE priority (
-  priority INTEGER PRIMARY KEY, -- like greit å la den vare tekst
+  priority INTEGER PRIMARY KEY,
   keyword VARCHAR UNIQUE NOT NULL,
   description VARCHAR
 );

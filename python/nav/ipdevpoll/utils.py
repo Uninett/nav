@@ -201,3 +201,18 @@ def cleanup_django_debug_after(func):
             django_debug_cleanup()
     return wraps(func)(_cleanup)
 
+def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
+    """Logs a Failure with traceback using logger.
+
+    If the logger has an effective loglevel of debug, a verbose traceback
+    (complete with stack frames) is logged.  Otherwise, a regular traceback is
+    loggged.
+
+    """
+    detail = 'default'
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        detail = 'verbose'
+    traceback = failure.getTraceback(detail=detail)
+    args = args + (traceback,)
+
+    logger.error(msg + "\n%s", *args, **kwargs)

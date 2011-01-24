@@ -27,7 +27,7 @@ class LastUpdated(Plugin):
         return True
 
     def handle(self):
-        self.logger.debug("Updating lastupdated timestamp")
+        self._logger.debug("Updating lastupdated timestamp")
 
         # Convention is to store timestamp as milliseconds since the epoch in
         # the NetboxInfo table

@@ -74,7 +74,7 @@ class Prefix(Plugin):
     def handle(self):
 
 
-        self.logger.debug("Collecting prefixes")
+        self._logger.debug("Collecting prefixes")
         netbox = self.containers.factory(None, shadows.Netbox)
 
         ipmib = IpMib(self.agent)
@@ -91,8 +91,8 @@ class Prefix(Plugin):
         # CISCO-IETF-IP-MIB in that order.
         addresses = set()
         for mib in ipmib, ipv6mib, ciscoip:
-            self.logger.debug("Trying address tables from %s",
-                              mib.mib['moduleName'])
+            self._logger.debug("Trying address tables from %s",
+                               mib.mib['moduleName'])
             df = mib.get_interface_addresses()
             # Special case; some devices will time out while building a bulk
             # response outside our scope when it has no proprietary MIB support
@@ -101,14 +101,14 @@ class Prefix(Plugin):
             waiter = defer.waitForDeferred(df)
             yield waiter
             new_addresses = waiter.getResult()
-            self.logger.debug("Found %d addresses in %s: %r",
-                              len(new_addresses), mib.mib['moduleName'],
-                              new_addresses)
+            self._logger.debug("Found %d addresses in %s: %r",
+                               len(new_addresses), mib.mib['moduleName'],
+                               new_addresses)
             addresses.update(new_addresses)
 
         for ifindex, ip, prefix in addresses:
             if self._prefix_should_be_ignored(prefix):
-                self.logger.debug("ignoring prefix %s as configured", prefix)
+                self._logger.debug("ignoring prefix %s as configured", prefix)
                 continue
             self.create_containers(netbox, ifindex, prefix, ip,
                                    vlan_interfaces)
@@ -175,7 +175,7 @@ class Prefix(Plugin):
 
         """
         failure.trap(defer.TimeoutError)
-        self.logger.debug("request timed out, ignoring and moving on...")
+        self._logger.debug("request timed out, ignoring and moving on...")
         return result
 
     def _prefix_should_be_ignored(self, prefix):
