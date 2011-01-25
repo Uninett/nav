@@ -13,13 +13,21 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.conf.urls.defaults import *
-from nav.web.portadmin.views import *
+"""PortAdmin Django URL config"""
+
+from django.conf.urls.defaults import patterns, url
+from nav.web.portadmin.views import index, search_by_ip, search_by_sysname
+from nav.web.portadmin.views import search_by_interfaceid, save_interfaceinfo
 
 urlpatterns = patterns('',
     url(r'^$', index),
-    url(r'^ip=(?P<ip>[\d\.]+)', search_by_ip),
-    url(r'^sysname=(?P<sysname>\S+)', search_by_sysname),
-    url(r'^interfaceid=(?P<interfaceid>\d+)', search_by_interfaceid),
+
+    url(r'^ip=(?P<ip>[\d\.]+)', search_by_ip,
+        name='portadmin-ip'),
+    url(r'^sysname=(?P<sysname>\S+)', search_by_sysname,
+        name='portadmin-sysname'),
+    url(r'^interfaceid=(?P<interfaceid>\d+)', search_by_interfaceid,
+        name='portadmin-interface'),
+
     url(r'^save_interfaceinfo', save_interfaceinfo),
    )
