@@ -17,18 +17,19 @@
 
 from nav.models.manage import Device, Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, Subcategory
-from nav.models.manage import Subcategory, NetboxCategory, Interface
+from nav.models.manage import NetboxCategory, Interface
 from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
 from nav.web.serviceHelper import getDescription
 
-from nav.bulkparse import *
+from nav.bulkparse import BulkParseError
 
 from nav.models.manage import models
 
 class BulkImporter(object):
+    """Abstract bulk import iterator"""
     def __init__(self, parser):
         self.parser = parser
 
@@ -36,6 +37,7 @@ class BulkImporter(object):
         return self
 
     def next(self):
+        """Parses and returns next line"""
         try:
             row = self.parser.next()
             row = self.decode_as_utf8(row)
@@ -44,16 +46,24 @@ class BulkImporter(object):
             objects = error
         return (self.parser.line_num, objects)
 
-    def decode_as_utf8(self, row):
+    @staticmethod
+    def decode_as_utf8(row):
+        """Decodes all unicode values in row as utf-8 strings"""
         for key, value in row.items():
             if isinstance(value, str):
                 row[key] = value.decode('utf-8')
         return row
 
     def create_objects_from_row(self, row):
-        raise Exception("Not Implemented")
+        """Hook to create Django ORM objects from a row.
+
+        Must be overridden in descendant classes.
+
+        """
+        raise NotImplementedError
 
 class NetboxImporter(BulkImporter):
+    """Creates objects from the netbox bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Netbox, ip=row['ip'])
         raise_if_exists(Netbox, sysname=row['ip'])
@@ -111,6 +121,7 @@ class NetboxImporter(BulkImporter):
         return subcats
 
 class ServiceImporter(BulkImporter):
+    """Creates objects from the service bulk format"""
     def create_objects_from_row(self, row):
         objects = []
         netbox = get_object_or_fail(Netbox, sysname=row['host'])
@@ -154,6 +165,7 @@ class ServiceImporter(BulkImporter):
                 raise BulkImportError("Key %s is not valid for handler" % key)
 
 class LocationImporter(BulkImporter):
+    """Creates objects from the location bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Location, id=row['locationid'])
         location = Location(id=row['locationid'],
@@ -161,6 +173,7 @@ class LocationImporter(BulkImporter):
         return [location]
 
 class RoomImporter(BulkImporter):
+    """Creates objects from the room bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Room, id=row['roomid'])
         if row['locationid']:
@@ -174,6 +187,7 @@ class RoomImporter(BulkImporter):
         return [room]
 
 class OrgImporter(BulkImporter):
+    """Creates objects from the organization bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Organization, id=row['orgid'])
         if row['parent']:
@@ -187,6 +201,7 @@ class OrgImporter(BulkImporter):
         return [org]
 
 class PrefixImporter(BulkImporter):
+    """Creates objects from the prefix bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Prefix, net_address=row['netaddr'])
         net_type = get_object_or_fail(NetType, id=row['nettype'])
@@ -210,12 +225,14 @@ class PrefixImporter(BulkImporter):
         return [vlan, prefix]
 
 class UsageImporter(BulkImporter):
+    """Creates objects from the usage bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Usage, id=row['usageid'])
         usage = Usage(id=row['usageid'], description=row['descr'])
         return [usage]
 
 class NetboxTypeImporter(BulkImporter):
+    """Creates objects from the type bulk format"""
     def create_objects_from_row(self, row):
         vendor = get_object_or_fail(Vendor, id=row['vendorid'])
         raise_if_exists(NetboxType, sysobjectid=row['sysobjectid'])
@@ -228,12 +245,14 @@ class NetboxTypeImporter(BulkImporter):
         return [netbox_type]
 
 class VendorImporter(BulkImporter):
+    """Creates objects from the vendor bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Vendor, id=row['vendorid'])
         vendor = Vendor(id=row['vendorid'])
         return [vendor]
 
 class SubcatImporter(BulkImporter):
+    """Creates objects from the subcategory bulk format"""
     def create_objects_from_row(self, row):
         raise_if_exists(Subcategory, id=row['subcatid'])
         cat = get_object_or_fail(Category, id=row['catid'])
@@ -242,6 +261,7 @@ class SubcatImporter(BulkImporter):
         return [subcat]
 
 class CablingImporter(BulkImporter):
+    """Creates objects from the cabling bulk format"""
     def create_objects_from_row(self, row):
         room = get_object_or_fail(Room, id=row['roomid'])
         raise_if_exists(Cabling, room=room, jack=row['jack'])
@@ -253,9 +273,11 @@ class CablingImporter(BulkImporter):
         return [cabling]
 
 class PatchImporter(BulkImporter):
+    """Creates objects from the patch bulk format"""
     def create_objects_from_row(self, row):
         netbox = get_object_or_fail(Netbox, sysname=row['sysname'])
-        interface = get_object_or_fail(Interface, netbox=netbox, ifname=row['port'])
+        interface = get_object_or_fail(Interface,
+                                       netbox=netbox,ifname=row['port'])
         room = get_object_or_fail(Room, id=row['roomid'])
         cabling = get_object_or_fail(Cabling, room=room, jack=row['jack'])
 
@@ -266,6 +288,13 @@ class PatchImporter(BulkImporter):
         return [patch]
 
 def get_object_or_fail(cls, **kwargs):
+    """Gets the object as specified by the kwargs search arguments, and raises
+    bulk errors if not found.
+
+    cls -- Django ORM model to search for.
+    kwargs -- search parameters for a cls.objects.get() call.
+
+    """
     try:
         return cls.objects.get(**kwargs)
     except cls.DoesNotExist, e:
@@ -276,6 +305,12 @@ def get_object_or_fail(cls, **kwargs):
                                        (cls.__name__, kwargs))
 
 def raise_if_exists(cls, **kwargs):
+    """Raises AlreadyExists if an ORM object exists.
+
+    cls -- Django ORM model to search for.
+    kwargs -- search parameters for a cls.objects.get() call.
+
+    """
     result = cls.objects.filter(**kwargs)
     if result.count() > 0:
         raise AlreadyExists("%s already exists: %r" %
