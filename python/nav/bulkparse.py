@@ -157,7 +157,8 @@ class PrefixBulkParser(BulkParser):
 
     def validate_vlan(self, vlan):
         try:
-            int(vlan)
+            if vlan is not None:
+                int(vlan)
         except ValueError:
             return False
         else:
