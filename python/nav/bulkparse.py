@@ -195,6 +195,9 @@ class VendorTypeBulkParser(BulkParser):
 class BulkParseError(GeneralException):
     """Bulk import parse error"""
 
+    def __repr__(self):
+        return "<%s: %s>" % (self.__class__.__name__, self)
+
 class RequiredFieldMissing(BulkParseError):
     """A required field is missing"""
 
