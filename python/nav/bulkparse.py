@@ -149,6 +149,14 @@ class PrefixBulkParser(BulkParser):
         else:
             return True
 
+    def validate_vlan(self, vlan):
+        try:
+            int(vlan)
+        except ValueError:
+            return False
+        else:
+            return True
+
 class RoomBulkParser(BulkParser):
     format = ('roomid',
               'locationid', 'descr', 'opt1', 'opt2', 'opt3', 'opt4')
