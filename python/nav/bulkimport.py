@@ -14,6 +14,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Import seed data in bulk."""
+# no importer implementations have public methods, disable R0903 warning
+# pylint: disable-msg=R0903
 
 from nav.models.manage import Device, Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, Subcategory
@@ -221,7 +223,7 @@ class PrefixImporter(BulkImporter):
         if row['usage']:
             usage = get_object_or_fail(Usage, id=row['usage'])
 
-        vlan, created = Vlan.objects.get_or_create(
+        vlan, _ = Vlan.objects.get_or_create(
             vlan=int(row['vlan']),
             net_type=net_type,
             organization=org,
@@ -304,10 +306,10 @@ def get_object_or_fail(cls, **kwargs):
     """
     try:
         return cls.objects.get(**kwargs)
-    except cls.DoesNotExist, e:
+    except cls.DoesNotExist:
         raise DoesNotExist("%s does not exist: %r" %
                            (cls.__name__, kwargs))
-    except cls.MultipleObjectsReturned, e:
+    except cls.MultipleObjectsReturned:
         raise MultipleObjectsReturned("%s returned multiple: %r" %
                                        (cls.__name__, kwargs))
 
