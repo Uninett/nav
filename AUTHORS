@@ -27,30 +27,19 @@ Currently active contributors
 * Morten Werner Forsbring <werner at debian.org>
   Packaging NAV for Debian since 2004.
 
-* Kristian Klette <kristian.klette at uninett.no>
-  Joined in 2007 to work on Netmap, a dynamic replacement for the old
-  Traffic Map applet.
-
-* Jørgen Abrahamsen <jorgen.abrahamsen at uninett.no>
-  Joined in 2008, and has mainly contributed by adding features and
-  fixing bugs in existing code.
-
 * Magnus Motzfeldt Eide <magnus.eide at uninett.no>
   Joined in 2008, and began rewriting the old PHP-based Alert Profiles
-  interface in Python/Django.  Has since been involved with
-  code maintenance and smaller rewrites of existing code.
+  interface in Python/Django.  General code maintenance and rewrites, such as
+  the Django-ified SeedDB tool.
 
-* Thomas Adamcik <thomas.adamcik at uninett.no>
-  Joined in 2008, and rewrote the Perl-based Alert Engine in Python.
-  Also rewrote the user admin panel to a Django-based solution.
+* Trond Kandal <trond.kandal at ntnu.no>
+  Wrote PortAdmin with John-Magne.
 
 * Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
   Maintains the service monitor and the MailIn system.
 
 * Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
-  Maintains the radius accounting logger.
-
-* Fredrik Skolmli <fredrik.skolmli at uninett.no>
+  Maintains the radius accounting logger.  Also a stand-in for Ole Martin.
 
 
 Contributors to earlier releases
@@ -58,6 +47,22 @@ Contributors to earlier releases
 As this list is being compiled 10 years after the birth of NAV,
 current email addresses are missing for many of the earliest
 contributors.
+
+* Fredrik Skolmli <fredrik.skolmli at uninett.no>
+  Active 2010.  Contributed bugfixes and started the threshold configuration
+  UI.
+
+* Thomas Adamcik <thomas.adamcik at uninett.no>
+  Active 2008-2010.  Rewrote the Perl-based Alert Engine in Python.
+  Also rewrote the user admin panel to a Django-based solution, and contributed
+  much to enable continuous integration using Hudson.
+
+* Jørgen Abrahamsen <jorgen.abrahamsen at uninett.no>
+  Active 2008-2010. Bugfixes and features to various parts of NAV, such as
+  report, smsd and ipdevinfo.
+
+* Kristian Klette <kristian.klette at uninett.no>
+  Active 2007-2010.  Wrote Netmap and the rewritten Network Explorer.
 
 * Øystein Skartsæterhagen <oysteini at pvv.ntnu.no>, 2009
   Wrote Geomap, the OpenStreetMap-based traffic map.
