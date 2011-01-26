@@ -132,23 +132,25 @@ class ServiceImporter(BulkImporter):
         service = Service(netbox=netbox, handler=row['handler'])
         objects.append(service)
 
-        handler_descr = self.get_handler_descr(row['handler'])
+        handler_descr = self._get_handler_descr(row['handler'])
         service_args = dict([arg.split('=', 1) for arg in row.get('arg', [])])
-        self.validate_handler_args(handler_descr, service_args)
-        service_properties = self.get_service_properties(service, service_args)
+        self._validate_handler_args(handler_descr, service_args)
+        service_properties = self._get_service_properties(service, service_args)
 
         if service_properties:
             objects.extend(service_properties)
 
         return objects
 
-    def get_handler_descr(self, handler):
+    @staticmethod
+    def _get_handler_descr(handler):
         descr = getDescription(handler)
         if not descr:
             raise BulkImportError("Service handler %s does not exist" % handler)
         return descr
 
-    def get_service_properties(self, service, args):
+    @staticmethod
+    def _get_service_properties(service, args):
         service_properties = []
         for prop, val in args.items():
             serviceprop = ServiceProperty(service=service, property=prop,
@@ -156,7 +158,8 @@ class ServiceImporter(BulkImporter):
             service_properties.append(serviceprop)
         return service_properties
 
-    def validate_handler_args(self, handler_descr, service_args):
+    @staticmethod
+    def _validate_handler_args(handler_descr, service_args):
         arg_keys = handler_descr.get('args', [])
         optarg_keys = handler_descr.get('optargs', [])
 
