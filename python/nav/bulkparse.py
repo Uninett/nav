@@ -30,6 +30,7 @@ class BulkParser(object):
     format = ()
     required = 0
     restkey = None
+    restkey_format = None
 
     def __init__(self, data, delimiter=None):
         if hasattr(data, 'seek'):
@@ -88,15 +89,18 @@ class BulkParser(object):
 
     @classmethod
     def get_header(cls):
-        required = ':'.join(cls.format[:cls.required])
-        optional = ':'.join(cls.format[cls.required:])
-        rest = "%s:..." % cls.restkey
+        separator = ':'
+        required = separator.join(cls.format[:cls.required])
+        optional = separator.join(cls.format[cls.required:])
+        restkey_format = (cls.restkey_format and cls.restkey_format or
+                          cls.restkey)
+        rest = "%s%s..." % (restkey_format, separator)
 
         header = "#" + required
         if cls.required < len(cls.format) or cls.restkey:
             header += '['
-            header += cls.required < len(cls.format) and ':' + optional or ''
-            header += cls.restkey and ':' + rest or ''
+            header += optional and separator + optional or ''
+            header += cls.restkey and separator + rest or ''
             header += ']'
 
         return header
@@ -155,6 +159,15 @@ class PrefixBulkParser(BulkParser):
         else:
             return True
 
+    def validate_vlan(self, vlan):
+        try:
+            if vlan is not None:
+                int(vlan)
+        except ValueError:
+            return False
+        else:
+            return True
+
 class RoomBulkParser(BulkParser):
     format = ('roomid',
               'locationid', 'descr', 'opt1', 'opt2', 'opt3', 'opt4')
@@ -202,6 +215,9 @@ class PatchBulkParser(BulkParser):
 #
 class BulkParseError(GeneralException):
     """Bulk import parse error"""
+
+    def __repr__(self):
+        return "<%s: %s>" % (self.__class__.__name__, self)
 
 class RequiredFieldMissing(BulkParseError):
     """A required field is missing"""

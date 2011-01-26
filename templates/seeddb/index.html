@@ -7,14 +7,14 @@
     <tr>
         <td>
             <h4><a href="{% url seeddb-netbox %}">IP Devices</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-netbox %}">List</a> <a href="{% url seeddb-netbox-edit %}">Add</a> <a href="{% url seeddb-netbox-bulk %}">Bulk import</a></p>
             <p>
                 Input seed information on the IP devices you want to monitor.
             </p>
         </td>
         <td>
             <h4><a href="{% url seeddb-service %}">Services</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-service-edit %}">List</a> <a href="{% url seeddb-service-edit %}">Add</a> <a href="{% url seeddb-service-bulk %}">Bulk import</a></p>
             <p>
                 Which services on which servers do you want to monitor?
             </p>
@@ -27,12 +27,12 @@
     <tr>
         <td>
             <h4><a href="{% url seeddb-room %}">Room</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-room %}">List</a> <a href="{% url seeddb-room-edit %}">Add</a> <a href="{% url seeddb-room-bulk %}">Bulk import</a></p>
             <p>Register all wiring closets and server rooms that contain IP devices which NAV monitors</p>
         </td>
         <td>
             <h4><a href="{% url seeddb-location %}">Location</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-location %}">List</a> <a href="{% url seeddb-location-edit %}">Add</a> <a href="{% url seeddb-location-bulk %}">Bulk import</a></p>
             <p>Rooms are organised in locations</p>
         </td>
     </tr>
@@ -43,13 +43,13 @@
     <tr>
         <td>
             <h4><a href="{% url seeddb-organization %}">Organization</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-organization %}">List</a> <a href="{% url seeddb-organization-edit %}">Add</a> <a href="{% url seeddb-organization-bulk %}">Bulk import</a></p>
             <p>Register all organisational units that are relevant. I.e. all
             units that have their own subnet/server facilities.</p>
         </td>
         <td>
             <h4><a href="{% url seeddb-usage %}">Usage category</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-usage %}">List</a> <a href="{% url seeddb-usage-edit %}">Add</a> <a href="{% url seeddb-usage-bulk %}">Bulk import</a></p>
             <p>NAV encourages a structure in the subnet structure. Typically a
             subnet has users from an organisational unit. In addition this may
             be subdivided into a category of users, i.e. students, employees,
@@ -63,26 +63,21 @@
     <tr>
         <td>
             <h4><a href="{% url seeddb-type %}">Type</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-type %}">List</a> <a href="{% url seeddb-type-edit %}">Add</a> <a href="{% url seeddb-type-bulk %}">Bulk import</a></p>
             <p>The type describes the type of network device, uniquely
             described from the SNMP sysobjectID</p>
         </td>
         <td>
             <h4><a href="{% url seeddb-vendor %}">Vendor</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-vendor %}">List</a> <a href="{% url seeddb-vendor-edit %}">Add</a> <a href="{% url seeddb-vendor-bulk %}">Bulk import</a></p>
             <p>Register the vendors that manufacture equipment that are
             represented in your network.</p>
         </td>
     </tr>
     <tr>
         <td>
-            <h4><a href="">SNMP oid</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
-            <p>Manually add snmpoids (candidates for the cricket collector)</p>
-        </td>
-        <td>
             <h4><a href="{% url seeddb-subcategory %}">Subcategory</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-subcategory %}">List</a> <a href="{% url seeddb-subcategory-edit %}">Add</a> <a href="{% url seeddb-subcategory-bulk %}">Bulk import</a></p>
             <p>The main categories of a device are predefined by NAV (i.e.
             GW,SW,SRV). You may however create subcategories yourself.</p>
         </td>
@@ -94,13 +89,13 @@
     <tr>
         <td>
             <h4><a href="{% url seeddb-vlan %}">Vlan</a></h4>
-            <p class="paginator"><a href="">List</a></p>
+            <p class="paginator"><a href="{% url seeddb-vlan %}">List</a></p>
             <p>Register the vlan number that are in use (this info may also be
             derived automatically from the routers)</p>
         </td>
         <td>
             <h4><a href="{% url seeddb-prefix %}">Prefix</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-prefix %}">List</a> <a href="{% url seeddb-prefix %}">Add</a> <a href="{% url seeddb-prefix-bulk %}">Bulk import</a></p>
             <p>Register special ip prefixes. Typically reserved prefixes or
             prefixes that are not directly connected to monitored
             routers/firewalls fall into this category</p>
@@ -113,12 +108,12 @@
     <tr>
         <td>
             <h4><a href="{% url seeddb-cabling %}">Cabling</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-cabling %}">List</a> <a href="{% url seeddb-cabling-edit %}">Add</a> <a href="{% url seeddb-cabling-bulk %}">Bulk import</a></p>
             <p>Here you may document the horizontal cabling system</p>
         </td>
         <td>
             <h4><a href="{% url seeddb-patch %}">Patch</a></h4>
-            <p class="paginator"><a href="">List</a> <a href="">Add</a> <a href="">Bulk import</a></p>
+            <p class="paginator"><a href="{% url seeddb-patch %}">List</a> <a href="{% url seeddb-patch-edit %}">Add</a> <a href="{% url seeddb-patch-bulk %}">Bulk import</a></p>
             <p>Register the cross connects in the wiring closets</p>
         </td>
     </tr>

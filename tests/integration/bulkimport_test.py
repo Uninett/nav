@@ -146,3 +146,23 @@ class TestLocationImporter(DjangoTransactionTestCase):
         line_num, objects = importer.next()
 
         self.assertTrue(isinstance(objects, AlreadyExists))
+
+class TestPrefixImporter(DjangoTransactionTestCase):
+    def setUp(self):
+        org, created = Organization.objects.get_or_create(id='uninett')
+        org.save()
+
+        usage, created = Usage.objects.get_or_create(id='employee')
+        usage.save()
+
+    def test_import(self):
+        data = "10.0.1.0/24:lan:uninett:here-there:employee:Employee LAN:20"
+        parser = PrefixBulkParser(data)
+        importer = PrefixImporter(parser)
+        line_num, objects = importer.next()
+
+        if isinstance(objects, Exception):
+            raise objects
+        self.assertEquals(len(objects), 2)
+        self.assertTrue(isinstance(objects[0], Vlan))
+        self.assertTrue(isinstance(objects[1], Prefix))

@@ -141,3 +141,49 @@ class TestCommentStripper(TestCase):
         self.assertEquals(stripper.next(), 'somedata\n')
         self.assertEquals(stripper.next(), 'otherdata\n')
 
+class TestHeaderGenerator(TestCase):
+    def test_simple(self):
+        class C(BulkParser):
+            format = ('one', 'two', 'three')
+            required = 3
+
+        self.assertEquals(C.get_header(), "#one:two:three")
+
+    def test_one_optional(self):
+        class C(BulkParser):
+            format = ('one', 'two', 'three', 'optional')
+            required = 3
+
+        self.assertEquals(C.get_header(), "#one:two:three[:optional]")
+
+    def test_two_optional(self):
+        class C(BulkParser):
+            format = ('one', 'two', 'three', 'opt1', 'opt2')
+            required = 3
+
+        self.assertEquals(C.get_header(), "#one:two:three[:opt1:opt2]")
+
+    def test_optional_with_restkey(self):
+        class C(BulkParser):
+            format = ('one', 'two', 'three', 'optional')
+            restkey = 'arg'
+            required = 3
+
+        self.assertEquals(C.get_header(), "#one:two:three[:optional:arg:...]")
+
+    def test_two_required_plus_restkey(self):
+        class C(BulkParser):
+            format = ('one', 'two')
+            restkey = 'rest'
+            required = 2
+
+        self.assertEquals(C.get_header(), "#one:two[:rest:...]")
+
+    def test_two_required_plus_restkey_format(self):
+        class C(BulkParser):
+            format = ('one', 'two')
+            restkey = 'rest'
+            restkey_format = 'thing=value'
+            required = 2
+
+        self.assertEquals(C.get_header(), "#one:two[:thing=value:...]")
