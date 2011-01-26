@@ -88,12 +88,18 @@ class BulkParser(object):
 
     @classmethod
     def get_header(cls):
-        return ("#" + ':'.join(cls.format[:cls.required]) +
-                (cls.required < len(cls.format) and
-                 '[:' + ':'.join(cls.format[cls.required:]) +
-                 (cls.restkey and ":%s:..." % cls.restkey or '') +
-                 ']' or '')
-                )
+        required = ':'.join(cls.format[:cls.required])
+        optional = ':'.join(cls.format[cls.required:])
+        rest = "%s:..." % cls.restkey
+
+        header = "#" + required
+        if cls.required < len(cls.format) or cls.restkey:
+            header += '['
+            header += cls.required < len(cls.format) and ':' + optional or ''
+            header += cls.restkey and ':' + rest or ''
+            header += ']'
+
+        return header
 
 class CommentStripper(object):
     COMMENT_PATTERN = re.compile('\W*#[^\n\r]*')
@@ -185,9 +191,19 @@ class NetboxTypeBulkParser(BulkParser):
               'description', 'cdp', 'tftp')
     required = 3
 
-class VendorTypeBulkParser(BulkParser):
-    format = ('vendorid')
+class VendorBulkParser(BulkParser):
+    format = ('vendorid',)
     required = 1
+
+class CablingBulkParser(BulkParser):
+    format = ('roomid', 'jack', 'building', 'targetroom', 'category',
+              'descr')
+    required = 5
+
+class PatchBulkParser(BulkParser):
+    format = ('sysname', 'port', 'roomid', 'jack',
+              'split')
+    required = 4
 
 #
 # exceptions

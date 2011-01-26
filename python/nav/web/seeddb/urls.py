@@ -26,7 +26,10 @@ from nav.web.seeddb.views.edit import location_edit, organization_edit
 from nav.web.seeddb.views.edit import usage_edit, netboxtype_edit, vendor_edit
 from nav.web.seeddb.views.edit import subcategory_edit, vlan_edit, prefix_edit
 from nav.web.seeddb.views.edit import cabling_edit, patch_edit
-from nav.web.seeddb.views.bulk import netbox_bulk, room_bulk, location_bulk, organization_bulk
+from nav.web.seeddb.views.bulk import netbox_bulk, room_bulk, location_bulk
+from nav.web.seeddb.views.bulk import organization_bulk, usage_bulk
+from nav.web.seeddb.views.bulk import netboxtype_bulk, vendor_bulk, patch_bulk
+from nav.web.seeddb.views.bulk import subcategory_bulk, cabling_bulk
 
 dummy = lambda *args, **kwargs: None
 
@@ -91,7 +94,7 @@ urlpatterns = patterns('',
         name='seeddb-usage-edit'),
     url(r'^usage/add/$', usage_edit,
         name='seeddb-usage-edit'),
-    url(r'^usage/bulk/$', dummy,
+    url(r'^usage/bulk/$', usage_bulk,
         name='seeddb-usage-bulk'),
 
     # Type
@@ -101,7 +104,7 @@ urlpatterns = patterns('',
         name='seeddb-type-edit'),
     url(r'^type/add/$', netboxtype_edit,
         name='seeddb-type-edit'),
-    url(r'^type/bulk/$', dummy,
+    url(r'^type/bulk/$', netboxtype_bulk,
         name='seeddb-type-bulk'),
 
     # Vendor
@@ -111,7 +114,7 @@ urlpatterns = patterns('',
         name='seeddb-vendor-edit'),
     url(r'^vendor/add/$', vendor_edit,
         name='seeddb-vendor-edit'),
-    url(r'^vendor/bulk/$', dummy,
+    url(r'^vendor/bulk/$', vendor_bulk,
         name='seeddb-vendor-bulk'),
 
     # SNMPoid
@@ -123,7 +126,7 @@ urlpatterns = patterns('',
         name='seeddb-subcategory-edit'),
     url(r'^subcategory/add/$', subcategory_edit,
         name='seeddb-subcategory-edit'),
-    url(r'^subcategory/bulk/$', dummy,
+    url(r'^subcategory/bulk/$', subcategory_bulk,
         name='seeddb-subcategory-bulk'),
 
     # Vlan
@@ -149,7 +152,7 @@ urlpatterns = patterns('',
         name='seeddb-cabling-edit'),
     url(r'^cabling/add/$', cabling_edit,
         name='seeddb-cabling-edit'),
-    url(r'^cabling/bulk/$', dummy,
+    url(r'^cabling/bulk/$', cabling_bulk,
         name='seeddb-cabling-bulk'),
 
     # Patch
@@ -159,6 +162,6 @@ urlpatterns = patterns('',
         name='seeddb-patch-edit'),
     url(r'^patch/add/$', patch_edit,
         name='seeddb-patch-edit'),
-    url(r'^patch/bulk/$', dummy,
+    url(r'^patch/bulk/$', patch_bulk,
         name='seeddb-patch-bulk'),
 )

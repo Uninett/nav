@@ -230,7 +230,7 @@ def cabling_list(request):
 def patch_list(request):
     query = Patch.objects.all()
     value_list = (
-        'interface__netbox', 'interface__module', 'interface__baseport',
+        'interface__netbox__sysname', 'interface__ifname',
         'cabling__room', 'cabling__jack', 'split')
     extra = {
         'active': {'patch': True},

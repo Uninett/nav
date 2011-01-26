@@ -15,8 +15,14 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.bulkparse import NetboxBulkParser, RoomBulkParser, LocationBulkParser, OrgBulkParser
-from nav.bulkimport import NetboxImporter, RoomImporter, LocationImporter, OrgImporter
+from nav.bulkparse import NetboxBulkParser, RoomBulkParser, LocationBulkParser
+from nav.bulkparse import OrgBulkParser, UsageBulkParser, NetboxTypeBulkParser
+from nav.bulkparse import VendorBulkParser, SubcatBulkParser, CablingBulkParser
+from nav.bulkparse import PatchBulkParser
+from nav.bulkimport import NetboxImporter, RoomImporter, LocationImporter
+from nav.bulkimport import OrgImporter, UsageImporter, NetboxTypeImporter
+from nav.bulkimport import VendorImporter, SubcatImporter, CablingImporter
+from nav.bulkimport import PatchImporter
 
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
@@ -69,4 +75,76 @@ def organization_bulk(request):
     return render_bulkimport(
         request, OrgBulkParser, OrgImporter,
         'seeddb-organization',
+        extra_context=extra)
+
+def usage_bulk(request):
+    extra = {
+        'active': {'usage': True},
+        'title': TITLE_DEFAULT + ' - Usage',
+        'navpath': NAVPATH_DEFAULT + [('Usage', None)],
+        'tab_template': 'seeddb/tabs_usage.html',
+    }
+    return render_bulkimport(
+        request, UsageBulkParser, UsageImporter,
+        'seeddb-usage',
+        extra_context=extra)
+
+def netboxtype_bulk(request):
+    extra = {
+        'active': {'type': True},
+        'title': TITLE_DEFAULT + ' - Type',
+        'navpath': NAVPATH_DEFAULT + [('Type', None)],
+        'tab_template': 'seeddb/tabs_type.html',
+    }
+    return render_bulkimport(
+        request, NetboxTypeBulkParser, NetboxTypeImporter,
+        'seeddb-type',
+        extra_context=extra)
+
+def vendor_bulk(request):
+    extra = {
+        'active': {'vendor': True},
+        'title': TITLE_DEFAULT + ' - Vendor',
+        'navpath': NAVPATH_DEFAULT + [('Vendor', None)],
+        'tab_template': 'seeddb/tabs_vendor.html',
+    }
+    return render_bulkimport(
+        request, VendorBulkParser, VendorImporter,
+        'seeddb-vendor',
+        extra_context=extra)
+
+def subcategory_bulk(request):
+    extra = {
+        'active': {'subcategory': True},
+        'title': TITLE_DEFAULT + ' - Subcategory',
+        'navpath': NAVPATH_DEFAULT + [('Subcategory', None)],
+        'tab_template': 'seeddb/tabs_subcategory.html',
+    }
+    return render_bulkimport(
+        request, SubcatBulkParser, SubcatImporter,
+        'seeddb-subcategory',
+        extra_context=extra)
+
+def cabling_bulk(request):
+    extra = {
+        'active': {'cabling': True},
+        'title': TITLE_DEFAULT + ' - Cabling',
+        'navpath': NAVPATH_DEFAULT + [('Cabling', None)],
+        'tab_template': 'seeddb/tabs_cabling.html',
+    }
+    return render_bulkimport(
+        request, CablingBulkParser, CablingImporter,
+        'seeddb-cabling',
+        extra_context=extra)
+
+def patch_bulk(request):
+    extra = {
+        'active': {'patch': True},
+        'title': TITLE_DEFAULT + ' - Patch',
+        'navpath': NAVPATH_DEFAULT + [('Patch', None)],
+        'tab_template': 'seeddb/tabs_patch.html',
+    }
+    return render_bulkimport(
+        request, PatchBulkParser, PatchImporter,
+        'seeddb-patch',
         extra_context=extra)
