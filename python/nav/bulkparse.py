@@ -84,7 +84,7 @@ class BulkParser(object):
 
     def is_valid_fieldvalue(self, fieldname, value):
         """Verify the validity of a specific value"""
-        validatorname = "validate_%s" % fieldname
+        validatorname = "_validate_%s" % fieldname
         if (hasattr(self, validatorname) and
             callable(getattr(self, validatorname))):
             return getattr(self, validatorname)(value)
@@ -137,7 +137,8 @@ class NetboxBulkParser(BulkParser):
     required = 4
     restkey = 'subcat'
 
-    def validate_ip(self, value):
+    @staticmethod
+    def _validate_ip(value):
         try:
             IP(value)
         except ValueError:
@@ -168,7 +169,8 @@ class PrefixBulkParser(BulkParser):
               'orgid', 'netident', 'usage', 'description', 'vlan')
     required = 2
 
-    def validate_netaddr(self, value):
+    @staticmethod
+    def _validate_netaddr(value):
         try:
             IP(value)
         except ValueError:
@@ -176,7 +178,8 @@ class PrefixBulkParser(BulkParser):
         else:
             return True
 
-    def validate_vlan(self, vlan):
+    @staticmethod
+    def _validate_vlan(vlan):
         try:
             if vlan is not None:
                 int(vlan)
@@ -197,7 +200,8 @@ class ServiceBulkParser(BulkParser):
     restkey = 'arg'
     required = 2
 
-    def validate_arg(self, value):
+    @staticmethod
+    def _validate_arg(value):
         if not isinstance(value, list):
             return False
         for arg in value:

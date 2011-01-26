@@ -12,7 +12,7 @@ class TestBulkParser(TestCase):
             format = ('one', 'two')
             required = 2
 
-            def validate_one(self, value):
+            def _validate_one(self, value):
                 return value == '1'
 
         data = "1:2\nonce:twice"
