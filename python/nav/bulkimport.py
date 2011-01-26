@@ -34,10 +34,17 @@ class BulkImporter(object):
     def next(self):
         try:
             row = self.parser.next()
+            row = self.decode_as_utf8(row)
             objects = self.create_objects_from_row(row)
         except BulkParseError, error:
             objects = error
         return (self.parser.line_num, objects)
+
+    def decode_as_utf8(self, row):
+        for key, value in row.items():
+            if isinstance(value, str):
+                row[key] = value.decode('utf-8')
+        return row
 
     def create_objects_from_row(self, row):
         raise Exception("Not Implemented")
