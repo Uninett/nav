@@ -126,6 +126,19 @@ class RoomImporter(BulkImporter):
                     optional_4=row['opt4'])
         return [room]
 
+class OrgImporter(BulkImporter):
+    def create_objects_from_row(self, row):
+        raise_if_exists(Organization, id=row['orgid'])
+        if row['parent']:
+            parent = get_object_or_fail(Organization, id=row['parent'])
+        else:
+            parent = None
+        org = Organization(id=row['orgid'], parent=parent,
+                           description=row['descr'], optional_1=row['opt1'],
+                           optional_2=row['opt2'], optional_3=row['opt3'],
+                           optional_4=row['opt4'])
+        return [org]
+
 def get_object_or_fail(cls, **kwargs):
     try:
         return cls.objects.get(**kwargs)

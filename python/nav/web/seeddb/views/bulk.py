@@ -15,8 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.bulkparse import NetboxBulkParser, RoomBulkParser
-from nav.bulkimport import NetboxImporter, RoomImporter
+from nav.bulkparse import NetboxBulkParser, RoomBulkParser, LocationBulkParser, OrgBulkParser
+from nav.bulkimport import NetboxImporter, RoomImporter, LocationImporter, OrgImporter
 
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
@@ -45,4 +45,28 @@ def room_bulk(request):
     return render_bulkimport(
         request, RoomBulkParser, RoomImporter,
         'seeddb-room',
+        extra_context=extra)
+
+def location_bulk(request):
+    extra = {
+        'active': {'location': True},
+        'title': TITLE_DEFAULT + ' - Location',
+        'navpath': NAVPATH_DEFAULT + [('Location', None)],
+        'tab_template': 'seeddb/tabs_location.html',
+    }
+    return render_bulkimport(
+        request, LocationBulkParser, LocationImporter,
+        'seeddb-location',
+        extra_context=extra)
+
+def organization_bulk(request):
+    extra = {
+        'active': {'organization': True},
+        'title': TITLE_DEFAULT + ' - Organization',
+        'navpath': NAVPATH_DEFAULT + [('Organization', None)],
+        'tab_template': 'seeddb/tabs_organization.html',
+    }
+    return render_bulkimport(
+        request, OrgBulkParser, OrgImporter,
+        'seeddb-organization',
         extra_context=extra)
