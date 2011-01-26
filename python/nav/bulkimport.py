@@ -19,6 +19,7 @@ from nav.models.manage import Device, Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo
 from nav.models.manage import Subcategory, NetboxCategory
 from nav.models.manage import Location
+from nav.models.manage import Prefix, Vlan, NetType, Usage
 
 from nav.bulkparse import *
 
@@ -138,6 +139,29 @@ class OrgImporter(BulkImporter):
                            optional_1=row['opt1'], optional_2=row['opt2'],
                            optional_3=row['opt3'])
         return [org]
+
+class PrefixImporter(BulkImporter):
+    def create_objects_from_row(self, row):
+        raise_if_exists(Prefix, net_address=row['netaddr'])
+        net_type = get_object_or_fail(NetType, id=row['nettype'])
+
+        org = None
+        if row['orgid']:
+            org = get_object_or_fail(Organization, id=row['orgid'])
+
+        usage = None
+        if row['usage']:
+            usage = get_object_or_fail(Usage, id=row['usage'])
+
+        vlan, created = Vlan.objects.get_or_create(
+            vlan=int(row['vlan']),
+            net_type=net_type,
+            organization=org,
+            net_ident=row['netident'],
+            usage=usage,
+            description=row['description'])
+        prefix = Prefix(net_address=row['netaddr'], vlan=vlan)
+        return [vlan, prefix]
 
 def get_object_or_fail(cls, **kwargs):
     try:
