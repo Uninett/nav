@@ -1051,17 +1051,15 @@ ypos double precision NOT NULL
 );
 
 ------------------------------------------------------------------------------
--- simple schema version check table
+-- log of schema changes
 ------------------------------------------------------------------------------
-CREATE TABLE nav_schema_version (
-    version VARCHAR NOT NULL,
-    time TIMESTAMP NOT NULL DEFAULT NOW()
+CREATE TABLE schema_change_log (
+    id SERIAL PRIMARY KEY,
+    major INTEGER NOT NULL,
+    minor INTEGER NOT NULL,
+    point INTEGER NOT NULL,
+    script_name VARCHAR NOT NULL,
+    date_applied TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
--- FIXME: Insert default as version name.  This should be updated on
--- each NAV release branch.
-INSERT INTO nav_schema_version (version) VALUES ('default');
-
--- Ensure only a single row will ever exist in this table.
-CREATE OR REPLACE RULE nav_schema_version_insert AS ON INSERT TO nav_schema_version
-    DO INSTEAD UPDATE nav_schema_version SET version=NEW.version, time=NOW();
+INSERT INTO schema_change_log (major, minor, point, script_name)
+    VALUES (3, 8, 0, 'initial install');

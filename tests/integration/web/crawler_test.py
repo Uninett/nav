@@ -48,13 +48,17 @@ html_store = {}
 queue = [HOST_URL]
 
 def test_webpages():
-    login()
+    result = login()
+    if result:
+        func, args = result[0], result[1:]
+        func(args)
+    register_seen(HOST_URL)
     while queue:
-        yield check_response, queue.pop()
+        url = queue.pop()
+        yield ('is %s reachable' % url,) + check_response(url)
 
-def test_validates():
     for url in html_store.keys():
-        yield check_validates, url
+        yield "does %s validate" % url, check_validates, url
 
 def handle_http_error(func):
     def _decorator(*args, **kwargs):
@@ -64,16 +68,29 @@ def handle_http_error(func):
             print "%s :" % error.url
             print "-" * (len(error.url)+2)
             print error.fp.read()
-            raise
+            return failure, error.url, error.code
+        except urllib2.URLError, error:
+            return urlerror, error
 
     return _decorator
 
+def failure(url, code):
+    assert code == 200
+
+def success(url):
+    assert True
+
+def urlerror(error):
+    raise error
+
 @handle_http_error
 def login():
+    login_url = '%sindex/login/' % HOST_URL
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
-    opener.open('%sindex/login/' % HOST_URL, data)
+    opener.open(login_url, data)
     urllib2.install_opener(opener)
+    return success, login_url
 
 def get_path(url):
     return urlparse.urlsplit(url).path.rstrip('/')
@@ -104,12 +121,11 @@ def retrieve_links(current_url):
             continue
         elif path in BLACKLISTED_PATHS:
             continue
-        elif path not in seen_paths:
-            queue.append(link)
+        elif not has_been_seen(path):
+            queue.append('%s://%s%s' % (url.scheme, url.netloc, url.path))
 
-        if path not in seen_paths:
-            seen_paths[path] = []
-        seen_paths[path].append((get_path(current_url), element, attribute))
+
+        register_seen(path, current_url)
 
 def filter_errors(errors):
     return filter(lambda e: e.message not in TIDY_IGNORE, errors)
@@ -121,6 +137,18 @@ def check_response(current_url):
     if is_html(resp):
         html_store[current_url] = resp.read()
         retrieve_links(current_url)
+    return success, current_url
+
+def has_been_seen(url):
+    return get_path(url) in seen_paths
+
+def register_seen(seen_url, source_url=None):
+    seen_url = get_path(seen_url)
+    if seen_url not in seen_paths:
+        seen_paths[seen_url] = []
+    if source_url:
+        seen_paths[seen_url].append(source_url)
+
 
 def check_validates(url):
     if not should_validate(url):

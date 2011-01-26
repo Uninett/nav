@@ -1,8 +1,8 @@
 sqldocdir=$(docdir)/sql
-nobase_dist_sqldoc_DATA = $(wildcard *.sql) \
-                          $(wildcard *.sh) \
-                          $(wildcard upgrades/*.sql) \
+nobase_dist_sqldoc_DATA = $(wildcard baseline/*.sql) \
+                          $(wildcard changes/*.sql) \
+                          $(wildcard *.py) \
+                          $(wildcard historic-upgrades/*.sql) \
                           README \
-                          upgrades/README
-
-bin_SCRIPTS = navschema.py
+                          historic-upgrades/mergedb.sh \
+                          historic-upgrades/README

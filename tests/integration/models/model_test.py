@@ -38,6 +38,8 @@ def check_model(model):
     connection.close() # Ensure clean connection
     list(model.objects.all()[:5])
 
-def model_test_generator():
+def test_models():
     for model in get_models():
-        yield check_model, model
+        model_name = "%s.%s" % (model.__module__,
+                                model.__name__)
+        yield "%s seems up to date" % model_name, check_model, model

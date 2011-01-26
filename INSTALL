@@ -105,19 +105,21 @@ values are unchanged.  A typical value for a Debian install is
 
 Initializing the database
 -------------------------
-Before NAV can run, the database schema must be installed in your
-PostgreSQL server.  As the postgres superuser, run the following
+Before NAV can run, the database schema must be installed in your PostgreSQL
+server.  NAV can create a database user and a database schema for you.  
+
+Choose a password for your NAV database user and set this in the `userpw_nav`
+in the `db.conf` config file. As the postgres superuser, run the following
 command::
 
-  cd doc/sql
-  ./createdb.sh
+  cd sql
+  ./syncdb.py -c
 
-This will attempt to create a new database user - you will be prompted
-for a password to give this user.  Choose a password, and save it to
-/usr/local/nav/etc/db.conf as the value of the userpw_nav option.
+This will attempt to create a new database user, a new database and initialize
+it with NAV's schema.
 
 For more details on setting up PostgreSQL and initializing the schema,
-please refer to the doc/sql/README file.
+please refer to the sql/README file.
 
 
 Making the Python libraries available system-wide
@@ -157,29 +159,18 @@ JavaSNMP libraries to NAV's java library directory::
 
 Configuring Apache
 ------------------
-Legacy parts of NAV uses mod_python, and therefore requires an Apache
-server.  For the time being, NAV also requires being at the document
-root of its own Apache virtualhost.
+Legacy parts of NAV uses mod_python, and therefore requires an Apache 2
+server.  For the time being, NAV also requires being at the document root of
+its own Apache virtualhost.
 
-A typical minimum configuration for such a virtualhost can be::
+NAV provides an Apache config file, with the minimum settings required for
+getting a NAV virtualhost to work.  This can be included in your virtualhost
+config file, which needn't contain much more than this::
 
-  DirectoryIndex index.html index.html index.php index.cgi index.py
-  AccessFileName .htaccess
-  AddDefaultCharset UTF-8
-  AddHandler cgi-script .cgi
+  ServerName nav.example.org
+  ServerAdmin webmaster@example.org
 
-  DocumentRoot /usr/local/nav/apache/webroot
-  <Directory />
-      Options FollowSymLinks
-      AllowOverride None
-  </Directory>
-
-  <Directory "/usr/local/nav/apache/webroot">
-      Options Indexes FollowSymLinks ExecCGI
-      AllowOverride All
-      Order allow,deny
-      Allow from all
-  </Directory>
+  Include /usr/local/nav/etc/apache/apache.conf
 
 
 Create users and groups
