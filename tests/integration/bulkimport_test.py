@@ -3,6 +3,7 @@ from unittest import TestCase
 from nav.models import manage
 from nav.tests.cases import DjangoTransactionTestCase
 from nav.bulkimport import *
+from nav.bulkparse import *
 
 class TestGenericBulkImport(TestCase):
     def test_is_generator(self):
@@ -57,7 +58,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
 
     def test_get_netboxinfo_from_function(self):
         importer = NetboxImporter(None)
-        netboxinfo = importer.get_netboxinfo_from_function(None, 'hella')
+        netboxinfo = importer._get_netboxinfo_from_function(None, 'hella')
         self.assertTrue(isinstance(netboxinfo, manage.NetboxInfo))
         self.assertTrue(netboxinfo.key is None)
         self.assertEquals(netboxinfo.variable, 'function')
@@ -78,7 +79,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         netbox.category = manage.Category.objects.get(id='SRV')
 
         subcatids = ['LDAP', 'UNIX']
-        ncategories = importer.get_subcats_from_subcat(netbox, subcatids)
+        ncategories = importer._get_subcats_from_subcat(netbox, subcatids)
         self.assertTrue(len(ncategories) == 2)
 
         for subcatid, ncategory in zip(subcatids, ncategories):

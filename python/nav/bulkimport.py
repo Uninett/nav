@@ -68,34 +68,36 @@ class NetboxImporter(BulkImporter):
         raise_if_exists(Netbox, ip=row['ip'])
         raise_if_exists(Netbox, sysname=row['ip'])
 
-        device = self.get_device_from_serial(row['serial'])
-        netbox = self.get_netbox_from_row(row)
+        device = self._get_device_from_serial(row['serial'])
+        netbox = self._get_netbox_from_row(row)
         netbox.device = device
         objects = [device, netbox]
 
-        netboxinfo = self.get_netboxinfo_from_function(
+        netboxinfo = self._get_netboxinfo_from_function(
             netbox, row['function'])
         if netboxinfo:
             objects.append(netboxinfo)
 
-        subcats = self.get_subcats_from_subcat(netbox, row.get('subcat', []))
+        subcats = self._get_subcats_from_subcat(netbox, row.get('subcat', []))
         if subcats:
             objects.extend(subcats)
 
         return objects
 
-    def get_device_from_serial(self, serial):
+    @staticmethod
+    def _get_device_from_serial(serial):
         if not serial:
             return Device(serial=None)
 
         try:
             device = Device.objects.get(serial=serial)
-        except Device.DoesNotExist, e:
+        except Device.DoesNotExist:
             return Device(serial=serial)
         else:
             return device
 
-    def get_netbox_from_row(self, row):
+    @staticmethod
+    def _get_netbox_from_row(row):
         netbox = Netbox(ip=row['ip'], read_only=row['ro'],
                         read_write=row['rw'], snmp_version=1)
         netbox.room = get_object_or_fail(Room, id=row['roomid'])
@@ -104,12 +106,14 @@ class NetboxImporter(BulkImporter):
         netbox.sysname = netbox.ip
         return netbox
 
-    def get_netboxinfo_from_function(self, netbox, function):
+    @staticmethod
+    def _get_netboxinfo_from_function(netbox, function):
         if function:
             return NetboxInfo(netbox=netbox, key=None, variable='function',
                               value=function)
 
-    def get_subcats_from_subcat(self, netbox, subcat):
+    @staticmethod
+    def _get_subcats_from_subcat(netbox, subcat):
         if not subcat:
             return
 
