@@ -134,9 +134,9 @@ class OrgImporter(BulkImporter):
         else:
             parent = None
         org = Organization(id=row['orgid'], parent=parent,
-                           description=row['descr'], optional_1=row['opt1'],
-                           optional_2=row['opt2'], optional_3=row['opt3'],
-                           optional_4=row['opt4'])
+                           description=row['description'],
+                           optional_1=row['opt1'], optional_2=row['opt2'],
+                           optional_3=row['opt3'])
         return [org]
 
 def get_object_or_fail(cls, **kwargs):
