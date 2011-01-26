@@ -12,6 +12,7 @@ nobase_dist_sysconf_DATA = $(sort $(wildcard *.conf) logger.conf) \
            apache/apache.conf apache/subsystems/*.conf \
 	   alertprofiles/* \
 	   arnold/*.conf arnold/mailtemplates/* \
+	   portadmin/*.conf \
 	   toolbox/*.tool \
 	   rrdviewer/*.conf \
 	   $(cron_out) \
