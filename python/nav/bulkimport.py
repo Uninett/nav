@@ -20,6 +20,8 @@ from nav.models.manage import Category, NetboxInfo, Subcategory
 from nav.models.manage import Subcategory, NetboxCategory, Interface
 from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.cabling import Cabling, Patch
+from nav.models.service import Service, ServiceProperty
+from nav.web.serviceHelper import getDescription
 
 from nav.bulkparse import *
 
@@ -106,6 +108,49 @@ class NetboxImporter(BulkImporter):
                                              category__id=netbox.category_id)
             subcats.append(NetboxCategory(netbox=netbox, category=subcategory))
         return subcats
+
+class ServiceImporter(BulkImporter):
+    def create_objects_from_row(self, row):
+        objects = []
+        netbox = get_object_or_fail(Netbox, sysname=row['host'])
+        service = Service(netbox=netbox, handler=row['handler'])
+        objects.append(service)
+
+        handler_descr = self.get_handler_descr(row['handler'])
+        service_args = dict([arg.split('=', 1) for arg in row.get('arg', [])])
+        self.validate_handler_args(handler_descr, service_args)
+        service_properties = self.get_service_properties(service, service_args)
+
+        if service_properties:
+            objects.extend(service_properties)
+
+        return objects
+
+    def get_handler_descr(self, handler):
+        descr = getDescription(handler)
+        if not descr:
+            raise BulkImportError("Service handler %s does not exist" % handler)
+        return descr
+
+    def get_service_properties(self, service, args):
+        service_properties = []
+        for prop, val in args.items():
+            serviceprop = ServiceProperty(service=service, property=prop,
+                                          value=val)
+            service_properties.append(serviceprop)
+        return service_properties
+
+    def validate_handler_args(self, handler_descr, service_args):
+        arg_keys = handler_descr.get('args', [])
+        optarg_keys = handler_descr.get('optargs', [])
+
+        for key in arg_keys:
+            if key not in service_args:
+                raise BulkImportError("Missing required property: %s" % key)
+
+        for key in service_args:
+            if key not in arg_keys and key not in optarg_keys:
+                raise BulkImportError("Key %s is not valid for handler" % key)
 
 class LocationImporter(BulkImporter):
     def create_objects_from_row(self, row):

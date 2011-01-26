@@ -18,11 +18,11 @@
 from nav.bulkparse import NetboxBulkParser, RoomBulkParser, LocationBulkParser
 from nav.bulkparse import OrgBulkParser, UsageBulkParser, NetboxTypeBulkParser
 from nav.bulkparse import VendorBulkParser, SubcatBulkParser, CablingBulkParser
-from nav.bulkparse import PatchBulkParser
+from nav.bulkparse import PatchBulkParser, ServiceBulkParser
 from nav.bulkimport import NetboxImporter, RoomImporter, LocationImporter
 from nav.bulkimport import OrgImporter, UsageImporter, NetboxTypeImporter
 from nav.bulkimport import VendorImporter, SubcatImporter, CablingImporter
-from nav.bulkimport import PatchImporter
+from nav.bulkimport import PatchImporter, ServiceImporter
 
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
@@ -39,6 +39,18 @@ def netbox_bulk(request):
     return render_bulkimport(
             request, NetboxBulkParser, NetboxImporter,
             'seeddb-netbox',
+            extra_context=extra)
+
+def service_bulk(request):
+    extra = {
+        'active': {'service': True},
+        'title': TITLE_DEFAULT + ' - Service',
+        'navpath': NAVPATH_DEFAULT + [('Service', None)],
+        'tab_template': 'seeddb/tabs_service.html',
+    }
+    return render_bulkimport(
+            request, ServiceBulkParser, ServiceImporter,
+            'seeddb-service',
             extra_context=extra)
 
 def room_bulk(request):

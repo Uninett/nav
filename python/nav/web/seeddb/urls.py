@@ -30,6 +30,7 @@ from nav.web.seeddb.views.bulk import netbox_bulk, room_bulk, location_bulk
 from nav.web.seeddb.views.bulk import organization_bulk, usage_bulk
 from nav.web.seeddb.views.bulk import netboxtype_bulk, vendor_bulk, patch_bulk
 from nav.web.seeddb.views.bulk import subcategory_bulk, cabling_bulk
+from nav.web.seeddb.views.bulk import service_bulk
 
 dummy = lambda *args, **kwargs: None
 
@@ -54,7 +55,7 @@ urlpatterns = patterns('',
         name='seeddb-service-edit'),
     url(r'^service/add/$', service_edit,
         name='seeddb-service-edit'),
-    url(r'^service/bulk/$', dummy,
+    url(r'^service/bulk/$', service_bulk,
         name='seeddb-service-bulk'),
 
     # Room
