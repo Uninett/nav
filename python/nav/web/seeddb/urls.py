@@ -26,7 +26,7 @@ from nav.web.seeddb.views.edit import location_edit, organization_edit
 from nav.web.seeddb.views.edit import usage_edit, netboxtype_edit, vendor_edit
 from nav.web.seeddb.views.edit import subcategory_edit, vlan_edit, prefix_edit
 from nav.web.seeddb.views.edit import cabling_edit, patch_edit
-from nav.web.seeddb.views.bulk import netbox_bulk
+from nav.web.seeddb.views.bulk import netbox_bulk, room_bulk
 
 dummy = lambda *args, **kwargs: None
 
@@ -61,7 +61,7 @@ urlpatterns = patterns('',
         name='seeddb-room-edit'),
     url(r'^room/add/$', room_edit,
         name='seeddb-room-edit'),
-    url(r'^room/bulk/$', dummy,
+    url(r'^room/bulk/$', room_bulk,
         name='seeddb-room-bulk'),
 
     # Location

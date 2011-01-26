@@ -15,8 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.bulkimport import NetboxImporter
-from nav.bulkparse import NetboxBulkParser
+from nav.bulkparse import NetboxBulkParser, RoomBulkParser
+from nav.bulkimport import NetboxImporter, RoomImporter
 
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
@@ -36,4 +36,13 @@ def netbox_bulk(request):
             extra_context=extra)
 
 def room_bulk(request):
-    pass
+    extra = {
+        'active': {'room': True},
+        'title': TITLE_DEFAULT + ' - Room',
+        'navpath': NAVPATH_DEFAULT + [('Room', None)],
+        'tab_template': 'seeddb/tabs_room.html',
+    }
+    return render_bulkimport(
+        request, RoomBulkParser, RoomImporter,
+        'seeddb-room',
+        extra_context=extra)
