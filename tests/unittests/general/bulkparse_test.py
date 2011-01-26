@@ -178,3 +178,12 @@ class TestHeaderGenerator(TestCase):
             required = 2
 
         self.assertEquals(C.get_header(), "#one:two[:rest:...]")
+
+    def test_two_required_plus_restkey_format(self):
+        class C(BulkParser):
+            format = ('one', 'two')
+            restkey = 'rest'
+            restkey_format = 'thing=value'
+            required = 2
+
+        self.assertEquals(C.get_header(), "#one:two[:thing=value:...]")

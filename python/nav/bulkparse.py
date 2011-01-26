@@ -30,6 +30,7 @@ class BulkParser(object):
     format = ()
     required = 0
     restkey = None
+    restkey_format = None
 
     def __init__(self, data, delimiter=None):
         if hasattr(data, 'seek'):
@@ -91,7 +92,9 @@ class BulkParser(object):
         separator = ':'
         required = separator.join(cls.format[:cls.required])
         optional = separator.join(cls.format[cls.required:])
-        rest = "%s%s..." % (cls.restkey, separator)
+        restkey_format = (cls.restkey_format and cls.restkey_format or
+                          cls.restkey)
+        rest = "%s%s..." % (restkey_format, separator)
 
         header = "#" + required
         if cls.required < len(cls.format) or cls.restkey:
