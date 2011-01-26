@@ -88,15 +88,16 @@ class BulkParser(object):
 
     @classmethod
     def get_header(cls):
-        required = ':'.join(cls.format[:cls.required])
-        optional = ':'.join(cls.format[cls.required:])
-        rest = "%s:..." % cls.restkey
+        separator = ':'
+        required = separator.join(cls.format[:cls.required])
+        optional = separator.join(cls.format[cls.required:])
+        rest = "%s%s..." % (cls.restkey, separator)
 
         header = "#" + required
         if cls.required < len(cls.format) or cls.restkey:
             header += '['
-            header += cls.required < len(cls.format) and ':' + optional or ''
-            header += cls.restkey and ':' + rest or ''
+            header += optional and separator + optional or ''
+            header += cls.restkey and separator + rest or ''
             header += ']'
 
         return header
