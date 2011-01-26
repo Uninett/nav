@@ -177,9 +177,19 @@ class NetboxTypeBulkParser(BulkParser):
               'description', 'cdp', 'tftp')
     required = 3
 
-class VendorTypeBulkParser(BulkParser):
-    format = ('vendorid')
+class VendorBulkParser(BulkParser):
+    format = ('vendorid',)
     required = 1
+
+class CablingBulkParser(BulkParser):
+    format = ('roomid', 'jack', 'building', 'targetroom', 'category',
+              'descr')
+    required = 5
+
+class PatchBulkParser(BulkParser):
+    format = ('sysname', 'port', 'roomid', 'jack',
+              'split')
+    required = 4
 
 #
 # exceptions
