@@ -40,21 +40,21 @@ class BulkImporter(object):
         """Parses and returns next line"""
         try:
             row = self.parser.next()
-            row = self.decode_as_utf8(row)
-            objects = self.create_objects_from_row(row)
+            row = self._decode_as_utf8(row)
+            objects = self._create_objects_from_row(row)
         except BulkParseError, error:
             objects = error
         return (self.parser.line_num, objects)
 
     @staticmethod
-    def decode_as_utf8(row):
+    def _decode_as_utf8(row):
         """Decodes all unicode values in row as utf-8 strings"""
         for key, value in row.items():
             if isinstance(value, str):
                 row[key] = value.decode('utf-8')
         return row
 
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         """Hook to create Django ORM objects from a row.
 
         Must be overridden in descendant classes.
@@ -64,7 +64,7 @@ class BulkImporter(object):
 
 class NetboxImporter(BulkImporter):
     """Creates objects from the netbox bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Netbox, ip=row['ip'])
         raise_if_exists(Netbox, sysname=row['ip'])
 
@@ -122,7 +122,7 @@ class NetboxImporter(BulkImporter):
 
 class ServiceImporter(BulkImporter):
     """Creates objects from the service bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         objects = []
         netbox = get_object_or_fail(Netbox, sysname=row['host'])
         service = Service(netbox=netbox, handler=row['handler'])
@@ -166,7 +166,7 @@ class ServiceImporter(BulkImporter):
 
 class LocationImporter(BulkImporter):
     """Creates objects from the location bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Location, id=row['locationid'])
         location = Location(id=row['locationid'],
                             description=row['descr'])
@@ -174,7 +174,7 @@ class LocationImporter(BulkImporter):
 
 class RoomImporter(BulkImporter):
     """Creates objects from the room bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Room, id=row['roomid'])
         if row['locationid']:
             location = get_object_or_fail(Location, id=row['locationid'])
@@ -188,7 +188,7 @@ class RoomImporter(BulkImporter):
 
 class OrgImporter(BulkImporter):
     """Creates objects from the organization bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Organization, id=row['orgid'])
         if row['parent']:
             parent = get_object_or_fail(Organization, id=row['parent'])
@@ -202,7 +202,7 @@ class OrgImporter(BulkImporter):
 
 class PrefixImporter(BulkImporter):
     """Creates objects from the prefix bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Prefix, net_address=row['netaddr'])
         net_type = get_object_or_fail(NetType, id=row['nettype'])
 
@@ -226,14 +226,14 @@ class PrefixImporter(BulkImporter):
 
 class UsageImporter(BulkImporter):
     """Creates objects from the usage bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Usage, id=row['usageid'])
         usage = Usage(id=row['usageid'], description=row['descr'])
         return [usage]
 
 class NetboxTypeImporter(BulkImporter):
     """Creates objects from the type bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         vendor = get_object_or_fail(Vendor, id=row['vendorid'])
         raise_if_exists(NetboxType, sysobjectid=row['sysobjectid'])
         raise_if_exists(NetboxType, vendor=vendor, name=row['typename'])
@@ -246,14 +246,14 @@ class NetboxTypeImporter(BulkImporter):
 
 class VendorImporter(BulkImporter):
     """Creates objects from the vendor bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Vendor, id=row['vendorid'])
         vendor = Vendor(id=row['vendorid'])
         return [vendor]
 
 class SubcatImporter(BulkImporter):
     """Creates objects from the subcategory bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         raise_if_exists(Subcategory, id=row['subcatid'])
         cat = get_object_or_fail(Category, id=row['catid'])
         subcat = Subcategory(id=row['subcatid'], category=cat,
@@ -262,7 +262,7 @@ class SubcatImporter(BulkImporter):
 
 class CablingImporter(BulkImporter):
     """Creates objects from the cabling bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         room = get_object_or_fail(Room, id=row['roomid'])
         raise_if_exists(Cabling, room=room, jack=row['jack'])
         cabling = Cabling(room=room, jack=row['jack'],
@@ -274,7 +274,7 @@ class CablingImporter(BulkImporter):
 
 class PatchImporter(BulkImporter):
     """Creates objects from the patch bulk format"""
-    def create_objects_from_row(self, row):
+    def _create_objects_from_row(self, row):
         netbox = get_object_or_fail(Netbox, sysname=row['sysname'])
         interface = get_object_or_fail(Interface,
                                        netbox=netbox,ifname=row['port'])
