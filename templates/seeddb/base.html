@@ -71,11 +71,13 @@
 
 <div class="tabcontent">
 
+{% if tab_template %}
 <div class="tabs">
 <ul>
 {% include tab_template %}
 </ul>
 </div>
+{% endif %}
 
 <div class="tabcontent">
 {% block content %}
