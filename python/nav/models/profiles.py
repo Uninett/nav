@@ -42,6 +42,7 @@ from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, Subcategory
 from nav.models.manage import Interface, Usage, Vlan, Vendor
+from nav.models.fields import VarcharField
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
@@ -72,10 +73,10 @@ class Account(models.Model):
     # FIXME get this from setting.
     MIN_PASSWD_LENGTH = 8
 
-    login = models.CharField(unique=True, max_length=-1)
-    name = models.CharField(max_length=-1)
-    password = models.CharField(max_length=-1)
-    ext_sync = models.CharField(max_length=-1)
+    login = VarcharField(unique=True)
+    name = VarcharField()
+    password = VarcharField()
+    ext_sync = VarcharField()
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg')
 
@@ -198,8 +199,8 @@ class AccountGroup(models.Model):
     EVERYONE_GROUP = 2
     AUTHENTICATED_GROUP = 3
 
-    name = models.CharField(max_length=-1)
-    description = models.CharField(db_column='descr', max_length=-1)
+    name = VarcharField()
+    description = VarcharField(db_column='descr')
     # FIXME this uses a view hack, was AccountInGroup
     accounts = models.ManyToManyField('Account')
 
@@ -230,8 +231,8 @@ class AccountProperty(models.Model):
     '''Key-value for account settings'''
 
     account = models.ForeignKey('Account', db_column='accountid', null=True)
-    property = models.CharField(max_length=-1)
-    value = models.CharField(max_length=-1)
+    property = VarcharField()
+    value = VarcharField()
 
     class Meta:
         db_table = u'accountproperty'
@@ -243,7 +244,7 @@ class AccountNavbar(models.Model):
     """A user's web ui navigation bar."""
     account = models.ForeignKey('Account', db_column='accountid')
     navbarlink = models.ForeignKey('NavbarLink', db_column='navbarlinkid')
-    positions = models.CharField(max_length=-1)
+    positions = VarcharField()
 
     class Meta:
         db_table = u'accountnavbar'
@@ -254,8 +255,8 @@ class AccountNavbar(models.Model):
 class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1)
-    uri = models.CharField(max_length=-1)
+    name = VarcharField()
+    uri = VarcharField()
 
     class Meta:
         db_table = u'navbarlink'
@@ -267,7 +268,7 @@ class Privilege(models.Model):
     """A privilege granted to an AccountGroup."""
     group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
     type = models.ForeignKey('PrivilegeType', db_column='privilegeid')
-    target = models.CharField(max_length=-1)
+    target = VarcharField()
 
     class Meta:
         db_table = u'accountgroupprivilege'
@@ -296,7 +297,7 @@ class AlertAddress(models.Model):
 
     account = models.ForeignKey('Account', db_column='accountid')
     type = models.ForeignKey('AlertSender', db_column='type')
-    address = models.CharField(max_length=-1)
+    address = VarcharField()
 
     class Meta:
         db_table = u'alertaddress'
@@ -461,7 +462,7 @@ class AlertProfile(models.Model):
     )
 
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(max_length=-1)
+    name = VarcharField()
     daily_dispatch_time = models.TimeField(default='08:00')
     weekly_dispatch_day = models.IntegerField(choices=VALID_WEEKDAYS,
                                               default=MONDAY)
@@ -707,7 +708,7 @@ class Expression(models.Model):
     filter = models.ForeignKey('Filter')
     match_field = models.ForeignKey('MatchField')
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
-    value = models.CharField(max_length=-1)
+    value = VarcharField()
 
     class Meta:
         db_table = u'expression'
@@ -727,7 +728,7 @@ class Filter(models.Model):
     special cases like the IP datatype and WILDCARD lookups.'''
 
     owner = models.ForeignKey('Account', null=True)
-    name = models.CharField(max_length=-1)
+    name = VarcharField()
 
     class Meta:
         db_table = u'filter'
@@ -831,8 +832,8 @@ class FilterGroup(models.Model):
 
     """
     owner = models.ForeignKey('Account', null=True)
-    name = models.CharField(max_length=-1)
-    description = models.CharField(max_length=-1)
+    name = VarcharField()
+    description = VarcharField()
 
     group_permissions = models.ManyToManyField(
         'AccountGroup', db_table='filtergroup_group_permission')
@@ -964,33 +965,29 @@ class MatchField(models.Model):
         field = None
     model = None
 
-    name = models.CharField(max_length=-1)
-    description = models.CharField(blank=True, max_length=-1)
-    value_help = models.CharField(
+    name = VarcharField()
+    description = VarcharField(blank=True)
+    value_help = VarcharField(
         blank=True,
-        max_length=-1,
         help_text=_(u'Help text for the match field. Displayed by the value '
                     u'input box in the GUI to help users enter sane values.')
     )
-    value_id = models.CharField(
+    value_id = VarcharField(
         choices=CHOICES,
-        max_length=-1,
         help_text=_(u'The "match field". This is the actual database field '
                     u'alert engine will watch.')
     )
-    value_name = models.CharField(
+    value_name = VarcharField(
         choices=CHOICES,
         blank=True,
-        max_length=-1,
         help_text=_(u'When "show list" is checked, the list will be populated '
                     u'with data from this column as well as the "value id" '
                     u'field. Does nothing else than provide a little more '
                     u'info for the users in the GUI.')
     )
-    value_sort = models.CharField(
+    value_sort = VarcharField(
         choices=CHOICES,
         blank=True,
-        max_length=-1,
         help_text=_(u'Options in the list will be ordered by this field (if '
                     u'not set, options will be ordered by primary key). Only '
                     u'does something when "Show list" is checked.')
@@ -1161,7 +1158,7 @@ class StatusPreference(models.Model):
 
     name = models.TextField()
     position = models.IntegerField()
-    type = models.CharField(choices=SECTION_CHOICES, max_length=-1)
+    type = VarcharField(choices=SECTION_CHOICES)
     account = models.ForeignKey('Account', db_column='accountid')
     organizations = models.ManyToManyField(
         Organization, db_table='statuspreference_organization')

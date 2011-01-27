@@ -270,8 +270,8 @@ class NetboxInfo(models.Model):
     id = models.AutoField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
         related_name='info_set')
-    key = models.CharField(max_length=-1)
-    variable = models.CharField(db_column='var', max_length=-1)
+    key = VarcharField()
+    variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
     class Meta:
@@ -310,13 +310,10 @@ class Device(models.Model):
     boxes or may appear in different modules throughout its lifetime."""
 
     id = models.AutoField(db_column='deviceid', primary_key=True)
-    serial = models.CharField(unique=True, max_length=-1, null=True)
-    hardware_version = models.CharField(db_column='hw_ver', max_length=-1,
-                                        null=True)
-    firmware_version = models.CharField(db_column='fw_ver', max_length=-1,
-                                        null=True)
-    software_version = models.CharField(db_column='sw_ver', max_length=-1,
-                                        null=True)
+    serial = VarcharField(unique=True, null=True)
+    hardware_version = VarcharField(db_column='hw_ver', null=True)
+    firmware_version = VarcharField(db_column='fw_ver', null=True)
+    software_version = VarcharField(db_column='sw_ver', null=True)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
@@ -342,9 +339,9 @@ class Module(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
-    name = models.CharField(max_length=-1)
-    model = models.CharField(max_length=-1)
-    description = models.CharField(db_column='descr', max_length=-1)
+    name = VarcharField()
+    model = VarcharField()
+    description = VarcharField(db_column='descr')
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
 
@@ -399,8 +396,8 @@ class Memory(models.Model):
 
     id = models.AutoField(db_column='memid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    type = models.CharField(db_column='memtype', max_length=-1)
-    device = models.CharField(max_length=-1)
+    type = VarcharField(db_column='memtype')
+    device = VarcharField()
     size = models.IntegerField()
     used = models.IntegerField()
 
@@ -469,7 +466,7 @@ class Category(models.Model):
     (GW,GSW,SW,EDGE,WLAN,SRV,OTHER)."""
 
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
     req_snmp = models.BooleanField()
 
     class Meta:
@@ -507,8 +504,8 @@ class Subcategory(models.Model):
     A category may have many subcategories. A subcategory belong to one and
     only one category."""
 
-    id = models.CharField(db_column='subcatid', max_length=-1, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    id = VarcharField(db_column='subcatid', primary_key=True)
+    description = VarcharField(db_column='descr')
     category = models.ForeignKey('Category', db_column='catid')
 
     class Meta:
@@ -544,13 +541,13 @@ class NetboxType(models.Model):
 
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    name = models.CharField(db_column='typename', max_length=-1)
-    sysobjectid = models.CharField(unique=True, max_length=-1)
+    name = VarcharField(db_column='typename')
+    sysobjectid = VarcharField(unique=True)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'type'
@@ -626,8 +623,8 @@ class Vlan(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid',
         null=True)
     usage = models.ForeignKey('Usage', db_column='usageid', null=True)
-    net_ident = models.CharField(db_column='netident', max_length=-1)
-    description = models.CharField(max_length=-1)
+    net_ident = VarcharField(db_column='netident')
+    description = VarcharField()
 
     class Meta:
         db_table = 'vlan'
@@ -647,9 +644,8 @@ class NetType(models.Model):
     elink, loopback, closed, static, reserved, scope. The network types are
     predefined in NAV and may not be altered."""
 
-    id = models.CharField(db_column='nettypeid',
-        max_length=-1, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    id = VarcharField(db_column='nettypeid', primary_key=True)
+    description = VarcharField(db_column='descr')
     edit = models.BooleanField(default=False)
 
     class Meta:
@@ -678,7 +674,7 @@ class Arp(models.Model):
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
-    sysname = models.CharField(max_length=-1)
+    sysname = VarcharField()
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
@@ -726,7 +722,7 @@ class SwPortAllowedVlan(models.Model):
 
     interface = models.OneToOneField('Interface', db_column='interfaceid',
                                      primary_key=True)
-    hex_string = models.CharField(db_column='hexstring', max_length=-1)
+    hex_string = VarcharField(db_column='hexstring')
 
     class Meta:
         db_table = 'swportallowedvlan'
@@ -794,10 +790,10 @@ class Cam(models.Model):
 
     id = models.AutoField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
-    sysname = models.CharField(max_length=-1)
+    sysname = VarcharField()
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
-    port = models.CharField(max_length=-1)
+    port = VarcharField()
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = DateTimeInfinityField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
@@ -830,8 +826,8 @@ class Interface(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module = models.ForeignKey('Module', db_column='moduleid', null=True)
     ifindex = models.IntegerField()
-    ifname = models.CharField(max_length=-1)
-    ifdescr = models.CharField(max_length=-1)
+    ifname = VarcharField()
+    ifdescr = VarcharField()
     iftype = models.IntegerField()
     speed = models.FloatField()
     ifphysaddress = models.CharField(max_length=17, null=True)
@@ -840,10 +836,10 @@ class Interface(models.Model):
     iflastchange = models.IntegerField()
     ifconnectorpresent = models.BooleanField()
     ifpromiscuousmode = models.BooleanField()
-    ifalias = models.CharField(max_length=-1)
+    ifalias = VarcharField()
 
     baseport = models.IntegerField()
-    media = models.CharField(max_length=-1, null=True)
+    media = VarcharField(null=True)
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES, null=True)
@@ -945,8 +941,8 @@ class Interface(models.Model):
 class IanaIftype(models.Model):
     """IANA-registered iftype values"""
     iftype = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=-1)
-    descr = models.CharField(max_length=-1)
+    name = VarcharField()
+    descr = VarcharField()
 
     class Meta:
         db_table = u'iana_iftype'
@@ -956,7 +952,7 @@ class RoutingProtocolAttribute(models.Model):
     """Routing protocol metric as configured on a routing interface"""
     id = models.IntegerField(primary_key=True)
     interface = models.ForeignKey('Interface', db_column='interfaceid')
-    name = models.CharField(db_column='protoname', max_length=-1)
+    name = VarcharField(db_column='protoname')
     metric = models.IntegerField()
 
     class Meta:

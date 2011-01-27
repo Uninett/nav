@@ -18,18 +18,20 @@
 
 from django.db import models
 
+from nav.models.fields import VarcharField
+
 class Message(models.Model):
     """From MetaNAV: The table contains the messages registered in the messages
     tool. Each message has a timeframe for when it is published on the NAV main
     page."""
 
     id = models.AutoField(db_column='messageid', primary_key=True)
-    title = models.CharField(max_length=-1)
+    title = VarcharField()
     description = models.TextField()
     tech_description = models.TextField()
     publish_start = models.DateTimeField()
     publish_end = models.DateTimeField()
-    author = models.CharField(max_length=-1)
+    author = VarcharField()
     last_changed = models.DateTimeField()
     replaces_message = models.ForeignKey('self', db_column='replaces_message',
         related_name='replaced_by', null=True)
@@ -50,8 +52,8 @@ class MaintenanceTask(models.Model):
     start_time = models.DateTimeField(db_column='maint_start')
     end_time = models.DateTimeField(db_column='maint_end')
     description = models.TextField()
-    author = models.CharField(max_length=-1)
-    state = models.CharField(max_length=-1)
+    author = VarcharField()
+    state = VarcharField()
 
     class Meta:
         db_table = 'maint_task'
@@ -66,8 +68,8 @@ class MaintenanceComponent(models.Model):
     id = models.AutoField(primary_key=True) # Serial for faking primary key
     maintenance_task = models.ForeignKey(MaintenanceTask,
         db_column='maint_taskid')
-    key = models.CharField(max_length=-1)
-    value = models.CharField(max_length=-1)
+    key = VarcharField()
+    value = VarcharField()
 
     class Meta:
         db_table = 'maint_component'
