@@ -63,6 +63,12 @@ class Generator:
         if argumentHash.has_key("export"):
             del argumentHash["export"]
 
+        if argumentHash.has_key("exportcsv"):
+            del argumentHash["exportcsv"]
+            # Export *everything* in CSV file
+            argumentHash["offset"] = 0
+            argumentHash["limit"] = 0
+
         if argumentHash.has_key("adv"):
             if argumentHash["adv"]:
                 adv = 1
