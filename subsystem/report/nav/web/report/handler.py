@@ -243,7 +243,7 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
 
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    nuri.setArguments(['offset', 'limit', 'export'], '')
+    nuri.setArguments(['offset', 'limit', 'export', 'exportcsv'], '')
     for key,val in nuri.args.items():
         if val == "":
             del nuri.args[key]
