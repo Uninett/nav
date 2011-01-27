@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -92,18 +92,20 @@ def arg_parsing(req):
     # These arguments and their friends will be deleted
     remove = []
 
-    # Finding empty values and 'export' key
+    # Finding empty values
     for key,val in nuri.args.items():
         if val == "":
             remove.append(key)
-        elif key == "export":
-            val = urllib.unquote(val)
-            # Remember to match against 'page.delimiters'
-            match = re.search("(\,|\;|\:|\|)", val)
-            if match:
-                export_delimiter = match.group(0)
-            else:
-                remove.append(key)
+
+    if 'exportcsv' in nuri.args and 'export' in nuri.args:
+        delimiter = urllib.unquote(nuri.args['export'])
+        # Remember to match against 'page.delimiters'
+        match = re.search("(\,|\;|\:|\|)", delimiter)
+        if match:
+            export_delimiter = match.group(0)
+        else:
+            remove.append('export')
+            remove.append('exportcsv')
 
     # Deleting empty values
     for r in remove:
@@ -241,7 +243,7 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
 
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    nuri.setArguments(['offset', 'limit', 'export'], '')
+    nuri.setArguments(['offset', 'limit', 'export', 'exportcsv'], '')
     for key,val in nuri.args.items():
         if val == "":
             del nuri.args[key]

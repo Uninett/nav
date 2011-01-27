@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008-2010 UNINETT
+# Copyright (C) 2008-2011 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -101,7 +101,7 @@ class Report:
         returns the limit of the configuration or 1000
         """
 
-        if config:
+        if config or config == 0:
 
             return config
 
