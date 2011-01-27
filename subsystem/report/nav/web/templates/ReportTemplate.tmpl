@@ -87,11 +87,13 @@
     <p><a id="advBlockClose" href="${old_uri}adv=">Close Advanced Options</a></p>
     <h3>Advanced Search</h3>
     #end filter
+
+    <div id="advforms" class="float-left">
     ## Advanced search box
     <form action="" method="get">
         <input id="adv" type="hidden" name="adv" value="1"/>
 
-        <table class="vertitable float-left">
+        <table class="vertitable">
 
 #set $counter = 0
 
@@ -140,7 +142,18 @@
                 </td>
             </tr>
         </table>
+
+        ## CSV Export form
+        <h3>CSV Export</h3>
+            <label for="export">Delimiter: </label>
+            <select name="export">
+#for $delim in $delimiters
+                <option value="$delim">$delim</option>
+#end for
+            </select>
+            <button type="submit" name="exportcsv" value="1">Export</button>
     </form>
+    </div>
 
     <div class="float-left">
         ## Infobox
@@ -159,19 +172,6 @@
         </div>
 
 
-        ## CSV Export form
-        <h3>CSV Export</h3>
-        <form action="" method="get" name="export">
-            <label for="export">Delimiter: </label>
-	    <input type="hidden" name="limit" value="0" />
-	    <input type="hidden" name="offset" value="0" />
-            <select name="export">
-#for $delim in $delimiters
-                <option value="$delim">$delim</option>
-#end for
-            </select>
-            <button type="submit">Export</button>
-        </form>
     </div>
 
 #end block advBlock

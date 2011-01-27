@@ -101,7 +101,7 @@ class Report:
         returns the limit of the configuration or 1000
         """
 
-        if config:
+        if config or config == 0:
 
             return config
 
