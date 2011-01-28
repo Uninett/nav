@@ -18,11 +18,11 @@
 from nav.bulkparse import NetboxBulkParser, RoomBulkParser, LocationBulkParser
 from nav.bulkparse import OrgBulkParser, UsageBulkParser, NetboxTypeBulkParser
 from nav.bulkparse import VendorBulkParser, SubcatBulkParser, CablingBulkParser
-from nav.bulkparse import PatchBulkParser, ServiceBulkParser
+from nav.bulkparse import PatchBulkParser, ServiceBulkParser, PrefixBulkParser
 from nav.bulkimport import NetboxImporter, RoomImporter, LocationImporter
 from nav.bulkimport import OrgImporter, UsageImporter, NetboxTypeImporter
 from nav.bulkimport import VendorImporter, SubcatImporter, CablingImporter
-from nav.bulkimport import PatchImporter, ServiceImporter
+from nav.bulkimport import PatchImporter, ServiceImporter, PrefixImporter
 
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
@@ -135,6 +135,18 @@ def subcategory_bulk(request):
     return render_bulkimport(
         request, SubcatBulkParser, SubcatImporter,
         'seeddb-subcategory',
+        extra_context=extra)
+
+def prefix_bulk(request):
+    extra = {
+        'active': {'prefix': True},
+        'title': TITLE_DEFAULT + ' - Prefix',
+        'navpath': NAVPATH_DEFAULT + [('Prefix', None)],
+        'tab_template': 'seeddb/tabs_prefix.html',
+    }
+    return render_bulkimport(
+        request, PrefixBulkParser, PrefixImporter,
+        'seeddb-prefix',
         extra_context=extra)
 
 def cabling_bulk(request):

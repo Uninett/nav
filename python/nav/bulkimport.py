@@ -223,8 +223,12 @@ class PrefixImporter(BulkImporter):
         if row['usage']:
             usage = get_object_or_fail(Usage, id=row['usage'])
 
+        vlan_number = None
+        if row['vlan']:
+            vlan_number = int(row['vlan'])
+
         vlan, _ = Vlan.objects.get_or_create(
-            vlan=int(row['vlan']),
+            vlan=vlan_number,
             net_type=net_type,
             organization=org,
             net_ident=row['netident'],
