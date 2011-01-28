@@ -27,6 +27,7 @@ from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix, NetType
 from nav.models.manage import Category, Device, NetboxCategory
 from nav.models.service import Service, ServiceProperty
 from nav.web.serviceHelper import getCheckers
+from nav.django.forms import CIDRField
 
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
 from nav.web.seeddb.utils.edit import does_sysname_exist
@@ -237,18 +238,41 @@ class VlanForm(forms.ModelForm):
     class Meta:
         model = Vlan
 
-class PrefixForm(forms.ModelForm):
-    net_address = forms.CharField(label="Prefix/mask (CIDR)")
     net_type = forms.ModelChoiceField(
         queryset=NetType.objects.filter(edit=True))
 
-    class Meta:
-        model = Vlan
+class PrefixForm(VlanForm):
+    """The PrefixForm inherits the VlanForm and adds a single extra field, the
+    net_address from the Prefix model.
+
+    Special handling is introduced in the __init__ and save methods to hand
+    off Vlan data to the superclass and add the Vlan as an attribute to the
+    resulting Prefix.
+
+    """
+    net_address = CIDRField(label="Prefix/mask (CIDR)")
 
     def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance:
+            self.prefix_instance = instance
+            kwargs['instance'] = instance.vlan
+        else:
+            self.prefix_instance = Prefix()
+
         super(PrefixForm, self).__init__(*args, **kwargs)
+
+        if instance:
+            self.initial['net_address'] = instance.net_address
+
         self.fields.keyOrder = ['net_address', 'description', 'net_ident',
                                 'organization', 'net_type', 'vlan', 'usage']
+
+    def save(self, commit=True):
+        vlan = super(PrefixForm, self).save(commit)
+        self.prefix_instance.vlan = vlan
+        return forms.save_instance(self, self.prefix_instance,
+                                   fields=['net_address'])
 
 class CablingForm(forms.ModelForm):
     class Meta:
