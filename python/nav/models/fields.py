@@ -22,7 +22,7 @@ from django import forms
 from django.db import models, connection
 from django.core import exceptions
 
-from IPy import IP
+from nav.util import is_valid_cidr
 
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value):
@@ -50,18 +50,12 @@ class CIDRField(VarcharField):
 
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
-        if value:
-            try:
-                if '/' not in value:
-                    raise ValueError()
-                if not ('.' in value or ':' in value):
-                    raise ValueError()
-                IP(value)
-            except (ValueError, TypeError):
-                raise exceptions.ValidationError(
-                    "Value must be a valid CIDR address")
+        if value and not is_valid_cidr(value):
+            raise exceptions.ValidationError(
+                "Value must be a valid CIDR address")
+        else:
+            return value
 
-        return value
 
 class PointField(models.CharField):
     __metaclass__ = models.SubfieldBase
