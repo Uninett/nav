@@ -618,13 +618,13 @@ class Vlan(models.Model):
     has a user group (usage) within the org."""
 
     id = models.AutoField(db_column='vlanid', primary_key=True)
-    vlan = models.IntegerField()
+    vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey('NetType', db_column='nettype')
     organization = models.ForeignKey('Organization', db_column='orgid',
-        null=True)
-    usage = models.ForeignKey('Usage', db_column='usageid', null=True)
-    net_ident = VarcharField(db_column='netident')
-    description = VarcharField()
+        null=True, blank=True)
+    usage = models.ForeignKey('Usage', db_column='usageid', null=True, blank=True)
+    net_ident = VarcharField(db_column='netident', null=True, blank=True)
+    description = VarcharField(null=True, blank=True)
 
     class Meta:
         db_table = 'vlan'
