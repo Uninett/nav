@@ -27,6 +27,7 @@ from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix, NetType
 from nav.models.manage import Category, Device, NetboxCategory
 from nav.models.service import Service, ServiceProperty
 from nav.web.serviceHelper import getCheckers
+from nav.django.forms import CIDRField
 
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
 from nav.web.seeddb.utils.edit import does_sysname_exist
@@ -249,7 +250,7 @@ class PrefixForm(VlanForm):
     resulting Prefix.
 
     """
-    net_address = forms.CharField(label="Prefix/mask (CIDR)")
+    net_address = CIDRField(label="Prefix/mask (CIDR)")
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
