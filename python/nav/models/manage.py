@@ -28,6 +28,7 @@ from django.db.models import Q
 
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
+from nav.models.fields import CIDRField
 
 # Interface status choices used in Interface model and 'ipdevinfo'
 OPER_UP = 1
@@ -593,8 +594,7 @@ class Prefix(models.Model):
     """From MetaNAV: The prefix table stores IP prefixes."""
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
-    # TODO: Create CIDRField in Django
-    net_address = VarcharField(db_column='netaddr', unique=True)
+    net_address = CIDRField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
     class Meta:
