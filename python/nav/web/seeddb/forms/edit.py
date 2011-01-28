@@ -23,7 +23,7 @@ from django.db.models import Q
 from nav.Snmp import Snmp, TimeOutException, SnmpError
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
-from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix
+from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix, NetType
 from nav.models.manage import Category, Device, NetboxCategory
 from nav.models.service import Service, ServiceProperty
 from nav.web.serviceHelper import getCheckers
@@ -238,8 +238,17 @@ class VlanForm(forms.ModelForm):
         model = Vlan
 
 class PrefixForm(forms.ModelForm):
+    net_address = forms.CharField(label="Prefix/mask (CIDR)")
+    net_type = forms.ModelChoiceField(
+        queryset=NetType.objects.filter(edit=True))
+
     class Meta:
-        model = Prefix
+        model = Vlan
+
+    def __init__(self, *args, **kwargs):
+        super(PrefixForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = ['net_address', 'description', 'net_ident',
+                                'organization', 'net_type', 'vlan', 'usage']
 
 class CablingForm(forms.ModelForm):
     class Meta:
