@@ -1,3 +1,15 @@
 .readonly {
 		border: none;
 }
+
+table.seeddbtable {
+	width: 80%;
+}
+
+table.seeddbtable tr td:first-child {
+	width: 10%;
+}
+
+table.seeddbtable .info {
+	width: 60%;
+}
