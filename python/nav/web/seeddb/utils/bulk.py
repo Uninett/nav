@@ -20,7 +20,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
-from nav.bulkimport import reset_object_foreignkeys
+from nav.bulkimport import reset_object_foreignkeys, BulkImportError
 from nav.bulkparse import BulkParseError
 from nav.web.message import Messages
 
@@ -39,7 +39,7 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
             post_save_message(request, saved)
             return HttpResponseRedirect(reverse(redirect))
         else:
-            processed = bulk_process_check(importer)
+            processed = bulk_process_check(importer, data)
 
     info_dict = {
         'bulk_data': data,
@@ -60,20 +60,24 @@ def bulk_post_data(request):
         data = data.encode('utf-8')
     return data
 
-def bulk_process_check(importer):
+def bulk_process_check(importer, data):
+    lines = data.split('\n')
     processed = []
     for line_num, objects in importer:
         if isinstance(objects, BulkParseError):
             processed.append({
-                'type': 'error',
+                'status': (isinstance(objects, BulkImportError)
+                         and 'other' or 'syntax'),
                 'line_number': line_num,
-                'message': [objects],
+                'input': lines[line_num-1],
+                'message': objects,
             })
         else:
             processed.append({
-                'type': 'ok',
+                'status': 'ok',
                 'line_number': line_num,
-                'message': ["%s: %s" % (obj._meta.verbose_name, obj) for obj in objects],
+                'input': lines[line_num-1],
+                'message': ''
             })
     return processed
 
