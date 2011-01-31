@@ -8,26 +8,32 @@
     <thead>
         <tr>
             <th>Status</th>
-            <th>Line number</th>
-            <th>...</th>
+            <th>Line</th>
+            <th>Input</th>
+            <th>Remark</th>
         </tr>
     </thead>
     {% for obj in processed_objects %}
     <tr class="{% cycle 'oddrow' 'evenrow' %}">
-        <td>{{ obj.type }}</td>
-        <td>{{ obj.line_number }}</td>
         <td>
-            <ul>
-            {% for msg in  obj.message %}
-                <li>{{ msg|capfirst }}</li>
-            {% endfor %}
-            </ul>
-        </td>
+          {% ifequal obj.status "ok" %}
+            <img src="/images/lys/green.png" alt="{{ obj.status }}" />
+          {% else %}{% ifequal obj.status "other" %}
+            <img src="/images/lys/yellow.png" alt="{{ obj.status }}" />
+          {% else %}{% ifequal obj.status "syntax" %}
+            <img src="/images/lys/red.png" alt="{{ obj.status }}" />
+          {% else %}
+            {{ obj.status }}
+          {% endifequal %}{% endifequal %}{% endifequal %}
+	</td>
+        <td>{{ obj.line_number }}</td>
+	<td>{{ obj.input }}</td>
+        <td>{{ obj.message|capfirst }}</td>
     </tr>
     {% endfor %}
 </table>
 <p>
-    <input type="submit" name="confirm" value="Save" />
+    <input type="submit" name="confirm" value="Import" />
 </p>
 {% endif %}
 
@@ -37,7 +43,7 @@
 </textarea>
 </p>
 <p>
-    <input type="submit" value="Import{% if bulk_data %} again{% endif %}" />
+    <input type="submit" value="Preview import{% if bulk_data %} again{% endif %}" />
 </p>
 
 </form>
