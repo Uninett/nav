@@ -23,14 +23,16 @@ from django.http import HttpResponseRedirect
 from nav.bulkimport import reset_object_foreignkeys, BulkImportError
 from nav.bulkparse import BulkParseError
 from nav.web.message import Messages
+from nav.web.seeddb.forms.bulk import BulkImportForm
 
 def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context=None):
     extra_context = extra_context or {}
     data = None
     processed = []
     if request.method == 'POST':
+        form = BulkImportForm(request.POST)
         confirm = request.POST.get('confirm', False)
-        data = bulk_post_data(request)
+        data = form.get_raw_data()
         parser = parser_cls(data)
         importer = importer_cls(parser)
 
@@ -40,10 +42,13 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
             return HttpResponseRedirect(reverse(redirect))
         else:
             processed = bulk_process_check(importer, data)
+    else:
+        form = BulkImportForm(initial={
+                'bulk_data': "%s\n" % parser_cls.get_header()
+                })
 
     info_dict = {
-        'bulk_data': data,
-        'import_header': parser_cls.get_header(),
+        'form': form,
         'processed_objects': processed,
         'sub_active': {'bulk': True},
     }
@@ -53,12 +58,6 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
         info_dict,
         RequestContext(request)
     )
-
-def bulk_post_data(request):
-    data = request.POST.get('bulk_data')
-    if isinstance(data, unicode):
-        data = data.encode('utf-8')
-    return data
 
 def bulk_process_check(importer, data):
     lines = data.split('\n')

@@ -37,13 +37,14 @@
 </p>
 {% endif %}
 
-<p>
-<textarea name="bulk_data" rows="50" cols="100">
-{% if bulk_data %}{{ bulk_data }}{% else %}{{ import_header }}{% endif %}
-</textarea>
+{% for field in form %}
+<p>{{ field.label_tag }}:<br/>
+{{ field }}
 </p>
+{% endfor %}
+
 <p>
-    <input type="submit" value="Preview import{% if bulk_data %} again{% endif %}" />
+    <input type="submit" value="Preview import{% if processed_objects %} again{% endif %}" />
 </p>
 
 </form>
