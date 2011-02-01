@@ -1,7 +1,5 @@
 <li class="{{ sub_active.list|yesno:"tabactive," }}">
     <a href="{% url seeddb-location %}">Locations</a></li>
-<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
-    <a href="{% url seeddb-location-bulk %}">Bulk import</a></li>
 <li class="{{ sub_active.add|yesno:"tabactive," }}">
     <a href="{% url seeddb-location-edit %}">Add new location</a>
 </li>
@@ -10,3 +8,5 @@
     <a href="{% url seeddb-location-edit object.id %}">Edit location "{{ object.id }}"</a>
 </li>
 {% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-location-bulk %}">Bulk import</a></li>

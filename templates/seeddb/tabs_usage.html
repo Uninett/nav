@@ -1,7 +1,5 @@
 <li class="{{ sub_active.list|yesno:"tabactive," }}">
     <a href="{% url seeddb-usage %}">Usage categories</a></li>
-<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
-    <a href="{% url seeddb-usage-bulk %}">Bulk import</a></li>
 <li class="{{ sub_active.add|yesno:"tabactive," }}">
     <a href="{% url seeddb-usage-edit %}">Add new usage category</a>
 </li>
@@ -10,3 +8,5 @@
     <a href="{% url seeddb-usage-edit object.id %}">Edit usage category "{{ object.id }}"</a>
 </li>
 {% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-usage-bulk %}">Bulk import</a></li>

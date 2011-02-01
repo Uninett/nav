@@ -1,7 +1,5 @@
 <li class="{{ sub_active.list|yesno:"tabactive," }}">
     <a href="{% url seeddb-netbox %}">List</a></li>
-<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
-    <a href="{% url seeddb-netbox-bulk %}">Bulk import</a></li>
 <li class="{{ sub_active.add|yesno:"tabactive," }}">
     <a href="{% url seeddb-netbox-edit %}">Add new IP device</a>
 </li>
@@ -10,3 +8,5 @@
     <a href="{% url seeddb-netbox-edit object.id %}">Edit IP device "{{ object.sysname }}"</a>
 </li>
 {% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-netbox-bulk %}">Bulk import</a></li>
