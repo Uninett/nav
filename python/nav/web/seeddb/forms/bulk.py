@@ -20,6 +20,7 @@ from nav.bulkimport import BulkImportError
 from django import forms
 
 class BulkImportForm(forms.Form):
+    """Generic bulk import form"""
     bulk_file = forms.FileField(label="Upload a bulk data file",
                                 required=False)
 
@@ -45,6 +46,7 @@ class BulkImportForm(forms.Form):
             self.fields['bulk_data'].widget = forms.HiddenInput()
 
     def get_raw_data(self):
+        """Returns the bulk data as an utf-8 encoded string"""
         data = self.data.get('bulk_data', None)
         if isinstance(data, unicode):
             return data.encode('utf-8')
@@ -52,9 +54,14 @@ class BulkImportForm(forms.Form):
             return data
 
     def get_parser(self):
+        """Returns a parser instance primed with the form's bulk data"""
         return self.parser(self.get_raw_data())
 
     def clean(self):
+        """Ensures that either the bulk text is filled, or the bulk file
+        uploaded.
+
+        """
         if self._no_data_found() or self._is_bulk_data_unchanged():
             raise forms.ValidationError("There was no data in the form")
 
@@ -81,6 +88,10 @@ class BulkImportForm(forms.Form):
         return len(stripped_lines) < 1
 
     def bulk_process_check(self, importer):
+        """Processes the bulk data using the importer and returns a list of
+        status dictionaries for each line of the import.
+
+        """
         data = self.get_raw_data()
         lines = data.split('\n')
         processed = []
