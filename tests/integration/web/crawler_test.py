@@ -31,7 +31,6 @@ TIDY_IGNORE = [
 ]
 
 TIDY_BLACKLIST = [
-    '/seeddb',
 ]
 
 BLACKLISTED_PATHS = [

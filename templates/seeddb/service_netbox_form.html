@@ -1,0 +1,22 @@
+{% extends "seeddb/base.html" %}
+
+{% block additional_seeddb_head %}
+    <script type="text/javascript" src="/js/quickselect.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<p>
+    Choose IP Device and service handler.
+</p>
+<form action="" method="post">
+{{ box_select|safe }}
+<table class="listtable">
+{{ choice_form }}
+    <tr>
+        <th></th>
+        <td><input type="submit" value="Continue" /></td>
+    </tr>
+</table>
+</form>
+{% endblock %}

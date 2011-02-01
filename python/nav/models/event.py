@@ -21,6 +21,7 @@ import datetime as dt
 from django.db import models
 
 from nav.models.manage import Device, Netbox
+from nav.models.fields import VarcharField
 
 # Choices used in multiple models, "imported" into the models which use them
 STATE_STATELESS = 'x'
@@ -35,8 +36,8 @@ STATE_CHOICES = (
 class Subsystem(models.Model):
     """From MetaNAV: Defines the subsystems that post or receives an event."""
 
-    name = models.CharField(max_length=-1, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    name = VarcharField(primary_key=True)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'subsystem'
@@ -65,7 +66,7 @@ class EventQueue(models.Model):
         related_name='target_of_events')
     device = models.ForeignKey('Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
-    subid = models.CharField(max_length=-1)
+    subid = VarcharField()
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
@@ -92,7 +93,7 @@ class EventType(models.Model):
 
     id = models.CharField(db_column='eventtypeid',
         max_length=32, primary_key=True)
-    description = models.CharField(db_column='eventtypedesc', max_length=-1)
+    description = VarcharField(db_column='eventtypedesc')
     stateful = models.CharField(max_length=1, choices=STATEFUL_CHOICES)
 
     class Meta:
@@ -107,7 +108,7 @@ class EventQueueVar(models.Model):
 
     event_queue = models.ForeignKey('EventQueue', db_column='eventqid',
         related_name='variables')
-    variable = models.CharField(db_column='var', max_length=-1)
+    variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
     class Meta:
@@ -137,7 +138,7 @@ class AlertQueue(models.Model):
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
-    subid = models.CharField(max_length=-1)
+    subid = VarcharField()
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
@@ -163,8 +164,8 @@ class AlertType(models.Model):
 
     id = models.AutoField(db_column='alerttypeid', primary_key=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
-    name = models.CharField(db_column='alerttype', max_length=-1)
-    description= models.CharField(db_column='alerttypedesc', max_length=-1)
+    name = VarcharField(db_column='alerttype')
+    description = VarcharField(db_column='alerttypedesc')
 
     class Meta:
         db_table = 'alerttype'
@@ -182,8 +183,8 @@ class AlertQueueMessage(models.Model):
     id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='messages')
-    type = models.CharField(db_column='msgtype', max_length=-1)
-    language = models.CharField(max_length=-1)
+    type = VarcharField(db_column='msgtype')
+    language = VarcharField()
     message = models.TextField(db_column='msg')
 
     class Meta:
@@ -201,7 +202,7 @@ class AlertQueueVariable(models.Model):
     id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
         related_name='variables')
-    variable = models.CharField(db_column='var', max_length=-1)
+    variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
     class Meta:
@@ -220,7 +221,7 @@ class AlertHistory(models.Model):
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
-    subid = models.CharField(max_length=-1)
+    subid = VarcharField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
@@ -281,8 +282,8 @@ class AlertHistoryMessage(models.Model):
         related_name='messages')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)
-    type = models.CharField(db_column='msgtype', max_length=-1)
-    language = models.CharField(max_length=-1)
+    type = VarcharField(db_column='msgtype')
+    language = VarcharField()
     message = models.TextField(db_column='msg')
 
     class Meta:
@@ -305,7 +306,7 @@ class AlertHistoryVariable(models.Model):
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)
-    variable = models.CharField(db_column='var', max_length=-1)
+    variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
     class Meta:

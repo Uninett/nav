@@ -18,8 +18,11 @@
 from datetime import datetime
 from decimal import Decimal
 
+from django import forms
 from django.db import models, connection
 from django.core import exceptions
+
+from nav.util import is_valid_cidr
 
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value):
@@ -31,19 +34,41 @@ class DateTimeInfinityField(models.DateTimeField):
             return super(DateTimeInfinityField, self).get_db_prep_value(value)
         return connection.ops.value_to_db_datetime(value)
 
+class VarcharField(models.TextField):
+    def db_type(self):
+        return 'varchar'
+
+    def formfield(self, **kwargs):
+        defaults = {
+            'widget': forms.TextInput,
+        }
+        defaults.update(kwargs)
+        return super(VarcharField, self).formfield(**defaults)
+
+class CIDRField(VarcharField):
+    __metaclass__ = models.SubfieldBase
+
+    def to_python(self, value):
+        """Verifies that the value is a string with a valid CIDR IP address"""
+        if value and not is_valid_cidr(value):
+            raise exceptions.ValidationError(
+                "Value must be a valid CIDR address")
+        else:
+            return value
+
+
 class PointField(models.CharField):
     __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
-        kwargs['blank'] = False
         models.Field.__init__(self, *args, **kwargs)
 
     def get_internal_type(self):
         return "PointField"
 
     def to_python(self, value):
-        if value is None or isinstance(value, tuple):
+        if not value or isinstance(value, tuple):
             return value
         if isinstance(value, (str, unicode)):
             assert value.startswith('(')

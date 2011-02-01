@@ -72,6 +72,27 @@ def isValidIP(ip):
             pass
     return False
 
+# copy to more PEP8-friendly name
+# FIXME: update callers and rename original
+is_valid_ip = isValidIP
+
+def is_valid_cidr(cidr):
+    """Verifies that a string is valid IPv4 or IPv6 CIDR specification.
+
+    A cleaned up version of the CIDR string is returned if it is verified,
+    otherwise a false value is returned.
+
+    Uses the IPy library to verify addresses.
+    """
+    if isinstance(cidr, basestring) and not cidr.isdigit() and '/' in cidr:
+        try:
+            valid_cidr = IPy.IP(cidr)
+        except (ValueError, TypeError):
+            return False
+        else:
+            return valid_cidr
+    return False
+
 def round_robin(collection):
     '''Returns a generator that will loop over the collection forever in a
        round robin fashion'''

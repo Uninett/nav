@@ -19,6 +19,7 @@
 
 from copy import copy
 from django.http import HttpResponseForbidden
+from django.db.models.fields import FieldDoesNotExist
 
 from nav.models.profiles import Account, AccountGroup
 
@@ -59,3 +60,29 @@ def permission_required(function):
                 '<h1>403 Forbidden</h1>'
                 '<p>You do not have access to this page</p>')
     return _check_permission
+
+def get_verbose_name(model, lookup):
+    """Verbose name introspection of ORM models.
+       Parameters:
+         - model: the django model
+         - lookup: name of the field to find verbose name of.
+
+       Foreign key lookups is supported, ie. "othermodel__otherfield"
+    """
+    if '__' not in lookup:
+        return model._meta.get_field(lookup).verbose_name
+
+    foreign_key, lookup = lookup.split('__', 1)
+    try:
+        foreign_model = model._meta.get_field(foreign_key).rel.to
+        return get_verbose_name(foreign_model, lookup)
+    except FieldDoesNotExist:
+        pass
+
+    related = model._meta.get_all_related_objects()
+    related += model._meta.get_all_related_many_to_many_objects()
+    for obj in related:
+        if obj.get_accessor_name() == foreign_key:
+            return get_verbose_name(obj.model, lookup)
+
+    raise FieldDoesNotExist

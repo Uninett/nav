@@ -1,0 +1,39 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<form action="" method="post">
+    <table class="listtable">
+    {% if object %}
+    <caption>
+        {{ object.sysname }}
+    </caption>
+    {% endif %}
+    {{ form.as_table }}
+    {% if serial_form %}
+    {{ serial_form.as_table }}
+    {% endif %}
+    {% if subcat_form %}
+    {{ subcat_form.as_table }}
+    {% endif %}
+    {% if data.type %}
+    <tr>
+        <th>Netbox type</th>
+        <td>{{ netbox_type }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th></th>
+        <td>
+            <input type="hidden" name="step" value="{{ step }}" />
+            {% ifequal step 2 %}
+            <input type="submit" value="Save" />
+            {% else %}
+            <input type="submit" value="Continue" />
+            {% endifequal %}
+        </td>
+    </tr>
+    </table>
+</form>
+
+{% endblock %}
+

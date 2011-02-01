@@ -50,6 +50,7 @@ TEMPLATE_DIRS = (
 
 # Context processors
 TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.request',
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',

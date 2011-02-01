@@ -19,6 +19,7 @@
 from django.db import models
 
 from nav.models.manage import Netbox
+from nav.models.fields import VarcharField
 
 class Service(models.Model):
     """From MetaNAV: The service table defines the services on a netbox that
@@ -37,8 +38,8 @@ class Service(models.Model):
     id = models.AutoField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     active = models.BooleanField(default=True)
-    handler = models.CharField(max_length=-1)
-    version = models.CharField(max_length=-1)
+    handler = VarcharField()
+    version = VarcharField()
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
 
     class Meta:
@@ -104,7 +105,7 @@ class ServiceProperty(models.Model):
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
     service = models.ForeignKey(Service, db_column='serviceid')
     property = models.CharField(max_length=64)
-    value = models.CharField(max_length=-1)
+    value = VarcharField()
 
     class Meta:
         db_table = 'serviceproperty'

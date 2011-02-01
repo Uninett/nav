@@ -1,0 +1,7 @@
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-vlan %}">Vlan</a></li>
+{% if object %}
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-vlan-edit object.id %}">Edit vlan "{{ object.id }}"</a>
+</li>
+{% endif %}
