@@ -14,6 +14,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""SeedDB forms for object editing"""
+
+# Most forms inherit their public methods, so disable the pylint warning
+# pylint: disable-msg=R0903
 
 from socket import error as SocketError
 
@@ -24,8 +28,7 @@ from nav.Snmp import Snmp, TimeOutException, SnmpError
 from nav.models.cabling import Cabling, Patch
 from nav.models.manage import Netbox, NetboxType, Room, Location, Organization
 from nav.models.manage import Usage, Vendor, Subcategory, Vlan, Prefix, NetType
-from nav.models.manage import Category, Device, NetboxCategory
-from nav.models.service import Service, ServiceProperty
+from nav.models.manage import Category, NetboxCategory
 from nav.web.serviceHelper import getCheckers
 from nav.django.forms import CIDRField
 
@@ -47,6 +50,11 @@ class NetboxForm(forms.Form):
     read_only = forms.CharField(required=False)
     read_write = forms.CharField(required=False)
 
+    def __init__(self, *args, **kwargs):
+        self.sysname = None
+        self.snmp_version = '1'
+        super(NetboxForm, self).__init__(*args, **kwargs)
+
     def clean_ip(self):
         name = self.cleaned_data['ip']
         try:
@@ -58,37 +66,38 @@ class NetboxForm(forms.Form):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        id = cleaned_data.get('id')
+        netboxid = cleaned_data.get('id')
         ip = cleaned_data.get('ip')
         cat = cleaned_data.get('category')
-        ro = cleaned_data.get('read_only')
+        ro_community = cleaned_data.get('read_only')
         self.snmp_version = '1'
 
         if ip:
             msg = []
-            if does_ip_exist(ip, id):
+            if does_ip_exist(ip, netboxid):
                 msg.append("IP (%s) is already in database" % ip)
-            if does_sysname_exist(self.sysname, id):
+            if does_sysname_exist(self.sysname, netboxid):
                 msg.append("Sysname (%s) is already in database" % self.sysname)
             if len(msg) > 0:
                 self._errors['ip'] = self.error_class(msg)
                 del cleaned_data['ip']
 
-        if cat and cat.req_snmp and not ro:
-            self._errors['read_only'] = self.error_class(["Category %s requires SNMP access." % cat.id])
+        if cat and cat.req_snmp and not ro_community:
+            self._errors['read_only'] = self.error_class(
+                ["Category %s requires SNMP access." % cat.id])
             del cleaned_data['category']
             del cleaned_data['read_only']
 
-        if ro and ip:
+        if ro_community and ip:
             sysobjectid = '1.3.6.1.2.1.1.2.0'
             try:
                 try:
-                    snmp = Snmp(ip, ro, '2c')
-                    typeid = snmp.get(sysobjectid)
+                    snmp = Snmp(ip, ro_community, '2c')
+                    snmp.get(sysobjectid)
                     self.snmp_version = '2c'
                 except TimeOutException:
-                    snmp = Snmp(ip, ro, '1')
-                    typeid = snmp.get(sysobjectid)
+                    snmp = Snmp(ip, ro_community, '1')
+                    snmp.get(sysobjectid)
                     self.snmp_version = '1'
             except SnmpError:
                 if cat and cat.req_snmp:
@@ -98,7 +107,8 @@ class NetboxForm(forms.Form):
                 else:
                     msg = (
                         "No SNMP response.",
-                        "SNMP is not required for this category, if you don't need SNMP please leave the 'Read only' field empty.")
+                        "SNMP is not required for this category, if you don't "
+                        "need SNMP please leave the 'Read only' field empty.")
                 self._errors['read_only'] = self.error_class(msg)
                 del cleaned_data['read_only']
 
@@ -117,7 +127,8 @@ class NetboxReadonlyForm(NetboxForm):
         for field in self.fields:
             if field in ('id', 'type'):
                 continue
-            self.fields[field].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+            self.fields[field].widget = forms.TextInput(
+                attrs=READONLY_WIDGET_ATTRS)
 
 class NetboxSerialForm(forms.Form):
     serial = forms.CharField(required=False)
@@ -127,27 +138,30 @@ class NetboxSerialForm(forms.Form):
         super(NetboxSerialForm, self).__init__(*args, **kwargs)
         initial = kwargs.get('initial')
         if initial and initial.get('serial'):
-            self.fields['serial'].widget = forms.TextInput(attrs=READONLY_WIDGET_ATTRS)
+            self.fields['serial'].widget = forms.TextInput(
+                attrs=READONLY_WIDGET_ATTRS)
 
     def clean_serial(self):
         serial = self.cleaned_data['serial']
         try:
             if self.netbox_id:
-                netbox = Netbox.objects.get(
+                Netbox.objects.get(
                     Q(device__serial=serial),
                     ~Q(id=self.netbox_id))
             else:
-                netbox = Netbox.objects.get(device__serial=serial)
+                Netbox.objects.get(device__serial=serial)
         except Netbox.DoesNotExist:
             return serial
         else:
-            raise forms.ValidationError("Serial (%s) exists in database" % serial)
+            raise forms.ValidationError(
+                "Serial (%s) exists in database" % serial)
 
 def get_netbox_subcategory_form(category, netbox_id=None, post_data=None):
     subcat = Subcategory.objects.filter(category=category).order_by('id')
     if subcat.count() > 0:
         if netbox_id and not post_data:
-            subcats = NetboxCategory.objects.filter(netbox=netbox_id).values_list('category', flat=True)
+            subcats = NetboxCategory.objects.filter(
+                netbox=netbox_id).values_list('category', flat=True)
             initial = {'subcategories': subcats}
             return NetboxSubcategoryForm(queryset=subcat, initial=initial)
         elif post_data:
@@ -161,7 +175,8 @@ class NetboxSubcategoryForm(forms.Form):
     def __init__(self, *args, **kwargs):
         queryset = kwargs.pop('queryset')
         super(NetboxSubcategoryForm, self).__init__(*args, **kwargs)
-        self.fields['subcategories'] = forms.ModelMultipleChoiceField(queryset=queryset, required=False)
+        self.fields['subcategories'] = forms.ModelMultipleChoiceField(
+            queryset=queryset, required=False)
 
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
