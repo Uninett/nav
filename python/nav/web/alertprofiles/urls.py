@@ -16,7 +16,7 @@
 #
 """Alert Profiles url config."""
 
-# pylint: disable-msg=W0614,W0401
+# pylint: disable=W0614,W0401
 
 from django.conf.urls.defaults import *
 

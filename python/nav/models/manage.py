@@ -16,7 +16,7 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 import datetime as dt
 import IPy

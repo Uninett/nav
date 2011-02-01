@@ -16,7 +16,7 @@
 #
 """Alert Profiles forms"""
 
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 from django import forms
 from django.db.models import Q

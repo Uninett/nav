@@ -16,7 +16,7 @@
 #
 """Django ORM wrapper for profiles in NAV"""
 
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 import logging
 import os
