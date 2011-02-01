@@ -112,10 +112,6 @@ def get_urlpatterns():
         url(r'^report/prefix\?prefixid=(?P<prefix_id>\d+)$',
             dummy, name='report-prefix-prefix'),
 
-        # Subsystem: SeedDB
-#        url(r'^seeddb/$', dummy, name='seeddb'),
-#        url(r'^seeddb/(?P<object_type>\w+)/edit/(?P<object_id>\d+)/$',
-#            dummy, name='seeddb-edit-object'),
     )
 
     return urlpatterns
