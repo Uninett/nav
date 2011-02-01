@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -62,6 +62,12 @@ class Generator:
         # Remove non-query arguments
         if argumentHash.has_key("export"):
             del argumentHash["export"]
+
+        if argumentHash.has_key("exportcsv"):
+            del argumentHash["exportcsv"]
+            # Export *everything* in CSV file
+            argumentHash["offset"] = 0
+            argumentHash["limit"] = 0
 
         if argumentHash.has_key("adv"):
             if argumentHash["adv"]:

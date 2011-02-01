@@ -74,6 +74,8 @@ def handle_http_error(func):
     return _decorator
 
 def failure(url, code):
+    if url in html_store:
+        print html_store[url]
     assert code == 200
 
 def success(url):

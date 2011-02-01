@@ -1,3 +1,12 @@
+Version 3.7.4
+(released 27 January 2011)
+
+ Bugfixes:
+
+  * LP#645892 (report: csv export does not export full report)
+              This wasn't properly fixed in 3.6.0.
+  * LP#702796 (Syntax error in HttpChecker.py)
+
 Version 3.7.3
 (released 13 January 2011)
 
