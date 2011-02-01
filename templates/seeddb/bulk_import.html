@@ -2,6 +2,7 @@
 
 {% block content %}
 <form enctype="multipart/form-data" action="" method="post">
+{{ form.non_field_errors }}
 
 {% if processed_objects %}
 <table class="listtable">
@@ -39,11 +40,12 @@
 
 {% for field in form %}
 <p>{% if not field.is_hidden %}{{ field.label_tag }}:<br/>{% endif %}
+{{ field.errors }}
 {{ field }}
 </p>
 {% endfor %}
 
-{% if not form.is_bound %}
+{% if not form.is_bound or not form.is_valid %}
 <p>
     <input type="submit" value="Preview import" />
 </p>

@@ -30,22 +30,20 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
     data = None
     processed = []
     if request.method == 'POST':
-        form = BulkImportForm(request.POST, request.FILES)
-        confirm = request.POST.get('confirm', False)
-        data = form.get_raw_data()
-        parser = parser_cls(data)
-        importer = importer_cls(parser)
+        form = BulkImportForm(parser_cls, request.POST, request.FILES)
+        if form.is_valid():
+            confirm = request.POST.get('confirm', False)
+            parser = form.get_parser()
+            importer = importer_cls(parser)
 
-        if confirm:
-            saved = bulk_save(importer)
-            post_save_message(request, saved)
-            return HttpResponseRedirect(reverse(redirect))
-        else:
-            processed = bulk_process_check(importer, data)
+            if confirm:
+                saved = bulk_save(importer)
+                post_save_message(request, saved)
+                return HttpResponseRedirect(reverse(redirect))
+            else:
+                processed = form.bulk_process_check(importer)
     else:
-        form = BulkImportForm(initial={
-                'bulk_data': "%s\n" % parser_cls.get_header()
-                })
+        form = BulkImportForm(parser_cls)
 
     info_dict = {
         'form': form,
@@ -58,27 +56,6 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
         info_dict,
         RequestContext(request)
     )
-
-def bulk_process_check(importer, data):
-    lines = data.split('\n')
-    processed = []
-    for line_num, objects in importer:
-        if isinstance(objects, BulkParseError):
-            processed.append({
-                'status': (isinstance(objects, BulkImportError)
-                         and 'other' or 'syntax'),
-                'line_number': line_num,
-                'input': lines[line_num-1],
-                'message': objects,
-            })
-        else:
-            processed.append({
-                'status': 'ok',
-                'line_number': line_num,
-                'input': lines[line_num-1],
-                'message': ''
-            })
-    return processed
 
 def bulk_save(importer):
     saved = []
