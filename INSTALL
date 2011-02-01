@@ -27,7 +27,7 @@ To run NAV, these software packages are required:
  * rrdtool
  * Cheetah Templates >= 2.0rc7
  * Java 2 SDK >= 1.5.0
- * Python >= 2.4.0
+ * Python >= 2.5.0
 
 The following Java librares are required:
 
