@@ -43,7 +43,7 @@ def netbox_list(request):
         'tab_template': 'seeddb/tabs_netbox.html',
     }
     return render_list(request, query, value_list, 'seeddb-netbox-edit',
-        edit_url_attr='sysname',
+        edit_url_attr='pk',
         filter_form=filter_form,
         extra_context=extra)
 

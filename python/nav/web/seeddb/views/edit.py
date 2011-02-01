@@ -46,14 +46,14 @@ FORM_STEP = 0
 SERIAL_STEP = 1
 SAVE_STEP = 2
 
-def netbox_edit(request, netbox_sysname=None):
+def netbox_edit(request, netbox_id=None):
     netbox = None
     form = None
     serial_form = None
     subcat_form = None
 
-    if netbox_sysname:
-        netbox = Netbox.objects.get(sysname=netbox_sysname)
+    if netbox_id:
+        netbox = Netbox.objects.get(id=netbox_id)
     try:
         step = int(request.POST.get('step', '0'))
     except ValueError:

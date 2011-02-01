@@ -39,7 +39,7 @@ urlpatterns = patterns('',
     # Netbox
     url(r'^netbox/$', netbox,
         name='seeddb-netbox'),
-    url(r'^netbox/edit/(?P<netbox_sysname>[\w\d.-]+)/', netbox_edit,
+    url(r'^netbox/edit/(?P<netbox_id>(\d+))/', netbox_edit,
         name='seeddb-netbox-edit'),
     url(r'^netbox/add/$', netbox_edit,
         name='seeddb-netbox-edit'),
