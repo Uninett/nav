@@ -32,6 +32,11 @@ class BulkImportForm(forms.Form):
         if bulk_file:
             self.data['bulk_data'] = bulk_file.read()
 
+        if self.is_bound:
+            self.fields['bulk_file'].widget = forms.HiddenInput()
+            self.fields['bulk_data'].widget = forms.HiddenInput()
+
+
     def get_raw_data(self):
         data = self.data.get('bulk_data', None)
         if isinstance(data, unicode):

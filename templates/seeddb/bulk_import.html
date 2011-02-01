@@ -38,14 +38,16 @@
 {% endif %}
 
 {% for field in form %}
-<p>{{ field.label_tag }}:<br/>
+<p>{% if not field.is_hidden %}{{ field.label_tag }}:<br/>{% endif %}
 {{ field }}
 </p>
 {% endfor %}
 
+{% if not form.is_bound %}
 <p>
-    <input type="submit" value="Preview import{% if processed_objects %} again{% endif %}" />
+    <input type="submit" value="Preview import" />
 </p>
+{% endif %}
 
 </form>
 {% endblock %}
