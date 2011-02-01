@@ -37,7 +37,6 @@ The following Java librares are required:
 The following python modules are required:
 
  * django (>= 1.0)
- * egenix-mxdatetime
  * ipy
  * ldap
  * psycopg2
