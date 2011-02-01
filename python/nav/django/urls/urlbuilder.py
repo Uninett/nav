@@ -17,9 +17,7 @@
 
 """Django URL configuration"""
 
-# pylint: disable=W0614,W0401
-
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
 def get_urlpatterns():
     """
@@ -52,14 +50,6 @@ def get_urlpatterns():
         url(r'^maintenance/new\?service=(?P<service_id>\d+)$',
             dummy, name='maintenance-new-service'),
 
-        # Subsystem: Machine Tracker
-#         url(r'^machinetracker/$',
-#             dummy, name='machinetracker'),
-#         url(r'^machinetracker/swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[\w\d/._-]+)$',
-#             dummy, name='machinetracker-swport'),
-#         url(r'^machinetracker/swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&port=(?P<port_interface>[\w\d/._-]+)$',
-#             dummy, name='machinetracker-swport'),
-
         # Subsystem: Report
         # Naming convention: report-<result>-<query>
         url(r'^report/org$',
@@ -83,21 +73,24 @@ def get_urlpatterns():
             dummy, name='report-modules-all'),
         url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)$',
             dummy, name='report-modules-netbox'),
-        url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)&module=(?P<module_number>\d+)$',
+        url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)'
+            r'&module=(?P<module_number>\d+)$',
             dummy, name='report-modules-module'),
 
         url(r'^report/gwport$',
             dummy, name='report-gwport-all'),
         url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)$',
             dummy, name='report-gwport-netbox'),
-        url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)&module=(?P<module_name>[^&]+)$',
+        url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)'
+            r'&module=(?P<module_name>[^&]+)$',
             dummy, name='report-gwport-module'),
 
         url(r'^report/swport$',
             dummy, name='report-swport-all'),
         url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)$',
             dummy, name='report-swport-netbox'),
-        url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)&module=(?P<module_name>[^&]+)$',
+        url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)'
+            r'&module=(?P<module_name>[^&]+)$',
             dummy, name='report-swport-module'),
 
         url(r'^report/swporttrunk$',

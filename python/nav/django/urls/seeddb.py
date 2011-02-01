@@ -17,7 +17,7 @@
 
 """Main Django URL configuration"""
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, include
 
 def get_urlpatterns():
     urlpatterns = patterns('',

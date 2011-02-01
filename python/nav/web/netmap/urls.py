@@ -16,11 +16,10 @@
 #
 """Netmap backend URL config."""
 
-# pylint: disable=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.netmap.views import *
+from nav.web.netmap.views import index, output_graph_data, category_list
+from nav.web.netmap.views import linktype_list, save_positions
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',

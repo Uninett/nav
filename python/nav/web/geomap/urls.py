@@ -15,9 +15,7 @@
 #
 """Django URL config for geomap"""
 
-# pylint: disable=W0614,W0401
-
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import url, patterns
 
 urlpatterns = patterns('nav.web.geomap.views',
     url(r'^$', 'forward_to_default_variant', name='geomap-forward'),

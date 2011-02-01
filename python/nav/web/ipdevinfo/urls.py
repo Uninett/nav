@@ -16,11 +16,10 @@
 #
 """Django URL config for ipdevinfo"""
 
-# pylint: disable=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.ipdevinfo.views import *
+from nav.web.ipdevinfo.views import search, service_list, service_matrix
+from nav.web.ipdevinfo.views import ipdev_details, module_details, port_details
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',

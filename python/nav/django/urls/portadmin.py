@@ -1,4 +1,6 @@
-from django.conf.urls.defaults import *
+"""PortAdmin URL config inclusion"""
+
+from django.conf.urls.defaults import patterns, include
 
 def get_urlpatterns():
     urlpatterns = patterns('',

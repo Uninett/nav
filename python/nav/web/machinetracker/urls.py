@@ -16,11 +16,11 @@
 #
 """URL configuration for Machinetracker tool"""
 
-# pylint: disable=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.machinetracker.views import *
+from nav.web.machinetracker.views import ip_search, ip_do_search
+from nav.web.machinetracker.views import mac_search, mac_do_search
+from nav.web.machinetracker.views import switch_search, switch_do_search
 
 dummy = lambda *args, **kwargs: None
 
@@ -29,12 +29,15 @@ urlpatterns = patterns('',
         name='machinetracker'),
     url(r'^ip/$', ip_search,
         name='machinetracker-ip'),
-    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&to_ip=(?P<to_ip>[a-f-\d\.:]*)&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
+    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&to_ip=(?P<to_ip>[a-f-\d\.:]*)'
+        r'&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)'
+        r'&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
         ip_do_search,
         name='machinetracker-ip_search'),
     # Short hand search url.
     # Accepts from_ip, days and dns. Active is set to true
-    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)&active=on',
+    url(r'^ip/\?from_ip=(?P<from_ip>[a-f\d\.:]+)&days=(?P<days>-?\d+)'
+        r'&dns=(?P<dns>\w*)&active=on',
         ip_do_search,
         name='machinetracker-ip_short_search'),
 
@@ -49,16 +52,21 @@ urlpatterns = patterns('',
 
     url(r'^swp/$', switch_search,
         name='machinetracker-swp'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[^&]*)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)'
+        r'&port=(?P<port>[^&]*)$',
         switch_do_search,
         name='machinetracker-swp_short_search'),
-    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)&port=(?P<port>[^&]*)&days=(?P<days>-?\d+)$',
+    url(r'^swp/\?switch=(?P<switch>[\w\d._-]+)&module=(?P<module>\d*)'
+        r'&port=(?P<port>[^&]*)&days=(?P<days>-?\d+)$',
         switch_do_search,
         name='machinetracker-swp_search'),
 
      # Old machinetrakcer links.
-     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&module=(?P<module_number>\d+)&port=(?P<port_interface>[^&]+)&days=7$',
+     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)'
+         r'&module=(?P<module_number>\d+)'
+         r'&port=(?P<port_interface>[^&]+)&days=7$',
          switch_do_search, name='machinetracker-swport'),
-     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)&port=(?P<port_interface>[^&]+)&days=7$',
+     url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)'
+         r'&port=(?P<port_interface>[^&]+)&days=7$',
          switch_do_search, name='machinetracker-swport'),
 )

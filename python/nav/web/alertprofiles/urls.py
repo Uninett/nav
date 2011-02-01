@@ -18,7 +18,7 @@
 
 # pylint: disable=W0614,W0401
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import url, patterns
 
 from nav.web.alertprofiles.views import *
 
