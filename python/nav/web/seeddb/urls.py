@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,8 +13,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""SeedDB Django URL config"""
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
 from nav.web.seeddb.views import netbox, service, room, location, organization
 from nav.web.seeddb.views import usage, netboxtype, vendor, subcategory
@@ -31,8 +31,6 @@ from nav.web.seeddb.views.bulk import organization_bulk, usage_bulk
 from nav.web.seeddb.views.bulk import netboxtype_bulk, vendor_bulk, patch_bulk
 from nav.web.seeddb.views.bulk import subcategory_bulk, cabling_bulk
 from nav.web.seeddb.views.bulk import service_bulk, prefix_bulk
-
-dummy = lambda *args, **kwargs: None
 
 urlpatterns = patterns('',
     url(r'^$', index,
