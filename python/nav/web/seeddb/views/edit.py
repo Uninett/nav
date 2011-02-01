@@ -101,7 +101,7 @@ def netbox_edit(request, netbox_id=None):
         'form': form,
         'serial_form': serial_form,
         'subcat_form': subcat_form,
-        'sub_active': {'add': True},
+        'sub_active': netbox and {'edit': True} or {'add': True},
         'tab_template': 'seeddb/tabs_netbox.html',
     }
     return render_to_response('seeddb/netbox_wizard.html',
