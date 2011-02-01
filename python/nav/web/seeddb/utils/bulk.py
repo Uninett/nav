@@ -30,7 +30,7 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
     data = None
     processed = []
     if request.method == 'POST':
-        form = BulkImportForm(request.POST)
+        form = BulkImportForm(request.POST, request.FILES)
         confirm = request.POST.get('confirm', False)
         data = form.get_raw_data()
         parser = parser_cls(data)

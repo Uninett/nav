@@ -18,11 +18,19 @@
 from django import forms
 
 class BulkImportForm(forms.Form):
-    bulk_data = forms.CharField(
+    bulk_file = forms.FileField(label="Upload a bulk data file")
+
+    bulk_data = forms.CharField(label="Or paste data here",
         widget=forms.Textarea(attrs={
-                'rows': 50,
+                'rows': 25,
                 'cols':80
                 }))
+
+    def __init__(self, *args, **kwargs):
+        super(forms.Form, self).__init__(*args, **kwargs)
+        bulk_file = self.files.get('bulk_file', None)
+        if bulk_file:
+            self.data['bulk_data'] = bulk_file.read()
 
     def get_raw_data(self):
         data = self.data.get('bulk_data', None)
