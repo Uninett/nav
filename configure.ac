@@ -12,7 +12,7 @@ Part copyright various contributors, see individual files.
 ])
 
 AC_PROG_INSTALL
-AM_PATH_PYTHON([2.4])
+AM_PATH_PYTHON([2.5])
 AC_PATH_PROG(CHEETAH,cheetah)
 if test -z "$CHEETAH"; then
   AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
