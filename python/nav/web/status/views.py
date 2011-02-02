@@ -8,29 +8,30 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for status tool"""
 
 from django.template import RequestContext
-from django.forms.models import modelformset_factory, inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.db import transaction
 from django.shortcuts import render_to_response
 
 from nav.django.utils import get_account
-from nav.models.profiles import StatusPreference, Account
+from nav.models.profiles import StatusPreference
+from nav.models.manage import Organization, Category
 from nav.web.message import Messages, new_message
 
 from nav.web.status.sections import get_user_sections
-from nav.web.status.forms import *
-from nav.web.status.utils import extract_post, order_status_preferences, \
-    make_default_preferences
+from nav.web.status.forms import AddSectionForm, SectionWithCategoryForm
+from nav.web.status.forms import SectionWithServiceAndStateForm
+from nav.web.status.forms import SectionWithCategoryAndStateForm
+from nav.web.status.utils import extract_post, order_status_preferences
+from nav.web.status.utils import make_default_preferences
 
 SERVICE_SECTIONS = (
     StatusPreference.SECTION_SERVICE,
@@ -99,17 +100,20 @@ def edit_preferences(request, section_id):
         'id': section.id,
         'name': section.name,
         'type': section.type,
-        'organizations': list(section.organizations.values_list('id', flat=True)) or [''],
+        'organizations': list(section.organizations.values_list(
+                'id', flat=True)) or [''],
     }
     if section.type == StatusPreference.SECTION_THRESHOLD:
-        data['categories'] = list(section.categories.values_list('id', flat=True)) or ['']
+        data['categories'] = list(section.categories.values_list(
+                'id', flat=True)) or ['']
         form = SectionWithCategoryForm(data)
     elif section.type in SERVICE_SECTIONS:
         data['services'] = section.services.split(",") or ['']
         data['states'] = section.states.split(",")
         form = SectionWithServiceAndStateForm(data)
     else:
-        data['categories'] = list(section.categories.values_list('id', flat=True)) or ['']
+        data['categories'] = list(section.categories.values_list(
+                'id', flat=True)) or ['']
         data['states'] = section.states.split(",")
         form = SectionWithCategoryAndStateForm(data)
 
@@ -205,7 +209,8 @@ def save_preferences(request):
             name = section.name
             type = section.type
         elif 'type' in request.POST and request.POST.get('type'):
-            name = StatusPreference.lookup_readable_type(request.POST.get('type'))
+            name = StatusPreference.lookup_readable_type(
+                request.POST.get('type'))
             type = None
 
         new_message(request._req,
