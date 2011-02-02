@@ -51,11 +51,6 @@ def headerparserhandler(req):
     import state
     from mod_python import apache
 
-    # We automagically redirect users to the index page if they
-    # request the root.
-    if req.uri == '/':
-        redirect(req, '/index/index')
-
     state.setupSession(req)
     authenticated = 'user' in req.session
     if authenticated:

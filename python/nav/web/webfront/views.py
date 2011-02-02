@@ -119,7 +119,7 @@ def do_login(request):
                     errors.append('Error while talking to LDAP:\n%s' % e)
                 else:
                     if not origin:
-                        origin = '/index/index'
+                        origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
                 errors.append('Authentication failed for the specified username and password.')

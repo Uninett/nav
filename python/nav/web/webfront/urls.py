@@ -24,8 +24,6 @@ from nav.web.webfront.views import preferences, preferences_navigation
 urlpatterns = patterns('',
     url(r'^$', index,
         name='webfront-index'),
-    url(r'^index/index/', index,
-        name='webfront-index-index'),
     url(r'^index/login/', login,
         name='webfront-login'),
     url(r'^index/logout/', logout,
