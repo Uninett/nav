@@ -20,22 +20,21 @@ import socket
 import sys
 from urllib import unquote
 
-from django.core import serializers
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
-from django.db.models import Q
 
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
-from nav.models.service import Service
+import nav.models.cabling
+from nav.models.manage import Netbox, Cam, Arp, GwPortPrefix, SwPortVlan
+from nav.models.manage import Interface
+import nav.models.service
 
 import nav.natsort
 
-from search import *
+from search import sysname_search, ip_search, mac_search, room_search
+from search import vlan_search, portname_search
 
 PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
 
