@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 UNINETT AS
+# Copyright 2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
