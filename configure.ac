@@ -5,10 +5,14 @@ AC_CONFIG_AUX_DIR(conf)
 AM_INIT_AUTOMAKE([foreign])
 AC_PREFIX_DEFAULT(/usr/local/nav)
 AC_COPYRIGHT([
-Copyright belongs to various parties for different parts of NAV:
-Part copyright 1999-2008 Norwegian University of Science and Technology
-Part copyright 2002-2010 UNINETT AS
-Part copyright various contributors, see individual files.
+There are multiple copyright holders to NAV code.  The major copyright holders
+are:
+
+Copyright 1999-2010 Norwegian University of Science and Technology
+Copyright 2002-2011 UNINETT AS
+Copyright 2007-2010 University of Tromsø
+
+See individual source files for more detailed copyright notices.
 ])
 
 AC_PROG_INSTALL
