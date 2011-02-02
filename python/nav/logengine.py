@@ -72,11 +72,11 @@ def get_exception_dicts(config):
     exceptions = {}
     for option in options:
         newpriority = config.get("priorityexceptions", option)
-        op = re.split("@",option)
+        op = re.split("@", option)
         if len(op) == 1:
             exceptions[op[0]] = newpriority
         if len(op) == 2:
-            any = re.compile("any",re.I)
+            any = re.compile("any", re.I)
             if not op[0] or any.search(op[0]):
                 exceptionorigin[op[1]] = newpriority
             if not op[1] or any.search(op[1]):
@@ -95,7 +95,7 @@ def get_exception_dicts(config):
             else:
                 exceptionorigin[exception] = priority
 
-    return (exceptionorigin,exceptiontype,exceptiontypeorigin)
+    return (exceptionorigin, exceptiontype, exceptiontypeorigin)
 
 # Examples of typical log lines that must be matched by the following
 # regexp:
@@ -151,7 +151,7 @@ def createMessage(line):
         msgtype = match.group('type')
         description = match.group('description')
 
-        timestamp = datetime.datetime(year,month,day,hour,minute, second)
+        timestamp = datetime.datetime(year, month, day, hour, minute, second)
 
         return Message(timestamp, origin, msgtype, description)
 
@@ -195,7 +195,7 @@ class Message:
 
 def find_year(mnd):
     now = datetime.datetime.now()
-    if mnd==12 and now.month==1:
+    if mnd == 12 and now.month == 1:
         return now.year-1
     else:
         return now.year
@@ -215,8 +215,8 @@ def delete_old_messages(config):
     connection = db.getConnection('logger','logger')
     cursor = connection.cursor()
 
-    for priority in range(0,8):
-        if config.get("deletepriority",str(priority)):
+    for priority in range(0, 8):
+        if config.get("deletepriority", str(priority)):
             days = config.getint("deletepriority", str(priority))
             cursor.execute("DELETE FROM log_message WHERE newpriority=%s "
                            "AND time < now() - interval %s",

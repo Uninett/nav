@@ -31,7 +31,7 @@ class SNMPTrap:
         self.varbinds = varbinds
         self.version = version
         # Print string if printable else assume hex and write hex-string
-        for key,val in self.varbinds.items():
+        for key, val in self.varbinds.items():
             if not val.strip(string.printable) == '':
                 val = ':'.join(["%02x" % ord(c) for c in val])
                 self.varbinds[key] = val
@@ -47,17 +47,17 @@ class SNMPTrap:
         printing to log or stdout.
         """
 
-        text = "Got snmp version %s trap\n" %self.version
-        text = text + "Src: %s, Community: %s, Uptime: %s\n" \
-               %(self.src, self.community, self.uptime)
-        text = text + "Type %s, snmpTrapOID: %s\n" \
-               %(self.genericType, self.snmpTrapOID)
+        text = "Got snmp version %s trap\n" % self.version
+        text = (text + "Src: %s, Community: %s, Uptime: %s\n") % (
+            self.src, self.community, self.uptime)
+        text = (text + "Type %s, snmpTrapOID: %s\n") % (
+            self.genericType, self.snmpTrapOID)
 
         keys = self.varbinds.keys()
         keys.sort()
         for key in keys:
             val = self.varbinds[key]
-            text = text + "%s -> %s\n" %(key, val)
+            text = text + "%s -> %s\n" % (key, val)
 
         return text
 

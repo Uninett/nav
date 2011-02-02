@@ -23,7 +23,7 @@ from nav.statemon.event import  Event
 
 class IMAPConnection(imaplib.IMAP4):
     def __init__(self, timeout, host, port):
-        self.timeout=timeout
+        self.timeout = timeout
         imaplib.IMAP4.__init__(self, host, port)
 
     def open(self, host, port):
@@ -42,7 +42,7 @@ class ImapChecker(AbstractChecker):
     username
     password
     """
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "imap", service, port=143, **kwargs)
     def execute(self):
         args = self.getArgs()
@@ -54,8 +54,8 @@ class ImapChecker(AbstractChecker):
         if user:
             m.login(user, passwd)
             m.logout()
-        version=''
-        ver=ver.split(' ')
+        version = ''
+        ver = ver.split(' ')
         if len(ver) >= 2:
             for i in ver[2:]:
                 if i != "at":

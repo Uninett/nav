@@ -155,7 +155,7 @@ def findIdInformation(id, limit):
     conn = getConnection('default')
 
     # Find type of id
-    (type,id) = findInputType(id)
+    (type, id) = findInputType(id)
     #print "%s is of type %s" %(id, type)
 
     result = []
@@ -321,11 +321,11 @@ def findInputType (input):
     if isValidIP(input) and not isValidIP(input).endswith('.0'):
         return ("IP", input)
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
-        return ("MAC",input)
+        return ("MAC", input)
     elif re.match("^\d+$", input):
-        return ("SWPORTID",input)
+        return ("SWPORTID", input)
 
-    return ("UNKNOWN",input)
+    return ("UNKNOWN", input)
 
 
 ###############################################################################
@@ -397,7 +397,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
     if not autoenable:
         autoenable = "NULL"
     else:
-        autoenable = "now() + interval '%s day'" %(autoenable)
+        autoenable = "now() + interval '%s day'" % (autoenable)
 
     # check format on the input
     if reason:
@@ -466,12 +466,12 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
         autoenable = %s, autoenablestep = %%s, mail = %%s,
         determined = %%s, fromvlan = %%s, tovlan = %%s
         WHERE identityid = %%s
-        """ %autoenable
+        """ % autoenable
             
 
-        arglist=[action, reason, sw['interfaceid'], id['ip'], id['mac'], \
-                 dns, netbios, autoenablestep, "", determined, \
-                 fromvlan, vlan, res['identityid']]
+        arglist = [action, reason, sw['interfaceid'], id['ip'], id['mac'],
+                   dns, netbios, autoenablestep, "", determined,
+                   fromvlan, vlan, res['identityid']]
 
 
         doQuery('arnold', query, arglist)
@@ -522,7 +522,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
             mail, determined) 
             VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
             %s, %%s, %%s, %%s)
-            """ %autoenable
+            """ % autoenable
             
             arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", determined]
@@ -546,7 +546,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
             mail, determined, fromvlan, tovlan) 
             VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
             %s, %%s, %%s, %%s, %%s, %%s)
-            """ %autoenable
+            """ % autoenable
             
             arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", \
@@ -711,7 +711,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex,
                  %(vendorid, community, ifindex, module))
 
     # Create snmp-object
-    s = nav.Snmp.Snmp(ip,community, version=snmp_version)
+    s = nav.Snmp.Snmp(ip, community, version=snmp_version)
 
 
     # Disable or enable based on input
@@ -797,15 +797,15 @@ def changePortVlan(ip, ifindex, vlan, snmp_version=1):
 
     # Check vlanformat
     if not re.search('\d+', str(vlan)):
-        raise ChangePortVlanError, "Wrong format on vlan %s" %vlan
+        raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
 
 
     # Make query based on oid and ifindex
     query = oid + '.' + str(ifindex)
 
     # Create snmp-objects
-    snmpget = nav.Snmp.Snmp(ip,ro,version=snmp_version)
-    snmpset = nav.Snmp.Snmp(ip,rw,version=snmp_version)
+    snmpget = nav.Snmp.Snmp(ip, ro, version=snmp_version)
+    snmpset = nav.Snmp.Snmp(ip, rw, version=snmp_version)
 
     # Fetch the vlan currently on the port
     try:
@@ -871,7 +871,7 @@ def changeSwportStatus(action, swportid):
     """
 
     if not action in ['enable','disable']:
-        raise BlockError, "No such action %s" %action
+        raise BlockError, "No such action %s" % action
 
     # Connect to database
     conn = getConnection('default')

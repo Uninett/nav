@@ -131,8 +131,8 @@ class OrganizationAddForm(forms.Form):
         Organization.objects.all().order_by('id'), required=True)
 
 class GroupAddForm(forms.Form):
-    group= forms.models.ModelChoiceField(AccountGroup.objects.all(),
-                                         required=True)
+    group = forms.models.ModelChoiceField(AccountGroup.objects.all(),
+                                          required=True)
 
 class AccountAddForm(forms.Form):
     account = forms.models.ModelChoiceField(Account.objects.all(),

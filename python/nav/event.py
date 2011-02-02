@@ -258,7 +258,7 @@ def create_type_hierarchy(hierarchy):
             atype, created = AlertType.objects.get_or_create(
                 name=alert_type_name, event_type=etype)
             if created:
-                atype.description=alert_descr
+                atype.description = alert_descr
                 atype.save()
                 created_count += 1
 

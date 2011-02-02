@@ -98,7 +98,7 @@ class MIBObject(object):
                      val['nodetype'] == 'namednumber'
                      ]
             self.enum = dict(enums)
-            self.enum.update((y,x) for (x,y) in enums)
+            self.enum.update((y, x) for (x, y) in enums)
 
     def to_python(self, value):
         """Translate an SNMP value into something python-like.

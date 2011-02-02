@@ -45,7 +45,7 @@ import icmp
 # updating rrd should be moved out
 # import rrd
 
-PINGSTRING="Stian og Magnus ruler verden"
+PINGSTRING = "Stian og Magnus ruler verden"
 
 def makeSocket():
     sock = socket.socket(socket.AF_INET,
@@ -56,7 +56,7 @@ def makeSocket():
 
 class Host:
     def __init__(self, ip):
-        self.rnd = random.randint(0,2**16-1)
+        self.rnd = random.randint(0, 2**16-1)
         self.certain = 0
         self.ip = ip
         self.pkt = icmp.Packet()
@@ -106,24 +106,24 @@ class MegaPing:
     def __init__(self, socket=None, conf=None):
         if conf is None:
             try:
-                self._conf=config.pingconf()
+                self._conf = config.pingconf()
             except:
                 debug("Failed to open config file. Using default values.", 2)
-                self._conf={}
+                self._conf = {}
         else:
-            self._conf=conf
+            self._conf = conf
         # delay between each packet is transmitted
-        self._delay=float(self._conf.get('delay',2))/1000     # convert from ms
+        self._delay = float(self._conf.get('delay', 2))/1000  # convert from ms
         # Timeout before considering hosts as down
         self._timeout = int(self._conf.get('timeout', 5))
         self._hosts = {}
         packetsize = int(self._conf.get('packetsize', 64))
         if packetsize < 44:
             raise """Packetsize (%s) too small to create a proper cookie.
-                             Must be at least 44."""%packetsize
-        self._packetsize=packetsize
+                             Must be at least 44.""" % packetsize
+        self._packetsize = packetsize
         self._pid = os.getpid() % 65536
-        self._elapsedtime=0
+        self._elapsedtime = 0
 
         # Create our common socket
         if socket is None:
@@ -131,7 +131,7 @@ class MegaPing:
         else:
             self._sock = socket
 
-    def setHosts(self,ips):
+    def setHosts(self, ips):
         """
         Specify a list of ip addresses to ping. If we alredy have the host
         in our list, we reuse that host object to ensure proper sequence
@@ -171,15 +171,15 @@ class MegaPing:
 
     def _getResponses(self):
         start = time.time()
-        timeout=self._timeout
+        timeout = self._timeout
 
         while not self._senderFinished or self._requests:
             if self._senderFinished:
-                runtime=time.time()-self._senderFinished
+                runtime = time.time() - self._senderFinished
                 if runtime > self._timeout:
                     break
                 else:
-                    timeout=self._timeout-runtime
+                    timeout = self._timeout - runtime
 
             startwait = time.time()
             rd, wt, er = select.select([self._sock], [], [], timeout)
@@ -203,15 +203,18 @@ class MegaPing:
                           repr(repip.data)), 7)
                     continue
                 if reply.id <> self._pid:
-                    debug("The id field of the packet does not match for %s"% sender,7)
+                    debug("The id field of the packet does not match for %s" %
+                          sender, 7)
                     continue
 
                 cookie = reply.data[0:14]
                 try:
                     host = self._requests[cookie]
                 except KeyError:
-                    debug("The packet recieved from %s does not match any of the packets we sent." % repr(sender),7)
-                    debug("Length of recieved packet: %i Cookie: [%s]" % (len(reply.data), cookie),7)
+                    debug("The packet recieved from %s does not match any of "
+                          "the packets we sent." % repr(sender), 7)
+                    debug("Length of recieved packet: %i Cookie: [%s]" %
+                          (len(reply.data), cookie), 7)
                     continue
 
                 # Puuh.. OK, it IS our package <--- Stain, you're a moron
@@ -221,7 +224,8 @@ class MegaPing:
 
                 #host.logPingTime(pingtime)
 
-                debug("Response from %-16s in %03.3f ms" % (sender, pingtime*1000),7)
+                debug("Response from %-16s in %03.3f ms" %
+                      (sender, pingtime*1000), 7)
                 del self._requests[cookie]
             elif self._senderFinished:
                     break
@@ -231,7 +235,7 @@ class MegaPing:
             host.replies.push(None)
             #host.logPingTime(None)
         end = time.time()
-        self._elapsedtime=end-start
+        self._elapsedtime = end - start
 
 
     def _sendRequests(self, mySocket=None, hosts=None):
@@ -241,7 +245,7 @@ class MegaPing:
             hosts = self._hosts.values()
         for host in hosts:
             if self._requests.has_key(host):
-                debug("Duplicate host %s ignored" % host,6)
+                debug("Duplicate host %s ignored" % host, 6)
                 continue
 
             now = time.time()
@@ -270,7 +274,7 @@ class MegaPing:
         (ip, roundtriptime) for all hosts.
         Unreachable hosts will have roundtriptime = -1
         """
-        reply=[]
+        reply = []
         for host in self._hosts.values():
             if host.getState():
                 reply.append((host.ip, host.replies[0]))
@@ -283,7 +287,7 @@ class MegaPing:
         Returns a tuple of
         (ip, timeout) for the unreachable hosts.
         """
-        reply=[]
+        reply = []
         for host in self._hosts.values():
             if not host.getState():
                 reply.append((host.ip, self._timeout))
@@ -294,7 +298,7 @@ class MegaPing:
         Returns a tuple of
         (ip, roundtriptime) for reachable hosts.
         """
-        reply=[]
+        reply = []
         for host in self._hosts.values():
             if host.getState():
                 reply.append((host.ip, host.replies[0]))

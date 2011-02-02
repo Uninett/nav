@@ -27,7 +27,7 @@ except:
 _checkerPattern = "Checker.py"
 _descrPattern = 'Checker.descr'
 _defaultArgs = ['port', 'timeout']
-_regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
+_regexp = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
 
 def getCheckers():
     """

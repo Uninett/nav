@@ -25,7 +25,7 @@ class DatabaseResult:
     The restults obtained from the database
     """
 
-    def __init__(self,reportConfig):
+    def __init__(self, reportConfig):
         """
         Does everything in the constructor. queries and returnes the values
         from the database, according to the configuration
@@ -61,6 +61,6 @@ class DatabaseResult:
             ## Total count of the rows returned.
             self.rowcount = len(self.result)
 
-        except psycopg2.ProgrammingError,p:
+        except psycopg2.ProgrammingError, p:
             #raise ProblemExistBetweenKeyboardAndChairException
             self.error = "Configuration error! The report generator is not able to do such things. " + str(p)

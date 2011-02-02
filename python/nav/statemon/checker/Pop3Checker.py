@@ -23,13 +23,13 @@ from nav.statemon.event import Event
 
 class PopConnection(poplib.POP3):
     def __init__(self, timeout, ip, port):
-        self.ip=ip
-        self.port=port
+        self.ip = ip
+        self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
         self.sock.connect((self.ip, self.port))
         self.file = self.sock.makefile('rb')
-        self._debugging=0
+        self._debugging = 0
         self.welcome = self._getresp()
 
 
@@ -40,7 +40,7 @@ class Pop3Checker(AbstractChecker):
     password
     port
     """
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "pop3", service, port=110, **kwargs)
     def execute(self):
         args = self.getArgs()
@@ -55,7 +55,7 @@ class Pop3Checker(AbstractChecker):
             nummessages = len(p.list()[1])
             p.quit()
         version = ''
-        ver=ver.split(' ')
+        ver = ver.split(' ')
         if len(ver) >= 1:
             for i in ver[1:]:
                 if i != "server":

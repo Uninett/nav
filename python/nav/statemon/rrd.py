@@ -45,7 +45,7 @@ database = db.db()
 def create(filename, netboxid, serviceid=None, handler=""):
     if RRDDIR and not os.path.exists(RRDDIR):
         os.mkdir(RRDDIR)
-    tupleFromHell = (str(os.path.join(RRDDIR,filename)),
+    tupleFromHell = (str(os.path.join(RRDDIR, filename)),
              '-s %s' % RRD_STEP,
              'DS:STATUS:GAUGE:600:0:1',
              'DS:RESPONSETIME:GAUGE:600:0:300',
@@ -64,16 +64,16 @@ def create(filename, netboxid, serviceid=None, handler=""):
 def register_rrd(filename, netboxid, serviceid=None, handler=""):
     """Registers an RRD file in the db registry."""
     if serviceid:
-        key="serviceid"
-        val=serviceid
+        key = "serviceid"
+        val = serviceid
         subsystem = "serviceping"
         statusdescr = "%s availability" % handler
         responsedescr = "%s responsetime" % handler
         unit = '-100%'
     else:
-        key=""
-        val=""
-        subsystem= "pping"
+        key = ""
+        val = ""
+        subsystem = "pping"
         statusdescr = "Packet loss"
         responsedescr = "Roundtrip time"
         unit = '100%'
@@ -103,7 +103,8 @@ def verify_rrd_registry(filename, netboxid, serviceid=None, handler=""):
     return True
 
 
-def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
+def update(netboxid, sysname, time, status, responsetime, serviceid=None,
+           handler=""):
     """
     time: 'N' or time.time()
     status: 'UP' or 'DOWN' (from Event.status)
@@ -125,7 +126,7 @@ def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
     else:
         rrdstatus = 1
     
-    rrdParam = (str(os.path.join(RRDDIR,filename)),
+    rrdParam = (str(os.path.join(RRDDIR, filename)),
             '%s:%i:%s' % (time, rrdstatus, responsetime))
     rrd.update(*rrdParam)
     debug("Updated %s" % filename, 7)

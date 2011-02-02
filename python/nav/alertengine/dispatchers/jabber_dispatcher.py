@@ -101,7 +101,7 @@ class jabber(dispatcher):
         if not auth:
             raise DispatcherException('Could not authenticate with jabber server')
 
-        self.client.RegisterHandler('presence',self.presence_handler)
+        self.client.RegisterHandler('presence', self.presence_handler)
         self.client.sendInitPresence()
 
         self.ready = True

@@ -44,9 +44,8 @@ class OutofBoundsException(Exception):
         self.dsname = dsname
         self.numds = numds
     def __str__(self):
-        return "Datasource %s is out of bounds. File has only %s datasources \
-(0-%s)." \
-            % (self.dsname, self.numds, self.numds - 1)
+        return ("Datasource %s is out of bounds. File has only %s datasources "
+                "(0-%s)." % (self.dsname, self.numds, self.numds - 1))
 
 class CannotWriteToTmpException(Exception):
     def __init__(self, restorefile):
@@ -58,7 +57,7 @@ class ErrorRunningRRDToolException(Exception):
     def __init__(self, errormessage):
         self.errormessage = errormessage
     def __str__(self):
-        return "Error running rrdtool: %s" %self.errormessage
+        return "Error running rrdtool: %s" % self.errormessage
 
 
 def main(options, args):

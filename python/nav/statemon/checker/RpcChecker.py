@@ -27,8 +27,8 @@ class RpcChecker(AbstractChecker):
     requried
     ex: nfs,nlockmgr
     """
-    def __init__(self,service, **kwargs):
-        AbstractChecker.__init__(self, "rpc", service,port=111, **kwargs)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self, "rpc", service, port=111, **kwargs)
         # This handler doesn't obey port argument
     def execute(self):
         args = self.getArgs()

@@ -23,8 +23,8 @@ from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
 
 class HTTPSConnection(httplib.HTTPSConnection):
-    def __init__(self,timeout,host,port=443):
-        httplib.HTTPSConnection.__init__(self,host,port)
+    def __init__(self, timeout, host, port=443):
+        httplib.HTTPSConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
     def connect(self):
@@ -35,7 +35,7 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.sock = httplib.FakeSocket(self.sock, ssl)
         
 class HttpsChecker(AbstractChecker):
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "https", service, port=0, **kwargs)
     def execute(self):
         ip, port = self.getAddress()
@@ -50,14 +50,14 @@ class HttpsChecker(AbstractChecker):
         i = HTTPSConnection(self.getTimeout(), ip, port or 443)
 
         if vhost:
-            i.host=vhost
+            i.host = vhost
         
-        i.putrequest('GET',path)
+        i.putrequest('GET', path)
         internalRev = "$Rev: 1361 $"
         internalRev = internalRev[:-2].replace('$Rev: ','')
         i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev)
         if username:
-            auth="%s:%s" % (username, password)
+            auth = "%s:%s" % (username, password)
             i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
         i.endheaders()
         response = i.getresponse()
@@ -65,9 +65,9 @@ class HttpsChecker(AbstractChecker):
             status = Event.UP
             version = response.getheader('SERVER')
             self.setVersion(version)
-            info= 'OK (%s) %s' % (str(response.status), version)
+            info = 'OK (%s) %s' % (str(response.status), version)
         else:
             status = Event.DOWN
-            info = 'ERROR (%s) %s'  % (str(response.status),url)
+            info = 'ERROR (%s) %s'  % (str(response.status), url)
 
-        return status,info
+        return status, info

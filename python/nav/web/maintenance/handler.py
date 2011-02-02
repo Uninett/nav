@@ -102,7 +102,7 @@ def handler(req):
         page.tasks = nav.maintenance.getTask(taskid)
 
     # New and edit
-    elif section == 'new' or section =='edit':
+    elif section == 'new' or section == 'edit':
         page = MaintenanceNewTemplate()
         page.title = 'Create New Maintenance Task'
         page.action = "new"
@@ -169,7 +169,7 @@ def handler(req):
             components = page.components
 
         # Handle added components
-        for key,values in page.quickselect.handle_post(req).iteritems():
+        for key, values in page.quickselect.handle_post(req).iteritems():
             for v in values:
                 component = {
                     'key': key,

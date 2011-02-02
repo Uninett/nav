@@ -265,7 +265,7 @@ class Crontab(object):
                 initBlock.append('%s="%s"' % (var, val))
 
         # Set up a default MAILTO directive
-        mailto='root@localhost'
+        mailto = 'root@localhost'
         try:
             navConf = nav.config.readConfig('nav.conf')
             if navConf.has_key('ADMIN_MAIL'):

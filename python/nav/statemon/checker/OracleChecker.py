@@ -57,7 +57,7 @@ class OracleChecker(AbstractChecker):
     """
 
     def __init__(self, *args):
-        AbstractChecker.__init__(self,'oracle',port=1521, *args)
+        AbstractChecker.__init__(self, 'oracle', port=1521, *args)
     def execute(self):
         args = self.getArgs()
         user = args.get("username","")

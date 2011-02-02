@@ -122,7 +122,7 @@ ACCT_REAUTH_TIMEOUT = 960
 
 
 # Associate database fields with proper descriptions 
-ACCT_DBFIELDSDESCRIPTIONS= {
+ACCT_DBFIELDSDESCRIPTIONS = {
                     "acctuniqueid": "Session ID",
                     "username": "Username",
                     "nasipaddress": "NAS IP Address",

@@ -37,7 +37,7 @@ class UrlNode(template.Node):
 
     def render(self, context):
         get = self._get_GET(context)
-        return "?" + "&amp;".join([('%s=%s' % (k,get[k])) for k in get])
+        return "?" + "&amp;".join([('%s=%s' % (k, get[k])) for k in get])
 
 class InputNode(UrlNode):
     def render(self, context):

@@ -33,13 +33,14 @@ class MatrixIPv6(Matrix):
 
     Call getTemplateResponse() to get the template response."""
 
-    def __init__(self,start_net,end_net=None):
-        Matrix.__init__(self,start_net,end_net=end_net,bits_in_matrix=4)
-        self.column_headings = ["%X" % i for i in range(0,16)]
+    def __init__(self, start_net, end_net=None):
+        Matrix.__init__(self, start_net, end_net=end_net, bits_in_matrix=4)
+        self.column_headings = ["%X" % i for i in range(0, 16)]
 
     def getTemplateResponse(self):
         template = MatrixIPv6Template()
-        template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+        template.path = [("Home", "/"), ("Report", "/report/"),
+                         ("Prefix Matrix", False)]
 
         #functions and classes
         template.sort_nets_by_address = getattr(IPtools,"sort_nets_by_address")

@@ -403,7 +403,7 @@ class Interface(Shadow):
     def set_ifindex_if_unset(self, containers):
         """Sets this Interface's ifindex value if unset by plugins."""
         if self.ifindex is None:
-            interfaces = dict((v,k) for k,v in containers[Interface].items())
+            interfaces = dict((v, k) for k, v in containers[Interface].items())
             if self in interfaces:
                 self.ifindex = interfaces[self]
 

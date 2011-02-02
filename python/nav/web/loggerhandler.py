@@ -22,7 +22,7 @@
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
 #
-from mod_python import apache,util
+from mod_python import apache, util
 
 import os
 import nav
@@ -44,7 +44,7 @@ def handler(req):
 
     #fieldstorage variables
     keep_blank_values = True
-    req.form = util.FieldStorage(req,keep_blank_values)
+    req.form = util.FieldStorage(req, keep_blank_values)
 
     if req.form.has_key("tfrom") and req.form["tfrom"]:
         tfrom = datetime.datetime(
@@ -67,7 +67,7 @@ def handler(req):
         shortorigin = r[1]
         origin2originid[shortorigin] = r[0]
         for d in DOMAIN_SUFFICES:
-            shortorigin = re.sub(d,"",r[1])
+            shortorigin = re.sub(d, "", r[1])
         origins.append((r[0], shortorigin))
         originid2origin[r[0]] = shortorigin
         
@@ -84,7 +84,7 @@ def handler(req):
     types = []
     typeid2type = {}
     type2typeid = {}
-    types.append((0,"(All)","",""))
+    types.append((0, "(All)", "", ""))
     for r in database.fetchall():
         types.append((r[3], "%s-%d-%s" % (r[1], r[0], r[2])))
         type2typeid["%s-%d-%s" % (r[1], r[0], r[2])] = r[3]
@@ -137,7 +137,7 @@ def handler(req):
     link = "&amp;".join(links)
 
     page = LoggerTemplate()
-    page.path = [("Home","/"),("Syslog Analyzer",None)]
+    page.path = [("Home", "/"), ("Syslog Analyzer", None)]
     page.priority = priority
     page.origin = origin
     page.originid = originid
@@ -255,7 +255,7 @@ class LogMessage:
                  mnemonic, message):
         self.time = time.strftime(DATEFORMAT)
         self.origin = originname
-        if isinstance(newpriority,int):
+        if isinstance(newpriority, int):
             self.type = "%s-%d(%d)-%s" % (facility, newpriority, priority,
                                           mnemonic)
         else:

@@ -51,7 +51,7 @@ config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
 try:
     import ldap
     available = 1
-except ImportError,e:
+except ImportError, e:
     available = 0
     ldap = None
     logger.warning("Python LDAP module is not available (%s) ", e)
@@ -132,7 +132,7 @@ def authenticate(login, password):
     except ldap.TIMEOUT, e:
         logger.error("Timed out waiting for LDAP bind operation")
         raise TimeoutError, e
-    except ldap.LDAPError,e:
+    except ldap.LDAPError, e:
         logger.exception("An LDAP error occurred when authenticating user %s "
                          "against server %s", login, server)
         return False

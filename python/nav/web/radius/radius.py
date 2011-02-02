@@ -65,7 +65,7 @@ def handler(req):
     # Get basename and section part of the URI
     baseurl = ""
     section = ""
-    s = re.search("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)",req.uri)
+    s = re.search("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)", req.uri)
     if s:
         baseurl = s.group("baseurl")
         section = s.group("section")
@@ -280,17 +280,17 @@ class AcctSearchForm:
     error check the input
     """
 
-    searchstring=""
-    searchtype=""
-    nasporttype=""
-    timemode=""
-    timestamp=""
-    timestampslack=""
-    days=""
-    userdns=""
-    nasdns=""
-    sortfield=""
-    sortorder=""
+    searchstring = ""
+    searchtype = ""
+    nasporttype = ""
+    timemode = ""
+    timestamp = ""
+    timestampslack = ""
+    days = ""
+    userdns = ""
+    nasdns = ""
+    sortfield = ""
+    sortorder = ""
 
     def __init__(self, searchstring, searchtype, nasporttype, timemode,
                  timestamp, timestampslack, days, userdns, nasdns, sortfield,
@@ -684,7 +684,7 @@ class AcctSearchQuery(SQLQuery):
 
             if timemode == "timestamp":
 
-                if timestampslack == "": timestampslack=0
+                if timestampslack == "": timestampslack = 0
 
                 # Search for entries between (given timestamp - 
                 # timestampslack) and (given timestamp + timestampslack)
@@ -766,15 +766,15 @@ class LogSearchForm:
     error check the input
     """
 
-    searchstring=""
-    searchtype=""
-    logentrytype=""
-    timemode=""
-    timestamp=""
-    timestampslack=""
-    hours=""
-    sortfield=""
-    sortorder=""
+    searchstring = ""
+    searchtype = ""
+    logentrytype = ""
+    timemode = ""
+    timestamp = ""
+    timestampslack = ""
+    hours = ""
+    sortfield = ""
+    sortorder = ""
 
     def __init__(self, searchstring, searchtype, logentrytype, timemode, 
             timestamp, timestampslack, hours, sortfield, sortorder):
@@ -890,7 +890,7 @@ class LogSearchQuery(SQLQuery):
                 self.sqlQuery += " (time >= timestamp '%s') " % (searchstart)
 
             if timemode == "timestamp":
-                if not timestampslack: timestampslack=0
+                if not timestampslack: timestampslack = 0
 
                 # Search for entries between (given timestamp - slack) 
                 # and (given timestamp + slack)

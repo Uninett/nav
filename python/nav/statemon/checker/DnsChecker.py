@@ -22,8 +22,8 @@ class DnsChecker(AbstractChecker):
     """
     Valid argument(s): request
     """
-    def __init__(self,service, **kwargs):
-        AbstractChecker.__init__(self,"dns",service,port=42, **kwargs)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self, "dns", service, port=42, **kwargs)
         # Please note that this handler doesn't obey the port directive
     def execute(self):
         ip, port = self.getAddress()
@@ -31,7 +31,7 @@ class DnsChecker(AbstractChecker):
         args = self.getArgs()
         #print "Args: ", args
         request = args.get("request","").strip()
-        timeout=0
+        timeout = 0
         if not request:
             #print "valid debug message :)"
             return Event.UP, "Argument request must be supplied"
@@ -45,16 +45,17 @@ class DnsChecker(AbstractChecker):
                 #print "%s timed out..." %request[i]
                     
             if not timeout and len(reply.answers) > 0 :
-                answer=1
+                answer = 1
                 #print "%s -> %s"%(request[i], reply.answers[0]["data"])
             elif not timeout and len(reply.answers)==0:
-                answer=0
+                answer = 0
 
             # This breaks on windows dns servers and probably other not bind servers
             # We just put a exception handler around it, and ignore the resulting
             # timeout.
             try:
-                ver = d.req(name="version.bind",qclass="chaos", qtype='txt').answers
+                ver = d.req(name="version.bind", qclass="chaos",
+                            qtype='txt').answers
                 if len(ver) > 0:
                     self.setVersion(ver[0]['data'][0])
             except DNS.Base.DNSError, e:

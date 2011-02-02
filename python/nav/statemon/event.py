@@ -30,8 +30,8 @@ class Event:
     DOWN = 'DOWN'
     boxState = 'boxState'
     serviceState = 'serviceState'
-    def __init__(self,serviceid,netboxid,deviceid,
-                 eventtype,source,status,info='', version=''):
+    def __init__(self, serviceid, netboxid, deviceid,
+                 eventtype, source, status, info='', version=''):
         self.serviceid = serviceid
         self.netboxid = netboxid
         self.deviceid = deviceid

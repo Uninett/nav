@@ -28,7 +28,7 @@
 """
 Socket module with timeout.
 """
-import time,socket,sys,types,string
+import time, socket, sys, types, string
 from select import select
 from errno import errorcode
 
@@ -48,7 +48,7 @@ class socketwrapper(socket.socket):
             line += s
             if '\n' in line or not s:
                 return line
-    def write(self,line):
+    def write(self, line):
         if line[-1] != '\n':
             line += '\n'
         self.send(line)
@@ -56,24 +56,24 @@ class socketwrapper(socket.socket):
 
 
 class timeoutsocket:
-    def __init__(self,timeout):
+    def __init__(self, timeout):
         self.timeout = timeout
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def connect(self,address):
+    def connect(self, address):
         self.s.setblocking(0)
         try:
             self.s.connect(address)
-        except socket.error, (number,info):
+        except socket.error, (number, info):
             if not errorcode[number] == 'EINPROGRESS':
                 raise
         self.s.setblocking(1)
-        r,w,e = select([],[self],[],self.timeout)
+        r, w, e = select([], [self], [], self.timeout)
         if not w:
             raise Timeout('Timeout in connect after %i sec' %\
                       self.timeout)
-    def recv(self,*args):
-        r,w,e = select([self.s],[],[],self.timeout)
+    def recv(self, *args):
+        r, w, e = select([self.s], [], [], self.timeout)
         if not r:
             raise Timeout('Timeout in recv after %i sec' % \
                       self.timeout)
@@ -85,14 +85,14 @@ class timeoutsocket:
             line += s
             if '\n' in line or not s:
                 return line
-    def send(self,*args):
-        r,w,e = select([],[self.s],[],self.timeout)
+    def send(self, *args):
+        r, w, e = select([], [self.s], [], self.timeout)
         if not w:
             raise Timeout('Timeout in write after %i sec' % \
                       self.timeout)
         self.s.send(*args)
     
-    def write(self,line):
+    def write(self, line):
         if line[-1] != '\n':
             line += '\n'
         self.send(line)
@@ -107,8 +107,8 @@ class timeoutsocket:
     #    return self.s.makefile(*args)
     def fileno(self):
         return self.s.fileno()
-    def sendall(self,*args):
-        r,w,e = select([],[self.s],[],self.timeout)
+    def sendall(self, *args):
+        r, w, e = select([], [self.s], [], self.timeout)
         if not w:
             raise Timeout('Timeout in write after %i sec' % \
                       self.timeout)

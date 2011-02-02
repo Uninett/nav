@@ -22,12 +22,12 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
 class FTP(ftplib.FTP):
-    def __init__(self,timeout,host='',user='',passwd='',acct=''):
+    def __init__(self, timeout, host='', user='', passwd='', acct=''):
         ftplib.FTP.__init__(self)
         if host:
             self.connect(host)
         if user:
-            self.login(user,passwd,acct)
+            self.login(user, passwd, acct)
         self.timeout = timeout
     def connect(self, host = '', port = 0):
         '''Connect to host.  Arguments are:
@@ -50,13 +50,13 @@ class FtpChecker(AbstractChecker):
     password
     path (ACCT)
     """
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "ftp", service, port=0, **kwargs)
 
     def execute(self):
         s = FTP(self.getTimeout())
         ip, port = self.getAddress()
-        output = s.connect(ip,port or 21)
+        output = s.connect(ip, port or 21)
 
         # Get server version from the banner.
         version = ''
@@ -69,9 +69,9 @@ class FtpChecker(AbstractChecker):
         username = args.get('username','')
         password = args.get('password','')
         path = args.get('path','')
-        output = s.login(username,password,path)
+        output = s.login(username, password, path)
 
         if output[:3] == '230':
             return Event.UP,'code 230'
         else:
-            return Event.DOWN,output.split('\n')[0]
+            return Event.DOWN, output.split('\n')[0]

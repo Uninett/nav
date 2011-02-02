@@ -46,8 +46,8 @@ class LdapChecker(AbstractChecker):
     NB! If compare is set/given - attrs and attr_val will be ignored!
     """
 
-    def __init__(self,service, **kwargs):
-        AbstractChecker.__init__(self, "ldap", service,port=389, **kwargs)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self, "ldap", service, port=389, **kwargs)
     def execute(self):
         args = self.getArgs()
         versionstr = ""
@@ -75,23 +75,24 @@ class LdapChecker(AbstractChecker):
             # default is protocol-version 3
             try:
                 l.protocol_version = ldap.VERSION3
-            except Exception,e:
+            except Exception, e:
                 return Event.DOWN, "unsupported protocol version"
         if args.has_key("compare"):
             try:
-                result = l.compare_s(dn,attribute,value)
+                result = l.compare_s(dn, attribute, value)
                 if result:
                     return Event.UP, "Ok"
                 else:
-                    return Event.DOWN, "compare failed: %s:%s" % (attribute,value)
-            except Exception,e:
+                    return (Event.DOWN,
+                            "compare failed: %s:%s" % (attribute, value))
+            except Exception, e:
                 return Event.DOWN, "compare failed for some reason"
 
         else:
             base = args.get("base", "dc=ntnu,dc=no")
             if base == "cn=monitor":
                 my_res = l.search_st(base, ldap.SCOPE_BASE, timeout=self.getTimeout())
-                versionstr=str(my_res[0][-1]['description'][0])
+                versionstr = str(my_res[0][-1]['description'][0])
                 self.setVersion(versionstr)
                 return Event.UP, versionstr
             scope = args.get("scope", "SUBTREE")
@@ -101,7 +102,7 @@ class LdapChecker(AbstractChecker):
             elif scope == "ONELEVEL":
                 scope = ldap.SCOPE_ONELEVEL
             else:
-                scope =ldap.SCOPE_SUBTREE
+                scope = ldap.SCOPE_SUBTREE
             filter = args.get("filter","objectclass=dcObject")
             attrs = args.get("attrs", ["mail"])
             try:
@@ -112,7 +113,7 @@ class LdapChecker(AbstractChecker):
 
                 dn = my_res[0][0]
                 mydict = my_res[0][1]
-            except Exception,e:
+            except Exception, e:
                 print "Exception: %s" % str(e)
                 return Event.DOWN, "Failed ldapSearch on %s for %s: %s" % (self.getAddress(), filter, str(e))
                 

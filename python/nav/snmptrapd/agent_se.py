@@ -143,7 +143,7 @@ def transform(pdu):
     if generic.get() == 6:
         snmp_trap_oid = enterprise + [0, pdu.apiAlphaGetSpecificTrap().get()]
     else:
-        snmp_trap_oid = [1,3,6,1,6,3,1,1,5] + [generic.get() + 1]
+        snmp_trap_oid = [1, 3, 6, 1, 6, 3, 1, 1, 5] + [generic.get() + 1]
 
     type_name_map = dict(enumerate(generic.verboseTraps))
     if generic.get() < len(type_name_map):

@@ -21,7 +21,7 @@ from cStringIO import StringIO
 
 try:
     from mod_python import apache
-except:
+except ImportError:
     apache = None
     apache_log = None
 else:
@@ -47,7 +47,7 @@ def calltracer(function, logfunction=apache_log):
         trace.seek(0)
         for line in trace.readlines():
             logfunction('STACK: ' + line.rstrip())
-        return function(*args,**kwargs)
+        return function(*args, **kwargs)
 
     if not logfunction:
         return function

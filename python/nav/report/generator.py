@@ -22,7 +22,7 @@ from nav.report.report import Report
 from urllib import unquote_plus
 from urlparse import urlsplit
 import nav.db
-import re,string
+import re, string
 
 
 class Generator:
@@ -30,7 +30,8 @@ class Generator:
     The maker and controller of the generating of a report
     """
 
-    def makeReport(self,reportName,configFile,configFileLocal,uri,config,dbresult):
+    def makeReport(self, reportName, configFile, configFileLocal, uri, config,
+                   dbresult):
         """
         Makes a report
 
@@ -50,11 +51,11 @@ class Generator:
         adv = 0
 
         if not config:
-            configParser = ConfigParser(configFile,configFileLocal)
+            configParser = ConfigParser(configFile, configFileLocal)
             parseOK = configParser.parseReport(reportName)
             config = configParser.configuration
             if not parseOK:
-                return (0,None,None,None,None,None,None)
+                return (0, None, None, None, None, None, None)
 
         argumentParser = ArgumentParser(config)
         argumentHash = argumentParser.parseArguments(args)
@@ -74,36 +75,36 @@ class Generator:
                 adv = 1
             del argumentHash["adv"]
 
-        (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
+        (contents, neg, operator) = argumentParser.parseQuery(argumentHash)
 
         # Check if there exists a cached database result for this query
         if dbresult: # Cached
-            report = Report(config,dbresult,uri)
+            report = Report(config, dbresult, uri)
             report.titlebar = reportName + " - report - NAV"
 
-            return (report,contents,neg,operator,adv)
+            return (report, contents, neg, operator, adv)
 
         else: # Not cached
             dbresult = DatabaseResult(config)
             self.sql = dbresult.sql
 
-            report = Report(config,dbresult,uri)
+            report = Report(config, dbresult, uri)
             report.titlebar = reportName + " - report - NAV"
 
-            return (report,contents,neg,operator,adv,config,dbresult)
+            return (report, contents, neg, operator, adv, config, dbresult)
 
 
 class ReportList:
 
-    def __init__(self,configFile):
+    def __init__(self, configFile):
 
         self.reports = []
 
-        reportRe = re.compile("^\s*(\S+)\s*\{(.*?)\}$",re.M|re.S|re.I)
+        reportRe = re.compile("^\s*(\S+)\s*\{(.*?)\}$", re.M|re.S|re.I)
         fileContents = file(configFile).read()
         list = reportRe.findall(fileContents)
 
-        configParser = ConfigParser(configFile,None)
+        configParser = ConfigParser(configFile, None)
 
         for rep in list:
             configtext = rep[1]
@@ -136,7 +137,7 @@ class ConfigParser:
     instance
     """
 
-    def __init__(self,configFile,configFileLocal):
+    def __init__(self, configFile, configFileLocal):
         """
         Loads the configuration files
         """
@@ -148,7 +149,7 @@ class ConfigParser:
         self.configuration = ReportConfig()
 
 
-    def parseReport(self,reportName):
+    def parseReport(self, reportName):
         """
         Parses the configuration file and returns a Report object
         according to the reportName.
@@ -163,7 +164,7 @@ class ConfigParser:
         if self.config is None:
             self.config = file(self.configFile).read()
             self.configLocal = file(self.configFileLocal).read()
-        reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$",re.M|re.S|re.I)
+        reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$", re.M|re.S|re.I)
         reResult = reportRe.search(self.config)
         reResultLocal = reportRe.search(self.configLocal)
 
@@ -180,7 +181,7 @@ class ConfigParser:
             return False
 
 
-    def parseConfiguration(self,reportConfig):
+    def parseConfiguration(self, reportConfig):
         """
         Parses the right portion of the configuration and builds a ReportConfig object, stone by stone.
 
@@ -188,7 +189,7 @@ class ConfigParser:
 
         """
 
-        configurationRe = re.compile("^\s*\$(\S*)\s*\=\s*\"(.*?)\"\;?",re.M|re.S)
+        configurationRe = re.compile("^\s*\$(\S*)\s*\=\s*\"(.*?)\"\;?", re.M|re.S)
         reResult = configurationRe.findall(reportConfig)
 
         config = self.configuration
@@ -232,14 +233,14 @@ class ArgumentParser:
     Handler of the uri arguments
     """
 
-    def __init__(self,configuration):
+    def __init__(self, configuration):
         """
         Initializes the configuration
         """
 
         self.configuration = configuration
 
-    def parseQuery(self,query):
+    def parseQuery(self, query):
         """
         Parses the arguments of the uri, and modifies the ReportConfig-object configuration
 
@@ -252,9 +253,9 @@ class ArgumentParser:
         fields = {}
         nott = {}
         operator = {}
-        safere = re.compile("(select|drop|update|delete).*(from|where)",re.I)
+        safere = re.compile("(select|drop|update|delete).*(from|where)", re.I)
 
-        for key,value in query.items():
+        for key, value in query.items():
 
             if key == "sql" or key == "query":
                 #error("Access to make SQL-querys permitted")
@@ -297,7 +298,7 @@ class ArgumentParser:
                     if value:
                         fields[unquote_plus(key)] = unquote_plus(value)
 
-        for key,value in fields.items():
+        for key, value in fields.items():
 
             if not operator.has_key(key):
                 operator[key] = "eq"
@@ -378,9 +379,9 @@ class ArgumentParser:
 
             config.where.append(key+" "+neg+operat+" "+value)
 
-        return (fields,nott,operator)
+        return (fields, nott, operator)
 
-    def parseArguments(self,args):
+    def parseArguments(self, args):
         """
         Parses the argument part of the uri and makes a hash representation of it
 
@@ -396,13 +397,13 @@ class ArgumentParser:
             for arg in args.split("&"):
 
                 if arg:
-                    (key,val) = arg.split("=")
+                    (key, val) = arg.split("=")
                     queryString[key] = val
 
         return queryString
 
 
-    def intstr(self,arg):
+    def intstr(self, arg):
         return nav.db.escape(arg)
 
 
@@ -432,8 +433,8 @@ class ReportConfig:
     def wherestring(self):
         where = self.where
         if where:
-            alias_remover = re.compile("(.+)\s+AS\s+\S+",re.I)
-            where = [alias_remover.sub("\g<1>",word) for word in where]
+            alias_remover = re.compile("(.+)\s+AS\s+\S+", re.I)
+            where = [alias_remover.sub("\g<1>", word) for word in where]
             return " WHERE " + string.join(where," AND ")
         else:
             return ""

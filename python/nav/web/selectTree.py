@@ -62,7 +62,7 @@ class selectTreeLayoutBox:
         self.exactSelectWidth = exactSelectWidth
         self.htmlId = htmlId
 
-    def addSelect(self,select):
+    def addSelect(self, select):
         ''' Adds a select to this layoutBox '''
         self.selectList.append(select)
 
@@ -75,11 +75,11 @@ class selectTree:
     def __init__(self):
         self.selectList = []
 
-    def addSelect(self,select):
+    def addSelect(self, select):
         ''' Adds a select to the selectTree '''
         self.selectList.append(select)
 
-    def update(self,form):
+    def update(self, form):
         ''' Must be called each time the form is posted 
             form: FieldStorage object from mod_python.util '''
 
@@ -232,7 +232,7 @@ class simpleSelect:
         # Make sql query
         result = []
         if self.sqlTuple:
-            fields,tables,join,where,orderBy = self.sqlTuple
+            fields, tables, join, where, orderBy = self.sqlTuple
         
             sql = 'SELECT ' + fields + ' FROM ' + tables + ' '
             if where:
@@ -251,8 +251,8 @@ class simpleSelect:
             # Save row for optgroupformat in next select
             self.rows.append(row)
 
-            optionText = self.parseFormatstring(self.optionFormat,row)
-            value = self.parseFormatstring(self.valueFormat,row)
+            optionText = self.parseFormatstring(self.optionFormat, row)
+            value = self.parseFormatstring(self.valueFormat, row)
             self.values.append(value)
 
             # Find the longest optiontext (used for width of
@@ -260,7 +260,7 @@ class simpleSelect:
             if len(optionText) > self.maxOptionTextLength:
                 self.maxOptionTextLength = len(optionText)
 
-            option = selectOption(optionText,value)
+            option = selectOption(optionText, value)
             self.options.append(option)
         # Add entries from the addEntryList
         for entry in self.addEntryList:
@@ -269,15 +269,15 @@ class simpleSelect:
                 state = entry[2]
                 if not self.firstLoad:
                     state = False
-                option = selectOption(entry[1],entry[0],state)
+                option = selectOption(entry[1], entry[0], state)
                 self.options.append(option)
 
-    def parseFormatstring(self,formatString,fetchedRow):
+    def parseFormatstring(self, formatString, fetchedRow):
         ''' Parses format strings for options, values and optgroups.
             $x is replaced by column number x in the sql query. '''
         match = True
         while(match):
-            match = re.match('.*\$(\d).*',formatString)
+            match = re.match('.*\$(\d).*', formatString)
             if match:
                 column = match.groups()[0]
                 if fetchedRow[int(column)-1]:
@@ -288,11 +288,11 @@ class simpleSelect:
                     formatString = ''         
         return formatString
 
-    def optgroupParse(self,formatString,selectedId):
+    def optgroupParse(self, formatString, selectedId):
         optgroupText = 'optgroup format error'
         for row in self.rows:
             if str(row[0]) == selectedId:
-                optgroupText = self.parseFormatstring(formatString,row)
+                optgroupText = self.parseFormatstring(formatString, row)
                 break
         return optgroupText
 
@@ -389,7 +389,7 @@ class updateSelect(simpleSelect):
 
         # Any of the options in the previous select selected?
         # Make sql query
-        fields,tables,join,where,orderBy = self.sqlTuple
+        fields, tables, join, where, orderBy = self.sqlTuple
        
         confirmedSelected = []
         self.maxOptionTextLength = 0
@@ -411,18 +411,18 @@ class updateSelect(simpleSelect):
             connection.commit()
             
             if self.optgroupFormat:
-                optgroupText=self.prevSelect.optgroupParse(
-                                  self.optgroupFormat,s)
+                optgroupText = self.prevSelect.optgroupParse(
+                    self.optgroupFormat, s)
             else:
-                optgroupText=s
-            optgroup = selectOption(optgroupText,'',optgroup=True)
+                optgroupText = s
+            optgroup = selectOption(optgroupText, '', optgroup=True)
             self.options.append(optgroup)
             # Add options
             for row in result:
                 # Save row for optgroupformat in next select
                 self.rows.append(row)
-                optionText = self.parseFormatstring(self.optionFormat,row)
-                value = self.parseFormatstring(self.valueFormat,row)
+                optionText = self.parseFormatstring(self.optionFormat, row)
+                value = self.parseFormatstring(self.valueFormat, row)
                 self.values.append(value)
 
                 # Find the longest optiontext (used for width of
@@ -448,7 +448,7 @@ class updateSelect(simpleSelect):
                         # confirmed selected after filling. This ensures
                         # that the next select is correctly updated.
                         confirmedSelected.append(value)
-                option = selectOption(optionText,value,selected)
+                option = selectOption(optionText, value, selected)
                 self.options.append(option)
             # Add entries from addEntryList
             for entry in self.addEntryList:
@@ -456,7 +456,7 @@ class updateSelect(simpleSelect):
                     # This is the right optgroup for this entry
                     # Save row for optgroupformat in next select
                     # NB: only works with default optgroupformat! FIX
-                    self.rows.append((entry[1],entry[2]))
+                    self.rows.append((entry[1], entry[2]))
 
                     if not entry[1] in self.values:
                         # Value (id) isn't already present
@@ -469,19 +469,19 @@ class updateSelect(simpleSelect):
                         if self.possiblySelected.count(entry[1]):
                             # But the user could have selected it
                             state = True
-                        option = selectOption(entry[2],entry[1],state)
+                        option = selectOption(entry[2], entry[1], state)
                         self.options.append(option)
                         if state == True:
                             confirmedSelected.append(entry[1])
             # Add end of optgroup tag to list of options
-            optgroup = selectOption('','',optgroupEnd=True)
+            optgroup = selectOption('', '', optgroupEnd=True)
             self.options.append(optgroup)
         self.possiblySelected = confirmedSelected
 
 class selectOption:
     ''' An option in a select. '''
-    def __init__(self,text,value,selected=False,
-                 optgroup=False,optgroupEnd=False,disabled=False):
+    def __init__(self, text, value, selected=False,
+                 optgroup=False, optgroupEnd=False, disabled=False):
         self.text = text
         self.value = value
         self.selected = selected

@@ -22,7 +22,8 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which
 
-pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',re.I) #tihihi
+pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',
+                     re.I)
 
 
 class SmbChecker(AbstractChecker):
@@ -33,12 +34,12 @@ class SmbChecker(AbstractChecker):
         'password'
         'port'
     """
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "smb", service, port=139, **kwargs)
     def execute(self):
-        ip,port = self.getAddress()
+        ip, port = self.getAddress()
         args = self.getArgs()
-        host = args.get('hostname',ip)
+        host = args.get('hostname', ip)
         username = args.get('username','')
         password = args.get('password','')
         workgroup = args.get('workgroup', '')

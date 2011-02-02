@@ -29,7 +29,7 @@ def _organization_choices():
     return org
 
 def _category_choices():
-    cat = [(cat.id,cat.description) for cat in Category.objects.all()]
+    cat = [(cat.id, cat.description) for cat in Category.objects.all()]
     cat.insert(0, ('', '(all)'))
     return cat
 

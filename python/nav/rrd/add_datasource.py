@@ -95,7 +95,7 @@ def add_datasource(rrdfile):
 
         # find next sibling, insert clone before next sibling
         nextsibling = lastds.nextSibling
-        xml.documentElement.insertBefore(clone,nextsibling)
+        xml.documentElement.insertBefore(clone, nextsibling)
 
     # Find all cdp_prep elements and add childelement to them
     for element in xml.getElementsByTagName('cdp_prep'):

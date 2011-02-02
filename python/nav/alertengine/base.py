@@ -294,7 +294,7 @@ def handle_queued_alerts(queued_alerts, now=None):
                 # This check should catch the corner case where a user only has one
                 # timeperiod that loops.
 
-                if datetime.now().isoweekday() in [6,7]:
+                if datetime.now().isoweekday() in [6, 7]:
                     valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
                 else:
                     valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]

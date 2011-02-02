@@ -22,17 +22,17 @@ import httplib
 import socket
 
 class HTTPConnection(httplib.HTTPConnection):
-    def __init__(self,timeout,host,port=80):
-        httplib.HTTPConnection.__init__(self,host,port)
+    def __init__(self, timeout, host, port=80):
+        httplib.HTTPConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host,self.port))
+        self.sock.connect((self.host, self.port))
 
 class HttpChecker(AbstractChecker):
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "http", service, port=0, **kwargs)
     def execute(self):
         ip, port = self.getAddress()
@@ -43,9 +43,9 @@ class HttpChecker(AbstractChecker):
         
         i = HTTPConnection(self.getTimeout(), ip, port or 80)
         if vhost:
-            i.host=vhost
+            i.host = vhost
 
-        i.putrequest('GET',path)
+        i.putrequest('GET', path)
         internalRev = "$Rev: 1361 $"
         internalRev = internalRev[:-2].replace('$Rev: ','')
         i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev)
@@ -55,9 +55,9 @@ class HttpChecker(AbstractChecker):
             status = Event.UP
             version = response.getheader('SERVER')
             self.setVersion(version)
-            info= 'OK (%s) %s' % (str(response.status), version)
+            info = 'OK (%s) %s' % (str(response.status), version)
         else:
             status = Event.DOWN
-            info = 'ERROR (%s) %s'  % (str(response.status),url)
+            info = 'ERROR (%s) %s'  % (str(response.status), url)
 
-        return status,info
+        return status, info

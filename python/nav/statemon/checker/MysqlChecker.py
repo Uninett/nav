@@ -77,7 +77,7 @@ class MysqlConnection:
         self.file.close()
             
 class MysqlChecker(AbstractChecker):
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "mysql", service, port=3306, **kwargs)
 
     def execute(self):

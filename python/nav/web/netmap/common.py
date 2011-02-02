@@ -31,7 +31,8 @@ class unbuffered:
 
 class Connection:
     """Class to represent a link between two netboxes"""
-    def __init__(self, from_netboxid = None, to_netboxid = None, capacity = None, load = (0,0)):
+    def __init__(self, from_netboxid = None, to_netboxid = None,
+                 capacity = None, load = (0, 0)):
         self.from_netboxid = from_netboxid
         self.to_netboxid = to_netboxid
         self.capacity = capacity

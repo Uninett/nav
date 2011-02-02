@@ -30,7 +30,7 @@ import sys
 import inspect
 import os.path
 
-loglevels={
+loglevels = {
     0:'Emergency',
     1:'Alert ',
     2:'Critical',
@@ -48,7 +48,7 @@ def setDebugLevel(level):
 
 def debug(msg, level=5):
     if level <= debuglevel:
-        (frame,file,line,func,_,_) = inspect.stack()[1]
+        (frame, file, line, func, _, _) = inspect.stack()[1]
         file = file and os.path.basename(file)
         now = time.strftime('%Y-%m-%d %H:%M:%S')
         stack = "%s:%s:%s" % (file, func, line)

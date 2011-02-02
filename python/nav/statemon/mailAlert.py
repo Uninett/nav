@@ -7,11 +7,11 @@ from debug import debug
 
 def mailAlert(*args, **kwargs):
     if _mailAlert._instance is None:
-        _mailAlert._instance=_mailAlert(*args, **kwargs)
+        _mailAlert._instance = _mailAlert(*args, **kwargs)
     return _mailAlert._instance
 
 class _mailAlert(threading.Thread):
-    _instance=None
+    _instance = None
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(1)
@@ -45,38 +45,40 @@ class _mailAlert(threading.Thread):
                 debug("mailalert -> Sending mail...")
                 try:
                     self.sendMail()
-                except Exception,info:
-                    debug("mailalert -> Failed while sending alert: %s" % info,1)
+                except Exception, info:
+                    debug("mailalert -> Failed while sending alert: %s" % info,
+                          1)
                 # Empty the list of alerts...
-                self._alertlist=[]
+                self._alertlist = []
             
     def stripAlert(self):
         """
         Remove duplicates and services that har both down and
         up message
         """
-        alerthash={}
-        removable=[]
+        alerthash = {}
+        removable = []
         for each in self._alertlist:
             #
             #key="%s:%s" % (each.sysname, each.type)
-            key=each.serviceid
+            key = each.serviceid
             if not alerthash.has_key(key) or alerthash[key] == None:
-                alerthash[key]=each
-            elif alerthash[key] != None and alerthash[key].status!=each.status:
-                alerthash[key]=None
+                alerthash[key] = each
+            elif (alerthash[key] != None and
+                  alerthash[key].status != each.status):
+                alerthash[key] = None
                 debug("mailalert -> Removed duplicated alert: %s" % key)
             else:
                 debug("mailalert -> Key: %s made it to the else clause..."%key)
 
-        self._alertlist=filter(lambda x:x != None, alerthash.values())
+        self._alertlist = filter(lambda x:x != None, alerthash.values())
 
     
     def createMailText(self):
-        txt="\n"
+        txt = "\n"
         for each in self._alertlist:
             txt += "[%s] %-17s %-5s -> %s, %s\n" % (each.time, each.sysname, each.type, each.status, each.info)
-        self.alertText=txt
+        self.alertText = txt
 
 
     def sendMail(self):

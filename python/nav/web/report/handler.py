@@ -93,7 +93,7 @@ def arg_parsing(req):
     remove = []
 
     # Finding empty values
-    for key,val in nuri.args.items():
+    for key, val in nuri.args.items():
         if val == "":
             remove.append(key)
 
@@ -120,7 +120,7 @@ def arg_parsing(req):
     if len(remove):
         redirect(req, nuri.make())
 
-    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
+    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
 
     if match:
         report_name = match.group(1)
@@ -142,7 +142,7 @@ def matrix_report(req):
         reqargsplit = urllib.unquote_plus(req.args).split("&")
         if len(reqargsplit):
             for a in reqargsplit:
-                (c,d) = a.split("=")
+                (c, d) = a.split("=")
                 argsdict[c] = d
 
     scope = None
@@ -162,7 +162,8 @@ def matrix_report(req):
             # Otherwise, show an error or let the user select from
             # a list of scopes.
             page = MatrixScopesTemplate()
-            page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+            page.path = [("Home", "/"), ("Report", "/report/"),
+                         ("Prefix Matrix", False)]
             page.scopes = []
             for scope in databasescopes:
                 page.scopes.append(scope[0])
@@ -186,19 +187,22 @@ def matrix_report(req):
 
         if scope.version() == 6:
             end_net = getMaxLeaf(tree)
-            matrix = MatrixIPv6(scope,end_net=end_net)
+            matrix = MatrixIPv6(scope, end_net=end_net)
 
         elif scope.version() == 4:
             end_net = None
 
             if scope.prefixlen() < 24:
                 end_net = IP("/".join([scope.net().strNormal(),"27"]))
-                matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+                matrix = MatrixIPv4(scope, show_unused_addresses,
+                                    end_net=end_net)
 
             else:
                 max_leaf = getMaxLeaf(tree)
                 bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-                matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+                matrix = MatrixIPv4(scope, show_unused_addresses,
+                                    end_net=max_leaf,
+                                    bits_in_matrix=bits_in_matrix)
 
         else:
             raise UnknownNetworkTypeException, "version: " + str(scope.version())
@@ -244,7 +248,7 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
     nuri.setArguments(['offset', 'limit', 'export', 'exportcsv'], '')
-    for key,val in nuri.args.items():
+    for key, val in nuri.args.items():
         if val == "":
             del nuri.args[key]
 
@@ -294,7 +298,8 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
             namename = "Error"
             namelink = False
 
-        page.path = [("Home", "/"), ("Report", "/report/"), (namename,namelink)]
+        page.path = [("Home", "/"), ("Report", "/report/"),
+                     (namename, namelink)]
         page.title = "Report - "+namename
         old_uri = req.unparsed_uri
         page.old_uri = old_uri
@@ -313,9 +318,27 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
 
             #### A maintainable list of variables sent to template
             # Searching
-            page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
-            page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
-            page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
+            page.operators = {"eq": "=",
+                              "like": "~",
+                              "gt": "&gt;",
+                              "lt": "&lt;",
+                              "geq": "&gt;=",
+                              "leq": "&lt;=",
+                              "between": "[:]",
+                              "in":"(,,)",
+                              }
+            page.operatorlist = ["eq", "like", "gt", "lt", "geq", "leq",
+                                 "between", "in"]
+            page.descriptions = {
+                "eq": "equals",
+                "like": "contains substring (case-insensitive)",
+                "gt": "greater than",
+                "lt": "less than",
+                "geq": "greater than or equals",
+                "leq": "less than or equals",
+                "between": "between (colon-separated)",
+                "in":"is one of (comma separated)",
+                }
             # CSV Export dialects/delimiters
             page.delimiters = (",", ";", ":", "|")
 

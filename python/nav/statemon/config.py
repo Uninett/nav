@@ -37,19 +37,19 @@ from debug import debug
 try:
     # this module exists in a properly installed enviroment
     import nav.path
-    CONFIGFILEPATH=[nav.path.sysconfdir]
+    CONFIGFILEPATH = [nav.path.sysconfdir]
 except ImportError:
     # fallback to current dir++
-    CONFIGFILEPATH=['/usr/local/nav/local/etc/conf/','.']
+    CONFIGFILEPATH = ['/usr/local/nav/local/etc/conf/', '.']
 
 class Conf(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
-        self._configfile=None
+        self._configfile = None
         for path in CONFIGFILEPATH:
-            file=os.path.join(os.path.abspath(path),self._file)
+            file = os.path.join(os.path.abspath(path), self._file)
             try:
-                self._configfile=open(file, "r")
+                self._configfile = open(file, "r")
                 break
             except IOError:
                 pass
@@ -57,7 +57,7 @@ class Conf(dict):
         if self._configfile is None:
             #debug("Failed to open %s" % self._file)
             sys.exit(0)
-        self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
+        self._regexp = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
         self.parsefile()
         self._configfile.close()
 
@@ -71,41 +71,41 @@ class Conf(dict):
 
 def dbconf(*args, **kwargs):
     if _dbconf._instance is None:
-        _dbconf._instance=_dbconf(*args,**kwargs)
+        _dbconf._instance = _dbconf(*args, **kwargs)
     return _dbconf._instance
 
 class _dbconf(Conf):
-    _instance=None
+    _instance = None
     def __init__(self, *args, **kwargs):
-        self._file=kwargs.get('configfile','db.conf')
+        self._file = kwargs.get('configfile','db.conf')
         # Valid configoptions must be specified in this list
-        self.validoptions=[]
+        self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
 
 class _serviceconf(Conf):
-    _instance=None
+    _instance = None
     def __init__(self, *args, **kwargs):
-        self._file=kwargs.get('configfile','servicemon.conf')
-        self.validoptions=[]
+        self._file = kwargs.get('configfile', 'servicemon.conf')
+        self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
 
 
 def serviceconf(*args, **kwargs):
     if _serviceconf._instance is None:
-        _serviceconf._instance=_serviceconf(*args,**kwargs)
+        _serviceconf._instance = _serviceconf(*args, **kwargs)
     return _serviceconf._instance
 
 class _pingconf(Conf):
-    _instance=None
+    _instance = None
     def __init__(self, *args, **kwargs):
-        self._file=kwargs.get('configfile','pping.conf')
-        self.validoptions=[]
+        self._file = kwargs.get('configfile','pping.conf')
+        self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
 
 
 def pingconf(*args, **kwargs):
     if _pingconf._instance is None:
-        _pingconf._instance=_pingconf(*args,**kwargs)
+        _pingconf._instance = _pingconf(*args, **kwargs)
     return _pingconf._instance
 
 

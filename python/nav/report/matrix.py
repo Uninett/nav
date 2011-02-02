@@ -46,20 +46,22 @@ class Matrix:
     def getTemplateResponse(self):
         abstract()
 
-    def has_too_small_nets(self,net):
+    def has_too_small_nets(self, net):
         """Returns true if argument ``net'' has too many small subnets for the matrix."""
-        for net in getSubtree(self.tree,net):
+        for net in getSubtree(self.tree, net):
             if net.prefixlen() > self.end_net.prefixlen():
                 return True
         return False
 
     def extractMatrixNets(self):
         """These should be shown as horizontal rows in the matrix."""
-        return extractSubtreesWithPrefixLength(self.tree,self.end_net.prefixlen()-self.bits_in_matrix)
+        return extractSubtreesWithPrefixLength(
+            self.tree, self.end_net.prefixlen()-self.bits_in_matrix)
 
     def extractTreeNets(self):
         """These should be listed vertically in the leftmost column."""
-        return removeSubnetsWithPrefixLength(self.tree,self.end_net.prefixlen()-self.bits_in_matrix+1)
+        return removeSubnetsWithPrefixLength(
+            self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
 
 #because I'm a Java guy
 def abstract():
