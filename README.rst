@@ -41,5 +41,5 @@ licensed under the Apache License v2.0.
 
 Installation
 ------------
-See the file `INSTALL` for installation instructions.  See the file `NOTES`
-for release notes and upgrade instructions.
+See the file `INSTALL.rst` for installation instructions.  See the file
+`NOTES.rst` for release notes and upgrade instructions.
