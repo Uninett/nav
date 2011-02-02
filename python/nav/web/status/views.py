@@ -252,7 +252,7 @@ def move_section(request):
     except StatusPreference.DoesNotExist:
         new_message(request._req,
             'Could not find selected filter',
-            Messages.Error
+            Messages.ERROR
         )
         return HttpResponseRedirect(reverse('status-preferences'))
 
