@@ -1,3 +1,30 @@
+Version 3.8.0
+(released 3 February 2011)
+
+ User-visible features and improvements:
+
+  * The database schema can now be kept updated automatically using the new
+    `syncdb.py` program. Please see the `NOTES` file, and run the program as
+    soon as you've upgraded.
+
+  * NAV can now configure descriptions and access VLANs on your switch ports
+    when an SNMP write community is set for a switch.  This functionality is
+    accessible through the IP Device Info tool.
+
+  * SeedDB has been rewritten to use the Django framework (and has
+    subsequently been reduced from nearly 5000 lines of spaghetti code to just
+    below 2000 maintainable lines).
+
+  * The number of concurrent ipdevpoll jobs can now be limited on a per-job
+    basis, to ease the load on your system if so desired. See the annotated
+    `ipdevpoll.conf` file.
+
+ Bugfixes:
+
+  * LP#643550 (Include ipdevinfo links in switch search in machine tracker)
+  * LP#545029 (SmbChecker runs out of available file descriptors)
+
+
 Version 3.7.4
 (released 27 January 2011)
 
