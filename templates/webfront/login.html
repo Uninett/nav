@@ -34,12 +34,12 @@ After successfully logging in, you will be redirected to:<br />
 <form method="post" action="/index/login/">
     <input type="hidden" name="origin" value="{{ origin }}" />
     <p>
-        {{ form.username.label }}<br />
+        {{ form.username.label_tag }}<br />
         {{ form.username.errors }}
         {{ form.username }}
     </p>
     <p>
-        {{ form.password.label }}<br />
+        {{ form.password.label_tag }}<br />
         {{ form.password.errors }}
         {{ form.password }}
     </p>
