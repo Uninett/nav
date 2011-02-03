@@ -236,7 +236,8 @@ def switch_do_search(request):
             end_time__gt=from_time,
             **criteria
         ).order_by('sysname', 'module', 'mac', '-start_time').values(
-            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac'
+            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
+            'netbox__sysname'
         )
         swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
