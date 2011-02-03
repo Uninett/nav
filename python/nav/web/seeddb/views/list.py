@@ -178,7 +178,7 @@ def vlan_list(request):
     ).all()
     filter_form = VlanFilterForm(request.GET)
     value_list = (
-        'id', 'vlan', 'net_type', 'organization', 'usage', 'net_ident',
+        'net_type', 'vlan', 'organization', 'usage', 'net_ident',
         'description', 'prefixes')
     extra = {
         'active': {'vlan': True},
