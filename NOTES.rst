@@ -79,13 +79,34 @@ This program will use the settings from `db.conf` to connect to the NAV
 database.  It can also be used to create a NAV database from scratch.
 
 
+PortAdmin
+---------
+
+NAV can now configure switch port descriptions and native VLANs from the IP
+Device Info tool, provided that you have set an SNMP write community in
+SeedDB (which is also necessary for the Arnold tool to work).
+
+This functionality supports Cisco devices through proprietary MIBs.  Devices
+from other vendors are supported as long as they properly implement the
+Q-BRIDGE-MIB (RFC 2674) - This has been successfully tested on HP switches.
+Alcatel switches seem to block write access to the necessary Q-BRIDGE objects;
+we are still looking into this.
+
+Please do not forget to secure your SNMP v2c communications using best
+practices.  Limit SNMP communication with your devices to only the necessary
+IP addresses or ranges using access lists or similar techniques.  You don't
+want users on your network to sniff SNMP community strings and start
+configuring your devices, do you?
+
+
 Dependency changes
 ------------------
 The INSTALL file referred to the python package `egenix-mxdatetime` as a
 dependency.  This has been removed, as NAV stopped using it in version 3.6.
 You psycopg2 installation may still require it, though.
 
-Also, the following dependencies changed from version 3.6 to 3.7:
+Also, don't forget: The following dependencies changed from version 3.6 to
+3.7:
 
 * Python >= 2.5.0
 * PostgreSQL >= 8.3
