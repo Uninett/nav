@@ -69,6 +69,27 @@ class AlertAddressForm(forms.ModelForm):
         model = AlertAddress
         exclude = ('account',)
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        type = cleaned_data.get('type')
+        address = cleaned_data.get('address')
+        if type and address:
+            if type.handler == 'sms':
+                if not address.isdigit():
+                    self._errors['address'] = self.error_class(['Not a valid phone number'])
+                    del cleaned_data['address']
+                    del cleaned_data['type']
+            else:
+                # FIXME In Django 1.2 we can use validators
+                field = forms.EmailField()
+                try:
+                    field.clean(address)
+                except forms.ValidationError, e:
+                    self._errors['address'] = self.error_class(e.messages)
+                    del cleaned_data['address']
+                    del cleaned_data['type']
+        return cleaned_data
+
 class TimePeriodForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     profile = forms.ModelChoiceField(
