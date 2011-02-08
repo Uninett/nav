@@ -14,6 +14,8 @@ Contents:
    getting-started
    programs/index
 
+.. include:: ../README.rst
+
 Indices and tables
 ==================
 
