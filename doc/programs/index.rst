@@ -10,4 +10,4 @@ Contents:
    :maxdepth: 2
 
    snmptrapd
-
+   smsd
