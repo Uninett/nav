@@ -15,21 +15,17 @@ Usage
 For more help on usage, run ``smsd.py --help`` and see the ``smsd.conf`` config
 file.
 
-Development
-===========
-
-For more help on developing new queues or dispatchers, see the pydoc of the
-various modules in ``nav.smsd`` and the well documented source code.
 
 Message queues
 ==============
 
 Message queues are generic producers of SMS messages in `smsd`.  At the
-moment,, only the ``NAVDBQueue`` implementation is available, which will
-produce SMS messages from the ``smsq`` table in the NAV database.
+moment, only the :py:class:`nav.smsd.navdbqueue.NAVDBQueue` implementation is
+available, which will produce SMS messages from the ``smsq`` table in the NAV
+database.
 
 Other message queue implementations can be written using the same interface as
-implemented by ``NAVDBQueue``.
+implemented by :py:class:`nav.smsd.navdbqueue.NAVDBQueue`.
 
 Dispatchers
 ===========
@@ -143,10 +139,19 @@ UninettMailDispatcher
 Extending
 =========
 
-Write your own dispatcher by extending the :py:class:`nav.smsd.dispatcher.Dispatcher` class.
+Write your own dispatcher by extending the
+:py:class:`nav.smsd.dispatcher.Dispatcher` class.  You can also implement your
+own message queue by implementing the same interface as the
+:py:class:`nav.smsd.navdbqueue.NAVDBQueue` class.
 
 nav.smsd.dispatcher
 -------------------
 .. automodule:: nav.smsd.dispatcher
+   :members:
+   :undoc-members:
+
+nav.smsd.navdbqueue
+-------------------
+.. automodule:: nav.smsd.navdbqueue
    :members:
    :undoc-members:
