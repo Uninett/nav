@@ -139,3 +139,14 @@ UninettMailDispatcher
 
 	Unless you have a similar email-to-SMS gatway, this only works for
 	UNINETT.
+
+Extending
+=========
+
+Write your own dispatcher by extending the :py:class:`nav.smsd.dispatcher.Dispatcher` class.
+
+nav.smsd.dispatcher
+-------------------
+.. automodule:: nav.smsd.dispatcher
+   :members:
+   :undoc-members:
