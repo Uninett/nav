@@ -14,6 +14,7 @@ Contents:
    install
    getting-started
    programs/index
+   geomap/README
 
 .. include:: ../README.rst
 

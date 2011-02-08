@@ -1,21 +1,19 @@
-This directory contains Geomap, which shows networks on a geographical
-map.
+========
+ Geomap
+========
 
-The code is divided into a server-side part written in Python and a
-client-side part in JavaScript.  These are described separately below.
+The Geomap tool is a web app that renders your network topology on a
+geographical map, provided that you have seeded your room data with
+geographical coordinates.
 
-The server-side code lies in nav/web/geomap, the client-side code in
-media/js/geomap.
+Geomap is powered by OpenLayers, and the underlying map data is
+provided by OpenStreetMap.
 
-Contents of this file:
+The server-side part is written in Python and the client-side in
+JavaScript.  These are described separately below.
 
-* URLs and parameters
-* Server
-* Client
-* Problems/Future work
-* Hacking tips
-
-
+The server-side code is in the :py:mod:`nav.web.geomap` module,
+while the client-side code is in the directory ``media/js/geomap``.
 
 
 URLs and parameters
@@ -27,15 +25,13 @@ URLs
 
 There are two types of resources in Geomap:
 
--- The web page showing the map.
-   URL: /geomap/[variant]/
+1. The web page showing the map ( ``/geomap/[variant]/`` )
+2. Geographical network data in GeoJSON or KML format
+   ( ``/geo ap/[variant]/data?[parameters]`` )
 
--- Geographical network data in GeoJSON or KML format.
-   URL: /geomap/[variant]/data?[parameters]
-
-[variant] stands for a variant name defined in the configuration file.
-The URL /geomap redirects to /geomap/[v]/, where [v] is the first
-variant the user has access to.
+Where ``[variant]`` represents a variant name defined in the configuration
+file.  The URL ``/geomap`` redirects to ``/geomap/[v]/``, where ``[v]`` is the
+first variant the user has access to.
 
 
 Query string parameters
@@ -45,55 +41,59 @@ The map web page accepts the following parameters in the query string
 (these are used by the JavaScript code only; the server side code
 ignores them):
 
-bbox -- Bounding box of area to display.  The format of this field
-        follows the definition of the "box" parameter in the
-        OpenSearch Geo extension (see
-        http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_1#The_.22box.22_parameter)
+``bbox``
+  Bounding box of area to display.  The format of this field follows the
+  definition of the "box" parameter in the `OpenSearch Geo extension`_.
 
-lat, lon -- Position for center of map
+``lat`` and ``lon``
+  Position for center of map
 
-zoom -- Zoom level for map (0-18)
+``zoom``
+  Zoom level for map (0-18)
 
-layers -- Description of which layers to show.  For each layer in the
-          map, one of the characters 'B' (base layer, displayed), '0'
-          (base layer, not displayed), 'T' (non-base layer,
-          displayed), 'F' (non-base layer, not displayed).
+``layers``
+  Description of which layers to show.  For each layer in the map, one of the
+  characters 'B' (base layer, displayed), '0' (base layer, not displayed), 'T'
+  (non-base layer, displayed), 'F' (non-base layer, not displayed).
 
-time -- Selected time interval for load data.  Interval size (index,
-        1-5), dash, start time (YYYYMMDDhhmm).  The interval sizes
-        are: 1: month; 2: week; 3: day; 4: hour; 5: 5 minutes.  (See
-        media/js/geomap/TimeInterval.js)
+``time``
+  Selected time interval for load data.  Interval size (index, 1-5), dash,
+  start time (``YYYYMMDDhhmm`).  The interval sizes are: 1: month; 2: week; 3:
+  day; 4: hour; 5: 5 minutes.  (See ``media/js/geomap/TimeInterval.js``)
 
-The arguments (lat, lon, zoom, layers, time) are intended to be used
-together.  They specify (more or less) the complete state of the user
-interface, and are used by the «Link to this configuration» link,
-which sets up these arguments to reflect the current state.
+The arguments (``lat``, ``lon``, ``zoom``, ``layers``, ``time``) are intended
+to be used together.  They specify (more or less) the complete state of the
+user interface, and are used by the «Link to this configuration» link, which
+sets up these arguments to reflect the current state.
 
-The bbox argument is not intended to be used together with the other
-arguments (the arguments (lat, lon, zoom), if present, override the
-bbox argument).  The bbox argument is meant as a way for other
-applications to be able to create links to Geomap for showing a
-certain area.
+The ``bbox`` argument is not intended to be used together with the other
+arguments (the arguments ``lat``, ``lon`` and ``zoom``, if present, override
+the ``bbox`` argument).  The ``bbox`` argument is meant as a way for other
+applications to be able to create links to Geomap for showing a certain area.
 
 
 The data resource accepts the following parameters in the query
 string:
 
-format -- Data format for result, either 'geojson' or 'kml'.
+``format``
+  Data format for result, either ``geojson`` or ``kml``.
 
-bbox -- Bounding box of map area.
+``bbox``
+  Bounding box of map area.
 
-viewport{Width,Height} -- Size (in pixels) of map as shown in user agent.
+``viewport{Width,Height}``
+  Size (in pixels) of map as shown in user agent.
 
-limit -- How close (in pixels) two nodes may be before they are
-         collapsed to one.
+``limit``
+  How close (in pixels) two nodes may be before they are collapsed to one.
 
-time{Start,End} -- Time interval for load data, in the form expected
-                   by rrdfetch for its '--start' and '--end' options
-                   (see http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html)
+``time{Start,End}``
+  Time interval for load data, in the form expected by rrdfetch_ for its
+  ``--start`` and ``--end`` options.
 
 
-
+.. _OpenSearch Geo extension: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_1#The_.22box.22_parameter
+.. _rrdfetch: http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
 
 Server
 ======
@@ -106,37 +106,35 @@ Almost all the server-side code is involved with generating the data
 resource.  The web page showing the map requires almost no server-side
 processing.
 
-Data flows in pipeline style through the modules db, graph, features,
-output_formats; each of which has as its main purpose the
-transformation of data from one form to another.  Except for the data
-representations which constitute the interfaces from one part of the
-pipeline to the next, these modules are mutually independent.  The
-data flow is controlled by the function get_formatted_data in the
-views module.
+Data flows in pipeline style through the modules :py:mod:`db`,
+:py:mod:`graph`, :py:mod:`features`, :py:mod:`output_formats`; each of which
+has as its main purpose the transformation of data from one form to another.
+Except for the data representations which constitute the interfaces from one
+part of the pipeline to the next, these modules are mutually independent.  The
+data flow is controlled by the function :py:func:`views.get_formatted_data`.
 
-The conf module reads and parses Geomap's configuration file.  The
-utils module provides general utility functions/classes which are used
-freely in the other modules.
+The :py:mod:`conf` module reads and parses Geomap's configuration file.  The
+:py:mod:`utils` module provides general utility functions/classes which are
+used freely in the other modules.
 
 
 Data pipeline
 -------------
 
-The db module collects data from the database and RRD files based on
-the query string arguments.  The result is two dictionaries,
-representing netboxes and connections, respectively.  Each netbox is
-represented as a dictionary; each connection as two dictionaries (one
-for each end).
+The :py:mod:`db` module collects data from the database and `RRD` files based
+on the query string arguments.  The result is two dictionaries, representing
+netboxes and connections, respectively.  Each netbox is represented as a
+dictionary; each connection as two dictionaries (one for each end).
 
-The graph module provides the functions build_graph, which creates a
-graph structure from the dictionaries the db module creates; and
-simplify, which removes uninteresting things from such a graph.  The
-simplification consists of
+The :py:func:`graph.build_graph` function creates a graph structure from the
+dictionaries the :py:mod:`db` module creates, while :py:func:`graph.simplify`
+removes uninteresting things from such a graph.  The simplification consists
+of:
 
-(1) removing objects which are outside the viewing area; and
+1. removing objects which are outside the viewing area; and
 
-(2) reducing the level of detail by collapsing sets of objects which
-    are close to each other to single objects.
+2. reducing the level of detail by collapsing sets of objects which are close
+   to each other to single objects.
 
 The resulting simplified graph contains pointers to all the original
 data in the form of a tree in each node (since nodes are collapsed in
@@ -148,28 +146,27 @@ are sufficiently close to each other are combined to "places".  After
 the nodes are collapsed thus, any edges with the same two places as
 their endpoints are combined to one edge.
 
-The features module converts a graph to a set of "features",
-i.e. nodes and lines with geographical coordinates.  Each feature has
-an associated style (color and width/radius) and a specification of a
-popup box for the feature.
+The :py:mod:`features` module converts a graph to a set of "features",
+i.e. nodes and lines with geographical coordinates.  Each feature has an
+associated style (`color` and `width`/`radius`) and a specification of a popup
+box for the feature.
 
-The output_formats module converts a list of features to a string in
-GeoJSON or KML format (for KML output, some information is lost).
+The :py:mod:`output_formats` module converts a list of features to a string in
+`GeoJSON` or `KML` format (for `KML` output, some information is lost).
 
 
 Tricks to avoid reading RRD files: Cache, pseudo-laziness
 ---------------------------------------------------------
 
-Load data is read from RRD files.  Each netbox/connection has its own
-file (each connection actually has two), so we may end up reading very
-many files.  To avoid much file reading, we do two things:
+Load data is read from `RRD` files.  Each netbox/connection has its own file
+(each connection actually has two), so we may end up reading very many files.
+To avoid much file reading, we do two things:
 
-(1) Use a data structure inspired by lazy evaluation to avoid reading
-    files which are not needed.
+1. Use a data structure inspired by lazy evaluation to avoid reading files
+   which are not needed.
+2. Cache values read from RRD files.
 
-(2) Cache values read from RRD files.
-
-For (1), we use the lazy_dict class from utils.py.  An instance of
+For `1`, we use the :py:class:`utils.lazy_dict` class.  An instance of
 this class acts like a dictionary, but may contain values which are
 not computed before they are looked up.  This way, the code may be
 written almost as if all the files were read in the beginning (one
@@ -177,10 +174,8 @@ must be a little careful to avoid unintentionally causing all values
 to be evaluated), while only those files which turn out to be needed
 are actually read.
 
-For (2), we use Django's caching framework.  See the section labeled
-"Cache" in db.py.
-
-
+For `2`, we use Django's caching framework.  See the section labeled
+"Cache" in ``db.py``.
 
 
 Client
@@ -476,3 +471,4 @@ unfamiliar with JavaScript:
 
 * The Firebug extension to Firefox is _very_ helpful when debugging
   JavaScript code.
+
