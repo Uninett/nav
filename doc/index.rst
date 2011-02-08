@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    getting-started
+   snmptrapd
 
 Indices and tables
 ==================
