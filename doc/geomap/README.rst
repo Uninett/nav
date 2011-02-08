@@ -188,26 +188,28 @@ Overview
 The client-side part of Geomap is written in JavaScript and uses the
 OpenLayers library for all the difficult stuff.
 
-The file client-file-dependencies.svg shows dependency relations
-between the JavaScript files and libraries.  Rectangles represent
-JavaScript files, ellipses external libraries.  When a file depends on
-another both directly and indirectly, the direct relation is not
-drawn, to avoid cluttering the diagram with too many arrows.  The
-complete diagram would be something close to the transitive closure of
-the one drawn.
+.. image:: client-file-dependencies.svg
+   :width: 100%
 
-The file util.js is not shown in the diagram (all files implicitly
-depend on it).  This file contains general utility functions which are
-used in other files as if they were part of the standard library.
+This diagram shows dependency relations between the JavaScript files and
+libraries.  Rectangles represent JavaScript files, ellipses external
+libraries.  When a file depends on another both directly and indirectly, the
+direct relation is not drawn, to avoid cluttering the diagram with too many
+arrows.  The complete diagram would be something close to the transitive
+closure of the one drawn.
 
-Most of the files provide somewhat more general functionality than
-what is strictly needed in Geomap, and are intended to be mostly
-independent of each other.  The file geomap.py instantiates all needed
-things from the other files and connects them together.
+The file ``util.js`` is not shown in the diagram (all files implicitly depend
+on it).  This file contains general utility functions which are used in other
+files as if they were part of the standard library.
 
-The entry point for the client-side code is the function init, defined
-in geomap.py.  This function is called when the page is loaded,
-through the ONLOAD attribute on the BODY element.
+Most of the files provide somewhat more general functionality than what is
+strictly needed in Geomap, and are intended to be mostly independent of each
+other.  The file ``geomap.js`` instantiates all needed things from the other
+files and connects them together.
+
+The entry point for the client-side code is the function ``init``, defined in
+``geomap.js``.  This function is called when the page is loaded, through the
+``ONLOAD`` attribute on the ``BODY`` element.
 
 
 Filename conventions
