@@ -11,6 +11,7 @@ syntax: glob
 # Generated javadoc and build dirs
 */javadoc/*
 */build/*
+doc/_build
 
 # All sorts of filed generated from .in templates.
 java/build.properties
