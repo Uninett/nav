@@ -7,6 +7,7 @@ syntax: glob
 *.swp
 *.war
 *~
+.* 
 
 # Generated javadoc and build dirs
 */javadoc/*
