@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
 
    getting-started
-   snmptrapd
+   programs/index
 
 Indices and tables
 ==================
