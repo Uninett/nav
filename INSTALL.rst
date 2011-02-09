@@ -262,16 +262,15 @@ Change directories to the one containing cricket's `*.cgi` scripts and run the
 following::
 
   sudo mkdir /usr/local/nav/share/htdocs/cricket
-  sudo ln -s grapher.cgi /usr/local/nav/share/htdocs/cricket/
-  sudo ln -s mini-graph.cgi  /usr/local/nav/share/htdocs/cricket/
+  sudo ln -s $PWD/grapher.cgi /usr/local/nav/share/htdocs/cricket/
+  sudo ln -s $PWD/mini-graph.cgi  /usr/local/nav/share/htdocs/cricket/
   cd /usr/local/nav/share/htdocs/cricket
   sudo ln -s grapher.cgi index.cgi
   sudo cp /usr/local/nav/doc/cricket/public_html/cricket.css .
-  sudo sh -c 'echo "SetHandler none" > .htaccess'
 
 Also, find Cricket's images directory and symlink that as well::
 
-  sudo ln -s images /usr/local/nav/share/htdocs/cricket
+  sudo ln -s $PWD/images /usr/local/nav/share/htdocs/cricket
 
 
 You should now have a completely installed and integrated NAV. For a guide on
