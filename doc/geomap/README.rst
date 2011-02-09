@@ -6,8 +6,12 @@ The Geomap tool is a web app that renders your network topology on a
 geographical map, provided that you have seeded your room data with
 geographical coordinates.
 
-Geomap is powered by OpenLayers, and the underlying map data is
-provided by OpenStreetMap.
+Geomap is powered by OpenLayers_, and the underlying map data is
+provided by OpenStreetMap_.
+
+-----------------------
+Technical documentation
+-----------------------
 
 The server-side part is written in Python and the client-side in
 JavaScript.  These are described separately below.
@@ -92,9 +96,6 @@ string:
   ``--start`` and ``--end`` options.
 
 
-.. _OpenSearch Geo extension: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_1#The_.22box.22_parameter
-.. _rrdfetch: http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
-
 Server
 ======
 
@@ -178,8 +179,8 @@ For `2`, we use Django's caching framework.  See the section labeled
 "Cache" in ``db.py``.
 
 
-Client
-======
+Client-side
+===========
 
 
 Overview
@@ -215,12 +216,11 @@ The entry point for the client-side code is the function ``init``, defined in
 Filename conventions
 --------------------
 
-Any file whose name starts with an uppercase character defines a data
-type ("class") of the same name (and defines few or none other names
-at the top-level).  For some of the files which depend on OpenLayers,
-the data type defined is an extension of an OpenLayers class.  For
-other files, the data type definition consists of a constructor
-function and a prototype object.
+Any file whose name starts with an uppercase character defines a data type
+(`class`) of the same name (and defines few or no other names at the
+top-level).  For some of the files which depend on OpenLayers_, the data type
+defined is an extension of an OpenLayers class.  For other files, the data
+type definition consists of a constructor function and a prototype object.
 
 Any other file simply contains a collection of functions, and
 introduces no new named data types.
@@ -229,16 +229,18 @@ introduces no new named data types.
 External libraries
 ------------------
 
-* OpenLayers
+OpenLayers_
+~~~~~~~~~~~
 
-The OpenLayers library is included directly from the openlayers.org
-site.  The URL we use always points to the newest version.  This may
-cause problems in the future if anything our code depends on is
-changed in a non-compatible way.  On the other hand, keeping it at a
-fixed version has proved to be problematic because we include code
-from OpenStreetMap, and this code apparently depends on the newest
-version of OpenLayers (shortly after OpenLayers 2.8 was released,
-using the OpenStreetMap code with OpenLayers 2.7 did not work).
+The OpenLayers_ library is included directly from the http://openlayers.org
+site.  The URL we use always points to the newest version.  
+
+.. NOTE:: This may cause the NAV side of things to break if the OpenLayers API
+   changes in a non-compatible way. On the other hand, keeping it at a fixed
+   version has proved to be problematic because we include code from
+   OpenStreetMap, and this code apparently depends on the newest version of
+   OpenLayers (shortly after OpenLayers 2.8 was released, using the
+   OpenStreetMap code with OpenLayers 2.7 did not work).
 
 There are two sets of online code documentation pages for OpenLayers:
 API documentation and documentation of everything.  The first contains
@@ -249,31 +251,32 @@ However, there seems to be some "API" labels lacking here and there,
 so sometimes it is useful to compare with the full documentation (or
 the source code).
 
-API documentation for OpenLayers: http://dev.openlayers.org/apidocs/files/OpenLayers-js.html
-Full documentation for OpenLayers: http://dev.openlayers.org/docs/files/OpenLayers-js.html
-OpenLayers home page: http://openlayers.org/
+================================= ==========================================================
+API documentation for OpenLayers  http://dev.openlayers.org/apidocs/files/OpenLayers-js.html
+Full documentation for OpenLayers http://dev.openlayers.org/docs/files/OpenLayers-js.html
+================================= ==========================================================
 
-* OpenStreetMap
 
-We include a JavaScript file from OpenStreetMap which provides
-OpenLayers classes for showing OpenStreetMap data.
+OpenStreetMap_
+~~~~~~~~~~~~~~
+
+We include a JavaScript file from OpenStreetMap_ which provides OpenLayers
+classes for showing OpenStreetMap data.
 
 The reference to the file was found here:
 http://wiki.openstreetmap.org/wiki/OpenLayers_Simple_Example
 
-OpenStreetMap home page: http://www.openstreetmap.org/
 
-* Proj4js
+Proj4js_
+~~~~~~~~
 
-We include the Proj4js library for coordinate transformations.  We do
+We include the Proj4js_ library for coordinate transformations.  We do
 not use this library directly, only through OpenLayers.  (OpenLayers
 checks to see if Proj4js is available and uses it if it is).
 
-The library is necessary to perform the converions to/from UTM in
-coordinates.js, which again is used by PositionControl.js, which shows
+The library is necessary to perform the conversions to/from UTM in
+``coordinates.js``, which again is used by ``PositionControl.js``, which shows
 the coordinates for a point the user clicked on the map.
-
-Proj4js home page: http://proj4js.org/
 
 
 HTML/JavaScript interaction
@@ -281,21 +284,21 @@ HTML/JavaScript interaction
 
 The following conventions are used for relating JavaScript and HTML:
 
-Apart from the ONLOAD attribute on BODY, the HTML code (as it appears
-when sent to the client) contains no references to JavaScript.
-Whenever some reference from HTML elements to JavaScript is needed
-(for example a function call in an ONCLICK attribute), it is the
-JavaScript's responsibility to set this up by modifying the DOM.
+Apart from the ``ONLOAD`` attribute on ``BODY``, the HTML code (as it appears
+when sent to the client) contains no references to JavaScript.  Whenever some
+reference from HTML elements to JavaScript is needed (for example a function
+call in an ``ONCLICK`` attribute), it is the JavaScript's responsibility to
+set this up by modifying the DOM.
 
 Much of the JavaScript code does, however, expect certain elements to
 be present in the HTML code.  The elements are generally adressed by
 id.  To avoid very tight connections between the JavaScript and HTML,
 a JavaScript object which need to access an HTML element generally
-take the id of the element as argument instead of having it hardcoded.
+takes the id of the element as argument instead of having it hardcoded.
 JavaScript object which access several related HTML elements usually
 take a string used as common prefix for all ids as argument, and have
 the remaining parts hardcoded.  This strategy is used in
-TimeNavigator, Calendar and PositionControl.
+``TimeNavigator``, ``Calendar`` and ``PositionControl``.
 
 
 
@@ -308,11 +311,11 @@ Performance
 -----------
 
 On the test system and test data used, generating the
-/geomap/[variant]/data resource takes some time.  In the best cases,
+``/geomap/[variant]/data`` resource takes some time.  In the best cases,
 it takes one or a few seconds; in the worst, up to a minute.
 
 The major cause (by far) of the long processing time is reading of RRD
-files.  As discussed in the "Server" section above, we cache values
+files.  As discussed in the `Server`_ section above, we cache values
 from RRD files.  This is the reason why the time varies a lot (the
 worst cases of time usage occur only with empty cache).
 
@@ -324,7 +327,7 @@ hand, the data is usually not in cache, giving a "worst case"
 processing time.
 
 To improve the "best case" time, it is necessary to improve either the
-database queries or the Python code, or both.  The _very_ limited
+database queries or the Python code, or both.  The *very* limited
 profiling which has been performed suggests that both the database
 queries and the subsequent processing of the results are responsible
 for their fair share of the total processing time.  No "optimization"
@@ -345,11 +348,10 @@ Integration with Netmap
 
 Some ideas for integration between Geomap and Netmap:
 
-
-* Link from Geomap to Netmap.
-
-It should be relatively easy to add a "bbox" argument (with the same
-format as Geomap's bbox argument, see above) to Netmap and make it
+Link from Geomap to Netmap
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+It should be relatively easy to add a ``bbox`` argument (with the same
+format as Geomap's ``bbox`` argument, see above) to Netmap and make it
 show only things that are inside the specified area.  This could
 either be implemented in the Netmap client, in which case the server
 would have to include geographical coordinates in the GraphML document
@@ -358,14 +360,14 @@ forward the bbox argument to the server.
 
 If Netmap had such an argument, one could add a link in Geomap for
 showing the currently displayed area in Netmap.  The way to do this
-would be to listen on the map's "moveend" event to update the link
-each time the map is moved, and call getExtent() on the map to get the
+would be to listen on the map's ``moveend`` event to update the link
+each time the map is moved, and call ``getExtent()`` on the map to get the
 bounds to use in the link.
 (See http://dev.openlayers.org/apidocs/files/OpenLayers/Map-js.html)
 
 
-* Link from Netmap to Geomap.
-
+Link from Netmap to Geomap.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If Netmap could somehow produce a geographical bounding box for the
 part of the topology the user has zoomed in on, it could create a link
 to the same area in Geomap.  This may however in many cases not give
@@ -381,7 +383,7 @@ neighbors of the netbox in Netmap's graph are visible.
 
 If Netmap's GraphML data document is extended to include geographical
 coordinates, both of these strategies can be implemented in the Netmap
-client by computing a bounding box and using it as the bbox argument
+client by computing a bounding box and using it as the ``bbox`` argument
 to Geomap (see descriptions of query string parameters above).
 
 
@@ -399,44 +401,44 @@ Various small issues
 --------------------
 
 * The initial position and zoom level of the map (if none is specified
-  in the query string) is hardcoded in geomap.js, and the chosen
+  in the query string) is hardcoded in ``geomap.js``, and the chosen
   position be regarded as a bit too Trondheim-centric for general use.
+
   Some ideas for improvement:
 
-  * Make the initial position and zoom level configurable properties
-    (add them to the configuration file geomap/config.py).
+  * Make the initial position and zoom level configurable properties (add them
+    to the configuration file ``geomap/config.py``).
 
-  * Write some code to make a reasonable guess for a good default
-    position based on the positions of rooms in the database.
+  * Write some code to make a reasonable guess for a good default position
+    based on the positions of rooms in the database.
 
-* Geomap is tested almost exclusively in Firefox 3 on Ubuntu (it looks
-  like it is working in Opera 9 on Ubuntu too).  Since there is a lot
-  of JavaScript code here, there is great potential for differences
-  between browsers.  It would probably be a good idea to do some
-  testing in more browsers.
+* Geomap is tested almost exclusively in Firefox 3 on Ubuntu (it looks like it
+  is working in Opera 9 on Ubuntu too).  Since there is a lot of JavaScript
+  code here, there is great potential for differences between browsers.  It
+  would probably be a good idea to do some testing in more browsers.
 
 * If (when) the server, for some reason, fails in generating the data
   resource, the network information simply disappears from the map,
   with no error message given to the user.  This is probably not
   ideal, although users may not be very interested in hearing that a
-  GargleException occured on line 42 of obscurities.py either.  For
+  "GargleException occured on line 42 of obscurities.py" either.  For
   development, the Firebug extension to Firefox is very convenient --
   its console lists all the URLs requested by the script, so it is
   easy to follow the last one in order to see what the server said.
 
 * When loading the Geomap page, then waiting for a long time without
-  doing anything, the 'next' and 'last' buttons in the time selection
+  doing anything, the `next` and `last` buttons in the time selection
   remain disabled, even though the next time interval should be
   selectable (to be able to select a newer time interval, one must
   first change the time selection, for example by going one step back
-  or up).  This could be fixed by using JavaScript's setTimeout
+  or up).  This could be fixed by using JavaScript's ``setTimeout``
   function to update the user interface regularly.
 
 * If some users are interested in always seeing the newest data, it
-  could be useful to have a "most recent data" selection as an
+  could be useful to have a `most recent data` selection as an
   alternative to selecting a specific time interval.  When this
   selection is activated, the data could be updated regularly even
-  when the map is not moved (use setTimeout).  Implementing this is a
+  when the map is not moved (use ``setTimeout``).  Implementing this is a
   small matter of JavaScript programming.
 
 * When zooming far out, the network data has a tendency to disappear
@@ -448,11 +450,10 @@ Various small issues
   viewing area.  It should not be very difficult to come up with a
   hack to fix this.
 
-* The fix function in utils.py has a known error (conveniently, none
-  of the actual calls to the function cause this error to occur)
-  marked with a "TODO" comment.  It should probably be fixed.  (No,
-  the function is -- despite the name -- not able to fix itself.  Not
-  in that sense, at least).
+* The :py:func:`utils.fix` function has a known error (conveniently, none of
+  the actual calls to the function cause this error to occur) marked with a
+  `TODO` comment.  It should probably be fixed.  (No, the function is, despite
+  the name, able to fix itself.  Not in that sense, at least).
 
 
 
@@ -463,14 +464,20 @@ Hacking tips
 A large part of Geomap is JavaScript code.  A few tips for those
 unfamiliar with JavaScript:
 
-* Mozilla's "Core JavaScript Reference" describes the language and
-  builtin objects.  The 1.5 version (the code in Geomap tries to keep
-  itself at JavaScript 1.5 in the hope that it may not be very
-  incompatible with old or obscure JavaScript implementations) is
-  available at:
+* Mozilla's `Core JavaScript Reference`_ describes the language and builtin
+  objects (The Geomap code tries to keep itself at JavaScript 1.5 in the hope
+  that it may not be very incompatible with old or obscure JavaScript
+  implementations).
 
-  https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference
-
-* The Firebug extension to Firefox is _very_ helpful when debugging
+* The Firebug_ extension to Firefox is **very** helpful when debugging
   JavaScript code.
 
+
+
+.. _OpenLayers: http://openlayers.org/
+.. _OpenStreetMap: http://openstreetmap.org/
+.. _OpenSearch Geo extension: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_1#The_.22box.22_parameter
+.. _rrdfetch: http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
+.. _Proj4js: http://proj4js.org/
+.. _Core JavaScript Reference: https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference
+.. _Firebug: http://getfirebug.com/
