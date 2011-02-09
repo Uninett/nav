@@ -15,6 +15,7 @@ Contents:
    getting-started
    programs/index
    geomap/README
+   mailin/README
 
 .. include:: ../README.rst
 
