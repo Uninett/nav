@@ -6,11 +6,13 @@
 
 Dependencies
 ============
+
 This section specifies what software packages are needed to build and run NAV.
 Be aware that many of these packages have dependencies of their own.
 
 Build requirements
 ------------------
+
 To build NAV, you need at least the following:
 
  * make
@@ -24,6 +26,7 @@ To build NAV, you need at least the following:
 
 Runtime requirements
 --------------------
+
 To run NAV, these software packages are required:
 
  * Apache2
@@ -58,26 +61,28 @@ The following python modules are required:
 cause some NAV programs to crash.
 
 twisted-snmp has a known, unfixed bug with table retrievals on slow SNMP
-agents. The `contrib/patches` directory contains a recommended patch for this
-problem.
+agents. The ``contrib/patches`` directory contains a recommended patch for
+this problem.
 
 
 Recommended add-ons
 -------------------
+
 If you want to connect a mobile phone to your NAV server and enable SMS alerts
-in alert profiles, you will need to install the Gammu and python-gammu
+in alert profiles, you will need to install the `Gammu` and `python-gammu`
 packages.  The SMS damon can use plugins to dispatch SMS'es through other
 means, but using Gammu as an SMS dispatcher is the default.
 
-If you wish to use the Jabber plugin for alertengine, the python module xmpp
+If you wish to use the Jabber plugin for alertengine, the python module `xmpp`
 is required.
 
 
-Installing NAV
-==============
+Installation
+============
+
 To install NAV, first find where the JavaSNMP (from drexel.edu) library is
 installed on your system.  On Debian it will be located as
-`/usr/share/java/libsnmp-1.4.jar`.  This library needs to be available on the
+``/usr/share/java/libsnmp-1.4.jar``.  This library needs to be available on the
 Java compiler's classpath before you begin the build::
 
   export CLASSPATH=/usr/share/java/libsnmp-1.4.jar
@@ -88,33 +93,34 @@ Then build and install NAV::
   make
   make install
 
-You may need to run `./autogen.sh` first, if you obtained your copy of NAV
-directly from a Mercurial repository.
+.. NOTE:: If you obtained your copy of NAV directly from a Mercurial
+          repository, you may need to run ``./autogen.sh`` first.
 
 If you wish to configure NAV to run from a different location than the default
-`/usr/local/nav` you should specify a new directory using the `--prefix=`
-option of the configure script, e.g. `./configure --prefix=/opt/nav`.
+``/usr/local/nav`` you should specify a new directory using the ``--prefix=``
+option of the configure script, e.g. ``./configure --prefix=/opt/nav``.
 
 If you are building an RPM package (or similar) of NAV, you may wish to have
 the files installed in a physically different location (a temporary build
 directory) than what you configured the package for.  In this case, you should
-specify this build directory by adding `DESTDIR=/your/build/directory` to the
-`make install` command.
+specify this build directory by adding ``DESTDIR=/your/build/directory`` to the
+``make install`` command.
 
-If you omit the `CRICKETDIR` variable, which specifies the path to your
+If you omit the ``CRICKETDIR`` variable, which specifies the path to your
 Cricket installation's binaries, it will be assumed that these can be found in
-`${prefix}/cricket/cricket`, i.e.  `/usr/local/nav/cricket/cricket` if all
+``${prefix}/cricket/cricket``, i.e.  ``/usr/local/nav/cricket/cricket`` if all
 default values are unchanged.  A typical value for a Debian install is
-`/usr/share/cricket`.
+``/usr/share/cricket``.
 
 
 Initializing the database
 -------------------------
+
 Before NAV can run, the database schema must be installed in your PostgreSQL
 server.  NAV can create a database user and a database schema for you.  
 
-Choose a password for your NAV database user and set this in the `userpw_nav`
-in the `db.conf` config file. As the postgres superuser, run the following
+Choose a password for your NAV database user and set this in the ``userpw_nav``
+in the ``db.conf`` config file. As the `postgres` superuser, run the following
 command::
 
   cd sql
@@ -124,17 +130,18 @@ This will attempt to create a new database user, a new database and initialize
 it with NAV's schema.
 
 For more details on setting up PostgreSQL and initializing the schema, please
-refer to the `sql/README` file.
+refer to the ``sql/README`` file.
 
 
 Making the Python libraries available system-wide
 -------------------------------------------------
+
 By default, NAV's Python libraries are not installed in Python's
-`site-packages` directory.  To make them available system-wide, you need to
+``site-packages`` directory.  To make them available system-wide, you need to
 add the path to the libraries to Python's search path.
 
-One way of accomplishing this is altering Python's `sys.path` value at startup
-time, by modifying or adding your Python installation's `sitecustomize.py`
+One way of accomplishing this is altering Python's ``sys.path`` value at startup
+time, by modifying or adding your Python installation's ``sitecustomize.py``
 module, which is loaded every time python runs.  Add these lines::
 
   import sys
@@ -154,6 +161,7 @@ import nav without a hitch::
 
 Making the necessary Java libraries available to NAV
 ----------------------------------------------------
+
 The fastest way is to symlink the PostgreSQL JDBC driver and the JavaSNMP
 libraries to NAV's java library directory::
 
@@ -163,6 +171,7 @@ libraries to NAV's java library directory::
 
 Configuring Apache
 ------------------
+
 Legacy parts of NAV uses mod_python, and therefore requires an Apache 2
 server.  For the time being, NAV also requires being at the document root of
 its own Apache virtualhost.
@@ -179,6 +188,7 @@ config file, which needn't contain much more than this::
 
 Create users and groups
 -----------------------
+
 NAV processes should run as the navcron user, and preferably, a
 separate nav group should be added to the system::
 
@@ -203,6 +213,7 @@ and pid files::
 
 Integrating Cricket with NAV
 ----------------------------
+
 NAV will automatically create a cricket configuration tree and keep it synced
 based on the information retrieved from the monitored devices.
 
@@ -219,13 +230,13 @@ where to locate the configuration tree that NAV keeps.  Make sure that::
   $gConfigRoot = "/usr/local/nav/etc/cricket-config"
 
 Also make sure that the navcron user has write permissions to whatever
-directory the `$logDir` option points to.
+directory the ``$logDir`` option points to.
 
 Cricket comes with a file called subtree-sets, which contains some defaults
 that will be useless for us.  This file groups parts of the configuration tree
 that will collected during the same collect-subtree run.  You should replace
 Cricket's default version of this file with
-`/usr/local/nav/doc/cricket/cricket/subtree-sets`.
+``/usr/local/nav/doc/cricket/cricket/subtree-sets``.
 
 Cricket needs to know where to store its RRD data, we suggest in NAV's var
 directory.  Create a suitable directory here::
@@ -234,7 +245,7 @@ directory.  Create a suitable directory here::
     sudo chown navcron /usr/local/nav/var/cricket-data
 
 Now tell Cricket to put the files there, by editing
-`/usr/local/nav/etc/cricket-config/Defaults` and making sure that it
+``/usr/local/nav/etc/cricket-config/Defaults`` and making sure that it
 contains::
 
   Target  --default--
@@ -245,7 +256,7 @@ so far::
 
   sudo -u navcron cricket-compile
 
-NAV's `mcc.py` program will generate a new version of the configuration tree
+NAV's ``mcc.py`` program will generate a new version of the configuration tree
 every night around 5 am.  You kan manually update the configuration once
 you've seeded a bunch of devices into NAV and NAV has found their interfaces,
 instead of waiting till 5 am, by issuing the command::
@@ -255,10 +266,11 @@ instead of waiting till 5 am, by issuing the command::
 
 Integrating the Cricket web interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Cricket comes with its own CGI based web interface for browsing the collected
 statistics.  To make this interface available under NAV's web pages, you can
-symlink Cricket's cgi scripts into a directory under NAV's document root.
-Change directories to the one containing cricket's `*.cgi` scripts and run the
+symlink Cricket's CGI scripts into a directory under NAV's document root.
+Change directories to the one containing Cricket's CGI scripts and run the
 following::
 
   sudo mkdir /usr/local/nav/share/htdocs/cricket
@@ -275,4 +287,4 @@ Also, find Cricket's images directory and symlink that as well::
 
 
 You should now have a completely installed and integrated NAV. For a guide on
-how to get started, please refer to the file `doc/getting-started.txt`.
+how to get started, please refer to the file ``doc/getting-started.rst``.
