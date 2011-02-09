@@ -74,7 +74,8 @@ Please tell us about successful installs on other setups.
 
 Installation
 ============
-For installation instructions, see INSTALL.txt
+
+.. include:: INSTALL.rst
 
 
 Usage
