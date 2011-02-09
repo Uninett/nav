@@ -165,10 +165,11 @@ Restart FreeRADIUS, and you should be good to go.
 Installing the error log module
 -------------------------------
 
-    Step 1: Configuring the database
-    Step 2: Installing the parsing script on the radius server
-    Step 3: Configuring the error log module subsystem
+Step 1: Configuring the database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Edit ``pg_hba.conf`` on the database server to allow connections from the
+FreeRADIUS server.
 
 Step 2: Installing and starting the parsing script on the radius server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
