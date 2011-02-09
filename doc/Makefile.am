@@ -2,7 +2,7 @@ nobase_dist_doc_DATA = \
 	getting-started.rst \
         $(wildcard cricket/Defaults cricket/*/Defaults cricket/*/*/Defaults) \
 	$(wildcard mailin/README mailin/alertmsg.d/*) \
-	radius/README radius/INSTALL
+	radius/README.rst radius/INSTALL
 
 # Makefile for Sphinx documentation
 #

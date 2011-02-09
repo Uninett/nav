@@ -16,6 +16,7 @@ Contents:
    programs/index
    geomap/README
    mailin/README
+   radius/README
 
 .. include:: ../README.rst
 
