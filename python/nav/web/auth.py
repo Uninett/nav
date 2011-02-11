@@ -135,7 +135,8 @@ def authenticate(username, password):
                 # We're authenticated now
                 auth = True
 
-    if account and account.ext_sync == 'ldap' and ldapAuth.availble and not auth:
+    if (account and account.ext_sync == 'ldap' and
+        ldapAuth.available and not auth):
         try:
             auth = ldapAuth.authenticate(username, password)
         except ldapAuth.Error:
@@ -145,6 +146,8 @@ def authenticate(username, password):
             if auth:
                 account.set_password(password)
                 account.save()
+            else:
+                return
 
     if account and not auth:
         auth = account.check_password(password)
