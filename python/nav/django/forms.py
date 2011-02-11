@@ -18,6 +18,7 @@
 from django import forms
 
 from nav.util import is_valid_cidr
+from nav.django import validators
 
 class CIDRField(forms.CharField):
     """CIDR address text field with validation"""
@@ -28,3 +29,10 @@ class CIDRField(forms.CharField):
                 "Value must be a valid CIDR address")
         else:
             return super(CIDRField, self).clean(value)
+
+class PointField(forms.CharField):
+    def clean(self, value):
+        if validators.is_valid_point_string(value):
+            return super(PointField, self).clean(value)
+        raise forms.ValidationError(
+            "Invalid format. Point field format is '(x,y)'.")

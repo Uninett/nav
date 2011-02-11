@@ -23,6 +23,7 @@ from django.db import models, connection
 from django.core import exceptions
 
 from nav.util import is_valid_cidr, is_valid_ip
+from nav.django import forms, validators
 
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value):
@@ -70,13 +71,11 @@ class PointField(models.CharField):
     def to_python(self, value):
         if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, (str, unicode)):
-            assert value.startswith('(')
-            assert value.endswith(')')
-            assert len(value.split(',')) == 2
-            noparens = value[1:-1]
-            latitude, longitude = noparens.split(',')
-            return (Decimal(latitude), Decimal(longitude))
+        if isinstance(value, basestring):
+            if validators.is_valid_point_string(value):
+                noparens = value[1:-1]
+                latitude, longitude = noparens.split(',')
+                return (Decimal(latitude.strip()), Decimal(longitude.strip()))
         raise exceptions.ValidationError(
             "This value must be a point-string.")
 
@@ -85,3 +84,8 @@ class PointField(models.CharField):
             return None
         if isinstance(value, tuple):
             return '(%s,%s)' % tuple
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': forms.PointField}
+        defautls.update(kwargs)
+        return super(PointField, self).formfield(**defaults)
