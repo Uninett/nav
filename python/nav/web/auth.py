@@ -146,6 +146,8 @@ def authenticate(username, password):
             if auth:
                 account.set_password(password)
                 account.save()
+            else:
+                return
 
     if account and not auth:
         auth = account.check_password(password)
