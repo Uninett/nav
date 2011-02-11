@@ -58,3 +58,10 @@ class sms(dispatcher):
             pass
 
         return '%s: No sms message for %d' % (alert.netbox, alert.id)
+
+    @staticmethod
+    def is_valid_address(address):
+        if address.isdigit():
+            return True
+        else:
+            return False

@@ -130,20 +130,24 @@ def authenticate(username, password):
                     name=user.getRealName(),
                     ext_sync='ldap'
                 )
+                account.set_password(password)
+                account.save()
+                # We're authenticated now
                 auth = True
+
+    if account and account.ext_sync == 'ldap' and ldapAuth.availble and not auth:
+        try:
+            auth = ldapAuth.authenticate(username, password)
+        except ldapAuth.Error:
+            # Fallback to stored password if ldap is unavailable
+            auth = False
+        else:
+            if auth:
                 account.set_password(password)
                 account.save()
 
     if account and not auth:
-        if account.ext_sync == 'ldap' and ldapAuth.available:
-            # Try to authenticate with LDAP if user has specified this.
-            auth = ldapAuth.authenticate(username, password)
-            if auth:
-                account.set_password(password)
-                account.save()
-        else:
-            # Authenticate against database
-            auth = account.check_password(password)
+        auth = account.check_password(password)
 
     if auth and account:
         return account
