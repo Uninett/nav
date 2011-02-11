@@ -519,10 +519,7 @@ class Vlan(Shadow):
             return NetType.get('unknown')
 
         net_type = 'lan'
-        # Get the number of router ports attached to this prefix
-        port_count = manage.GwPortPrefix.objects.filter(
-            prefix__net_address=str(prefix),
-            interface__netbox__category__id__in=('GSW', 'GW')).count()
+        router_count = self._get_router_count_for_prefix(prefix)
 
         if prefix.version() == 6 and prefix.prefixlen() == 128:
             net_type = 'loopback'
@@ -530,13 +527,21 @@ class Vlan(Shadow):
             if prefix.prefixlen() == 32:
                 net_type = 'loopback'
             elif prefix.prefixlen() == 30:
-                net_type = port_count == 1 and 'elink' or 'link'
-        if port_count > 2:
+                net_type = router_count == 1 and 'elink' or 'link'
+        if router_count > 2:
             net_type = 'core'
-        elif port_count == 2:
+        elif router_count == 2:
             net_type = 'link'
 
         return NetType.get(net_type)
+
+    @staticmethod
+    def _get_router_count_for_prefix(net_address):
+        router_count = manage.Netbox.objects.filter(
+            interface__gwportprefix__prefix__net_address=str(net_address),
+            category__id__in=('GW', 'GSW')
+            ).distinct().count()
+        return router_count
 
     def prepare(self, containers):
         """Prepares this VLAN object for saving.

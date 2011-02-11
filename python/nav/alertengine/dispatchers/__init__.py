@@ -35,6 +35,7 @@ for examples.
 
 import logging
 import os
+from django.forms import EmailField, ValidationError
 
 from nav.models.event import AlertQueueMessage
 
@@ -72,6 +73,10 @@ class dispatcher:
 
         return "%s: No '%s' message for %d" % (alert.netbox, message_type, alert.id)
 
+    @staticmethod
+    def is_valid_address(address):
+        raise NotImplementedError
+
 class DispatcherException(Exception):
     '''Raised when alert could not be sent temporarily and sending should be
        retried'''
@@ -81,3 +86,12 @@ class FatalDispatcherException(DispatcherException):
     '''Raised when alert could not be sent and further attempts at sending
        should be ditched'''
     pass
+
+def is_valid_email(address):
+    # FIXME In Django 1.2 we can use validators
+    field = EmailField()
+    try:
+        field.clean(address)
+    except ValidationError, e:
+        return False
+    return True
