@@ -24,6 +24,7 @@ import sys
 import os
 import logging
 import signal
+import time
 from optparse import OptionParser
 
 from twisted.internet import reactor
@@ -59,7 +60,8 @@ class IPDevPollProcess(object):
         from schedule import JobScheduler
 
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run)
-        reactor.run()
+        reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
+        reactor.run(installSignalHandlers=0)
 
     def sighup_handler(self, signum, frame):
         """Reopens log files."""
@@ -72,8 +74,18 @@ class IPDevPollProcess(object):
     def sigterm_handler(self, signum, frame):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warn("SIGTERM received: Shutting down")
-        logging.shutdown()
+        self._shutdown_start_time = time.time()
         reactor.callFromThread(reactor.stop)
+
+    def shutdown(self):
+        self._log_shutdown_time()
+        logging.shutdown()
+
+    def _log_shutdown_time(self):
+        sequence_time = time.time() - self._shutdown_start_time
+        self._logger.warn("Shutdown sequence completed in %.02f seconds",
+                          sequence_time)
+
 
 class CommandProcessor(object):
     """Processes the command line and starts ipdevpoll."""
