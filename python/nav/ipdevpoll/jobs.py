@@ -18,8 +18,8 @@ import time
 import datetime
 import pprint
 import logging
-
-from twisted.internet import defer, threads
+import threading
+from twisted.internet import defer, threads, reactor
 from twistedsnmp import snmpprotocol, agentproxy
 
 from nav.util import round_robin
@@ -56,7 +56,7 @@ class JobHandler(object):
     def __init__(self, name, netbox, plugins=None):
         self.name = name
         self.netbox = netbox
-        self.cancelled = False
+        self.cancelled = threading.Event()
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
@@ -137,8 +137,7 @@ class JobHandler(object):
             return failure
 
         def next_plugin(result=None):
-            if self.cancelled:
-                return
+            self.raise_if_cancelled()
             try:
                 plugin_instance = plugins.next()
             except StopIteration:
@@ -158,6 +157,8 @@ class JobHandler(object):
 
     def run(self):
         """Starts a polling job for netbox and returns a Deferred."""
+        shutdown_trigger_id = reactor.addSystemEventTrigger(
+            "before", "shutdown", self.cancel)
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
@@ -167,6 +168,7 @@ class JobHandler(object):
                           self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
+            reactor.removeSystemEventTrigger(shutdown_trigger_id)
             self._logger.info("Job %s for %s done.", self.name,
                               self.netbox.sysname)
             self._log_timings()
@@ -192,7 +194,7 @@ class JobHandler(object):
             return failure
 
         def save(result):
-            if self.cancelled:
+            if self.cancelled.isSet():
                 return wrap_up_job(result)
 
             df = self.save_container()
@@ -212,8 +214,8 @@ class JobHandler(object):
 
         Job stops at the earliest convenience.
         """
-        self.cancelled = True
-        self._logger.warning("Cancelling running job")
+        self.cancelled.set()
+        self._logger.info("Cancelling running job")
 
     def _reset_timers(self):
         self._start_time = datetime.datetime.now()
@@ -290,6 +292,7 @@ class JobHandler(object):
 
         """
         for cls in self.containers.keys():
+            self.raise_if_cancelled()
             cls.prepare_for_save(self.containers)
 
     def cleanup_containers_after_save(self):
@@ -301,7 +304,10 @@ class JobHandler(object):
                            len(self.containers), self.containers.keys())
         try:
             for cls in self.containers.keys():
+                self.raise_if_cancelled()
                 cls.cleanup_after_save(self.containers)
+        except AbortedJobError:
+            raise
         except Exception:
             self._logger.exception("Caught exception during cleanup. "
                                   "Last class = %s",
@@ -325,6 +331,7 @@ class JobHandler(object):
                         [(id(o), o) for o in self.storage_queue]))
 
             while self.storage_queue:
+                self.raise_if_cancelled()
                 obj = self.storage_queue.pop()
                 obj_model = obj.convert_to_model(self.containers)
                 if obj.delete and obj_model:
@@ -356,6 +363,8 @@ class JobHandler(object):
                                          pprint.pformat(self.containers))
 
             return total_time
+        except AbortedJobError:
+            raise
         except Exception:
             self._logger.exception("Caught exception during save. "
                                    "Last object = %s. Last model: %s",
@@ -383,6 +392,11 @@ class JobHandler(object):
     def container_factory(self, container_class, key):
         """Container factory function"""
         return self.containers.factory(key, container_class)
+
+    def raise_if_cancelled(self):
+        """Raises an AbortedJobError if the current job is cancelled"""
+        if self.cancelled.isSet():
+            raise AbortedJobError("Job was already cancelled")
 
 
 def get_shadow_sort_order():
