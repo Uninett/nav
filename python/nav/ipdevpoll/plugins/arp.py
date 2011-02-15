@@ -25,7 +25,7 @@ IP-MIB contains two tables:
   ipNetToPhysicalTable  -- current, address version agnostic table
 
 IPV6-MIB has been abandoned in favor of the revised IP-MIB, but has one table:
-  ipv6NetToMediaTable 
+  ipv6NetToMediaTable
 
 CISCO-IETF-IP-MIB       -- based on an early draft of the revised IP-MIB
   cInetNetToMediaTable
@@ -35,23 +35,19 @@ the name for historical reasons.
 
 """
 
-import logging
 import operator
 from IPy import IP
 from datetime import datetime, timedelta
-import pprint
 
 from twisted.internet import defer, threads
-from twisted.python.failure import Failure
 
-from nav.mibs.ip_mib import IpMib, IndexToIpException
+from nav.mibs.ip_mib import IpMib
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.models import manage
 from nav.ipdevpoll import Plugin, get_class_logger
 from nav.ipdevpoll import storage, shadows
-from nav.ipdevpoll.utils import binary_mac_to_hex, truncate_mac, find_prefix
 from nav.ipdevpoll.utils import autocommit
 
 class Arp(Plugin):
@@ -83,7 +79,7 @@ class Arp(Plugin):
         if not ipv6_address_in_mappings(mappings):
             ipv6_mib = Ipv6Mib(self.agent)
             ipv6_mappings = yield ipv6_mib.get_ifindex_ip_mac_mappings()
-            self._logger.debug("Found %d mappings in IPV6-MIB", 
+            self._logger.debug("Found %d mappings in IPV6-MIB",
                                len(ipv6_mappings))
             mappings.update(ipv6_mappings)
 
@@ -91,7 +87,7 @@ class Arp(Plugin):
         if len(mappings) == 0 or not ipv6_address_in_mappings(mappings):
             cisco_ip_mib = CiscoIetfIpMib(self.agent)
             cisco_ip_mappings = yield cisco_ip_mib.get_ifindex_ip_mac_mappings()
-            self._logger.debug("Found %d mappings in CISCO-IETF-IP-MIB", 
+            self._logger.debug("Found %d mappings in CISCO-IETF-IP-MIB",
                                len(cisco_ip_mappings))
             mappings.update(cisco_ip_mappings)
 
@@ -232,7 +228,7 @@ def ipv6_address_in_mappings(mappings):
     Mappings must be an iterable of tuples: (foo, ip, bar).
 
     """
-    for foo, ip, bar in mappings:
+    for _, ip, _ in mappings:
         if ip.version() == 6:
             return True
     return False
