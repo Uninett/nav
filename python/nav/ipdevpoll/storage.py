@@ -47,7 +47,9 @@ class MetaShadow(type):
         if shadowclass is None:
             return
 
-        field_names = [f.name for f in shadowclass._meta.fields]
+        _meta = getattr(shadowclass, '_meta')
+        setattr(mcs, '_meta', _meta)
+        field_names = [f.name for f in _meta.fields]
         setattr(mcs, '_fields', field_names)
         for fname in field_names:
             setattr(mcs, fname, None)
@@ -75,7 +77,6 @@ class Shadow(object):
     >>>
 
     """
-    #__shadowclass__ = None
     __metaclass__ = MetaShadow
     __lookups__ = []
 
@@ -95,7 +96,7 @@ class Shadow(object):
         if args:
             obj = args[0]
             if isinstance(obj, self.__class__.__shadowclass__):
-                for field in self.__class__._fields:
+                for field in self._fields:
                     setattr(self, field, getattr(obj, field))
             else:
                 raise ValueError("First argument is not a %s instance" %
@@ -185,7 +186,7 @@ class Shadow(object):
     def copy(self, other):
         """Copies the attributes of another instance (shallow)"""
         if isinstance(other, self.__class__):
-            for field in self.__class__._fields:
+            for field in self._fields:
                 setattr(self, field, getattr(other, field))
         else:
             raise ValueError("First argument is not a %s instance" %
@@ -202,8 +203,7 @@ class Shadow(object):
 
         """
         dependencies = []
-        django_model = cls.__shadowclass__
-        for field in django_model._meta.fields:
+        for field in cls._meta.fields:
             if issubclass(field.__class__,
                           django.db.models.fields.related.ForeignKey):
                 django_dependency = field.rel.to
@@ -263,7 +263,7 @@ class Shadow(object):
         """Return a reference to the corresponding Django model's primary key
         attribute.
         """
-        return self.__shadowclass__._meta.pk
+        return self._meta.pk
 
     def get_primary_key(self):
         """Return the value of the primary key, if set."""
@@ -306,7 +306,7 @@ class Shadow(object):
             try:
                 model = self.__shadowclass__.objects.get(pk=pkey_value)
             except self.__shadowclass__.DoesNotExist:
-                pkey_type = self.__shadowclass__._meta.pk.__class__
+                pkey_type = self._meta.pk.__class__
                 if pkey_type == django.db.models.fields.AutoField:
                     raise
                 else:
