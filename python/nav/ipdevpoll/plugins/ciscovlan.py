@@ -44,7 +44,7 @@ class CiscoVlan(Plugin):
         """This plugin handles netboxes"""
         return True
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def handle(self):
         """Plugin entrypoint"""
 
@@ -53,19 +53,10 @@ class CiscoVlan(Plugin):
         self.ciscovtp = CiscoVTPMib(self.agent)
         self.ciscovm = CiscoVlanMembershipMib(self.agent)
 
-        dw = defer.waitForDeferred(
-            self.ciscovtp.get_trunk_enabled_vlans(as_bitvector=True))
-        yield dw
-        enabled_vlans = dw.getResult()
-
-        dw = defer.waitForDeferred(self.ciscovtp.get_trunk_native_vlans())
-        yield dw
-        native_vlans = dw.getResult()
-
-        dw = defer.waitForDeferred(self.ciscovm.get_vlan_membership())
-        yield dw
-        vlan_membership = dw.getResult()
-
+        enabled_vlans = yield self.ciscovtp.get_trunk_enabled_vlans(
+            as_bitvector=True)
+        native_vlans = yield self.ciscovtp.get_trunk_native_vlans()
+        vlan_membership = yield self.ciscovm.get_vlan_membership()
 
         self._store_access_ports(vlan_membership)
         self._store_trunk_ports(native_vlans, enabled_vlans)

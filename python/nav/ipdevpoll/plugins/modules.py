@@ -51,20 +51,17 @@ class Modules(Plugin):
         super(Modules, self).__init__(*args, **kwargs)
         self.alias_mapping = {}
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting ENTITY-MIB module data")
         entitymib = EntityMib(self.agent)
 
-        dw = defer.waitForDeferred(entitymib.retrieve_table('entPhysicalTable'))
-        yield dw
-        physical_table = entitymib.translate_result(dw.getResult())
+        df = entitymib.retrieve_table('entPhysicalTable')
+        df.addCallback(entitymib.translate_result)
+        physical_table = yield df
 
-        dw = defer.waitForDeferred(
-            entitymib.retrieve_column('entAliasMappingIdentifier'))
-        yield dw
-        alias_mapping = dw.getResult()
-
+        alias_mapping = yield entitymib.retrieve_column(
+            'entAliasMappingIdentifier')
         self.alias_mapping = self._process_alias_mapping(alias_mapping)
         self._process_entities(physical_table)
 

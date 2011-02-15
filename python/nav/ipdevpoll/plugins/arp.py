@@ -65,31 +65,24 @@ class Arp(Plugin):
         """This will only be useful on layer 3 devices, i.e. GW/GSW devices."""
         return netbox.category.id in ('GW', 'GSW')
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def handle(self):
         # Start by checking the prefix cache
         prefix_cache_age = datetime.now() - self.prefix_cache_update_time
         if prefix_cache_age > self.prefix_cache_max_age:
-            waiter = defer.waitForDeferred(self.__class__._update_prefix_cache())
-            yield waiter
-            waiter.getResult()
+            yield self._update_prefix_cache()
 
         self._logger.debug("Collecting IP/MAC mappings")
 
         # Fetch standard MIBs
         ip_mib = IpMib(self.agent)
-        waiter = defer.waitForDeferred(ip_mib.get_ifindex_ip_mac_mappings())
-        yield waiter
-        mappings = waiter.getResult()
+        mappings = yield ip_mib.get_ifindex_ip_mac_mappings()
         self._logger.debug("Found %d mappings in IP-MIB", len(mappings))
 
         # Try IPV6-MIB if no IPv6 results were found in IP-MIB
         if not ipv6_address_in_mappings(mappings):
             ipv6_mib = Ipv6Mib(self.agent)
-            waiter = defer.waitForDeferred(
-                ipv6_mib.get_ifindex_ip_mac_mappings())
-            yield waiter
-            ipv6_mappings = waiter.getResult()
+            ipv6_mappings = yield ipv6_mib.get_ifindex_ip_mac_mappings()
             self._logger.debug("Found %d mappings in IPV6-MIB", 
                                len(ipv6_mappings))
             mappings.update(ipv6_mappings)
@@ -97,20 +90,15 @@ class Arp(Plugin):
         # If we got no results, or no IPv6 results, try vendor specific MIBs
         if len(mappings) == 0 or not ipv6_address_in_mappings(mappings):
             cisco_ip_mib = CiscoIetfIpMib(self.agent)
-            waiter = defer.waitForDeferred(
-                cisco_ip_mib.get_ifindex_ip_mac_mappings())
-            yield waiter
-            cisco_ip_mappings = waiter.getResult()
+            cisco_ip_mappings = yield cisco_ip_mib.get_ifindex_ip_mac_mappings()
             self._logger.debug("Found %d mappings in CISCO-IETF-IP-MIB", 
                                len(cisco_ip_mappings))
             mappings.update(cisco_ip_mappings)
 
-        waiter = defer.waitForDeferred(self._process_data(mappings))
-        yield waiter
-        waiter.getResult()
+        yield self._process_data(mappings)
 
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def _process_data(self, mappings):
         """Process collected mapping data.
 
@@ -124,10 +112,8 @@ class Arp(Plugin):
         found_mappings = set((ip, mac) for (ifindex, ip, mac) in mappings)
 
         # Get open mappings from database to compare with
-        waiter = defer.waitForDeferred(self._load_existing_mappings())
-        yield waiter
-        open_mappings = waiter.getResult()
-        
+        open_mappings = yield self._load_existing_mappings()
+
         new_mappings = found_mappings.difference(open_mappings)
         expireable_mappings = set(open_mappings).difference(found_mappings)
 
@@ -139,9 +125,8 @@ class Arp(Plugin):
         self._expire_arp_records(open_mappings[mapping]
                                  for mapping in expireable_mappings)
 
-        return
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def _load_existing_mappings(self):
         """Load the existing ARP records for this box from the db.
 
@@ -154,19 +139,15 @@ class Arp(Plugin):
             netbox__id=self.netbox.id,
             end_time__gte=datetime.max,
         )
-        waiter = defer.waitForDeferred(
-            threads.deferToThread(
-                storage.shadowify_queryset_and_commit,
-                open_arp_records_queryset
-                ))
-        yield waiter
-        open_arp_records = waiter.getResult()
+        open_arp_records = yield threads.deferToThread(
+            storage.shadowify_queryset_and_commit,
+            open_arp_records_queryset)
         self._logger.debug("Loaded %d open records from arp",
                            len(open_arp_records))
 
         open_mappings = dict(((IP(arp.ip), arp.mac), arp.id)
                              for arp in open_arp_records)
-        yield open_mappings
+        defer.returnValue(open_mappings)
 
 
     @classmethod

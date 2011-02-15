@@ -46,15 +46,12 @@ class OidProfiler(Plugin):
     def handle(self):
         return get_all_snmpoids().addCallback(self._query_oids)
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def _query_oids(self, all_oids):
         """Query the netbox for all oids in all_oids"""
         supported_oids = []
         for snmpoid in all_oids:
-            waiter = defer.waitForDeferred(
-                self._verify_support(snmpoid))
-            yield waiter
-            support = waiter.getResult()
+            support = self._verify_support(snmpoid)
 
             if support:
                 self._logger.debug("%s is supported", snmpoid.oid_key)
@@ -62,11 +59,8 @@ class OidProfiler(Plugin):
             else:
                 self._logger.debug("%s is NOT supported", snmpoid.oid_key)
 
-        deferred = self._get_current_profile()
-        deferred.addCallback(self._update_profile, supported_oids)
-        waiter = defer.waitForDeferred(deferred)
-        yield waiter
-        waiter.getResult()
+        current_profile = yield self._get_current_profile()
+        self._update_profile(current_profile, supported_oids)
 
     def _get_current_profile(self):
         """Get the current snmp profile of the box."""
