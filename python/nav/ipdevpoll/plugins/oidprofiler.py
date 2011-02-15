@@ -29,6 +29,7 @@ administrators email inbox.
 """
 import logging
 
+from twisted.python.failure import Failure
 from twisted.internet import defer, threads, reactor
 from pysnmp.asn1.oid import OID
 
@@ -171,7 +172,7 @@ def get_next(agent, oid, timeout=2.0, retry_count=4):
         key = agent.getRequestKey(request)
         agent.send(request.encode())
     except socket.error, err:
-        return defer.fail(failure.Failure())
+        return defer.fail(Failure(err))
 
     def as_dictionary(value):
         try:
