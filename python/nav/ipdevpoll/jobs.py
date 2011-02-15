@@ -29,7 +29,7 @@ from nav.ipdevpoll import get_context_logger
 import storage
 import shadows
 from plugins import plugin_registry
-import utils
+from nav.ipdevpoll import db
 from utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
@@ -269,8 +269,8 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @utils.autocommit
-        @utils.cleanup_django_debug_after
+        @db.autocommit
+        @db.cleanup_django_debug_after
         def complete_save_cycle():
             # Prepare all shadow objects for storage.
             self.prepare_containers_for_save()

@@ -19,7 +19,7 @@
 import django.db.models
 
 from nav import ipdevpoll
-import utils
+from nav.ipdevpoll import db
 
 class MetaShadow(type):
     """Metaclass for building storage container classes.
@@ -421,7 +421,7 @@ def shadowify_queryset(queryset):
     new_list = [shadowify(obj) for obj in result]
     return new_list
 
-@utils.commit_on_success
+@db.commit_on_success
 def shadowify_queryset_and_commit(queryset):
     """Runs a Django queryset and transform results to shadow containers,
     committing the current transaction on success.

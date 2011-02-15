@@ -31,6 +31,7 @@ from nav.models import manage, oid
 from storage import Shadow
 import descrparsers
 import utils
+from nav.ipdevpoll import db
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -65,7 +66,7 @@ class Netbox(Shadow):
                     self.device.serial = None
 
     @classmethod
-    @utils.commit_on_success
+    @db.commit_on_success
     def cleanup_replaced_netbox(cls, netbox_id, new_type):
         """Removes basic inventory knowledge for a netbox.
 
@@ -570,7 +571,7 @@ class GwPortPrefix(Shadow):
         cls._delete_missing_addresses(containers)
 
     @classmethod
-    @utils.autocommit
+    @db.autocommit
     def _delete_missing_addresses(cls, containers):
         missing_addresses = cls._get_missing_addresses(containers)
         gwips = [row['gw_ip'] for row in missing_addresses.values('gw_ip')]
@@ -584,7 +585,7 @@ class GwPortPrefix(Shadow):
         missing_addresses.delete()
 
     @classmethod
-    @utils.autocommit
+    @db.autocommit
     def _get_missing_addresses(cls, containers):
         found_addresses = [g.gw_ip
                            for g in containers[cls].values()]

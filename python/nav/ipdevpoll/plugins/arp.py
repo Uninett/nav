@@ -48,7 +48,7 @@ from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, get_class_logger
 from nav.ipdevpoll import storage, shadows
-from nav.ipdevpoll.utils import autocommit
+from nav.ipdevpoll.db import autocommit
 
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
