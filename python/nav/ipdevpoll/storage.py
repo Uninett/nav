@@ -21,10 +21,6 @@ import django.db.models
 from nav import ipdevpoll
 import utils
 
-# dict structure: { django_model_class: shadow_class }
-shadowed_classes = {}
-
-
 class MetaShadow(type):
     """Metaclass for building storage container classes.
 
@@ -35,6 +31,9 @@ class MetaShadow(type):
     inside an asynchronous event loop.
 
     """
+
+    # dict structure: { django_model_class: shadow_class }
+    shadowed_classes = {}
 
     def __init__(mcs, name, bases, dct):
         try:
@@ -55,7 +54,7 @@ class MetaShadow(type):
             setattr(mcs, fname, None)
 
         setattr(mcs, '_logger', ipdevpoll.get_class_logger(mcs))
-        shadowed_classes[shadowclass] = mcs
+        MetaShadow.shadowed_classes[shadowclass] = mcs
 
 class Shadow(object):
     """Base class to shadow Django model classes.
@@ -164,8 +163,8 @@ class Shadow(object):
                 self._touched.add(attr)
             # If the passed value belongs to a shadowed class, replace it
             # with a shadow object.
-            if value.__class__ in shadowed_classes:
-                shadow = shadowed_classes[value.__class__]
+            if value.__class__ in MetaShadow.shadowed_classes:
+                shadow = MetaShadow.shadowed_classes[value.__class__]
                 value = shadow(value)
             else:
                 if isinstance(value, django.db.models.Model):
@@ -208,8 +207,9 @@ class Shadow(object):
                           django.db.models.fields.related.ForeignKey):
                 django_dependency = field.rel.to
 
-                if django_dependency in shadowed_classes:
-                    shadow_dependency = shadowed_classes[django_dependency]
+                shadow_dependency = MetaShadow.shadowed_classes.get(
+                    django_dependency, None)
+                if shadow_dependency:
                     dependencies.append(shadow_dependency)
         return dependencies
 
@@ -410,8 +410,8 @@ def shadowify(model):
 
     """
     cls = model.__class__
-    if cls in shadowed_classes:
-        new_cls = shadowed_classes[cls]
+    if cls in MetaShadow.shadowed_classes:
+        new_cls = MetaShadow.shadowed_classes[cls]
         model = new_cls(model)
     return model
 

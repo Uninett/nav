@@ -404,7 +404,7 @@ def get_shadow_sort_order():
     def get_dependencies(shadow_class):
         return shadow_class.get_dependencies()
 
-    shadow_classes = storage.shadowed_classes.values()
+    shadow_classes = storage.MetaShadow.shadowed_classes.values()
     graph = toposort.build_graph(shadow_classes, get_dependencies)
     sorted_classes = toposort.topological_sort(graph)
     return sorted_classes
