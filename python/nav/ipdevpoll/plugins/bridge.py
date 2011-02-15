@@ -23,14 +23,12 @@ ENTITY-MIB.
 
 """
 
-from twisted.internet import defer
-from twisted.python.failure import Failure
 from twistedsnmp import agentproxy
 
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import fire_eventually
 
 class Bridge(Plugin):

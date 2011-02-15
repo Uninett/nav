@@ -26,19 +26,14 @@ interfaces, as well as set the list of enabled VLANs on trunks.
 
 """
 
-import re
 import math
-
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
 
 from nav.bitvector import BitVector
 from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib, PortList
-from nav.ipdevpoll import Plugin 
-from nav.ipdevpoll import storage, shadows
-from nav.models.manage import Interface
+from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import shadows
 
 
 class Dot1q(Plugin):

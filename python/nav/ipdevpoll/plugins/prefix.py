@@ -38,18 +38,17 @@ import re
 import logging
 
 from twisted.internet import defer
-from twisted.python.failure import Failure
 
 from IPy import IP
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
-from nav.mibs.ip_mib import IpMib, IndexToIpException
+from nav.mibs.ip_mib import IpMib
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows, utils
+from nav.ipdevpoll import shadows
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 

@@ -21,19 +21,13 @@ this plugin.
 
 """
 
-import re
+from twisted.internet import defer
 
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
-
-from nav.mibs import reduce_index
 from nav.mibs.cisco_vtp_mib import CiscoVTPMib
 from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
-from nav.bitvector import BitVector
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
-from nav.models.manage import Interface
+from nav.ipdevpoll import shadows
 
 
 class CiscoVlan(Plugin):
@@ -79,7 +73,7 @@ class CiscoVlan(Plugin):
                 interface.vlan = native_vlans[ifindex]
 
             self._logger.debug("Trunk port %r enabled VLAN count: %s",
-                              interface.ifname or trunk, 
+                              interface.ifname,
                               len(vector.get_set_bits()))
 
             allowed = self.containers.factory(ifindex,

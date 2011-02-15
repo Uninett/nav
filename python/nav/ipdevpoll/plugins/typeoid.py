@@ -33,7 +33,7 @@ class InvalidResponseError(Exception):
 
 class TypeOid(Plugin):
     @classmethod
-    def can_handle(self, netbox):
+    def can_handle(cls, netbox):
         return True
 
     def handle(self):
@@ -70,7 +70,7 @@ class TypeOid(Plugin):
 
     def _get_type_from_db(self):
         """Loads from db a type object matching the sysobjectid."""
-        def single_result(result):
+        def _single_result(result):
             if result:
                 return result[0]
 
@@ -78,7 +78,7 @@ class TypeOid(Plugin):
         types = manage.NetboxType.objects.filter(sysobjectid=self.sysobjectid)
         df = threads.deferToThread(storage.shadowify_queryset_and_commit,
                                    types)
-        df.addCallback(single_result)
+        df.addCallback(_single_result)
         return df
 
     def _set_type(self, type_):
@@ -114,12 +114,12 @@ class TypeOid(Plugin):
         type_.name = self.sysobjectid
         type_.sysobjectid = self.sysobjectid
 
-        def set_sysdescr(descr):
+        def _set_sysdescr(descr):
             self._logger.debug("Creating new type with descr=%r", descr)
             type_.description = descr
             return type_
 
         df = self.snmpv2_mib.get_sysDescr()
-        df.addCallback(set_sysdescr)
+        df.addCallback(_set_sysdescr)
         return df
 

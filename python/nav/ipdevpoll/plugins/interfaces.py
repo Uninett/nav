@@ -21,20 +21,13 @@ EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
 
-import logging
-import pprint
-
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
-
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
-from nav.models import manage
 
 class Interfaces(Plugin):
     @classmethod

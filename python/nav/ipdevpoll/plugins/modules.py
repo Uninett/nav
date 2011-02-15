@@ -30,19 +30,15 @@ the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
 
-import logging
-import pprint
-from datetime import datetime
-
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
+from twisted.internet import defer
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
-from nav.models import manage
+from nav.ipdevpoll import shadows
 
 class Modules(Plugin):
+    """Plugin to collect module and chassis data from devices"""
+
     @classmethod
     def can_handle(cls, netbox):
         return True
@@ -75,7 +71,7 @@ class Modules(Plugin):
         else:
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
-        
+
         device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
             device.serial = serial_number
@@ -113,7 +109,7 @@ class Modules(Plugin):
             module.device = device
 
             module_containers[entity_index] = module
-            self._logger.debug("module (entPhysIndex=%s): %r", 
+            self._logger.debug("module (entPhysIndex=%s): %r",
                                entity_index, module)
 
         return module_containers
@@ -137,8 +133,8 @@ class Modules(Plugin):
 
     def _process_ports(self, entities, module_containers):
         ports = entities.get_ports()
-        netbox = self.containers.factory(None, shadows.Netbox) 
-        
+        netbox = self.containers.factory(None, shadows.Netbox)
+
         # Map interfaces to modules, if possible
         module_ifindex_map = {} #just for logging debug info
         for port in ports:
@@ -162,7 +158,7 @@ class Modules(Plugin):
                             module_ifindex_map[module.name] = [ifindex]
 
         if module_ifindex_map:
-            self._logger.debug("module/ifindex mapping: %r", 
+            self._logger.debug("module/ifindex mapping: %r",
                               module_ifindex_map)
 
 
@@ -178,7 +174,7 @@ class Modules(Plugin):
 
     def _process_alias_mapping(self, alias_mapping):
         mapping = {}
-        for (phys_index, logical), row in alias_mapping.items():
+        for (phys_index, _logical), row in alias_mapping.items():
             # Last element is ifindex. Preceding elements is an OID.
             ifindex = row.pop()
 

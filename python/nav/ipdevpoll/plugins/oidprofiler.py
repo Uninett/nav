@@ -27,6 +27,8 @@ non-supported objects from many hosts and end up spewing errors to the
 administrators email inbox.
 
 """
+import logging
+
 from twisted.internet import defer, threads, reactor
 from pysnmp.asn1.oid import OID
 
