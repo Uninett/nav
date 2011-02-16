@@ -23,7 +23,7 @@ from django.db import models, connection
 from django.core import exceptions
 
 from nav.util import is_valid_cidr, is_valid_ip
-from nav.django import forms, validators
+from nav.django import validators, forms as navforms
 
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value):
@@ -63,10 +63,10 @@ class PointField(models.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
-        models.Field.__init__(self, *args, **kwargs)
+        super(PointField, self).__init__(*args, **kwargs)
 
-    def get_internal_type(self):
-        return "PointField"
+    def db_type(self):
+        return 'point'
 
     def to_python(self, value):
         if not value or isinstance(value, tuple):
@@ -83,9 +83,9 @@ class PointField(models.CharField):
         if value is None:
             return None
         if isinstance(value, tuple):
-            return '(%s,%s)' % tuple
+            return '(%s,%s)' % value
 
     def formfield(self, **kwargs):
-        defaults = {'form_class': forms.PointField}
-        defautls.update(kwargs)
+        defaults = {'form_class': navforms.PointField}
+        defaults.update(kwargs)
         return super(PointField, self).formfield(**defaults)
