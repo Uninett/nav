@@ -116,3 +116,15 @@ class ParseMessageWithStrangeGarbageTest(ParseTest):
         self.priority = 3
         self.mnemonic = 'UPDOWN'
         self.description = "'Interface Dot11Radio0, changed state to up'"
+
+class ParseMessageEndingWithColonTest(ParseTest):
+    """Regression test for issue LP#720024"""
+    def setUp(self):
+        self.message = "Feb 16 11:55:08 10.0.1.15 22877425: Feb 16 11:55:09.436 MET: %HA_EM-6-LOG: on_high_cpu: CPU utilization is over 80%:"
+
+        now = datetime.datetime.now()
+        self.timestamp = datetime.datetime(now.year, 2, 16, 11, 55, 9)
+        self.facility = 'HA_EM'
+        self.priority = 6
+        self.mnemonic = 'LOG'
+        self.description = "'on_high_cpu: CPU utilization is over 80%:'"
