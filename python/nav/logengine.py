@@ -333,9 +333,14 @@ def parse_and_insert(line, database,
         return False
 
     if message:
-        insert_message(message, database,
-                       categories, origins, types,
-                       exceptionorigin, exceptiontype, exceptiontypeorigin)
+        try:
+            insert_message(message, database,
+                           categories, origins, types,
+                           exceptionorigin, exceptiontype, exceptiontypeorigin)
+        except Exception:
+            logger.exception("Unhandled exception during message insert: %s",
+                             line)
+            raise
 
 def insert_message(message, database,
                    categories, origins, types,
