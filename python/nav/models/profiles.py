@@ -814,11 +814,11 @@ class Filter(models.Model):
         logger.debug(
             'alert %d: checking against filter %d with filter: %s, exclude: '
             '%s and extra: %s',
-            alert.id, self.id, filter, exclude, extra)
+            alert.id, self.id, filtr, exclude, extra)
 
         # Check the alert maches whith a SELECT COUNT(*) FROM .... so that the
         # db doesn't have to work as much.
-        if AlertQueue.objects.filter(**filter).exclude(**exclude).extra(
+        if AlertQueue.objects.filter(**filtr).exclude(**exclude).extra(
             **extra).count():
             logger.debug('alert %d: matches filter %d' % (alert.id, self.id))
             return True

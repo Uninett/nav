@@ -115,7 +115,7 @@ typicalmatchRe = re.compile(
     ((?P<year>\d{4}) \s+ )?                          # origin year, if present
     (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)   # origin hour/minute/second
     .* %                                             # eat chars until % appears
-    (?P<type>.*?) :                                  # message type
+    (?P<type>[^:]+) :                                # message type
     \s* (?P<description>.*)                          # message (lstripped)
     $
     """, re.VERBOSE)
@@ -333,9 +333,14 @@ def parse_and_insert(line, database,
         return False
 
     if message:
-        insert_message(message, database,
-                       categories, origins, types,
-                       exceptionorigin, exceptiontype, exceptiontypeorigin)
+        try:
+            insert_message(message, database,
+                           categories, origins, types,
+                           exceptionorigin, exceptiontype, exceptiontypeorigin)
+        except Exception:
+            logger.exception("Unhandled exception during message insert: %s",
+                             line)
+            raise
 
 def insert_message(message, database,
                    categories, origins, types,

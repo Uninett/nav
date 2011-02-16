@@ -40,7 +40,7 @@ from twisted.internet import threads
 from nav.models import manage
 from nav import ipdevpoll
 import storage
-from utils import autocommit, django_debug_cleanup
+from nav.ipdevpoll.db import autocommit, django_debug_cleanup
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.

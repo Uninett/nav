@@ -174,8 +174,8 @@ def main(args):
             connection.close()
 
         except Exception, e:
-            logger.critical('Unhandeled error: %s' % e, exc_info=True)
-            raise e
+            logger.critical('Unhandled error: %s' % e, exc_info=True)
+            sys.exit(1)
 
         # Devel only
         if opttest:

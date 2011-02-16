@@ -38,18 +38,17 @@ import re
 import logging
 
 from twisted.internet import defer
-from twisted.python.failure import Failure
 
 from IPy import IP
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
-from nav.mibs.ip_mib import IpMib, IndexToIpException
+from nav.mibs.ip_mib import IpMib
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows, utils
+from nav.ipdevpoll import shadows
 
 VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
@@ -70,10 +69,8 @@ class Prefix(Plugin):
         from nav.ipdevpoll.config import ipdevpoll_conf
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def handle(self):
-
-
         self._logger.debug("Collecting prefixes")
         netbox = self.containers.factory(None, shadows.Netbox)
 
@@ -83,9 +80,7 @@ class Prefix(Plugin):
 
         # Retrieve interface names and keep those who match a VLAN
         # naming pattern
-        dw = defer.waitForDeferred(self.get_vlan_interfaces())
-        yield dw
-        vlan_interfaces = dw.getResult()
+        vlan_interfaces = yield self.get_vlan_interfaces()
 
         # Traverse address tables from IP-MIB, IPV6-MIB and
         # CISCO-IETF-IP-MIB in that order.
@@ -98,9 +93,7 @@ class Prefix(Plugin):
             # response outside our scope when it has no proprietary MIB support
             if mib != ipmib:
                 df.addErrback(self._ignore_timeout, set())
-            waiter = defer.waitForDeferred(df)
-            yield waiter
-            new_addresses = waiter.getResult()
+            new_addresses = yield df
             self._logger.debug("Found %d addresses in %s: %r",
                                len(new_addresses), mib.mib['moduleName'],
                                new_addresses)
@@ -141,7 +134,7 @@ class Prefix(Plugin):
 
             prefix.vlan = vlan
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_vlan_interfaces(self):
         """Get all virtual VLAN interfaces.
 
@@ -154,9 +147,9 @@ class Prefix(Plugin):
 
         """
         ifmib = IfMib(self.agent)
-        dw = defer.waitForDeferred(ifmib.retrieve_column('ifName'))
-        yield dw
-        interfaces = reduce_index(dw.getResult())
+        df = ifmib.retrieve_column('ifName')
+        df.addCallback(reduce_index)
+        interfaces = yield df
 
         vlan_ifs = {}
         for ifindex, ifname in interfaces.items():
@@ -165,7 +158,7 @@ class Prefix(Plugin):
                 vlan = int(match.group('vlan'))
                 vlan_ifs[ifindex] = vlan
 
-        yield vlan_ifs
+        defer.returnValue(vlan_ifs)
 
     def _ignore_timeout(self, failure, result=None):
         """Ignores a defer.TimeoutError in an errback chain.
