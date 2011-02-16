@@ -4,6 +4,8 @@ import random
 import logging
 logging.raiseExceptions = False
 
+import datetime
+
 from nav import logengine
 
 class TestParseAndInsertWithMockedDatabase(TestCase):
@@ -27,7 +29,7 @@ Oct 28 13:15:52 10.0.128.13 71781: *Oct 28 2010 12:08:49 CET: %MV64340_ETHERNET-
 Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up
 """.strip().split("\n")
 
-    def test_parse(self):
+    def test_parse_without_exceptions(self):
         for line in self.loglines:
             print line
             logengine.createMessage(line)
@@ -68,3 +70,49 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
 
         value = 'foo'
         self.assertEquals(nonraiser(value), value)
+
+class ParseTest(TestCase):
+    def setUp(self):
+        self.message = "Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up"
+
+        now = datetime.datetime.now()
+        self.timestamp = datetime.datetime(now.year, 10, 28, 13, 15, 57)
+        self.facility = 'LINEPROTO'
+        self.priority = 5
+        self.mnemonic = 'UPDOWN'
+        self.description = ("'Line protocol on Interface GigabitEthernet1/0/30,"
+                            " changed state to up'")
+
+    def test_should_parse_without_exception(self):
+        msg = logengine.createMessage(self.message)
+
+    def test_should_parse_timestamp_correctly(self):
+        msg = logengine.createMessage(self.message)
+        self.assertEquals(msg.time, self.timestamp)
+
+    def test_should_parse_facility_correctly(self):
+        msg = logengine.createMessage(self.message)
+        self.assertEquals(msg.facility, self.facility)
+
+    def test_should_parse_priority_correctly(self):
+        msg = logengine.createMessage(self.message)
+        self.assertEquals(msg.priorityid, self.priority)
+
+    def test_should_parse_mnemonic_correctly(self):
+        msg = logengine.createMessage(self.message)
+        self.assertEquals(msg.mnemonic, self.mnemonic)
+
+    def test_should_parse_description_correctly(self):
+        msg = logengine.createMessage(self.message)
+        self.assertEquals(msg.description, self.description)
+
+class ParseMessageWithStrangeGarbageTest(ParseTest):
+    def setUp(self):
+        self.message = "Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up"
+
+        now = datetime.datetime.now()
+        self.timestamp = datetime.datetime(now.year, 3, 25, 10, 15, 51)
+        self.facility = 'LINK'
+        self.priority = 3
+        self.mnemonic = 'UPDOWN'
+        self.description = "'Interface Dot11Radio0, changed state to up'"
