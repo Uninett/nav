@@ -14,8 +14,17 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from decimal import Decimal, InvalidOperation
+
 def is_valid_point_string(point_string):
     if point_string.startswith('(') and point_string.endswith(')'):
         if len(point_string.split(',')) == 2:
-            return True
+            x_point, y_point = point_string[1:-1].split(',')
+            try:
+                Decimal(x_point.strip())
+                Decimal(y_point.strip())
+            except InvalidOperation:
+                pass
+            else:
+                return True
     return False
