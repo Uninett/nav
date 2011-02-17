@@ -1,3 +1,24 @@
+Version 3.8.1
+(released 17 February 2011)
+
+ Bugfixes:
+
+  * Various problems with the 3.8 build/install system, discovered during
+    Debian packaging.
+
+  * LP#618555 (alert addresses are not validated by alert profiles ui)
+  * LP#646708 (ipdevpoll fails to shutdown)
+  * LP#667771 (LDAP fallback to local password authentication regression)
+  * LP#715801 (Wrong gwcount in prefix report)
+  * LP#715807 (Prefix net types are wrongly classified when single router has
+               multiple addresses)
+  * LP#715851 (Missing config files during 3.8.0 install)
+  * LP#717144 (problem adding position cords on room)
+  * LP#719232 (AlertEngine crash error: filter() argument after ** must be a
+               dictionary)
+  * LP#720024 (logengine crashes when message contains : characters)
+
+
 Version 3.8.0
 (released 3 February 2011)
 
