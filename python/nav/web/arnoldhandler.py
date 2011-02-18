@@ -23,6 +23,7 @@ from nav import web, db
 from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.templates.ArnoldTemplate import ArnoldTemplate
 from nav.web.URI import URI
+from nav.web.encoding import encoded_output
 from urllib import unquote_plus
 from IPy import IP
 import nav.arnold
@@ -48,6 +49,7 @@ conn = db.getConnection('arnold', 'arnold');
     
 
 ############################################################
+@encoded_output
 def handler(req):
 
     # getConnection('subsystem','database')
