@@ -56,6 +56,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.nav_version',
 )
 
+# Middleware
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+)
+
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
 
