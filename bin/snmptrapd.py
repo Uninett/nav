@@ -258,8 +258,8 @@ def trapHandler(trap):
         logger.debug("Giving trap to %s" %str(mod))
         try:
             accepted = mod.handleTrap(trap, config=config)
-            if accepted:
-                logger.debug ("Module %s accepted trap" %mod.__name__)
+            logger.debug ("Module %s %s trap", mod.__name__,
+                          accepted and 'accepted' or 'ignored',)
         except Exception, why:
             logger.exception("Error when handling trap with %s: %s"
                              %(mod.__name__, why))
