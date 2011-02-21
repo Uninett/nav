@@ -33,10 +33,12 @@ from nav.web.templates.MaintenanceDetailsTemplate import MaintenanceDetailsTempl
 from nav.web.templates.MaintenanceListTemplate import MaintenanceListTemplate
 from nav.web.templates.MaintenanceNewTemplate import MaintenanceNewTemplate
 from nav.web.quickselect import QuickSelect
+from nav.web.encoding import encoded_output
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
+@encoded_output
 def handler(req):
     """Handler for the Maintenance subsystem."""
 

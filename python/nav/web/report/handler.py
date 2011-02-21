@@ -49,6 +49,7 @@ from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
+from nav.web.encoding import encoded_output
 import nav.path
 
 config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
@@ -56,7 +57,7 @@ config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf"
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 
-
+@encoded_output
 def handler(req):
 
     (report_name, export_delimiter, uri, nuri) = arg_parsing(req)
