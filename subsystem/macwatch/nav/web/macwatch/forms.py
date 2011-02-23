@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 NTNU
+# Copyright 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,17 +18,16 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
 #
 
-__copyright__ = "Copyright 2008 NTNU"
+__copyright__ = "Copyright 2011 UNINETT AS"
 __license__ = "GPL"
-__author__ = "John-Magne Bredal <john.m.bredal@ntnu.no>"
+__author__ = "John-Magne Bredal <john.m.bredal@ntnu.no> and Trond Kandal <Trond.Kandal@ntnu.no>"
 __id__ = "$Id$"
 
 import re
 
-from django import newforms as forms
+from django import forms
 from nav.web.macwatch.models import MacWatch
 
 class MacWatchForm(forms.Form):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 NTNU
+# Copyright 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,106 +18,113 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
 #
 
-__copyright__ = "Copyright 2008 NTNU"
+__copyright__ = "Copyright 2011 UNINETT AS"
 __license__ = "GPL"
-__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
+__author__ = "John-Magne Bredal (john.m.bredal@ntnu.no) and Trond Kandal <Trond.Kandal@ntnu.no>"
 __id__ = "$Id$"
 
+import logging
+
 from django.http import HttpResponseRedirect
-from nav.django.shortcuts import render_to_response
+from django.template import RequestContext, Context
+from django.shortcuts import render_to_response
 
-from nav.web.templates.MacWatchTemplate import MacWatchTemplate
-from nav.web.macwatch.models import MacWatch, Account
-from nav.web.macwatch.forms import *
+from nav.django.utils import get_account
 
+from nav.web.macwatch.forms import MacWatchForm
+from nav.models.profiles import Account
+from nav.web.macwatch.models import MacWatch
+from nav.web.macwatch.templatetags.default_date_filter import *
+
+
+NAVBAR = [('Home', '/'), ('MacWatch', None)]
+DEFAULT_VALUES = {'title': "MacWatch", 'navpath': NAVBAR}
+
+logger = logging.getLogger("nav.web.macwatch")
+
+def do_list(request, messages=None):
+    account = get_account(request)
+    macwatches = MacWatch.objects.all()
+    info_dict = populate_info_dict(account,
+                                    macwatches=macwatches,
+                                    messages=messages)
+    return render_to_response(
+                'macwatch/list_watches.html',
+                info_dict,
+                RequestContext(request))
+    
 def list_watch(request):
     """ Render current macwatches and option to add new one. """
-
-    messages = request.session.get('messages',[])
-    try:
-        del request.session['messages']
-    except KeyError:
-        pass
-
-    macwatches = MacWatch.objects.all()
-    return render_to_response(MacWatchTemplate, 'macwatch/list_watches.html',
-                              {'macwatches': macwatches, 'messages': messages})
+    return do_list(request)
 
 def add_macwatch(request):
     """ Display form for adding of mac address to watch. """
 
-    request.session['messages'] = []
-
+    account = get_account(request)
     if request.method == 'POST':
         macwatchform = MacWatchForm(request.POST)
         if macwatchform.is_valid():
             # Get user object
-            userid = request._req.session['user'].id
-            u = Account.objects.get(id=userid)
-
-            # Insert into database
             m = MacWatch(mac=macwatchform.cleaned_data['macaddress'],
-                         user=u,
-                         login=request._req.session['user'].login,
-                         description=macwatchform.cleaned_data['description'])
-
+                        userid=account,
+                        description=macwatchform.cleaned_data['description'])
             m.save()
-            
-            request.session['messages'].append("Added watch for %s" %m.mac)
-
-            # Redirect to list watch
-            return HttpResponseRedirect("/macwatch/")
-
+            return HttpResponseRedirect('/macwatch/')
         else:
-            return render_to_response(MacWatchTemplate, 'macwatch/addmacwatch.html',
-                                      {'form': macwatchform },)
+            messages = ['Illegal input-data',]
+            info_dict = populate_info_dict(account, messages=messages)
+            info_dict['form'] = macwatchform
+            return render_to_response(
+                    'macwatch/addmacwatch.html',
+                    info_dict,
+                    RequestContext(request))
             
-
+    info_dict = populate_info_dict(account)
     macwatchform = MacWatchForm()
-    return render_to_response(MacWatchTemplate, 'macwatch/addmacwatch.html',
-                              {'form': macwatchform },)
+    info_dict['form'] = macwatchform
+    return render_to_response(
+                    'macwatch/addmacwatch.html',
+                    info_dict,
+                    RequestContext(request))
 
 def delete_macwatch(request, macwatchid):
     """ Delete tuple for mac address watch """
 
-    request.session['messages'] = []
-
+    account = get_account(request)
     # Delete tuple based on url
     if macwatchid:
         # Captured args are always strings. Make it int.
         macwatchid = int(macwatchid)
-
         try:
             m = MacWatch.objects.get(id=macwatchid)
         except Exception, e:
-            request.session['messages'].append(e)
-            return HttpResponseRedirect("/macwatch/")
+            messages = [e,]
+            return do_list(request, messages)
 
         if request.method == 'POST':
             if request.POST['submit'] == 'Yes':
                 try:
                     m.delete()
-                    request.session['messages'].append("%s deleted from watch."
-                                                       %m.mac)
+                    return HttpResponseRedirect('/macwatch/')
                 except Exception, e:
-                    request.session['messages'].append(e)
+                    messages = [e,]
+                    return do_list(request, messages)
             else:
-                return HttpResponseRedirect("/macwatch/")
-                
+                return HttpResponseRedirect('/macwatch/')
         else:
-            return render_to_response(MacWatchTemplate,
-                                      'macwatch/deletemacwatch.html',
-                                      {'macwatch': m})
-            
-    return HttpResponseRedirect("/macwatch/")
+            info_dict = populate_info_dict(account)
+            info_dict['macwatch'] = m
+            return render_to_response(
+                    'macwatch/deletemacwatch.html',
+                    info_dict,
+                    RequestContext(request))
+    return HttpResponseRedirect('/macwatch/')
 
             
 def edit_macwatch(request, macwatchid):
     """ Edit description on a macwatch - currently not in use """
-
     if request.method == 'POST':
         macwatchform = MacWatchForm(request.POST)
         if macwatchform.is_valid():
@@ -125,23 +132,33 @@ def edit_macwatch(request, macwatchid):
             m.mac = macwatchform.cleaned_data['macaddress']
             m.description = macwatchform.cleaned_data['description']
             m.save()
-            
-            # Redirect to list watch
-            return HttpResponseRedirect("/macwatch/")
-
+            return HttpResponseRedirect('/macwatch/')
         else:
-            return render_to_response(MacWatchTemplate,
-                                      'macwatch/editmacwatch.html',
-                                      {'form': macwatchform },)
-            
+            account = get_account(request)
+            info_dict = populate_info_dict(account)
+            info_dict['form'] = macwatchform
+            return render_to_response(
+                    'macwatch/editmacwatch.html',
+                    info_dict,
+                    RequestContext(request))
         
     if macwatchid:
         m = MacWatch.objects.get(id=macwatchid)
-        data = {'macaddress':m.mac, 'description':m.description}
+        data = {'macaddress': m.mac, 'description': m.description}
         macwatchform = MacWatchForm(initial=data)
-        
-    return render_to_response(MacWatchTemplate, 'macwatch/editmacwatch.html',
-                              {'form': macwatchform },)
+    info_dict = populate_info_dict(account)
+    info_dict['form'] = macwatchform
+    return render_to_response(
+                    'macwatch/editmacwatch.html',
+                    info_dict,
+                    RequestContext(request))
 
-    
-        
+def populate_info_dict(account, macwatches=None, messages=None):
+    info_dict = {'account': account }
+    if macwatches:
+        info_dict['macwatches'] = macwatches
+    if messages:
+        info_dict['messages'] = messages
+    info_dict.update(DEFAULT_VALUES)
+    return info_dict
+                

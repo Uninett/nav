@@ -16,14 +16,16 @@
     <th>Created</th>
     <th>&nbsp;</th>
   </tr>
-
   {% for macwatch in macwatches %}
 
   <tr>
     <td>{{ macwatch.mac }}</td>
     <td>{{ macwatch.description }}</td>
-    <td>{{ macwatch.user.name }}</td>
+    <td>{{ macwatch.userid.name }}</td>
     <td>{{ macwatch.created|default_datetime }}</td>
+    {% comment %}
+    <td>{{ macwatch.created }}</td>
+    {% endcomment %}
     <td><a href="/macwatch/delete/{{ macwatch.id }}/">Delete</a></td>
   </tr>
 

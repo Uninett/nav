@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 NTNU
+# Copyright 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,16 +18,16 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: John-Magne Bredal <john.m.bredal@ntnu.no>
 #
 
-__copyright__ = "Copyright 2008 NTNU"
+__copyright__ = "Copyright 2011 UNINETT AS"
 __license__ = "GPL"
-__author__ = "John-Magne Bredal <john.m.bredal@ntnu.no>"
+__author__ = "John-Magne Bredal <john.m.bredal@ntnu.no> and Trond Kandal <Trond.Kandal@ntnu.no>"
 __id__ = "$Id$"
 
-from django.conf.urls.defaults import *
-from nav.web.macwatch.views import *
+from django.conf.urls.defaults import patterns, url
+from nav.web.macwatch.views import list_watch, add_macwatch, delete_macwatch
+from nav.web.macwatch.views import edit_macwatch
 
 urlpatterns = patterns('',
     # Default view

@@ -46,7 +46,7 @@ WEBNAME = macwatch
 # Files
 INITFILES =
 BINS = macwatch.py
-LIBS = $(wildcard nav/*.py nav/web/macwatch/*.py nav/web/macwatch/templatetags/*.py)
+LIBS = $(wildcard nav/*.py nav/web/macwatch/*.py nav/django/templatetags/*.py)
 CONFFILES =
 TOOLS = 
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
