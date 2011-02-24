@@ -32,9 +32,6 @@ import nav.logs
 import nav.path
 import nav.db
 
-if 'DJANGO_SETTINGS_MODULE' not in os.environ:
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-
 from nav.models.manage import Cam
 from nav.event import Event
 from nav.models.profiles import Account
@@ -48,7 +45,7 @@ from nav.alertengine.base import check_alerts
 LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
 # Loglevel (case-sensitive), may be:
 # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOGLEVEL = 'INFO' 
+LOGLEVEL = 'INFO'
 
 # Occurences of the mac-address nearest to the edges has highest
 # priority
@@ -64,7 +61,7 @@ def get_logger():
     logger.addHandler(filehandler)
     logger.setLevel(logging.getLevelName(LOGLEVEL))
     return logger
- 
+
 def prioritize_location(cam_objects, logger):
         # The search may return more than one hits. This happens as mactrace
         # not always manages to calculate the correct topology. In that case
@@ -77,13 +74,14 @@ def prioritize_location(cam_objects, logger):
         cam = None
         rank = 0
         for curr_cam in cam_objects:
-            logger.debug("Prioritizing %s" % curr_cam.netbox.category_id)
-            if location_priority[curr_cam.netbox.category_id] > rank:
-                logger.debug("Putting %s first" % curr_cam.netbox.category_id)
-                rank = location_priority[curr_cam.netbox.category_id]
+            category = curr_cam.netbox.category_id
+            logger.debug("Prioritizing %s", category)
+            if location_priority[category] > rank:
+                logger.debug("Putting %s first", category)
+                rank = location_priority[category]
                 cam = curr_cam
         return cam
-   
+
 def post_event(mac_watch, cam, logger):
     """Posts an event on the eventqueue"""
 
@@ -115,16 +113,16 @@ def main():
 
     # Create logger, start logging
     logger = get_logger()
-    logger.info("--> Starting macwatch. Loglevel: %s <--" %LOGLEVEL)
+    logger.info("--> Starting macwatch. Loglevel: %s <--", LOGLEVEL)
 
     # For each active macwatch entry, check if mac is active and post event.
     for mac_watch in MacWatch.objects.all():
-        logger.info("Checking for activity on %s" % mac_watch.mac)
+        logger.info("Checking for activity on %s", mac_watch.mac)
 
         cam_objects = Cam.objects.filter(mac=mac_watch.mac,
                                          end_time=datetime.max)
         if len(cam_objects) < 1:
-            logger.info("%s is not active" % mac_watch.mac)
+            logger.info("%s is not active", mac_watch.mac)
             continue
 
         cam = prioritize_location(cam_objects, logger)
@@ -133,13 +131,13 @@ def main():
         # Check if the mac-address has moved since last time, continue with
         # next mac if not
         if cam.id == mac_watch.camid_id:
-            logger.info("Mac-address is active, but have not moved " +
-                            "since last check")
+            logger.info("Mac-address is active, but have not moved "
+                        "since last check")
             continue
 
         # Mac has moved (or appeared). Post event on eventq
-        logger.info("%s has appeared on %s (%s:%s)" %
-                    (mac_watch.mac, cam.sysname, cam.module, cam.port))
+        logger.info("%s has appeared on %s (%s:%s)",
+                    mac_watch.mac, cam.sysname, cam.module, cam.port)
         if post_event(mac_watch, cam, logger):
             logger.info("Event posted")
             # Update macwatch table
@@ -149,7 +147,7 @@ def main():
         else:
             logger.warning("Failed to post event, no alert will be given.")
 
-    logger.info("Done checking for macs in %s seconds" %time.clock())
+    logger.info("Done checking for macs in %s seconds", time.clock())
 
 
 if __name__ == '__main__':
