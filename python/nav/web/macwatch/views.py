@@ -26,7 +26,6 @@ from nav.django.utils import get_account
 from nav.web.macwatch.forms import MacWatchForm
 from nav.models.profiles import Account
 from nav.web.macwatch.models import MacWatch
-from nav.web.macwatch.templatetags.default_date_filter import *
 
 
 NAVBAR = [('Home', '/'), ('MacWatch', None)]
