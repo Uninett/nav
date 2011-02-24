@@ -2,7 +2,7 @@
 
 {% block content %}
 
-Really remove {{ macwatch.mac }} from watch?
+Really remove {{ macwatch.mac }} ({{ macwatch.description }} added by {{ macwatch.userid.name }}) from watch?
 <form action="." method="post">
 <input type="submit" name="submit" value="Yes">
 <input type="submit" name="submit" value="No">
