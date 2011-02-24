@@ -1,0 +1,406 @@
+#encoding utf-8
+##
+## Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.  You should have received a copy of the GNU General Public
+## License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+##
+## Builds the form for choosing preferences about links on the navigation bar.
+## The template uses images in the /images/form/-folder.
+##
+
+#extends MainTemplate
+
+#def additionalCSS
+$default_table_CSS
+<style type="text/css">
+    .header-active, .header-inactive {
+        color: #FFF;
+        background: #567899;
+    }
+    td {
+        padding: 0 0.5em;
+    }
+    table table {
+        border: 1px solid #999999;
+    }
+    table table table {
+        border: 0;
+    }
+</style>
+#end def additionalCSS
+
+#def additionalJavaScript
+    <script language="JavaScript" type="text/javascript">
+    <!-- BEGIN
+
+      function getObj(id) {
+        if (document.getElementById) {
+          return document.getElementById(id);
+        } else if (document.all) {
+          return document.all[id];
+        }
+      }
+
+      function canChangeClassName() {
+        if (document.getElementById) {
+          return document.getElementById("options").className;
+        } else if (document.all) {
+          return document.all["options"].className;
+        } else {
+          return false;
+        }
+      }
+
+      function activeColumn(col) {
+        var col = getObj(col + "-checkbox-h");
+        return (!col || col.checked);
+      }
+
+      function setBox(status, col, row) {
+        getObj(col + "-table-" + row).className = status;
+        getObj(col + "-cb-" + row).className = status;
+        getObj(col + "-tx-" + row).className = status;
+      }
+
+      function checkBox(box, col, row) {
+        if (!canChangeClassName() || !activeColumn(col)) return;
+        if (box.checked) {
+          setBox("active", col, row);
+        } else {
+          setBox("inactive", col, row);
+        }
+      }
+
+      dontClickBox = false; 
+      function clickBox(col, row) {
+        if (!activeColumn(col) || dontClickBox) {
+          dontClickBox = false;
+          return;
+        }
+        var box = getObj(col + "-checkbox-" + row);
+        box.checked = !box.checked;
+        checkBox(box, col, row);
+      }
+
+      function checkColumn(col) {
+        var disabled = !activeColumn(col);
+        var canChange = canChangeClassName();
+        var obj;
+        var row = 0;
+        while (obj = getObj(col + "-checkbox-" + row)) {
+          obj.disabled = disabled;
+          if (!canChange) {
+          } else if (disabled) {
+            setBox("dead", col, row);
+          } else {
+            checkBox(obj, col, row);
+          }
+          row++;
+        }
+        if (!canChange) return;
+        if (disabled) {
+          getObj(col + "-table-h").className = "header-inactive";
+          getObj(col + "-td-h").className = "header-inactive";
+        } else {          
+          getObj(col + "-table-h").className = "header-active";
+          getObj(col + "-td-h").className = "header-active";
+        }
+      }
+
+      clickedColumnBox = false;
+      function clickColumn(col) {
+        if (clickedColumnBox) {
+          clickedColumnBox = false;
+          return;
+        }
+        var box = getObj(col + "-checkbox-h");
+        box.checked = !box.checked;
+        checkColumn(col);
+      }
+
+      function checkAll() {
+        checkColumn("nb");
+        checkColumn("ql1");
+        checkColumn("ql2");
+      }
+
+      window.onload = checkAll;
+
+    // END -->
+    </script>
+#end def additionalJavaScript
+
+#block content
+
+#if $user.id == 0
+  #set $type = "default"
+#else
+  #set $type = "personal"
+#end if
+
+#if $user.id == 0
+
+<p>
+<b>Please note:</b> You are logged in as site administrator. This means you are now changing the default preferences.
+All users that are not logged in, and all users that have not changed their preferences, will be affected by your changes.
+The navigation-bar has been temporarily changed, so you can see the changes like an anonymous user will see them.
+</p>
+
+#end if
+
+  <form method="post" action="navigation/saveprefs">
+    <table width="100%">
+      <tr>
+        <td width="33%">
+
+<!-- HEADERS -->
+<!-- NAVBAR -->
+
+  <table id="nb-table-h" width="100%" class="header-active">
+    <tr>
+      <td id="nb-td-h">
+        Navbar
+      </td>
+    </tr>
+  </table>
+
+<!-- NAVBAR END -->
+
+    </td>
+    <td width="33%">
+
+<!-- QUICKLINK #1 -->
+
+  <table id="ql1-table-h" width="100%" class="header-active">
+    <tr>
+      <td id="ql1-td-h" class="header-active" onClick="clickColumn('ql1');">
+        <input id="ql1-checkbox-h" type="checkbox" onClick="checkColumn('ql1'); clickedColumnBox = true;" #slurp
+#if $checked.has_key('qlink1') then 'checked' else ''# /> Quicklink #1
+      </td>
+    </tr>
+  </table>
+
+<!-- QUICKLINK #1 END -->
+
+    </td>
+    <td width="33%">
+
+<!-- QUICKLINK #2 -->
+
+  <table id="ql2-table-h" width="100%" class="header-active">
+    <tr>
+      <td id="ql2-td-h" nowrap class="header-active" onClick="clickColumn('ql2');">
+        <input id="ql2-checkbox-h" type="checkbox" onClick="checkColumn('ql2'); clickedColumnBox = true;" #slurp
+#if $checked.has_key('qlink2') then 'checked' else ''# /> Quicklink #2
+      </td>
+    </tr>
+  </table>
+
+<!-- QUICKLINK #2 END -->
+
+    </td>
+  </tr>
+#set $number = 0
+#if $defaultlinks
+  <tr>
+    <td width="33%">
+
+<!-- OPTIONS -->
+<!-- NAVBAR -->
+
+  <table id="options" width="100%" class="options">
+#for $link in $defaultlinks
+    <tr id="nb-table-$number" class="inactive">
+      <td id="nb-cb-$number" nowrap class="inactive" width=0%>
+        <input name="$link.id" value="navbar" id="nb-checkbox-$number" type="checkbox" onClick="checkBox(this, 'nb', $number);" class="checkbox" #slurp
+#set $id = "KEY" + str($link.id)
+#if $checked.has_key($id) and $checked[$id].count('navbar') then 'checked' else ''# />
+      </td>
+      <td id="nb-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('nb', $number);">
+        $link.name
+      </td>
+    </tr>
+#set $number = $number + 1
+#end for
+  </table>
+  
+
+<!-- NAVBAR END -->
+
+    </td>
+    <td width="33%">
+
+<!-- QUICKLINK #1 -->
+
+  <table id="options" width="100%" class="options">
+#set $number = 0
+#for $link in $defaultlinks
+    <tr id="ql1-table-$number" class="inactive">
+      <td id="ql1-cb-$number" nowrap class="inactive" width=0%>
+        <input name="$link.id" value="qlink1" id="ql1-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql1', $number);" class="checkbox" #slurp
+#set $id = "KEY" + str($link.id)
+#if $checked.has_key($id) and $checked[$id].count('qlink1') then 'checked' else ''# />
+      </td>
+      <td id="ql1-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('ql1', $number);">
+        $link.name
+      </td>
+    </tr>
+#set $number = $number + 1
+#end for
+  </table>
+  
+
+<!-- QUICKLINK #1 END -->
+
+
+    </td>
+    <td width="33%">
+
+
+<!-- QUICKLINK #2 -->
+
+  <table id="options" width="100%" class="options">
+#set $number = 0
+#for $link in $defaultlinks
+    <tr id="ql2-table-$number" class="inactive">
+      <td id="ql2-cb-$number" nowrap class="inactive" width=0%>
+        <input name="$link.id" value="qlink2" id="ql2-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql2', $number);" class="checkbox" #slurp
+#set $id = "KEY" + str($link.id)
+#if $checked.has_key($id) and $checked[$id].count('qlink2') then 'checked' else ''# />
+      </td>
+      <td id="ql2-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('ql2', $number);">
+        $link.name
+      </td>
+    </tr>
+#set $number = $number + 1
+#end for
+  </table>
+  
+
+<!-- QUICKLINK #2 END -->
+
+    </td>
+  </tr>
+#end if
+#if $homemadelinks
+  <tr>
+    <td width="33%">
+
+<!-- HOMEMADE OPTIONS -->
+<!-- NAVBAR -->
+#set $startnumber = $number
+
+  <table id="options" width="100%" class="homemade-options">
+#set $number = $startnumber
+#for $link in $homemadelinks
+    <tr id="nb-table-$number" class="inactive">
+      <td id="nb-cb-$number" nowrap class="inactive" width=0%>
+        <input name="$link.id" value="navbar" id="nb-checkbox-$number" type="checkbox" onClick="checkBox(this, 'nb', $number);" class="checkbox" #slurp
+#set $id = str($link.id)
+#if $checked.has_key("KEY"+$id) and $checked["KEY"+$id].count('navbar') then 'checked' else ''# />
+      </td>
+      <td id="nb-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('nb', $number);">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
+          <td width="0%" nowrap>$link.name</td>
+          <td width="100%" align="right">
+            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.png"></a>
+            <a href="navigation/editlink?id=$id" title="Edit link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.png"></a>
+          </td>
+        </tr></table>
+      </td>
+    </tr>
+#set $number = $number + 1
+#end for
+  </table>
+
+<!-- NAVBAR END -->
+
+    </td>
+    <td width="33%">
+
+<!-- QUICKLINK #1 -->
+
+  <table id="options" width="100%" class="homemade-options">
+#set $number = $startnumber
+#for $link in $homemadelinks
+    <tr id="ql1-table-$number" class="inactive">
+      <td id="ql1-cb-$number" nowrap class="inactive" width=0%>
+        <input name="$link.id" value="qlink1" id="ql1-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql1', $number);" class="checkbox" #slurp
+#set $id = str($link.id)
+#if $checked.has_key("KEY" + $id) and $checked["KEY" + $id].count('qlink1') then 'checked' else ''# />
+      </td>
+      <td nowrap id="ql1-tx-$number" class="inactive" width=100% onclick="clickBox('ql1', $number);">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
+          <td width="0%" nowrap>$link.name</td>
+          <td width="100%" align="right">
+            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.png"></a>
+            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.png"></a>
+          </td>
+        </tr></table>
+      </td>
+    </tr>
+#set $number = $number + 1
+#end for
+  </table>
+
+<!-- QUICKLINK #1 END -->
+
+    </td>
+    <td width="33%">
+
+<!-- QUICKLINK #2 -->
+
+  <table id="options" width="100%" class="homemade-options">
+#set $number = $startnumber
+#for $link in $homemadelinks
+    <tr id="ql2-table-$number" class="inactive">
+      <td id="ql2-cb-$number" nowrap class="inactive" width=0%>
+        <input name="$link.id" value="qlink2" id="ql2-checkbox-$number" type="checkbox" onClick="checkBox(this, 'ql2', $number);" class="checkbox" #slurp
+#set $id = str($link.id)
+#if $checked.has_key("KEY" + $id) and $checked["KEY" + $id].count('qlink2') then 'checked' else ''# />
+      </td>
+      <td id="ql2-tx-$number" nowrap class="inactive" width=100% onclick="clickBox('ql2', $number);">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
+          <td width="0%" nowrap>$link.name</td>
+          <td width="100%" align="right">
+            <a href="navigation/deletelink?id=$id" title="Delete $type link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.png"></a>
+            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.png"></a>
+          </td>
+        </tr></table>
+      </td>
+    </tr>
+#set $number = $number + 1
+#end for
+  </table>
+
+<!-- QUICKLINK #2 END -->
+
+    </td>
+  </tr>
+#end if
+  <tr>
+    <td>
+      <input type="button" value="Cancel" onclick="window.location='/preferences/'">
+    </td>
+    <td colspan=2 align=right>
+      <input type="button" value="Add $type link" onClick="window.location='navigation/newlink';" style="font-size: 13" />
+      <input type="submit" value="Save preferences" style="font-size: 13" />
+    </td>
+  </tr>
+
+</table>
+</form>
+
+#end block

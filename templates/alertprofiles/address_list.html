@@ -1,0 +1,63 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block top_links %}
+{% endblock %}
+
+{% block captioncontent %}
+    Addresses
+{% endblock %}
+
+{# FIXME hardcoded urls #}
+
+{% block theadcols %}
+    <th></th>
+    <th>
+    {% ifequal order_by "address" %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-address">
+        Address</a>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+        </span>
+    {% else %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=address">
+        Address</a>
+        {% ifequal order_by "-address" %}
+        <span class="sort">
+            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+        </span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+    <th>
+    {% ifequal order_by "type" %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-type">
+        Type</a>
+        <span class="sort">
+            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+        </span>
+    {% else %}
+        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=type">
+        Type</a>
+        {% ifequal order_by "-type" %}
+        <span class="sort">
+            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+        </span>
+        {% endifequal %}
+    {% endifequal %}
+    </th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for a in object_list %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            <td><input type="checkbox" name="address" value="{{ a.id }}" /></td>
+            <td>
+                <a href="{% url alertprofiles-address-detail a.id %}">{{ a.address }}</a>
+            </td>
+            <td>
+                {{ a.type.name }}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+

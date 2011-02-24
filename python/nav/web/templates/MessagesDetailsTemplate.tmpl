@@ -1,0 +1,127 @@
+#encoding UTF-8
+## $Id:$
+##
+## Copyright 2006-2008 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##
+
+#extends MessagesTemplate
+#import datetime
+
+#block tabcontent
+
+#if not $msgs
+<p>No messages found.</p>
+#else
+    #for $msg in $msgs
+
+<table class="vertitable vertitablefull">
+    <caption>$msg.title.replace('<', '&lt;').replace('>', '&gt;')</caption>
+    <tr>
+        <th>Published</th>
+        <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
+    </tr>
+#if $msg.last_changed
+    <tr>
+        <th>Last changed</th>
+        <td>$msg.last_changed.strftime('%Y-%m-%d %H:%M')</td>
+    </tr>
+#end if
+    <tr>
+        <th>Author</th>
+        <td>$msg.author</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>$msg.description.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
+    </tr>
+#if $authorized
+    #if $msg.tech_description
+    <tr>
+        <th>Technical description</th>
+        <td>$msg.tech_description.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
+    </tr>
+    #end if
+#end if
+    #if type($msg.tasks) is list
+    <tr>
+        <th>Related maintenance tasks</th>
+        <td><ul>
+        #for $task in $msg.tasks
+            <li><a href="/maintenance/view?id=$task.maint_taskid">$task.description</a>,
+            from $task.maint_start.strftime('%Y-%m-%d %H:%M')
+            to $task.maint_end.strftime('%Y-%m-%d %H:%M'),
+            current state is <em>$task.state</em></li>
+        #end for
+        </ul></td>
+    </tr>
+    #end if
+#if $authorized
+    #if $msg.publish_end
+    <tr>
+        #if $msg.publish_end > datetime.datetime.now()
+        <th>Expires</th>
+        #else
+        <th>Expired</th>
+        #end if
+        <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M') 
+        #if $msg.publish_end > datetime.datetime.now()
+            | <a href="expire?id=$msg.messageid">Expire now</a>
+        #end if
+        </td>
+    </tr>
+    #end if
+    #if $msg.replaces_message
+    <tr>
+        <th>Replaces message</th>
+        <td>
+            <a href="view?id=$msg.replaces_message">$msg.replaces_message_title.replace('<', '&lt;').replace('>', '&gt;')</a>
+            from $msg.replaces_message_publish_start.strftime('%Y-%m-%d %H:%M')
+            by $msg.replaces_message_author
+        </td>
+    </tr>
+    #end if
+    #if $msg.replaced_by
+    <tr>
+        <th>Replaced by</th>
+        <td>
+            <a href="view?id=$msg.replaced_by">$msg.replaced_by_title.replace('<', '&lt;').replace('>', '&gt;')</a>
+            from $msg.replaced_by_publish_start.strftime('%Y-%m-%d %H:%M')
+            by $msg.replaced_by_author
+        </td>
+    </tr>
+    #end if
+    <tr>
+        <th>Actions</th>
+        <td><a href="edit?id=$msg.messageid">Edit</a>
+            | <a href="followup?id=$msg.messageid">Followup</a>
+    #if not $msg.publish_end
+            | <a href="expire?id=$msg.messageid">Expire now</a>
+    #end if
+        </td>
+    </tr>
+#end if
+</table>
+
+    #end for
+#end if
+
+#end block tabcontent

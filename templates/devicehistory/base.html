@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/quickselect.js"></script>
+    <script type="text/javascript" src="/js/devicehistory.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style/devicehistory.css" />
+{% endblock %}
+
+{% block base_content %}
+<div class="tabs">
+    {% block tabs %}
+    <ul>
+        <li class="{{ active.device|yesno:"tabactive," }}">
+            <a href="{% url devicehistory-search %}">Device History</a>
+        </li>
+        <li class="{{ active.error|yesno:"tabactive," }}">
+            <a href="{% url devicehistory-registererror %}">Register Error
+            Event</a>
+        </li>
+        <li class="{{ active.module|yesno:"tabactive," }}">
+            <a href="{% url devicehistory-module %}">Delete Module</a>
+        </li>
+    </ul>
+    {% endblock %}
+</div>
+
+<div class="tabcontent">
+    {% if current_user_data.messages %}
+    <ul class="messages">
+        {% for m in current_user_data.messages %}
+        <li class="{{ m.type }}">{{ m.message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% block tabcontent %}
+    {% endblock %}
+
+</div>
+{% endblock %}

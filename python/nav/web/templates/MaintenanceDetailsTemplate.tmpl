@@ -1,0 +1,76 @@
+#encoding UTF-8
+## $Id:$
+##
+## Copyright 2006-2008 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##
+
+#extends MaintenanceTemplate
+
+#block tabcontent
+
+#if not $tasks
+<p>No maintenance tasks found.</p>
+#else
+    #for $task in $tasks
+
+<table class="vertitable vertitablefull">
+    <caption>$task.description[:50].replace('<', '&lt;').replace('>', '&gt;')</caption>
+    <tr>
+        <th>Start</th>
+        <td>$task.maint_start.strftime('%Y-%m-%d %H:%M')</td>
+    </tr>
+    <tr>
+        <th>End</th>
+        <td>$task.maint_end.strftime('%Y-%m-%d %H:%M')</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>$task.description.replace('<', '&lt;').replace('>', '&gt;')</td>
+    </tr>
+    <tr>
+        <th>Components</th>
+        <td>$listComponents($task.components)</td>
+    </tr>
+    <tr>
+        <th>Author</th>
+        <td>$task.author</td>
+    </tr>
+    #if $authorized
+    <tr>
+        <th>State</th>
+        <td>$task.state.capitalize()</td>
+    </tr>
+    <tr>
+        <th>Actions</th>
+        <td><a href="edit?id=$task.maint_taskid">Edit</a>
+        #if not $task.state == 'cancelled'
+            | <a href="cancel?id=$task.maint_taskid">Cancel now</a>
+        #end if
+        </td>
+    </tr>
+    #end if
+</table>
+
+    #end for
+#end if
+
+#end block tabcontent

@@ -1,0 +1,12 @@
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-prefix %}">Prefix</a></li>
+<li class="{{ sub_active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-prefix-edit %}">Add new prefix</a>
+</li>
+{% if object %}
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-prefix-edit object.id %}">Edit prefix "{{ object.net_address }}"</a>
+</li>
+{% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-prefix-bulk %}">Bulk import</a></li>

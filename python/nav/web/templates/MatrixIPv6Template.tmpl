@@ -1,0 +1,93 @@
+#encoding UTF-8
+##
+## Copyright (C) 2007 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT ANY
+## WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+## PARTICULAR PURPOSE. See the GNU General Public License for more details.
+## You should have received a copy of the GNU General Public License along with
+## NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+
+
+#extends nav.web.templates.MatrixTemplate
+
+#def $netlink($ip,$append_term_and_prefix=False)
+	##Returns a link to a site that will list all sub
+	#set $nip = $MetaIP($ip).getTreeNet(leadingZeros=True)
+	#set $link = $MetaIP($ip).getTreeNet(leadingZeros=False)[:-1] + "_::"
+	#set $text = $nip[:-1] + 'x'
+
+	#if $append_term_and_prefix
+		<a class="monosp" href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
+	#else
+		<a class="monosp" href="/report/prefix?netaddr=$link&op_netaddr=like">$text</a>
+	#end if
+#end def	
+
+#def $matrixlink($nybble,$ip)
+	<a href="/report/prefix?prefixid=$MetaIP($ip).prefixid">$nybble::/$ip.prefixlen</a>
+#end def
+
+#def $printBlankRow
+	#set $span = $len($column_headings)+1
+	<tr><td class="blank" colspan="$span"></td></tr>
+#end def
+
+#def $writeSubnets($net,$depth)
+	#set $nodes = $sort_nets_by_address($net.keys)
+	#set $lastnet = None
+	#for $subnet in $nodes
+		#if $lastnet is None
+			#set $lastnet = $subnet
+		#end if
+
+		#if $matrix_nets.has_key($subnet)
+			#if $isIntermediateNets($lastnet,$subnet)
+				$printBlankRow
+			#end if
+
+			#set $lastnet = $subnet
+			<tr>
+			<td>$printDepth($depth)$netlink($subnet)</td>
+			#set $host_nybbles_map = $getLastbitsIpMap($matrix_nets[$subnet].keys)
+			#set $next_header_idx = -1
+			#for $i in $column_headings
+				#if $column_headings.index($i) < $next_header_idx
+					#continue
+				#end if
+
+				#set $i = $i.lower()
+				#if $host_nybbles_map.has_key($i)
+					#set $meta = $MetaIP($host_nybbles_map[$i])
+					#set $ip = $host_nybbles_map[$i]
+					<td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.nettype); text-align:center;">#slurp
+					$matrixlink($i,$ip)#slurp
+					</td>
+
+					#set $next_header_idx = $column_headings.index($i.upper)+$int($colspan($ip))
+				#else
+					<td colspan="1">&nbsp;</td>
+				#end if
+			#end for
+			</tr>
+		#else
+			$printBlankRow
+			#set $lastnet = $subnet
+			#set $meta = $MetaIP($subnet)
+			<tr>
+			<td>$printDepth($depth)$netlink($subnet,True)</td>
+			<td colspan="$len($column_headings)">
+			&nbsp;
+			</td>
+			</tr>
+			$writeSubnets($net[$subnet],$depth+1)
+		#end if
+	#end for
+#end def

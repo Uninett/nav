@@ -1,0 +1,112 @@
+#encoding utf-8
+##
+## Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.  You should have received a copy of the GNU General Public
+## License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+## Defines the user information page, which includes a password changing form.
+##
+
+#extends nav.web.templates.MainTemplate.MainTemplate
+
+#def grouplist()
+#echo ', '.join( [g.name for g in $groups] )
+#end def
+
+#def orglist()
+#echo ', '.join($orgs)
+#end def
+
+#block content
+
+<h2>User information</h2>
+
+#if $varExists('account')
+<table class="vertitable">
+    <tr>
+        <th>Login</th>
+        <td>$account.login</td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td>$account.name</td>
+    </tr>
+    <tr>
+        <th>Groups</th>
+        <td>$grouplist()</td>
+    </tr>
+    <tr>
+        <th>Organizations</th>
+        <td>$orglist()</td>
+    </tr>
+</table>
+
+#if $changePassword
+
+<h3>Change password</h3>
+
+$messages()
+
+<form action="passwd" method="post">
+
+<table class="vertitable">
+    <tr>
+        <th>Old password</th>
+        <td><input type="password" name="oldpasswd" /></td>
+    </tr>
+    <tr>
+        <th>New password</th>
+        <td><input type="password" name="newpasswd1" /></td>
+    </tr>
+    <tr>
+        <th>Confirm password</th>
+        <td><input type="password" name="newpasswd2" /></td>
+    </tr>
+    <tr>
+        <th></th>
+        <td><button type="submit">Change password</button></td>
+    </tr>
+</table>
+
+</form>
+#else
+$messages()
+<p>You are not allowed to change your password from this page.  Your account is
+managed through an external system, known as &quot;$account.ext_sync&quot;.</p>
+#end if
+
+
+#else
+$messages()
+<p>You are not logged in.</p>
+
+<p><a href="/">Click here to return to the main page.</a></p>
+
+#end if
+#end block content
+
+#block messages
+#if $varExists('errorMessage')
+<p class="error">Error: $errorMessage</p>
+#end if
+#if $varExists('message'):
+<p>Notice: $message</p>
+#end if
+#end block messages
+
+#block additionalCSS
+$default_table_CSS
+#end block additionalCSS

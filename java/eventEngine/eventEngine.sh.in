@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+localstatedir=@localstatedir@
+sysconfdir=@sysconfdir@
+javalibdir=@javalibdir@
+
+NAV_CONF="${sysconfdir}/nav.conf"
+
+function getopt() {
+  awk -F= "/$1/"' && $1!~/#.*/{gsub("^[\t ]+", "", $2); gsub("[\t ]+$", "", $2); print $2}' $NAV_CONF
+}
+
+if test -z "$JAVA_HOME"; then 
+    JAVA_HOME=`getopt JAVA_HOME`
+fi
+
+if test -z "$JAVA_HOME"; then
+    JAVA=`which java`
+else
+    JAVA="$JAVA_HOME/bin/java"
+fi
+
+if ! test -x "$JAVA"; then
+    echo "Could not find a suitable Java environment." >&2
+    echo "Maybe you should set the JAVA_HOME variable?" >&2
+    exit 1
+fi
+
+JVM_OPTS=`getopt JVM_OPTS_EVENTENGINE`
+if test -z "$JVM_OPTS"; then
+  JVM_OPTS="-Xmx256m"
+fi
+JVM_OPTS="$JVM_OPTS -Djava.ext.dirs=${javalibdir}"
+
+CUR_DIR=${javalibdir}/eventEngine
+LOG_DIR="${localstatedir}/log/eventEngine"
+PIDFILE=${localstatedir}/run/eventEngine.pid
+OUTLOG=${LOG_DIR}/eventEngine-stdout.log
+ERRLOG=${LOG_DIR}/eventEngine-stderr.log
+
+if test -f $PIDFILE; then
+    pidnum=`cat $PIDFILE`
+    if (ps -p "${pidnum}" >/dev/null); then
+	echo "eventEngine already running!" >&2
+	exit 1
+    fi
+fi
+
+# If error log exists and has content, we rename it before creating a
+# new one
+if test -s "${ERRLOG}"; then
+    newname="${ERRLOG}.`date +'%Y-%m-%d-%H%M'`.log"
+    mv ${ERRLOG} ${newname}
+fi
+
+cd $CUR_DIR
+# Run program
+$JAVA $JVM_OPTS -jar eventEngine.jar $1 >> ${OUTLOG} 2> ${ERRLOG} < /dev/null & 
+pidno="$!"
+echo $pidno > $PIDFILE
+
+# Check whether it exited immediately
+sleep 1
+if ! ps -p $pidno >/dev/null; then
+    cat $ERRLOG >&2
+    exit 1
+fi

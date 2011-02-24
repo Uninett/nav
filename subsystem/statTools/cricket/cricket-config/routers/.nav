@@ -1,2 +1,0 @@
-type = GW,GSW
-descr = SELECT type.descr, room.locationid, room.roomid, room.descr FROM netbox LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) WHERE netboxid=$id

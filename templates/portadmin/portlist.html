@@ -1,0 +1,110 @@
+{% extends "portadmin/base.html" %}
+{% load portadmin %}
+
+{% block base_header_title %}
+PortAdmin - {{ netbox.get_short_sysname }}
+{% endblock %}
+
+{% block content %}
+
+
+{% if interfaces %}
+
+<div id="infoboxcontainer" class="left">
+
+	{% if errors %}
+	<div id="errors" class="infobox">
+		<h4>ERROR</h4>
+		<ul>
+		{% for error in errors %}
+			<li>{{ error }}</li>
+		{% endfor %}
+		</ul>
+	</div>
+	{% endif %}
+
+	{% if aliastemplate %}
+	<div class="infobox">
+		{{ aliastemplate }}
+	</div>
+	{% endif %}
+	
+	<div id="infobox" class="infobox">
+		<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
+		
+		<ul>
+		{% for vlan, netident in netidents %}
+			<li>{{ vlan }} - {{ netident }}</li>
+		{% endfor %}
+		</ul>
+	
+	</div>
+</div>
+
+<div id="tablecontainer" class="text-right">
+<table id="portadmin-interfacecontainer" class="vertitable">
+	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
+	<tr>
+		<th class="ifname">Interface</th>
+		<th class="adminstatus" title="AdminStatus - If red the interface is down">A</th>
+		<th class="operstatus" title="OperStatus - If red there is no link on the interface">O</th>
+		<th class="ifalias">Port Description</th>
+		<th class="vlan">Vlan</th>
+		<th class="button">&nbsp;</th>
+	</tr>
+  
+   	{% for interface in interfaces %}
+	<tr id="{{ interface.id }}">
+		<td>{{ interface.ifname }}</td>
+
+		<td class="text-center"><img title="AdminStatus - If red the interface is down" src="/images/lys/{{ interface.ifadminstatus|drawLight }}" /></td>
+		<td class="text-center"><img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" /></td>
+		
+		<td>
+			{% if interface.iseditable %}
+			<input class="ifalias" type="text" value="{{ interface.ifalias }}" />
+			{% else %}
+			{{ interface.ifalias }}
+			{% endif %}
+		</td>
+
+	
+
+		<td>
+			{% if interface.trunk %}
+			Trunk
+			{% else %}
+				{% if interface.iseditable %}
+					<select class="vlanlist" name="{{ interface.ifname }}">
+						{% for vlan in allowed_vlans %}
+							{% ifequal interface.vlan vlan %}
+							<option value="{{ vlan }}" selected="selected">{{ vlan }}</option>
+							{% else %}
+							<option value="{{ vlan }}">{{ vlan }}</option>
+							{% endifequal %}
+						{% endfor %}
+					</select>
+				{% else %}			
+					{{interface.vlan}}
+				{% endif %}
+			{% endif %}
+		</td>
+
+		<td>
+			{% if interface.iseditable %}
+			<img src="/images/portadmin/save.png" class="save hidden" alt="Save" title="Save" onclick="save_row({{ interface.id }})"/>
+			{% endif %}
+		</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
+</div>
+
+<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
+
+{% endif %}
+
+{% endblock %}
+

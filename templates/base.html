@@ -1,0 +1,154 @@
+{% block base_header %}<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+{# FIXME Hardcoded urls #}
+
+{% block base_header_head %}
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>{% block base_header_title %}{{ title }}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="/style/reset.css" />
+    <link rel="stylesheet" type="text/css" href="/style/default.css" />
+    <link rel="stylesheet" type="text/css" href="/style/table.css" />
+    <link rel="stylesheet" type="text/css" href="/style/form.css" />
+    <link rel="stylesheet" type="text/css" href="/style/tabs.css" />
+    <link rel="stylesheet" type="text/css" href="/style/calendar.css" />
+    <link rel="stylesheet" type="text/css" href="/style/treeselect.css" />
+    <link rel="stylesheet" type="text/css" href="/style/quickselect.css" />
+    <script type="text/javascript" src="/js/default.js"></script>
+    {% block base_header_additional_head %}
+    {% endblock %}
+</head>
+{% endblock %}
+
+{% block base_body_start %}
+<body>
+{% endblock %}
+
+{% if current_user_data.sudoer %}
+<div id="top-bar">
+<form action="{% url webfront-logout %}" method="post">
+<img src="/images/main/emblem-important.png" alt="Important information" />
+Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as <em>{{ current_user_data.account.name }}</em>.
+    <input type="submit" name="submit_desudo" value="Log back in as {{ current_user_data.sudoer.login }}" />
+</form>
+</div>
+{% endif %}
+
+<div id="header">
+    {% block base_header_logo %}
+    <div id="navlogo">
+    <h1><a href="/">
+    <img src="/images/main/navlogo-141x50.png" width="141" height="50" alt="NAV" />
+    Network Administration Visualized</a></h1>
+    </div>
+    {% endblock %}
+
+    {% block base_header_navbar %}
+    <div id="navbar">
+        <table>
+            <tr>
+                <td>
+                    <div id="navpath">
+                    {% block base_header_navpath %}
+                    {% for title, url in navpath %}
+                        {% if url %}
+                            <a href="{{ url }}">{{ title }}</a>
+                        {% else %}
+                            {{ title }}
+                        {% endif %}
+                        {% if not forloop.last %}
+                            &gt;
+                        {% endif %}
+                    {% endfor %}
+                    {% endblock %}
+                    </div>
+                </td>
+                <td class="spacer"></td>
+                <td class="entry">
+                    <form action="/ipdevinfo/" method="get">
+		        <label for="ipquery" style="display: none;">IP or hostname</label>
+                        <input type="text" id="ipquery" name="query" maxlength="100" size="12" value="IP or hostname" onclick="this.value = (this.value == 'IP or hostname' ? '' : this.value )" />
+                        <button type="submit">Search</button>
+                    </form>
+                </td>
+                {% for link in current_user_data.navbar %}
+                <td class="entry">
+                    <a href="{{ link.uri }}" class="navbar">{{ link.name }}</a>
+                </td>
+                {% endfor %}
+                {% if current_user_data.qlink1 %}
+                <td class="list">
+                    <select onchange="return jump(this);">
+                        <option selected="selected">Quicklink #1</option>
+                        {% for link in current_user_data.qlink1 %}
+                        <option value="{{ link.uri }}">{{ link.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                {% endif %}
+                {% if current_user_data.qlink2 %}
+                <td class="list">
+                    <select onchange="return jump(this);">
+                        <option selected="selected">Quicklink #2</option>
+                        {% for link in current_user_data.qlink2 %}
+                        <option value="{{ link.uri }}">{{ link.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                {% endif %}
+                <td class="entry">
+                    {% if current_user_data.account.is_default_account %}
+                    <a class="navbar" href="/index/login">Login</a>
+                    {% else %}
+                    <a class="navbar" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% endblock base_header_navbar %}
+</div>
+{% endblock base_header %}
+
+{% block base_toolbar %}
+    {% if available_tools %}
+        {% include "toolbar.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block base_navbody_start %}<div id="navbody">{% endblock %}
+{% block base_content %}
+{% endblock %}
+{% block base_navbody_end %}</div>{% endblock %}
+
+{% block base_debug %}
+    {% if debug %}
+        {% if not current_user_data.account.is_default_account %}
+            {% include "debug.html" %}
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block base_footer %}
+<div id="footer">
+    <hr />
+    <p>
+        <a href="/about/">Network Administration Visualized</a>
+        version {{ nav_version }}
+        <br />
+        {% if current_user_data.account.is_default_account %}
+        You are not logged in.
+        {% else %}
+        You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
+        {% endif %}
+    </p>
+</div>
+
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "useradmin/base.html" %}
+
+{% block tabs %}{% endblock %}
+
+{% block outercontent %}
+    {% if current_user_data.messages %}
+        <ul class="messages">
+            {% for m in current_user_data.messages %}
+                <li class="{{ m.type }}">{{ m.message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <h3>User information</h3>
+    <table class="vertitable">
+        <tr>
+            <th>Login:</th>
+            <td>{{ account.login }}</td>
+        </tr>
+        <tr>
+            <th>Name:</th>
+            <td>{{ account.name }}</td>
+        </tr>
+        <tr>
+            <th>Groups:</th>
+            <td>
+                {% if account.accountgroup_set.all %}
+                    <ul>
+                        {% for g in account.accountgroup_set.all %}
+                            <li>{{ g }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Organizations:</th>
+            <td>
+                {% if account.organizations.all %}
+                    <ul>
+                        {% for o in account.organizations.all %}
+                            <li>{{ o }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <h4>Change password</h4>
+    {% if account.ext_sync %}
+        <p>
+            You are not allowed to change your password from this page. Your
+            account is managed through an external system, known as "{{ account.ext_sync }}".
+        </p>
+    {% else %}
+        <form action="." method="post">
+            <table class="vertitable">
+                {{ password_form.as_table }}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="Change password" /></td>
+                </tr>
+            </table>
+        </form>
+    {% endif %}
+{% endblock %}

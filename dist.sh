@@ -54,12 +54,12 @@ fi
 mkdir $DIST_SANDBOX && cd $DIST_SANDBOX || exit 1
 
 echo "Exporting archive of NAV revision $REVISION ..." 
-hg archive -X '.hg*' $DIST_NAME
+hg archive -r $REVISION -X '.hg*' $DIST_NAME
 if [ $? -eq 0 ]; then
     # Generate the ./configure script before creating the tarball
-    cd $DIST_NAME
-    autoconf
-    cd ..
+    ( cd .. && ./autogen.sh )
+    cp ../version.m4 $DIST_NAME
+    ( cd $DIST_NAME && ./autogen.sh )
 
     echo "Creating tarball ($TARBALL) ..."
     tar czf $TARBALL $DIST_NAME

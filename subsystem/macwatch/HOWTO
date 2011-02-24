@@ -1,9 +1,0 @@
-The following changes in AlertProfiles enables you to get mac watch alerts.
-
-- AlertProfiles:
-  - Create filter.
-  - Create filtergroup.
-  - Set public access to groups who should have access.
-
-TODO:
-- Create logging for mactrace.py

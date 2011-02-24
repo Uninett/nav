@@ -1,0 +1,112 @@
+#encoding utf-8
+##
+## Copyright (C) 2003 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.  You should have received a copy of the GNU General Public
+## License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+
+#extends MainTemplate
+
+#attr $type = "personal"
+
+#def additionalCSS
+$default_table_CSS
+#end def additionalCSS
+
+#def additionalJavaScript
+    <script language="JavaScript" type="text/javascript">
+    <!-- BEGIN
+
+      function testURL() {
+        var url=document.getElementById("url").value;
+        var popup = window.open(url,"","width=400,height=500,toolbar,location,directories,status,scrollbars,menubar,resizable,");
+        if (!popup.focus) {
+          alert("This function does not work with popups disabled.");
+        }
+      }
+
+    // END -->
+    </script>
+#end def additionalJavaScript
+
+#block content
+    <div>
+        #if $link
+            <form method="post" action="updatelink">
+        #else
+            <form method="post" action="savenewlink">
+        #end if
+        <table class="vertitable">
+            <caption>
+                #if $link
+                    Edit $type link
+                #else
+                    Add $type link
+                #end if
+            </caption>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <td>
+                    #if $link
+                        <input name="name" type="text" value="$link.name" />
+                    #else
+                        <input name="name" type="text" />
+                    #end if
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    URL
+                </th>
+                <td>
+                    #if $link
+                        <input name="url" id="url" value="$link.uri" type="text" />
+                    #else
+                        <input name="url" id="url" value="http://" />
+                    #end if
+                </td>
+            </tr>
+            #if not $link
+                <tr>
+                    <th>
+                        Use in
+                    </th>
+                    <td >
+                        <select name="usein">
+                            <option>None</a>
+                            <option value="navbar">Navbar</a>
+                            <option value="qlink1">Quicklink #1</a>
+                            <option value="qlink2">Quicklink #2</a>
+                        </select>
+                    </td>
+                </tr>
+            #end if
+            <tr>
+                <th></th>
+                <td>
+                    #if $link
+                        <input type="hidden" name="id" value="$link.id">
+                        <input type="submit" value=" Save ">
+                    #else
+                        <input type="submit" value=" Add ">
+                    #end if
+                    <input type="button" value="Test URL" onClick="testURL();">
+                    <input type="button" value="Cancel" onclick="top.location='javascript:history.back(1)'">
+                </td>
+        </table>
+    </form>
+</div>
+
+#end block content

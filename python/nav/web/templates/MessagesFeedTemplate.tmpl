@@ -1,0 +1,53 @@
+#encoding UTF-8
+## $Id: $
+##
+## Copyright 2006 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##
+#import datetime
+## FIXME: %Z can be empty, but we should always give a timezone such as
+## '+02:00' for CEST and '+01:00' for CET
+#set $lastBuildDate = datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %Z')
+<?xml version="1.0" encoding="utf-8"?>
+
+<rss version="2.0">
+    <channel>
+        <title>$channeltitle.replace('<', '&lt;').replace('>', '&gt;')</title>
+        <link>$channellink</link>
+        <description>$channeldesc.replace('<', '&lt;').replace('>', '&gt;')</description>
+        <language>$channellang</language>
+        <pubDate>$pubDate.strftime('%a, %d %b %Y %H:%M:%S %Z')</pubDate>
+        <lastBuildDate>$lastBuildDate</lastBuildDate>
+        <ttl>$channelttl</ttl>
+        
+        #set msgs = $getVar('msgs', [])
+        #for msg in msgs
+        <item>
+            <title>$msg.title.replace('<', '&lt;').replace('>', '&gt;')</title>
+            <pubDate>$msg.publish_start.strftime('%a, %d %b %Y %H:%M:%S %Z')</pubDate>
+            <link>$msg.link</link>
+            <guid>$msg.guid</guid>
+            <comments />
+            <description>$msg.description.replace('<', '&lt;').replace('>', '&gt;')</description>
+        </item>
+        #end for
+    </channel>
+</rss>

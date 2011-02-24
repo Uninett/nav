@@ -1,0 +1,8 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+<form action="{% url alertprofiles-profile-timeperiod-add %}" method="post">
+    <input type="hidden" name="valid_during" value="{{ time_period.valid_during }}" />
+    {% include "alertprofiles/timeperiod_form.html" %}
+</form>
+{% endblock %}

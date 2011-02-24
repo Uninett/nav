@@ -1,0 +1,64 @@
+#encoding utf-8
+##
+## Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+## Copyright (C) 2007 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.  You should have received a copy of the GNU General Public
+## License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+##
+## Contains the Cheetah template for the login page to the NAV web
+## interface.
+##
+#attr $origin = ""
+#attr $message = ""
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>NAV Login</title>
+    <link rel="stylesheet" type="text/css" href="/style/login.css" />
+</head>
+
+<body onload="document.getElementById('username').focus();">
+
+<div id="container">
+
+<img src="/images/main/navlogo-281x100.png" width="281" height="100" alt="NAV" />
+
+#if $message
+<p class="message">$message</p>
+#end if
+
+<form method="post" action="/index/login">
+    <input type="hidden" name="origin" value="$origin" />
+
+    <p>
+    <input type="text" name="login" id="username" class="intext" /><br />
+    username<br />
+    <input type="password" name="password" class="intext" /><br />
+    password
+    </p>
+
+    <p><button type="submit">Log in</button></p>
+</form>
+
+</div>
+
+</body>
+</html>

@@ -1,3 +1,0 @@
-SetHandler python-program
-PythonHandler loggerhandler
-DirectoryIndex loggerhandler.py

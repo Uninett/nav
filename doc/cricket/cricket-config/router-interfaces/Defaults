@@ -1,0 +1,22 @@
+# interface sub-tree
+#
+# This is where we collect stats on the interfaces
+# (i.e. Octets, Packets, Errors).
+# Last changed for version 3.6 of NAV
+
+Target  --default--
+        inst            =       map(interface-name)
+        target-type     =       standard-interface
+        short-desc      =       ""
+
+# All the orther information is stored in the main Defaults file.
+
+html    page-header
+        <table width=100%>
+        <tr class=header>
+                <td width=33% align=left class=header>%auto-title%</td>
+                <td width=33% align=center class=header2>NAV-v3</td>
+                <td width=33% align=right><a href=/>Back to NAV</a></td>
+        </tr>
+        </table>
+        <h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>

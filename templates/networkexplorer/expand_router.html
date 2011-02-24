@@ -1,0 +1,40 @@
+<dl class="gwports">
+<dt>Router ports:</dt>
+{% for gwport in ports %}
+{% if gwport %}
+    <dd id="gwport-{{ gwport.id }}">
+        {% if gwport.has_children %}
+	        <img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigator"/>
+        {% else %}
+		{% if forloop.last %}
+   			<img src="/images/networkexplorer/end.gif">
+		{% else %}
+			<img src="/images/networkexplorer/vertical-bound.gif">
+		{% endif %}
+        {% endif %}
+        <a href="{{ gwport.get_absolute_url }}" target="_blank">{{ gwport.ifname }}</a>
+        {% if gwport.to_netbox %}
+            {% if gwport.to_interface.trunk %} <abbr title="trunk port">⇉</abbr> {% else %} <abbr title="non-trunk port">→</abbr> {% endif %}
+             {{ gwport.to_netbox.sysname }}
+        {% endif %}
+	{% with gwport.prefixes|dictsort:"display_addr" as prefix_list %}
+	{% if prefix_list %}
+        <dl>
+			<dt class="prefix">Prefixes:</dt>
+		        {% for prefix in prefix_list %}
+	        	<dd class="prefix">
+{% if forloop.last %}
+   <img src="/images/networkexplorer/end.gif">
+{% else %}
+   <img src="/images/networkexplorer/vertical-bound.gif">
+{% endif %}
+				({{ prefix.display_addr }}, {{prefix.prefix.vlan.net_type}}, {{prefix.prefix.vlan.net_ident}})
+			</dd>
+		        {% endfor %}
+        </dl>
+	{% endif %}
+	{% endwith %}
+    </dd>
+{% endif %}
+{% endfor %}
+</dl>

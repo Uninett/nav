@@ -1,0 +1,16 @@
+<div class="network-popup">
+  Capacity: {{ network.capacity|floatformat:0 }} Mbps<br/>
+  Load in: {{ network.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
+  Load out: {{ network.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}
+
+  <ul>
+    {% for sub in network.subedges %}
+    <li>
+    {{ sub.netident }}<br/>
+    Capacity: {{ sub.capacity|floatformat:0 }} Mbps<br/>
+    Load in: {{ sub.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
+    Load out: {{ sub.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

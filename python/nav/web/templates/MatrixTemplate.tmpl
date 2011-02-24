@@ -1,0 +1,87 @@
+#encoding UTF-8
+##
+## Copyright (C) 2003-2005 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT ANY
+## WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+## PARTICULAR PURPOSE. See the GNU General Public License for more details.
+## You should have received a copy of the GNU General Public License along with
+## NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+
+
+#extends nav.web.templates.MainTemplate
+
+#block content
+<h1>Tabular view of $start_net.strCompressed()</h1>
+<p>This table shows how the subnets with masklengths from $start_net.prefixlen#slurp
+ to $end_net.prefixlen are utilized.</p>
+
+#block address_box
+&nbsp;
+#end block
+
+<table style="border: 1px solid black; font-size: 0.8em;">
+<tr>
+<td style="text-align:center;">$start_net.prefixlen ... $sub($end_net.prefixlen,$bits_in_matrix)</td>
+#for $heading in $column_headings
+	<th>$heading</th>
+#end for
+</tr>
+#set $nodes = $sort_nets_by_address($tree_nets.keys)
+#for $net in $nodes
+	<tr>
+	<td>$net.strCompressed()</td>
+	<td colspan="16">&nbsp;</td>
+	</tr>
+	$writeSubnets($tree_nets[$net],1)
+#end for
+
+</table>
+#end block
+
+#def $colspan($ip)
+	#import math
+	$int($math.pow(2,$end_net.prefixlen-$ip.prefixlen))#slurp
+#end def
+
+#def $loadColor($percent,$nettype)
+	#if $nettype=="static" or $nettype=="scope" or $nettype=="reserved"
+		#if $color_configuration.extras.has_key("other")
+			$color_configuration.extras["other"]#slurp
+		#end if
+
+	#elif $nettype=="large"
+		#if $color_configuration.extras.has_key("large")
+			$color_configuration.extras["large"]#slurp
+		#end if
+
+	#else
+		#set $lims = $color_configuration.limits
+		#set $limkeys = $color_configuration.limits.keys
+		#silent $limkeys.sort()
+		#silent $limkeys.reverse()
+		#for $limit in $limkeys
+			#if $percent>=int($limit)
+				$lims[$limit]
+				#break
+			#end if
+		#end for
+	#end if
+#end def
+
+#def $printDepth($depth)
+	#for $i in $range(0,$depth)
+		&nbsp;#slurp
+	#end for
+#end def
+
+#block additionalCSS
+<link rel="stylesheet" type="text/css" href="/style/MatrixTemplate.css" />
+#end block

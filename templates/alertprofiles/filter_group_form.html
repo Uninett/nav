@@ -1,0 +1,138 @@
+{% extends "alertprofiles/base_detail.html" %}
+
+{% block url_edit %}{% url alertprofiles-filter_groups-save %}{% endblock %}
+{% block url_remove_expression %}{% url alertprofiles-filter_groups-removefilter %}{% endblock %}
+{% block url_add_expression %}{% url alertprofiles-filter_groups-addfilter %}{% endblock %}
+
+{% block headercontent %}
+    {% if detail_id %}
+        Filter group details
+    {% else %}
+        New filter group
+    {% endif %}
+{% endblock %}
+
+{% block expressions_caption_content %}
+    Filters
+{% endblock %}
+
+{% block expressions_thead_cols %}
+    {% if owner %}
+    <th></th>
+    {% endif %}
+    <th>Priority</th>
+    <th>Operation</th>
+    <th>Filter</th>
+    <th></th>
+    <th></th>
+{% endblock %}
+
+{% block expressions_tbody_content %}
+    {% for f in filter_group_content %}
+        <tr class="{% cycle oddrow,evenrow %}">
+            {% if owner %}
+            <td><input type="checkbox" name="filter" value="{{ f.id }}" /></td>
+            {% endif %}
+            <td>{{ f.priority }}</td>
+            <td>
+                {% if f.include %}
+                    {{ f.positive|yesno:"Add,Add inverse" }}
+                {% else %}
+                    {{ f.positive|yesno:"Subtract,And" }}
+                {% endif %}
+            </td>
+            <td>{{ f.filter }}</td>
+            <td>
+                {% if not forloop.first %}
+                <input type="submit" name="moveup={{ f.id }}" value="Move up" />
+                {% endif %}
+            </td>
+            <td>
+                {% if not forloop.last %}
+                <input type="submit" name="movedown={{ f.id }}" value="Move down" />
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block addexpression %}
+    {% if owner %}
+    <h3>Add filter</h3>
+    <div class="formcontainer">
+        <label for="select_operation">Use operation</label>
+        <select name="operator" id="select_operation">
+            <option value="11">Add</option>
+            <option value="01">Subtract</option>
+            <option value="00">And</option>
+            <option value="10">Add inverse</option>
+        </select>
+
+        <label for="select_filter">on filter</label>
+        <select name="filter" id="select_filter">
+        {% for f in filters %}
+            <option value="{{ f.id }}">{{ f.name }}</option>
+        {% endfor %}
+        </select>
+        {{ block.super }}
+    </div>
+
+    <div class="infobox">
+        <h3>Operator help</h3>
+        <p>
+            The four operators are in the database represented by to flags, one
+            for «include» and one for «positive». The table below shows how
+            these operators affect the filters added.
+        </p>
+        <p>
+            Notice that priority affects how the final set will be, as each
+            filter is checked according to it's priority, ie: number 1 first,
+            then number two and so on.
+        </p>
+        <table class="listtable">
+            <thead>
+                <tr>
+                    <th>Operator</th>
+                    <th>Include flag</th>
+                    <th>Positive flag</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="oddrow">
+                    <td>Add</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>Union in set theory.<br/>Adds all matching alerts to the
+                    set.</td>
+                </tr>
+                <tr class="evenrow">
+                    <td>Subtract</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>Exclusion.<br />Removes all matching alerts from the
+                    set.</td>
+                </tr>
+                <tr class="oddrow">
+                    <td>And</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>Intersection in set theory.<br />Removes all alerts but
+                    those who are in both the current set and those in the set
+                    matched by this filter.</td>
+                </tr>
+                <tr class="evenrow">
+                    <td>Add inverse</td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>Complement of set.<br />Adds the oposite of whats
+                    matched.  Ie: with a filter that checks for severity &gt;
+                    70, using this operator will check for severity &lt;=
+                    70.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+{% endblock %}
+

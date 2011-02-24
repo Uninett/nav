@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+####################
+#
+# This file is part of Network Administration Visualized.
+# This script controls start/stop/status of the NAV SNMP Trap Daemon
+#
+# Copyright 2007 UNINETT AS
+#
+####################
+initdir=@initdir@
+bindir=@bindir@
+SNMPTRAPD=${bindir}/snmptrapd.py
+
+# Source function library.
+. ${initdir}/functions
+
+[ -x $SNMPTRAPD ] || exit 2
+
+case "$1" in
+	start)
+		# Start daemons (it will switch to an unprivileged user itself)
+		echo -n "Starting snmptrapd: "
+		daemon "$SNMPTRAPD -d"
+		rc=$?
+		echo
+		exit $rc
+		;;
+	stop)
+		# Stop daemons.
+		echo -n "Stopping snmptrapd: "
+		if killproc snmptrapd; then
+		    echo
+		    exit 0
+		else
+		    echo
+		    exit 1
+		fi
+        	;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	status)
+	        status snmptrapd
+		exit $?
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+esac
+
+exit 0
+

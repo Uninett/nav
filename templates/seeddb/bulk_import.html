@@ -1,0 +1,55 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post">
+{{ form.non_field_errors }}
+
+{% if processed_objects %}
+<table class="listtable">
+    <thead>
+        <tr>
+            <th>Status</th>
+            <th>Line</th>
+            <th>Input</th>
+            <th>Remark</th>
+        </tr>
+    </thead>
+    {% for obj in processed_objects %}
+    <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <td>
+          {% ifequal obj.status "ok" %}
+            <img src="/images/lys/green.png" alt="{{ obj.status }}" />
+          {% else %}{% ifequal obj.status "other" %}
+            <img src="/images/lys/yellow.png" alt="{{ obj.status }}" />
+          {% else %}{% ifequal obj.status "syntax" %}
+            <img src="/images/lys/red.png" alt="{{ obj.status }}" />
+          {% else %}
+            {{ obj.status }}
+          {% endifequal %}{% endifequal %}{% endifequal %}
+	</td>
+        <td>{{ obj.line_number }}</td>
+	<td>{{ obj.input }}</td>
+        <td>{{ obj.message|capfirst }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<p>
+    <input type="submit" name="confirm" value="Import" />
+</p>
+{% endif %}
+
+{% for field in form %}
+<p>{% if not field.is_hidden %}{{ field.label_tag }}:<br/>{% endif %}
+{{ field.errors }}
+{{ field }}
+</p>
+{% endfor %}
+
+{% if not form.is_bound or not form.is_valid %}
+<p>
+    <input type="submit" value="Preview import" />
+</p>
+{% endif %}
+
+</form>
+{% endblock %}

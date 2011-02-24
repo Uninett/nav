@@ -1,0 +1,136 @@
+/* Stylesheet for tables in NAV style
+ *
+ * Copyright (C) 2003-2005 Norwegian University of Science and Technology
+ * Copyright (C) 2006-2008 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV).
+ *
+ * NAV is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.  You should have received a copy of the GNU General Public
+ * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* --- Common --- */
+
+/* Table caption */
+table.vertitable caption,
+table.listtable caption {
+	background: #567899;
+	color: white;
+	border-bottom: 2px solid white;
+	font-size: 1.2em;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
+	text-align: left;
+}
+table.vertitable caption span.subtitle,
+table.listtable caption span.subtitle {
+	font-size: 0.9em;
+	font-weight: normal;
+}
+table.vertitable caption a,
+table.listtable caption a {
+	background: transparent;
+	color: white;
+}
+table.vertitable caption a:hover,
+table.listtable caption a:hover {
+	text-decoration: none;
+}
+
+/* --- Details table --- */
+table.vertitable {
+	border: 1px solid #999;
+	border-collapse: separate;
+	border-spacing: 2px;
+	caption-side: top;
+	margin-bottom: 1em;
+}
+
+/* Table body */
+table.vertitable tr {
+	text-align: left;
+	vertical-align: top;
+}
+table.vertitable tr th {
+	background-color: #eee;
+	color: black;
+	font-weight: bolder;
+	padding: 0.1em 0.5em;
+}
+table.vertitable tr th a {
+	color: black;
+}
+table.vertitable tr td {
+	background-color: white;
+	padding: 0.1em 0.2em;
+}
+
+
+/* --- List table --- */
+table.listtable {
+	border: 1px solid #999;
+	border-collapse: separate;
+	border-spacing: 2px;
+	caption-side: top;
+	margin-bottom: 1em;
+}
+
+/* Table head */
+table.listtable tr {
+	text-align: left;
+	vertical-align: top;
+}
+table.listtable tr th {
+	background: #eee;
+	color: black;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
+	vertical-align: middle;
+}
+table.listtable tr th a {
+	background: transparent;
+	color: black;
+	text-decoration: underline;
+}
+
+/* Table body */
+table.listtable tr.evenrow {
+	background: #f6f6f6;
+	color: black;
+}
+table.listtable tr.oddrow {
+	background: white;
+	color: black;
+}
+table.listtable tr td {
+	padding: 0.1em 0.5em;
+}
+
+/* Table footer */
+table.listtable tbody.footer tr th, table.listtable tfoot tr th {
+	text-align: left;
+}
+
+
+/* --- Custom table additions --- */
+
+/* Details table with full width */
+table.vertitablefull {
+	width: 100%;
+}
+table.vertitablefull tr th {
+	width: 12em;
+}
+
+/* Report table (also uses listtable) */
+table.reporttable tr td {
+	font-size: 0.8em;
+}

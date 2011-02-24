@@ -1,0 +1,40 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block captioncontent %}
+    Confirm deletion
+{% endblock %}
+
+{% block theadcols %}
+    {{ block.super }}
+    <th>Warnings</th>
+{% endblock %}
+
+{% block tbodycontent %}
+    {% for element in object_list %}
+    <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <td><input type="checkbox" name="element" value="{{ element.id }}" id="elementid_{{ element.id }}" checked="checked" /></td>
+        <td>
+            <label for="elementid_{{ element.id }}">{{ element.description }}</label>
+        </td>
+        <td>
+            <ul class="errorlist">
+                {% for warning in element.warnings %}
+                    <li>
+                        {{ warning.message }}
+                        {% if warning.link %}
+                            <a href="{{ warning.link }}">View</a>
+                        {% endif %}
+                   </li>
+                {% endfor %}
+            </ul>
+        </td>
+    </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block additional_fields %}
+    {% if perform_on %}
+        <input type="hidden" name="perform_on" value="{{ perform_on }}" />
+    {% endif %}
+    <input type="hidden" name="confirm" value="true" />
+{% endblock %}

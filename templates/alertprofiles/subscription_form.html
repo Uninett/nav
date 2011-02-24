@@ -1,0 +1,121 @@
+{% extends "alertprofiles/base.html" %}
+
+{% block tabcontent %}
+
+{% block subscriptions %}
+{% if subscriptions %}
+<form action="{% url alertprofiles-profile-timeperiod-subscription-remove %}" method="post">
+    <table class="listtable">
+        <caption>
+            Subscriptions<br />
+            <span class="subtitle">
+               For profile {{ time_period.profile.name }}<br />
+               Time period starting at {{ time_period.start }} for
+               {{ time_period.get_valid_during_display }}
+            </span>
+        </caption>
+
+        <thead>
+            <tr>
+                <th></th>
+                <th>Watched filter group</th>
+                <th>Alert address</th>
+                <th>Dispatch</th>
+                <th>Ignore resolved</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for s in subscriptions %}
+            <tr>
+                <td><input type="checkbox" name="subscription"
+                id="id_subscription_{{ s.id }}" value="{{ s.id }}" /></td>
+                <td>{{ s.filter_group.name }}</td>
+                <td>{{ s.alert_address.address }}</td>
+                <td>{{ s.get_type_display|capfirst }}</td>
+                <td>{{ s.ignore_resolved_alerts|yesno:"Yes,No" }}</td>
+                <td><a href="{% url alertprofiles-profile-timeperiod-subscription s.id %}">
+                    Edit</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p>
+        <input type="hidden" name="id" value="{{ time_period.id }}" />
+        <input type="submit" value="Delete selected" />
+    </p>
+</form>
+{% endif %}
+{% endblock subscriptions %}
+
+{% block subscription_form %}
+<div class="addexpressionform">
+    <form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
+        <h3>{{ editing|yesno:"Edit,Add new" }} subscription</h3>
+        <div class="formcontainer">
+        {% if not num_addresses %}
+            <p class="error">
+                There are no available alert addresses.<br />
+                You can go and
+                <a href="{% url alertprofiles-address-new %}">add your first address</a>
+                to fix this problem.
+            </p>
+        {% endif %}
+        {% if not num_filter_groups %}
+            <p class="error">
+                There are no available filter groups.<br />
+                You can go and
+                <a href="{% url alertprofiles-filter_groups-new %}">add your first filter group</a>
+                to fix this problem.
+            </p>
+        {% endif %}
+
+            {{ form.non_field_errors }}
+            {{ form.filter_group.errors }}
+            {{ form.alert_address.errors }}
+            {{ form.type.errors }}
+            {{ form.ignore_resolved_alerts.errors }}
+            <p>
+                Watch {{ form.filter_group }},
+                send alerts to {{ form.alert_address }} {{ form.type }}
+                and ignore resolved alerts {{ form.ignore_resolved_alerts }}
+            </p>
+            <p>
+                {{ form.time_period }}
+                {{ form.id }}
+                <input type="submit" value="{{ editing|yesno:"Save,Add" }}" />
+            </p>
+        </div>
+    </form>
+</div>
+
+<div class="infobox">
+    <table>
+        <caption>
+            Dispatch time help
+        </caption>
+        <tbody>
+            <tr>
+                <th>Immidiately</th>
+                <td>Send the alert as soon as alertengine has processed it.</td>
+            </tr>
+            <tr>
+                <th>Daily at predefined time</th>
+                <td>Send all matched alerts at the specified daily dispatch time.</td>
+            </tr>
+            <tr>
+                <th>Weekly at predefined time</th>
+                <td>Send all matched alerts at the specified weekly dispatch time.</td>
+            </tr>
+            <tr>
+                <th>At end of timeperiod</th>
+                <td>Send all matched alerts when the current timeperiod is over and
+                a new one starts.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock subscription_form %}
+
+{% endblock %}

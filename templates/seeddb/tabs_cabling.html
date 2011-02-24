@@ -1,0 +1,12 @@
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-cabling %}">Cabling</a></li>
+<li class="{{ sub_active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-cabling-edit %}">Add new cabling</a>
+</li>
+{% if object %}
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-cabling-edit object.id %}">Edit cabling "{{ object.name }}"</a>
+</li>
+{% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-cabling-bulk %}">Bulk import</a></li>

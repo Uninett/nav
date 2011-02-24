@@ -1,0 +1,38 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+
+{% if matrix %}
+    <table class="listtable">
+        <caption>Service matrix</caption>
+        <thead>
+            <tr>
+                <th>IP Device</th>
+                {% for handler in handler_list %}
+                    <th>{{ handler }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in matrix|dictsort:"sysname" %}
+                <tr class="{% cycle oddrow,evenrow %}">
+                    <td><a href="{{ row.netbox.get_absolute_url }}">
+                        {{ row.netbox }}</a></td>
+                    {% for service in row.services %}
+                        {% if service %}
+                            <td class="status_{{ service.get_up_display }}">
+                                {{ service.get_up_display|capfirst }}
+                            </td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No services found.</p>
+{% endif %}
+
+{% endblock %}

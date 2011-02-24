@@ -1,0 +1,69 @@
+{% extends "alertprofiles/base_list.html" %}
+
+{% block tabcontent %}
+<form action="{% url alertprofiles-profile-remove %}" method="post">
+<table class="listtable">
+    <caption>
+        Profiles
+    </caption>
+
+    <thead>
+        <tr>
+            <th></th>
+            <th>
+            {% ifequal order_by "name" %}
+                <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
+                Name</a>
+                <span class="sort">
+                    <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+                </span>
+            {% else %}
+                <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
+                Name</a>
+                {% ifequal order_by "-name" %}
+                <span class="sort">
+                    <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                </span>
+                {% endifequal %}
+            {% endifequal %}
+            </th>
+            <th>
+                Active
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    {% if profiles %}
+        <tbody>
+        {% for profile in profiles %}
+            <tr class="{% cycle oddrow,evenrow %}">
+                <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
+                <td><a href="{% url alertprofiles-profile-detail profile.id %}">
+                    {{ profile.name }}</a></td>
+                {% ifequal profile.id active_profile.id %}
+                <td>
+                    Active
+                </td>
+                <td>
+                    <input type="submit" name="deactivate={{ profile.id }}" value="Click to deactivate" />
+                </td>
+                {% else %}
+                <td>
+                    Inactive
+                </td>
+                <td>
+                    <input type="submit" name="activate={{ profile.id }}" value="Click to activate" />
+                </td>
+                {% endifequal %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    {% endif %}
+</table>
+<p>
+    <input type="submit" name="remove" value="Remove selected" />
+</p>
+</form>
+
+{% endblock %}

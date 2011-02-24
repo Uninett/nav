@@ -1,0 +1,333 @@
+#
+# Top Level Defaults
+#
+
+#############################################
+# Edited specifically for NAV v3
+# by John Magne Bredal <john.m.bredal@ntnu.no>
+#############################################
+
+Target	--default--
+	dataDir			= %auto-base%/../cricket-data/%auto-target-path%
+	rrd-datafile		= %dataDir%/%auto-target-name%.rrd
+	rrd-poll-interval	= 300
+	snmp-host		= %auto-target-name%
+	snmp-community		= public
+	snmp-port		= 161
+	snmp-timeout            = 2.0
+	snmp-retries            = 5
+	snmp-backoff            = 1.0
+	snmp-version            = 1
+	snmp                    = %snmp-community%@%snmp-host%:%snmp-port%:%snmp-timeout%:%snmp-retries%:%snmp-backoff%:%snmp-version%
+	directory-desc		= "Graphs for %auto-target-name%"
+	show-path 		= yes
+
+OID	sysUptime  		1.3.6.1.2.1.1.3.0
+OID	ifNumber   		1.3.6.1.2.1.2.1.0
+
+OID	ifIndex    		1.3.6.1.2.1.2.2.1.1
+OID	ifDescr    		1.3.6.1.2.1.2.2.1.2
+OID	ifType     		1.3.6.1.2.1.2.2.1.3
+OID	ifMtu     		1.3.6.1.2.1.2.2.1.4
+OID	ifSpeed    	    	1.3.6.1.2.1.2.2.1.5 
+OID 	ifPhysAddress		1.3.6.1.2.1.2.2.1.6
+OID	ifAdminStatus		1.3.6.1.2.1.2.2.1.7 
+OID	ifOperStatus   		1.3.6.1.2.1.2.2.1.8 
+OID	ifLastChange		1.3.6.1.2.1.2.2.1.9
+OID	ifInOctets 		1.3.6.1.2.1.2.2.1.10
+OID	ifInUcastPkts		1.3.6.1.2.1.2.2.1.11
+OID	ifInNUcastPkts		1.3.6.1.2.1.2.2.1.12
+OID	ifInDiscards		1.3.6.1.2.1.2.2.1.13
+OID	ifInErrors 		1.3.6.1.2.1.2.2.1.14
+OID	ifInUnknownProtos	1.3.6.1.2.1.2.2.1.15
+OID	ifOutOctets		1.3.6.1.2.1.2.2.1.16
+OID	ifOutUcastPkts  	1.3.6.1.2.1.2.2.1.17
+OID	ifOutNUcastPkts 	1.3.6.1.2.1.2.2.1.18
+OID	ifOutDiscards		1.3.6.1.2.1.2.2.1.19
+OID	ifOutErrors		1.3.6.1.2.1.2.2.1.20
+OID	ifOutQLen      		1.3.6.1.2.1.2.2.1.21
+OID 	ifHCInOctets    	1.3.6.1.2.1.31.1.1.1.6
+OID 	ifHCOutOctets   	1.3.6.1.2.1.31.1.1.1.10
+
+OID 	ifName			1.3.6.1.2.1.31.1.1.1.1
+OID 	ifAlias			1.3.6.1.2.1.31.1.1.1.18
+
+dataSource --default--
+	rrd-ds-type	=	DERIVE	
+	rrd-heartbeat	=	1800
+	rrd-min		=	0
+
+
+dataSource sysUptime
+        ds-source       =       snmp://%snmp%/sysUptime
+
+# These datasources are used for interfaces of all types.
+dataSource  ifInOctets
+	ds-source	=	snmp://%snmp%/ifInOctets.%inst%
+
+dataSource  ifOutOctets
+	ds-source	=	snmp://%snmp%/ifOutOctets.%inst%
+
+dataSource  ifHCInOctets
+	ds-source	=	snmp://%snmp%/ifHCInOctets.%inst%
+
+dataSource  ifHCOutOctets
+	ds-source	=	snmp://%snmp%/ifHCOutOctets.%inst%
+
+datasource ifInErrors
+        ds-source       =       snmp://%snmp%/ifInErrors.%inst%
+
+datasource ifOutErrors
+        ds-source       =       snmp://%snmp%/ifOutErrors.%inst%
+
+datasource ifInUcastPkts
+        ds-source       =       snmp://%snmp%/ifInUcastPkts.%inst%
+
+datasource ifOutUcastPkts
+        ds-source       =       snmp://%snmp%/ifOutUcastPkts.%inst%
+
+
+# rra
+#
+# The RRA dictionary specifies the config of the datafiles on disk.
+# Unles you really know what you are doing, don't muck around with these.
+# Trust me, the defaults will do what you want.
+
+# this set of RRA's exactly duplicates the storage capacity of a
+# rateup logfile (this assumes rrd-poll-interval is 300 (5 min))
+
+# The second field (0.5, below) is NEW as of RRD 0.99. It
+# is the xfiles-factor, which used to be in the target
+# dictionary.
+
+# one point per 5 minutes, spanning 50 hours
+rra		5minAve	    AVERAGE:0.5:1:600	   
+# one point per 30 minutes, spanning 12 days
+rra		30minAve	AVERAGE:0.5:6:600     
+# one point every 2 hours, spanning 50 days
+rra		2hrAve		AVERAGE:0.5:24:600    
+rra		2hrMax		MAX:0.5:24:600
+# one point every day, spanning 600 days
+rra		1dayAve		AVERAGE:0.5:288:600 
+rra		1dayMax		MAX:0.5:288:600
+
+# we will add datasources to each specific target-type later
+targetType	--default--
+	rra	=	"5minAve, 30minAve, 2hrAve, 2hrMax, 1dayAve, 1dayMax"
+
+# This is the standard setup for interfaces. Beware that the ds-values are hardcoded in makecricketconfig.
+# Don't change the order of those unless you also change it in the makecricketconfig-script.
+# There really should be no reason to do this...
+targetType  standard-interface
+	ds	=	"ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+	view	=	"Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+
+targetType  sub-interface
+	ds	=	"ifInOctets, ifOutOctets"
+	view	=	"Octets: ifInOctets ifOutOctets"
+
+targetType  subv2-interface
+	ds	=	"ifHCInOctets, ifHCOutOctets"
+	view	=	"Octets: ifHCInOctets ifHCOutOctets"
+
+targetType  snmpv2-interface
+	ds	=	"ifHCInOctets, ifHCOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+	view	=	"Octets: ifHCInOctets ifHCOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+
+# The HTML dict has bits and pieces of HTML that gets used
+# by the grapher.
+
+html	body-options	bgcolor=white
+
+html	page-header
+	<table width=100%>
+	<tr class=header>
+		<td width=33% align=left class=header>%auto-title%</td>
+		<td width=33% align=center class=header2>NAV-v3</td>
+		<td width=33% align=right><a href=/>Back to NAV</a></td>
+	</tr>
+	</table>
+	<br clear=left>
+
+html 	page-footer
+	<table width=100% cellpadding=3>
+	<tr>
+        	<td>
+        		<a href="http://cricket.sourceforge.net"><img align=left width=58 height=55 src="images/cricket-sm.gif" border=0></a>
+		</td>
+		<td width=90 valign=middle>
+			<p align=left><font size=+2>
+			<a href="http://cricket.sourceforge.net">Cricket</a>
+			<font size=2><br>Version %auto-short-version%</font>
+		</td>
+		<td class=ntnu valign=middle>
+			<p><font size=-2>
+			WARNING: This install of Cricket is a part of NAV-v3. When viewing the data, please note that we are not responsible for any anomalies on the network that you may see here. We are only displaying them. Any grief you may experience when using this install of Cricket is purely self-inflicted, and of no importance to us. If you however feel that we are helping you in any way, please feel free to send money to the editor. If you take this text seriously, don&#39;t.
+			</font></p>
+		</td>
+        	<td width=130 valign=middle> 
+            		<center>
+            		<a href="http://ee-staff.ethz.ch/~oetiker/webtools/rrdtool"><img width=120 height=34 src="images/rrdtool.gif" border=0></a>
+        	</td>
+	</tr>
+	</table>
+    <p>
+        <font color=red>%auto-error%</font>
+    </p>
+
+html	head
+	<title>%auto-title%</title>
+	<link rel="stylesheet" href="/cricket/cricket.css" type="text/css">
+
+# Colors are in HTML #RRGGBB format, without the #
+# I'm not very creative. Cool color schemes would be a welcome addition.
+
+color	dark-green	00cc00
+color	blue		0000ff
+color	red		ff0000
+color	cyan		00ffff
+color	magenta		ff00ff
+color	yellow		ffff00
+color	dark-red	cc0000
+color	dark-blue	0000cc
+
+# thanks to Shannon Reis <sreis@fastlane.net> for these
+color   cornflower      0080C0 
+color   light-purple    8080C0 
+color   pink            FF0080 
+color   purple          800080 
+color   deep-blue       0000A0 
+color   green           408080 
+color   brown           808000 
+color   black           000000 
+color   neongrn         00FF00 
+color   skyblue         0080FF 
+color   orange          FF8000 
+color   burntorng       800000 
+color   purply          FB31FB 
+
+# this tells the grapher which colors to choose first, if
+# it was not given colors
+color	--order--		"dark-green, blue, red, cyan, magenta, yellow,
+	dark-red, dark-blue, cornflower, light-purple, pink, purple,
+	deep-blue, green, brown, black, neongrn, skyblue, orange, burntorng
+	purply"
+
+# graph
+#
+# This dictionary controls how data is presented.
+
+graph   --default-- 
+	draw-as 	= 	LINE1
+	width   	= 	500
+	height  	= 	200
+	interleaved	=	false
+
+	# Set these by looking at what size RRD makes your
+	# finished graphs. It's too much trouble to try to calculate
+	# them at runtime. If there is any doubt, don't set them. Bad hints
+	# are worse than no hints!
+	# width-hint	= 	595
+	# height-hint	= 	255
+
+	# if this attribute exists, then vertical rules will be placed
+	# on the graphs at every zero-time, i.e. midnight, Monday, first of
+	# the month, first of the year.
+	vrule-color	=	red
+
+	# Just testing for fashion
+	rrd-graph-args 	=	"-c BACK#CDD3FE"
+
+# global sysUptime setting
+graph sysUptime
+	color		=	dark-green
+	draw-as		=	area
+	legend		=	"uptime in days"
+	y-axis		=	"days"
+	scale		=	8640000,/
+
+# Standard graphing for interfaces.
+graph   ifInOctets
+	color		=	dark-green
+	draw-as		=	AREA
+	legend		=	"Average bits in"
+	y-axis		=	"bits per second"
+	units		=	"bits/sec"
+	scale		=	8,*
+	bytes		=	true
+ 
+graph   ifOutOctets
+	color		=	blue
+	legend		=	"Average bits out"
+	y-axis		=	"bits per second"
+	units		=	"bits/sec"
+	scale		=	8,*
+	bytes		=	true
+
+graph   ifInErrors
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"errors per second"
+	units		=	"err/sec"
+	legend		=	"Average Errors In"
+
+graph   ifOutErrors
+	color		=	blue
+	y-axis		=	"errors per second"
+	legend		=	"Average Errors Out"
+	units		=	"err/sec"
+
+graph   ifInUcastPkts
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"packets per second"
+	units		=	"pkt/sec"
+	legend		=	"Average num Packets In"
+
+graph   ifOutUcastPkts
+	color		=	blue
+	y-axis		=	"packets per second"
+	units		=	"pkt/sec"
+	legend		=	"Average num Packets Out"
+
+graph   ifHCInOctets
+    color		=	dark-green
+    draw-as		=	AREA
+    legend		=	"Average bits in"
+    y-axis		=	"bits per second"
+    units		=	"bits/sec"
+    scale		=	8,*
+    bytes		=	true
+
+graph   ifHCOutOctets
+    color		=	blue
+    legend		=	"Average bits out"
+    y-axis		=	"bits per second"
+    units		=	"bits/sec"
+    scale		=	8,*
+    bytes		=	true
+
+
+# map
+#
+# This dict is used to control the instance mapping code.
+# See the docs for more information about the map dictionary.
+
+map interface-name
+	base-oid	=	ifName
+	match		=	%ifname%
+
+map interface-index
+        base-oid        = 	ifIndex
+        match           = 	%interface-index%
+
+
+# events can be associated with a target, and then those
+# events will be marked on the graph.
+
+event   --default--
+	color   	=	magenta
+
+event   test
+	name    	=	"Events were added to Cricket"
+	date    	=	"6/2/99 14:30"

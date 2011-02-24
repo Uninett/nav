@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block base_header_title %}NAV - User Administration{% endblock %}
+
+{% block base_header_navpath %}
+<a href="/">Home</a> > <a href="/useradmin/">User Administration</a>
+{% endblock %}
+
+{% block base_content %}
+
+<h2>User Administration</h2>
+
+{% block tabs %}
+    <div class="tabs">
+        <ul>
+            <li{% if active.account_list %} class="tabactive"{% endif %}>
+                <a href="{% url useradmin-account_list %}">Account List</a>
+            </li>
+            <li{% if active.account_new %} class="tabactive"{% endif %}>
+                <a href="{% url useradmin-account_new %}">New Account</a>
+            </li>
+            {% block extra_tab_account %}{% endblock %}
+            <li{% if active.group_list %} class="tabactive"{% endif %}>
+                <a href="{% url useradmin-group_list %}">Group List</a>
+             </li>
+            <li{% if active.group_new %} class="tabactive"{% endif %}>
+                <a href="{% url useradmin-group_new %}">New group</a>
+            </li>
+            {% block extra_tab_group %}{% endblock %}
+        </ul>
+    </div>
+{% endblock %}
+{% block outercontent %}
+    <div class="tabcontent">
+        {% if current_user_data.messages %}
+            <ul class="messages">
+                {% for m in current_user_data.messages %}
+                    <li class="{{ m.type }}">{{ m.message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}
+            Replace me!
+        {% endblock %}
+    </div>
+{% endblock %}
+
+{% endblock %}
