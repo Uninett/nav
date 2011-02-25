@@ -115,6 +115,7 @@ def netbox_save(request, form, serial_form, subcat_form):
         'read_only': clean_data['read_only'],
         'read_write': clean_data['read_write'],
         'snmp_version': clean_data['snmp_version'],
+        'up_to_date': False,
     }
 
     serial = serial_form.cleaned_data['serial']
