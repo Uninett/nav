@@ -90,11 +90,13 @@ def prioritize_location(cam_objects, logger):
         cam = None
         rank = 0
         for curr_cam in cam_objects:
-            logger.debug("Prioritizing %s" % curr_cam.netbox.category_id)
-            if location_priority[curr_cam.netbox.category_id] > rank:
-                logger.debug("Putting %s first" % curr_cam.netbox.category_id)
-                rank = location_priority[curr_cam.netbox.category_id]
-                cam = curr_cam
+            if curr_cam.netbox:
+                logger.debug("Prioritizing %s" % curr_cam.netbox.category_id)
+                if location_priority[curr_cam.netbox.category_id] > rank:
+                    logger.debug("Putting %s first" %
+                        curr_cam.netbox.category_id)
+                    rank = location_priority[curr_cam.netbox.category_id]
+                    cam = curr_cam
         return cam
    
 def post_event(mac_watch, cam, logger):
@@ -141,6 +143,10 @@ def main():
             continue
 
         cam = prioritize_location(cam_objects, logger)
+        if not cam:
+            # probably historical data and cannot get located.
+            logger.info("%s could not get located" % mac_watch.mac)
+            continue
         # cam now contains one tuple from the cam-table
 
         # Check if the mac-address has moved since last time, continue with
