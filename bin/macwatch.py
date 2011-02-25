@@ -120,7 +120,8 @@ def main():
         logger.info("Checking for activity on %s", mac_watch.mac)
 
         cam_objects = Cam.objects.filter(mac=mac_watch.mac,
-                                         end_time=datetime.max)
+                                         end_time=datetime.max,
+                                         netbox__isnull=False)
         if len(cam_objects) < 1:
             logger.info("%s is not active", mac_watch.mac)
             continue
