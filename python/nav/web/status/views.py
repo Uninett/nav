@@ -27,11 +27,9 @@ from nav.models.manage import Organization, Category
 from nav.web.message import Messages, new_message
 
 from nav.web.status.sections import get_user_sections
-from nav.web.status.forms import AddSectionForm, SectionWithCategoryForm
-from nav.web.status.forms import SectionWithServiceAndStateForm
-from nav.web.status.forms import SectionWithCategoryAndStateForm
+from nav.web.status.forms import AddSectionForm
 from nav.web.status.utils import extract_post, order_status_preferences
-from nav.web.status.utils import make_default_preferences
+from nav.web.status.utils import make_default_preferences, get_form_for_section
 
 SERVICE_SECTIONS = (
     StatusPreference.SECTION_SERVICE,
@@ -106,16 +104,15 @@ def edit_preferences(request, section_id):
     if section.type == StatusPreference.SECTION_THRESHOLD:
         data['categories'] = list(section.categories.values_list(
                 'id', flat=True)) or ['']
-        form = SectionWithCategoryForm(data)
     elif section.type in SERVICE_SECTIONS:
         data['services'] = section.services.split(",") or ['']
         data['states'] = section.states.split(",")
-        form = SectionWithServiceAndStateForm(data)
     else:
         data['categories'] = list(section.categories.values_list(
                 'id', flat=True)) or ['']
         data['states'] = section.states.split(",")
-        form = SectionWithCategoryAndStateForm(data)
+    form_model = get_form_for_section(section.type)
+    form = form_model(data)
 
     return render_to_response(
         'status/edit_preferences.html',
@@ -136,15 +133,11 @@ def add_section(request):
     elif 'save' in request.POST:
         return save_preferences(request)
 
-    type = request.POST.get('section', None)
-    name = StatusPreference.lookup_readable_type(type)
-    initial = {'name': name, 'type': type}
-    if type == StatusPreference.SECTION_THRESHOLD:
-        form = SectionWithCategoryForm(initial=initial)
-    elif type in SERVICE_SECTIONS:
-        form = SectionWithServiceAndStateForm(initial=initial)
-    else:
-        form = SectionWithCategoryAndStateForm(initial=initial)
+    section_type = request.POST.get('section', None)
+    name = StatusPreference.lookup_readable_type(section_type)
+    initial = {'name': name, 'type': section_type}
+    form_model = get_form_for_section(section_type)
+    form = form_model(initial=initial)
 
     return render_to_response(
         'status/edit_preferences.html',
@@ -165,12 +158,8 @@ def save_preferences(request):
     account = get_account(request)
 
     type = request.POST.get('type', None)
-    if type == StatusPreference.SECTION_THRESHOLD:
-        form = SectionWithCategoryForm(request.POST)
-    elif type in SERVICE_SECTIONS:
-        form = SectionWithServiceAndStateForm(request.POST)
-    else:
-        form = SectionWithCategoryAndStateForm(request.POST)
+    form_model = get_form_for_section(type)
+    form = form_model(request.POST)
 
     if type and form.is_valid():
         try:
