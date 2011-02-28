@@ -62,7 +62,7 @@
                     $component.key.capitalize():
                 #end if
 
-                #if $component.info is None:
+                #if not $component.info:
                     ID $component.value (Details not available)
                 #else
                     #if $component.key in ('location', 'room', 'netbox', 'service')
