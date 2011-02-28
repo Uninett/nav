@@ -44,9 +44,10 @@ class NetboxForm(forms.Form):
     id = forms.IntegerField(
         required=False, widget=forms.HiddenInput)
     ip = forms.CharField()
-    room = forms.ModelChoiceField(queryset=Room.objects.all())
+    room = forms.ModelChoiceField(queryset=Room.objects.order_by('id'))
     category = forms.ModelChoiceField(queryset=Category.objects.all())
-    organization = forms.ModelChoiceField(queryset=Organization.objects.all())
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.order_by('id'))
     read_only = forms.CharField(required=False)
     read_write = forms.CharField(required=False)
 
@@ -207,6 +208,8 @@ class ServicePropertyForm(forms.Form):
                 self.fields[arg] = forms.CharField(required=False)
 
 class RoomForm(forms.ModelForm):
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.order_by('id'))
     class Meta:
         model = Room
 
@@ -220,6 +223,9 @@ class LocationForm(forms.ModelForm):
             del self.fields['id']
 
 class OrganizationForm(forms.ModelForm):
+    parent = forms.ModelChoiceField(
+        queryset=Organization.objects.order_by('id'))
+
     class Meta:
         model = Organization
 
