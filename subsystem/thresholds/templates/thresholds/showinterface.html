@@ -1,0 +1,76 @@
+{% extends "thresholds/base.html" %}
+{% load portadmin %}
+
+{% block content %}
+
+{% if interface %}
+    <p>
+        <table class="vertitable"> 
+            <caption>Interface {{ interface.ifname }}</caption>
+            <tr>
+                <th>IfAlias</th><td>{{ interface.ifalias }}</td>
+            </tr>
+            <tr>
+                <th>Netbox</th><td>{{ interface.netbox.sysname }}</td>
+            </tr>
+        </table>
+    </p>
+
+    {% if rrd_data_sources %}
+        <h3>Thresholds for {{ interface.ifname }}</h3>
+        <p>
+        <table class="vertitable">
+            <tr>
+                <th>Description</th>
+                <th>Operator</th>
+                <th>Threshold</th>
+                <th>&nbsp;</th>
+            </tr>
+        {% for datasource in rrd_data_sources %}
+            <tr>
+                <form id="thresholdForm{{ datasource.id }}"
+                    method="POST" action="/thresholds/update/">
+                <input id="datasourceid{{ datasource.id }}"
+                    type="hidden"
+                        name="datasourceid"
+                            value="{{ datasource.id }}"/>
+                <td>{{ datasource.description }}</td>
+                <td>
+                    <select id="operator{{ datasource.id }}"
+                        name="operator">
+                        <option value="greater">greater than</option>
+                        <option value="equals">equals</option>
+                        <option value="less">less than</option>
+                    </select>
+                </td>
+                <td dir="rtl">
+                    &#37;
+                    <input id="threshold{{ datasource.id }}"
+                        type="text" name="threshold"
+                            maxlength="3" size="7"
+                    {% if datasource.threshold %}
+                                value="{{ datasource.threshold }}"
+                    {% else %}
+                                value=""
+                    {% endif %}
+                    />
+                </td>
+                <td>
+                    <input id="submit{{ datasource.id }}"
+                        name="submit" type="submit"
+                            value="Save"/>
+                </td>
+                </form>
+            </tr>
+        {% endfor %}
+        </table>
+        </p>
+    {% else %}
+        <p>
+            <div>No thresholds configured</div>
+        </p>
+    {% endif %}
+{% endif %}
+
+{% endblock %}
+

@@ -228,7 +228,7 @@ for (rrd_fileid, rrd_datasourceid, descr, threshold, max, delimiter,
                 %(value, threshold, max, rrd_datasourceid)
 	makeEvent(pres, descr, threshold, rrd_datasourceid, rrd_fileid,
                   'stillactive')
-    elif datasource.thresholdstate == 'active':
+    elif thresholdstate == 'active':
         if ll >= 2: print "--------------------"
         if ll >= 2: print "Threshold below value (%s,%s,%s ds:%s)" \
                 %(value, threshold, max, rrd_datasourceid)
