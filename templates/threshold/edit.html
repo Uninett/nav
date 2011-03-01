@@ -1,0 +1,28 @@
+{% extends 'threshold/base.html' %}
+
+{% block base_content %}
+<PRE>
+{{ fskdebug }}
+</PRE>
+
+<form action="" method=post>
+
+<table class="vertitable">
+<tr>
+<th>System name:</th>
+<td>{{ threshold.rrd_file.netbox.get_short_sysname }}</td>
+</tr>
+<tr>
+<th>Threshold description:</th>
+<td>{{ threshold.descr }}</td>
+</tr>
+<tr>
+<th>Threshold unit:</th>
+<td>{{ threshold.units }}</td>
+</tr>
+{{ threshold_form.as_table }}
+</table>
+
+<input type="submit" value="Update" />
+</form>
+{% endblock %}
