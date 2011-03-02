@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 UNINETT AS
+# Copyright 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,9 +21,9 @@
 # Authors: Fredrik Skolmli <fredrik.skolmli@uninett.no>
 #
 
-__copyright__ = "Copyright 2008 UNINETT AS"
+__copyright__ = "Copyright 2011 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Fredrik Skolmli (fredrik.skolmli@uninett.no)"
+__author__ = "Fredrik Skolmli <fredrik.skolmli@uninett.no> and Trond Kandal <Trond.Kandal@ntnu.no>"
 __id__ = "$Id$"
 
 from django.core.urlresolvers import reverse
@@ -34,17 +34,15 @@ from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 
 from nav.django.utils import get_account
-#from nav.models.threshold import Threshold
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.manage import Netbox
-#from nav.web.threshold.forms import ThresholdForm
 from nav.web.threshold.forms import RrdDataSourceForm
 
 
-def threshold_list(request):
-    #thresholds = Threshold.objects.select_related(depth=2).order_by('descr').order_by('-rrd_file')
-    thresholds = RrdDataSource.objects.select_related(depth=2).order_by('descr').order_by('-rrd_file')
-    if not 'all' in request.GET.keys():
+def threshold_list(request, all=''):
+    thresholds = RrdDataSource.objects.select_related(depth=2).filter(rrd_file__key__exact='interface').order_by('description').order_by('-rrd_file')
+    #if not 'all' in request.GET.keys():
+    if all != 'all':
         result = []
         # Display only those set
         for x in thresholds:
@@ -54,10 +52,8 @@ def threshold_list(request):
     else:
         result = thresholds
     if 'rrd_file' in request.GET.keys():
-        #result = Threshold.objects.select_related(depth=2).filter(rrd_file=request.GET['rrd_file']).order_by('descr').order_by('-rrd_file')
         result = RrdDataSource.objects.select_related(depth=2).filter(rrd_file=request.GET['rrd_file']).order_by('descr').order_by('-rrd_file')
     elif 'netbox_id' in request.GET.keys():
-        #result = Threshold.objects.filter(rrd_file=RrdFile.objects.filter(netbox=request.GET['netbox_id'])[0])
         result = RrdDataSource.objects.filter(rrd_file=RrdFile.objects.filter(netbox=request.GET['netbox_id'])[0])
     return render_to_response('threshold/start.html', {
     'thresholds': result,
@@ -67,12 +63,10 @@ def threshold_list(request):
 def threshold_edit(request, threshold_id):
     threshold = RrdDataSource.objects.get(pk=threshold_id)
     if len(request.POST.keys()):
-        #form = ThresholdForm(request.POST, instance=threshold)
         form = RrdDataSourceForm(request.POST, instance=threshold)
         if not form.errors:
             form.save()
     else:
-        #form = ThresholdForm(instance=threshold)
         form = RrdDataSourceForm(instance=threshold)
 
     return render_to_response('threshold/edit.html', {

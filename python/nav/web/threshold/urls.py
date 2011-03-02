@@ -27,10 +27,11 @@ __author__ = "Fredrik Skolmli (fredrik.skolmli@uninett.no)"
 __id__ = "$Id$"
 
 from django.conf.urls.defaults import *
+from nav.web.threshold.views import threshold_list, threshold_edit
 
 # The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('nav.web.threshold.views',
+urlpatterns = patterns('',
     # List accounts and groups
-    url(r'^$', 'threshold_list', name='threshold'),
-    url(r'^edit/(?P<threshold_id>\d+)/$', 'threshold_edit', name='threshold_edit'),
+    url(r'^$', threshold_list, name='threshold'),
+    url(r'^edit/(?P<threshold_id>\d+)/$', threshold_edit, name='threshold-edit'),
 )

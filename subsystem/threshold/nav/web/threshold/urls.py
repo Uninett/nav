@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 UNINETT AS
+# Copyright 2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,18 +18,21 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Fredrik Skolmli <fredrik.skolmli@uninett.no>
 #
-"""Django URL config for useradmin"""
 
-# pylint: disable-msg=W0614,W0401
+__copyright__ = "Copyright 2010 UNINETT AS"
+__license__ = "GPL"
+__author__ = "Fredrik Skolmli (fredrik.skolmli@uninett.no)"
+__id__ = "$Id$"
 
 from django.conf.urls.defaults import *
-from nav.web.thresholds.views import index, show_interface, update_threshold
+from nav.web.threshold.views import threshold_list, threshold_edit
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
     # List accounts and groups
-    url(r'^$', index),
-    url(r'^interfaceid=(?P<interfaceid>\d+)$', show_interface, name='show-interface'),
-    url(r'^update/$', update_threshold, name='update-threshold'),
+    url(r'^$', threshold_list, name='threshold-list'),
+    url(r'^(?P<all>\w{3})/$', threshold_list, name='threshold-all'),
+    url(r'^edit/(?P<threshold_id>\d+)/$', threshold_edit, name='threshold-edit'),
 )
