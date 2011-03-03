@@ -28,7 +28,7 @@ administrators email inbox.
 
 """
 from twisted.internet import defer, threads, reactor
-from pysnmp.asn1.oid import OID
+from nav.mibs.mibretriever import is_a_prefix
 
 import socket
 
@@ -129,7 +129,9 @@ class OidProfiler(Plugin):
         request is attempted.
 
         """
-        oid = OID(snmpoid.snmp_oid)
+        oid = snmpoid.snmp_oid
+        if not oid.startswith('.'):
+            oid = '.' + oid
 
         def ignore_timeouts(failure):
             failure.trap(defer.TimeoutError)
@@ -140,7 +142,7 @@ class OidProfiler(Plugin):
         def getnext_result_checker(result):
             if len(result) > 0:
                 response_oid = result.keys()[0]
-                if oid.isaprefix(response_oid):
+                if is_a_prefix(oid, response_oid):
                     self.logger.debug("%s support found using GET-NEXT: %r",
                                       snmpoid.oid_key, result)
                     return True
@@ -152,7 +154,7 @@ class OidProfiler(Plugin):
                                   snmpoid.oid_key, result)
                 return True
             else:
-                df = get_next(self.agent, oid)
+                df = self.agent.walk([oid])
                 df.addErrback(ignore_timeouts)
                 df.addCallback(getnext_result_checker)
                 return df
@@ -161,38 +163,6 @@ class OidProfiler(Plugin):
         df.addErrback(ignore_timeouts)
         df.addCallback(get_result_checker)
         return df
-
-# Impressively enough, twistedsnmp's AgentProxy class does not provide
-# a simple getNext method - unless you want to pull an entire table.
-def get_next(agent, oid, timeout=2.0, retry_count=4):
-    """Our own low-level implementation of a GET-NEXT operation for a
-    twistedsnmp AgentProxy, since the latter doesn't provide its own.
-
-    """
-    oids = [OID(oid)]
-    try:
-        request = agent.encode(oids, agent.community, next=True)
-        key = agent.getRequestKey(request)
-        agent.send(request.encode())
-    except socket.error, err:
-        return defer.fail(failure.Failure())
-
-    def as_dictionary(value):
-        try:
-            return dict(value)
-        except Exception, err:
-            logger = logging.getLogger(__name__)
-            logger.exception(
-                "Failure converting query results %r to dictionary", value)
-            return {}
-
-    df = defer.Deferred()
-    df.addCallback(agent.getResponseResults)
-    df.addCallback(as_dictionary)
-    timer = reactor.callLater(timeout, agent._timeout, 
-                              key, df, oids, timeout, retry_count)
-    agent.protocol.requests[key] = df, timer
-    return df
 
 
 def get_all_snmpoids():
