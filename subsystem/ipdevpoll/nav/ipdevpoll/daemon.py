@@ -107,19 +107,7 @@ class CommandProcessor(object):
         nav.logs.reopen_log_files()
         self.logger.info("ipdevpolld now running in the background")
 
-        self.psyco_speedup()
-
         self.start_ipdevpoll()
-
-    def psyco_speedup(self):
-        try:
-            import psyco
-        except ImportError:
-            return
-        from django.db import models
-        psyco.cannotcompile(models.sql.query.Query.clone)
-        psyco.full()
-
 
     def init_logging(self):
         """Initializes ipdevpoll logging for the current process."""
