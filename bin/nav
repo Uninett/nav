@@ -176,13 +176,8 @@ def c_status(queryList):
     actionIterator(queryList, "isUp", "Up", "Down")
 
 def c_version(queryList):
-    import nav
-    if hasattr(nav, '__version__'):
-        print "NAV " + nav.__version__
-    elif hasattr(nav, 'VERSION'):
-        print "NAV " + nav.VERSION
-    else:
-        print >> sys.stderr, "I cannot find any NAV version information!"
+    from nav import buildconf
+    print "NAV %s" % buildconf.VERSION
 
 def usage():
     """ Print a usage screen to stderr."""
