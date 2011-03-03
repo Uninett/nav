@@ -1,3 +1,29 @@
+Version 3.8.2
+(released 3 March 2011)
+
+ - This maintenance release fixes compatibility with newer versions of Django
+   and Cheetah.
+
+ - Changelog for 3.8.1 forgot to mention the addition of a new "offline
+   devices" report.  The report lists serial numbers of devices known to NAV,
+   but now appear to have been shelved.
+
+ Bugfixes:
+
+  * LP#591602 (Endtime in maintenance period overwritten by a shorter
+               maintenance period)
+  * LP#720669 (can't add components to maintenance task when existing
+               components have been deleted)
+  * LP#721270 (CSRF Verification Fails on Django 1.2)
+  * LP#721273 (Multiple NAV pages crash on non-ASCII chars under Cheetah 2.4)
+  * LP#723619 (Maintenance crashes when adding multiple netboxes to a task)
+  * LP#723688 (Status doesn't show devices on maintenance)
+  * LP#724266 (MachineTracker inactive search says all IPs are inactive)
+  * LP#724322 (netbox.uptodate is not altered when saving in seeddb)
+  * LP#726402 (Rooms should be listed alphabetically when editing IP devices)
+  * LP#726472 (portadmin should report error when snmp write is not available)
+  * LP#726524 (prefix net type classification may be wrong on first discovery)
+
 Version 3.8.1
 (released 17 February 2011)
 
