@@ -20,7 +20,8 @@ import pprint
 import logging
 
 from twisted.internet import defer, threads
-from twistedsnmp import snmpprotocol, agentproxy
+from twistedsnmp import snmpprotocol
+from pynetsnmp.twistedsnmp import AgentProxy
 
 from nav.util import round_robin
 from nav import toposort
@@ -76,7 +77,7 @@ class JobHandler(object):
 
         port = ports.next()
 
-        self.agent = agentproxy.AgentProxy(
+        self.agent = AgentProxy(
             self.netbox.ip, 161,
             community = self.netbox.read_only,
             snmpVersion = 'v%s' % self.netbox.snmp_version,
