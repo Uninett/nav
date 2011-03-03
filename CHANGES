@@ -33,6 +33,8 @@ Version 3.8.2
   * LP#726402 (Rooms should be listed alphabetically when editing IP devices)
   * LP#726472 (portadmin should report error when snmp write is not available)
   * LP#726524 (prefix net type classification may be wrong on first discovery)
+  * LP#728336 (`nav version` cannot find version information in NAV 3.8)
+
 
 Version 3.8.1
 (released 17 February 2011)
