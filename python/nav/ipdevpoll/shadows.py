@@ -519,8 +519,9 @@ class Vlan(Shadow):
         else:
             return NetType.get('unknown')
 
+        netbox = containers.get(None, Netbox)
         net_type = 'lan'
-        router_count = self._get_router_count_for_prefix(prefix)
+        router_count = self._get_router_count_for_prefix(prefix, netbox.id)
 
         if prefix.version() == 6 and prefix.prefixlen() == 128:
             net_type = 'loopback'
@@ -537,12 +538,26 @@ class Vlan(Shadow):
         return NetType.get(net_type)
 
     @staticmethod
-    def _get_router_count_for_prefix(net_address):
+    def _get_router_count_for_prefix(net_address, include_netboxid=None):
+        """Returns the number of routers attached to a prefix.
+
+        :param net_address: a prefix network address
+        :param include_netboxid: count the netbox with this id as a router for
+                                 the prefix, no matter what the db might say
+                                 about it.
+        :returns: an integer count of routers for `net_address`
+
+        """
+        address_filter = Q(interface__gwportprefix__prefix__net_address=
+                           str(net_address))
+        if include_netboxid:
+            address_filter = address_filter | Q(id=include_netboxid)
+
         router_count = manage.Netbox.objects.filter(
-            interface__gwportprefix__prefix__net_address=str(net_address),
+            address_filter,
             category__id__in=('GW', 'GSW')
-            ).distinct().count()
-        return router_count
+            )
+        return router_count.distinct().count()
 
     def prepare(self, containers):
         """Prepares this VLAN object for saving.
