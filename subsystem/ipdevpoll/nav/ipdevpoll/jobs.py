@@ -20,7 +20,7 @@ import pprint
 import logging
 
 from twisted.internet import defer, threads
-from twistedsnmp import snmpprotocol
+from pynetsnmp.twistedsnmp import snmpprotocol
 from pynetsnmp.twistedsnmp import AgentProxy
 
 from nav.util import round_robin
@@ -83,6 +83,7 @@ class JobHandler(object):
             snmpVersion = 'v%s' % self.netbox.snmp_version,
             protocol = port.protocol,
         )
+        self.agent.open()
         self.logger.debug("AgentProxy created for %s: %s",
                           self.netbox.sysname, self.agent)
 
@@ -162,6 +163,7 @@ class JobHandler(object):
                          self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
+            self.agent.close()
             self.logger.info("Job %s for %s done.", self.name,
                              self.netbox.sysname)
             self._log_timings()
