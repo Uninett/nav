@@ -153,7 +153,7 @@ class MibTableDescriptor(object):
 
         table_object = mib.nodes[table_name]
         for node in mib.nodes.values():
-            if table_object.oid.isaprefix(node.oid) and \
+            if is_a_prefix(table_object.oid, node.oid) and \
                     node.raw_mib_data['nodetype'] == 'row':
                 row_object = mib.nodes[node.name]
                 # Only one row node type per table
@@ -161,7 +161,7 @@ class MibTableDescriptor(object):
 
         columns = {}
         for node in mib.nodes.values():
-            if row_object.oid.isaprefix(node.oid) and \
+            if is_a_prefix(row_object.oid, node.oid) and \
                     node.raw_mib_data['nodetype'] == 'column':
                 columns[node.name] = mib.nodes[node.name]
 
@@ -226,9 +226,6 @@ class MibRetrieverMaker(type):
         if name == 'MibRetriever' and mib is None:
             # This is the base retriever class, which is meant to be abstract
             return
-
-        # modify mib data to slightly optimize later OID manipulation
-        convert_oids(mib)
 
         MibRetrieverMaker.__make_node_objects(cls)
         cls.tables = dict((t.table.name, t)
@@ -410,7 +407,7 @@ class MibRetriever(object):
             for varlist in result.values():
                 # Build a table structure
                 for oid in sorted(varlist.keys()):
-                    if not table.table.oid.isaprefix(oid):
+                    if not is_a_prefix(table.table.oid, oid):
                         raise MibRetrieverError(
                             "Received wrong response from client,"
                             "%s is not in %s" % (oid, table.table.oid))
@@ -450,17 +447,7 @@ class MibRetriever(object):
         return result
 
 
-def convert_oids(mib):
-    """Convert a mib data structure's oid strings to OID objects.
-
-    mib is expected to be a data structure as dumped by the smidump utility
-    (using the -python option).
-
-    """
-    for node_name in mib['nodes']:
-        node = mib['nodes'][node_name]
-        if isinstance(node['oid'], basestring):
-            #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
-            node['oid'] = OID(node['oid'])
-
+def is_a_prefix(a, b):
+    """Is oid a a prefix of oid b?"""
+    return OID(a).isaprefix(OID(b))
 
