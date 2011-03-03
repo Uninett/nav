@@ -5,14 +5,18 @@ AC_CONFIG_AUX_DIR(conf)
 AM_INIT_AUTOMAKE([foreign])
 AC_PREFIX_DEFAULT(/usr/local/nav)
 AC_COPYRIGHT([
-Copyright belongs to various parties for different parts of NAV:
-Part copyright 1999-2008 Norwegian University of Science and Technology
-Part copyright 2002-2010 UNINETT AS
-Part copyright various contributors, see individual files.
+There are multiple copyright holders to NAV code.  The major copyright holders
+are:
+
+Copyright 1999-2010 Norwegian University of Science and Technology
+Copyright 2002-2011 UNINETT AS
+Copyright 2007-2010 University of Tromsø
+
+See individual source files for more detailed copyright notices.
 ])
 
 AC_PROG_INSTALL
-AM_PATH_PYTHON([2.4])
+AM_PATH_PYTHON([2.5])
 AC_PATH_PROG(CHEETAH,cheetah)
 if test -z "$CHEETAH"; then
   AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
@@ -44,7 +48,7 @@ AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
-webroot='${prefix}/apache/webroot'
+webroot='${prefix}/share/htdocs'
 webrootdir='${webroot}'
 imagedir='${webroot}/images'
 javascriptdir='${webroot}/js'
@@ -54,7 +58,7 @@ pythondir='${pythonlibdir}'
 javalibdir='${libdir}/java'
 djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
-tooldir='${prefix}/apache/tools'
+tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
 VERSION=VERSION_NUMBER
@@ -66,44 +70,12 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
-	src/Makefile
-	subsystem/alertengine/Makefile
-	subsystem/alertprofiles/Makefile
-	subsystem/arnold/Makefile
-	subsystem/arnold/config/Makefile
-	subsystem/dbTools/Makefile
-	subsystem/devicehistory/Makefile
-	subsystem/geomap/Makefile
-	subsystem/geomap/media/Makefile
-	subsystem/ipdevinfo/Makefile
-	subsystem/ipdevinfo/config/Makefile
-	subsystem/ipdevinfo/templates/Makefile
-	subsystem/ipdevpoll/Makefile
-	subsystem/l2trace/Makefile
-	subsystem/lib-python/Makefile
-	subsystem/lib-python/templates/Makefile
-	subsystem/logger/Makefile
-	subsystem/machinetracker/Makefile
-	subsystem/mailin/Makefile
-	subsystem/maintenance/Makefile
-	subsystem/messages/Makefile
-	subsystem/netmap/Makefile
-	subsystem/networkexplorer/Makefile
-	subsystem/radius/src/Makefile
-        subsystem/radius/Makefile
-	subsystem/report/Makefile
-	subsystem/seeddb/Makefile
-	subsystem/seeddb/src/Makefile
-	subsystem/smsd/Makefile
-	subsystem/snmptrapd/Makefile
-	subsystem/startstop/Makefile
-	subsystem/statTools/Makefile
-	subsystem/statTools/sortedStats/Makefile
-	subsystem/statemon/Makefile
-	subsystem/status/Makefile
-	subsystem/thresholdMon/Makefile
-	subsystem/useradmin/Makefile
-	subsystem/webfront/Makefile
-	subsystem/webfront/media/Makefile
+	etc/Makefile
+	sql/Makefile
+	java/Makefile
+	templates/Makefile
+	python/Makefile
+	bin/Makefile
+	media/Makefile
 ])
 AC_OUTPUT

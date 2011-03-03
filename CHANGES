@@ -1,3 +1,159 @@
+Version 3.8.2
+(released 3 March 2011)
+
+ - This maintenance release fixes compatibility with newer versions of Django
+   and Cheetah.
+
+ - Changelog for 3.8.1 forgot to mention the addition of a new "offline
+   devices" report.  The report lists serial numbers of devices known to NAV,
+   but now appear to have been shelved.
+
+ - NOTE: Users on upgraded installations should update their status
+   preferences.  A missing setting in the default preferences assigned to all
+   new users would cause the status system to not display devices on
+   maintenance in the "maintenance" section unless they were actually down or
+   in shadow (as described in LP#723688). 
+
+   After the upgrade, go to `Status` -> `Preferences` -> `IP Devices on
+   Maintenance` and add `Up` to the list of states to display.  This choice
+   was previously not enabled.
+
+ Bugfixes:
+
+  * LP#591602 (Endtime in maintenance period overwritten by a shorter
+               maintenance period)
+  * LP#720669 (can't add components to maintenance task when existing
+               components have been deleted)
+  * LP#721270 (CSRF Verification Fails on Django 1.2)
+  * LP#721273 (Multiple NAV pages crash on non-ASCII chars under Cheetah 2.4)
+  * LP#723619 (Maintenance crashes when adding multiple netboxes to a task)
+  * LP#723688 (Status doesn't show devices on maintenance)
+  * LP#724266 (MachineTracker inactive search says all IPs are inactive)
+  * LP#724322 (netbox.uptodate is not altered when saving in seeddb)
+  * LP#726402 (Rooms should be listed alphabetically when editing IP devices)
+  * LP#726472 (portadmin should report error when snmp write is not available)
+  * LP#726524 (prefix net type classification may be wrong on first discovery)
+  * LP#728336 (`nav version` cannot find version information in NAV 3.8)
+
+
+Version 3.8.1
+(released 17 February 2011)
+
+ Bugfixes:
+
+  * Various problems with the 3.8 build/install system, discovered during
+    Debian packaging.
+
+  * LP#618555 (alert addresses are not validated by alert profiles ui)
+  * LP#646708 (ipdevpoll fails to shutdown)
+  * LP#667771 (LDAP fallback to local password authentication regression)
+  * LP#715801 (Wrong gwcount in prefix report)
+  * LP#715807 (Prefix net types are wrongly classified when single router has
+               multiple addresses)
+  * LP#715851 (Missing config files during 3.8.0 install)
+  * LP#717144 (problem adding position cords on room)
+  * LP#719232 (AlertEngine crash error: filter() argument after ** must be a
+               dictionary)
+  * LP#720024 (logengine crashes when message contains : characters)
+
+
+Version 3.8.0
+(released 3 February 2011)
+
+ User-visible features and improvements:
+
+  * The database schema can now be kept updated automatically using the new
+    `syncdb.py` program. Please see the `NOTES` file, and run the program as
+    soon as you've upgraded.
+
+  * NAV can now configure descriptions and access VLANs on your switch ports
+    when an SNMP write community is set for a switch.  This functionality is
+    accessible through the IP Device Info tool.
+
+  * SeedDB has been rewritten to use the Django framework (and has
+    subsequently been reduced from nearly 5000 lines of spaghetti code to just
+    below 2000 maintainable lines).
+
+  * The number of concurrent ipdevpoll jobs can now be limited on a per-job
+    basis, to ease the load on your system if so desired. See the annotated
+    `ipdevpoll.conf` file.
+
+ Bugfixes:
+
+  * LP#643550 (Include ipdevinfo links in switch search in machine tracker)
+  * LP#545029 (SmbChecker runs out of available file descriptors)
+
+
+Version 3.7.4
+(released 27 January 2011)
+
+ Bugfixes:
+
+  * LP#645892 (report: csv export does not export full report)
+              This wasn't properly fixed in 3.6.0.
+  * LP#702796 (Syntax error in HttpChecker.py)
+
+Version 3.7.3
+(released 13 January 2011)
+
+ Bugfixes:
+
+  * LP#537220 (logengine ignores seconds from timestamps)
+  * LP#562242 (Prefix matrix crashes when viewing IPv6 scope)
+  * LP#689629 (ipdevinfo crashes on IP addresses on VLANs that have no VLAN ID)
+  * LP#691571 (old serial no association should be cleared when ip device is
+               replaced with new hardware)
+  * LP#692580 (delete location crashes)
+  * LP#692997 (Machine tracker crashes due to limitations in allowed interface
+               names)
+  * LP#701451 (snmptrapd fails to decode certain SNMPv1 traps)
+  * LP#701453 (snmptrapd fails to parse SNMPv2 traps from WeatherGoose)
+  * LP#702257 (alertengine crashes after alert profile is deleted)
+
+ Improvements:
+
+  * if loglevels are set to DEBUG, ipdevpoll will now log full details of
+    stackframes when unhandled errors occur.
+
+Version 3.7.2
+(released 23 December 2010)
+
+ Bugfixes:
+
+  * LP#586334 (HTTPS service checker doesn't work with Python 2.6)
+  * LP#649761 (ipdevinfo does not show router port IPs/prefixes)
+  * LP#649767 (ipdevpoll should be able to exclude prefixes via configuration)
+  * LP#692959 (ipdevpoll doesn't delete extinct router addresses)
+
+
+Version 3.7.1
+(released 07 December 2010)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release fixes bugs in the NAV database schema. If you are  ##
+## upgrading from a previous release you also need to upgrade your ##
+## schema. For information on how to do this, please take a look   ##
+## in doc/sql/upgrades/README .                                    ##
+##                                                                 ##
+#####################################################################
+
+ Bugfixes:
+
+  * LP#674433 (ipdevpoll: local variable 'obj_model' referenced before
+               assignment)
+  * LP#674466 (Room coordinates can't be edited in NAV 3.7.0)
+  * LP#675532 (ipdevinfo crash on Nortel interfaces)
+  * LP#675543 (ipdevinfo crash: could not identify an ordering operator for
+               type point)
+  * LP#678436 (SeedDB crashes on unknown IntegrityErrors during delete)
+  * LP#686435 (Queued alerts prevent IP devices from being deleted)
+
+  * The installation documentation had grown stale and has now been revised.
+
+
 Version 3.7.0
 (released 11 November 2010)
 

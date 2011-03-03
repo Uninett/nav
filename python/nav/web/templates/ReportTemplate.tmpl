@@ -1,0 +1,348 @@
+#encoding UTF-8
+##
+## Copyright (C) 2003-2005 Norwegian University of Science and Technology
+## Copyright (C) 2007-2011 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV).
+##
+## NAV is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License version 2 as published by
+## the Free Software Foundation.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT ANY
+## WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+## PARTICULAR PURPOSE. See the GNU General Public License for more details.
+## You should have received a copy of the GNU General Public License along with
+## NAV. If not, see <http://www.gnu.org/licenses/>.
+##
+
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+## Builds html for the Report Generator with data in this form:
+##
+## $report
+##   +-- header                        :: name of the report
+##   +-- navigator
+##   |    +-- previous                 :: uri to previous page (optional)
+##   |    +-- view                     :: info about current page
+##   |    +-- next                     :: uri to next page (optional)
+##   +-- table
+##        +-- header
+##        |    +-- cells               :: array of cells
+##        |         +-- uri            :: link (optional)
+##        |         +-- text           :: name of the column
+##        |         +-- explanation    :: description of data in the column (optional)
+##        +-- rows
+##        |    +-- cells               :: array of cells
+##        |         +-- uri            :: link (optional)
+##        |         +-- text           :: the bread and butter of the table
+##        +-- footer
+##             +-- cells               :: array of cells
+##                  +-- sum            :: sum of values in the column (optional)
+##
+## The template uses images in $imagefolder/ragen/, where $imagefolder
+## is inherited from MainTemplate and defaults to "/images".
+##
+## This template can easily be used for other tables, as long as the indata is
+## structured in the same way.
+##
+## To illustrate:
+##
+##   import ReportTemplate from foo.bar.ReportTemplate
+##   page = ReportTemplate()
+##   page.report = fillReportWithData()
+##
+
+
+#extends nav.web.templates.MainTemplate
+
+#block additionalCSS
+    $default_table_CSS()
+    <link rel="stylesheet" href="/style/report.css" type="text/css" /> 
+#end block additionalCSS
+
+#block additionalJavaScript
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/report.js"></script>
+#end block additionalJavaScript
+
+#block content
+
+<h2>Report</h2>
+
+#if $adv_block>0
+    $advBlock
+#else
+#filter WebSafe
+<div id="advlink">
+    <p><a id="advBlockOpen" href="${old_uri}adv=1">Advanced Options</a></p>
+</div>
+#end filter
+#end if
+
+## Advanced Option block start
+<div id="advblock" style="display: none">
+#block advBlock
+    #filter WebSafe
+    <p><a id="advBlockClose" href="${old_uri}adv=">Close Advanced Options</a></p>
+    <h3>Advanced Search</h3>
+    #end filter
+
+    <div id="advforms" class="float-left">
+    ## Advanced search box
+    <form action="" method="get">
+        <input id="adv" type="hidden" name="adv" value="1"/>
+
+        <table class="vertitable">
+
+#set $counter = 0
+
+#if $varExists('report.form')
+    #for $a in $report.form
+
+                <tr>
+                    <th><label for="adv${counter}">$a.title</label></th>
+                    <td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
+
+        #if $neg.has_key($a.raw)
+         checked="1"#slurp
+        #end if
+        />
+
+                    </td>
+                    <td><label for="not_adv${counter}">not</label></td>
+                    <td>
+
+        #if $operator.has_key($a.raw)
+            $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
+        #else
+            $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
+        #end if
+
+                    </td>
+                    <td>
+                        <input type="text" name="$a.raw" id="adv${counter}"#slurp
+
+        #if $contents.has_key($a.raw)
+         value="$contents[$a.raw]"#slurp
+        #end if
+        />
+
+                    </td>
+                </tr>
+
+        #set $counter += 1
+    #end for
+#end if
+
+            <tr>
+                <th></th>
+                <td colspan="4">
+                    <button type="submit">Search</button>
+                </td>
+            </tr>
+        </table>
+
+        ## CSV Export form
+        <h3>CSV Export</h3>
+            <label for="export">Delimiter: </label>
+            <select name="export">
+#for $delim in $delimiters
+                <option value="$delim">$delim</option>
+#end for
+            </select>
+            <button type="submit" name="exportcsv" value="1">Export</button>
+    </form>
+    </div>
+
+    <div class="float-left">
+        ## Infobox
+        <div class="infobox">
+            <h4>Operator usage</h4>
+
+            <ul>
+                <li>= - "equals", enter null for empty string</li>
+                <li>~ - case insensitive search, use * as wildcard</li>
+                <li>[:] - "between", takes two colon-separated arguments</li>
+                <li>(,,) - "is one of", takes a comma-separated list of any size as argument. </li>
+            </ul>
+
+            <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
+            <p>All these operators may be negated by clicking the "not" checkbox.</p>
+        </div>
+
+
+    </div>
+
+#end block advBlock
+
+</div>
+
+## Advanced Option block end
+
+
+## ----------------------------------------------------------------------- REPORT ---- ##
+#if $report
+    #set $rowcount = len($report.table.rows) + 1
+    #set $columncount = len($report.table.header.cells)
+
+<table class="listtable reporttable float-clear">
+#filter WebSafe
+## --- TITLE ROW ---- ##
+    <caption>
+
+    #if $report.navigator.previous
+
+        <span class="previous">
+        <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
+        </span>
+
+    #end if
+
+    $report.title
+
+    #if $report.navigator.next
+
+        <span class="next">
+        <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
+        </span>
+
+    #end if
+
+        <br /><span class="subtitle">$report.navigator.view</span>
+    </caption>
+
+## --- HEADER ROW ---- ##
+    #if $report.table.header.cells
+    <thead>
+        <tr>
+
+    #for $cell in $report.table.header.cells
+        #if $cell.uri
+
+            <th><a class="navbar" href="$cell.uri" title="$cell.explanation">$cell.text</a></th>
+
+        #else
+
+            <th><a class="navbar" title="$cell.explanation">$cell.text</a></th>
+
+        #end if
+    #end for
+
+        </tr>
+    </thead>
+    #end if
+
+## --- FOOTER ---- ##
+    <tfoot>
+    #if $report.table.footer.cells
+        ## FIXME unused variable?
+        #set $cols = len($report.table.header.cells)
+
+        <tr class="tablesum">
+
+        #for $cell in $report.table.footer.cells
+
+            <th>$cell.sum</th>
+
+        #end for
+
+        </tr>
+
+    #end if
+
+## --- FOOTER NAVIGATION ---- ##
+        <tr>
+            ## FIXME colspan=0?!
+            <th colspan="0">
+
+    #if $report.navigator.previous
+
+                <span class="previous">
+                    <a title="previous page" href="$report.navigator.previous">&lt;&lt;</a>
+                </span>
+
+    #end if
+
+                <span>$report.navigator.view</span>
+
+    #if $report.navigator.next
+
+                <span class="next">
+                    <a title="next page" href="$report.navigator.next">&gt;&gt;</a>
+                </span>
+
+    #end if
+
+            </th>
+        </tr>
+    </tfoot>
+
+## --- DATA ROWS ---- ##
+    #if $report.table.rows
+    <tbody>
+
+    #for $row in $report.table.rows
+
+        <tr class="$rowcycler">
+
+        #for $cell in $row.cells
+
+            <td class="$cellcycler">
+
+            #if $cell.uri
+
+                <a href="$cell.uri">$cell.text</a>
+
+            #else
+                $cell.text
+            #end if
+
+            </td>
+
+        #end for
+
+        </tr>
+
+    #end for
+
+    </tbody>
+    #else
+    <tbody><tr><td colspan="0"></td></tr></tbody>
+    #end if
+
+</table>
+
+<p>Result generated $result_time</p>
+#end filter
+
+#else
+
+<p class="error">No results found!</p>
+
+#end if
+#end block content
+
+#def selectoptiondraw($name, $elementlist, $elementdict, $selected="", $descriptiondict=None)
+
+<select name="$name">
+
+    #for $element in $elementlist
+
+    <option value="$element"#slurp
+        #if $element == $selected
+            selected="selected"#slurp
+        #end if
+        #if $descriptiondict.has_key($element)
+            title="$descriptiondict[$element]"#slurp
+        #end if
+        >#slurp
+        $elementdict[$element]#slurp
+
+    </option>
+
+    #end for
+
+</select>
+
+#end def

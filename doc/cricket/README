@@ -1,0 +1,97 @@
+Cricket integration
+===================
+
+This directory contains an initial Cricket configuration tree for integrating
+Cricket with NAV.  It is divided into three directories named after the Cricket
+counterpart. You should find the same directories in any Cricket-install if you
+have followed the instructions in the document "Installing Cricket for the
+Complete Beginner" (http://cricket.sourceforge.net/support/doc/beginner.html).
+
+To make use of these files, just issue a copy command directly to the cricket
+installation directory, and confirm to overwrite any existent files. 
+
+NB! The files in this directory do not merge very well with the existing files
+in a Cricket installation. You are meant to use these files if and only if you
+have a completely clean installation of Cricket. If you have made your own
+local modifications to the cricket configuration, copy and paste the needed
+configuration from these files to your own cricket installation.
+
+
+The directories contain the following configuration:
+
+
+cricket
+-------
+
+In the directory "cricket" you will find a sample "subtree-sets" file. This
+file contains configuration necessary for the collector to start collecting
+data on a basic NAV-install of Cricket.
+
+Again, if you already have your own "subtree-sets" file, copy and paste the
+relevant information from this file to your existent file. 
+
+
+cricket-config
+--------------
+
+In this directory you will find a sample configuration needed to make NAV run
+data-collection on routers, switches and their interfaces.
+
+Also remember to compile cricket once before you run makecricketconfig.pl as
+the script depends on information from the database (config.db) that is created
+during a cricket-compile.
+
+The files in this directory may be tampered with if you want, but please make
+sure that you understand how things work before you do that.
+
+Included in the Default-files are some target-types which should suit
+some of the box-types encountered on a network. These types are
+automatically made during a run of makecricketconfig, but as the views
+of each target is not made automatically, we choose to include the
+target-types we knew. 
+
+
+views
+-----
+
+If makecricketconfig, or you, have made a new targettype, you have to
+make your own view that suits that targettype. A view is a group of
+datasources (i.e. cpu1min, cpu5min and so on) that appear on the same
+graph when viewing Cricket-graphs on the web-page. If you have no
+views defined in the target-type, all datasources will appear on the
+same graph. This may be messy and is seldom recommended. 
+
+Making your own view is not difficult at all. Most datasources have a
+corresponding graph with the same name. So to group the datasources you
+want in one view, you just make your own group, select the
+target-types you want in it and then you are done.
+
+Example of target-type without view:
+
+targetType RSM
+ds = "cpu1min,cpu5min,mem5minUsed,mem5minFree"
+
+We see that there are two natural views here, cpu and memory. So to
+make a view out of it we divide the datasources into two groups. This
+is done by making a new line that starts with "view =" and then add
+the groups. You can see the format on the line below. Groups are
+divided with a "," (comma). Datasources are divided with a space and
+everything is enclosed in "" (quotes)
+
+view = "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+
+If you are still uncertain of how to make your own views, look at the
+sample config in the Default-files included in the
+cricket-config-directory, or consult "The Cricket Reference Guide" at
+http://cricket.sourceforge.net/support/doc/reference.html.
+
+
+public_html
+-----------
+
+In this directory there is only a simple css-file to make the Cricket
+web-page a bit more candy for the eye. If you already have a css-file,
+feel free to use your own, but test this one to see if you like the
+result better. Who knows, you may be pleased with the result. 
+
+

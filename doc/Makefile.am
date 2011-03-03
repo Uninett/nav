@@ -1,9 +1,8 @@
-nobase_dist_doc_DATA = $(wildcard sql/*.sql) \
-                       $(wildcard sql/*.sh) \
-                       $(wildcard sql/upgrades/*.sql) \
-                       sql/README \
-                       sql/upgrades/README \
-                       getting-started.txt
-
-bin_SCRIPTS = sql/navschema.py
-
+nobase_dist_doc_DATA = \
+	getting-started.txt \
+	$(wildcard cricket/cricket-config/Defaults cricket/cricket-config/*/Defaults cricket/cricket-config/*/*/Defaults) \
+	cricket/README \
+	cricket/cricket/subtree-sets \
+	cricket/public_html/cricket.css \
+	$(wildcard mailin/README mailin/alertmsg.d/*) \
+	radius/README radius/INSTALL

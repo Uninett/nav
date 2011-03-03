@@ -1,0 +1,75 @@
+What?
+=====
+This directory contains programs and SQL scripts to create, initialize and
+upgrade the NAV PostgreSQL database.
+
+
+Files and directories
+=====================
+
+syncdb.py
+  Program to create, intialize and automatically synchronize the
+  database schema with the latest changes.
+
+baseline/
+  This directory contains all the SQL scripts that define the baseline NAV
+  database schema.
+
+changes/
+  This directory contains schema change scripts that will be automatically
+  applied when running syncdb.py.
+
+
+Creating the database from scratch
+==================================
+In a typical setup with PostgreSQL installed on the same host as NAV, choose a
+password for the NAV database user and set this in the `userpw_nav` option of
+the `db.conf` config file.  Then, as the postgres user (typically via sudo),
+run::
+
+  ./syncdb.py -c
+
+The -c option will create the database user 'nav' and a database named 'nav',
+before initializing the NAV schema in this database.
+
+
+Advanced setup
+--------------
+If you can't access the PostgreSQL server passwordlessly using the PostgreSQL
+command line tools from the local postgres shell account (ident
+authentication), or you wish to create the database using a different
+superuser account, set the appropriate environment variables before running
+`syncdb.py`::
+
+  export PGUSER=postgres PGPASSWORD=<postgres_password>
+
+If your PostgreSQL setup otherwise differs from the options in `db.conf`, just
+change your `db.conf` accordingly before running `syncdb.py`.
+
+Please be aware that `syncdb.py` requires the PostgreSQL client binaries to be
+available on the search PATH.
+
+
+Updating the database schema when upgrading NAV
+===============================================
+
+1. Stop nav with `nav stop`.
+2. Run `syncdb.py`.
+3. Restart Apache.
+4. Start NAV with `nav start`.
+
+
+Updating the database from NAV versions older than 3.7.1
+--------------------------------------------------------
+`syncdb.py` was introduced in NAV 3.8.  Prior to this, one had to run database
+upgrade scripts manually using `psql`.
+
+The historic upgrade scripts are located in the `historic-updates` directory.
+Find all the ones that have version numbers higher than the NAV version you
+are upgrading from.  Run them manually in version number order, more or less
+like this::
+
+  sudo -u postgres psql -f x.y.z.sql
+
+For more details about historic updates, please refer to the
+`historic-updates/README` file.

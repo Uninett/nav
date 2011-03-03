@@ -1,0 +1,12 @@
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-subcategory %}">Subcategories</a></li>
+<li class="{{ sub_active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-subcategory-edit %}">Add new subcategory</a>
+</li>
+{% if object %}
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-subcategory-edit object.id %}">Edit subcategory "{{ object.name }}"</a>
+</li>
+{% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-subcategory-bulk %}">Bulk import</a></li>

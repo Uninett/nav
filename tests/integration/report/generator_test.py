@@ -34,7 +34,8 @@ config_file_local = os.path.join(sysconfdir, 'report', 'report.local.conf')
 def test_report_generator():
     report_list = ReportList(config_file)
     for report in report_list.reports:
-        yield check_report, report[0]
+        report_name = report[0]
+        yield report_name, check_report, report_name
 
 def check_report(report_name):
     uri = 'http://example.com/report/%s/' % report_name

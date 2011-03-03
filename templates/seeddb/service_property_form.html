@@ -1,0 +1,17 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+<form action="" method="post">
+    <table class="listtable">
+    <caption>
+        {{ handler }} on {{ netbox }}
+    </caption>
+    {{ service_form }}
+    {{ property_form }}
+    <tr>
+        <th></th>
+        <td><input type="submit" value="Save" name="save" /></td>
+    </tr>
+    </table>
+</form>
+{% endblock %}

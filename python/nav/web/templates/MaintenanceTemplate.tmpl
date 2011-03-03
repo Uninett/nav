@@ -1,0 +1,154 @@
+#encoding UTF-8
+## $Id:$
+##
+## Copyright 2006 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+##
+
+#extends MainTemplate
+
+##attr $title = 'Maintenance'
+#attr $path = [("Home", "/"), ("Maintenance Tasks", "")]
+
+#def $makeMenu($menu, $current = False)
+    <div class="tabs">
+        <ul>
+            #for $item in $menu:
+                #if $item.link == $current:
+                    <li class="tabactive"><a href="$item.link">$item.text</a></li>
+                #else:
+                    <li><a href="$item.link">$item.text</a></li>
+                #end if
+            #end for
+        </ul>
+    </div>
+#end def
+
+#def $listComponents($components, $edit = False)
+    <ul>
+        #if not $components
+            <li>(none)</li>
+        #end if
+        #set $compcounter = 0
+        #for $component in $components
+            <li>
+                #if $edit
+                    <input type="hidden" name="component-$compcounter" value="$component.key,$component.value" />
+                    <input type="checkbox" name="remove-$compcounter" value="$component.key,$component.value" />
+                    #set $compcounter += 1
+                #end if
+
+                #if $component.key == 'netbox':
+                    IP device:
+                #else
+                    $component.key.capitalize():
+                #end if
+
+                #if not $component.info:
+                    ID $component.value (Details not available)
+                #else
+                    #if $component.key in ('location', 'room', 'netbox', 'service')
+                        <a href="/report/room?locationid=$component.info.locationid" title="$component.info.locationdescr">
+                            $component.info.locationid
+                        </a>
+                    #end if
+
+                    #if $component.key in ('room', 'netbox', 'service')
+                        &rarr;
+                        <a href="/report/netbox?roomid=$component.info.roomid" title="$component.info.roomdescr">
+                            $component.info.roomid
+                        </a>
+                    #end if
+
+                    #if $component.key in ('netbox', 'service')
+                        &rarr;
+                        <a href="/ipdevinfo/$component.info.sysname/" title="$component.info.ip">
+                            $component.info.sysname
+                        </a>
+                    #end if
+
+                    #if $component.key in ('service')
+                        &rarr;
+                        $component.info.handler
+                    #end if
+
+                    #if $component.key not in ('location', 'room', 'netbox', 'service')
+                        $component.value
+                        (Warning: Modules can no longer be a maintenance component.)
+                    #end if
+                #end if
+            </li>
+        #end for
+    </ul>
+
+    #if $edit
+        <input type="submit" name="submit_comp_remove" value="Remove selected components" />
+    #end if
+#end def
+
+#block content
+
+    <h2>$title</h2>
+
+    $makeMenu($menu, $current)
+
+    <div class="tabcontent">
+        #set $infomsgs = $getVar('infomsgs', [])
+
+        #if len($infomsgs)
+            <ul>
+                #for $infomsg in $infomsgs
+                    <li>$infomsg</li>
+                #end for
+            </ul>
+        #end if
+
+        #set $errors = $getVar('errors', [])
+        #if len($errors)
+            <p>The following errors occured:</p>
+
+            <ul>
+                #for $error in $errors
+                    <li>$error</li>
+                #end for
+            </ul>
+        #end if
+
+        #block tabcontent
+            <p>Intentionally left blank.</p>
+        #end block tabcontent
+
+    </div> <!-- tabcontent -->
+
+#end block content
+
+#block additionalCSS
+    $default_tabs_CSS
+    $default_table_CSS
+    $default_calendar_CSS
+    $default_quickselect_CSS
+#end block additionalCSS
+
+#def additionalJavaScript
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/quickselect.js"></script>
+#end def additionalJavaScript
+
