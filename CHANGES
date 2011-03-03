@@ -8,6 +8,16 @@ Version 3.8.2
    devices" report.  The report lists serial numbers of devices known to NAV,
    but now appear to have been shelved.
 
+ - NOTE: Users on upgraded installations should update their status
+   preferences.  A missing setting in the default preferences assigned to all
+   new users would cause the status system to not display devices on
+   maintenance in the "maintenance" section unless they were actually down or
+   in shadow (as described in LP#723688). 
+
+   After the upgrade, go to `Status` -> `Preferences` -> `IP Devices on
+   Maintenance` and add `Up` to the list of states to display.  This choice
+   was previously not enabled.
+
  Bugfixes:
 
   * LP#591602 (Endtime in maintenance period overwritten by a shorter
