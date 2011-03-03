@@ -52,6 +52,7 @@ events = []
 states = ['scheduled', 'active', 'passed', 'canceled']
 debug = False
 boxesOffMaintenance = []
+maxdate_boxes = {}
 
 dbconn = nav.db.getConnection('eventEngine', 'manage')
 # Make sure isolation level is "read committed", not "serialized"
@@ -110,17 +111,46 @@ def check_state():
         e['taskid'] = taskid
         events.append(e)
         
-    sql = """SELECT maint_taskid FROM maint_task
+    sql = """SELECT maint_taskid, maint_end FROM maint_task
         WHERE maint_end < NOW() AND state = 'active'"""
     db.execute(sql)
-    for (taskid,) in db.fetchall():
+    for (taskid, maint_end) in db.fetchall():
         e = {}
         e['type'] = 'passed'
         e['taskid'] = taskid
+        e['maint_end'] = maint_end
         events.append(e)
 
-    # FIXME: Create some magic to check overlapping timeframes with overlapping
-    # components
+    # Get boxes that should still stay on maintenance
+    sql = """SELECT max(maint_end) AS maint_end, key, value
+        FROM maint_task INNER JOIN maint_component USING (maint_taskid)
+        WHERE state = 'active' AND maint_end > NOW()
+        GROUP BY key, value""";
+    db.execute(sql)
+    for (maint_end, key, value) in db.fetchall():
+        if key in ('room', 'location'):
+            if key == 'location':
+                sql = """SELECT netboxid FROM netbox
+                    INNER JOIN room USING (roomid)
+                    WHERE locationid = %s"""
+            if key == 'room':
+                sql = """SELECT netboxid FROM netbox
+                    WHERE roomid = %s"""
+            db.execute(sql, (value,))
+            boxids = [boxid for (boxid,) in db.fetchall()]
+        elif key == 'service':
+            sql = "SELECT netboxid FROM service WHERE serviceid = %s"
+            db.execute(sql, (int(value),))
+            result = db.fetchone()
+            if result:
+                (netboxid,) = result
+                boxids = [netboxid]
+        elif key == 'netbox':
+            boxids = [value]
+        for boxid in boxids:
+            if boxid in maxdate_boxes and maxdate_boxes[boxid] > maint_end:
+                continue
+            maxdate_boxes[boxid] = maint_end
 
 
 def send_event():
@@ -222,6 +252,13 @@ def send_event():
 
             # Create events for all related netboxes
             for netbox in netboxes:
+                if type == 'passed' and netbox['netboxid'] in maxdate_boxes:
+                    if maxdate_boxes[netbox['netboxid']] > e['maint_end']:
+                        logger.debug("Skip stop event for netbox %(id)s. It's on maintenance until %(date)s." % {
+                            'id': netbox['netboxid'],
+                            'date': e['maint_end'],
+                        })
+                        continue
                 # Append to list of boxes taken off maintenance during this run
                 if type == 'passed':
                     boxesOffMaintenance.append(netbox['netboxid'])
