@@ -20,6 +20,7 @@ from twisted.internet import defer
 
 from nav.ipdevpoll.utils import binary_mac_to_hex
 import mibretriever
+from mibretriever import is_a_prefix
 
 class IpMib(mibretriever.MibRetriever):
     from nav.smidumps.ip_mib import MIB as mib
@@ -82,7 +83,7 @@ class IpMib(mibretriever.MibRetriever):
 
         if 'ipAddressEntry' in cls.nodes:
             entry = cls.nodes['ipAddressEntry']
-            if entry.oid.isaprefix(index):
+            if is_a_prefix(entry.oid, index):
                 # Chop off the entry OID+column prefix
                 index = index[(len(entry.oid) + 1):]
 
@@ -97,7 +98,7 @@ class IpMib(mibretriever.MibRetriever):
 
         if prefix_entry in cls.nodes:
             entry = cls.nodes[prefix_entry]
-            if entry.oid.isaprefix(index):
+            if is_a_prefix(entry.oid, index):
                 # Chop off the entry OID+column prefix
                 index = index[(len(entry.oid) + 1):]
 

@@ -18,6 +18,7 @@
 from twisted.internet import defer
 
 from ip_mib import IpMib
+from nav.mibs.mibretriever import is_a_prefix
 
 class CiscoIetfIpMib(IpMib):
     """CISCO-IETF-IP-MIB is based on a a draft version of IETF's
@@ -37,7 +38,7 @@ class CiscoIetfIpMib(IpMib):
         """Convert a row index from cIpAddressTable to an IP object."""
 
         entry = cls.nodes['cIpAddressPfxOrigin']
-        if entry.oid.isaprefix(index):
+        if is_a_prefix(entry.oid, index):
             # Chop off the entry OID+column prefix
             index = index[(len(entry.oid) + 1):]
 
@@ -48,7 +49,7 @@ class CiscoIetfIpMib(IpMib):
         """Convert a row index from cIpAddressPfxTable to an IP object."""
 
         entry = cls.nodes['cIpAddressPfxOrigin']
-        if entry.oid.isaprefix(index):
+        if is_a_prefix(entry.oid, index):
             # Chop off the PfxOrigin OID prefix
             index = index[len(entry.oid):]
 
