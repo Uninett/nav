@@ -402,6 +402,30 @@ class Shadow(object):
             if attr.startswith('_cached'):
                 delattr(self, attr)
 
+    def save(self, containers):
+        """Saves this container to the database synchronously"""
+        obj = self.convert_to_model(containers)
+        if self.delete and obj:
+            obj.delete()
+        else:
+            try:
+                # Skip if object exists in database and no fields
+                # are touched
+                if (getattr(self, self.get_primary_key().name) and
+                    not self.get_touched()):
+                    return
+            except AttributeError:
+                pass
+            if obj:
+                obj.save()
+                # In case we saved a new object, store a reference to
+                # the newly allocated primary key in the shadow object.
+                # This is to ensure that other shadows referring to
+                # this shadow will know about this change.
+                if not self.get_primary_key():
+                    self.set_primary_key(obj.pk)
+                self._touched.clear()
+
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
 
