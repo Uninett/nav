@@ -337,27 +337,7 @@ class JobHandler(object):
             while self.storage_queue:
                 self.raise_if_cancelled()
                 obj = self.storage_queue.pop()
-                obj_model = obj.convert_to_model(self.containers)
-                if obj.delete and obj_model:
-                    obj_model.delete()
-                else:
-                    try:
-                        # Skip if object exists in database and no fields
-                        # are touched
-                        if obj.getattr(obj, obj.get_primary_key().name) \
-                            and not obj.get_touched():
-                            continue
-                    except AttributeError:
-                        pass
-                    if obj_model:
-                        obj_model.save()
-                        # In case we saved a new object, store a reference to
-                        # the newly allocated primary key in the shadow object.
-                        # This is to ensure that other shadows referring to
-                        # this shadow will know about this change.
-                        if not obj.get_primary_key():
-                            obj.set_primary_key(obj_model.pk)
-                        obj._touched.clear()
+                obj.save(self.containers)
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
