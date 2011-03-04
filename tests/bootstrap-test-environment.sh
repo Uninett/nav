@@ -24,7 +24,7 @@ else
     echo "**> creating virtualenv"
     virtualenv "$VIRTENV"
 fi
-source "$VIRTENV/bin/activate"
+. "$VIRTENV/bin/activate"
 easy_install pip || exit 1
 pip install -r tests/requirements.txt || exit 1
 
