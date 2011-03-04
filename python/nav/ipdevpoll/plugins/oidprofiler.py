@@ -30,8 +30,7 @@ administrators email inbox.
 import logging
 
 from twisted.python.failure import Failure
-from twisted.internet import defer, threads, reactor
-from nav.mibs.mibretriever import is_a_prefix
+from twisted.internet import defer, threads, reactor, error
 
 import socket
 
@@ -131,7 +130,7 @@ class OidProfiler(Plugin):
             oid = '.' + oid
 
         def ignore_timeouts(failure):
-            failure.trap(defer.TimeoutError)
+            failure.trap(error.TimeoutError, defer.TimeoutError)
             self._logger.debug("timed out waiting for %s response.",
                                snmpoid.oid_key)
             return []

@@ -20,6 +20,7 @@
 from datetime import datetime
 
 from twisted.internet import defer, threads
+from twisted.internet.error import TimeoutError
 from twisted.python.failure import Failure
 from twistedsnmp import snmpprotocol, agentproxy
 
@@ -75,7 +76,7 @@ class Cam(Plugin):
 
                 try:
                     num = dw.getResult()
-                except defer.TimeoutError:
+                except (TimeoutError, defer.TimeoutError):
                     self._logger.debug("Timeout on vlan %d" % vlan)
                 else:
                     self._logger.debug("Found %d macs on vlan %d" % (num, vlan))

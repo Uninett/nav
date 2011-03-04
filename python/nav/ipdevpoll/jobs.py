@@ -21,6 +21,7 @@ import logging
 import threading
 
 from twisted.internet import defer, threads, reactor
+from twisted.internet.error import TimeoutError
 from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
 
 from nav.util import round_robin
@@ -128,7 +129,7 @@ class JobHandler(object):
         plugins = iter(plugins)
 
         def log_plugin_failure(failure, plugin_instance):
-            if failure.check(defer.TimeoutError):
+            if failure.check(TimeoutError, defer.TimeoutError):
                 self._logger.error("Plugin %s reported a timeout",
                                    plugin_instance)
             else:
