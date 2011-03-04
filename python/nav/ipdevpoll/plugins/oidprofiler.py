@@ -34,6 +34,7 @@ from twisted.internet import defer, threads, reactor, error
 
 import socket
 
+from nav.oids import OID
 from nav.models.oid import SnmpOid, NetboxSnmpOid
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll import Plugin
@@ -125,9 +126,7 @@ class OidProfiler(Plugin):
         request is attempted.
 
         """
-        oid = snmpoid.snmp_oid
-        if not oid.startswith('.'):
-            oid = '.' + oid
+        oid = OID(snmpoid.snmp_oid)
 
         def ignore_timeouts(failure):
             failure.trap(error.TimeoutError, defer.TimeoutError)
@@ -138,7 +137,7 @@ class OidProfiler(Plugin):
         def getnext_result_checker(result):
             if len(result) > 0:
                 response_oid = result.keys()[0]
-                if is_a_prefix(oid, response_oid):
+                if OID(oid).is_a_prefix_of(response_oid):
                     self._logger.debug("%s support found using GET-NEXT: %r",
                                        snmpoid.oid_key, result)
                     return True
@@ -155,7 +154,7 @@ class OidProfiler(Plugin):
                 df.addCallback(getnext_result_checker)
                 return df
 
-        df = self.agent.get([oid])
+        df = self.agent.get([str(oid)])
         df.addErrback(ignore_timeouts)
         df.addCallback(get_result_checker)
         return df
