@@ -42,6 +42,8 @@ class OID(tuple):
         arg = args[0]
         if isinstance(arg, basestring):
             arg = [int(p) for p in arg.split(SEPARATOR) if p]
+        elif isinstance(arg, OID):
+            return arg
         return tuple.__new__(cls, arg)
 
     def __str__(self):
