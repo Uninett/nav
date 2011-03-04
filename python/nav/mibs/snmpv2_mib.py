@@ -1,3 +1,4 @@
+from nav.oids import OID
 import mibretriever
 
 class Snmpv2Mib(mibretriever.MibRetriever):
@@ -11,7 +12,7 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         some agents  (Weathergoose).
 
         """
-        oid = '.' + self.nodes[var].oid + '.0'
+        oid = str(self.nodes[var].oid + OID('0'))
 
         def format_get_result(result):
             if oid in result:

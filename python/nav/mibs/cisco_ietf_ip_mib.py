@@ -18,7 +18,7 @@
 from twisted.internet import defer
 
 from ip_mib import IpMib
-from nav.mibs.mibretriever import is_a_prefix
+from nav.oids import OID
 
 class CiscoIetfIpMib(IpMib):
     """CISCO-IETF-IP-MIB is based on a a draft version of IETF's
@@ -38,9 +38,10 @@ class CiscoIetfIpMib(IpMib):
         """Convert a row index from cIpAddressTable to an IP object."""
 
         entry = cls.nodes['cIpAddressPfxOrigin']
-        if is_a_prefix(entry.oid, index):
+        index = OID(index)
+        if entry.oid.is_a_prefix_of(index):
             # Chop off the entry OID+column prefix
-            index = index[(len(entry.oid) + 1):]
+            index = OID(index.strip_prefix(entry.oid)[1:])
 
         return super(CiscoIetfIpMib, cls).address_index_to_ip(index)
 
@@ -49,11 +50,9 @@ class CiscoIetfIpMib(IpMib):
         """Convert a row index from cIpAddressPfxTable to an IP object."""
 
         entry = cls.nodes['cIpAddressPfxOrigin']
-        if is_a_prefix(entry.oid, index):
-            # Chop off the PfxOrigin OID prefix
-            index = index[len(entry.oid):]
+        stripped_index = OID(index).strip_prefix(entry.oid)
 
-        return super(CiscoIetfIpMib, cls).prefix_index_to_ip(index)
+        return super(CiscoIetfIpMib, cls).prefix_index_to_ip(stripped_index)
 
     @defer.deferredGenerator
     def get_ifindex_ip_mac_mappings(self):

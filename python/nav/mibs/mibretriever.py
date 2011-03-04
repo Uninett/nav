@@ -139,6 +139,12 @@ class MibTableDescriptor(object):
         self.reverse_column_index = \
             dict((c.oid[-1], c.name) for c in self.columns.values())
 
+    def __repr__(self):
+        return "%s(%r, %r, %r)" % (self.__class__.__name__,
+                                   self.table,
+                                   self.row,
+                                   self.columns)
+
     @classmethod
     def build(cls, mib, table_name):
         """Build and return a MibTableDescriptor for a MIB table.
