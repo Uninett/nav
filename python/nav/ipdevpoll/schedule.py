@@ -299,7 +299,7 @@ class JobScheduler(object):
         jobs.sort(key=itemgetter(2), reverse=True)
         table_formatter = SimpleTableFormatter(jobs)
 
-        logger = ipdevpoll.get_class_logger(cls)
+        logger = logging.getLogger("%s.joblist" % __name__)
         if jobs:
             logger.debug("currently active jobs (%d):\n%s",
                          len(jobs), table_formatter)

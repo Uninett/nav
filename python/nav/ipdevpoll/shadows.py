@@ -676,7 +676,17 @@ class SwPortVlan(Shadow):
 
 class Arp(Shadow):
     __shadowclass__ = manage.Arp
-    __lookups__ = [('netbox', 'ip', 'mac', 'end_time')]
+
+    def save(self, containers):
+        if not self.id:
+            return super(Arp, self).save(containers)
+
+        attrs = dict((attr, getattr(self, attr))
+                     for attr in self.get_touched()
+                     if attr != 'id')
+        if attrs:
+            me = manage.Arp.objects.filter(id=self.id)
+            me.update(**attrs)
 
 class Cam(Shadow):
     __shadowclass__ = manage.Cam
