@@ -54,7 +54,7 @@ class OidProfiler(Plugin):
         """Query the netbox for all oids in all_oids"""
         supported_oids = []
         for snmpoid in all_oids:
-            support = self._verify_support(snmpoid)
+            support = yield self._verify_support(snmpoid)
 
             if support:
                 self._logger.debug("%s is supported", snmpoid.oid_key)
