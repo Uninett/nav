@@ -19,6 +19,7 @@ import datetime
 import pprint
 import logging
 import threading
+import gc
 
 from twisted.internet import defer, threads, reactor
 from twisted.internet.error import TimeoutError
@@ -160,8 +161,6 @@ class JobHandler(object):
 
     def run(self):
         """Starts a polling job for netbox and returns a Deferred."""
-        shutdown_trigger_id = reactor.addSystemEventTrigger(
-            "before", "shutdown", self.cancel)
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
@@ -171,8 +170,6 @@ class JobHandler(object):
                           self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
-            self.agent.close()
-            reactor.removeSystemEventTrigger(shutdown_trigger_id)
             self._logger.info("Job %s for %s done.", self.name,
                               self.netbox.sysname)
             self._log_timings()
@@ -206,11 +203,18 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        shutdown_trigger_id = reactor.addSystemEventTrigger(
+            "before", "shutdown", self.cancel)
+        def remove_event_trigger(result):
+            reactor.removeSystemEventTrigger(shutdown_trigger_id)
+            return result
+
         # The action begins here
         df = self._iterate_plugins(plugins)
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
+        df.addBoth(remove_event_trigger)
         return df
 
     def cancel(self):
@@ -382,6 +386,13 @@ class JobHandler(object):
         if self.cancelled.isSet():
             raise AbortedJobError("Job was already cancelled")
 
+    @classmethod
+    def get_instance_count(cls):
+        """Returns the number of JobHandler instances as seen by the garbage
+        collector.
+
+        """
+        return len([o for o in gc.get_objects() if isinstance(o, cls)])
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
