@@ -157,8 +157,6 @@ class JobHandler(object):
 
     def run(self):
         """Starts a polling job for netbox and returns a Deferred."""
-        shutdown_trigger_id = reactor.addSystemEventTrigger(
-            "before", "shutdown", self.cancel)
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
@@ -168,7 +166,6 @@ class JobHandler(object):
                           self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
-            reactor.removeSystemEventTrigger(shutdown_trigger_id)
             self._logger.info("Job %s for %s done.", self.name,
                               self.netbox.sysname)
             self._log_timings()
@@ -202,11 +199,18 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        shutdown_trigger_id = reactor.addSystemEventTrigger(
+            "before", "shutdown", self.cancel)
+        def remove_event_trigger(result):
+            reactor.removeSystemEventTrigger(shutdown_trigger_id)
+            return result
+
         # The action begins here
         df = self._iterate_plugins(plugins)
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
+        df.addBoth(remove_event_trigger)
         return df
 
     def cancel(self):
