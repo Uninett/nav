@@ -66,16 +66,14 @@ def handle_http_error(func):
         except urllib2.HTTPError, error:
             print "%s :" % error.url
             print "-" * (len(error.url)+2)
-            print error.fp.read()
-            return failure, error.url, error.code
+            return failure, error.url, error.code, error
         except urllib2.URLError, error:
             return urlerror, error
 
     return _decorator
 
-def failure(url, code):
-    if url in html_store:
-        print html_store[url]
+def failure(url, code, error):
+    print error.fp.read()
     assert code == 200
 
 def success(url):
