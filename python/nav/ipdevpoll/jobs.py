@@ -19,6 +19,7 @@ import datetime
 import pprint
 import logging
 import threading
+import gc
 from twisted.internet import defer, threads, reactor
 from twistedsnmp import snmpprotocol, agentproxy
 
@@ -382,6 +383,13 @@ class JobHandler(object):
         if self.cancelled.isSet():
             raise AbortedJobError("Job was already cancelled")
 
+    @classmethod
+    def get_instance_count(cls):
+        """Returns the number of JobHandler instances as seen by the garbage
+        collector.
+
+        """
+        return len([o for o in gc.get_objects() if isinstance(o, cls)])
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""

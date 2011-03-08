@@ -304,5 +304,5 @@ class JobScheduler(object):
             logger.debug("currently active jobs (%d):\n%s",
                          len(jobs), table_formatter)
         else:
-            logger.debug("no currently active jobs")
-
+            logger.debug("no active jobs (%d JobHandlers)",
+                         JobHandler.get_instance_count())
