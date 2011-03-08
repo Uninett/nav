@@ -22,12 +22,15 @@ import time
 import re
 import nav.path
 import os.path
+
+from nav.web.encoding import encoded_output
 from nav.web.URI import URI
 from nav import db
 from radius_config import *
 from socket import gethostbyname_ex, gaierror
 from mod_python import apache
 
+@encoded_output
 def handler(req):
     global database
     connection = db.getConnection(DB_USER, DB)
@@ -241,7 +244,7 @@ def handler(req):
 
     req.content_type = "text/html"
     req.send_http_header()
-    req.write(page.respond().encode('utf-8'))
+    req.write(page.respond())
     page.shutdown()
     return apache.OK
 
