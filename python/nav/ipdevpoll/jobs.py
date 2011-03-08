@@ -205,7 +205,8 @@ class JobHandler(object):
 
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
-        def remove_event_trigger(result):
+        def cleanup(result):
+            self.agent.close()
             reactor.removeSystemEventTrigger(shutdown_trigger_id)
             return result
 
@@ -214,7 +215,7 @@ class JobHandler(object):
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
-        df.addBoth(remove_event_trigger)
+        df.addBoth(cleanup)
         return df
 
     def cancel(self):
