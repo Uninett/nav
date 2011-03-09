@@ -149,7 +149,7 @@ class OidProfiler(Plugin):
                                   snmpoid.oid_key, result)
                 return True
             else:
-                df = self.agent.walk([oid])
+                df = self.agent.walk(str(oid))
                 df.addErrback(ignore_timeouts)
                 df.addCallback(getnext_result_checker)
                 return df
