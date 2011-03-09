@@ -80,8 +80,13 @@ class JobHandler(object):
         nb = self.container_factory(shadows.Netbox, key=None)
         nb.id = netbox.id
 
-        port = ports.next()
+        self.agent = None
 
+    def _create_agentproxy(self):
+        if self.agent:
+            self._destroy_agentproxy()
+
+        port = ports.next()
         self.agent = AgentProxy(
             self.netbox.ip, 161,
             community = self.netbox.read_only,
@@ -92,6 +97,10 @@ class JobHandler(object):
         self._logger.debug("AgentProxy created for %s: %s",
                            self.netbox.sysname, self.agent)
 
+    def _destroy_agentproxy(self):
+        if self.agent:
+            self.agent.close()
+        self.agent = None
 
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
@@ -161,9 +170,11 @@ class JobHandler(object):
 
     def run(self):
         """Starts a polling job for netbox and returns a Deferred."""
+        self._create_agentproxy()
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
+            self._destroy_agentproxy()
             return defer.succeed(None)
 
         self._logger.info("Starting job %r for %s",
@@ -206,7 +217,7 @@ class JobHandler(object):
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
         def cleanup(result):
-            self.agent.close()
+            self._destroy_agentproxy()
             reactor.removeSystemEventTrigger(shutdown_trigger_id)
             return result
 
