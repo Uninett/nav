@@ -23,6 +23,8 @@ ENTITY-MIB.
 
 """
 
+from twistedsnmp import agentproxy
+
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
@@ -37,7 +39,6 @@ class Bridge(Plugin):
     def handle(self):
         self._logger.debug("Collecting bridge data")
         self.entity = EntityMib(self.agent)
-        self.bridgemib = BridgeMib(self.agent)
         self.baseports = {}
 
         df = self.entity.retrieve_alternate_bridge_mibs()
@@ -45,6 +46,22 @@ class Bridge(Plugin):
         df.addCallback(self._query_baseports)
 
         return df
+
+    def _get_alternate_agent(self, community):
+        """Create an alternative Agent Proxy for our host.
+
+        Return value is an AgentProxy object created with the same
+        parameters as the controlling job handler's AgentProxy, but
+        with a different community.
+
+        """
+        old_agent = self.agent
+        agent = agentproxy.AgentProxy(
+            old_agent.ip, old_agent.port,
+            community=community,
+            snmpVersion = old_agent.snmpVersion,
+            protocol = old_agent.protocol)
+        return agent
 
     def _prune_bridge_mib_list(self, result):
         """Prune the list of alternate bridge mib instances.
@@ -73,8 +90,12 @@ class Bridge(Plugin):
                           [b[0] for b in bridgemibs])
 
         # Set up a bunch of instances to poll
-        instances = [ (None, self.agent.community) ] + bridgemibs
-
+        instances = [ (BridgeMib(self.agent), None) ]
+        for descr, community in bridgemibs:
+            agent = self._get_alternate_agent(community)
+            mib = BridgeMib(agent)
+            instances.append((mib, descr))
+        
         instances = iter(instances)
         df = self._query_next_instance(None, instances)
         return df
@@ -96,25 +117,13 @@ class Bridge(Plugin):
                 self.baseports.update(result)
 
         try:
-            descr, instance_community = instances.next()
+            bridgemib, descr = instances.next()
+            self._logger.debug("Now querying %r", descr)
         except StopIteration:
             return self._set_port_numbers(self.baseports)
 
         # Add the next bridge mib instance to the chain
-        (self.agent.community, original_community) = (instance_community,
-                                                      self.agent.community)
-        def _reset_community(result):
-            self.agent.community = original_community
-            return result
-
-        def _log_count(result):
-            self._logger.debug("found %d switch ports on %r",
-                               len(result), descr)
-            return result
-
-        df = self.bridgemib.retrieve_column('dot1dBasePortIfIndex')
-        df.addBoth(_reset_community)
-        df.addCallback(_log_count)
+        df = bridgemib.retrieve_column('dot1dBasePortIfIndex')
         df.addCallback(self._query_next_instance, instances)
         df.addCallback(lambda thing: fire_eventually(thing))
         return df
@@ -122,7 +131,7 @@ class Bridge(Plugin):
     def _set_port_numbers(self, result):
         """Process the list of collected base ports and set port numbers."""
 
-        self._logger.debug("found a total of %d unique switch ports: %r",
+        self._logger.debug("Found %d base (switch) ports: %r", 
                            len(result),
                            [portnum[0] for portnum in result.keys()])
 
