@@ -23,12 +23,12 @@ import gc
 
 from twisted.internet import defer, threads, reactor
 from twisted.internet.error import TimeoutError
-from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
 
 from nav.util import round_robin
 from nav import toposort
 
 from nav.ipdevpoll import get_context_logger
+from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 import storage
 import shadows
 from plugins import plugin_registry
