@@ -1,23 +1,20 @@
 {% extends 'threshold/base.html' %}
 
-{% block base_content %}
+{% block content %}
 
+<p>
 <table class="vertitable">
 <thead>
     <tr>
         <th>Netbox</th>
+        <th>Interface name</th>
+        <th>Interface alias</th>
         <th>ID</th>
         <th>Description</th>
-        {% comment %}
-        <th>Delimiter</th>
-        {% endcomment %}
         <th>Operator</th>
         <th>Threshold</th>
         <th>Max</th>
         <th>Thresholdstate</th>
-	<th>Subsystem</th>
-        <th>Dstype</th>
-        <th>Units</th>
     </tr>
 </thead>
 <tbody>
@@ -26,31 +23,27 @@
 <tr><td>{{ lines.grouper.get_short_sysname }}</td><td></td></tr>
 {% for threshold in lines.list %}
     <tr class="{% cycle oddrow,evenrow %}">
-        <td>{{ threshold.rrd_file.netbox.sysname }}</td>
-        <td><a href="edit/{{ threshold.id }}/">{{ threshold.id }}</a></td>
+        <td>{{ threshold.rrd_file.netbox.get_short_sysname }}</td>
+        <td>{{ threshold.rrd_file.interface.ifname }}</td>
+        <td>{{ threshold.rrd_file.interface.ifalias }}</td>
+        <td><a href="/threshold/edit/{{ threshold.id }}/">{{ threshold.id }}</a></td>
         <td>{{ threshold.description }}</td>
-        <td align="center">{{ threshold.delimiter }}</td>
+        <td align="center">{% if threshold.delimiter %}{{ threshold.delimiter }}{% endif %}</td>
 	{% if threshold.threshold %}
         <td>{{ threshold.threshold }}</td>
-        <td>{{ threshold.max }}</td>
+        <td>{% if threshold.max %}{{ threshold.max }}{% endif %}</td>
         <td>{{ threshold.state }}</td>
 	{% else %}
-	<td>N/A*</td>
-	<td>N/A*</td>
-	<td>N/A*</td>
-	<td>N/A*</td>
+	<td></td>
+	<td></td>
+	<td></td>
 	{% endif %}
-	<td>{{ threshold.rrd_file.subsystem }}</td>
-        <td>{{ threshold.dstype }}</td>
-        <td>{{ threshold.units }}</td>
     </tr>
 {% endfor %}
 {% endfor %}
 </tbody>
 
 </table>
-
-<p>* No threshold has been set.</p>
-
+</p>
 {% endblock %}
 

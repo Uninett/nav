@@ -1,0 +1,49 @@
+{% extends 'threshold/base.html' %}
+
+{% block content %}
+
+{% regroup netboxes|dictsort:"sysname" by sysname as netbox_list %}
+
+{% for netbox in netbox_list %}
+<p>
+<table class="vertitable">
+    <caption>{{ netbox.grouper }}</caption>
+    <thead>
+    <tr>
+        <th>Interface name</th>
+        <th>Interface alias</th>
+        <th>ID</th>
+        <th>Description</th>
+        <th>Operator</th>
+        <th>Threshold</th>
+        <th>Max</th>
+        <th>Thresholdstate</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in netbox.list %}
+        {% for threshold in item.sources %}
+        <tr>
+                <td>{{ threshold.rrd_file.interface.ifname }}</td>
+                <td>{{ threshold.rrd_file.interface.ifalias }}</td>
+                <td><a href="/threshold/edit/{{ threshold.id }}/">{{ threshold.id }}</a></td>
+                <td>{{ threshold.description }}</td>
+                <td align="center">{% if threshold.delimiter %}{{ threshold.delimiter }}{% endif %}</td>
+	        {% if threshold.threshold %}
+                <td>{{ threshold.threshold }}</td>
+                <td>{% if threshold.max %}{{ threshold.max }}{% endif %}</td>
+                <td>{{ threshold.state }}</td>
+	        {% else %}
+	        <td></td>
+	        <td></td>
+	        <td></td>
+                {% endif %}
+        <tr>
+        {% endfor %}
+    {% endfor %}
+</tbody>
+</table>
+</p>
+{% endfor %}
+{% endblock %}
+

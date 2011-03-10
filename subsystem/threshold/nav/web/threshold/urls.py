@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 UNINETT AS
+# Copyright 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,18 +21,23 @@
 # Authors: Fredrik Skolmli <fredrik.skolmli@uninett.no>
 #
 
-__copyright__ = "Copyright 2010 UNINETT AS"
+__copyright__ = "Copyright 2011 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Fredrik Skolmli (fredrik.skolmli@uninett.no)"
+__author__ = "Fredrik Skolmli <fredrik.skolmli@uninett.no> and Trond Kandal <Trond.Kandal@ntnu.no>"
 __id__ = "$Id$"
 
 from django.conf.urls.defaults import *
 from nav.web.threshold.views import threshold_list, threshold_edit
+from nav.web.threshold.views import threshold_interface, threshold_delete
+from nav.web.threshold.views import threshold_all
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
     # List accounts and groups
     url(r'^$', threshold_list, name='threshold-list'),
-    url(r'^(?P<all>\w{3})/$', threshold_list, name='threshold-all'),
-    url(r'^edit/(?P<threshold_id>\d+)/$', threshold_edit, name='threshold-edit'),
+    #url(r'^(?P<all>\w{3})/$', threshold_list, name='threshold-list'),
+    url(r'^all/$', threshold_all, name='threshold-all'),
+    url(r'^edit/(?P<thresholdid>\d+)/$', threshold_edit, name='threshold-edit'),
+    url(r'^delete/(?P<thresholdid>\d+)/$', threshold_delete, name='threshold-delete'),
+    url(r'^interface/(?P<interfaceid>\d+)/$', threshold_interface, name='threshold-interface'),
 )
