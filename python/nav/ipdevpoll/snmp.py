@@ -15,4 +15,25 @@
 #
 """selects and provides SNMP backend for ipdevpoll"""
 
-from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
+try:
+    from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
+except ImportError:
+    from twistedsnmp import snmpprotocol, agentproxy
+
+    import warnings
+    warnings.warn("Using pure Python-based SNMP library, which will affect "
+                  "performance")
+
+    class AgentProxy(agentproxy.AgentProxy):
+        """TwistedSNMP AgentProxy derivative to add API compatibility
+        with pynetsnmp's AgentProxy's open/close methods.
+
+        """
+        def open(self):
+            """Dummy open method"""
+            pass
+
+        def close(self):
+            """Dummy close method"""
+            pass
+
