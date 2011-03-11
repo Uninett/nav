@@ -48,17 +48,19 @@ class DnsName(Plugin):
         # Use the OS configured DNS resolver method
         resolver = resolvers.next()
         df = resolver.lookupPointer( ip.reverseName() )
-        df.addCallbacks(self._handle_result, self._handle_failure)
+        df.addCallbacks(self._handle_result, self._handle_failure,
+                        errbackArgs=ip)
         return df
 
-    def _handle_failure(self, failure):
+    def _handle_failure(self, failure, ip=None):
         """Logs DNS failures, but does not stop the job from running."""
         failtype = failure.trap(error.TimeoutError, defer.TimeoutError,
                                 DomainError)
         if failtype in (error.TimeoutError, defer.TimeoutError):
             self._logger.warning("DNS lookup timed out")
         elif failtype == DomainError:
-            self._logger.warning("DNS lookup error: %s", failure.type.__name__)
+            self._logger.warning("DNS lookup error for %s: %s",
+                                 ip, failure.type.__name__)
 
     def _handle_result(self, result):
         """Handles a successful DNS reponse."""
