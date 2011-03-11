@@ -24,7 +24,7 @@ else
     echo "**> creating virtualenv"
     virtualenv "$VIRTENV"
 fi
-source "$VIRTENV/bin/activate"
+. "$VIRTENV/bin/activate"
 easy_install pip || exit 1
 pip install -r tests/requirements.txt || exit 1
 
@@ -48,3 +48,7 @@ dropdb $PGDATABASE || true
 sql/syncdb.py -c || exit 1
 
 if [ -n "$ADMINPASSWORD" ]; then psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'"; fi
+
+# Add non-ASCII chars to the admin user's login name to test encoding
+# compliance for all Cheetah based web pages.
+psql -c "UPDATE account SET name = 'Administrator ÆØÅ' WHERE login = 'admin'"
