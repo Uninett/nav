@@ -120,6 +120,7 @@ class Module(Shadow):
         self._fix_binary_garbage()
         self._fix_missing_name()
         self._resolve_duplicate_serials()
+        self._resolve_duplicate_names()
 
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
@@ -164,6 +165,46 @@ class Module(Shadow):
             other.device = new_device
             other.save()
 
+    def _resolve_duplicate_names(self):
+        """Attempts to solve module naming conflicts inside the same chassis.
+
+        If two modules physically switch slots in a chassis, they will be
+        recognized by their serial numbers, but their names will likely be
+        swapped.
+
+        Module names must be unique within a chassis, so if another module on
+        this netbox has the same name as us, we need to do something about the
+        other module's name before our own to avoid a database integrity
+        error.
+
+        """
+        other = self._find_name_duplicates()
+        if other:
+            self._logger.warning(
+                "modules appear to have been swapped inside same chassis (%s): "
+                "%s (%s) <-> %s (%s)",
+                other.netbox.sysname,
+                self.name, self.device.serial,
+                other.name, other.device.serial)
+
+            other.name = u"%s (%s)" % (other.name, other.device.serial)
+            other.save()
+
+
+    def _find_name_duplicates(self):
+        myself_in_db = self.get_existing_model()
+
+        same_name_modules = manage.Module.objects.filter(
+            netbox__id = self.netbox.id,
+            name = self.name)
+
+        if myself_in_db:
+            same_name_modules = same_name_modules.exclude(
+                id = myself_in_db.id)
+
+        other = same_name_modules.select_related('device', 'netbox')
+
+        return other[0] if other else None
 
     @classmethod
     def _make_modulestate_event(cls, django_module):
