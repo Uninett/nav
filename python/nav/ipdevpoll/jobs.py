@@ -34,7 +34,7 @@ from nav.ipdevpoll import db
 from utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-ports = round_robin([snmpprotocol.port() for i in range(10)])
+ports = round_robin([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
