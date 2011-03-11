@@ -15,8 +15,10 @@
 #
 """selects and provides SNMP backend for ipdevpoll"""
 
+import sys
 try:
-    from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
+    import pynetsnmp.twistedsnmp
+    from pynetsnmp.twistedsnmp import snmpprotocol
 except ImportError:
     from twistedsnmp import snmpprotocol, agentproxy
 
@@ -37,3 +39,13 @@ except ImportError:
             """Dummy close method"""
             pass
 
+
+else:
+    class AgentProxy(pynetsnmp.twistedsnmp.AgentProxy):
+        """pynetsnmp AgentProxy derivative to adjust the silly 1000 value
+        limit imposed in getTable calls"""
+
+        def getTable(self, *args, **kwargs):
+            if 'limit' not in kwargs:
+                kwargs['limit'] = sys.maxint
+            return super(AgentProxy, self).getTable(*args, **kwargs)
