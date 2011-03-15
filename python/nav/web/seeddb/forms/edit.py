@@ -224,7 +224,8 @@ class LocationForm(forms.ModelForm):
 
 class OrganizationForm(forms.ModelForm):
     parent = forms.ModelChoiceField(
-        queryset=Organization.objects.order_by('id'))
+        queryset=Organization.objects.order_by('id'),
+        required=False)
 
     class Meta:
         model = Organization
@@ -232,7 +233,12 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
         if kwargs.get('instance'):
+            # disallow editing the primary key of existing record
             del self.fields['id']
+            # remove self from list of selectable parents
+            parent = self.fields['parent']
+            parent.queryset = parent.queryset.exclude(
+                id=kwargs['instance'].id)
 
 class UsageForm(forms.ModelForm):
     class Meta:
