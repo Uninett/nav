@@ -34,7 +34,7 @@ from nav.ipdevpoll import db
 from utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-ports = round_robin([snmpprotocol.port() for i in range(10)])
+ports = round_robin([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
@@ -128,7 +128,7 @@ class JobHandler(object):
 
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(defer.TimeoutError):
-                self._logger.error("Plugin %s reported a timeout",
+                self._logger.debug("Plugin %s reported a timeout",
                                    plugin_instance)
             else:
                 log_unhandled_failure(self._logger,
@@ -187,8 +187,9 @@ class JobHandler(object):
 
         def log_abort(failure):
             if failure.check(AbortedJobError):
-                self._logger.error("Job %r for %s aborted.",
-                                   self.name, self.netbox.sysname)
+                self._logger.error("Job %r for %s aborted: %s",
+                                   self.name, self.netbox.sysname,
+                                   failure.value.cause)
             return failure
 
         def save(result):

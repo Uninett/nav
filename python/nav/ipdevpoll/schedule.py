@@ -109,7 +109,6 @@ class NetboxJobScheduler(object):
         deferred.addErrback(self._log_unhandled_error)
 
         deferred.addCallback(self._unregister_handler)
-        deferred.addCallback(self._log_time_to_next_run)
 
 
     def is_running(self):
@@ -131,8 +130,10 @@ class NetboxJobScheduler(object):
 
     def reschedule(self, delay):
         """Reschedules the next run of of this job"""
-        self._logger.info("Rescheduling %r for %s in %d seconds",
-                          self.job.name, self.netbox.sysname, delay)
+        next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
+
+        self._logger.info("Next %r job for %s will be in %d seconds (%s)",
+                          self.job.name, self.netbox.sysname, delay, next_time)
 
         if self._next_call.active():
             self._next_call.reset(delay)
@@ -152,14 +153,6 @@ class NetboxJobScheduler(object):
             self.uncount_job()
             self.unqueue_next_job()
         return result
-
-    def _log_time_to_next_run(self, thing=None):
-        if self._next_call and self._next_call.active():
-            next_time = datetime.datetime.fromtimestamp(
-                self._next_call.getTime())
-            self._logger.info("Next %r job for %s will be at %s",
-                              self.job.name, self.netbox.sysname, next_time)
-        return thing
 
     def count_job(self):
         current_count = self.__class__.job_counters.get(self.job.name, 0)
