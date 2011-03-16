@@ -35,6 +35,7 @@
     </table>
 </form>
 
+{% if object %}
 <form action="{% url seeddb-netbox %}" method="post">
     <table class="listtable">
         <tr>
@@ -46,5 +47,6 @@
         </tr>
     </table>
 </form>
+{% endif %}
 
 {% endblock %}

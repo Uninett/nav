@@ -16,7 +16,7 @@
     </table>
 </form>
 
-{% if delete_url %}
+{% if delete_url and object %}
 <form action="{{ delete_url }}" method="post">
     <table class="listtable">
         <tr>
