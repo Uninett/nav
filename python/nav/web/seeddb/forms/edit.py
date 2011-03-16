@@ -71,6 +71,7 @@ class NetboxForm(forms.Form):
         ip = cleaned_data.get('ip')
         cat = cleaned_data.get('category')
         ro_community = cleaned_data.get('read_only')
+        rw_community = cleaned_data.get('read_write')
         self.snmp_version = '1'
 
         if ip:
@@ -91,29 +92,50 @@ class NetboxForm(forms.Form):
 
         if ro_community and ip:
             sysobjectid = '1.3.6.1.2.1.1.2.0'
-            try:
-                try:
-                    snmp = Snmp(ip, ro_community, '2c')
-                    snmp.get(sysobjectid)
-                    self.snmp_version = '2c'
-                except TimeOutException:
-                    snmp = Snmp(ip, ro_community, '1')
-                    snmp.get(sysobjectid)
-                    self.snmp_version = '1'
-            except SnmpError:
+            version = self.get_snmp_version(ip, ro_community)
+            if not version:
                 if cat and cat.req_snmp:
                     msg = (
-                        "No SNMP response.",
+                        "No SNMP response on read only community.",
                         "Is read only community correct?")
                 else:
                     msg = (
-                        "No SNMP response.",
+                        "No SNMP response on read only community.",
                         "SNMP is not required for this category, if you don't "
                         "need SNMP please leave the 'Read only' field empty.")
                 self._errors['read_only'] = self.error_class(msg)
                 del cleaned_data['read_only']
+            else:
+                self.snmp_version = version
+        if rw_community and ip:
+            sysobjectid = '1.3.6.1.2.1.1.2.0'
+            version = self.get_snmp_version(ip, rw_community)
+            if not version:
+                msg = (
+                    "No SNMP response on read/write community.",
+                    "Is read/write community correct?")
+                self._errors['read_write'] = self.error_class(msg)
+                del cleaned_data['read_write']
 
         return cleaned_data
+
+    @staticmethod
+    def get_snmp_version(ip, community):
+        sysobjectid = '1.3.6.1.2.1.1.2.0'
+        try:
+            try:
+                snmp = Snmp(ip, community, '2c')
+                snmp.get(sysobjectid)
+                snmp_version = '2c'
+            except TimeOutException:
+                snmp = Snmp(ip, community, '1')
+                snmp.get(sysobjectid)
+                snmp_version = '1'
+        except SnmpError:
+            return None
+        else:
+            return snmp_version
+
 
 class NetboxReadonlyForm(NetboxForm):
     sysname = forms.CharField()
