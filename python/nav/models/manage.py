@@ -92,7 +92,7 @@ class Netbox(models.Model):
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField()
+    snmp_version = models.IntegerField(verbose_name="SNMP version")
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
@@ -542,7 +542,7 @@ class NetboxType(models.Model):
 
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    name = VarcharField(db_column='typename')
+    name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)

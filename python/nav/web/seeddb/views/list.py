@@ -34,7 +34,7 @@ def netbox_list(request):
     filter_form = NetboxFilterForm(request.GET)
     value_list = (
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
-        'read_write', 'type__name', 'device__serial')
+        'read_write', 'snmp_version', 'type__name', 'device__serial')
     extra = {
         'active': {'netbox': True},
         'title': TITLE_DEFAULT + ' - IP Devices',
