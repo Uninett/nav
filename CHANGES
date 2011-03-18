@@ -1,3 +1,17 @@
+Version 3.8.3
+(released 15 March 2011)
+
+ Bugfixes:
+
+  * LP#730524 (ipdevpoll oidprofiler says all OIDs are a match)
+  * LP#731252 (ipdevpoll leaks memory on database exceptions)
+  * LP#731318 (radius accounting page crashes when user has non-ASCII  chars in
+               username)
+  * LP#733115 (pping crashes when re-creating RRD files)
+  * LP#733152 (inventory job fails on IntegrityError on internal module swap)
+  * LP#735365 (Cannot add top-level organizations)
+
+
 Version 3.8.2
 (released 3 March 2011)
 

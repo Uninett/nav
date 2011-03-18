@@ -105,6 +105,8 @@ The INSTALL file referred to the python package `egenix-mxdatetime` as a
 dependency.  This has been removed, as NAV stopped using it in version 3.6.
 You psycopg2 installation may still require it, though.
 
+NAV 3.8 also adds a dependency to the Python library `simplejson`.
+
 Also, don't forget: The following dependencies changed from version 3.6 to
 3.7:
 

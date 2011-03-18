@@ -109,7 +109,7 @@ def ip_do_search(request):
                     row['dns_lookup'] = hostname(ip) or ""
                 tracker[(ip, "")] = [row]
 
-    row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
+        row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
     info_dict = {
         'form': form,
         'form_data': form_data,
