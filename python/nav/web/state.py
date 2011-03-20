@@ -21,7 +21,7 @@ functions to associate session objects with request objects.
 """
 import time
 import random
-import md5
+from hashlib import md5
 import cPickle
 import os
 from os import path
@@ -52,7 +52,7 @@ def getUniqueString(entropy=''):
     # This function returns a 32 character md5 hash string.  The validate_sid
     # function will validate ids accordingly.  If you change this
     # implementation, you must also change the validate_sid implementation.
-    hash = md5.new()
+    hash = md5()
     hash.update(str(time.time()))
     hash.update(str(random.random()))
     hash.update(str(os.getpid()))
