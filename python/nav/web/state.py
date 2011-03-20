@@ -239,7 +239,7 @@ class Session(dict):
                 fcntl.lockf(file, fcntl.LOCK_UN)
                 attempts -= 1
                 if attempts <= 0:
-                    raise e
+                    raise
                 else:
                     # wait just a little before trying again
                     time.sleep(random.random() % 0.1)
