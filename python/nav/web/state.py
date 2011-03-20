@@ -213,7 +213,7 @@ class Session(dict):
         
         filename = sessionFilename(sessionId)
         # countdown variable, see other comments below
-        attempts = 3
+        attempts = 10
         while attempts > 0:
             try:
                 file = open(filename, 'r')
@@ -233,13 +233,16 @@ class Session(dict):
                 # competing process may be in the queue waiting for a
                 # write lock, and should receive it immediately after
                 # we unlock.  Therefore, we unlock, and retry this
-                # procedure three times before giving up completely
+                # procedure several times before giving up completely
                 # (in which case something is considerably wrong
                 # anyway!)
                 fcntl.lockf(file, fcntl.LOCK_UN)
                 attempts -= 1
                 if attempts <= 0:
                     raise e
+                else:
+                    # wait just a little before trying again
+                    time.sleep(random.random() % 0.1)
             else:
                 attempts = 0
                 fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
