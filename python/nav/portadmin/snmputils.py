@@ -235,7 +235,30 @@ class Cisco(SNMPHandler):
         vector = BitVector.from_hex(port.hex_string)
         vlans = vector.get_set_bits()
         return vlans
-    
+
+    def setVlan(self, ifindex, vlan):
+        if isinstance(vlan, str) or isinstance(vlan, unicode):
+            if vlan.isdigit():
+                vlan = int(vlan)
+        if not isinstance(vlan, int):
+            raise TypeError('Illegal value for vlan: %s' %vlan)
+        # Fetch current vlan
+        fromvlan = self.getVlan(ifindex)
+        # fromvlan and vlan is the same, there's nothing to do
+        if fromvlan == vlan:
+            return None
+        # Add port to vlan. This makes the port active on both old and new vlan
+        status = None
+        try:
+            status = self._setNetboxValue(self.vlanOid, ifindex, "u", vlan)
+        except Exception, e:
+            # Ignore this exception,- some boxes want signed integer and
+            # we do not know this beforehand.
+            # If unsigned fail,- try with signed integer.
+            status = self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
+        return status
+            
+   
     def write_mem(self):
         """ Use OLD-CISCO-SYS-MIB (v1) writeMem to write to memory. 
         Write configuration into non-volatile memory / erase config memory if 0.
@@ -250,8 +273,8 @@ class HP(SNMPHandler):
 
 
 class SNMPFactory(object):
-     @classmethod
-     def getInstance(self, netbox):
+    @classmethod
+    def getInstance(self, netbox):
         vendor_id = netbox.type.vendor.id.lower()
         if (vendor_id == 'cisco'):
             return Cisco(netbox)
@@ -259,5 +282,5 @@ class SNMPFactory(object):
             return HP(netbox)
         return SNMPHandler(netbox)
      
-     def __init__(self):
+    def __init__(self):
         pass
