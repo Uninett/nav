@@ -252,11 +252,12 @@ class HP(SNMPHandler):
 class SNMPFactory(object):
      @classmethod
      def getInstance(self, netbox):
-         if (netbox.type.vendor.id == 'cisco'):
-             return Cisco(netbox)
-         if(netbox.type.vendor.id == 'hp'):
-             return HP(netbox)
-         return SNMPHandler(netbox)
+        vendor_id = netbox.type.vendor.id.lower()
+        if (vendor_id == 'cisco'):
+            return Cisco(netbox)
+        if(vendor_id == 'hp'):
+            return HP(netbox)
+        return SNMPHandler(netbox)
      
      def __init__(self):
-         pass
+        pass
