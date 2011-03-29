@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2004 Norwegian University of Science and Technology
 # Copyright (C) 2007, 2010 UNINETT AS
@@ -93,24 +92,24 @@ def openLDAP():
     # does not support it
     if encryption == 'tls':
         _logger.debug("Using STARTTLS for ldap connection")
-        l = ldap.open(server, port)
-        l.timeout = timeout
+        lconn = ldap.open(server, port)
+        lconn.timeout = timeout
         try:
-            l.start_tls_s()
-        except ldap.PROTOCOL_ERROR, e:
+            lconn.start_tls_s()
+        except ldap.PROTOCOL_ERROR:
             _logger.error('LDAP server %s does not support the STARTTLS '
                          'extension.  Aborting.', server)
             raise NoStartTlsError, server
-        except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR), e:
+        except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
             _logger.exception("LDAP server is down")
             raise NoAnswerError, server
     else:
         scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
         uri = '%s://%s:%s' % (scheme, server, port)
-        l = ldap.initialize(uri)
-        l.timeout = timeout
+        lconn = ldap.initialize(uri)
+        lconn.timeout = timeout
 
-    return l
+    return lconn
 
 def authenticate(login, password):
     """
@@ -118,29 +117,29 @@ def authenticate(login, password):
     configured LDAP server.  If the user is authenticated, required
     group memberships are also verified.
     """
-    l = openLDAP()
+    lconn = openLDAP()
     server = _config.get('ldap', 'server')
-    user = LDAPUser(login, l)
+    user = LDAPUser(login, lconn)
     # Bind to user using the supplied password
     try:
         user.bind(password)
-    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR), e:
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
         _logger.exception("LDAP server is down")
-        raise NoAnswerError, server
-    except ldap.INVALID_CREDENTIALS, e:
+        raise NoAnswerError(server)
+    except ldap.INVALID_CREDENTIALS:
         _logger.warning("Server %s reported invalid credentials for user %s",
                        server, login)
         return False
-    except ldap.TIMEOUT, e:
+    except ldap.TIMEOUT, error:
         _logger.error("Timed out waiting for LDAP bind operation")
-        raise TimeoutError, e
-    except ldap.LDAPError, e:
+        raise TimeoutError(error)
+    except ldap.LDAPError:
         _logger.exception("An LDAP error occurred when authenticating user %s "
                          "against server %s", login, server)
         return False
 
     _logger.debug("LDAP authenticated user %s", login)
-    
+
     # If successful so far, verify required group memberships before
     # the final verdict is made
     group_dn = _config.get('ldap', 'require_group')
@@ -159,9 +158,9 @@ def authenticate(login, password):
     return user
 
 class LDAPUser(object):
-    def __init__(self, username, l):
+    def __init__(self, username, ldap_conn):
         self.username = username
-        self.ldap = l
+        self.ldap = ldap_conn
         self.user_dn = None
 
     def bind(self, password):
@@ -198,14 +197,14 @@ class LDAPUser(object):
         manager = _config.get('ldap', 'manager')
         manager_password = _config.get('ldap', 'manager_password', raw=True)
         if manager:
-            _logger.debug("Attempting authenticated bind as manager to %s", 
+            _logger.debug("Attempting authenticated bind as manager to %s",
                          manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter = "(%s=%s)" % (_config.get('ldap', 'uid_attr'), self.username)
-        result = self.ldap.search_s(_config.get('ldap', 'basedn'), 
-                                    ldap.SCOPE_SUBTREE, filter) 
+        filter_ = "(%s=%s)" % (_config.get('ldap', 'uid_attr'), self.username)
+        result = self.ldap.search_s(_config.get('ldap', 'basedn'),
+                                    ldap.SCOPE_SUBTREE, filter_)
         if not result:
-            raise UserNotFound(filter)
+            raise UserNotFound(filter_)
         user_dn = result[0][0]
         return user_dn
 
@@ -214,16 +213,15 @@ class LDAPUser(object):
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
         user_dn = self.getUserDN()
-        server = _config.get('ldap', 'server')
         name_attr = _config.get('ldap', 'name_attr')
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])
-        except ldap.LDAPError, e:
+        except ldap.LDAPError:
             _logger.exception("Caught exception while retrieving user name "
                              "from LDAP, returning None as name")
             return None
-    
+
         # Just look at the first result record, since we are searching for
         # a specific user
         record = res[0][1]
@@ -255,9 +253,9 @@ class LDAPUser(object):
                                             filterstr)
                 _logger.debug("posixGroup results: %s", result)
             return len(result) > 0
-        except ldap.TIMEOUT, e:
+        except ldap.TIMEOUT, error:
             _logger.error("Timed out while veryfing group memberships")
-            raise TimeoutError, e
+            raise TimeoutError(error)
 
 
 #
@@ -285,17 +283,15 @@ def __test():
     """
     Test user login if module is run as script on command line.
     """
-    import logging
     from getpass import getpass
-    import sys
     logging.basicConfig()
     logging.getLogger('').setLevel(logging.DEBUG)
-    
+
     print "Username: ",
     uid = sys.stdin.readline().strip()
-    p = getpass('Password: ')
+    password = getpass('Password: ')
 
-    user = authenticate(uid, p)
+    user = authenticate(uid, password)
 
     if user:
         print "User was authenticated."
