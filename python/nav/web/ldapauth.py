@@ -27,7 +27,7 @@ from StringIO import StringIO
 from nav.path import sysconfdir
 import nav.errors
 
-logger = logging.getLogger("nav.web.ldapAuth")
+logger = logging.getLogger("nav.web.ldapauth")
 # Set default config params and read rest from file
 _default_config = StringIO("""
 [ldap]
