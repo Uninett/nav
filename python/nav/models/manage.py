@@ -557,6 +557,23 @@ class NetboxType(models.Model):
     def __unicode__(self):
         return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
 
+    def get_enterprise_id(self):
+        """Returns the type's enterprise ID as an integer.
+
+        The type's sysobjectid should always start with
+        SNMPv2-SMI::enterprises (1.3.6.1.4.1).  The next OID element will be
+        an enterprise ID, while the remaining elements will describe the type
+        specific to the vendor.
+
+        """
+        prefix = u"1.3.6.1.4.1."
+        if self.sysobjectid.startswith(prefix):
+            specific = self.sysobjectid[len(prefix):]
+            enterprise = specific.split('.')[0]
+            return long(enterprise)
+        else:
+            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
+
 #######################################################################
 ### Device management
 
