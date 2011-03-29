@@ -142,8 +142,8 @@ def main():
                 continue
 
 
-            logger.info("Detaining %s %s:%s"  %(
-                sw['sysname'], sw['module'], sw['port']))
+            logger.info("Detaining %s %s"  %(
+                sw['sysname'], sw['ifname']))
 
 
             # Find and set autoenable and autoenablestep
