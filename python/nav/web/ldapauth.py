@@ -27,7 +27,8 @@ from StringIO import StringIO
 from nav.path import sysconfdir
 import nav.errors
 
-logger = logging.getLogger("nav.web.ldapauth")
+_logger = logging.getLogger("nav.web.ldapauth")
+
 # Set default config params and read rest from file
 _default_config = StringIO("""
 [ldap]
@@ -54,7 +55,7 @@ try:
 except ImportError, e:
     available = 0
     ldap = None
-    logger.warning("Python LDAP module is not available (%s) ", e)
+    _logger.warning("Python LDAP module is not available (%s) ", e)
 else:
     # Determine whether the config file enables ldap functionality or not
     available = config.getboolean('ldap', 'enabled')
@@ -78,7 +79,7 @@ def openLDAP():
     timeout = config.getfloat('ldap', 'timeout')
     # Revert to no encryption if none of the valid settings are found
     if encryption not in ('ssl', 'tls', 'none'):
-        logger.warning('Unknown encryption setting %s in config file, '
+        _logger.warning('Unknown encryption setting %s in config file, '
                        'using no encryption instead',
                        repr( config.get('ldap', 'encryption') ))
         encryption = 'none'
@@ -90,17 +91,17 @@ def openLDAP():
     # Use STARTTLS if enabled, then fail miserably if the server
     # does not support it
     if encryption == 'tls':
-        logger.debug("Using STARTTLS for ldap connection")
+        _logger.debug("Using STARTTLS for ldap connection")
         l = ldap.open(server, port)
         l.timeout = timeout
         try:
             l.start_tls_s()
         except ldap.PROTOCOL_ERROR, e:
-            logger.error('LDAP server %s does not support the STARTTLS '
+            _logger.error('LDAP server %s does not support the STARTTLS '
                          'extension.  Aborting.', server)
             raise NoStartTlsError, server
         except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR), e:
-            logger.exception("LDAP server is down")
+            _logger.exception("LDAP server is down")
             raise NoAnswerError, server
     else:
         scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
@@ -123,32 +124,32 @@ def authenticate(login, password):
     try:
         user.bind(password)
     except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR), e:
-        logger.exception("LDAP server is down")
+        _logger.exception("LDAP server is down")
         raise NoAnswerError, server
     except ldap.INVALID_CREDENTIALS, e:
-        logger.warning("Server %s reported invalid credentials for user %s",
+        _logger.warning("Server %s reported invalid credentials for user %s",
                        server, login)
         return False
     except ldap.TIMEOUT, e:
-        logger.error("Timed out waiting for LDAP bind operation")
+        _logger.error("Timed out waiting for LDAP bind operation")
         raise TimeoutError, e
     except ldap.LDAPError, e:
-        logger.exception("An LDAP error occurred when authenticating user %s "
+        _logger.exception("An LDAP error occurred when authenticating user %s "
                          "against server %s", login, server)
         return False
 
-    logger.debug("LDAP authenticated user %s", login)
+    _logger.debug("LDAP authenticated user %s", login)
     
     # If successful so far, verify required group memberships before
     # the final verdict is made
     group_dn = config.get('ldap', 'require_group')
     if group_dn:
         if user.isGroupMember(group_dn):
-            logger.info("%s is verified to be a member of %s",
+            _logger.info("%s is verified to be a member of %s",
                         login, group_dn)
             return True
         else:
-            logger.warning("Could NOT verify %s as a member of %s",
+            _logger.warning("Could NOT verify %s as a member of %s",
                            login, group_dn)
             return False
 
@@ -164,7 +165,7 @@ class LDAPUser(object):
 
     def bind(self, password):
         user_dn = self.getUserDN()
-        logger.debug("Attempting authenticated bind to %s", user_dn)
+        _logger.debug("Attempting authenticated bind to %s", user_dn)
         self.ldap.simple_bind_s(user_dn, password)
 
     def getUserDN(self):
@@ -196,7 +197,7 @@ class LDAPUser(object):
         manager = config.get('ldap', 'manager')
         manager_password = config.get('ldap', 'manager_password', raw=True)
         if manager:
-            logger.debug("Attempting authenticated bind as manager to %s", 
+            _logger.debug("Attempting authenticated bind as manager to %s", 
                          manager)
             self.ldap.simple_bind_s(manager, manager_password)
         filter = "(%s=%s)" % (config.get('ldap', 'uid_attr'), self.username)
@@ -218,7 +219,7 @@ class LDAPUser(object):
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])
         except ldap.LDAPError, e:
-            logger.exception("Caught exception while retrieving user name "
+            _logger.exception("Caught exception while retrieving user name "
                              "from LDAP, returning None as name")
             return None
     
@@ -245,16 +246,16 @@ class LDAPUser(object):
         try:
             filterstr = '(member=%s)' % user_dn
             result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
-            logger.debug("groupOfNames results: %s", result)
+            _logger.debug("groupOfNames results: %s", result)
             if len(result) < 1:
                 # If no match, match posixGroup objects
                 filterstr = '(memberUid=%s)' % self.username
                 result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE,
                                             filterstr)
-                logger.debug("posixGroup results: %s", result)
+                _logger.debug("posixGroup results: %s", result)
             return len(result) > 0
         except ldap.TIMEOUT, e:
-            logger.error("Timed out while veryfing group memberships")
+            _logger.error("Timed out while veryfing group memberships")
             raise TimeoutError, e
 
 
