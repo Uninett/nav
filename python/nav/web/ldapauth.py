@@ -44,10 +44,11 @@ lookupmethod=direct
 manager=
 manager_password=
 """)
-config = ConfigParser.SafeConfigParser()
-config.readfp(_default_config)
+
+_config = ConfigParser.SafeConfigParser()
+_config.readfp(_default_config)
 _default_config.close()
-config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
+_config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
 
 try:
     import ldap
@@ -58,7 +59,7 @@ except ImportError, e:
     _logger.warning("Python LDAP module is not available (%s) ", e)
 else:
     # Determine whether the config file enables ldap functionality or not
-    available = config.getboolean('ldap', 'enabled')
+    available = _config.getboolean('ldap', 'enabled')
 
 
 
@@ -73,19 +74,19 @@ def openLDAP():
     configured in webfront.conf.
     """
     # Get config settings
-    server = config.get('ldap', 'server')
-    port = config.getint('ldap', 'port')
-    encryption = config.get('ldap', 'encryption').lower()
-    timeout = config.getfloat('ldap', 'timeout')
+    server = _config.get('ldap', 'server')
+    port = _config.getint('ldap', 'port')
+    encryption = _config.get('ldap', 'encryption').lower()
+    timeout = _config.getfloat('ldap', 'timeout')
     # Revert to no encryption if none of the valid settings are found
     if encryption not in ('ssl', 'tls', 'none'):
         _logger.warning('Unknown encryption setting %s in config file, '
                        'using no encryption instead',
-                       repr( config.get('ldap', 'encryption') ))
+                       repr( _config.get('ldap', 'encryption') ))
         encryption = 'none'
 
     # Debug tracing from python-ldap/openldap to stderr
-    if config.getboolean('ldap', 'debug'):
+    if _config.getboolean('ldap', 'debug'):
         ldap.set_option(ldap.OPT_DEBUG_LEVEL, 255)
 
     # Use STARTTLS if enabled, then fail miserably if the server
@@ -118,7 +119,7 @@ def authenticate(login, password):
     group memberships are also verified.
     """
     l = openLDAP()
-    server = config.get('ldap', 'server')
+    server = _config.get('ldap', 'server')
     user = LDAPUser(login, l)
     # Bind to user using the supplied password
     try:
@@ -142,7 +143,7 @@ def authenticate(login, password):
     
     # If successful so far, verify required group memberships before
     # the final verdict is made
-    group_dn = config.get('ldap', 'require_group')
+    group_dn = _config.get('ldap', 'require_group')
     if group_dn:
         if user.isGroupMember(group_dn):
             _logger.info("%s is verified to be a member of %s",
@@ -176,7 +177,7 @@ class LDAPUser(object):
         """
         if self.user_dn:
             return self.user_dn
-        method = config.get('ldap', 'lookupmethod')
+        method = _config.get('ldap', 'lookupmethod')
         if method not in ('direct', 'search'):
             raise LDAPConfigError(
                 """method must be "direct" or "search", not %s""" % method)
@@ -188,20 +189,20 @@ class LDAPUser(object):
         return self.user_dn
 
     def constructDN(self):
-        uid_attr = config.get('ldap', 'uid_attr')
-        basedn = config.get('ldap', 'basedn')
+        uid_attr = _config.get('ldap', 'uid_attr')
+        basedn = _config.get('ldap', 'basedn')
         user_dn = '%s=%s,%s' % (uid_attr, self.username, basedn)
         return user_dn
 
     def searchDN(self):
-        manager = config.get('ldap', 'manager')
-        manager_password = config.get('ldap', 'manager_password', raw=True)
+        manager = _config.get('ldap', 'manager')
+        manager_password = _config.get('ldap', 'manager_password', raw=True)
         if manager:
             _logger.debug("Attempting authenticated bind as manager to %s", 
                          manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter = "(%s=%s)" % (config.get('ldap', 'uid_attr'), self.username)
-        result = self.ldap.search_s(config.get('ldap', 'basedn'), 
+        filter = "(%s=%s)" % (_config.get('ldap', 'uid_attr'), self.username)
+        result = self.ldap.search_s(_config.get('ldap', 'basedn'), 
                                     ldap.SCOPE_SUBTREE, filter) 
         if not result:
             raise UserNotFound(filter)
@@ -213,8 +214,8 @@ class LDAPUser(object):
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
         user_dn = self.getUserDN()
-        server = config.get('ldap', 'server')
-        name_attr = config.get('ldap', 'name_attr')
+        server = _config.get('ldap', 'server')
+        name_attr = _config.get('ldap', 'name_attr')
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])
