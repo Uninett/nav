@@ -194,7 +194,7 @@ class LDAPUser(object):
 
     def searchDN(self):
         manager = config.get('ldap', 'manager')
-        manager_password = config.get('ldap', 'manager_password')
+        manager_password = config.get('ldap', 'manager_password', raw=True)
         if manager:
             logger.debug("Attempting authenticated bind as manager to %s", 
                          manager)

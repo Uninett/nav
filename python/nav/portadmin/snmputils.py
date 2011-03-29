@@ -235,7 +235,30 @@ class Cisco(SNMPHandler):
         vector = BitVector.from_hex(port.hex_string)
         vlans = vector.get_set_bits()
         return vlans
-    
+
+    def setVlan(self, ifindex, vlan):
+        if isinstance(vlan, str) or isinstance(vlan, unicode):
+            if vlan.isdigit():
+                vlan = int(vlan)
+        if not isinstance(vlan, int):
+            raise TypeError('Illegal value for vlan: %s' %vlan)
+        # Fetch current vlan
+        fromvlan = self.getVlan(ifindex)
+        # fromvlan and vlan is the same, there's nothing to do
+        if fromvlan == vlan:
+            return None
+        # Add port to vlan. This makes the port active on both old and new vlan
+        status = None
+        try:
+            status = self._setNetboxValue(self.vlanOid, ifindex, "u", vlan)
+        except Exception, e:
+            # Ignore this exception,- some boxes want signed integer and
+            # we do not know this beforehand.
+            # If unsigned fail,- try with signed integer.
+            status = self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
+        return status
+            
+   
     def write_mem(self):
         """ Use OLD-CISCO-SYS-MIB (v1) writeMem to write to memory. 
         Write configuration into non-volatile memory / erase config memory if 0.
@@ -250,13 +273,21 @@ class HP(SNMPHandler):
 
 
 class SNMPFactory(object):
-     @classmethod
-     def getInstance(self, netbox):
-         if (netbox.type.vendor.id == 'cisco'):
-             return Cisco(netbox)
-         if(netbox.type.vendor.id == 'hp'):
-             return HP(netbox)
-         return SNMPHandler(netbox)
-     
-     def __init__(self):
-         pass
+    # Vendor for a sysObjectID based on the IANA list
+    sys_object_id_oid = '1.3.6.1.2.1.1.2.0'
+
+    @classmethod
+    def getInstance(self, netbox):
+        # Ask the netbox directly about vendor-id.
+        handle = Snmp(netbox.ip, netbox.read_only)
+        # Pick the SMI Network Management Private Enterprise Code
+        # http://www.iana.org/assignments/enterprise-numbers
+        vendor_id = handle.get(self.sys_object_id_oid).split('.')[7]
+        if (vendor_id == '9'):
+            return Cisco(netbox)
+        if (vendor_id == '11'):
+            return HP(netbox)
+        return SNMPHandler(netbox)
+
+    def __init__(self):
+        pass
