@@ -271,21 +271,16 @@ class HP(SNMPHandler):
     def __init__(self, netbox):
         super(HP, self).__init__(netbox)
 
+VENDOR_CISCO = 9
+VENDOR_HP = 11
 
 class SNMPFactory(object):
-    # Vendor for a sysObjectID based on the IANA list
-    sys_object_id_oid = '1.3.6.1.2.1.1.2.0'
-
     @classmethod
     def getInstance(self, netbox):
-        # Ask the netbox directly about vendor-id.
-        handle = Snmp(netbox.ip, netbox.read_only)
-        # Pick the SMI Network Management Private Enterprise Code
-        # http://www.iana.org/assignments/enterprise-numbers
-        vendor_id = handle.get(self.sys_object_id_oid).split('.')[7]
-        if (vendor_id == '9'):
+        vendor_id = netbox.type.get_enterprise_id()
+        if (vendor_id == VENDOR_CISCO):
             return Cisco(netbox)
-        if (vendor_id == '11'):
+        if (vendor_id == VENDOR_HP):
             return HP(netbox)
         return SNMPHandler(netbox)
 
