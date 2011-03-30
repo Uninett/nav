@@ -51,7 +51,6 @@ _config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
 
 try:
     import ldap
-    available = 1
 except ImportError, e:
     available = 0
     ldap = None
