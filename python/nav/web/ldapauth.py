@@ -67,7 +67,7 @@ else:
 #
 
 
-def openLDAP():
+def open_ldap():
     """
     Returns a freshly made LDAP object, according to the settings
     configured in webfront.conf.
@@ -117,7 +117,7 @@ def authenticate(login, password):
     configured LDAP server.  If the user is authenticated, required
     group memberships are also verified.
     """
-    lconn = openLDAP()
+    lconn = open_ldap()
     server = _config.get('ldap', 'server')
     user = LDAPUser(login, lconn)
     # Bind to user using the supplied password
@@ -144,7 +144,7 @@ def authenticate(login, password):
     # the final verdict is made
     group_dn = _config.get('ldap', 'require_group')
     if group_dn:
-        if user.isGroupMember(group_dn):
+        if user.is_group_member(group_dn):
             _logger.info("%s is verified to be a member of %s",
                         login, group_dn)
             return True
@@ -158,17 +158,26 @@ def authenticate(login, password):
     return user
 
 class LDAPUser(object):
+    """A user found or to find in an LDAP catalog.
+
+    Given a username and an LDAP connection object, objects of this class can
+    be used to search for a user in an LDAP directory, or to construct the
+    user object's Distinguished Name from rules established in the
+    webfront.conf config file.
+
+    """
     def __init__(self, username, ldap_conn):
         self.username = username
         self.ldap = ldap_conn
         self.user_dn = None
 
     def bind(self, password):
-        user_dn = self.getUserDN()
+        """Performs an authenticated bind for this user using password"""
+        user_dn = self.get_user_dn()
         _logger.debug("Attempting authenticated bind to %s", user_dn)
         self.ldap.simple_bind_s(user_dn, password)
 
-    def getUserDN(self):
+    def get_user_dn(self):
         """
         Given a user id (login name), return a fully qualified DN to
         identify this user, using the configured settings from
@@ -182,18 +191,24 @@ class LDAPUser(object):
                 """method must be "direct" or "search", not %s""" % method)
 
         if method == 'direct':
-            self.user_dn = self.constructDN()
+            self.user_dn = self.construct_dn()
         if method == 'search':
-            self.user_dn = self.searchDN()
+            self.user_dn = self.search_dn()
         return self.user_dn
 
-    def constructDN(self):
+    def construct_dn(self):
+        """Constructs and returns a Distinguished Name for this user.
+
+        The DN is constructed using the pattern configured in webfront.conf.
+
+        """
         uid_attr = _config.get('ldap', 'uid_attr')
         basedn = _config.get('ldap', 'basedn')
         user_dn = '%s=%s,%s' % (uid_attr, self.username, basedn)
         return user_dn
 
-    def searchDN(self):
+    def search_dn(self):
+        """Searches for the user's Distinguished Name in the LDAP directory"""
         manager = _config.get('ldap', 'manager')
         manager_password = _config.get('ldap', 'manager_password', raw=True)
         if manager:
@@ -208,11 +223,11 @@ class LDAPUser(object):
         user_dn = result[0][0]
         return user_dn
 
-    def getRealName(self):
+    def get_real_name(self):
         """
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
-        user_dn = self.getUserDN()
+        user_dn = self.get_user_dn()
         name_attr = _config.get('ldap', 'name_attr')
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
@@ -229,7 +244,7 @@ class LDAPUser(object):
         return name
 
 
-    def isGroupMember(self, group_dn):
+    def is_group_member(self, group_dn):
         """
         Verify that uid is a member in the group object identified by
         group_dn, using the pre-initialized ldap object l.
@@ -240,7 +255,7 @@ class LDAPUser(object):
         former should work well for groupOfNames and groupOfUniqueNames
         objects, the latter should work for posixGroup objects.
         """
-        user_dn = self.getUserDN()
+        user_dn = self.get_user_dn()
         # Match groupOfNames/groupOfUniqueNames objects
         try:
             filterstr = '(member=%s)' % user_dn
@@ -295,7 +310,7 @@ def __test():
 
     if user:
         print "User was authenticated."
-        print "User's full name is %s" % user.getRealName()
+        print "User's full name is %s" % user.get_real_name()
     else:
         print "User was not authenticated"
 
