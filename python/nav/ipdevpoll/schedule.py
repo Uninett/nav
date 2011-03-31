@@ -206,6 +206,8 @@ class NetboxJobScheduler(object):
 class JobScheduler(object):
     active_schedulers = set()
     job_logging_loop = None
+    netbox_reload_interval = 2*60.0 # seconds
+    netbox_reload_loop = None
 
     def __init__(self, job):
         """Initializes a job schedule from the job descriptor."""
@@ -227,10 +229,15 @@ class JobScheduler(object):
         """Initiate scheduling of this job."""
         signals.netbox_type_changed.connect(self.on_netbox_type_changed)
         self._setup_active_job_logging()
-        self.netbox_reload_loop = task.LoopingCall(self._reload_netboxes)
-        # FIXME: Interval should be configurable
-        deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
-        return deferred
+        self._start_netbox_reload_loop()
+
+    def _start_netbox_reload_loop(self):
+        if not self.netbox_reload_loop:
+            self.netbox_reload_loop = task.LoopingCall(self._reload_netboxes)
+        if self.netbox_reload_loop.running:
+            self.netbox_reload_loop.stop()
+        self.netbox_reload_loop.start(
+            interval=self.netbox_reload_interval, now=True)
 
     def on_netbox_type_changed(self, netbox_id, new_type, **kwargs):
         """Performs various cleanup and reload actions on a netbox type change
@@ -245,12 +252,10 @@ class JobScheduler(object):
         self._logger.info("Cancelling all jobs for %s due to type change.",
                           sysname)
         self.cancel_netbox_scheduler(netbox_id)
-        def reset(_):
-            self.netbox_reload_loop.call.reset(1)
+
         df = threads.deferToThread(shadows.Netbox.cleanup_replaced_netbox,
                                    netbox_id, new_type)
-        df.addCallback(reset)
-        return df
+        return df.addCallback(lambda x: self._start_netbox_reload_loop())
 
     def _setup_active_job_logging(self):
         if self.__class__.job_logging_loop is None:
