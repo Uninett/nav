@@ -67,16 +67,25 @@ class NetboxJobScheduler(object):
     def cancel(self):
         """Cancel scheduling of this job for this box.
 
-        Future runs will not be scheduled after this."""
-        if self._next_call.active():
-            self._next_call.cancel()
-            self.cancelled = True
-            self._logger.debug("cancel: Job %r cancelled for %s",
-                               self.job.name, self.netbox.sysname)
-            self.cancel_running_job()
-        else:
+        Future runs will not be scheduled after this.
+
+        """
+        if self.cancelled:
             self._logger.debug("cancel: Job %r already cancelled for %s",
                                self.job.name, self.netbox.sysname)
+            return
+
+        if self._next_call.active():
+            self._next_call.cancel()
+            self._logger.debug("cancel: Job %r cancelled for %s",
+                               self.job.name, self.netbox.sysname)
+        else:
+            self._logger.debug("cancel: Job %r cancelled for %s, "
+                               "though no next run was scheduled",
+                               self.job.name, self.netbox.sysname)
+
+        self.cancelled = True
+        self.cancel_running_job()
         self._deferred.callback(self)
 
     def cancel_running_job(self):
@@ -130,6 +139,10 @@ class NetboxJobScheduler(object):
 
     def reschedule(self, delay):
         """Reschedules the next run of of this job"""
+        if self.cancelled:
+            self._logger.debug("ignoring request to reschedule cancelled job")
+            return
+
         next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
 
         self._logger.info("Next %r job for %s will be in %d seconds (%s)",
