@@ -335,7 +335,7 @@ class AlertAddress(models.Model):
             transaction.rollback()
 
             logger.warning(
-                'Not sending alert %s to %s as handler %s is blacklisted: %s'
+                'Not sending alert %s to %s as handler %s is blacklisted: %s',
                 alert.id, self.address, self.type, self.type.blacklist_reason())
 
             return False
