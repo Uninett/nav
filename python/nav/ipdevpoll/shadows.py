@@ -291,6 +291,13 @@ class Interface(Shadow):
     __shadowclass__ = manage.Interface
 
     @classmethod
+    def cleanup_after_save(cls, containers):
+        """Cleans up Interface data."""
+        cls._mark_missing_interfaces(containers)
+        cls._delete_missing_interfaces(containers)
+        super(Interface, cls).cleanup_after_save(containers)
+
+    @classmethod
     def _mark_missing_interfaces(cls, containers):
         """Marks interfaces in db as gone if they haven't been collected in
         this round.
@@ -349,12 +356,6 @@ class Interface(Shadow):
             manage.Interface.objects.filter(pk__in=deleteable).delete()
 
 
-    @classmethod
-    def cleanup_after_save(cls, containers):
-        """Cleans up Interface data."""
-        cls._mark_missing_interfaces(containers)
-        cls._delete_missing_interfaces(containers)
-        super(Interface, cls).cleanup_after_save(containers)
 
     def lookup_matching_objects(self, containers):
         """Finds existing db objects that match this container.
