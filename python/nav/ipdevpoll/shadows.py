@@ -305,11 +305,6 @@ class Interface(Shadow):
         This is designed to run in the cleanup_after_save phase, as it needs
         primary keys of the containers to have been found.
 
-        TODO: Make a deletion algorithm.  Missing interfaces that do
-        not correspond to a module known to be down should be deleted.
-        If all interfaces belonging to a specific module is down, we
-        may have detected that the module is down as well.
-
         """
         netbox = containers.get(None, Netbox)
         found_interfaces = containers[cls].values()
@@ -335,27 +330,37 @@ class Interface(Shadow):
     def _delete_missing_interfaces(cls, containers):
         """Deletes missing interfaces from the database."""
         netbox = containers.get(None, Netbox)
-        base_query = manage.Interface.objects.filter(
-            netbox__id = netbox.id)
+        ifcs = manage.Interface.objects.filter(netbox__id=netbox.id)
+        missing_ifcs = ifcs.exclude(gone_since__isnull=True)
 
-        missing_ifs = base_query.exclude(
-            gone_since__isnull=True).values('pk', 'ifindex')
-
-        # at this time, we only want to delete those gone_interface who appear
-        # to have ifindex duplicates that aren't missing.
-        deleteable = []
-        for missing_if in missing_ifs:
-            dupes = base_query.filter(
-                ifindex=missing_if['ifindex'], gone_since__isnull=True)
-            if dupes.count() > 0:
-                deleteable.append(missing_if['pk'])
+        deleteable = set(cls._get_indexless_ifcs_pk(missing_ifcs))
+        deleteable.update(cls._get_dead_ifcs_pk(ifcs))
 
         if deleteable:
             cls._logger.info("(%s) Deleting %d missing interfaces",
                              netbox.sysname, len(deleteable))
             manage.Interface.objects.filter(pk__in=deleteable).delete()
 
+    @staticmethod
+    def _get_indexless_ifcs_pk(interfaces):
+        indexless = interfaces.filter(ifindex__isnull=True).values('pk')
+        return [row['pk'] for row in indexless]
 
+    @staticmethod
+    def _get_dead_ifcs_pk(interfaces,
+                          grace_period = datetime.timedelta(days=1)):
+        """Returns a list of primary keys of dead interfaces.
+
+        An interface is considered dead if has a gone_since timestamp older
+        than the grace period and is either not associated with a module or
+        associated with a module known to still be up.
+
+        """
+        deadline = datetime.datetime.now() - grace_period
+        ancient_ifcs = interfaces.filter(gone_since__lt = deadline)
+        down_modules = manage.Module.objects.exclude(up='y')
+        dead_ifcs = ancient_ifcs.exclude(module__in = down_modules)
+        return [row['pk'] for row in dead_ifcs.values('pk')]
 
     def lookup_matching_objects(self, containers):
         """Finds existing db objects that match this container.
