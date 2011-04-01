@@ -28,6 +28,8 @@ import IPy
 from django.db.models import Q
 
 from nav.models import manage, oid
+from nav.models.event import EventQueue as Event
+
 from storage import Shadow
 import descrparsers
 import utils
@@ -35,6 +37,10 @@ from nav.ipdevpoll import db
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
+
+# Shadow classes usually don't need docstrings - these can be found in the
+# Django models being shadowed:
+# pylint: disable=C0111
 
 class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
@@ -112,6 +118,8 @@ class NetboxInfo(Shadow):
 class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
 
+# pylint is unable to see which members are created dynamically by metaclass:
+# pylint: disable=E0203,W0201
 class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
@@ -208,27 +216,26 @@ class Module(Shadow):
 
     @classmethod
     def _make_modulestate_event(cls, django_module):
-        from nav.models.event import EventQueue as Event
-        e = Event()
+        event = Event()
         # FIXME: ipdevpoll is not a registered subsystem in the database yet
-        e.source_id = 'getDeviceData'
-        e.target_id = 'eventEngine'
-        e.device = django_module.device
-        e.netbox = django_module.netbox
-        e.event_type_id = 'moduleState'
-        return e
+        event.source_id = 'getDeviceData'
+        event.target_id = 'eventEngine'
+        event.device = django_module.device
+        event.netbox = django_module.netbox
+        event.event_type_id = 'moduleState'
+        return event
 
     @classmethod
     def _dispatch_down_event(cls, django_module):
-        e = cls._make_modulestate_event(django_module)
-        e.state = e.STATE_START
-        e.save()
+        event = cls._make_modulestate_event(django_module)
+        event.state = event.STATE_START
+        event.save()
 
     @classmethod
     def _dispatch_up_event(cls, django_module):
-        e = cls._make_modulestate_event(django_module)
-        e.state = e.STATE_END
-        e.save()
+        event = cls._make_modulestate_event(django_module)
+        event.state = event.STATE_END
+        event.save()
 
     @classmethod
     def _handle_missing_modules(cls, containers):
@@ -372,14 +379,14 @@ class Interface(Shadow):
 
         """
         query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
-        result = []
+        result = None
         if self.ifname:
             result = query.filter(ifname=self.ifname)
         if not result and self.ifdescr:
             # this is only likely on a db recently migrated from NAV 3.5
             result = query.filter(ifname=self.ifdescr,
                                   ifdescr=self.ifdescr)
-        if len(result) > 1:
+        if result and len(result) > 1:
             # Multiple ports with same name? damn...
             # also filter for ifindex, maybe we get lucky
             result = result.filter(ifindex=self.ifindex)
@@ -390,7 +397,7 @@ class Interface(Shadow):
 
         return result
 
-    def get_existing_model(self, containers):
+    def get_existing_model(self, containers=None):
         """Implements custom logic for finding known interfaces."""
         result = self.lookup_matching_objects(containers)
         if not result:
@@ -502,7 +509,7 @@ class Vlan(Shadow):
                     live_prefix.vlan)
                 return live_prefix.vlan
 
-    def get_existing_model(self, containers):
+    def get_existing_model(self, containers=None):
         """Finds pre-existing Vlan object using custom logic.
 
         This is complicated because of the relationship between Prefix and
@@ -713,11 +720,11 @@ class NetType(Shadow):
     @classmethod
     def get(cls, net_type_id):
         """Creates a NetType container for the given net_type id."""
-        n = cls()
-        n.id = net_type_id
-        return n
+        ntype = cls()
+        ntype.id = net_type_id
+        return ntype
 
- 
+
 class SwPortVlan(Shadow):
     __shadowclass__ = manage.SwPortVlan
 
@@ -732,8 +739,8 @@ class Arp(Shadow):
                      for attr in self.get_touched()
                      if attr != 'id')
         if attrs:
-            me = manage.Arp.objects.filter(id=self.id)
-            me.update(**attrs)
+            myself = manage.Arp.objects.filter(id=self.id)
+            myself.update(**attrs)
 
 class Cam(Shadow):
     __shadowclass__ = manage.Cam
