@@ -7,9 +7,11 @@ syntax: glob
 *.swp
 *.war
 *~
+.*
 
 # Generated javadoc and build dirs
 */javadoc/*
+package.html
 */build/*
 
 # All sorts of filed generated from .in templates.
