@@ -201,6 +201,8 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        # pylint is unable to find reactor members:
+        # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
         def remove_event_trigger(result):
