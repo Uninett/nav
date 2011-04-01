@@ -76,7 +76,7 @@ class JobHandler(object):
 
         # Initialize netbox in container
         nb = self.container_factory(shadows.Netbox, key=None)
-        nb.id = netbox.id
+        (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
 
         port = ports.next()
 
@@ -201,6 +201,8 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        # pylint is unable to find reactor members:
+        # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
         def remove_event_trigger(result):

@@ -1,29 +1,36 @@
 <div class="place-popup">
-  {{ place.num_rooms }} room{{ place.num_rooms|pluralize }},
-  {{ place.num_netboxes }} netbox{{ place.num_netboxes|pluralize:"es" }}<br/>
-  CPU load (max):
-  {{ place.load|nan2none|floatformat:2|default:"unknown" }}
 
-  <ul>
-    {% for room in place.rooms %}
-    <li>Room: {{ room.id }} ({{ room.descr }})<br/>
-        {{ room.num_netboxes }} netbox{{ room.num_netboxes|pluralize:"es" }}<br/>
-        CPU load (max): {{ room.load|nan2none|floatformat:2|default:"unknown" }}
-    <ul>
+  <table class="vertitable" style="font-size: 80%">
+    <tr><th>Rooms</th>          <td>{{ place.num_rooms }}</td></tr>
+    <tr><th>IP devices</th>     <td>{{ place.num_netboxes }}</td></tr>
+    <tr><th>CPU load (max)</th> <td>{{ place.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
+  </table>
+
+  {% for room in place.rooms %}
+  <table class="vertitable" style="font-size: 80%">
+
+    <caption>{{ room.id }} ({{ room.descr }})</caption>
+    <tr><th>IP Devices</th>     <td>{{ room.num_netboxes }}</td></tr>
+    <tr><th>CPU load (max)</th> <td>{{ room.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
+
+    <td colspan="2">
       {% for box in room.netboxes %}
-      <li><a href="/ipdevinfo/?query={{ box.ip }}"
-             target="_blank"
-             title="View in IP Device Info">{{ box.sysname }}</a><br/>
-          Netboxid: {{ box.netboxid }}<br/>
-          IP: {{ box.ip }}<br/>
-          Category: {{ box.catid }}<br/>
-          Up: {{ box.up }}<br/>
-          Type: {{ box.type }}<br/>
-          Load: {{ box.load|nan2none|floatformat:2|default:"unknown" }}<br/>
-      </li>
+      <table class="vertitable">
+	<caption><a href="/ipdevinfo/?query={{ box.ip }}"
+                    target="_blank"
+                    title="View in IP Device Info">{{ box.sysname }}</a></caption>
+	<tr><th>IP</th>       <td>{{ box.ip }}</td></tr>
+	<tr><th>Category</th> <td>{{ box.catid }}</td></tr>
+	<tr><th>Type</th>     <td>{{ box.type|default:"N/A" }}</td></tr>
+	<tr><th>Up</th>       <td>{{ box.up }}</td></tr>
+	<tr><th>Load %</th>   <td>{{ box.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
+	{% if debug %}
+	  <tr><th>Netboxid</th> <td>{{ box.netboxid }}</td></tr>
+	{% endif %}
+      </table>
       {% endfor %}
-    </ul>
-    </li>
-    {% endfor %}
-  </ul>
+
+  </table>
+  {% endfor %}
+
 </div>
