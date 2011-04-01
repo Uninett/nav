@@ -76,7 +76,7 @@ class JobHandler(object):
 
         # Initialize netbox in container
         nb = self.container_factory(shadows.Netbox, key=None)
-        nb.id = netbox.id
+        (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
 
         port = ports.next()
 
