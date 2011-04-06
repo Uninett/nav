@@ -1,6 +1,7 @@
 ===========================
- Release notes for NAV 3.8
+ Release notes for NAV 3.9
 ===========================
+
 Please report bugs at https://bugs.launchpad.net/nav
 
 If you are upgrading from versions of NAV older than 3.7, please refer to the
@@ -8,6 +9,7 @@ release notes of the in-between versions before reading any further.
 
 Known problems
 ==============
+
 The latest TwistedSNMP version (0.3.13) contains a bug that manifests in table
 retrieval operations.  Timeouts and retries aren't handled properly, and this
 may cause slow or otherwise busy devices to be bombarded with requests from
@@ -18,6 +20,17 @@ accepted into a new release.
 
 To see the overview of scheduled features and reported bugs on the 3.8 series
 of NAV, please go to https://launchpad.net/nav/3.8 .
+
+Significant changes since NAV 3.8
+=================================
+
+Dependency changes
+------------------
+
+NAV 3.9 adds a dependency to the Python library NetworkX
+(http://networkx.lanl.gov/).  NetworkX lists a number of optional third party
+packages that will extend NetworkX' functionality, but none of these are
+currently needed by NAV.
 
 
 Significant changes since NAV 3.7
