@@ -30,35 +30,6 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 
-# Interface status choices used in Interface model and 'ipdevinfo'
-OPER_UP = 1
-OPER_DOWN = 2
-OPER_TESTING = 3
-OPER_UNKNOWN = 4
-OPER_DORMANT = 5
-OPER_NOTPRESENT = 6
-OPER_LOWERLAYERDOWN = 7
-
-OPER_STATUS_CHOICES = (
-    (OPER_UP, 'up'),
-    (OPER_DOWN, 'down'),
-    (OPER_TESTING, 'testing'),
-    (OPER_UNKNOWN, 'unknown'),
-    (OPER_DORMANT, 'dormant'),
-    (OPER_NOTPRESENT, 'not present'),
-    (OPER_LOWERLAYERDOWN, 'lower layer down'),
-)
-
-ADM_UP = 1
-ADM_DOWN = 2
-ADM_TESTING = 3
-
-ADM_STATUS_CHOICES = (
-    (ADM_UP, 'up'),
-    (ADM_DOWN, 'down'),
-    (ADM_TESTING, 'testing'),
-)
-
 
 #######################################################################
 ### Netbox-related models
@@ -831,6 +802,34 @@ class Cam(models.Model):
 
 class Interface(models.Model):
     """The network interfaces, both physical and virtual, of a Netbox."""
+
+    OPER_UP = 1
+    OPER_DOWN = 2
+    OPER_TESTING = 3
+    OPER_UNKNOWN = 4
+    OPER_DORMANT = 5
+    OPER_NOTPRESENT = 6
+    OPER_LOWERLAYERDOWN = 7
+
+    OPER_STATUS_CHOICES = (
+        (OPER_UP, 'up'),
+        (OPER_DOWN, 'down'),
+        (OPER_TESTING, 'testing'),
+        (OPER_UNKNOWN, 'unknown'),
+        (OPER_DORMANT, 'dormant'),
+        (OPER_NOTPRESENT, 'not present'),
+        (OPER_LOWERLAYERDOWN, 'lower layer down'),
+    )
+
+    ADM_UP = 1
+    ADM_DOWN = 2
+    ADM_TESTING = 3
+
+    ADM_STATUS_CHOICES = (
+        (ADM_UP, 'up'),
+        (ADM_DOWN, 'down'),
+        (ADM_TESTING, 'testing'),
+    )
 
     DUPLEX_FULL = 'f'
     DUPLEX_HALF = 'h'
