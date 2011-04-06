@@ -1,2 +1,4 @@
-#!/bin/sh
-/usr/bin/env python -m nav.topology.detector $@
+#!/usr/bin/env python
+from nav.topology.detector import main
+main()
+
