@@ -1,2 +1,1 @@
-bin_SCRIPTS = $(wildcard *.py) nav ipdevpolld
-
+bin_SCRIPTS = $(wildcard *.py) nav ipdevpolld navtopology

@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/env python -m nav.topology.detector $@
