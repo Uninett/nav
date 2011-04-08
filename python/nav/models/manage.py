@@ -947,9 +947,9 @@ class Interface(models.Model):
 
     def get_link_display(self):
         """Returns a display value for this interface's link status."""
-        if self.ifoperstatus == OPER_UP:
+        if self.ifoperstatus == self.OPER_UP:
             return "Active"
-        elif self.ifadminstatus == ADM_DOWN:
+        elif self.ifadminstatus == self.ADM_DOWN:
             return "Disabled"
         return "Inactive"
 
