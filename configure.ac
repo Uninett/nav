@@ -74,5 +74,6 @@ AC_CONFIG_FILES([
 	bin/Makefile
 	media/Makefile
         subsystem/threshold/Makefile
+        subsystem/threshold/media/Makefile
 ])
 AC_OUTPUT

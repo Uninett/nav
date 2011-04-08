@@ -5,45 +5,48 @@
 {% regroup netboxes|dictsort:"sysname" by sysname as netbox_list %}
 
 {% for netbox in netbox_list %}
-<p>
-<table class="vertitable">
-    <caption>{{ netbox.grouper }}</caption>
+<div class="netboxcontainer">
+    <h3>
+        <a href="/ipdevinfo/{{netbox.grouper}}/">{{ netbox.grouper }}</a>&nbsp;
+            <img id="plus" class="toggler" src="/images/threshold/plus-button.png" alt="+"/>
+            <img id="minus" class="toggler" src="/images/threshold/minus-button.png" alt="-" style="display: none;"/>
+    </h3>
+<table class="vertitable" style="display: none;">
     <thead>
     <tr>
         <th>Interface name</th>
         <th>Interface alias</th>
-        <th>ID</th>
         <th>Description</th>
         <th>Operator</th>
         <th>Threshold</th>
         <th>Max</th>
         <th>Thresholdstate</th>
+        <th>&nbsp;</th>
     </tr>
     </thead>
     <tbody>
     {% for item in netbox.list %}
         {% for threshold in item.sources %}
         <tr>
-                <td>{{ threshold.rrd_file.interface.ifname }}</td>
-                <td>{{ threshold.rrd_file.interface.ifalias }}</td>
-                <td><a href="/threshold/edit/{{ threshold.id }}/">{{ threshold.id }}</a></td>
-                <td>{{ threshold.description }}</td>
-                <td align="center">{% if threshold.delimiter %}{{ threshold.delimiter }}{% endif %}</td>
-	        {% if threshold.threshold %}
-                <td>{{ threshold.threshold }}</td>
-                <td>{% if threshold.max %}{{ threshold.max }}{% endif %}</td>
-                <td>{{ threshold.state }}</td>
-	        {% else %}
-	        <td></td>
-	        <td></td>
-	        <td></td>
-                {% endif %}
+                <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifname }}</a></td>
+                <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifalias }}</a></td>
+                <td><span title="{{ threshold.extra_descr }}">{{ threshold.description }}</span></td>
+                <td>
+                    <select id="operator" name="operator">
+                        <option value=">">Greater than</option>
+                        <option value="<">Less than</option>
+                    </select>
+                </td>
+                <td><input class="thresholdvalue" type="text" value="{{ threshold.threshold }}"></td>
+                <td class="maxvalue">{% if threshold.max %} {{ threshold.max }}{% endif %}</td>
+                <td>{% if threshold.state %} {{ threshold.state }} {% endif %}</td>
+                <td data_dsid="{{threshold.id}}"><input class="button" type="button" value="Update" /></td>
         <tr>
         {% endfor %}
     {% endfor %}
 </tbody>
 </table>
-</p>
+</div>
 {% endfor %}
 {% endblock %}
 
