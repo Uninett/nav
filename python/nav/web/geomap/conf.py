@@ -220,17 +220,17 @@ def interpret_configuration(c, filename):
         indicators['node'], indicators['edge'] = [], []
         for sub in c_obj['objects']:
             if is_indicator(sub):
-                indicator_type,indicator = read_indicator(sub)
+                indicator_type, indicator = read_indicator(sub)
                 if indicator_type not in indicators:
                     indicators[indicator_type] = []
                 indicators[indicator_type].append(indicator)
             elif is_style(sub):
-                style_type,style = read_style(sub)
+                style_type, style = read_style(sub)
                 if style_type not in styles:
                     styles[style_type] = {}
                 styles[style_type].update(style)
             elif is_template_file(sub):
-                template_for,template_file = read_template_file(sub)
+                template_for, template_file = read_template_file(sub)
                 template_files[template_for] = template_file
             else:
                 warn_unknown_object(sub)
@@ -275,7 +275,7 @@ def interpret_configuration(c, filename):
                                (filename, sub['linenr'], result,
                                 value_and_label))
                 value_and_label = '','(configuration error, see log)'
-            value,label = value_and_label
+            value, label = value_and_label
             options.append({'test': test,
                             'value': value,
                             'label': label})
@@ -295,7 +295,7 @@ def interpret_configuration(c, filename):
         m = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
         template_for = m.group(1).strip()
         template_file = eval_or_warning(m.group(2), c_obj['linenr'], None)
-        return (template_for,template_file)
+        return (template_for, template_file)
 
     def is_style(c_obj):
         if c_obj['type'] == 'block':

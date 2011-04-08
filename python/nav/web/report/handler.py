@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -49,6 +49,7 @@ from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
+from nav.web.encoding import encoded_output
 import nav.path
 
 config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
@@ -56,7 +57,7 @@ config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf"
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 
-
+@encoded_output
 def handler(req):
 
     (report_name, export_delimiter, uri, nuri) = arg_parsing(req)
@@ -92,18 +93,20 @@ def arg_parsing(req):
     # These arguments and their friends will be deleted
     remove = []
 
-    # Finding empty values and 'export' key
-    for key,val in nuri.args.items():
+    # Finding empty values
+    for key, val in nuri.args.items():
         if val == "":
             remove.append(key)
-        elif key == "export":
-            val = urllib.unquote(val)
-            # Remember to match against 'page.delimiters'
-            match = re.search("(\,|\;|\:|\|)", val)
-            if match:
-                export_delimiter = match.group(0)
-            else:
-                remove.append(key)
+
+    if 'exportcsv' in nuri.args and 'export' in nuri.args:
+        delimiter = urllib.unquote(nuri.args['export'])
+        # Remember to match against 'page.delimiters'
+        match = re.search("(\,|\;|\:|\|)", delimiter)
+        if match:
+            export_delimiter = match.group(0)
+        else:
+            remove.append('export')
+            remove.append('exportcsv')
 
     # Deleting empty values
     for r in remove:
@@ -118,7 +121,7 @@ def arg_parsing(req):
     if len(remove):
         redirect(req, nuri.make())
 
-    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
+    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
 
     if match:
         report_name = match.group(1)
@@ -140,7 +143,7 @@ def matrix_report(req):
         reqargsplit = urllib.unquote_plus(req.args).split("&")
         if len(reqargsplit):
             for a in reqargsplit:
-                (c,d) = a.split("=")
+                (c, d) = a.split("=")
                 argsdict[c] = d
 
     scope = None
@@ -160,7 +163,8 @@ def matrix_report(req):
             # Otherwise, show an error or let the user select from
             # a list of scopes.
             page = MatrixScopesTemplate()
-            page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+            page.path = [("Home", "/"), ("Report", "/report/"),
+                         ("Prefix Matrix", False)]
             page.scopes = []
             for scope in databasescopes:
                 page.scopes.append(scope[0])
@@ -184,19 +188,22 @@ def matrix_report(req):
 
         if scope.version() == 6:
             end_net = getMaxLeaf(tree)
-            matrix = MatrixIPv6(scope,end_net=end_net)
+            matrix = MatrixIPv6(scope, end_net=end_net)
 
         elif scope.version() == 4:
             end_net = None
 
             if scope.prefixlen() < 24:
                 end_net = IP("/".join([scope.net().strNormal(),"27"]))
-                matrix = MatrixIPv4(scope,show_unused_addresses,end_net=end_net)
+                matrix = MatrixIPv4(scope, show_unused_addresses,
+                                    end_net=end_net)
 
             else:
                 max_leaf = getMaxLeaf(tree)
                 bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-                matrix = MatrixIPv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
+                matrix = MatrixIPv4(scope, show_unused_addresses,
+                                    end_net=max_leaf,
+                                    bits_in_matrix=bits_in_matrix)
 
         else:
             raise UnknownNetworkTypeException, "version: " + str(scope.version())
@@ -241,8 +248,8 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
 
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    nuri.setArguments(['offset', 'limit', 'export'], '')
-    for key,val in nuri.args.items():
+    nuri.setArguments(['offset', 'limit', 'export', 'exportcsv'], '')
+    for key, val in nuri.args.items():
         if val == "":
             del nuri.args[key]
 
@@ -292,7 +299,8 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
             namename = "Error"
             namelink = False
 
-        page.path = [("Home", "/"), ("Report", "/report/"), (namename,namelink)]
+        page.path = [("Home", "/"), ("Report", "/report/"),
+                     (namename, namelink)]
         page.title = "Report - "+namename
         old_uri = req.unparsed_uri
         page.old_uri = old_uri
@@ -311,9 +319,27 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
 
             #### A maintainable list of variables sent to template
             # Searching
-            page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
-            page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
-            page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
+            page.operators = {"eq": "=",
+                              "like": "~",
+                              "gt": "&gt;",
+                              "lt": "&lt;",
+                              "geq": "&gt;=",
+                              "leq": "&lt;=",
+                              "between": "[:]",
+                              "in":"(,,)",
+                              }
+            page.operatorlist = ["eq", "like", "gt", "lt", "geq", "leq",
+                                 "between", "in"]
+            page.descriptions = {
+                "eq": "equals",
+                "like": "contains substring (case-insensitive)",
+                "gt": "greater than",
+                "lt": "less than",
+                "geq": "greater than or equals",
+                "leq": "less than or equals",
+                "between": "between (colon-separated)",
+                "in":"is one of (comma separated)",
+                }
             # CSV Export dialects/delimiters
             page.delimiters = (",", ";", ":", "|")
 

@@ -346,7 +346,8 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
 
         connection = {'forward': res, 'reverse': reverse}
 
-        if connection_id not in connections and connection_rid not in connections:
+        if (connection_id not in connections and
+            connection_rid not in connections):
             connections[connection_id] = connection
         else:
             for existing_id in connections.keys():
@@ -383,7 +384,8 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
                         lambda file: get_rrd_cpu_load(file, time_interval),
                         netbox['rrd'])
         if netbox['sysname'].endswith(_domain_suffix):
-            netbox['sysname'] = netbox['sysname'][0:len(netbox['sysname'])-len(_domain_suffix)]
+            hostname_length = len(netbox['sysname']) - len(_domain_suffix)
+            netbox['sysname'] = netbox['sysname'][0:hostname_length]
 
     return (netboxes, connections)
 

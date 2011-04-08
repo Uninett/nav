@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,6 +24,7 @@ import sys
 import os
 import logging
 import signal
+import time
 from optparse import OptionParser
 
 from twisted.internet import reactor
@@ -31,8 +32,10 @@ from twisted.internet import reactor
 from nav import buildconf
 import nav.daemon
 import nav.logs
+import nav.models.manage
 
 import plugins
+from nav.ipdevpoll import ContextFormatter
 
 
 class IPDevPollProcess(object):
@@ -40,7 +43,7 @@ class IPDevPollProcess(object):
     def __init__(self, options, args):
         self.options = options
         self.args = args
-        self.logger = logging.getLogger('nav.ipdevpoll')
+        self._logger = logging.getLogger('nav.ipdevpoll')
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -54,25 +57,35 @@ class IPDevPollProcess(object):
         # logging.basicConfig().  If imported before our own loginit, this
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
-        from schedule import Scheduler
-        self.scheduler = Scheduler()
+        from schedule import JobScheduler
 
-        reactor.callWhenRunning(self.scheduler.run)
-        reactor.run()
+        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run)
+        reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
+        reactor.run(installSignalHandlers=0)
 
     def sighup_handler(self, signum, frame):
         """Reopens log files."""
-        self.logger.info("SIGHUP received; reopening log files")
+        self._logger.info("SIGHUP received; reopening log files")
         nav.logs.reopen_log_files()
         nav.daemon.redirect_std_fds(
             stderr=nav.logs.get_logfile_from_logger())
-        self.logger.info("Log files reopened.")
+        self._logger.info("Log files reopened.")
 
     def sigterm_handler(self, signum, frame):
         """Cleanly shuts down logging system and the reactor."""
-        self.logger.warn("SIGTERM received: Shutting down")
-        logging.shutdown()
+        self._logger.warn("SIGTERM received: Shutting down")
+        self._shutdown_start_time = time.time()
         reactor.callFromThread(reactor.stop)
+
+    def shutdown(self):
+        self._log_shutdown_time()
+        logging.shutdown()
+
+    def _log_shutdown_time(self):
+        sequence_time = time.time() - self._shutdown_start_time
+        self._logger.warn("Shutdown sequence completed in %.02f seconds",
+                          sequence_time)
+
 
 class CommandProcessor(object):
     """Processes the command line and starts ipdevpoll."""
@@ -81,7 +94,7 @@ class CommandProcessor(object):
 
     def __init__(self):
         (self.options, self.args) = self.parse_options()
-        self.logger = None
+        self._logger = None
 
     def parse_options(self):
         parser = self.make_option_parser()
@@ -100,12 +113,12 @@ class CommandProcessor(object):
 
     def run(self):
         self.init_logging()
-        self.logger = logging.getLogger('nav.ipdevpoll')
-        self.logger.info("--- Starting ipdevpolld ---")
+        self._logger = logging.getLogger('nav.ipdevpoll')
+        self._logger.info("--- Starting ipdevpolld ---")
         self.exit_if_already_running()
         self.daemonize()
         nav.logs.reopen_log_files()
-        self.logger.info("ipdevpolld now running in the background")
+        self._logger.info("ipdevpolld now running in the background")
 
         self.psyco_speedup()
 
@@ -123,17 +136,16 @@ class CommandProcessor(object):
 
     def init_logging(self):
         """Initializes ipdevpoll logging for the current process."""
-        # First initialize logging to stderr.
-        log_format = "%(asctime)s [%(levelname)s] [%(name)s] %(message)s"
-        formatter = logging.Formatter(log_format)
+        formatter = ContextFormatter()
 
+        # First initialize logging to stderr.
         stderr_handler = logging.StreamHandler(sys.stderr)
         stderr_handler.setFormatter(formatter)
 
         root_logger = logging.getLogger('')
         root_logger.addHandler(stderr_handler)
 
-        nav.logs.setLogLevels()
+        nav.logs.set_log_levels()
 
         # Now try to load config and output logs to the configured file
         # instead.
@@ -154,7 +166,7 @@ class CommandProcessor(object):
         try:
             nav.daemon.justme(self.pidfile)
         except nav.daemon.DaemonError, error:
-            self.logger.error(error)
+            self._logger.error(error)
             sys.exit(1)
 
     def daemonize(self):
@@ -162,7 +174,7 @@ class CommandProcessor(object):
             nav.daemon.daemonize(self.pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
         except nav.daemon.DaemonError, error:
-            self.logger.error(error)
+            self._logger.error(error)
             sys.exit(1)
 
     def start_ipdevpoll(self):

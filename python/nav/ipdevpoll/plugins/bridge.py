@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,14 +23,12 @@ ENTITY-MIB.
 
 """
 
-from twisted.internet import defer
-from twisted.python.failure import Failure
 from twistedsnmp import agentproxy
 
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import fire_eventually
 
 class Bridge(Plugin):
@@ -39,7 +37,7 @@ class Bridge(Plugin):
         return True
 
     def handle(self):
-        self.logger.debug("Collecting bridge data")
+        self._logger.debug("Collecting bridge data")
         self.entity = EntityMib(self.agent)
         self.baseports = {}
 
@@ -72,7 +70,7 @@ class Bridge(Plugin):
         the result list.
 
         """
-        self.logger.debug("Alternate BRIDGE-MIB instances: %r", result)
+        self._logger.debug("Alternate BRIDGE-MIB instances: %r", result)
 
         seen_communities = set(self.agent.community)
         new_result = []
@@ -88,7 +86,7 @@ class Bridge(Plugin):
     def _query_baseports(self, bridgemibs):
         """Set up a chain to query each of the known BRIDGE-MIB instances."""
 
-        self.logger.debug("Querying the following alternative instances: %r",
+        self._logger.debug("Querying the following alternative instances: %r",
                           [b[0] for b in bridgemibs])
 
         # Set up a bunch of instances to poll
@@ -120,7 +118,7 @@ class Bridge(Plugin):
 
         try:
             bridgemib, descr = instances.next()
-            self.logger.debug("Now querying %r", descr)
+            self._logger.debug("Now querying %r", descr)
         except StopIteration:
             return self._set_port_numbers(self.baseports)
 
@@ -133,9 +131,9 @@ class Bridge(Plugin):
     def _set_port_numbers(self, result):
         """Process the list of collected base ports and set port numbers."""
 
-        self.logger.debug("Found %d base (switch) ports: %r", 
-                          len(result),
-                          [portnum[0] for portnum in result.keys()])
+        self._logger.debug("Found %d base (switch) ports: %r", 
+                           len(result),
+                           [portnum[0] for portnum in result.keys()])
 
         # Now save stuff to containers and pass the list of containers
         # to the next callback

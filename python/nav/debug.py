@@ -8,11 +8,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This module provides some useful debugging tools for NAV developers"""
 
@@ -21,7 +21,7 @@ from cStringIO import StringIO
 
 try:
     from mod_python import apache
-except:
+except ImportError:
     apache = None
     apache_log = None
 else:
@@ -47,7 +47,7 @@ def calltracer(function, logfunction=apache_log):
         trace.seek(0)
         for line in trace.readlines():
             logfunction('STACK: ' + line.rstrip())
-        return function(*args,**kwargs)
+        return function(*args, **kwargs)
 
     if not logfunction:
         return function

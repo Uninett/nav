@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -27,6 +27,9 @@ non-supported objects from many hosts and end up spewing errors to the
 administrators email inbox.
 
 """
+import logging
+
+from twisted.python.failure import Failure
 from twisted.internet import defer, threads, reactor
 from pysnmp.asn1.oid import OID
 
@@ -46,27 +49,21 @@ class OidProfiler(Plugin):
     def handle(self):
         return get_all_snmpoids().addCallback(self._query_oids)
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def _query_oids(self, all_oids):
         """Query the netbox for all oids in all_oids"""
         supported_oids = []
         for snmpoid in all_oids:
-            waiter = defer.waitForDeferred(
-                self._verify_support(snmpoid))
-            yield waiter
-            support = waiter.getResult()
+            support = yield self._verify_support(snmpoid)
 
             if support:
-                self.logger.debug("%s is supported", snmpoid.oid_key)
+                self._logger.debug("%s is supported", snmpoid.oid_key)
                 supported_oids.append(snmpoid)
             else:
-                self.logger.debug("%s is NOT supported", snmpoid.oid_key)
+                self._logger.debug("%s is NOT supported", snmpoid.oid_key)
 
-        deferred = self._get_current_profile()
-        deferred.addCallback(self._update_profile, supported_oids)
-        waiter = defer.waitForDeferred(deferred)
-        yield waiter
-        waiter.getResult()
+        current_profile = yield self._get_current_profile()
+        self._update_profile(current_profile, supported_oids)
 
     def _get_current_profile(self):
         """Get the current snmp profile of the box."""
@@ -100,8 +97,8 @@ class OidProfiler(Plugin):
         ids_to_remove = profile_oid_ids.difference(supported_oid_ids)
 
         if ids_to_add or ids_to_remove:
-            self.logger.info("profile update: add %d / del %d",
-                             len(ids_to_add), len(ids_to_remove))
+            self._logger.info("profile update: add %d / del %d",
+                              len(ids_to_add), len(ids_to_remove))
 
         netbox = self.containers.factory(None, shadows.Netbox)
 
@@ -133,22 +130,22 @@ class OidProfiler(Plugin):
 
         def ignore_timeouts(failure):
             failure.trap(defer.TimeoutError)
-            self.logger.debug("timed out waiting for %s response.",
-                              snmpoid.oid_key)
+            self._logger.debug("timed out waiting for %s response.",
+                               snmpoid.oid_key)
             return []
 
         def getnext_result_checker(result):
             if len(result) > 0:
                 response_oid = result.keys()[0]
                 if oid.isaprefix(response_oid):
-                    self.logger.debug("%s support found using GET-NEXT: %r",
-                                      snmpoid.oid_key, result)
+                    self._logger.debug("%s support found using GET-NEXT: %r",
+                                       snmpoid.oid_key, result)
                     return True
             return False
 
         def get_result_checker(result):
             if oid in result:
-                self.logger.debug("%s support found using GET: %r",
+                self._logger.debug("%s support found using GET: %r",
                                   snmpoid.oid_key, result)
                 return True
             else:
@@ -175,7 +172,7 @@ def get_next(agent, oid, timeout=2.0, retry_count=4):
         key = agent.getRequestKey(request)
         agent.send(request.encode())
     except socket.error, err:
-        return defer.fail(failure.Failure())
+        return defer.fail(Failure(err))
 
     def as_dictionary(value):
         try:

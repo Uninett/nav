@@ -249,7 +249,7 @@ def create_node_popup(node, popup_template):
     if popup_template is None:
         return None
     content = popup_template.render(Context({'place': node.properties}))
-    return Popup('popup-' + node.id, [300,250], content, True)
+    return Popup('popup-' + node.id, [300, 250], content, True)
 
 
 def create_edge_features(edge, popup_template, default_style, indicators):
@@ -299,7 +299,7 @@ def create_edge_popup(data, popup_template):
     if popup_template is None:
         return None
     content = popup_template.render(Context({'network': data}))
-    return Popup('popup-' + data['id'], [300,250], content, True)
+    return Popup('popup-' + data['id'], [300, 250], content, True)
     
 
 class Feature:

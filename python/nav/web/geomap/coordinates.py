@@ -163,7 +163,7 @@ def _utm_letter_designator(lat):
     elif 16 > lat >= 8: return 'P'
     elif  8 > lat >= 0: return 'N'
     elif  0 > lat >= -8: return 'M'
-    elif -8> lat >= -16: return 'L'
+    elif -8 > lat >= -16: return 'L'
     elif -16 > lat >= -24: return 'K'
     elif -24 > lat >= -32: return 'J'
     elif -32 > lat >= -40: return 'H'
@@ -259,9 +259,9 @@ def utm_str_to_lonlat(utm_str):
 
     """
     utm = parse_utm(utm_str)
-    (lat,lon) = utm_to_ll(23, utm['n'], utm['e'],
-                          '%d%s'%(utm['zone'], utm['hemisphere']))
-    return (lon,lat)
+    (lat, lon) = utm_to_ll(23, utm['n'], utm['e'],
+                           '%d%s'%(utm['zone'], utm['hemisphere']))
+    return (lon, lat)
 
 
 

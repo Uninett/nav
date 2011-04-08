@@ -15,11 +15,10 @@
 #
 """Django URL config for network explorer."""
 
-# pylint: disable-msg=W0614,W0401
-
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.networkexplorer.views import *
+from nav.web.networkexplorer.views import index, expand_router, expand_gwport
+from nav.web.networkexplorer.views import expand_swport, expand_switch, search
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',

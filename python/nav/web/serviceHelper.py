@@ -27,7 +27,7 @@ except:
 _checkerPattern = "Checker.py"
 _descrPattern = 'Checker.descr'
 _defaultArgs = ['port', 'timeout']
-_regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
+_regexp = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
 
 def getCheckers():
     """
@@ -36,7 +36,8 @@ def getCheckers():
     files = os.listdir(_checkerDir)
     result = []
     for file in files:
-        if len(file) > len(_checkerPattern) and file[len(file)-len(_checkerPattern):]==_checkerPattern:
+        if (len(file) > len(_checkerPattern) and
+            file[len(file)-len(_checkerPattern):]==_checkerPattern):
             result.append(file[:-len(_checkerPattern)].lower())
     return result
 
@@ -46,7 +47,9 @@ def getDescription(checkerName):
     """
     descr = {}
     try:
-        filename = os.path.join(_checkerDir, "%s%s" % (checkerName.capitalize(), _descrPattern))
+        filename = os.path.join(_checkerDir,
+                                "%s%s" % (checkerName.capitalize(),
+                                          _descrPattern))
         file = open(filename)
     except:
         #print "could not open file ", filename

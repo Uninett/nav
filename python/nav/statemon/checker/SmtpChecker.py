@@ -23,13 +23,13 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
 class SMTP(smtplib.SMTP):
-    def __init__(self,timeout, host = '',port = 25):
+    def __init__(self, timeout, host = '', port = 25):
         self._timeout = timeout  # _ to avoid name collision with superclass
-        smtplib.SMTP.__init__(self,host,port)
+        smtplib.SMTP.__init__(self, host, port)
     def connect(self, host='localhost', port = 25):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(self._timeout)
-        self.sock.connect((host,port))
+        self.sock.connect((host, port))
         return self.getreply()
 
 class SmtpChecker(AbstractChecker):
@@ -39,18 +39,18 @@ class SmtpChecker(AbstractChecker):
     # string
     versionMatch = re.compile(r'([^;,#]+)')
     
-    def __init__(self,service, **kwargs):
-        AbstractChecker.__init__(self, "smtp", service,port=25, **kwargs)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self, "smtp", service, port=25, **kwargs)
     def execute(self):
-        ip,port = self.getAddress()
+        ip, port = self.getAddress()
         s = SMTP(self.getTimeout())
-        code,msg = s.connect(ip,port)
+        code, msg = s.connect(ip, port)
         try:
             s.quit()
         except smtplib.SMTPException:
             pass
         if code != 220:
-            return Event.DOWN,msg
+            return Event.DOWN, msg
         try:
             domain, version = msg.strip().split(' ', 1)
         except ValueError:
@@ -59,4 +59,4 @@ class SmtpChecker(AbstractChecker):
         if match:
             version = match.group(0)
         self.setVersion(version)
-        return Event.UP,msg
+        return Event.UP, msg

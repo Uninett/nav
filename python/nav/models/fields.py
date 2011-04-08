@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007,2008,2010 UNINETT AS
+# Copyright (C) 2007-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,8 +18,12 @@
 from datetime import datetime
 from decimal import Decimal
 
+from django import forms
 from django.db import models, connection
 from django.core import exceptions
+
+from nav.util import is_valid_cidr, is_valid_ip
+from nav.django import validators, forms as navforms
 
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value):
@@ -31,27 +35,50 @@ class DateTimeInfinityField(models.DateTimeField):
             return super(DateTimeInfinityField, self).get_db_prep_value(value)
         return connection.ops.value_to_db_datetime(value)
 
+class VarcharField(models.TextField):
+    def db_type(self):
+        return 'varchar'
+
+    def formfield(self, **kwargs):
+        defaults = {
+            'widget': forms.TextInput,
+        }
+        defaults.update(kwargs)
+        return super(VarcharField, self).formfield(**defaults)
+
+class CIDRField(VarcharField):
+    __metaclass__ = models.SubfieldBase
+
+    def to_python(self, value):
+        """Verifies that the value is a string with a valid CIDR IP address"""
+        if value and not is_valid_cidr(value) and not is_valid_ip(value):
+            raise exceptions.ValidationError(
+                "Value must be a valid CIDR address")
+        else:
+            return value
+
+
 class PointField(models.CharField):
     __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
-        kwargs['blank'] = False
-        models.Field.__init__(self, *args, **kwargs)
+        super(PointField, self).__init__(*args, **kwargs)
 
-    def get_internal_type(self):
-        return "PointField"
+    def db_type(self):
+        return 'point'
 
     def to_python(self, value):
-        if value is None or isinstance(value, tuple):
+        if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, (str, unicode)):
-            assert value.startswith('(')
-            assert value.endswith(')')
-            assert len(value.split(',')) == 2
-            noparens = value[1:-1]
-            latitude, longitude = noparens.split(',')
-            return (Decimal(latitude), Decimal(longitude))
+        if isinstance(value, basestring):
+            if validators.is_valid_point_string(value):
+                if value.startswith('(') and value.endswith(')'):
+                    noparens = value[1:-1]
+                else:
+                    noparens = value
+                latitude, longitude = noparens.split(',')
+                return (Decimal(latitude.strip()), Decimal(longitude.strip()))
         raise exceptions.ValidationError(
             "This value must be a point-string.")
 
@@ -59,4 +86,9 @@ class PointField(models.CharField):
         if value is None:
             return None
         if isinstance(value, tuple):
-            return '(%s,%s)' % tuple
+            return '(%s,%s)' % value
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': navforms.PointField}
+        defaults.update(kwargs)
+        return super(PointField, self).formfield(**defaults)

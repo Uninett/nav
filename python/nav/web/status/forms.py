@@ -29,7 +29,7 @@ def _organization_choices():
     return org
 
 def _category_choices():
-    cat = [(cat.id,cat.description) for cat in Category.objects.all()]
+    cat = [(cat.id, cat.description) for cat in Category.objects.all()]
     cat.insert(0, ('', '(all)'))
     return cat
 
@@ -44,21 +44,40 @@ def _state_choices():
         (Netbox.UP_SHADOW, 'shadow'),
     )
 
+def _all_state_choices():
+    return (
+        (Netbox.UP_UP, 'up'),
+        (Netbox.UP_DOWN, 'down'),
+        (Netbox.UP_SHADOW, 'shadow'),
+    )
+
 class SectionForm(forms.Form):
     id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
     name = forms.CharField()
     type = forms.CharField(widget=forms.HiddenInput())
     organizations = forms.MultipleChoiceField(choices=_organization_choices())
 
-class SectionWithCategoryForm(SectionForm):
+class NetboxForm(SectionForm):
     categories = forms.MultipleChoiceField(choices=_category_choices())
-
-class SectionWithCategoryAndStateForm(SectionWithCategoryForm):
     states = forms.MultipleChoiceField(choices=_state_choices())
 
-class SectionWithServiceAndStateForm(SectionForm):
+class NetboxMaintenanceForm(SectionForm):
+    categories = forms.MultipleChoiceField(choices=_category_choices())
+    states = forms.MultipleChoiceField(choices=_all_state_choices())
+
+class ServiceForm(SectionForm):
     services = forms.MultipleChoiceField(choices=_service_choices())
     states = forms.MultipleChoiceField(choices=_state_choices())
+
+class ServiceMaintenanceForm(SectionForm):
+    services = forms.MultipleChoiceField(choices=_service_choices())
+    states = forms.MultipleChoiceField(choices=_all_state_choices())
+
+class ModuleForm(NetboxForm):
+    pass
+
+class ThresholdForm(SectionForm):
+    categories = forms.MultipleChoiceField(choices=_category_choices())
 
 class AddSectionForm(forms.Form):
     section = forms.ChoiceField(

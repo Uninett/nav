@@ -36,14 +36,17 @@ class MatrixIPv4(Matrix):
 
     Call getTemplateResponse() to get the template response."""
 
-    def __init__(self,start_net,show_unused_addresses,end_net=None,bits_in_matrix=3):
-        Matrix.__init__(self,start_net,end_net=end_net,bits_in_matrix=bits_in_matrix)
+    def __init__(self, start_net, show_unused_addresses, end_net=None,
+                 bits_in_matrix=3):
+        Matrix.__init__(self, start_net, end_net=end_net,
+                        bits_in_matrix=bits_in_matrix)
         self.column_headings = self._getColumnHeaders()
         self.show_unused_addresses = show_unused_addresses
 
     def getTemplateResponse(self):
         template = MatrixIPv4Template()
-        template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+        template.path = [("Home", "/"), ("Report", "/report/"),
+                         ("Prefix Matrix", False)]
 
         #functions and classes
         template.MetaIP = getattr(metaIP,"MetaIP")
@@ -76,20 +79,21 @@ class MatrixIPv4(Matrix):
             lsb = 1
         if msb <= 0:
             msb = 1
-        return [str((2**lsb)*i) for i in range(0,msb)]
+        return [str((2**lsb)*i) for i in range(0, msb)]
 
-    def generateMatrixNets(self,supernet):
+    def generateMatrixNets(self, supernet):
         """Generates all the matrix nets which belongs under ``supernet''."""
         import math
 
         matrix_prefixlen = self.end_net.prefixlen() - self.bits_in_matrix
         maskdiff = matrix_prefixlen - supernet.prefixlen()
-        number_of_nets = int(math.pow(2,maskdiff))
-        start_net = IP("/".join([supernet.net().strNormal(),str(matrix_prefixlen)]))
+        number_of_nets = int(math.pow(2, maskdiff))
+        start_net = IP("/".join([supernet.net().strNormal(),
+                                 str(matrix_prefixlen)]))
 
         #hack, assumes matrix_prefixlen == 24
         end_net_third_octet = int(supernet.net().strNormal().split(".")[2])+number_of_nets
         end_net_ip = ".".join(supernet.net().strNormal().split(".")[:2] + [str(end_net_third_octet),"0"])
         end_net = IP("/".join([end_net_ip,"24"]))
 
-        return netDiff(start_net,end_net)
+        return netDiff(start_net, end_net)

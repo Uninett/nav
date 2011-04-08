@@ -9,11 +9,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """General utility functions for Network Administration Visualized"""
 
@@ -70,6 +70,27 @@ def isValidIP(ip):
                 return str(validIP)
         except ValueError:
             pass
+    return False
+
+# copy to more PEP8-friendly name
+# FIXME: update callers and rename original
+is_valid_ip = isValidIP
+
+def is_valid_cidr(cidr):
+    """Verifies that a string is valid IPv4 or IPv6 CIDR specification.
+
+    A cleaned up version of the CIDR string is returned if it is verified,
+    otherwise a false value is returned.
+
+    Uses the IPy library to verify addresses.
+    """
+    if isinstance(cidr, basestring) and not cidr.isdigit() and '/' in cidr:
+        try:
+            valid_cidr = IPy.IP(cidr)
+        except (ValueError, TypeError):
+            return False
+        else:
+            return valid_cidr
     return False
 
 def round_robin(collection):

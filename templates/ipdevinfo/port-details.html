@@ -84,7 +84,7 @@
                     <ul>
                     {% for swportvlan in swportvlans %}
                         <li>
-                            <a href="{% url report-swporttrunk-vlan swportvlan.vlan.vlan %}">
+                            <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
                             {{ swportvlan.vlan }}</a>
                             <ul>
                                 <li>Direction: {{ swportvlan.get_direction_display }}</li>
@@ -209,6 +209,8 @@
             <ul>
                 <li><a href="{% url machinetracker-swport port.netbox.sysname, port.ifname %}">
                     Track MAC behind port</a></li>
+                <li><a href="{% url portadmin-interface port.id %}">
+                    Configure port</a></li>
             </ul>
         </td>
     </tr>

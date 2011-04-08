@@ -35,7 +35,7 @@ class CircBuf:
     
     def push(self, value):
         self._data.pop()
-        self._data.insert(0,value)
+        self._data.insert(0, value)
     
     def __len__(self):
         return self._size

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007, 2008 UNINETT AS
+# Copyright (C) 2007, 2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,7 +21,7 @@
 # TODO Filter/filter_groups have owners, check that the account that performs
 # the operation is the owner
 
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -37,8 +37,18 @@ from nav.models.profiles import Account, AccountGroup, AccountProperty, \
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
 
-from nav.web.alertprofiles.forms import *
-from nav.web.alertprofiles.utils import *
+from nav.web.alertprofiles.forms import AccountPropertyForm, TimePeriodForm
+from nav.web.alertprofiles.forms import AlertProfileForm, AlertSubscriptionForm
+from nav.web.alertprofiles.forms import AlertAddressForm, FilterForm
+from nav.web.alertprofiles.forms import ExpressionForm, FilterGroupForm
+from nav.web.alertprofiles.forms import MatchFieldForm
+
+from nav.web.alertprofiles.utils import new_message, alert_subscriptions_table
+from nav.web.alertprofiles.utils import read_time_period_templates
+from nav.web.alertprofiles.utils import resolve_account_admin_and_owner
+from nav.web.alertprofiles.utils import account_owns_filters
+from nav.web.alertprofiles.utils import order_filter_group_content
+
 from nav.web.alertprofiles.shortcuts import alertprofiles_response_forbidden, \
     alertprofiles_response_not_found, BASE_PATH
 
@@ -283,9 +293,9 @@ def profile_save(request):
                 # Make the time periods. We're only interested in the values of
                 # the dictionary, not the keys.
                 for start_time in periods.values():
-                    profile = TimePeriod(profile=profile, start=start_time,
+                    period = TimePeriod(profile=profile, start=start_time,
                                          valid_during=valid_during)
-                    profile.save()
+                    period.save()
 
     new_message(request,
                 _('Saved profile %(profile)s') % {'profile': profile.name},

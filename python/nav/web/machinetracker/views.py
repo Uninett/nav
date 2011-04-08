@@ -28,7 +28,9 @@ from django.utils.datastructures import SortedDict
 from nav.models.manage import Arp, Cam
 
 from nav.web.machinetracker import forms
-from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict, process_ip_row, track_mac, min_max_mac, ProcessInput
+from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
+from nav.web.machinetracker.utils import process_ip_row, track_mac
+from nav.web.machinetracker.utils import min_max_mac, ProcessInput
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -76,40 +78,38 @@ def ip_do_search(request):
 
         row_count = 0
         ip_result = SortedDict()
-        if active:
-            result = Arp.objects.filter(
-                end_time__gt=from_time,
-            ).extra(
-                where=['ip BETWEEN %s and %s'],
-                params=[unicode(from_ip), unicode(to_ip)]
-            ).order_by('ip', 'mac', '-start_time')
+        result = Arp.objects.filter(
+            end_time__gt=from_time,
+        ).extra(
+            where=['ip BETWEEN %s and %s'],
+            params=[unicode(from_ip), unicode(to_ip)]
+        ).order_by('ip', 'mac', '-start_time')
 
-            row_count = len(result)
-            ip_result = ip_dict(result)
+        ip_result = ip_dict(result)
 
         ip_range = []
         if inactive:
             ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
-            row_count += len(ip_range)
         else:
             ip_range = [key for key in ip_result]
 
         tracker = SortedDict()
         for ip_key in ip_range:
-            if ip_key in ip_result:
+            if active and ip_key in ip_result:
                 rows = ip_result[ip_key]
                 for row in rows:
                     row = process_ip_row(row, dns)
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
                     tracker[(row.ip, row.mac)].append(row)
-            elif inactive:
+            elif inactive and ip_key not in ip_result:
                 ip = unicode(ip_key)
                 row = {'ip': ip}
                 if dns:
                     row['dns_lookup'] = hostname(ip) or ""
                 tracker[(ip, "")] = [row]
 
+        row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
     info_dict = {
         'form': form,
         'form_data': form_data,
@@ -161,7 +161,8 @@ def mac_do_search(request):
             where=['mac BETWEEN %s and %s'],
             params=[mac_min, mac_max]
         ).order_by('mac', 'sysname', 'module', 'port', '-start_time').values(
-            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac', 'netbox__sysname'
+            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
+            'netbox__sysname'
         )
 
         arp_result = Arp.objects.filter(
@@ -173,7 +174,8 @@ def mac_do_search(request):
 
         mac_count = len(cam_result)
         ip_count = len(arp_result)
-        mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
+        mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
+                                cam_result, dns=False)
         ip_tracker = track_mac(('ip', 'mac'), arp_result, dns)
 
         info_dict.update({
@@ -232,10 +234,12 @@ def switch_do_search(request):
             end_time__gt=from_time,
             **criteria
         ).order_by('sysname', 'module', 'mac', '-start_time').values(
-            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac'
+            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
+            'netbox__sysname'
         )
         swp_count = len(cam_result)
-        swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'), cam_result, dns=False)
+        swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
+                                cam_result, dns=False)
 
         info_dict.update({
             'form_data': form.cleaned_data,

@@ -118,7 +118,7 @@ def makeTimeHumanReadable(seconds):
     time = calcTime(seconds)
 
     returnvar = ""
-    days, hours, minutes, seconds = (0,1,2,3)
+    days, hours, minutes, seconds = (0, 1, 2, 3)
 
     if time[days]:
         returnvar = "%sd " % time[days]

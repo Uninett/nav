@@ -18,8 +18,6 @@
 Provides a common root package for the NAV python library.
 """
 import time
-# Import all path symbols from the path module (generated at build time)
-from nav.buildconf import *
 
 class ObjectCache(dict):
     def __setitem__(self, key, item):
@@ -139,20 +137,5 @@ class CacheableObject(object):
         return self.object.__str__()
 
 class CacheError(Exception):
-    pass
-
-# We import some sub-modules because of bugs in mod_python
-try:
-    import db
-except:
-    pass
-try:
-    import auth
-except:
-    pass
-try:
-    # This actually belongs in another subsystem
-    import web
-except:
     pass
 

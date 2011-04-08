@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 UNINETT AS
+# Copyright (C) 2007, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,24 +19,25 @@
 from django.db import models
 
 from nav.models.manage import Netbox
+from nav.models.fields import VarcharField
 
 class SnmpOid(models.Model):
     """From MetaNAV: The snmpoid table defines all OIDs used during snmp data
     gathering and/or Cricket data collection."""
 
     id = models.AutoField(db_column='snmpoidid', primary_key=True)
-    oid_key = models.CharField(db_column='oidkey', unique=True, max_length=-1)
-    snmp_oid = models.CharField(db_column='snmpoid', max_length=-1)
-    oid_source = models.CharField(db_column='oidsource', max_length=-1)
+    oid_key = VarcharField(db_column='oidkey', unique=True)
+    snmp_oid = VarcharField(db_column='snmpoid')
+    oid_source = VarcharField(db_column='oidsource')
     get_next = models.BooleanField(db_column='getnext', default=True)
     decode_hex = models.BooleanField(db_column='decodehex', default=False)
-    match_regex = models.CharField(max_length=-1)
+    match_regex = VarcharField()
     default_frequency = models.IntegerField(db_column='defaultfreq',
         default=21600)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
-    description = models.CharField(db_column='descr', max_length=-1)
-    oid_name = models.CharField(db_column='oidname', max_length=-1)
-    mib = models.CharField(max_length=-1)
+    description = VarcharField(db_column='descr')
+    oid_name = VarcharField(db_column='oidname')
+    mib = VarcharField()
 
     class Meta:
         db_table = 'snmpoid'

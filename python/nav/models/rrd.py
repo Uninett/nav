@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 UNINETT AS
+# Copyright (C) 2007, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,19 +21,20 @@ from django.core.urlresolvers import reverse
 
 from nav.models.event import Subsystem
 from nav.models.manage import Netbox
+from nav.models.fields import VarcharField
 
 class RrdFile(models.Model):
     """From MetaNAV: The rrd_file contains meta information on all RRD files
     that NAV uses. Each RRD file has statistics for a certain netbox."""
 
     id = models.AutoField(db_column='rrd_fileid', primary_key=True)
-    path = models.CharField(max_length=-1)
-    filename = models.CharField(max_length=-1)
+    path = VarcharField()
+    filename = VarcharField()
     step = models.IntegerField()
     subsystem = models.ForeignKey(Subsystem, db_column='subsystem')
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
-    key = models.CharField(max_length=-1)
-    value = models.CharField(max_length=-1)
+    key = VarcharField()
+    value = VarcharField()
 
     class Meta:
         db_table = 'rrd_file'
@@ -74,16 +75,15 @@ class RrdDataSource(models.Model):
 
     id = models.AutoField(db_column='rrd_datasourceid', primary_key=True)
     rrd_file = models.ForeignKey(RrdFile, db_column='rrd_fileid')
-    name = models.CharField(max_length=-1)
-    description = models.CharField(db_column='descr', max_length=-1)
-    type = models.CharField(db_column='dstype', max_length=-1,
-        choices=TYPE_CHOICES)
-    units = models.CharField(max_length=-1)
-    threshold = models.CharField(max_length=-1)
-    max = models.CharField(max_length=-1)
+    name = VarcharField()
+    description = VarcharField(db_column='descr')
+    type = VarcharField(db_column='dstype', choices=TYPE_CHOICES)
+    units = VarcharField()
+    threshold = VarcharField()
+    max = VarcharField()
     delimiter = models.CharField(max_length=1, choices=DELIMITER_CHOICES)
-    threshold_state = models.CharField(db_column='thresholdstate',
-        max_length=-1, choices=TRESHOLD_STATE_CHOICES)
+    threshold_state = VarcharField(db_column='thresholdstate',
+                                   choices=TRESHOLD_STATE_CHOICES)
 
     class Meta:
         db_table = 'rrd_datasource'

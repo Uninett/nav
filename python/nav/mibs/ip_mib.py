@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -134,8 +134,8 @@ class IpMib(mibretriever.MibRetriever):
             
             row = (ifindex, ip, mac)
             mappings.add(row)
-        self.logger.debug("ip/mac pairs: Got %d rows from %s", 
-                          len(all_phys_addrs), column)
+        self._logger.debug("ip/mac pairs: Got %d rows from %s",
+                           len(all_phys_addrs), column)
         yield mappings
 
     @defer.deferredGenerator
@@ -156,8 +156,8 @@ class IpMib(mibretriever.MibRetriever):
 
             row = (ifindex, ip, mac)
             mappings.add(row)
-        self.logger.debug("ip/mac pairs: Got %d rows from %s", 
-                          len(ipv4_phys_addrs), column)
+        self._logger.debug("ip/mac pairs: Got %d rows from %s",
+                           len(ipv4_phys_addrs), column)
         yield mappings
 
 
@@ -215,8 +215,8 @@ class IpMib(mibretriever.MibRetriever):
 
             new_row = (ifindex, ip, prefix)
             addresses.add(new_row)
-        self.logger.debug("interface addresses: Got %d rows from %s", 
-                          len(address_rows), ifindex_column)
+        self._logger.debug("interface addresses: Got %d rows from %s",
+                           len(address_rows), ifindex_column)
         yield addresses
 
     @defer.deferredGenerator
@@ -244,8 +244,8 @@ class IpMib(mibretriever.MibRetriever):
 
             new_row = (ifindex, ip, prefix)
             addresses.add(new_row)
-        self.logger.debug("interface addresses: Got %d rows from %s", 
-                          len(address_rows), ifindex_column)
+        self._logger.debug("interface addresses: Got %d rows from %s",
+                           len(address_rows), ifindex_column)
         yield addresses
 
     @defer.deferredGenerator

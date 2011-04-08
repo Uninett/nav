@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007-2008 UNINETT AS
+# Copyright (C) 2007-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,11 +16,10 @@
 #
 """Django URL config for ipdevinfo"""
 
-# pylint: disable-msg=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.ipdevinfo.views import *
+from nav.web.ipdevinfo.views import search, service_list, service_matrix
+from nav.web.ipdevinfo.views import ipdev_details, module_details, port_details
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -53,7 +52,7 @@ urlpatterns = patterns('',
     # Interface details
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_id>\d+)/$',
         port_details, name='ipdevinfo-interface-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_name>[\w\.-/ \(\):]+)/$',
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_name>[^&]+)/$',
         port_details, name='ipdevinfo-interface-details'),
 )
 

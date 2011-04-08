@@ -1,0 +1,177 @@
+{% extends "seeddb/base.html" %}
+
+{% block content %}
+
+<table class="listtable seeddbtable">
+    <caption>IP devices and services</caption>
+    <tbody>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-netbox %}">IP Devices</a>
+            </td>
+            <td class="info">
+                Input seed information on the IP devices you want to monitor.
+            </td>
+            <td><a href="{% url seeddb-netbox-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-netbox-bulk %}">Bulk import</a></td>
+        </tr>
+        <tr class="evenrow">
+            <td>
+                <a href="{% url seeddb-service %}">Services</a>
+            </td>
+            <td class="info">
+                Set up service monitoring.
+            </td>
+            <td><a href="{% url seeddb-service-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-service-bulk %}">Bulk import</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="listtable seeddbtable">
+    <caption>Rooms and locations</caption>
+    <tbody>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-room %}">Rooms</a>
+            </td>
+            <td class="info">
+              Register all wiring closets and server rooms that contain IP
+              devices which NAV monitors.
+            </td>
+            <td><a href="{% url seeddb-room-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-room-bulk %}">Bulk import</a></td>
+        </tr>
+        <tr class="evenrow">
+            <td>
+                <a href="{% url seeddb-location %}">Locations</a>
+            </td>
+            <td class="info">
+              Rooms are organised in locations.
+            </td>
+            <td><a href="{% url seeddb-location-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-location-bulk %}">Bulk import</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="listtable seeddbtable">
+    <caption>Organizations and usage categories</caption>
+    <tbody>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-organization %}">Organizations</a>
+            </td>
+            <td class="info">
+              Register all organizational units that are relevant, i.e. all
+              units that have their own subnets or devices.
+            </td>
+            <td><a href="{% url seeddb-organization-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-organization-bulk %}">Bulk import</a></td>
+        </tr>
+        <tr class="evenrow">
+            <td>
+                <a href="{% url seeddb-usage %}">Usage categories</a>
+            </td>
+            <td class="info">
+              Subnet usage categories.
+            </td>
+            <td><a href="{% url seeddb-usage-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-usage-bulk %}">Bulk import</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="listtable seeddbtable">
+    <caption>Types and vendors</caption>
+    <tbody>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-type %}">Types</a>
+            </td>
+            <td class="info">
+              The type registry lists all types of SNMP-enabled network
+              equipment that are recognizable by NAV, identified by their
+              sysObjectID.
+            </td>
+            <td><a href="{% url seeddb-type-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-type-bulk %}">Bulk import</a></td>
+        </tr>
+        <tr class="evenrow">
+            <td>
+                <a href="{% url seeddb-vendor %}">Vendors</a>
+            </td>
+            <td class="info">
+              A simple list of known device vendors in use in your network.
+            </td>
+            <td><a href="{% url seeddb-vendor-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-vendor-bulk %}">Bulk import</a></td>
+        </tr>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-subcategory %}">Subcategories</a>
+            </td>
+            <td class="info">
+              Create subcategories of the main (GW, GSW, SW, SRV, etc.)
+              categories, to further categorize your devices.
+            </td>
+            <td><a href="{% url seeddb-subcategory-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-subcategory-bulk %}">Bulk import</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="listtable seeddbtable">
+    <caption>Vlans and special subnets</caption>
+    <tbody>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-vlan %}">Vlan</a>
+            </td>
+            <td class="info">
+              Edit details of VLANs discovered by NAV.
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr class="evenrow">
+            <td>
+                <a href="{% url seeddb-prefix %}">Prefix</a>
+            </td>
+            <td class="info">
+              Register reserved or scope IP prefixes of your network, to get a
+              complete overview of your subnet allocations.
+            </td>
+            <td><a href="{% url seeddb-prefix-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-prefix-bulk %}">Bulk import</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="listtable seeddbtable">
+    <caption>Cabling system</caption>
+    <tbody>
+        <tr class="oddrow">
+            <td>
+                <a href="{% url seeddb-cabling %}">Cabling</a>
+            </td>
+            <td class="info">
+                Document your horizontal cabling system.
+            </td>
+            <td><a href="{% url seeddb-cabling-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-cabling-bulk %}">Bulk import</a></td>
+        </tr>
+        <tr class="evenrow">
+            <td>
+                <a href="{% url seeddb-patch %}">Patch</a>
+            </td>
+            <td class="info">
+                Register the cross connects in the wiring closets.
+            </td>
+            <td><a href="{% url seeddb-patch-edit %}">Add</a></td>
+            <td><a href="{% url seeddb-patch-bulk %}">Bulk import</a></td>
+        </tr>
+    </tbody>
+</table>
+
+{% endblock %}

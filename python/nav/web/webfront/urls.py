@@ -16,17 +16,14 @@
 #
 """Django URL configuration for webfront"""
 
-# pylint: disable-msg=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.webfront.views import *
+from nav.web.webfront.views import index, login, logout, about, toolbox
+from nav.web.webfront.views import preferences, preferences_navigation
 
 urlpatterns = patterns('',
     url(r'^$', index,
         name='webfront-index'),
-    url(r'^index/index/', index,
-        name='webfront-index-index'),
     url(r'^index/login/', login,
         name='webfront-login'),
     url(r'^index/logout/', logout,

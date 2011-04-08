@@ -23,6 +23,7 @@ from nav import web, db
 from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.templates.ArnoldTemplate import ArnoldTemplate
 from nav.web.URI import URI
+from nav.web.encoding import encoded_output
 from urllib import unquote_plus
 from IPy import IP
 import nav.arnold
@@ -48,6 +49,7 @@ conn = db.getConnection('arnold', 'arnold');
     
 
 ############################################################
+@encoded_output
 def handler(req):
 
     # getConnection('subsystem','database')
@@ -67,7 +69,7 @@ def handler(req):
     page.path = [("Home","/"), ("Arnold", False)]
 
     section = ""
-    s = re.search("arnold\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
+    s = re.search("arnold\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
     if s:
         section = s.group(1)
     else:
@@ -99,7 +101,8 @@ def handler(req):
     elif section == 'dodeletepredefined':
         if fs.has_key('predefinedid'):
             q = """DELETE FROM block WHERE blockid=%s"""
-            cur.execute(q, (fs['predefinedid'], ))
+            predefinedid = str(fs['predefinedid'])
+            cur.execute(q, (predefinedid, ))
             
             redirect(req, 'predefined?output=Predefined detention %s deleted.'
                      %fs['predefinedtitle'])
@@ -117,7 +120,7 @@ def handler(req):
     elif section == 'blockedports':
         sort = args.get('sort') or 'ip'
         page.head = "List of detained ports"
-        printBlocked(cur,page,sort, section)
+        printBlocked(cur, page, sort, section)
         page.path.append(("Detained ports", False))
 
     elif section == 'search':
@@ -146,7 +149,8 @@ def handler(req):
     elif section == 'dodeletereason':
         if fs.has_key('reasonid'):
             q = """DELETE FROM blocked_reason WHERE blocked_reasonid=%s"""
-            cur.execute(q, (fs['reasonid'], ))
+            reasonid = str(fs['reasonid'])
+            cur.execute(q, (reasonid, ))
             
             redirect(req, 'addreason?output=Detentionreason %s deleted.'
                      %fs['reasonname'])
@@ -170,7 +174,8 @@ def handler(req):
     elif section == 'dodeletequarantinevlan':
         if fs.has_key('vlanid'):
             q = """DELETE FROM quarantine_vlans WHERE quarantineid=%s"""
-            cur.execute(q, (fs['vlanid'], ))
+            vlanid = str(fs['vlanid'])
+            cur.execute(q, (vlanid, ))
             
             redirect(req, 'addquarantinevlan?output=Quarantinevlan %s deleted.'
                      %fs['vlan'])
@@ -325,7 +330,8 @@ def handler(req):
             nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
-                                 req.session['user']['login'], 'quarantine', vlan)
+                                 req.session['user']['login'], 'quarantine',
+                                 vlan)
         except GeneralException, why:
             redirect(req, 'blockedports?output=' + str(why))
 
@@ -378,7 +384,8 @@ def handler(req):
                     redirect(req, 'addquarantinevlan')
 
                 if cur.rowcount > 0:
-                    redirect(req,'addquarantinevlan?output=Quarantine vlan already exists.')
+                    redirect(req, 'addquarantinevlan?'
+                             'output=Quarantine vlan already exists.')
                 
                 q = """
                 INSERT INTO quarantine_vlans (description, vlan)
@@ -514,7 +521,7 @@ def setMenu(page):
     buttonnames = ['History', "Detained ports", "Search",
                    "Add detentionreason", "Manual detention",
                    "Predefined Detentions", "Add Quarantine vlan"]
-    buttons = {'History': 'history' ,"Detained ports": 'blockedports',
+    buttons = {'History': 'history', "Detained ports": 'blockedports',
                "Search": 'search', "Add detentionreason": 'addreason',
                "Manual detention": 'manualdetain',
                "Predefined Detentions": 'predefined',
@@ -532,11 +539,12 @@ def printHistory(cur, page, sort, section, days):
 
     reconnect()
 
-    page.headersList = ['ip','dns','mac','netbios','orgid','status','reason',
-                        'lastchanged','details']
-    page.headers = {'ip': 'Ip', 'dns':'Dns', 'mac':'Mac','netbios':'Netbios',
-                    'orgid':'Orgid', 'status':'Status' ,'reason':'Reason',
-                    'lastchanged':'Lastchanged', 'details':'&nbsp;', '':''}
+    page.headersList = ['ip', 'dns', 'mac', 'netbios', 'orgid', 'status',
+                        'reason', 'lastchanged', 'details']
+    page.headers = {'ip': 'Ip', 'dns': 'Dns', 'mac': 'Mac',
+                    'netbios': 'Netbios', 'orgid':'Orgid', 'status':'Status',
+                    'reason': 'Reason', 'lastchanged': 'Lastchanged',
+                    'details': '&nbsp;', '': ''}
 
     if days < '0':
         days = '0'
@@ -554,15 +562,16 @@ def printHistory(cur, page, sort, section, days):
         to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') as lastchanged, swportid
         FROM identity LEFT JOIN blocked_reason USING (blocked_reasonid)
         WHERE lastchanged > current_date - interval '%s days'  ORDER BY %s
-        """ %(days, sort)
+        """ % (days, sort)
         cur.execute(query)
         list = [dict(row) for row in cur.fetchall()]
     except nav.db.driver.ProgrammingError, e:
         list = {}
 
     for item in list:
-        item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
-                          + "' title='Details'><img src='/images/arnold/details.png'></a>"
+        item['details'] = ("<a href='showdetails?id=" +
+                           str(item['identityid']) + "' title='Details'>"
+                           "<img src='/images/arnold/details.png'></a>")
 
     page.hits = len(list)
     page.list = list
@@ -574,8 +583,8 @@ def printBlocked(cur, page, sort, section):
 
     reconnect()
 
-    page.headersList = ['ip','dns','netbios','status','reason','sysname',
-                        'lastchanged','activate','details']
+    page.headersList = ['ip', 'dns', 'netbios', 'status', 'reason', 'sysname',
+                        'lastchanged', 'activate', 'details']
     page.headers = {'ip': 'Ip', 'dns':'Dns', 'netbios':'Netbios',
                     'status':'Status','reason':'Reason', 'sysname':'Switch',
                     'lastchanged':'Lastchanged', 'activate':'&nbsp;',
@@ -587,7 +596,7 @@ def printBlocked(cur, page, sort, section):
     FROM identity
     LEFT JOIN blocked_reason USING (blocked_reasonid)
     WHERE blocked_status IN ('disabled','quarantined')
-    ORDER BY %s """ %sort
+    ORDER BY %s """ % sort
 
     cur.execute(query)
 
@@ -601,10 +610,12 @@ def printBlocked(cur, page, sort, section):
 
     for item in list:
         item['lastchanged'] = item['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
-        item['activate'] = "<a href='doenable?id=" + str(item['identityid']) \
-                           + "' title='Remove detention'><img src='/images/arnold/enable.png'></a>"
-        item['details'] = "<a href='showdetails?id=" + str(item['identityid'])\
-                          + "' title='Details'><img src='/images/arnold/details.png'></a>"
+        item['activate'] = ("<a href='doenable?id=" + str(item['identityid']) +
+                            "' title='Remove detention'>"
+                            "<img src='/images/arnold/enable.png'></a>")
+        item['details'] = ("<a href='showdetails?id=" +
+                           str(item['identityid']) + "' title='Details'>"
+                           "<img src='/images/arnold/details.png'></a>")
         
         managequery = """
         SELECT sysname, baseport FROM netbox
@@ -631,9 +642,9 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
 
     reconnect()
     
-    searchfields = ['IP','MAC','Netbios','dns']
+    searchfields = ['IP', 'MAC', 'Netbios', 'dns']
     searchtext = searchtext.strip()
-    page.statusfields = ['disabled','quarantined','enabled','both']
+    page.statusfields = ['disabled', 'quarantined', 'enabled', 'both']
     page.searchfields = searchfields
     page.searchfield = searchfield
     page.searchtext = searchtext
@@ -691,17 +702,19 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
             numresults = cur.rowcount
             
             if numresults == 0:
-                page.headertext = "Search for %s = %s, status = %s, last \
-                changed %s days ago, did not return anything." \
-                %(searchfield, page.searchtext, page.status, str(page.days))
+                page.headertext = ("Search for %s = %s, status = %s, last "
+                                   "changed %s days ago, did not return "
+                                   "anything." %
+                                   (searchfield, page.searchtext,
+                                    page.status, str(page.days)))
                 page.searchresults = {}
             else:
                 for element in searchresults:
-                    element['history'] = "<a href='showdetails?id=%s'>History\
-                    </a>" %str(element['identityid'])
+                    element['history'] = ("<a href='showdetails?id=%s'>History"
+                                          "</a>" % str(element['identityid']))
 
-                page.headertext = "Searchresults when searching for %s with \
-                value '%s'" %(searchfield, searchtext)
+                page.headertext = ("Search results when searching for %s with "
+                                   "value '%s'" % (searchfield, searchtext))
                 page.searchresults = searchresults
                 page.hits = cur.rowcount
                 page.hitstext = "result(s) found"
@@ -713,8 +726,9 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
             %(q, searchfield, searchtext, page.status, str(page.days))
         except nav.db.driver.DataError:
             page.searchresults = {}
-            page.headertext = "<!-- %s -->\nDataError. Searching for %s for \
-            %s is not valid." %(q, searchtext, searchfield)
+            page.headertext = ("<!-- %s -->\nDataError. Searching for %s for "
+                               "%s is not valid." %
+                               (q, searchtext, searchfield))
 
     else:
         page.searchresults = {}
@@ -737,11 +751,10 @@ def printBlocks(cur, page, sort, section):
     list = [dict(row) for row in cur.fetchall()]
 
     for element in list:
-        element['edit'] = "<a href='addPredefined?blockid=%s'>Edit</a>" \
-                          %element['blockid']
-        element['delete'] = \
-                          "<a href='deletepredefined?blockid=%s'>Delete</a>" \
-                          %element['blockid']
+        element['edit'] = ("<a href='addPredefined?blockid=%s'>Edit</a>" %
+                           element['blockid'])
+        element['delete'] = ("<a href='deletepredefined?blockid=%s'>Delete"
+                             "</a>" % element['blockid'])
         if element['active'] == 'y':
             element['active'] = 'Yes'
         else:
@@ -797,7 +810,8 @@ def showDetails (cur, page, section, id):
 
     for entry in list:
         if managec.rowcount <= 0:
-            page.output = "Error: Could not find swport in database. Perhaps switch has been replaced?"
+            page.output = ("Error: Could not find swport in database. "
+                           "Perhaps switch has been replaced?")
             entry['sysname'] = "N/A"
             entry['modport'] = "N/A"
         else:
@@ -806,10 +820,12 @@ def showDetails (cur, page, section, id):
             entry['sysname'] = managerow['sysname']
         
         entry['starttime'] = entry['starttime'].strftime('%Y-%m-%d %k:%M:%S')
-        entry['lastchanged'] = entry['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
+        entry['lastchanged'] = entry['lastchanged'].strftime(
+            '%Y-%m-%d %k:%M:%S')
 
         if entry['autoenable']:
-            entry['autoenable'] = entry['autoenable'].strftime('%Y-%m-%d %k:%M:%S')
+            entry['autoenable'] = entry['autoenable'].strftime(
+                '%Y-%m-%d %k:%M:%S')
         else:
             entry['autoenable'] = '&nbsp;'
 
@@ -827,7 +843,7 @@ def showDetails (cur, page, section, id):
     """
     cur.execute(q, (id,))
 
-    page.headersList2 = ['eventtime','action','name','comment','username']
+    page.headersList2 = ['eventtime', 'action', 'name', 'comment', 'username']
     page.headers2 = {'eventtime':'Eventtime', 'action':'Action',
                      'name':'Reason', 'comment':'Comment', 'username':'User'}
     list2 = [dict(row) for row in cur.fetchall()]
@@ -918,7 +934,8 @@ def printAddpredefined (cur, page, id):
     if id:
         cur.execute("SELECT * FROM block WHERE blockid=%s" %id)
         blockinfo = dict(cur.fetchone())
-        blockinfo['lastedited'] = blockinfo['lastedited'].strftime('%Y-%m-%d %k:%M:%S')
+        blockinfo['lastedited'] = blockinfo['lastedited'].strftime(
+            '%Y-%m-%d %k:%M:%S')
 
     page.blockinfo = blockinfo
 
@@ -933,7 +950,7 @@ def printAddQuarantine(cur, page):
     """
     cur.execute(q)
     quarantines = cur.fetchall()
-    page.quarantineheaderslist = ['vlan','description','edit']
+    page.quarantineheaderslist = ['vlan', 'description', 'edit']
     page.quarantineheaders = {'vlan':'Vlan', 'description': 'Description',
                               'edit':'Edit'}
     page.hits = cur.rowcount

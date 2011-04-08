@@ -24,7 +24,7 @@ import logging
 
 from nav.errors import GeneralException
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 plugin_registry = {}
 
 class PluginImportError(GeneralException):
@@ -40,9 +40,9 @@ def import_plugins():
         import_plugin(ipdevpoll_conf, alias)
         plugin_counter += 1
 
-    logger.info('Imported %d plugin classes, '
-                '%d classes in plugin registry',
-                plugin_counter, len(plugin_registry))
+    _logger.info('Imported %d plugin classes, '
+                 '%d classes in plugin registry',
+                 plugin_counter, len(plugin_registry))
 
 
 def import_plugin(config, alias):
@@ -51,13 +51,13 @@ def import_plugin(config, alias):
     module_name = '.'.join(full_class_name.split('.')[:-1])
     class_name = full_class_name.split('.')[-1]
 
-    logger.debug('Importing plugin %s=%s', alias, full_class_name)
+    _logger.debug('Importing plugin %s=%s', alias, full_class_name)
     try:
         module_ = __import__(module_name, globals(), locals(),
                              [module_name])
         class_ = getattr(module_, class_name)
     except (ImportError, AttributeError), error:
-        logger.exception("Failed to import plugin %s", full_class_name)
+        _logger.exception("Failed to import plugin %s", full_class_name)
         raise PluginImportError(error)
 
     plugin_registry[alias] = class_

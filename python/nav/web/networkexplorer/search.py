@@ -37,7 +37,7 @@ def search_expand_swport(swportid=None, swport=None, scanned = []):
         try:
             swport = Interface.objects.get(id=swportid)
         except Interface.DoesNotExist:
-            return ([],[])
+            return ([], [])
 
     found_swports = []
     found_gwports = []
@@ -80,7 +80,7 @@ def search_expand_netbox(netboxid=None, netbox=None):
         try:
             netbox = Netbox.objects.get(id=netboxid)
         except Netbox.DoesNotExist:
-            return ([],[])
+            return ([], [])
 
     for result in netbox.get_uplinks():
         if result['other'].__class__ == Interface and result['other'].gwportprefix_set.count():
@@ -89,7 +89,7 @@ def search_expand_netbox(netboxid=None, netbox=None):
             found_swports.append(result['other'])
 
     gwports = Interface.objects.filter(to_netbox=netbox, gwportprefix__isnull=False)
-    swports = Interface.objects.filter(to_netbox=netbox,baseport__isnull=False)
+    swports = Interface.objects.filter(to_netbox=netbox, baseport__isnull=False)
 
     found_gwports.extend(gwports)
 
@@ -109,12 +109,12 @@ def search_expand_sysname(sysname=None):
     """
 
     if not sysname:
-        return ([],[])
+        return ([], [])
 
     try:
         netbox = Netbox.objects.get(sysname=sysname)
     except Netbox.DoesNotExist:
-        return ([],[])
+        return ([], [])
 
     return search_expand_netbox(netbox=netbox)
 
@@ -124,11 +124,11 @@ def search_expand_mac(mac=None):
     """
 
     if not mac:
-        return ([],[])
+        return ([], [])
 
     import re
     if not re.match('^([a-fA-F0-9]{2}[:|\-]?){6}$', mac):
-        return ([],[])
+        return ([], [])
 
     found_swports = []
     found_gwports = []
@@ -269,9 +269,11 @@ def room_search(room, exact=False):
     swport_matches = []
 
     if exact:
-        swport_matches.extend(Interface.objects.filter(netbox__room__id=room,baseport__isnull=False))
+        swport_matches.extend(Interface.objects.filter(
+                netbox__room__id=room, baseport__isnull=False))
     else:
-        swport_matches.extend(Interface.objects.filter(netbox__room__id__icontains=room, baseport__isnull=False))
+        swport_matches.extend(Interface.objects.filter(
+                netbox__room__id__icontains=room, baseport__isnull=False))
     
     for swport in [swport for swport in swport_matches if swport]:
         swport_search = search_expand_swport(swport=swport)

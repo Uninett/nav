@@ -62,7 +62,7 @@ aggregate_properties_edge = {
 def build_graph(db_results):
     """Make a Graph object based on the dictionaries resulting from get_data.
     """
-    (netboxes,connections) = db_results
+    (netboxes, connections) = db_results
     graph = Graph()
 
     # create Node objects:
@@ -75,12 +75,13 @@ def build_graph(db_results):
         if (not connection['forward']['local_netboxid'] in graph.nodes or
             not connection['reverse']['local_netboxid'] in graph.nodes):
             continue
-        graph.add_edge(Edge(connection['forward']['id'],
-                            connection['reverse']['id'],
-                            graph.nodes[connection['forward']['local_netboxid']],
-                            graph.nodes[connection['reverse']['local_netboxid']],
-                            connection['forward'],
-                            connection['reverse']))
+        graph.add_edge(
+            Edge(connection['forward']['id'],
+                 connection['reverse']['id'],
+                 graph.nodes[connection['forward']['local_netboxid']],
+                 graph.nodes[connection['reverse']['local_netboxid']],
+                 connection['forward'],
+                 connection['reverse']))
 
     return graph
 
@@ -131,9 +132,9 @@ def area_filter(graph, bounds):
 
     """
     def in_bounds(n):
-        return \
-            n.lon>=bounds['minLon'] and n.lon<=bounds['maxLon'] and \
-            n.lat>=bounds['minLat'] and n.lat<=bounds['maxLat']
+        return (n.lon >= bounds['minLon'] and n.lon <= bounds['maxLon'] and
+                n.lat >= bounds['minLat'] and n.lat <= bounds['maxLat'])
+
     def edge_connected_to(edge, nodehash):
         return edge.source.id in nodehash or edge.target.id in nodehash
     nodes = filter_dict(in_bounds, graph.nodes)
@@ -369,7 +370,7 @@ def combine_edges(graph, property_aggregators={}):
                  aggregate_properties(map(lambda edge: edge.targetData, eset),
                                       property_aggregators)),
         edge_sets.values())
-    graph.edges = dict([(e.id,e) for e in edges])
+    graph.edges = dict([(e.id, e) for e in edges])
 
 
 def equalize_edge_orientation(edges):

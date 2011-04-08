@@ -23,7 +23,7 @@ from nav.statemon.event import Event
 class SshChecker(AbstractChecker):
     """
     """
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "ssh", service, port=22, **kwargs)
     def execute(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

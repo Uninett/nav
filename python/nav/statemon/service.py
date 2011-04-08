@@ -33,13 +33,16 @@ class Service:
         self.handler = handler
         self.args = args
         self.id = id
-        self.active='t'
+        self.active = 't'
+
     def __cmp__(self, obj):
-        return self.sysname==obj.sysname and \
-               self.handler==obj.handler and self.args==obj.args
+        return (self.sysname == obj.sysname and
+                self.handler == obj.handler and self.args == obj.args)
+
     def __eq__(self, obj):
-        return self.sysname==obj.sysname and \
-               self.handler==obj.handler and self.args==obj.args
+        return (self.sysname == obj.sysname and
+                self.handler == obj.handler and self.args == obj.args)
+
     def __hash__(self):
         value = self.sysname.__hash__() + self.handler.__hash__() + \
                 self.args.__str__().__hash__()

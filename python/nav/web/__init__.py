@@ -35,7 +35,8 @@ import django.db
 
 logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
-webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront', 'webfront.conf'))
+webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront',
+                                 'webfront.conf'))
 
 def headerparserhandler(req):
     """
@@ -49,11 +50,6 @@ def headerparserhandler(req):
     import nav.web.auth
     import state
     from mod_python import apache
-
-    # We automagically redirect users to the index page if they
-    # request the root.
-    if req.uri == '/':
-        redirect(req, '/index/index')
 
     state.setupSession(req)
     authenticated = 'user' in req.session
@@ -144,9 +140,11 @@ def shouldShow(link, user):
     link and allowed. Internal links are checked using the corresponding
     account object's has_perm method.
     """
-    startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
+    startsWithHTTP = (link.lower()[:7] == 'http://' or
+                      link.lower()[:8] == 'https://')
     #FIXME handle Account.DoesNotExist
-    return startsWithHTTP or Account.objects.get(id=user['id']).has_perm('web_access', link)
+    return (startsWithHTTP or
+            Account.objects.get(id=user['id']).has_perm('web_access', link))
 
 def escape(s):
     """Replace special characters '&', '<' and '>' by SGML entities.
@@ -188,7 +186,7 @@ def loginit():
         handler.setFormatter(formatter)
 
         root.addHandler(handler)
-        nav.logs.setLogLevels()
+        nav.logs.set_log_levels()
         _loginited = True
 
 def exceptionhandler(handler):
@@ -197,6 +195,7 @@ def exceptionhandler(handler):
     """
     from mod_python import apache
     def handlerfunc(req, *args, **kwargs):
+        from nav.web.templates.ExceptionTemplate import ExceptionTemplate
         try:
             result = handler(req, *args, **kwargs)
         except Exception, e:
@@ -213,7 +212,6 @@ def exceptionhandler(handler):
                 req.write(escape("\n".join(tracelines)))
                 req.write("\n</pre>\n")
             else:
-                from nav.web.templates.ExceptionTemplate import ExceptionTemplate
                 page = ExceptionTemplate()
                 page.traceback = escape("\n".join(tracelines))
                 page.path = [("Home", "/"), ("NAV Exception", False)]

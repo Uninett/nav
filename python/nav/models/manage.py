@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007,2008,2010 UNINETT AS
+# Copyright (C) 2007-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +16,7 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 import datetime as dt
 import IPy
@@ -27,36 +27,8 @@ from django.db import models
 from django.db.models import Q
 
 import nav.natsort
-from nav.models.fields import DateTimeInfinityField, PointField
-
-# Interface status choices used in Interface model and 'ipdevinfo'
-OPER_UP = 1
-OPER_DOWN = 2
-OPER_TESTING = 3
-OPER_UNKNOWN = 4
-OPER_DORMANT = 5
-OPER_NOTPRESENT = 6
-OPER_LOWERLAYERDOWN = 7
-
-OPER_STATUS_CHOICES = (
-    (OPER_UP, 'up'),
-    (OPER_DOWN, 'down'),
-    (OPER_TESTING, 'testing'),
-    (OPER_UNKNOWN, 'unknown'),
-    (OPER_DORMANT, 'dormant'),
-    (OPER_NOTPRESENT, 'not present'),
-    (OPER_LOWERLAYERDOWN, 'lower layer down'),
-)
-
-ADM_UP = 1
-ADM_DOWN = 2
-ADM_TESTING = 3
-
-ADM_STATUS_CHOICES = (
-    (ADM_UP, 'up'),
-    (ADM_DOWN, 'down'),
-    (ADM_TESTING, 'testing'),
-)
+from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
+from nav.models.fields import CIDRField
 
 
 #######################################################################
@@ -81,20 +53,20 @@ class Netbox(models.Model):
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
-    type = models.ForeignKey('NetboxType', db_column='typeid', null=True)
+    type = models.ForeignKey('NetboxType', db_column='typeid', blank=True, null=True)
     device = models.ForeignKey('Device', db_column='deviceid')
-    sysname = models.CharField(unique=True, max_length=-1)
+    sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
     subcategories = models.ManyToManyField('Subcategory',
         through='NetboxCategory')
     organization = models.ForeignKey('Organization', db_column='orgid')
-    read_only = models.CharField(db_column='ro', max_length=-1)
-    read_write = models.CharField(db_column='rw', max_length=-1)
+    read_only = VarcharField(db_column='ro', blank=True, null=True)
+    read_write = VarcharField(db_column='rw', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField()
-    up_since = models.DateTimeField(db_column='upsince')
-    up_to_date = models.BooleanField(db_column='uptodate')
-    discovered = models.DateTimeField()
+    snmp_version = models.IntegerField(verbose_name="SNMP version")
+    up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
+    up_to_date = models.BooleanField(db_column='uptodate', default=False)
+    discovered = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'netbox'
@@ -270,8 +242,8 @@ class NetboxInfo(models.Model):
     id = models.AutoField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
         related_name='info_set')
-    key = models.CharField(max_length=-1)
-    variable = models.CharField(db_column='var', max_length=-1)
+    key = VarcharField()
+    variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
     class Meta:
@@ -310,20 +282,17 @@ class Device(models.Model):
     boxes or may appear in different modules throughout its lifetime."""
 
     id = models.AutoField(db_column='deviceid', primary_key=True)
-    serial = models.CharField(unique=True, max_length=-1, null=True)
-    hardware_version = models.CharField(db_column='hw_ver', max_length=-1,
-                                        null=True)
-    firmware_version = models.CharField(db_column='fw_ver', max_length=-1,
-                                        null=True)
-    software_version = models.CharField(db_column='sw_ver', max_length=-1,
-                                        null=True)
+    serial = VarcharField(unique=True, null=True)
+    hardware_version = VarcharField(db_column='hw_ver', null=True)
+    firmware_version = VarcharField(db_column='fw_ver', null=True)
+    software_version = VarcharField(db_column='sw_ver', null=True)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
     class Meta:
         db_table = 'device'
 
     def __unicode__(self):
-        return self.serial
+        return self.serial or ''
 
 class Module(models.Model):
     """From MetaNAV: The module table defines modules. A module is a part of a
@@ -342,9 +311,9 @@ class Module(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module_number = models.IntegerField(db_column='module')
-    name = models.CharField(max_length=-1)
-    model = models.CharField(max_length=-1)
-    description = models.CharField(db_column='descr', max_length=-1)
+    name = VarcharField()
+    model = VarcharField()
+    description = VarcharField(db_column='descr')
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
 
@@ -399,8 +368,8 @@ class Memory(models.Model):
 
     id = models.AutoField(db_column='memid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    type = models.CharField(db_column='memtype', max_length=-1)
-    device = models.CharField(max_length=-1)
+    type = VarcharField(db_column='memtype')
+    device = VarcharField()
     size = models.IntegerField()
     used = models.IntegerField()
 
@@ -419,13 +388,13 @@ class Room(models.Model):
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
-    location = models.ForeignKey('Location', db_column='locationid')
-    description = models.CharField(db_column='descr', max_length=-1)
-    optional_1 = models.CharField(db_column='opt1', max_length=-1)
-    optional_2 = models.CharField(db_column='opt2', max_length=-1)
-    optional_3 = models.CharField(db_column='opt3', max_length=-1)
-    optional_4 = models.CharField(db_column='opt4', max_length=-1)
-    position = PointField(null=True, default=None)
+    location = models.ForeignKey('Location', db_column='locationid', blank=True, null=True)
+    description = VarcharField(db_column='descr', blank=True)
+    optional_1 = VarcharField(db_column='opt1', blank=True)
+    optional_2 = VarcharField(db_column='opt2', blank=True)
+    optional_3 = VarcharField(db_column='opt3', blank=True)
+    optional_4 = VarcharField(db_column='opt4', blank=True)
+    position = PointField(null=True, blank=True, default=None)
 
     class Meta:
         db_table = 'room'
@@ -439,24 +408,24 @@ class Location(models.Model):
 
     id = models.CharField(db_column='locationid',
         max_length=30, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'location'
 
     def __unicode__(self):
-        return self.description
+        return u'%s (%s)' % (self.id, self.description)
 
 class Organization(models.Model):
     """From MetaNAV: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent', null=True)
-    description = models.CharField(db_column='descr', max_length=-1)
-    optional_1 = models.CharField(db_column='opt1', max_length=-1)
-    optional_2 = models.CharField(db_column='opt2', max_length=-1)
-    optional_3 = models.CharField(db_column='opt3', max_length=-1)
+    parent = models.ForeignKey('self', db_column='parent', blank=True, null=True)
+    description = VarcharField(db_column='descr', blank=True)
+    optional_1 = VarcharField(db_column='opt1', blank=True)
+    optional_2 = VarcharField(db_column='opt2', blank=True)
+    optional_3 = VarcharField(db_column='opt3', blank=True)
 
     class Meta:
         db_table = 'org'
@@ -469,7 +438,7 @@ class Category(models.Model):
     (GW,GSW,SW,EDGE,WLAN,SRV,OTHER)."""
 
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
     req_snmp = models.BooleanField()
 
     class Meta:
@@ -507,8 +476,8 @@ class Subcategory(models.Model):
     A category may have many subcategories. A subcategory belong to one and
     only one category."""
 
-    id = models.CharField(db_column='subcatid', max_length=-1, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    id = VarcharField(db_column='subcatid', primary_key=True)
+    description = VarcharField(db_column='descr')
     category = models.ForeignKey('Category', db_column='catid')
 
     class Meta:
@@ -516,9 +485,9 @@ class Subcategory(models.Model):
 
     def __unicode__(self):
         try:
-            return u'%s, sub of %s' % (self.description, self.category)
+            return u'%s, sub of %s' % (self.id, self.category)
         except Category.DoesNotExist:
-            return self.description
+            return self.id
 
 class NetboxCategory(models.Model):
     """From MetaNAV: A netbox may be in many subcategories. This relation is
@@ -544,13 +513,13 @@ class NetboxType(models.Model):
 
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    name = models.CharField(db_column='typename', max_length=-1)
-    sysobjectid = models.CharField(unique=True, max_length=-1)
+    name = VarcharField(db_column='typename', verbose_name="type name")
+    sysobjectid = VarcharField(unique=True)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)
     cs_at_vlan = models.BooleanField()
     chassis = models.BooleanField(default=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'type'
@@ -558,6 +527,23 @@ class NetboxType(models.Model):
 
     def __unicode__(self):
         return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
+
+    def get_enterprise_id(self):
+        """Returns the type's enterprise ID as an integer.
+
+        The type's sysobjectid should always start with
+        SNMPv2-SMI::enterprises (1.3.6.1.4.1).  The next OID element will be
+        an enterprise ID, while the remaining elements will describe the type
+        specific to the vendor.
+
+        """
+        prefix = u"1.3.6.1.4.1."
+        if self.sysobjectid.startswith(prefix):
+            specific = self.sysobjectid[len(prefix):]
+            enterprise = specific.split('.')[0]
+            return long(enterprise)
+        else:
+            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
 
 #######################################################################
 ### Device management
@@ -596,8 +582,7 @@ class Prefix(models.Model):
     """From MetaNAV: The prefix table stores IP prefixes."""
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
-    # TODO: Create CIDRField in Django
-    net_address = models.TextField(db_column='netaddr', unique=True)
+    net_address = CIDRField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
     class Meta:
@@ -621,13 +606,13 @@ class Vlan(models.Model):
     has a user group (usage) within the org."""
 
     id = models.AutoField(db_column='vlanid', primary_key=True)
-    vlan = models.IntegerField()
+    vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey('NetType', db_column='nettype')
     organization = models.ForeignKey('Organization', db_column='orgid',
-        null=True)
-    usage = models.ForeignKey('Usage', db_column='usageid', null=True)
-    net_ident = models.CharField(db_column='netident', max_length=-1)
-    description = models.CharField(max_length=-1)
+        null=True, blank=True)
+    usage = models.ForeignKey('Usage', db_column='usageid', null=True, blank=True)
+    net_ident = VarcharField(db_column='netident', null=True, blank=True)
+    description = VarcharField(null=True, blank=True)
 
     class Meta:
         db_table = 'vlan'
@@ -647,9 +632,8 @@ class NetType(models.Model):
     elink, loopback, closed, static, reserved, scope. The network types are
     predefined in NAV and may not be altered."""
 
-    id = models.CharField(db_column='nettypeid',
-        max_length=-1, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    id = VarcharField(db_column='nettypeid', primary_key=True)
+    description = VarcharField(db_column='descr')
     edit = models.BooleanField(default=False)
 
     class Meta:
@@ -664,7 +648,7 @@ class Usage(models.Model):
 
     id = models.CharField(db_column='usageid',
         max_length=30, primary_key=True)
-    description = models.CharField(db_column='descr', max_length=-1)
+    description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'usage'
@@ -678,7 +662,7 @@ class Arp(models.Model):
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
-    sysname = models.CharField(max_length=-1)
+    sysname = VarcharField()
     ip = models.IPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
@@ -726,7 +710,7 @@ class SwPortAllowedVlan(models.Model):
 
     interface = models.OneToOneField('Interface', db_column='interfaceid',
                                      primary_key=True)
-    hex_string = models.CharField(db_column='hexstring', max_length=-1)
+    hex_string = VarcharField(db_column='hexstring')
 
     class Meta:
         db_table = 'swportallowedvlan'
@@ -794,10 +778,10 @@ class Cam(models.Model):
 
     id = models.AutoField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
-    sysname = models.CharField(max_length=-1)
+    sysname = VarcharField()
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
-    port = models.CharField(max_length=-1)
+    port = VarcharField()
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = DateTimeInfinityField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
@@ -819,6 +803,34 @@ class Cam(models.Model):
 class Interface(models.Model):
     """The network interfaces, both physical and virtual, of a Netbox."""
 
+    OPER_UP = 1
+    OPER_DOWN = 2
+    OPER_TESTING = 3
+    OPER_UNKNOWN = 4
+    OPER_DORMANT = 5
+    OPER_NOTPRESENT = 6
+    OPER_LOWERLAYERDOWN = 7
+
+    OPER_STATUS_CHOICES = (
+        (OPER_UP, 'up'),
+        (OPER_DOWN, 'down'),
+        (OPER_TESTING, 'testing'),
+        (OPER_UNKNOWN, 'unknown'),
+        (OPER_DORMANT, 'dormant'),
+        (OPER_NOTPRESENT, 'not present'),
+        (OPER_LOWERLAYERDOWN, 'lower layer down'),
+    )
+
+    ADM_UP = 1
+    ADM_DOWN = 2
+    ADM_TESTING = 3
+
+    ADM_STATUS_CHOICES = (
+        (ADM_UP, 'up'),
+        (ADM_DOWN, 'down'),
+        (ADM_TESTING, 'testing'),
+    )
+
     DUPLEX_FULL = 'f'
     DUPLEX_HALF = 'h'
     DUPLEX_CHOICES = (
@@ -830,8 +842,8 @@ class Interface(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     module = models.ForeignKey('Module', db_column='moduleid', null=True)
     ifindex = models.IntegerField()
-    ifname = models.CharField(max_length=-1)
-    ifdescr = models.CharField(max_length=-1)
+    ifname = VarcharField()
+    ifdescr = VarcharField()
     iftype = models.IntegerField()
     speed = models.FloatField()
     ifphysaddress = models.CharField(max_length=17, null=True)
@@ -840,10 +852,10 @@ class Interface(models.Model):
     iflastchange = models.IntegerField()
     ifconnectorpresent = models.BooleanField()
     ifpromiscuousmode = models.BooleanField()
-    ifalias = models.CharField(max_length=-1)
+    ifalias = VarcharField()
 
     baseport = models.IntegerField()
-    media = models.CharField(max_length=-1, null=True)
+    media = VarcharField(null=True)
     vlan = models.IntegerField()
     trunk = models.BooleanField()
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES, null=True)
@@ -935,9 +947,9 @@ class Interface(models.Model):
 
     def get_link_display(self):
         """Returns a display value for this interface's link status."""
-        if self.ifoperstatus == OPER_UP:
+        if self.ifoperstatus == self.OPER_UP:
             return "Active"
-        elif self.ifadminstatus == ADM_DOWN:
+        elif self.ifadminstatus == self.ADM_DOWN:
             return "Disabled"
         return "Inactive"
 
@@ -945,8 +957,8 @@ class Interface(models.Model):
 class IanaIftype(models.Model):
     """IANA-registered iftype values"""
     iftype = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=-1)
-    descr = models.CharField(max_length=-1)
+    name = VarcharField()
+    descr = VarcharField()
 
     class Meta:
         db_table = u'iana_iftype'
@@ -956,7 +968,7 @@ class RoutingProtocolAttribute(models.Model):
     """Routing protocol metric as configured on a routing interface"""
     id = models.IntegerField(primary_key=True)
     interface = models.ForeignKey('Interface', db_column='interfaceid')
-    name = models.CharField(db_column='protoname', max_length=-1)
+    name = VarcharField(db_column='protoname')
     metric = models.IntegerField()
 
     class Meta:

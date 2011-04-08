@@ -155,7 +155,7 @@ def findIdInformation(id, limit):
     conn = getConnection('default')
 
     # Find type of id
-    (type,id) = findInputType(id)
+    (type, id) = findInputType(id)
     #print "%s is of type %s" %(id, type)
 
     result = []
@@ -213,7 +213,8 @@ def findIdInformation(id, limit):
                 if row['endtime'].year == 9999:
                     row['endtime'] = 'Still Active'
                 else:
-                    row['endtime'] = row['endtime'].strftime('%Y-%m-%d %H:%M:%S')
+                    row['endtime'] = row['endtime'].strftime(
+                        '%Y-%m-%d %H:%M:%S')
 
                 if not row.has_key('ip'):
                     row['ip'] = '0.0.0.0'
@@ -320,17 +321,18 @@ def findInputType (input):
     if isValidIP(input) and not isValidIP(input).endswith('.0'):
         return ("IP", input)
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
-        return ("MAC",input)
+        return ("MAC", input)
     elif re.match("^\d+$", input):
-        return ("SWPORTID",input)
+        return ("SWPORTID", input)
 
-    return ("UNKNOWN",input)
+    return ("UNKNOWN", input)
 
 
 ###############################################################################
 # blockPort
 #
-def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, username, type, vlan=False):
+def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
+              username, type, vlan=False):
     """
     Block the port or change vlan on port and update database.
     type: block or quarantine.
@@ -368,7 +370,8 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     if checkNonBlock(id['ip']):
         raise InExceptionListError
 
-    allowtypes = [x.strip() for x in config.get('arnold','allowtypes').split(',')]
+    allowtypes = [x.strip()
+                  for x in config.get('arnold','allowtypes').split(',')]
 
     if sw['catid'] not in allowtypes:
         logger.info("blockPort: Not allowed to %s on %s" %(type, sw['catid']))
@@ -394,7 +397,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
     if not autoenable:
         autoenable = "NULL"
     else:
-        autoenable = "now() + interval '%s day'" %(autoenable)
+        autoenable = "now() + interval '%s day'" % (autoenable)
 
     # check format on the input
     if reason:
@@ -463,12 +466,12 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
         autoenable = %s, autoenablestep = %%s, mail = %%s,
         determined = %%s, fromvlan = %%s, tovlan = %%s
         WHERE identityid = %%s
-        """ %autoenable
+        """ % autoenable
             
 
-        arglist=[action, reason, sw['interfaceid'], id['ip'], id['mac'], \
-                 dns, netbios, autoenablestep, "", determined, \
-                 fromvlan, vlan, res['identityid']]
+        arglist = [action, reason, sw['interfaceid'], id['ip'], id['mac'],
+                   dns, netbios, autoenablestep, "", determined,
+                   fromvlan, vlan, res['identityid']]
 
 
         doQuery('arnold', query, arglist)
@@ -519,7 +522,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             mail, determined) 
             VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
             %s, %%s, %%s, %%s)
-            """ %autoenable
+            """ % autoenable
             
             arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", determined]
@@ -543,7 +546,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment, u
             mail, determined, fromvlan, tovlan) 
             VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
             %s, %%s, %%s, %%s, %%s, %%s)
-            """ %autoenable
+            """ % autoenable
             
             arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
                        id['mac'], dns, netbios, autoenablestep, "", \
@@ -708,7 +711,7 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex,
                  %(vendorid, community, ifindex, module))
 
     # Create snmp-object
-    s = nav.Snmp.Snmp(ip,community, version=snmp_version)
+    s = nav.Snmp.Snmp(ip, community, version=snmp_version)
 
 
     # Disable or enable based on input
@@ -794,15 +797,15 @@ def changePortVlan(ip, ifindex, vlan, snmp_version=1):
 
     # Check vlanformat
     if not re.search('\d+', str(vlan)):
-        raise ChangePortVlanError, "Wrong format on vlan %s" %vlan
+        raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
 
 
     # Make query based on oid and ifindex
     query = oid + '.' + str(ifindex)
 
     # Create snmp-objects
-    snmpget = nav.Snmp.Snmp(ip,ro,version=snmp_version)
-    snmpset = nav.Snmp.Snmp(ip,rw,version=snmp_version)
+    snmpget = nav.Snmp.Snmp(ip, ro, version=snmp_version)
+    snmpset = nav.Snmp.Snmp(ip, rw, version=snmp_version)
 
     # Fetch the vlan currently on the port
     try:
@@ -868,7 +871,7 @@ def changeSwportStatus(action, swportid):
     """
 
     if not action in ['enable','disable']:
-        raise BlockError, "No such action %s" %action
+        raise BlockError, "No such action %s" % action
 
     # Connect to database
     conn = getConnection('default')

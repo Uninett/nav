@@ -47,7 +47,7 @@ def sci(number, long=False):
           exponent = 24 * (exponent/abs(exponent))
         factor = number / 10**exponent
         # note - long means column 1, short is col 0 =)
-        return (factor,units[exponent][long])        
+        return (factor, units[exponent][long])
     except OverflowError:
         return (0,'')
 

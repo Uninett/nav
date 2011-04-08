@@ -24,7 +24,8 @@ from threading import Thread
 from time import sleep
 
 from nav.errors import ConfigurationError
-from nav.alertengine.dispatchers import dispatcher, DispatcherException
+from nav.alertengine.dispatchers import dispatcher, DispatcherException, \
+is_valid_email
 
 logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
 
@@ -101,7 +102,7 @@ class jabber(dispatcher):
         if not auth:
             raise DispatcherException('Could not authenticate with jabber server')
 
-        self.client.RegisterHandler('presence',self.presence_handler)
+        self.client.RegisterHandler('presence', self.presence_handler)
         self.client.sendInitPresence()
 
         self.ready = True
@@ -124,3 +125,7 @@ class jabber(dispatcher):
                 self.send(address, alert, language, retry=False, retry_reason=e)
             else:
                 raise DispatcherException("Couldn't send message due to: '%s', reason for retry: '%s'" % (e, retry_reason))
+
+    @staticmethod
+    def is_valid_address(address):
+        return is_valid_email(address)

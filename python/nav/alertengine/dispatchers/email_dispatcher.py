@@ -24,7 +24,7 @@ from smtplib import SMTPException, SMTPRecipientsRefused
 from django.core.mail import EmailMessage
 
 from nav.alertengine.dispatchers import dispatcher, DispatcherException, \
-FatalDispatcherException
+FatalDispatcherException, is_valid_email
 
 logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
@@ -56,3 +56,7 @@ class email(dispatcher):
                 raise FatalDispatcherException('Could not send email: %s" ' % e)
             # Reraise as DispatcherException so that we can catch it further up
             raise DispatcherException('Could not send email: %s' % e)
+
+    @staticmethod
+    def is_valid_address(address):
+        return is_valid_email(address)

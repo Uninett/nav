@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,19 +26,14 @@ interfaces, as well as set the list of enabled VLANs on trunks.
 
 """
 
-import re
 import math
-
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
 
 from nav.bitvector import BitVector
 from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib, PortList
-from nav.ipdevpoll import Plugin 
-from nav.ipdevpoll import storage, shadows
-from nav.models.manage import Interface
+from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import shadows
 
 
 class Dot1q(Plugin):
@@ -52,7 +47,7 @@ class Dot1q(Plugin):
     def handle(self):
         """Plugin entrypoint"""
 
-        self.logger.debug("Collecting 802.1q VLAN information")
+        self._logger.debug("Collecting 802.1q VLAN information")
 
         self.bridgemib = BridgeMib(self.agent)
         self.qbridgemib = QBridgeMib(self.agent)
@@ -85,7 +80,7 @@ class Dot1q(Plugin):
 
         """
 
-        self.logger.debug("PVID mapping: %r", pvids)
+        self._logger.debug("PVID mapping: %r", pvids)
         if not pvids:
             return
         else:
@@ -96,7 +91,7 @@ class Dot1q(Plugin):
                                                         shadows.Interface)
                     interface.vlan = pvid
                 else:
-                    self.logger.info("dot1qPortVlanTable referred to unknown "
+                    self._logger.info("dot1qPortVlanTable referred to unknown "
                                      "port number %s", port)
 
             deferred = self.qbridgemib.retrieve_columns((
@@ -137,10 +132,10 @@ class Dot1q(Plugin):
             try:
                 tagged = egress - untagged
             except ValueError:
-                self.logger.error("vlan %s subtraction mismatch between "
-                                  "EgressPorts and UntaggedPorts", vlan)
-                self.logger.debug("vlan: %s egress: %r untagged: %r",
-                                  vlan, egress, untagged)
+                self._logger.error("vlan %s subtraction mismatch between "
+                                   "EgressPorts and UntaggedPorts", vlan)
+                self._logger.debug("vlan: %s egress: %r untagged: %r",
+                                   vlan, egress, untagged)
             else:
                 for port in tagged.get_ports():
                     if port not in trunkports:
@@ -148,7 +143,7 @@ class Dot1q(Plugin):
                     else:
                         trunkports[port].append(vlan)
 
-        self.logger.debug("trunkports: %r", trunkports)
+        self._logger.debug("trunkports: %r", trunkports)
 
         # Now store it
         for port, vlans in trunkports.items():
@@ -167,8 +162,8 @@ class Dot1q(Plugin):
                 allowed.hex_string = vlan_list_to_hex(vlans)
 
             else:
-                self.logger.info("dot1qVlanCurrentTable referred to unknown "
-                                 "port number %s", port)
+                self._logger.info("dot1qVlanCurrentTable referred to unknown "
+                                  "port number %s", port)
             
 
 def vlan_list_to_hex(vlans):

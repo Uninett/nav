@@ -34,7 +34,7 @@ from nav.models.profiles import Account, AccountNavbar, NavbarLink
 from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 
-from nav.web import ldapAuth, auth
+from nav.web import ldapauth, auth
 from nav.web.state import deleteSessionCookie
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
@@ -107,7 +107,7 @@ def do_login(request):
 
         try:
             account = auth.authenticate(username, password)
-        except ldapAuth.Error, e:
+        except ldapauth.Error, e:
             errors.append('Error while talking to LDAP:\n%s' % e)
         else:
             if account:
@@ -115,11 +115,11 @@ def do_login(request):
                     # Pass the mod_python request structure to legacy
                     # auth.login
                     auth.login(request._req, account)
-                except ldapAuth.Error, e:
+                except ldapauth.Error, e:
                     errors.append('Error while talking to LDAP:\n%s' % e)
                 else:
                     if not origin:
-                        origin = '/index/index'
+                        origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
                 errors.append('Authentication failed for the specified username and password.')

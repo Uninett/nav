@@ -260,10 +260,14 @@
         <th></th>
         <td>
             <ul>
-                <li><a href="{% url seeddb-edit-object "netbox",netbox.id %}">
+                <li><a href="{% url seeddb-netbox-edit netbox.id %}">
                     Edit IP device</a></li>
                 <li><a href="{% url maintenance-new-netbox netbox.id %}">
                     Schedule maintenance</a></li>
+		{% if netbox.get_swports.count %}
+                <li><a href="{% url portadmin-sysname netbox.sysname %}">
+                    Configure ports</a></li>
+		{% endif %}
                 <li><a href="{% url devicehistory-view-netbox netbox.id %}">
                     View device history</a></li>
             </ul>
@@ -300,7 +304,7 @@
         <th>VLAN</th>
         <td>
             {% if vlan %}
-                <a href="{% url report-swporttrunk-vlan vlan.vlan %}">
+                <a href="{% url report-swporttrunk-vlanid vlan.id %}">
                     {{ vlan }}
                 </a>
             {% else %}

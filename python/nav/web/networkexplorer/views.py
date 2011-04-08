@@ -20,22 +20,21 @@ import socket
 import sys
 from urllib import unquote
 
-from django.core import serializers
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
-from django.db.models import Q
 
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix, SwPortVlan, Interface
-from nav.models.service import Service
+import nav.models.cabling
+from nav.models.manage import Netbox, Cam, Arp, GwPortPrefix, SwPortVlan
+from nav.models.manage import Interface
+import nav.models.service
 
 import nav.natsort
 
-from search import *
+from search import sysname_search, ip_search, mac_search, room_search
+from search import vlan_search, portname_search
 
 PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
 
@@ -141,10 +140,10 @@ def expand_gwport(request):
                     vlan.interface.has_services = True
                 sys.stderr.write("---- Checking for cam-entries\n")
                 sys.stderr.flush()
-                a= Cam.objects.filter(\
-                        netbox=vlan.interface.netbox,\
-                        ifindex=vlan.interface.ifindex,\
-                        end_time__gt=datetime.datetime.max)
+                a = Cam.objects.filter(
+                    netbox=vlan.interface.netbox,
+                    ifindex=vlan.interface.ifindex,
+                    end_time__gt=datetime.datetime.max)
                 if a.count() > 0:
 
                     sys.stderr.write("----- Found cam-entry\n\n %s \n\n" % a.query)
@@ -155,7 +154,9 @@ def expand_gwport(request):
                 if vlan.interface.to_interface:
                     sys.stderr.write("----- Found swport %s\n" % vlan.interface.to_interface)
                     sys.stderr.flush()
-                    if vlan.interface.to_interface.netbox.category.id in ('SW','GSW','EDGE'):
+                    if (vlan.interface.to_interface.netbox.category.id in
+                        ('SW', 'GSW', 'EDGE')
+                        ):
                         vlan.interface.has_children = True
                         vlan.interface.connected_to_switch = True
                     if vlan.interface.to_interface.netbox.service_set.all().count():
@@ -193,7 +194,8 @@ def expand_switch(request):
     switch = get_object_or_404(Netbox, id=request.GET['netboxid'])
     vlan = request.GET['vlanid'] or None
     swports = switch.get_swports()
-    swportvlans = SwPortVlan.objects.filter(interface__in=swports,vlan__id=vlan)
+    swportvlans = SwPortVlan.objects.filter(interface__in=swports,
+                                            vlan__id=vlan)
 
     for swportvlan in swportvlans:
         if swportvlan.interface.to_interface:

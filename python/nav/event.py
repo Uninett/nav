@@ -8,11 +8,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Simple API to interface with NAVs event queue."""
 
@@ -258,7 +258,7 @@ def create_type_hierarchy(hierarchy):
             atype, created = AlertType.objects.get_or_create(
                 name=alert_type_name, event_type=etype)
             if created:
-                atype.description=alert_descr
+                atype.description = alert_descr
                 atype.save()
                 created_count += 1
 

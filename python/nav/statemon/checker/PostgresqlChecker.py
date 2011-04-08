@@ -23,7 +23,7 @@ from nav.statemon.event import Event
 
 class PostgresqlChecker(AbstractChecker):
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self,'postgresql', service,  port=5432, **kwargs)
+        AbstractChecker.__init__(self, 'postgresql', service,  port=5432, **kwargs)
     def execute(self):
         args = self.getArgs()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

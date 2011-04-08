@@ -22,21 +22,27 @@ from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
 
-nav_config = readConfig('nav.conf')
+try:
+    nav_config = readConfig('nav.conf')
+except IOError:
+    nav_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
 
 # Admins
 ADMINS = (
-    ('NAV Administrator', nav_config['ADMIN_MAIL']),
+    ('NAV Administrator', nav_config.get('ADMIN_MAIL', 'root@localhost')),
 )
 MANAGERS = ADMINS
 
 # Database / ORM configuration
 DATABASE_ENGINE = 'postgresql_psycopg2'
-(DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER,
- DATABASE_PASSWORD) = get_connection_parameters('django')
+try:
+    (DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER,
+     DATABASE_PASSWORD) = get_connection_parameters('django')
+except IOError:
+    pass
 
 INSTALLED_APPS = ('nav.django',)
 
@@ -50,9 +56,15 @@ TEMPLATE_DIRS = (
 
 # Context processors
 TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.request',
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
+)
+
+# Middleware
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
 )
 
 # Email sending

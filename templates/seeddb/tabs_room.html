@@ -1,0 +1,12 @@
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-room %}">Rooms</a></li>
+<li class="{{ sub_active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-room-edit %}">Add new room</a>
+</li>
+{% if object %}
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-room-edit object.id %}">Edit room "{{ object.id }}"</a>
+</li>
+{% endif %}
+<li class="{{ sub_active.bulk|yesno:"tabactive," }}">
+    <a href="{% url seeddb-room-bulk %}">Bulk import</a></li>

@@ -1,5 +1,4 @@
-#! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2006-2008 UNINETT AS
 #
@@ -19,19 +18,9 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#
-# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
-#          Thomas Adamcik <thomas.adamcik@uninett.no>
-#
-
 """
 mod_python handler for Maintenance subsystem.
 """
-
-__copyright__ = "Copyright 2006-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no), Thomas Adamcik (thomas.adamcik@uninett.no)"
-__id__ = "$Id:$"
 
 import time
 from mod_python import apache, util
@@ -44,10 +33,12 @@ from nav.web.templates.MaintenanceDetailsTemplate import MaintenanceDetailsTempl
 from nav.web.templates.MaintenanceListTemplate import MaintenanceListTemplate
 from nav.web.templates.MaintenanceNewTemplate import MaintenanceNewTemplate
 from nav.web.quickselect import QuickSelect
+from nav.web.encoding import encoded_output
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
+@encoded_output
 def handler(req):
     """Handler for the Maintenance subsystem."""
 
@@ -76,19 +67,22 @@ def handler(req):
     if section == 'active':
         page = MaintenanceListTemplate()
         page.title = 'Active Maintenance Tasks'
-        page.tasks = nav.maintenance.getTasks('maint_start < now() AND maint_end > now()')
+        page.tasks = nav.maintenance.getTasks(
+            'maint_start < now() AND maint_end > now()')
 
     # Planned maintenance tasks (not yet reached activation time)
     elif section == 'planned':
         page = MaintenanceListTemplate()
         page.title = 'Planned Maintenance Tasks'
-        page.tasks = nav.maintenance.getTasks('maint_start > now() AND maint_end > now()')
+        page.tasks = nav.maintenance.getTasks(
+            'maint_start > now() AND maint_end > now()')
 
     # Historic maintenance tasks
     elif section == 'historic':
         page = MaintenanceListTemplate()
         page.title = 'Historic Maintenance Tasks'
-        page.tasks = nav.maintenance.getTasks('maint_end < now()', 'maint_end DESC')
+        page.tasks = nav.maintenance.getTasks(
+            'maint_end < now()', 'maint_end DESC')
 
     # View a maintenance task
     elif section == 'view' and args.get('id'):
@@ -110,7 +104,7 @@ def handler(req):
         page.tasks = nav.maintenance.getTask(taskid)
 
     # New and edit
-    elif section == 'new' or section =='edit':
+    elif section == 'new' or section == 'edit':
         page = MaintenanceNewTemplate()
         page.title = 'Create New Maintenance Task'
         page.action = "new"
@@ -126,7 +120,8 @@ def handler(req):
             menu.append({'link': 'edit', 'text': 'Edit', 'admin': True})
 
             if not args.get('id') or not args.get('id').isdigit():
-                page.errors.append('Maintenance task ID in request is not a digit.')
+                page.errors.append(
+                    'Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
                 page.action = "edit?id=%d" % taskid
@@ -163,7 +158,7 @@ def handler(req):
                     key, value = field.value.split(',')
                     components.append({'key': key, 'value': value,
                         'info': nav.maintenance.getComponentInfo(key, value)})
-        elif req.form.has_key('netbox'):
+        elif req.form.has_key('netbox') and not req.form.has_key('submit_netbox'):
             # Netbox defined in URL, creating new maintenance task with netbox
             # already added
             components = []
@@ -176,7 +171,7 @@ def handler(req):
             components = page.components
 
         # Handle added components
-        for key,values in page.quickselect.handle_post(req).iteritems():
+        for key, values in page.quickselect.handle_post(req).iteritems():
             for v in values:
                 component = {
                     'key': key,

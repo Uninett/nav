@@ -23,7 +23,7 @@ from nav.statemon.event import Event
 from nav.util import which, is_setuid_root
 
 class DhcpChecker(AbstractChecker):
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "dhcp", service, port=0, **kwargs)
 
     def execute(self):

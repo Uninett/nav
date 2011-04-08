@@ -16,7 +16,7 @@
 #
 
 # Python Standard library
-import sys,string,os,exceptions
+import sys, string, os, exceptions
 
 # NAV ServiceMonitor-modules
 from nav.statemon.abstractChecker import AbstractChecker
@@ -61,8 +61,8 @@ class RadiusChecker(AbstractChecker):
     Failure to connect:
         return Event.DOWN, str(sys.exc_value)
     """
-    def __init__(self,service,**kwargs):
-        AbstractChecker.__init__(self,"radius",service, port=1812, **kwargs)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self, "radius", service, port=1812, **kwargs)
 
     def execute(self):
         args = self.getArgs()
@@ -72,14 +72,17 @@ class RadiusChecker(AbstractChecker):
             rad_secret = args.get("secret","")
             identifier = args.get("identifier","")
             dictionary = args.get("dictionary","") # or "dictionary"
-            ip,port = self.getAddress()
-            srv = Client(server=ip,secret=rad_secret,dict=Dictionary(dictionary))
+            ip, port = self.getAddress()
+            srv = Client(server=ip, secret=rad_secret,
+                         dict=Dictionary(dictionary))
             req = srv.CreateAuthPacket(code=pyrad.packet.AccessRequest,
                     User_Name=username, NAS_Identifier=identifier)
             req["User-Password"] = req.PwCrypt(password)
             reply = srv.SendPacket(req)
-        except Exception,e:
-            return Event.DOWN, "Failed connecting to %s: %s)" % (self.getAddress(),str(e))
+        except Exception, e:
+            return (Event.DOWN,
+                    "Failed connecting to %s: %s)" %
+                    (self.getAddress(), str(e)))
         version = "FreeRadius 1.0" # Fetch from radiusmonitor later.
         self.setVersion(version) 
         return Event.UP, "Radius: " + version

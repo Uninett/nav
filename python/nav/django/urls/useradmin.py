@@ -23,9 +23,7 @@
 
 """Main Django URL configuration"""
 
-# pylint: disable-msg=W0614,W0401
-
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, include, url
 
 def get_urlpatterns():
     urlpatterns = patterns('',

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2010 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -33,12 +33,12 @@ class InvalidResponseError(Exception):
 
 class TypeOid(Plugin):
     @classmethod
-    def can_handle(self, netbox):
+    def can_handle(cls, netbox):
         return True
 
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
-        self.logger.debug("Collecting sysObjectId")
+        self._logger.debug("Collecting sysObjectId")
         self.snmpv2_mib = Snmpv2Mib(self.agent)
         df = self.snmpv2_mib.get_sysObjectID()
         df.addCallback(self._response_handler)
@@ -56,7 +56,7 @@ class TypeOid(Plugin):
             self.sysobjectid = self.sysobjectid[1:]
 
 
-        self.logger.debug("sysObjectID is %s", self.sysobjectid)
+        self._logger.debug("sysObjectID is %s", self.sysobjectid)
 
         df = self._get_type_from_db()
         df.addCallback(self._check_for_typechange)
@@ -70,7 +70,7 @@ class TypeOid(Plugin):
 
     def _get_type_from_db(self):
         """Loads from db a type object matching the sysobjectid."""
-        def single_result(result):
+        def _single_result(result):
             if result:
                 return result[0]
 
@@ -78,7 +78,7 @@ class TypeOid(Plugin):
         types = manage.NetboxType.objects.filter(sysobjectid=self.sysobjectid)
         df = threads.deferToThread(storage.shadowify_queryset_and_commit,
                                    types)
-        df.addCallback(single_result)
+        df.addCallback(_single_result)
         return df
 
     def _set_type(self, type_):
@@ -95,9 +95,9 @@ class TypeOid(Plugin):
             oldname = self.netbox.type and self.netbox.type.name or 'unknown'
             newname = type_ and type_.name or \
                 'unknown (sysObjectID %s)' % self.sysobjectid
-            self.logger.warning("Netbox has changed type from %s to %s",
-                                oldname, newname)
-            self.logger.debug("old=%r new=%r", self.netbox.type, type_)
+            self._logger.warning("Netbox has changed type from %s to %s",
+                                 oldname, newname)
+            self._logger.debug("old=%r new=%r", self.netbox.type, type_)
 
             if not type_:
                 return self.create_new_type()
@@ -114,12 +114,12 @@ class TypeOid(Plugin):
         type_.name = self.sysobjectid
         type_.sysobjectid = self.sysobjectid
 
-        def set_sysdescr(descr):
-            self.logger.debug("Creating new type with descr=%r", descr)
+        def _set_sysdescr(descr):
+            self._logger.debug("Creating new type with descr=%r", descr)
             type_.description = descr
             return type_
 
         df = self.snmpv2_mib.get_sysDescr()
-        df.addCallback(set_sysdescr)
+        df.addCallback(_set_sysdescr)
         return df
 

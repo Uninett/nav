@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007, 2008 UNINETT AS
+# Copyright (C) 2007, 2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,10 +16,14 @@
 #
 """Alert Profiles forms"""
 
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 from django import forms
 from django.db.models import Q
+
+from nav.alertengine.dispatchers.email_dispatcher import email
+from nav.alertengine.dispatchers.jabber_dispatcher import jabber
+from nav.alertengine.dispatchers.sms_dispatcher import sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
@@ -68,6 +72,29 @@ class AlertAddressForm(forms.ModelForm):
     class Meta:
         model = AlertAddress
         exclude = ('account',)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        type = cleaned_data.get('type')
+        address = cleaned_data.get('address')
+        if type and address:
+            error = None
+            if type.handler == 'sms':
+                if not sms.is_valid_address(address):
+                    error = 'Not a valid phone number.'
+            elif type.handler == 'jabber':
+                if not jabber.is_valid_address(address):
+                    error = 'Not a valid jabber address.'
+            else:
+                if not email.is_valid_address(address):
+                    error = 'Not a valid email address.'
+
+            if error:
+                self._errors['address'] = self.error_class([error])
+                del cleaned_data['address']
+                del cleaned_data['type']
+
+        return cleaned_data
 
 class TimePeriodForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)

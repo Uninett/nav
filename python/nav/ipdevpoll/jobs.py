@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009, 2010 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,21 +18,23 @@ import time
 import datetime
 import pprint
 import logging
-
-from twisted.internet import defer, threads
+import threading
+import gc
+from twisted.internet import defer, threads, reactor
 from twistedsnmp import snmpprotocol, agentproxy
 
 from nav.util import round_robin
 from nav import toposort
 
-from nav import ipdevpoll
+from nav.ipdevpoll import get_context_logger
 import storage
 import shadows
 from plugins import plugin_registry
-import utils
+from nav.ipdevpoll import db
+from utils import log_unhandled_failure
 
-logger = logging.getLogger(__name__)
-ports = round_robin([snmpprotocol.port() for i in range(10)])
+_logger = logging.getLogger(__name__)
+ports = round_robin([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
@@ -55,24 +57,26 @@ class JobHandler(object):
     def __init__(self, name, netbox, plugins=None):
         self.name = name
         self.netbox = netbox
-        self.cancelled = False
+        self.cancelled = threading.Event()
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
-        self.logger = \
-            ipdevpoll.get_instance_logger(self, ".".join(instance_name))
-        self.queue_logger = \
-            ipdevpoll.get_instance_logger(self, ".".join(instance_queue_name))
+        self.log_context = dict(job=self.name, sysname=self.netbox.sysname)
+        self._logger = get_context_logger(self, **self.log_context)
+        self._queue_logger = get_context_logger(self._logger.name + '.queue',
+                                                **self.log_context)
+        self._timing_logger = get_context_logger(self._logger.name + ".timings",
+                                                 **self.log_context)
 
         self.plugins = plugins or []
-        self.logger.debug("Job %r initialized with plugins: %r",
-                          self.name, self.plugins)
+        self._logger.debug("Job %r initialized with plugins: %r",
+                           self.name, self.plugins)
         self.containers = storage.ContainerRepository()
         self.storage_queue = []
 
         # Initialize netbox in container
         nb = self.container_factory(shadows.Netbox, key=None)
-        nb.id = netbox.id
+        (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
 
         port = ports.next()
 
@@ -82,8 +86,8 @@ class JobHandler(object):
             snmpVersion = 'v%s' % self.netbox.snmp_version,
             protocol = port.protocol,
         )
-        self.logger.debug("AgentProxy created for %s: %s",
-                          self.netbox.sysname, self.agent)
+        self._logger.debug("AgentProxy created for %s: %s",
+                           self.netbox.sysname, self.agent)
 
 
     def find_plugins(self):
@@ -93,8 +97,8 @@ class JobHandler(object):
 
         for plugin_name in self.plugins:
             if plugin_name not in plugin_registry:
-                self.logger.error("A non-existant plugin %r is configured "
-                                  "for job %r", plugin_name, self.name)
+                self._logger.error("A non-existant plugin %r is configured "
+                                   "for job %r", plugin_name, self.name)
                 continue
             plugin_class = plugin_registry[plugin_name]
 
@@ -102,18 +106,19 @@ class JobHandler(object):
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
-                                      config=ipdevpoll_conf)
+                                      config=ipdevpoll_conf,
+                                      context=self.log_context)
                 plugins.append(plugin)
             else:
-                self.logger.debug("Plugin %s wouldn't handle %s",
-                                  plugin_name, self.netbox.sysname)
+                self._logger.debug("Plugin %s wouldn't handle %s",
+                                   plugin_name, self.netbox.sysname)
 
         if not plugins:
-            self.logger.debug("No plugins for this job")
+            self._logger.debug("No plugins for this job")
             return
 
-        self.logger.debug("Plugins to call: %s",
-                          ",".join([p.name() for p in plugins]))
+        self._logger.debug("Plugins to call: %s",
+                           ",".join([p.name() for p in plugins]))
 
         return plugins
 
@@ -123,26 +128,26 @@ class JobHandler(object):
 
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(defer.TimeoutError):
-                self.logger.error("Plugin %s reported a timeout",
-                                  plugin_instance)
+                self._logger.debug("Plugin %s reported a timeout",
+                                   plugin_instance)
             else:
-                self.logger.error("Plugin %s reported an unhandled failure:"
-                                  "\n%s",
-                                  plugin_instance, failure.getTraceback())
+                log_unhandled_failure(self._logger,
+                                      failure,
+                                      "Plugin %s reported an unhandled failure",
+                                      plugin_instance)
             return failure
 
         def next_plugin(result=None):
-            if self.cancelled:
-                return
+            self.raise_if_cancelled()
             try:
                 plugin_instance = plugins.next()
             except StopIteration:
                 return result
 
-            self.logger.debug("Now calling plugin: %s", plugin_instance)
+            self._logger.debug("Now calling plugin: %s", plugin_instance)
             self._start_plugin_timer(plugin_instance)
 
-            df = plugin_instance.handle()
+            df = defer.maybeDeferred(plugin_instance.handle)
             df.addErrback(self._stop_plugin_timer)
             df.addErrback(log_plugin_failure, plugin_instance)
             df.addCallback(self._stop_plugin_timer)
@@ -158,12 +163,12 @@ class JobHandler(object):
         if not plugins:
             return defer.succeed(None)
 
-        self.logger.info("Starting job %r for %s",
-                         self.name, self.netbox.sysname)
+        self._logger.info("Starting job %r for %s",
+                          self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
-            self.logger.info("Job %s for %s done.", self.name,
-                             self.netbox.sysname)
+            self._logger.info("Job %s for %s done.", self.name,
+                              self.netbox.sysname)
             self._log_timings()
             return result
 
@@ -173,20 +178,22 @@ class JobHandler(object):
                                   cause=failure.value)
 
         def save_failure(failure):
-            self.logger.error("Save stage failed with unhandled error:\n%s",
-                              failure.getTraceback())
+            log_unhandled_failure(self._logger,
+                                  failure,
+                                  "Save stage failed with unhandled error")
             self._log_timings()
             raise AbortedJobError("Job aborted due to save failure",
                                   cause=failure.value)
 
         def log_abort(failure):
             if failure.check(AbortedJobError):
-                self.logger.error("Job %r for %s aborted.",
-                                  self.name, self.netbox.sysname)
+                self._logger.error("Job %r for %s aborted: %s",
+                                   self.name, self.netbox.sysname,
+                                   failure.value.cause)
             return failure
 
         def save(result):
-            if self.cancelled:
+            if self.cancelled.isSet():
                 return wrap_up_job(result)
 
             df = self.save_container()
@@ -194,11 +201,20 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        # pylint is unable to find reactor members:
+        # pylint: disable=E1101
+        shutdown_trigger_id = reactor.addSystemEventTrigger(
+            "before", "shutdown", self.cancel)
+        def remove_event_trigger(result):
+            reactor.removeSystemEventTrigger(shutdown_trigger_id)
+            return result
+
         # The action begins here
         df = self._iterate_plugins(plugins)
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
+        df.addBoth(remove_event_trigger)
         return df
 
     def cancel(self):
@@ -206,20 +222,21 @@ class JobHandler(object):
 
         Job stops at the earliest convenience.
         """
-        self.cancelled = True
-        self.logger.warning("Cancelling running job")
+        self.cancelled.set()
+        self._logger.info("Cancelling running job")
 
     def _reset_timers(self):
         self._start_time = datetime.datetime.now()
         self._plugin_times = []
 
     def _start_plugin_timer(self, plugin):
-        timings = [plugin.__class__.__name__, datetime.datetime.now()]
+        now = datetime.datetime.now()
+        timings = [plugin.__class__.__name__, now, now]
         self._plugin_times.append(timings)
 
     def _stop_plugin_timer(self, result=None):
         timings = self._plugin_times[-1]
-        timings.append(datetime.datetime.now())
+        timings[-1] = datetime.datetime.now()
         return result
 
     def _log_timings(self):
@@ -248,8 +265,7 @@ class JobHandler(object):
         log_text.insert(0, "Job %r timings for %s:" %
                         (self.name, self.netbox.sysname))
 
-        log = ipdevpoll.get_instance_logger(self, "timings")
-        log.debug("\n".join(log_text))
+        self._timing_logger.debug("\n".join(log_text))
 
     def get_current_runtime(self):
         """Returns time elapsed since the start of the job as a timedelta."""
@@ -261,8 +277,8 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @utils.autocommit
-        @utils.cleanup_django_debug_after
+        @db.autocommit
+        @db.cleanup_django_debug_after
         def complete_save_cycle():
             # Prepare all shadow objects for storage.
             self.prepare_containers_for_save()
@@ -284,6 +300,7 @@ class JobHandler(object):
 
         """
         for cls in self.containers.keys():
+            self.raise_if_cancelled()
             cls.prepare_for_save(self.containers)
 
     def cleanup_containers_after_save(self):
@@ -291,73 +308,59 @@ class JobHandler(object):
         known instances.
 
         """
-        self.logger.debug("Running cleanup routines for %d classes (%r)",
-                          len(self.containers), self.containers.keys())
+        self._logger.debug("Running cleanup routines for %d classes (%r)",
+                           len(self.containers), self.containers.keys())
         try:
             for cls in self.containers.keys():
+                self.raise_if_cancelled()
                 cls.cleanup_after_save(self.containers)
+        except AbortedJobError:
+            raise
         except Exception:
-            self.logger.exception("Caught exception during cleanup. "
+            self._logger.exception("Caught exception during cleanup. "
                                   "Last class = %s",
                                   cls.__name__)
             import django.db
             if django.db.connection.queries:
-                self.logger.error("The last query was: %s",
-                                  django.db.connection.queries[-1])
+                self._logger.error("The last query was: %s",
+                                   django.db.connection.queries[-1])
             raise
 
     def log_timed_result(self, res, msg):
-        self.logger.debug(msg + " (%0.3f ms)" % res)
+        self._logger.debug(msg + " (%0.3f ms)" % res)
 
     def perform_save(self):
         start_time = time.time()
         obj_model = None
         try:
             self.storage_queue.reverse()
-            if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self.queue_logger.debug(pprint.pformat(
+            if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
+                self._queue_logger.debug(pprint.pformat(
                         [(id(o), o) for o in self.storage_queue]))
 
             while self.storage_queue:
+                self.raise_if_cancelled()
                 obj = self.storage_queue.pop()
-                obj_model = obj.convert_to_model(self.containers)
-                if obj.delete and obj_model:
-                    obj_model.delete()
-                else:
-                    try:
-                        # Skip if object exists in database and no fields
-                        # are touched
-                        if obj.getattr(obj, obj.get_primary_key().name) \
-                            and not obj.get_touched():
-                            continue
-                    except AttributeError:
-                        pass
-                    if obj_model:
-                        obj_model.save()
-                        # In case we saved a new object, store a reference to
-                        # the newly allocated primary key in the shadow object.
-                        # This is to ensure that other shadows referring to
-                        # this shadow will know about this change.
-                        if not obj.get_primary_key():
-                            obj.set_primary_key(obj_model.pk)
-                        obj._touched.clear()
+                obj.save(self.containers)
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
 
-            if self.queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self.queue_logger.debug("containers after save: %s",
-                                        pprint.pformat(self.containers))
+            if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
+                self._queue_logger.debug("containers after save: %s",
+                                         pprint.pformat(self.containers))
 
             return total_time
+        except AbortedJobError:
+            raise
         except Exception:
-            self.logger.exception("Caught exception during save. "
-                                  "Last object = %s. Last model: %s",
-                                  obj, obj_model)
+            self._logger.exception("Caught exception during save. "
+                                   "Last object = %s. Last model: %s",
+                                   obj, obj_model)
             import django.db
             if django.db.connection.queries:
-                self.logger.error("The last query was: %s",
-                                  django.db.connection.queries[-1])
+                self._logger.error("The last query was: %s",
+                                   django.db.connection.queries[-1])
             raise
 
     def populate_storage_queue(self):
@@ -378,13 +381,25 @@ class JobHandler(object):
         """Container factory function"""
         return self.containers.factory(key, container_class)
 
+    def raise_if_cancelled(self):
+        """Raises an AbortedJobError if the current job is cancelled"""
+        if self.cancelled.isSet():
+            raise AbortedJobError("Job was already cancelled")
+
+    @classmethod
+    def get_instance_count(cls):
+        """Returns the number of JobHandler instances as seen by the garbage
+        collector.
+
+        """
+        return len([o for o in gc.get_objects() if isinstance(o, cls)])
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
     def get_dependencies(shadow_class):
         return shadow_class.get_dependencies()
 
-    shadow_classes = storage.shadowed_classes.values()
+    shadow_classes = storage.MetaShadow.shadowed_classes.values()
     graph = toposort.build_graph(shadow_classes, get_dependencies)
     sorted_classes = toposort.topological_sort(graph)
     return sorted_classes

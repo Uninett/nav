@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010 UNINETT AS
+# Copyright (C) 2010, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -27,7 +27,7 @@ class LastUpdated(Plugin):
         return True
 
     def handle(self):
-        self.logger.debug("Updating lastupdated timestamp")
+        self._logger.debug("Updating lastupdated timestamp")
 
         # Convention is to store timestamp as milliseconds since the epoch in
         # the NetboxInfo table

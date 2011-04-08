@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007, 2008 UNINETT AS
+# Copyright (C) 2007, 2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,9 +16,9 @@
 #
 """Alert Profiles url config."""
 
-# pylint: disable-msg=W0614,W0401
+# pylint: disable=W0614,W0401
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import url, patterns
 
 from nav.web.alertprofiles.views import *
 

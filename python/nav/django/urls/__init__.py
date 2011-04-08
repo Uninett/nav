@@ -14,10 +14,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
 """Main Django URL configuration"""
 
-# pylint: disable-msg=W0614,W0401
+# pylint: disable=W0401
 
 # Import all submodules in the urls package
 import os

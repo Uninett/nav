@@ -116,7 +116,7 @@ class ImapsChecker(AbstractChecker):
     username
     password
     """
-    def __init__(self,service, **kwargs):
+    def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "imaps", service, port=993, **kwargs)
     def execute(self):
         args = self.getArgs()
@@ -128,8 +128,8 @@ class ImapsChecker(AbstractChecker):
         if user:
             m.login(user, passwd)
             m.logout()
-        version=''
-        ver=ver.split(' ')
+        version = ''
+        ver = ver.split(' ')
         if len(ver) >= 2:
             for i in ver[2:]:
                 if i != "at":

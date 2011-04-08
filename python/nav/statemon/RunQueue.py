@@ -47,11 +47,11 @@ class worker(threading.Thread):
     """
     def __init__(self, rq):
         threading.Thread.__init__(self)
-        self._runqueue=rq
-        self._runcount=0
-        self._running=1
-        self._timeCreated=time.time()
-        self._timeStartExecute=0
+        self._runqueue = rq
+        self._runcount = 0
+        self._running = 1
+        self._timeCreated = time.time()
+        self._timeStartExecute = 0
 
     def run(self):
         """
@@ -60,7 +60,7 @@ class worker(threading.Thread):
         """
         while self._running:
             try:
-                self._checker=self._runqueue.deq()
+                self._checker = self._runqueue.deq()
                 self.execute()
             except TerminateException:
                 self._runqueue.workers.remove(self)
@@ -72,41 +72,43 @@ class worker(threading.Thread):
         exceeded, self._running is set to zero and the
         thread will be recycled.
         """
-        self._runcount+=1
-        self._timeStartExecute=time.time()
+        self._runcount += 1
+        self._timeStartExecute = time.time()
         self._checker.run()
         if self._runqueue.getMaxRunCount() != 0 and \
                self._runcount > self._runqueue.getMaxRunCount():
-            self._running=0
+            self._running = 0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
             debug("%s is recycling."% self.getName())
-        debug("%s finished checker number %i" % (self.getName(), self._runcount),7)
-        self._timeStartExecute=0
+        debug("%s finished checker number %i" %
+              (self.getName(), self._runcount), 7)
+        self._timeStartExecute = 0
 
 
 def RunQueue(*args, **kwargs):
     if _RunQueue._instance is None:
-        _RunQueue._instance=_RunQueue(*args,**kwargs)
+        _RunQueue._instance = _RunQueue(*args, **kwargs)
     return _RunQueue._instance
 
 class _RunQueue:
-    _instance=None
-    def __init__(self,**kwargs):
-        self.conf=config.serviceconf()
-        self._maxThreads=int(self.conf.get('maxthreads', sys.maxint))
+    _instance = None
+
+    def __init__(self, **kwargs):
+        self.conf = config.serviceconf()
+        self._maxThreads = int(self.conf.get('maxthreads', sys.maxint))
         debug("Setting maxthreads=%i" % self._maxThreads)
-        self._maxRunCount=int(self.conf.get('recycle interval',50))
+        self._maxRunCount = int(self.conf.get('recycle interval', 50))
         debug("Setting maxRunCount=%i" % self._maxRunCount)
-        self._controller=kwargs.get('controller',self)
-        self.workers=[]
-        self.unusedThreadName=[]
-        self.rq=DEQueue.DEQueue()
-        self.pq=prioqueunique.prioque()
-        self.lock=RLock()
-        self.awaitWork=Condition(self.lock)
-        self.stop=0
-        self.makeDaemon=1
+        self._controller = kwargs.get('controller', self)
+        self.workers = []
+        self.unusedThreadName = []
+        self.rq = DEQueue.DEQueue()
+        self.pq = prioqueunique.prioque()
+        self.lock = RLock()
+        self.awaitWork = Condition(self.lock)
+        self.stop = 0
+        self.makeDaemon = 1
 
     def getMaxRunCount(self):
         return self._maxRunCount
@@ -121,20 +123,20 @@ class _RunQueue:
         self.lock.acquire()
         # Checkers with priority is put in a seperate queue
         if type(runnable) == types.TupleType:
-            pri,obj=runnable
-            self.pq.put(pri,obj)
+            pri, obj = runnable
+            self.pq.put(pri, obj)
         else:
             self.rq.put(runnable)
 
         # This is quite dirty, but I really need to know how many
         # threads are waiting for checkers.
-        numWaiters=len(self.awaitWork._Condition__waiters)
+        numWaiters = len(self.awaitWork._Condition__waiters)
         debug("Number of workers: %i Waiting workers: %i" % \
               (len(self.workers), numWaiters), 7)
         if numWaiters > 0:
             self.awaitWork.notify()
         elif len(self.workers) < self._maxThreads:
-            newWorker=worker(self)
+            newWorker = worker(self)
             newWorker.setDaemon(self.makeDaemon)
             if len(self.unusedThreadName) > 0:
                 newWorker.setName(self.unusedThreadName.pop())
@@ -166,32 +168,32 @@ class _RunQueue:
 
             if len(self.pq)>0:
                 scheduledTime, obj = self.pq.headPair()
-                scheduledTime=float(scheduledTime)
-                now=time.time()
-                wait=scheduledTime-now
+                scheduledTime = float(scheduledTime)
+                now = time.time()
+                wait = scheduledTime-now
                 # If we have priority ready we
                 # return it now.
                 if wait <= 0:
-                    r=self.pq.get()
+                    r = self.pq.get()
                     self.lock.release()
                     return r
             # We have no priority checkers ready.
             # Check if we have unpriority checkers
             # to execute
             if len(self.rq) > 0:
-                r=self.rq.get()
+                r = self.rq.get()
                 self.lock.release()
                 return r
             # Wait to execute priority checker, break if new checkers arrive
             else:
-                debug("Thread waits for %s secs" % wait,7)
+                debug("Thread waits for %s secs" % wait, 7)
                 self.awaitWork.wait(wait)
 
     def terminate(self):
         self.lock.acquire()
-        self.stop=1
+        self.stop = 1
         self.awaitWork.notifyAll()
-        self.numThreadsWaiting=0
+        self.numThreadsWaiting = 0
         self.lock.release()
         debug("Waiting for threads to terminate...")
         for i in self.workers:

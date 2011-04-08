@@ -16,11 +16,11 @@
 #
 """Django URL configuration for devicehistory."""
 
-# pylint: disable-msg=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.devicehistory.views import *
+from nav.web.devicehistory.views import devicehistory_search, devicehistory_view
+from nav.web.devicehistory.views import error_form, register_error
+from nav.web.devicehistory.views import delete_module, do_delete_module
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',

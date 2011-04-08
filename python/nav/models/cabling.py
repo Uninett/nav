@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 UNINETT AS
+# Copyright (C) 2007-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,6 +19,7 @@
 from django.db import models
 
 from nav.models.manage import Room, Interface
+from nav.models.fields import VarcharField
 
 class Cabling(models.Model):
     """From MetaNAV: The cabling table documents the cabling from the wiring
@@ -26,11 +27,11 @@ class Cabling(models.Model):
 
     id = models.AutoField(db_column='cablingid', primary_key=True)
     room = models.ForeignKey(Room, db_column='roomid')
-    jack = models.CharField(max_length=-1)
-    building = models.CharField(max_length=-1)
-    target_room = models.CharField(db_column='targetroom', max_length=-1)
-    description = models.CharField(db_column='descr', max_length=-1)
-    category = models.CharField(max_length=-1)
+    jack = VarcharField()
+    building = VarcharField()
+    target_room = VarcharField(db_column='targetroom')
+    description = VarcharField(db_column='descr')
+    category = VarcharField()
 
     class Meta:
         db_table = 'cabling'
@@ -46,7 +47,7 @@ class Patch(models.Model):
     id = models.AutoField(db_column='patchid', primary_key=True)
     interface = models.ForeignKey(Interface, db_column='interfaceid')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
-    split = models.CharField(max_length=-1, default='no')
+    split = VarcharField(default='no')
 
     class Meta:
         db_table = 'patch'

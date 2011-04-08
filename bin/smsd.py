@@ -154,7 +154,7 @@ def main(args):
 
     # Initialize logger
     global logger
-    nav.logs.setLogLevels()
+    nav.logs.set_log_levels()
     logger = logging.getLogger('nav.smsd')
     loginitstderr(loglevel)
     if not loginitfile(loglevel, logfile):

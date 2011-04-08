@@ -16,11 +16,9 @@
 #
 """Django URL config for rrd viewer"""
 
-# pylint: disable-msg=W0614,W0401
+from django.conf.urls.defaults import url, patterns
 
-from django.conf.urls.defaults import *
-
-from nav.web.rrdviewer.views import *
+from nav.web.rrdviewer.views import rrd_index, rrd_details, rrd_image
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',

@@ -47,7 +47,7 @@ from nav.db import get_connection_string
 
 def db():
     if _db._instance is None:
-        _db._instance=_db()
+        _db._instance = _db()
 
     return _db._instance
 
@@ -58,7 +58,7 @@ class UnknownRRDFileError(Exception):
     pass
 
 class _db(threading.Thread):
-    _instance=None
+    _instance = None
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(1)
@@ -77,8 +77,8 @@ class _db(threading.Thread):
             self.db.set_isolation_level(1)
         except Exception, e:
             debug("Couldn't connect to db.", 2)
-            debug(str(e),2)
-            self.db=None
+            debug(str(e), 2)
+            self.db = None
 
     def status(self):
         try:
@@ -110,14 +110,14 @@ class _db(threading.Thread):
             except Exception, e:
                 # If we fail to commit the event, place it
                 # back in our queue
-                debug("Failed to commit event, rescheduling...",7)
+                debug("Failed to commit event, rescheduling...", 7)
                 self.newEvent(event)
                 time.sleep(5)
 
     def query(self, statement, commit=1):
         try:
-            cursor=self.cursor()
-            debug("Executing: %s" % statement,7)
+            cursor = self.cursor()
+            debug("Executing: %s" % statement, 7)
             cursor.execute(statement)
             if commit:
                 self.db.commit()
@@ -129,12 +129,12 @@ class _db(threading.Thread):
                 try:
                     self.db.rollback()
                 except:
-                    debug("Failed to rollback",2)
+                    debug("Failed to rollback", 2)
             raise dbError()
     def execute(self, statement, commit=1):
         try:
-            cursor=self.cursor()
-            debug("Executing: %s" % statement,5)
+            cursor = self.cursor()
+            debug("Executing: %s" % statement, 5)
             cursor.execute(statement)
             if commit:
                 try:
@@ -211,7 +211,7 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
             properties = self.query(query)
         except dbError:
             return self._checkers
-        for serviceid,prop,value in properties:
+        for serviceid, prop, value in properties:
             if serviceid not in property:
                 property[serviceid] = {}
             if value:
@@ -229,29 +229,31 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         self._checkers = []
         for each in fromdb:
             if len(each) == 9:
-                serviceid,netboxid,deviceid,active,handler,version,ip,sysname,up = each
+                (serviceid, netboxid, deviceid, active, handler, version, ip,
+                 sysname, up) = each
             else:
-                debug("Invalid checker: %s" % each,2)
+                debug("Invalid checker: %s" % each, 2)
                 continue
             checker = checkermap.get(handler)
             if not checker:
-                debug("no such checker: %s" % handler,2)
+                debug("no such checker: %s" % handler, 2)
                 continue
-            service={'id':serviceid,
-                     'netboxid':netboxid,
-                     'ip':ip,
-                     'deviceid':deviceid,
-                     'sysname':sysname,
-                     'args':property.get(serviceid,{}),
-                     'version':version
-                     }
+            service = {
+                'id':serviceid,
+                'netboxid':netboxid,
+                'ip':ip,
+                'deviceid':deviceid,
+                'sysname':sysname,
+                'args':property.get(serviceid,{}),
+                'version':version
+                }
 
             kwargs = {}
             if useDbStatus:
                 if up == 'y':
-                    up=Event.UP
+                    up = Event.UP
                 else:
-                    up=Event.DOWN
+                    up = Event.DOWN
                 kwargs['status'] = up
 
             try:
@@ -265,7 +267,7 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
             if onlyactive and not active:
                 continue
             else:
-                setattr(newChecker,'active',active)
+                setattr(newChecker, 'active', active)
 
             self._checkers += [newChecker]
         debug("Returned %s checkers" % len(self._checkers))
@@ -301,7 +303,8 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
                      netboxid IS NULL""" % (netboxid, path, filename)
         return self.execute(statement)
 
-    def registerRrd(self, path, filename, step, netboxid, subsystem, key="",val=""):
+    def registerRrd(self, path, filename, step, netboxid, subsystem, key="",
+                    val=""):
         rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]
         if key and val:
             statement = """INSERT INTO rrd_file
@@ -311,8 +314,8 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         else:
             statement = """INSERT INTO rrd_file
             (rrd_fileid, path, filename, step, netboxid, subsystem) VALUES
-            (%s,'%s','%s',%s,%s,'%s')""" %(rrdid, path, filename,
-                               step, netboxid, subsystem)
+            (%s,'%s','%s',%s,%s,'%s')""" % (rrdid, path, filename,
+                                            step, netboxid, subsystem)
         self.execute(statement)
         return rrdid
     def registerDS(self, rrd_fileid, name, descr, dstype, unit):

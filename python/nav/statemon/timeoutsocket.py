@@ -230,7 +230,7 @@ class TimeoutSocket:
         #   If select raises an error, we pass it on.
         #   Is this the right behavior?
         if not dumbhack:
-            r,w,e = select.select([], [sock], [], timeout)
+            r, w, e = select.select([], [sock], [], timeout)
             if w:
                 return self.connect(addr, dumbhack=1)
 
@@ -273,7 +273,7 @@ class TimeoutSocket:
         #   If select raises an error, we pass it on.
         #   Is this the right behavior?
         if not dumbhack:
-            r,w,e = select.select([sock], [], [], timeout)
+            r, w, e = select.select([sock], [], [], timeout)
             if r:
                 return self.accept(dumbhack=1)
 
@@ -284,7 +284,7 @@ class TimeoutSocket:
     def send(self, data, flags=0):
         sock = self._sock
         if self._blocking:
-            r,w,e = select.select([],[sock],[], self._timeout)
+            r, w, e = select.select([], [sock], [], self._timeout)
             if not w:
                 raise Timeout("Send timed out")
         return sock.send(data, flags)
@@ -293,7 +293,7 @@ class TimeoutSocket:
     def recv(self, bufsize, flags=0):
         sock = self._sock
         if self._blocking:
-            r,w,e = select.select([sock], [], [], self._timeout)
+            r, w, e = select.select([sock], [], [], self._timeout)
             if not r:
                 raise Timeout("Recv timed out")
         return sock.recv(bufsize, flags)

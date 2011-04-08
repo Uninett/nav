@@ -24,7 +24,7 @@ import nav
 import logging
 
 from nav.django.utils import get_account, is_admin
-from nav.web import state, ldapAuth
+from nav.web import state, ldapauth
 from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
 logger = logging.getLogger("nav.web.auth")
@@ -34,7 +34,9 @@ def redirectToLogin(req):
     Takes the supplied request and redirects it to the NAV login page.
     """
     from nav import web
-    web.redirect(req, '/index/login?origin=%s' % urllib.quote(req.unparsed_uri), temporary=True)
+    web.redirect(req,
+                 '/index/login?origin=%s' % urllib.quote(req.unparsed_uri),
+                 temporary=True)
 
 # FIXME Should probably be refactored out if this file, as it does not directly
 # have anything to do with authentication.
@@ -62,11 +64,11 @@ def _find_user_preferences(user, req):
                 'name': pref.navbarlink.name,
                 'uri': pref.navbarlink.uri,
             }
-            if pref.positions.count('navbar'): # does 'positions'-string contain 'navbar'
+            if pref.positions.count('navbar'):
                 user['preferences']['navbar'].append(link)
-            if pref.positions.count('qlink1'): # does 'positions'-string contain 'qlink1'
+            if pref.positions.count('qlink1'):
                 user['preferences']['qlink1'].append(link)
-            if pref.positions.count('qlink2'): # does 'positions'-string contain 'qlink2'
+            if pref.positions.count('qlink2'):
                 user['preferences']['qlink2'].append(link)
         if req:
             req.session.save() # remember this to next time
@@ -119,8 +121,8 @@ def authenticate(username, password):
     try:
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
-        if ldapAuth.available:
-            user = ldapAuth.authenticate(username, password)
+        if ldapauth.available:
+            user = ldapauth.authenticate(username, password)
             # If we authenticated, store the user in database.
             if user:
                 account = Account(
@@ -128,20 +130,27 @@ def authenticate(username, password):
                     name=user.getRealName(),
                     ext_sync='ldap'
                 )
-                auth = True
                 account.set_password(password)
                 account.save()
+                # We're authenticated now
+                auth = True
 
-    if account and not auth:
-        if account.ext_sync == 'ldap' and ldapAuth.available:
-            # Try to authenticate with LDAP if user has specified this.
-            auth = ldapAuth.authenticate(username, password)
+    if (account and account.ext_sync == 'ldap' and
+        ldapauth.available and not auth):
+        try:
+            auth = ldapauth.authenticate(username, password)
+        except ldapauth.Error:
+            # Fallback to stored password if ldap is unavailable
+            auth = False
+        else:
             if auth:
                 account.set_password(password)
                 account.save()
-        else:
-            # Authenticate against database
-            auth = account.check_password(password)
+            else:
+                return
+
+    if account and not auth:
+        auth = account.check_password(password)
 
     if auth and account:
         return account

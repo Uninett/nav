@@ -15,3 +15,12 @@ nobase_python_PYTHON = $(sort $(wildcard nav/*.py) \
 			      )
 
 nobase_python_DATA = $(wildcard nav/statemon/checker/*.descr)
+
+all: $(cheetah_TEMPLATES) $(pathmodule)
+
+check: all
+	PYTHONPATH=. ./runtests.py $(top_srcdir)/tests/unittests
+	@echo
+	@echo "*** Remember to also run the integration ***"
+	@echo "*** tests on a fully installed system    ***"
+	@echo

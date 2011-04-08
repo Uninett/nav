@@ -29,7 +29,7 @@ class MetaIP:
     IPv4MetaMap = None
     IPv6MetaMap = None
 
-    def __init__(self,ip):
+    def __init__(self, ip):
         self.netaddr = ip
         self.prefixid = None
         self.active_ip_cnt = None
@@ -54,7 +54,7 @@ class MetaIP:
         cls.IPv4MetaMap = None
         cls.IPv6MetaMap = None
 
-    def getTreeNet(self,leadingZeros=True):
+    def getTreeNet(self, leadingZeros=True):
         """This method is used to get the string representation of the IP
         shown in the tree to left of the prefix matrix."""
 
@@ -70,7 +70,7 @@ class MetaIP:
         netaddr_string = self.netaddr.net().strNormal()
         return netaddr_string[:netaddr_string.rfind(".")]
 
-    def _getTreeNetIpv6(self,leadingZeros):
+    def _getTreeNetIpv6(self, leadingZeros):
         """Compress self.netaddr, remove "::", and padd with ":0"."""
         netaddr = None
         hexlets_in_address = int(float(self.netaddr.prefixlen())/16+0.5)

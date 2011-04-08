@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -40,7 +40,7 @@ from twisted.internet import threads
 from nav.models import manage
 from nav import ipdevpoll
 import storage
-from utils import autocommit, django_debug_cleanup
+from nav.ipdevpoll.db import autocommit, django_debug_cleanup
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
@@ -51,10 +51,13 @@ class NetboxLoader(dict):
 
     """
 
-    def __init__(self):
+    def __init__(self, context=None):
         super(NetboxLoader, self).__init__()
         self.peak_count = 0
-        self._logger = ipdevpoll.get_instance_logger(self, id(self))
+        if context:
+            self._logger = ipdevpoll.get_context_logger(self, **context)
+        else:
+            self._logger = ipdevpoll.get_class_logger(self.__class__)
 
     @autocommit
     def load_all_s(self):
@@ -74,7 +77,9 @@ class NetboxLoader(dict):
             changed in the database since the last load operation.
 
         """
-        queryset = manage.Netbox.objects.select_related(depth=1).filter(
+        related = ('room__location', 'type__vendor',
+                   'category', 'organization', 'device')
+        queryset = manage.Netbox.objects.select_related(*related).filter(
             read_only__isnull=False, up='y')
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)

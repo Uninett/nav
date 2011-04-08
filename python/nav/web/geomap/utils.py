@@ -69,8 +69,8 @@ def weighted_avg(lst):
     """
     if len(lst) == 0:
         return 0
-    total = sum(map(lambda (value,weight): value*weight, lst))
-    num = sum(map(lambda (value,weight): weight, lst))
+    total = sum(map(lambda (value, weight): value*weight, lst))
+    num = sum(map(lambda (value, weight): weight, lst))
     return float(total)/num
 
 
@@ -274,12 +274,12 @@ def union_dict(*dicts):
 
 def concat_list(lists):
     """Concatenate a list of lists."""
-    return reduce(lambda a,b: a+b, lists, [])
+    return reduce(lambda a, b: a+b, lists, [])
 
 
 def concat_str(strs):
     """Concatenate a list of strings."""
-    return reduce(lambda a,b: a+b, strs, '')
+    return reduce(lambda a, b: a+b, strs, '')
 
 
 class lazy_dict:

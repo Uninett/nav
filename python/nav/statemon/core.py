@@ -16,8 +16,8 @@ eks stdout:
 (serviceid,boksid,status,info,version,responsetid)
 """
 
-import os,sys,time,signal
-from job import jobmap,Event
+import os, sys, time, signal
+from job import jobmap, Event
 
 
 MAX = 10
@@ -26,15 +26,15 @@ TIMEOUT = 5
 class Timeout(Exception):
     pass
 
-def handler(s,f):
+def handler(s, f):
     raise Timeout('timeout')
 
-def do(serviceid,boksid,ip,type,version,args):
+def do(serviceid, boksid, ip, type, version, args):
     start = time.time()
-    j = jobmap[type](serviceid,boksid,ip,args,version)
-    status,info = j.execute()
+    j = jobmap[type](serviceid, boksid, ip, args, version)
+    status, info = j.execute()
     version = j.getVersion()
-    return (serviceid,status,info,version,time.time() - start)
+    return (serviceid, status, info, version, time.time() - start)
 
 def core(childs = MAX):
     signal.signal(signal.SIGALRM, handler)
@@ -46,13 +46,13 @@ def core(childs = MAX):
                     s = raw_input()
                     if not s:
                         sys.exit(0)
-                    serviceid,boksid,ip,type,version,args = eval(s)
-                    timeout = args.get('timeout',TIMEOUT)
+                    serviceid, boksid, ip, type, version, args = eval(s)
+                    timeout = args.get('timeout', TIMEOUT)
                     signal.alarm(timeout)
-                    print do(serviceid,boksid,ip,type,version,args)
+                    print do(serviceid, boksid, ip, type, version, args)
                     signal.alarm(0)
-                except Timeout,info:
-                    print (serviceid,Event.DOWN,'timeout',0)
+                except Timeout, info:
+                    print (serviceid, Event.DOWN, 'timeout', 0)
                 except SystemExit:
                     raise
 

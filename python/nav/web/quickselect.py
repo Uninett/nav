@@ -32,8 +32,10 @@ class QuickSelect:
         self.service  = kwargs.pop('service',  False)
         self.module   = kwargs.pop('module',   False)
 
-        self.location_label = kwargs.pop('location_label', '%(id)s (%(description)s)')
-        self.room_label     = kwargs.pop('room_label',     '%(id)s (%(description)s)')
+        self.location_label = kwargs.pop('location_label',
+                                         '%(id)s (%(description)s)')
+        self.room_label     = kwargs.pop('room_label',
+                                         '%(id)s (%(description)s)')
         self.netbox_label   = kwargs.pop('netbox_label',   '%(sysname)s')
         self.service_label  = kwargs.pop('service_label',  '%(handler)s')
         self.module_label   = kwargs.pop('module_label',   '%(name)s')
@@ -45,12 +47,14 @@ class QuickSelect:
         self.module_multi   = kwargs.pop('module_multiple',   True)
 
         for key in kwargs.keys():
-            raise TypeError('__init__() got an unexpected keyword argument %s' % key)
+            raise TypeError('__init__() got an unexpected keyword argument '
+                            '%s' % key)
 
         # Quick hack to add the serial to our values.
         netbox_value_args = [f.attname for f in Netbox._meta.fields]
         netbox_value_args.append('device__serial')
-        self.netbox_set = Netbox.objects.order_by('sysname').values(*netbox_value_args)
+        self.netbox_set = Netbox.objects.order_by(
+            'sysname').values(*netbox_value_args)
 
         # Rest of the queryset we need
         self.location_set = Location.objects.order_by(('id')).values()
@@ -124,8 +128,10 @@ class QuickSelect:
             if self.location:
                 locations = {'': []}
                 for location in self.location_set:
-                    location_name[location['id']] = self.location_label % location
-                    locations[''].append((location['id'], location_name[location['id']]))
+                    location_name[location['id']] = (self.location_label %
+                                                     location)
+                    locations[''].append((location['id'],
+                                          location_name[location['id']]))
 
                 # use loc instead of location to avoid noscript XSS protection
                 output.append({
@@ -143,7 +149,8 @@ class QuickSelect:
                     location = location_name.get(room['location_id'])
                     room_name[room['id']] = self.room_label % room
                     if location in rooms:
-                        rooms[location].append((room['id'], room_name[room['id']]))
+                        rooms[location].append((room['id'],
+                                                room_name[room['id']]))
                     else:
                         rooms[location] = [(room['id'], room_name[room['id']])]
 
@@ -162,9 +169,11 @@ class QuickSelect:
                     room = room_name.get(netbox['room_id'])
                     netbox_name[netbox['id']] = self.netbox_label % netbox
                     if room in netboxes:
-                        netboxes[room].append((netbox['id'], netbox_name[netbox['id']]))
+                        netboxes[room].append((netbox['id'],
+                                               netbox_name[netbox['id']]))
                     else:
-                        netboxes[room] = [(netbox['id'], netbox_name[netbox['id']])]
+                        netboxes[room] = [(netbox['id'],
+                                           netbox_name[netbox['id']])]
 
                 output.append({
                         'label': 'IP device',

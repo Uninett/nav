@@ -207,7 +207,7 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
             assert False, str(res)
         if 'from_swportid' not in res and 'from_gwportid' not in res:
             assert False, str(res)
-        link_load = [-1,-1]
+        link_load = [-1, -1]
         if 'rrd_datasource_in' in res:
             link_load[0] = get_rrd_link_load(res['rrd_datasource_in'])
         if 'rrd_datasource_out' in res:

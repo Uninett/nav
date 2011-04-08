@@ -16,7 +16,7 @@
 #
 """Classes for URI manipulation."""
 
-import re,string
+import re, string
 from urllib import unquote_plus as unquote
 from urlparse import urlsplit
 
@@ -25,7 +25,7 @@ class URI:
     An object representing a uri, that may replace parts of itself.
     """
     
-    def __init__(self,uri):
+    def __init__(self, uri):
         """
         Constructor of the URI class. Sets the original uri.
 
@@ -50,7 +50,7 @@ class URI:
         
 
     
-    def setArguments(self,fields,string):
+    def setArguments(self, fields, string):
         """
         Replaces the values of the arguments in the uri that has one of the keys listed in fields with string.
 
@@ -80,7 +80,7 @@ class URI:
         uri = self.path
 
         args = []
-        for arg,val in self.args.items():
+        for arg, val in self.args.items():
 
             args.append(arg+"="+val)
 
@@ -92,7 +92,7 @@ class URI:
 
         return uri
 
-    def get(self,var):
+    def get(self, var):
 
         if self.args.has_key(var):
             return unquote(self.args[var])

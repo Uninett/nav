@@ -30,19 +30,15 @@ the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
 
-import logging
-import pprint
-from datetime import datetime
-
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
+from twisted.internet import defer
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
-from nav.models import manage
+from nav.ipdevpoll import shadows
 
 class Modules(Plugin):
+    """Plugin to collect module and chassis data from devices"""
+
     @classmethod
     def can_handle(cls, netbox):
         return True
@@ -51,20 +47,17 @@ class Modules(Plugin):
         super(Modules, self).__init__(*args, **kwargs)
         self.alias_mapping = {}
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def handle(self):
-        self.logger.debug("Collecting ENTITY-MIB module data")
+        self._logger.debug("Collecting ENTITY-MIB module data")
         entitymib = EntityMib(self.agent)
 
-        dw = defer.waitForDeferred(entitymib.retrieve_table('entPhysicalTable'))
-        yield dw
-        physical_table = entitymib.translate_result(dw.getResult())
+        df = entitymib.retrieve_table('entPhysicalTable')
+        df.addCallback(entitymib.translate_result)
+        physical_table = yield df
 
-        dw = defer.waitForDeferred(
-            entitymib.retrieve_column('entAliasMappingIdentifier'))
-        yield dw
-        alias_mapping = dw.getResult()
-
+        alias_mapping = yield entitymib.retrieve_column(
+            'entAliasMappingIdentifier')
         self.alias_mapping = self._process_alias_mapping(alias_mapping)
         self._process_entities(physical_table)
 
@@ -78,7 +71,7 @@ class Modules(Plugin):
         else:
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
-        
+
         device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
             device.serial = serial_number
@@ -116,18 +109,18 @@ class Modules(Plugin):
             module.device = device
 
             module_containers[entity_index] = module
-            self.logger.debug("module (entPhysIndex=%s): %r", 
-                              entity_index, module)
+            self._logger.debug("module (entPhysIndex=%s): %r",
+                               entity_index, module)
 
         return module_containers
 
     def _process_chassis(self, entities):
         chassis = entities.get_chassis()
         if not chassis:
-            self.logger.info('No chassis found')
+            self._logger.info('No chassis found')
             return
         elif len(chassis) > 1:
-            self.logger.info('Found multiple chassis')
+            self._logger.info('Found multiple chassis')
 
         # We don't really know how to handle a multiple chassis
         # situation.  Best effort is to use the first one in the list.
@@ -140,8 +133,8 @@ class Modules(Plugin):
 
     def _process_ports(self, entities, module_containers):
         ports = entities.get_ports()
-        netbox = self.containers.factory(None, shadows.Netbox) 
-        
+        netbox = self.containers.factory(None, shadows.Netbox)
+
         # Map interfaces to modules, if possible
         module_ifindex_map = {} #just for logging debug info
         for port in ports:
@@ -165,7 +158,7 @@ class Modules(Plugin):
                             module_ifindex_map[module.name] = [ifindex]
 
         if module_ifindex_map:
-            self.logger.debug("module/ifindex mapping: %r", 
+            self._logger.debug("module/ifindex mapping: %r",
                               module_ifindex_map)
 
 
@@ -181,7 +174,7 @@ class Modules(Plugin):
 
     def _process_alias_mapping(self, alias_mapping):
         mapping = {}
-        for (phys_index, logical), row in alias_mapping.items():
+        for (phys_index, _logical), row in alias_mapping.items():
             # Last element is ifindex. Preceding elements is an OID.
             ifindex = row.pop()
 
@@ -189,7 +182,7 @@ class Modules(Plugin):
                 mapping[phys_index] = []
             mapping[phys_index].append(ifindex)
 
-        self.logger.debug("alias mapping: %r", mapping)
+        self._logger.debug("alias mapping: %r", mapping)
         return mapping
 
 

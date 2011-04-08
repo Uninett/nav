@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+from nav.topology.detector import main
+main()
+

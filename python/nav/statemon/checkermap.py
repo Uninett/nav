@@ -60,8 +60,8 @@ def parsedir():
     Parses the checkerdir for Handlers.
     
     """
-    files=os.listdir(checkerdir)
-    handlerpattern="Checker.py"
+    files = os.listdir(checkerdir)
+    handlerpattern = "Checker.py"
     for file in files:
         if file.endswith(handlerpattern):
             key = file[:-len(handlerpattern)].lower()

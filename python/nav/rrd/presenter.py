@@ -8,16 +8,17 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 Abstraction of the rrd_file and rrd_datasource fields in the main NAV database.
 
-Consists of three classes, presentation beeing the one of most interest to other developers.
+Consists of three classes, presentation beeing the one of most interest to
+other developers.
 
 Quick example:
 
@@ -58,31 +59,33 @@ unitmap = {'s'   : 'Seconds',
 
 class rrd_file:
     """Class representing an rrd-file"""
-    def __init__(self,rrd_fileid):
+    def __init__(self, rrd_fileid):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
             cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute("select * from rrd_file natural join netbox where rrd_fileid=%s"% rrd_fileid)
+        cursor.execute("select * from rrd_file natural join netbox "
+                       "where rrd_fileid=%s" % rrd_fileid)
         result = cursor.fetchone()
-        self.path     = result['path']
-        self.filename = result['filename']
-        self.netboxid = result['netboxid']
-        self.key      = result['key']
-        self.value    = result['value']
-        self.subsystem= result['subsystem']
-        self.sysname  = result['sysname']
+        self.path      = result['path']
+        self.filename  = result['filename']
+        self.netboxid  = result['netboxid']
+        self.key       = result['key']
+        self.value     = result['value']
+        self.subsystem = result['subsystem']
+        self.sysname   = result['sysname']
         
     def fullPath(self):
-        rrd_file_path = path.join(self.path,self.filename)
+        rrd_file_path = path.join(self.path, self.filename)
         return rrd_file_path
 
 class datasource:
     """ Class representing a datasource.
     Can perform simple calculations on the datasource"""
 
-    def __init__(self,rrd_datasourceid,linetype='LINE2'):
+    def __init__(self, rrd_datasourceid, linetype='LINE2'):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
             cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute("select * from rrd_datasource where rrd_datasourceid=%s"% rrd_datasourceid)
+        cursor.execute("select * from rrd_datasource "
+                       "where rrd_datasourceid=%s" % rrd_datasourceid)
         result = cursor.fetchone()
         self.name     = result['name']
         self.descr    = result['descr']
@@ -92,13 +95,13 @@ class datasource:
         self.linetype = linetype
         self.rrd_fileobj = rrd_file(result['rrd_fileid'])
         self.sysname = self.rrd_fileobj.sysname
-        self.legend = '%s - %s' % (self.rrd_fileobj.sysname,self.descr)
+        self.legend = '%s - %s' % (self.rrd_fileobj.sysname, self.descr)
         cursor.close()
 
     def getId(self):
         return self.rrd_datasourceid
     
-    def __eq__(self,obj):
+    def __eq__(self, obj):
         return obj.rrd_datasourceid == self.rrd_datasourceid
     
     def __str__(self):
@@ -139,14 +142,17 @@ class presentation:
             blapp
 
     def units(self):
-        """Returns the units of the rrd_datasources contained in the presentation object"""
+        """Returns the units of the rrd_datasources contained in the
+        presentation object
+
+        """
         units = []
         for i in self.datasources:
             units.append(i.units)
         return units
         
 
-    def addDs(self,ds_id):
+    def addDs(self, ds_id):
         """Adds a datasource to the presentation, returns the default legend"""
         ds = datasource(ds_id)
         self.datasources.append(ds)
@@ -272,7 +278,10 @@ class presentation:
 
         
     def validPoints(self):
-        """Returns list of [number of points,number of invalid points, invalid/number of points]"""
+        """Returns list of [number of points,number of invalid points,
+        invalid/number of points]
+
+        """
         valid = []
         a = self.fetchValid()
         for i in a:
@@ -282,7 +291,7 @@ class presentation:
             valid.append(ret)
         return valid
             
-    def timeLast(self,timeframe='day', value=1):
+    def timeLast(self, timeframe='day', value=1):
         """Sets the timeframe of the presentation
         Currently valid timeframes: year,month,week,hour,day,minute"""
         self.toTime = 'now'
@@ -318,7 +327,7 @@ class presentation:
         """Removes all datasources from the presentation object"""
         self.datasources = []
     
-    def removeDs(self,ds_id):
+    def removeDs(self, ds_id):
         """Removes the datasource specified by rrd_datasourceid"""
         ds = datasource(ds_id)
         self.datasources.remove(ds)
@@ -358,27 +367,27 @@ class presentation:
                          ,7:'#002200'
                          ,8:'#220000'}            
 
-            color ={0:"#00cc00",
-                    1:"#0000ff",
-                    2:"#ff0000",
-                    3:"#00ffff",
-                    4:"#ff00ff",
-                    5:"#ffff00",
-                    6:"#cc0000",
-                    7:"#0000cc",
-                    8:"#0080C0",
-                    9:"#8080C0",
-                    10:"#FF0080",
-                    11:"#800080",
-                    12:"#0000A0",
-                    13:"#408080",
-                    14:"#808000",
-                    15:"#000000",
-                    16:"#00FF00",
-                    17:"#0080FF",
-                    18:"#FF8000",
-                    19:"#800000",
-                    20:"#FB31FB"}
+            color = {0:"#00cc00",
+                     1:"#0000ff",
+                     2:"#ff0000",
+                     3:"#00ffff",
+                     4:"#ff00ff",
+                     5:"#ffff00",
+                     6:"#cc0000",
+                     7:"#0000cc",
+                     8:"#0080C0",
+                     9:"#8080C0",
+                     10:"#FF0080",
+                     11:"#800080",
+                     12:"#0000A0",
+                     13:"#408080",
+                     14:"#808000",
+                     15:"#000000",
+                     16:"#00FF00",
+                     17:"#0080FF",
+                     18:"#FF8000",
+                     19:"#800000",
+                     20:"#FB31FB"}
 
             #color = {0:'#0F0CFF',
             #         1:'#00FF00',
@@ -399,7 +408,8 @@ class presentation:
             if ds.units and ds.units.count("%"):
                 # limit to [0,100]
                 params += ['--upper-limit', '100', '--lower-limit', '0']
-            params += ['DEF:'+rrd_variable+'='+rrd_filename+':'+rrd_datasourcename+':AVERAGE']
+            params += ['DEF:' + rrd_variable + '=' + rrd_filename + ':' +
+                       rrd_datasourcename + ':AVERAGE']
             # Define virtuals to possibly do some percentage magical
             # flipping
             virtual = 'CDEF:v_'+rrd_variable+'='
@@ -424,13 +434,17 @@ class presentation:
                     pass
                 
             params += [virtual]
-            params += [linetype+':v_'+rrd_variable+color[index % len(color)]+':'+''+legend+'']
+            params += [linetype + ':v_' + rrd_variable +
+                       color[index % len(color)] + ':' + '' + legend + '']
 
             a = rrdtool.info(str(rrd_filename))
             # HVA I HELVETE SKJER HER!?!?!??!?!
-            if self.showmax and 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))] :
+            if (self.showmax and
+                'MAX' in [a.get('rra')[i].get('cf')
+                          for i in range(len(a.get('rra')))]):
                 legend += ' - MAX'
-                params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX']
+                params += ['DEF:' + rrd_max_variable + '=' + rrd_filename +
+                           ':' + rrd_datasourcename+':MAX']
                 virtual = 'CDEF:v_'+rrd_max_variable+'='
                 if ds.units and ds.units.startswith('-'): # begins with -
                     # availability is flipped up-side down, revert
@@ -451,7 +465,8 @@ class presentation:
                         pass
             
                 params += [virtual]
-                params += [linetype_max+':v_'+rrd_max_variable+color_max[index]+':'+''+legend+'']
+                params += [linetype_max + ':v_' + rrd_max_variable +
+                           color_max[index] + ':' + '' + legend + '']
                 
             index += 1
             
@@ -473,9 +488,9 @@ class presentation:
         id = self.genImage(*params)
         return '/rrd/image=%s/' % str(id)
 
-    def genImage (self,*rrd_params):
+    def genImage (self, *rrd_params):
         conf = nav.config.readConfig(configfile)
-        id = str(random.randint(1,10**9))
+        id = str(random.randint(1, 10**9))
         imagefilename = conf['file_prefix'] + id + conf['file_suffix']
         rrd_params = (imagefilename,) + rrd_params
         try:
@@ -530,7 +545,7 @@ class page:
        
 
         
-def graph(req,id):
+def graph(req, id):
     conf = nav.config.readConfig(configfile)
     filename = conf['file_prefix'] + id + conf['file_suffix']
     req.content_type  = 'image/gif'

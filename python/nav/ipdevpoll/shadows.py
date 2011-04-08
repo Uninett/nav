@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009, 2010 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -28,12 +28,19 @@ import IPy
 from django.db.models import Q
 
 from nav.models import manage, oid
+from nav.models.event import EventQueue as Event
+
 from storage import Shadow
 import descrparsers
 import utils
+from nav.ipdevpoll import db
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
+
+# Shadow classes usually don't need docstrings - these can be found in the
+# Django models being shadowed:
+# pylint: disable=C0111
 
 class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
@@ -65,7 +72,7 @@ class Netbox(Shadow):
                     self.device.serial = None
 
     @classmethod
-    @utils.commit_on_success
+    @db.commit_on_success
     def cleanup_replaced_netbox(cls, netbox_id, new_type):
         """Removes basic inventory knowledge for a netbox.
 
@@ -89,6 +96,11 @@ class Netbox(Shadow):
                          netbox.sysname)
         netbox.type = type_
         netbox.up_to_date = False
+
+        new_device = manage.Device()
+        new_device.save()
+        netbox.device = new_device
+
         netbox.save()
 
         netbox.module_set.all().delete()
@@ -106,6 +118,8 @@ class NetboxInfo(Shadow):
 class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
 
+# pylint is unable to see which members are created dynamically by metaclass:
+# pylint: disable=E0203,W0201
 class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
@@ -114,6 +128,7 @@ class Module(Shadow):
         self._fix_binary_garbage()
         self._fix_missing_name()
         self._resolve_duplicate_serials()
+        self._resolve_duplicate_names()
 
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
@@ -158,30 +173,69 @@ class Module(Shadow):
             other.device = new_device
             other.save()
 
+    def _resolve_duplicate_names(self):
+        """Attempts to solve module naming conflicts inside the same chassis.
+
+        If two modules physically switch slots in a chassis, they will be
+        recognized by their serial numbers, but their names will likely be
+        swapped.
+
+        Module names must be unique within a chassis, so if another module on
+        this netbox has the same name as us, we need to do something about the
+        other module's name before our own to avoid a database integrity
+        error.
+
+        """
+        other = self._find_name_duplicates()
+        if other:
+            self._logger.warning(
+                "modules appear to have been swapped inside same chassis (%s): "
+                "%s (%s) <-> %s (%s)",
+                other.netbox.sysname,
+                self.name, self.device.serial,
+                other.name, other.device.serial)
+
+            other.name = u"%s (%s)" % (other.name, other.device.serial)
+            other.save()
+
+
+    def _find_name_duplicates(self):
+        myself_in_db = self.get_existing_model()
+
+        same_name_modules = manage.Module.objects.filter(
+            netbox__id = self.netbox.id,
+            name = self.name)
+
+        if myself_in_db:
+            same_name_modules = same_name_modules.exclude(
+                id = myself_in_db.id)
+
+        other = same_name_modules.select_related('device', 'netbox')
+
+        return other[0] if other else None
 
     @classmethod
     def _make_modulestate_event(cls, django_module):
-        from nav.models.event import EventQueue as Event
-        e = Event()
+        event = Event()
         # FIXME: ipdevpoll is not a registered subsystem in the database yet
-        e.source_id = 'getDeviceData'
-        e.target_id = 'eventEngine'
-        e.device = django_module.device
-        e.netbox = django_module.netbox
-        e.event_type_id = 'moduleState'
-        return e
+        event.source_id = 'getDeviceData'
+        event.target_id = 'eventEngine'
+        event.device = django_module.device
+        event.netbox = django_module.netbox
+        event.event_type_id = 'moduleState'
+        return event
 
     @classmethod
     def _dispatch_down_event(cls, django_module):
-        e = cls._make_modulestate_event(django_module)
-        e.state = e.STATE_START
-        e.save()
+        event = cls._make_modulestate_event(django_module)
+        event.state = event.STATE_START
+        event.save()
 
     @classmethod
     def _dispatch_up_event(cls, django_module):
-        e = cls._make_modulestate_event(django_module)
-        e.state = e.STATE_END
-        e.save()
+        event = cls._make_modulestate_event(django_module)
+        event.state = event.STATE_END
+        event.save()
 
     @classmethod
     def _handle_missing_modules(cls, containers):
@@ -244,17 +298,19 @@ class Interface(Shadow):
     __shadowclass__ = manage.Interface
 
     @classmethod
+    def cleanup_after_save(cls, containers):
+        """Cleans up Interface data."""
+        cls._mark_missing_interfaces(containers)
+        cls._delete_missing_interfaces(containers)
+        super(Interface, cls).cleanup_after_save(containers)
+
+    @classmethod
     def _mark_missing_interfaces(cls, containers):
         """Marks interfaces in db as gone if they haven't been collected in
         this round.
 
         This is designed to run in the cleanup_after_save phase, as it needs
         primary keys of the containers to have been found.
-
-        TODO: Make a deletion algorithm.  Missing interfaces that do
-        not correspond to a module known to be down should be deleted.
-        If all interfaces belonging to a specific module is down, we
-        may have detected that the module is down as well.
 
         """
         netbox = containers.get(None, Netbox)
@@ -281,33 +337,37 @@ class Interface(Shadow):
     def _delete_missing_interfaces(cls, containers):
         """Deletes missing interfaces from the database."""
         netbox = containers.get(None, Netbox)
-        base_query = manage.Interface.objects.filter(
-            netbox__id = netbox.id)
+        ifcs = manage.Interface.objects.filter(netbox__id=netbox.id)
+        missing_ifcs = ifcs.exclude(gone_since__isnull=True)
 
-        missing_ifs = base_query.exclude(
-            gone_since__isnull=True).values('pk', 'ifindex')
-
-        # at this time, we only want to delete those gone_interface who appear
-        # to have ifindex duplicates that aren't missing.
-        deleteable = []
-        for missing_if in missing_ifs:
-            dupes = base_query.filter(
-                ifindex=missing_if['ifindex'], gone_since__isnull=True)
-            if dupes.count() > 0:
-                deleteable.append(missing_if['pk'])
+        deleteable = set(cls._get_indexless_ifcs_pk(missing_ifcs))
+        deleteable.update(cls._get_dead_ifcs_pk(ifcs))
 
         if deleteable:
             cls._logger.info("(%s) Deleting %d missing interfaces",
                              netbox.sysname, len(deleteable))
             manage.Interface.objects.filter(pk__in=deleteable).delete()
 
+    @staticmethod
+    def _get_indexless_ifcs_pk(interfaces):
+        indexless = interfaces.filter(ifindex__isnull=True).values('pk')
+        return [row['pk'] for row in indexless]
 
-    @classmethod
-    def cleanup_after_save(cls, containers):
-        """Cleans up Interface data."""
-        cls._mark_missing_interfaces(containers)
-        cls._delete_missing_interfaces(containers)
-        super(Interface, cls).cleanup_after_save(containers)
+    @staticmethod
+    def _get_dead_ifcs_pk(interfaces,
+                          grace_period = datetime.timedelta(days=1)):
+        """Returns a list of primary keys of dead interfaces.
+
+        An interface is considered dead if has a gone_since timestamp older
+        than the grace period and is either not associated with a module or
+        associated with a module known to still be up.
+
+        """
+        deadline = datetime.datetime.now() - grace_period
+        ancient_ifcs = interfaces.filter(gone_since__lt = deadline)
+        down_modules = manage.Module.objects.exclude(up='y')
+        dead_ifcs = ancient_ifcs.exclude(module__in = down_modules)
+        return [row['pk'] for row in dead_ifcs.values('pk')]
 
     def lookup_matching_objects(self, containers):
         """Finds existing db objects that match this container.
@@ -319,14 +379,14 @@ class Interface(Shadow):
 
         """
         query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
-        result = []
+        result = None
         if self.ifname:
             result = query.filter(ifname=self.ifname)
         if not result and self.ifdescr:
             # this is only likely on a db recently migrated from NAV 3.5
             result = query.filter(ifname=self.ifdescr,
                                   ifdescr=self.ifdescr)
-        if len(result) > 1:
+        if result and len(result) > 1:
             # Multiple ports with same name? damn...
             # also filter for ifindex, maybe we get lucky
             result = result.filter(ifindex=self.ifindex)
@@ -337,7 +397,7 @@ class Interface(Shadow):
 
         return result
 
-    def get_existing_model(self, containers):
+    def get_existing_model(self, containers=None):
         """Implements custom logic for finding known interfaces."""
         result = self.lookup_matching_objects(containers)
         if not result:
@@ -398,7 +458,7 @@ class Interface(Shadow):
     def set_ifindex_if_unset(self, containers):
         """Sets this Interface's ifindex value if unset by plugins."""
         if self.ifindex is None:
-            interfaces = dict((v,k) for k,v in containers[Interface].items())
+            interfaces = dict((v, k) for k, v in containers[Interface].items())
             if self in interfaces:
                 self.ifindex = interfaces[self]
 
@@ -449,7 +509,7 @@ class Vlan(Shadow):
                     live_prefix.vlan)
                 return live_prefix.vlan
 
-    def get_existing_model(self, containers):
+    def get_existing_model(self, containers=None):
         """Finds pre-existing Vlan object using custom logic.
 
         This is complicated because of the relationship between Prefix and
@@ -513,11 +573,9 @@ class Vlan(Shadow):
         else:
             return NetType.get('unknown')
 
+        netbox = containers.get(None, Netbox)
         net_type = 'lan'
-        # Get the number of router ports attached to this prefix
-        port_count = manage.GwPortPrefix.objects.filter(
-            prefix__net_address=str(prefix),
-            interface__netbox__category__id__in=('GSW', 'GW')).count()
+        router_count = self._get_router_count_for_prefix(prefix, netbox.id)
 
         if prefix.version() == 6 and prefix.prefixlen() == 128:
             net_type = 'loopback'
@@ -525,13 +583,35 @@ class Vlan(Shadow):
             if prefix.prefixlen() == 32:
                 net_type = 'loopback'
             elif prefix.prefixlen() == 30:
-                net_type = port_count == 1 and 'elink' or 'link'
-        if port_count > 2:
+                net_type = router_count == 1 and 'elink' or 'link'
+        if router_count > 2:
             net_type = 'core'
-        elif port_count == 2:
+        elif router_count == 2:
             net_type = 'link'
 
         return NetType.get(net_type)
+
+    @staticmethod
+    def _get_router_count_for_prefix(net_address, include_netboxid=None):
+        """Returns the number of routers attached to a prefix.
+
+        :param net_address: a prefix network address
+        :param include_netboxid: count the netbox with this id as a router for
+                                 the prefix, no matter what the db might say
+                                 about it.
+        :returns: an integer count of routers for `net_address`
+
+        """
+        address_filter = Q(interface__gwportprefix__prefix__net_address=
+                           str(net_address))
+        if include_netboxid:
+            address_filter = address_filter | Q(id=include_netboxid)
+
+        router_count = manage.Netbox.objects.filter(
+            address_filter,
+            category__id__in=('GW', 'GSW')
+            )
+        return router_count.distinct().count()
 
     def prepare(self, containers):
         """Prepares this VLAN object for saving.
@@ -560,7 +640,7 @@ class GwPortPrefix(Shadow):
         cls._delete_missing_addresses(containers)
 
     @classmethod
-    @utils.autocommit
+    @db.autocommit
     def _delete_missing_addresses(cls, containers):
         missing_addresses = cls._get_missing_addresses(containers)
         gwips = [row['gw_ip'] for row in missing_addresses.values('gw_ip')]
@@ -574,7 +654,7 @@ class GwPortPrefix(Shadow):
         missing_addresses.delete()
 
     @classmethod
-    @utils.autocommit
+    @db.autocommit
     def _get_missing_addresses(cls, containers):
         found_addresses = [g.gw_ip
                            for g in containers[cls].values()]
@@ -640,17 +720,27 @@ class NetType(Shadow):
     @classmethod
     def get(cls, net_type_id):
         """Creates a NetType container for the given net_type id."""
-        n = cls()
-        n.id = net_type_id
-        return n
+        ntype = cls()
+        ntype.id = net_type_id
+        return ntype
 
- 
+
 class SwPortVlan(Shadow):
     __shadowclass__ = manage.SwPortVlan
 
 class Arp(Shadow):
     __shadowclass__ = manage.Arp
-    __lookups__ = [('netbox', 'ip', 'mac', 'end_time')]
+
+    def save(self, containers):
+        if not self.id:
+            return super(Arp, self).save(containers)
+
+        attrs = dict((attr, getattr(self, attr))
+                     for attr in self.get_touched()
+                     if attr != 'id')
+        if attrs:
+            myself = manage.Arp.objects.filter(id=self.id)
+            myself.update(**attrs)
 
 class Cam(Shadow):
     __shadowclass__ = manage.Cam

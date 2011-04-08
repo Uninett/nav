@@ -22,12 +22,15 @@ import time
 import re
 import nav.path
 import os.path
+
+from nav.web.encoding import encoded_output
 from nav.web.URI import URI
 from nav import db
 from radius_config import *
 from socket import gethostbyname_ex, gaierror
 from mod_python import apache
 
+@encoded_output
 def handler(req):
     global database
     connection = db.getConnection(DB_USER, DB)
@@ -65,7 +68,7 @@ def handler(req):
     # Get basename and section part of the URI
     baseurl = ""
     section = ""
-    s = re.search("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)",req.uri)
+    s = re.search("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)", req.uri)
     if s:
         baseurl = s.group("baseurl")
         section = s.group("section")
@@ -241,7 +244,7 @@ def handler(req):
 
     req.content_type = "text/html"
     req.send_http_header()
-    req.write(page.respond().encode('utf-8'))
+    req.write(page.respond())
     page.shutdown()
     return apache.OK
 
@@ -280,19 +283,21 @@ class AcctSearchForm:
     error check the input
     """
 
-    searchstring=""
-    searchtype=""
-    nasporttype=""
-    timemode=""
-    timestamp=""
-    timestampslack=""
-    days=""
-    userdns=""
-    nasdns=""
-    sortfield=""
-    sortorder=""
+    searchstring = ""
+    searchtype = ""
+    nasporttype = ""
+    timemode = ""
+    timestamp = ""
+    timestampslack = ""
+    days = ""
+    userdns = ""
+    nasdns = ""
+    sortfield = ""
+    sortorder = ""
 
-    def __init__(self, searchstring, searchtype, nasporttype, timemode, timestamp, timestampslack, days, userdns, nasdns, sortfield, sortorder):
+    def __init__(self, searchstring, searchtype, nasporttype, timemode,
+                 timestamp, timestampslack, days, userdns, nasdns, sortfield,
+                 sortorder):
         """
         Set attributes
         """
@@ -317,7 +322,8 @@ class AcctSearchForm:
             # mistake, so remove it.
             self.searchstring = self.searchstring.strip()
         if self.searchtype == "iprange":
-            if not re.match("^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$", self.searchstring):
+            if not re.match("^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$",
+                            self.searchstring):
                 raise IPRangeSyntaxWarning
         if self.timestamp:
             # Leading or trailing whitespace is probably in there by 
@@ -327,7 +333,10 @@ class AcctSearchForm:
 
             if self.timemode == "timestamp":
                 # Matches a date on the format "YYYY-MM-DD hh:mm"
-                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])\ ([01][0-9]|[2][0-3])\:[0-5][0-9]$", self.timestamp):
+                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-]"
+                                "(0[1-9]|[12][0-9]|3[01])\ "
+                                "([01][0-9]|[2][0-3])\:[0-5][0-9]$",
+                                self.timestamp):
                     raise TimestampSyntaxWarning
                 
                 if not re.match("^\d*$", self.timestampslack):
@@ -554,7 +563,9 @@ class AcctSearchQuery(SQLQuery):
                 or searchtype == "nasipaddress"):
             # Split search string into hostname and, if entered, cisco nas 
             # port.
-            match = re.search("^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}(?P<swport>[\S]+){0,1}$", searchstring)
+            match = re.search("^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}"
+                              "(?P<swport>[\S]+){0,1}$",
+                              searchstring)
             # Get all ip addresses, if a hostname is entered
             try: 
                 addressList = gethostbyname_ex(match.group("host"))[2]
@@ -574,16 +585,19 @@ class AcctSearchQuery(SQLQuery):
             # Search for Cisco NAS port, if it has been entered
             if match.group("swport"):
                 self.sqlQuery += " AND LOWER(cisconasport) = %s"
-                self.sqlParameters += tuple(match.group("swport").lower().split())
+                self.sqlParameters += tuple(
+                    match.group("swport").lower().split())
 
                 
         if searchtype == "iprange":
             if searchstring.find('%'):
                 if re.search('/32', searchstring):
-                    self.sqlQuery += " %s = INET(%%s) OR %s = INET(%%s)" % ('framedipaddress', 'nasipaddress')
+                    self.sqlQuery += (" %s = INET(%%s) OR %s = INET(%%s)" %
+                                      ('framedipaddress', 'nasipaddress'))
                     self.sqlParameters += (searchstring[:-3], searchstring[:-3])
                 else:
-                    self.sqlQuery += " %s << INET(%%s) OR %s = INET(%%s)" % ('framedipaddress', 'nasipaddress')
+                    self.sqlQuery += (" %s << INET(%%s) OR %s = INET(%%s)" %
+                                      ('framedipaddress', 'nasipaddress'))
                     self.sqlParameters += (searchstring, searchstring)
                
         
@@ -673,7 +687,7 @@ class AcctSearchQuery(SQLQuery):
 
             if timemode == "timestamp":
 
-                if timestampslack == "": timestampslack=0
+                if timestampslack == "": timestampslack = 0
 
                 # Search for entries between (given timestamp - 
                 # timestampslack) and (given timestamp + timestampslack)
@@ -731,7 +745,8 @@ class AcctSearchQuery(SQLQuery):
             """ % {"searchstart": searchstart, "searchstop": searchstop}
 
         self.sqlQuery += ")" # End select
-        self.sqlQuery += " ORDER BY %(sortfield)s %(sortorder)s" % {"sortfield": sortfield, "sortorder": sortorder}
+        self.sqlQuery += (" ORDER BY %(sortfield)s %(sortorder)s" %
+                          {"sortfield": sortfield, "sortorder": sortorder})
 
         #raise Exception, self.sqlQuery + " " + str(self.sqlParameters)
 
@@ -754,15 +769,15 @@ class LogSearchForm:
     error check the input
     """
 
-    searchstring=""
-    searchtype=""
-    logentrytype=""
-    timemode=""
-    timestamp=""
-    timestampslack=""
-    hours=""
-    sortfield=""
-    sortorder=""
+    searchstring = ""
+    searchtype = ""
+    logentrytype = ""
+    timemode = ""
+    timestamp = ""
+    timestampslack = ""
+    hours = ""
+    sortfield = ""
+    sortorder = ""
 
     def __init__(self, searchstring, searchtype, logentrytype, timemode, 
             timestamp, timestampslack, hours, sortfield, sortorder):
@@ -796,7 +811,10 @@ class LogSearchForm:
 
             if self.timemode == "timestamp":
                 # Matches a date on the format "YYYY-MM-DD hh:mm"
-                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])\ ([01][0-9]|[2][0-3])\:[0-5][0-9]$", self.timestamp):
+                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-]"
+                                "(0[1-9]|[12][0-9]|3[01])\ "
+                                "([01][0-9]|[2][0-3])\:[0-5][0-9]$",
+                                self.timestamp):
                     raise TimestampSyntaxWarning
 
                 if not re.match("^\d*$", self.timestampslack):
@@ -875,7 +893,7 @@ class LogSearchQuery(SQLQuery):
                 self.sqlQuery += " (time >= timestamp '%s') " % (searchstart)
 
             if timemode == "timestamp":
-                if not timestampslack: timestampslack=0
+                if not timestampslack: timestampslack = 0
 
                 # Search for entries between (given timestamp - slack) 
                 # and (given timestamp + slack)
@@ -895,7 +913,8 @@ class LogSearchQuery(SQLQuery):
                         ) """ \
                     % {"searchstart": searchstart, "searchstop": searchstop}
 
-        self.sqlQuery += " ORDER BY %(sortfield)s %(sortorder)s" % {"sortfield": sortfield, "sortorder": sortorder}
+        self.sqlQuery += (" ORDER BY %(sortfield)s %(sortorder)s" %
+                          {"sortfield": sortfield, "sortorder": sortorder})
         #raise Exception, self.sqlQuery
 
     def getTable(self):

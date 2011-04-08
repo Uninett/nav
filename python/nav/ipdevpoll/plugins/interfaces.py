@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,20 +21,13 @@ EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
 
-import logging
-import pprint
-
-from twisted.internet import defer, threads
-from twisted.python.failure import Failure
-
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
-from nav.models import manage
 
 class Interfaces(Plugin):
     @classmethod
@@ -42,7 +35,7 @@ class Interfaces(Plugin):
         return True
 
     def handle(self):
-        self.logger.debug("Collecting interface data")
+        self._logger.debug("Collecting interface data")
         self.ifmib = IfMib(self.agent)
         self.etherlikemib = EtherLikeMib(self.agent)
         df = self.ifmib.retrieve_columns([
@@ -66,7 +59,7 @@ class Interfaces(Plugin):
     def _got_interfaces(self, result):
         """Process the list of collected interfaces."""
 
-        self.logger.debug("Found %d interfaces", len(result))
+        self._logger.debug("Found %d interfaces", len(result))
 
         # Now save stuff to containers and pass the list of containers
         # to the next callback
@@ -133,8 +126,7 @@ class Interfaces(Plugin):
         
         """
         layer_map = {}        
-        for index, row in stackstatus.items():
-            (upper, lower) = index
+        for (upper, lower), row in stackstatus.items():
             if upper > 0 and lower > 0:
                 layer_map[upper] = lower
 
@@ -150,17 +142,17 @@ class Interfaces(Plugin):
                 ifalias = ifindex_map[lower_ifindex].ifalias
                 if ifalias:
                     interface.ifalias = ifalias
-                    self.logger.debug("%s alias set from lower layer %s: %s",
-                                      interface.ifname,
-                                      ifindex_map[lower_ifindex].ifname,
-                                      ifalias)
+                    self._logger.debug("%s alias set from lower layer %s: %s",
+                                       interface.ifname,
+                                       ifindex_map[lower_ifindex].ifname,
+                                       ifalias)
 
         return interfaces
 
     def _retrieve_duplex(self, interfaces):
         """Get duplex from EtherLike-MIB and update the ifTable results."""
         def update_result(duplexes):
-            self.logger.debug("Got duplex information: %r", duplexes)
+            self._logger.debug("Got duplex information: %r", duplexes)
             for index, duplex in duplexes.items():
                 if index in interfaces:
                     interfaces[index]['duplex'] = duplex

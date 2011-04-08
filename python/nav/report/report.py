@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008-2010 UNINETT
+# Copyright (C) 2008-2011 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -37,7 +37,7 @@ class Report:
     """
 
 
-    def __init__(self,configuration,database,path):
+    def __init__(self, configuration, database, path):
         """
         The constructor of the Report class
 
@@ -72,7 +72,7 @@ class Report:
 
         self.fields = configuration.sql_select + self.extra
         self.sql_fields = configuration.sql_select
-        self.fieldNum,self.fieldName = self.fieldNum(self.fields)
+        self.fieldNum, self.fieldName = self.fieldNum(self.fields)
         self.fieldsSum = len(self.fields)
         self.shown = self.hideIndex()
 
@@ -81,18 +81,20 @@ class Report:
         self.table = self.makeTableContents()
         footers = self.makeTableFooters(self.sums)
         self.table.setFooters(footers)
-        headers = self.makeTableHeaders(self.name,self.uri,self.explain,configuration.orderBy)
+        headers = self.makeTableHeaders(self.name, self.uri, self.explain,
+                                        configuration.orderBy)
         self.table.setHeaders(headers)
 
         self.navigator = Navigator()
-        self.navigator.setNavigator(self.limit,self.offset,self.address,self.rowcount)
+        self.navigator.setNavigator(self.limit, self.offset, self.address,
+                                    self.rowcount)
 
         self.form = self.makeForm(self.name)
 
         if database.error:
             self.navigator.setMessage(database.error)
 
-    def setLimit(self,config):
+    def setLimit(self, config):
         """
         returns the limit according to the configuration or the default (1000)
 
@@ -101,7 +103,7 @@ class Report:
         returns the limit of the configuration or 1000
         """
 
-        if config:
+        if config or config == 0:
 
             return config
 
@@ -109,7 +111,7 @@ class Report:
 
             return 1000
 
-    def setOffset(self,config):
+    def setOffset(self, config):
         """
         returns the offset according to the configuration or the default (0)
 
@@ -126,7 +128,7 @@ class Report:
 
             return 0
 
-    def stripPath(self,path):
+    def stripPath(self, path):
         """
         removes the 'limit' and 'offset' arguments from the uri that will used on the page
 
@@ -141,7 +143,7 @@ class Report:
                 del uri.args[field]
         return uri.make()
 
-    def fieldNum(self,fields):
+    def fieldNum(self, fields):
         """
         returns a hash associating the field names to the field numbers
 
@@ -159,10 +161,10 @@ class Report:
             fieldNum[field] = number
             fieldName[number] = field
 
-        return fieldNum,fieldName
+        return fieldNum, fieldName
 
 
-    def remakeURI(self,uri):
+    def remakeURI(self, uri):
         """
         takes a hash of uris associated to their names, and returns a hash of uris associated to their field numbers. this is a more effective approach than doing queries to a dictionary.
 
@@ -174,7 +176,7 @@ class Report:
         uri_hash = uri
         uri_new = {}
 
-        for key,value in uri_hash.items():
+        for key, value in uri_hash.items():
 
             if self.fields.count(key):
                 key_index = self.fields.index(key)
@@ -186,7 +188,7 @@ class Report:
         return uri_new
 
 
-    def makeTableHeaders(self,name,uri,explain,sortList=[]):
+    def makeTableHeaders(self, name, uri, explain, sortList=[]):
         """
         makes the table headers
 
@@ -215,9 +217,9 @@ class Report:
             explanation = ""
             uri = URI(self.address)
             if sorted == title:
-                uri.setArguments(['sort','order_by'],"-"+title)
+                uri.setArguments(['sort', 'order_by'], "-" + title)
             else:
-                uri.setArguments(['sort','order_by'],title)
+                uri.setArguments(['sort', 'order_by'], title)
             uri = uri.make()
 
             ## change if the name exist in the overrider hash
@@ -227,13 +229,13 @@ class Report:
             if explain_hash.has_key(title):
                 explanation = explain_hash[title]
 
-            field = Cell(title,uri,explanation)
+            field = Cell(title, uri, explanation)
             headers.append(field)
 
         return headers
 
 
-    def makeTableFooters(self,sum):
+    def makeTableFooters(self, sum):
         """
         makes the table footers. ie. the sum of the columns if specified
 
@@ -289,7 +291,7 @@ class Report:
         #print self.fields
 
         shown = []
-        for field in range(0,self.fieldsSum):
+        for field in range(0, self.fieldsSum):
 
             if not self.hide.count(self.fields[field]):
 
@@ -305,7 +307,7 @@ class Report:
         returns a table containing the data of the report (without header and footer etc)
         """
 
-        linkFinder = re.compile("\$(.+?)(?:$|\$|\&|\"|\'|\s|\;|\/)",re.M)
+        linkFinder = re.compile("\$(.+?)(?:$|\$|\&|\"|\'|\s|\;|\/)", re.M)
 
         newtable = Table()
         for line in self.formatted:
@@ -327,7 +329,7 @@ class Report:
                     #else:
                         #text = self.fields[field]
 
-                except KeyError,e:
+                except KeyError, e:
                     text = "feil"
 
                 newfield.setText(text)
@@ -346,7 +348,7 @@ class Report:
                                 to = ""
                             hei = re.compile("\$"+link)
                             try:
-                                uri = hei.sub(to,uri)
+                                uri = hei.sub(to, uri)
                             except TypeError:
                                 uri = uri + to
                     newfield.setUri(uri)
@@ -358,11 +360,11 @@ class Report:
         return newtable
 
 
-    def makeForm(self,name):
+    def makeForm(self, name):
 
         form = []
 
-        for no,field in self.fieldName.items():
+        for no, field in self.fieldName.items():
             f = None
             ## does not use aggregate function elements
             if not self.extra.count(field) and not self.sql_fields[no].count("("):
@@ -389,7 +391,7 @@ class Navigator:
         self.previous = ""
         self.next = ""
 
-    def setMessage(self,message):
+    def setMessage(self, message):
         """
         Sets the view-field (the line under the title of the page) to "message"
 
@@ -398,7 +400,7 @@ class Navigator:
 
         self.view = message
 
-    def setNavigator(self,limit,offset,address,number):
+    def setNavigator(self, limit, offset, address, number):
         """
         Sets the values of the navigator object
 
@@ -427,23 +429,23 @@ class Navigator:
         if offset_int:
 
             uri = URI(address)
-            uri.setArguments(['limit'],limit)
-            uri.setArguments(['offset'],previous)
+            uri.setArguments(['limit'], limit)
+            uri.setArguments(['offset'], previous)
 
             self.previous = uri.make()
 
-        if limit_int+offset_int<number_int:
+        if limit_int + offset_int < number_int:
 
             uri = URI(address)
-            uri.setArguments(['limit'],limit)
-            uri.setArguments(['offset'],next)
+            uri.setArguments(['limit'], limit)
+            uri.setArguments(['offset'], next)
 
             self.next = uri.make()
 
         if number_int:
-            if limit_int>number_int:
+            if limit_int > number_int:
                 self.view = number+" hits"
-            elif view_to_int>number_int:
+            elif view_to_int > number_int:
                 self.view = view_from+" - "+number+" of "+number
             else:
                 self.view = view_from+" - "+view_to+" of "+number
@@ -461,7 +463,7 @@ class Table:
         self.header = []
         self.footer = []
 
-    def append(self,row):
+    def append(self, row):
         """
         Appends a row to the table
 
@@ -471,7 +473,7 @@ class Table:
 
         self.rows.append(row)
 
-    def extend(self,listOfRows):
+    def extend(self, listOfRows):
         """
         Extends the table with a list of rows
 
@@ -481,7 +483,7 @@ class Table:
 
         self.rows.extend(listOfRows)
 
-    def setHeaders(self,header):
+    def setHeaders(self, header):
         """
         Sets the headers of the table
 
@@ -491,7 +493,7 @@ class Table:
 
         self.header = header
 
-    def setFooters(self,footer):
+    def setFooters(self, footer):
         """
         Sets the footers of the table
 
@@ -501,7 +503,7 @@ class Table:
 
         self.footer = footer
 
-    def setContents(self,contents):
+    def setContents(self, contents):
         """
         Sets the contents of the table
 
@@ -521,7 +523,7 @@ class Row:
 
         self.cells = []
 
-    def append(self,cell):
+    def append(self, cell):
         """
         Appends a cell to the row
 
@@ -536,14 +538,14 @@ class Cell:
     One cell of the table
     """
 
-    def __init__(self,text=u"",uri=u"",explanation=u""):
+    def __init__(self, text=u"", uri=u"", explanation=u""):
 
         self.setText(text)
         self.setUri(uri)
         self.setExplanation(explanation)
         self.sum = u""
 
-    def setText(self,text):
+    def setText(self, text):
         """
         Sets the contents of the cell to the text specified
 
@@ -554,7 +556,7 @@ class Cell:
         self.text = unicode_utf8(text)
 
 
-    def setUri(self,uri):
+    def setUri(self, uri):
         """
         Sets the uri of the cell to the text specified
 
@@ -565,7 +567,7 @@ class Cell:
         self.uri = unicode_utf8(uri)
 
 
-    def setExplanation(self,explanation):
+    def setExplanation(self, explanation):
         """
         Sets the explanation of the column to the text specified
 
@@ -575,7 +577,7 @@ class Cell:
 
         self.explanation = unicode_utf8(explanation)
 
-    def setSum(self,sum):
+    def setSum(self, sum):
         """
         Sets the sum of the column to the text specified
 
@@ -595,7 +597,7 @@ class Headers:
 
         self.cells = []
 
-    def append(self,cell):
+    def append(self, cell):
         """
         Appends a cell to the list of headers
 
@@ -614,7 +616,7 @@ class Footers:
 
         self.cells = []
 
-    def append(self,cell):
+    def append(self, cell):
         """
         Appends a cell to the list of footers
 

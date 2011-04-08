@@ -88,7 +88,7 @@ def write_json(obj):
         if obj: return 'true'
         return 'false'
     if isinstance(obj, basestring):
-        return '"%s"' % reduce(lambda s,esc: s.replace(esc[0], esc[1]),
+        return '"%s"' % reduce(lambda s, esc: s.replace(esc[0], esc[1]),
                                json_escapes, obj)
     if numeric(obj):
         return str(obj)

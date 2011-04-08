@@ -79,7 +79,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         return type_filter
 
     type_filter = type_query_filter(selected_types)
-    order_by_keys = ['start_time', 'end_time']
+    order_by_keys = ['-start_time', '-end_time']
     if GROUPINGS[order_by]['order_by']:
         order_by_keys.insert(0, GROUPINGS[order_by]['order_by'])
 
