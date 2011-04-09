@@ -88,7 +88,9 @@
                         <option value="<">Less than</option>
                     {% endif %}
                     </select></td>
-                <td><input type="text" id="threshold" size="10" value="{% if ds.threshold %}{{ ds.threshold }}{% endif %}" /></td>
+                <td><input type="text" id="threshold" size="10"
+                        onchange="threshold.setChangedThreshold(this);"
+                        value="{% if ds.threshold %}{{ ds.threshold }}{% endif %}" /></td>
                 <td>{% if ds.max %}{{ ds.max }}{% endif %}</td>
                 <td>{% if ds.threshold_state %}{{ ds.threshold_state }}{% endif %}</td>
                 <td><input id="updateThreshold" type="button" 
