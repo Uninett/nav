@@ -15,7 +15,7 @@ var threshold = threshold || {};
 
 threshold.displayMode = '';
 threshold.stdBgColor = 'white';
-threshold.stdChangedColor = 'blue';
+threshold.stdChangedColor = '#FF9900';
 threshold.stdErrColor = 'red';
 threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
@@ -158,6 +158,21 @@ threshold.updateMessages = function(msg, isError){
     } else {
         $(messagesDiv).css('color', threshold.stdSuccessColor);
     }
+};
+
+threshold.setChangedThreshold = function(inp){
+    $(inp).parent().css('background-color', threshold.stdChangedColor);
+};
+
+threshold.showSavedThreshold = function(inp){
+    var par = $(inp).parent();
+    $(par).css('background-color', threshold.stdSuccessColor);
+    $(par).fadeTo(2000, 0.6);
+    $(par).fadeTo(2000, 1.0, function(){
+        $(par).css('background-color', threshold.stdBgColor);
+        $(par).show();
+    });
+    return true;
 };
 
 threshold.netboxSearch = function(){
@@ -313,7 +328,8 @@ threshold.saveSingleThreshold = function(btn){
         $(thrInput).parent().css('background-color', threshold.stdErrColor);
         return -1;
     } else {
-        $(thrInput).parent().css('background-color', threshold.stdBgColor);
+        //$(thrInput).parent().css('background-color', threshold.stdBgColor);
+        threshold.showSavedThreshold(thrInput);
     }
     threshold.updateMessages('Threshold saved', false);
     return 0;
@@ -345,7 +361,7 @@ threshold.saveCheckedThresholds = function(){
                 $(thrInput).parent().css('background-color', threshold.stdErrColor);
                 numbErrors++;
             } else {
-                $(thrInput).parent().css('background-color', threshold.stdBgColor);
+                threshold.showSavedThreshold(thrInput);
             }
         }
     }
@@ -383,12 +399,14 @@ threshold.saveAllThresholds = function(){
                 $(thrInput).parent().css('background-color', threshold.stdErrColor);
                 numbErrors++;
             } else {
-                $(thrInput).parent().css('background-color', threshold.stdBgColor);
+                threshold.showSavedThreshold(thrInput);
             }
         }
     }
     if(numbErrors > 0){
-        threshold.updateMessages(numbErrors + ' errors. Check for illegal values', true);
+        var errMsg = numbErrors + ' error' + (numbErrors > 1 ? 's': '');
+        errMsg += '.  Check for illegal values';
+        threshold.updateMessages(errMsg, true);
     } else {
         threshold.updateMessages('All thresholds saved', false);
     }
@@ -427,7 +445,7 @@ threshold.bulkUpdateThresholds = function(btn){
         var thrInput = $(row).find('input.#threshold');
         $(thrInput).val(bulkThr);
         // Mark as changed
-        $(thrInput).parent().css('background-color', threshold.stdChangedColor);
+        threshold.setChangedThreshold(thrInput);
         
     }
 };
