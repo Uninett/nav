@@ -44,10 +44,12 @@ from nav.web.templates.MessagesListTemplate import MessagesListTemplate
 from nav.web.templates.MessagesDetailsTemplate import MessagesDetailsTemplate
 from nav.web.templates.MessagesNewTemplate import MessagesNewTemplate
 from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
+from nav.web.encoding import encoded_output
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
+@encoded_output
 def handler(req):
     """Handler for the Messages subsystem."""
 

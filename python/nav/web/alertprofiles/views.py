@@ -293,9 +293,9 @@ def profile_save(request):
                 # Make the time periods. We're only interested in the values of
                 # the dictionary, not the keys.
                 for start_time in periods.values():
-                    profile = TimePeriod(profile=profile, start=start_time,
+                    period = TimePeriod(profile=profile, start=start_time,
                                          valid_during=valid_during)
-                    profile.save()
+                    period.save()
 
     new_message(request,
                 _('Saved profile %(profile)s') % {'profile': profile.name},

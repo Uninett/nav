@@ -33,10 +33,12 @@ from nav.web.templates.MaintenanceDetailsTemplate import MaintenanceDetailsTempl
 from nav.web.templates.MaintenanceListTemplate import MaintenanceListTemplate
 from nav.web.templates.MaintenanceNewTemplate import MaintenanceNewTemplate
 from nav.web.quickselect import QuickSelect
+from nav.web.encoding import encoded_output
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
+@encoded_output
 def handler(req):
     """Handler for the Maintenance subsystem."""
 
@@ -156,7 +158,7 @@ def handler(req):
                     key, value = field.value.split(',')
                     components.append({'key': key, 'value': value,
                         'info': nav.maintenance.getComponentInfo(key, value)})
-        elif req.form.has_key('netbox'):
+        elif req.form.has_key('netbox') and not req.form.has_key('submit_netbox'):
             # Netbox defined in URL, creating new maintenance task with netbox
             # already added
             components = []

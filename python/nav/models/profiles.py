@@ -332,10 +332,11 @@ class AlertAddress(models.Model):
             return True
 
         if self.type.is_blacklisted():
-            logger.warning(
-                'Not sending alert %s to %s as handler %s is blacklisted',
-                alert.id, self.address, self.type)
             transaction.rollback()
+
+            logger.warning(
+                'Not sending alert %s to %s as handler %s is blacklisted: %s',
+                alert.id, self.address, self.type, self.type.blacklist_reason())
 
             return False
 
@@ -371,7 +372,7 @@ class AlertAddress(models.Model):
                 'Unhandeld error from %s (the handler has been blacklisted)',
                 self.type)
             transaction.rollback()
-            self.type.blacklist()
+            self.type.blacklist(e)
             return False
 
         return True
@@ -381,7 +382,7 @@ class AlertSender(models.Model):
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
 
-    _blacklist = set()
+    _blacklist = {}
     _handlers = {}
 
     def __unicode__(self):
@@ -408,13 +409,16 @@ class AlertSender(models.Model):
         # Delegate sending of message
         return self._handlers[self.handler].send(*args, **kwargs)
 
-    def blacklist(self):
+    def blacklist(self, reason=None):
         """Blacklists this sender/medium from further alert dispatch."""
-        self.__class__._blacklist.add(self.handler)
+        self.__class__._blacklist[self.handler] = reason
 
     def is_blacklisted(self):
         """Gets the blacklist status of this sender/medium."""
         return self.handler in self.__class__._blacklist
+
+    def blacklist_reason(self):
+        return self.__class__._blacklist.get(self.handler, 'Unknown reason')
 
     class Meta:
         db_table = 'alertsender'
@@ -814,11 +818,11 @@ class Filter(models.Model):
         logger.debug(
             'alert %d: checking against filter %d with filter: %s, exclude: '
             '%s and extra: %s',
-            alert.id, self.id, filter, exclude, extra)
+            alert.id, self.id, filtr, exclude, extra)
 
         # Check the alert maches whith a SELECT COUNT(*) FROM .... so that the
         # db doesn't have to work as much.
-        if AlertQueue.objects.filter(**filter).exclude(**exclude).extra(
+        if AlertQueue.objects.filter(**filtr).exclude(**exclude).extra(
             **extra).count():
             logger.debug('alert %d: matches filter %d' % (alert.id, self.id))
             return True

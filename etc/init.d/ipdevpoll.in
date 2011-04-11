@@ -4,7 +4,7 @@
 # This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV ipdevpoll daemon
 #
-# Copyright (C) 2006-2010 UNINETT AS
+# Copyright (C) 2006-2011 UNINETT AS
 #
 ####################
 initdir=@initdir@
@@ -17,8 +17,10 @@ IPDEVPOLLD=${bindir}/ipdevpolld
 
 [ -x $IPDEVPOLLD ] || exit 2
 
-# Special case of kill that waits until the process is gone.
-# ipdevpoll shutdown can be slow sometimes
+# Special case of kill that attempts a graceful shutdown, then waits X seconds
+# for the process to disappear before dealing out some tough SIGKILL love.
+# This because busy ipdevpoll threads can cause shutdown to take a very long
+# time.
 kill() {
     pid=$1
     timeout=10 # wait max 10 seconds
@@ -28,6 +30,7 @@ kill() {
             sleep 1
             counter=$((counter+1))
         done
+        checkpid $pid && /bin/kill -9 $pid || true
     else
         return 1
     fi

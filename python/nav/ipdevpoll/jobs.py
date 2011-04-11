@@ -18,8 +18,9 @@ import time
 import datetime
 import pprint
 import logging
-
-from twisted.internet import defer, threads
+import threading
+import gc
+from twisted.internet import defer, threads, reactor
 from twistedsnmp import snmpprotocol, agentproxy
 
 from nav.util import round_robin
@@ -29,11 +30,11 @@ from nav.ipdevpoll import get_context_logger
 import storage
 import shadows
 from plugins import plugin_registry
-import utils
+from nav.ipdevpoll import db
 from utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-ports = round_robin([snmpprotocol.port() for i in range(10)])
+ports = round_robin([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
@@ -56,7 +57,7 @@ class JobHandler(object):
     def __init__(self, name, netbox, plugins=None):
         self.name = name
         self.netbox = netbox
-        self.cancelled = False
+        self.cancelled = threading.Event()
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
@@ -75,7 +76,7 @@ class JobHandler(object):
 
         # Initialize netbox in container
         nb = self.container_factory(shadows.Netbox, key=None)
-        nb.id = netbox.id
+        (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
 
         port = ports.next()
 
@@ -127,7 +128,7 @@ class JobHandler(object):
 
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(defer.TimeoutError):
-                self._logger.error("Plugin %s reported a timeout",
+                self._logger.debug("Plugin %s reported a timeout",
                                    plugin_instance)
             else:
                 log_unhandled_failure(self._logger,
@@ -137,8 +138,7 @@ class JobHandler(object):
             return failure
 
         def next_plugin(result=None):
-            if self.cancelled:
-                return
+            self.raise_if_cancelled()
             try:
                 plugin_instance = plugins.next()
             except StopIteration:
@@ -187,12 +187,13 @@ class JobHandler(object):
 
         def log_abort(failure):
             if failure.check(AbortedJobError):
-                self._logger.error("Job %r for %s aborted.",
-                                   self.name, self.netbox.sysname)
+                self._logger.error("Job %r for %s aborted: %s",
+                                   self.name, self.netbox.sysname,
+                                   failure.value.cause)
             return failure
 
         def save(result):
-            if self.cancelled:
+            if self.cancelled.isSet():
                 return wrap_up_job(result)
 
             df = self.save_container()
@@ -200,11 +201,20 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        # pylint is unable to find reactor members:
+        # pylint: disable=E1101
+        shutdown_trigger_id = reactor.addSystemEventTrigger(
+            "before", "shutdown", self.cancel)
+        def remove_event_trigger(result):
+            reactor.removeSystemEventTrigger(shutdown_trigger_id)
+            return result
+
         # The action begins here
         df = self._iterate_plugins(plugins)
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
+        df.addBoth(remove_event_trigger)
         return df
 
     def cancel(self):
@@ -212,8 +222,8 @@ class JobHandler(object):
 
         Job stops at the earliest convenience.
         """
-        self.cancelled = True
-        self._logger.warning("Cancelling running job")
+        self.cancelled.set()
+        self._logger.info("Cancelling running job")
 
     def _reset_timers(self):
         self._start_time = datetime.datetime.now()
@@ -267,8 +277,8 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @utils.autocommit
-        @utils.cleanup_django_debug_after
+        @db.autocommit
+        @db.cleanup_django_debug_after
         def complete_save_cycle():
             # Prepare all shadow objects for storage.
             self.prepare_containers_for_save()
@@ -290,6 +300,7 @@ class JobHandler(object):
 
         """
         for cls in self.containers.keys():
+            self.raise_if_cancelled()
             cls.prepare_for_save(self.containers)
 
     def cleanup_containers_after_save(self):
@@ -301,7 +312,10 @@ class JobHandler(object):
                            len(self.containers), self.containers.keys())
         try:
             for cls in self.containers.keys():
+                self.raise_if_cancelled()
                 cls.cleanup_after_save(self.containers)
+        except AbortedJobError:
+            raise
         except Exception:
             self._logger.exception("Caught exception during cleanup. "
                                   "Last class = %s",
@@ -325,28 +339,9 @@ class JobHandler(object):
                         [(id(o), o) for o in self.storage_queue]))
 
             while self.storage_queue:
+                self.raise_if_cancelled()
                 obj = self.storage_queue.pop()
-                obj_model = obj.convert_to_model(self.containers)
-                if obj.delete and obj_model:
-                    obj_model.delete()
-                else:
-                    try:
-                        # Skip if object exists in database and no fields
-                        # are touched
-                        if obj.getattr(obj, obj.get_primary_key().name) \
-                            and not obj.get_touched():
-                            continue
-                    except AttributeError:
-                        pass
-                    if obj_model:
-                        obj_model.save()
-                        # In case we saved a new object, store a reference to
-                        # the newly allocated primary key in the shadow object.
-                        # This is to ensure that other shadows referring to
-                        # this shadow will know about this change.
-                        if not obj.get_primary_key():
-                            obj.set_primary_key(obj_model.pk)
-                        obj._touched.clear()
+                obj.save(self.containers)
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
@@ -356,6 +351,8 @@ class JobHandler(object):
                                          pprint.pformat(self.containers))
 
             return total_time
+        except AbortedJobError:
+            raise
         except Exception:
             self._logger.exception("Caught exception during save. "
                                    "Last object = %s. Last model: %s",
@@ -384,13 +381,25 @@ class JobHandler(object):
         """Container factory function"""
         return self.containers.factory(key, container_class)
 
+    def raise_if_cancelled(self):
+        """Raises an AbortedJobError if the current job is cancelled"""
+        if self.cancelled.isSet():
+            raise AbortedJobError("Job was already cancelled")
+
+    @classmethod
+    def get_instance_count(cls):
+        """Returns the number of JobHandler instances as seen by the garbage
+        collector.
+
+        """
+        return len([o for o in gc.get_objects() if isinstance(o, cls)])
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
     def get_dependencies(shadow_class):
         return shadow_class.get_dependencies()
 
-    shadow_classes = storage.shadowed_classes.values()
+    shadow_classes = storage.MetaShadow.shadowed_classes.values()
     graph = toposort.build_graph(shadow_classes, get_dependencies)
     sorted_classes = toposort.topological_sort(graph)
     return sorted_classes

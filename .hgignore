@@ -7,10 +7,12 @@ syntax: glob
 *.swp
 *.war
 *~
-.* 
+.*
+*.bak
 
 # Generated javadoc and build dirs
 */javadoc/*
+package.html
 */build/*
 doc/_build
 

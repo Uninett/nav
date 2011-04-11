@@ -40,7 +40,7 @@ from twisted.internet import threads
 from nav.models import manage
 from nav import ipdevpoll
 import storage
-from utils import autocommit, django_debug_cleanup
+from nav.ipdevpoll.db import autocommit, django_debug_cleanup
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
@@ -77,7 +77,9 @@ class NetboxLoader(dict):
             changed in the database since the last load operation.
 
         """
-        queryset = manage.Netbox.objects.select_related(depth=1).filter(
+        related = ('room__location', 'type__vendor',
+                   'category', 'organization', 'device')
+        queryset = manage.Netbox.objects.select_related(*related).filter(
             read_only__isnull=False, up='y')
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)

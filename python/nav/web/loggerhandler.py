@@ -32,12 +32,13 @@ import time
 import datetime
 from ConfigParser import ConfigParser
 from nav.web.templates.LoggerTemplate import LoggerTemplate
+from nav.web.encoding import encoded_output
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 DOMAIN_SUFFICES = nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")
 DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
 
-
+@encoded_output
 def handler(req):
     connection = db.getConnection('webfront','logger')
     database = connection.cursor()

@@ -30,35 +30,6 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 
-# Interface status choices used in Interface model and 'ipdevinfo'
-OPER_UP = 1
-OPER_DOWN = 2
-OPER_TESTING = 3
-OPER_UNKNOWN = 4
-OPER_DORMANT = 5
-OPER_NOTPRESENT = 6
-OPER_LOWERLAYERDOWN = 7
-
-OPER_STATUS_CHOICES = (
-    (OPER_UP, 'up'),
-    (OPER_DOWN, 'down'),
-    (OPER_TESTING, 'testing'),
-    (OPER_UNKNOWN, 'unknown'),
-    (OPER_DORMANT, 'dormant'),
-    (OPER_NOTPRESENT, 'not present'),
-    (OPER_LOWERLAYERDOWN, 'lower layer down'),
-)
-
-ADM_UP = 1
-ADM_DOWN = 2
-ADM_TESTING = 3
-
-ADM_STATUS_CHOICES = (
-    (ADM_UP, 'up'),
-    (ADM_DOWN, 'down'),
-    (ADM_TESTING, 'testing'),
-)
-
 
 #######################################################################
 ### Netbox-related models
@@ -92,7 +63,7 @@ class Netbox(models.Model):
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField()
+    snmp_version = models.IntegerField(verbose_name="SNMP version")
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
@@ -542,7 +513,7 @@ class NetboxType(models.Model):
 
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    name = VarcharField(db_column='typename')
+    name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)
@@ -556,6 +527,23 @@ class NetboxType(models.Model):
 
     def __unicode__(self):
         return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
+
+    def get_enterprise_id(self):
+        """Returns the type's enterprise ID as an integer.
+
+        The type's sysobjectid should always start with
+        SNMPv2-SMI::enterprises (1.3.6.1.4.1).  The next OID element will be
+        an enterprise ID, while the remaining elements will describe the type
+        specific to the vendor.
+
+        """
+        prefix = u"1.3.6.1.4.1."
+        if self.sysobjectid.startswith(prefix):
+            specific = self.sysobjectid[len(prefix):]
+            enterprise = specific.split('.')[0]
+            return long(enterprise)
+        else:
+            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
 
 #######################################################################
 ### Device management
@@ -815,6 +803,34 @@ class Cam(models.Model):
 class Interface(models.Model):
     """The network interfaces, both physical and virtual, of a Netbox."""
 
+    OPER_UP = 1
+    OPER_DOWN = 2
+    OPER_TESTING = 3
+    OPER_UNKNOWN = 4
+    OPER_DORMANT = 5
+    OPER_NOTPRESENT = 6
+    OPER_LOWERLAYERDOWN = 7
+
+    OPER_STATUS_CHOICES = (
+        (OPER_UP, 'up'),
+        (OPER_DOWN, 'down'),
+        (OPER_TESTING, 'testing'),
+        (OPER_UNKNOWN, 'unknown'),
+        (OPER_DORMANT, 'dormant'),
+        (OPER_NOTPRESENT, 'not present'),
+        (OPER_LOWERLAYERDOWN, 'lower layer down'),
+    )
+
+    ADM_UP = 1
+    ADM_DOWN = 2
+    ADM_TESTING = 3
+
+    ADM_STATUS_CHOICES = (
+        (ADM_UP, 'up'),
+        (ADM_DOWN, 'down'),
+        (ADM_TESTING, 'testing'),
+    )
+
     DUPLEX_FULL = 'f'
     DUPLEX_HALF = 'h'
     DUPLEX_CHOICES = (
@@ -931,9 +947,9 @@ class Interface(models.Model):
 
     def get_link_display(self):
         """Returns a display value for this interface's link status."""
-        if self.ifoperstatus == OPER_UP:
+        if self.ifoperstatus == self.OPER_UP:
             return "Active"
-        elif self.ifadminstatus == ADM_DOWN:
+        elif self.ifadminstatus == self.ADM_DOWN:
             return "Disabled"
         return "Inactive"
 

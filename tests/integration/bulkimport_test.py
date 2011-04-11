@@ -58,7 +58,8 @@ class TestNetboxImporter(DjangoTransactionTestCase):
 
     def test_get_netboxinfo_from_function(self):
         importer = NetboxImporter(None)
-        netboxinfo = importer._get_netboxinfo_from_function(None, 'hella')
+        netbox = manage.Netbox()
+        netboxinfo = importer._get_netboxinfo_from_function(netbox, 'hella')
         self.assertTrue(isinstance(netboxinfo, manage.NetboxInfo))
         self.assertTrue(netboxinfo.key is None)
         self.assertEquals(netboxinfo.variable, 'function')

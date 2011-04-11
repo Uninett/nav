@@ -217,6 +217,7 @@ def room_edit(request, room_id=None):
         'active': {'room': True},
         'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
         'tab_template': 'seeddb/tabs_room.html',
+        'delete_url': reverse('seeddb-room'),
     }
     return render_edit(request, Room, RoomForm, room_id,
         'seeddb-room-edit',
@@ -227,6 +228,7 @@ def location_edit(request, location_id=None):
         'active': {'location': True},
         'navpath': NAVPATH_DEFAULT + [('Location', reverse('seeddb-location'))],
         'tab_template': 'seeddb/tabs_location.html',
+        'delete_url': reverse('seeddb-location'),
     }
     return render_edit(request, Location, LocationForm, location_id,
         'seeddb-location-edit',
@@ -239,6 +241,7 @@ def organization_edit(request, organization_id=None):
             ('Organization', reverse('seeddb-organization'))
         ],
         'tab_template': 'seeddb/tabs_organization.html',
+        'delete_url': reverse('seeddb-organization'),
     }
     return render_edit(request, Organization, OrganizationForm,
         organization_id, 'seeddb-organization-edit',
@@ -249,6 +252,7 @@ def usage_edit(request, usage_id=None):
         'active': {'usage': True},
         'navpath': NAVPATH_DEFAULT + [('Usage', reverse('seeddb-usage'))],
         'tab_template': 'seeddb/tabs_usage.html',
+        'delete_url': reverse('seeddb-usage'),
     }
     return render_edit(request, Usage, UsageForm, usage_id,
         'seeddb-usage-edit',
@@ -259,6 +263,7 @@ def netboxtype_edit(request, type_id=None):
         'active': {'type': True},
         'navpath': NAVPATH_DEFAULT + [('Type', reverse('seeddb-type'))],
         'tab_template': 'seeddb/tabs_type.html',
+        'delete_url': reverse('seeddb-type'),
     }
     return render_edit(request, NetboxType, NetboxTypeForm, type_id,
         'seeddb-type-edit',
@@ -269,6 +274,7 @@ def vendor_edit(request, vendor_id=None):
         'active': {'vendor': True},
         'navpath': NAVPATH_DEFAULT + [('Vendor', reverse('seeddb-vendor'))],
         'tab_template': 'seeddb/tabs_vendor.html',
+        'delete_url': reverse('seeddb-vendor'),
     }
     return render_edit(request, Vendor, VendorForm, vendor_id,
         'seeddb-vendor-edit',
@@ -281,6 +287,7 @@ def subcategory_edit(request, subcategory_id=None):
             ('Subcategory', reverse('seeddb-subcategory'))
         ],
         'tab_template': 'seeddb/tabs_subcategory.html',
+        'delete_url': reverse('seeddb-subcategory'),
     }
     return render_edit(request, Subcategory, SubcategoryForm, subcategory_id,
         'seeddb-subcategory-edit',
@@ -311,6 +318,7 @@ def cabling_edit(request, cabling_id=None):
         'active': {'cabling': True},
         'navpath': NAVPATH_DEFAULT + [('Cabling', reverse('seeddb-cabling'))],
         'tab_template': 'seeddb/tabs_cabling.html',
+        'delete_url': reverse('seeddb-cabling'),
     }
     return render_edit(request, Cabling, CablingForm, cabling_id,
         'seeddb-cabling-edit',
@@ -321,6 +329,7 @@ def patch_edit(request, patch_id=None):
         'active': {'patch': True},
         'navpath': NAVPATH_DEFAULT + [('Patch', reverse('seeddb-patch'))],
         'tab_template': 'seeddb/tabs_patch.html',
+        'delete_url': reverse('seeddb-patch'),
     }
     return render_edit(request, Patch, PatchForm, patch_id,
         'seeddb-patch-edit',

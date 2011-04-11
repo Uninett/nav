@@ -1,6 +1,9 @@
 nobase_dist_doc_DATA = \
 	getting-started.rst \
-        $(wildcard cricket/Defaults cricket/*/Defaults cricket/*/*/Defaults) \
+	$(wildcard cricket/cricket-config/Defaults cricket/cricket-config/*/Defaults cricket/cricket-config/*/*/Defaults) \
+	cricket/README \
+	cricket/cricket/subtree-sets \
+	cricket/public_html/cricket.css \
 	$(wildcard mailin/README.rst mailin/alertmsg.d/*) \
 	radius/README.rst radius/INSTALL.rst
 

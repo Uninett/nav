@@ -23,6 +23,7 @@ from nav import web, db
 from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.templates.ArnoldTemplate import ArnoldTemplate
 from nav.web.URI import URI
+from nav.web.encoding import encoded_output
 from urllib import unquote_plus
 from IPy import IP
 import nav.arnold
@@ -48,6 +49,7 @@ conn = db.getConnection('arnold', 'arnold');
     
 
 ############################################################
+@encoded_output
 def handler(req):
 
     # getConnection('subsystem','database')
@@ -99,7 +101,8 @@ def handler(req):
     elif section == 'dodeletepredefined':
         if fs.has_key('predefinedid'):
             q = """DELETE FROM block WHERE blockid=%s"""
-            cur.execute(q, (fs['predefinedid'], ))
+            predefinedid = str(fs['predefinedid'])
+            cur.execute(q, (predefinedid, ))
             
             redirect(req, 'predefined?output=Predefined detention %s deleted.'
                      %fs['predefinedtitle'])
@@ -146,7 +149,8 @@ def handler(req):
     elif section == 'dodeletereason':
         if fs.has_key('reasonid'):
             q = """DELETE FROM blocked_reason WHERE blocked_reasonid=%s"""
-            cur.execute(q, (fs['reasonid'], ))
+            reasonid = str(fs['reasonid'])
+            cur.execute(q, (reasonid, ))
             
             redirect(req, 'addreason?output=Detentionreason %s deleted.'
                      %fs['reasonname'])
@@ -170,7 +174,8 @@ def handler(req):
     elif section == 'dodeletequarantinevlan':
         if fs.has_key('vlanid'):
             q = """DELETE FROM quarantine_vlans WHERE quarantineid=%s"""
-            cur.execute(q, (fs['vlanid'], ))
+            vlanid = str(fs['vlanid'])
+            cur.execute(q, (vlanid, ))
             
             redirect(req, 'addquarantinevlan?output=Quarantinevlan %s deleted.'
                      %fs['vlan'])

@@ -67,16 +67,25 @@ class NetboxJobScheduler(object):
     def cancel(self):
         """Cancel scheduling of this job for this box.
 
-        Future runs will not be scheduled after this."""
-        if self._next_call.active():
-            self._next_call.cancel()
-            self.cancelled = True
-            self._logger.debug("cancel: Job %r cancelled for %s",
-                               self.job.name, self.netbox.sysname)
-            self.cancel_running_job()
-        else:
+        Future runs will not be scheduled after this.
+
+        """
+        if self.cancelled:
             self._logger.debug("cancel: Job %r already cancelled for %s",
                                self.job.name, self.netbox.sysname)
+            return
+
+        if self._next_call.active():
+            self._next_call.cancel()
+            self._logger.debug("cancel: Job %r cancelled for %s",
+                               self.job.name, self.netbox.sysname)
+        else:
+            self._logger.debug("cancel: Job %r cancelled for %s, "
+                               "though no next run was scheduled",
+                               self.job.name, self.netbox.sysname)
+
+        self.cancelled = True
+        self.cancel_running_job()
         self._deferred.callback(self)
 
     def cancel_running_job(self):
@@ -109,7 +118,6 @@ class NetboxJobScheduler(object):
         deferred.addErrback(self._log_unhandled_error)
 
         deferred.addCallback(self._unregister_handler)
-        deferred.addCallback(self._log_time_to_next_run)
 
 
     def is_running(self):
@@ -131,8 +139,14 @@ class NetboxJobScheduler(object):
 
     def reschedule(self, delay):
         """Reschedules the next run of of this job"""
-        self._logger.info("Rescheduling %r for %s in %d seconds",
-                          self.job.name, self.netbox.sysname, delay)
+        if self.cancelled:
+            self._logger.debug("ignoring request to reschedule cancelled job")
+            return
+
+        next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
+
+        self._logger.info("Next %r job for %s will be in %d seconds (%s)",
+                          self.job.name, self.netbox.sysname, delay, next_time)
 
         if self._next_call.active():
             self._next_call.reset(delay)
@@ -152,14 +166,6 @@ class NetboxJobScheduler(object):
             self.uncount_job()
             self.unqueue_next_job()
         return result
-
-    def _log_time_to_next_run(self, thing=None):
-        if self._next_call and self._next_call.active():
-            next_time = datetime.datetime.fromtimestamp(
-                self._next_call.getTime())
-            self._logger.info("Next %r job for %s will be at %s",
-                              self.job.name, self.netbox.sysname, next_time)
-        return thing
 
     def count_job(self):
         current_count = self.__class__.job_counters.get(self.job.name, 0)
@@ -200,6 +206,8 @@ class NetboxJobScheduler(object):
 class JobScheduler(object):
     active_schedulers = set()
     job_logging_loop = None
+    netbox_reload_interval = 2*60.0 # seconds
+    netbox_reload_loop = None
 
     def __init__(self, job):
         """Initializes a job schedule from the job descriptor."""
@@ -221,10 +229,15 @@ class JobScheduler(object):
         """Initiate scheduling of this job."""
         signals.netbox_type_changed.connect(self.on_netbox_type_changed)
         self._setup_active_job_logging()
-        self.netbox_reload_loop = task.LoopingCall(self._reload_netboxes)
-        # FIXME: Interval should be configurable
-        deferred = self.netbox_reload_loop.start(interval=2*60.0, now=True)
-        return deferred
+        self._start_netbox_reload_loop()
+
+    def _start_netbox_reload_loop(self):
+        if not self.netbox_reload_loop:
+            self.netbox_reload_loop = task.LoopingCall(self._reload_netboxes)
+        if self.netbox_reload_loop.running:
+            self.netbox_reload_loop.stop()
+        self.netbox_reload_loop.start(
+            interval=self.netbox_reload_interval, now=True)
 
     def on_netbox_type_changed(self, netbox_id, new_type, **kwargs):
         """Performs various cleanup and reload actions on a netbox type change
@@ -239,12 +252,10 @@ class JobScheduler(object):
         self._logger.info("Cancelling all jobs for %s due to type change.",
                           sysname)
         self.cancel_netbox_scheduler(netbox_id)
-        def reset(_):
-            self.netbox_reload_loop.call.reset(1)
+
         df = threads.deferToThread(shadows.Netbox.cleanup_replaced_netbox,
                                    netbox_id, new_type)
-        df.addCallback(reset)
-        return df
+        return df.addCallback(lambda x: self._start_netbox_reload_loop())
 
     def _setup_active_job_logging(self):
         if self.__class__.job_logging_loop is None:
@@ -299,10 +310,10 @@ class JobScheduler(object):
         jobs.sort(key=itemgetter(2), reverse=True)
         table_formatter = SimpleTableFormatter(jobs)
 
-        logger = ipdevpoll.get_class_logger(cls)
+        logger = logging.getLogger("%s.joblist" % __name__)
         if jobs:
             logger.debug("currently active jobs (%d):\n%s",
                          len(jobs), table_formatter)
         else:
-            logger.debug("no currently active jobs")
-
+            logger.debug("no active jobs (%d JobHandlers)",
+                         JobHandler.get_instance_count())

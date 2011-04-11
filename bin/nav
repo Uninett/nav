@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2004 Norwegian University of Science and Technology
-# Copyright (C) 2006 UNINETT AS
+# Copyright (C) 2006, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -28,37 +28,33 @@ Available commands are:
   status  -- Query the status of services.
   info    -- Display information about/description of services.
   list    -- Display list of known services.
-  
+
   version -- Displays which version of NAV you are running.
 """
-__id__ = "$Id$"
 
 import sys
 import os
 import os.path
 import getopt
 try:
-    from startstop import *
+    from nav.startstop import ServiceRegistry, CommandFailedError
 except ImportError:
-    try:
-        from nav.startstop import *
-    except ImportError:
-        print >> sys.stderr, """Fatal error: Could not find the nav.startstop module.
-Is your PYTHONPATH environment correctly set up?"""
-        sys.exit(1)
+    print >> sys.stderr, (
+        "Fatal error: Could not find the nav.startstop module.\n"
+        "Is your PYTHONPATH environment correctly set up?")
+    sys.exit(1)
 
 try:
     services = ServiceRegistry()
 except OSError, e:
-    print >> sys.stderr, "A problem occurred, which prevented this command from running."
+    print >> sys.stderr, ("A problem occurred, which prevented this command "
+                          "from running.")
     print >> sys.stderr, str(e)
     sys.exit(1)
 
-allowNonRoot = False
+allow_non_root = False
 
 def main(args):
-    global services
-    
     try:
         opts, args = getopt.getopt(args, '', ['nonroot'])
     except getopt.GetoptError, error:
@@ -66,10 +62,10 @@ def main(args):
         usage()
         sys.exit(1)
 
-    for opt,val in opts:
+    for opt, val in opts:
         if opt == '--nonroot':
-            global allowNonRoot
-            allowNonRoot = True
+            global allow_non_root
+            allow_non_root = True
 
     if len(args) == 0:
         usage()
@@ -77,32 +73,32 @@ def main(args):
 
     command = args.pop(0)
     if len(args) == 0:
-        queryList = services.keys()
-        queryList.sort()
+        query_list = services.keys()
+        query_list.sort()
     else:
-        queryList = args
+        query_list = args
 
     # Use reflection to decide whether the command is known, and to
     # call it if it is.
     self = sys.modules[__name__]
-    commandFuncName = 'c_' + command
-    if hasattr(self, commandFuncName):
-        commandFunc = self.__dict__[commandFuncName]
-        commandFunc(queryList)
+    command_func_name = 'c_' + command
+    if hasattr(self, command_func_name):
+        command_func = self.__dict__[command_func_name]
+        command_func(query_list)
     else:
         print >> sys.stderr, "Unknown command: " + command
 
 def checkroot():
-    if not allowNonRoot and os.geteuid() != 0:
+    if not allow_non_root and os.geteuid() != 0:
         print >> sys.stderr, "You should be root to run this command."
         sys.exit(10)
 
-def serviceIterator(queryList, func):
+def service_iterator(query_list, func):
     """Iterate through a list of service names, look up each service instance
     and call func using this instance as its argument.
     """
     unknowns = []
-    for name in queryList:
+    for name in query_list:
         if name in services:
             func(services[name])
         else:
@@ -110,7 +106,7 @@ def serviceIterator(queryList, func):
     if len(unknowns):
         sys.stderr.write("Unknown services: %s\n" % " ".join(unknowns))
 
-def actionIterator(queryList, action, okString, failString):
+def action_iterator(query_list, action, ok_string, fail_string):
     """Iterate through a list of service names, performing an action on each
     of them.
     """
@@ -118,15 +114,15 @@ def actionIterator(queryList, action, okString, failString):
     unknowns = []
     errors = []
 
-    anyOk = False
-    for name in queryList:
+    any_ok = False
+    for name in query_list:
         if name in services:
             method = eval('services[name].%s' % action)
             try:
                 if method(silent=True):
-                    if not anyOk:
-                        anyOk = True
-                        print okString + ":",
+                    if not any_ok:
+                        any_ok = True
+                        print ok_string + ":",
                     print name,
                     sys.stdout.flush()
                 else:
@@ -135,54 +131,49 @@ def actionIterator(queryList, action, okString, failString):
                 errors.append((name, error))
         else:
             unknowns.append(name)
-    if anyOk:
+    if any_ok:
         print
-    
+
     if len(failed):
-        print "%s: %s" % (failString, " ".join(failed))
+        print "%s: %s" % (fail_string, " ".join(failed))
     if len(unknowns):
         print "Unknown: %s" % " ".join(unknowns)
     if len(errors):
         print "Errors:",
         print " ".join(["%s (%s)" % error for error in errors])
 
-def c_info(queryList):
+def c_info(query_list):
     def helper(service):
         print "%s (%s): %s" % (service.name,
                                service.__class__.__name__,
                                service.info)
-    serviceIterator(queryList, helper)
-    
-def c_list(queryList):
+    service_iterator(query_list, helper)
+
+def c_list(query_list):
     def helper(service):
         print service.name
-    serviceIterator(queryList, helper)
+    service_iterator(query_list, helper)
 
-def c_start(queryList):
+def c_start(query_list):
     checkroot()
-    actionIterator(queryList, "start", "Starting", "Failed")
-        
-def c_stop(queryList):
-    checkroot()
-    actionIterator(queryList, "stop", "Stopping", "Failed")
+    action_iterator(query_list, "start", "Starting", "Failed")
 
-def c_restart(queryList):
+def c_stop(query_list):
     checkroot()
-    c_stop(queryList)
-    c_start(queryList)
-        
-def c_status(queryList):
-    checkroot()
-    actionIterator(queryList, "isUp", "Up", "Down")
+    action_iterator(query_list, "stop", "Stopping", "Failed")
 
-def c_version(queryList):
-    import nav
-    if hasattr(nav, '__version__'):
-        print "NAV " + nav.__version__
-    elif hasattr(nav, 'VERSION'):
-        print "NAV " + nav.VERSION
-    else:
-        print >> sys.stderr, "I cannot find any NAV version information!"
+def c_restart(query_list):
+    checkroot()
+    c_stop(query_list)
+    c_start(query_list)
+
+def c_status(query_list):
+    checkroot()
+    action_iterator(query_list, "isUp", "Up", "Down")
+
+def c_version(query_list):
+    from nav import buildconf
+    print "NAV %s" % buildconf.VERSION
 
 def usage():
     """ Print a usage screen to stderr."""
