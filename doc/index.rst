@@ -35,5 +35,5 @@ First steps
    documentation can be found on NAV's `wiki pages`_.
 
 * **From scratch:**
-  :doc:`Installation <install>` |
-  :doc:`Getting started <getting-started>`
+  :doc:`Installation <intro/install>` |
+  :doc:`Getting started <intro/getting-started>`

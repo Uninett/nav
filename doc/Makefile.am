@@ -1,5 +1,6 @@
 nobase_dist_doc_DATA = \
-	getting-started.rst \
+	intro/getting-started.rst \
+	intro/install.rst \
 	$(wildcard cricket/cricket-config/Defaults cricket/cricket-config/*/Defaults cricket/cricket-config/*/*/Defaults) \
 	cricket/README \
 	cricket/cricket/subtree-sets \

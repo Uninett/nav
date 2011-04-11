@@ -12,8 +12,8 @@ NAV documentation contents
 .. toctree::
     :maxdepth: 3
 
-    install
-    getting-started
+    intro/install
+    intro/getting-started
     programs/index
     geomap/README
     mailin/README
