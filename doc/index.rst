@@ -3,27 +3,37 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to NAV's documentation!
-===============================
+.. _index:
 
-Contents:
+=================
+NAV documentation
+=================
 
-.. toctree::
-   :maxdepth: 2
+Getting help
+============
 
-   install
-   getting-started
-   programs/index
-   geomap/README
-   mailin/README
-   radius/README
+* Search for information on our `wiki pages`_.
 
-.. include:: ../README.rst
+* Post a question on `the nav-users mailing list`_ or search the 
+  `nav-users mailing list archives`_.
 
-Indices and tables
-==================
+* Ask a question on the `#nav IRC channel`_ on freenode.
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+* Report a bug in our `bug tracker`_.
 
+.. _wiki pages: http://metanav.uninett.no/
+.. _nav-users mailing list archives: https://postlister.uninett.no/sympa/arc/nav-users
+.. _the nav-users mailing list: https://postlister.uninett.no/sympa/info/nav-users
+.. _#nav IRC channel: irc://irc.freenode.net/nav
+.. _bug tracker: https://bugs.launchpad.net/nav
+
+First steps
+===========
+
+.. NOTE:: NAV's Sphinx-based documentation is still in the process of being
+   built and structured.  Until this process is complete, most of the existing
+   documentation can be found on NAV's `wiki pages`_.
+
+* **From scratch:**
+  :doc:`Installation <install>` |
+  :doc:`Getting started <getting-started>`

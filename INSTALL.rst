@@ -2,8 +2,6 @@
  Installing NAV
 ================
 
-.. contents:: Table of contents
-
 Dependencies
 ============
 
