@@ -35,6 +35,7 @@ class RrdFile(models.Model):
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     key = VarcharField()
     value = VarcharField()
+    interface = models.ForeignKey(Interface, db_column='interfaceid', null=True)
 
     class Meta:
         db_table = 'rrd_file'
