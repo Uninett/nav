@@ -36,7 +36,6 @@ from nav.web.threshold.views import threshold_all, save_thresholds
 urlpatterns = patterns('',
     # List accounts and groups
     url(r'^$', index, name='index-page'),
-    #url(r'^(?P<all>\w{3})/$', threshold_list, name='threshold-list'),
     url(r'^all/$', threshold_all, name='threshold-all'),
     url(r'^preparebulk/$', prepare_bulkset, name='prepare-bulkset'),
     url(r'^choosetype/$', box_or_interface,  name='box-or-interface'),
