@@ -75,7 +75,8 @@ Please tell us about successful installs on other setups.
 Installation
 ============
 
-.. include:: INSTALL.rst
+See :doc:`separate installation instructions <INSTALL>` for configuring your
+FreeRADIUS server to log accounting data to NAV.
 
 
 Usage

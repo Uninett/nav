@@ -1,5 +1,6 @@
-Environment and testing
------------------------
+===================================
+Setting up FreeRADIUS to log to NAV
+===================================
 
 The module has been tested to run on the following:
 
