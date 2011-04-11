@@ -87,7 +87,7 @@ threshold.chooseDeviceType = function(the_select, select_val){
                             }
                          },
              error: function(request, errMessage, errType){
-                            alert('Error callback: ' + errMessage);
+                            alert('Error callback: ' + errMessage +"; " + errType);
                             return -1;
                        },
              complete: function(header, textStatus){
@@ -175,9 +175,13 @@ threshold.showSavedThreshold = function(inp){
     return true;
 };
 
+threshold.showErrorThreshold = function(inp){
+    $(inp).parent().css('background-color', threshold.stdErrColor);
+};
+
 threshold.netboxSearch = function(){
     $('span.#ajaxLoader').toggle();
-    var returnValue = 0;
+    var retVal = 0;
 
     var descr = $('select.#descr').val();
     var sysname = $('input.#netboxname').val();
@@ -232,14 +236,14 @@ threshold.netboxSearch = function(){
              success: function(data, textStatus, header){
                             if(data.error){
                                 alert(data.message);
-                                returnValue = -1;
-                                return -1;
+                                retVal = -1;
+                                return retVal;
                             }
                             $('select.#chosenboxes').empty();
                             $('select.#chosenboxes').append(data.foundboxes);
                             $('select.#choseninterfaces').empty();
                             $('select.#choseninterfaces').append(data.foundinterfaces);
-                            returnValue = 0;
+                            return 0;
                      },
              error: function(request, errMessage, errType){
                             alert('Error callback: ' + errMessage);
@@ -252,7 +256,7 @@ threshold.netboxSearch = function(){
                         }
         });
     $('span.#ajaxLoader').toggle();
-    return returnValue;
+    return retVal;
 };
 
 threshold.saveThresholds = function(dsIds, operator, threshold){
@@ -264,16 +268,13 @@ threshold.saveThresholds = function(dsIds, operator, threshold){
             async: false,
             success: function(data, textStatus, header){
                         if(data.error){
-                            /*
-                            alert(data.message);
-                            */
                             retVal = -1;
-                            return -1;
+                            return retVal;
                         }
                         return 0;
                     },
             error: function(request, errMessage, errType){
-                            alert('Error callback: ' + errMessage);
+                            alert('Error callback: ' + errMessage+";" + errType);
                    },
             complete: function(header, textStatus){
                       },
@@ -301,7 +302,7 @@ threshold.bulkSaveThresholds = function(){
     }
     var ret = threshold.saveThresholds(threshold.table2String(dsIds), bulkOperator, bulkThreshold);
     if(ret == -1 ){
-        alert('Save failed');
+        threshold.updateMessages('Save failed', true);
         return -1;
     }
     $('span.#ajaxLoader').toggle();
@@ -318,17 +319,16 @@ threshold.saveSingleThreshold = function(btn){
 
     if(! threshold.isLegalThreshold(thr)){
         threshold.updateMessages('Save failed. Illegal threshold', true);
-        $(thrInput).parent().css('background-color', threshold.stdErrColor);
+        threshold.showErrorThreshold(thrInput);
         return -1;
     }       
     
     var ret = threshold.saveThresholds(dsId, op, thr);
     if(ret == -1){
         threshold.updateMessages('Save failed', true);
-        $(thrInput).parent().css('background-color', threshold.stdErrColor);
+        threshold.showErrorThreshold(thrInput);
         return -1;
     } else {
-        //$(thrInput).parent().css('background-color', threshold.stdBgColor);
         threshold.showSavedThreshold(thrInput);
     }
     threshold.updateMessages('Threshold saved', false);
@@ -353,12 +353,12 @@ threshold.saveCheckedThresholds = function(){
         var thrInput = $(row).find('input.#threshold');
         var thr = $(thrInput).val();
         if(! threshold.isLegalThreshold(thr)){
-            $(thrInput).parent().css('background-color', threshold.stdErrColor);
+            threshold.showErrorThreshold(thrInput);
             numbErrors++;
         } else {
             var ret = threshold.saveThresholds(dsId, op, thr);
             if(ret == -1){
-                $(thrInput).parent().css('background-color', threshold.stdErrColor);
+                threshold.showErrorThreshold(thrInput);
                 numbErrors++;
             } else {
                 threshold.showSavedThreshold(thrInput);
@@ -366,7 +366,9 @@ threshold.saveCheckedThresholds = function(){
         }
     }
     if(numbErrors > 0){
-        threshold.updateMessages(numbErrors + ' errors. Check for illegal values', true);
+        var errMsg = numbErrors + ' error' + (numbErrors > 1 ? 's' : '');
+        errMsg += '. Check for illegal values';
+        threshold.updateMessages(errMsg, true);
     } else {
         threshold.updateMessages('All checked thresholds saved', false);
     }
@@ -391,12 +393,12 @@ threshold.saveAllThresholds = function(){
         var thrInput = $(row).find('input.#threshold');
         var thr = $(thrInput).val();
         if(! threshold.isLegalThreshold(thr)){
-            $(thrInput).parent().css('background-color', threshold.stdErrColor);
+            threshold.showErrorThreshold(thrInput);
             numbErrors++;
         } else {
             var ret = threshold.saveThresholds(dsId, op, thr);
             if(ret == -1){
-                $(thrInput).parent().css('background-color', threshold.stdErrColor);
+                threshold.showErrorThreshold(thrInput);
                 numbErrors++;
             } else {
                 threshold.showSavedThreshold(thrInput);
@@ -424,7 +426,7 @@ threshold.bulkUpdateThresholds = function(btn){
 
     if(! threshold.isLegalThreshold(bulkThr)){
         threshold.updateMessages('Illegal threshold', true);
-        $(bulkThrInput).parent().css('background-color', threshold.stdErrColor);
+        threshold.showErrorThreshold(bulkThrInput);
         return -1;
     }
 
@@ -546,8 +548,8 @@ function save_threshold(update_button, dsid, operator, threshold){
 	return;
     }
     save_queue.push(dsid);
-    $.ajax( { url: '/threshold/savethreshold/',
-	      data: {'dsid': dsid, 'operator': operator, 'threshold': threshold},
+    $.ajax( { url: '/threshold/savethresholds/',
+	      data: {'dsIds': dsid, 'operator': operator, 'threshold': threshold},
 	      dataType: 'json',
 	      type: 'POST',
 	      success: function(data){
@@ -559,7 +561,7 @@ function save_threshold(update_button, dsid, operator, threshold){
 			 }
 		       },
 	      error: function(request, errMessage, errType){
-                       alert(errMessage);
+                       alert('Error: ' + errMessage + '; ' + errType);
                      },
 	      complete: function(){
 		          remove_from_queue(dsid);
@@ -577,34 +579,12 @@ function remove_from_queue(id){
 function call_back_success(button, max_value){
     var parent_td = $(button).parent();
     var max_td = $(button).parents("tr").find("td.maxvalue");
-    // var background_td = $(parent_td).css('background');
-    // var background_button = $(button).css('background');
-
-    var threshold_td = $(button).parents('tr').find('input.thresholdvalue').parent();
-    var threshold_bg = $(threshold_td).css('background-color');
+    var thrInput = $(button).parents('tr').find('input.thresholdvalue');
 
     $(max_td).text(max_value);
+    threshold.showSavedThreshold(thrInput);
 
-    $(threshold_td).css('background-color','green');
-    $(threshold_td).fadeTo(1000, 0.5);
-    $(threshold_td).fadeTo(1000, 1.0);
-    $(threshold_td).fadeTo(1000, 0.5);
-    $(threshold_td).fadeTo(3000, 1.0, function(){
-	    $(threshold_td).css('background-color', 'white');
-	    $(threshold_td).show();});
-    /*
-    $(parent_td).hide();
-    $(button).css('background', 'green');
-    $(parent_td).css('background' , 'green');
-
-    
-    $(parent_td).fadeIn(5000, function(){
-                                $(parent_td).css('background', background_td);
-                                $(button).css('background', background_button);
-                                $(parent_td).show();
-                            });
-    */
-    }
+}
 
 function call_back_fail(button){
     var threshold_td = $(button).parents('tr').find('input.thresholdvalue').parent();
