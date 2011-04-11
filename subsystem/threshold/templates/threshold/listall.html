@@ -29,20 +29,38 @@
         {% for threshold in item.sources %}
         <tr>
                 {% if threshold.rrd_file.interface %}
-                <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifname }}</a></td>
-                <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifalias }}</a></td>
+                    {% if threshold.rrd_file.interface.ifname %}
+                    <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifname }}</a></td>
+                    {% else %}
+                    <td>&nbsp;</td>
+                    {% endif %}
+                    {% if threshold.rrd_file.interface.ifalias %}
+                    <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifalias }}</a></td>
+                    {% else %}
+                    <td>&nbsp;</td>
+                    {% endif %}
                 {% else %}
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 {% endif %}
                 <td><span title="{{ threshold.extra_descr }}">{{ threshold.description }}</span></td>
-                <td>
-                    <select id="operator" name="operator">
-                        <option value=">">Greater than</option>
+                <td><select id="operator" name="operator">
+                    {% if threshold.delimiter %}
+                        {% ifequal threshold.delimiter ">" %}
+                        <option value=">" selected="selected">Greater than</option>
                         <option value="<">Less than</option>
+                        {% else %}
+                        <option value=">">Greater than</option>
+                        <option value="<" selected="selected">Less than</option>
+                        {% endifequal %}
+                    {% else %}
+                    <option value=">">Greater than</option>
+                    <option value="<">Less than</option>
+                    {% endif %}
                     </select>
                 </td>
-                <td><input class="thresholdvalue" type="text" value="{{ threshold.threshold }}"></td>
+                <td><input class="thresholdvalue" type="text" size="8"
+                        value="{{ threshold.threshold }}"></td>
                 <td class="maxvalue">{% if threshold.max %} {{ threshold.max }}{% endif %}</td>
                 <td>{% if threshold.state %} {{ threshold.state }} {% endif %}</td>
                 <td data_dsid="{{threshold.id}}"><input class="button" type="button" value="Update" /></td>

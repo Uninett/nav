@@ -540,6 +540,10 @@ $(document).ready(function(){
         });
 		
     });
+
+    $('input.thresholdvalue').change(function(){
+        threshold.setChangedThreshold(this);
+    });
 });
 
 
