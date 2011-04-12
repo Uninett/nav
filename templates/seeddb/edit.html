@@ -8,7 +8,20 @@
         {{ object }}
     </caption>
     {% endif %}
-    {{ form.as_table }}
+    {% for field in form %}
+    <tr>
+        <th><label for="{{ field.auto_id }}">
+            <span class="{{ field.field.required|yesno:"required," }}">
+            {{ field.label }}</span>
+            </label></th>
+        <td>
+            {{ field }}
+            {% if field.errors %}
+                {{ field.errors }}
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
     <tr>
         <th></th>
         <td><input type="submit" value="Save" /></td>
