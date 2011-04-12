@@ -14,10 +14,7 @@ NAV documentation contents
 
     intro/install
     intro/getting-started
-    programs/index
-    geomap/README
-    mailin/README
-    radius/README
+    subsystems/index
     glossary
     
 Indices, glossary and tables

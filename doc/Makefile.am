@@ -1,12 +1,11 @@
 nobase_dist_doc_DATA = \
-	intro/getting-started.txt \
-	intro/install.txt \
 	$(wildcard cricket/cricket-config/Defaults cricket/cricket-config/*/Defaults cricket/cricket-config/*/*/Defaults) \
 	cricket/README \
 	cricket/cricket/subtree-sets \
 	cricket/public_html/cricket.css \
-	$(wildcard mailin/README.txt mailin/alertmsg.d/*) \
-	radius/README.txt radius/INSTALL.txt
+	$(wildcard mailin/alertmsg.d/*) \
+	$(wildcard intro/*.txt) \
+	$(wildcard subsystems/*.txt)
 
 # Makefile for Sphinx documentation
 #
