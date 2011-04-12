@@ -325,13 +325,17 @@ def netbox_search(request):
             nbox_format = '<option value="%d">%s</option>'
             for nbox in netbox_list:
                 if search_interfaces:
+                    interfaces = []
                     if chosen_boxes:
+                        # Only interfaces for boxes that are selected.
                         if nbox.id in chosen_boxes:
-                            box_interfaces[nbox.sysname] = \
-                                get_netbox_interfaces(nbox,ifname, updown)
+                            interfaces = get_netbox_interfaces(nbox,
+                                                            ifname, updown)
                     else:
-                        box_interfaces[nbox.sysname] = \
-                            get_netbox_interfaces(nbox, ifname, updown)
+                        interfaces = get_netbox_interfaces(nbox,
+                                                            ifname, updown)
+                    if interfaces:
+                        box_interfaces[nbox.sysname] = interfaces
                 if nbox.id in chosen_boxes:
                     foundboxes += nbox_format_select % (nbox.id, nbox.sysname)
                 else:
@@ -451,11 +455,8 @@ def save_thresholds(request):
                 message += err
             result = {'error': 1, 'message': message}
         else:
-            message = 'Threshold'
-            if len(rrd_data_sources) > 1:
-                message += 's'
-            message += ' saved'
-            result = {'error': 0, 'message': message}
+            msg = 'Threshold' +(len(rrd_data_sources) > 1 ? 's' : '')+ ' saved'
+            result = {'error': 0, 'message': msg}
         return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
     else:
