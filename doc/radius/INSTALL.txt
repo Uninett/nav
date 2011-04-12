@@ -17,8 +17,8 @@ Installing the accounting module
 Step 1: Configuring FreeRADIUS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``<path to freeradius>/etc/raddb/postgresql.conf``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<path to freeradius>/etc/raddb/postgresql.conf
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following needs to be set:
 
