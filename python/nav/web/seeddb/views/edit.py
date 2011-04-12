@@ -30,7 +30,7 @@ from nav.web.serviceHelper import getDescription
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.netbox_edit import netbox_get_serial_and_type
 from nav.web.seeddb.utils.netbox_edit import netbox_serial_and_subcat_form
-from nav.web.seeddb.utils.netbox_edit import netbox_save
+from nav.web.seeddb.utils.netbox_edit import netbox_save, netbox_get_function
 from nav.web.seeddb.utils.service_edit import service_save
 from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
 from nav.web.seeddb.forms import RoomForm, LocationForm, OrganizationForm
@@ -64,8 +64,9 @@ def netbox_edit(request, netbox_id=None):
             form = NetboxForm(request.POST)
             if form.is_valid():
                 serial, netbox_type = netbox_get_serial_and_type(form)
+                function = netbox_get_function(netbox_id)
                 form, serial_form, subcat_form = netbox_serial_and_subcat_form(
-                    form, serial, netbox_type)
+                    form, serial, function, netbox_type)
                 step = SAVE_STEP
         elif step == SAVE_STEP:
             form = NetboxReadonlyForm(request.POST)

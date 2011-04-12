@@ -155,6 +155,7 @@ class NetboxReadonlyForm(NetboxForm):
 
 class NetboxSerialForm(forms.Form):
     serial = forms.CharField(required=False)
+    function = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.netbox_id = kwargs.pop('netbox_id', None)
