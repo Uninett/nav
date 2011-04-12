@@ -61,10 +61,10 @@ mismatch_error_template= \
 
 # Format for interface-option with ifalias
 if_w_ifalias = \
-"""<optgroup label="%s"><option value="%d">%s (%s)</option></optgroup>"""
+"""<option value="%d">%s (%s)</option>"""
 # Format for Interface-option without ifalias
 if_wo_ifalias = \
-"""<optgroup label="%s"><option value="%d">%s</option></optgroup>"""
+"""<option value="%d">%s</option>"""
 
 def index(request):
     before = time.clock()
@@ -304,9 +304,9 @@ def netbox_search(request):
         netbox_categories = get_netbox_categories(gw, gsw, sw)
 
         if(descr):
-            # Make a fake query and append the qualifiers
             query = Netbox.objects.filter(rrdfile__rrddatasource__description=descr)
         else:
+            # Make a fake query and append the qualifiers
             query = Netbox.objects.filter(sysname__isnull=False)
         query = query.distinct()
         if netbox_qualifiers:
@@ -314,7 +314,7 @@ def netbox_search(request):
         if netbox_categories:
             query = query.filter(Q(category__id__in=netbox_categories))
 
-        interfaces = []
+        box_interfaces = {}
         foundboxes = ''
         netbox_list = query
         if netbox_list:
@@ -327,11 +327,11 @@ def netbox_search(request):
                 if search_interfaces:
                     if chosen_boxes:
                         if nbox.id in chosen_boxes:
-                            interfaces.extend(get_netbox_interfaces(nbox,
-                                                        ifname, updown))
+                            box_interfaces[nbox.sysname] = \
+                                get_netbox_interfaces(nbox,ifname, updown)
                     else:
-                        interfaces.extend(get_netbox_interfaces(nbox,
-                                                ifname, updown))
+                        box_interfaces[nbox.sysname] = \
+                            get_netbox_interfaces(nbox, ifname, updown)
                 if nbox.id in chosen_boxes:
                     foundboxes += nbox_format_select % (nbox.id, nbox.sysname)
                 else:
@@ -339,19 +339,22 @@ def netbox_search(request):
 
         logger.error('!!!!! number of netboxes = %d' % len(netbox_list))
 
+        numb_interfaces = 0;
         foundinterfaces = ''
-        if interfaces:
-            for interface in interfaces:
-                if interface.ifalias:
-                    foundinterfaces += \
-                        if_w_ifalias % (interface.netbox.sysname,
-                                            interface.id, interface.ifname,
-                                            interface.ifalias)
-                else:
-                    foundinterfaces += \
-                        if_wo_ifalias % (interface.netbox.sysname,
-                            interface.id, interface.ifname)
-        logger.error('&&&&& number of interfaces = %d' % len(interfaces))
+        if box_interfaces:
+            for sname, infs in box_interfaces.iteritems():
+                numb_interfaces += len(infs)
+                foundinterfaces += '<optgroup label="%s">' % sname
+                for inf in infs:
+                    if inf.ifalias:
+                        foundinterfaces += \
+                            if_w_ifalias % (inf.id, inf.ifname, inf.ifalias)
+                    else:
+                        foundinterfaces += \
+                            if_wo_ifalias % (inf.id, inf.ifname)
+                foundinterfaces += '</optgroup>'
+
+        logger.error('&&&&& number of interfaces = %d' % numb_interfaces)
 
         result = { 'error': 0,
                    'foundboxes': foundboxes,
