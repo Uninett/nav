@@ -40,7 +40,7 @@ threshold.getBulkUpdateHtml = function(descr, ids){
                 type: 'POST',
                 success: function(data, textStatus, header){
                             if(data.error){
-                                alert(data.message);
+                                threshold.updateMessages(data.message, true);
                                 return -1;
                             }
                             $('div.#netboxsearch').hide();
@@ -49,12 +49,16 @@ threshold.getBulkUpdateHtml = function(descr, ids){
                             $('div.#bulkupdateDiv').html(data);
                         },
                 error: function(request, errMessage, errType){
-                            alert('Error callback: ' + errMessage);
+                        var errMsg = 'Error: ' + errMessage + '; ' + errType;
+                        threshold.updateMessages(errMsg, true);
+                        return -1;
                         },
                 complete: function(header, textStatus){
-                            },
+                            return 0;
+                          },
                 statusCode: { 404: function(){
-                                alert('page not found');
+                                threshold.updateMessages('Page not found',true);
+                                return -1;
                                }
                         }
             });
@@ -68,7 +72,7 @@ threshold.chooseDeviceType = function(the_select, select_val){
              type: 'POST',
              success: function(data, textStatus, header){
                             if(data.error){
-                                alert('Error: ' + data.message);
+                                threshold.updateMessages(data.Message, true);
                                 return -1;
                             } 
                             threshold.displayMode = data.message;
@@ -85,16 +89,20 @@ threshold.chooseDeviceType = function(the_select, select_val){
                                 $(document).find('div.#netboxsearch').show();
                                 $(document).find('div.#netboxSubmitDiv').show();
                             }
+                            return 0;
                          },
              error: function(request, errMessage, errType){
-                            alert('Error callback: ' + errMessage +"; " + errType);
-                            return -1;
+                        errMsg = 'Error: ' + errMessage +"; " + errType;
+                        threshold.updateMessages(errMsg, true);
+                        return -1;
                        },
              complete: function(header, textStatus){
-                          },
-             statusCode: { 404: function(){
-                                        alert('page not found');
-                                   }
+                          return 0;
+                       },
+             statusCode: {404: function(){
+                                threshold.updateMessages('Page not found',true);
+                                return -1;
+                               }
                          }
           });
 };
@@ -235,7 +243,7 @@ threshold.netboxSearch = function(){
              async: false,
              success: function(data, textStatus, header){
                             if(data.error){
-                                alert(data.message);
+                                threshold.updateMessages(data.message, true);
                                 retVal = -1;
                                 return retVal;
                             }
@@ -243,15 +251,19 @@ threshold.netboxSearch = function(){
                             $('select.#chosenboxes').append(data.foundboxes);
                             $('select.#choseninterfaces').empty();
                             $('select.#choseninterfaces').append(data.foundinterfaces);
-                            return 0;
+                            return retVal;
                      },
              error: function(request, errMessage, errType){
-                            alert('Error callback: ' + errMessage);
+                        errMsg = 'Error: ' + errMessage + '; ' + errType;
+                        threshold.updateMessages(errMsg, true);
+                        return -1;
                    },
              complete: function(header, textStatus){
-                      },
-             statusCode: { 404: function(){
-                                alert('page not found');
+                        return 0;
+                       },
+             statusCode: {404: function(){
+                                threshold.updateMessages('Page not found',true);
+                                return -1;
                                }
                         }
         });
@@ -268,18 +280,23 @@ threshold.saveThresholds = function(dsIds, operator, threshold){
             async: false,
             success: function(data, textStatus, header){
                         if(data.error){
+                            threshold.updateMessages(data.message, true);
                             retVal = -1;
                             return retVal;
                         }
                         return 0;
                     },
             error: function(request, errMessage, errType){
-                            alert('Error callback: ' + errMessage+";" + errType);
+                        errMsg = 'Error: ' + errMessage+"; " + errType;
+                        threshold.updateMessages(errMsg, true);
+                        return -1;
                    },
             complete: function(header, textStatus){
+                        return 0;
                       },
-            statusCode: { 404: function(){
-                                alert('page not found');
+            statusCode: {404: function(){
+                                threshold.updateMessages('Page not found',true);
+                                return -1;
                                }
                         }
             });
@@ -291,7 +308,8 @@ threshold.bulkSaveThresholds = function(){
     var bulkOperator = $('select.#bulkOperator').val();
     var bulkThreshold = $('input.#bulkThreshold').val();
     if(allIncludes.length == 0){
-        alert('No thresholds are chosen. Please, check the ones to update');
+        errMsg = 'No thresholds are chosen. Please, check the ones to update';
+        threshold.updateMessages(errMsg, true);
         return -1;
     }
     
@@ -495,13 +513,12 @@ $(document).ready(function(){
         var retVal = 0;
       var descr = $('select.#descr').val();
       var boxes = $('select.#chosenboxes').val() || [];
-        //alert(boxes);
       if(boxes.length > 0){
         $('span.#ajaxLoader').toggle();
         threshold.getBulkUpdateHtml(descr, threshold.table2String(boxes));
         $('span.#ajaxLoader').toggle();
       } else {
-        alert('No netboxes chosen');
+        threshold.updateMessages('No netboxes chosen', true);
         retVal = -1;
       }
         return retVal;
@@ -516,7 +533,7 @@ $(document).ready(function(){
             threshold.getBulkUpdateHtml(descr, threshold.table2String(interfaces));
             $('span.#ajaxLoader').toggle();
         } else {
-            alert('No interfaces chosen');
+            threshold.updateMessages('No interfaces chosen', true);
             retVal = -1;
         }
         return retVal;
@@ -533,9 +550,6 @@ $(document).ready(function(){
 	    var dsid = $(this).parent().attr('data_dsid');
 	    var threshold = $(this).parents('tr').find('input.thresholdvalue').val();
             var operator = $(this).parents('tr').find('select').val();
-            /*
-            alert(dsid + ":" + operator + ":" + threshold);
-            */
             save_threshold(this, dsid, operator, threshold);
         });
 		
@@ -547,7 +561,7 @@ $(document).ready(function(){
 });
 
 
-function save_threshold(update_button, dsid, operator, threshold){
+function save_threshold(updateButton, dsid, operator, threshold){
     if( save_queue.indexOf(dsid) > -1){
 	return;
     }
@@ -558,39 +572,46 @@ function save_threshold(update_button, dsid, operator, threshold){
 	      type: 'POST',
 	      success: function(data){
 		         if(data.error){
-                           call_back_fail(update_button);
-			   alert(data.message);
-			 } else {
-			   call_back_success(update_button, data.max);
+                           callbackFail(updateButton);
+                           threshold.updateMessages(data.message, true);
+                           return -1;
 			 }
+			 callbackSuccess(updateButton, data.max);
+                         return 0;
 		       },
 	      error: function(request, errMessage, errType){
-                       alert('Error: ' + errMessage + '; ' + errType);
+                        errMsg = 'Error: ' + errMessage + '; ' + errType;
+                        threshold.updateMessages(errMsg, true);
+                        return -1;
                      },
 	      complete: function(){
-		          remove_from_queue(dsid);
-		        }
+		            removeFromQueue(dsid);
+                            return 0;
+		        },
+            statusCode: {404: function(){
+                                threshold.updateMessages('Page not found',true);
+                                return -1;
+                              }
+                        }
             });
 }
 
-function remove_from_queue(id){
+function removeFromQueue(id){
     var idx = save_queue.indexOf(id);
     if(idx > -1){
 	save_queue.splice(idx, 1);
     }
 }
 
-function call_back_success(button, max_value){
-    var parent_td = $(button).parent();
-    var max_td = $(button).parents("tr").find("td.maxvalue");
+function callbackSuccess(button, max_value){
+    var maxColumn = $(button).parents("tr").find("td.maxvalue");
     var thrInput = $(button).parents('tr').find('input.thresholdvalue');
 
-    $(max_td).text(max_value);
+    $(maxColumn).text(max_value);
     threshold.showSavedThreshold(thrInput);
-
 }
 
-function call_back_fail(button){
-    var threshold_td = $(button).parents('tr').find('input.thresholdvalue').parent();
-    $(threshold_td).css('background-color', 'red');
+function callbackFail(button){
+    var thrInput = $(button).parents('tr').find('input.thresholdvalue');
+    threshold.showErrorThreshold(thrInput);
 }
