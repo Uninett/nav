@@ -19,6 +19,7 @@ threshold.stdChangedColor = '#FF9900';
 threshold.stdErrColor = 'red';
 threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
+threshold.descriptionRegExp = new RegExp('^[a-zA-Z][a-zA-Z0-9\ ]+$');
 
 threshold.backToSearch = function(){
     $('div.#netboxsearch').show();
@@ -26,85 +27,38 @@ threshold.backToSearch = function(){
         $('div.#interfacesearch').show();
     }
     $('div.#bulkupdateDiv').hide();
-
+    threshold.removeMessages();
 };
 
-threshold.getBulkUpdateHtml = function(descr, ids){
-    var inputData = {
-        'descr': descr,
-        'ids': ids
-        };
-    $.ajax({url: '/threshold/preparebulk/',
-                data: inputData,
-                dataType: 'text',
-                type: 'POST',
-                success: function(data, textStatus, header){
-                            if(data.error){
-                                threshold.updateMessages(data.message, true);
-                                return -1;
-                            }
-                            $('div.#netboxsearch').hide();
-                            $('div.#interfacesearch').hide();
-                            $('div.#bulkupdateDiv').show();
-                            $('div.#bulkupdateDiv').html(data);
-                        },
-                error: function(request, errMessage, errType){
-                        var errMsg = 'Error: ' + errMessage + '; ' + errType;
-                        threshold.updateMessages(errMsg, true);
-                        return -1;
-                        },
-                complete: function(header, textStatus){
-                            return 0;
-                          },
-                statusCode: { 404: function(){
-                                threshold.updateMessages('Page not found',true);
-                                return -1;
-                               }
-                        }
-            });
-
+threshold.removeMessages = function(){
+    var messagesDiv = $('div.#messagesDiv');
+    $(messagesDiv).empty();
 };
 
-threshold.chooseDeviceType = function(the_select, select_val){
-    $.ajax({ url: '/threshold/choosetype/',
-             data: {'descr': select_val},
-             dataType: 'json',
-             type: 'POST',
-             success: function(data, textStatus, header){
-                            if(data.error){
-                                threshold.updateMessages(data.Message, true);
-                                return -1;
-                            } 
-                            threshold.displayMode = data.message;
-                            threshold.netboxSearch();
-                            if(threshold.displayMode == 'interface'){
-                                $(document).find('div.#netboxSubmitDiv').hide();
-                                $(document).find('div.#netboxsearch').show();
-                                $(document).find('div.#interfacesearch').show();
-                                $(document).find('div.#interfaceSubmitDiv').show();
-                            }
-                            if(threshold.displayMode == 'netbox'){
-                                $(document).find('div.#interfaceSubmitDiv').hide();
-                                $(document).find('div.#interfacesearch').hide();
-                                $(document).find('div.#netboxsearch').show();
-                                $(document).find('div.#netboxSubmitDiv').show();
-                            }
-                            return 0;
-                         },
-             error: function(request, errMessage, errType){
-                        errMsg = 'Error: ' + errMessage +"; " + errType;
-                        threshold.updateMessages(errMsg, true);
-                        return -1;
-                       },
-             complete: function(header, textStatus){
-                          return 0;
-                       },
-             statusCode: {404: function(){
-                                threshold.updateMessages('Page not found',true);
-                                return -1;
-                               }
-                         }
-          });
+threshold.updateMessages = function(msg, isError){
+    var messagesDiv = $('div.#messagesDiv');
+    $(messagesDiv).empty();
+    $(messagesDiv).append('<ul><li>' + msg + '</li></ul>');
+    if(isError){
+        $(messagesDiv).css('color', threshold.stdErrColor);
+    } else {
+        $(messagesDiv).css('color', threshold.stdSuccessColor);
+    }
+};
+
+threshold.pageNotFound = function(){
+    threshold.updateMessages('Page not found', true);
+    return -1;
+};
+
+threshold.ajaxError = function( request, ErrMessage, errType){
+    var errMsg = 'Error: ' + errMessage + '; ' + errType;
+    threshold.updateMessages(errMsg, true);
+    return -1;
+};
+
+threshold.isLegalDescription = function(desc){
+    return desc.match(threshold.descriptionRegExp);
 };
 
 threshold.table2String = function(tab){
@@ -146,26 +100,14 @@ threshold.stripPerCentSymbol = function(str){
     return str.replace(threshold.perCentRepl, '');
 };
 
+/*
+    NB!
+    Always remember to keep error-chekcing here and on server in sync!
+*/
 threshold.isLegalThreshold = function(thr){
     var intValue = parseInt(threshold.stripPerCentSymbol(thr));
     return (intValue > -1);
     
-};
-
-threshold.removeMessages = function(){
-    var messagesDiv = $('div.#messagesDiv');
-    $(messagesDiv).empty();
-};
-
-threshold.updateMessages = function(msg, isError){
-    var messagesDiv = $('div.#messagesDiv');
-    $(messagesDiv).empty();
-    $(messagesDiv).append('<ul><li>' + msg + '</li></ul>');
-    if(isError){
-        $(messagesDiv).css('color', threshold.stdErrColor);
-    } else {
-        $(messagesDiv).css('color', threshold.stdSuccessColor);
-    }
 };
 
 threshold.setChangedThreshold = function(inp){
@@ -205,7 +147,10 @@ threshold.netboxSearch = function(){
     if(descr == 'empty'){
         return -1;
     }
-    
+    if(! threshold.isLegalDescription(descr)){
+        threshold.updateMessages('Illegal threshold description', true);
+        return -1;
+    }
     var inputData = { 'descr': descr };
 
     if(sysname.length > 0){
@@ -253,22 +198,96 @@ threshold.netboxSearch = function(){
                             $('select.#choseninterfaces').append(data.foundinterfaces);
                             return retVal;
                      },
-             error: function(request, errMessage, errType){
-                        errMsg = 'Error: ' + errMessage + '; ' + errType;
-                        threshold.updateMessages(errMsg, true);
-                        return -1;
-                   },
+             error: function(req, errMsg, errType){
+                        return threshold.ajaxError(req, errMsg, errType);
+                    },
              complete: function(header, textStatus){
                         return 0;
                        },
              statusCode: {404: function(){
-                                threshold.updateMessages('Page not found',true);
-                                return -1;
+                                return threshold.pageNotFound();
                                }
                         }
         });
     $('span.#ajaxLoader').toggle();
     return retVal;
+};
+
+
+threshold.getBulkUpdateHtml = function(descr, ids){
+    if(! threshold.isLegalDescription(descr)){
+        threshold.updateMessages('Illegal threshold description', true);
+        return -1;
+    }
+    var inputData = {
+        'descr': descr,
+        'ids': ids
+        };
+    $.ajax({url: '/threshold/preparebulk/',
+                data: inputData,
+                dataType: 'text',
+                type: 'POST',
+                success: function(data, textStatus, header){
+                            if(data.error){
+                                threshold.updateMessages(data.message, true);
+                                return -1;
+                            }
+                            $('div.#netboxsearch').hide();
+                            $('div.#interfacesearch').hide();
+                            $('div.#bulkupdateDiv').show();
+                            $('div.#bulkupdateDiv').html(data);
+                        },
+                error: function(req, errMsg, errType){
+                        return threshold.ajaxError(req, errMsg, errType);
+                       },
+                complete: function(header, textStatus){
+                            return 0;
+                          },
+                statusCode: {404: function(){
+                                    return threshold.pageNotFound();
+                                }
+                        }
+            });
+
+};
+
+threshold.chooseDeviceType = function(the_select, select_val){
+    $.ajax({url: '/threshold/choosetype/',
+            data: {'descr': select_val},
+            dataType: 'json',
+            type: 'POST',
+            success: function(data, textStatus, header){
+                        if(data.error){
+                            threshold.updateMessages(data.Message, true);
+                            return -1;
+                        } 
+                        threshold.displayMode = data.message;
+                        threshold.netboxSearch();
+                        if(threshold.displayMode == 'interface'){
+                            $(document).find('div.#netboxSubmitDiv').hide();
+                            $(document).find('div.#netboxsearch').show();
+                            $(document).find('div.#interfacesearch').show();
+                            $(document).find('div.#interfaceSubmitDiv').show();
+                        }
+                        if(threshold.displayMode == 'netbox'){
+                            $(document).find('div.#interfaceSubmitDiv').hide();
+                            $(document).find('div.#interfacesearch').hide();
+                            $(document).find('div.#netboxsearch').show();
+                            $(document).find('div.#netboxSubmitDiv').show();
+                        }
+                        return 0;
+                      },
+            error: function(req, errMsg, errType){
+                        return threshold.ajaxError(req, errMsg, errType);
+                    },
+            complete: function(header, textStatus){
+                          return 0;
+                       },
+            statusCode: {404: function(){
+                                return threshold.pageNotFound();
+                               }
+                        }
+          });
 };
 
 threshold.saveThresholds = function(dsIds, operator, threshold){
@@ -286,22 +305,20 @@ threshold.saveThresholds = function(dsIds, operator, threshold){
                         }
                         return 0;
                     },
-            error: function(request, errMessage, errType){
-                        errMsg = 'Error: ' + errMessage+"; " + errType;
-                        threshold.updateMessages(errMsg, true);
-                        return -1;
+            error: function(req, errMsg, errType){
+                    return threshold.ajaxError(req, errMsg, errType);
                    },
             complete: function(header, textStatus){
                         return 0;
                       },
             statusCode: {404: function(){
-                                threshold.updateMessages('Page not found',true);
-                                return -1;
+                                return threshold.pageNotFound();
                                }
                         }
             });
     return retVal;
 };
+
 
 threshold.bulkSaveThresholds = function(){
     var allIncludes = $('input:checkbox[name="include"]:checked') || [];
@@ -476,6 +493,11 @@ $(document).ready(function(){
         if(sval == 'empty'){
             return -1;
         }
+        threshold.removeMessages();
+        if(! threshold.isLegalDescription(sval)){
+            threshold.updateMessages('Illegal threshold description', true);
+            return -1;
+        }
         $('div.#bulkupdateDiv').hide();
         threshold.chooseDeviceType(this, sval);
     });
@@ -579,18 +601,15 @@ function save_threshold(updateButton, dsid, operator, threshold){
 			 callbackSuccess(updateButton, data.max);
                          return 0;
 		       },
-	      error: function(request, errMessage, errType){
-                        errMsg = 'Error: ' + errMessage + '; ' + errType;
-                        threshold.updateMessages(errMsg, true);
-                        return -1;
+	      error: function(req, errMsg, errType){
+                        return threshold.ajaxError(req, errMsg, errType);
                      },
 	      complete: function(){
 		            removeFromQueue(dsid);
                             return 0;
 		        },
             statusCode: {404: function(){
-                                threshold.updateMessages('Page not found',true);
-                                return -1;
+                                return threshold.pageNotFound();
                               }
                         }
             });
