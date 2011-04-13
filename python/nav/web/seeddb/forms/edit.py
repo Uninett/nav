@@ -205,8 +205,10 @@ class NetboxSubcategoryForm(forms.Form):
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
+        checkers = [(service, service) for service in getCheckers()]
+        checkers.sort()
         self.fields['service'] = forms.ChoiceField(
-            choices=[(service, service) for service in getCheckers()])
+            choices=checkers)
 
 class ServiceForm(forms.Form):
     service = forms.IntegerField(
