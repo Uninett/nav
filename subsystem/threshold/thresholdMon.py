@@ -34,11 +34,7 @@ import sys
 import optparse
 
 # import NAV libraries
-import nav.config
-import nav.logs
-import nav.path
 from nav.event import Event
-from nav.db import getConnection
 from nav.rrd import presenter
 from nav.models.rrd import RrdFile, RrdDataSource
 
@@ -48,16 +44,17 @@ start = int(time.time())
 date = time.ctime()
 
 # Globals
-exceptions = ['cpu5min','c5000BandwidthMax']
+exceptions = ['cpu5min', 'c5000BandwidthMax']
 log_level = 2
 downmodifier = 20
 
 def log_it(level, msg):
+    """ Just a simple logger to stderr"""
     if log_level >= level:
         print >> sys.stdout, msg
 
-# A simple method to set state in the rrd_datasource table
-def setState(dsid, descr, state):
+def set_state(dsid, descr, state):
+    """ A simple method to set state in the rrd_datasource table"""
     log_it(2, "Setting %s to %s" %(descr, state))
     if isinstance(dsid, str) or isinstance(dsid, unicode):
         if dsid.isdigit():
@@ -68,20 +65,20 @@ def setState(dsid, descr, state):
     rrd_datasource = None
     try :
         rrd_datasource = RrdDataSource.objects.get(pk=dsid)
-    except Exception, e:
-        print >> sys.stderr, e
+    except Exception, get_ex:
+        print >> sys.stderr, get_ex
         return
 
     rrd_datasource.thresholdstate = state
     try :
         rrd_datasource.save()
-    except Exception, e:
-        print >> sys.stderr, e
+    except Exception, save_ex:
+        print >> sys.stderr, save_ex
 
-# Makes the event ready for sending and updates the rrd_datasource
-# table with the correct information
-# calls sendEvent with correct values
-def makeEvent (presobject, var, val, subid, fileid, state):
+def make_event(presobject, var, val, subid, fileid, state):
+    """Makes the event ready for sending and updates the rrd_datasource
+       table with the correct information
+       calls sendEvent with correct values"""
     if isinstance(fileid, str) or isinstance(fileid, unicode):
         if fileid.isdigit():
             fileid = int(fileid)
@@ -90,9 +87,9 @@ def makeEvent (presobject, var, val, subid, fileid, state):
             return
     rrd_file = None
     try :
-        rrd_file = RrdFile.objects.filter(pk=fileid)
-    except Exception, e:
-        print >> sys.stderr, e
+        rrd_file = RrdFile.objects.get(pk=fileid)
+    except Exception, get_ex:
+        print >> sys.stderr, get_ex
         return
   
     netboxid = rrd_file.nextbox.id
@@ -103,20 +100,20 @@ def makeEvent (presobject, var, val, subid, fileid, state):
         log_it(2, "thresholdalert regarding %s (%s)" %(sysname, ip))
     if state == 'active':
         log_it(2, "Threshold on %s surpassed." %var)
-        setState(subid, var, state)
-        sendEvent(var, val, netboxid, state, subid);
+        set_state(subid, var, state)
+        send_event(var, val, netboxid, state, subid)
     elif state == 'inactive':
         log_it(2, "%s has calmed down." %var)
-        setState(subid, var, state)
-        sendEvent(var, val, netboxid, state, subid);
+        set_state(subid, var, state)
+        send_event(var, val, netboxid, state, subid)
     elif state == 'stillactive':
         log_it(2, "Alert on %s is still active." %var)
     else:
         log_it(2, "No such state (%s)" % state)
 
 
-# Updates the correct tables for sending the event
-def sendEvent (var, val, netboxid, state, subid):
+def send_event (var, val, netboxid, state, subid):
+    """Updates the correct tables for sending the event"""
     if state == 'active':
         state = 's'
     else:
@@ -124,15 +121,15 @@ def sendEvent (var, val, netboxid, state, subid):
 
     log_it(1, "sending event")
 
-    e = Event(source='thresholdMon', target='eventEngine', 
+    the_event = Event(source='thresholdMon', target='eventEngine', 
                 netboxid=netboxid, subid=subid, 
                 eventtypeid='thresholdState', state=state)
-    e[var] = val
+    the_event[var] = val
 
     try:
-        e.post()
-    except Exception, e:
-        print >> sys.stderr, e
+        the_event.post()
+    except Exception, post_ex:
+        print >> sys.stderr, post_ex
 
 
 ##################################################
@@ -140,6 +137,7 @@ def sendEvent (var, val, netboxid, state, subid):
 ##################################################
 
 def main(argv):
+    """ Main """
     global log_level
     # First we get options from the commandline
     usage = "usage: %prog [-h|--help] [-l LEVEL|--log=LEVEL]"
@@ -162,7 +160,7 @@ def main(argv):
         rrd_datasourceid = rrd_datasource.id
         descr = rrd_datasource.description
         threshold = rrd_datasource.threshold
-        max = rrd_datasource.max
+        threshold_max = rrd_datasource.max
         delimiter = rrd_datasource.delimiter
         thresholdstate = rrd_datasource.threshold_state
 
@@ -176,7 +174,7 @@ def main(argv):
             log_it(3, "%s is in exceptions" % descr)
             continue
 
-        max = int(max)
+        threshold_max = int(threshold_max)
         log_it(3, "Adding datasource %s" % rrd_datasourceid)
         # Getting the value from the database
         pres.removeAllDs()
@@ -200,8 +198,8 @@ def main(argv):
             continue
 
         # Checking if it is percent or a normal value we are comparing
-        m = re.compile("%$").search(threshold)
-        threshold = int(re.sub("%$","",threshold))
+        is_percent = re.compile("%$").search(threshold)
+        threshold = int(re.sub("%$", "", threshold))
 
         # To prevent oscillation in case the value is just below the threshold
         # we create a lower limit that has to be passed to really say that the
@@ -214,10 +212,10 @@ def main(argv):
             
         log_it(3, "Threshold is %s" % threshold)
 
-        if m:
-            if delimiter == '>' and (value / max  * 100) > threshold:
+        if is_percent:
+            if delimiter == '>' and (value / threshold_max  * 100) > threshold:
                 surpassed = 1
-            elif delimiter == '<' and (value / max * 100) < threshold:
+            elif delimiter == '<' and (value / threshold_max * 100) < threshold:
                 surpassed = 1
         else:
             if delimiter == '<' and value < threshold:
@@ -229,29 +227,29 @@ def main(argv):
         if surpassed and thresholdstate == 'inactive':
             log_it(2, "--------------------")
             log_it(2, "Threshold surpassed (%s,%s,%s ds:%s)" %
-                    (value, threshold, max, rrd_datasourceid))
+                    (value, threshold, threshold_max, rrd_datasourceid))
             # must send danger-event
-            makeEvent(pres, descr, threshold, rrd_datasourceid, rrd_fileid, 
+            make_event(pres, descr, threshold, rrd_datasourceid, rrd_fileid, 
                       'active')
         elif surpassed and thresholdstate == 'active':
             log_it(2, "--------------------")
             log_it(2, "Threshold still surpassed. (%s,%s,%s ds:%s)" %
-                    (value, threshold, max, rrd_datasourceid))
-            makeEvent(pres, descr, threshold, rrd_datasourceid, rrd_fileid,
+                    (value, threshold, threshold_max, rrd_datasourceid))
+            make_event(pres, descr, threshold, rrd_datasourceid, rrd_fileid,
                       'stillactive')
         elif thresholdstate == 'active':
             log_it(2, "--------------------")
             log_it(2, "Threshold below value (%s,%s,%s ds:%s)" %
-                    (value, threshold, max, rrd_datasourceid))
+                    (value, threshold, threshold_max, rrd_datasourceid))
             # Must send nodanger-event
-            makeEvent(pres, descr, threshold, rrd_datasourceid, rrd_fileid, 
+            make_event(pres, descr, threshold, rrd_datasourceid, rrd_fileid, 
                   'inactive')
         else:
             log_it(3, "Threshold not surpassed (%s,%s,%s)" %
-                    (value, threshold, max))
+                    (value, threshold, threshold_max))
 
     end = int(time.time())
-    log_it(2, "%s executed in %s seconds." %(sys.argv[0],end-start))
+    log_it(2, "%s executed in %s seconds." %(argv[0], end-start))
     log_it(2, "------------------------------------------------------------------\n\n")
 
 if __name__ == '__main__':
