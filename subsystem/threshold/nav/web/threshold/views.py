@@ -147,8 +147,10 @@ def prepare_bulkset(request):
                             }
         else:
             interfaces = Interface.objects.filter(Q(pk__in=identities))
-            data_sources = \
-                RrdDataSource.objects.filter(Q(description=descr)&Q(rrd_file__interface__in=interfaces)&Q(rrd_file__key='interface'))
+            data_sources = RrdDataSource.objects.filter(
+                description=descr,
+                rrd_file__key='interface',
+                rrd_file__value__in=identities)
             if data_sources:
                 info_dict = {'descr' : descr,
                             'interfaces': interfaces,
