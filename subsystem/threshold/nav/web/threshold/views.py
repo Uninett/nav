@@ -457,7 +457,7 @@ def save_thresholds(request):
                 message += err
             result = {'error': 1, 'message': message}
         else:
-            msg = 'Threshold' +(len(rrd_data_sources) > 1 ? 's' : '')+ ' saved'
+            msg = 'Threshold%s saved' % 's' if len(rrd_data_sources) > 1 else ''
             result = {'error': 0, 'message': msg}
         return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
