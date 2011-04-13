@@ -8,6 +8,7 @@
         {{ object }}
     </caption>
     {% endif %}
+    {% block formfields %}
     {% for field in form %}
     <tr>
         <th><label for="{{ field.auto_id }}">
@@ -26,6 +27,7 @@
         <th></th>
         <td><input type="submit" value="Save" /></td>
     </tr>
+    {% endblock %}
     </table>
 </form>
 

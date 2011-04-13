@@ -302,6 +302,7 @@ def vlan_edit(request, vlan_id=None):
     }
     return render_edit(request, Vlan, VlanForm, vlan_id,
         'seeddb-vlan-edit',
+        template='seeddb/edit_vlan.html',
         extra_context=extra)
 
 def prefix_edit(request, prefix_id=None):
