@@ -23,7 +23,7 @@
 
 __copyright__ = "Copyright 2011 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Fredrik Skolmli <fredrik.skolmli@uninett.no> and Trond Kandal <Trond.Kandal@ntnu.no>"
+__author__ = "Trond Kandal <Trond.Kandal@ntnu.no>"
 __id__ = "$Id$"
 
 from django.conf.urls.defaults import *
