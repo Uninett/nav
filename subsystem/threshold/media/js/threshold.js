@@ -15,7 +15,7 @@ var threshold = threshold || {};
 
 threshold.displayMode = '';
 threshold.stdBgColor = 'white';
-threshold.stdChangedColor = '#FF9900';
+threshold.stdChangedColor = '#BDE5F8';
 threshold.stdErrColor = 'red';
 threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
