@@ -139,49 +139,36 @@ def prepare_bulkset(request):
             return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
 
-        fetch_netboxes = (choose_device_type(descr) == 'netbox')
-        # I could have used only one for-loop, but i believe
-        # this is faster.
         identities = []
-        if fetch_netboxes:
+        if choose_device_type(descr) == 'netbox':
             for identity in ids.split('|'):
                 identities.append(int(identity))
-        else:
-            # Identies are varchar for interfaces
-            for identity in ids.split('|'):
-                identities.append(identity)
-            
-        if fetch_netboxes:
             netboxes = Netbox.objects.filter(pk__in=identities)
             data_sources = RrdDataSource.objects.filter(
                                     description__exact=descr,
                                     rrd_file__netbox__in=netboxes)
-            if data_sources:
-                info_dict = {'descr' : descr,
-                            'datasources' : data_sources,
-                            }
         else:
+            # Identities for interfaces are stored as varchar
+            for identity in ids.split('|'):
+                identities.append(identity)
             data_sources = RrdDataSource.objects.filter(
                                     description=descr,
                                     rrd_file__key='interface',
                                     rrd_file__value__in=identities)
-            if data_sources:
-                info_dict = {'descr' : descr,
-                            'interfaces': True,
-                            'datasources' : data_sources,
-                            }
+            info_dict['interfaces'] = True
+
+        if data_sources:
+            info_dict['descr'] = descr
+            info_dict['datasources'] = data_sources
+        # This is actually a html-table to get rendered in the browser
         message = render_to_response('threshold/bulkset.html',
-                    info_dict,
-                    RequestContext(request))
-        logger.error(message)
-        result = { 'error' : 0, 'message': message}
+                    info_dict, RequestContext(request))
+        return HttpResponse(message, mimetype="text/plain")
     else:
         logger.error('Illegal request: login=%s' % account.login)
         result = {'error': 1, 'message': 'Wrong request'}
         return HttpResponse(simplejson.dumps(result),
             mimetype="application/json")
-    return HttpResponse(message,
-        mimetype="text/plain")
     
 
 # def threshold_list(request, all=''):
