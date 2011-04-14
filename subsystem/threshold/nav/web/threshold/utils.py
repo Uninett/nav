@@ -31,70 +31,77 @@ import logging
 
 logger = logging.getLogger("nav.web.threshold.utils")
 
-per_cent_regexp = re.compile('^\d+%$')
-sysname_regexp = re.compile('^[\w\-]+([\w\-.]+)*$')
-vendor_regexp = re.compile('^\w+$')
-ifname_regexp = re.compile('^[a-zA-Z0-9\/\-]+$')
-descr_regexp = re.compile('^[a-zA-Z][a-zA-Z\d\ ]+$')
+PER_CENT_REGEXP = re.compile('^\d+%$')
+SYSNAME_REGEXP = re.compile('^[\w\-]+([\w\-.]+)*$')
+VENDOR_REGEXP = re.compile('^\w+$')
+IFNAME_REGEXP = re.compile('^[a-zA-Z0-9\/\-]+$')
+DESCR_REGEXP = re.compile('^[a-zA-Z][a-zA-Z\d\ ]+$')
 
 def is_string(to_test):
+    """Check if the parameter is a string or an unicode-string"""
     if isinstance(to_test, str):
         return True
     if isinstance(to_test, unicode):
         return True
     return False
 
-def is_legal_id(dsid):
-    if not is_string(dsid):
+def is_legal_id(ds_id):
+    """Check if the id is a legal id (integer)"""
+    if not is_string(ds_id):
         return False
-    dsid.strip()
-    if not dsid.isdigit():
-        return False
-    return True
-
-def is_legal_operator(op):
-    if not is_string(op):
-        return False
-    op.strip()
-    if op != '<' and op != '>':
+    ds_id.strip()
+    if not ds_id.isdigit():
         return False
     return True
 
-def is_legal_percent_value(val):
-    return (val > -1 and val < 101)
-
-def is_legal_threshold(val, allow_empty=True):
-    if not is_string(val):
+def is_legal_operator(operator):
+    """An operator should be either '>' or '<'"""
+    if not is_string(operator):
         return False
-    if len(val) == 0:
+    operator.strip()
+    if operator != '<' and operator != '>':
+        return False
+    return True
+
+def is_legal_percent_value(value):
+    """A per-cent value is between 0 - 100"""
+    return (value > -1 and value < 101)
+
+def is_legal_threshold(value, allow_empty=True):
+    """A threshold is an inteeger with or without a pre-cent sign"""
+    if not is_string(value):
+        return False
+    if len(value) == 0:
         if allow_empty:
             return True
         else:
             return False
-    val.strip()
-    is_per_cent = per_cent_regexp.match(val)
+    value.strip()
+    is_per_cent = PER_CENT_REGEXP.match(value)
     if is_per_cent:
-        val = re.sub('%', '', val)
-    if not val.isdigit():
+        value = re.sub('%', '', value)
+    if not value.isdigit():
         return False
-    val = int(val)
+    value = int(value)
     if is_per_cent:
-        if not is_legal_percent_value(val):
+        if not is_legal_percent_value(value):
             return False
     else:
-        if val < 0:
+        if value < 0:
             return False
     return True
 
-def is_legal_interfaceid(id):
-    if not is_string(id):
+def is_legal_interfaceid(interface_id):
+    """Check if the parameter is a legal interface-identifier"""
+    if not is_string(interface_id):
         return False
-    id.strip()
-    if not id.isdigit():
+    interface_id.strip()
+    if not interface_id.isdigit():
         return False
     return True
 
 def is_legal_name(name, regexp, allow_empty=True):
+    """Check if a name conforms to the give regular expression"""
     if not is_string(name):
         return False
     if len(name) == 0:
@@ -108,21 +115,27 @@ def is_legal_name(name, regexp, allow_empty=True):
     return True
 
 def is_legal_descr(descr, allow_empty=False):
-    return is_legal_name(descr, descr_regexp, allow_empty)
+    """Check if descr is a legal threshold-description"""
+    return is_legal_name(descr, DESCR_REGEXP, allow_empty)
 
 def is_legal_sysname(name, allow_empty=True):
-    return is_legal_name(name, sysname_regexp, allow_empty)
+    """Is a legal dns-name for a netbox"""
+    return is_legal_name(name, SYSNAME_REGEXP, allow_empty)
 
 def is_legal_ifname(ifname, allow_empty=True):
-    return is_legal_name(ifname, ifname_regexp, allow_empty)
+    """Is a legal interface-name"""
+    return is_legal_name(ifname, IFNAME_REGEXP, allow_empty)
     
 def is_legal_vendor(vendor, allow_empty=True):
-    return is_legal_name(vendor, vendor_regexp, allow_empty)
+    """Is a legal vendor-name for a netbox"""
+    return is_legal_name(vendor, VENDOR_REGEXP, allow_empty)
 
 def is_legal_model(model, allow_empty=True):
-    return is_legal_name(model, vendor_regexp, allow_empty)
+    """Is a legal model-name for a netbox"""
+    return is_legal_name(model, VENDOR_REGEXP, allow_empty)
 
 def is_match(to_test, exactmatch, allow_empty=True):
+    """Test if a given value has an exact match"""
     if not is_string(to_test):
         return False
     if len(to_test) == 0:
@@ -134,19 +147,24 @@ def is_match(to_test, exactmatch, allow_empty=True):
         return False
     return True
 
-def is_legal_gw(gw):
-    return is_match(gw, 'GW')
+def is_legal_gw(cat_gw):
+    """Check if the string has value 'GW'"""
+    return is_match(cat_gw, 'GW')
 
-def is_legal_gsw(gsw):
-    return is_match(gsw, 'GSW')
+def is_legal_gsw(cat_gsw):
+    """Check if the string has value 'GSW'"""
+    return is_match(cat_gsw, 'GSW')
 
-def is_legal_sw(sw):
-    return is_match(sw, 'SW')
+def is_legal_sw(cat_sw):
+    """Check if the string has value 'SW'"""
+    return is_match(cat_sw, 'SW')
 
 def is_legal_updown(updown):
+    """Check if the string has value 'updown'"""
     return is_match(updown, 'updown')
  
 def is_legal_ids(ids, allow_empty=True):
+    """Check if the ids are in the expected format"""
     if not ids:
         if allow_empty:
             return True
@@ -158,7 +176,8 @@ def is_legal_ids(ids, allow_empty=True):
     return True
            
 def is_illegal_parameters(account, descr, sysname, vendor, model,
-                                        gw, gsw, sw, ifname, updown, boxes):
+                            cat_gw, cat_gsw, cat_sw, ifname, updown, boxes):
+    """Actually convinience wrapper to check all parameters at once"""
     if not is_legal_descr(descr):
         logger.error('Illegal description: login=%s; description=%s' %
             (account.login, descr))
@@ -189,21 +208,21 @@ def is_illegal_parameters(account, descr, sysname, vendor, model,
         result = {'error': 1, 'message': 'Illegal model'}
         return result
 
-    if not is_legal_gw(gw):
+    if not is_legal_gw(cat_gw):
         logger.error('Illegal category: login=%s; gw=%s' %
-            (account.login, gw))
+            (account.login, cat_gw))
         result = {'error': 1, 'message': 'Illegal category'}
         return result
 
-    if not is_legal_gsw(gsw):
+    if not is_legal_gsw(cat_gsw):
         logger.error('Illegal category: login=%s; gsw=%s' %
-            (account.login, gsw))
+            (account.login, cat_gsw))
         result = {'error': 1, 'message': 'Illegal category'}
         return result
 
-    if not is_legal_sw(sw):
+    if not is_legal_sw(cat_sw):
         logger.error('Illegal category: login=%s; sw=%s' %
-            (account.login, sw))
+            (account.login, cat_sw))
         result = {'error': 1, 'message': 'Illegal category'}
         return result
 
