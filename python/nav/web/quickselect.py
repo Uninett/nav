@@ -108,9 +108,9 @@ class QuickSelect:
                     # Extra check that allows add_loc in addtion to
                     # add_location
                     if 'add_%s' % field in form:
-                         result[field] = form.getlist('add_%s' % field)
+                        result[field] = form.getlist('add_%s' % field)
                     elif 'view_%s' % field in form:
-                         result[field] = form.getlist('view_%s' % field)
+                        result[field] = form.getlist('view_%s' % field)
 
                 if not getattr(self, '%s_multi' % field):
                     # Limit to first element if multi is not set.
@@ -228,6 +228,6 @@ class QuickSelect:
         result = template.render(context)
 
         if isinstance(result, unicode):
-                result = result.encode('utf-8')
+            result = result.encode('utf-8')
 
         return result

@@ -228,7 +228,7 @@ class MegaPing:
                       (sender, pingtime*1000), 7)
                 del self._requests[cookie]
             elif self._senderFinished:
-                    break
+                break
 
         # Everything else timed out
         for host in self._requests.values():

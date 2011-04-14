@@ -135,13 +135,13 @@ def updatedb(datadir, containers):
     def insert_datasources(container, rrd_fileid):
         logger.debug("Inserting datasources for %s" %container.filename)
         for datasource in container.datasources:
-                dssql = """
-                INSERT INTO rrd_datasource
-                (rrd_fileid, name, descr, dstype)
-                VALUES (%s, %s, %s, %s)
-                """
-                c.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
-                                  datasource[2]))
+            dssql = """
+            INSERT INTO rrd_datasource
+            (rrd_fileid, name, descr, dstype)
+            VALUES (%s, %s, %s, %s)
+            """
+            c.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
+                              datasource[2]))
     
     for container in containers:
         datapath = datadir

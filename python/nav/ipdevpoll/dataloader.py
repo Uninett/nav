@@ -134,7 +134,7 @@ def is_netbox_changed(netbox1, netbox2):
                  'device',
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
-                return True
+            return True
 
     # Switching from up_to_date to not up_to_date warrants a reload, but not
     # the other way around.
