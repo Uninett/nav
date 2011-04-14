@@ -185,7 +185,6 @@ threshold.netboxSearch = function(){
              data: inputData,
              dataType: 'json',
              type: 'POST',
-             async: false,
              success: function(data, textStatus, header){
                             if(data.error){
                                 threshold.updateMessages(data.message, true);
@@ -293,7 +292,10 @@ threshold.chooseDeviceType = function(the_select, select_val){
 threshold.saveThresholds = function(dsIds, operator, threshold){
     var retVal = 0;
     $.ajax({url: '/threshold/savethresholds/',
-            data: {'dsIds': dsIds, 'operator': operator, 'threshold': threshold},
+            data: { 'dsIds': dsIds,
+                    'operator': operator,
+                    'threshold': threshold
+                  },
             dataType: 'json',
             type: 'POST',
             async: false,
@@ -335,7 +337,8 @@ threshold.bulkSaveThresholds = function(){
     for(var i = 0; i < allIncludes.length; i++){
         dsIds[i] = allIncludes[i].value;
     }
-    var ret = threshold.saveThresholds(threshold.table2String(dsIds), bulkOperator, bulkThreshold);
+    var ret = threshold.saveThresholds(threshold.table2String(dsIds),
+                                        bulkOperator, bulkThreshold);
     if(ret == -1 ){
         threshold.updateMessages('Save failed', true);
         return -1;
@@ -589,7 +592,10 @@ function save_threshold(updateButton, dsid, operator, threshold){
     }
     save_queue.push(dsid);
     $.ajax( { url: '/threshold/savethresholds/',
-	      data: {'dsIds': dsid, 'operator': operator, 'threshold': threshold},
+	      data: { 'dsIds': dsid,
+                      'operator': operator,
+                      'threshold': threshold
+                    },
 	      dataType: 'json',
 	      type: 'POST',
 	      success: function(data){
