@@ -330,15 +330,15 @@ def netbox_search(request):
         if netbox_qualifiers:
             query = query.filter(netbox_qualifiers)
         if netbox_categories:
-            query = query.filter(Q(category__id__in=netbox_categories))
+            query = query.filter(category__id__in=netbox_categories)
 
         box_interfaces = {}
         foundboxes = ''
+        # Hit the database with the query
         netbox_list = query
         if netbox_list:
             # Option that is selected
-            nbox_format_select = \
-                '<option selected="selected" value="%d">%s</option>'
+            nbox_format_select = '<option selected="selected" value="%d">%s</option>'
             # Option with no selection
             nbox_format = '<option value="%d">%s</option>'
             for nbox in netbox_list:
@@ -347,11 +347,13 @@ def netbox_search(request):
                     if chosen_boxes:
                         # Only interfaces for boxes that are selected.
                         if nbox.id in chosen_boxes:
-                            interfaces = get_netbox_interfaces(nbox,
-                                                            ifname, updown)
+                            interfaces = get_netbox_interfaces(
+                                                    nbox, ifname, updown)
                     else:
-                        interfaces = get_netbox_interfaces(nbox,
-                                                            ifname, updown)
+                        interfaces = get_netbox_interfaces(
+                                                    nbox, ifname, updown)
+                    # Weed out boxes that do not have interfaces or
+                    # does not have interfaces that match the search.
                     if interfaces:
                         box_interfaces[nbox.sysname] = interfaces
                 if nbox.id in chosen_boxes:
@@ -364,6 +366,8 @@ def netbox_search(request):
         numb_interfaces = 0
         foundinterfaces = ''
         if box_interfaces:
+            # All interfaces that belong to the same netbox are
+            # grouped together.
             for sname, infs in box_interfaces.iteritems():
                 numb_interfaces += len(infs)
                 foundinterfaces += '<optgroup label="%s">' % sname
@@ -440,7 +444,7 @@ def save_thresholds(request):
         rrd_data_sources = None
         try :
             rrd_data_sources = RrdDataSource.objects.filter(
-                                    Q(pk__in=datasource_ids))
+                                                pk__in=datasource_ids)
         except Exception, filter_ex:
             logger.error('Exception: login=%s; exception=%s' %
                          (account.login, filter_ex))
@@ -449,8 +453,8 @@ def save_thresholds(request):
                     mimetype="application/json")
 
         if len(rrd_data_sources) != len(datasource_ids):
-            message = MISMATCH_ERROR_TEMPLATE % \
-                    (len(datasource_ids), len(rrd_data_sources))
+            message = MISMATCH_ERROR_TEMPLATE % (
+                        len(datasource_ids), len(rrd_data_sources))
             logger.error(message + ': login=%s' % account.login)
             result = {'error': 1, 'message' : message }
             return HttpResponse(simplejson.dumps(result),
@@ -467,7 +471,6 @@ def save_thresholds(request):
             rrd_data_source.max = max_threshold
             try :
                 rrd_data_source.save()
-                logger.error('%d saved sucessfully' % rrd_data_source.id)
             except Exception, save_ex:
                 logger.error('Exception: login=%s; ds=%d; exception=%s' %
                     (account.login, rrd_data_source.id, save_ex))
