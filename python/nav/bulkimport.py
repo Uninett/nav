@@ -15,7 +15,7 @@
 #
 """Import seed data in bulk."""
 # no importer implementations have public methods, disable R0903 warning
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 from nav.models.manage import Device, Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, Subcategory

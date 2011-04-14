@@ -17,7 +17,7 @@
 """SeedDB forms for object editing"""
 
 # Most forms inherit their public methods, so disable the pylint warning
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 from socket import error as SocketError
 
