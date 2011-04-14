@@ -31,45 +31,48 @@ import time
 import simplejson
 import re
 
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponse
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.views.generic.list_detail import object_list
 from django.db.models.query_utils import Q
 
 from nav.django.utils import get_account
 from nav.models.rrd import RrdFile, RrdDataSource
-from nav.models.manage import Netbox, Interface, Vendor, NetboxType
+from nav.models.manage import Netbox, Interface, NetboxType
 from nav.models.oid import SnmpOid
 from nav.web.threshold.forms import RrdDataSourceForm
-from nav.web.threshold.utils import *
+
+from nav.web.threshold.utils import is_legal_operator
+from nav.web.threshold.utils import is_legal_threshold
+from nav.web.threshold.utils import is_legal_interfaceid
+from nav.web.threshold.utils import is_legal_descr, is_legal_ids
+from nav.web.threshold.utils import is_illegal_parameters
+
 
 NAVBAR = [('Home', '/'), ('Threshold monitor', None)]
 DEFAULT_VALUES = {'title': "Threshold monitor", 'navpath': NAVBAR}
 
 logger = logging.getLogger("nav.web.threshold")
 
-per_cent_regexp = re.compile('^\d+%$')
-interface_regexp = re.compile('^if\w+$')
+PER_CENT_REGEXP = re.compile('^\d+%$')
+INTERFACE_REGEXP = re.compile('^if\w+$')
 
-save_error_template = 'Failed to save threshold %s for %s\n'
+SAVE_ERROR_TEMPLATE = 'Failed to save threshold %s for %s\n'
 
-mismatch_error_template= \
-    'Number of records mismatch. Asked for %d, got %d from DB'
+MISMATCH_ERROR_TEMPLATE = ('Number of records mismatch. ' +
+                          ' Asked for %d, got %d from DB')
 
 # Format for interface-option with ifalias
-if_w_ifalias = \
-"""<option value="%d">%s (%s)</option>"""
+IF_W_IFALIAS = """<option value="%d">%s (%s)</option>"""
 # Format for Interface-option without ifalias
-if_wo_ifalias = \
-"""<option value="%d">%s</option>"""
+IF_WO_IFALIAS = """<option value="%d">%s</option>"""
 
 def index(request):
+    """ Open page, for searching """
     before = time.clock()
     account = get_account(request)
-    descriptions = RrdDataSource.objects.values('description').distinct().order_by('description')
+    descriptions = RrdDataSource.objects.values(
+                        'description').distinct().order_by('description')
     thresholds = []
     for descr in descriptions:
         thresholds.append(descr.get('description',''))
@@ -106,6 +109,10 @@ def index(request):
         RequestContext(request))
     
 def prepare_bulkset(request):
+    """Prepare a table of thresholds that can be manipulated in bulk.
+    Get all the chosen netboxes or interfaces and render the
+    html table (ref. bulkset-template).
+    """
     result = {}
     message = None
     info_dict = {}
@@ -132,38 +139,44 @@ def prepare_bulkset(request):
             return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
 
+        fetch_netboxes = (choose_device_type(descr) == 'netbox')
+        # I could have used only one for-loop, but i believe
+        # this is faster.
         identities = []
-        for identity in ids.split('|'):
-            identities.append(int(identity))
-
-        if choose_device_type(descr) == 'netbox':
-            netboxes = Netbox.objects.filter(Q(pk__in=identities))
-            data_sources = \
-                RrdDataSource.objects.filter(Q(description=descr)&Q(rrd_file__netbox__in=netboxes))
+        if fetch_netboxes:
+            for identity in ids.split('|'):
+                identities.append(int(identity))
+        else:
+            # Identies are varchar for interfaces
+            for identity in ids.split('|'):
+                identities.append(identity)
+            
+        if fetch_netboxes:
+            netboxes = Netbox.objects.filter(pk__in=identities)
+            data_sources = RrdDataSource.objects.filter(
+                                    description__exact=descr,
+                                    rrd_file__netbox__in=netboxes)
             if data_sources:
                 info_dict = {'descr' : descr,
-                            'netboxes': netboxes,
                             'datasources' : data_sources,
                             }
         else:
-            interfaces = Interface.objects.filter(Q(pk__in=identities))
             data_sources = RrdDataSource.objects.filter(
-                description=descr,
-                rrd_file__key='interface',
-                rrd_file__value__in=identities)
+                                    description=descr,
+                                    rrd_file__key='interface',
+                                    rrd_file__value__in=identities)
             if data_sources:
                 info_dict = {'descr' : descr,
-                            'interfaces': interfaces,
+                            'interfaces': True,
                             'datasources' : data_sources,
                             }
-        
         message = render_to_response('threshold/bulkset.html',
                     info_dict,
                     RequestContext(request))
         logger.error(message)
         result = { 'error' : 0, 'message': message}
     else:
-        logger.error('Illegal request: login=%' % account.login)
+        logger.error('Illegal request: login=%s' % account.login)
         result = {'error': 1, 'message': 'Wrong request'}
         return HttpResponse(simplejson.dumps(result),
             mimetype="application/json")
@@ -173,7 +186,11 @@ def prepare_bulkset(request):
 
 # def threshold_list(request, all=''):
 #     logger.error("test")
-#     thresholds = RrdDataSource.objects.select_related(depth=2).filter(rrd_file__key__iexact='interface').filter(rrd_file__value__isnull=False).order_by('description').order_by('-rrd_file')
+#     thresholds = RrdDataSource.objects.select_related(
+#                         depth=2).filter(
+#                             rrd_file__key__iexact='interface').filter(
+#                                 rrd_file__value__isnull=False).order_by(
+#                                     'description').order_by('-rrd_file')
 #     #if not 'all' in request.GET.keys():
 #     if all != 'all':
 #         result = []
@@ -185,9 +202,14 @@ def prepare_bulkset(request):
 #     else:
 #         result = thresholds
 #     if 'rrd_file' in request.GET.keys():
-#         result = RrdDataSource.objects.select_related(depth=2).filter(rrd_file=request.GET['rrd_file']).order_by('descr').order_by('-rrd_file')
+#         result = RrdDataSource.objects.select_related(
+#                         depth=2).filter(
+#                             rrd_file=request.GET['rrd_file']).order_by(
+#                                 'descr').order_by('-rrd_file')
 #     elif 'netbox_id' in request.GET.keys():
-#         result = RrdDataSource.objects.filter(rrd_file=RrdFile.objects.filter(netbox=request.GET['netbox_id'])[0])
+#         result = RrdDataSource.objects.filter(
+#                rrd_file=RrdFile.objects.filter(
+#                    netbox=request.GET['netbox_id'])[0])
 #     info_dict = {'thresholds': result}
 #     info_dict.update(DEFAULT_VALUES)
 #     return render_to_response(
@@ -196,7 +218,8 @@ def prepare_bulkset(request):
 #         RequestContext(request))
 
 def choose_device_type(descr):
-    if interface_regexp.match(descr):
+    """Determine if the we should search for netboxes or interfaces-"""
+    if INTERFACE_REGEXP.match(descr):
         return 'interface'
     return 'netbox'
     
@@ -234,11 +257,13 @@ def get_netbox_interfaces(nbox, ifname, updown):
     if ifname:
         if_query = if_query.filter(ifname__contains=ifname)
     if updown:
-        if_query = if_query.filter(Q(to_netbox__isnull=False)|Q(to_interface__isnull=False))
+        if_query = if_query.filter(Q(to_netbox__isnull=False)|
+                                        Q(to_interface__isnull=False))
     if_query = if_query.distinct()
     return if_query
 
 def get_netbox_qualifiers(sysname, vendor, model):
+    """Add qualifiers to Django-query depending on values."""
     qualifier = None
     if sysname:
         qualifier = Q(sysname__contains=sysname)
@@ -254,17 +279,19 @@ def get_netbox_qualifiers(sysname, vendor, model):
             qualifier = Q(type__name__contains=model)
     return qualifier
 
-def get_netbox_categories(gw, gsw, sw):
+def get_netbox_categories(cat_gw, cat_gsw, cat_sw):
+    """Add qualifiers to Django-query depending on values."""
     netbox_categories = []
-    if gw:
+    if cat_gw:
         netbox_categories.append('GW')
-    if gsw:
+    if cat_gsw:
         netbox_categories.append('GSW')
-    if sw:
+    if cat_sw:
         netbox_categories.append('SW')
     return netbox_categories
 
 def netbox_search(request):
+    """Search for matching netboex and/or interfaces."""
     # logger.error('netbox_search: called ...')
     before = time.clock()
     account = get_account(request)
@@ -275,22 +302,23 @@ def netbox_search(request):
         sysname = str(request.POST.get('sysname', ''))
         vendor = str(request.POST.get('vendor', ''))
         model = str(request.POST.get('model', ''))
-        gw = str(request.POST.get('GW', ''))
-        gsw = str(request.POST.get('GSW', ''))
-        sw = str(request.POST.get('SW', ''))
+        cat_gw = str(request.POST.get('GW', ''))
+        cat_gsw = str(request.POST.get('GSW', ''))
+        cat_sw = str(request.POST.get('SW', ''))
         ifname = str(request.POST.get('ifname', ''))
         updown = str(request.POST.get('updown', ''))
         boxes = str(request.POST.get('boxes', ''))
 
         logger.error('descr=%s; sysname=%s; vendor=%s; model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s; boxes=%s' %
-            (descr, sysname, vendor, model, gw, gsw, sw, ifname, updown, boxes))
+            (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
+                ifname, updown, boxes))
         
         # This utillity-method return an error-message if any of
         # the parameters are illegal.
         # Maybe a little strange, but i found this very easy to implement.
         result = is_illegal_parameters(account, descr, sysname, vendor,
-                                        model, gw, gsw, sw, ifname,
-                                        updown, boxes)
+                                        model, cat_gw, cat_gsw, cat_sw,
+                                        ifname, updown, boxes)
         if result:
             return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
@@ -303,10 +331,11 @@ def netbox_search(request):
         search_interfaces = (choose_device_type(descr) == 'interface')
 
         netbox_qualifiers = get_netbox_qualifiers(sysname, vendor, model)
-        netbox_categories = get_netbox_categories(gw, gsw, sw)
+        netbox_categories = get_netbox_categories(cat_gw, cat_gsw, cat_sw)
 
-        if(descr):
-            query = Netbox.objects.filter(rrdfile__rrddatasource__description=descr)
+        if descr:
+            query = Netbox.objects.filter(
+                        rrdfile__rrddatasource__description=descr)
         else:
             # Make a fake query and append the qualifiers
             query = Netbox.objects.filter(sysname__isnull=False)
@@ -345,7 +374,7 @@ def netbox_search(request):
 
         logger.error('!!!!! number of netboxes = %d' % len(netbox_list))
 
-        numb_interfaces = 0;
+        numb_interfaces = 0
         foundinterfaces = ''
         if box_interfaces:
             for sname, infs in box_interfaces.iteritems():
@@ -353,11 +382,11 @@ def netbox_search(request):
                 foundinterfaces += '<optgroup label="%s">' % sname
                 for inf in infs:
                     if inf.ifalias:
-                        foundinterfaces += \
-                            if_w_ifalias % (inf.id, inf.ifname, inf.ifalias)
+                        foundinterfaces += IF_W_IFALIAS % (inf.id,
+                                                inf.ifname, inf.ifalias)
                     else:
-                        foundinterfaces += \
-                            if_wo_ifalias % (inf.id, inf.ifname)
+                        foundinterfaces += IF_WO_IFALIAS % (inf.id,
+                                                    inf.ifname)
                 foundinterfaces += '</optgroup>'
 
         logger.error('&&&&& number of interfaces = %d' % numb_interfaces)
@@ -373,16 +402,20 @@ def netbox_search(request):
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
 
-def format_save_error(ds):
-    potfix = ''
-    if ds.rrd_file.interface:
-        postfix = "%s: %s (%s)" % (ds.rrd_file.interface.netbox.sysname,
-                ds.rrd_file.interface.ifname, ds.rrd_file.interface.ifalias)
+def format_save_error(data_source):
+    """Format a useful error-message deping on netbox or interface."""
+    postfix = ''
+    if data_source.rrd_file.interface:
+        postfix = "%s: %s (%s)" % (
+                data_source.rrd_file.interface.netbox.sysname,
+                data_source.rrd_file.interface.ifname,
+                data_source.rrd_file.interface.ifalias)
     else:
-        postfix = ds.rrd_file.netbox.sysname
-    return save_error_template % (ds.description, postfix)
+        postfix = data_source.rrd_file.netbox.sysname
+    return SAVE_ERROR_TEMPLATE % (data_source.description, postfix)
     
 def save_thresholds(request):
+    """Save a single or a list of thresholds."""
     account = get_account(request)
     result = {}
     message = ''
@@ -419,18 +452,18 @@ def save_thresholds(request):
 
         rrd_data_sources = None
         try :
-            rrd_data_sources = \
-                RrdDataSource.objects.filter(Q(pk__in=datasource_ids))
-        except Exception, e:
+            rrd_data_sources = RrdDataSource.objects.filter(
+                                    Q(pk__in=datasource_ids))
+        except Exception, filter_ex:
             logger.error('Exception: login=%s; exception=%s' %
-                         (account.login, e))
+                         (account.login, filter_ex))
             result = {'error': 1, 'message' : 'Illegal datasource'}
             return HttpResponse(simplejson.dumps(result),
                     mimetype="application/json")
 
         if len(rrd_data_sources) != len(datasource_ids):
-            message = mismatch_error_template % \
-                    (len(data_source_ids), len(rrd_data_sources))
+            message = MISMATCH_ERROR_TEMPLATE % \
+                    (len(datasource_ids), len(rrd_data_sources))
             logger.error(message + ': login=%s' % account.login)
             result = {'error': 1, 'message' : message }
             return HttpResponse(simplejson.dumps(result),
@@ -440,7 +473,7 @@ def save_thresholds(request):
         threshold.strip()
         for rrd_data_source in rrd_data_sources:
             max_threshold = ''
-            if per_cent_regexp.match(threshold):
+            if PER_CENT_REGEXP.match(threshold):
                 max_threshold = '100'
             rrd_data_source.threshold = threshold
             rrd_data_source.delimiter = operator
@@ -448,8 +481,9 @@ def save_thresholds(request):
             try :
                 rrd_data_source.save()
                 logger.error('%d saved sucessfully' % rrd_data_source.id)
-            except Exception, e:
-                logger.error('Exception: login=%s; ds=%d; exception=%s' % (account.login, rrd_data_source.id, e))
+            except Exception, save_ex:
+                logger.error('Exception: login=%s; ds=%d; exception=%s' %
+                    (account.login, rrd_data_source.id, save_ex))
                 save_errors.append(format_save_error(rrd_data_source))
         if save_errors:
             message = ''
@@ -457,7 +491,10 @@ def save_thresholds(request):
                 message += err
             result = {'error': 1, 'message': message}
         else:
-            msg = 'Threshold%s saved' % 's' if len(rrd_data_sources) > 1 else ''
+            msg = 'Threshold'
+            if len(rrd_data_sources) > 1:
+                msg += 's'
+            msg += ' saved'
             result = {'error': 0, 'message': msg}
         return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
@@ -468,23 +505,27 @@ def save_thresholds(request):
                 mimetype="application/json")
         
 def get_oid_descriptions():
-    snmp_oid_list = \
-        SnmpOid.objects.filter(oid_key__isnull=False).filter(description__isnull=False)
+    """Get the full texts for short descriptions."""
+    snmp_oid_list = SnmpOid.objects.filter(
+                        oid_key__isnull=False).filter(
+                            description__isnull=False)
     oid_key_decriptions = {}
     for snmp_oid in snmp_oid_list:
         oid_key_decriptions[snmp_oid.oid_key] = snmp_oid.description
     return oid_key_decriptions
     
 def threshold_all(request):
+    """ Just list all thresholds that have a value."""
     before = time.time()
     oid_key_descriptions = get_oid_descriptions()
     # pick all sources that have a threshold
-    rrd_datasource_list = RrdDataSource.objects.filter(threshold__isnull=False).order_by('rrd_file')
+    rrd_datasource_list = RrdDataSource.objects.filter(
+                            threshold__isnull=False).order_by('rrd_file')
     # attach every datasource to a netbox
-    rrd_data_sources= {}
+    rrd_data_sources = {}
     for rrd_datasource in rrd_datasource_list:
-        rrd_datasource.extra_descr = \
-            oid_key_descriptions.get(rrd_datasource.description, '')
+        rrd_datasource.extra_descr = oid_key_descriptions.get(
+                                        rrd_datasource.description, '')
         sysname = rrd_datasource.rrd_file.netbox.sysname
         if not sysname in rrd_data_sources:
             rrd_data_sources[sysname] = []
@@ -508,6 +549,7 @@ def threshold_all(request):
         RequestContext(request))
 
 def threshold_interface(request, interfaceid=None):
+    """ Get threholds for a specific interface."""
     account = get_account(request)
     if not is_legal_interfaceid(interfaceid):
         logger.error('Illegal interface-id: login=%s; id=%s' %
@@ -518,16 +560,18 @@ def threshold_interface(request, interfaceid=None):
     interface = None
     try :
         interface = Interface.objects.get(pk=interfaceid)
-    except Exception, e:
+    except Exception, get_ex:
         logger.error('Exception: login=%s; exception=%s' %
-            (account.login, e))
+            (account.login, get_ex))
         return HttpResponseRedirect('/threshold/')
 
     oid_key_descriptions = get_oid_descriptions()
-    thresholds = RrdDataSource.objects.filter(rrd_file__key__iexact='interface').filter(rrd_file__interface=interfaceid)
+    thresholds = RrdDataSource.objects.filter(
+                    rrd_file__key__iexact='interface').filter(
+                        rrd_file__interface=interfaceid)
     for threshold in thresholds:
-        threshold.extra_descr = \
-                oid_key_descriptions.get(threshold.description, '')
+        threshold.extra_descr = oid_key_descriptions.get(
+                                    threshold.description, '')
     sysname = thresholds[0].rrd_file.netbox.sysname
     ifname = thresholds[0].rrd_file.interface.ifname
     ifalias = thresholds[0].rrd_file.interface.ifalias
@@ -544,14 +588,15 @@ def threshold_interface(request, interfaceid=None):
         RequestContext(request))
 
 def threshold_delete(request, thresholdid=None):
+    """ Delete a specific threshold."""
     if not thresholdid:
         return HttpResponseRedirect('/threshold/')
     thresholdid = int(thresholdid)
     threshold = None
     try :
         threshold = RrdDataSource.objects.get(pk=thresholdid)
-    except Exception, e:
-        logger.error(e)
+    except Exception, get_ex:
+        logger.error(get_ex)
         return HttpResponseRedirect('/threshold/')
     if len(request.POST.keys()):
         if request.POST.get('submit', '') == 'Yes':
@@ -570,13 +615,14 @@ def threshold_delete(request, thresholdid=None):
     return HttpResponseRedirect(url)
             
 def threshold_edit(request, thresholdid=None):
+    """Edit a specific threshold."""
     if not thresholdid:
         return HttpResponseRedirect('/threshold/')
     threshold = None
     try :
         threshold = RrdDataSource.objects.get(pk=thresholdid)
-    except Exception, e:
-        logger.error(e)
+    except Exception, get_ex:
+        logger.error(get_ex)
         return HttpResponseRedirect('/threshold/')
     threshold.max = 100
     if len(request.POST.keys()):
