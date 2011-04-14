@@ -31,21 +31,26 @@ import time
 import simplejson
 import re
 
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models.query_utils import Q
 
 from nav.django.utils import get_account
-from nav.models.rrd import RrdFile, RrdDataSource
-from nav.models.manage import Netbox, Interface, NetboxType
+from nav.models.rrd import RrdFile
+from nav.models.rrd import RrdDataSource
+from nav.models.manage import Netbox
+from nav.models.manage import Interface
+from nav.models.manage import NetboxType
 from nav.models.oid import SnmpOid
 from nav.web.threshold.forms import RrdDataSourceForm
 
 from nav.web.threshold.utils import is_legal_operator
 from nav.web.threshold.utils import is_legal_threshold
 from nav.web.threshold.utils import is_legal_interfaceid
-from nav.web.threshold.utils import is_legal_descr, is_legal_ids
+from nav.web.threshold.utils import is_legal_descr
+from nav.web.threshold.utils import is_legal_ids
 from nav.web.threshold.utils import is_illegal_parameters
 
 
@@ -68,7 +73,7 @@ IF_W_IFALIAS = """<option value="%d">%s (%s)</option>"""
 IF_WO_IFALIAS = """<option value="%d">%s</option>"""
 
 def index(request):
-    """ Open page, for searching """
+    """Initial page for searching """
     before = time.clock()
     account = get_account(request)
     descriptions = RrdDataSource.objects.values(
@@ -88,8 +93,6 @@ def index(request):
         models.append(model.get('name', ''))
 
     all_netboxes = []
-    # Netbox.objects.all()
-   
     all_interfaces = []
 
     info_dict = {'thresholds': thresholds,
@@ -334,7 +337,7 @@ def netbox_search(request):
 
         box_interfaces = {}
         foundboxes = ''
-        # Hit the database with the query
+        # Let the query hit the database
         netbox_list = query
         if netbox_list:
             # Option that is selected
@@ -592,8 +595,7 @@ def threshold_delete(request, thresholdid=None):
         if request.POST.get('submit', '') == 'Yes':
             form = RrdDataSourceForm(request.POST, instance=threshold)
             if not form.errors:
-                #form.delete()
-                pass
+                form.delete()
     else:
         info_dict = {'threshold' : threshold}
         info_dict.update(DEFAULT_VALUES)
@@ -614,7 +616,6 @@ def threshold_edit(request, thresholdid=None):
     except Exception, get_ex:
         logger.error(get_ex)
         return HttpResponseRedirect('/threshold/')
-    threshold.max = 100
     if len(request.POST.keys()):
         if request.POST.get('submit', '') == 'Save':
             form = RrdDataSourceForm(request.POST, instance=threshold)
