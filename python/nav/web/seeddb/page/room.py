@@ -15,6 +15,14 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django import forms
+
+from nav.models.manage import Location, Room
+
+from nav.web.seeddb import SeeddbInfo
+from nav.web.seeddb.page import view_switcher
+from nav.web.seeddb.utils.list import render_list
+
 class RoomFilterForm(forms.Form):
     location = forms.ModelChoiceField(
         Location.objects.order_by('id').all(), required=False)
@@ -26,14 +34,11 @@ class RoomForm(forms.ModelForm):
         model = Room
 
 class RoomInfo(SeeddbInfo):
-    value_list = (
-        'id', 'location', 'description', 'position', 'optional_1',
-        'optional_2', 'optional_3', 'optional_4')
     active = {'room': True},
-    title = 'Rooms'
     caption = 'Rooms'
-    navpath = [('Rooms', None)]
     tab_template = 'seeddb/tabs_room.html'
+    _title = 'Rooms'
+    _navpath = [('Rooms', None)]
 
 def room(request):
     return view_switcher(request,
@@ -43,11 +48,14 @@ def room(request):
 
 def room_list(request):
     info = RoomInfo()
+    value_list = (
+        'id', 'location', 'description', 'position', 'optional_1',
+        'optional_2', 'optional_3', 'optional_4')
     query = Room.objects.all()
     filter_form = RoomFilterForm(request.GET)
-    return render_list(request, info, query, value_list, 'seeddb-room-edit',
+    return render_list(request, query, value_list, 'seeddb-room-edit',
         filter_form=filter_form,
-        extra_context=extra)
+        extra_context=info.template_context)
 
 def room_move(request):
     extra = {

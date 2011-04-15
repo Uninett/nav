@@ -17,7 +17,7 @@
 
 from django.conf.urls.defaults import patterns, url
 
-from nav.web.seeddb.views import netbox, service, room, location, organization
+from nav.web.seeddb.views import netbox, service, location, organization
 from nav.web.seeddb.views import usage, netboxtype, vendor, subcategory
 from nav.web.seeddb.views import cabling, patch, index
 from nav.web.seeddb.views.list import vlan_list, prefix_list
@@ -31,6 +31,8 @@ from nav.web.seeddb.views.bulk import organization_bulk, usage_bulk
 from nav.web.seeddb.views.bulk import netboxtype_bulk, vendor_bulk, patch_bulk
 from nav.web.seeddb.views.bulk import subcategory_bulk, cabling_bulk
 from nav.web.seeddb.views.bulk import service_bulk, prefix_bulk
+
+from nav.web.seeddb.page.room import room
 
 urlpatterns = patterns('',
     url(r'^$', index,
