@@ -31,3 +31,21 @@ def index(request):
         },
         RequestContext(request)
     )
+
+def not_implemented(*args, **kwargs):
+    """Simple method used with the view_switcher.
+
+    Raises "not implemented if called, but the list pages should make sure this
+    function is never called.
+    """
+    raise NotImplementedError()
+
+def view_switcher(request, list_view=None, move_view=None, delete_view=None):
+    """Selects appropriate view depending on POST data.
+    """
+    if request.method == 'POST':
+        if 'move' in request.POST:
+            return move_view(request)
+        elif 'delete' in request.POST:
+            return delete_view(request)
+    return list_view(request)
