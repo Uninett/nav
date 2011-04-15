@@ -415,13 +415,13 @@ def save_thresholds(request):
     message = ''
     if request.method == 'POST':
         # A string with datasource-ids, separated with "|"
-        dsIds = str(request.POST.get('dsIds', ''))
+        ds_ids = str(request.POST.get('dsIds', ''))
         operator = str(request.POST.get('operator', ''))
         threshold = str(request.POST.get('threshold', ''))
 
-        if not is_legal_ids(dsIds, allow_empty=False):
+        if not is_legal_ids(ds_ids, allow_empty=False):
             logger.error('Illegal datasource-id: login=%s; id=%s' %
-                (account.login, dsIds))
+                (account.login, ds_ids))
             result = {'error': 1, 'message' : 'Illegal datasource'}
             return HttpResponse(simplejson.dumps(result),
                     mimetype="application/json")
@@ -441,8 +441,8 @@ def save_thresholds(request):
                     mimetype="application/json")
 
         datasource_ids = []
-        for dsId in dsIds.split('|'):
-            datasource_ids.append(int(dsId))
+        for ds_id in ds_ids.split('|'):
+            datasource_ids.append(int(ds_id))
 
         rrd_data_sources = None
         try :
