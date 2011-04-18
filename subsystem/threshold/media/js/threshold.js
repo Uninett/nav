@@ -15,7 +15,6 @@ var threshold = threshold || {};
 
 threshold.displayMode = '';
 threshold.stdBgColor = 'white';
-threshold.stdChangedColor = '#BDE5F8';
 threshold.stdErrColor = 'red';
 threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
@@ -111,11 +110,12 @@ threshold.isLegalThreshold = function(thr){
 };
 
 threshold.setChangedThreshold = function(inp){
-    $(inp).parent().css('background-color', threshold.stdChangedColor);
+    $(inp).parent().addClass('changed');
 };
 
 threshold.showSavedThreshold = function(inp){
     var par = $(inp).parent();
+    $(par).removeClass('changed');
     $(par).css('background-color', threshold.stdSuccessColor);
     $(par).fadeTo(2000, 0.6);
     $(par).fadeTo(2000, 1.0, function(){
@@ -126,7 +126,7 @@ threshold.showSavedThreshold = function(inp){
 };
 
 threshold.showErrorThreshold = function(inp){
-    $(inp).parent().css('background-color', threshold.stdErrColor);
+    $(inp).parent().addClass('error');
 };
 
 threshold.netboxSearch = function(){
