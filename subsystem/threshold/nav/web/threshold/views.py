@@ -67,6 +67,11 @@ SAVE_ERROR_TEMPLATE = 'Failed to save threshold %s for %s\n'
 MISMATCH_ERROR_TEMPLATE = ('Number of records mismatch. ' +
                           ' Asked for %d, got %d from DB')
 
+# Option that is selected
+NETBOX_OPTION_SELECTED = '<option selected="selected" value="%d">%s</option>'
+# Option with no selection
+NETBOX_OPTION = '<option value="%d">%s</option>'
+
 # Format for interface-option with ifalias
 IF_W_IFALIAS = """<option value="%d">%s (%s)</option>"""
 # Format for Interface-option without ifalias
@@ -280,6 +285,39 @@ def get_netbox_categories(cat_gw, cat_gsw, cat_sw):
         netbox_categories.append('SW')
     return netbox_categories
 
+def get_interfaces(netbox, selected_boxes, ifname, updown):
+    """Get interfaces from a given netbox"""
+    if selected_boxes:
+        if netbox.id in selected_boxes:
+            return get_netbox_interfaces(netbox, ifname, updown)
+        else:
+            return None
+    else:
+        return get_netbox_interfaces(netbox, ifname, updown)
+
+def format_netbox_option(netbox, selected_boxes):
+    """Format an option in a select-box for netboxes"""
+    if netbox.id in selected_boxes:
+        return NETBOX_OPTION_SELECTED % (netbox.id, netbox.sysname)
+    else:
+        return NETBOX_OPTION % (netbox.id, netbox.sysname)
+
+def format_option_group(sysname, interfaces):
+    """Format an option-group in a select for interfaces"""
+    opt_group = '<optgroup label="%s">' % sysname
+    for interface in interfaces:
+        opt_group += format_interface_option(interface)
+    opt_group += '</optgroup>'
+    return opt_group
+    
+def format_interface_option(interface):
+    """Format an option a select box with or without ifalias"""
+    if interface.ifalias:
+        return IF_W_IFALIAS % (interface.id, interface.ifname,
+                                    interface.ifalias)
+    else:
+        return IF_WO_IFALIAS % (interface.id, interface.ifname)
+
 def netbox_search(request):
     """Search for matching netboex and/or interfaces."""
     # logger.error('netbox_search: called ...')
@@ -340,29 +378,15 @@ def netbox_search(request):
         # Let the query hit the database
         netbox_list = query
         if netbox_list:
-            # Option that is selected
-            nbox_format_select = '<option selected="selected" value="%d">%s</option>'
-            # Option with no selection
-            nbox_format = '<option value="%d">%s</option>'
             for nbox in netbox_list:
                 if search_interfaces:
-                    interfaces = []
-                    if chosen_boxes:
-                        # Only interfaces for boxes that are selected.
-                        if nbox.id in chosen_boxes:
-                            interfaces = get_netbox_interfaces(
-                                                    nbox, ifname, updown)
-                    else:
-                        interfaces = get_netbox_interfaces(
-                                                    nbox, ifname, updown)
+                    interfaces = get_interfaces(nbox, chosen_boxes,
+                                                ifname, updown)
                     # Weed out boxes that do not have interfaces or
                     # does not have interfaces that match the search.
                     if interfaces:
                         box_interfaces[nbox.sysname] = interfaces
-                if nbox.id in chosen_boxes:
-                    foundboxes += nbox_format_select % (nbox.id, nbox.sysname)
-                else:
-                    foundboxes += nbox_format % (nbox.id, nbox.sysname)
+                foundboxes += format_netbox_option(nbox, chosen_boxes)
 
         logger.error('!!!!! number of netboxes = %d' % len(netbox_list))
 
@@ -373,16 +397,7 @@ def netbox_search(request):
             # grouped together.
             for sname, infs in box_interfaces.iteritems():
                 numb_interfaces += len(infs)
-                foundinterfaces += '<optgroup label="%s">' % sname
-                for inf in infs:
-                    if inf.ifalias:
-                        foundinterfaces += IF_W_IFALIAS % (inf.id,
-                                                inf.ifname, inf.ifalias)
-                    else:
-                        foundinterfaces += IF_WO_IFALIAS % (inf.id,
-                                                    inf.ifname)
-                foundinterfaces += '</optgroup>'
-
+                foundinterfaces += format_option_group(sname, infs)
         logger.error('&&&&& number of interfaces = %d' % numb_interfaces)
 
         result = { 'error': 0,
