@@ -31,11 +31,11 @@ import logging
 
 logger = logging.getLogger("nav.web.threshold.utils")
 
-PER_CENT_REGEXP = re.compile('^\d+%$')
-SYSNAME_REGEXP = re.compile('^[\w\-]+([\w\-.]+)*$')
-VENDOR_REGEXP = re.compile('^\w+$')
-IFNAME_REGEXP = re.compile('^[a-zA-Z0-9\/\-]+$')
-DESCR_REGEXP = re.compile('^[a-zA-Z][a-zA-Z\d\ ]+$')
+PER_CENT_REGEXP = re.compile('^\d+%$', re.UNICODE)
+SYSNAME_REGEXP = re.compile('^[\w\-]+([\w\-.]+)*$', re.UNICODE)
+VENDOR_REGEXP = re.compile('^\w+$', re.UNICODE)
+IFNAME_REGEXP = re.compile('^[a-zA-Z0-9\/\-]+$', re.UNICODE)
+DESCR_REGEXP = re.compile('^[a-zA-Z][a-zA-Z\d\ ]+$', re.UNICODE)
 
 def is_string(to_test):
     """Check if the parameter is a string or an unicode-string"""

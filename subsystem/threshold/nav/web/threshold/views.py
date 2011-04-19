@@ -130,8 +130,8 @@ def prepare_bulkset(request):
 
     account = get_account(request)
     if request.method == 'POST':
-        descr = str(request.POST.get('descr', ''))
-        ids = str(request.POST.get('ids', ''))
+        descr = unicode(request.POST.get('descr', ''))
+        ids = unicode(request.POST.get('ids', ''))
         logger.error('Ids = %s' % ids)
         if not is_legal_descr(descr):
             logger.error('Illegal description: login=%s; descr=%s' %
@@ -225,7 +225,7 @@ def box_or_interface(request):
     account = get_account(request)
     result = {}
     if request.method == 'POST':
-        descr = str(request.POST.get('descr', ''))
+        descr = unicode(request.POST.get('descr', ''))
         if is_legal_descr(descr):
             descr.strip()
             result['error'] = 0
@@ -326,16 +326,16 @@ def netbox_search(request):
     result = {}
     query = None
     if request.method == 'POST':
-        descr = str(request.POST.get('descr', ''))
-        sysname = str(request.POST.get('sysname', ''))
-        vendor = str(request.POST.get('vendor', ''))
-        model = str(request.POST.get('model', ''))
-        cat_gw = str(request.POST.get('GW', ''))
-        cat_gsw = str(request.POST.get('GSW', ''))
-        cat_sw = str(request.POST.get('SW', ''))
-        ifname = str(request.POST.get('ifname', ''))
-        updown = str(request.POST.get('updown', ''))
-        boxes = str(request.POST.get('boxes', ''))
+        descr = unicode(request.POST.get('descr', ''))
+        sysname = unicode(request.POST.get('sysname', ''))
+        vendor = unicode(request.POST.get('vendor', ''))
+        model = unicode(request.POST.get('model', ''))
+        cat_gw = unicode(request.POST.get('GW', ''))
+        cat_gsw = unicode(request.POST.get('GSW', ''))
+        cat_sw = unicode(request.POST.get('SW', ''))
+        ifname = unicode(request.POST.get('ifname', ''))
+        updown = unicode(request.POST.get('updown', ''))
+        boxes = unicode(request.POST.get('boxes', ''))
 
         logger.error('descr=%s; sysname=%s; vendor=%s; model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s; boxes=%s' %
             (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
@@ -430,9 +430,9 @@ def save_thresholds(request):
     message = ''
     if request.method == 'POST':
         # A string with datasource-ids, separated with "|"
-        ds_ids = str(request.POST.get('dsIds', ''))
-        operator = str(request.POST.get('operator', ''))
-        threshold = str(request.POST.get('threshold', ''))
+        ds_ids = unicode(request.POST.get('dsIds', ''))
+        operator = unicode(request.POST.get('operator', ''))
+        threshold = unicode(request.POST.get('threshold', ''))
 
         if not is_legal_ids(ds_ids, allow_empty=False):
             logger.error('Illegal datasource-id: login=%s; id=%s' %
