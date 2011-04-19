@@ -535,21 +535,23 @@ $(document).ready(function(){
     });
 
     $('input.#netboxsubmit').click(function(){
+        threshold.removeMessages();
         var retVal = 0;
-      var descr = $('select.#descr').val();
-      var boxes = $('select.#chosenboxes').val() || [];
-      if(boxes.length > 0){
-        $('span.#ajaxLoader').toggle();
-        threshold.getBulkUpdateHtml(descr, threshold.table2String(boxes));
-        $('span.#ajaxLoader').toggle();
-      } else {
-        threshold.updateMessages('No netboxes chosen', true);
-        retVal = -1;
-      }
+        var descr = $('select.#descr').val();
+        var boxes = $('select.#chosenboxes').val() || [];
+        if(boxes.length > 0){
+            $('span.#ajaxLoader').toggle();
+            threshold.getBulkUpdateHtml(descr, threshold.table2String(boxes));
+            $('span.#ajaxLoader').toggle();
+        } else {
+            threshold.updateMessages('No netboxes chosen', true);
+            retVal = -1;
+        }
         return retVal;
     });
 
     $('input.#interfacesubmit').click(function(){
+        threshold.removeMessages();
         var retVal = 0;
         var descr = $('select.#descr').val();
         var interfaces = $('select.#choseninterfaces').val() || [];
