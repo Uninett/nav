@@ -506,10 +506,7 @@ $(document).ready(function(){
     });
 
     $('input.#netboxname').keyup(function(){
-        var netboxname = $(this).val();
-        if(netboxname.length > 1){
-            threshold.netboxSearch();
-        }
+        threshold.netboxSearch();
     });
 
     $('input:checkbox').change(function(){
