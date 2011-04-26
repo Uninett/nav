@@ -108,7 +108,7 @@ def index(request):
                 }
     info_dict.update(DEFAULT_VALUES)
 
-    logger.error('index: timer = %d' % (time.clock() - before))
+    logger.error('index: timer = %.3f' % (time.clock() - before))
     logger.error('index: len(netboxes) = %d' % len(all_netboxes))
     logger.error('index: len(interfaces) = %d' % len(all_interfaces))
 
@@ -121,11 +121,10 @@ def prepare_bulkset(request):
     Get all the chosen netboxes or interfaces and render the
     html table (ref. bulkset-template).
     """
+    before = time.clock()
     result = {}
     message = None
     info_dict = {}
-    netboxes = []
-    interfaces = []
     data_sources = []
 
     account = get_account(request)
@@ -165,12 +164,14 @@ def prepare_bulkset(request):
                                     rrd_file__value__in=identities)
             info_dict['interfaces'] = True
 
+        logger.error('prepare_bulkset: identities = %d' % len(identities))
         if data_sources:
             info_dict['descr'] = descr
             info_dict['datasources'] = data_sources
         # This is actually a html-table to get rendered in the browser
         message = render_to_response('threshold/bulkset.html',
                     info_dict, RequestContext(request))
+        logger.error('prepare_bulkset: timer = %.3f' % (time.clock() - before))
         return HttpResponse(message, mimetype="text/plain")
     else:
         logger.error('Illegal request: login=%s' % account.login)
@@ -304,14 +305,14 @@ def format_netbox_option(netbox, selected_boxes):
 
 def format_option_group(sysname, interfaces):
     """Format an option-group in a select for interfaces"""
-    opt_group = '<optgroup label="%s">' % sysname
+    opt_group = ['<optgroup label="%s">' % sysname]
     for interface in interfaces:
-        opt_group += format_interface_option(interface)
-    opt_group += '</optgroup>'
-    return opt_group
+        opt_group.append(format_interface_option(interface))
+    opt_group.append('</optgroup>')
+    return "".join(opt_group)
     
 def format_interface_option(interface):
-    """Format an option a select box with or without ifalias"""
+    """Format an option in a select box with or without ifalias"""
     if interface.ifalias:
         return IF_W_IFALIAS % (interface.id, interface.ifname,
                                     interface.ifalias)
@@ -374,7 +375,7 @@ def netbox_search(request):
             query = query.filter(category__id__in=netbox_categories)
 
         box_interfaces = {}
-        foundboxes = ''
+        foundboxes = []
         # Let the query hit the database
         netbox_list = query
         if netbox_list:
@@ -386,28 +387,28 @@ def netbox_search(request):
                     # does not have interfaces that match the search.
                     if interfaces:
                         box_interfaces[nbox.sysname] = interfaces
-                foundboxes += format_netbox_option(nbox, chosen_boxes)
+                foundboxes.append(format_netbox_option(nbox, chosen_boxes))
 
         logger.error('!!!!! number of netboxes = %d' % len(netbox_list))
 
         numb_interfaces = 0
-        foundinterfaces = ''
+        foundinterfaces = []
         if box_interfaces:
             # All interfaces that belong to the same netbox are
             # grouped together.
             for sname, infs in box_interfaces.iteritems():
                 numb_interfaces += len(infs)
-                foundinterfaces += format_option_group(sname, infs)
+                foundinterfaces.append(format_option_group(sname, infs))
         logger.error('&&&&& number of interfaces = %d' % numb_interfaces)
 
         result = { 'error': 0,
-                   'foundboxes': foundboxes,
-                   'foundinterfaces': foundinterfaces,
+                   'foundboxes': ''.join(foundboxes),
+                   'foundinterfaces': ''.join(foundinterfaces),
                 }
     else:
         logger.error('Illegal request: login=%s' % account.login)
         result = { 'error': 1, 'message': 'Illegal request'}
-    logger.error('netbox_search: timer = %d' % (time.clock() - before))
+    logger.error('netbox_search: timer = %.3f' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
 
@@ -524,7 +525,7 @@ def get_oid_descriptions():
     
 def threshold_all(request):
     """ Just list all thresholds that have a value."""
-    before = time.time()
+    before = time.clock()
     oid_key_descriptions = get_oid_descriptions()
     # pick all sources that have a threshold
     rrd_datasource_list = RrdDataSource.objects.filter(
@@ -549,7 +550,7 @@ def threshold_all(request):
             }
         netboxes.append(netbox)
     logger.error("len = %d" % len(netboxes))
-    logger.error("time = %d" % (time.time()-before))
+    logger.error("time = %.3f" % (time.clock()-before))
     info_dict = {'netboxes' : netboxes }
     info_dict.update(DEFAULT_VALUES)
     return render_to_response('threshold/listall.html',
