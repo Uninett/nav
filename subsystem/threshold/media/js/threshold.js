@@ -9,10 +9,19 @@ if(!Array.indexOf){
     }
 }
 
+var typeDelay = function(){
+    var timer = 0;
+    return function(callback, ms){
+        clearTimeout (timer);
+        timer = setTimeout(callback, ms);
+    }  
+}();
+
 var save_queue = new Array();
 
 var threshold = threshold || {};
 
+threshold.netboxSearchReq = null;
 threshold.displayMode = '';
 threshold.stdBgColor = 'white';
 threshold.stdErrColor = 'red';
@@ -140,6 +149,9 @@ threshold.showErrorThreshold = function(inp){
 };
 
 threshold.netboxSearch = function(){
+    if(threshold.netboxSearchReq) {
+        threshold.netboxSearchReq.abort();
+    }
     threshold.showAjaxLoader();
     threshold.removeMessages();
     var retVal = 0;
@@ -192,7 +204,7 @@ threshold.netboxSearch = function(){
     for(var i = 0; i < len; i++){
         inputData[checkBoxList[i].value] = checkBoxList[i].value;
     }
-    $.ajax({ url: '/threshold/netboxsearch/',
+    threshold.netboxSearchReq = $.ajax({ url: '/threshold/netboxsearch/',
              data: inputData,
              dataType: 'json',
              type: 'POST',
@@ -212,6 +224,7 @@ threshold.netboxSearch = function(){
                         return threshold.ajaxError(req, errMsg, errType);
                     },
              complete: function(header, textStatus){
+                        threshold.netboxSearchReq = null;
                         return 0;
                        },
              statusCode: {404: function(){
@@ -517,29 +530,41 @@ $(document).ready(function(){
     });
 
     $('input.#netboxname').keyup(function(){
-        threshold.netboxSearch();
+        typeDelay(function(){
+            threshold.netboxSearch();
+        }, 300);
     });
 
     $('input:checkbox').change(function(){
-        threshold.netboxSearch();
+        typeDelay(function(){
+            threshold.netboxSearch();
+        }, 300);
     });
 
     $('select.#vendor').change(function(){
-        threshold.netboxSearch();
+        typeDelay(function(){
+            threshold.netboxSearch();
+        }, 300);
     });
         
     $('select.#model').change(function(){
-        threshold.netboxSearch();
+        typeDelay(function(){
+            threshold.netboxSearch();
+        }, 300);
     });
 
     $('select.#chosenboxes').change(function(){
         if(threshold.displayMode == 'interface'){
-        threshold.netboxSearch();
+            typeDelay(function(){
+                threshold.netboxSearch();
+            }, 300);
         }
     });
     
     $('input.#interfacename').keyup(function(){
-        threshold.netboxSearch();
+        typeDelay(function(){
+            threshold.netboxSearch();
+        }, 300);
     });
 
     $('input.#netboxsubmit').click(function(){
