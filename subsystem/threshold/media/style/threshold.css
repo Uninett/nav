@@ -10,6 +10,10 @@
     top: -480px;
 }
 
+span.ajaxLoader {
+    display: none;
+}
+
 table.vertitable tbody tr td.changed {
     background-color: #BDE5F8;
 }

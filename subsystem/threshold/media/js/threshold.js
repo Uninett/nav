@@ -25,7 +25,9 @@ threshold.backToSearch = function(){
     if(threshold.displayMode == 'interface'){
         $('div.#interfacesearch').show();
     }
-    $('div.#bulkupdateDiv').hide();
+    var bulkUpdateData = $('div.#bulkupdateDiv');
+    $(bulkUpdateData).hide();
+    $(bulkUpdateData).empty();
     threshold.removeMessages();
 };
 
@@ -58,6 +60,14 @@ threshold.ajaxError = function( request, ErrMessage, errType){
 
 threshold.isLegalDescription = function(desc){
     return desc.match(threshold.descriptionRegExp);
+};
+
+threshold.showAjaxLoader = function(){
+    $('span.ajaxLoader').show();
+};
+
+threshold.hideAjaxLoader = function(){
+    $('span.ajaxLoader').hide();
 };
 
 threshold.table2String = function(tab){
@@ -130,7 +140,8 @@ threshold.showErrorThreshold = function(inp){
 };
 
 threshold.netboxSearch = function(){
-    $('span.#ajaxLoader').toggle();
+    threshold.showAjaxLoader();
+    threshold.removeMessages();
     var retVal = 0;
 
     var descr = $('select.#descr').val();
@@ -208,7 +219,7 @@ threshold.netboxSearch = function(){
                                }
                         }
         });
-    $('span.#ajaxLoader').toggle();
+    threshold.hideAjaxLoader();
     return retVal;
 };
 
@@ -332,7 +343,7 @@ threshold.bulkSaveThresholds = function(){
         return -1;
     }
     
-    $('span.#ajaxLoader').toggle();
+    threshold.showAjaxLoader();
     var dsIds = new Array(allIncludes.length);
     for(var i = 0; i < allIncludes.length; i++){
         dsIds[i] = allIncludes[i].value;
@@ -343,7 +354,7 @@ threshold.bulkSaveThresholds = function(){
         threshold.updateMessages('Save failed', true);
         return -1;
     }
-    $('span.#ajaxLoader').toggle();
+    threshold.hideAjaxLoader();
     return 0;
     
 };
@@ -379,7 +390,7 @@ threshold.saveCheckedThresholds = function(){
         threshold.updateMessages('Please, check the ones to save', true);
         return -1;
     }
-    $('span.#ajaxLoader').show();
+    threshold.showAjaxLoader();
     var numbErrors = 0;
     for(var i = 0; i < allIncludes.length; i++){
         var chkbox = allIncludes[i];
@@ -410,7 +421,7 @@ threshold.saveCheckedThresholds = function(){
     } else {
         threshold.updateMessages('All checked thresholds saved', false);
     }
-    $('span.#ajaxLoader').hide();
+    threshold.hideAjaxLoader();
     return 0;
 };
 
@@ -419,7 +430,7 @@ threshold.saveAllThresholds = function(){
     if(allIncludes.length < 1){
         return -1;
     }
-    $('span.#ajaxLoader').toggle();
+    threshold.showAjaxLoader();
     var numbErrors = 0;
     for(var i = 0; i < allIncludes.length; i++){
         var chkbox = allIncludes[i];
@@ -450,7 +461,7 @@ threshold.saveAllThresholds = function(){
     } else {
         threshold.updateMessages('All thresholds saved', false);
     }
-    $('span.#ajaxLoader').toggle();
+    threshold.hideAjaxLoader();
     return 0;
 };
 
@@ -532,34 +543,34 @@ $(document).ready(function(){
     });
 
     $('input.#netboxsubmit').click(function(){
+        threshold.showAjaxLoader();
         threshold.removeMessages();
         var retVal = 0;
         var descr = $('select.#descr').val();
         var boxes = $('select.#chosenboxes').val() || [];
         if(boxes.length > 0){
-            $('span.#ajaxLoader').toggle();
             threshold.getBulkUpdateHtml(descr, threshold.table2String(boxes));
-            $('span.#ajaxLoader').toggle();
         } else {
             threshold.updateMessages('No netboxes chosen', true);
             retVal = -1;
         }
+        threshold.hideAjaxLoader();
         return retVal;
     });
 
     $('input.#interfacesubmit').click(function(){
+        threshold.showAjaxLoader();
         threshold.removeMessages();
         var retVal = 0;
         var descr = $('select.#descr').val();
         var interfaces = $('select.#choseninterfaces').val() || [];
         if(interfaces.length > 0){
-            $('span.#ajaxLoader').toggle();
             threshold.getBulkUpdateHtml(descr, threshold.table2String(interfaces));
-            $('span.#ajaxLoader').toggle();
         } else {
             threshold.updateMessages('No interfaces chosen', true);
             retVal = -1;
         }
+        threshold.hideAjaxLoader();
         return retVal;
     });
 
