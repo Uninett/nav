@@ -50,7 +50,7 @@ def test_webpages():
     result = login()
     if result:
         func, args = result[0], result[1:]
-        func(args)
+        func(*args)
     register_seen(HOST_URL)
     while queue:
         url = queue.pop()

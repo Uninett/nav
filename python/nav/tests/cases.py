@@ -65,15 +65,15 @@ class DjangoTransactionTestCase(django.test.TestCase):
             fixture.close()
 
     def _find_fixtures(self, fixtures):
-       my_module = sys.modules[self.__module__]
-       search_path = [os.path.dirname(my_module.__file__)]
-       result = []
-       for f in fixtures:
-           for dir in search_path:
-               filename = os.path.join(dir, f)
-               if os.path.exists(filename):
-                   result.append(filename)
-       return result
+        my_module = sys.modules[self.__module__]
+        search_path = [os.path.dirname(my_module.__file__)]
+        result = []
+        for f in fixtures:
+            for dir in search_path:
+                filename = os.path.join(dir, f)
+                if os.path.exists(filename):
+                    result.append(filename)
+        return result
 
 class ModPythonTestCase(unittest.TestCase):
     """Test case for simple simulation of requests to mod_python handlers."""

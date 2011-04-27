@@ -384,13 +384,13 @@ class Snmp(object):
             # Error status 2 means noSuchName (i.e. the OID asked for
             # doesn't exist in the agent's MIB view)
             if rsp['error_status'] == 2:
-               raise NoSuchObjectError(error_oid())
+                raise NoSuchObjectError(error_oid())
             else:
-               raise AgentError("Error code %s at index %s (%s, %s)" % \
-                                (rsp['error_status'],
-                                 rsp['error_index'],
-                                 error_oid,
-                                 error_value))
+                raise AgentError("Error code %s at index %s (%s, %s)" % (
+                        rsp['error_status'],
+                        rsp['error_index'],
+                        error_oid,
+                        error_value))
 
         rsp_oids = [asn1.decode(o)[0] for o in rsp['encoded_oids']]
         rsp_values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
