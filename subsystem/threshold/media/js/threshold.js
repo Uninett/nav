@@ -28,6 +28,7 @@ threshold.stdErrColor = 'red';
 threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
 threshold.descriptionRegExp = new RegExp('^[a-zA-Z][a-zA-Z0-9\ ]+$');
+threshold.thresholdSaveStatus = 0;
 
 threshold.backToSearch = function(){
     $('div.#netboxsearch').show();
@@ -47,7 +48,6 @@ threshold.removeMessages = function(){
 
 threshold.updateMessages = function(msg, isError){
     var messagesDiv = $('div.#messagesDiv');
-    $(messagesDiv).empty();
     $(messagesDiv).append('<ul><li>' + msg + '</li></ul>');
     if(isError){
         $(messagesDiv).css('color', threshold.stdErrColor);
@@ -129,6 +129,7 @@ threshold.isLegalThreshold = function(thr){
 };
 
 threshold.setChangedThreshold = function(inp){
+    $(inp).parent().removeClass();
     $(inp).parent().addClass('changed');
 };
 
@@ -145,6 +146,7 @@ threshold.showSavedThreshold = function(inp){
 };
 
 threshold.showErrorThreshold = function(inp){
+    $(inp).parent().removeClass();
     $(inp).parent().addClass('error');
 };
 
@@ -218,6 +220,10 @@ threshold.netboxSearch = function(){
                             $('select.#chosenboxes').append(data.foundboxes);
                             $('select.#choseninterfaces').empty();
                             $('select.#choseninterfaces').append(data.foundinterfaces);
+                            if(data.types){
+                                $('select.#model').empty();
+                                $('select.#model').append(data.types);
+                            }
                             return retVal;
                      },
              error: function(req, errMsg, errType){
@@ -313,12 +319,12 @@ threshold.chooseDeviceType = function(the_select, select_val){
           });
 };
 
-threshold.saveThresholds = function(dsIds, operator, threshold){
-    var retVal = 0;
+threshold.saveThresholds = function(dsIds, operator, thrValue){
+    threshold.thresholdSaveStatus = 0;
     $.ajax({url: '/threshold/savethresholds/',
             data: { 'dsIds': dsIds,
                     'operator': operator,
-                    'threshold': threshold
+                    'threshold': thrValue
                   },
             dataType: 'json',
             type: 'POST',
@@ -326,8 +332,8 @@ threshold.saveThresholds = function(dsIds, operator, threshold){
             success: function(data, textStatus, header){
                         if(data.error){
                             threshold.updateMessages(data.message, true);
-                            retVal = -1;
-                            return retVal;
+                            threshold.thresholdSaveStatus = -1;
+                            return -1;
                         }
                         return 0;
                     },
@@ -342,11 +348,12 @@ threshold.saveThresholds = function(dsIds, operator, threshold){
                                }
                         }
             });
-    return retVal;
+    return threshold.thresholdSaveStatus;
 };
 
 
 threshold.bulkSaveThresholds = function(){
+    threshold.removeMessages();
     var allIncludes = $('input:checkbox[name="include"]:checked') || [];
     var bulkOperator = $('select.#bulkOperator').val();
     var bulkThreshold = $('input.#bulkThreshold').val();
@@ -373,6 +380,7 @@ threshold.bulkSaveThresholds = function(){
 };
 
 threshold.saveSingleThreshold = function(btn){
+    threshold.removeMessages();
     var row = $(btn).parents('tr');
     var dsId = $(row).find('input:checkbox[name="include"]').val();
     var op = $(row).find('select').val();
@@ -398,6 +406,7 @@ threshold.saveSingleThreshold = function(btn){
 };
 
 threshold.saveCheckedThresholds = function(){
+    threshold.removeMessages();
     var allIncludes = $('input:checkbox[name="include"]:checked') || [];
     if(allIncludes.length < 1){
         threshold.updateMessages('Please, check the ones to save', true);
@@ -439,6 +448,7 @@ threshold.saveCheckedThresholds = function(){
 };
 
 threshold.saveAllThresholds = function(){
+    threshold.removeMessages();
     var allIncludes = $('input:checkbox[name="include"]') || [];
     if(allIncludes.length < 1){
         return -1;
@@ -479,6 +489,7 @@ threshold.saveAllThresholds = function(){
 };
 
 threshold.bulkUpdateThresholds = function(btn){
+    threshold.removeMessages();
     var allIncludes = $('input:checkbox[name="include"]:checked') || [];
 
     var bulkRow = $(btn).parents('tr');
@@ -497,8 +508,7 @@ threshold.bulkUpdateThresholds = function(btn){
         return -1;
     }
 
-    $(bulkThrInput).parent().css('background-color', threshold.stdBgColor);
-    threshold.removeMessages();
+    $(bulkThrInput).parent().removeClass();
     for(var i = 0; i < allIncludes.length; i++){
         var dsId = allIncludes[i].value;
         var chkbox = $('input:checkbox[value="'+dsId+'"]:checked');
@@ -536,28 +546,20 @@ $(document).ready(function(){
     });
 
     $('input:checkbox').change(function(){
-        typeDelay(function(){
-            threshold.netboxSearch();
-        }, 300);
+        threshold.netboxSearch();
     });
 
     $('select.#vendor').change(function(){
-        typeDelay(function(){
-            threshold.netboxSearch();
-        }, 300);
+        threshold.netboxSearch();
     });
         
     $('select.#model').change(function(){
-        typeDelay(function(){
-            threshold.netboxSearch();
-        }, 300);
+        threshold.netboxSearch();
     });
 
     $('select.#chosenboxes').change(function(){
         if(threshold.displayMode == 'interface'){
-            typeDelay(function(){
-                threshold.netboxSearch();
-            }, 300);
+            threshold.netboxSearch();
         }
     });
     
