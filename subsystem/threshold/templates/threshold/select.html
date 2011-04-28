@@ -4,6 +4,7 @@
 
     {% if thresholds %}
     <div>
+        <label for="descr">Data source:</label>
         <select id="descr" name="descr">
             <option value="empty">Not chosen</option>
             {% for threshold in thresholds %}
@@ -25,7 +26,7 @@
                 <td><input id="netboxname" type="text" name="netboxname"/></td>
             </tr>
             <tr>
-                <th>Type:</th>
+                <th>Category:</th>
                 <td>
                     <input id="gw" type="checkbox" name="boxtype"
                         value="GW">GW</input>
@@ -49,13 +50,13 @@
                     </select></td>
             </tr>
             <tr>
-                <th><label for="model">Model:</label></th>
+                <th><label for="model">Type:</label></th>
                 <td>
                     <select id="model" name="model">
                         <option value="empty">Not Chosen</option>
-                        {% if models %}
-                        {% for model in models %}
-                            <option value="{{ model }}">{{ model }}</option>
+                        {% if types %}
+                        {% for type in types %}
+                            <option value="{{ type }}">{{ type }}</option>
                         {% endfor %}
                         {% endif %}
                     </select></td>
