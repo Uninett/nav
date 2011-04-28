@@ -14,6 +14,10 @@ span.ajaxLoader {
     display: none;
 }
 
+label {
+    font-weight: bold;
+}
+
 table.vertitable tbody tr td.changed {
     background-color: #BDE5F8;
 }
