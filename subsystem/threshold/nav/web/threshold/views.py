@@ -77,6 +77,19 @@ IF_W_IFALIAS = """<option value="%d">%s (%s)</option>"""
 # Format for Interface-option without ifalias
 IF_WO_IFALIAS = """<option value="%d">%s</option>"""
 
+def get_netbox_types(vendor=None):
+    """Get all active netbox-types, optionally filtered by vendor-name"""
+    query = NetboxType.objects.filter(netbox__isnull=False)
+    if vendor:
+        query = query.filter(vendor__id__iexact=vendor)
+    query = query.values('name').order_by('name').distinct()
+    # Hit the database
+    all_netbox_types = query
+    box_types = []
+    for netbox_type in all_netbox_types:
+        box_types.append(netbox_type.get('name', ''))
+    return box_types
+
 def index(request):
     """Initial page for searching """
     before = time.clock()
@@ -87,22 +100,21 @@ def index(request):
     for descr in descriptions:
         thresholds.append(descr.get('description',''))
     
-    vendors_names = NetboxType.objects.values('vendor').distinct()
-    vendors = []
-    for vendor in vendors_names:
-        vendors.append(vendor.get('vendor', ''))
+    # Pick only vendors with registered netboxes
+    all_box_vendors = NetboxType.objects.filter(
+                    netbox__isnull=False).values('vendor').order_by(
+                        'vendor').distinct()
+    box_vendors = []
+    for box_vendor in all_box_vendors:
+        box_vendors.append(box_vendor.get('vendor', ''))
 
-    model_names = NetboxType.objects.values('name').distinct()
-    models = []
-    for model in model_names:
-        models.append(model.get('name', ''))
+    box_types = get_netbox_types()
 
     all_netboxes = []
     all_interfaces = []
-
     info_dict = {'thresholds': thresholds,
-                 'vendors': vendors,
-                 'models': models,
+                 'vendors': box_vendors,
+                 'types': box_types,
                  'chosenboxes': all_netboxes,
                  'choseninterfaces' : all_interfaces,
                 }
@@ -179,40 +191,6 @@ def prepare_bulkset(request):
         return HttpResponse(simplejson.dumps(result),
             mimetype="application/json")
     
-
-# def threshold_list(request, all=''):
-#     logger.error("test")
-#     thresholds = RrdDataSource.objects.select_related(
-#                         depth=2).filter(
-#                             rrd_file__key__iexact='interface').filter(
-#                                 rrd_file__value__isnull=False).order_by(
-#                                     'description').order_by('-rrd_file')
-#     #if not 'all' in request.GET.keys():
-#     if all != 'all':
-#         result = []
-#         # Display only those set
-#         for x in thresholds:
-#             if x.threshold:
-#                 if len(x.threshold):
-#                     result.append(x)
-#     else:
-#         result = thresholds
-#     if 'rrd_file' in request.GET.keys():
-#         result = RrdDataSource.objects.select_related(
-#                         depth=2).filter(
-#                             rrd_file=request.GET['rrd_file']).order_by(
-#                                 'descr').order_by('-rrd_file')
-#     elif 'netbox_id' in request.GET.keys():
-#         result = RrdDataSource.objects.filter(
-#                rrd_file=RrdFile.objects.filter(
-#                    netbox=request.GET['netbox_id'])[0])
-#     info_dict = {'thresholds': result}
-#     info_dict.update(DEFAULT_VALUES)
-#     return render_to_response(
-#         'threshold/start.html',
-#         info_dict,
-#         RequestContext(request))
-
 def choose_device_type(descr):
     """Determine if the we should search for netboxes or interfaces-"""
     if INTERFACE_REGEXP.match(descr):
@@ -319,6 +297,19 @@ def format_interface_option(interface):
     else:
         return IF_WO_IFALIAS % (interface.id, interface.ifname)
 
+
+def get_netbox_types_options(vendor, selected):
+    all_netbox_types = get_netbox_types(vendor)
+    type_options = ['<option value="empty">Not Chosen</option>']
+    for netbox_type in all_netbox_types:
+        option = '<option value="%s"' % netbox_type
+        if netbox_type == selected:
+            option += ' selected="selected"'
+        option += '>%s</option>' % netbox_type
+        type_options.append(option)
+    options = ''.join(type_options)
+    return options
+
 def netbox_search(request):
     """Search for matching netboex and/or interfaces."""
     # logger.error('netbox_search: called ...')
@@ -352,6 +343,7 @@ def netbox_search(request):
             return HttpResponse(simplejson.dumps(result),
                 mimetype="application/json")
 
+            
         chosen_boxes = []
         if boxes:
             for box_id in boxes.split('|'):
@@ -404,7 +396,9 @@ def netbox_search(request):
         result = { 'error': 0,
                    'foundboxes': ''.join(foundboxes),
                    'foundinterfaces': ''.join(foundinterfaces),
+                   'types': get_netbox_types_options(vendor, model),
                 }
+
     else:
         logger.error('Illegal request: login=%s' % account.login)
         result = { 'error': 1, 'message': 'Illegal request'}
@@ -417,11 +411,11 @@ def format_save_error(data_source):
     postfix = ''
     if data_source.rrd_file.interface:
         postfix = "%s: %s (%s)" % (
-                data_source.rrd_file.interface.netbox.sysname,
+                data_source.rrd_file.interface.netbox.get_short_sysname(),
                 data_source.rrd_file.interface.ifname,
                 data_source.rrd_file.interface.ifalias)
     else:
-        postfix = data_source.rrd_file.netbox.sysname
+        postfix = data_source.rrd_file.netbox.get_short_sysname(),
     return SAVE_ERROR_TEMPLATE % (data_source.description, postfix)
     
 def save_thresholds(request):
@@ -482,12 +476,18 @@ def save_thresholds(request):
         save_errors = []
         threshold.strip()
         for rrd_data_source in rrd_data_sources:
-            max_threshold = ''
             if PER_CENT_REGEXP.match(threshold):
-                max_threshold = '100'
+                # % is only legal when max is defined.
+                if not rrd_data_source.max:
+                    err_mesg = '; % is prohibited when max is undefined'
+                    log_mesg = 'login=%s; ds=%d ' % (account.login,
+                                                        rrd_data_source.id)
+                    logger.error(log_mesg + err_mesg)
+                    save_errors.append((format_save_error(rrd_data_source) +
+                                            err_mesg))
+                    continue
             rrd_data_source.threshold = threshold
             rrd_data_source.delimiter = operator
-            rrd_data_source.max = max_threshold
             try :
                 rrd_data_source.save()
             except Exception, save_ex:
@@ -495,9 +495,7 @@ def save_thresholds(request):
                     (account.login, rrd_data_source.id, save_ex))
                 save_errors.append(format_save_error(rrd_data_source))
         if save_errors:
-            message = ''
-            for err in save_errors:
-                message += err
+            message = ''.join(save_errors)
             result = {'error': 1, 'message': message}
         else:
             msg = 'Threshold'
