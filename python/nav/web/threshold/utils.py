@@ -63,6 +63,9 @@ def is_legal_operator(operator):
         return False
     return True
 
+def is_percent_value(val):
+    return PER_CENT_REGEXP.match(val)
+
 def is_legal_percent_value(value):
     """A per-cent value is between 0 - 100"""
     return (value > -1 and value < 101)
@@ -77,7 +80,7 @@ def is_legal_threshold(value, allow_empty=True):
         else:
             return False
     value.strip()
-    is_per_cent = PER_CENT_REGEXP.match(value)
+    is_per_cent = is_percent_value(value)
     if is_per_cent:
         value = re.sub('%', '', value)
     if not value.isdigit():

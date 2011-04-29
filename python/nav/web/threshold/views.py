@@ -52,6 +52,7 @@ from nav.web.threshold.utils import is_legal_interfaceid
 from nav.web.threshold.utils import is_legal_descr
 from nav.web.threshold.utils import is_legal_ids
 from nav.web.threshold.utils import is_illegal_parameters
+from nav.web.threshold.utils import is_percent_value
 
 
 NAVBAR = [('Home', '/'), ('Threshold monitor', None)]
@@ -59,7 +60,6 @@ DEFAULT_VALUES = {'title': "Threshold monitor", 'navpath': NAVBAR}
 
 logger = logging.getLogger("nav.web.threshold")
 
-PER_CENT_REGEXP = re.compile('^\d+%$')
 INTERFACE_REGEXP = re.compile('^if\w+$')
 
 SAVE_ERROR_TEMPLATE = 'Failed to save threshold %s for %s\n'
@@ -476,7 +476,7 @@ def save_thresholds(request):
         save_errors = []
         threshold.strip()
         for rrd_data_source in rrd_data_sources:
-            if PER_CENT_REGEXP.match(threshold) and not rrd_data_source.max:
+            if is_percent_value(threshold) and not rrd_data_source.max:
                 # % is prohibited when max threshold is undefined.
                 err_mesg = '; % is prohibited when max is undefined'
                 log_mesg = 'login=%s; ds=%d ' % (account.login,
