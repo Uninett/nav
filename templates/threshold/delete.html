@@ -1,15 +1,45 @@
-{% extends "useradmin/base.html" %}
+{% extends "threshold/base.html" %}
 
 {% block content %}
-    <h3>Are you sure you want to delete/remove the {{ type }} {{ name }}</h3>
+    <p>
+    <table class="vertitable">
+        <caption>Interface {{ threshold.rrd_file.interface.ifname }}</caption>
+        <tr>
+    
+            <th>IfAlias</th>
+            <td>{{ threshold.rrd_file.interface.ifalias }}</td>
+        </tr>
+        <tr>
+            <th>Netbox</th>
+            <td>{{ threshold.rrd_file.netbox.get_short_sysname }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ threshold.description }}</td>
+        </tr>
+    </table>
+    <p>
 
-    <form action="." method="post">
+    <p>
+    Are you sure you want to delete/remove the threshold?
+    </p>
+
+    {% if threshold.id %}
+
+    <p>
+    <form action="" method="post">
         <p>
-            {% if type and id %}
-                <input type="hidden" name="{{ type }}" value="{{ id }}" />
-            {% endif %}
-            <input type="submit" value="Yes" />
-            <a href="{{ back }}" class="button">Cancel</a>
+        <input id="idid" type="hidden" name="thresholdid"
+            value="{{ threshold.id }}" />
+
+        <a href="/threshold/interface/{{ threshold.rrd_file.interface_id }}/">
+        <input id="idcancel" type="button" name="cancel" value="Cancel" /></a>
+            &nbsp;
+        <input id="idsubmit" type="submit" name="submit" value="Yes" />
+
         </p>
     </form>
+    </p>
+
+    {% endif %}
 {% endblock %}

@@ -1,28 +1,37 @@
 {% extends 'threshold/base.html' %}
 
-{% block base_content %}
+{% block content %}
 <PRE>
 {{ fskdebug }}
 </PRE>
 
-<form action="" method=post>
+<form action="" method="post">
 
 <table class="vertitable">
-<tr>
-<th>System name:</th>
-<td>{{ threshold.rrd_file.netbox.get_short_sysname }}</td>
-</tr>
-<tr>
-<th>Threshold description:</th>
-<td>{{ threshold.descr }}</td>
-</tr>
-<tr>
-<th>Threshold unit:</th>
-<td>{{ threshold.units }}</td>
-</tr>
+    <caption>Interface {{ threshold.rrd_file.interface.ifname }}</caption>
+    <tr>
+        <th>Interface alias:</th>
+        <td>{{ threshold.rrd_file.interface.ifalias }}</td>
+    </tr>
+    <tr>
+        <th>System name:</th>
+        <td>{{ threshold.rrd_file.netbox.get_short_sysname }}</td>
+    </tr>
+    <tr>
+        <th>Threshold unit:</th>
+        <td>{% if threshold.units %}{{ threshold.units }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th>Description:</th>
+        <td>{{ threshold.description }}</td>
+    </tr>
 {{ threshold_form.as_table }}
 </table>
 
-<input type="submit" value="Update" />
+    <a href="/threshold/interface/{{ threshold.rrd_file.interface.id }}/">
+    <input id="idcancel" type="button" name="cancel" value="Cancel" /></a>
+        &nbsp;
+    <input id="idsubmit" type="submit" name="submit" value="Save" />
+
 </form>
 {% endblock %}
