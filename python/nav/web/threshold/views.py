@@ -563,19 +563,11 @@ def threshold_interface(request, interfaceid=None):
             (account.login, interfaceid))
         return HttpResponseRedirect('/threshold/')
 
-    interfaceid = int(interfaceid)
-    interface = None
-    try :
-        interface = Interface.objects.get(pk=interfaceid)
-    except Exception, get_ex:
-        logger.error('Exception: login=%s; exception=%s' %
-            (account.login, get_ex))
-        return HttpResponseRedirect('/threshold/')
-
+    interfaceid.strip()
     oid_key_descriptions = get_oid_descriptions()
     thresholds = RrdDataSource.objects.filter(
                     rrd_file__key__iexact='interface').filter(
-                        rrd_file__interface=interfaceid)
+                        rrd_file__value__iexact=interfaceid)
     for threshold in thresholds:
         threshold.extra_descr = oid_key_descriptions.get(
                                     threshold.description, '')
@@ -587,7 +579,7 @@ def threshold_interface(request, interfaceid=None):
         'sysname': sysname,
         'ifname' : ifname,
         'ifalias' : ifalias, 
-        'interfaceid': '%d' % interfaceid,
+        'interfaceid': interfaceid,
         }
     info_dict.update(DEFAULT_VALUES)
     return render_to_response('threshold/manageinterface.html',
@@ -625,6 +617,7 @@ def threshold_edit(request, thresholdid=None):
     if not thresholdid:
         return HttpResponseRedirect('/threshold/')
     threshold = None
+    thresholdid = int(thresholdid)
     try :
         threshold = RrdDataSource.objects.get(pk=thresholdid)
     except Exception, get_ex:
