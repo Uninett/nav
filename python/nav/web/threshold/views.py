@@ -476,16 +476,15 @@ def save_thresholds(request):
         save_errors = []
         threshold.strip()
         for rrd_data_source in rrd_data_sources:
-            if PER_CENT_REGEXP.match(threshold):
-                # % is only legal when max is defined.
-                if not rrd_data_source.max:
-                    err_mesg = '; % is prohibited when max is undefined'
-                    log_mesg = 'login=%s; ds=%d ' % (account.login,
-                                                        rrd_data_source.id)
-                    logger.error(log_mesg + err_mesg)
-                    save_errors.append((format_save_error(rrd_data_source) +
+            if PER_CENT_REGEXP.match(threshold) and not rrd_data_source.max:
+                # % is prohibited when max threshold is undefined.
+                err_mesg = '; % is prohibited when max is undefined'
+                log_mesg = 'login=%s; ds=%d ' % (account.login,
+                                                 rrd_data_source.id)
+                logger.error(log_mesg + err_mesg)
+                save_errors.append((format_save_error(rrd_data_source) +
                                             err_mesg))
-                    continue
+                continue
             rrd_data_source.threshold = threshold
             rrd_data_source.delimiter = operator
             try :
