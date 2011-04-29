@@ -1,0 +1,27 @@
+#netboxsearch {
+    position: relative;
+    left: 0px;
+    top: 10px;
+}
+
+#interfacesearch {
+    position: relative;
+    left: 400px;
+    top: -480px;
+}
+
+span.ajaxLoader {
+    display: none;
+}
+
+label {
+    font-weight: bold;
+}
+
+table.vertitable tbody tr td.changed {
+    background-color: #BDE5F8;
+}
+
+table.vertitable tbody tr td.error {
+    background-color: red;
+}
