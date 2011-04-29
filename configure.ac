@@ -77,7 +77,5 @@ AC_CONFIG_FILES([
 	python/Makefile
 	bin/Makefile
 	media/Makefile
-        subsystem/threshold/Makefile
-        subsystem/threshold/media/Makefile
 ])
 AC_OUTPUT
