@@ -40,6 +40,7 @@ class VlanGraphAnalyzer(object):
         """Analyze all VLAN topologies"""
         for vlan in self.vlans:
             self.analyze_vlan(vlan)
+        return self.ifc_vlan_map
 
     def analyze_vlan(self, vlan):
         address = self.vlans[vlan]
@@ -102,6 +103,8 @@ class VlanGraphAnalyzer(object):
                 check_vlan((router, router, None))
             else:
                 check_vlan((router, router_port.to_netbox, router_port))
+
+        return self.ifc_vlan_map
 
 def build_layer2_graph():
     """Builds a graph representation of the layer 2 topology stored in the NAV
