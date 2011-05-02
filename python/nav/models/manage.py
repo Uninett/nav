@@ -26,6 +26,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 
+from nav.bitvector import BitVector
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
@@ -714,6 +715,18 @@ class SwPortAllowedVlan(models.Model):
 
     class Meta:
         db_table = 'swportallowedvlan'
+
+    def get_allowed_vlans(self):
+        """Converts the plaintext formatted hex_string attribute to a list of
+        VLAN numbers.
+
+        :returns: A list of integers.
+        """
+        octets = [self.hex_string[x:x+2]
+                  for x in xrange(0, len(self.hex_string), 2)]
+        string = ''.join(chr(int(o, 16)) for o in octets)
+        bits = BitVector(string)
+        return bits.get_set_bits()
 
     def __unicode__(self):
         return u'Allowed vlan for swport %s' % self.interface
