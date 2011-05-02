@@ -63,8 +63,9 @@ class VlanGraphAnalyzer(object):
             source, dest, ifc = edge
             visited_nodes = visited_nodes or set()
             if dest in visited_nodes:
-                return
+                direction = 'up'
             else:
+                direction = 'down'
                 visited_nodes.add(dest)
 
             vlan_is_active_on_edge = False
@@ -83,24 +84,21 @@ class VlanGraphAnalyzer(object):
 
                     vlan_is_active_on_edge = non_trunks_on_vlan.count() > 0
 
-            # Then do a depth-first-search on each outgoing edge from the
-            # destination netbox
-            edges_on_vlan = (
-                (u, v, w)
-                for u, v, w in self.layer2.out_edges_iter(dest, keys=True)
-                if ifc_has_vlan(w))
-            for next_edge in edges_on_vlan:
-                active = check_vlan(next_edge, visited_nodes)
-                vlan_is_active_on_edge = vlan_is_active_on_edge or active
+            # Recursive depth first search on each outgoing edge
+            if direction == 'down':
+                edges_on_vlan = (
+                    (u, v, w)
+                    for u, v, w in self.layer2.out_edges_iter(dest, keys=True)
+                    if ifc_has_vlan(w))
+                for next_edge in edges_on_vlan:
+                    active = check_vlan(next_edge, visited_nodes)
+                    vlan_is_active_on_edge = vlan_is_active_on_edge or active
 
             if vlan_is_active_on_edge:
-                # print "%r is active on %s from %s to %s" % (
-                #     vlan, ifc.ifname if ifc else None, source.sysname,
-                #     dest.sysname)
                 if ifc:
                     if ifc not in self.ifc_vlan_map:
                         self.ifc_vlan_map[ifc] = {}
-                    self.ifc_vlan_map[ifc][vlan] = 'down'
+                    self.ifc_vlan_map[ifc][vlan] = direction
             return vlan_is_active_on_edge
 
         if router in self.layer2:
