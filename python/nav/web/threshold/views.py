@@ -478,12 +478,12 @@ def save_thresholds(request):
         for rrd_data_source in rrd_data_sources:
             if is_percent_value(threshold) and not rrd_data_source.max:
                 # % is prohibited when max threshold is undefined.
-                err_mesg = '; % is prohibited when max is undefined'
-                log_mesg = 'login=%s; ds=%d ' % (account.login,
+                err_msg = '% is prohibited when max is undefined'
+                extra_msg = 'login=%s; ds=%d ' % (account.login,
                                                  rrd_data_source.id)
-                logger.error(log_mesg + err_mesg)
+                logger.error(err_msg + '; ' + extra_msg)
                 save_errors.append((format_save_error(rrd_data_source) +
-                                            err_mesg))
+                                            '; ' + err_msg))
                 continue
             rrd_data_source.threshold = threshold
             rrd_data_source.delimiter = operator
