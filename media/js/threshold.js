@@ -17,8 +17,6 @@ var typeDelay = function(){
     }  
 }();
 
-var save_queue = new Array();
-
 var threshold = threshold || {};
 
 threshold.netboxSearchReq = null;
@@ -29,6 +27,14 @@ threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
 threshold.descriptionRegExp = new RegExp('^[a-zA-Z][a-zA-Z0-9\ ]+$');
 threshold.thresholdSaveStatus = 0;
+threshold.save_queue =  new Array();
+
+threshold.removeFromQueue = function(id){
+    var idx = threshold.save_queue.indexOf(id);
+    if(idx > -1){
+	threshold.save_queue.splice(idx, 1);
+    }
+};
 
 threshold.backToSearch = function(){
     $('div.#netboxsearch').show();
@@ -610,9 +616,9 @@ $(document).ready(function(){
     $('div.netboxcontainer').find('input.button').each(function(){
         $(this).click(function(){
 	    var dsid = $(this).parent().attr('data_dsid');
-	    var threshold = $(this).parents('tr').find('input.thresholdvalue').val();
+	    var thrVal = $(this).parents('tr').find('input.thresholdvalue').val();
             var operator = $(this).parents('tr').find('select').val();
-            save_threshold(this, dsid, operator, threshold);
+            threshold.save_threshold(this, dsid, operator, thrVal);
         });
 		
     });
@@ -623,32 +629,35 @@ $(document).ready(function(){
 });
 
 
-function save_threshold(updateButton, dsid, operator, threshold){
-    if( save_queue.indexOf(dsid) > -1){
+threshold.save_threshold = function(updateButton, dsid, operator, thrVal){
+    if( threshold.save_queue.indexOf(dsid) > -1){
 	return;
     }
-    save_queue.push(dsid);
+    threshold.save_queue.push(dsid);
     $.ajax( { url: '/threshold/savethresholds/',
 	      data: { 'dsIds': dsid,
                       'operator': operator,
-                      'threshold': threshold
+                      'threshold': thrVal
                     },
 	      dataType: 'json',
 	      type: 'POST',
 	      success: function(data){
-		         if(data.error){
-                           callbackFail(updateButton);
-                           threshold.updateMessages(data.message, true);
-                           return -1;
-			 }
-			 callbackSuccess(updateButton, data.max);
-                         return 0;
+                        var retval = 0;
+		        if(data.error){
+                            threshold.callbackFail(updateButton);
+                            threshold.updateMessages(data.message, true);
+                            retVal = -1;
+			 } else {
+			    threshold.callbackSuccess(updateButton);
+                         }
+		         threshold.removeFromQueue(dsid);
+                         return retVal;
 		       },
 	      error: function(req, errMsg, errType){
                         return threshold.ajaxError(req, errMsg, errType);
                      },
 	      complete: function(){
-		            removeFromQueue(dsid);
+		            threshold.removeFromQueue(dsid);
                             return 0;
 		        },
             statusCode: {404: function(){
@@ -656,24 +665,16 @@ function save_threshold(updateButton, dsid, operator, threshold){
                               }
                         }
             });
-}
+};
 
-function removeFromQueue(id){
-    var idx = save_queue.indexOf(id);
-    if(idx > -1){
-	save_queue.splice(idx, 1);
-    }
-}
-
-function callbackSuccess(button, max_value){
+threshold.callbackSuccess = function(button){
     var maxColumn = $(button).parents("tr").find("td.maxvalue");
     var thrInput = $(button).parents('tr').find('input.thresholdvalue');
 
-    $(maxColumn).text(max_value);
     threshold.showSavedThreshold(thrInput);
-}
+};
 
-function callbackFail(button){
+threshold.callbackFail = function(button){
     var thrInput = $(button).parents('tr').find('input.thresholdvalue');
     threshold.showErrorThreshold(thrInput);
-}
+};
