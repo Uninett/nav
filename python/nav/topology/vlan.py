@@ -25,16 +25,6 @@ from operator import attrgetter
 
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
 
-class Link(object):
-    def __init__(self, from_port=None, to_port=None):
-        self.from_port = from_port
-        self.to_port = to_port
-
-class Trunk(Link):
-    def __init__(self, from_port=None, to_port=None, vlans=None):
-        super(Trunk, self).__init__(from_port, to_port)
-        self.vlans = vlans
-
 class VlanGraphAnalyzer(object):
     def __init__(self):
         self.vlans = self._build_vlan_router_dict()
