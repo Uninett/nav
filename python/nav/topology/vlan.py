@@ -36,6 +36,11 @@ class VlanGraphAnalyzer(object):
         addrs = get_active_addresses_of_routed_vlans()
         return dict((addr.prefix.vlan, addr) for addr in addrs)
 
+    def analyze_all(self):
+        """Analyze all VLAN topologies"""
+        for vlan in self.vlans:
+            self.analyze_vlan(vlan)
+
     def analyze_vlan(self, vlan):
         address = self.vlans[vlan]
         router_port = address.interface
