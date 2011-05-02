@@ -716,6 +716,10 @@ class SwPortAllowedVlan(models.Model):
     class Meta:
         db_table = 'swportallowedvlan'
 
+    def __contains__(self, item):
+        vlans = self.get_allowed_vlans()
+        return item in vlans
+
     def get_allowed_vlans(self):
         """Converts the plaintext formatted hex_string attribute to a list of
         VLAN numbers.
