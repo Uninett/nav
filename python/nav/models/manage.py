@@ -706,9 +706,10 @@ class SwPortVlan(models.Model):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
-    """From MetaNAV: Stores a hexstring that has “hidden” information about
-    the vlans that are allowed to traverse a given trunk."""
+    """Stores a hexstring that encodes the list of VLANs that are allowed to
+    traverse a trunk port.
 
+    """
     interface = models.OneToOneField('Interface', db_column='interfaceid',
                                      primary_key=True)
     hex_string = VarcharField(db_column='hexstring')
@@ -733,7 +734,7 @@ class SwPortAllowedVlan(models.Model):
         return bits.get_set_bits()
 
     def __unicode__(self):
-        return u'Allowed vlan for swport %s' % self.interface
+        return u'Allowed vlans for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
