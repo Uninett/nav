@@ -75,22 +75,21 @@ class RoutedVlanTopologyAnalyzer(object):
     def analyze(self):
         if self.router in self.layer2:
             if not self.router_port.to_netbox:
-                # likely a GSW, descend on its switch ports
-                self.check_vlan((self.router, self.router, None))
+                # likely a GSW, descend on its switch ports by faking an edge
+                start_edge = (self.router, self.router, None)
             else:
-                self.check_vlan((self.router, self.router_port.to_netbox,
-                                 self.router_port))
+                start_edge = (self.router, self.router_port.to_netbox,
+                              self.router_port)
+            self.check_vlan(start_edge)
 
         return self.ifc_directions
 
     def check_vlan(self, edge, visited_nodes=None):
         source, dest, ifc = edge
+
         visited_nodes = visited_nodes or set()
-        if dest in visited_nodes:
-            direction = 'up'
-        else:
-            direction = 'down'
-            visited_nodes.add(dest)
+        direction = 'up' if dest in visited_nodes else 'down'
+        visited_nodes.add(dest)
 
         # Decide first on the immediate merits of the edge and the
         # destination netbox
