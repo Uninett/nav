@@ -38,73 +38,88 @@ class VlanGraphAnalyzer(object):
 
     def analyze_all(self):
         """Analyze all VLAN topologies"""
-        for vlan in self.vlans:
-            self.analyze_vlan(vlan)
+        for vlan, addr in self.vlans.items():
+            analyzer = RoutedVlanTopologyAnalyzer(
+                addr, self.layer2, self.ifc_vlan_map)
+            analyzer.analyze()
         return self.ifc_vlan_map
 
-    def analyze_vlan(self, vlan):
-        address = self.vlans[vlan]
-        router_port = address.interface
-        router = router_port.netbox
+class RoutedVlanTopologyAnalyzer(object):
+    """Analyzer of a single routed VLAN topology.
 
-        def vlan_allowed_on_trunk(ifc):
-            return (ifc.trunk and
-                    ifc.swportallowedvlan and
-                    vlan.vlan in ifc.swportallowedvlan)
+    Takes a VLAN's root router address (a GwPortPrefix object) and a layer 2
+    topology graph as input.
 
-        def ifc_has_vlan(ifc):
-            return ifc.vlan == vlan.vlan or vlan_allowed_on_trunk(ifc)
+    """
+    def __init__(self, address, layer2_graph, ifc_vlan_map=None):
+        self.address = address
+        self.layer2 = layer2_graph
+        self.ifc_vlan_map = {} if ifc_vlan_map is None else ifc_vlan_map
 
-        def check_vlan(edge, visited_nodes=None):
-            source, dest, ifc = edge
-            visited_nodes = visited_nodes or set()
-            if dest in visited_nodes:
-                direction = 'up'
-            else:
-                direction = 'down'
-                visited_nodes.add(dest)
+        self.vlan = address.prefix.vlan
+        self.router_port = address.interface
+        self.router = self.router_port.netbox
 
-            vlan_is_active_on_edge = False
-
-            # Decide first on the immediate merits of the edge and the
-            # destination netbox
-            if ifc:
-                if not ifc.trunk:
-                    vlan_is_active_on_edge = ifc_has_vlan(ifc)
-                else:
-                    non_trunks_on_vlan = dest.interface_set.filter(
-                        vlan=vlan.vlan).filter(NO_TRUNK)
-                    if ifc.to_interface:
-                        non_trunks_on_vlan = non_trunks_on_vlan.exclude(
-                            id=ifc.to_interface.id)
-
-                    vlan_is_active_on_edge = non_trunks_on_vlan.count() > 0
-
-            # Recursive depth first search on each outgoing edge
-            if direction == 'down':
-                edges_on_vlan = (
-                    (u, v, w)
-                    for u, v, w in self.layer2.out_edges_iter(dest, keys=True)
-                    if ifc_has_vlan(w))
-                for next_edge in edges_on_vlan:
-                    active = check_vlan(next_edge, visited_nodes)
-                    vlan_is_active_on_edge = vlan_is_active_on_edge or active
-
-            if vlan_is_active_on_edge:
-                if ifc:
-                    if ifc not in self.ifc_vlan_map:
-                        self.ifc_vlan_map[ifc] = {}
-                    self.ifc_vlan_map[ifc][vlan] = direction
-            return vlan_is_active_on_edge
-
-        if router in self.layer2:
-            if not router_port.to_netbox:
+    def analyze(self):
+        if self.router in self.layer2:
+            if not self.router_port.to_netbox:
                 # likely a GSW, descend on its switch ports
-                check_vlan((router, router, None))
+                self.check_vlan((self.router, self.router, None))
             else:
-                check_vlan((router, router_port.to_netbox, router_port))
+                self.check_vlan((self.router, self.router_port.to_netbox,
+                                 self.router_port))
 
         return self.ifc_vlan_map
+
+    def check_vlan(self, edge, visited_nodes=None):
+        source, dest, ifc = edge
+        visited_nodes = visited_nodes or set()
+        if dest in visited_nodes:
+            direction = 'up'
+        else:
+            direction = 'down'
+            visited_nodes.add(dest)
+
+        vlan_is_active_on_edge = False
+
+        # Decide first on the immediate merits of the edge and the
+        # destination netbox
+        if ifc:
+            if not ifc.trunk:
+                vlan_is_active_on_edge = self.ifc_has_vlan(ifc)
+            else:
+                non_trunks_on_vlan = dest.interface_set.filter(
+                    vlan=self.vlan.vlan).filter(NO_TRUNK)
+                if ifc.to_interface:
+                    non_trunks_on_vlan = non_trunks_on_vlan.exclude(
+                        id=ifc.to_interface.id)
+
+                vlan_is_active_on_edge = non_trunks_on_vlan.count() > 0
+
+        # Recursive depth first search on each outgoing edge
+        if direction == 'down':
+            edges_on_vlan = (
+                (u, v, w)
+                for u, v, w in self.layer2.out_edges_iter(dest, keys=True)
+                if self.ifc_has_vlan(w))
+            for next_edge in edges_on_vlan:
+                active = self.check_vlan(next_edge, visited_nodes)
+                vlan_is_active_on_edge = vlan_is_active_on_edge or active
+
+        if vlan_is_active_on_edge:
+            if ifc:
+                if ifc not in self.ifc_vlan_map:
+                    self.ifc_vlan_map[ifc] = {}
+                self.ifc_vlan_map[ifc][self.vlan] = direction
+        return vlan_is_active_on_edge
+
+    def ifc_has_vlan(self, ifc):
+        return ifc.vlan == self.vlan.vlan or self.vlan_allowed_on_trunk(ifc)
+
+    def vlan_allowed_on_trunk(self, ifc):
+        return (ifc.trunk and
+                ifc.swportallowedvlan and
+                self.vlan.vlan in ifc.swportallowedvlan)
 
 def build_layer2_graph():
     """Builds a graph representation of the layer 2 topology stored in the NAV
