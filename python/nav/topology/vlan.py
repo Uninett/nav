@@ -38,11 +38,22 @@ class VlanGraphAnalyzer(object):
 
     def analyze_all(self):
         """Analyze all VLAN topologies"""
-        for vlan, addr in self.vlans.items():
-            analyzer = RoutedVlanTopologyAnalyzer(
-                addr, self.layer2, self.ifc_vlan_map)
-            analyzer.analyze()
+        for vlan in self.vlans:
+            self.analyze_vlan(vlan)
         return self.ifc_vlan_map
+
+    def analyze_vlan(self, vlan):
+        addr = self.vlans[vlan]
+        analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2)
+        topology = analyzer.analyze()
+        self._integrate_vlan_topology(vlan, topology)
+
+    def _integrate_vlan_topology(self, vlan, topology):
+        for ifc, direction in topology.items():
+            if ifc not in self.ifc_vlan_map:
+                self.ifc_vlan_map[ifc] = {}
+            self.ifc_vlan_map[ifc][vlan] = direction
+
 
 class RoutedVlanTopologyAnalyzer(object):
     """Analyzer of a single routed VLAN topology.
@@ -51,14 +62,15 @@ class RoutedVlanTopologyAnalyzer(object):
     topology graph as input.
 
     """
-    def __init__(self, address, layer2_graph, ifc_vlan_map=None):
+    def __init__(self, address, layer2_graph):
         self.address = address
         self.layer2 = layer2_graph
-        self.ifc_vlan_map = {} if ifc_vlan_map is None else ifc_vlan_map
 
         self.vlan = address.prefix.vlan
         self.router_port = address.interface
         self.router = self.router_port.netbox
+
+        self.ifc_directions = {}
 
     def analyze(self):
         if self.router in self.layer2:
@@ -69,7 +81,7 @@ class RoutedVlanTopologyAnalyzer(object):
                 self.check_vlan((self.router, self.router_port.to_netbox,
                                  self.router_port))
 
-        return self.ifc_vlan_map
+        return self.ifc_directions
 
     def check_vlan(self, edge, visited_nodes=None):
         source, dest, ifc = edge
@@ -91,9 +103,8 @@ class RoutedVlanTopologyAnalyzer(object):
                 vlan_is_active = vlan_is_active or sub_active
 
         if vlan_is_active and ifc:
-            if ifc not in self.ifc_vlan_map:
-                self.ifc_vlan_map[ifc] = {}
-            self.ifc_vlan_map[ifc][self.vlan] = direction
+            self.ifc_directions[ifc] = direction
+
         return vlan_is_active
 
     def is_vlan_active_on_destination(self, dest, ifc):
