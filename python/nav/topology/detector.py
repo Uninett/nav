@@ -21,16 +21,23 @@ functionality will later be moved to this program.
 """
 
 from optparse import OptionParser
+import logging
+import os
 
 from nav import buildconf
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
+
+LOGFILE_NAME = 'navtopology.log'
+LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
+
 
 def main():
     """Program entry point"""
     parser = make_option_parser()
     parser.parse_args()
 
+    init_logging()
     do_layer2_detection()
 
 def make_option_parser():
@@ -40,6 +47,19 @@ def make_option_parser():
         epilog="Detects and updates the network topology in the NAV database"
         )
     return parser
+
+def init_logging():
+    """Initializes logging for this program"""
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s %(name)s] %(message)s")
+    handler = logging.FileHandler(LOGFILE_PATH, 'a')
+    handler.setFormatter(formatter)
+
+    root = logging.getLogger('')
+    root.addHandler(handler)
+
+    import nav.logs
+    nav.logs.set_log_levels()
 
 def do_layer2_detection():
     """Detect and update layer 2 topology"""
