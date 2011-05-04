@@ -24,6 +24,7 @@ from nav.bulkimport import RoomImporter
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.list import render_list
+from nav.web.seeddb.forms.move import MoveForm
 
 class RoomFilterForm(forms.Form):
     location = forms.ModelChoiceField(
