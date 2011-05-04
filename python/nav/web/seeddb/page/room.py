@@ -18,6 +18,8 @@
 from django import forms
 
 from nav.models.manage import Location, Room
+from nav.bulkparse import RoomBulkParser
+from nav.bulkimport import RoomImporter
 
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.page import view_switcher
@@ -32,6 +34,10 @@ class RoomForm(forms.ModelForm):
         queryset=Location.objects.order_by('id'))
     class Meta:
         model = Room
+
+class RoomMoveForm(MoveForm):
+    location = forms.ModelChoiceField(
+        Location.objects.order_by('id').all())
 
 class RoomInfo(SeeddbInfo):
     active = {'room': True},
@@ -84,4 +90,16 @@ def room_edit(request, room_id=None):
     }
     return render_edit(request, Room, RoomForm, room_id,
         'seeddb-room-edit',
+        extra_context=extra)
+
+def room_bulk(request):
+    extra = {
+        'active': {'room': True},
+        'title': TITLE_DEFAULT + ' - Room',
+        'navpath': NAVPATH_DEFAULT + [('Room', None)],
+        'tab_template': 'seeddb/tabs_room.html',
+    }
+    return render_bulkimport(
+        request, RoomBulkParser, RoomImporter,
+        'seeddb-room',
         extra_context=extra)
