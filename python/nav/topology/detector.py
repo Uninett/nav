@@ -21,16 +21,26 @@ functionality will later be moved to this program.
 """
 
 from optparse import OptionParser
+from functools import wraps
+import inspect
+import logging
+import os
 
 from nav import buildconf
+from nav.debug import log_stacktrace, log_last_django_query
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
+
+LOGFILE_NAME = 'navtopology.log'
+LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
+
 
 def main():
     """Program entry point"""
     parser = make_option_parser()
     parser.parse_args()
 
+    init_logging()
     do_layer2_detection()
 
 def make_option_parser():
@@ -41,6 +51,36 @@ def make_option_parser():
         )
     return parser
 
+def init_logging():
+    """Initializes logging for this program"""
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s %(name)s] %(message)s")
+    handler = logging.FileHandler(LOGFILE_PATH, 'a')
+    handler.setFormatter(formatter)
+
+    root = logging.getLogger('')
+    root.addHandler(handler)
+
+    import nav.logs
+    nav.logs.set_log_levels()
+
+def with_exception_logging(func):
+    """Decorates a function to log unhandled exceptions"""
+    def _decorator(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            stacktrace = inspect.trace()[1:]
+            logger = logging.getLogger(__name__)
+            logger.exception("An unhandled exception occurred")
+            log_last_django_query(logger)
+            log_stacktrace(logging.getLogger('nav.topology.stacktrace'),
+                           stacktrace)
+            raise
+
+    return wraps(func)(_decorator)
+
+@with_exception_logging
 def do_layer2_detection():
     """Detect and update layer 2 topology"""
     reducer = AdjacencyReducer(build_candidate_graph_from_db())

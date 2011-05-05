@@ -26,6 +26,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 
+from nav.bitvector import BitVector
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
@@ -705,18 +706,44 @@ class SwPortVlan(models.Model):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
-    """From MetaNAV: Stores a hexstring that has “hidden” information about
-    the vlans that are allowed to traverse a given trunk."""
+    """Stores a hexstring that encodes the list of VLANs that are allowed to
+    traverse a trunk port.
 
+    """
     interface = models.OneToOneField('Interface', db_column='interfaceid',
                                      primary_key=True)
     hex_string = VarcharField(db_column='hexstring')
+    _cached_hex_string = ''
+    _cached_vlan_set = None
 
     class Meta:
         db_table = 'swportallowedvlan'
 
+    def __contains__(self, item):
+        vlans = self.get_allowed_vlans()
+        return item in vlans
+
+    def get_allowed_vlans(self):
+        """Converts the plaintext formatted hex_string attribute to a list of
+        VLAN numbers.
+
+        :returns: A set of integers.
+        """
+        if self._cached_hex_string != self.hex_string:
+            self._cached_hex_string = self.hex_string
+            self._cached_vlan_set = self._calculate_allowed_vlans()
+
+        return self._cached_vlan_set or set()
+
+    def _calculate_allowed_vlans(self):
+        octets = [self.hex_string[x:x+2]
+                  for x in xrange(0, len(self.hex_string), 2)]
+        string = ''.join(chr(int(o, 16)) for o in octets)
+        bits = BitVector(string)
+        return set(bits.get_set_bits())
+
     def __unicode__(self):
-        return u'Allowed vlan for swport %s' % self.interface
+        return u'Allowed vlans for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
