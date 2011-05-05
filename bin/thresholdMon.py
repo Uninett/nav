@@ -174,7 +174,8 @@ def main(argv):
             log_it(3, "%s is in exceptions" % descr)
             continue
 
-        threshold_max = int(threshold_max)
+        if threshold_max:
+            threshold_max = int(threshold_max)
         log_it(3, "Adding datasource %s" % rrd_datasourceid)
         # Getting the value from the database
         pres.removeAllDs()
