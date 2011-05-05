@@ -38,8 +38,14 @@ class IpMibTests(unittest.TestCase):
         self.assertRaises(ValueError, IpMib.inetaddress_to_ip, ip_tuple)
 
     def test_too_short_ipv4_address_should_raise_exception(self):
-        ip_tuple = (1, 4, 1L, 2L, 3L)
+        ip_tuple = (1, 4, 1L, 2L)
         self.assertRaises(IndexToIpException, IpMib.inetaddress_to_ip, ip_tuple)
+
+    def test_ipv4_syntax_not_annotated_with_size_should_parse_ok(self):
+        ip_tuple = (1, 192, 0L, 2L, 1L)
+        expected = IP('192.0.2.1')
+        ip = IpMib.inetaddress_to_ip(ip_tuple)
+        self.assertEquals(ip, expected)
 
     def test_too_long_ipv6_address_should_raise_exception(self):
         ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
