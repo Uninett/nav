@@ -57,6 +57,18 @@ class IpMibTests(unittest.TestCase):
         ip = IpMib.inetaddress_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
 
+    def test_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
+        rowpointer = (1, 3, 6, 1, 2, 1, 4, 32, 1, 5, 439541760, 1, 4, 192, 168, 70, 0, 24)
+        expected = IP('192.168.70/24')
+        prefix = IpMib.prefix_index_to_ip(rowpointer)
+        self.assertEquals(prefix, expected)
+
+    def test_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
+        rowpointer = (1, 3, 6, 1, 2, 1, 4, 32, 1, 5, 11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
+        expected = IP('2001:700:0:500::/64')
+        prefix = IpMib.prefix_index_to_ip(rowpointer)
+        self.assertEquals(prefix, expected)
+
 class Ipv6MibTests(unittest.TestCase):
     def test_ipv6mib_index(self):
         ip_tuple = (32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
