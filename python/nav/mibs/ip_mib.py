@@ -17,6 +17,7 @@
 from IPy import IP
 
 from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.ipdevpoll.utils import binary_mac_to_hex
 import mibretriever
@@ -52,19 +53,22 @@ class IpMib(mibretriever.MibRetriever):
         ipv6 = 2
 
         addr_type = oid[0]
-        addr_len = oid[1]
-        addr = oid[2:]
+        addr = oid[1:]
 
         if addr_type == ipv4:
-            if addr_len != 4 or len(addr) != 4:
-                raise IndexToIpException("IPv4 address length is not 4: %r" % 
-                                         (oid,))
+            if len(addr) != 4:
+                addr_len, addr = addr[0], addr[1:]
+                if addr_len != 4 or len(addr) != 4:
+                    raise IndexToIpException(
+                        "IPv4 address length is not 4: %r" % (oid,))
             addr_str = ".".join(str(i) for i in addr)
 
         elif addr_type == ipv6:
-            if addr_len != 16 or len(addr) != 16:
-                raise IndexToIpException("IPv6 address length is not 16: %r" %
-                                         (oid,))
+            if len(addr) != 16:
+                addr_len, addr = addr[0], addr[1:]
+                if addr_len != 16 or len(addr) != 16:
+                    raise IndexToIpException(
+                        "IPv6 address length is not 16: %r" % (oid,))
             hex_groups = ["%02x%02x" % (addr[i], addr[i+1])
                           for i in range(0, len(addr), 2)]
             addr_str = ':'.join(hex_groups)
@@ -248,33 +252,23 @@ class IpMib(mibretriever.MibRetriever):
                            len(address_rows), ifindex_column)
         yield addresses
 
-    @defer.deferredGenerator
+    @inlineCallbacks
     def get_interface_addresses(self):
         """Retrieve the IP addresses and prefixes of interfaces.
 
         Will retrieve results from the new IP-version-agnostic table of IP-MIB,
-        if there are no results it will retrieve from the deprecated IPv4-only
-        table.
+        then from the deprecated IPv4-only table.
 
-        Return value:
-          A set of tuples: set([(ifindex, ip_address, prefix_address), ...])
-          ifindex will be an integer, ip_address and prefix_address will be
-          IPy.IP objects.
+        :returns: A set of tuples:
+                  set([(ifindex, ip_address, prefix_address), ...])
+                  ifindex will be an integer, ip_address and
+                  prefix_address will be IPy.IP objects.
 
         """
-        waiter = defer.waitForDeferred(self._get_interface_addresses())
-        yield waiter
-        addresses = waiter.getResult()
+        addrs_from_new_table = yield self._get_interface_addresses()
+        addrs_from_deprecated_table = yield self._get_interface_ipv4_addresses()
 
-        # Fall back to deprecated table if the IP-version agnostic
-        # table gave no results.
-        if len(addresses) == 0:
-            waiter = defer.waitForDeferred(
-                self._get_interface_ipv4_addresses())
-            yield waiter
-            addresses = waiter.getResult()
-
-        yield addresses
+        returnValue(addrs_from_new_table | addrs_from_deprecated_table)
 
 
 class IndexToIpException(Exception):

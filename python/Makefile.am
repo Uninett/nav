@@ -17,6 +17,8 @@ nobase_python_DATA = $(sort $(wildcard nav/*.py) \
 
 all: $(cheetah_TEMPLATES) $(pathmodule)
 
+all: $(cheetah_TEMPLATES) $(pathmodule)
+
 check: all
 	PYTHONPATH=. ./runtests.py $(top_srcdir)/tests/unittests
 	@echo

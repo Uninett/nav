@@ -38,7 +38,7 @@ class Service(models.Model):
     id = models.AutoField(db_column='serviceid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     active = models.BooleanField(default=True)
-    handler = VarcharField()
+    handler = VarcharField(verbose_name='service')
     version = VarcharField()
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
 

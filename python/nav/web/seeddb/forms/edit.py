@@ -155,6 +155,7 @@ class NetboxReadonlyForm(NetboxForm):
 
 class NetboxSerialForm(forms.Form):
     serial = forms.CharField(required=False)
+    function = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.netbox_id = kwargs.pop('netbox_id', None)
@@ -204,8 +205,10 @@ class NetboxSubcategoryForm(forms.Form):
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
+        checkers = [(service, service) for service in getCheckers()]
+        checkers.sort()
         self.fields['service'] = forms.ChoiceField(
-            choices=[(service, service) for service in getCheckers()])
+            choices=checkers)
 
 class ServiceForm(forms.Form):
     service = forms.IntegerField(
@@ -286,11 +289,9 @@ class SubcategoryForm(forms.ModelForm):
 class VlanForm(forms.ModelForm):
     class Meta:
         model = Vlan
+        fields = ('vlan', 'organization', 'usage')
 
-    net_type = forms.ModelChoiceField(
-        queryset=NetType.objects.filter(edit=True))
-
-class PrefixForm(VlanForm):
+class PrefixForm(forms.ModelForm):
     """The PrefixForm inherits the VlanForm and adds a single extra field, the
     net_address from the Prefix model.
 
@@ -300,6 +301,11 @@ class PrefixForm(VlanForm):
 
     """
     net_address = CIDRField(label="Prefix/mask (CIDR)")
+    net_type = forms.ModelChoiceField(
+        queryset=NetType.objects.filter(edit=True))
+
+    class Meta:
+        model = Vlan
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
