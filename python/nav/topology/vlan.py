@@ -91,12 +91,13 @@ class RoutedVlanTopologyAnalyzer(object):
         direction = 'up' if dest in visited_nodes else 'down'
         visited_nodes.add(dest)
 
-        # Decide first on the immediate merits of the edge and the
-        # destination netbox
-        vlan_is_active = self.is_vlan_active_on_destination(dest, ifc)
+        if direction == 'up' and self.vlan_is_active_on_reverse_edge(edge):
+            vlan_is_active = True
+        else:
+            vlan_is_active = self.is_vlan_active_on_destination(dest, ifc)
 
-        # Recursive depth first search on each outgoing edge
         if direction == 'down':
+            # Recursive depth first search on each outgoing edge
             for next_edge in self.out_edges_on_vlan(dest):
                 sub_active = self.check_vlan(next_edge, visited_nodes)
                 vlan_is_active = vlan_is_active or sub_active
@@ -105,6 +106,29 @@ class RoutedVlanTopologyAnalyzer(object):
             self.ifc_directions[ifc] = direction
 
         return vlan_is_active
+
+    def vlan_is_active_on_reverse_edge(self, edge):
+        ifc = edge[2]
+        reverse_edge = self.find_reverse_edge(edge)
+        if reverse_edge:
+            reverse_ifc = reverse_edge[2]
+            if self.interface_has_been_seen_before(reverse_ifc):
+                return self.ifc_has_vlan(ifc)
+        return False
+
+    def find_reverse_edge(self, edge):
+        source, dest, ifc = edge
+        dest_ifc = ifc.to_interface
+
+        if source in self.layer2[dest]:
+            if dest_ifc and dest_ifc in self.layer2[dest][source]:
+                return (dest, source, dest_ifc)
+            else:
+                # pick first available return edge when any exist
+                return (dest, source, self.layer2[dest][source].keys()[0])
+
+    def interface_has_been_seen_before(self, ifc):
+        return ifc in self.ifc_directions
 
     def is_vlan_active_on_destination(self, dest, ifc):
         if not ifc:
