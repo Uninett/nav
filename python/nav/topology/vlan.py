@@ -17,9 +17,10 @@
 
 import networkx as nx
 
-from nav.models.manage import GwPortPrefix, Interface
+from nav.models.manage import GwPortPrefix, Interface, SwPortVlan
 
 from django.db.models import Q
+from django.db import transaction
 from itertools import groupby
 from operator import attrgetter
 
@@ -165,6 +166,71 @@ class RoutedVlanTopologyAnalyzer(object):
         return (ifc.trunk and
                 ifc.swportallowedvlan and
                 self.vlan.vlan in ifc.swportallowedvlan)
+
+class VlanTopologyUpdater(object):
+    """Updater of the VLAN topology.
+
+    Usage example:
+
+      >>> a = VlanGraphAnalyzer()
+      >>> ifc_vlan_map = a.analyze_all()
+      >>> updater = VlanTopologyUpdater(ifc_vlan_map)
+      >>> updater()
+      >>>
+
+    """
+    def __init__(self, ifc_vlan_map):
+        """Initializes a vlan topology updater.
+
+        :param ifc_vlan_map: A dictionary mapping interfaces to Vlans and
+                             directions; just as returned by a call to
+                             VlanGraphAnalyzer.analyze_all().
+
+        """
+        self.ifc_vlan_map = ifc_vlan_map
+
+    @transaction.commit_on_success
+    def __call__(self):
+        """Updates the VLAN topology in the NAV database"""
+        for ifc, vlans in self.ifc_vlan_map.items():
+            for vlan, dirstr in vlans.items():
+                self._update_or_create_new_swportvlan_entry(ifc, vlan, dirstr)
+            self._remove_dead_swpvlan_records_for_ifc(ifc)
+
+        self._delete_swportvlans_from_untouched_ifcs()
+
+    @classmethod
+    def _update_or_create_new_swportvlan_entry(cls, ifc, vlan, dirstr):
+        direction = cls._direction_from_string(dirstr)
+        obj, created = SwPortVlan.objects.get_or_create(
+            interface=ifc, vlan=vlan,
+            defaults={'direction': direction})
+        if not created and obj.direction != direction:
+            obj.direction = direction
+            obj.save()
+        return object
+
+
+    DIRECTION_MAP = {
+        'up': SwPortVlan.DIRECTION_UP,
+        'down': SwPortVlan.DIRECTION_DOWN,
+    }
+
+    @classmethod
+    def _direction_from_string(cls, string):
+        return (cls.DIRECTION_MAP[string]
+                if string in cls.DIRECTION_MAP
+                else SwPortVlan.DIRECTION_UNDEFINED)
+
+    def _remove_dead_swpvlan_records_for_ifc(self, ifc):
+        records_for_ifc = SwPortVlan.objects.filter(interface=ifc)
+        active_vlans = self.ifc_vlan_map[ifc].keys()
+        dead = records_for_ifc.exclude(vlan__in=active_vlans)
+        dead.delete()
+
+    def _delete_swportvlans_from_untouched_ifcs(self):
+        touched = self.ifc_vlan_map.keys()
+        SwPortVlan.objects.exclude(interface__in=touched).delete()
 
 
 def build_layer2_graph():
