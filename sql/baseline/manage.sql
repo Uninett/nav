@@ -655,7 +655,6 @@ INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
 INSERT INTO subsystem (name) VALUES ('snmptrapd');
-INSERT INTO subsystem (name) VALUES ('macwatch');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
