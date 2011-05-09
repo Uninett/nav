@@ -126,8 +126,7 @@ class Interfaces(Plugin):
         
         """
         layer_map = {}        
-        for index, row in stackstatus.items():
-            (upper, lower) = index
+        for (upper, lower), row in stackstatus.items():
             if upper > 0 and lower > 0:
                 layer_map[upper] = lower
 

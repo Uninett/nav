@@ -73,7 +73,10 @@ class PointField(models.CharField):
             return value
         if isinstance(value, basestring):
             if validators.is_valid_point_string(value):
-                noparens = value[1:-1]
+                if value.startswith('(') and value.endswith(')'):
+                    noparens = value[1:-1]
+                else:
+                    noparens = value
                 latitude, longitude = noparens.split(',')
                 return (Decimal(latitude.strip()), Decimal(longitude.strip()))
         raise exceptions.ValidationError(

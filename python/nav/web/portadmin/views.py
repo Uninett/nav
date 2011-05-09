@@ -94,7 +94,11 @@ def populate_infodict(account, netbox, interfaces):
             errors.append("Values displayed are from database")
     except Exception, e:
         errors.append(str(e))
-        
+
+    if not netbox.read_write:
+        errors.append("Write community not set for this device, "
+                      "changes cannot be saved")
+
     ifaliasformat = get_ifaliasformat()
     aliastemplate = ''
     if ifaliasformat:

@@ -21,7 +21,7 @@ from django.db import transaction
 
 from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp, SnmpError
-from nav.models.manage import Device, NetboxType, NetboxCategory, Netbox
+from nav.models.manage import Device, NetboxType, NetboxCategory, Netbox, NetboxInfo
 from nav.web.message import new_message, Messages
 
 from nav.web.seeddb.forms import get_netbox_subcategory_form, NetboxReadonlyForm
@@ -75,7 +75,16 @@ def netbox_get_serial_and_type(form):
             serial = serials[0]
     return (serial, netbox_type)
 
-def netbox_serial_and_subcat_form(form, serial, netbox_type):
+def netbox_get_function(netbox_id):
+    func = None
+    if netbox_id:
+        try:
+            func = NetboxInfo.objects.get(netbox=netbox_id, variable='function').value
+        except NetboxInfo.DoesNotExist:
+            pass
+    return func
+
+def netbox_serial_and_subcat_form(form, serial, function, netbox_type):
     data = form.cleaned_data
     form_data = data
     form_data['room'] = data['room'].pk
@@ -90,8 +99,12 @@ def netbox_serial_and_subcat_form(form, serial, netbox_type):
         form_data['netbox_type'] = netbox_type.description
         form_data['type'] = netbox_type.pk
 
+    serial_form_initial = {
+        'serial': serial,
+        'function': function,
+    }
     serial_form = NetboxSerialForm(
-        initial={'serial': serial},
+        initial=serial_form_initial,
         netbox_id=data.get('id'))
     if serial:
         serial_form.is_valid()
@@ -115,6 +128,7 @@ def netbox_save(request, form, serial_form, subcat_form):
         'read_only': clean_data['read_only'],
         'read_write': clean_data['read_write'],
         'snmp_version': clean_data['snmp_version'],
+        'up_to_date': False,
     }
 
     serial = serial_form.cleaned_data['serial']
@@ -137,6 +151,16 @@ def netbox_save(request, form, serial_form, subcat_form):
         netbox = Netbox(**data)
 
     netbox.save()
+
+    function = serial_form.cleaned_data['function']
+    if function:
+        try:
+            func = NetboxInfo.objects.get(netbox=netbox, variable='function')
+        except NetboxInfo.DoesNotExist:
+            func = NetboxInfo(netbox=netbox, variable='function', value=function)
+        else:
+            func.value = function
+        func.save()
 
     if subcat_form:
         subcategories = subcat_form.cleaned_data['subcategories']

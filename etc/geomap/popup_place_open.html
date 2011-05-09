@@ -1,8 +1,10 @@
 <div class="place-popup">
-  {{ place.num_rooms }} room{{ place.num_rooms|pluralize }}
-  <ul>
+
+  <table class="vertitable" style="font-size: 80%">
+    <caption>{{ place.num_rooms }} room{{ place.num_rooms|pluralize }}</caption>
     {% for room in place.rooms %}
-    <li>Room: {{ room.id }} ({{ room.descr }})</li>
+    <tr><th>{{ room.id }}</th> <td>{{ room.descr|default:"" }}</td></tr>
     {% endfor %}
-  </ul>
+  </table>
+
 </div>

@@ -56,8 +56,6 @@
       <arg line="755 networkDiscovery.sh" />
     </exec>
 
-    <mkdir dir="${DESTDIR}${crondir}"/>
-    <copy file="networkDiscovery" todir="${DESTDIR}${crondir}" />
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>

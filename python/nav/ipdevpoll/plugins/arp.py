@@ -133,15 +133,14 @@ class Arp(Plugin):
         self._logger.debug("Loading open arp records from database")
         open_arp_records_queryset = manage.Arp.objects.filter(
             netbox__id=self.netbox.id,
-            end_time__gte=datetime.max,
-        )
+            end_time__gte=datetime.max).values('id', 'ip', 'mac')
         open_arp_records = yield threads.deferToThread(
             storage.shadowify_queryset_and_commit,
             open_arp_records_queryset)
         self._logger.debug("Loaded %d open records from arp",
                            len(open_arp_records))
 
-        open_mappings = dict(((IP(arp.ip), arp.mac), arp.id)
+        open_mappings = dict(((IP(arp['ip']), arp['mac']), arp['id'])
                              for arp in open_arp_records)
         defer.returnValue(open_mappings)
 

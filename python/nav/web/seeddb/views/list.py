@@ -34,7 +34,7 @@ def netbox_list(request):
     filter_form = NetboxFilterForm(request.GET)
     value_list = (
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
-        'read_write', 'type__name', 'device__serial')
+        'read_write', 'snmp_version', 'type__name', 'device__serial')
     extra = {
         'active': {'netbox': True},
         'title': TITLE_DEFAULT + ' - IP Devices',
@@ -65,8 +65,8 @@ def room_list(request):
     query = Room.objects.all()
     filter_form = RoomFilterForm(request.GET)
     value_list = (
-        'id', 'location', 'description', 'optional_1', 'optional_2',
-        'optional_3', 'optional_4')
+        'id', 'location', 'description', 'position', 'optional_1',
+        'optional_2', 'optional_3', 'optional_4')
     extra = {
         'active': {'room': True},
         'title': TITLE_DEFAULT + ' - Rooms',

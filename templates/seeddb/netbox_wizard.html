@@ -35,5 +35,18 @@
     </table>
 </form>
 
-{% endblock %}
+{% if object %}
+<form action="{% url seeddb-netbox %}" method="post">
+    <table class="listtable">
+        <tr>
+            <th>Delete this IP device:</th>
+            <td>
+                <input type="hidden" name="object" value="{{ object.pk }}" />
+                <input type="submit" name="delete" value="Delete" />
+            </td>
+        </tr>
+    </table>
+</form>
+{% endif %}
 
+{% endblock %}

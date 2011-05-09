@@ -19,13 +19,13 @@ This module contains classes used by the user-preferences part of the NAV GUI.
 """
 
 class Preferences:
-  def __init__(self):
-    self.navbar = []
-    self.qlink1 = []
-    self.qlink2 = []
-    self.hidelogo = 0
+    def __init__(self):
+        self.navbar = []
+        self.qlink1 = []
+        self.qlink2 = []
+        self.hidelogo = 0
 
 class Link:
-  def __init__(self, name, uri):
-    self.name = name
-    self.uri = uri
+    def __init__(self, name, uri):
+        self.name = name
+        self.uri = uri

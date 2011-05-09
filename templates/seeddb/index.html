@@ -129,7 +129,11 @@
                 <a href="{% url seeddb-vlan %}">Vlan</a>
             </td>
             <td class="info">
-              Edit details of VLANs discovered by NAV.
+                Update the organization, usage and vlan value of a vlan in
+                cases where this is not automatically discovered by NAV.
+                Organization and usage will only be automatically discovered
+                when the NAV router interface description guidelines are
+                followed.
             </td>
             <td></td>
             <td></td>
@@ -139,8 +143,13 @@
                 <a href="{% url seeddb-prefix %}">Prefix</a>
             </td>
             <td class="info">
-              Register reserved or scope IP prefixes of your network, to get a
-              complete overview of your subnet allocations.
+                All prefixes that are routed are automatically detected by NAV.
+                In addition you should manually register one or more scope
+                prefixes that defines your total IP address pool (both for IPv4
+                and IPv6).  To complete the picture of prefix allocation you
+                may also manually register reserved prefixes (when these
+                prefixes later are routed the prefix will automatically change
+                to the proper network type).
             </td>
             <td><a href="{% url seeddb-prefix-edit %}">Add</a></td>
             <td><a href="{% url seeddb-prefix-bulk %}">Bulk import</a></td>

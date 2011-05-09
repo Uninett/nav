@@ -1,0 +1,17 @@
+{% extends "seeddb/edit.html" %}
+
+{% block formfields %}
+<tr>
+    <th>Net type</th>
+    <td>{{ object.net_type }}</td>
+</tr>
+<tr>
+    <th>Net ident</th>
+    <td>{{ object.net_ident }}</td>
+</tr>
+<tr>
+    <th>Description</th>
+    <td>{{ object.description }}</td>
+</tr>
+{{ block.super }}
+{% endblock %}

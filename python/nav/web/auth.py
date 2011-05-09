@@ -24,7 +24,7 @@ import nav
 import logging
 
 from nav.django.utils import get_account, is_admin
-from nav.web import state, ldapAuth
+from nav.web import state, ldapauth
 from nav.models.profiles import Account, AccountNavbar, NavbarLink
 
 logger = logging.getLogger("nav.web.auth")
@@ -121,8 +121,8 @@ def authenticate(username, password):
     try:
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
-        if ldapAuth.available:
-            user = ldapAuth.authenticate(username, password)
+        if ldapauth.available:
+            user = ldapauth.authenticate(username, password)
             # If we authenticated, store the user in database.
             if user:
                 account = Account(
@@ -136,10 +136,10 @@ def authenticate(username, password):
                 auth = True
 
     if (account and account.ext_sync == 'ldap' and
-        ldapAuth.available and not auth):
+        ldapauth.available and not auth):
         try:
-            auth = ldapAuth.authenticate(username, password)
-        except ldapAuth.Error:
+            auth = ldapauth.authenticate(username, password)
+        except ldapauth.Error:
             # Fallback to stored password if ldap is unavailable
             auth = False
         else:

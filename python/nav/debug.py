@@ -16,6 +16,9 @@
 #
 """This module provides some useful debugging tools for NAV developers"""
 
+from __future__ import absolute_import
+import logging
+import pprint
 from traceback import print_stack
 from cStringIO import StringIO
 
@@ -54,3 +57,42 @@ def calltracer(function, logfunction=apache_log):
     else:
         return tracer
 
+
+def log_stacktrace(logger, stacktrace):
+    """Debug logs a stacktrace, including the global and local variables from
+    each stack frame.
+
+    :param logger: A logging.Logger instance.
+    :param stacktrace: An output from the inspect.trace() function.
+
+    """
+    if logger.getEffectiveLevel() > logging.DEBUG:
+        # don't waste time here if DEBUG logging isn't activated
+        return
+
+    logger.debug("Stack frame dump:")
+    for (frame, filename, line_no, func, source, _) in stacktrace:
+        logger.debug("  File %r, line %s, in %s", filename, line_no, func)
+        for line in source:
+            logger.debug("  %s", line.rstrip())
+
+        logger.debug("(Globals)")
+        for line in pprint.pformat(frame.f_globals).split('\n'):
+            logger.debug("  %s", line)
+
+        logger.debug("(Locals)")
+        for line in pprint.pformat(frame.f_locals).split('\n'):
+            logger.debug("  %s", line)
+
+def log_last_django_query(logger):
+    """Debug logs the latest SQL query made by Django.
+
+    Will only work if the DEBUG=True in the Django settings.
+
+    :param logger: The logging.Logger object to use for logging.
+    """
+    from nav.models import manage as _manage
+    from django.db import connection
+    if connection.queries:
+        logger.debug("Last Django SQL query was: %s",
+                     connection.queries[-1]['sql'])

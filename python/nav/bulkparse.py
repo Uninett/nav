@@ -196,7 +196,7 @@ class RoomBulkParser(BulkParser):
 
 class ServiceBulkParser(BulkParser):
     """Parses the service bulk format"""
-    format = ('host', 'handler')
+    format = ('host', 'service')
     restkey = 'arg'
     required = 2
 
