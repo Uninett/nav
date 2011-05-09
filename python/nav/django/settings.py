@@ -30,13 +30,6 @@ except IOError:
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
 
-# Set correct timezone
-TIME_ZONE = 'Europe/Oslo'
-
-# Configure session engine
-SESSION_ENGINE = "django.contrib.sessions.backends.file" # Should default to /tmp
-SESSION_COOKIE_NAME = "nav_django_session"
-
 # Admins
 ADMINS = (
     ('NAV Administrator', nav_config.get('ADMIN_MAIL', 'root@localhost')),
