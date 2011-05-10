@@ -31,6 +31,7 @@ from nav.web.threshold.views import index, netbox_search, prepare_bulkset
 from nav.web.threshold.views import threshold_edit, box_or_interface
 from nav.web.threshold.views import threshold_interface, threshold_delete
 from nav.web.threshold.views import threshold_all, save_thresholds
+from nav.web.threshold.views import threshold_netbox
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -44,4 +45,5 @@ urlpatterns = patterns('',
     url(r'^edit/(?P<thresholdid>\d+)/$', threshold_edit, name='threshold-edit'),
     url(r'^delete/(?P<thresholdid>\d+)/$', threshold_delete, name='threshold-delete'),
     url(r'^interface/(?P<interfaceid>\d+)/$', threshold_interface, name='threshold-interface'),
+    url(r'^netbox/(?P<netboxid>\d+)/$', threshold_netbox, name='threshold-netbox'),
 )

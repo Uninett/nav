@@ -49,14 +49,15 @@ from nav.web.threshold.forms import RrdDataSourceForm
 from nav.web.threshold.utils import is_legal_operator
 from nav.web.threshold.utils import is_legal_threshold
 from nav.web.threshold.utils import is_legal_interfaceid
+from nav.web.threshold.utils import is_legal_netboxid
 from nav.web.threshold.utils import is_legal_descr
 from nav.web.threshold.utils import is_legal_ids
 from nav.web.threshold.utils import is_illegal_parameters
 from nav.web.threshold.utils import is_percent_value
 
 
-NAVBAR = [('Home', '/'), ('Threshold monitor', None)]
-DEFAULT_VALUES = {'title': "Threshold monitor", 'navpath': NAVBAR}
+NAVBAR = [('Home', '/'), ('Threshold manager', None)]
+DEFAULT_VALUES = {'title': "Threshold manager", 'navpath': NAVBAR}
 
 logger = logging.getLogger("nav.web.threshold")
 
@@ -582,6 +583,37 @@ def threshold_interface(request, interfaceid=None):
         }
     info_dict.update(DEFAULT_VALUES)
     return render_to_response('threshold/manageinterface.html',
+        info_dict,
+        RequestContext(request))
+
+def threshold_netbox(request, netboxid=None):
+    account = get_account(request)
+    if not is_legal_netboxid(netboxid):
+        logger.error('Illegal netbox-id: login=%s; id=%s' %
+            (account.login, netboxid))
+        return HttpResponseRedirect('/threshold/')
+    netboxid = int(netboxid.strip())
+    netbox = None
+    try:
+        netbox = Netbox.objects.get(pk=netboxid)
+    except Exception, get_ex:
+        logger.error('Illegal netbox-id: login=%s; id=%d; exception=%s' %
+            (account.login, netboxid, get_ex))
+        return HttpResponseRedirect('/threshold/')
+    thresholds = RrdDataSource.objects.filter(
+                    rrd_file__key__isnull=True).filter(
+                        rrd_file__netbox=netbox)
+    oid_key_descriptions = get_oid_descriptions()
+    for threshold in thresholds:
+        threshold.extra_descr = oid_key_descriptions.get(
+                                    threshold.description, '')
+    info_dict = {
+        'thresholds': thresholds,
+        'sysname': netbox.sysname,
+        'short_sysname': netbox.get_short_sysname(),
+        }
+    info_dict.update(DEFAULT_VALUES)
+    return render_to_response('threshold/managenetbox.html',
         info_dict,
         RequestContext(request))
 
