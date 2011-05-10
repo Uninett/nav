@@ -17,15 +17,17 @@
 
 import networkx as nx
 
-from nav.models.manage import GwPortPrefix, Interface
+from nav.models.manage import GwPortPrefix, Interface, SwPortVlan
 
 from django.db.models import Q
+from django.db import transaction
 from itertools import groupby
 from operator import attrgetter
 
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
 
 class VlanGraphAnalyzer(object):
+    """Analyzes VLAN topologies as a subset of the layer 2 topology"""
     def __init__(self):
         self.vlans = self._build_vlan_router_dict()
         self.layer2 = build_layer2_graph()
@@ -43,6 +45,7 @@ class VlanGraphAnalyzer(object):
         return self.ifc_vlan_map
 
     def analyze_vlan(self, vlan):
+        """Analyzes a single vlan"""
         addr = self.vlans[vlan]
         analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2)
         topology = analyzer.analyze()
@@ -56,13 +59,17 @@ class VlanGraphAnalyzer(object):
 
 
 class RoutedVlanTopologyAnalyzer(object):
-    """Analyzer of a single routed VLAN topology.
+    """Analyzer of a single routed VLAN topology"""
 
-    Takes a VLAN's root router address (a GwPortPrefix object) and a layer 2
-    topology graph as input.
-
-    """
     def __init__(self, address, layer2_graph):
+        """Initializes an analyzer for a given routed VLAN.
+
+        :param address: A GwPortPrefix representing the router address of this
+                        VLAN.
+        :param layer2_graph: A layer 2 graph, as produced by the
+                             build_layer2_graph() function.
+
+        """
         self.address = address
         self.layer2 = layer2_graph
 
@@ -73,6 +80,7 @@ class RoutedVlanTopologyAnalyzer(object):
         self.ifc_directions = {}
 
     def analyze(self):
+        """Runs the analysis on the associdated VLAN"""
         if self.router in self.layer2:
             if not self.router_port.to_netbox:
                 # likely a GSW, descend on its switch ports by faking an edge
@@ -80,25 +88,26 @@ class RoutedVlanTopologyAnalyzer(object):
             else:
                 start_edge = (self.router, self.router_port.to_netbox,
                               self.router_port)
-            self.check_vlan(start_edge)
+            self._examine_edge(start_edge)
 
         return self.ifc_directions
 
-    def check_vlan(self, edge, visited_nodes=None):
-        source, dest, ifc = edge
+    def _examine_edge(self, edge, visited_nodes=None):
+        _source, dest, ifc = edge
 
         visited_nodes = visited_nodes or set()
         direction = 'up' if dest in visited_nodes else 'down'
         visited_nodes.add(dest)
 
-        # Decide first on the immediate merits of the edge and the
-        # destination netbox
-        vlan_is_active = self.is_vlan_active_on_destination(dest, ifc)
+        if direction == 'up' and self._vlan_is_active_on_reverse_edge(edge):
+            vlan_is_active = True
+        else:
+            vlan_is_active = self._is_vlan_active_on_destination(dest, ifc)
 
-        # Recursive depth first search on each outgoing edge
         if direction == 'down':
-            for next_edge in self.out_edges_on_vlan(dest):
-                sub_active = self.check_vlan(next_edge, visited_nodes)
+            # Recursive depth first search on each outgoing edge
+            for next_edge in self._out_edges_on_vlan(dest):
+                sub_active = self._examine_edge(next_edge, visited_nodes)
                 vlan_is_active = vlan_is_active or sub_active
 
         if vlan_is_active and ifc:
@@ -106,12 +115,35 @@ class RoutedVlanTopologyAnalyzer(object):
 
         return vlan_is_active
 
-    def is_vlan_active_on_destination(self, dest, ifc):
+    def _vlan_is_active_on_reverse_edge(self, edge):
+        ifc = edge[2]
+        reverse_edge = self._find_reverse_edge(edge)
+        if reverse_edge:
+            reverse_ifc = reverse_edge[2]
+            if self._interface_has_been_seen_before(reverse_ifc):
+                return self._ifc_has_vlan(ifc)
+        return False
+
+    def _find_reverse_edge(self, edge):
+        source, dest, ifc = edge
+        dest_ifc = ifc.to_interface
+
+        if source in self.layer2[dest]:
+            if dest_ifc and dest_ifc in self.layer2[dest][source]:
+                return (dest, source, dest_ifc)
+            else:
+                # pick first available return edge when any exist
+                return (dest, source, self.layer2[dest][source].keys()[0])
+
+    def _interface_has_been_seen_before(self, ifc):
+        return ifc in self.ifc_directions
+
+    def _is_vlan_active_on_destination(self, dest, ifc):
         if not ifc:
             return False
 
         if not ifc.trunk:
-            return self.ifc_has_vlan(ifc)
+            return self._ifc_has_vlan(ifc)
         else:
             non_trunks_on_vlan = dest.interface_set.filter(
                 vlan=self.vlan.vlan).filter(NO_TRUNK)
@@ -121,19 +153,84 @@ class RoutedVlanTopologyAnalyzer(object):
 
             return non_trunks_on_vlan.count() > 0
 
-    def out_edges_on_vlan(self, node):
+    def _out_edges_on_vlan(self, node):
         return (
             (u, v, w)
             for u, v, w in self.layer2.out_edges_iter(node, keys=True)
-            if self.ifc_has_vlan(w))
+            if self._ifc_has_vlan(w))
 
-    def ifc_has_vlan(self, ifc):
-        return ifc.vlan == self.vlan.vlan or self.vlan_allowed_on_trunk(ifc)
+    def _ifc_has_vlan(self, ifc):
+        return ifc.vlan == self.vlan.vlan or self._vlan_allowed_on_trunk(ifc)
 
-    def vlan_allowed_on_trunk(self, ifc):
+    def _vlan_allowed_on_trunk(self, ifc):
         return (ifc.trunk and
                 ifc.swportallowedvlan and
                 self.vlan.vlan in ifc.swportallowedvlan)
+
+class VlanTopologyUpdater(object):
+    """Updater of the VLAN topology.
+
+    Usage example:
+
+      >>> a = VlanGraphAnalyzer()
+      >>> ifc_vlan_map = a.analyze_all()
+      >>> updater = VlanTopologyUpdater(ifc_vlan_map)
+      >>> updater()
+      >>>
+
+    """
+    def __init__(self, ifc_vlan_map):
+        """Initializes a vlan topology updater.
+
+        :param ifc_vlan_map: A dictionary mapping interfaces to Vlans and
+                             directions; just as returned by a call to
+                             VlanGraphAnalyzer.analyze_all().
+
+        """
+        self.ifc_vlan_map = ifc_vlan_map
+
+    @transaction.commit_on_success
+    def __call__(self):
+        """Updates the VLAN topology in the NAV database"""
+        for ifc, vlans in self.ifc_vlan_map.items():
+            for vlan, dirstr in vlans.items():
+                self._update_or_create_new_swportvlan_entry(ifc, vlan, dirstr)
+            self._remove_dead_swpvlan_records_for_ifc(ifc)
+
+        self._delete_swportvlans_from_untouched_ifcs()
+
+    @classmethod
+    def _update_or_create_new_swportvlan_entry(cls, ifc, vlan, dirstr):
+        direction = cls._direction_from_string(dirstr)
+        obj, created = SwPortVlan.objects.get_or_create(
+            interface=ifc, vlan=vlan,
+            defaults={'direction': direction})
+        if not created and obj.direction != direction:
+            obj.direction = direction
+            obj.save()
+        return object
+
+
+    DIRECTION_MAP = {
+        'up': SwPortVlan.DIRECTION_UP,
+        'down': SwPortVlan.DIRECTION_DOWN,
+    }
+
+    @classmethod
+    def _direction_from_string(cls, string):
+        return (cls.DIRECTION_MAP[string]
+                if string in cls.DIRECTION_MAP
+                else SwPortVlan.DIRECTION_UNDEFINED)
+
+    def _remove_dead_swpvlan_records_for_ifc(self, ifc):
+        records_for_ifc = SwPortVlan.objects.filter(interface=ifc)
+        active_vlans = self.ifc_vlan_map[ifc].keys()
+        dead = records_for_ifc.exclude(vlan__in=active_vlans)
+        dead.delete()
+
+    def _delete_swportvlans_from_untouched_ifcs(self):
+        touched = self.ifc_vlan_map.keys()
+        SwPortVlan.objects.exclude(interface__in=touched).delete()
 
 
 def build_layer2_graph():
@@ -180,7 +277,7 @@ def filter_active_router_addresses(gwportprefixes):
     # wonderfully complex SQL needed for this, so we do it by hand.
     raddrs = gwportprefixes.order_by('prefix__id', '-hsrp', 'gw_ip')
     grouper = groupby(raddrs, attrgetter('prefix_id'))
-    return [group.next() for key, group in grouper]
+    return [group.next() for _key, group in grouper]
 
 def get_routed_vlan_addresses():
     """Gets router port addresses for all routed VLANs.
