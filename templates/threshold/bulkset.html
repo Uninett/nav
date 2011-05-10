@@ -1,0 +1,113 @@
+
+<div>
+<a href="javascript:void(0)" onclick="threshold.backToSearch();">&laquo; Back to search</a>
+</div>
+
+{% if descr %}
+    <div>
+
+        <table class="vertitable">
+        <caption>Update</caption>
+        <thead>
+        </thead>
+        <tbody>
+            <tr>
+                <th>{{ descr }}</th>
+                <td><select id="bulkOperator" name="operator">
+                        <option value=">">Greater than</option>
+                        <option value="<">Less than</option>
+                    </select></td>
+                <td><input id="bulkThreshold" type="text" size="10"name="bulkThreshold" value="" /></td>
+                <td><input id="bulkupdateSubmit" type="button"
+                        onclick="threshold.bulkUpdateThresholds(this);"
+                        value="Update selected" /></td>
+            <tr>
+        </tbody>
+        <table>
+
+        <div>
+        <input type="button" id="saveCheckedThresholds1" 
+            onclick="threshold.saveCheckedThresholds();"
+            value="Save checked" />
+        <input type="button" id="saveAllThresholds1"
+            onclick="threshold.saveAllThresholds();"
+            value="Save all" />
+        </div>
+
+       <table class="vertitable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="toggleIncludes"
+                        name="toggleIncludes" value="check"
+                        onclick="threshold.toggleIncludes();" /></th>
+                <th>Sysname</th>
+                {% if interfaces %}
+                <th>IfName</th>
+                <th>IfAlias</th>
+                {% endif %}
+                <th>Description</th>
+                <th>Operator</th>
+                <th>Threshold</th>
+                <th>Max</th>
+                <th>Thresholdstate</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ds in datasources %}
+            <tr>
+                <td><input type="checkbox" name="include" value="{{ ds.id }}" /></td>
+                {% if interfaces %}
+                <td><a href="/ipdevinfo/{{ ds.rrd_file.interface.netbox.sysname }}/">
+                    {{ ds.rrd_file.interface.netbox.get_short_sysname }}</a></td>
+                {% else %}
+                <td><a href="/ipdevinfo/{{ ds.rrd_file.netbox.sysname }}/">
+                    {{ ds.rrd_file.netbox.get_short_sysname }}</a></td>
+                {% endif %}
+                {% if interfaces %}
+                <td><a href="/portadmin/interfaceid={{ ds.rrd_file.interface.id}}">
+                    {{ ds.rrd_file.interface.ifname }}</a></td>
+                <td><a href="/portadmin/interfaceid={{ ds.rrd_file.interface.id}}">
+                    {{ ds.rrd_file.interface.ifalias }}</a></td>
+                {% endif %}
+                <td>{{ ds.description }}</td>
+                <td><select id="operator" name="operator">
+                    {% if ds.delimiter %}
+                        {% ifequal ds.delimiter ">" %}
+                            <option value=">" selected="selected">Greater than</option>
+                            <option value="<">Less than</option>
+                        {% else %}
+                            <option value=">">Greater than</option>
+                            <option value="<" selected="selected">Less than</option>
+                        {% endifequal %}
+                    {% else %}
+                        <option value=">">Greater than</option>
+                        <option value="<">Less than</option>
+                    {% endif %}
+                    </select></td>
+                <td><input type="text" id="threshold" size="8"
+                        onchange="threshold.setChangedThreshold(this);"
+                        value="{% if ds.threshold %}{{ ds.threshold }}{% endif %}" /></td>
+                <td>{% if ds.max %}{{ ds.max }}{% endif %}</td>
+                <td>{% if ds.threshold_state %}{{ ds.threshold_state }}{% endif %}</td>
+                <td><input id="updateThreshold" type="button" 
+                        onclick="threshold.saveSingleThreshold(this);"
+                        value="Save" /></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+
+        <div>
+        <input type="button" id="saveCheckedThresholds2" 
+            onclick="threshold.saveCheckedThresholds();"
+            value="Save checked" />
+        <input type="button" id="saveAllThresholds2"
+            onclick="threshold.saveAllThresholds();"
+            value="Save all" />
+        </div>
+
+    </div>
+{% else %}
+    <h3>This threshold cannot be set for the chosen interfaces or netboxes</h3>
+{% endif %}
