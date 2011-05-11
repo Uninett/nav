@@ -26,6 +26,10 @@ class SeeddbInfo(object):
     _title = ''
     _navpath = []
 
+    hide_move = False
+    hide_delete = False
+    delete_url = None
+
     @property
     def title(self):
         sub_title = ''
@@ -45,4 +49,7 @@ class SeeddbInfo(object):
             'caption': self.caption,
             'navpath': self.navpath,
             'tab_template': self.tab_template,
+            'hide_move': self.hide_move,
+            'hide_delete': self.hide_delete,
+            'delete_url': self.delete_url,
         }
