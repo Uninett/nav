@@ -92,9 +92,9 @@ def make_event(presobject, var, val, subid, fileid, state):
         print >> sys.stderr, get_ex
         return
   
-    netboxid = rrd_file.nextbox.id
-    sysname = rrd_file.nextbox.sysname
-    ip = rrd_file.nextbox.ip
+    netboxid = rrd_file.netbox.id
+    sysname = rrd_file.netbox.sysname
+    ip = rrd_file.netbox.ip
 
     if netboxid:
         log_it(2, "thresholdalert regarding %s (%s)" %(sysname, ip))
