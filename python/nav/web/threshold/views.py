@@ -486,7 +486,11 @@ def save_thresholds(request):
                 save_errors.append((format_save_error(rrd_data_source) +
                                             '; ' + err_msg))
                 continue
-            rrd_data_source.threshold = threshold
+            if not threshold:
+                # Threshold can be an empty string,- in that case insert None
+                rrd_data_source.threshold = None
+            else:
+                rrd_data_source.threshold = threshold
             rrd_data_source.delimiter = operator
             try :
                 rrd_data_source.save()

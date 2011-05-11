@@ -129,8 +129,11 @@ threshold.stripPerCentSymbol = function(str){
     Always remember to keep error-chekcing here and on server in sync!
 */
 threshold.isLegalThreshold = function(thr){
+    if( thr.length == 0){
+        return true;
+    }
     var intValue = parseInt(threshold.stripPerCentSymbol(thr));
-    return (intValue > -1);
+    return (! isNaN(intValue));
     
 };
 

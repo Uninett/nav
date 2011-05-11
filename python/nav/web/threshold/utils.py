@@ -83,14 +83,12 @@ def is_legal_threshold(value, allow_empty=True):
     is_per_cent = is_percent_value(value)
     if is_per_cent:
         value = re.sub('%', '', value)
-    if not value.isdigit():
+    try:
+        value = int(value)
+    except ValueError, val_err:
         return False
-    value = int(value)
     if is_per_cent:
         if not is_legal_percent_value(value):
-            return False
-    else:
-        if value < 0:
             return False
     return True
 
