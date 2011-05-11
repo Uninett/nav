@@ -15,10 +15,16 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django.core.urlresolvers import reverse
+
+from nav.web.seeddb.constants import *
+
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
-
-from django.core.urlresolvers import reverse
+SEEDDB_EDITABLE_MODELS = (
+    Netbox, NetboxType, Room, Location, Organization, Device, Usage, Vendor,
+    Subcategory, Vlan, Prefix, Service
+)
 
 def reverse_lazy(*args, **kwargs):
     # Lazy reverse will become part of the Django framework in future releases.
