@@ -18,6 +18,22 @@
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 
+from django.core.urlresolvers import reverse
+
+def reverse_lazy(*args, **kwargs):
+    # Lazy reverse will become part of the Django framework in future releases.
+    class Proxy(object):
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def __str__(self):
+            if not hasattr(self, 'reverse_url'):
+                self.reverse_url = reverse(*self.args, **self.kwargs)
+            return self.reverse_url
+
+    return Proxy(*args, **kwargs)
+
 class SeeddbInfo(object):
     active = {'index': True}
     caption = 'Seed Database'
