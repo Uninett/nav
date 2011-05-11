@@ -30,12 +30,12 @@
         <tr>
                 {% if threshold.rrd_file.interface %}
                     {% if threshold.rrd_file.interface.ifname %}
-                    <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifname }}</a></td>
+                    <td><a href="/ipdevinfo/{{threshold.rrd_file.interface.netbox.sysname}}/interface={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifname }}</a></td>
                     {% else %}
                     <td>&nbsp;</td>
                     {% endif %}
                     {% if threshold.rrd_file.interface.ifalias %}
-                    <td><a href="/portadmin/interfaceid={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifalias }}</a></td>
+                    <td><a href="/ipdevinfo/{{threshold.rrd_file.interface.netbox.sysname}}/interface={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifalias }}</a></td>
                     {% else %}
                     <td>&nbsp;</td>
                     {% endif %}
@@ -62,7 +62,7 @@
                 <td><input class="thresholdvalue" type="text" size="8"
                         value="{{ threshold.threshold }}"></td>
                 <td class="maxvalue">{% if threshold.max %} {{ threshold.max }}{% endif %}</td>
-                <td>{% if threshold.state %} {{ threshold.state }} {% endif %}</td>
+                <td>{% if threshold.threshold_state %} {{ threshold.threshold_state }} {% endif %}</td>
                 <td data_dsid="{{threshold.id}}"><input class="button" type="button" value="Update" /></td>
         <tr>
         {% endfor %}
