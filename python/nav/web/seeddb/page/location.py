@@ -17,13 +17,17 @@
 
 from django import forms
 
-from nav.models.manage import Location, Room
+from nav.models.manage import Location
 from nav.bulkparse import LocationBulkParser
 from nav.bulkimport import LocationImporter
 
-from nav.web.seeddb import SeeddbInfo
+from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list
+from nav.web.seeddb.utils.edit import render_edit
+from nav.web.seeddb.utils.delete import render_delete
+from nav.web.seeddb.utils.bulk import render_bulkimport
 
 class LocationForm(forms.ModelForm):
     class Meta:
@@ -35,11 +39,13 @@ class LocationForm(forms.ModelForm):
             del self.fields['id']
 
 class LocationInfo(SeeddbInfo):
-    active = {'location': True},
+    active = {'location': True}
     caption = 'Locations'
     tab_template = 'seeddb/tabs_location.html'
     _title = 'Locations'
-    _navpath = [('Locations', None)]
+    _navpath = [('Locations', reverse_lazy('seeddb-location'))]
+    hide_move = True
+    delete_url = reverse_lazy('seeddb-location')
 
 def location(request):
     return view_switcher(request,
@@ -55,33 +61,20 @@ def location_list(request):
         extra_context=info.template_context)
 
 def location_delete(request):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Location', reverse('seeddb-location'))],
-        'tab_template': 'seeddb/tabs_location.html',
-        'active': {'location': True},
-    }
+    info = LocationInfo()
     return render_delete(request, Location, 'seeddb-location',
-        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context)
 
 def location_edit(request, location_id=None):
-    extra = {
-        'active': {'location': True},
-        'navpath': NAVPATH_DEFAULT + [('Location', reverse('seeddb-location'))],
-        'tab_template': 'seeddb/tabs_location.html',
-        'delete_url': reverse('seeddb-location'),
-    }
+    info = LocationInfo()
     return render_edit(request, Location, LocationForm, location_id,
         'seeddb-location-edit',
-        extra_context=extra)
+        extra_context=info.template_context)
 
 def location_bulk(request):
-    extra = {
-        'active': {'location': True},
-        'title': TITLE_DEFAULT + ' - Location',
-        'navpath': NAVPATH_DEFAULT + [('Location', None)],
-        'tab_template': 'seeddb/tabs_location.html',
-    }
+    info = LocationInfo()
     return render_bulkimport(
         request, LocationBulkParser, LocationImporter,
         'seeddb-location',
-        extra_context=extra)
+        extra_context=info.template_context)
