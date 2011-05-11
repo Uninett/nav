@@ -21,9 +21,14 @@ from nav.models.manage import Location, Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
 
-from nav.web.seeddb import SeeddbInfo
+from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.list import render_list
+from nav.web.seeddb.utils.edit import render_edit
+from nav.web.seeddb.utils.delete import render_delete
+from nav.web.seeddb.utils.move import move
+from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.forms.move import MoveForm
 
 class RoomFilterForm(forms.Form):
@@ -41,11 +46,12 @@ class RoomMoveForm(MoveForm):
         Location.objects.order_by('id').all())
 
 class RoomInfo(SeeddbInfo):
-    active = {'room': True},
+    active = {'room': True}
     caption = 'Rooms'
     tab_template = 'seeddb/tabs_room.html'
     _title = 'Rooms'
-    _navpath = [('Rooms', None)]
+    _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
+    delete_url = reverse_lazy('seeddb-room')
 
 def room(request):
     return view_switcher(request,
@@ -65,42 +71,25 @@ def room_list(request):
         extra_context=info.template_context)
 
 def room_move(request):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
-        'tab_template': 'seeddb/tabs_room.html',
-        'active': {'room': True},
-    }
+    info = RoomInfo()
     return move(request, Room, RoomMoveForm, 'seeddb-room',
-        extra_context=extra)
+        extra_context=info.template_context)
 
 def room_delete(request):
-    extra = {
-        'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
-        'tab_template': 'seeddb/tabs_room.html',
-        'active': {'room': True},
-    }
+    info = RoomInfo()
     return render_delete(request, Room, 'seeddb-room',
-        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=extra)
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context)
 
 def room_edit(request, room_id=None):
-    extra = {
-        'active': {'room': True},
-        'navpath': NAVPATH_DEFAULT + [('Room', reverse('seeddb-room'))],
-        'tab_template': 'seeddb/tabs_room.html',
-        'delete_url': reverse('seeddb-room'),
-    }
+    info = RoomInfo()
     return render_edit(request, Room, RoomForm, room_id,
         'seeddb-room-edit',
-        extra_context=extra)
+        extra_context=info.template_context)
 
 def room_bulk(request):
-    extra = {
-        'active': {'room': True},
-        'title': TITLE_DEFAULT + ' - Room',
-        'navpath': NAVPATH_DEFAULT + [('Room', None)],
-        'tab_template': 'seeddb/tabs_room.html',
-    }
+    info = RoomInfo()
     return render_bulkimport(
         request, RoomBulkParser, RoomImporter,
         'seeddb-room',
-        extra_context=extra)
+        extra_context=info.template_context)
