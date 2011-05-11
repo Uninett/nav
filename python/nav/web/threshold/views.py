@@ -525,13 +525,19 @@ def get_oid_descriptions():
         oid_key_decriptions[snmp_oid.oid_key] = snmp_oid.description
     return oid_key_decriptions
     
-def threshold_all(request):
+def threshold_all(request, exceeded=None):
     """ Just list all thresholds that have a value."""
     before = time.clock()
     oid_key_descriptions = get_oid_descriptions()
     # pick all sources that have a threshold
-    rrd_datasource_list = RrdDataSource.objects.filter(
-                            threshold__isnull=False).order_by('rrd_file')
+    query = RrdDataSource.objects.filter(
+                threshold__isnull=False).exclude(
+                    threshold='').order_by('rrd_file')
+    if exceeded:
+        # Only those where the threshold are exceeded
+        query = query.filter(threshold_state__iexact='active')
+    #" Hit database with query
+    rrd_datasource_list = query
     # attach every datasource to a netbox
     rrd_data_sources = {}
     for rrd_datasource in rrd_datasource_list:
