@@ -9,8 +9,32 @@
 {% block base_content %}
 <h3>Threshold manager</h3>
 
+{# Only when tabbed page #}
+{% if active %}
+<div class="tabs">
+    <ul>
+        <li class="{{ active.bulk|yesno:"tabactive," }}">
+            <a href="{% url threshold-index %}">Bulk configure</a>
+        </li>
+        <li class="{{ active.all|yesno:"tabactive," }}">
+            <a href="{% url threshold-all %}">Configured thresholds</a>
+        </li>
+        <li class="{{ active.exceeded|yesno:"tabactive," }}">
+            <a href="{% url threshold-exceeded %}">Exceeded thresholds</a>
+        </li>
+    </ul>
+</div>
+
+<div class="tabcontent">
+{% endif %}
+
 {% block content %}
 
 {% endblock %}
+
+{# Only when tabbed page #}
+{% if active %}
+</div>
+{% endif %}
 
 {% endblock %}

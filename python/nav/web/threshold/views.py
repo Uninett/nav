@@ -18,7 +18,6 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Fredrik Skolmli <fredrik.skolmli@uninett.no>
 #
 
 __copyright__ = "Copyright 2011 UNINETT AS"
@@ -57,7 +56,11 @@ from nav.web.threshold.utils import is_percent_value
 
 
 NAVBAR = [('Home', '/'), ('Threshold manager', None)]
-DEFAULT_VALUES = {'title': "Threshold manager", 'navpath': NAVBAR}
+DEFAULT_VALUES = {'title': 'THreshold manager', 'navpath': NAVBAR}
+
+BULK_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'bulk': True}}
+ALL_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'all': True}}
+EXCEEDED_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'exceeded': True}}
 
 logger = logging.getLogger("nav.web.threshold")
 
@@ -119,7 +122,7 @@ def index(request):
                  'chosenboxes': all_netboxes,
                  'choseninterfaces' : all_interfaces,
                 }
-    info_dict.update(DEFAULT_VALUES)
+    info_dict.update(BULK_DEFAULTS)
 
     logger.error('index: timer = %.3f' % (time.clock() - before))
     logger.error('index: len(netboxes) = %d' % len(all_netboxes))
@@ -560,7 +563,10 @@ def threshold_all(request, exceeded=None):
     logger.error("len = %d" % len(netboxes))
     logger.error("time = %.3f" % (time.clock()-before))
     info_dict = {'netboxes' : netboxes }
-    info_dict.update(DEFAULT_VALUES)
+    if exceeded:
+        info_dict.update(EXCEEDED_DEFAULTS)
+    else:
+        info_dict.update(ALL_DEFAULTS)
     return render_to_response('threshold/listall.html',
         info_dict,
         RequestContext(request))
