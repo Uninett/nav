@@ -165,7 +165,7 @@ class IpMib(mibretriever.MibRetriever):
         yield mappings
 
 
-    @defer.deferredGenerator
+    @inlineCallbacks
     def get_ifindex_ip_mac_mappings(self):
         """Retrieve the layer 3->layer 2 address mappings of this device.
 
@@ -180,19 +180,10 @@ class IpMib(mibretriever.MibRetriever):
           of a MAC address.
 
         """
-        waiter = defer.waitForDeferred(self._get_ifindex_ip_mac_mappings())
-        yield waiter
-        mappings = waiter.getResult()
+        mappings_new = yield self._get_ifindex_ip_mac_mappings()
+        mappings_deprecated = yield self._get_ifindex_ipv4_mac_mappings()
 
-        # Fall back to deprecated table if the IP-version agnostic
-        # table gave no results.
-        if len(mappings) == 0:
-            waiter = defer.waitForDeferred(
-                self._get_ifindex_ipv4_mac_mappings())
-            yield waiter
-            mappings = waiter.getResult()
-
-        yield mappings
+        returnValue(mappings_new | mappings_deprecated)
 
 
     @defer.deferredGenerator
