@@ -22,7 +22,7 @@ and dnsname.
 
 from IPy import IP
 
-from twisted.internet.defer import TimeoutError
+from twisted.internet import defer, error
 from twisted.names import client, dns
 from twisted.names.error import DomainError
 
@@ -54,8 +54,9 @@ class DnsName(Plugin):
 
     def _handle_failure(self, failure, ip=None):
         """Logs DNS failures, but does not stop the job from running."""
-        failtype = failure.trap(TimeoutError, DomainError)
-        if failtype == TimeoutError:
+        failtype = failure.trap(error.TimeoutError, defer.TimeoutError,
+                                DomainError)
+        if failtype in (error.TimeoutError, defer.TimeoutError):
             self._logger.warning("DNS lookup timed out")
         elif failtype == DomainError:
             self._logger.warning("DNS lookup error for %s: %s",

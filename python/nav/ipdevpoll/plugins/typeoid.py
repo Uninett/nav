@@ -24,7 +24,7 @@ netbox.
 from twisted.internet import threads
 
 from nav.ipdevpoll import Plugin, storage, shadows, signals
-from pysnmp.asn1.oid import OID
+from nav.oids import OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
 
@@ -50,7 +50,7 @@ class TypeOid(Plugin):
             raise InvalidResponseError("No response on sysObjectID query.",
                                        result, self.agent)
         # Just pick the first result, there should never really be multiple
-        self.sysobjectid = str( OID(result) )
+        self.sysobjectid = str(OID(result))
         # ObjectIDs in the database are stored without the preceding dot.
         if self.sysobjectid[0] == '.':
             self.sysobjectid = self.sysobjectid[1:]

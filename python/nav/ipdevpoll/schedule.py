@@ -22,8 +22,9 @@ import time
 from operator import itemgetter
 from random import randint
 
+from twisted.python.failure import Failure
 from twisted.internet import task, threads, reactor
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, maybeDeferred
 
 from nav import ipdevpoll
 import shadows
@@ -106,13 +107,20 @@ class NetboxJobScheduler(object):
             return
 
         # We're ok to start a polling run.
-        job_handler = JobHandler(self.job.name, self.netbox,
-                                 plugins=self.job.plugins)
+        try:
+            job_handler = JobHandler(self.job.name, self.netbox,
+                                     plugins=self.job.plugins)
+        except Exception:
+            self._log_unhandled_error(Failure())
+            self.reschedule(60)
+            self._log_time_to_next_run()
+            return
+
         self.job_handler = job_handler
         self.count_job()
         self._last_job_started_at = time.time()
 
-        deferred = job_handler.run()
+        deferred = maybeDeferred(job_handler.run)
         deferred.addCallbacks(self._reschedule_on_success,
                               self._reschedule_on_failure)
         deferred.addErrback(self._log_unhandled_error)

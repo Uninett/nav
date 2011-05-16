@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the ENTITY-MIB, as well as helper classes."""
+from nav.oids import OID
 import mibretriever
 
 class EntityMib(mibretriever.MibRetriever):
@@ -34,11 +35,11 @@ class EntityMib(mibretriever.MibRetriever):
 
         """
         # Define this locally to avoid external overhead
-        bridge_mib_oid = [1, 3, 6, 1, 2, 1, 17]
+        bridge_mib_oid = OID('.1.3.6.1.2.1.17')
         def bridge_mib_filter(result):
             new_result = [(r['entLogicalDescr'], r['entLogicalCommunity'])
                           for r in result.values()
-                          if r['entLogicalType'] == bridge_mib_oid]
+                          if OID(r['entLogicalType']) == bridge_mib_oid]
             return new_result
 
         df = self.retrieve_columns([

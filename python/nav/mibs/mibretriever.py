@@ -32,11 +32,11 @@ this to allow asynchronous data retrieval.
 
 import logging
 import operator
-from pysnmp.asn1.oid import OID
 from twisted.internet import defer, reactor
 
 from nav.ipdevpoll import get_context_logger, get_class_logger
 from nav.errors import GeneralException
+from nav.oids import OID
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +139,12 @@ class MibTableDescriptor(object):
         self.reverse_column_index = \
             dict((c.oid[-1], c.name) for c in self.columns.values())
 
+    def __repr__(self):
+        return "%s(%r, %r, %r)" % (self.__class__.__name__,
+                                   self.table,
+                                   self.row,
+                                   self.columns)
+
     @classmethod
     def build(cls, mib, table_name):
         """Build and return a MibTableDescriptor for a MIB table.
@@ -153,7 +159,7 @@ class MibTableDescriptor(object):
 
         table_object = mib.nodes[table_name]
         for node in mib.nodes.values():
-            if table_object.oid.isaprefix(node.oid) and \
+            if table_object.oid.is_a_prefix_of(node.oid) and \
                     node.raw_mib_data['nodetype'] == 'row':
                 row_object = mib.nodes[node.name]
                 # Only one row node type per table
@@ -161,7 +167,7 @@ class MibTableDescriptor(object):
 
         columns = {}
         for node in mib.nodes.values():
-            if row_object.oid.isaprefix(node.oid) and \
+            if row_object.oid.is_a_prefix_of(node.oid) and \
                     node.raw_mib_data['nodetype'] == 'column':
                 columns[node.name] = mib.nodes[node.name]
 
@@ -275,7 +281,7 @@ class MibRetrieverMaker(type):
         def getter(self):
             self._logger.debug("Retrieving scalar value %s", node_name)
             the_oid = self.nodes[node_name].oid
-            df = self.agent_proxy.get([the_oid])
+            df = self.agent_proxy.get([str(the_oid)])
             df.addCallback(result_formatter, the_oid, self)
             return df
         getter.__name__ = node_name
@@ -331,21 +337,21 @@ class MibRetriever(object):
 
         def resultFormatter(result):
             formatted_result = {}
-            if node.oid not in result:
+            if str(node.oid) not in result:
                 self._logger.debug("%s (%s) seems to be unsupported, result "
                                    "keys were: %r",
                                    column_name, node.oid, result.keys())
                 return {}
-            varlist = result[node.oid]
+            varlist = result[str(node.oid)]
 
             for oid, value in varlist.items():
                 # Extract index information from oid
-                row_index = oid[ len(node.oid): ]
+                row_index = OID(oid).strip_prefix(node.oid)
                 formatted_result[row_index] = value
 
             return formatted_result
 
-        deferred = self.agent_proxy.getTable([ node.oid ], maxRepetitions=50)
+        deferred = self.agent_proxy.getTable([ str(node.oid) ], maxRepetitions=50)
         deferred.addCallback(resultFormatter)
         return deferred
 
@@ -410,13 +416,13 @@ class MibRetriever(object):
             for varlist in result.values():
                 # Build a table structure
                 for oid in sorted(varlist.keys()):
-                    if not table.table.oid.isaprefix(oid):
+                    if not table.table.oid.is_a_prefix_of(oid):
                         raise MibRetrieverError(
                             "Received wrong response from client,"
                             "%s is not in %s" % (oid, table.table.oid))
 
                     # Extract table position of value
-                    oid_suffix = oid[ len(table.row.oid): ]
+                    oid_suffix = OID(oid).strip_prefix(table.row.oid)
                     column_no = oid_suffix[0]
                     row_index = oid_suffix[1:]
                     column_name = table.reverse_column_index[column_no]
@@ -429,7 +435,8 @@ class MibRetriever(object):
             return formatted_result
 
 
-        deferred = self.agent_proxy.getTable([table.table.oid], maxRepetitions=50)
+        deferred = self.agent_proxy.getTable([str(table.table.oid)],
+                                             maxRepetitions=50)
         deferred.addCallback(resultFormatter)
         return deferred
 
@@ -449,7 +456,6 @@ class MibRetriever(object):
                     row[column] = self.nodes[column].to_python(row[column])
         return result
 
-
 def convert_oids(mib):
     """Convert a mib data structure's oid strings to OID objects.
 
@@ -462,5 +468,3 @@ def convert_oids(mib):
         if isinstance(node['oid'], basestring):
             #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
             node['oid'] = OID(node['oid'])
-
-

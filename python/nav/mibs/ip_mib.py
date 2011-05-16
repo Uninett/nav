@@ -19,6 +19,7 @@ from IPy import IP
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from nav.oids import OID
 from nav.ipdevpoll.utils import binary_mac_to_hex
 import mibretriever
 
@@ -84,11 +85,12 @@ class IpMib(mibretriever.MibRetriever):
     def address_index_to_ip(cls, index):
         """Convert a row index from ipAddressTable to an IP object."""
 
+        index = OID(index)
         if 'ipAddressEntry' in cls.nodes:
             entry = cls.nodes['ipAddressEntry']
-            if entry.oid.isaprefix(index):
+            if entry.oid.is_a_prefix_of(index):
                 # Chop off the entry OID+column prefix
-                index = index[(len(entry.oid) + 1):]
+                index = OID(index.strip_prefix(entry.oid)[1:])
 
         ip = cls.inetaddress_to_ip(index)
         return ip
@@ -99,11 +101,12 @@ class IpMib(mibretriever.MibRetriever):
                            prefix_entry='ipAddressPrefixEntry'):
         """Convert a row index from ipAddressPrefixTable to an IP object."""
 
+        index = OID(index)
         if prefix_entry in cls.nodes:
             entry = cls.nodes[prefix_entry]
-            if entry.oid.isaprefix(index):
+            if entry.oid.is_a_prefix_of(index):
                 # Chop off the entry OID+column prefix
-                index = index[(len(entry.oid) + 1):]
+                index = OID(index.strip_prefix(entry.oid)[1:])
 
         if len(index) < 4:
             cls.logger.debug("prefix_index_to_ip: index too short: %r", index)

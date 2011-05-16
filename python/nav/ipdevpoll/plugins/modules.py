@@ -32,6 +32,7 @@ module of the physical entity is.
 
 from twisted.internet import defer
 
+from nav.oids import OID
 from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -174,9 +175,9 @@ class Modules(Plugin):
 
     def _process_alias_mapping(self, alias_mapping):
         mapping = {}
-        for (phys_index, _logical), row in alias_mapping.items():
+        for (phys_index, _logical), rowpointer in alias_mapping.items():
             # Last element is ifindex. Preceding elements is an OID.
-            ifindex = row.pop()
+            ifindex = OID(rowpointer)[-1]
 
             if phys_index not in mapping:
                 mapping[phys_index] = []

@@ -1,3 +1,4 @@
+from nav.oids import OID
 import mibretriever
 
 class Snmpv2Mib(mibretriever.MibRetriever):
@@ -11,7 +12,7 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         some agents  (Weathergoose).
 
         """
-        oid = self.nodes[var].oid + [0]
+        oid = self.nodes[var].oid + OID('0')
 
         def format_get_result(result):
             if oid in result:
@@ -23,8 +24,12 @@ class Snmpv2Mib(mibretriever.MibRetriever):
             else:
                 raise ValueError("invalid result value", result)
 
+        def format_result_keys(result):
+            return dict((OID(k), v) for k, v in result.items())
+
         def use_get(failure):
-            df = self.agent_proxy.get([oid])
+            df = self.agent_proxy.get([str(oid)])
+            df.addCallback(format_result_keys)
             df.addCallback(format_get_result)
             return df
 

@@ -30,11 +30,11 @@ administrators email inbox.
 import logging
 
 from twisted.python.failure import Failure
-from twisted.internet import defer, threads, reactor
-from pysnmp.asn1.oid import OID
+from twisted.internet import defer, threads, reactor, error
 
 import socket
 
+from nav.oids import OID
 from nav.models.oid import SnmpOid, NetboxSnmpOid
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll import Plugin
@@ -129,7 +129,7 @@ class OidProfiler(Plugin):
         oid = OID(snmpoid.snmp_oid)
 
         def ignore_timeouts(failure):
-            failure.trap(defer.TimeoutError)
+            failure.trap(error.TimeoutError, defer.TimeoutError)
             self._logger.debug("timed out waiting for %s response.",
                                snmpoid.oid_key)
             return []
@@ -137,7 +137,7 @@ class OidProfiler(Plugin):
         def getnext_result_checker(result):
             if len(result) > 0:
                 response_oid = result.keys()[0]
-                if oid.isaprefix(response_oid):
+                if OID(oid).is_a_prefix_of(response_oid):
                     self._logger.debug("%s support found using GET-NEXT: %r",
                                        snmpoid.oid_key, result)
                     return True
@@ -149,47 +149,15 @@ class OidProfiler(Plugin):
                                   snmpoid.oid_key, result)
                 return True
             else:
-                df = get_next(self.agent, oid)
+                df = self.agent.walk(str(oid))
                 df.addErrback(ignore_timeouts)
                 df.addCallback(getnext_result_checker)
                 return df
 
-        df = self.agent.get([oid])
+        df = self.agent.get([str(oid)])
         df.addErrback(ignore_timeouts)
         df.addCallback(get_result_checker)
         return df
-
-# Impressively enough, twistedsnmp's AgentProxy class does not provide
-# a simple getNext method - unless you want to pull an entire table.
-def get_next(agent, oid, timeout=2.0, retry_count=4):
-    """Our own low-level implementation of a GET-NEXT operation for a
-    twistedsnmp AgentProxy, since the latter doesn't provide its own.
-
-    """
-    oids = [OID(oid)]
-    try:
-        request = agent.encode(oids, agent.community, next=True)
-        key = agent.getRequestKey(request)
-        agent.send(request.encode())
-    except socket.error, err:
-        return defer.fail(Failure(err))
-
-    def as_dictionary(value):
-        try:
-            return dict(value)
-        except Exception, err:
-            logger = logging.getLogger(__name__)
-            logger.exception(
-                "Failure converting query results %r to dictionary", value)
-            return {}
-
-    df = defer.Deferred()
-    df.addCallback(agent.getResponseResults)
-    df.addCallback(as_dictionary)
-    timer = reactor.callLater(timeout, agent._timeout, 
-                              key, df, oids, timeout, retry_count)
-    agent.protocol.requests[key] = df, timer
-    return df
 
 
 def get_all_snmpoids():

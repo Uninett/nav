@@ -23,13 +23,12 @@ ENTITY-MIB.
 
 """
 
-from twistedsnmp import agentproxy
-
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import fire_eventually
+from nav.ipdevpoll.snmp import AgentProxy
 
 class Bridge(Plugin):
     @classmethod
@@ -56,11 +55,13 @@ class Bridge(Plugin):
 
         """
         old_agent = self.agent
-        agent = agentproxy.AgentProxy(
+        agent = AgentProxy(
             old_agent.ip, old_agent.port,
             community=community,
-            snmpVersion = old_agent.snmpVersion,
-            protocol = old_agent.protocol)
+            snmpVersion = old_agent.snmpVersion)
+        if hasattr(old_agent, 'protocol'):
+            agent.protocol = old_agent.protocol
+
         return agent
 
     def _prune_bridge_mib_list(self, result):
@@ -90,12 +91,11 @@ class Bridge(Plugin):
                           [b[0] for b in bridgemibs])
 
         # Set up a bunch of instances to poll
-        instances = [ (BridgeMib(self.agent), None) ]
+        instances = [ (self.agent, None) ]
         for descr, community in bridgemibs:
             agent = self._get_alternate_agent(community)
-            mib = BridgeMib(agent)
-            instances.append((mib, descr))
-        
+            instances.append((agent, descr))
+
         instances = iter(instances)
         df = self._query_next_instance(None, instances)
         return df
@@ -117,13 +117,21 @@ class Bridge(Plugin):
                 self.baseports.update(result)
 
         try:
-            bridgemib, descr = instances.next()
+            agent, descr = instances.next()
             self._logger.debug("Now querying %r", descr)
         except StopIteration:
             return self._set_port_numbers(self.baseports)
 
         # Add the next bridge mib instance to the chain
+        bridgemib = BridgeMib(agent)
+        if agent is not self.agent:
+            agent.open()
+        def _close_agent(result):
+            if agent is not self.agent:
+                agent.close()
+            return result
         df = bridgemib.retrieve_column('dot1dBasePortIfIndex')
+        df.addBoth(_close_agent)
         df.addCallback(self._query_next_instance, instances)
         df.addCallback(lambda thing: fire_eventually(thing))
         return df
