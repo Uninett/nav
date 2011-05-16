@@ -17,6 +17,41 @@
 
 import mibretriever
 from nav.mibs.qbridge_mib import PortList
+from nav.mibs import reduce_index
 
 class ExtremeVlanMib(mibretriever.MibRetriever):
+    """Gets data from the EXTREME-VLAN-MIB"""
     from nav.smidumps.extreme_vlan_mib import MIB as mib
+
+    def get_vlan_ports(self):
+        """Retrieves the VLAN port configurations.
+
+        :returns: A dict of the form
+                  { extremeVlanIfIndex: (tagged_portlist, untagged_portlist) }
+
+        """
+        df = self.retrieve_table('extremeVlanOpaqueTable')
+        df.addCallback(_strip_slot_numbers_from_index)
+        df.addCallback(_convert_columns_to_portlists)
+        return df
+
+    def get_ifindex_vlan_map(self):
+        """Retrieves a mapping of ifIndexes to VLAN IDs.
+
+        The Extreme switch will have a virtual interface for each active VLAN,
+        this maps those interfaces' ifIndexes to their corresponding VLAN id.
+
+        :returns: A dict of the form { ifindex: vlan_id }
+        """
+        df = self.retrieve_column('extremeVlanIfVlanId')
+        return df.addCallback(reduce_index)
+
+def _strip_slot_numbers_from_index(table):
+    return dict((if_index, row)
+                for (if_index, slot_number), row in table.items())
+
+def _convert_columns_to_portlists(table):
+    return dict((key,
+                 (PortList(row['extremeVlanOpaqueTaggedPorts']).get_ports(),
+                  PortList(row['extremeVlanOpaqueUntaggedPorts']).get_ports()))
+                for key, row in table.items())
