@@ -3,12 +3,12 @@
 {% block content %}
 
 <table class="vertitable">
-    <caption><a href="/portadmin/interfaceid={{ interfaceid }}">Interface {{ ifname }}</a></caption>
+    <caption><a href="{% url ipdevinfo-interface-details sysname interfaceid %}">Interface {{ ifname }}</a></caption>
     <tr>
-        <th>IfAlias</th><td><a href="/portadmin/interfaceid={{ interfaceid }}">{{ ifalias }}</a></td>
+        <th>IfAlias</th><td><a href="{% url ipdevinfo-interface-details sysname interfaceid %}">{{ ifalias }}</a></td>
     </tr>
     <tr>
-        <th>Netbox</th><td><a href="/ipdevinfo/{{ sysname }}/">{{ sysname }}</a></td>
+        <th>Netbox</th><td><a href="{% url ipdevinfo-details-by-name sysname %}">{{ sysname }}</a></td>
     </tr>
 </table>
 

@@ -7,7 +7,7 @@
 {% for netbox in netbox_list %}
 <div class="netboxcontainer">
     <h3>
-        <a href="/ipdevinfo/{{netbox.grouper}}/">{{ netbox.grouper }}</a>&nbsp;
+        <a href="{% url ipdevinfo-details-by-name netbox.grouper %}">{{ netbox.grouper }}</a>&nbsp;
             <img id="plus" class="toggler" src="/images/threshold/plus-button.png" alt="+"/>
             <img id="minus" class="toggler" src="/images/threshold/minus-button.png" alt="-" style="display: none;"/>
     </h3>
@@ -30,12 +30,14 @@
         <tr>
                 {% if threshold.rrd_file.interface %}
                     {% if threshold.rrd_file.interface.ifname %}
-                    <td><a href="/ipdevinfo/{{threshold.rrd_file.interface.netbox.sysname}}/interface={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifname }}</a></td>
+                    <td><a href="{% url ipdevinfo-interface-details threshold.rrd_file.interface.netbox.sysname threshold.rrd_file.interface.id %}">
+                        {{ threshold.rrd_file.interface.ifname }}</a></td>
                     {% else %}
                     <td>&nbsp;</td>
                     {% endif %}
                     {% if threshold.rrd_file.interface.ifalias %}
-                    <td><a href="/ipdevinfo/{{threshold.rrd_file.interface.netbox.sysname}}/interface={{threshold.rrd_file.interface.id}}">{{ threshold.rrd_file.interface.ifalias }}</a></td>
+                    <td><a href="{% url ipdevinfo-interface-details threshold.rrd_file.interface.netbox.sysname threshold.rrd_file.interface.id %}">
+                        {{ threshold.rrd_file.interface.ifalias }}</a></td>
                     {% else %}
                     <td>&nbsp;</td>
                     {% endif %}
