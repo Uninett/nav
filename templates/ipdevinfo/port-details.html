@@ -189,7 +189,7 @@
                     <ul>
                     {% for ds in dss %}
                         <li><a href="{{ ds.get_absolute_url }}">
-                            {{ ds.description }}</a></li>
+                            {{ ds.description }}</a>&nbsp;<a href="{% url threshold-interface port.id %}">({% if ds.threshold %}{{ ds.threshold }}{% else %}not configured){% endif %})</a></li>
                     {% endfor %}
                     </ul>
                 {% else %}
