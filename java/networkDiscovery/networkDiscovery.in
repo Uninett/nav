@@ -1,4 +1,0 @@
-## info: Discovers information about the topology of your network
-
-35 * * * *              @bindir@/networkDiscovery.sh topology
-38 * * * *              @bindir@/networkDiscovery.sh vlan

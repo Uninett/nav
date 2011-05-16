@@ -26,38 +26,10 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 
+from nav.bitvector import BitVector
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
-
-# Interface status choices used in Interface model and 'ipdevinfo'
-OPER_UP = 1
-OPER_DOWN = 2
-OPER_TESTING = 3
-OPER_UNKNOWN = 4
-OPER_DORMANT = 5
-OPER_NOTPRESENT = 6
-OPER_LOWERLAYERDOWN = 7
-
-OPER_STATUS_CHOICES = (
-    (OPER_UP, 'up'),
-    (OPER_DOWN, 'down'),
-    (OPER_TESTING, 'testing'),
-    (OPER_UNKNOWN, 'unknown'),
-    (OPER_DORMANT, 'dormant'),
-    (OPER_NOTPRESENT, 'not present'),
-    (OPER_LOWERLAYERDOWN, 'lower layer down'),
-)
-
-ADM_UP = 1
-ADM_DOWN = 2
-ADM_TESTING = 3
-
-ADM_STATUS_CHOICES = (
-    (ADM_UP, 'up'),
-    (ADM_DOWN, 'down'),
-    (ADM_TESTING, 'testing'),
-)
 
 
 #######################################################################
@@ -92,7 +64,7 @@ class Netbox(models.Model):
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField()
+    snmp_version = models.IntegerField(verbose_name="SNMP version")
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
@@ -542,7 +514,7 @@ class NetboxType(models.Model):
 
     id = models.AutoField(db_column='typeid', primary_key=True)
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
-    name = VarcharField(db_column='typename')
+    name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
     cdp = models.BooleanField(default=False)
     tftp = models.BooleanField(default=False)
@@ -556,6 +528,23 @@ class NetboxType(models.Model):
 
     def __unicode__(self):
         return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
+
+    def get_enterprise_id(self):
+        """Returns the type's enterprise ID as an integer.
+
+        The type's sysobjectid should always start with
+        SNMPv2-SMI::enterprises (1.3.6.1.4.1).  The next OID element will be
+        an enterprise ID, while the remaining elements will describe the type
+        specific to the vendor.
+
+        """
+        prefix = u"1.3.6.1.4.1."
+        if self.sysobjectid.startswith(prefix):
+            specific = self.sysobjectid[len(prefix):]
+            enterprise = specific.split('.')[0]
+            return long(enterprise)
+        else:
+            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
 
 #######################################################################
 ### Device management
@@ -717,18 +706,44 @@ class SwPortVlan(models.Model):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
-    """From MetaNAV: Stores a hexstring that has “hidden” information about
-    the vlans that are allowed to traverse a given trunk."""
+    """Stores a hexstring that encodes the list of VLANs that are allowed to
+    traverse a trunk port.
 
+    """
     interface = models.OneToOneField('Interface', db_column='interfaceid',
                                      primary_key=True)
     hex_string = VarcharField(db_column='hexstring')
+    _cached_hex_string = ''
+    _cached_vlan_set = None
 
     class Meta:
         db_table = 'swportallowedvlan'
 
+    def __contains__(self, item):
+        vlans = self.get_allowed_vlans()
+        return item in vlans
+
+    def get_allowed_vlans(self):
+        """Converts the plaintext formatted hex_string attribute to a list of
+        VLAN numbers.
+
+        :returns: A set of integers.
+        """
+        if self._cached_hex_string != self.hex_string:
+            self._cached_hex_string = self.hex_string
+            self._cached_vlan_set = self._calculate_allowed_vlans()
+
+        return self._cached_vlan_set or set()
+
+    def _calculate_allowed_vlans(self):
+        octets = [self.hex_string[x:x+2]
+                  for x in xrange(0, len(self.hex_string), 2)]
+        string = ''.join(chr(int(o, 16)) for o in octets)
+        bits = BitVector(string)
+        return set(bits.get_set_bits())
+
     def __unicode__(self):
-        return u'Allowed vlan for swport %s' % self.interface
+        return u'Allowed vlans for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
@@ -814,6 +829,34 @@ class Cam(models.Model):
 
 class Interface(models.Model):
     """The network interfaces, both physical and virtual, of a Netbox."""
+
+    OPER_UP = 1
+    OPER_DOWN = 2
+    OPER_TESTING = 3
+    OPER_UNKNOWN = 4
+    OPER_DORMANT = 5
+    OPER_NOTPRESENT = 6
+    OPER_LOWERLAYERDOWN = 7
+
+    OPER_STATUS_CHOICES = (
+        (OPER_UP, 'up'),
+        (OPER_DOWN, 'down'),
+        (OPER_TESTING, 'testing'),
+        (OPER_UNKNOWN, 'unknown'),
+        (OPER_DORMANT, 'dormant'),
+        (OPER_NOTPRESENT, 'not present'),
+        (OPER_LOWERLAYERDOWN, 'lower layer down'),
+    )
+
+    ADM_UP = 1
+    ADM_DOWN = 2
+    ADM_TESTING = 3
+
+    ADM_STATUS_CHOICES = (
+        (ADM_UP, 'up'),
+        (ADM_DOWN, 'down'),
+        (ADM_TESTING, 'testing'),
+    )
 
     DUPLEX_FULL = 'f'
     DUPLEX_HALF = 'h'
@@ -931,9 +974,9 @@ class Interface(models.Model):
 
     def get_link_display(self):
         """Returns a display value for this interface's link status."""
-        if self.ifoperstatus == OPER_UP:
+        if self.ifoperstatus == self.OPER_UP:
             return "Active"
-        elif self.ifadminstatus == ADM_DOWN:
+        elif self.ifadminstatus == self.ADM_DOWN:
             return "Disabled"
         return "Inactive"
 

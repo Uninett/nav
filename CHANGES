@@ -1,3 +1,55 @@
+Version 3.8.5
+(released 14 April 2011)
+
+ Bugfixes:
+
+  * LP#745616 (edit vlan in seeddb needs improvement)
+  * LP#745620 (change text descriptions in seeddb)
+  * LP#746381 (Add a report to display all collected interfaces, regardless of
+               type)
+  * LP#747104 (Missing interfaces are left lingering in the database)
+  * LP#748852 (Avoid using the word "handler" in SeedDB/Service)
+  * LP#749502 (Seed DB: Indicate required fields with an asterisk)
+  * LP#751310 (Not possible to add a function when adding a new ip device)
+
+Version 3.8.4
+(released 31 March 2011)
+
+ Bugfixes:
+
+  * LP#415376 (Log more info about cause of blacklisting alertengine plugins)
+  * LP#723362 (Edit IP Device - feature request for delete button)
+  * LP#726545 (SeedDB should verify SNMP write community)
+  * LP#735513 (seeddb room main view missing position column)
+  * LP#735514 (Configuring VLAN on a Cisco switch gives SNMP error)
+  * LP#735516 (parentheses shouldn't be required for geo coordinates in SeedDB)
+  * LP#735519 (Modulecount link from type report fails)
+  * LP#735935 (Missing columns and wrong column titles in SeedDB's IP Device
+               list)
+  * LP#735958 (Arnold crashes when deleting a quarantine vlan)
+  * LP#736899 (PortAdmin cannot find VLANs on Cisco switches if vendor id has
+               changed to anything but lowercase 'cisco')
+  * LP#738609 (Intermittent EOFError in web pages)
+  * LP#740017 (crash when attempting to create alert profile from template)
+  * LP#740849 (inventory job keeps going on after device removal from seeddb)
+  * LP#741573 (t1000.py KeyError crash when following up detentions)
+  * LP#744839 (Login page crash when LDAP manager_password contains % chars)
+
+
+Version 3.8.3
+(released 15 March 2011)
+
+ Bugfixes:
+
+  * LP#730524 (ipdevpoll oidprofiler says all OIDs are a match)
+  * LP#731252 (ipdevpoll leaks memory on database exceptions)
+  * LP#731318 (radius accounting page crashes when user has non-ASCII  chars in
+               username)
+  * LP#733115 (pping crashes when re-creating RRD files)
+  * LP#733152 (inventory job fails on IntegrityError on internal module swap)
+  * LP#735365 (Cannot add top-level organizations)
+
+
 Version 3.8.2
 (released 3 March 2011)
 

@@ -59,7 +59,7 @@ def create(filename, netboxid, serviceid=None, handler=""):
              'RRA:MAX:0.5:288:1095')
     rrd.create(*tupleFromHell)
     debug("Created rrd file %s" % filename)
-    register_rrd(filename, netboxid, serviceid, handler)
+    verify_rrd_registry(filename, netboxid, serviceid, handler)
 
 def register_rrd(filename, netboxid, serviceid=None, handler=""):
     """Registers an RRD file in the db registry."""

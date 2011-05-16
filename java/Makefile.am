@@ -24,7 +24,6 @@ EDITFILES = \
 	eventEngine/eventengine \
 	getBoksMacs/getBoksMacs.sh \
 	getBoksMacs/mactrace \
-	networkDiscovery/networkDiscovery \
 	networkDiscovery/networkDiscovery.sh
 
 # We build our own classpath, to resolve interdependencies between the java modules.

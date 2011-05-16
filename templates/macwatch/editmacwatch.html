@@ -1,0 +1,13 @@
+{% extends "macwatch/base.html" %}
+
+{% block content %}
+
+<form action="." method="post">
+  <table class="vertitable">
+  <caption>Edit mac watch</caption>
+    {{ form.as_table }}
+  </table>
+  <input type="submit" value="Edit mac watch">
+</form>
+
+{% endblock %}

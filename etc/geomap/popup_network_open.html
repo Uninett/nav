@@ -1,16 +1,23 @@
 <div class="network-popup">
-  Capacity: {{ network.capacity|floatformat:0 }} Mbps<br/>
-  Load in: {{ network.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
-  Load out: {{ network.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}
+  <table class="vertitable" style="font-size: 80%">
+    <caption>
+      {{ network.subedges|length }} link{{ network.subedges|length|pluralize }}</br>
+      - combined data
+    </caption>
+    <tr><th>Capacity</th> <td>{{ network.capacity|floatformat:0 }} Mbps<td></tr>
+    <tr><th>Load in</th> <td>{{ network.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
+    <tr><th>Load out</th> <td>{{ network.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
+  </table>
 
-  <ul>
-    {% for sub in network.subedges %}
-    <li>
-    {{ sub.netident }}<br/>
-    Capacity: {{ sub.capacity|floatformat:0 }} Mbps<br/>
-    Load in: {{ sub.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
-    Load out: {{ sub.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}<br/>
-    </li>
-    {% endfor %}
-  </ul>
+  {% for sub in network.subedges %}
+
+  <table class="vertitable" style="font-size: 80%">
+    <caption>{{ sub.netident }}</caption>
+    <tr><th>Capacity</th>     <td>{{ sub.capacity|floatformat:0 }} Mbps</td></tr>
+    <tr><th>Load in</th>      <td>{{ sub.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
+    <tr><th>Load out</th>     <td>{{ sub.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
+  </table>
+
+  {% endfor %}
+
 </div>

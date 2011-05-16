@@ -123,7 +123,7 @@ variable-rgx=([a-z_][a-z0-9_]{2,40})$
 inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,j,k,ex,Run,_,ip,df,db,urlpatterns
+good-names=i,j,k,ex,Run,_,ip,df,db,urlpatterns,id
 
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata
@@ -155,7 +155,7 @@ ignore-mixin-members=yes
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
-ignored-classes=Meta,Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxCategory,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod,AlertPreference,MatchField,FilterGroup,FilterGroupContent,AccountNavbar,AlertHistory,AlertHistoryMessage,AlertHistoryVariable,Cabling,EventQueue,EventQueueVar,Message,NavbarLink,Patch,Privilege,RrdDataSource,SMSQueue,Service,ServiceProperty,StatusPreference,StatusPreferenceCategory,StatusPreferenceOrganization,Subsystem
+ignored-classes=Meta,Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxCategory,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod,AlertPreference,MatchField,FilterGroup,FilterGroupContent,AccountNavbar,AlertHistory,AlertHistoryMessage,AlertHistoryVariable,Cabling,EventQueue,EventQueueVar,Message,NavbarLink,Patch,Privilege,RrdDataSource,SMSQueue,Service,ServiceProperty,StatusPreference,StatusPreferenceCategory,StatusPreferenceOrganization,Subsystem,SwPortToNetbox
 
 # When zope mode is activated, add a predefined set of Zope acquired attributes
 # to generated-members.

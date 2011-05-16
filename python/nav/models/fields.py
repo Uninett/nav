@@ -73,7 +73,10 @@ class PointField(models.CharField):
             return value
         if isinstance(value, basestring):
             if validators.is_valid_point_string(value):
-                noparens = value[1:-1]
+                if value.startswith('(') and value.endswith(')'):
+                    noparens = value[1:-1]
+                else:
+                    noparens = value
                 latitude, longitude = noparens.split(',')
                 return (Decimal(latitude.strip()), Decimal(longitude.strip()))
         raise exceptions.ValidationError(
@@ -89,3 +92,71 @@ class PointField(models.CharField):
         defaults = {'form_class': navforms.PointField}
         defaults.update(kwargs)
         return super(PointField, self).formfield(**defaults)
+
+# this interfaces with Django model protocols, which generates unnecessary
+# pylint violations:
+# pylint: disable=W0201,W0212
+class LegacyGenericForeignKey(object):
+    """Generic foreign key for legacy NAV database.
+
+    Some legacy tables in NAV have generic foreign keys that look very much
+    like Django's generic foreign keys, except the foreign table name is
+    stored directly in the field name.
+
+    """
+
+    def __init__(self, model_name_field, model_fk_field):
+        self.mn_field = model_name_field
+        self.fk_field = model_fk_field
+
+    def contribute_to_class(self, cls, name):
+        """Add things to the model class using this descriptor"""
+        self.name = name
+        self.model = cls
+        self.cache_attr = "_%s_cache" % name
+        cls._meta.add_virtual_field(self)
+
+        setattr(cls, name, self)
+
+    def __get__(self, instance, instance_type=None):
+        if instance is None:
+            return self
+
+        try:
+            return getattr(instance, self.cache_attr)
+        except AttributeError:
+            rel_obj = None
+
+            field = self.model._meta.get_field(self.mn_field)
+            table_name = getattr(instance, field.get_attname(), None)
+            rel_model = self.get_model_class(table_name)
+            if rel_model:
+                try:
+                    rel_obj = rel_model.objects.get(
+                        id=getattr(instance, self.fk_field))
+                except exceptions.ObjectDoesNotExist:
+                    pass
+            setattr(instance, self.cache_attr, rel_obj)
+            return rel_obj
+
+    def __set__(self, instance, value):
+        if instance is None:
+            raise AttributeError(
+                u"%s must be accessed via instance" % self.name)
+
+        table_name = None
+        fkey = None
+        if value is not None:
+            table_name = value._meta.db_table
+            fkey = value._get_pk_val()
+
+        setattr(instance, self.mn_field, table_name)
+        setattr(instance, self.fk_field, fkey)
+        setattr(instance, self.cache_attr, value)
+
+    @staticmethod
+    def get_model_class(table_name):
+        """Returns a Model class based on a database table name"""
+        classmap = dict((m._meta.db_table, m) for m in models.get_models())
+        if table_name in classmap:
+            return classmap[table_name]

@@ -20,8 +20,8 @@ from django.db import models
 from django.core.urlresolvers import reverse
 
 from nav.models.event import Subsystem
-from nav.models.manage import Netbox
-from nav.models.fields import VarcharField
+from nav.models.manage import Netbox, Interface
+from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 class RrdFile(models.Model):
     """From MetaNAV: The rrd_file contains meta information on all RRD files
@@ -35,6 +35,7 @@ class RrdFile(models.Model):
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     key = VarcharField()
     value = VarcharField()
+    interface = LegacyGenericForeignKey('key', 'value')
 
     class Meta:
         db_table = 'rrd_file'

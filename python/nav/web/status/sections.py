@@ -242,8 +242,8 @@ class NetboxMaintenanceSection(_Section):
                 downtime = ''
             else:
                 if down:
-                   down_since = down['start_time']
-                   downtime = down['downtime']
+                    down_since = down['start_time']
+                    downtime = down['downtime']
                 else:
                     down_since = 'N/A'
                     downtime = 'N/A'
@@ -423,8 +423,8 @@ class ServiceMaintenanceSection(ServiceSection):
                 downtime = ''
             else:
                 if down:
-                   down_since = down['start_time']
-                   downtime = down['downtime']
+                    down_since = down['start_time']
+                    downtime = down['downtime']
                 else:
                     down_since = 'N/A'
                     downtime = 'N/A'

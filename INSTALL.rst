@@ -45,6 +45,7 @@ The following python modules are required:
  * django (>= 1.0)
  * ipy
  * ldap
+ * networkx
  * psycopg2
  * pysnmp-se
  * pyrad

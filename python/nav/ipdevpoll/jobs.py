@@ -78,7 +78,7 @@ class JobHandler(object):
 
         # Initialize netbox in container
         nb = self.container_factory(shadows.Netbox, key=None)
-        nb.id = netbox.id
+        (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
 
         self.agent = None
 
@@ -140,7 +140,7 @@ class JobHandler(object):
 
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(TimeoutError, defer.TimeoutError):
-                self._logger.error("Plugin %s reported a timeout",
+                self._logger.debug("Plugin %s reported a timeout",
                                    plugin_instance)
             else:
                 log_unhandled_failure(self._logger,
@@ -201,8 +201,9 @@ class JobHandler(object):
 
         def log_abort(failure):
             if failure.check(AbortedJobError):
-                self._logger.error("Job %r for %s aborted.",
-                                   self.name, self.netbox.sysname)
+                self._logger.error("Job %r for %s aborted: %s",
+                                   self.name, self.netbox.sysname,
+                                   failure.value.cause)
             return failure
 
         def save(result):
@@ -214,6 +215,8 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
+        # pylint is unable to find reactor members:
+        # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
         def cleanup(result):
