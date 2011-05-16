@@ -92,7 +92,7 @@ class Interfaces(Plugin):
         interface.ifadminstatus = row['ifAdminStatus']
         interface.ifoperstatus = row['ifOperStatus']
 
-        interface.ifname = row['ifName'] or row['ifDescr']
+        interface.ifname = row['ifName'] or interface.baseport or row['ifDescr']
         interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
         interface.ifalias = decode_to_unicode(row['ifAlias'])
         
