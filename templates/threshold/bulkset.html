@@ -20,7 +20,7 @@
                 <td><input id="bulkThreshold" type="text" size="10"name="bulkThreshold" value="" /></td>
                 <td><input id="bulkupdateSubmit" type="button"
                         onclick="threshold.bulkUpdateThresholds(this);"
-                        value="Update selected" /></td>
+                        value="Update checked" /></td>
             <tr>
         </tbody>
         <table>
@@ -58,16 +58,16 @@
             <tr>
                 <td><input type="checkbox" name="include" value="{{ ds.id }}" /></td>
                 {% if interfaces %}
-                <td><a href="/ipdevinfo/{{ ds.rrd_file.interface.netbox.sysname }}/">
+                <td><a href="{% url ipdevinfo-details-by-name ds.rrd_file.interface.netbox.sysname %}">
                     {{ ds.rrd_file.interface.netbox.get_short_sysname }}</a></td>
                 {% else %}
-                <td><a href="/ipdevinfo/{{ ds.rrd_file.netbox.sysname }}/">
+                <td><a href="{% url ipdevinfo-details-by-name ds.rrd_file.netbox.sysname %}">
                     {{ ds.rrd_file.netbox.get_short_sysname }}</a></td>
                 {% endif %}
                 {% if interfaces %}
-                <td><a href="/portadmin/interfaceid={{ ds.rrd_file.interface.id}}">
+                <td><a href="{% url ipdevinfo-interface-details ds.rrd_file.interface.netbox.sysname ds.rrd_file.interface.id %}">
                     {{ ds.rrd_file.interface.ifname }}</a></td>
-                <td><a href="/portadmin/interfaceid={{ ds.rrd_file.interface.id}}">
+                <td><a href="{% url ipdevinfo-interface-details ds.rrd_file.interface.netbox.sysname ds.rrd_file.interface.id %}">
                     {{ ds.rrd_file.interface.ifalias }}</a></td>
                 {% endif %}
                 <td>{{ ds.description }}</td>

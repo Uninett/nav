@@ -92,9 +92,9 @@ def make_event(presobject, var, val, subid, fileid, state):
         print >> sys.stderr, get_ex
         return
   
-    netboxid = rrd_file.nextbox.id
-    sysname = rrd_file.nextbox.sysname
-    ip = rrd_file.nextbox.ip
+    netboxid = rrd_file.netbox.id
+    sysname = rrd_file.netbox.sysname
+    ip = rrd_file.netbox.ip
 
     if netboxid:
         log_it(2, "thresholdalert regarding %s (%s)" %(sysname, ip))
@@ -153,9 +153,10 @@ def main(argv):
     
     log_it(1, "Starting thresholdMon at %s" % date)
     # For each rrd_datasource, fetch the value and compare
-    # it to the max-value.
-    for rrd_datasource in RrdDataSource.objects.filter(threshold__isnull=False):
-
+    # it to the max-value.  Threshold can be an empty string.
+    for rrd_datasource in RrdDataSource.objects.filter(
+                                    threshold__isnull=False).exclude(
+                                                            threshold=''):
         rrd_fileid = rrd_datasource.rrd_file_id
         rrd_datasourceid = rrd_datasource.id
         descr = rrd_datasource.description
@@ -200,7 +201,8 @@ def main(argv):
 
         # Checking if it is percent or a normal value we are comparing
         is_percent = re.compile("%$").search(threshold)
-        threshold = int(re.sub("%$", "", threshold))
+        threshold = re.sub('%$', '', threshold.strip())
+        threshold = int(threshold)
 
         # To prevent oscillation in case the value is just below the threshold
         # we create a lower limit that has to be passed to really say that the
