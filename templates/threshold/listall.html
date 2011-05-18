@@ -2,6 +2,7 @@
 
 {% block content %}
 
+{% if netboxes %}
 {% regroup netboxes|dictsort:"sysname" by sysname as netbox_list %}
 
 {% for netbox in netbox_list %}
@@ -73,5 +74,10 @@
 </table>
 </div>
 {% endfor %}
+
+{% else %}
+    <h3>No thresholds are found.</h3>
+{% endif %}
+
 {% endblock %}
 
