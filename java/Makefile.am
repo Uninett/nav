@@ -21,7 +21,6 @@ subdirs = \
 EDITFILES = \
 	build.properties \
 	eventEngine/eventEngine.sh \
-	eventEngine/eventengine \
 	getBoksMacs/getBoksMacs.sh \
 	getBoksMacs/mactrace \
 	networkDiscovery/networkDiscovery.sh
