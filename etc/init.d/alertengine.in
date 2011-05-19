@@ -7,6 +7,7 @@
 # Copyright 2006 UNINETT AS
 #
 ####################
+## info: Dispatches alerts according to individual alert profiles.
 initdir=@initdir@
 bindir=@bindir@
 ALERTENGINE=${bindir}/alertengine.py

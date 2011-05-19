@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 ####################
 #
-# $Id: eventengine.in 2013 2003-11-14 13:05:11Z mortenv $
 # This file is part of the NAV project.
 # This script controls start/stop/status of the NAV eventEngine Daemon.
 #
-# Copyright (c) 2002 by NTNU, ITEA nettgruppen
-# Authors: Kristian Eide <kreide@online.no>
-#          Morten Vold <morten.vold@itea.ntnu.no>
+# Copyright (C) 2002 Norwegian University of Science and Technology
 #
 ####################
+## info: Reacts and creates alerts from events on the event queue.
 initdir=@initdir@
 bindir=@bindir@
 localstatedir=@localstatedir@

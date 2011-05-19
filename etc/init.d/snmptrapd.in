@@ -7,6 +7,7 @@
 # Copyright 2007 UNINETT AS
 #
 ####################
+## info: Receives and processes SNMP traps and notifications.
 initdir=@initdir@
 bindir=@bindir@
 SNMPTRAPD=${bindir}/snmptrapd.py

@@ -19,11 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#          Morten Vold <morten.vold@itea.ntnu.no>
-#
-# This script controls start/stop/status of the NAV pping daemon.
+## info: Pings all IP devices for status monitoring.
 
 initdir=@initdir@
 BIN=@bindir@/pping.py
