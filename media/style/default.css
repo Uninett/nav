@@ -103,6 +103,9 @@ a.navbar:active {
 em {
 	font-style: italic;
 }
+strong {
+	font-weight: bold;
+}
 img {
 	vertical-align: middle;
 }
