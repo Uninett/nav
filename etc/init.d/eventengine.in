@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-####################
 #
-# This file is part of the NAV project.
 # This script controls start/stop/status of the NAV eventEngine Daemon.
 #
-# Copyright (C) 2002 Norwegian University of Science and Technology
-#
-####################
 ## info: Reacts and creates alerts from events on the event queue.
 initdir=@initdir@
 bindir=@bindir@

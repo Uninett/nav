@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 #

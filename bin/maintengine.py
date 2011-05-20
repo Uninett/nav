@@ -1,40 +1,25 @@
 #!/usr/bin/env python
-# -*- coding: ISO-8859-1 -*-
 #
 # Copyright 2003-2005 Norwegian University of Science and Technology
-# Copyright 2006, 2008 UNINETT AS
+# Copyright 2006, 2008, 2011 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>, 2003
-#          Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
-#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>, 2006
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
 """
 This program dispatches maintenance events according to the maintenance
 schedule in NAVdb.
 """
-
-__copyright__ = "Copyright 2003-2005 NTNU, 2006-2008 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Bjørn Ove Grøtan (bjorn.grotan@itea.ntnu.no), Sigurd Gartmann (sigurd-nav@brogar.org), Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
-__id__ = "$Id$"
 
 import logging
 import os.path
