@@ -1,11 +1,12 @@
-===========================
- Release notes for NAV 3.9
-===========================
+=================================================
+ Network Administration Visualized release notes
+=================================================
 
 Please report bugs at https://bugs.launchpad.net/nav
 
 If you are upgrading from versions of NAV older than 3.7, please refer to the
 release notes of the in-between versions before reading any further.
+
 
 Known problems
 ==============
@@ -15,26 +16,43 @@ retrieval operations.  Timeouts and retries aren't handled properly, and this
 may cause slow or otherwise busy devices to be bombarded with requests from
 NAV.  The `contrib/patches` directory contains a patch for TwistedSNMP that
 solves this problem.  The patch has been submitted upstream, but not yet
-accepted into a new release.
+accepted into a new release.  Alternatively, you can install `pynetsnmp` for
+improved performance.
 
 
-To see the overview of scheduled features and reported bugs on the 3.8 series
-of NAV, please go to https://launchpad.net/nav/3.8 .
+NAV 3.9
+=======
 
-Significant changes since NAV 3.8
-=================================
+To see the overview of scheduled features and reported bugs on the 3.9 series
+of NAV, please go to https://launchpad.net/nav/3.9 .
+
 
 Dependency changes
 ------------------
 
-NAV 3.9 adds a dependency to the Python library NetworkX
-(http://networkx.lanl.gov/).  NetworkX lists a number of optional third party
-packages that will extend NetworkX' functionality, but none of these are
-currently needed by NAV.
+- A dependency to the Python library NetworkX (http://networkx.lanl.gov/),
+  version 1.0 or newer, has been introduced in the new topology
+  detector.
+
+  NetworkX lists a number of optional third party packages that will extend
+  NetworkX' functionality, but none of these are currently needed by NAV.
+
+- An optional, but recommended, dependency to the `pynetsnmp` library has been
+  introduced to increase SNMP-related performance in the `ipdevpoll` daemon.
+  `pynetsnmp` is a ctypes binding (as opposed to a native C module) enabling
+  integration with the efficient SNMP processing of the mature NetSNMP
+  library.
+
+  `pynetsnmp` was created for and is distributed with ZenOSS.  There doesn't
+  seem to be a separate tarball for `pynetsnmp`, but the source code
+  repository is at
+  http://www.mirrors.docunext.com/websvn/zenoss/browse/trunk/pynetsnmp/ . The
+  library has been packaged for Debian under the name `python-pynetsnmp`.
 
 
-Significant changes since NAV 3.7
-=================================
+
+NAV 3.8
+=======
 
 Source code directory layout
 ----------------------------
@@ -114,7 +132,8 @@ configuring your devices, do you?
 
 Dependency changes
 ------------------
-The INSTALL file referred to the python package `egenix-mxdatetime` as a
+
+The INSTALL file used to refer to the python package `egenix-mxdatetime` as a
 dependency.  This has been removed, as NAV stopped using it in version 3.6.
 You psycopg2 installation may still require it, though.
 

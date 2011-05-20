@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-####################
 #
-# This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV SNMP Trap Daemon
 #
-# Copyright 2007 UNINETT AS
-#
-####################
 ## info: Receives and processes SNMP traps and notifications.
 initdir=@initdir@
 bindir=@bindir@

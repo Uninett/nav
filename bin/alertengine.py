@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007, 2008 UNINETT AS
+# Copyright (C) 2007, 2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
