@@ -2,6 +2,9 @@
 
 {% block content %}
 
+<div id="messagesDiv">
+</div>
+
 {% if netboxes %}
 {% regroup netboxes|dictsort:"sysname" by sysname as netbox_list %}
 

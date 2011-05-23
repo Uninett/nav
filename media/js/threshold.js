@@ -1,3 +1,23 @@
+/* -*- coding: utf-8 -*-
+ *
+ * Threshold specific javascripts
+ *
+ * Copyright (C) 2011 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV).
+ *
+ * NAV is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.  You should have received a copy of the GNU General Public
+ * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 if(!Array.indexOf){
     Array.prototype.indexOf = function(obj){
         for(var i=0; i<this.length; i++){
@@ -27,6 +47,7 @@ threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
 threshold.descriptionRegExp = new RegExp('^[a-zA-Z][a-zA-Z0-9\ ]+$');
 threshold.thresholdSaveStatus = 0;
+threshold.saveMessage = null;
 threshold.save_queue =  new Array();
 
 threshold.removeFromQueue = function(id){
@@ -64,6 +85,11 @@ threshold.updateMessages = function(msg, isError){
 
 threshold.pageNotFound = function(){
     threshold.updateMessages('Page not found', true);
+    return -1;
+};
+
+threshold.serverError = function(){
+    threshold.updateMessages('Internal server-error', true);
     return -1;
 };
 
@@ -328,131 +354,144 @@ threshold.chooseDeviceType = function(the_select, select_val){
           });
 };
 
-threshold.saveThresholds = function(dsIds, operator, thrValue){
+threshold.saveToServer = function(toSave){
+    threshold.saveMessage = null;
     threshold.thresholdSaveStatus = 0;
-    $.ajax({url: '/threshold/savethresholds/',
-            data: { 'dsIds': dsIds,
-                    'operator': operator,
-                    'threshold': thrValue
-                  },
+    var objectJSON = $.toJSON(toSave);
+
+    $.ajax({url: '/threshold/thresholdssave/',
+            data: {'thresholds': objectJSON},
             dataType: 'json',
             type: 'POST',
             async: false,
             success: function(data, textStatus, header){
-                        if(data.error){
-                            threshold.updateMessages(data.message, true);
+                        if(typeof data.error == 'undefined' ){
                             threshold.thresholdSaveStatus = -1;
                             return -1;
                         }
+                        if(data.error > 0){
+                            threshold.thresholdSaveStatus = -1;
+                            threshold.saveMessage = data;
+                            return -1;
+                        }
                         return 0;
+                     },
+            error:  function(req, errMsg, errType){
+                        threshold.thresholdSaveStatus = -1;
+                        return threshold.ajaxError(req, errMsg, errType);
                     },
-            error: function(req, errMsg, errType){
-                    return threshold.ajaxError(req, errMsg, errType);
-                   },
             complete: function(header, textStatus){
                         return 0;
                       },
             statusCode: {404: function(){
+                                threshold.thresholdSaveStatus = -1;
                                 return threshold.pageNotFound();
-                               }
+                              },
+                         500: function(){
+                                threshold.thresholdSaveStatus = -1;
+                                return threshold.serverError();
+                              }
                         }
+
             });
     return threshold.thresholdSaveStatus;
 };
 
+threshold.findCheckBox = function(name, value){
+    var findStr = 'input:checkbox[name="'+ name + '"]';
+    if(value != null){
+        findStr += '[value="' + value +'"]';
+    }
+    return $(findStr);
+};
 
-threshold.bulkSaveThresholds = function(){
+threshold.saveChosenThresholds = function(allIncludes){
     threshold.removeMessages();
-    var allIncludes = $('input:checkbox[name="include"]:checked') || [];
-    var bulkOperator = $('select.#bulkOperator').val();
-    var bulkThreshold = $('input.#bulkThreshold').val();
-    if(allIncludes.length == 0){
-        errMsg = 'No thresholds are chosen. Please, check the ones to update';
-        threshold.updateMessages(errMsg, true);
-        return -1;
-    }
-    
     threshold.showAjaxLoader();
-    var dsIds = new Array(allIncludes.length);
+    /* Holds an dict of id, operator and threshold-value */
+    var thresholdsToSave = new Array();
+    /* An array with ids to update the GUI */
+    var chosenIds = new Array();
     for(var i = 0; i < allIncludes.length; i++){
-        dsIds[i] = allIncludes[i].value;
+        var chkbox = allIncludes[i];
+        var dsId = $(chkbox).val();
+        var row = $(chkbox).parents('tr');
+        var op = $(row).find('select').val();
+        var thrInput = $(row).find('input.#threshold');
+        var thrVal = $(thrInput).val();
+        thresholdsToSave[i] = {'dsId' : dsId, 'op': op, 'thrVal': thrVal};
+        chosenIds[i] = dsId;
     }
-    var ret = threshold.saveThresholds(threshold.table2String(dsIds),
-                                        bulkOperator, bulkThreshold);
-    if(ret == -1 ){
-        threshold.updateMessages('Save failed', true);
-        return -1;
+    var saveStatus = 0;
+    if(thresholdsToSave.length > 0){
+        saveStatus = threshold.saveToServer(thresholdsToSave);
+    }
+    if(saveStatus == -1){
+        var serverMsg = null;
+        if(threshold.saveMessage != null){
+            /*
+             * Something went wrong,- preserve the error-messages from
+             * the server
+            */
+            serverMsg = threshold.saveMessage;
+        } else {
+            /*
+             * Something went wrong,- but we do not know what...
+             * Usually a crash on the server.
+             * All thresholds are signaled as withdrawn.
+            */
+            serverMsg = {};
+            serverMsg.message = 'Save failed'
+            serverMsg.failed = chosenIds.slice();
+            serverMsg.error = serverMsg.failed.length;
+        }
+        threshold.updateMessages(serverMsg.message, true);
+        for(var i = 0; i < serverMsg.failed.length; i++){
+            var dsId = serverMsg.failed[i];
+            var chkbox = threshold.findCheckBox('include', dsId);
+            var thrInput = $(chkbox).parents('tr').find('input.#threshold');
+            threshold.showErrorThreshold(thrInput);
+            /* Remove those who dis not get saved */
+            var idx = chosenIds.indexOf(dsId);
+            if(idx > -1){
+                chosenIds.splice(idx, 1);
+            }
+        }
+    }
+    for(var i = 0; i < chosenIds.length; i++){
+        var chkbox = threshold.findCheckBox('include', chosenIds[i]);
+        var thrInput = $(chkbox).parents('tr').find('input.#threshold');
+        threshold.showSavedThreshold(thrInput);
     }
     threshold.hideAjaxLoader();
     return 0;
-    
 };
 
 threshold.saveSingleThreshold = function(btn){
     threshold.removeMessages();
     var row = $(btn).parents('tr');
-    var dsId = $(row).find('input:checkbox[name="include"]').val();
-    var op = $(row).find('select').val();
     var thrInput = $(row).find('input.#threshold');
-    var thr = $(thrInput).val();
-
-    if(! threshold.isLegalThreshold(thr)){
+    var thrVal = $(thrInput).val();
+    if(! threshold.isLegalThreshold(thrVal)){
         threshold.updateMessages('Save failed. Illegal threshold', true);
         threshold.showErrorThreshold(thrInput);
         return -1;
     }       
-    
-    var ret = threshold.saveThresholds(dsId, op, thr);
-    if(ret == -1){
-        threshold.updateMessages('Save failed', true);
-        threshold.showErrorThreshold(thrInput);
-        return -1;
-    } else {
-        threshold.showSavedThreshold(thrInput);
-    }
-    threshold.updateMessages('Threshold saved', false);
+
+    var chkbox= $(row).find('input:checkbox[name="include"]');
+    var toSave = [chkbox];
+    threshold.saveChosenThresholds([chkbox]);
     return 0;
 };
 
 threshold.saveCheckedThresholds = function(){
-    threshold.removeMessages();
+    //threshold.removeMessages();
     var allIncludes = $('input:checkbox[name="include"]:checked') || [];
     if(allIncludes.length < 1){
         threshold.updateMessages('Please, check the ones to save', true);
         return -1;
     }
-    threshold.showAjaxLoader();
-    var numbErrors = 0;
-    for(var i = 0; i < allIncludes.length; i++){
-        var chkbox = allIncludes[i];
-
-        var dsId = $(chkbox).val();
-        var row = $(chkbox).parents('tr');
-        var op = $(row).find('select').val();
-
-        var thrInput = $(row).find('input.#threshold');
-        var thr = $(thrInput).val();
-        if(! threshold.isLegalThreshold(thr)){
-            threshold.showErrorThreshold(thrInput);
-            numbErrors++;
-        } else {
-            var ret = threshold.saveThresholds(dsId, op, thr);
-            if(ret == -1){
-                threshold.showErrorThreshold(thrInput);
-                numbErrors++;
-            } else {
-                threshold.showSavedThreshold(thrInput);
-            }
-        }
-    }
-    if(numbErrors > 0){
-        var errMsg = numbErrors + ' error' + (numbErrors > 1 ? 's' : '');
-        errMsg += '. Check for illegal values';
-        threshold.updateMessages(errMsg, true);
-    } else {
-        threshold.updateMessages('All checked thresholds saved', false);
-    }
-    threshold.hideAjaxLoader();
+    threshold.saveChosenThresholds(allIncludes);
     return 0;
 };
 
@@ -462,38 +501,7 @@ threshold.saveAllThresholds = function(){
     if(allIncludes.length < 1){
         return -1;
     }
-    threshold.showAjaxLoader();
-    var numbErrors = 0;
-    for(var i = 0; i < allIncludes.length; i++){
-        var chkbox = allIncludes[i];
-
-        var dsId = $(chkbox).val();
-        var row = $(chkbox).parents('tr');
-        var op = $(row).find('select').val();
-
-        var thrInput = $(row).find('input.#threshold');
-        var thr = $(thrInput).val();
-        if(! threshold.isLegalThreshold(thr)){
-            threshold.showErrorThreshold(thrInput);
-            numbErrors++;
-        } else {
-            var ret = threshold.saveThresholds(dsId, op, thr);
-            if(ret == -1){
-                threshold.showErrorThreshold(thrInput);
-                numbErrors++;
-            } else {
-                threshold.showSavedThreshold(thrInput);
-            }
-        }
-    }
-    if(numbErrors > 0){
-        var errMsg = numbErrors + ' error' + (numbErrors > 1 ? 's': '');
-        errMsg += '.  Check for illegal values';
-        threshold.updateMessages(errMsg, true);
-    } else {
-        threshold.updateMessages('All thresholds saved', false);
-    }
-    threshold.hideAjaxLoader();
+    threshold.saveChosenThresholds(allIncludes);
     return 0;
 };
 
@@ -632,42 +640,26 @@ $(document).ready(function(){
 });
 
 
-threshold.save_threshold = function(updateButton, dsid, operator, thrVal){
-    if( threshold.save_queue.indexOf(dsid) > -1){
-	return;
+threshold.save_threshold = function(updateButton, dsId, op, thrVal){
+    threshold.removeMessages();
+    if( threshold.save_queue.indexOf(dsId) > -1){
+	return -1;
     }
-    threshold.save_queue.push(dsid);
-    $.ajax( { url: '/threshold/savethresholds/',
-	      data: { 'dsIds': dsid,
-                      'operator': operator,
-                      'threshold': thrVal
-                    },
-	      dataType: 'json',
-	      type: 'POST',
-	      success: function(data){
-                        var retval = 0;
-		        if(data.error){
-                            threshold.callbackFail(updateButton);
-                            threshold.updateMessages(data.message, true);
-                            retVal = -1;
-			 } else {
-			    threshold.callbackSuccess(updateButton);
-                         }
-		         threshold.removeFromQueue(dsid);
-                         return retVal;
-		       },
-	      error: function(req, errMsg, errType){
-                        return threshold.ajaxError(req, errMsg, errType);
-                     },
-	      complete: function(){
-		            threshold.removeFromQueue(dsid);
-                            return 0;
-		        },
-            statusCode: {404: function(){
-                                return threshold.pageNotFound();
-                              }
-                        }
-            });
+    threshold.save_queue.push(dsId);
+    var thrRecord = {'dsId': dsId, 'op': op, 'thrVal': thrVal};
+    var retVal = threshold.saveToServer([thrRecord]);
+    if(retVal == -1){
+        threshold.callbackFail(updateButton);
+        if(threshold.saveMessage != null){
+            threshold.updateMessages(threshold.saveMessage.message, true);
+        } else {
+            threshold.updateMessages('Save failed', true);
+        }
+    } else {
+        threshold.callbackSuccess(updateButton);
+    }
+    threshold.removeFromQueue(dsId);
+    return 0;
 };
 
 threshold.callbackSuccess = function(button){
