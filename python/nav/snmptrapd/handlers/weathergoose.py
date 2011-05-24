@@ -1,6 +1,7 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009 Norwegian University of Science and Technology
+# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011 Narvik University College
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,10 +15,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""NAV snmptrapd handler plugin to handle traps from Weathergoose Climate
-Monitor.
-
-Tested on a WxGoos-1 v2.80
+"""NAV snmptrapd plugin to handle traps from IT Watchdogs' WeatherGoose
+Climate Monitor, versions 1 and 2.
 
 """
 
