@@ -28,6 +28,19 @@ from nav.db import getConnection
 
 logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
+EVENTTYPES = {
+    'weathergoose_temperature':
+        ['cmClimateTempCTRAP','cmClimateTempCCLEAR'],
+    'weathergoose_humidity':
+        ['cmClimateHumidityTRAP','cmClimateHumidityCLEAR'],
+    'weathergoose_airflow':
+        ['cmClimateAirflowTRAP','cmClimateAirflowCLEAR'],
+    'weathergoose_light':
+        ['cmClimateLightTRAP','cmClimateLightCLEAR'],
+    'weathergoose_sound':
+        ['cmClimateSoundTRAP','cmClimateSoundCLEAR'],
+    }
+
 class WeatherGoose1(object):
     from nav.smidumps.itw_mib import MIB
 
@@ -36,32 +49,23 @@ class WeatherGoose1(object):
     NODES = MIB['nodes']
     TRIPTYPE = "." + NODES['alarmTripType']['oid']
     GOOSENAME = "." + NODES['climateName']['oid'] + '.1'
-    TRIGGERTRAPS = ['cmClimateTempCTRAP', 'cmClimateHumidityTRAP',
-                    'cmClimateAirflowTRAP', 'cmClimateLightTRAP',
-                    'cmClimateSoundTRAP']
-    CLEARTRAPS = ['cmClimateTempCCLEAR', 'cmClimateHumidityCLEAR',
-                    'cmClimateAirflowCLEAR', 'cmClimateLightCLEAR',
-                    'cmClimateSoundCLEAR']
+    TRIGGERTRAPS = {
+        'cmClimateTempCTRAP': 'weathergoose_temperature',
+        'cmClimateHumidityTRAP': 'weathergoose_humidity',
+        'cmClimateAirflowTRAP': 'weathergoose_airflow',
+        'cmClimateLightTRAP': 'weathergoose_light',
+        'cmClimateSoundTRAP': 'weathergoose_sound',
+        }
+    CLEARTRAPS = {
+        'cmClimateTempCCLEAR': 'weathergoose_temperature',
+        'cmClimateHumidityCLEAR': 'weathergoose_humidity',
+        'cmClimateAirflowCLEAR': 'weathergoose_airflow',
+        'cmClimateLightCLEAR': 'weathergoose_light',
+        'cmClimateSoundCLEAR': 'weathergoose_sound',
+        }
     CLIMATEOIDS = ['climateTempC', 'climateHumidity', 'climateAirflow',
                    'climateLight', 'climateSound']
     TRIPTYPES = {'0': 'None', '1': 'Low', '2': 'High', '3': 'Unplugged'}
-
-    # Alternative:
-    # EVENTTYPES = {('eventtypeid', 'description', True):
-    #               [alerttypes],
-    #               ...
-    #              }
-    EVENTTYPES = {'weathergoose_temperature':
-                  ['cmClimateTempCTRAP','cmClimateTempCCLEAR'],
-                  'weathergoose_humidity':
-                  ['cmClimateHumidityTRAP','cmClimateHumidityCLEAR'],
-                  'weathergoose_airflow':
-                  ['cmClimateAirflowTRAP','cmClimateAirflowCLEAR'],
-                  'weathergoose_light':
-                  ['cmClimateLightTRAP','cmClimateLightCLEAR'],
-                  'weathergoose_sound':
-                  ['cmClimateSoundTRAP','cmClimateSoundCLEAR'],
-                  }
 
     @classmethod
     def can_handle(cls, oid):
@@ -69,7 +73,7 @@ class WeatherGoose1(object):
 
     @classmethod
     def map_oid_to_trigger(cls, oid):
-        for trigger in cls.TRIGGERTRAPS + cls.CLEARTRAPS:
+        for trigger in cls.TRIGGERTRAPS.keys() + cls.CLEARTRAPS.keys():
             if oid == "." + cls.TRAPS[trigger]['oid']:
                 return trigger
 
@@ -92,7 +96,6 @@ class WeatherGoose1(object):
 
         self.goosename = self.trap.varbinds.get(self.GOOSENAME, 'N/A')
 
-        # Type of alarm trip. 0 = None, 1 = Low, 2 = High, 3 = Unplugged
         self.triptype = self.TRIPTYPES.get(self.trap.varbinds[self.TRIPTYPE],
                                            'N/A')
 
@@ -137,10 +140,9 @@ class WeatherGoose1(object):
         return True
 
     def _get_event_type(self):
-        # Find eventtype
-        for eventtype in self.EVENTTYPES:
-            if self.trigger in self.EVENTTYPES[eventtype]:
-                return eventtype
+        for trigdict in (self.TRIGGERTRAPS, self.CLEARTRAPS):
+            if self.trigger in trigdict:
+                return trigdict[self.trigger]
 
     def _get_event_state(self):
         if self.trigger in self.TRIGGERTRAPS:
@@ -151,7 +153,14 @@ class WeatherGoose1(object):
             return 'x'
 
     def _get_alert_type(self):
-        return self.trigger #FIXME map to proper name
+        etype = self._get_event_type()
+        state = self._get_event_state()
+        if etype in EVENTTYPES:
+            start, stop = EVENTTYPES[etype]
+            if state == 's':
+                return start
+            elif state == 'e':
+                return stop
 
 
 class WeatherGoose2(WeatherGoose1):
@@ -162,26 +171,13 @@ class WeatherGoose2(WeatherGoose1):
     NODES = MIB['nodes']
     TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
 
-    TRIGGERTRAPS = ['cmClimateTempCNOTIFY', 'cmClimateHumidityNOTIFY',
-                    'cmClimateAirflowNOTIFY', 'cmClimateLightNOTIFY',
-                    'cmClimateSoundNOTIFY']
-
-    # Alternative:
-    # EVENTTYPES = {('eventtypeid', 'description', True):
-    #               [alerttypes],
-    #               ...
-    #              }
-    EVENTTYPES = {'weathergoose_temperature':
-                  ['cmClimateTempCNOTIFY','cmClimateTempCCLEAR'],
-                  'weathergoose_humidity':
-                  ['cmClimateHumidityNOTIFY','cmClimateHumidityCLEAR'],
-                  'weathergoose_airflow':
-                  ['cmClimateAirflowNOTIFY','cmClimateAirflowCLEAR'],
-                  'weathergoose_light':
-                  ['cmClimateLightNOTIFY','cmClimateLightCLEAR'],
-                  'weathergoose_sound':
-                  ['cmClimateSoundNOTIFY','cmClimateSoundCLEAR'],
-                  }
+    TRIGGERTRAPS = {
+        'cmClimateTempCNOTIFY': 'weathergoose_temperature',
+        'cmClimateHumidityNOTIFY': 'weathergoose_humidity',
+        'cmClimateAirflowNOTIFY': 'weathergoose_airflow',
+        'cmClimateLightNOTIFY': 'weathergoose_light',
+        'cmClimateSoundNOTIFY': 'weathergoose_sound',
+        }
 
 def handleTrap(trap, config=None):
     """ This function is called from snmptrapd """
@@ -209,13 +205,11 @@ def initialize_eventdb():
     """ Populate the database with eventtype and alerttype information """
     h = {}
     for eventtype in EVENTTYPES:
-        # We don't need description...? See alternate build of EVENTTYPES
-        h[(eventtype, '', True)] = []
+        eventdescr = (eventtype, '', True)
+        h[eventdescr] = []
         for alerttype in EVENTTYPES[eventtype]:
-            h[(eventtype, '', True)].append(
-                (alerttype, TRAPS[alerttype]['description']))
-
-    #logger.debug(h)
+            h[eventdescr].append((alerttype,
+                                  _get_alert_description(alerttype)))
 
     try:
         nav.event.create_type_hierarchy(h)
@@ -223,5 +217,9 @@ def initialize_eventdb():
         logger.error(e)
         return False
 
+def _get_alert_description(alerttype):
+    for goose_ver in WeatherGoose1, WeatherGoose2:
+        if alerttype in goose_ver.TRAPS:
+            return goose_ver.TRAPS[alerttype]['description']
 
 initialize_eventdb()
