@@ -65,7 +65,7 @@ class WeatherGoose1(object):
         }
     CLIMATEOIDS = ['climateTempC', 'climateHumidity', 'climateAirflow',
                    'climateLight', 'climateSound']
-    TRIPTYPES = {'0': 'None', '1': 'Low', '2': 'High', '3': 'Unplugged'}
+    TRIPTYPES = {0: 'None', 1: 'Low', 2: 'High', 3: 'Unplugged'}
 
     @classmethod
     def can_handle(cls, oid):
