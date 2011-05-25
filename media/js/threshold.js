@@ -51,6 +51,8 @@ var threshold = threshold || {};
 threshold.netboxSearchReq = null;
 /* Used as a semaphore to block out concurrent ajax-calls to bulkset */
 threshold.getBulkUpdateHtmlReq = null;
+/* Used as a semaphore to block out concurrent ajax-calls to chooseDevice */
+threshold.chooseDeviceTypeReq = null;
 /* netbox- or interface-mode */
 threshold.displayMode = '';
 threshold.stdBgColor = 'white';
@@ -172,8 +174,8 @@ threshold.stripPerCentSymbol = function(str){
 };
 
 /*
-    NB!
-    Always remember to keep error-chekcing here and on server in sync!
+ * NB!
+ * Always remember to keep error-chekcing here and on server in sync!
 */
 threshold.isLegalThreshold = function(thr){
     if( thr.length == 0){
@@ -208,6 +210,7 @@ threshold.showErrorThreshold = function(inp){
 
 threshold.netboxSearch = function(){
     if(threshold.netboxSearchReq) {
+        /* The previous ajax-call is cancelled and replaced with the last */
         threshold.netboxSearchReq.abort();
     }
     threshold.showAjaxLoader();
@@ -304,7 +307,8 @@ threshold.netboxSearch = function(){
 
 threshold.getBulkUpdateHtml = function(descr, ids){
     if(threshold.getBulkUpdateHtmlReq){
-        return -1;
+        /* The previous ajax-call is cancelled and replaced with the last */
+        threshold.getBulkUpdateHtmlReq.abort();
     }
     if(! threshold.isLegalDescription(descr)){
         threshold.updateMessages('Illegal threshold description', true);
@@ -349,7 +353,12 @@ threshold.getBulkUpdateHtml = function(descr, ids){
 };
 
 threshold.chooseDeviceType = function(the_select, select_val){
-    $.ajax({url: '/threshold/choosetype/',
+    if(threshold.chooseDeviceTypeReq){
+        /* The previous ajax-call is cancelled and replaced with the last */
+        threshold.chooseDeviceTypeReq.abort();
+    }
+    threshold.chooseDeviceTypeReq =
+        $.ajax({url: '/threshold/choosetype/',
             data: {'descr': select_val},
             dataType: 'json',
             type: 'POST',
@@ -378,8 +387,9 @@ threshold.chooseDeviceType = function(the_select, select_val){
                         return threshold.ajaxError(req, errMsg, errType);
                     },
             complete: function(header, textStatus){
-                          return 0;
-                       },
+                        threshold.chooseDeviceTypeReq = null;
+                        return 0;
+                      },
             statusCode: {404: function(){
                                 return threshold.pageNotFound();
                                },
@@ -515,7 +525,6 @@ threshold.saveSingleThreshold = function(btn){
     }       
 
     var chkbox= $(row).find('input:checkbox[name="include"]');
-    var toSave = [chkbox];
     threshold.saveChosenThresholds([chkbox]);
     return 0;
 };
