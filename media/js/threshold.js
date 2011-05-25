@@ -29,6 +29,10 @@ if(!Array.indexOf){
     }
 }
 
+/*
+ * A simple timer-function that will call the given "callback"
+ * after a timeout(given in millisecs).
+*/
 var typeDelay = function(){
     var timer = 0;
     return function(callback, ms){
@@ -37,9 +41,17 @@ var typeDelay = function(){
     }  
 }();
 
+/*
+ * Declare a separate namespace for all variables and functions related to
+ * the threshold-webpages.
+*/
 var threshold = threshold || {};
 
+/* Used as a semaphore to block out concurrent ajax-calls to netbox-search. */
 threshold.netboxSearchReq = null;
+/* Used as a semaphore to block out concurrent ajax-calls to bulkset */
+threshold.getBulkUpdateHtmlReq = null;
+/* netbox- or interface-mode */
 threshold.displayMode = '';
 threshold.stdBgColor = 'white';
 threshold.stdErrColor = 'red';
@@ -48,6 +60,11 @@ threshold.perCentRepl = new RegExp('%*$');
 threshold.descriptionRegExp = new RegExp('^[a-zA-Z][a-zA-Z0-9\ ]+$');
 threshold.thresholdSaveStatus = 0;
 threshold.saveMessage = null;
+
+/*
+ * Kind of a semaphore to block out concurrent ajax-calls for
+ * save_threshold.
+*/
 threshold.save_queue =  new Array();
 
 threshold.removeFromQueue = function(id){
@@ -111,6 +128,10 @@ threshold.hideAjaxLoader = function(){
     $('span.ajaxLoader').hide();
 };
 
+/*
+ * Takes a table and makes it a string.  Each element from the table
+ * is separated with the character "|" in the string.
+*/
 threshold.table2String = function(tab){
     var len = tab.length;
     var ret_str = '';
@@ -270,6 +291,9 @@ threshold.netboxSearch = function(){
                        },
              statusCode: {404: function(){
                                 return threshold.pageNotFound();
+                               },
+                          500: function(){
+                                return threshold.serverError();
                                }
                         }
         });
@@ -279,6 +303,9 @@ threshold.netboxSearch = function(){
 
 
 threshold.getBulkUpdateHtml = function(descr, ids){
+    if(threshold.getBulkUpdateHtmlReq){
+        return -1;
+    }
     if(! threshold.isLegalDescription(descr)){
         threshold.updateMessages('Illegal threshold description', true);
         return -1;
@@ -287,7 +314,8 @@ threshold.getBulkUpdateHtml = function(descr, ids){
         'descr': descr,
         'ids': ids
         };
-    $.ajax({url: '/threshold/preparebulk/',
+    threshold.getBulkUpdateHtmlReq =
+        $.ajax({url: '/threshold/preparebulk/',
                 data: inputData,
                 dataType: 'text',
                 type: 'POST',
@@ -300,15 +328,20 @@ threshold.getBulkUpdateHtml = function(descr, ids){
                             $('div.#interfacesearch').hide();
                             $('div.#bulkupdateDiv').show();
                             $('div.#bulkupdateDiv').html(data);
+                            return 0;
                         },
                 error: function(req, errMsg, errType){
                         return threshold.ajaxError(req, errMsg, errType);
                        },
                 complete: function(header, textStatus){
+                            threshold.getBulkUpdateHtmlReq = null;
                             return 0;
                           },
                 statusCode: {404: function(){
                                     return threshold.pageNotFound();
+                                },
+                             500: function(){
+                                    return threshold.serverError();
                                 }
                         }
             });
@@ -349,7 +382,10 @@ threshold.chooseDeviceType = function(the_select, select_val){
                        },
             statusCode: {404: function(){
                                 return threshold.pageNotFound();
-                               }
+                               },
+                         500: function(){
+                                return threshold.serverError();
+                              }
                         }
           });
 };
