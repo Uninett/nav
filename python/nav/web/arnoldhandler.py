@@ -579,7 +579,7 @@ def print_history(cur, page, sort, section, days):
                            str(item['identityid']) + "' title='Details'>"
                            "<img src='/images/arnold/details.png'></a>")
 
-    page.hits = len(list)
+    page.hits = len(item_list)
     page.list = item_list
     page.section = section
 
