@@ -15,29 +15,31 @@
 #
 """Arnold mod_python handler module."""
 
+import re
+import logging
 from mod_python import apache
 from mod_python.util import FieldStorage
-import re
-import nav, nav.path
-from nav import web, db
-from nav.web.templates.MainTemplate import MainTemplate
+import nav
+import nav.path
+import nav.arnold
+#from nav import web
+from nav import db
+#from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.templates.ArnoldTemplate import ArnoldTemplate
 from nav.web.URI import URI
 from nav.web.encoding import encoded_output
-from urllib import unquote_plus
-from IPy import IP
-import nav.arnold
 from nav.errors import GeneralException
+#from urllib import unquote_plus
+#from IPy import IP
 
 import psycopg2.extras
 import ConfigParser
-import logging
 logger = logging.getLogger('nav.arnoldhandler')
 
 # Read config from configfile
-configfile = nav.path.sysconfdir + "/arnold/arnold.conf"
+CONFIG_FILE = nav.path.sysconfdir + "/arnold/arnold.conf"
 config = ConfigParser.ConfigParser()
-config.read(configfile)
+config.read(CONFIG_FILE)
 
 # Connect to the database
 
@@ -45,17 +47,17 @@ global manage, conn
 # Connect to manage-database
 manage = nav.db.getConnection('default')
 # Connect to arnold-database
-conn = db.getConnection('arnold', 'arnold');
+conn = db.getConnection('arnold', 'arnold')
     
 
 ############################################################
 @encoded_output
 def handler(req):
-
+    """ Handrler """
     # getConnection('subsystem','database')
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    arnoldhome = nav.path.bindir
+    # arnoldhome = nav.path.bindir
 
     # Reload to make sure any changes in ArnoldTemplate are included
 
@@ -63,20 +65,20 @@ def handler(req):
     args = URI(req.unparsed_uri)
 
     page = ArnoldTemplate()
-    fs = FieldStorage(req) # contains get and post variables
+    params = FieldStorage(req) # contains get and post variables
 
     # Page path is used for quick navigation
     page.path = [("Home","/"), ("Arnold", False)]
 
     section = ""
-    s = re.search("arnold\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
-    if s:
-        section = s.group(1)
+    matched_sections = re.search("arnold\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
+    if matched_sections:
+        section = matched_sections.group(1)
     else:
         section = 'blockedports'
 
     # Make menu based on user
-    setMenu(page)
+    set_menu(page)
 
     username = req.session['user']['login']
     page.username = username
@@ -89,23 +91,23 @@ def handler(req):
     if section == 'predefined':
         sort = args.get('sort') or 'blocktitle'
         page.head = 'List of current predefined detentions'
-        printBlocks(cur, page, sort, section)
+        print_blocks(cur, page, sort, section)
         page.path.append(("Predefined Detentions", False))
 
     elif section == 'deletepredefined':
         page.head = "Delete predefined detention"
         page.blockid = args.get('blockid') or 0
-        printDeletePredefined(cur, page)
+        print_delete_predefined(cur, page)
         page.path.append(("Delete predefined detention", False))
 
     elif section == 'dodeletepredefined':
-        if fs.has_key('predefinedid'):
-            q = """DELETE FROM block WHERE blockid=%s"""
-            predefinedid = str(fs['predefinedid'])
-            cur.execute(q, (predefinedid, ))
+        if params.has_key('predefinedid'):
+            sql_query = """DELETE FROM block WHERE blockid=%s"""
+            predefinedid = str(params['predefinedid'])
+            cur.execute(sql_query, (predefinedid, ))
             
             redirect(req, 'predefined?output=Predefined detention %s deleted.'
-                     %fs['predefinedtitle'])
+                     % params['predefinedtitle'])
         else:
             redirect(req, 'predefined?output=Error: No postvariable')
 
@@ -114,13 +116,13 @@ def handler(req):
         days = args.get('days') or '7'
         # This is printhistory
         page.head = "History"
-        printHistory(cur, page, sort, section, days)
+        print_history(cur, page, sort, section, days)
         page.path.append (("History", False))
 
     elif section == 'blockedports':
         sort = args.get('sort') or 'ip'
         page.head = "List of detained ports"
-        printBlocked(cur, page, sort, section)
+        print_blocked(cur, page, sort, section)
         page.path.append(("Detained ports", False))
 
     elif section == 'search':
@@ -129,7 +131,7 @@ def handler(req):
         searchtext = args.get('searchtext') or ''
         status = args.get('status')
         days = args.get('days')
-        printSearch(cur, page, searchfield, searchtext, status, days)
+        print_search(cur, page, searchfield, searchtext, status, days)
         page.path.append(("Search", False))
 
     elif section == 'addreason':
@@ -137,23 +139,24 @@ def handler(req):
         page.reasonid = args.get('reasonid') or 0
         page.name = args.get('name') or ''
         page.comment = args.get('comment') or ''
-        printDetentionreasons(cur, page, section)
+        print_detention_reasons(cur, page, section)
         page.path.append(("Add detentionreason", False))
 
     elif section == 'deletereason':
         page.head = "Delete detentionreason"
         page.reasonid = args.get('reasonid') or 0
-        printDeleteReason(cur, page)
+        print_delete_reason(cur, page)
         page.path.append(("Delete detentionreason", False))
 
     elif section == 'dodeletereason':
-        if fs.has_key('reasonid'):
-            q = """DELETE FROM blocked_reason WHERE blocked_reasonid=%s"""
-            reasonid = str(fs['reasonid'])
-            cur.execute(q, (reasonid, ))
+        if params.has_key('reasonid'):
+            sql_query = """
+            DELETE FROM blocked_reason WHERE blocked_reasonid=%s"""
+            reasonid = str(params['reasonid'])
+            cur.execute(sql_query, (reasonid, ))
             
             redirect(req, 'addreason?output=Detentionreason %s deleted.'
-                     %fs['reasonname'])
+                     % params['reasonname'])
         else:
             redirect(req, 'addreason?output=Error: No postvariable')
 
@@ -162,23 +165,23 @@ def handler(req):
         page.quarantineid = args.get('quarantineid') or 0
         page.vlan = args.get('vlan') or ''
         page.description = args.get('description') or ''
-        printAddQuarantine(cur, page)
+        print_add_quarantine(cur, page)
         page.path.append(("Add quarantine vlan", False))
 
     elif section == 'deletequarantinevlan':
         page.head = "Delete quarantine vlan"
         page.quarantineid = args.get('quarantineid') or 0
-        printDeleteQuarantine(cur, page)
+        print_delete_quarantine(cur, page)
         page.path.append(("Delete quarantine vlan", False))
 
     elif section == 'dodeletequarantinevlan':
-        if fs.has_key('vlanid'):
-            q = """DELETE FROM quarantine_vlans WHERE quarantineid=%s"""
-            vlanid = str(fs['vlanid'])
-            cur.execute(q, (vlanid, ))
+        if params.has_key('vlanid'):
+            sql_query = """DELETE FROM quarantine_vlans WHERE quarantineid=%s"""
+            vlanid = str(params['vlanid'])
+            cur.execute(sql_query, (vlanid, ))
             
             redirect(req, 'addquarantinevlan?output=Quarantinevlan %s deleted.'
-                     %fs['vlan'])
+                     % params['vlan'])
         else:
             redirect(req, 'addquarantinevlan?output=Error: No postvariable')
 
@@ -186,26 +189,26 @@ def handler(req):
         sort = args.get('sort') or 'ip'
         page.head = "Manual Detention"
         page.defaultdetention = config.get('arnoldweb','defaultdetention')
-        printManualDetention(cur, page)
+        print_manual_detention(cur, page)
         page.path.append(("Manual Detention", False))        
 
     elif section == 'showdetails':
         page.head = "Details"
-        id = args.get('id')
-        showDetails(cur, page, section, id)
+        identity = args.get('id')
+        show_details(cur, page, section, identity)
         page.path.append(("Details", False))
 
     elif section == 'addPredefined':
         page.head = ""
         page.path.append(("AddPredefined", False))
         page.defaultdetention = config.get('arnoldweb','defaultdetention')
-        id = args.get('blockid')
-        if not id:
-            id = 0
-        printAddpredefined(cur, page, id)
+        identity = args.get('blockid')
+        if not identity:
+            identity = 0
+        print_add_predefined(cur, page, identity)
 
     elif section == 'doenable':
-        id = args.get('id')
+        identity = args.get('id')
 
         # Find all ports blocked because of this mac, and if there are
         # more than one load a new page where the user can choose
@@ -214,20 +217,20 @@ def handler(req):
         managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         # Find mac-address of this identityid
-        q = "SELECT * FROM identity WHERE identityid = %s"
-        cur.execute(q, (id,))
+        sql_query = "SELECT * FROM identity WHERE identityid = %s"
+        cur.execute(sql_query, (identity,))
         row = cur.fetchone()
 
         # Select all identities where this mac is the cause of block
-        q = """SELECT * FROM identity
+        sql_query = """SELECT * FROM identity
         WHERE mac = %s
         AND blocked_status IN ('quarantined', 'disabled')"""
-        cur.execute(q, (row['mac'],))
+        cur.execute(sql_query, (row['mac'],))
 
         # Get switchinformation from database
         blockedports = [dict(row) for row in cur.fetchall()]
         for element in blockedports:
-            q = """
+            sql_query = """
             SELECT sysname, module, baseport FROM netbox
             LEFT JOIN module USING (netboxid)
             LEFT JOIN interface USING (netboxid)
@@ -235,8 +238,8 @@ def handler(req):
             """
 
             try:
-                managec.execute(q, (element['swportid'],))
-            except nav.db.driver.ProgrammingError, e:
+                managec.execute(sql_query, (element['swportid'],))
+            except nav.db.driver.ProgrammingError, programming_ex:
                 # We just fill a dict with info if we get any, no
                 # need react on error really
                 continue
@@ -260,7 +263,7 @@ def handler(req):
                     nav.arnold.openPort(args.args[getvar], username)
                 except nav.arnold.NoDatabaseInformationError, why:
                     logger.error("Error when opening %s: %s"
-                                 %(args.args[getvar], why))
+                                 % (args.args[getvar], why))
                     continue
 
         redirect(req, 'blockedports')
@@ -272,8 +275,8 @@ def handler(req):
         try:
             info = nav.arnold.findIdInformation(ip, 3)
         except (nav.arnold.UnknownTypeError,
-                nav.arnold.NoDatabaseInformationError), e:
-            redirect(req, 'manualdetain?output=%s' %e)
+                nav.arnold.NoDatabaseInformationError), unknown_ex:
+            redirect(req, 'manualdetain?output=%s' % unknown_ex)
 
         page.arg = args.args
         page.candidates = info
@@ -284,21 +287,23 @@ def handler(req):
         # Use blockport in arnold-library to block port and update
         # database
 
-        id = {}
-        id['mac'] = args.get('mac')
-        id['ip'] = args.get('ip')
+        identity = {}
+        identity['mac'] = args.get('mac')
+        identity['ip'] = args.get('ip')
 
         netboxid = int(args.get('netboxid'))
         ifindex = int(args.get('ifindex'))
 
+        switch_port_info = None
         try:
-            sw = nav.arnold.findSwportinfo(netboxid, ifindex)
+            switch_port_info = nav.arnold.findSwportinfo(netboxid, ifindex)
         except nav.arnold.PortNotFoundError, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         # NB: Autoenablestep only set by a blockrun
         try:
-            nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
+            nav.arnold.blockPort(identity, switch_port_info,
+                                 args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
                                  req.session['user']['login'], 'block')
@@ -312,22 +317,24 @@ def handler(req):
         # Use blockport in arnold-library to block port and update
         # database
 
-        id = {}
-        id['mac'] = args.get('mac')
-        id['ip'] = args.get('ip')
+        identity = {}
+        identity['mac'] = args.get('mac')
+        identity['ip'] = args.get('ip')
 
         netboxid = int(args.get('netboxid'))
         ifindex = int(args.get('ifindex'))
         vlan = int(args.get('quarantinevlan'))
 
+        switch_port_info = None
         try:
-            sw = nav.arnold.findSwportinfo(netboxid, ifindex)
+            switch_port_info = nav.arnold.findSwportinfo(netboxid, ifindex)
         except nav.arnold.PortNotFoundError, why:
             redirect(req, 'blockedports?output=' + str(why))
 
         # NB: Autoenablestep only set by a blockrun
         try:
-            nav.arnold.blockPort(id, sw, args.get('autoenable'), 0,
+            nav.arnold.blockPort(identity, switch_port_info,
+                                 args.get('autoenable'), 0,
                                  args.get('determined'), args.get('reasonid'),
                                  args.get('comment'),
                                  req.session['user']['login'], 'quarantine',
@@ -362,15 +369,15 @@ def handler(req):
 
             # Check if this is update or insert.
             if quarantineid > 0:
-                q = """
+                sql_query = """
                 UPDATE quarantine_vlans
                 SET description=%s, vlan=%s
                 WHERE quarantineid=%s
                 """
                 try:
-                    cur.execute(q, (description, vlan, quarantineid))
-                except Exception, e:
-                    logger.exception(e)
+                    cur.execute(sql_query, (description, vlan, quarantineid))
+                except Exception, sql_ex:
+                    logger.exception(sql_ex)
                 
             else:
                 # Check that this quarantinevlan does not already exist.
@@ -379,22 +386,22 @@ def handler(req):
                 """
                 try:
                     cur.execute(checkexistence, (vlan,))
-                except Exception, e:
-                    logger.exception(e)
+                except Exception, sql_ex:
+                    logger.exception(sql_ex)
                     redirect(req, 'addquarantinevlan')
 
                 if cur.rowcount > 0:
                     redirect(req, 'addquarantinevlan?'
                              'output=Quarantine vlan already exists.')
                 
-                q = """
+                sql_query = """
                 INSERT INTO quarantine_vlans (description, vlan)
                 VALUES (%s, %s)
                 """
                 try:
-                    cur.execute(q, (description, vlan))
-                except Exception, e:
-                    logger.exception(e)
+                    cur.execute(sql_query, (description, vlan))
+                except Exception, sql_ex:
+                    logger.exception(sql_ex)
                     
                 
         redirect(req, 'addquarantinevlan')
@@ -409,21 +416,21 @@ def handler(req):
 
         if not blockid:
             newreason = args.get('newreason')
-            nr = re.match("--", newreason)
-            if not nr:
-                q = """
+            no_reason = re.match("--", newreason)
+            if not no_reason:
+                sql_query = """
                 SELECT blocked_reasonid FROM blocked_reason WHERE name = %s
                 """
-                cur.execute(q,(newreason,))
+                cur.execute(sql_query, (newreason,))
                 if cur.rowcount < 1:
-                    q = """SELECT
+                    sql_query = """SELECT
                     nextval('blocked_reason_blocked_reasonid_seq')"""
-                    cur.execute(q)
+                    cur.execute(sql_query)
                     reasonid = cur.fetchone()[0]
                     try:
-                        q = """INSERT INTO blocked_reason
+                        sql_query = """INSERT INTO blocked_reason
                         (blocked_reasonid, name) VALUES (%s, %s)"""
-                        cur.execute(q, (reasonid, newreason))
+                        cur.execute(sql_query, (reasonid, newreason))
                     except nav.db.driver.ProgrammingError, why:
                         conn.rollback()
                 else:
@@ -455,7 +462,7 @@ def handler(req):
 
         if blockid:
 
-            q = """ UPDATE block
+            sql_query = """ UPDATE block
             SET blocktitle=%s, blockdesc=%s, reasonid=%s, mailfile=%s,
             inputfile=%s, determined=%s, incremental=%s, blocktime=%s,
             active=%s, lastedited=now(), lastedituser=%s, activeonvlans=%s,
@@ -464,15 +471,15 @@ def handler(req):
 
             try:
 
-                cur.execute(q, (blocktitle, blockdesc, reasonid, mailfile,
-                                inputfile, determined, incremental, blocktime,
-                                active, lasteditedby, activeonvlans,
+                cur.execute(sql_query, (blocktitle, blockdesc, reasonid,
+                                mailfile, inputfile, determined, incremental,
+                                blocktime, active, lasteditedby, activeonvlans,
                                 detainmenttype, quarantineid, blockid))
 
             except nav.db.driver.ProgrammingError, why:
                 conn.rollback()
         else:
-            q = """
+            sql_query = """
             INSERT INTO block (blocktitle, blockdesc, mailfile,
             reasonid, determined, incremental, blocktime, active,
             lastedited, lastedituser, inputfile, activeonvlans, detainmenttype,
@@ -481,7 +488,7 @@ def handler(req):
             """
             try:
 
-                cur.execute(q, (blocktitle, blockdesc, mailfile,
+                cur.execute(sql_query, (blocktitle, blockdesc, mailfile,
                                 reasonid, determined, incremental, blocktime,
                                 active, lasteditedby, inputfile, activeonvlans,
                                 detainmenttype, quarantineid))
@@ -517,7 +524,8 @@ def handler(req):
 
 
 ############################################################
-def setMenu(page):
+def set_menu(page):
+    """ Set menu """
     buttonnames = ['History', "Detained ports", "Search",
                    "Add detentionreason", "Manual detention",
                    "Predefined Detentions", "Add Quarantine vlan"]
@@ -532,10 +540,8 @@ def setMenu(page):
 
 
 ############################################################
-def printHistory(cur, page, sort, section, days):
-    """
-    Get history information based on input.
-    """
+def print_history(cur, page, sort, section, days):
+    """ Get history information based on input.  """
 
     reconnect()
 
@@ -556,31 +562,31 @@ def printHistory(cur, page, sort, section, days):
     page.sort = 1
 
     try:
-        query = """
+        sql_query = """
         SELECT DISTINCT identityid, ip, mac, dns, netbios, orgid,
         name AS reason, starttime,  blocked_status AS status,
         to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') as lastchanged, swportid
         FROM identity LEFT JOIN blocked_reason USING (blocked_reasonid)
         WHERE lastchanged > current_date - interval '%s days'  ORDER BY %s
         """ % (days, sort)
-        cur.execute(query)
-        list = [dict(row) for row in cur.fetchall()]
-    except nav.db.driver.ProgrammingError, e:
-        list = {}
+        cur.execute(sql_query)
+        item_list = [dict(row) for row in cur.fetchall()]
+    except nav.db.driver.ProgrammingError, programming_ex:
+        item_list = {}
 
-    for item in list:
+    for item in item_list:
         item['details'] = ("<a href='showdetails?id=" +
                            str(item['identityid']) + "' title='Details'>"
                            "<img src='/images/arnold/details.png'></a>")
 
     page.hits = len(list)
-    page.list = list
+    page.list = item_list
     page.section = section
 
 
 ############################################################
-def printBlocked(cur, page, sort, section):
-
+def print_blocked(cur, page, sort, section):
+    """  Print blocked """
     reconnect()
 
     page.headersList = ['ip', 'dns', 'netbios', 'status', 'reason', 'sysname',
@@ -604,11 +610,11 @@ def printBlocked(cur, page, sort, section):
     page.headertext = "List of ports currently detained"
     page.hitstext = "ports detained"
     
-    list = [dict(row) for row in cur.fetchall()]
+    item_list = [dict(row) for row in cur.fetchall()]
     
     managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    for item in list:
+    for item in item_list:
         item['lastchanged'] = item['lastchanged'].strftime('%Y-%m-%d %k:%M:%S')
         item['activate'] = ("<a href='doenable?id=" + str(item['identityid']) +
                             "' title='Remove detention'>"
@@ -633,13 +639,13 @@ def printBlocked(cur, page, sort, section):
             
 
     page.sort = 1
-    page.list = list
+    page.list = item_list
     page.section = section
 
 
 ############################################################
-def printSearch(cur, page, searchfield, searchtext, status, days):
-
+def print_search(cur, page, searchfield, searchtext, status, days):
+    """  Print search """
     reconnect()
     
     searchfields = ['IP', 'MAC', 'Netbios', 'dns']
@@ -651,7 +657,7 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
 
     try:
         days = abs(int(days)) or 7
-    except (ValueError, TypeError), e:
+    except (ValueError, TypeError), val_ex:
         days = 7
         
     page.days = days
@@ -688,8 +694,8 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
             pass
         
 
-        q = """SELECT DISTINCT identityid, ip, mac, dns, netbios, orgid,
-        name AS reason, starttime, blocked_status AS status,
+        sql_query = """SELECT DISTINCT identityid, ip, mac, dns, netbios,
+        orgid, name AS reason, starttime, blocked_status AS status,
         to_char(lastchanged,'YYYY-MM-DD HH24:MI:SS') AS lastchanged
         FROM identity LEFT JOIN blocked_reason
         USING (blocked_reasonid)""" + whereclause + """
@@ -697,7 +703,7 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
         days'""" 
         
         try:
-            cur.execute(q, (searchtext,))
+            cur.execute(sql_query, (searchtext,))
             searchresults = [dict(row) for row in cur.fetchall()]
             numresults = cur.rowcount
             
@@ -721,14 +727,14 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
                 
         except nav.db.driver.ProgrammingError:
             page.searchresults = {}
-            page.headertext = "<!-- %s -->\nDBError. Search for %s = %s, \
-            status = %s, last changed %s days ago, did not return anything." \
-            %(q, searchfield, searchtext, page.status, str(page.days))
+            page.headertext = '<!-- %s -->\nDBError. Search for %s = %s, \
+            status = %s, last changed %s days ago, did not return anything.' \
+            % (sql_query, searchfield, searchtext, page.status, str(page.days))
         except nav.db.driver.DataError:
             page.searchresults = {}
             page.headertext = ("<!-- %s -->\nDataError. Searching for %s for "
                                "%s is not valid." %
-                               (q, searchtext, searchfield))
+                               (sql_query, searchtext, searchfield))
 
     else:
         page.searchresults = {}
@@ -737,8 +743,8 @@ def printSearch(cur, page, searchfield, searchtext, status, days):
         
 
 ############################################################
-def printBlocks(cur, page, sort, section):
-
+def print_blocks(cur, page, sort, section):
+    """ Print blocks """
     reconnect()
     
     page.headersList = ['blockid', 'blocktitle', 'blockdesc', 'active',
@@ -748,9 +754,9 @@ def printBlocks(cur, page, sort, section):
                     'edit':'&nbsp;', 'delete':'&nbsp;'}
 
     cur.execute("SELECT * FROM block ORDER BY " + sort)
-    list = [dict(row) for row in cur.fetchall()]
+    element_list = [dict(row) for row in cur.fetchall()]
 
-    for element in list:
+    for element in element_list:
         element['edit'] = ("<a href='addPredefined?blockid=%s'>Edit</a>" %
                            element['blockid'])
         element['delete'] = ("<a href='deletepredefined?blockid=%s'>Delete"
@@ -764,23 +770,23 @@ def printBlocks(cur, page, sort, section):
     page.headertext = "List of current predefined detentions"
     page.hitstext = "predefined detentions registered"
     page.sort = 1
-    page.list = list
+    page.list = element_list
     page.section = section
 
 
 ############################################################
-def printDeletePredefined(cur, page):
-
-    q = """
+def print_delete_predefined(cur, page):
+    """  Print delete predefined """
+    sql_query = """
     SELECT * FROM block WHERE blockid = %s
     """
-    cur.execute(q, (page.blockid, ))
+    cur.execute(sql_query, (page.blockid, ))
     page.predefined = cur.fetchone()
 
 
 ############################################################
-def showDetails (cur, page, section, id):
-
+def show_details (cur, page, section, identity):
+    """ Show details """
     reconnect()
     
     page.headersList = ['ip', 'dns', 'netbios', 'mac', 'sysname', 'modport',
@@ -793,22 +799,22 @@ def showDetails (cur, page, section, id):
     # Connect to manage-database to fetch switchport-information
     managec = manage.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
-    q = """SELECT ip, dns, netbios, mac, swportid, lastchanged, starttime,
-    mail, blocked_status AS status, autoenable, tovlan
+    sql_query = """SELECT ip, dns, netbios, mac, swportid, lastchanged,
+    starttime, mail, blocked_status AS status, autoenable, tovlan
     FROM identity WHERE identityid = %s
     """
-    cur.execute(q, (id,))
-    list = [dict(row) for row in cur.fetchall()]
+    cur.execute(sql_query, (identity,))
+    entry_list = [dict(row) for row in cur.fetchall()]
 
-    q = """
+    sql_query = """
     SELECT * FROM netbox
     JOIN interface USING (netboxid)
     WHERE interfaceid=%s
     """
-    managec.execute(q, (list[0]['swportid'], ))
+    managec.execute(sql_query, (entry_list[0]['swportid'], ))
     managerow = managec.fetchone()
 
-    for entry in list:
+    for entry in entry_list:
         if managec.rowcount <= 0:
             page.output = ("Error: Could not find swport in database. "
                            "Perhaps switch has been replaced?")
@@ -829,19 +835,19 @@ def showDetails (cur, page, section, id):
         else:
             entry['autoenable'] = '&nbsp;'
 
-    page.list = list
+    page.list = entry_list
     page.section = section
     page.sort = 0
-    page.headertext = "Details for " + list[0]['ip']
+    page.headertext = "Details for " + entry_list[0]['ip']
 
-    q = """
+    sql_query = """
     SELECT eventtime, event_comment AS comment,
     blocked_status AS action, name, username
     FROM event
     LEFT JOIN blocked_reason USING (blocked_reasonid)
     WHERE identityid=%s ORDER BY eventtime
     """
-    cur.execute(q, (id,))
+    cur.execute(sql_query, (identity,))
 
     page.headersList2 = ['eventtime', 'action', 'name', 'comment', 'username']
     page.headers2 = {'eventtime':'Eventtime', 'action':'Action',
@@ -859,68 +865,68 @@ def showDetails (cur, page, section, id):
 
 
 ############################################################
-def printDetentionreasons(cur, page, section):
-
+def print_detention_reasons(cur, page, section):
+    """ Print detention reasons """
     reconnect()
 
     page.blockreasonheadersList = ['name', 'comment']
     page.blockreasonheaders = {'name':'Reason', 'comment': 'Comment'}
 
-    q = """
+    query = """
     SELECT blocked_reasonid AS reasonid, name, comment
     FROM blocked_reason ORDER BY reasonid
     """
-    cur.execute(q);
+    cur.execute(query)
     page.blockreasons = cur.fetchall()
     page.headertext = "Existing reasons for detention"
 
 
 ############################################################
-def printDeleteReason(cur, page):
-
-    q = """
+def print_delete_reason(cur, page):
+    """ Print delete reasons """
+    sql_query = """
     SELECT * FROM blocked_reason WHERE blocked_reasonid = %s
     """
-    cur.execute(q, (page.reasonid, ))
+    cur.execute(sql_query, (page.reasonid, ))
     page.reason = cur.fetchone()
 
 
 
 ############################################################
-def printManualDetention(cur, page):
-
+def print_manual_detention(cur, page):
+    """ Print manual detention """
     reconnect()
 
-    q = """
+    sql_query = """
     SELECT blocked_reasonid AS id, name FROM blocked_reason ORDER BY name
     """
-    cur.execute(q);
+    cur.execute(sql_query)
     page.reasons = cur.fetchall()
 
-    q = """
+    sql_query = """
     SELECT * FROM quarantine_vlans ORDER BY vlan
     """
-    cur.execute(q);
+    cur.execute(sql_query)
 
     page.quarantines = cur.fetchall()
 
 
 ############################################################
-def printAddpredefined (cur, page, id):
-
+def print_add_predefined (cur, page, identity):
+    """  Print add predefined """
     reconnect()
 
-    q = """
+    sql_query = """
     SELECT blocked_reasonid AS id, name
     FROM blocked_reason ORDER BY name
     """
-    cur.execute(q);
+    cur.execute(sql_query)
     page.blockreasons = cur.fetchall()
 
-    q = """
+    sql_query = """
     SELECT * FROM quarantine_vlans ORDER BY vlan
     """
-    cur.execute(q);
+    cur.execute(sql_query)
     page.quarantines = cur.fetchall()
 
     # Initialise blockinfo-dict
@@ -931,8 +937,8 @@ def printAddpredefined (cur, page, id):
                  'activeonvlans':'', 'detainmenttype':'disable',
                  'quarantineid': 0}
 
-    if id:
-        cur.execute("SELECT * FROM block WHERE blockid=%s" %id)
+    if identity:
+        cur.execute("SELECT * FROM block WHERE blockid=%s" % identity)
         blockinfo = dict(cur.fetchone())
         blockinfo['lastedited'] = blockinfo['lastedited'].strftime(
             '%Y-%m-%d %k:%M:%S')
@@ -941,14 +947,14 @@ def printAddpredefined (cur, page, id):
 
 
 ############################################################
-def printAddQuarantine(cur, page):
-
+def print_add_quarantine(cur, page):
+    """ Print add quarantine """
     reconnect()
 
-    q = """
+    sql_query = """
     SELECT * FROM quarantine_vlans ORDER BY vlan
     """
-    cur.execute(q)
+    cur.execute(sql_query)
     quarantines = cur.fetchall()
     page.quarantineheaderslist = ['vlan', 'description', 'edit']
     page.quarantineheaders = {'vlan':'Vlan', 'description': 'Description',
@@ -960,18 +966,19 @@ def printAddQuarantine(cur, page):
     page.sort = 0
 
 ############################################################
-def printDeleteQuarantine(cur, page):
-
-    q = """
+def print_delete_quarantine(cur, page):
+    """ Print delete quarantine """
+    sql_query = """
     SELECT * FROM quarantine_vlans WHERE quarantineid = %s
     """
-    cur.execute(q, (page.quarantineid, ))
+    cur.execute(sql_query, (page.quarantineid, ))
     page.quarantine = cur.fetchone()
 
 
 ############################################################
 # A helpful function for redirecting a web-page to another one.
 def redirect(req, url):
+    """ Redirect """
     req.headers_out.add("Location", url)
     raise apache.SERVER_RETURN, apache.HTTP_MOVED_TEMPORARILY
 
@@ -979,10 +986,11 @@ def redirect(req, url):
 ############################################################
 # Connect to both databases
 def reconnect():
+    """ Reconnect """
     global manage, conn
     
     # Connect to manage-database
     manage = nav.db.getConnection('default')
     # Connect to arnold-database
-    conn = db.getConnection('arnold', 'arnold');
+    conn = db.getConnection('arnold', 'arnold')
  
