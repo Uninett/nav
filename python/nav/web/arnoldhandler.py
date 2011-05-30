@@ -94,7 +94,7 @@ def handler(req):
         page.path.append(("Delete predefined detention", False))
 
     elif section == 'dodeletepredefined':
-        if params.has_key('predefinedid'):
+        if 'predefined' in params:
             sql_query = """DELETE FROM block WHERE blockid=%s"""
             predefinedid = str(params['predefinedid'])
             cur.execute(sql_query, (predefinedid, ))
@@ -142,7 +142,7 @@ def handler(req):
         page.path.append(("Delete detentionreason", False))
 
     elif section == 'dodeletereason':
-        if params.has_key('reasonid'):
+        if 'reasonid' in params:
             sql_query = """
             DELETE FROM blocked_reason WHERE blocked_reasonid=%s"""
             reasonid = str(params['reasonid'])
@@ -168,7 +168,7 @@ def handler(req):
         page.path.append(("Delete quarantine vlan", False))
 
     elif section == 'dodeletequarantinevlan':
-        if params.has_key('vlanid'):
+        if 'vlanid' in params:
             sql_query = """DELETE FROM quarantine_vlans WHERE quarantineid=%s"""
             vlanid = str(params['vlanid'])
             cur.execute(sql_query, (vlanid, ))
@@ -450,7 +450,7 @@ def handler(req):
             active = 'y'
         else:
             active = 'n'
-        if req.session.has_key('user') and req.session['user']['id'] > 0:
+        if 'user' in req.session and req.session['user']['id'] > 0:
             lasteditedby = req.session['user']['name']
 
         if blockid:
@@ -720,9 +720,11 @@ def print_search(cur, page, searchfield, searchtext, status, days):
                 
         except nav.db.driver.ProgrammingError:
             page.searchresults = {}
-            page.headertext = '<!-- %s -->\nDBError. Search for %s = %s, \
-            status = %s, last changed %s days ago, did not return anything.' \
-            % (sql_query, searchfield, searchtext, page.status, str(page.days))
+            page.headertext = ("<!-- %s -->\nDBError. Search for %s = %s, "
+                               "status = %s, last changed %s days ago, did "
+                               "not return anything." %
+                               (sql_query, searchfield, searchtext,
+                                page.status, str(page.days)))
         except nav.db.driver.DataError:
             page.searchresults = {}
             page.headertext = ("<!-- %s -->\nDataError. Searching for %s for "
