@@ -20,6 +20,7 @@
 import os
 import stat
 import IPy
+from itertools import chain
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -141,3 +142,20 @@ def is_setuid_root(path):
 
     # Yay, passed all test!
     return True
+
+
+def mergedicts(*dicts):
+    """Merges a sequence of dictionaries in order.
+
+    Example usage:
+
+    >>> d1 = {1: 10, 2: 20}
+    >>> d2 = {1: 100, 2: 200, 3: 300}
+    >>> mergedicts(d1, d2)
+    {1: [10, 100], 2: [20, 200], 3: [None, 300]}
+
+    """
+    keys = chain(*dicts)
+    return dict((k, [d.get(k, None) for d in dicts])
+                for k in keys)
+
