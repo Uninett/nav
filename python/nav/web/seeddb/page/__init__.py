@@ -18,7 +18,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-TITLE_DEFAULT = 'NAV - Seed Database'
+from nav.web.seeddb.constants import TITLE_DEFAULT
 
 def index(request):
     """Index page. Nothing particularly interesting going on."""
