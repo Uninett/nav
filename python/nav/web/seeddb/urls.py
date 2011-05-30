@@ -17,9 +17,8 @@
 
 from django.conf.urls.defaults import patterns, url
 
-from nav.web.seeddb.views import netbox, service
-from nav.web.seeddb.views.edit import netbox_edit, service_edit
-from nav.web.seeddb.views.bulk import netbox_bulk
+from nav.web.seeddb.views import service
+from nav.web.seeddb.views.edit import service_edit
 from nav.web.seeddb.views.bulk import service_bulk
 
 from nav.web.seeddb.page import index
@@ -37,6 +36,8 @@ from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
 from nav.web.seeddb.page.prefix import prefix_list, prefix_edit, prefix_bulk
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
 from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
+from nav.web.seeddb.page.netbox import netbox, netbox_bulk
+from nav.web.seeddb.page.netbox.edit import netbox_edit
 
 urlpatterns = patterns('',
     url(r'^$', index,
