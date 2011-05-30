@@ -27,56 +27,54 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 class IpMibTests(unittest.TestCase):
-    def setUp(self):
-        self.correct_ipv4 = IP('192.0.2.1')
-        self.correct_ipv6 = IP('2001:db8:1234::1')
-
-    def test_ipmib_index(self):
+    def test_ipv4_syntax_with_length_should_be_parsed_correctly(self):
         ip_tuple = (1, 4, 192, 0L, 2L, 1L)
-        ip = IpMib.address_index_to_ip(ip_tuple)
-        self.assertEquals(ip, self.correct_ipv4)
+        expected = IP('192.0.2.1')
+        ip = IpMib.inetaddress_to_ip(ip_tuple)
+        self.assertEquals(ip, expected)
 
+    def test_invalid_ipv4_syntax_should_raise_error(self):
         ip_tuple = (1, 4, 300, 300, 300, 300)
-        self.assertRaises(ValueError, IpMib.address_index_to_ip, ip_tuple)
+        self.assertRaises(ValueError, IpMib.inetaddress_to_ip, ip_tuple)
 
-        # Too few parts
-        ip_tuple = (1, 4, 1L, 2L, 3L)
-        self.assertRaises(IndexToIpException, IpMib.address_index_to_ip, ip_tuple)
+    def test_too_short_ipv4_address_should_raise_exception(self):
+        ip_tuple = (1, 4, 1L, 2L)
+        self.assertRaises(IndexToIpException, IpMib.inetaddress_to_ip, ip_tuple)
 
-        # Too many parts
+    def test_ipv4_syntax_not_annotated_with_size_should_parse_ok(self):
+        ip_tuple = (1, 192, 0L, 2L, 1L)
+        expected = IP('192.0.2.1')
+        ip = IpMib.inetaddress_to_ip(ip_tuple)
+        self.assertEquals(ip, expected)
+
+    def test_too_long_ipv6_address_should_raise_exception(self):
         ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
-        self.assertRaises(IndexToIpException, IpMib.address_index_to_ip, ip_tuple)
+        self.assertRaises(IndexToIpException, IpMib.inetaddress_to_ip, ip_tuple)
 
+    def test_ipv6_syntax_with_length_should_be_parsed_correctly(self):
+        ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
+        expected = IP('2001:db8:1234::1')
+        ip = IpMib.inetaddress_to_ip(ip_tuple)
+        self.assertEquals(ip, expected)
+
+    def test_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
+        rowpointer = (1, 3, 6, 1, 2, 1, 4, 32, 1, 5, 439541760, 1, 4, 192, 168, 70, 0, 24)
+        expected = IP('192.168.70/24')
+        prefix = IpMib.prefix_index_to_ip(rowpointer)
+        self.assertEquals(prefix, expected)
+
+    def test_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
+        rowpointer = (1, 3, 6, 1, 2, 1, 4, 32, 1, 5, 11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
+        expected = IP('2001:700:0:500::/64')
+        prefix = IpMib.prefix_index_to_ip(rowpointer)
+        self.assertEquals(prefix, expected)
+
+class Ipv6MibTests(unittest.TestCase):
     def test_ipv6mib_index(self):
         ip_tuple = (32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
+        expected = IP('2001:db8:1234::1')
         ip = Ipv6Mib.ipv6address_to_ip(ip_tuple)
-        self.assertEquals(ip, self.correct_ipv6)
-
-        ip_tuple = (32L, 500L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
-        self.assertRaises(ValueError, Ipv6Mib.ipv6address_to_ip, ip_tuple)
-
-        # To few parts, should fail
-        ip_tuple = (192, 0L, 2L, 1L)
-        self.assertRaises(IndexToIpException, Ipv6Mib.ipv6address_to_ip, ip_tuple)
-
-        # To many parts
-        ip_tuple = (1L, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
-        self.assertRaises(IndexToIpException, Ipv6Mib.ipv6address_to_ip, ip_tuple)
-
-    def test_ciscomib_index(self):
-        ip_tuple = (1, 4, 192, 0L, 2L, 1L)
-        ip = CiscoIetfIpMib.address_index_to_ip(ip_tuple)
-        self.assertEquals(ip, self.correct_ipv4)
-
-        ip_tuple = (1, 65, 192, 0L, 2L, 1L)
-        self.assertRaises(IndexToIpException, CiscoIetfIpMib.address_index_to_ip, ip_tuple)
-
-        ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
-        ip = CiscoIetfIpMib.address_index_to_ip(ip_tuple)
-        self.assertEquals(ip, self.correct_ipv6)
-
-        ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)
-        self.assertRaises(IndexToIpException, CiscoIetfIpMib.address_index_to_ip, ip_tuple)
+        self.assertEquals(ip, expected)
 
 if __name__ == '__main__':
     unittest.main()

@@ -81,14 +81,16 @@ class TypeOid(Plugin):
         df.addCallback(_single_result)
         return df
 
-    def _set_type(self, type_):
+    def _set_type(self, new_type):
         """Sets the netbox type to type_."""
         netbox_container = self.containers.factory(None, shadows.Netbox)
-        netbox_container.type = type_
+        netbox_container.type = new_type
+        self._send_signal_if_changed_from_known_to_new_type(new_type)
 
-        if self.has_type_changed():
+    def _send_signal_if_changed_from_known_to_new_type(self, new_type):
+        if self.netbox.type and self.has_type_changed():
             signals.netbox_type_changed.send(
-                sender=self, netbox_id=self.netbox.id, new_type=type_)
+                sender=self, netbox_id=self.netbox.id, new_type=new_type)
 
     def _check_for_typechange(self, type_):
         if self.has_type_changed():

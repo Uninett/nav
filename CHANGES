@@ -1,3 +1,26 @@
+Version 3.8.6
+(released 20 May 2011)
+
+ Bugfixes:
+
+  * LP#777821 (ipdevpoll crash on IPv4 addresses in IP-MIB::ipAddressTable)
+  * LP#778422 (No router addresses collected on a Cisco Nexus 7000)
+  * LP#782161 (Only IPv6 client addresses collected on some routers)
+
+Version 3.8.5
+(released 14 April 2011)
+
+ Bugfixes:
+
+  * LP#745616 (edit vlan in seeddb needs improvement)
+  * LP#745620 (change text descriptions in seeddb)
+  * LP#746381 (Add a report to display all collected interfaces, regardless of
+               type)
+  * LP#747104 (Missing interfaces are left lingering in the database)
+  * LP#748852 (Avoid using the word "handler" in SeedDB/Service)
+  * LP#749502 (Seed DB: Indicate required fields with an asterisk)
+  * LP#751310 (Not possible to add a function when adding a new ip device)
+
 Version 3.8.4
 (released 31 March 2011)
 
