@@ -17,23 +17,21 @@
 
 import re
 import logging
+import ConfigParser
+import psycopg2.extras
+
 from mod_python import apache
 from mod_python.util import FieldStorage
+
 import nav
 import nav.path
 import nav.arnold
-#from nav import web
 from nav import db
-#from nav.web.templates.MainTemplate import MainTemplate
 from nav.web.templates.ArnoldTemplate import ArnoldTemplate
 from nav.web.URI import URI
 from nav.web.encoding import encoded_output
 from nav.errors import GeneralException
-#from urllib import unquote_plus
-#from IPy import IP
 
-import psycopg2.extras
-import ConfigParser
 logger = logging.getLogger('nav.arnoldhandler')
 
 # Read config from configfile
@@ -53,15 +51,10 @@ conn = db.getConnection('arnold', 'arnold')
 ############################################################
 @encoded_output
 def handler(req):
-    """ Handrler """
+    """Handler"""
     # getConnection('subsystem','database')
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    # arnoldhome = nav.path.bindir
-
-    # Reload to make sure any changes in ArnoldTemplate are included
-
-    #reload(ArnoldTemplate)
     args = URI(req.unparsed_uri)
 
     page = ArnoldTemplate()
