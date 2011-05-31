@@ -175,7 +175,7 @@ $printMenu($buttons, $buttonnames, $action)
             <th>
         #if $sort and $action == 'history'
                 <a href="$section?sort=$entry&days=$days" class="navbar" title="">$headers[$entry]</a>
-        #elif $sort and $entry != 'sysname'
+        #elif $sort and $entry not in ['sysname', 'portinfo']
                 <a href="$section?sort=$entry" class="navbar" title="">$headers[$entry]</a>
         #else
                 $headers[$entry]
