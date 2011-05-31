@@ -29,7 +29,7 @@ from nav.web.seeddb.page.vendor import vendor, vendor_edit, vendor_bulk
 from nav.web.seeddb.page.subcategory import subcategory, subcategory_edit
 from nav.web.seeddb.page.subcategory import subcategory_bulk
 from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
-from nav.web.seeddb.page.prefix import prefix_list, prefix_edit, prefix_bulk
+from nav.web.seeddb.page.prefix import prefix, prefix_edit, prefix_bulk
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
 from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
 from nav.web.seeddb.page.netbox import netbox, netbox_bulk
@@ -140,7 +140,7 @@ urlpatterns = patterns('',
         name='seeddb-vlan-edit'),
 
     # Prefix
-    url(r'^prefix/$', prefix_list,
+    url(r'^prefix/$', prefix,
         name='seeddb-prefix'),
     url(r'^prefix/edit/(?P<prefix_id>[\d]+)/$', prefix_edit,
         name='seeddb-prefix-edit'),

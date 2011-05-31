@@ -30,9 +30,12 @@ from nav.bulkparse import PrefixBulkParser
 from nav.bulkimport import PrefixImporter
 
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
+from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit, _get_object
 from nav.web.seeddb.utils.bulk import render_bulkimport
+from nav.web.seeddb.utils.delete import render_delete
 
 class PrefixInfo(SeeddbInfo):
     active = {'prefix': True}
@@ -40,8 +43,8 @@ class PrefixInfo(SeeddbInfo):
     tab_template = 'seeddb/tabs_prefix.html'
     _title = 'Prefix'
     _navpath = [('Prefix', reverse_lazy('seeddb-prefix'))]
+    delete_url = reverse_lazy('seeddb-prefix')
     hide_move = True
-    hide_delete = True
 
 class PrefixForm(forms.ModelForm):
     net_address = CIDRField(label="Prefix/mask (CIDR)")
@@ -56,6 +59,12 @@ class PrefixVlanForm(forms.ModelForm):
         model = Vlan
         fields = ('description', 'net_ident', 'vlan', 'organization', 'usage', 'net_type')
 
+def prefix(request):
+    return view_switcher(request,
+        list_view=prefix_list,
+        delete_view=prefix_delete,
+        move_view=not_implemented)
+
 def prefix_list(request):
     info = PrefixInfo()
     query = Prefix.objects.filter(vlan__net_type__edit=True)
@@ -63,6 +72,12 @@ def prefix_list(request):
         'net_address', 'vlan__net_type', 'vlan__organization',
         'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
     return render_list(request, query, value_list, 'seeddb-prefix-edit',
+        extra_context=info.template_context)
+
+def prefix_delete(request):
+    info = PrefixInfo()
+    return render_delete(request, Prefix, 'seeddb-prefix',
+        whitelist=SEEDDB_EDITABLE_MODELS,
         extra_context=info.template_context)
 
 def prefix_bulk(request):
