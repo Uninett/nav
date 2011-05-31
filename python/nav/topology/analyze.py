@@ -70,7 +70,7 @@ class AdjacencyAnalyzer(object):
     def get_max_out_degree(self):
         """Returns the port node with the highest outgoing degree"""
         ports_and_degree = self.get_ports_and_degree()
-        maximum = max(ports_and_degree)
+        maximum = max(ports_and_degree) if ports_and_degree else None
         if maximum:
             return maximum[0]
         else:
