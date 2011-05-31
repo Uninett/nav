@@ -65,12 +65,6 @@ def prefix_list(request):
     return render_list(request, query, value_list, 'seeddb-prefix-edit',
         extra_context=info.template_context)
 
-def prefix_edit2(request, prefix_id=None):
-    info = PrefixInfo()
-    return render_edit(request, Prefix, PrefixForm, prefix_id,
-        'seeddb-prefix-edit',
-        extra_context=info.template_context)
-
 def prefix_bulk(request):
     info = PrefixInfo()
     return render_bulkimport(
