@@ -161,25 +161,24 @@ def updatedb(datadir, containers):
                               datasource[2], units, speed))
 
     def update_datasource_metainfo(container, rrd_fileid):
-        logger.debug("Updating datasource for %s" %container.filename)
-        oidlist = "(" + ','.join("'" + x + "'" for x in octet_counters) + ")"
-        for datasource in container.datasources:
-            oiddescr = datasource[1]
+        logger.debug("Updating datasource for %s" % container.filename)
+        counter_sources = [ds[1] for ds in container.datasources
+                           if is_octet_counter(ds[1]) and container.speed > 0]
 
-            sql = """
-            UPDATE rrd_datasource
-            SET units = %%s, max = %%s
-            WHERE rrd_fileid = %s
-            AND descr IN %s
-            """ %(rrd_fileid, oidlist)
+        if counter_sources:
+            c.execute(
+                """UPDATE rrd_datasource
+                   SET units = %(units)s, max = %(max_speed)s
+                   WHERE rrd_fileid = %(rrd_fileid)s
+                     AND descr IN %(octet_counters)s
+                     AND (units <> %(units)s OR max <> %(max_speed)s)""",
+                {'units': 'bytes',
+                 'max_speed': str(convert_Mbit_to_bytes(container.speed)),
+                 'rrd_fileid': rrd_fileid,
+                 'octet_counters': tuple(octet_counters),
+                 })
 
-            if is_octet_counter(oiddescr) and container.speed > 0:
-                units = "bytes"
-                speed = str(convert_Mbit_to_bytes(container.speed))
-                c.execute(sql, (units, speed))
-                break
-        
-    
+
     for container in containers:
         datapath = datadir
         if container.path:
