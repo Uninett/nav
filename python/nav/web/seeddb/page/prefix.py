@@ -16,6 +16,13 @@
 #
 
 from django import forms
+from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+
+from nav.web.message import new_message, Messages
 
 from nav.models.manage import Prefix, NetType, Vlan
 from nav.django.forms import CIDRField
@@ -24,7 +31,7 @@ from nav.bulkimport import PrefixImporter
 
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.utils.list import render_list
-from nav.web.seeddb.utils.edit import render_edit
+from nav.web.seeddb.utils.edit import render_edit, _get_object
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
 class PrefixInfo(SeeddbInfo):
@@ -37,42 +44,17 @@ class PrefixInfo(SeeddbInfo):
     hide_delete = True
 
 class PrefixForm(forms.ModelForm):
-    """The PrefixForm inherits the VlanForm and adds a single extra field, the
-    net_address from the Prefix model.
-
-    Special handling is introduced in the __init__ and save methods to hand
-    off Vlan data to the superclass and add the Vlan as an attribute to the
-    resulting Prefix.
-
-    """
     net_address = CIDRField(label="Prefix/mask (CIDR)")
+    class Meta:
+        model = Prefix
+        fields = ('net_address',)
+
+class PrefixVlanForm(forms.ModelForm):
     net_type = forms.ModelChoiceField(
         queryset=NetType.objects.filter(edit=True))
-
     class Meta:
         model = Vlan
-
-    def __init__(self, *args, **kwargs):
-        instance = kwargs.get('instance', None)
-        if instance:
-            self.prefix_instance = instance
-            kwargs['instance'] = instance.vlan
-        else:
-            self.prefix_instance = Prefix()
-
-        super(PrefixForm, self).__init__(*args, **kwargs)
-
-        if instance:
-            self.initial['net_address'] = instance.net_address
-
-        self.fields.keyOrder = ['net_address', 'description', 'net_ident',
-                                'organization', 'net_type', 'vlan', 'usage']
-
-    def save(self, commit=True):
-        vlan = super(PrefixForm, self).save(commit)
-        self.prefix_instance.vlan = vlan
-        return forms.save_instance(self, self.prefix_instance,
-                                   fields=['net_address'])
+        fields = ('description', 'net_ident', 'vlan', 'organization', 'usage', 'net_type')
 
 def prefix_list(request):
     info = PrefixInfo()
@@ -83,7 +65,7 @@ def prefix_list(request):
     return render_list(request, query, value_list, 'seeddb-prefix-edit',
         extra_context=info.template_context)
 
-def prefix_edit(request, prefix_id=None):
+def prefix_edit2(request, prefix_id=None):
     info = PrefixInfo()
     return render_edit(request, Prefix, PrefixForm, prefix_id,
         'seeddb-prefix-edit',
@@ -95,3 +77,36 @@ def prefix_bulk(request):
         request, PrefixBulkParser, PrefixImporter,
         'seeddb-prefix',
         extra_context=info.template_context)
+
+@transaction.commit_on_success
+def prefix_edit(request, prefix_id=None):
+    info = PrefixInfo()
+    prefix, vlan = get_prefix_and_vlan(prefix_id)
+    if request.method == 'POST':
+        prefix_form = PrefixForm(request.POST, instance=prefix)
+        vlan_form = PrefixVlanForm(request.POST, instance=vlan)
+        if prefix_form.is_valid() and vlan_form.is_valid():
+            vlan = vlan_form.save()
+            prefix = prefix_form.save(commit=False)
+            prefix.vlan = vlan
+            prefix.save()
+            msg = "Saved prefix %s" % prefix.net_address
+            new_message(request._req, msg, Messages.SUCCESS)
+            return HttpResponseRedirect(reverse('seeddb-prefix-edit', args=(prefix.id,)))
+    else:
+        prefix_form = PrefixForm(instance=prefix)
+        vlan_form = PrefixVlanForm(instance=vlan)
+    context = info.template_context
+    context.update({
+        'object': prefix,
+        'form': prefix_form,
+        'vlan_form': vlan_form,
+        'sub_active': prefix and {'edit': True} or {'add': True},
+    })
+    return render_to_response('seeddb/edit_prefix.html',
+        context, RequestContext(request))
+
+def get_prefix_and_vlan(prefix_id):
+    prefix = _get_object(Prefix, prefix_id, 'pk')
+    vlan = prefix and prefix.vlan or None
+    return (prefix, vlan)
