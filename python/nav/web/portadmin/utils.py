@@ -99,9 +99,8 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox):
 
 def is_vlan_authorization_enabled():
     config = read_config()
-    if config.has_section("general"):
-        if config.has_option("general", "vlan_auth"):
-            return config.getboolean("general", "vlan_auth")
+    if config.has_option("authorization", "vlan_auth"):
+        return config.getboolean("authorization", "vlan_auth")
 
     return False
 
