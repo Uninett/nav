@@ -19,6 +19,7 @@ nobase_dist_sysconf_DATA = $(sort $(generated_config) $(wildcard \
 	arnold/*.conf \
 	arnold/mailtemplates/* \
 	portadmin/*.conf \
+	portadmin/*.html \ 
 	toolbox/*.tool \
 	rrdviewer/*.conf \
 	report/*.conf \

@@ -131,18 +131,54 @@ def updatedb(datadir, containers):
     """
     conn = getConnection('default')
     c = conn.cursor()
+    octet_counters = ['ifHCInOctets', 'ifHCOutOctets', 'ifInOctets',
+                      'ifOutOctets']
+
+    def is_octet_counter(ds):
+        return ds in octet_counters
+        
     
     def insert_datasources(container, rrd_fileid):
         logger.debug("Inserting datasources for %s" %container.filename)
         for datasource in container.datasources:
+            # TODO: Make a general way of adding units and max
+            units = None
+            speed = None
+            
             dssql = """
             INSERT INTO rrd_datasource
-            (rrd_fileid, name, descr, dstype)
-            VALUES (%s, %s, %s, %s)
+            (rrd_fileid, name, descr, dstype, units, max)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """
+
+            # If this is an octet counter on an interface,
+            # set max value
+            if is_octet_counter(datasource[1]) and container.speed > 0:
+                units = "bytes"
+                speed = str(convert_Mbit_to_bytes(container.speed))
+
             c.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
-                              datasource[2]))
-    
+                              datasource[2], units, speed))
+
+    def update_datasource_metainfo(container, rrd_fileid):
+        logger.debug("Updating datasource for %s" % container.filename)
+        counter_sources = [ds[1] for ds in container.datasources
+                           if is_octet_counter(ds[1]) and container.speed > 0]
+
+        if counter_sources:
+            c.execute(
+                """UPDATE rrd_datasource
+                   SET units = %(units)s, max = %(max_speed)s
+                   WHERE rrd_fileid = %(rrd_fileid)s
+                     AND descr IN %(octet_counters)s
+                     AND (units <> %(units)s OR max <> %(max_speed)s)""",
+                {'units': 'bytes',
+                 'max_speed': str(convert_Mbit_to_bytes(container.speed)),
+                 'rrd_fileid': rrd_fileid,
+                 'octet_counters': tuple(octet_counters),
+                 })
+
+
     for container in containers:
         datapath = datadir
         if container.path:
@@ -194,6 +230,8 @@ def updatedb(datadir, containers):
             # We don't update the datasources as the database is the source of
             # the datasources. Somewhere in the future there will exist an
             # option to expand the rrd-files with more datasources
+            # However, we update the threshold metainfo
+            update_datasource_metainfo(container, rrd_fileid)
 
             # Special case: if the number of datasources is 0, we insert
             # what we have.
@@ -302,7 +340,6 @@ def updatedb(datadir, containers):
             insert_datasources(container, nextval)
 
         conn.commit()
-
 
 def compare_datasources(path, filename, targetoids):
     """
@@ -431,6 +468,8 @@ def remove_old_config(dirs):
         else:
             logger.info("%s is not empty, leaving it alone." % dir)
 
+def convert_Mbit_to_bytes(mbit):
+    return int((1024 ** 2) * mbit / 8)
 
 class RRDcontainer:
     """
@@ -439,7 +478,7 @@ class RRDcontainer:
     netboxid: id of netbox in database
     """
     def __init__(self, filename, netboxid, path="", key=None, value=None,
-                 step=300):
+                 step=300, speed=None):
         self.filename = filename
         self.netboxid = netboxid
         self.path = path
@@ -447,4 +486,5 @@ class RRDcontainer:
         self.value = value
         self.step = step
         self.datasources = []
+        self.speed = speed
     
