@@ -131,10 +131,10 @@ def updatedb(datadir, containers):
     """
     conn = getConnection('default')
     c = conn.cursor()
+    octet_counters = ['ifHCInOctets', 'ifHCOutOctets', 'ifInOctets',
+                      'ifOutOctets']
 
     def is_octet_counter(ds):
-        octet_counters = ['ifHCInOctets', 'ifHCOutOctets', 'ifInOctets',
-                          'ifOutOctets']
         return ds in octet_counters
         
     
@@ -159,6 +159,26 @@ def updatedb(datadir, containers):
 
             c.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
                               datasource[2], units, speed))
+
+    def update_datasource_metainfo(container, rrd_fileid):
+        logger.debug("Updating datasource for %s" %container.filename)
+        oidlist = "(" + ','.join("'" + x + "'" for x in octet_counters) + ")"
+        for datasource in container.datasources:
+            oiddescr = datasource[1]
+
+            sql = """
+            UPDATE rrd_datasource
+            SET units = %%s, max = %%s
+            WHERE rrd_fileid = %s
+            AND descr IN %s
+            """ %(rrd_fileid, oidlist)
+
+            if is_octet_counter(oiddescr) and container.speed > 0:
+                units = "bytes"
+                speed = str(convert_Mbit_to_bytes(container.speed))
+                c.execute(sql, (units, speed))
+                break
+        
     
     for container in containers:
         datapath = datadir
@@ -211,6 +231,8 @@ def updatedb(datadir, containers):
             # We don't update the datasources as the database is the source of
             # the datasources. Somewhere in the future there will exist an
             # option to expand the rrd-files with more datasources
+            # However, we update the threshold metainfo
+            update_datasource_metainfo(container, rrd_fileid)
 
             # Special case: if the number of datasources is 0, we insert
             # what we have.
