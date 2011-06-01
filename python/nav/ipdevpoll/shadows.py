@@ -27,7 +27,9 @@ import IPy
 
 from django.db.models import Q
 
-from nav.models import manage, oid
+from nav.models import manage
+from nav.models import oid
+from nav.models import sensor
 from nav.models.event import EventQueue as Event
 
 from storage import Shadow
@@ -757,4 +759,6 @@ class SnmpOid(Shadow):
 class NetboxSnmpOid(Shadow):
     __shadowclass__ = oid.NetboxSnmpOid
 
-
+class Sensor(Shadow):
+    __shadowclass__ = sensor.Sensor
+    __lookups__ = ['netbox']
