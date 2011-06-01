@@ -16,6 +16,12 @@
 """selects and provides SNMP backend for ipdevpoll"""
 
 import sys
+import socket
+import logging
+
+from twisted.internet import defer, reactor
+from twisted.python.failure import Failure
+
 try:
     import pynetsnmp.twistedsnmp
     from pynetsnmp.twistedsnmp import snmpprotocol
@@ -39,6 +45,36 @@ except ImportError:
             """Dummy close method"""
             pass
 
+        def walk(self, oid, timeout=2.0, retry_count=4):
+            """Our own low-level implementation of a GET-NEXT operation for a
+            twistedsnmp AgentProxy, since it doesn't provide its own.
+
+            """
+            oids = [oid]
+            try:
+                request = self.encode(oids, self.community, next=True)
+                key = self.getRequestKey(request)
+                self.send(request.encode())
+            except socket.error:
+                return defer.fail(Failure())
+
+            def _as_dictionary(value):
+                try:
+                    return dict(value)
+                except Exception:
+                    logger = logging.getLogger(__name__)
+                    logger.exception(
+                        "Failure converting query results %r to dictionary",
+                        value)
+                    return {}
+
+            df = defer.Deferred()
+            df.addCallback(self.getResponseResults)
+            df.addCallback(_as_dictionary)
+            timer = reactor.callLater(timeout, self._timeout,
+                                      key, df, oids, timeout, retry_count)
+            self.protocol.requests[key] = df, timer
+            return df
 
 else:
     class AgentProxy(pynetsnmp.twistedsnmp.AgentProxy):
