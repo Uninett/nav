@@ -18,15 +18,33 @@
 
 from __future__ import absolute_import
 import sys
+import inspect
 
 from pynetsnmp import twistedsnmp
 from pynetsnmp.twistedsnmp import snmpprotocol
+
+def pynetsnmp_limits_results():
+    """Returns True if the available pynetsnmp version limits the number of
+    results of getTable operations.
+
+    ipdevpoll doesn't want this arbitrary limit, which appeared sometime
+    between pynetsnmp 0.28.8 and 0.28.14.
+
+    """
+    try:
+        from pynetsnmp.tableretriever import TableRetriever
+    except ImportError:
+        return False
+    else:
+        args = inspect.getargspec(TableRetriever.__init__)[0]
+        return 'limit' in args
 
 class AgentProxy(twistedsnmp.AgentProxy):
     """pynetsnmp AgentProxy derivative to adjust the silly 1000 value
     limit imposed in getTable calls"""
 
-    def getTable(self, *args, **kwargs):
-        if 'limit' not in kwargs:
-            kwargs['limit'] = sys.maxint
-        return twistedsnmp.AgentProxy.getTable(self, *args, **kwargs)
+    if pynetsnmp_limits_results():
+        def getTable(self, *args, **kwargs):
+            if 'limit' not in kwargs:
+                kwargs['limit'] = sys.maxint
+            return twistedsnmp.AgentProxy.getTable(self, *args, **kwargs)
