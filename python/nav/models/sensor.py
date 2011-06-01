@@ -17,9 +17,7 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
-from django.core.urlresolvers import reverse
 
-from nav.models.event import Subsystem
 from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
 
