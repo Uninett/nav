@@ -33,7 +33,7 @@ class Sensor(models.Model):
     statistics.
     """
 
-    id = models.AutoField(db_column='sensor_id', primary_key=True)
+    id = models.AutoField(db_column='sensorid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(db_column="unit_of_measurement")
