@@ -84,4 +84,5 @@ else:
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
                 kwargs['limit'] = sys.maxint
-            return super(AgentProxy, self).getTable(*args, **kwargs)
+            return pynetsnmp.twistedsnmp.AgentProxy.getTable(self,
+                                                             *args, **kwargs)
