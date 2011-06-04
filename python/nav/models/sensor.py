@@ -87,7 +87,7 @@ class Sensor(models.Model):
         (SCALE_NANO, 'Nano'),
         (SCALE_MICRO, 'Micro'),
         (SCALE_MILLI, 'Milli'),
-        (SCALE_UNITS, 'Units'),
+        (SCALE_UNITS, 'No unit scaling'),
         (SCALE_KILO, 'Kilo'),
         (SCALE_MEGA, 'Mega'),
         (SCALE_GIGA, 'Giga'),
