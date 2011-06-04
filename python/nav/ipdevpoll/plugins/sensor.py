@@ -29,6 +29,10 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 
+VENDOR_CISCO = 9
+VENDOR_HP = 11
+VENDOR_ITWATCHDOGS = 17373
+
 class Sensor(Plugin):
     @classmethod
     def can_handle(cls, netbox):
