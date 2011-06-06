@@ -33,14 +33,14 @@ VENDOR_CISCO = 9
 VENDOR_HP = 11
 VENDOR_ITWATCHDOGS = 17373
 
-class Sensor(Plugin):
+class Sensors(Plugin):
     @classmethod
     def can_handle(cls, netbox):
         return True
 
     def handle(self):
-        self._logger.error('Sensor handle')
-        self._logger.debug("Collecting sensor data")
+        self._logger.error('Sensors: handle')
+        self._logger.debug("Collecting sensors data")
         self.it_watch_dogs_mibv3 = ItWatchDogsMibV3(self.agent)
         self.cisco_envmon_mib = CiscoEnvMonMib(self.agent)
         self.entity_sensor_mib = EntitySensorMib(self.agent)
@@ -50,5 +50,5 @@ class Sensor(Plugin):
         return df
 
     def _handle_handle(self):
-        self._logger.error('Sensor: _handle_handle')
+        self._logger.error('Sensors: _handle_handle')
         return []
