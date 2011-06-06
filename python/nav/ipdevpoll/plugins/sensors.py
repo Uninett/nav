@@ -33,6 +33,71 @@ VENDOR_CISCO = 9
 VENDOR_HP = 11
 VENDOR_ITWATCHDOGS = 17373
 
+class MIBFactory(object):
+    @classmethod
+    def get_instance(self, netbox, agent):
+        vendor_id = self.netbox.get_enterprise_id()
+        if (vendor_id == VENDOR_CISCO):
+            mib = CiscoEnvMonMib(agent)
+            mib.retrieve_columns([])
+            return mib
+        if (vendor_id = VENDOR_ITWATCHDOGS):
+            mib = ItWatchDogsMibV3(agent)
+            mib.retrieve_columns([
+                'climateName',
+                'climateTempC',
+                'climateHumidity',
+                'climateLight',
+                'climateAirflow',
+                'climateSound',
+                'climateDewPointC',
+                'powMonName',
+                'powMonKWattHrs',
+                'powMonVolts',
+                'powMonDeciAmps',
+                'powMonRealPower',
+                'powMonApparentPower',
+                '',
+                'tempSensorName',
+                'tempSensorAvail',
+                'tempSensorTempC',
+                'airFlowSensorName',
+                'airFlowSensorAvail',
+                'airFlowSensorTempC',
+                'airFlowSensorFlow',
+                'airFlowSensorHumidity',
+                'airFlowSensorDewPointC',
+                'powerName',
+                'powerAvail',
+                'powerVolts',
+                'powerDeciAmps',
+                'powerRealPower',
+                'powerApparentPower',
+                'powerPowerFactor',
+                'doorSensorName',
+                'doorSensorAvail',
+                'doorSensorStatus',
+                'waterSensorName',
+                'waterSensorAvail',
+                'waterSensorDampness',
+                'currentMonitorName',
+                'currentMonitorAvail',
+                'currentMonitorDeciAmps',
+                'millivoltMonitorName',
+                'millivoltMonitorAvail',
+                'millivoltMonitorMV',
+                ])
+            return mib
+
+        mib = EntitySensorMib(agent)
+        mib.retrieve_columns([
+                'entPhySensorType',
+                'entPhySensorScale',
+                'entPhySensorPrecision',
+                'entPhySensorUnitsDisplay',
+                ])
+        return mib
+        
 class Sensors(Plugin):
     @classmethod
     def can_handle(cls, netbox):
@@ -40,15 +105,12 @@ class Sensors(Plugin):
 
     def handle(self):
         self._logger.error('Sensors: handle')
-        self._logger.debug("Collecting sensors data")
-        self.it_watch_dogs_mibv3 = ItWatchDogsMibV3(self.agent)
-        self.cisco_envmon_mib = CiscoEnvMonMib(self.agent)
-        self.entity_sensor_mib = EntitySensorMib(self.agent)
-        df = self.entity_sensor_mib.retrieve_columns([])
+        self._logger.error('netbox = %s' % self.netbox)
+        self.mib = MIBFactory.get_instance(self.netbox, self.agent)
         df.addCallback(reduce_index)
         df.addCallback(self._handle_handle)
         return df
 
-    def _handle_handle(self):
+    def _handle_handle(self, res):
         self._logger.error('Sensors: _handle_handle')
         return []
