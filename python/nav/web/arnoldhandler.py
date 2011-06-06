@@ -583,17 +583,19 @@ def print_blocked(cur, page, sort, section):
     reconnect()
 
     page.headersList = ['ip', 'dns', 'netbios', 'status', 'reason', 'sysname',
-                        'lastchanged', 'activate', 'details']
+                        'portinfo', 'lastchanged', 'activate', 'details']
     page.headers = {'ip': 'Ip', 'dns':'Dns', 'netbios':'Netbios',
                     'status':'Status','reason':'Reason', 'sysname':'Switch',
-                    'lastchanged':'Lastchanged', 'activate':'&nbsp;',
-                    'details':'&nbsp;'}
+                    'portinfo': 'Port', 'lastchanged':'Lastchanged',
+                    'activate':'&nbsp;', 'details':'&nbsp;'}
 
     query = """
     SELECT DISTINCT identityid, blocked_status AS status, ip, mac,
-    dns, netbios, name AS reason, starttime, lastchanged, swportid
+    dns, netbios, name AS reason, starttime, lastchanged, swportid,
+    ifname, ifalias
     FROM identity
     LEFT JOIN blocked_reason USING (blocked_reasonid)
+    LEFT JOIN interface ON (swportid=interfaceid)
     WHERE blocked_status IN ('disabled','quarantined')
     ORDER BY %s """ % sort
 
@@ -615,6 +617,7 @@ def print_blocked(cur, page, sort, section):
         item['details'] = ("<a href='showdetails?id=" +
                            str(item['identityid']) + "' title='Details'>"
                            "<img src='/images/arnold/details.png'></a>")
+        item['portinfo'] = "%s (%s)" %(item['ifname'], item['ifalias'])
         
         managequery = """
         SELECT sysname, baseport FROM netbox
@@ -817,7 +820,8 @@ def show_details (cur, page, section, identity):
             entry['modport'] = "N/A"
         else:
             page.output = ""
-            entry['modport'] = managerow['ifname']
+            entry['modport'] = "%s (%s)" %(managerow['ifname'],
+                                           managerow['ifalias'])
             entry['sysname'] = managerow['sysname']
         
         entry['starttime'] = entry['starttime'].strftime('%Y-%m-%d %k:%M:%S')

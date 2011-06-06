@@ -49,8 +49,6 @@
 		<copy todir="${DESTDIR}${instdir}/media">
 			<fileset dir="media"/>
 		</copy>
-    		<mkdir dir="${DESTDIR}${tooldir}"/>
-		<copy file="netmap.tool" todir="${DESTDIR}${tooldir}"/>
 	</target>
 
 	<target name="uninstall">
