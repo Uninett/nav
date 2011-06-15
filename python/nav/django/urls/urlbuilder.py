@@ -37,11 +37,6 @@ def get_urlpatterns():
         url(r'^devicemanagement/\?view_netbox=(?P<netbox_id>\d+)$',
             dummy, name='devicemanagement-history-netbox'),
 
-        # Subsystem: IP Info
-        url(r'^ipinfo/$', dummy, name='ipinfo'),
-        url(r'^ipinfo/\?ip=(?P<hostname_or_ip>[\w\d._-]+)',
-            dummy, name='ipinfo-host'),
-
         # Subsystem: Maintenance
         url(r'^maintenance/$',
             dummy, name='maintenance'),
