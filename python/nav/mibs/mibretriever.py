@@ -337,12 +337,14 @@ class MibRetriever(object):
 
         def resultFormatter(result):
             formatted_result = {}
-            if str(node.oid) not in result:
+            # result keys may be OID objects/tuples or strings, depending on
+            # snmp library used
+            if node.oid not in result and str(node.oid) not in result:
                 self._logger.debug("%s (%s) seems to be unsupported, result "
                                    "keys were: %r",
                                    column_name, node.oid, result.keys())
                 return {}
-            varlist = result[str(node.oid)]
+            varlist = result.get(node.oid, result.get(str(node.oid), None))
 
             for oid, value in varlist.items():
                 # Extract index information from oid
