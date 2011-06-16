@@ -269,10 +269,10 @@ class MibRetrieverMaker(type):
 
         """
         def result_formatter(result, the_oid, self):
-            if the_oid in result:
+            if the_oid in result or str(the_oid) in result:
                 self._logger.debug("%s query result: %r",
                                    node_name, result)
-                return result[the_oid]
+                return result.get(the_oid, result.get(str(the_oid), None))
             else:
                 self._logger.debug("%s was not in the result: %r",
                                    node_name, result)
