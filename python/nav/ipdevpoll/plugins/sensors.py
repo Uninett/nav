@@ -20,6 +20,7 @@ This plugin use CISCO-ENVMON-MIB, ENTITY-SENSOR-MIB and IT-WATCHDOGS-MIB-V3
 to retrieve all possible sensors in network-equipment.
 """
 
+
 from nav.mibs import reduce_index
 from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
@@ -36,14 +37,34 @@ VENDOR_ITWATCHDOGS = 17373
 class MIBFactory(object):
     @classmethod
     def get_instance(self, netbox, agent):
-        vendor_id = netbox.get_enterprise_id()
+        vendor_id = netbox.type.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
             mib = CiscoEnvMonMib(agent)
-            mib.retrieve_columns([])
-            return mib
+            df = mib.retrieve_columns([
+                    'ciscoEnvMonVoltageStatusDescr',
+                    'ciscoEnvMonVoltageStatusValue',
+                    'ciscoEnvMonVoltageThresholdLow',
+                    'ciscoEnvMonVoltageThresholdHigh',
+                    'ciscoEnvMonVoltageLastShutdown',
+                    'ciscoEnvMonVoltageState',
+                    'ciscoEnvMonTemperatureStatusIndex',
+                    'ciscoEnvMonTemperatureStatusDescr',
+                    'ciscoEnvMonTemperatureStatusValue',
+                    'ciscoEnvMonTemperatureThreshold',
+                    'ciscoEnvMonTemperatureLastShutdown',
+                    'ciscoEnvMonTemperatureState',
+                    'ciscoEnvMonFanStatusIndex',
+                    'ciscoEnvMonFanStatusDescr',
+                    'ciscoEnvMonFanState',
+                    'ciscoEnvMonSupplyStatusIndex',
+                    'ciscoEnvMonSupplyStatusDescr',
+                    'ciscoEnvMonSupplyState',
+                    'ciscoEnvMonSupplySource',
+                    ])
+            return mib, df
         if (vendor_id == VENDOR_ITWATCHDOGS):
             mib = ItWatchDogsMibV3(agent)
-            mib.retrieve_columns([
+            df = mib.retrieve_columns([
                 'climateName',
                 'climateAvail',
                 'climateTempC',
@@ -373,16 +394,16 @@ class MIBFactory(object):
                 'powerDMChannelFriendly47',
                 'powerDMChannelFriendly48',
                 ])
-            return mib
+            return mib, df
 
         mib = EntitySensorMib(agent)
-        mib.retrieve_columns([
+        df = mib.retrieve_columns([
                 'entPhySensorType',
                 'entPhySensorScale',
                 'entPhySensorPrecision',
                 'entPhySensorUnitsDisplay',
                 ])
-        return mib
+        return mib, df
         
 class Sensors(Plugin):
     @classmethod
@@ -392,11 +413,12 @@ class Sensors(Plugin):
     def handle(self):
         self._logger.error('Sensors: handle')
         self._logger.error('netbox = %s' % self.netbox)
-        self.mib = MIBFactory.get_instance(self.netbox, self.agent)
+        (self.mib, df) = MIBFactory.get_instance(self.netbox, self.agent)
         df.addCallback(reduce_index)
         df.addCallback(self._handle_handle)
         return df
 
     def _handle_handle(self, res):
-        self._logger.error('Sensors: _handle_handle')
+        self._logger.error('Sensors:: _handle_handle: netbox.id = %d' % self.netbox.id)  
+        self._logger.error('Sensors:: _handle_handle: res = %s' % res)
         return []
