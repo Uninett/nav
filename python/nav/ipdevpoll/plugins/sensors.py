@@ -36,12 +36,12 @@ VENDOR_ITWATCHDOGS = 17373
 class MIBFactory(object):
     @classmethod
     def get_instance(self, netbox, agent):
-        vendor_id = self.netbox.get_enterprise_id()
+        vendor_id = netbox.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
             mib = CiscoEnvMonMib(agent)
             mib.retrieve_columns([])
             return mib
-        if (vendor_id = VENDOR_ITWATCHDOGS):
+        if (vendor_id == VENDOR_ITWATCHDOGS):
             mib = ItWatchDogsMibV3(agent)
             mib.retrieve_columns([
                 'climateName',
@@ -88,7 +88,6 @@ class MIBFactory(object):
                 'waterSensorName',
                 'waterSensorAvail',
                 'waterSensorDampness',
-
                 'currentMonitorName',
                 'currentMonitorAvail',
                 'currentMonitorDeciAmps',
