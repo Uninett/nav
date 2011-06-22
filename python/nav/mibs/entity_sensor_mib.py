@@ -26,5 +26,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
                 'entPhySensorType',
                 'entPhySensorScale',
                 'entPhySensorPrecision',
+                'entPhySensorValue',
+                'entPhySensorOperStatus',
                 'entPhySensorUnitsDisplay',
                 ])
