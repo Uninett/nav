@@ -42,6 +42,20 @@ from nav.daemon import safesleep as sleep
 
 import icmpPacket
 
+# Global method to create the sockets as root before the process changes user
+def makeSockets():
+    try:
+        socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp'))
+    except:
+        debug("Could not create v6 socket")
+
+    try:
+        socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+    except:
+        debug("Could not create v6 socket")
+
+    return [socketv6, socketv4]
+
 class Host:
     def __init__(self, ip):
         self.rnd = random.randint(10000, 2**16-1)
@@ -111,7 +125,7 @@ class MegaPing:
     hostsUp = pinger.answers()
     hostsDown = pinger.noAnswers()
     """
-    def __init__(self, socket=None, conf=None):
+    def __init__(self, socket, conf=None):
         if conf is None:
             try:
                 self._conf = config.pingconf()
@@ -132,22 +146,13 @@ class MegaPing:
         self._packetsize = packetsize
         self._pid = os.getpid() % 65536
         self._elapsedtime = 0
-
+        self._sock6 = socket[0]
+        self._sock4 = socket[1]
+        #self._sock4 = None
+        #self._sock6 = None
         # Create our sockets
-        self.initSockets()
+        #self.initSockets()
 
-    def initSockets(self):
-        try:
-            socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp'))
-            self._sock6 = socketv6
-        except socket.error, e:
-            print "socket error v6: %s" % e
-
-        try:
-            socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
-            self._sock4 = socketv4
-        except socket.error, e:
-            print "socket error v4: %s" % e
 
     def setHosts(self, ips):
         """
