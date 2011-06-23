@@ -125,7 +125,7 @@ class MegaPing:
     hostsUp = pinger.answers()
     hostsDown = pinger.noAnswers()
     """
-    def __init__(self, socket, conf=None):
+    def __init__(self, sockets, conf=None):
         if conf is None:
             try:
                 self._conf = config.pingconf()
@@ -146,13 +146,20 @@ class MegaPing:
         self._packetsize = packetsize
         self._pid = os.getpid() % 65536
         self._elapsedtime = 0
-        self._sock6 = socket[0]
-        self._sock4 = socket[1]
-        #self._sock4 = None
-        #self._sock6 = None
-        # Create our sockets
-        #self.initSockets()
 
+        # Initialize the sockets
+        if not sockets == None:
+            self._sock6 = sockets[0]
+            self._sock4 = sockets[1]
+        else:
+            try:
+                sockets = makeSockets()
+            except:
+                debug("Tried to create sockets without beeing root!")
+
+            self._sock6 = sockets[0]
+            self._sock4 = sockets[1]
+            debug("No sockets passed as argument, creating own")
 
     def setHosts(self, ips):
         """
