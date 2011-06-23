@@ -353,3 +353,9 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 'powerDMChannelFriendly47',
                 'powerDMChannelFriendly48',
                 ])
+
+    def get_module_name(self):
+        return self.mib.get('moduleName', None)
+
+    def get_sensor_descriptions(self, res):
+        return []

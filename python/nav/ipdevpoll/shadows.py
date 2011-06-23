@@ -778,4 +778,3 @@ class NetboxSnmpOid(Shadow):
 
 class Sensor(Shadow):
     __shadowclass__ = sensor.Sensor
-    __lookups__ = ['netbox']
