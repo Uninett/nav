@@ -34,7 +34,6 @@ import random
 import struct
 import circbuf
 import config
-import binascii
 import hashlib
 from debug import debug
 

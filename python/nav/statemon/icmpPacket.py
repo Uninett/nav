@@ -15,22 +15,15 @@ ICMP_SEQ_NR = 0
 
 class Packet:
 
-    def __init__(self,id,ipv, load):
+    def __init__(self, id, ipv, load):
         self.id = id
-        #self.load = None
-        #self.load = "-- IF YOU ARE READING THIS YOU ARE A NERD! --"
         self.load = load
         if ipv == 6:
             self.ipv6 = True
         else:
             self.ipv6 = False
         self.size = ICMP_DATA_STR
-        #self.checksum = 0
-        #self.header = 0
-        #self.data = 0
         self.packet = self._construct()
-
-    
 
     def _construct(self):
         """Constructs a ICMP echo packet of variable size"""
@@ -46,8 +39,6 @@ class Packet:
             header = struct.pack('bbHHh', ICMP_TYPE, ICMP_CODE, ICMP_CHECKSUM, \
                                  ICMP_ID, ICMP_SEQ_NR+self.id)
 
-        # if size big enough, embed this payload
-        #load = "Christian er kul"
         # space for time
         self.size -= struct.calcsize("d")
 
