@@ -241,9 +241,9 @@ class MegaPing:
                             print str(e)
 
                 # Extract header info and payload
+                pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
                 if ipv6:
                     pongHeader = pong[0:8]
-                    pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
 
                     # Check sequence number
                     if not pongSeqnr == self._pid:
@@ -253,7 +253,6 @@ class MegaPing:
                     identity = pong[16:53]
                 else:
                     pongHeader = pong[20:28]
-                    pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
                     
                     # Check sequence number
                     if not pongSeqnr == self._pid:
@@ -300,12 +299,6 @@ class MegaPing:
                 debug("Duplicate host %s ignored" % host, 6)
                 continue
 
-            # Choose right socket for the host    
-            if host.is_v6():
-                mySocket = self._sock6
-            else:
-                mySocket = self._sock4
-
             host.time = time.time()
 
             # Create an unique identifier for each ping
@@ -329,12 +322,12 @@ class MegaPing:
             # Choose what socket to send the packet to
             if not host.is_v6():
                 try:
-                    mySocket.sendto(host.packet.packet, (host.ip, 0))
+                    self._sock4.sendto(host.packet.packet, (host.ip, 0))
                 except Exception, e:
                     debug("Failed to ping %s [%s]" % (host.ip, str(e)), 5)
             else:
                 try:
-                    mySocket.sendto(host.packet.packet,(host.ip,0,0,0))
+                    self._sock6.sendto(host.packet.packet,(host.ip,0,0,0))
                 except Exception, e:
                     debug("failed to ping %s [%s]" % (host.ip, str(e)), 5)
 
