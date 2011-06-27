@@ -47,7 +47,7 @@ class NetboxForm(forms.Form):
         super(NetboxForm, self).__init__(*args, **kwargs)
 
     def clean_ip(self):
-        name = self.cleaned_data['ip']
+        name = self.cleaned_data['ip'].strip()
         try:
             ip, sysname = resolve_ip_and_sysname(name)
         except SocketError:
