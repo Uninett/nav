@@ -92,8 +92,7 @@ def get_netbox_form(netbox):
     return form
 
 def netbox_serial_and_type(form, netbox_id):
-    serial_form = None
-    subcat_form = None
+    ro_form = serial_form = subcat_form = None
     if form.is_valid():
         serial, netbox_type = netbox_get_serial_and_type(form)
         function = netbox_get_function(netbox_id)
