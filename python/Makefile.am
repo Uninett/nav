@@ -10,6 +10,7 @@ nobase_python_DATA = $(sort $(wildcard nav/*.py) \
                             $(wildcard nav/*/*.py) \
                             $(wildcard nav/*/*/*.py) \
                             $(wildcard nav/*/*/*/*.py) \
+                            $(wildcard nav/*/*/*/*/*.py) \
                             $(pathmodule) \
                             $(cheetah_TEMPLATES) \
                             $(wildcard nav/statemon/checker/*.descr) \

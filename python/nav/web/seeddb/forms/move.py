@@ -61,17 +61,3 @@ class MoveForm(forms.Form):
             for key in self.fields:
                 if key not in active_fields:
                     del self.fields[key]
-
-class NetboxMoveForm(MoveForm):
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all())
-    organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all())
-
-class RoomMoveForm(MoveForm):
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all())
-
-class OrganizationMoveForm(MoveForm):
-    parent = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
