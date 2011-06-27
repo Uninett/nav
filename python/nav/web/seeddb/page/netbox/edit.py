@@ -46,10 +46,11 @@ def netbox_edit(request, netbox_id=None):
     netbox = get_netbox(netbox_id)
     if request.method == 'POST':
         if step == SERIAL_STEP:
-            tmp_form = NetboxForm(request.POST)
-            netbox_form, serial_form, subcat_form = netbox_serial_and_type(
-                    tmp_form, netbox_id)
-            step = SAVE_STEP
+            netbox_form = NetboxForm(request.POST)
+            if netbox_form.is_valid():
+                netbox_form, serial_form, subcat_form = netbox_serial_and_type(
+                    netbox_form, netbox_id)
+                step = SAVE_STEP
         else:
             try:
                 netbox = netbox_save(request, netbox_id)
