@@ -45,8 +45,7 @@ Dependency changes
 
   `pynetsnmp` was created for and is distributed with ZenOSS.  There doesn't
   seem to be a separate tarball for `pynetsnmp`, but the source code
-  repository is at
-  http://www.mirrors.docunext.com/websvn/zenoss/browse/trunk/pynetsnmp/ . The
+  repository is at http://dev.zenoss.com/trac/browser/trunk/pynetsnmp . The
   library has been packaged for Debian under the name `python-pynetsnmp`.
 
 
