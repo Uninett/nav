@@ -1,3 +1,25 @@
+Version 3.9.x
+(released ???)
+
+ User-visible features and improvements:
+
+  * WeatherGoose snmptrapd plugin now also supports WeatherGoose II traps.
+
+ Bugfixes:
+
+  * LP#749376 (Seed DB: Bulk import for room should require location and allow
+               position)
+  * LP#787957 (No trunk information on H3C switches)
+  * LP#787986 (No information collected for devices of unknown type)
+  * LP#789005 (Config option for portadmin to turn off authorization)
+  * LP#790600 (ARP records aren't closed when router goes down)
+  * LP#791146 (oidprofiler job fails under TwistedSNMP)
+  * LP#791150 (ipdevpoll doesn't work with pynetsnmp installed on Debian Lenny)
+  * LP#794511 (navtopology crashes with error "can't adapt")
+  * LP#797143 (unrecognizedCDP report links to removed ipinfo app)
+  * LP#798146 (Lots of data aren't collected when using TwistedSNMP)
+
+
 Version 3.9.0b1
 (released 20 May 2011)
 
