@@ -26,7 +26,6 @@ from django.template import RequestContext
 from django.db.models.query_utils import Q
 
 from nav.django.utils import get_account
-from nav.models.rrd import RrdFile
 from nav.models.rrd import RrdDataSource
 from nav.models.manage import Netbox
 from nav.models.manage import Interface
@@ -40,6 +39,7 @@ from nav.web.threshold.utils import is_legal_interfaceid
 from nav.web.threshold.utils import is_legal_netboxid
 from nav.web.threshold.utils import is_legal_descr
 from nav.web.threshold.utils import is_legal_ids
+from nav.web.threshold.utils import is_legal_id
 from nav.web.threshold.utils import is_illegal_parameters
 from nav.web.threshold.utils import is_percent_value
 
@@ -54,11 +54,6 @@ EXCEEDED_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': 
 logger = logging.getLogger("nav.web.threshold")
 
 INTERFACE_REGEXP = re.compile('^if\w+$')
-
-SAVE_ERROR_TEMPLATE = 'Failed to save threshold %s for %s\n'
-
-MISMATCH_ERROR_TEMPLATE = ('Number of records mismatch. ' +
-                          ' Asked for %d, got %d from DB')
 
 # Option that is selected
 NETBOX_OPTION_SELECTED = '<option selected="selected" value="%d">%s</option>'
@@ -85,8 +80,6 @@ def get_netbox_types(vendor=None):
 
 def index(request):
     """Initial page for searching """
-    before = time.clock()
-    account = get_account(request)
     descriptions = RrdDataSource.objects.values(
                         'description').distinct().order_by('description')
     thresholds = []
@@ -112,11 +105,6 @@ def index(request):
                  'choseninterfaces' : all_interfaces,
                 }
     info_dict.update(BULK_DEFAULTS)
-
-    logger.error('index: timer = %.3f' % (time.clock() - before))
-    logger.error('index: len(netboxes) = %d' % len(all_netboxes))
-    logger.error('index: len(interfaces) = %d' % len(all_interfaces))
-
     return render_to_response('threshold/select.html',
         info_dict,
         RequestContext(request))
@@ -292,6 +280,7 @@ def format_interface_option(interface):
 
 
 def get_netbox_types_options(vendor, selected):
+    """ Constructs types for all netboxes in use. """
     all_netbox_types = get_netbox_types(vendor)
     type_options = ['<option value="empty">Not Chosen</option>']
     for netbox_type in all_netbox_types:
@@ -399,114 +388,7 @@ def netbox_search(request):
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
 
-def format_save_error(data_source):
-    """Format a useful error-message deping on netbox or interface."""
-    postfix = ''
-    if data_source.rrd_file.interface:
-        postfix = "%s: %s (%s)" % (
-                data_source.rrd_file.interface.netbox.get_short_sysname(),
-                data_source.rrd_file.interface.ifname,
-                data_source.rrd_file.interface.ifalias)
-    else:
-        postfix = data_source.rrd_file.netbox.get_short_sysname(),
-    return SAVE_ERROR_TEMPLATE % (data_source.description, postfix)
-    
-def save_thresholds(request):
-    """Save a single or a list of thresholds."""
-    account = get_account(request)
-    result = {}
-    message = ''
-    if request.method == 'POST':
-        # A string with datasource-ids, separated with "|"
-        ds_ids = unicode(request.POST.get('dsIds', ''))
-        operator = unicode(request.POST.get('operator', ''))
-        threshold = unicode(request.POST.get('threshold', ''))
 
-        if not is_legal_ids(ds_ids, allow_empty=False):
-            logger.error('Illegal datasource-id: login=%s; id=%s' %
-                (account.login, ds_ids))
-            result = {'error': 1, 'message' : 'Illegal datasource'}
-            return HttpResponse(simplejson.dumps(result),
-                    mimetype="application/json")
-
-        if not is_legal_operator(operator):
-            logger.error('Illegal operator: login=%s; operator=%s' %
-                (account.login, operator))
-            result = {'error': 1, 'message' : 'Illegal operator2'}
-            return HttpResponse(simplejson.dumps(result),
-                    mimetype="application/json")
-
-        if not is_legal_threshold(threshold):
-            logger.error('Illegal threshold: login=%s; threshold=%s' %
-                         (account.login, threshold))
-            result = {'error': 1, 'message' : 'Illegal threshold'}
-            return HttpResponse(simplejson.dumps(result),
-                    mimetype="application/json")
-
-        datasource_ids = []
-        for ds_id in ds_ids.split('|'):
-            datasource_ids.append(int(ds_id))
-
-        rrd_data_sources = None
-        try :
-            rrd_data_sources = RrdDataSource.objects.filter(
-                                                pk__in=datasource_ids)
-        except Exception, filter_ex:
-            logger.error('Exception: login=%s; exception=%s' %
-                         (account.login, filter_ex))
-            result = {'error': 1, 'message' : 'Illegal datasource'}
-            return HttpResponse(simplejson.dumps(result),
-                    mimetype="application/json")
-
-        if len(rrd_data_sources) != len(datasource_ids):
-            message = MISMATCH_ERROR_TEMPLATE % (
-                        len(datasource_ids), len(rrd_data_sources))
-            logger.error(message + ': login=%s' % account.login)
-            result = {'error': 1, 'message' : message }
-            return HttpResponse(simplejson.dumps(result),
-                    mimetype="application/json")
-
-        save_errors = []
-        threshold.strip()
-        for rrd_data_source in rrd_data_sources:
-            if is_percent_value(threshold) and not rrd_data_source.max:
-                # % is prohibited when max threshold is undefined.
-                err_msg = '% is prohibited when max is undefined'
-                extra_msg = 'login=%s; ds=%d ' % (account.login,
-                                                 rrd_data_source.id)
-                logger.error(err_msg + '; ' + extra_msg)
-                save_errors.append((format_save_error(rrd_data_source) +
-                                            '; ' + err_msg))
-                continue
-            if not threshold:
-                # Threshold can be an empty string,- in that case insert None
-                rrd_data_source.threshold = None
-            else:
-                rrd_data_source.threshold = threshold
-            rrd_data_source.delimiter = operator
-            try :
-                rrd_data_source.save()
-            except Exception, save_ex:
-                logger.error('Exception: login=%s; ds=%d; exception=%s' %
-                    (account.login, rrd_data_source.id, save_ex))
-                save_errors.append(format_save_error(rrd_data_source))
-        if save_errors:
-            message = ''.join(save_errors)
-            result = {'error': 1, 'message': message}
-        else:
-            msg = 'Threshold'
-            if len(rrd_data_sources) > 1:
-                msg += 's'
-            msg += ' saved'
-            result = {'error': 0, 'message': msg}
-        return HttpResponse(simplejson.dumps(result),
-                mimetype="application/json")
-    else:
-        logger.error('Illegal request: login=%s;' % account.login)
-        result = {'error': 1, 'message' : 'Illegal request'}
-        return HttpResponse(simplejson.dumps(result),
-                mimetype="application/json")
-        
 def get_oid_descriptions():
     """Get the full texts for short descriptions."""
     snmp_oid_list = SnmpOid.objects.filter(
@@ -592,6 +474,7 @@ def threshold_interface(request, interfaceid=None):
         RequestContext(request))
 
 def threshold_netbox(request, netboxid=None):
+    """List all possible datasources and thresholds for a netbox."""
     account = get_account(request)
     if not is_legal_netboxid(netboxid):
         logger.error('Illegal netbox-id: login=%s; id=%s' %
@@ -676,3 +559,77 @@ def threshold_edit(request, thresholdid=None):
             RequestContext(request))
     url = '/threshold/interface/%d/' % threshold.rrd_file.interface_id
     return HttpResponseRedirect(url)
+
+def thresholds_save(request):
+    """Save operators and thresholds for the given datasource-ids."""
+    account = get_account(request)
+    result = {}
+    # collection of datasources with errors
+    error_list = []
+    if request.method == 'POST':
+        thresholds_json = request.POST.get('thresholds', '')
+        thresholds = simplejson.loads(thresholds_json)
+        for threshold in thresholds:
+            dsId = unicode(threshold.get('dsId', ''))
+            op = unicode(threshold.get('op', ''))
+            thrVal = unicode(threshold.get('thrVal', ''))
+            if not is_legal_id(dsId):
+                logger.error('Illegal id: login=%s; id=%s' %
+                                (account.login, dsId))
+                error_list.append(dsId)
+                continue
+            if not is_legal_operator(op):
+                logger.error('Illegal operator: login=%s; op=%s' %
+                                (account.login, op))
+                error_list.append(dsId)
+                continue
+            if not is_legal_threshold(thrVal):
+                logger.error('Illegal threshold: login=%s; value=%s' %
+                                (account.login, thrVal))
+                error_list.append(dsId)
+                continue
+            #logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
+            thrVal.strip()
+            rrd_data_source = None
+            try :
+                rrd_data_source = RrdDataSource.objects.get(pk=int(dsId))
+            except Exception, get_ex:
+                logger.error('Illegal datasource, except=%s; login=%s; id=%d' %
+                                (get_ex, account.login, dsId))
+                error_list.append(dsId)
+                continue
+            if is_percent_value(thrVal) and not rrd_data_source.max:
+                logger.error('% is prohibited when max is undefined, ' +
+                            'id=%s: login=%s' % (dsId, account.login))
+                error_list.append(dsId)
+                continue
+
+            if not thrVal:
+                # Threshold can be an empty string,- in that case insert None
+                rrd_data_source.threshold = None
+            else:
+                rrd_data_source.threshold = thrVal
+            rrd_data_source.delimiter = op
+            try:
+                rrd_data_source.save()
+            except Exception, save_ex:
+                logger.error('Failed to save, except=%s: login=%s' %
+                                (save_ex, account.login))
+                error_list.append(dsId)
+                continue
+        numb_errors = len(error_list)
+        if numb_errors > 0:
+            message = ''
+            if numb_errors == 1:
+                message = 'Could not save threshold'
+            elif numb_errors > 1:
+                message = '%d threholds could not be saved' % numb_errors
+            result = {'error': numb_errors,
+                      'message': message,
+                      'failed': error_list,}
+        else:
+            result = {'error': 0, 'message': 'Successfully saved', }
+    else:
+        result = {'error': 1, 'message': 'Wrong request'}
+    return HttpResponse(simplejson.dumps(result),
+        mimetype="application/json")

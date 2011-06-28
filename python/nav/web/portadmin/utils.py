@@ -81,17 +81,28 @@ def find_and_populate_allowed_vlans(account, netbox, interfaces):
 def find_allowed_vlans_for_user_on_netbox(account, netbox):
     allowed_vlans = []
     netbox_vlans = find_vlans_on_netbox(netbox)
-    if is_administrator(account):
-        allowed_vlans = netbox_vlans
+
+    if is_vlan_authorization_enabled():
+        if is_administrator(account):
+            allowed_vlans = netbox_vlans
+        else:
+            all_allowed_vlans = find_allowed_vlans_for_user(account)
+            allowed_vlans = intersect(all_allowed_vlans, netbox_vlans)
     else:
-        all_allowed_vlans = find_allowed_vlans_for_user(account)
-        allowed_vlans = intersect(all_allowed_vlans, netbox_vlans)
-    
+        allowed_vlans = netbox_vlans
+
     defaultvlan = find_default_vlan() 
     if defaultvlan and defaultvlan not in allowed_vlans:
         allowed_vlans.append(defaultvlan)
     
     return sorted(allowed_vlans)
+
+def is_vlan_authorization_enabled():
+    config = read_config()
+    if config.has_option("authorization", "vlan_auth"):
+        return config.getboolean("authorization", "vlan_auth")
+
+    return False
 
 def find_vlans_on_netbox(netbox):
     fac = SNMPFactory.getInstance(netbox) 

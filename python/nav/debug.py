@@ -70,19 +70,30 @@ def log_stacktrace(logger, stacktrace):
         # don't waste time here if DEBUG logging isn't activated
         return
 
-    logger.debug("Stack frame dump:")
+    dump = []
     for (frame, filename, line_no, func, source, _) in stacktrace:
-        logger.debug("  File %r, line %s, in %s", filename, line_no, func)
+        dump.append("  File %r, line %s, in %s" % (filename, line_no, func))
         for line in source:
-            logger.debug("  %s", line.rstrip())
+            dump.append("  %s" % line.rstrip())
 
-        logger.debug("(Globals)")
-        for line in pprint.pformat(frame.f_globals).split('\n'):
-            logger.debug("  %s", line)
+        dump.append("(Globals)")
+        globs = ((var, val) for var, val in frame.f_globals.items()
+                 if var != '__builtins__')
+        dump.extend(_dumpvars(globs))
 
-        logger.debug("(Locals)")
-        for line in pprint.pformat(frame.f_locals).split('\n'):
-            logger.debug("  %s", line)
+        dump.append("(Locals)")
+        dump.extend(_dumpvars(frame.f_locals.items()))
+        dump.append("")
+
+    logger.debug("Stack frame dump:\n%s", '\n'.join(dump))
+    logger.debug("--- end of stack trace ---")
+
+def _dumpvars(varitems):
+    for var, val in varitems:
+        try:
+            yield "  %r: %s" % (var, pprint.pformat(val, indent=2))
+        except Exception, e:
+            yield "  %r: <<exception during formatting: %s>>" % (var, e)
 
 def log_last_django_query(logger):
     """Debug logs the latest SQL query made by Django.

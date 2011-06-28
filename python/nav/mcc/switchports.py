@@ -93,7 +93,7 @@ def make_config(config):
         
         # Fetch all interfaces for this netbox
         interfacesq = """
-        SELECT interfaceid, ifname, ifindex, ifalias
+        SELECT interfaceid, ifname, ifindex, ifalias, speed
         FROM netbox
         JOIN interface_swport USING (netboxid)
         WHERE netboxid = %s
@@ -119,7 +119,7 @@ def make_config(config):
         targets = []
 
         # Fill in targets
-        for (interfaceid, ifname, ifindex, ifalias) in c.fetchall():
+        for (interfaceid, ifname, ifindex, ifalias, speed) in c.fetchall():
             if not ifname:
                 logger.error("%s: No ifname found for interfaceid %s"
                              % (sysname, interfaceid))
@@ -147,8 +147,9 @@ def make_config(config):
             # key - swport
             # value - swportid
             container = utils.RRDcontainer(targetname + '.rrd',
-                                             netboxid, sysname, 'interface',
-                                             interfaceid)
+                                           netboxid, sysname, 'interface',
+                                           interfaceid, 
+                                           speed=speed)
 
             counter = 0
             for ds in datasources[snmp_version]:
