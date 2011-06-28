@@ -4,8 +4,8 @@ Network Administration Visualized list of authors
 This file tries to list everyone that has contributed to NAV, in the
 form of code, documentation or packaging.
 
-Currently active contributors
------------------------------
+Currently active contributors/maintainers
+-----------------------------------------
 
 * Vidar Faltinsen <vidar.faltinsen at uninett.no> 
   Founded the project in 1999.  He doesn't code, but he knows his way
@@ -42,11 +42,9 @@ Currently active contributors
   Maintains the radius accounting logger.  Also a stand-in for Ole Martin.
 
 
-Contributors to earlier releases
---------------------------------
-As this list is being compiled 10 years after the birth of NAV,
-current email addresses are missing for many of the earliest
-contributors.
+Other contributors and previous maintainers
+-------------------------------------------
+* Marius Halden <marius.halden at gmail.com>
 
 * Fredrik Skolmli <fredrik.skolmli at uninett.no>
   Active 2010.  Contributed bugfixes and started the threshold configuration
