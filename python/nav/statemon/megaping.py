@@ -214,9 +214,8 @@ class MegaPing:
             startwait = time.time()
 
             # Listen for incoming data on sockets
-            while 1:
-                rd, wt, er = select.select([self._sock6, self._sock4], [], [], timeout)
-                break
+            rd, wt, er = select.select([self._sock6, self._sock4], [], [],
+                                       timeout)
 
             # If data found
             if rd:
@@ -224,60 +223,17 @@ class MegaPing:
                 # there is data and we don't care to measure the time
                 # it takes the system to give us the packet.
                 arrival = time.time()
-                
+
                 # Find out which socket got data and read
-                for socket in rd:
-                    if socket == self._sock6:
-                        try:
-                            pong, sender = self._sock6.recvfrom(56+48)
-                            ipv6 = True
-                        except Exception, e:
-                            print str(e)
-                    else:
-                        try:
-                            pong, sender = self._sock4.recvfrom(56+48)
-                            ipv6 = False
-                        except Exception, e:
-                            print str(e)
-
-                # Extract header info and payload
-                if ipv6:
-                    pongHeader = pong[0:8]
-
-                    pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
-                    # Check sequence number
-                    if not pongSeqnr == self._pid:
+                for sock in rd:
+                    try:
+                        pong, sender = sock.recvfrom(4096)
+                    except socket.error, e:
+                        debug("RealityError -2: %s" % e, 1)
                         continue
-                    
-                    # Extract unique identity
-                    identity = pong[16:53]
-                else:
-                    pongHeader = pong[20:28]
-                    
-                    pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
-                    # Check sequence number
-                    if not pongSeqnr == self._pid:
-                        continue
-                    
-                    # Extract unique identity
-                    identity = pong[36:73]
-                
-                # Find the host with this identity
-                try:
-                    host = self._requests[identity]
-                except KeyError:
-                    debug("The packet recieved from %s does not match any of "
-                          "the packets we sent." % repr(sender), 7)
-                    debug("Length of recieved packet: %i Cookie: [%s]" %
-                          (len(pong), identity), 7)
-                    continue
-                
-                # Delete the entry of the host who has replied and add the pingtime
-                pingtime = arrival - host.time
-                host.replies.push(pingtime)
-                debug("Response from %-16s in %03.3f ms" %
-                      (sender, pingtime*1000), 7)
-                del self._requests[identity]
+
+                    is_ipv6 = sock == self._sock6
+                    self._processResponse(pong, sender, is_ipv6, arrival)
             elif self._senderFinished:
                 break
 
@@ -287,6 +243,47 @@ class MegaPing:
             #host.logPingTime(None)
         end = time.time()
         self._elapsedtime = end - start
+
+
+    def _processResponse(self, pong, sender, is_ipv6, arrival):
+        # Extract header info and payload
+        if is_ipv6:
+            pongHeader = pong[0:8]
+
+            pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
+            # Check sequence number
+            if not pongSeqnr == self._pid:
+                return
+
+            # Extract unique identity
+            identity = pong[16:53]
+        else:
+            pongHeader = pong[20:28]
+
+            pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
+            # Check sequence number
+            if not pongSeqnr == self._pid:
+                return
+
+            # Extract unique identity
+            identity = pong[36:73]
+
+        # Find the host with this identity
+        try:
+            host = self._requests[identity]
+        except KeyError:
+            debug("The packet recieved from %s does not match any of "
+                  "the packets we sent." % repr(sender), 7)
+            debug("Length of recieved packet: %i Cookie: [%s]" %
+                  (len(pong), identity), 7)
+            return
+
+        # Delete the entry of the host who has replied and add the pingtime
+        pingtime = arrival - host.time
+        host.replies.push(pingtime)
+        debug("Response from %-16s in %03.3f ms" %
+              (sender, pingtime*1000), 7)
+        del self._requests[identity]
 
 
     def _sendRequests(self, mySocket=None, hosts=None):
