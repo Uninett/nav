@@ -241,10 +241,10 @@ class MegaPing:
                             print str(e)
 
                 # Extract header info and payload
-                pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
                 if ipv6:
                     pongHeader = pong[0:8]
 
+                    pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
                     # Check sequence number
                     if not pongSeqnr == self._pid:
                         continue
@@ -254,6 +254,7 @@ class MegaPing:
                 else:
                     pongHeader = pong[20:28]
                     
+                    pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
                     # Check sequence number
                     if not pongSeqnr == self._pid:
                         continue
