@@ -32,7 +32,7 @@ from nav.web.seeddb.utils.delete import render_delete
 class VendorInfo(SeeddbInfo):
     active = {'vendor': True}
     caption = 'Vendors'
-    tab_template = 'seedb/tabs_vendor.html'
+    tab_template = 'seeddb/tabs_vendor.html'
     _title = 'Vendors'
     _navpath = [('Vendors', reverse_lazy('seeddb-vendor'))]
     hide_move = True
