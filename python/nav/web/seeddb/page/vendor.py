@@ -52,7 +52,7 @@ def vendor_list(request):
     info = VendorInfo()
     query = Vendor.objects.all()
     value_list = ('id',)
-    return render_list(request, query, value_list, 'seeddb-vendor-edit',
+    return render_list(request, query, value_list, None,
         extra_context=info.template_context)
 
 def vendor_delete(request):
