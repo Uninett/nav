@@ -64,7 +64,7 @@ def vendor_delete(request):
 def vendor_edit(request, vendor_id=None):
     info = VendorInfo()
     return render_edit(request, Vendor, VendorForm, vendor_id,
-        'seeddb-vendor-edit',
+        'seeddb-vendor',
         extra_context=info.template_context)
 
 def vendor_bulk(request):
