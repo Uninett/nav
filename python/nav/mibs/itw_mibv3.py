@@ -357,5 +357,5 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     def get_module_name(self):
         return self.mib.get('moduleName', None)
 
-    def get_sensor_descriptions(self, res):
+    def get_all_sensors(self):
         return []

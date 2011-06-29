@@ -106,6 +106,9 @@ class Sensor(models.Model):
     data_scale = VarcharField(db_column="data_scale",
                                 choices=DATA_SCALE_CHOICES)
     human_readable = VarcharField(db_column="human_readable")
+    name = VarcharField(db_column="name")
+    internal_name = VarcharField(db_column="internal_name")
+    mib = VarcharField(db_column="mib")
 
     class Meta:
         db_table = 'sensor'

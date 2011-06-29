@@ -14,22 +14,14 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import mibretriever
 
-SENSOR_TYPE ={
-    1: 'Other',
-    2: 'Unknown',
-    3: 'VoltsAC',
-    4: 'VoltsDC',
-    5: 'Amperes',
-    6: 'Watts',
-    7: 'Hertz',
-    8: 'Celsius',
-    9: 'Relative humidity',
-   10: 'RPM',
-   11: 'Airflow',
-   12: 'Boolean',
-  }
+from twisted.internet import defer
+from twisted.internet import threads
+
+from nav.mibs import reduce_index
+from nav.mibs.entity_mib import EntityMib
+
+import mibretriever
 
 DATA_SCALE = {
     1: 'Yocto',
@@ -53,11 +45,13 @@ DATA_SCALE = {
 
 class EntitySensorMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_sensor_mib import MIB as mib
-    
-    def retrieve_std_columns(self):
-        """ A convenient function for getting the most interesting
-        columns for environment mibs. """
-        return self.retrieve_columns([
+
+    def get_module_name(self):
+        return self.mib.get('moduleName', None)
+
+    def _get_sensors(self):
+        """ Collect all sensors."""
+        df = self.retrieve_columns([
                 'entPhySensorType',
                 'entPhySensorScale',
                 'entPhySensorPrecision',
@@ -65,13 +59,36 @@ class EntitySensorMib(mibretriever.MibRetriever):
                 'entPhySensorOperStatus',
                 'entPhySensorUnitsDisplay',
                 ])
+        df.addCallback(reduce_index)
+        return df
+            
+    def _collect_entity_names(self):
+        """ Collect all entity-names on netbox."""
+        entity_mib = EntityMib(self.agent_proxy)
+        df = entity_mib.retrieve_columns([
+                'entPhysicalDescr',
+                'entPhysicalName',
+                ])
+        df.addCallback(reduce_index)
+        return df
 
-    def get_module_name(self):
-        return self.mib.get('moduleName', None)
-    
-    def get_sensor_descriptions(self, res):
+    @defer.inlineCallbacks
+    def get_all_sensors(self):
+        """ Collect all sensors and names on a netbox, and match
+            sensors with names.
+            
+            Return a list with dictionaries, each dictionary
+            represent a sensor."""
+        sensors = yield self._get_sensors()
+        entity_names = yield self._collect_entity_names()
+        for idx, row in entity_names.items():
+            if idx in sensors:
+                sensors[idx]['entPhysicalDescr'] = row.get(
+                                                    'entPhysicalDescr',None)
+                sensors[idx]['entPhysicalName'] = row.get(
+                                                    'entPhysicalName', None)
         result = []
-        for row_id, row in res.items():
+        for row_id, row in sensors.items():
             row_oid = row.get(0, None)
             mibobject = self.nodes.get('entPhySensorValue', None)
             oid = str(mibobject.oid) + str(row_oid)
@@ -79,11 +96,18 @@ class EntitySensorMib(mibretriever.MibRetriever):
             scale = row.get('entPhySensorScale', None)
             op_status = row.get('entPhySensorOperStatus', None)
             sensor_type = row.get('entPhySensorType', None)
+            description = row.get('entPhysicalDescr')
+            name = row.get('entPhysicalName', None)
+            internal_name = name
             if op_status == 1:
                 result.append({
                             'oid': oid,
                             'unit_of_measurement': unit_of_measurement,
                             'scale': DATA_SCALE.get(scale, None),
-                            'description': SENSOR_TYPE.get(sensor_type,None),
+                            'description': description,
+                            'name': name,
+                            'internal_name': internal_name,
+                            'mib': self.get_module_name(),
                             })
-        return result
+        self.logger.error('get_all_sensors: result=%s' % result)
+        defer.returnValue(result)

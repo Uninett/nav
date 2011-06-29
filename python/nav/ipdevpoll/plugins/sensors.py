@@ -56,31 +56,22 @@ class Sensors(Plugin):
         self._logger.error('Sensors: handle')
         self._logger.error('netbox = %s' % self.netbox)
         self.mib = MIBFactory.get_instance(self.netbox, self.agent)
-        df = self.mib.retrieve_std_columns()
-        df.addCallback(reduce_index)
-        df.addCallback(self._extract_sensors)
+        df = self.mib.get_all_sensors()
+        df.addCallback(self._store_sensors)
         return df
 
-    def _extract_sensors(self, res):
-        self._logger.error('Sensors:: _extract_sensors: netbox.id = %d' %
-                            self.netbox.id)  
-        self._logger.error('Sensors:: _extract_sensors: res = %s' % res)
-        self._logger.error('MIB = %s' % self.mib.get_module_name())
-        sensor_descriptions = self.mib.get_sensor_descriptions(res)
+    def _store_sensors(self, result):
         sensors = []
-        for row in sensor_descriptions:
-            self._logger.error('------------------------------------------')
-            self._logger.error('OID: %s'% row['oid'])
-            self._logger.error('verditype: %s' % row['unit_of_measurement'])
-            self._logger.error('scale: %s' % row['scale'])
-            self._logger.error('description: %s' % row['description'])
-            self._logger.error('------------------------------------------')
-
-            sensor = self.containers.factory(row['oid'], shadows.Sensor)
+        for row in result:
+            oid = row.get('oid', None)
+            sensor = self.containers.factory(oid,  shadows.Sensor)
             sensor.netbox = self.netbox
-            sensor.oid = row['oid']
-            sensor.unit_of_measurement = row['unit_of_measurement']
-            sensor.data_scale = row['scale']
-            sensor.human_readable = row['description']
+            sensor.oid = oid
+            sensor.unit_of_measurement = row.get('unit_of_measurement', None)
+            sensor.data_scale = row.get('scale', None)
+            sensor.human_readable = row.get('description', None)
+            sensor.name = row.get('name', None)
+            sensor.internal_name = row.get('internal_name', None)
+            sensor.mib = row.get('mib', None)
             sensors.append(sensors)
         return sensors

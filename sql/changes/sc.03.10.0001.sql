@@ -5,4 +5,7 @@ CREATE TABLE manage.sensor (
   unit_of_measurement VARCHAR,
   data_scale VARCHAR,
   human_readable VARCHAR
+  name VARCHAR,
+  internal_name VARCHAR,
+  mib VARCHAR
 );
