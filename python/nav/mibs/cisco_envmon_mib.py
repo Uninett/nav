@@ -157,9 +157,12 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             oid = str(power_mib.oid) + str(power_sensor_oid)
             unit_of_measurement = 'Power supply state'
             scale = None
-            source = power_sensor.get('ciscoEnvMonSupplySource', 1)
-            description = POWER_SENSOR_TYPE.get(source)
+            power_source = power_sensor.get('ciscoEnvMonSupplySource', None)
+            description = POWER_SENSOR_TYPE.get(power_source)
             name = power_sensor.get('ciscoEnvMonSupplyStatusDescr').strip()
+            # Sometimes we do get a source
+            if not description:
+                description = name
             internal_name = name
             sensors.append({
                             'oid': oid,
