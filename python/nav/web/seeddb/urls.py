@@ -109,8 +109,6 @@ urlpatterns = patterns('',
     # Vendor
     url(r'^vendor/$', vendor,
         name='seeddb-vendor'),
-    url(r'^vendor/edit/(?P<vendor_id>[^/]+)/$', vendor_edit,
-        name='seeddb-vendor-edit'),
     url(r'^vendor/add/$', vendor_edit,
         name='seeddb-vendor-edit'),
     url(r'^vendor/bulk/$', vendor_bulk,
