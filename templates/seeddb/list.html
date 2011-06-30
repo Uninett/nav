@@ -69,7 +69,7 @@
             <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
             {% for element in object.values_list %}
             {% if forloop.first %}
-                {% if object.url != None %}
+                {% if object.url %}
                     <td><a href="{{ object.url }}">{{ element }}</a></td>
                 {% else %}
                     <td>{{ element }}</td>
