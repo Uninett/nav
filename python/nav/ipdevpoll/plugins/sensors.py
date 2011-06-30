@@ -38,8 +38,15 @@ VENDOR_ITWATCHDOGS = 17373
 class MIBFactory(object):
     @classmethod
     def get_instance(self, netbox, agent):
+        """ Factory for allocating mibs based on
+            netbox-vendors and models"""
+        mib = None
         vendor_id = netbox.type.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
+            # Some cisco-boxes can may use standard-mib
+            mib = EntitySensorMib(agent)
+            if mib.can_return_sensors():
+                return mib
             mib = CiscoEnvMonMib(agent)
             return mib
         if (vendor_id == VENDOR_ITWATCHDOGS):
@@ -49,19 +56,21 @@ class MIBFactory(object):
         return mib
         
 class Sensors(Plugin):
+    """ Plugin that detect sensors in netboxes."""
+
     @classmethod
     def can_handle(cls, netbox):
         return True
 
     def handle(self):
-        self._logger.error('Sensors: handle')
-        self._logger.error('netbox = %s' % self.netbox)
         self.mib = MIBFactory.get_instance(self.netbox, self.agent)
         df = self.mib.get_all_sensors()
         df.addCallback(self._store_sensors)
         return df
 
     def _store_sensors(self, result):
+        """ Store sensor-records to database (this is done
+            automagically when we use shadow-objects."""
         sensors = []
         for row in result:
             oid = row.get('oid', None)
