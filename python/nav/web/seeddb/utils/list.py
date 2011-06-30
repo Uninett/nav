@@ -27,7 +27,7 @@ from nav.django.utils import get_verbose_name
 
 ITEMS_PER_PAGE = 100
 
-def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk', \
+def render_list(request, queryset, value_list, edit_url=None, edit_url_attr='pk', \
         filter_form=None, template='seeddb/list.html', extra_context=None):
     """Renders a Seed DB list.
 
@@ -57,7 +57,10 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk', \
 
     # Get values specified in value_list from the queryset.
     # Also make sure that the primary key and the edit_url_attr appears.
-    value_queryset = queryset.values('pk', edit_url_attr, *value_list)
+    if edit_url == None:
+        value_queryset = queryset.values('pk', *value_list)
+    else:
+        value_queryset = queryset.values('pk', edit_url_attr, *value_list)
 
     per_page = request.GET.get('per_page', ITEMS_PER_PAGE)
     if per_page == 'all':
@@ -67,7 +70,12 @@ def render_list(request, queryset, value_list, edit_url, edit_url_attr='pk', \
     page_num = _get_num(request.GET, 'page', 1)
 
     page = _paginate(value_queryset, per_page, page_num)
-    objects = _process_objects(page, value_list, edit_url, edit_url_attr)
+
+    if edit_url == None:
+        objects = _process_objects(page, value_list)
+    else:
+        objects = _process_objects(page, value_list, edit_url, edit_url_attr)
+
     labels = _label(queryset.model, value_list)
 
     context = {
@@ -145,7 +153,7 @@ def _paginate(value_qs, per_page, page_num):
         page = paginator.page(paginator.num_pages)
     return page
 
-def _process_objects(page, value_list, edit_url, edit_url_attr):
+def _process_objects(page, value_list, edit_url=None, edit_url_attr=None):
     """Packs values into a format the template understands.
 
     A list contains each row.
@@ -157,11 +165,17 @@ def _process_objects(page, value_list, edit_url, edit_url_attr):
     """
     objects = []
     for obj in page.object_list:
-        row = {
-            'pk': obj['pk'],
-            'url': reverse(edit_url, args=(obj[edit_url_attr],)),
-            'values_list': [obj[attr] for attr in value_list],
-        }
+        if edit_url == None:
+            row = {
+                'pk': obj['pk'],
+                'values_list': [obj[attr] for attr in value_list],
+            }
+        else:
+            row = {
+                'pk': obj['pk'],
+                'url': reverse(edit_url, args=(obj[edit_url_attr],)),
+                'values_list': [obj[attr] for attr in value_list],
+            }
         objects.append(row)
     return objects
 

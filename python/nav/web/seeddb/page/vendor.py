@@ -32,7 +32,7 @@ from nav.web.seeddb.utils.delete import render_delete
 class VendorInfo(SeeddbInfo):
     active = {'vendor': True}
     caption = 'Vendors'
-    tab_template = 'seedb/tabs_vendor.html'
+    tab_template = 'seeddb/tabs_vendor.html'
     _title = 'Vendors'
     _navpath = [('Vendors', reverse_lazy('seeddb-vendor'))]
     hide_move = True
@@ -52,7 +52,7 @@ def vendor_list(request):
     info = VendorInfo()
     query = Vendor.objects.all()
     value_list = ('id',)
-    return render_list(request, query, value_list, 'seeddb-vendor-edit',
+    return render_list(request, query, value_list, None,
         extra_context=info.template_context)
 
 def vendor_delete(request):
@@ -64,7 +64,7 @@ def vendor_delete(request):
 def vendor_edit(request, vendor_id=None):
     info = VendorInfo()
     return render_edit(request, Vendor, VendorForm, vendor_id,
-        'seeddb-vendor-edit',
+        'seeddb-vendor',
         extra_context=info.template_context)
 
 def vendor_bulk(request):
