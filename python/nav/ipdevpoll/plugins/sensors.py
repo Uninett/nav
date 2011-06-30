@@ -22,6 +22,7 @@ to retrieve all possible sensors in network-equipment.
 
 
 from nav.mibs import reduce_index
+from nav.mibs.itw_mib import ItWatchDogsMib
 from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
