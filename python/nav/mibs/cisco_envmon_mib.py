@@ -37,6 +37,22 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
     def get_module_name(self):
         return self.mib.get('moduleName', None)
 
+    @defer.inlineCallbacks
+    def can_return_sensors(self):
+        temperature_sensors = yield self._get_temperature_sensors()
+        if len(temperature_sensors) > 0:
+            defer.returnValue(True)
+        voltage_sensors = yield self._get_voltage_sensors()
+        if len(voltage_sensors) > 0:
+            defer.returnValue(True)
+        fanstate_sensors = yield self._get_fanstate_sensors()
+        if len(fanstate_sensors) > 0:
+            defer.returnValue(True)
+        powersupply_sensors = yield self._get_powersupply_sensors()
+        if len(powersupply_sensors) > 0:
+            defer.returnValue(True)
+        defer.returnValue(False)
+
     def _get_voltage_sensors(self):
         df = self.retrieve_columns([
                 'ciscoEnvMonVoltageStatusDescr',
