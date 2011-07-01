@@ -24,10 +24,6 @@ import mibretriever
 class ItWatchDogsMibV3(mibretriever.MibRetriever):
     from nav.smidumps.itw_mibv3 import MIB as mib
 
-    @defer.inlineCallbacks
-    def can_return_sensors(self):
-        defer.returnValue(False)
-
     def retrieve_std_columns(self):
         """ A convenient function for getting the most interesting
         columns for environment mibs. """
@@ -597,6 +593,28 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
     def get_module_name(self):
         return self.mib.get('moduleName', None)
+
+    def _get_product_info(self):
+        """ Get some basic information about netbox"""
+        df = self.retrieve_columns([
+                        'deviceInfo',
+                        'productTitle',
+                        'productVersion',
+                        'productFriendlyName',
+                        ])
+        df.addCallback(reduce_index)
+        return df
+    
+    @defer.inlineCallbacks
+    def can_return_sensors(self):
+        """ It seems to me that old and new equipment
+            have different oids for this information.
+            Therefore we can use this to differentiate
+            between mibs to use."""
+        product_info = yield self._get_product_info()
+        if len(product_info) > 0:
+            defer.returnValue(True)
+        defer.returnValue(False)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):

@@ -43,17 +43,20 @@ class MIBFactory(object):
         mib = None
         vendor_id = netbox.type.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
-            # Some cisco-boxes can may use standard-mib
+            # Some cisco-boxes may use standard-mib
             mib = EntitySensorMib(agent)
             if mib.can_return_sensors():
                 return mib
-            mib = CiscoEnvMonMib(agent)
-            return mib
+            return CiscoEnvMonMib(agent)
+
         if (vendor_id == VENDOR_ITWATCHDOGS):
+            # Try with the most recent first
             mib = ItWatchDogsMibV3(agent)
-            return mib
-        mib = EntitySensorMib(agent)
-        return mib
+            if mib.can_return_sensors():
+                return mib
+            return ItWatchDogsMib(agent)
+
+        return EntitySensorMib(agent)
         
 class Sensors(Plugin):
     """ Plugin that detect sensors in netboxes."""
