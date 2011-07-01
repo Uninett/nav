@@ -50,7 +50,8 @@ def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = OptionParser(
         version="NAV " + buildconf.VERSION,
-        epilog="Detects and updates the network topology in the NAV database"
+        description=("Detects and updates the network topology in your NAV "
+                     "database")
         )
 
     parser.add_option("--vlan", action="store_true", dest="vlan",
