@@ -39,10 +39,12 @@ LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
 def main():
     """Program entry point"""
     parser = make_option_parser()
-    parser.parse_args()
+    (options, _args) = parser.parse_args()
 
     init_logging()
     do_layer2_detection()
+    if options.vlan:
+        do_vlan_detection()
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
@@ -50,6 +52,9 @@ def make_option_parser():
         version="NAV " + buildconf.VERSION,
         epilog="Detects and updates the network topology in the NAV database"
         )
+
+    parser.add_option("--vlan", action="store_true", dest="vlan",
+                      help="Also detect vlan subtopologies")
     return parser
 
 def init_logging():
