@@ -21,7 +21,6 @@ to retrieve all possible sensors in network-equipment.
 """
 
 
-from nav.mibs import reduce_index
 from nav.mibs.itw_mib import ItWatchDogsMib
 from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
@@ -29,17 +28,19 @@ from nav.mibs.entity_sensor_mib import EntitySensorMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
-from nav.ipdevpoll.utils import binary_mac_to_hex
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
 VENDOR_ITWATCHDOGS = 17373
 
 class MIBFactory(object):
+    """A class that produces mibs depending and netbox-vendors
+    and -models."""
+
     @classmethod
     def get_instance(self, netbox, agent):
         """ Factory for allocating mibs based on
-            netbox-vendors and models"""
+            netbox-vendors and -models"""
         mib = None
         vendor_id = netbox.type.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
@@ -66,14 +67,17 @@ class Sensors(Plugin):
         return True
 
     def handle(self):
-        self.mib = MIBFactory.get_instance(self.netbox, self.agent)
-        df = self.mib.get_all_sensors()
+        """ Collect sensors and feed them in to persistent store."""
+        self._logger.debug('Collection sensors data')
+        mib = MIBFactory.get_instance(self.netbox, self.agent)
+        df = mib.get_all_sensors()
         df.addCallback(self._store_sensors)
         return df
 
     def _store_sensors(self, result):
-        """ Store sensor-records to database (this is done
-            automagically when we use shadow-objects."""
+        """ Store sensor-records to database (this is actually
+            done automagically when we use shadow-objects."""
+        self._logger.debug('Found %d sensors', len(result))
         sensors = []
         for row in result:
             oid = row.get('oid', None)
