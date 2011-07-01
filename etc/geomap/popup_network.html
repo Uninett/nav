@@ -1,5 +1,5 @@
 <div class="network-popup">
-  {% ifequal network.subedges.__len__ 1 %}
+  {% if network.subedges|length_is:"1" %}
   {% else %}
   <table class="vertitable" style="font-size: 80%">
     <caption>
@@ -11,7 +11,7 @@
   </table>
 
   <h3>Individual links:</h3>
-  {% endifequal %}
+  {% endif %}
 
   {% for sub in network.subedges %}
 
