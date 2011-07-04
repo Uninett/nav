@@ -18,12 +18,18 @@ import unittest
 import os
 from IPy import IP
 
+from twisted.internet import defer
+from twisted.python import failure
+
+from minimock import Mock
+
 os.environ['PYSNMP_API_VERSION'] = 'v3'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
+from nav.mibs.entity_mib import EntityMib
 
 class IpMibTests(unittest.TestCase):
     def test_ipv4_syntax_with_length_should_be_parsed_correctly(self):
@@ -74,6 +80,22 @@ class Ipv6MibTests(unittest.TestCase):
         expected = IP('2001:db8:1234::1')
         ip = Ipv6Mib.ipv6address_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
+
+class EntityMibTests(unittest.TestCase):
+    def test_empty_logical_type_should_not_raise(self):
+        mib = EntityMib(Mock('AgentProxy'))
+        def mock_retrieve(columns):
+            return defer.succeed(
+                {1: {'entLogicalDescr': None,
+                     'entLogicalType': None,
+                     'entLogicalCommunity': None}}
+                )
+
+        mib.retrieve_columns = mock_retrieve
+        df = mib.retrieve_alternate_bridge_mibs()
+        self.assertTrue(df.called)
+        if isinstance(df.result, failure.Failure):
+            df.result.raiseException()
 
 if __name__ == '__main__':
     unittest.main()
