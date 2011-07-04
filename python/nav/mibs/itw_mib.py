@@ -255,10 +255,10 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def can_return_sensors(self):
-         """ It seems to me that old and new equipment
-            have different oids for this information.
-            Therefore we can use this to differentiate
-            between mibs to use."""
+        """ It seems to me that old and new equipment
+        have different oids for this information.
+        Therefore we can use this to differentiate
+        between mibs to use."""
         product_info = yield self._get_product_info()
         if len(product_info) > 0:
             defer.returnValue(True)
