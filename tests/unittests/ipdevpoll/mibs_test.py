@@ -18,8 +18,8 @@ import unittest
 import os
 from IPy import IP
 
-import twisted.trial.unittest
 from twisted.internet import defer
+from twisted.python import failure
 
 from minimock import Mock
 
@@ -81,7 +81,7 @@ class Ipv6MibTests(unittest.TestCase):
         ip = Ipv6Mib.ipv6address_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
 
-class EntityMibRegressions(twisted.trial.unittest.TestCase):
+class EntityMibTests(unittest.TestCase):
     def test_empty_logical_type_should_not_raise(self):
         mib = EntityMib(Mock('AgentProxy'))
         def mock_retrieve(columns):
@@ -92,8 +92,10 @@ class EntityMibRegressions(twisted.trial.unittest.TestCase):
                 )
 
         mib.retrieve_columns = mock_retrieve
-        return mib.retrieve_alternate_bridge_mibs()
-
+        df = mib.retrieve_alternate_bridge_mibs()
+        self.assertTrue(df.called)
+        if isinstance(df.result, failure.Failure):
+            df.result.raiseException()
 
 if __name__ == '__main__':
     unittest.main()
