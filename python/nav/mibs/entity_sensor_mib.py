@@ -24,18 +24,18 @@ from nav.mibs.entity_mib import EntityMib
 import mibretriever
 
 UNITS_OF_MEASUREMENTS = {
-    1: 'Other',
-    2: 'Unknown',
-    3: 'VoltsAC',
-    4: 'VoltsDC',
-    5: 'Amperes',
-    6: 'Watts',
-    7: 'Hertz',
-    8: 'Celsius',
-    9: 'Percent Relative Humidity',
+    1: 'other',
+    2: 'unknown',
+    3: 'voltsAC',
+    4: 'voltsDC',
+    5: 'amperes',
+    6: 'watts',
+    7: 'hertz',
+    8: 'celsius',
+    9: 'percentRH',
     10: 'rpm',
-    11: 'Cubic meters per min.',
-    12: 'Truthvalue {true(1), false(2)}',
+    11: 'cmm',
+    12: 'boolean',
 }
 
 DATA_SCALE = {
