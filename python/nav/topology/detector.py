@@ -30,6 +30,7 @@ from nav import buildconf
 from nav.debug import log_stacktrace, log_last_django_query
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
+from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 LOGFILE_NAME = 'navtopology.log'
 LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
@@ -38,17 +39,23 @@ LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
 def main():
     """Program entry point"""
     parser = make_option_parser()
-    parser.parse_args()
+    (options, _args) = parser.parse_args()
 
     init_logging()
     do_layer2_detection()
+    if options.vlan:
+        do_vlan_detection()
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = OptionParser(
         version="NAV " + buildconf.VERSION,
-        epilog="Detects and updates the network topology in the NAV database"
+        description=("Detects and updates the network topology in your NAV "
+                     "database")
         )
+
+    parser.add_option("--vlan", action="store_true", dest="vlan",
+                      help="Also detect vlan subtopologies")
     return parser
 
 def init_logging():
@@ -88,6 +95,12 @@ def do_layer2_detection():
     links = reducer.get_single_edges_from_ports()
     update_layer2_topology(links)
 
+@with_exception_logging
+def do_vlan_detection():
+    analyzer = VlanGraphAnalyzer()
+    ifc_vlan_map = analyzer.analyze_all()
+    update = VlanTopologyUpdater(ifc_vlan_map)
+    update()
 
 if __name__ == '__main__':
     main()
