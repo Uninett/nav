@@ -12,7 +12,7 @@ from os.path import join, isdir
 LOGGER = logging.getLogger('mcc.sensors')
 
 
-def make_config(config):
+def make_config(globalconfig):
     """
     This method is required and is run by mcc
     """
@@ -20,59 +20,78 @@ def make_config(config):
     dirname = "sensors"
 
     # Get path to cricket-config
-    configfile = config.get('mcc', 'configfile')
+    configfile = globalconfig.get('mcc', 'configfile')
     configroot = utils.get_configroot(configfile)
     if not configroot:
         LOGGER.error("Could not find configroot in %s, exiting."
-                     % config.get('mcc', 'configfile'))
+                     % globalconfig.get('mcc', 'configfile'))
         return False
 
-    fullpath = join(configroot, dirname)
-    LOGGER.info("Creating config for %s in %s" % (dirname, fullpath))
+    path_to_directory = join(configroot, dirname)
+    LOGGER.info("Creating config for %s in %s" % (dirname, path_to_directory))
 
     for netbox in Netbox.objects.all():
-        path = join(fullpath, netbox.sysname)
-        output = create_config_string(netbox)
-        if output:
-            write_output_to_file(path, output)
+        containers = create_netbox_config(netbox, path_to_directory)
+        if containers:
+            utils.updatedb(path_to_directory, containers)
 
     return True
 
 
-def create_config_string(netbox):
+def create_netbox_config(netbox, path_to_directory):
     """
-    Create sensor config for a netbox and return it as a string
+    Create config for a netbox
     """
 
     sensors = netbox.get_sensors()
     if not sensors:
         return
 
-    sensors = sorted(sensors, key=lambda sensor: sensor.internal_name)
-    counter = len(sensors)
-
     LOGGER.info("Creating config for %s" % netbox.sysname)
 
-    output = "target --default--\n"
-    output += "\tsnmp-host\t= %s\n" % netbox.ip
-    output += "\tsnmp-community\t= %s\n" % netbox.read_only
-    output += "\ttarget-type\t= sensor\n\n"
+    config = "target --default--\n"
+    config += "\tsnmp-host\t= %s\n" % netbox.ip
+    config += "\tsnmp-community\t= %s\n" % netbox.read_only
+    config += "\ttarget-type\t= sensor\n\n"
+
+    sensors = sorted(sensors, key=lambda sensor: sensor.internal_name)
+    counter = len(sensors)
+    containers = []
+
+    for sensor in sensors:
+        config += create_sensor_config(sensor, counter)
+        counter = counter - 1
+        containers.append(create_container(sensor))
+
+    path_to_config = join(path_to_directory, netbox.sysname)
+    write_config_to_file(path_to_config, config)
+
+    return containers
+
+
+def create_sensor_config(sensor, counter):
+    """ Create config for a sensor """
 
     fmt = "\t%s\t= \"%s\"\t\n"
 
-    for sensor in sensors:
-        output += "target \"%s\"\n" % sensor.id
-        output += fmt % ("display-name", sensor.internal_name)
-        output += fmt % ("oid", sensor.oid)
-        output += fmt % ("legend", sensor.name)
-        output += fmt % ("short-desc", sensor.human_readable)
-        output += fmt % ("yaxis", format_yaxis(sensor))
-        output += fmt % ("order", counter)
-        output += "\n"
+    sensorconfig = "target \"%s\"\n" % sensor.id
+    sensorconfig += fmt % ("display-name", sensor.internal_name)
+    sensorconfig += fmt % ("oid", sensor.oid)
+    sensorconfig += fmt % ("legend", sensor.name)
+    sensorconfig += fmt % ("short-desc", sensor.human_readable)
+    sensorconfig += fmt % ("yaxis", format_yaxis(sensor))
+    sensorconfig += fmt % ("order", counter)
+    sensorconfig += "\n"
 
-        counter = counter - 1
+    return sensorconfig
 
-    return output
+
+def create_container(sensor):
+    """ Create container for storing in database """
+    container = utils.RRDcontainer(str(sensor.id) + ".rrd", sensor.netbox.id,
+                                   sensor.netbox.sysname)
+    container.datasources = [("ds0", "sensor", "GAUGE")]
+    return container
 
 
 def format_yaxis(sensor):
@@ -84,7 +103,7 @@ def format_yaxis(sensor):
         return sensor.unit_of_measurement
 
 
-def write_output_to_file(path, output):
+def write_config_to_file(path, config):
     """ Write output to file """
 
     if not isdir(path):
@@ -95,7 +114,7 @@ def write_output_to_file(path, output):
 
     try:
         targetfile = open(join(path, "navTargets"), 'w')
-        targetfile.write(output)
+        targetfile.write(config)
         targetfile.close()
     except IOError, error:
         LOGGER.error("Could not write to file: %s" % error)
