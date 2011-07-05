@@ -97,13 +97,12 @@ def move(request, model, form_model, redirect, title_attr='id',                 
 
             return HttpResponseRedirect(reverse(redirect))
 
-
-    # Form instances may be modified by the operation_form, so if we have a
-    # specific instance we will use the fields from that one.
+    # Keep values from the form and pass them as context
     if form:
         fields = form.fields.keys()
     else:
         fields = form_model().fields.keys()
+
     values = objects.values('pk', title_attr, *fields)
     object_list = _process_values(values, data, title_attr, fields)
 
@@ -121,16 +120,29 @@ def move(request, model, form_model, redirect, title_attr='id',                 
     return render_to_response('seeddb/move.html',
         extra_context, RequestContext(request))
 
+# Help method to format strings which are used in the table to show
+# current values and the new ones before updating the objects
 def _process_values(values, data, title_attr, fields):
     object_list = []
     attr_list = [title_attr] + fields
+
     for obj in values:
         row = {
             'pk': obj['pk'],
-            'values': [("Current %s" % attr, obj[attr]) for attr in attr_list],
+            'values': [("Current %s" % attr, obj[attr])
+                for attr in attr_list],
         }
+
+        # If the form has data, format the fields with new values
         if data:
-            new_values = [("New %s" % attr, data[attr]) for attr in fields]
+            new_values = []
+            for attr in fields:
+                if not data[attr] is None:
+                    new_values.append(("New %s" % attr, data[attr]))
+                else:
+                    new_values.append(("New %s" % attr, obj[attr]))
+
             row['values'].extend(new_values)
         object_list.append(row)
     return object_list
+
