@@ -39,11 +39,11 @@ class NetboxFilterForm(forms.Form):
     organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
 
-class NetboxMoveForm(MoveForm):
+class NetboxMoveForm(forms.Form):
     room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all())
+        Room.objects.order_by('id').all(), required=False)
     organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all())
+        Organization.objects.order_by('id').all(), required=False)
 
 class NetboxInfo(SeeddbInfo):
     active = {'netbox': True}
