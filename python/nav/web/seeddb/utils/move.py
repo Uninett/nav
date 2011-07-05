@@ -109,7 +109,6 @@ def move(request, model, form_model, redirect, title_attr='id',                 
 
     context = {
         'form': form or '',
-        'operation_form': op_form or '',
         'objects': objects,
         'values': object_list,
         'data': data,
