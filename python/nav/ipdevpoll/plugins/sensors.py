@@ -40,22 +40,21 @@ class MIBFactory(object):
     @classmethod
     def get_instance(self, netbox, agent):
         """ Factory for allocating mibs based on
-            netbox-vendors and -models"""
-        mib = None
+        netbox-vendors and -models"""
         vendor_id = netbox.type.get_enterprise_id()
-        if (vendor_id == VENDOR_CISCO):
+        if vendor_id == VENDOR_CISCO:
             # Some cisco-boxes may use standard-mib
             mib = EntitySensorMib(agent)
             if mib.can_return_sensors():
                 return mib
             return CiscoEnvMonMib(agent)
 
-        if (vendor_id == VENDOR_ITWATCHDOGS):
+        elif vendor_id == VENDOR_ITWATCHDOGS:
             # Try with the most recent first
-            mib = ItWatchDogsMibV3(agent)
+            mib = ItWatchDogsMib(agent)
             if mib.can_return_sensors():
                 return mib
-            return ItWatchDogsMib(agent)
+            return ItWatchDogsMibV3(agent)
 
         return EntitySensorMib(agent)
         
