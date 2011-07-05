@@ -41,9 +41,9 @@ class RoomForm(forms.ModelForm):
     class Meta:
         model = Room
 
-class RoomMoveForm(MoveForm):
+class RoomMoveForm(forms.Form):
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all())
+        Location.objects.order_by('id').all(), required=False)
 
 class RoomInfo(SeeddbInfo):
     active = {'room': True}
