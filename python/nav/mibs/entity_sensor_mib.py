@@ -90,12 +90,12 @@ class EntitySensorMib(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def can_return_sensors(self):
         sensors = yield self._get_sensors()
-        self.logger.error('EntitySensorMib:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
-        self.logger.error('EntitySensorMib:: can_return_sensors: len = %d' % len(sensors))
+        self.logger.debug('EntitySensorMib:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
+        self.logger.debug('EntitySensorMib:: can_return_sensors: len = %d' % len(sensors))
         if len(sensors) > 0:
-            self.logger.error('EntitySensorMib:: can_return_sensors: Return True')
+            self.logger.debug('EntitySensorMib:: can_return_sensors: Return True')
             defer.returnValue(True)
-        self.logger.error('EntitySensorMib:: can_return_sensors: Return False')
+        self.logger.debug('EntitySensorMib:: can_return_sensors: Return False')
         defer.returnValue(False)
         
     @defer.inlineCallbacks
@@ -119,6 +119,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
             mibobject = self.nodes.get('entPhySensorValue', None)
             oid = str(mibobject.oid) + str(row_oid)
             unit_of_measurement = row.get('entPhySensorType', 2)
+            precision = row.get('entPhySensorPrecision', 0)
             scale = row.get('entPhySensorScale', None)
             op_status = row.get('entPhySensorOperStatus', None)
             description = row.get('entPhysicalDescr')
@@ -129,6 +130,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
                     'oid': oid,
                     'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
                                                 unit_of_measurement, None),
+                    'precision': precision,
                     'scale': DATA_SCALE.get(scale, None),
                     'description': description,
                     'name': name,

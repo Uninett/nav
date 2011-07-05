@@ -270,6 +270,111 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         return df
 
+    def _get_climate_sensors_params(self, climate_sensors):
+        sensors = []
+        for idx, climate_sensor in climate_sensors.items():
+            available = climate_sensor.get('climateAvail', None)
+            if available:
+                climate_sensor_oid = climate_sensor.get(0, None)
+                serial = climate_sensor.get('climateSerial', None)
+
+                temp_mib = self.nodes.get('climateTempC', None)
+                oid = str(temp_mib.oid) + str(climate_sensor_oid)
+                unit_of_measurement = 'celsius'
+                precision = 0
+                scale = ''
+                description = 'climateTempC'
+                name = description
+                internal_name = serial + name
+                sensors.append({
+                                'oid': oid,
+                                'unit_of_measurement': unit_of_measurement,
+                                'precision': precision,
+                                'scale': scale,
+                                'description': description,
+                                'name' : name,
+                                'internal_name': internal_name,
+                                'mib': self.get_module_name(),
+                                })
+
+                humidity_mib = self.nodes.get('climateHumidity', None)
+                oid = str(humidity_mib.oid) + str(climate_sensor_oid)
+                unit_of_measurement = 'percentRH'
+                precision = 0
+                scale = ''
+                description = 'climateHumidity'
+                name = description
+                internal_name = serial + name
+                sensors.append({
+                                'oid': oid,
+                                'unit_of_measurement': unit_of_measurement,
+                                'precision': precision,
+                                'scale': scale,
+                                'description': description,
+                                'name' : name,
+                                'internal_name': internal_name,
+                                'mib': self.get_module_name(),
+                                })
+               
+                airflow_mib = self.nodes.get('climateAirflow', None)
+                oid = str(airflow_mib.oid) + str(climate_sensor_oid)
+                unit_of_measurement = 'cmm'
+                precision = 0
+                scale = ''
+                description = 'climateAirflow'
+                name = description
+                internal_name = serial + name
+                sensors.append({
+                                'oid': oid,
+                                'unit_of_measurement': unit_of_measurement,
+                                'precision': precision,
+                                'scale': scale,
+                                'description': description,
+                                'name' : name,
+                                'internal_name': internal_name,
+                                'mib': self.get_module_name(),
+                                })
+
+                light_mib = self.nodes.get('climateLight', None)
+                oid = str(light_mib.oid) + str(climate_sensor_oid)
+                unit_of_measurement = ''
+                precision = 0
+                scale = ''
+                description = 'climateLight'
+                name = description
+                internal_name = serial + name
+                sensors.append({
+                                'oid': oid,
+                                'unit_of_measurement': unit_of_measurement,
+                                'precision': precision,
+                                'scale': scale,
+                                'description': description,
+                                'name' : name,
+                                'internal_name': internal_name,
+                                'mib': self.get_module_name(),
+                                })
+                sound_mib = self.nodes.get('climateSound', None)
+                oid = str(sound_mib.oid) + str(climate_sensor_oid)
+                unit_of_measurement = ''
+                precision = 0
+                scale = ''
+                description = 'climateSound'
+                name = description
+                internal_name = serial + name
+                sensors.append({
+                                'oid': oid,
+                                'unit_of_measurement': unit_of_measurement,
+                                'precision': precision,
+                                'scale': scale,
+                                'description': description,
+                                'name' : name,
+                                'internal_name': internal_name,
+                                'mib': self.get_module_name(),
+                                })
+        return sensors
+                
+                
+
     @defer.inlineCallbacks
     def can_return_sensors(self):
         """ It seems to me that old and new equipment
@@ -277,20 +382,22 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         Therefore we can use this to differentiate
         between mibs to use."""
         climate_sensors = yield self._get_climate_sensors()
-        self.logger.error('ItWatchDogsMib:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
-        self.logger.error('ItWatchDogsMib:: can_return_sensors: len = %d' % len(product_info))
+        self.logger.debug('ItWatchDogsMib:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
+        self.logger.debug('ItWatchDogsMib:: can_return_sensors: len = %d' % len(climate_sensors))
 
         if len(climate_sensors) > 0:
-            self.logger.error('ItWatchDogsMib:: can_return_sensors: return True')
+            self.logger.debug('ItWatchDogsMib:: can_return_sensors: return True')
             defer.returnValue(True)
-        self.logger.error('ItWatchDogsMib:: can_return_sensors: return False')
+        self.logger.debug('ItWatchDogsMib:: can_return_sensors: return False')
         defer.returnValue(False)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        self.logger.error('ItWatchDogsMib:: get_all_sensors: ip = %s' % self.agent_proxy.ip)
+        self.logger.debug('ItWatchDogsMib:: get_all_sensors: ip = %s' % self.agent_proxy.ip)
         climate_sensors = yield self._get_climate_sensors()
-        self.logger.error('ItWatchDogsMib:: get_all_sensors: climate_sensors = %s' % climate_sensors)
+        self.logger.debug('ItWatchDogsMib:: get_all_sensors: climate_sensors = %s' % climate_sensors)
         for row_id, row in climate_sensors.items():
-            self.logger.error('ItWatchDogsMib:: get_all_sensors: row = %s' % row)
-        defer.returnValue([])
+            self.logger.debug('ItWatchDogsMib:: get_all_sensors: row = %s' % row)
+        result = []
+        result.extend(self._get_climate_sensors_params(climate_sensors))
+        defer.returnValue(result)

@@ -630,19 +630,19 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         Therefore we can use this to differentiate
         between mibs to use."""
         climate_sensors = yield self._get_climate_sensors()
-        self.logger.error('ItWatchDogsMibV3:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
-        self.logger.error('ItWatchDogsMibV3:: can_return_sensors: len = %d' % len(product_info))
+        self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
+        self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: len = %d' % len(climate_sensors))
         if len(climate_sensors) > 0:
-            self.logger.error('ItWatchDogsMibV3:: can_return_sensors: return True')
+            self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: return True')
             defer.returnValue(True)
-        self.logger.error('ItWatchDogsMibV3:: can_return_sensors: return False')
+        self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: return False')
         defer.returnValue(False)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        self.logger.error('ItWatchDogsMibV3:: get_all_sensors: ip = %s' % self.agent_proxy.ip)
         climate_sensors = yield self._get_climate_sensors()
-        self.logger.error('ItWatchDogsMibV3:: get_all_sensors: climate_sensors = %s' % climate_sensors)
+        self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: ip = %s' % self.agent_proxy.ip)
+        self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: climate_sensors = %s' % climate_sensors)
         for row_id, row in climate_sensors.items():
-            self.logger.error('ItWatchDogsMibV3:: get_all_sensors: row = %s' % row)
+            self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: row = %s' % row)
         defer.returnValue([])

@@ -98,6 +98,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             voltage_mib = self.nodes.get('ciscoEnvMonVoltageStatusValue', None)
             oid = str(voltage_mib.oid) + str(voltage_sensor_oid)
             unit_of_measurement = 'Volts'
+            precision = 0
             scale = self.mib.get('nodes').get(
                     'ciscoEnvMonVoltageStatusValue').get(
                     'units').strip().capitalize()
@@ -109,6 +110,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             sensors.append({
                             'oid': oid,
                             'unit_of_measurement' : unit_of_measurement,
+                            'precision': precision,
                             'scale': scale,
                             'description': description,
                             'name': name,
@@ -126,6 +128,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             unit_of_measurement = self.mib.get('nodes').get(
                     'ciscoEnvMonTemperatureStatusValue').get(
                     'units').strip().capitalize()
+            precision = 0
             scale = None
             description = temp_sensor.get(
                     'ciscoEnvMonTemperatureStatusDescr').strip()
@@ -134,6 +137,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             sensors.append({
                             'oid': oid,
                             'unit_of_measurement' : unit_of_measurement,
+                            'precision': precision,
                             'scale': scale,
                             'description': description,
                             'name': name,
@@ -149,6 +153,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             fanstate_mib = self.nodes.get('ciscoEnvMonFanState', None)
             oid = str(fanstate_mib.oid) + str(fanstate_sensor_oid)
             unit_of_measurement = 'Fan state'
+            precision = 0
             scale = None
             description = fanstate_sensor.get(
                     'ciscoEnvMonFanStatusDescr').strip()
@@ -157,6 +162,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             sensors.append({
                             'oid': oid,
                             'unit_of_measurement' : unit_of_measurement,
+                            'precision' : precision,
                             'scale': scale,
                             'description': description,
                             'name': name,
@@ -172,6 +178,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             power_mib = self.nodes.get('ciscoEnvMonSupplyState', None)
             oid = str(power_mib.oid) + str(power_sensor_oid)
             unit_of_measurement = 'Power supply state'
+            precision = 0
             scale = None
             power_source = power_sensor.get('ciscoEnvMonSupplySource', None)
             description = POWER_SENSOR_TYPE.get(power_source)
@@ -183,6 +190,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             sensors.append({
                             'oid': oid,
                             'unit_of_measurement' : unit_of_measurement,
+                            'precision': precision,
                             'scale': scale,
                             'description': description,
                             'name': name,
@@ -203,5 +211,5 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
         result.extend(self._get_fanstate_sensor_params(fanstate_sensors))
         result.extend(self._get_powersupply_sensor_params(powersupply_sensors))
 
-        self.logger.error('get_all_sensors: result=%s' % result)   
+        self.logger.debug('get_all_sensors: result=%s' % result)   
         defer.returnValue(result)

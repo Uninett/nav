@@ -1091,6 +1091,7 @@ class Sensor(models.Model):
                                         choices=UNIT_OF_MEASUREMENTS_CHOICES)
     data_scale = VarcharField(db_column="data_scale",
                                 choices=DATA_SCALE_CHOICES)
+    precision = models.IntegerField(db_column="precision")
     human_readable = VarcharField(db_column="human_readable")
     name = VarcharField(db_column="name")
     internal_name = VarcharField(db_column="internal_name")

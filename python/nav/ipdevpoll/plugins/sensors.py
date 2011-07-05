@@ -76,7 +76,7 @@ class Sensors(Plugin):
     def _store_sensors(self, result):
         """ Store sensor-records to database (this is actually
             done automagically when we use shadow-objects."""
-        self._logger.debug('Found %d sensors', len(result))
+        self._logger.error('Found %d sensors', len(result))
         sensors = []
         for row in result:
             oid = row.get('oid', None)
@@ -84,6 +84,7 @@ class Sensors(Plugin):
             sensor.netbox = self.netbox
             sensor.oid = oid
             sensor.unit_of_measurement = row.get('unit_of_measurement', None)
+            sensor.precision = row.get('precision', 0)
             sensor.data_scale = row.get('scale', None)
             sensor.human_readable = row.get('description', None)
             sensor.name = row.get('name', None)
