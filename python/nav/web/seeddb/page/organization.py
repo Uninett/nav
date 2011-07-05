@@ -65,7 +65,7 @@ class OrganizationForm(forms.ModelForm):
             parent.queryset = parent.queryset.exclude(
                 id=kwargs['instance'].id)
 
-class OrganizationMoveForm(MoveForm):
+class OrganizationMoveForm(forms.Form):
     parent = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
 
