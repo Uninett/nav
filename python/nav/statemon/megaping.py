@@ -31,7 +31,7 @@ from debug import debug
 
 from nav.daemon import safesleep as sleep
 
-import icmpPacket
+import icmppacket
 
 # Global method to create the sockets as root before the process changes user
 def makeSockets():
@@ -240,7 +240,7 @@ class MegaPing:
     def _processResponse(self, raw_pong, sender, is_ipv6, arrival):
         # Extract header info and payload
         
-        pong = icmpPacket.Packet(is_ipv6)
+        pong = icmppacket.Packet(is_ipv6)
         pong.unpack(raw_pong)
 
         if not pong.get_id() == self._pid:
@@ -292,7 +292,7 @@ class MegaPing:
             self._requests[identifier] = host
             
             # Create the ping packet and attach to host
-            host.packet = icmpPacket.Packet(host.is_v6(), (os.getpid() % 65536), identifier)
+            host.packet = icmppacket.Packet(host.is_v6(), (os.getpid() % 65536), identifier)
             host.packet.construct()
 
             # TODO: why do we need this
