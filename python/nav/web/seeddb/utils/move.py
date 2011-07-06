@@ -122,9 +122,10 @@ def move(request, model, form_model, redirect, title_attr='id',                 
     return render_to_response('seeddb/move.html',
         extra_context, RequestContext(request))
 
-# Help method to format strings which are used in the table to show current
-# values and the new ones through the wizard before updating the objects
 def _parse_value_differences(values, data, title_attr, fields):
+"""Help method to format strings which are used in the table to show current
+values and the new ones through the wizard before updating the objects"""
+
     object_list = []
     attr_list = [title_attr] + fields
 
