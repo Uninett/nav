@@ -29,7 +29,6 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
-from nav.web.seeddb.forms.move import MoveForm
 
 class NetboxFilterForm(forms.Form):
     category = forms.ModelChoiceField(
