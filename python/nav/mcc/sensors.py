@@ -80,6 +80,7 @@ def create_sensor_config(sensor, counter):
     sensorconfig += fmt % ("legend", sensor.name)
     sensorconfig += fmt % ("short-desc", sensor.human_readable)
     sensorconfig += fmt % ("yaxis", format_yaxis(sensor))
+    sensorconfig += fmt % ("precision", calculate_precision(sensor.precision))
     sensorconfig += fmt % ("order", counter)
     sensorconfig += "\n"
 
@@ -101,6 +102,11 @@ def format_yaxis(sensor):
         return "%s%s" % (sensor.data_scale, sensor.unit_of_measurement)
     else:
         return sensor.unit_of_measurement
+
+
+def calculate_precision(precision):
+    """ Return correct scaling value based on precision """
+    return 10 ** precision
 
 
 def write_config_to_file(path, config):
