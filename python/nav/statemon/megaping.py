@@ -57,9 +57,6 @@ class Host:
 
         if self.is_valid_ipv6(ip):
             self.ipv6 = True
-        #if self.is_valid_ipv4(ip):
-            #self.ip_version = 4"""
-        
 
         self.replies = circbuf.CircBuf()
 
