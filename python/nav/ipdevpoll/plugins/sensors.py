@@ -71,7 +71,7 @@ class Sensors(Plugin):
     def _store_sensors(self, result):
         """ Store sensor-records to database (this is actually
             done automagically when we use shadow-objects."""
-        self._logger.error('Found %d sensors', len(result))
+        self._logger.debug('Found %d sensors', len(result))
         sensors = []
         for row in result:
             oid = row.get('oid', None)
