@@ -33,6 +33,7 @@ VENDOR_CISCO = 9
 VENDOR_HP = 11
 VENDOR_ITWATCHDOGS = 17373
 
+
 class MIBFactory(object):
     """A class that produces mibs depending and netbox-vendors
     and -models."""
@@ -44,20 +45,13 @@ class MIBFactory(object):
         vendor_id = netbox.type.get_enterprise_id()
         if vendor_id == VENDOR_CISCO:
             # Some cisco-boxes may use standard-mib
-            mib = EntitySensorMib(agent)
-            if mib.can_return_sensors():
-                return mib
-            return CiscoEnvMonMib(agent)
-
+            return [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
         elif vendor_id == VENDOR_ITWATCHDOGS:
             # Try with the most recent first
-            mib = ItWatchDogsMib(agent)
-            if mib.can_return_sensors():
-                return mib
-            return ItWatchDogsMibV3(agent)
+            return [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
+        return [EntitySensorMib(agent)]
 
-        return EntitySensorMib(agent)
-        
+
 class Sensors(Plugin):
     """ Plugin that detect sensors in netboxes."""
 
@@ -68,9 +62,10 @@ class Sensors(Plugin):
     def handle(self):
         """ Collect sensors and feed them in to persistent store."""
         self._logger.debug('Collection sensors data')
-        mib = MIBFactory.get_instance(self.netbox, self.agent)
-        df = mib.get_all_sensors()
-        df.addCallback(self._store_sensors)
+        mibs = MIBFactory.get_instance(self.netbox, self.agent)
+        for mib in mibs:
+            df = mib.get_all_sensors()
+            df.addCallback(self._store_sensors)
         return df
 
     def _store_sensors(self, result):
@@ -80,7 +75,7 @@ class Sensors(Plugin):
         sensors = []
         for row in result:
             oid = row.get('oid', None)
-            sensor = self.containers.factory(oid,  shadows.Sensor)
+            sensor = self.containers.factory(oid, shadows.Sensor)
             sensor.netbox = self.netbox
             sensor.oid = oid
             sensor.unit_of_measurement = row.get('unit_of_measurement', None)
