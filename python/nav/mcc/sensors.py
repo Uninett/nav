@@ -7,6 +7,7 @@ import os
 
 from nav.models.manage import Netbox
 from nav.mcc import utils
+from nav.mcc.utils import encode_and_escape
 from os.path import join, isdir
 
 LOGGER = logging.getLogger('mcc.sensors')
@@ -18,16 +19,9 @@ def make_config(globalconfig):
     """
 
     dirname = "sensors"
-
-    # Get path to cricket-config
-    configfile = globalconfig.get('mcc', 'configfile')
-    configroot = utils.get_configroot(configfile)
-    if not configroot:
-        LOGGER.error("Could not find configroot in %s, exiting."
-                     % globalconfig.get('mcc', 'configfile'))
-        return False
-
+    configroot = find_config_root(globalconfig)
     path_to_directory = join(configroot, dirname)
+
     LOGGER.info("Creating config for %s in %s" % (dirname, path_to_directory))
 
     for netbox in Netbox.objects.all():
@@ -36,6 +30,12 @@ def make_config(globalconfig):
             utils.updatedb(path_to_directory, containers)
 
     return True
+
+
+def find_config_root(globalconfig):
+    """ Get path to cricket-config """
+    configfile = globalconfig.get('mcc', 'configfile')
+    return utils.get_configroot(configfile)
 
 
 def create_netbox_config(netbox, path_to_directory):
@@ -72,15 +72,19 @@ def create_netbox_config(netbox, path_to_directory):
 def create_sensor_config(sensor, counter):
     """ Create config for a sensor """
 
-    fmt = "\t%s\t= \"%s\"\t\n"
+    fmt = "\t%-15s = \"%s\"\t\n"
 
     sensorconfig = "target \"%s\"\n" % sensor.id
-    sensorconfig += fmt % ("display-name", sensor.internal_name)
+    sensorconfig += fmt % ("display-name",
+                           encode_and_escape(sensor.internal_name))
     sensorconfig += fmt % ("oid", sensor.oid)
-    sensorconfig += fmt % ("legend", sensor.name)
-    sensorconfig += fmt % ("short-desc", sensor.human_readable)
+    sensorconfig += fmt % ("legend",
+                           encode_and_escape(sensor.name))
+    sensorconfig += fmt % ("short-desc",
+                           encode_and_escape(sensor.human_readable))
     sensorconfig += fmt % ("yaxis", format_yaxis(sensor))
-    sensorconfig += fmt % ("precision", calculate_precision(sensor.precision))
+    sensorconfig += fmt % ("scalevalue",
+                           calculate_scalevalue(sensor.precision))
     sensorconfig += fmt % ("order", counter)
     sensorconfig += "\n"
 
@@ -104,7 +108,7 @@ def format_yaxis(sensor):
         return sensor.unit_of_measurement
 
 
-def calculate_precision(precision):
+def calculate_scalevalue(precision):
     """ Return correct scaling value based on precision """
     return 10 ** precision
 

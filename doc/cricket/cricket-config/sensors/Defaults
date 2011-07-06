@@ -18,7 +18,7 @@ graph --default--
 	draw-as	= LINE2
 	legend 	= %legend%
 	y-axis	= %yaxis%
-	scale	= %precision%,/
+	scale	= %scalevalue%,/
 
 targetType sensor
 	ds = sensor
