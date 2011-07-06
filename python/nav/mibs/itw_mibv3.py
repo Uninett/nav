@@ -21,6 +21,7 @@ from nav.mibs import reduce_index
 
 import mibretriever
 
+
 class ItWatchDogsMibV3(mibretriever.MibRetriever):
     from nav.smidumps.itw_mibv3 import MIB as mib
 
@@ -594,17 +595,6 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     def get_module_name(self):
         return self.mib.get('moduleName', None)
 
-    def _get_product_info(self):
-        """ Get some basic information about netbox"""
-        df = self.retrieve_columns([
-                        'deviceInfo',
-                        'productTitle',
-                        'productVersion',
-                        'productFriendlyName',
-                        ])
-        df.addCallback(reduce_index)
-        return df
-
     def _get_climate_sensors(self):
         df = self.retrieve_columns([
                 'climateSerial',
@@ -624,25 +614,14 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         return df
 
     @defer.inlineCallbacks
-    def can_return_sensors(self):
-        """ It seems to me that old and new equipment
-        have different oids for this information.
-        Therefore we can use this to differentiate
-        between mibs to use."""
-        climate_sensors = yield self._get_climate_sensors()
-        self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
-        self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: len = %d' % len(climate_sensors))
-        if len(climate_sensors) > 0:
-            self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: return True')
-            defer.returnValue(True)
-        self.logger.debug('ItWatchDogsMibV3:: can_return_sensors: return False')
-        defer.returnValue(False)
-
-    @defer.inlineCallbacks
     def get_all_sensors(self):
         climate_sensors = yield self._get_climate_sensors()
-        self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: ip = %s' % self.agent_proxy.ip)
-        self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: climate_sensors = %s' % climate_sensors)
+        self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: ip = %s' %
+                            self.agent_proxy.ip)
+        self.logger.debug(
+                'ItWatchDogsMibV3:: get_all_sensors: climate_sensors = %s' %
+                    climate_sensors)
         for row_id, row in climate_sensors.items():
-            self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: row = %s' % row)
+            self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: row = %s' %
+                                row)
         defer.returnValue([])

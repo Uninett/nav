@@ -88,17 +88,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
         return df
 
     @defer.inlineCallbacks
-    def can_return_sensors(self):
-        sensors = yield self._get_sensors()
-        self.logger.debug('EntitySensorMib:: can_return_sensors: ip = %s' % self.agent_proxy.ip)
-        self.logger.debug('EntitySensorMib:: can_return_sensors: len = %d' % len(sensors))
-        if len(sensors) > 0:
-            self.logger.debug('EntitySensorMib:: can_return_sensors: Return True')
-            defer.returnValue(True)
-        self.logger.debug('EntitySensorMib:: can_return_sensors: Return False')
-        defer.returnValue(False)
-        
-    @defer.inlineCallbacks
     def get_all_sensors(self):
         """ Collect all sensors and names on a netbox, and match
             sensors with names.
