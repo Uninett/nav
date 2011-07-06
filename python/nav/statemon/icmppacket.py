@@ -16,7 +16,6 @@
 #
 import struct
 import array
-import socket
 import time
 
 
@@ -30,10 +29,11 @@ ICMP_SEQ_NR = 0
 
 
 class PacketV4(object):
+    """An ICMPv4 packet"""
 
-    def __init__(self, id=None, load=None):
+    def __init__(self, id=None, payload=None):
         self.id = id
-        self.load = load
+        self.payload = payload
         self.size = ICMP_DATA_STR
         self.packet = None
         self.header = None
@@ -52,9 +52,9 @@ class PacketV4(object):
 
         # construct payload based on size, may be omitted :)
         rest = ""
-        if self.size > len(self.load):
-            rest = self.load
-            self.size -= len(self.load)
+        if self.size > len(self.payload):
+            rest = self.payload
+            self.size -= len(self.payload)
 
         # pad the rest of payload
         rest += self.size * "X"
@@ -81,19 +81,16 @@ class PacketV4(object):
 
 
     def unpack(self, packet):
+        """Unpacks data from raw packet into this instance"""
         self.packet = packet
         self.header = self.packet[20:28]
         _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
         self.id = seqnr
-        self.load = self.packet[36:73]
-
-    def get_id(self):
-        return self.id
-
-    def get_load(self):
-        return self.load
+        self.payload = self.packet[36:73]
 
 class PacketV6(PacketV4):
+    """An ICMPv6 packet"""
+
     def _construct_header(self, checksum=ICMP_CHECKSUM):
         return struct.pack('BbHHh', ICMP_TYPE_IP6, ICMP_CODE, checksum,
                            ICMP_ID, ICMP_SEQ_NR+self.id)
@@ -104,7 +101,7 @@ class PacketV6(PacketV4):
         self.header = self.packet[0:8]
         _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
         self.id = seqnr
-        self.load = self.packet[16:53]
+        self.payload = self.packet[16:53]
 
 def inet_checksum(packet):
     """Calculates the checksum of a (ICMP) packet.
@@ -127,9 +124,9 @@ def inet_checksum(packet):
     for word in words:
         sum_ += (word & 0xffff)
 
-    hi = sum_ >> 16
-    lo = sum_ & 0xffff
-    sum_ = hi + lo
+    high = sum_ >> 16
+    low = sum_ & 0xffff
+    sum_ = high + low
     sum_ = sum_ + (sum_ >> 16)
 
     return (~sum_) & 0xffff # return ones complement

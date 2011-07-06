@@ -243,10 +243,10 @@ class MegaPing:
         pong = PacketV6() if is_ipv6 else PacketV4()
         pong.unpack(raw_pong)
 
-        if not pong.get_id() == self._pid:
+        if not pong.id == self._pid:
             return
 
-        identity = pong.get_load()
+        identity = pong.payload
 
         # Find the host with this identity
         try:
