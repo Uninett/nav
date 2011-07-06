@@ -62,7 +62,7 @@ class PacketV4(object):
         # pack
         data = struct.pack("d", time.time()) + rest
         packet = header + data          # ping packet without checksum
-        checksum = self._in_cksum(packet)    # make checksum
+        checksum = inet_checksum(packet)
 
         header = self._construct_header(checksum)
 
@@ -79,33 +79,6 @@ class PacketV4(object):
         return struct.pack('bbHHh', ICMP_TYPE, ICMP_CODE, checksum,
                            ICMP_ID, ICMP_SEQ_NR+self.id)
 
-
-    def _in_cksum(self,packet):
-        """THE RFC792 states: 'The 16 bit one's complement of
-        the one's complement sum of all 16 bit words in the header.'
-
-        Generates a checksum of a (ICMP) packet. Based on in_chksum found
-        in ping.c on FreeBSD.
-        """
-
-        # add byte if not dividable by 2
-        if len(packet) & 1:
-            packet = packet + '\0'
-
-        # split into 16-bit word and insert into a binary array
-        words = array.array('h', packet)
-        sum = 0
-
-        # perform ones complement arithmetic on 16-bit words
-        for word in words:
-            sum += (word & 0xffff)
-
-        hi = sum >> 16
-        lo = sum & 0xffff
-        sum = hi + lo
-        sum = sum + (sum >> 16)
-
-        return (~sum) & 0xffff # return ones complement
 
     def unpack(self, packet):
         self.packet = packet
@@ -132,3 +105,32 @@ class PacketV6(PacketV4):
         _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
         self.id = seqnr
         self.load = self.packet[16:53]
+
+def inet_checksum(packet):
+    """Calculates the checksum of a (ICMP) packet.
+
+    RFC792 states: 'The 16 bit one's complement of the one's complement sum of
+    all 16 bit words in the header.'
+
+    Based on in_chksum found in ping.c on FreeBSD.
+    """
+
+    # add byte if not dividable by 2
+    if len(packet) & 1:
+        packet = packet + '\0'
+
+    # split into 16-bit word and insert into a binary array
+    words = array.array('h', packet)
+    sum_ = 0
+
+    # perform ones complement arithmetic on 16-bit words
+    for word in words:
+        sum_ += (word & 0xffff)
+
+    hi = sum_ >> 16
+    lo = sum_ & 0xffff
+    sum_ = hi + lo
+    sum_ = sum_ + (sum_ >> 16)
+
+    return (~sum_) & 0xffff # return ones complement
+
