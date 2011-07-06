@@ -120,9 +120,8 @@ class NetboxForm(forms.Form):
             self.snmp_version = version
 
     def _check_rw_community(self, ip, rw_community):
-        sysobjectid = '1.3.6.1.2.1.1.2.0'
-        version = self.get_snmp_version(ip, rw_community)
-        if not version:
+        location = self.get_and_set_syslocation(ip, rw_community)
+        if not location:
             msg = (
                 "No SNMP response on read/write community.",
                 "Is read/write community correct?")
@@ -144,6 +143,23 @@ class NetboxForm(forms.Form):
             return None
         else:
             return snmp_version
+
+    @staticmethod
+    def get_and_set_syslocation(ip, community):
+        syslocation = '1.3.6.1.2.1.1.6.0'
+        try:
+            try:
+                snmp = Snmp(ip, community, '2c')
+                value = snmp.get(syslocation)
+                snmp.set(syslocation, 's', value)
+            except TimeOutException:
+                snmp = Snmp(ip, community, '1')
+                value = snmp.get(syslocation)
+                snmp.set(syslocation, 's', value)
+        except SnmpError:
+            return None
+        else:
+            return "location: %s" % value
 
 
 class NetboxReadonlyForm(NetboxForm):
