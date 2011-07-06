@@ -31,17 +31,16 @@ ICMP_SEQ_NR = 0
 
 class Packet:
 
-    def __init__(self, id, ipv, load):
+    def __init__(self, ipv6, id=None, load=None):
         self.id = id
         self.load = load
-        if ipv == 6:
-            self.ipv6 = True
-        else:
-            self.ipv6 = False
+        self.ipv6 = ipv6
         self.size = ICMP_DATA_STR
-        self.packet = self._construct()
+        self.packet = None
+        self.header = None
 
-    def _construct(self):
+
+    def construct(self):
         """Constructs a ICMP echo packet of variable size"""
         # size must be big enough to contain time sent
         if self.size < int(struct.calcsize("d")):
@@ -87,7 +86,7 @@ class Packet:
         packet = header + data
 
         # a perfectly formatted ICMP echo packet
-        return packet
+        self.packet = packet
 
 
     def _in_cksum(self,packet):
@@ -117,4 +116,25 @@ class Packet:
 
         return (~sum) & 0xffff # return ones complement
 
+    def unpack(self, packet):
+        
+        self.packet = packet
 
+        if self.ipv6:    
+            self.header = self.packet[0:8]
+
+            type, code, chksum, id, seqnr = struct.unpack("bbHHh", self.header)
+            self.id = seqnr
+            self.load = self.packet[16:53]
+        else:
+            self.header = self.packet[20:28]
+
+            type, code, chksum, id, seqnr = struct.unpack("bbHHh", self.header)
+            self.id = seqnr
+            self.load = self.packet[36:73]
+
+    def get_id(self):
+        return self.id
+
+    def get_load(self):
+        return self.load

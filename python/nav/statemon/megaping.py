@@ -53,16 +53,18 @@ class Host:
         self.certain = 0
         self.ip = ip
         self.packet = None
+        self.ipv6 = False
 
         if self.is_valid_ipv6(ip):
-            self.ip_version = 6
-        if self.is_valid_ipv4(ip):
-            self.ip_version = 4
+            self.ipv6 = True
+        #if self.is_valid_ipv4(ip):
+            #self.ip_version = 4"""
+        
 
         self.replies = circbuf.CircBuf()
 
     def is_v6(self):
-        return self.ip_version is 6
+        return self.ipv6
     
     # Help method
     def is_valid_ipv6(self, addr):
@@ -71,6 +73,7 @@ class Host:
             return True
         except socket.error:
             return False
+
     # Help method
     def is_valid_ipv4(self, addr):
         try:
@@ -219,13 +222,13 @@ class MegaPing:
                 # Find out which socket got data and read
                 for sock in rd:
                     try:
-                        pong, sender = sock.recvfrom(4096)
+                        raw_pong, sender = sock.recvfrom(4096)
                     except socket.error, e:
                         debug("RealityError -2: %s" % e, 1)
                         continue
 
                     is_ipv6 = sock == self._sock6
-                    self._processResponse(pong, sender, is_ipv6, arrival)
+                    self._processResponse(raw_pong, sender, is_ipv6, arrival)
             elif self._senderFinished:
                 break
 
@@ -237,28 +240,16 @@ class MegaPing:
         self._elapsedtime = end - start
 
 
-    def _processResponse(self, pong, sender, is_ipv6, arrival):
+    def _processResponse(self, raw_pong, sender, is_ipv6, arrival):
         # Extract header info and payload
-        if is_ipv6:
-            pongHeader = pong[0:8]
+        
+        pong = icmpPacket.Packet(is_ipv6)
+        pong.unpack(raw_pong)
 
-            pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
-            # Check sequence number
-            if not pongSeqnr == self._pid:
-                return
+        if not pong.get_id() == self._pid:
+            return
 
-            # Extract unique identity
-            identity = pong[16:53]
-        else:
-            pongHeader = pong[20:28]
-
-            pongType, pongCode, pongChksum, pongID, pongSeqnr = struct.unpack("bbHHh", pongHeader)
-            # Check sequence number
-            if not pongSeqnr == self._pid:
-                return
-
-            # Extract unique identity
-            identity = pong[36:73]
+        identity = pong.get_load()
 
         # Find the host with this identity
         try:
@@ -304,8 +295,9 @@ class MegaPing:
             self._requests[identifier] = host
             
             # Create the ping packet and attach to host
-            host.packet = icmpPacket.Packet((os.getpid() % 65536), host.get_ipversion(), identifier)
-            
+            host.packet = icmpPacket.Packet(host.is_v6(), (os.getpid() % 65536), identifier)
+            host.packet.construct()
+
             # TODO: why do we need this
             host.nextseq()
 
