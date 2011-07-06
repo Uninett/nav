@@ -24,6 +24,31 @@ from nav.mibs import mibretriever
 class ItWatchDogsMib(mibretriever.MibRetriever):
     from nav.smidumps.itw_mib import MIB as mib
 
+	climate_count = 0
+	power_monitor_count = 0
+	temp_sensor_count = 0
+	airflow_sensor_count = 0
+	power_only_count = 0
+	door_sensor_count = 0
+	water_sensor_count = 0
+	current_sensor_count = 0
+	millivolt_sensor_count = 0
+	power3i_ch_sensor_count = 0
+	outlet_count = 0
+	vsfc_count = 0
+	ctrl3_ch_count = 0
+	ctrl_grp_amps_count = 0
+	ctrl_output_count = 0
+	dewpoint_sensor_count = 0
+	digital_sensor_count = 0
+	dsts_sensor_count = 0
+	cpm_sensor_count = 0
+	smoke_alarm_sensor_count = 0
+	neg48_vdc_sensor_count = 0
+	pos30_vdc_sensor_count = 0
+	analog_sensor_count = 0
+
+
     def get_module_name(self):
         return self.mib.get('moduleName', None)
 
@@ -421,17 +446,83 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 })
         return sensors
 
+    def _get_sensor_count(self):
+        df = self.retrieve_columns([
+                    'climateCount',
+                    'powerMonitorCount',
+                    'tempSensorCount',
+                    'airflowSensorCount',
+                    'powerOnlyCount',
+                    'doorSensorCount',
+                    'waterSensorCount',
+                    'currentSensorCount',
+                    'millivoltSensorCount',
+                    'power3ChSensorCount',
+                    'outletCount',
+                    'vsfcCount',
+                    'ctrl3ChCount',
+                    'ctrlGrpAmpsCount',
+                    'ctrlOutputCount',
+                    'dewpointSensorCount',
+                    'digitalSensorCount',
+                    'dstsSensorCount',
+                    'cpmSensorCount',
+                    'smokeAlarmSensorCount',
+                    'neg48VdcSensorCount',
+                    'pos30VdcSensorCount',
+                    'analogSensorCount',
+                    ])
+        df.addCallback(reduce_index)
+        return df
+
+    def _set_sensor_count(self, sensor_count):
+        self.logger.error('_set_sensor_count: %s' % sensor_count)
+        self.climate_count = sensor_count.get('climateCount', 0)
+        self.power_monitor_count = sensor_count.get('powerMonitorCount', 0)
+        self.temp_sensor_count = sensor_count.get('tempSensorCount', 0)
+        self.airflow_sensor_count = sensor_count.get(
+                                        'airflowSensorCount', 0)
+        self.power_only_count = sensor_count.get('powerOnlyCount', 0)
+        self.door_sensor_count = sensor_count.get('doorSensorCount', 0)
+        self.water_sensor_count = sensor_count.get('waterSensorCount', 0)
+        self.current_sensor_count = sensor_count.get('currentSensorCount', 0)
+        self.millivolt_sensor_count = sensor_count.get(
+                                                'millivoltSensorCount', 0)
+        self.power3i_ch_sensor_count = sensor_count.get(
+                                                'power3ChSensorCount', 0)
+        self.outlet_count = sensor_count.get('outletCount', 0)
+        self.vsfc_count = sensor_count.get('vsfcCount', 0)
+        self.ctrl3_ch_count = sensor_count.get('ctrl3ChCount', 0)
+        self.ctrl_grp_amps_count = sensor_count.get('ctrlGrpAmpsCount', 0)
+        self.ctrl_output_count = sensor_count.get('ctrlOutputCount', 0)
+        self.dewpoint_sensor_count = sensor_count.get('dewpointSensorCount', 0)
+        self.digital_sensor_count = sensor_count.get('digitalSensorCount', 0)
+        self.dsts_sensor_count = sensor_count.get('dstsSensorCount', 0)
+        self.cpm_sensor_count = sensor_count.get('cpmSensorCount', 0)
+        self.smoke_alarm_sensor_count = sensor_count.get(
+                                                    'smokeAlarmSensorCount', 0)
+        self.neg48_vdc_sensor_count = sensor_count.get(
+                                                    'neg48VdcSensorCount', 0)
+        self.pos30_vdc_sensor_count = sensor_count.get(
+                                                    'pos30VdcSensorCount', 0)
+        self.analog_sensor_count = sensor_count.get('analogSensorCount', 0)
+        return None
+
     @defer.inlineCallbacks
     def get_all_sensors(self):
+        sensor_count = yield self._get_sensor_count()
+        self._set_sensor_count(sensor_count)
         self.logger.debug('ItWatchDogsMib:: get_all_sensors: ip = %s' %
                             self.agent_proxy.ip)
-        climate_sensors = yield self._get_climate_sensors()
-        self.logger.debug(
+
+        result = []
+        if self.climate_count:
+            climate_sensors = yield self._get_climate_sensors()
+            self.logger.debug(
                 'ItWatchDogsMib:: get_all_sensors: climate_sensors = %s' %
                     climate_sensors)
-        for row_id, row in climate_sensors.items():
-            self.logger.debug('ItWatchDogsMib:: get_all_sensors: row = %s' %
+            for row_id, row in climate_sensors.items():
+                self.logger.debug('ItWatchDogsMib:: get_all_sensors: row = %s' %
                                 row)
-        result = []
-        result.extend(self._get_climate_sensors_params(climate_sensors))
+            result.extend(self._get_climate_sensors_params(climate_sensors))
         defer.returnValue(result)
