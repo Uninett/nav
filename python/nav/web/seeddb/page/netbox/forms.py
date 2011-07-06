@@ -159,7 +159,7 @@ class NetboxForm(forms.Form):
         except SnmpError:
             return None
         else:
-            return "location: %s" % value
+            return True
 
 
 class NetboxReadonlyForm(NetboxForm):
