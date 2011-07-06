@@ -29,12 +29,11 @@ ICMP_ID = 0
 ICMP_SEQ_NR = 0
 
 
-class Packet:
+class PacketV4(object):
 
-    def __init__(self, ipv6, id=None, load=None):
+    def __init__(self, id=None, load=None):
         self.id = id
         self.load = load
-        self.ipv6 = ipv6
         self.size = ICMP_DATA_STR
         self.packet = None
         self.header = None
@@ -46,13 +45,7 @@ class Packet:
         if self.size < int(struct.calcsize("d")):
             _error("packetsize to small, must be at least %d" % int(struct.calcsize("d")))
 
-        # construct header
-        if self.ipv6:
-            header = struct.pack('BbHHh', ICMP_TYPE_IP6, ICMP_CODE, ICMP_CHECKSUM, \
-                                 ICMP_ID, ICMP_SEQ_NR+self.id)
-        else:
-            header = struct.pack('bbHHh', ICMP_TYPE, ICMP_CODE, ICMP_CHECKSUM, \
-                                 ICMP_ID, ICMP_SEQ_NR+self.id)
+        header = self._construct_header()
 
         # space for time
         self.size -= struct.calcsize("d")
@@ -71,13 +64,7 @@ class Packet:
         packet = header + data          # ping packet without checksum
         checksum = self._in_cksum(packet)    # make checksum
 
-        # construct header with correct checksum
-        if self.ipv6:
-            header = struct.pack('BbHHh', ICMP_TYPE_IP6, ICMP_CODE, checksum, \
-                                 ICMP_ID, ICMP_SEQ_NR+self.id)
-        else:
-            header = struct.pack('bbHHh', ICMP_TYPE, ICMP_CODE, checksum, ICMP_ID, \
-                                 ICMP_SEQ_NR+self.id)
+        header = self._construct_header(checksum)
 
         self.header = header
         self.data   = data    
@@ -87,6 +74,10 @@ class Packet:
 
         # a perfectly formatted ICMP echo packet
         self.packet = packet
+
+    def _construct_header(self, checksum=ICMP_CHECKSUM):
+        return struct.pack('bbHHh', ICMP_TYPE, ICMP_CODE, checksum,
+                           ICMP_ID, ICMP_SEQ_NR+self.id)
 
 
     def _in_cksum(self,packet):
@@ -117,24 +108,27 @@ class Packet:
         return (~sum) & 0xffff # return ones complement
 
     def unpack(self, packet):
-        
         self.packet = packet
-
-        if self.ipv6:    
-            self.header = self.packet[0:8]
-
-            type, code, chksum, id, seqnr = struct.unpack("bbHHh", self.header)
-            self.id = seqnr
-            self.load = self.packet[16:53]
-        else:
-            self.header = self.packet[20:28]
-
-            type, code, chksum, id, seqnr = struct.unpack("bbHHh", self.header)
-            self.id = seqnr
-            self.load = self.packet[36:73]
+        self.header = self.packet[20:28]
+        _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
+        self.id = seqnr
+        self.load = self.packet[36:73]
 
     def get_id(self):
         return self.id
 
     def get_load(self):
         return self.load
+
+class PacketV6(PacketV4):
+    def _construct_header(self, checksum=ICMP_CHECKSUM):
+        return struct.pack('BbHHh', ICMP_TYPE_IP6, ICMP_CODE, checksum,
+                           ICMP_ID, ICMP_SEQ_NR+self.id)
+
+
+    def unpack(self, packet):
+        self.packet = packet
+        self.header = self.packet[0:8]
+        _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
+        self.id = seqnr
+        self.load = self.packet[16:53]
