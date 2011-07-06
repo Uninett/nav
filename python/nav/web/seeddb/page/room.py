@@ -29,7 +29,6 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
-from nav.web.seeddb.forms.move import MoveForm
 
 class RoomFilterForm(forms.Form):
     location = forms.ModelChoiceField(
@@ -41,9 +40,9 @@ class RoomForm(forms.ModelForm):
     class Meta:
         model = Room
 
-class RoomMoveForm(MoveForm):
+class RoomMoveForm(forms.Form):
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all())
+        Location.objects.order_by('id').all(), required=False)
 
 class RoomInfo(SeeddbInfo):
     active = {'room': True}

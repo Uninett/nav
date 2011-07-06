@@ -24,7 +24,6 @@ from nav.bulkimport import OrgImporter
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
-from nav.web.seeddb.forms.move import MoveForm
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
@@ -65,7 +64,7 @@ class OrganizationForm(forms.ModelForm):
             parent.queryset = parent.queryset.exclude(
                 id=kwargs['instance'].id)
 
-class OrganizationMoveForm(MoveForm):
+class OrganizationMoveForm(forms.Form):
     parent = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
 

@@ -29,7 +29,6 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
-from nav.web.seeddb.forms.move import MoveForm
 
 class NetboxFilterForm(forms.Form):
     category = forms.ModelChoiceField(
@@ -39,11 +38,11 @@ class NetboxFilterForm(forms.Form):
     organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
 
-class NetboxMoveForm(MoveForm):
+class NetboxMoveForm(forms.Form):
     room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all())
+        Room.objects.order_by('id').all(), required=False)
     organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all())
+        Organization.objects.order_by('id').all(), required=False)
 
 class NetboxInfo(SeeddbInfo):
     active = {'netbox': True}

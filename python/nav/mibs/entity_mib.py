@@ -38,7 +38,8 @@ class EntityMib(mibretriever.MibRetriever):
         def bridge_mib_filter(result):
             new_result = [(r['entLogicalDescr'], r['entLogicalCommunity'])
                           for r in result.values()
-                          if OID(r['entLogicalType']) == bridge_mib_oid]
+                          if r['entLogicalType']
+                          and OID(r['entLogicalType']) == bridge_mib_oid]
             return new_result
 
         df = self.retrieve_columns([

@@ -23,7 +23,7 @@
 from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404
@@ -55,7 +55,10 @@ def render_edit(request, model, form_model, object_id, redirect, \
             new_message(request._req,
                  "Saved %s %s" % (verbose_name, title),
                  Messages.SUCCESS)
-            return HttpResponseRedirect(reverse(redirect, args=(identifier,)))
+            try:
+                return HttpResponseRedirect(reverse(redirect, args=(identifier,)))
+            except NoReverseMatch:
+                return HttpResponseRedirect(reverse(redirect))
     else:
         form = form_model(instance=obj)
 
