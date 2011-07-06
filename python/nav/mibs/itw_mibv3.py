@@ -19,7 +19,7 @@ from twisted.internet import threads
 
 from nav.mibs import reduce_index
 
-import mibretriever
+from nav.mibs import mibretriever
 
 
 class ItWatchDogsMibV3(mibretriever.MibRetriever):

@@ -18,7 +18,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 
-import nav.mibs.mibretriever
+from nav.mibs import mibretriever
 
 
 class ItWatchDogsMib(mibretriever.MibRetriever):
