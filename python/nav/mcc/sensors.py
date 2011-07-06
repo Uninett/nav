@@ -54,7 +54,7 @@ def create_netbox_config(netbox, path_to_directory):
     config += "\tsnmp-community\t= %s\n" % netbox.read_only
     config += "\ttarget-type\t= sensor\n\n"
 
-    sensors = sorted(sensors, key=lambda sensor: sensor.internal_name)
+    sensors = sorted(sensors, key=lambda sensor: sensor.name)
     counter = len(sensors)
     containers = []
 
@@ -76,7 +76,7 @@ def create_sensor_config(sensor, counter):
 
     sensorconfig = "target \"%s\"\n" % sensor.id
     sensorconfig += fmt % ("display-name",
-                           encode_and_escape(sensor.internal_name))
+                           encode_and_escape(sensor.name))
     sensorconfig += fmt % ("oid", sensor.oid)
     sensorconfig += fmt % ("legend",
                            encode_and_escape(sensor.name))
