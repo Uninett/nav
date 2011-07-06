@@ -85,8 +85,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             unit_of_measurement = 'volts'
             precision = 0
             scale = self.mib.get('nodes').get(
-                    'ciscoEnvMonVoltageStatusValue').get(
-                    'units').strip().capitalize()
+                    'ciscoEnvMonVoltageStatusValue').get('units').strip()
             scale = re.sub('volts$', '', scale)
             description = voltage_sensor.get(
                     'ciscoEnvMonVoltageStatusDescr').strip()

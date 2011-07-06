@@ -111,7 +111,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
             precision = row.get('entPhySensorPrecision', 0)
             scale = row.get('entPhySensorScale', None)
             op_status = row.get('entPhySensorOperStatus', None)
-            description = row.get('entPhysicalDescr')
+            description = row.get('entPhysicalDescr', None)
             name = row.get('entPhysicalName', None)
             internal_name = name
             if op_status == 1:
