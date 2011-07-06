@@ -57,7 +57,7 @@ def render_list(request, queryset, value_list, edit_url=None, edit_url_attr='pk'
 
     # Get values specified in value_list from the queryset.
     # Also make sure that the primary key and the edit_url_attr appears.
-    if edit_url is None:
+    if not edit_url:
         value_queryset = queryset.values('pk', *value_list)
     else:
         value_queryset = queryset.values('pk', edit_url_attr, *value_list)
@@ -71,7 +71,7 @@ def render_list(request, queryset, value_list, edit_url=None, edit_url_attr='pk'
 
     page = _paginate(value_queryset, per_page, page_num)
 
-    if edit_url is None:
+    if not edit_url:
         objects = _process_objects(page, value_list)
     else:
         objects = _process_objects(page, value_list, edit_url, edit_url_attr)
@@ -165,7 +165,7 @@ def _process_objects(page, value_list, edit_url=None, edit_url_attr=None):
     """
     objects = []
     for obj in page.object_list:
-        if edit_url is None:
+        if not edit_url:
             row = {
                 'pk': obj['pk'],
                 'values_list': [obj[attr] for attr in value_list],
