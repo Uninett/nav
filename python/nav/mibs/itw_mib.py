@@ -24,30 +24,29 @@ from nav.mibs import mibretriever
 class ItWatchDogsMib(mibretriever.MibRetriever):
     from nav.smidumps.itw_mib import MIB as mib
 
-	climate_count = 0
-	power_monitor_count = 0
-	temp_sensor_count = 0
-	airflow_sensor_count = 0
-	power_only_count = 0
-	door_sensor_count = 0
-	water_sensor_count = 0
-	current_sensor_count = 0
-	millivolt_sensor_count = 0
-	power3i_ch_sensor_count = 0
-	outlet_count = 0
-	vsfc_count = 0
-	ctrl3_ch_count = 0
-	ctrl_grp_amps_count = 0
-	ctrl_output_count = 0
-	dewpoint_sensor_count = 0
-	digital_sensor_count = 0
-	dsts_sensor_count = 0
-	cpm_sensor_count = 0
-	smoke_alarm_sensor_count = 0
-	neg48_vdc_sensor_count = 0
-	pos30_vdc_sensor_count = 0
-	analog_sensor_count = 0
-
+    climate_count = 0
+    power_monitor_count = 0
+    temp_sensor_count = 0
+    airflow_sensor_count = 0
+    power_only_count = 0
+    door_sensor_count = 0
+    water_sensor_count = 0
+    current_sensor_count = 0
+    millivolt_sensor_count = 0
+    power3_ch_sensor_count = 0
+    outlet_count = 0
+    vsfc_count = 0
+    ctrl3_ch_count = 0
+    ctrl_grp_amps_count = 0
+    ctrl_output_count = 0
+    dewpoint_sensor_count = 0
+    digital_sensor_count = 0
+    dsts_sensor_count = 0
+    cpm_sensor_count = 0
+    smoke_alarm_sensor_count = 0
+    neg48_vdc_sensor_count = 0
+    pos30_vdc_sensor_count = 0
+    analog_sensor_count = 0
 
     def get_module_name(self):
         return self.mib.get('moduleName', None)
@@ -289,17 +288,17 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         sensors = []
         for idx, climate_sensor in climate_sensors.items():
             available = climate_sensor.get('climateAvail', None)
+            climate_sensor_oid = climate_sensor.get(0, None)
+            climate_name = climate_sensor.get('climateName', None)
+            serial = climate_sensor.get('climateSerial', None)
             if available:
-                climate_sensor_oid = climate_sensor.get(0, None)
-                serial = climate_sensor.get('climateSerial', None)
-
                 temp_mib = self.nodes.get('climateTempC', None)
                 oid = str(temp_mib.oid) + str(climate_sensor_oid)
                 unit_of_measurement = 'celsius'
                 precision = 0
                 scale = ''
                 description = 'climateTempC'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -318,7 +317,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 precision = 0
                 scale = ''
                 description = 'climateHumidity'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -333,11 +332,11 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
 
                 airflow_mib = self.nodes.get('climateAirflow', None)
                 oid = str(airflow_mib.oid) + str(climate_sensor_oid)
-                unit_of_measurement = 'airflow'
+                unit_of_measurement = ''
                 precision = 0
                 scale = ''
                 description = 'climateAirflow'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -356,7 +355,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 precision = 0
                 scale = ''
                 description = 'climateLight'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -375,7 +374,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 precision = 0
                 scale = ''
                 description = 'climateSound'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -394,7 +393,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 precision = 0
                 scale = ''
                 description = 'climateIO1'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -413,7 +412,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 precision = 0
                 scale = ''
                 description = 'climateIO2'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -432,7 +431,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 precision = 0
                 scale = ''
                 description = 'climateIO3'
-                name = description
+                name = climate_name + ' ' + description
                 internal_name = serial + name
                 sensors.append({
                                 'oid': oid,
@@ -488,7 +487,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         self.current_sensor_count = sensor_count.get('currentSensorCount', 0)
         self.millivolt_sensor_count = sensor_count.get(
                                                 'millivoltSensorCount', 0)
-        self.power3i_ch_sensor_count = sensor_count.get(
+        self.power3_ch_sensor_count = sensor_count.get(
                                                 'power3ChSensorCount', 0)
         self.outlet_count = sensor_count.get('outletCount', 0)
         self.vsfc_count = sensor_count.get('vsfcCount', 0)
@@ -522,7 +521,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 'ItWatchDogsMib:: get_all_sensors: climate_sensors = %s' %
                     climate_sensors)
             for row_id, row in climate_sensors.items():
-                self.logger.debug('ItWatchDogsMib:: get_all_sensors: row = %s' %
-                                row)
+                self.logger.debug(
+                            'ItWatchDogsMib:: get_all_sensors: row = %s' % row)
             result.extend(self._get_climate_sensors_params(climate_sensors))
         defer.returnValue(result)

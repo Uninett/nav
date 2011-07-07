@@ -39,7 +39,7 @@ class MIBFactory(object):
     and -models."""
 
     @classmethod
-    def get_instance(self, netbox, agent):
+    def get_instance(cls, netbox, agent):
         """ Factory for allocating mibs based on
         netbox-vendors and -models"""
         vendor_id = netbox.type.get_enterprise_id()

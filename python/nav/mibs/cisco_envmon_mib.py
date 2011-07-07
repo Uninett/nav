@@ -17,11 +17,9 @@
 import re
 
 from twisted.internet import defer
-from twisted.internet import threads
 
 from nav.mibs import reduce_index
-
-import mibretriever
+from nav.mibs import mibretriever
 
 
 POWER_SENSOR_TYPE = {
@@ -31,6 +29,7 @@ POWER_SENSOR_TYPE = {
     4: 'External power supply',
     5: 'Internal redundant power supply',
 }
+
 
 class CiscoEnvMonMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_envmon_mib import MIB as mib
@@ -93,7 +92,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             internal_name = description
             sensors.append({
                             'oid': oid,
-                            'unit_of_measurement' : unit_of_measurement,
+                            'unit_of_measurement': unit_of_measurement,
                             'precision': precision,
                             'scale': scale,
                             'description': description,
@@ -107,11 +106,12 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
         sensors = []
         for idx, temp_sensor in temperature_sensors.items():
             temp_sensor_oid = temp_sensor.get(0, None)
-            temp_mib = self.nodes.get('ciscoEnvMonTemperatureStatusValue', None)
+            temp_mib = self.nodes.get(
+                            'ciscoEnvMonTemperatureStatusValue', None)
             oid = str(temp_mib.oid) + str(temp_sensor_oid)
             unit_of_measurement = self.mib.get('nodes').get(
-                    'ciscoEnvMonTemperatureStatusValue').get(
-                    'units').strip()
+                        'ciscoEnvMonTemperatureStatusValue').get(
+                            'units').strip()
             precision = 0
             scale = None
             description = temp_sensor.get(
@@ -120,7 +120,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             internal_name = description
             sensors.append({
                             'oid': oid,
-                            'unit_of_measurement' : unit_of_measurement,
+                            'unit_of_measurement': unit_of_measurement,
                             'precision': precision,
                             'scale': scale,
                             'description': description,
@@ -145,8 +145,8 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             internal_name = description
             sensors.append({
                             'oid': oid,
-                            'unit_of_measurement' : unit_of_measurement,
-                            'precision' : precision,
+                            'unit_of_measurement': unit_of_measurement,
+                            'precision': precision,
                             'scale': scale,
                             'description': description,
                             'name': name,
@@ -173,7 +173,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             internal_name = name
             sensors.append({
                             'oid': oid,
-                            'unit_of_measurement' : unit_of_measurement,
+                            'unit_of_measurement': unit_of_measurement,
                             'precision': precision,
                             'scale': scale,
                             'description': description,
@@ -195,5 +195,5 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
         result.extend(self._get_fanstate_sensor_params(fanstate_sensors))
         result.extend(self._get_powersupply_sensor_params(powersupply_sensors))
 
-        self.logger.debug('get_all_sensors: result=%s' % result)   
+        self.logger.debug('get_all_sensors: result=%s' % result)
         defer.returnValue(result)

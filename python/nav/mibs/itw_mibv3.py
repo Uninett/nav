@@ -15,10 +15,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from twisted.internet import defer
-from twisted.internet import threads
 
 from nav.mibs import reduce_index
-
 from nav.mibs import mibretriever
 
 
