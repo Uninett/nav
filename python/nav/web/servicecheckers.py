@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
+# Copyright (C) 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,6 +16,7 @@
 #
 """Utility functions to find available servicemon checker plugins"""
 
+from __future__ import with_statement
 import os
 import re
 import nav.statemon.checker
@@ -27,27 +29,25 @@ _ASSIGNMENT_PATTERN = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
 
 def get_checkers():
     """Returns a list of available servicemon checkers"""
-    files = os.listdir(_CHECKER_DIR)
-    result = []
-    for file in files:
-        if (len(file) > len(_CHECKER_PATTERN) and
-            file[len(file)-len(_CHECKER_PATTERN):]==_CHECKER_PATTERN):
-            result.append(file[:-len(_CHECKER_PATTERN)].lower())
-    return result
+    try:
+        files = os.listdir(_CHECKER_DIR)
+    except OSError:
+        return []
+
+    return [f[:-len(_CHECKER_PATTERN)].lower() for f in files
+            if len(f) > len(_CHECKER_PATTERN)
+            and f.endswith(_CHECKER_PATTERN)]
 
 def get_description(checker_name):
     """Returns a description of a service checker"""
-    descr = {}
+    filename = os.path.join(_CHECKER_DIR,
+                            "%s%s" % (checker_name.capitalize(),
+                                      _DESCR_PATTERN))
     try:
-        filename = os.path.join(_CHECKER_DIR,
-                                "%s%s" % (checker_name.capitalize(),
-                                          _DESCR_PATTERN))
-        file = open(filename)
-    except:
+        with file(filename, 'rb') as descr_file:
+            assignments = _ASSIGNMENT_PATTERN.findall(descr_file.read())
+            return dict(
+                (key, value if key == "description" else value.split(' '))
+                for (key, value) in assignments)
+    except IOError:
         return
-    for (key, value) in _ASSIGNMENT_PATTERN.findall(file.read()):
-        if key == "description":
-            descr[key] = value
-        else:
-            descr[key] = value.split(' ')
-    return descr
