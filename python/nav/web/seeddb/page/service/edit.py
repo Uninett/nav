@@ -24,7 +24,7 @@ from django.db import transaction
 
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
-from nav.web.servicecheckers import getCheckers, getDescription
+from nav.web.servicecheckers import get_checkers, get_description
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
@@ -33,7 +33,7 @@ from nav.web.seeddb.page.service import ServiceInfo
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
-        checkers = [(service, service) for service in getCheckers()]
+        checkers = [(service, service) for service in get_checkers()]
         checkers.sort()
         self.fields['service'] = forms.ChoiceField(
             choices=checkers)
@@ -73,7 +73,7 @@ def service_edit(request, service_id=None):
         if service_form.is_valid():
             handler = service_form.cleaned_data['handler']
             property_form = ServicePropertyForm(request.POST,
-                service_args=getDescription(handler))
+                service_args=get_description(handler))
             if property_form.is_valid():
                 return service_save(request, service_form, property_form)
     else:
@@ -91,7 +91,7 @@ def service_edit(request, service_id=None):
             initial = dict(
                 [(prop.property, prop.value) for prop in service_prop])
             property_form = ServicePropertyForm(
-                service_args=getDescription(service.handler),
+                service_args=get_description(service.handler),
                 initial=initial)
 
     info = ServiceInfo()
@@ -127,7 +127,7 @@ def service_add(request):
         else:
             if choice_form.is_valid():
                 property_form = ServicePropertyForm(
-                    service_args=getDescription(
+                    service_args=get_description(
                         choice_form.cleaned_data['service']
                     ))
                 service_form = ServiceForm(initial={

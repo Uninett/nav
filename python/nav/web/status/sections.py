@@ -310,7 +310,7 @@ class ServiceSection(_Section):
         if self.prefs.services:
             self.services = self.prefs.services.split(',')
         else:
-            self.services = [s for s in servicecheckers.getCheckers()]
+            self.services = [s for s in servicecheckers.get_checkers()]
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(

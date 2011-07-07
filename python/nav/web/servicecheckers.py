@@ -19,37 +19,33 @@ import os
 import re
 import nav.statemon.checker
 
-_checkerDir = os.path.dirname(nav.statemon.checker.__file__)
-_checkerPattern = "Checker.py"
-_descrPattern = 'Checker.descr'
-_defaultArgs = ['port', 'timeout']
-_regexp = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
+_CHECKER_DIR = os.path.dirname(nav.statemon.checker.__file__)
+_CHECKER_PATTERN = "Checker.py"
+_DESCR_PATTERN = 'Checker.descr'
+_DEFAULT_ARGS = ['port', 'timeout']
+_ASSIGNMENT_PATTERN = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
 
-def getCheckers():
-    """
-    Returns a list of available checkers.
-    """
-    files = os.listdir(_checkerDir)
+def get_checkers():
+    """Returns a list of available servicemon checkers"""
+    files = os.listdir(_CHECKER_DIR)
     result = []
     for file in files:
-        if (len(file) > len(_checkerPattern) and
-            file[len(file)-len(_checkerPattern):]==_checkerPattern):
-            result.append(file[:-len(_checkerPattern)].lower())
+        if (len(file) > len(_CHECKER_PATTERN) and
+            file[len(file)-len(_CHECKER_PATTERN):]==_CHECKER_PATTERN):
+            result.append(file[:-len(_CHECKER_PATTERN)].lower())
     return result
 
-def getDescription(checkerName):
-    """
-    Returns a description of the service checker
-    """
+def get_description(checker_name):
+    """Returns a description of a service checker"""
     descr = {}
     try:
-        filename = os.path.join(_checkerDir,
-                                "%s%s" % (checkerName.capitalize(),
-                                          _descrPattern))
+        filename = os.path.join(_CHECKER_DIR,
+                                "%s%s" % (checker_name.capitalize(),
+                                          _DESCR_PATTERN))
         file = open(filename)
     except:
         return
-    for (key, value) in _regexp.findall(file.read()):
+    for (key, value) in _ASSIGNMENT_PATTERN.findall(file.read()):
         if key == "description":
             descr[key] = value
         else:

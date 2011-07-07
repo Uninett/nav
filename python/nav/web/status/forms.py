@@ -33,7 +33,7 @@ def _category_choices():
     return cat
 
 def _service_choices():
-    service = [(s, s) for s in servicecheckers.getCheckers()]
+    service = [(s, s) for s in servicecheckers.get_checkers()]
     service.insert(0, ('', '(all)'))
     return service
 
