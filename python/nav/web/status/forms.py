@@ -20,7 +20,7 @@ from django.utils.encoding import force_unicode
 
 from nav.models.profiles import StatusPreference
 from nav.models.manage import Netbox, Organization, Category
-from nav.web import serviceHelper
+from nav.web import servicecheckers
 
 def _organization_choices():
     org = [(org.id, org.description) for org in Organization.objects.all()]
@@ -33,7 +33,7 @@ def _category_choices():
     return cat
 
 def _service_choices():
-    service = [(s, s) for s in serviceHelper.getCheckers()]
+    service = [(s, s) for s in servicecheckers.getCheckers()]
     service.insert(0, ('', '(all)'))
     return service
 

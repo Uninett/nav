@@ -29,7 +29,7 @@ from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
 from nav.models.manage import Netbox, Module, Category, Organization
 
-from nav.web import serviceHelper
+from nav.web import servicecheckers
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
@@ -310,7 +310,7 @@ class ServiceSection(_Section):
         if self.prefs.services:
             self.services = self.prefs.services.split(',')
         else:
-            self.services = [s for s in serviceHelper.getCheckers()]
+            self.services = [s for s in servicecheckers.getCheckers()]
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(

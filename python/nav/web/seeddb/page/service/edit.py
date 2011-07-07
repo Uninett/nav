@@ -24,7 +24,7 @@ from django.db import transaction
 
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
-from nav.web.serviceHelper import getCheckers, getDescription
+from nav.web.servicecheckers import getCheckers, getDescription
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 

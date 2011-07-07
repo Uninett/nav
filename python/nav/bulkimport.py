@@ -24,7 +24,7 @@ from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
-from nav.web.serviceHelper import getDescription
+from nav.web.servicecheckers import getDescription
 
 from nav.bulkparse import BulkParseError
 
