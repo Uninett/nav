@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Is this module even in use?"""
+"""Utility functions to find available servicemon checker plugins"""
 
 import os
 import re
@@ -48,7 +48,6 @@ def getDescription(checkerName):
                                           _descrPattern))
         file = open(filename)
     except:
-        #print "could not open file ", filename
         return
     for (key, value) in _regexp.findall(file.read()):
         if key == "description":
@@ -56,4 +55,3 @@ def getDescription(checkerName):
         else:
             descr[key] = value.split(' ')
     return descr
-    
