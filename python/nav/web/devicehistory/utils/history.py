@@ -170,11 +170,34 @@ def group_history_and_messages(history, messages, group_by=None):
 def describe_search_params(selection):
     data = {}
     if 'location' in selection and selection['location']:
-        data['location'] = Location.objects.filter(id__in=selection['location'])
+
+        locations_selected = len(selection['location'])
+        if locations_selected == Location.objects.all().count():
+            data['location'] = ["All locations selected",]
+        else:
+            data['location'] = Location.objects.filter(id__in=selection['location'])
+
     if 'room' in selection and selection['room']:
-        data['room'] = Room.objects.filter(id__in=selection['room'])
+
+        rooms_selected = len(selection['room'])
+        if rooms_selected == Room.objects.all().count():
+            data['room'] = ["All rooms selected",]
+        else:
+            data['room'] = Room.objects.filter(id__in=selection['room'])
+
     if 'netbox' in selection and selection['netbox']:
-        data['netbox'] = Netbox.objects.filter(id__in=selection['netbox'])
+
+        netboxes_selected = len(selection['netbox'])
+        if netboxes_selected == Netbox.objects.all().count():
+            data['netbox'] = ["All IP devices selected",]
+        else:
+            data['netbox'] = Netbox.objects.filter(id__in=selection['netbox'])
+
     if 'module' in selection and selection['module']:
-        data['module'] = Module.objects.select_related('netbox').filter(id__in=selection['module'])
+
+        modules_selected = len(selection['module'])
+        if modules_selected == Module.objects.all().count():
+            data['location'] = ["All locations selected",]
+        else:
+            data['location'] = Module.objects.filter(id__in=selection['location'])
     return data
