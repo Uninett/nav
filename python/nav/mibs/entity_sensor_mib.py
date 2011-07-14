@@ -16,12 +16,10 @@
 #
 
 from twisted.internet import defer
-from twisted.internet import threads
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
-
-import mibretriever
+from nav.mibs import mibretriever
 
 UNITS_OF_MEASUREMENTS = {
     1: 'other',
@@ -62,6 +60,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_sensor_mib import MIB as mib
 
     def get_module_name(self):
+        """Return this MIB-name"""
         return self.mib.get('moduleName', None)
 
     def _get_sensors(self):
