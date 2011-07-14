@@ -614,9 +614,9 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def get_all_sensors(self):
         climate_sensors = yield self._get_climate_sensors()
-        self.logger.debug('ItWatchDogsMibV3:: get_all_sensors: ip = %s' %
+        self.logger.error('ItWatchDogsMibV3:: get_all_sensors: ip = %s' %
                             self.agent_proxy.ip)
-        self.logger.debug(
+        self.logger.error(
                 'ItWatchDogsMibV3:: get_all_sensors: climate_sensors = %s' %
                     climate_sensors)
         for row_id, row in climate_sensors.items():
