@@ -75,15 +75,20 @@ class Sensors(Plugin):
         sensors = []
         for row in result:
             oid = row.get('oid', None)
-            sensor = self.containers.factory(oid, shadows.Sensor)
-            sensor.netbox = self.netbox
-            sensor.oid = oid
-            sensor.unit_of_measurement = row.get('unit_of_measurement', None)
-            sensor.precision = row.get('precision', 0)
-            sensor.data_scale = row.get('scale', None)
-            sensor.human_readable = row.get('description', None)
-            sensor.name = row.get('name', None)
-            sensor.internal_name = row.get('internal_name', None)
-            sensor.mib = row.get('mib', None)
-            sensors.append(sensors)
+            internal_name = row.get('internal_name', None)
+            mib = row.get('mib', None)
+            # Minimum requirement.  Uniq by netbox, internal name and mib
+            if oid and internal_name and mib:
+                sensor = self.containers.factory(oid, shadows.Sensor)
+                sensor.netbox = self.netbox
+                sensor.oid = oid
+                sensor.unit_of_measurement = row.get('unit_of_measurement',
+                                                                        None)
+                sensor.precision = row.get('precision', 0)
+                sensor.data_scale = row.get('scale', None)
+                sensor.human_readable = row.get('description', None)
+                sensor.name = row.get('name', None)
+                sensor.internal_name = internal_name
+                sensor.mib = mib
+                sensors.append(sensors)
         return sensors
