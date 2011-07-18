@@ -197,7 +197,7 @@ def describe_search_params(selection):
 
         modules_selected = len(selection['module'])
         if modules_selected == Module.objects.all().count():
-            data['location'] = ["All locations selected",]
+            data['module'] = ["All modules selected",]
         else:
-            data['location'] = Module.objects.filter(id__in=selection['location'])
+            data['module'] = Module.objects.filter(id__in=selection['module'])
     return data
