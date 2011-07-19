@@ -86,12 +86,14 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     #   - selected netboxes
     #   - selected rooms
     #   - selected locations
+    #   - selected organizations
     netbox = Netbox.objects.select_related(
         'device'
     ).filter(
         Q(id__in=selection['netbox']) |
         Q(room__in=selection['room']) |
-        Q(room__location__in=selection['location'])
+        Q(room__location__in=selection['location']) |
+        Q(organization__in=selection['organization'])
     )
 
     # Find device ids that belongs to
@@ -108,7 +110,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     # Time limit is done in raw SQL to make sure all parantheses are right.
     history = AlertHistory.objects.select_related(
         'event_type', 'alert_type', 'device',
-        'netbox', 'netbox__room', 'netbox__room__location'
+        'netbox', 'netbox__room', 'netbox__room__location', 'netbox__organization'
     ).filter(
         Q(netbox__in=[n.id for n in netbox]) |
         Q(device__in=[n.device.id for n in netbox]) |
@@ -170,16 +172,19 @@ def group_history_and_messages(history, messages, group_by=None):
 def describe_search_params(selection):
     data = {}
     if 'location' in selection and selection['location']:
-        data['location'] = _get_data_to_search_context(selection, 'location', Location)
+        data['location'] = _get_data_to_search_terms(selection, 'location', Location)
 
     if 'room' in selection and selection['room']:
-        data['room'] = _get_data_to_search_context(selection, 'room', Room)
+        data['room'] = _get_data_to_search_terms(selection, 'room', Room)
 
     if 'netbox' in selection and selection['netbox']:
-        data['netbox'] = _get_data_to_search_context(selection, 'netbox', Netbox)
+        data['netbox'] = _get_data_to_search_terms(selection, 'netbox', Netbox)
 
     if 'module' in selection and selection['module']:
-        data['module'] = _get_data_to_search_context(selection, 'module', Module)
+        data['module'] = _get_data_to_search_terms(selection, 'module', Module)
+
+    if 'organization' in selection and selection['organization']:
+        data['organization'] = _get_data_to_search_terms(selection, 'organization', Organization)
 
     return data
 

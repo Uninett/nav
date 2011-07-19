@@ -95,6 +95,7 @@ def devicehistory_view(request):
     types = request.REQUEST.get('type', None)
     group_by = request.REQUEST.get('group_by', 'netbox')
     selection = {
+        'organization': request.REQUEST.getlist('org'),
         'location': request.REQUEST.getlist('loc'),
         'room': request.REQUEST.getlist('room'),
         'netbox': request.REQUEST.getlist('netbox'),
@@ -155,6 +156,8 @@ def devicehistory_view(request):
         attr = key
         if key == "location":
             attr = "loc"
+        if key == "organization":
+            attr = "org"
         for id in values:
             url += "&%s=%s" % (attr, id)
 
