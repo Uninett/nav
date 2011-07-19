@@ -96,10 +96,12 @@ def devicehistory_view(request):
     group_by = request.REQUEST.get('group_by', 'netbox')
     selection = {
         'organization': request.REQUEST.getlist('org'),
+        'category': request.REQUEST.getlist('cat'),
         'location': request.REQUEST.getlist('loc'),
         'room': request.REQUEST.getlist('room'),
         'netbox': request.REQUEST.getlist('netbox'),
         'module': request.REQUEST.getlist('module'),
+        'mode': request.REQUEST.getlist('mode')
     }
     selection = check_empty_selection(selection)
 
@@ -158,6 +160,8 @@ def devicehistory_view(request):
             attr = "loc"
         if key == "organization":
             attr = "org"
+        if key == "category":
+            attr = "cat"
         for id in values:
             url += "&%s=%s" % (attr, id)
 
