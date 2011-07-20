@@ -123,9 +123,11 @@ def move(request, model, form_model, redirect, title_attr='id',                 
         extra_context, RequestContext(request))
 
 def _parse_value_differences(values, data, title_attr, fields):
-"""Help method to format strings which are used in the table to show current
-values and the new ones through the wizard before updating the objects"""
+    """Creates a data structure describing the before/after values of a
+    requested move operation.  Output can be used in templates to show a
+    preview of the changes that will be made.
 
+    """
     object_list = []
     attr_list = [title_attr] + fields
 
