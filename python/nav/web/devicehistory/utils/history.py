@@ -88,16 +88,27 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     #   - selected locations
     #   - selected organizations
     #   - selected categories
-    if selection['mode'][0] == 'and':
-        netbox = Netbox.objects.select_related(
-            'device'
-        ).filter(
-            Q(id__in=selection['netbox']) &
-            Q(room__in=selection['room']) &
-            Q(room__location__in=selection['location']) &
-            Q(organization__in=selection['organization']) &
-            Q(category__in=selection['category'])
-        )
+    if selection['mode']:
+        if selection['mode'][0] == 'and':
+            netbox = Netbox.objects.select_related(
+                'device'
+            ).filter(
+                Q(id__in=selection['netbox']) |
+                Q(room__in=selection['room']) |
+                Q(room__location__in=selection['location']) |
+                Q(organization__in=selection['organization']) &
+                Q(category__in=selection['category'])
+            )
+        elif selection['mode'][0] == 'or':
+            netbox = Netbox.objects.select_related(
+                'device'
+            ).filter(
+                Q(id__in=selection['netbox']) |
+                Q(room__in=selection['room']) |
+                Q(room__location__in=selection['location']) |
+                Q(organization__in=selection['organization']) |
+                Q(category__in=selection['category'])
+            )
     else:
         netbox = Netbox.objects.select_related(
             'device'

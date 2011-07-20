@@ -139,14 +139,18 @@ class _Section(object):
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
+        
+        if not self.prefs.all_organizations:
+            for org in self.organizations:
+                url += "&org=%s" % org
+        if not self.prefs.all_categories:
+            for cat in self.categories:
+                url += "&cat=%s" % cat
 
-        if not self.prefs.all_categories or not self.prefs.all_organizations:
-            netboxes = Netbox.objects.filter(
-                category__in=self.categories,
-                organization__in=self.organizations,
-            ).values('id')
-            for n in netboxes:
-                url += "&netbox=%s" % n['id']
+        # If custom orgs and cats, use AND search        
+        if not self.prefs.all_categories and not self.prefs.all_organizations:    
+            url += "&mode=and"
+
         return url
 
 class NetboxSection(_Section):
