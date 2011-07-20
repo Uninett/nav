@@ -62,7 +62,9 @@ def get_selected_types(type):
     return selected_types
 
 def check_empty_selection(selection):
-    if not selection['location'] and not selection['room'] and not selection['netbox'] and not selection['module'] and not selection['organization'] and not selection['category']:
+    all_arguments = ('location', 'room', 'netbox', 'module', 'organization',
+                     'category')
+    if all(not selection[arg] for arg in all_arguments):
         selection['netbox'] = Netbox.objects.values_list('id', flat=True)
     return selection
 
