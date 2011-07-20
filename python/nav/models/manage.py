@@ -71,6 +71,8 @@ class Netbox(models.Model):
 
     class Meta:
         db_table = 'netbox'
+        verbose_name = 'netbox'
+        verbose_name_plural = 'netboxes'
         ordering = ('sysname',)
 
     def __unicode__(self):
@@ -320,6 +322,7 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
+        verbose_name = 'module'
         ordering = ('netbox', 'module_number', 'name')
         unique_together = (('netbox', 'name'),)
 
@@ -399,6 +402,7 @@ class Room(models.Model):
 
     class Meta:
         db_table = 'room'
+        verbose_name = 'room'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -413,6 +417,7 @@ class Location(models.Model):
 
     class Meta:
         db_table = 'location'
+        verbose_name = 'location'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -430,6 +435,7 @@ class Organization(models.Model):
 
     class Meta:
         db_table = 'org'
+        verbose_name = 'organization'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -444,6 +450,8 @@ class Category(models.Model):
 
     class Meta:
         db_table = 'cat'
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)

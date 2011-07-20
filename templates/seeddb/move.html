@@ -39,7 +39,7 @@
     <input type="hidden" name="object" value="{{ row.pk }}" />
     {% endfor %}
     <input type="hidden" name="move" value="yes" />
-    <input type="submit" name="save" value="Confirm save" />
+    <input type="submit" name="save" value="Confirm and save changes" />
 </p>
 {% else %}
 <table class="listtable">
@@ -48,7 +48,7 @@
         <th></th>
         <td>
             <input type="hidden" name="move" value="yes" />
-            <input type="submit" name="preview" value="Save" />
+            <input type="submit" name="preview" value="Next" /> 
         </td>
     </tr>
 </table>
