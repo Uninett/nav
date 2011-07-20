@@ -24,7 +24,7 @@ from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
-from nav.web.serviceHelper import getDescription
+from nav.web.servicecheckers import get_description
 
 from nav.bulkparse import BulkParseError
 
@@ -146,7 +146,7 @@ class ServiceImporter(BulkImporter):
 
     @staticmethod
     def _get_handler_descr(handler):
-        descr = getDescription(handler)
+        descr = get_description(handler)
         if not descr:
             raise BulkImportError("Service handler %s does not exist" % handler)
         return descr
