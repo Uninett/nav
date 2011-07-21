@@ -193,11 +193,15 @@ def describe_search_params(selection):
     return data
 
 def _get_data_to_search_terms(selection, key_string, model):
-    """ Checks if all objects of a given model is selected. If so, display text, else display"""
+    """Creates a human-readable list of things that were selected by the
+    search terms.
+
+    If all existing objects of a given model are selected, they are summarized
+    in a single 'all X selected' statement.
+
+    """
     selected_objects = len(selection[key_string])
     if selected_objects == model.objects.all().count():
-        data = ["All " + unicode(model._meta.verbose_name_plural) + " selected.",]
+        return ["All %s selected." % unicode(model._meta.verbose_name_plural)]
     else:
-        data = model.objects.filter(id__in=selection[key_string])
-    
-    return data
+        return model.objects.filter(id__in=selection[key_string])
