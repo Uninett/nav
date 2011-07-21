@@ -71,11 +71,8 @@ def parse_views():
     """ Parse configuration file with view definitions """
     views = {}
 
-    try:
-        handle = open(join(path.sysconfdir, "cricket-views.conf"))
-    except Exception, error:
-        LOGGER.error(error)
-        return False
+    # Fail early if no views exist
+    handle = open(join(path.sysconfdir, "cricket-views.conf"))
 
     for line in handle:
         if line.startswith("view"):
@@ -128,7 +125,7 @@ def get_datadir(filepath):
     for line in handle:
         mat = match.search(line)
         if mat:
-            datadir = m.groups()[0]
+            datadir = mat.groups()[0]
             #-----------------------------------------------------------------
             # %auto-base% is used in Cricket as a variable pointing to the
             # base directory for the cricket-config
