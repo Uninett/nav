@@ -109,8 +109,12 @@ def ip_do_search(request):
 
         ip_result = ip_dict(result)
 
+        ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
         if inactive:
-            ip_range = (IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1))
+            if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
+                ip_range = [key for key in ip_result]
+            else:
+                ip_range = (IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1))
         else:
             ip_range = [key for key in ip_result]
 
