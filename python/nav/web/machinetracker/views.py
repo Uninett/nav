@@ -76,15 +76,13 @@ def ip_do_search(request):
             # If no netmask, get prefix for address
             if not cidr[1]:
                 prefix = get_prefix_info(from_ip_string)
-                if prefix.vlan.vlan:
-                    prefix_address = prefix.net_address
-                    prefix_cidr = prefix_address.split("/")
-                    prefix_address = IP(prefix_cidr[0])
-                    prefix_subnet = prefix_address.make_net(prefix_cidr[1])
-                    from_ip = prefix_subnet[0]
-                    to_ip = prefix_subnet[-1]
-                else:
-                    from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
+                prefix_address = prefix.net_address
+                prefix_cidr = prefix_address.split("/")
+                prefix_address = IP(prefix_cidr[0])
+                prefix_subnet = prefix_address.make_net(prefix_cidr[1])
+                from_ip = prefix_subnet[0]
+                to_ip = prefix_subnet[-1]
+
             # If netmask, get the subnet
             else:    
                 ip_address = IP(cidr[0])
@@ -111,9 +109,8 @@ def ip_do_search(request):
 
         ip_result = ip_dict(result)
 
-        ip_range = []
         if inactive:
-            ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
+            ip_range = (IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1))
         else:
             ip_range = [key for key in ip_result]
 
