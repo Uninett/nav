@@ -77,13 +77,20 @@ def filter_log(file):
         if match:
             yield (line, match)
 
+def filter_bugids(matches):
+    for line, match in matches:
+        yield int(match.group('bug_id'))
+
 def main(args):
     if sys.stdin.isatty():
         print __doc__,
         sys.exit(0)
 
-    for line, match in filter_log(sys.stdin):
-        bug_id = int(match.group('bug_id'))
+    bug_ids = set()
+    for bug_id in filter_bugids(filter_log(sys.stdin)):
+        bug_ids.add(bug_id)
+
+    for bug_id in sorted(bug_ids):
         print bugfix_format(bug_id)
 
 if __name__ == '__main__':
