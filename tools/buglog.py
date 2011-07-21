@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright (C) 2008, 2011 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
 """Extract Launchpad bug report references from input.
 
 This program scans its input, assumed to be Mercurial change log
@@ -15,21 +30,6 @@ If you aren't sure that all bug report references can be found in the
 commit log messages' summary line, add the -v option to hg log.
 """
 
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = """GPLv2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-
-This file is part of Network Administration Visualized (NAV).
-
-NAV is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License version 2 as published by
-the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-You should have received a copy of the GNU General Public License along with
-NAV. If not, see <http://www.gnu.org/licenses/>.
-"""
 import urllib2
 import re
 import sys
