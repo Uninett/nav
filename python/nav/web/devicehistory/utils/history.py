@@ -87,7 +87,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         filters = [Q(**d) for d in dicts]
 
         combinator = lambda x, y: (x & y) if and_mode else (x | y)
-        return reduce(combinator, filters)
+        return reduce(combinator, filters) if filters else None
 
     type_filter = type_query_filter(selected_types)
     order_by_keys = ['-start_time', '-end_time']
@@ -100,9 +100,11 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     #   - selected locations
     #   - selected organizations
     #   - selected categories
+    netbox = Netbox.objects.select_related('device')
     selection_filter = make_selection_filter(
         selection['mode'] and selection['mode'][0] == 'and')
-    netbox = Netbox.objects.select_related('device').filter(selection_filter)
+    if selection_filter:
+        netbox = netbox.filter(selection_filter)
 
     # Find device ids that belongs to
     #   - selected netboxes (redundant?)
