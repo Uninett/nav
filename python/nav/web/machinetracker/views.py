@@ -28,7 +28,7 @@ from nav.models.manage import Arp, Cam
 
 from nav.web.machinetracker import forms
 from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
-from nav.web.machinetracker.utils import process_ip_row, track_mac
+from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
 from nav.web.machinetracker.utils import min_max_mac, ProcessInput
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
@@ -67,8 +67,33 @@ def ip_do_search(request):
         inactive = form.cleaned_data['inactive']
         days = form.cleaned_data['days']
         form_data = form.cleaned_data
+         
+        cidr = from_ip_string.split("/")
+        from_ip_string = cidr[0]
 
-        from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
+        # Check if input is CIDR
+        try:
+            # If no netmask, get prefix for address
+            if not cidr[1]:
+                prefix = get_prefix_info(from_ip_string)
+                if prefix.vlan.vlan:
+                    prefix_address = prefix.net_address
+                    prefix_cidr = prefix_address.split("/")
+                    prefix_address = IP(prefix_cidr[0])
+                    prefix_subnet = prefix_address.make_net(prefix_cidr[1])
+                    from_ip = prefix_subnet[0]
+                    to_ip = prefix_subnet[-1]
+                else:
+                    from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
+            # If netmask, get the subnet
+            else:    
+                ip_address = IP(cidr[0])
+                subnet = ip_address.make_net(cidr[1])
+                from_ip = subnet[0]
+                to_ip = subnet[-1]
+        
+        except:
+            from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
 
         if 6 in (from_ip.version(), to_ip.version()):
             inactive = False
