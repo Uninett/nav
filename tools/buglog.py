@@ -33,6 +33,7 @@ commit log messages' summary line, add the -v option to hg log.
 import urllib2
 import re
 import sys
+import textwrap
 
 BUG_URL = 'https://launchpad.net/bugs/%d/+text'
 COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es)?|closes?) '
@@ -59,7 +60,11 @@ def get_bug_title(bug_id):
 def bugfix_format(bug_id):
     """Return bugfix details formatted for NAV's CHANGES file."""
     title = get_bug_title(bug_id)
-    return "  * LP#%d (%s)" % (bug_id, title)
+    lead_in = "  * LP#%d (" % bug_id
+    indent = " " * len(lead_in)
+    line = "%s%s)" % (lead_in, title)
+
+    return '\n'.join(textwrap.wrap(line, width=80, subsequent_indent=indent))
 
 def filter_log(file):
     """Filter hg log output.
