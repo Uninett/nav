@@ -79,6 +79,16 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
             type_filter.append(Q(alert_type=selected_types['alert']))
         return type_filter
 
+    def make_selection_filter(and_mode=False):
+        dicts = ({'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]}
+                 for arg in ('netbox', 'room', 'location', 'organization',
+                             'category')
+                 if selection[arg])
+        filters = [Q(**d) for d in dicts]
+
+        combinator = lambda x, y: (x & y) if and_mode else (x | y)
+        return reduce(combinator, filters)
+
     type_filter = type_query_filter(selected_types)
     order_by_keys = ['-start_time', '-end_time']
     if GROUPINGS[order_by]['order_by']:
@@ -90,37 +100,9 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     #   - selected locations
     #   - selected organizations
     #   - selected categories
-    if selection['mode']:
-        if selection['mode'][0] == 'and':
-            netbox = Netbox.objects.select_related(
-                'device'
-            ).filter(
-                Q(id__in=selection['netbox']) |
-                Q(room__in=selection['room']) |
-                Q(room__location__in=selection['location']) |
-                Q(organization__in=selection['organization']) &
-                Q(category__in=selection['category'])
-            )
-        elif selection['mode'][0] == 'or':
-            netbox = Netbox.objects.select_related(
-                'device'
-            ).filter(
-                Q(id__in=selection['netbox']) |
-                Q(room__in=selection['room']) |
-                Q(room__location__in=selection['location']) |
-                Q(organization__in=selection['organization']) |
-                Q(category__in=selection['category'])
-            )
-    else:
-        netbox = Netbox.objects.select_related(
-            'device'
-        ).filter(
-            Q(id__in=selection['netbox']) |
-            Q(room__in=selection['room']) |
-            Q(room__location__in=selection['location']) |
-            Q(organization__in=selection['organization']) |
-            Q(category__in=selection['category'])
-        )
+    selection_filter = make_selection_filter(
+        selection['mode'] and selection['mode'][0] == 'and')
+    netbox = Netbox.objects.select_related('device').filter(selection_filter)
 
     # Find device ids that belongs to
     #   - selected netboxes (redundant?)
