@@ -181,23 +181,14 @@ def group_history_and_messages(history, messages, group_by=None):
 
 def describe_search_params(selection):
     data = {}
-    if 'location' in selection and selection['location']:
-        data['location'] = _get_data_to_search_terms(selection, 'location', Location)
-
-    if 'room' in selection and selection['room']:
-        data['room'] = _get_data_to_search_terms(selection, 'room', Room)
-
-    if 'netbox' in selection and selection['netbox']:
-        data['netbox'] = _get_data_to_search_terms(selection, 'netbox', Netbox)
-
-    if 'module' in selection and selection['module']:
-        data['module'] = _get_data_to_search_terms(selection, 'module', Module)
-
-    if 'organization' in selection and selection['organization']:
-        data['organization'] = _get_data_to_search_terms(selection, 'organization', Organization)
-
-    if 'category' in selection and selection['category']:
-        data['category'] = _get_data_to_search_terms(selection, 'category', Category)
+    for arg, model in (('location', Location),
+                       ('room', Room),
+                       ('netbox', Netbox),
+                       ('module', Module),
+                       ('organization', Organization),
+                       ('category', Category)):
+        if arg in selection and selection[arg]:
+            data[arg] = _get_data_to_search_terms(selection, arg, model)
 
     return data
 
