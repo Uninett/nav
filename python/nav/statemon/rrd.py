@@ -130,6 +130,8 @@ def update(netboxid, sysname, time, status, responsetime, serviceid=None,
             '%s:%i:%s' % (time, rrdstatus, responsetime))
     try:
         rrd.update(*rrdParam)
-        debug("Updated %s" % filename, 7)
-    except:
+    except Exception, e:
         debug("Failed to update %s" % filename, 7)
+        debug("Exception: %s" % e)
+    else:
+        debug("Updated %s" % filename, 7)
