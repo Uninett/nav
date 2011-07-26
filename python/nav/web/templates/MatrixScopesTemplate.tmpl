@@ -21,10 +21,10 @@
 #block content
 
 #if len($scopes)
-<h1>Graphic view</h1>
+<h1>Subnet matrix</h1>
 
 <form action="/report/matrix" method="get">
-<p>There are more than one network address scope. Please select one of them</p>
+<p>There are more than one prefix scope defined. Please select one of them</p>
 <select name="scope" onchange="this.form.submit()">
 #for $n in $scopes
 <option value="$n">$n</option>
@@ -36,7 +36,7 @@
 
 #else
 
-<h1>Graphic view</h1>
+<h1>Subnet matrix</h1>
 
 <p>The NAV-database does not contain any network scopes. <a href="/seeddb/">Seed the database</a> and return to this page to see some action.</p>
 
