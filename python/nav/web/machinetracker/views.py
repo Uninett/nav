@@ -39,6 +39,8 @@ IP_DEFAULTS = {'title': IP_TITLE, 'navpath': NAVBAR, 'active': {'ip': True}}
 MAC_DEFAULTS = {'title': MAC_TITLE, 'navpath': NAVBAR, 'active': {'mac': True}}
 SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
 
+ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
+
 
 def ip_search(request):
     if request.GET.has_key('from_ip') or request.GET.has_key('prefixid'):
@@ -93,7 +95,7 @@ def ip_do_search(request):
         except:
             from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
 
-        if 6 in (from_ip.version(), to_ip.version()):
+        if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
 
         from_time = date.today() - timedelta(days=days)
@@ -109,12 +111,8 @@ def ip_do_search(request):
 
         ip_result = ip_dict(result)
 
-        ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
         if inactive:
-            if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
-                ip_range = [key for key in ip_result]
-            else:
-                ip_range = (IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1))
+            ip_range = (IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1))
         else:
             ip_range = [key for key in ip_result]
 
