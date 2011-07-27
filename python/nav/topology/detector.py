@@ -98,7 +98,8 @@ def do_layer2_detection():
 @with_exception_logging
 def do_vlan_detection():
     analyzer = VlanGraphAnalyzer()
-    ifc_vlan_map = analyzer.analyze_all()
+    analyzer.analyze_all()
+    ifc_vlan_map = analyzer.add_access_port_vlans()
     update = VlanTopologyUpdater(ifc_vlan_map)
     update()
 
