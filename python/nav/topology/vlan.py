@@ -99,10 +99,10 @@ class RoutedVlanTopologyAnalyzer(object):
         direction = 'up' if dest in visited_nodes else 'down'
         visited_nodes.add(dest)
 
-        if direction == 'up' and self._vlan_is_active_on_reverse_edge(edge):
-            vlan_is_active = True
-        else:
-            vlan_is_active = self._is_vlan_active_on_destination(dest, ifc)
+        vlan_is_active = (
+            (direction == 'up'
+             and self._vlan_is_active_on_reverse_edge(edge, visited_nodes))
+            or self._is_vlan_active_on_destination(dest, ifc))
 
         if direction == 'down':
             # Recursive depth first search on each outgoing edge
@@ -115,12 +115,14 @@ class RoutedVlanTopologyAnalyzer(object):
 
         return vlan_is_active
 
-    def _vlan_is_active_on_reverse_edge(self, edge):
-        ifc = edge[2]
+    def _vlan_is_active_on_reverse_edge(self, edge, visited_nodes):
+        _source, dest, ifc = edge
         reverse_edge = self._find_reverse_edge(edge)
         if reverse_edge:
             reverse_ifc = reverse_edge[2]
-            if self._interface_has_been_seen_before(reverse_ifc):
+            been_there = (self._interface_has_been_seen_before(reverse_ifc)
+                          or dest in visited_nodes)
+            if been_there:
                 return self._ifc_has_vlan(ifc)
         return False
 
