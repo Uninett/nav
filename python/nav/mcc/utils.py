@@ -1,7 +1,6 @@
 """
 Contains help functions for the various config creation modules.
 """
-import ConfigParser
 import re
 import sys
 import logging
@@ -13,6 +12,8 @@ from subprocess import Popen, PIPE
 
 from nav import path
 from nav.db import getConnection
+from nav.models.oid import NetboxSnmpOid
+from django.db.models import Q
 
 LOGGER = logging.getLogger(__name__)
 TARGETFILENAME = 'navTargets'
@@ -143,14 +144,16 @@ def updatedb(datadir, containers):
     objects containing information about each rrd file.
     """
     conn = getConnection('default')
-    c = conn.cursor()
+    cur = conn.cursor()
     octet_counters = ['ifHCInOctets', 'ifHCOutOctets', 'ifInOctets',
                       'ifOutOctets']
 
-    def is_octet_counter(ds):
-        return ds in octet_counters
+    def is_octet_counter(datasource):
+        """ Is the datasource an octet counter """
+        return datasource in octet_counters
 
     def insert_datasources(container, rrd_fileid):
+        """ Insert this datasource in the database """
         LOGGER.debug("Inserting datasources for %s" % container.filename)
         for datasource in container.datasources:
             # TODO: Make a general way of adding units and max
@@ -169,16 +172,17 @@ def updatedb(datadir, containers):
                 units = "bytes"
                 speed = str(convert_Mbit_to_bytes(container.speed))
 
-            c.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
+            cur.execute(dssql, (rrd_fileid, datasource[0], datasource[1],
                               datasource[2], units, speed))
 
     def update_datasource_metainfo(container, rrd_fileid):
+        """ Update datasourcetuple regarding this container """
         LOGGER.debug("Updating datasource for %s" % container.filename)
         counter_sources = [ds[1] for ds in container.datasources
                            if is_octet_counter(ds[1]) and container.speed > 0]
 
         if counter_sources:
-            c.execute(
+            cur.execute(
                 """UPDATE rrd_datasource
                    SET units = %(units)s, max = %(max_speed)s
                    WHERE rrd_fileid = %(rrd_fileid)s
@@ -223,12 +227,12 @@ def updatedb(datadir, containers):
         verify = """
         SELECT * FROM rrd_file WHERE path = %s AND filename = %s
         """
-        c.execute(verify, (datapath, filename))
-        if c.rowcount > 0:
+        cur.execute(verify, (datapath, filename))
+        if cur.rowcount > 0:
             # This target already exists, update it.
             LOGGER.debug("Target %s exists in database."
                         % join(datapath, filename))
-            rrd_fileid = c.fetchone()[0]
+            rrd_fileid = cur.fetchone()[0]
 
             sql = """
             UPDATE rrd_file
@@ -237,7 +241,7 @@ def updatedb(datadir, containers):
             """
 
             LOGGER.debug(sql % (container.netboxid, key, value, rrd_fileid))
-            c.execute(sql, (container.netboxid, key, value, rrd_fileid))
+            cur.execute(sql, (container.netboxid, key, value, rrd_fileid))
 
             # We don't update the datasources as the database is the source of
             # the datasources. Somewhere in the future there will exist an
@@ -250,9 +254,9 @@ def updatedb(datadir, containers):
             sql = """
             SELECT * FROM rrd_datasource WHERE rrd_fileid = %s
             """
-            c.execute(sql, (rrd_fileid, ))
+            cur.execute(sql, (rrd_fileid, ))
 
-            if c.rowcount == 0:
+            if cur.rowcount == 0:
                 insert_datasources(container, rrd_fileid)
 
 
@@ -263,9 +267,9 @@ def updatedb(datadir, containers):
             FROM rrd_file
             WHERE key=%s AND value=%s"""
 
-            c.execute(keyvalueq, (key, str(value)))
-            if c.rowcount > 0:
-                rrd_fileid, dbpath, dbfilename = c.fetchone()
+            cur.execute(keyvalueq, (key, str(value)))
+            if cur.rowcount > 0:
+                rrd_fileid, dbpath, dbfilename = cur.fetchone()
 
                 # Move file to new place. If it does not exist, we assume it's
                 # ok and keep the change in the database
@@ -283,9 +287,9 @@ def updatedb(datadir, containers):
                         LOGGER.error("Exception when moving file %s: %s" \
                                          % (join(dbpath, dbfilename), ioerror))
                         continue
-                except Exception, e:
+                except Exception, error:
                     LOGGER.error("Exception when moving file %s: %s" \
-                                     % (join(dbpath, dbfilename), e))
+                                     % (join(dbpath, dbfilename), error))
                     continue
 
 
@@ -294,7 +298,7 @@ def updatedb(datadir, containers):
                 SET netboxid = %s, path = %s, filename = %s
                 WHERE rrd_fileid = %s
                 """
-                c.execute(sql, (container.netboxid, datapath, filename,
+                cur.execute(sql, (container.netboxid, datapath, filename,
                                 rrd_fileid))
 
                 # Special case: if the number of datasources is 0, we insert
@@ -302,9 +306,9 @@ def updatedb(datadir, containers):
                 sql = """
                 SELECT * FROM rrd_datasource WHERE rrd_fileid = %s
                 """
-                c.execute(sql, (rrd_fileid, ))
+                cur.execute(sql, (rrd_fileid, ))
 
-                if c.rowcount == 0:
+                if cur.rowcount == 0:
                     insert_datasources(container, rrd_fileid)
 
             else:
@@ -313,8 +317,8 @@ def updatedb(datadir, containers):
                 LOGGER.info("Inserting target %s in database"
                             % (join(datapath, filename)))
                 nextvalq = "SELECT nextval('rrd_file_rrd_fileid_seq')"
-                c.execute(nextvalq)
-                nextval = c.fetchone()[0]
+                cur.execute(nextvalq)
+                nextval = cur.fetchone()[0]
 
                 sql = """
                 INSERT INTO rrd_file
@@ -322,7 +326,7 @@ def updatedb(datadir, containers):
                 value)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                c.execute(sql, (nextval, datapath, filename, container.step,
+                cur.execute(sql, (nextval, datapath, filename, container.step,
                             'cricket', container.netboxid, key, value))
 
                 # Each containter contains a list of tuples of
@@ -336,15 +340,15 @@ def updatedb(datadir, containers):
             LOGGER.info("Inserting target %s in database"
                         % (join(datapath, filename)))
             nextvalq = "SELECT nextval('rrd_file_rrd_fileid_seq')"
-            c.execute(nextvalq)
-            nextval = c.fetchone()[0]
+            cur.execute(nextvalq)
+            nextval = cur.fetchone()[0]
 
             sql = """
             INSERT INTO rrd_file
             (rrd_fileid, path, filename, step, subsystem, netboxid, key, value)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            c.execute(sql, (nextval, datapath, filename, container.step,
+            cur.execute(sql, (nextval, datapath, filename, container.step,
                             'cricket', container.netboxid, key, value))
 
             # Each container contains a list of tuples of datasources. It's up
@@ -354,7 +358,7 @@ def updatedb(datadir, containers):
         conn.commit()
 
 
-def compare_datasources(path, filename, targetoids):
+def compare_datasources(path_to_config, filename, targetoids):
     """
     Compare the datasources from the database with the ones found in file
     (targetoids). If the number in database is larger than or equal to the
@@ -365,7 +369,7 @@ def compare_datasources(path, filename, targetoids):
     oids = targetoids
 
     conn = getConnection('default')
-    c = conn.cursor()
+    cur = conn.cursor()
 
     if not filename.endswith('.rrd'):
         filename = filename + '.rrd'
@@ -375,16 +379,16 @@ def compare_datasources(path, filename, targetoids):
     WHERE path = %s AND filename = %s
     ORDER BY name
     """
-    c.execute(numdsq, (path, filename))
-    if c.rowcount > 0:
+    cur.execute(numdsq, (path_to_config, filename))
+    if cur.rowcount > 0:
         LOGGER.debug("Found %s datasources in database (%s in file)" \
-                     % (c.rowcount, len(targetoids)))
-        if c.rowcount >= len(targetoids):
+                     % (cur.rowcount, len(targetoids)))
+        if cur.rowcount >= len(targetoids):
             LOGGER.debug(">= Using database as base for targetoids")
             # There are more or equal number of datasources in the database
             # Reset targetoids and fill it from database
             oids = []
-            for name, descr in c.fetchall():
+            for name, descr in cur.fetchall():
                 LOGGER.debug("Appending %s as %s" % (descr, name))
                 oids.append(descr)
         else:
@@ -409,9 +413,9 @@ def check_file_existence(datadir, sysname):
                     % filename)
 
         conn = getConnection('default')
-        c = conn.cursor()
+        cur = conn.cursor()
         sql = """DELETE FROM rrd_file WHERE path = %s AND filename = %s """
-        c.execute(sql, (datadir, sysname))
+        cur.execute(sql, (datadir, sysname))
 
         conn.commit()
         return False
@@ -439,24 +443,24 @@ def convert_unicode_to_latin1(unicode_object):
     # objects. Encode it to display correctly.
     try:
         encoded_string = unicode_object.encode('latin-1', 'ignore')
-    except Exception, e:
+    except Exception, error:
         LOGGER.error("Could not encode %s to latin-1: %s" % (unicode_object,
-                                                             e))
+                                                             error))
         return unicode_object
 
     return encoded_string
 
 
-def encode_and_escape(input):
+def encode_and_escape(string):
     """
     Encode and escape object to make it presentable for
     the Cricket webpage.
     """
-    if isinstance(input, unicode):
-        input = convert_unicode_to_latin1(input)
-    input = input.replace("\"", "&quot;")
+    if isinstance(string, unicode):
+        string = convert_unicode_to_latin1(string)
+    string = string.replace("\"", "&quot;")
 
-    return input
+    return string
 
 
 def remove_old_config(dirs):
@@ -465,28 +469,152 @@ def remove_old_config(dirs):
     the mccTargets file. If they contain more, remove only the mccTargets file.
     """
 
-    for dir in dirs:
-        LOGGER.debug("Checking %s for removal." % dir)
-        files = os.listdir(dir)
+    for directory in dirs:
+        LOGGER.debug("Checking %s for removal." % directory)
+        files = os.listdir(directory)
         try:
             files.remove(TARGETFILENAME)
-            os.remove(join(dir, TARGETFILENAME))
-        except ValueError, e:
-            LOGGER.error("Could not find %s in %s" % (TARGETFILENAME, dir))
+            os.remove(join(directory, TARGETFILENAME))
+        except ValueError:
+            LOGGER.error("Could not find %s in %s" % (TARGETFILENAME,
+                                                      directory))
 
         if not len(files):
             # Remove dir if it is empty
             try:
-                os.rmdir(dir)
-                LOGGER.info("%s removed." % dir)
-            except Exception, e:
-                LOGGER.error("Could not remove %s: %s" % (dir, e))
+                os.rmdir(directory)
+                LOGGER.info("%s removed." % directory)
+            except Exception, error:
+                LOGGER.error("Could not remove %s: %s" % (directory, error))
         else:
-            LOGGER.info("%s is not empty, leaving it alone." % dir)
+            LOGGER.info("%s is not empty, leaving it alone." % directory)
 
 
 def convert_Mbit_to_bytes(mbit):
+    """ Convert mbit to bytes """
     return int((1024 ** 2) * mbit / 8)
+
+
+def find_target_oids(netbox, oidlist):
+    """ Find the oids this netbox answers to that also exist in the
+        cricket config files. """
+    snmpoids = NetboxSnmpOid.objects.filter(netbox=netbox).filter(
+                      Q(snmp_oid__oid_source='Cricket') |
+                      Q(snmp_oid__oid_key__iexact='sysuptime'))
+    targetoids = []
+    for snmpoid in snmpoids:
+        if snmpoid.snmp_oid.snmp_oid in oidlist:
+            targetoids.append(snmpoid.snmp_oid.oid_key)
+
+    targetoids.sort()
+    return targetoids
+
+
+def check_database_sanity(path_to_rrd, netbox, targetoids):
+    """ Check if rrd-file exists. If not the database tuple regarding this
+        file is deleted """
+    if check_file_existence(path_to_rrd, netbox.sysname):
+        # Compare datasources we found with the ones in the database, if
+        # any.
+        targetoids = compare_datasources(path_to_rrd, netbox.sysname,
+                                         targetoids)
+
+    return targetoids
+
+
+def find_oids(path_to_config):
+    """ Search all files in path for oids regarding Cricket-configuration """
+
+    oidlist = []
+    match = re.compile("OID\s+(\w+)\s+(\S+)")
+
+    files = os.listdir(path_to_config)
+    for entry in files:
+        fullpath = join(path_to_config, entry)
+        if os.path.isfile(fullpath):
+            try:
+                filehandle = open(fullpath, 'r')
+            except IOError, error:
+                LOGGER.error(error)
+                return oidlist
+
+        for line in filehandle:
+            matcher = match.search(line)
+            if matcher:
+                LOGGER.debug("Found oid %s - %s"
+                             % (matcher.groups()[0], matcher.groups()[1]))
+                oidlist.append(matcher.groups()[1])
+
+    return list(set(oidlist))
+
+
+def create_targettype_config(netbox, targetoids, views):
+    """ Create target type config for this router """
+    config = ""
+    config = config + "targetType %s\n" % netbox.sysname
+    config = config + "\tds = \"%s\"\n" % ", ".join(targetoids)
+
+    # Create view configuration. We do that by comparing the data from
+    # views with the targetoids and see what intersections exists.
+    intersections = []
+    for entry in views:
+        intersect = sorted(set(views[entry]).intersection(targetoids))
+        if intersect:
+            intersections.append("%s: %s" % (entry, " ".join(intersect)))
+
+    if intersections:
+        config = config + "\tview = \"%s\"\n\n" % ", ".join(
+            sorted(intersections))
+
+    return config
+
+
+def create_target_config(netbox):
+    """ Create Cricket config for this netbox """
+    displayname = convert_unicode_to_latin1(netbox.sysname)
+    if netbox.room.description:
+        typename = encode_and_escape(netbox.type.name)
+        descr = encode_and_escape(netbox.room.description)
+        shortdesc = ", ".join([typename, descr])
+    else:
+        shortdesc = encode_and_escape(netbox.type.name)
+
+    LOGGER.info("Writing target %s" % netbox.sysname)
+    config = ""
+    config = config + "target \"%s\"\n" % netbox.sysname
+    config = config + "\tdisplay-name\t = \"%s\"\n" % displayname
+    config = config + "\tsnmp-host\t= %s\n" % netbox.ip
+    config = config + "\tsnmp-community\t= %s\n" % netbox.read_only
+    config = config + "\ttarget-type\t= %s\n" % netbox.sysname
+    config = config + "\tshort-desc\t= \"%s\"\n\n" % shortdesc
+
+    return config
+
+
+def create_container(netbox, targetoids):
+    """ Create container object and fill it """
+    container = RRDcontainer(netbox.sysname, netbox.id)
+    counter = 0
+    for targetoid in sorted(targetoids):
+        container.datasources.append(('ds' + str(counter), targetoid,
+                                      'GAUGE'))
+        counter = counter + 1
+
+    return container
+
+
+def write_target_types(path_to_config, target_types):
+    """ Write target types to file. Do not fail silently """
+    filehandle = open(join(path_to_config, 'navTargetTypes'), 'w')
+    filehandle.write("\n".join(target_types))
+    filehandle.close()
+
+
+def write_targets(path_to_config, targets):
+    """ Write targets to file. """
+    filehandle = open(join(path_to_config, TARGETFILENAME), 'w')
+    filehandle.write("\n".join(targets))
+    filehandle.close()
 
 
 class RRDcontainer:
