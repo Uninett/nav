@@ -6,7 +6,7 @@ import logging
 from os.path import join
 
 from nav.models.manage import Netbox
-from nav.mcc import utils
+from nav.mcc import utils, dbutils
 
 CATEGORIES = {'routers': ['GW', 'GSW'],
               'switches': ['SW']}
@@ -66,6 +66,6 @@ def create_subtree_config(configroot, dirname, views):
 
     utils.write_target_types(path_to_config, target_types)
     utils.write_targets(path_to_config, targets)
-    utils.updatedb(path_to_rrd, containers)
+    dbutils.updatedb(path_to_rrd, containers)
 
     return True

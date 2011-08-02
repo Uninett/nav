@@ -7,7 +7,7 @@ import re
 from os.path import join, isdir
 
 from nav.db import getConnection
-from nav.mcc import utils
+from nav.mcc import utils, dbutils
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +166,7 @@ def make_config(config):
 
         f.close()
 
-    utils.updatedb(datadir, containers)
+    dbutils.updatedb(datadir, containers)
     utils.remove_old_config(subdirs)
     return True
 
