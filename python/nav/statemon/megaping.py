@@ -1,27 +1,19 @@
-# -*- coding: ISO8859-1 -*-
 #
-# Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright (C) 2002-2004 Norwegian University of Science and Technology
+# Copyright (C) 2011 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#          Stian Soiland   <stain@itea.ntnu.no>
-
 """Ping multiple hosts at once."""
 
 import threading
@@ -34,47 +26,68 @@ import random
 import struct
 import circbuf
 import config
+import hashlib
 from debug import debug
 
 from nav.daemon import safesleep as sleep
 
-# From our friend:
-import ip
-import icmp
+from .icmppacket import PacketV4, PacketV6
 
-# updating rrd should be moved out
-# import rrd
+# Global method to create the sockets as root before the process changes user
+def makeSockets():
+    try:
+        socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp'))
+    except:
+        debug("Could not create v6 socket")
 
-PINGSTRING = "Stian og Magnus ruler verden"
+    try:
+        socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+    except:
+        debug("Could not create v6 socket")
 
-def makeSocket():
-    sock = socket.socket(socket.AF_INET,
-                       socket.SOCK_RAW,
-                       socket.IPPROTO_ICMP)
-    sock.setblocking(1)
-    return sock
+    return [socketv6, socketv4]
 
 class Host:
     def __init__(self, ip):
-        self.rnd = random.randint(0, 2**16-1)
+        self.rnd = random.randint(10000, 2**16-1)
         self.certain = 0
         self.ip = ip
-        self.pkt = icmp.Packet()
-        self.pkt.type = icmp.ICMP_ECHO
-        self.pkt.id = os.getpid() % 65536
-        self.pkt.seq = 0
+        self.packet = None
+        self.ipv6 = False
+
+        if self.is_valid_ipv6(ip):
+            self.ipv6 = True
+
         self.replies = circbuf.CircBuf()
 
-    def makePacket(self, pingstring=PINGSTRING):
-        self.pkt.data = pingstring
-        return self.pkt.assemble()
+    def is_v6(self):
+        return self.ipv6
+    
+    # Help method
+    def is_valid_ipv6(self, addr):
+        try:
+            socket.inet_pton(socket.AF_INET6, addr)
+            return True
+        except socket.error:
+            return False
+
+    # Help method
+    def is_valid_ipv4(self, addr):
+        try:
+            socket.inet_pton(socket.AF_INET, addr)
+            return True
+        except socket.error:
+            return False
+
+    def get_ipversion(self):
+        return self.ip_version
 
     def getseq(self):
-        return self.pkt.seq
+        return self.packet.id
 
     def nextseq(self):
-        self.pkt.seq = (self.pkt.seq + 1) % 2**16
-        if not self.certain and self.pkt.seq > 2:
+        self.packet.id = (self.packet.id + 1) % 2**16
+        if not self.certain and self.packet.id > 2:
             self.certain = 1
 
     def __hash__(self):
@@ -103,7 +116,7 @@ class MegaPing:
     hostsUp = pinger.answers()
     hostsDown = pinger.noAnswers()
     """
-    def __init__(self, socket=None, conf=None):
+    def __init__(self, sockets, conf=None):
         if conf is None:
             try:
                 self._conf = config.pingconf()
@@ -125,11 +138,19 @@ class MegaPing:
         self._pid = os.getpid() % 65536
         self._elapsedtime = 0
 
-        # Create our common socket
-        if socket is None:
-            self._sock = makeSocket()
+        # Initialize the sockets
+        if not sockets == None:
+            self._sock6 = sockets[0]
+            self._sock4 = sockets[1]
         else:
-            self._sock = socket
+            try:
+                sockets = makeSockets()
+            except:
+                debug("Tried to create sockets without beeing root!")
+
+            self._sock6 = sockets[0]
+            self._sock4 = sockets[1]
+            debug("No sockets passed as argument, creating own")
 
     def setHosts(self, ips):
         """
@@ -142,8 +163,9 @@ class MegaPing:
         for ip in ips:
             if not self._hosts.has_key(ip):
                 currenthosts[ip] = Host(ip)
+                currenthosts[ip] = Host(ip)
             else:
-                currenthosts[ip] = self._hosts[ip]
+                    currenthosts[ip] = self._hosts[ip]
         self._hosts = currenthosts
 
     def reset(self):
@@ -182,51 +204,28 @@ class MegaPing:
                     timeout = self._timeout - runtime
 
             startwait = time.time()
-            rd, wt, er = select.select([self._sock], [], [], timeout)
+
+            # Listen for incoming data on sockets
+            rd, wt, er = select.select([self._sock6, self._sock4], [], [],
+                                       timeout)
+
+            # If data found
             if rd:
                 # okay to use time here, because select has told us
                 # there is data and we don't care to measure the time
                 # it takes the system to give us the packet.
                 arrival = time.time()
-                try:
-                    (pkt, (sender, blapp)) = self._sock.recvfrom(4096)
-                except socket.error:
-                    debug("RealityError -2", 1)
-                    continue
-                # could also use the ip module to get the payload
 
-                repip = ip.Packet(pkt)
-                try:
-                    reply = icmp.Packet(repip.data)
-                except ValueError:
-                    debug("Recived illegeal packet from %s: %s" % (sender,
-                          repr(repip.data)), 7)
-                    continue
-                if reply.id <> self._pid:
-                    debug("The id field of the packet does not match for %s" %
-                          sender, 7)
-                    continue
+                # Find out which socket got data and read
+                for sock in rd:
+                    try:
+                        raw_pong, sender = sock.recvfrom(4096)
+                    except socket.error, e:
+                        debug("RealityError -2: %s" % e, 1)
+                        continue
 
-                cookie = reply.data[0:14]
-                try:
-                    host = self._requests[cookie]
-                except KeyError:
-                    debug("The packet recieved from %s does not match any of "
-                          "the packets we sent." % repr(sender), 7)
-                    debug("Length of recieved packet: %i Cookie: [%s]" %
-                          (len(reply.data), cookie), 7)
-                    continue
-
-                # Puuh.. OK, it IS our package <--- Stain, you're a moron
-                pingtime = arrival - host.time
-                ### Insert answer to circbuf
-                host.replies.push(pingtime)
-
-                #host.logPingTime(pingtime)
-
-                debug("Response from %-16s in %03.3f ms" %
-                      (sender, pingtime*1000), 7)
-                del self._requests[cookie]
+                    is_ipv6 = sock == self._sock6
+                    self._processResponse(raw_pong, sender, is_ipv6, arrival)
             elif self._senderFinished:
                 break
 
@@ -238,33 +237,80 @@ class MegaPing:
         self._elapsedtime = end - start
 
 
+    def _processResponse(self, raw_pong, sender, is_ipv6, arrival):
+        # Extract header info and payload
+        
+        pong = PacketV6() if is_ipv6 else PacketV4()
+        pong.unpack(raw_pong)
+
+        if not pong.id == self._pid:
+            return
+
+        identity = pong.payload
+
+        # Find the host with this identity
+        try:
+            host = self._requests[identity]
+        except KeyError:
+            debug("The packet recieved from %s does not match any of "
+                  "the packets we sent." % repr(sender), 7)
+            debug("Length of recieved packet: %i Cookie: [%s]" %
+                  (len(pong), identity), 7)
+            return
+
+        # Delete the entry of the host who has replied and add the pingtime
+        pingtime = arrival - host.time
+        host.replies.push(pingtime)
+        debug("Response from %-16s in %03.3f ms" %
+              (sender, pingtime*1000), 7)
+        del self._requests[identity]
+
+
     def _sendRequests(self, mySocket=None, hosts=None):
-        if mySocket is None:
-            mySocket = self._sock
-        if hosts is None:
-            hosts = self._hosts.values()
+
+        # Get ip addresses to ping
+        hosts = self._hosts.values()
+
+        # Ping each host
         for host in hosts:
             if self._requests.has_key(host):
                 debug("Duplicate host %s ignored" % host, 6)
                 continue
 
-            now = time.time()
-            host.time = now
-            #convert ip to chr (hex notation)
-            chrip = "".join(map(lambda x:chr(int(x)), host.ip.split('.')))
-            packedtime = struct.pack('d', now)
-            packedrnd = struct.pack('H', host.rnd)
-            identifier = ''.join([chrip, packedtime, packedrnd])
-            cookie = identifier.ljust(self._packetsize-icmp.ICMP_MINLEN)
-            # typical cookie: "\x81\xf18F\x06\xf13\xc9\x87\xa8\xceA\xe5m"
-            # the cookie is 14 bytes long
+            host.time = time.time()
+
+            # Create an unique identifier for each ping
+            # Format: md5 hash of the ip + host.rnd (random number)
+            # Example: 'f528764d624db129b32c21fbca0cb8d623930'
+            md5ip = hashlib.md5()
+            md5ip.update(host.ip)
+            md5ip_hashed = md5ip.hexdigest()
+
+            identifier = ''.join([md5ip_hashed, str(host.rnd)])
+            
+            # Save the identifier
             self._requests[identifier] = host
-            packet = host.makePacket(cookie)
+            
+            # Create the ping packet and attach to host
+            packet_class = PacketV6 if host.is_v6() else PacketV4
+            host.packet = packet_class(os.getpid() % 65536, identifier)
+            host.packet.construct()
+
+            # TODO: why do we need this
             host.nextseq()
-            try:
-                mySocket.sendto(packet, (host.ip, 0))
-            except Exception, e:
-                debug("Failed to ping %s [%s]" % (host.ip, str(e)), 5)
+
+            # Choose what socket to send the packet to
+            if not host.is_v6():
+                try:
+                    self._sock4.sendto(host.packet.packet, (host.ip, 0))
+                except Exception, e:
+                    debug("Failed to ping %s [%s]" % (host.ip, str(e)), 5)
+            else:
+                try:
+                    self._sock6.sendto(host.packet.packet,(host.ip,0,0,0))
+                except Exception, e:
+                    debug("failed to ping %s [%s]" % (host.ip, str(e)), 5)
+
             sleep(self._delay)
         self._senderFinished = time.time()
 

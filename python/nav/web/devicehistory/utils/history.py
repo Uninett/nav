@@ -20,7 +20,7 @@ from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.manage import Netbox, Device, Location, Room, Module
+from nav.models.manage import Netbox, Device, Location, Room, Module, Organization, Category
 from nav.web.quickselect import QuickSelect
 
 LOCATION_GROUPING = {
@@ -62,7 +62,7 @@ def get_selected_types(type):
     return selected_types
 
 def check_empty_selection(selection):
-    if not selection['location'] and not selection['room'] and not selection['netbox'] and not selection['module']:
+    if not selection['location'] and not selection['room'] and not selection['netbox'] and not selection['module'] and not selection['organization'] and not selection['category']:
         selection['netbox'] = Netbox.objects.values_list('id', flat=True)
     return selection
 
@@ -86,13 +86,39 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     #   - selected netboxes
     #   - selected rooms
     #   - selected locations
-    netbox = Netbox.objects.select_related(
-        'device'
-    ).filter(
-        Q(id__in=selection['netbox']) |
-        Q(room__in=selection['room']) |
-        Q(room__location__in=selection['location'])
-    )
+    #   - selected organizations
+    #   - selected categories
+    if selection['mode']:
+        if selection['mode'][0] == 'and':
+            netbox = Netbox.objects.select_related(
+                'device'
+            ).filter(
+                Q(id__in=selection['netbox']) |
+                Q(room__in=selection['room']) |
+                Q(room__location__in=selection['location']) |
+                Q(organization__in=selection['organization']) &
+                Q(category__in=selection['category'])
+            )
+        elif selection['mode'][0] == 'or':
+            netbox = Netbox.objects.select_related(
+                'device'
+            ).filter(
+                Q(id__in=selection['netbox']) |
+                Q(room__in=selection['room']) |
+                Q(room__location__in=selection['location']) |
+                Q(organization__in=selection['organization']) |
+                Q(category__in=selection['category'])
+            )
+    else:
+        netbox = Netbox.objects.select_related(
+            'device'
+        ).filter(
+            Q(id__in=selection['netbox']) |
+            Q(room__in=selection['room']) |
+            Q(room__location__in=selection['location']) |
+            Q(organization__in=selection['organization']) |
+            Q(category__in=selection['category'])
+        )
 
     # Find device ids that belongs to
     #   - selected netboxes (redundant?)
@@ -108,7 +134,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
     # Time limit is done in raw SQL to make sure all parantheses are right.
     history = AlertHistory.objects.select_related(
         'event_type', 'alert_type', 'device',
-        'netbox', 'netbox__room', 'netbox__room__location'
+        'netbox', 'netbox__room', 'netbox__room__location', 'netbox__organization', 'netbox__category'
     ).filter(
         Q(netbox__in=[n.id for n in netbox]) |
         Q(device__in=[n.device.id for n in netbox]) |
@@ -170,11 +196,31 @@ def group_history_and_messages(history, messages, group_by=None):
 def describe_search_params(selection):
     data = {}
     if 'location' in selection and selection['location']:
-        data['location'] = Location.objects.filter(id__in=selection['location'])
+        data['location'] = _get_data_to_search_terms(selection, 'location', Location)
+
     if 'room' in selection and selection['room']:
-        data['room'] = Room.objects.filter(id__in=selection['room'])
+        data['room'] = _get_data_to_search_terms(selection, 'room', Room)
+
     if 'netbox' in selection and selection['netbox']:
-        data['netbox'] = Netbox.objects.filter(id__in=selection['netbox'])
+        data['netbox'] = _get_data_to_search_terms(selection, 'netbox', Netbox)
+
     if 'module' in selection and selection['module']:
-        data['module'] = Module.objects.select_related('netbox').filter(id__in=selection['module'])
+        data['module'] = _get_data_to_search_terms(selection, 'module', Module)
+
+    if 'organization' in selection and selection['organization']:
+        data['organization'] = _get_data_to_search_terms(selection, 'organization', Organization)
+
+    if 'category' in selection and selection['category']:
+        data['category'] = _get_data_to_search_terms(selection, 'category', Category)
+
+    return data
+
+def _get_data_to_search_terms(selection, key_string, model):
+    """ Checks if all objects of a given model is selected. If so, display text, else display"""
+    selected_objects = len(selection[key_string])
+    if selected_objects == model.objects.all().count():
+        data = ["All " + unicode(model._meta.verbose_name_plural) + " selected.",]
+    else:
+        data = model.objects.filter(id__in=selection[key_string])
+    
     return data
