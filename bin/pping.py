@@ -266,6 +266,6 @@ if __name__=="__main__":
     if os.getuid() != 0:
         print "Must be started as root"
         sys.exit(1)
-    sock = megaping.makeSocket()
+    sock = megaping.makeSockets()
     setUser()
     start(nofork)
