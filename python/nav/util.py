@@ -93,15 +93,6 @@ def is_valid_cidr(cidr):
             return valid_cidr
     return False
 
-def round_robin(collection):
-    '''Returns a generator that will loop over the collection forever in a
-       round robin fashion'''
-    index = 0
-
-    while True:
-        yield collection[index]
-        index = (index + 1) % len(collection)
-
 def which(cmd):
     """Return full path to cmd (if found in $PATH and is executable),
     or None."""
