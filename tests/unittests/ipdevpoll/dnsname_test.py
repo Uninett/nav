@@ -6,7 +6,7 @@ from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.dnsname import DnsName
 
 class StrangeDnsResponsesTest(TestCase):
-    def test_result_with_no_ptr_should_not_set_sysname(self):
+    def test_empty_result_should_not_set_sysname(self):
         containers = ContainerRepository()
         netbox = containers.factory(None, Netbox)
         netbox.sysname = 'original-sw.example.org'
@@ -16,6 +16,12 @@ class StrangeDnsResponsesTest(TestCase):
         netbox_in.ip = '127.0.0.1'
 
         plugin = DnsName(netbox_in, Mock('agent'), containers)
-        name = plugin._handle_result([[Mock('record')]])
+        plugin._verify_name_change(None)
 
         self.assertEquals(netbox.sysname, 'original-sw.example.org')
+
+    def test_response_without_ptr_record_should_translate_to_none(self):
+        plugin = DnsName(Mock('Netbox'), Mock('agent'),
+                         Mock('ContainerRepository'))
+
+        self.assertTrue(plugin._find_ptr_response([[Mock('record')]]) is None)
