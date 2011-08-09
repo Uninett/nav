@@ -19,6 +19,7 @@ ipdevpoll plugin to perform reverse DNS lookups on netbox IP addresses.
 Will generate events if there are mismatches between device sysname
 and dnsname.
 """
+from itertools import cycle
 
 from IPy import IP
 
@@ -26,13 +27,11 @@ from twisted.internet import defer, error
 from twisted.names import client, dns
 from twisted.names.error import DomainError
 
-from nav.util import round_robin
 from nav.ipdevpoll import Plugin, shadows
 
-resolvers = round_robin([client.Resolver('/etc/resolv.conf') for i in range(3)])
+_resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
 
 class DnsName(Plugin):
-
     """Performs reverse DNS lookup on netbox IP address"""
 
     @classmethod
@@ -46,7 +45,7 @@ class DnsName(Plugin):
         ip = IP(self.netbox.ip)
         self._logger.debug("Doing DNS PTR lookup for %s", ip.reverseName())
         # Use the OS configured DNS resolver method
-        resolver = resolvers.next()
+        resolver = _resolvers.next()
         df = resolver.lookupPointer( ip.reverseName() )
         df.addCallbacks(self._handle_result, self._handle_failure,
                         errbackArgs=ip)
