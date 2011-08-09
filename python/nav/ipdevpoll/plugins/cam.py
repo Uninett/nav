@@ -15,7 +15,7 @@
 #
 """Dynamic CAM record collecting with and without community string indexing.
 """
-
+from itertools import cycle
 from datetime import datetime
 
 from twisted.internet import defer, threads
@@ -29,7 +29,6 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage
-from nav.util import round_robin
 
 MAX_MISS_COUNT = 3
 
@@ -265,7 +264,7 @@ class CommunityIndexAgentProxy(object):
 
     def __init__(self, netbox):
         self.netbox = netbox
-        self.ports = round_robin([snmpprotocol.port() for i in range(10)])
+        self.ports = cycle([snmpprotocol.port() for i in range(10)])
 
     def agent_for_vlan(self, vlan):
         """Returns a new agent proxy with community string index set to the
