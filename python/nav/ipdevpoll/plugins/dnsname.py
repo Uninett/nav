@@ -47,8 +47,9 @@ class DnsName(Plugin):
         # Use the OS configured DNS resolver method
         resolver = _resolvers.next()
         df = resolver.lookupPointer( ip.reverseName() )
-        df.addCallbacks(self._handle_result, self._handle_failure,
+        df.addCallbacks(self._find_ptr_response, self._handle_failure,
                         errbackArgs=ip)
+        df.addCallback(self._log_name).addCallback(self._verify_name_change)
         return df
 
     def _handle_failure(self, failure, ip=None):
@@ -61,42 +62,31 @@ class DnsName(Plugin):
             self._logger.warning("DNS lookup error for %s: %s",
                                  ip, failure.type.__name__)
 
-    def _handle_result(self, result):
-        """Handles a successful DNS reponse."""
-        self._logger.debug("DNS response: %s", result)
-        # Disclaimer: I'm no DNS expert, so my terminology may be way
-        # off.
-        #
-        # We can get several series of responses, each with up to
-        # several response records.  One series may contain the PTR
-        # record we are looking for, while others may contain DNS
-        # authority records or whatever else extra stuff the DNS
-        # server wants to tell us.
-        #
-        # We're satisfied with the first PTR record we can find in the
-        # response.
-        dns_name = None
-        for record_list in result:
-            for record in record_list:
+    def _find_ptr_response(self, dns_response):
+        """Finds and returns the first PTR record in a DNS response"""
+        self._logger.debug("DNS response: %s", dns_response)
+        for record_set in dns_response:
+            for record in record_set:
                 if record.type == dns.PTR:
-                    dns_name = str(record.payload.name)
                     self._logger.debug("PTR record payload: %s", record.payload)
-                    break
-            if dns_name:
-                break
+                    return str(record.payload.name)
+
+    def _log_name(self, dns_name):
         if not dns_name:
             self._logger.warning("Unable to find PTR record for %s (%s)",
                                  self.netbox.ip,
                                  IP(self.netbox.ip).reverseName())
-        elif dns_name.strip().lower() != self.netbox.sysname.strip().lower():
-            self._logger.warning("Box dnsname has changed from %s to %s",
-                                 repr(self.netbox.sysname), repr(dns_name))
-            netbox = self.containers.factory(None, shadows.Netbox)
-            netbox.sysname = dns_name
-
-        # Our work here is done
-        self._logger.debug("Reverse DNS lookup result: %s -> %s",
-                           self.netbox.ip, dns_name)
-
+        else:
+            self._logger.debug("Reverse DNS lookup result: %s -> %s",
+                               self.netbox.ip, dns_name)
         return dns_name
+
+    def _verify_name_change(self, new_name):
+        if new_name.strip().lower() != self.netbox.sysname.strip().lower():
+            self._logger.warning("Box dnsname has changed from %s to %s",
+                                 repr(self.netbox.sysname), repr(new_name))
+            netbox = self.containers.factory(None, shadows.Netbox)
+            netbox.sysname = new_name
+
+        return new_name
 
