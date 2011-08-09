@@ -20,11 +20,11 @@ import pprint
 import logging
 import threading
 import gc
+from itertools import cycle
 
 from twisted.internet import defer, threads, reactor
 from twisted.internet.error import TimeoutError
 
-from nav.util import round_robin
 from nav import toposort
 
 from nav.ipdevpoll import get_context_logger
@@ -36,7 +36,7 @@ from nav.ipdevpoll import db
 from utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-ports = round_robin([snmpprotocol.port() for i in range(50)])
+ports = cycle([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
