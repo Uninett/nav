@@ -750,7 +750,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
             result.extend(self._get_temp_sensors_params(temp_sensors))
 
         if self.airflow_sensor_count:
-            airflow_sensors = yield self.get_airflow_sensors()
+            airflow_sensors = yield self._get_airflow_sensors()
             self.logger.error(
                     'ItWatchDogsMib:: get_all_sensors: airflow_sensors = %s' %
                         airflow_sensors)
