@@ -23,10 +23,10 @@
 	<form>
 	#if $show_unused_addresses is True
 		#set $loc = "/report/matrix?scope=" + $start_net.strNormal + "&show_unused_addresses=False"
-		<input type="checkbox" onclick="window.location='$loc'; return true;" checked> Show unused addresses
+		<input type="checkbox" onclick="window.location='$loc'; return true;" checked> Show unused address rows
 	#else
 		#set $loc = "/report/matrix?scope=" + $start_net.strNormal + "&show_unused_addresses=True"
-		<input type="checkbox" onclick="window.location='$loc'; return true;"> Show unused addresses
+		<input type="checkbox" onclick="window.location='$loc'; return true;"> Show unused address rows
 	#end if
 	<br><br>
 	</form>

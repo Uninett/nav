@@ -26,6 +26,8 @@ from django.forms.util import ErrorList
 def _check_ip(ip):
     if ip:
         try:
+            ip = ip.split('/')
+            ip = ip[0]
             IP(ip)
         except ValueError:
             raise forms.ValidationError(u"Invalid IP address")
