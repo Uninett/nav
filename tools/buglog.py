@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright (C) 2008, 2011 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
 """Extract Launchpad bug report references from input.
 
 This program scans its input, assumed to be Mercurial change log
@@ -15,28 +30,14 @@ If you aren't sure that all bug report references can be found in the
 commit log messages' summary line, add the -v option to hg log.
 """
 
-__copyright__ = "Copyright 2008 UNINETT AS"
-__license__ = """GPLv2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-
-This file is part of Network Administration Visualized (NAV).
-
-NAV is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License version 2 as published by
-the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-You should have received a copy of the GNU General Public License along with
-NAV. If not, see <http://www.gnu.org/licenses/>.
-"""
 import urllib2
 import re
 import sys
+import textwrap
 
 BUG_URL = 'https://launchpad.net/bugs/%d/+text'
 COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es)?|closes?) '
-                               r'+(lp)?#(?P<bug_id>[0-9]{6,})', re.I)
+                               r'+(lp)? *# *(?P<bug_id>[0-9]{6,})', re.I)
 
 def get_bug_details(bug_id):
     """Retrieve text detail of a launchpad bug report.
@@ -59,7 +60,11 @@ def get_bug_title(bug_id):
 def bugfix_format(bug_id):
     """Return bugfix details formatted for NAV's CHANGES file."""
     title = get_bug_title(bug_id)
-    return "  * LP#%d (%s)" % (bug_id, title)
+    lead_in = "  * LP#%d (" % bug_id
+    indent = " " * len(lead_in)
+    line = "%s%s)" % (lead_in, title)
+
+    return '\n'.join(textwrap.wrap(line, width=80, subsequent_indent=indent))
 
 def filter_log(file):
     """Filter hg log output.
@@ -77,13 +82,20 @@ def filter_log(file):
         if match:
             yield (line, match)
 
+def filter_bugids(matches):
+    for line, match in matches:
+        yield int(match.group('bug_id'))
+
 def main(args):
     if sys.stdin.isatty():
         print __doc__,
         sys.exit(0)
 
-    for line, match in filter_log(sys.stdin):
-        bug_id = int(match.group('bug_id'))
+    bug_ids = set()
+    for bug_id in filter_bugids(filter_log(sys.stdin)):
+        bug_ids.add(bug_id)
+
+    for bug_id in sorted(bug_ids):
         print bugfix_format(bug_id)
 
 if __name__ == '__main__':

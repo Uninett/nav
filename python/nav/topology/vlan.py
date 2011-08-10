@@ -21,7 +21,7 @@ from nav.models.manage import GwPortPrefix, Interface, SwPortVlan
 
 from django.db.models import Q
 from django.db import transaction
-from itertools import groupby
+from itertools import groupby, chain
 from operator import attrgetter
 
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
@@ -57,6 +57,37 @@ class VlanGraphAnalyzer(object):
                 self.ifc_vlan_map[ifc] = {}
             self.ifc_vlan_map[ifc][vlan] = direction
 
+    def add_access_port_vlans(self):
+        """Detects and adds Vlan entries for access ports to the ifc_vlan_map"""
+        access_vlan_map = dict(self.find_access_port_vlans())
+        self.ifc_vlan_map.update(access_vlan_map)
+        return self.ifc_vlan_map
+
+    def find_access_port_vlans(self):
+        """Finds and yields the vlans of access ports.
+
+        After the analyze_all step, the ifc_vlan_map will normally only
+        contain vlans for uplink/downlink ports, not access ports.  This
+        method will find the actual vlan objects of each of the switch access
+        ports and yield those as tuples: (interface, {vlan: 'down'}).  These
+        can be made into a dictionary suitable for updating ifc_vlan_map.
+
+        """
+        groups = groupby(self.ifc_vlan_map, lambda ifc: ifc.netbox)
+        for netbox, ifcs in groups:
+            for result in self._find_netbox_access_vlans(netbox, list(ifcs)):
+                yield result
+
+    def _find_netbox_access_vlans(self, netbox, ifcs):
+        vlans = chain(*(self.ifc_vlan_map[ifc].keys() for ifc in ifcs))
+        active_vlans = dict((vlan.vlan, vlan) for vlan in vlans)
+
+        access_ifcs = netbox.interface_set.filter(
+            vlan__isnull=False).filter(NO_TRUNK).exclude(
+            id__in=(ifc.id for ifc in ifcs))
+        for ifc in access_ifcs:
+            if ifc.vlan in active_vlans:
+                yield ifc, {active_vlans[ifc.vlan]: 'down'}
 
 class RoutedVlanTopologyAnalyzer(object):
     """Analyzer of a single routed VLAN topology"""
@@ -99,10 +130,10 @@ class RoutedVlanTopologyAnalyzer(object):
         direction = 'up' if dest in visited_nodes else 'down'
         visited_nodes.add(dest)
 
-        if direction == 'up' and self._vlan_is_active_on_reverse_edge(edge):
-            vlan_is_active = True
-        else:
-            vlan_is_active = self._is_vlan_active_on_destination(dest, ifc)
+        vlan_is_active = (
+            (direction == 'up'
+             and self._vlan_is_active_on_reverse_edge(edge, visited_nodes))
+            or self._is_vlan_active_on_destination(dest, ifc))
 
         if direction == 'down':
             # Recursive depth first search on each outgoing edge
@@ -115,12 +146,14 @@ class RoutedVlanTopologyAnalyzer(object):
 
         return vlan_is_active
 
-    def _vlan_is_active_on_reverse_edge(self, edge):
-        ifc = edge[2]
+    def _vlan_is_active_on_reverse_edge(self, edge, visited_nodes):
+        _source, dest, ifc = edge
         reverse_edge = self._find_reverse_edge(edge)
         if reverse_edge:
             reverse_ifc = reverse_edge[2]
-            if self._interface_has_been_seen_before(reverse_ifc):
+            been_there = (self._interface_has_been_seen_before(reverse_ifc)
+                          or dest in visited_nodes)
+            if been_there:
                 return self._ifc_has_vlan(ifc)
         return False
 
@@ -189,8 +222,11 @@ class VlanTopologyUpdater(object):
         """
         self.ifc_vlan_map = ifc_vlan_map
 
-    @transaction.commit_on_success
     def __call__(self):
+        return self.update()
+
+    @transaction.commit_on_success
+    def update(self):
         """Updates the VLAN topology in the NAV database"""
         for ifc, vlans in self.ifc_vlan_map.items():
             for vlan, dirstr in vlans.items():
