@@ -20,6 +20,17 @@ from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 from nav.oids import OID
 
+
+def for_table(table_name):
+    if not hasattr(for_table, 'map'):
+        for_table.map = {}
+
+    def decorate(method):
+        for_table.map[table_name] = method.func_name
+        return method
+
+    return decorate
+
 class ItWatchDogsMib(mibretriever.MibRetriever):
     from nav.smidumps.itw_mib import MIB as mib
 
@@ -28,30 +39,6 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
 
     lowercase_nodes = dict((key.lower(), key)
                            for key in mib['nodes'])
-
-    climate_count = 0
-    power_monitor_count = 0
-    temp_sensor_count = 0
-    airflow_sensor_count = 0
-    power_only_count = 0
-    door_sensor_count = 0
-    water_sensor_count = 0
-    current_sensor_count = 0
-    millivolt_sensor_count = 0
-    power3_ch_sensor_count = 0
-    outlet_count = 0
-    vsfc_count = 0
-    ctrl3_ch_count = 0
-    ctrl_grp_amps_count = 0
-    ctrl_output_count = 0
-    dewpoint_sensor_count = 0
-    digital_sensor_count = 0
-    dsts_sensor_count = 0
-    cpm_sensor_count = 0
-    smoke_alarm_sensor_count = 0
-    neg48Vdc_sensor_count = 0
-    pos30Vdc_sensor_count = 0
-    analog_sensor_count = 0
 
     def get_module_name(self):
         """ Return this official MIB-name"""
@@ -273,140 +260,6 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     #'analogSensorAnalog',
                     ])
 
-    def _retrieve_sensor_columns(self, columns):
-        """Retrieve the given columns and reduce indexes"""
-        df = self.retrieve_columns(columns)
-        df.addCallback(reduce_index)
-        return df
-
-    def _get_climate_sensors(self):
-        """ Get all the columns for climate sensor."""
-        return self._retrieve_sensor_columns([
-                            'climateSerial',
-                            'climateName',
-                            'climateAvail',
-                            'climateTempC',
-                            'climateHumidity',
-                            'climateAirflow',
-                            'climateLight',
-                            'climateSound',
-                            'climateIO1',
-                            'climateIO2',
-                            'climateIO3',
-                            ])
-
-    def _get_temp_sensors(self):
-        """ Get all the columns for temperature sensor."""
-        return self._retrieve_sensor_columns([
-                            'tempSensorSerial',
-                            'tempSensorName',
-                            'tempSensorAvail',
-                            'tempSensorTempC',
-                            ])
-
-    def _get_airflow_sensors(self):
-        """ Get all the columns for airflow sensor."""
-        return self._retrieve_sensor_columns([
-                            'airFlowSensorSerial',
-                            'airFlowSensorName',
-                            'airFlowSensorAvail',
-                            'airFlowSensorFlow',
-                            'airFlowSensorTempC',
-                            'airFlowSensorHumidity',
-                            ])
-
-    def _get_door_sensors(self):
-        """ Get all the columns for door sensor."""
-        return self._retrieve_sensor_columns([
-                            'doorSensorSerial',
-                            'doorSensorName',
-                            'doorSensorAvail',
-                            'doorSensorStatus',
-                            ])
-
-    def _get_water_sensors(self):
-        """ Get all the columns for water sensor."""
-        return self._retrieve_sensor_columns([
-                            'waterSensorSerial',
-                            'waterSensorName',
-                            'waterSensorAvail',
-                            'waterSensorDampness',
-                            ])
-
-    def _get_current_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'currentMonitorSerial',
-                            'currentMonitorName',
-                            'currentMonitorAvail',
-                            'currentMonitorAmps',
-                            ])
-
-    def _get_millivolt_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'millivoltMonitorSerial',
-                            'millivoltMonitorName',
-                            'millivoltMonitorAvail',
-                            'millivoltMonitorMV',
-                            ])
-
-    def _get_dewpoint_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'dewPointSensorSerial',
-                            'dewPointSensorName',
-                            'dewPointSensorAvail',
-                            'dewPointSensorDewPoint',
-                            'dewPointSensorTempC',
-                            'dewPointSensorHumidity',
-                            ])
-
-    def _get_digital_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'digitalSensorSerial',
-                            'digitalSensorName',
-                            'digitalSensorAvail',
-                            'digitalSensorDigital',
-                            ])
-
-    def _get_cpm_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'cpmSensorSerial',
-                            'cpmSensorName',
-                            'cpmSensorAvail',
-                            'cpmSensorStatus',
-                            ])
-
-    def _get_smoke_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'smokeAlarmSerial',
-                            'smokeAlarmName',
-                            'smokeAlarmAvail',
-                            'smokeAlarmStatus',
-                            ])
-
-    def _get_neg48Vdc_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'neg48VdcSensorSerial',
-                            'neg48VdcSensorName',
-                            'neg48VdcSensorAvail',
-                            'neg48VdcSensorVoltage',
-                            ])
-
-    def _get_pos30Vdc_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'pos30VdcSensorSerial',
-                            'pos30VdcSensorName',
-                            'pos30VdcSensorAvail',
-                            'pos30VdcSensorVoltage',
-                            ])
-
-    def _get_analog_sensors(self):
-        return self._retrieve_sensor_columns([
-                            'analogSensorSerial',
-                            'analogSensorName',
-                            'analogSensorAvail',
-                            'analogSensorAnalog',
-                            ])
-
     def _make_result_dict(self, sensor_oid, sensor_mib, serial, desc,
                                 u_o_m=None, precision=0, scale=None, name=None):
         """ Make a simple dictionary to return to plugin"""
@@ -424,7 +277,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 'mib': self.get_module_name()
                 }
         
-        
+    @for_table('climateTable')
     def _get_climate_sensors_params(self, climate_sensors):
         """ Collect all climate sensors and corresponding parameters"""
         sensors = []
@@ -470,6 +323,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'climateIO3', name=name))
         return sensors
 
+    @for_table('tempSensorTable')
     def _get_temp_sensors_params(self, temp_sensors):
         """ Collect all temperature sensors and corresponding parameters"""
         sensors = []
@@ -485,6 +339,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 name=name))
         return sensors
 
+    @for_table('airFlowSensorTable')
     def _get_airflow_sensors_params(self, airflow_sensors):
         """ Collect all airflow sensors and corresponding parameters"""
         sensors = []
@@ -512,6 +367,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 name=name))
         return sensors
 
+    @for_table('doorSensorTable')
     def _get_door_sensors_params(self, door_sensors):
         """ Collect all door sensors and corresponding parameters"""
         sensors = []
@@ -527,6 +383,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 name=name))
         return sensors
 
+    @for_table('waterSensorTable')
     def _get_water_sensors_params(self, water_sensors):
         """ Collect all water sensors and corresponding parameters"""
         sensors = []
@@ -541,7 +398,8 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                     self.nodes.get('waterSensorDampness', None),
                                     serial, 'waterSensorDampness', name=name))
         return sensors
-    
+
+    @for_table('currentMonitorTable')
     def _get_current_sensors_params(self, current_sensors):
         sensors = []
         for idx, current_sensor in current_sensors.items():
@@ -556,6 +414,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                     u_o_m='amperes', scale='milli', name=name))
         return sensors
 
+    @for_table('millivoltMonitorTable')
     def _get_millivolt_sensors_params(self, millivolt_sensors):
         sensors = []
         for idx, millivolt_sensor in millivolt_sensors.items():
@@ -571,6 +430,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                     scale='milli', name=name))
         return sensors
 
+    @for_table('dewPointSensorTable')
     def _get_dewpoint_sensors_params(self, dewpoint_sensors):
         sensors = []
         for idx, dewpoint_sensor in dewpoint_sensors.items():
@@ -595,6 +455,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 u_o_m='percentRH', name=name))
         return sensors
 
+    @for_table('digitalSensorTable')
     def _get_digital_sensors_params(self, digital_sensors):
         sensors = []
         for idx, digital_sensor in digital_sensors.items():
@@ -608,6 +469,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'digitalSensorDigital', name=name))
         return sensors
 
+    @for_table('cpmSensorTable')
     def _get_cpm_sensors_params(self, cpm_sensors):
         sensors = []
         for idx, cpm_sensor in cpm_sensors.items():
@@ -621,6 +483,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'cpmSensorStatus', name=name))
         return sensors
 
+    @for_table('smokeAlarmTable')
     def _get_smoke_sensors_params(self, smoke_sensors):
         sensors = []
         for idx, smoke_sensor in smoke_sensors.items():
@@ -635,6 +498,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                     name=name))
         return sensors
 
+    @for_table('neg48VdcSensorTable')
     def _get_neg48Vdc_sensors_params(self, neg48Vdc_sensors):
         sensors = []
         for idx, neg48Vdc_sensor in neg48Vdc_sensors.items():
@@ -649,6 +513,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 u_o_m='voltsDC', name=name))
         return sensors
 
+    @for_table('pos30VdcSensorTable')
     def _get_pos30Vdc_sensors_params(self, pos30Vdc_sensors):
         sensors = []
         for idx, pos30Vdc_sensor in pos30Vdc_sensors.items():
@@ -663,6 +528,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 u_o_m='voltsDC', name=name))
         return sensors
 
+    @for_table('analogSensorTable')
     def _get_analog_sensors_params(self, analog_sensors):
         sensors = []
         for idx, analog_sensor in analog_sensors.items():
@@ -689,151 +555,29 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                       if oid in self.oid_name_map)
         defer.returnValue(result)
 
-    def _set_sensor_count(self, sensor_count):
-        """ Store the count of sensors for late use"""
-        self.logger.error('_set_sensor_count: %s' % sensor_count)
-
-        self.climate_count = sensor_count.get('climateCount', 0)
-        self.power_monitor_count = sensor_count.get('powerMonitorCount', 0)
-        self.temp_sensor_count = sensor_count.get('tempSensorCount', 0)
-        self.airflow_sensor_count = sensor_count.get(
-                                    'airflowSensorCount', 0)
-        self.power_only_count = sensor_count.get('powerOnlyCount', 0)
-        self.door_sensor_count = sensor_count.get('doorSensorCount', 0)
-        self.water_sensor_count = sensor_count.get('waterSensorCount', 0)
-        self.current_sensor_count = sensor_count.get(
-                                                'currentSensorCount', 0)
-        self.millivolt_sensor_count = sensor_count.get(
-                                            'millivoltSensorCount', 0)
-        self.power3_ch_sensor_count = sensor_count.get(
-                                            'power3ChSensorCount', 0)
-        self.outlet_count = sensor_count.get('outletCount', 0)
-        self.vsfc_count = sensor_count.get('vsfcCount', 0)
-        self.ctrl3_ch_count = sensor_count.get('ctrl3ChCount', 0)
-        self.ctrl_grp_amps_count = sensor_count.get('ctrlGrpAmpsCount', 0)
-        self.ctrl_output_count = sensor_count.get('ctrlOutputCount', 0)
-        self.dewpoint_sensor_count = sensor_count.get(
-                                                'dewpointSensorCount', 0)
-        self.digital_sensor_count = sensor_count.get(
-                                                'digitalSensorCount', 0)
-        self.dsts_sensor_count = sensor_count.get('dstsSensorCount', 0)
-        self.cpm_sensor_count = sensor_count.get('cpmSensorCount', 0)
-        self.smoke_alarm_sensor_count = sensor_count.get(
-                                                'smokeAlarmSensorCount', 0)
-        self.neg48Vdc_sensor_count = sensor_count.get(
-                                                'neg48VdcSensorCount', 0)
-        self.pos30Vdc_sensor_count = sensor_count.get(
-                                                'pos30VdcSensorCount', 0)
-        self.analog_sensor_count = sensor_count.get('analogSensorCount', 0)
-
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ Try to retrieve all available sensors in this WxGoose"""
         sensor_counts = yield self._get_sensor_count()
-        self._set_sensor_count(sensor_counts)
-        self.logger.error('ItWatchDogsMib:: get_all_sensors: ip = %s' %
-                            self.agent_proxy.ip)
+        self.logger.debug('ItWatchDogsMib:: get_all_sensors: ip = %s',
+                          self.agent_proxy.ip)
+
+        tables = ((self.translate_counter_to_table(counter), count)
+                  for counter, count in sensor_counts.items())
+        tables = (table for table, count in tables
+                  if table and count)
 
         result = []
-        if self.climate_count:
-            climate_sensors = yield self._get_climate_sensors()
-            self.logger.error(
-                'ItWatchDogsMib:: get_all_sensors: climate_sensors = %s' %
-                    climate_sensors)
-            for row_id, row in climate_sensors.items():
-                self.logger.debug(
-                            'ItWatchDogsMib:: get_all_sensors: row = %s' % row)
-            result.extend(self._get_climate_sensors_params(climate_sensors))
-
-        if self.temp_sensor_count:
-            temp_sensors = yield self._get_temp_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: temp_sensors = %s' %
-                        temp_sensors)
-            result.extend(self._get_temp_sensors_params(temp_sensors))
-
-        if self.airflow_sensor_count:
-            airflow_sensors = yield self._get_airflow_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: airflow_sensors = %s' %
-                        airflow_sensors)
-            result.extend(self._get_airflow_sensors_params(airflow_sensors))
-
-        if self.door_sensor_count:
-            door_sensors = yield self._get_door_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: door_sensors = %s' %
-                        door_sensors)
-            result.extend(self._get_door_sensors_params(door_sensors))
-
-        if self.water_sensor_count:
-            water_sensors = yield self._get_water_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: water_sensors = %s' %
-                        water_sensors)
-            result.extend(self._get_water_sensors_params(water_sensors))
-
-        if self.current_sensor_count:
-            current_sensors = yield self._get_current_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: current_sensors = %s' %
-                        current_sensors)
-            result.extend(self._get_current_sensors_params(current_sensors))
-
-        if self.millivolt_sensor_count:
-            millivolt_sensors = yield self._get_millivolt_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: millivolt_sensors = %s' %
-                        millivolt_sensors)
-            result.extend(self._get_millivolt_sensors_params(millivolt_sensors))
-
-        if self.dewpoint_sensor_count:
-            dewpoint_sensors = yield self._get_dewpoint_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: dewpoint_sensors = %s' %
-                        dewpoint_sensors)
-            result.extend(self._get_dewpoint_sensors_params(dewpoint_sensors))
-        if self.digital_sensor_count:
-            digital_sensors = yield self._get_digital_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: digital_sensors = %s' %
-                        digital_sensors)
-            result.extend(self._get_digital_sensors_params(digital_sensors))
-
-        if self.cpm_sensor_count:
-            cpm_sensors = yield self._get_cpm_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: cpm_sensors = %s' %
-                        cpm_sensors)
-            result.extend(self._get_cpm_sensors_params(cpm_sensors))
-
-        if self.smoke_alarm_sensor_count:
-            smoke_sensors = yield self._get_smoke_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: smoke_sensors = %s' %
-                        smoke_sensors)
-            result.extend(self._get_smoke_sensors_params(smoke_sensors))
-
-        if self.neg48Vdc_sensor_count:
-            neg48Vdc_sensors = yield self._get_neg48Vdc_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: neg48Vdc_sensors = %s' %
-                        neg48Vdc_sensors)
-            result.extend(self._get_neg48Vdc_sensors_params(neg48Vdc_sensors))
-
-        if self.pos30Vdc_sensor_count:
-            pos30Vdc_sensors = yield self._get_pos30Vdc_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: pos30Vdc_sensors = %s' %
-                        pos30Vdc_sensors)
-            result.extend(self._get_pos30Vdc_sensors_params(pos30Vdc_sensors))
-        
-        if self.analog_sensor_count:
-            analog_sensors = yield self._get_analog_sensors()
-            self.logger.error(
-                    'ItWatchDogsMib:: get_all_sensors: analog_sensors = %s' %
-                        analog_sensors)
-            result.extend(self._get_analog_sensors_params(analog_sensors))
+        for table in tables:
+            sensors = yield self.retrieve_table(table).addCallback(reduce_index)
+            self.logger.debug('ItWatchDogsMib:: get_all_sensors: %s = %s',
+                              table, sensors)
+            handler = for_table.map.get(table, None)
+            if not handler:
+                self.logger.error("There is not data handler for %s", table)
+            else:
+                method = getattr(self, handler)
+                result.extend(method(sensors))
 
         defer.returnValue(result)
 
