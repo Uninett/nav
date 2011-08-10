@@ -18,10 +18,13 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
-
+from nav.oids import OID
 
 class ItWatchDogsMib(mibretriever.MibRetriever):
     from nav.smidumps.itw_mib import MIB as mib
+
+    oid_name_map = dict((OID(attrs['oid']), name)
+                        for name, attrs in mib['nodes'].items())
 
     climate_count = 0
     power_monitor_count = 0
@@ -670,73 +673,55 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'analogSensorAnalog', name=name))
         return sensors
 
+    @defer.inlineCallbacks
     def _get_sensor_count(self):
         """Count all available sensors in this WxGoose"""
-        df = self.retrieve_columns([
-                    'climateCount',
-                    'powerMonitorCount',
-                    'tempSensorCount',
-                    'airflowSensorCount',
-                    'powerOnlyCount',
-                    'doorSensorCount',
-                    'waterSensorCount',
-                    'currentSensorCount',
-                    'millivoltSensorCount',
-                    'power3ChSensorCount',
-                    'outletCount',
-                    'vsfcCount',
-                    'ctrl3ChCount',
-                    'ctrlGrpAmpsCount',
-                    'ctrlOutputCount',
-                    'dewpointSensorCount',
-                    'digitalSensorCount',
-                    'dstsSensorCount',
-                    'cpmSensorCount',
-                    'smokeAlarmSensorCount',
-                    'neg48VdcSensorCount',
-                    'pos30VdcSensorCount',
-                    'analogSensorCount',
-                    ])
-        df.addCallback(reduce_index)
-        return df
+        sensor_counts_oid = self.mib['nodes']['sensorCounts']['oid']
+        sensor_counts = yield self.retrieve_column('sensorCounts')
+        mapped_counts = ((sensor_counts_oid + OID(key[0:1]), count)
+                         for key, count in sensor_counts.items())
 
-    def _set_sensor_count(self, sensor_counts):
+        result = dict((self.oid_name_map[oid], count)
+                      for oid, count in mapped_counts
+                      if oid in self.oid_name_map)
+        defer.returnValue(result)
+
+    def _set_sensor_count(self, sensor_count):
         """ Store the count of sensors for late use"""
-        self.logger.error('_set_sensor_count: %s' % sensor_counts)
-        for idx, sensor_count in sensor_counts.items():
-            self.climate_count = sensor_count.get('climateCount', 0)
-            self.power_monitor_count = sensor_count.get('powerMonitorCount', 0)
-            self.temp_sensor_count = sensor_count.get('tempSensorCount', 0)
-            self.airflow_sensor_count = sensor_count.get(
-                                        'airflowSensorCount', 0)
-            self.power_only_count = sensor_count.get('powerOnlyCount', 0)
-            self.door_sensor_count = sensor_count.get('doorSensorCount', 0)
-            self.water_sensor_count = sensor_count.get('waterSensorCount', 0)
-            self.current_sensor_count = sensor_count.get(
-                                                    'currentSensorCount', 0)
-            self.millivolt_sensor_count = sensor_count.get(
-                                                'millivoltSensorCount', 0)
-            self.power3_ch_sensor_count = sensor_count.get(
-                                                'power3ChSensorCount', 0)
-            self.outlet_count = sensor_count.get('outletCount', 0)
-            self.vsfc_count = sensor_count.get('vsfcCount', 0)
-            self.ctrl3_ch_count = sensor_count.get('ctrl3ChCount', 0)
-            self.ctrl_grp_amps_count = sensor_count.get('ctrlGrpAmpsCount', 0)
-            self.ctrl_output_count = sensor_count.get('ctrlOutputCount', 0)
-            self.dewpoint_sensor_count = sensor_count.get(
-                                                    'dewpointSensorCount', 0)
-            self.digital_sensor_count = sensor_count.get(
-                                                    'digitalSensorCount', 0)
-            self.dsts_sensor_count = sensor_count.get('dstsSensorCount', 0)
-            self.cpm_sensor_count = sensor_count.get('cpmSensorCount', 0)
-            self.smoke_alarm_sensor_count = sensor_count.get(
-                                                    'smokeAlarmSensorCount', 0)
-            self.neg48Vdc_sensor_count = sensor_count.get(
-                                                    'neg48VdcSensorCount', 0)
-            self.pos30Vdc_sensor_count = sensor_count.get(
-                                                    'pos30VdcSensorCount', 0)
-            self.analog_sensor_count = sensor_count.get('analogSensorCount', 0)
-        return None
+        self.logger.error('_set_sensor_count: %s' % sensor_count)
+
+        self.climate_count = sensor_count.get('climateCount', 0)
+        self.power_monitor_count = sensor_count.get('powerMonitorCount', 0)
+        self.temp_sensor_count = sensor_count.get('tempSensorCount', 0)
+        self.airflow_sensor_count = sensor_count.get(
+                                    'airflowSensorCount', 0)
+        self.power_only_count = sensor_count.get('powerOnlyCount', 0)
+        self.door_sensor_count = sensor_count.get('doorSensorCount', 0)
+        self.water_sensor_count = sensor_count.get('waterSensorCount', 0)
+        self.current_sensor_count = sensor_count.get(
+                                                'currentSensorCount', 0)
+        self.millivolt_sensor_count = sensor_count.get(
+                                            'millivoltSensorCount', 0)
+        self.power3_ch_sensor_count = sensor_count.get(
+                                            'power3ChSensorCount', 0)
+        self.outlet_count = sensor_count.get('outletCount', 0)
+        self.vsfc_count = sensor_count.get('vsfcCount', 0)
+        self.ctrl3_ch_count = sensor_count.get('ctrl3ChCount', 0)
+        self.ctrl_grp_amps_count = sensor_count.get('ctrlGrpAmpsCount', 0)
+        self.ctrl_output_count = sensor_count.get('ctrlOutputCount', 0)
+        self.dewpoint_sensor_count = sensor_count.get(
+                                                'dewpointSensorCount', 0)
+        self.digital_sensor_count = sensor_count.get(
+                                                'digitalSensorCount', 0)
+        self.dsts_sensor_count = sensor_count.get('dstsSensorCount', 0)
+        self.cpm_sensor_count = sensor_count.get('cpmSensorCount', 0)
+        self.smoke_alarm_sensor_count = sensor_count.get(
+                                                'smokeAlarmSensorCount', 0)
+        self.neg48Vdc_sensor_count = sensor_count.get(
+                                                'neg48VdcSensorCount', 0)
+        self.pos30Vdc_sensor_count = sensor_count.get(
+                                                'pos30VdcSensorCount', 0)
+        self.analog_sensor_count = sensor_count.get('analogSensorCount', 0)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
