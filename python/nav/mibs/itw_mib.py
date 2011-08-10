@@ -26,6 +26,9 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     oid_name_map = dict((OID(attrs['oid']), name)
                         for name, attrs in mib['nodes'].items())
 
+    lowercase_nodes = dict((key.lower(), key)
+                           for key in mib['nodes'])
+
     climate_count = 0
     power_monitor_count = 0
     temp_sensor_count = 0
@@ -833,3 +836,22 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
             result.extend(self._get_analog_sensors_params(analog_sensors))
 
         defer.returnValue(result)
+
+    @classmethod
+    def translate_counter_to_table(cls, counter_name):
+        """Translates the name of a count object under sensorCounts into its
+        corresponding sensor table object name.
+
+        If unable to translate the counter name into a table name, None is
+        returned.
+
+        """
+        counter_bases = [counter_name.replace('Count', '').lower(),
+                         counter_name.replace('SensorCount', '').lower()]
+        suffixes = ['table', 'sensortable', 'monitortable']
+        alternatives = [base + suffix
+                        for base in counter_bases for suffix in suffixes]
+
+        for alt in alternatives:
+            if alt in cls.lowercase_nodes:
+                return cls.lowercase_nodes[alt]
