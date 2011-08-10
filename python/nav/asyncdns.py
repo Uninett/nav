@@ -15,22 +15,23 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""API that does forward and reverse DNS lookups on both IPv4 and IPv6"""
+"""Asynchronous DNS resolver that does lookups on both IPv4 and IPv6"""
 
 import socket
 from IPy import IP
 from itertools import cycle
 from twisted.names import dns
 from twisted.names import client
+# pylint: disable=E1101
 from twisted.internet import reactor
-from twisted.python.failure import Failure
+# pylint: disable=W0611
 from twisted.names.error import DNSUnknownError
 from twisted.names.error import DomainError, AuthoritativeDomainError
 from twisted.names.error import DNSQueryTimeoutError, DNSFormatError 
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError 
 
-resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
+_resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
 
 def reverse_lookup(addresses):
     """Performs reverse lookups and returns a dict of
@@ -59,13 +60,13 @@ def _lookup(hosts, lookup_func, callback):
     
 def _lookup_pointer(address):
     """Returns a deferred object which tries to get the hostname from ip"""
-    resolver = resolvers.next()
+    resolver = _resolvers.next()
     ip = IP(address)
     return resolver.lookupPointer(ip.reverseName())
 
 def _lookup_all_records(name):
     """Returns a deferred object with all records related to hostname"""
-    resolver = resolvers.next()
+    resolver = _resolvers.next()
     return resolver.lookupAllRecords(name)
 
     
