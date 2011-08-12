@@ -330,7 +330,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("powerMonitorTable")
     def _get_power_monitor_params(self, power_monitors_sensors):
         sensors = []
-        for idx, pow_mon_sensor in power_monitors_sensors:
+        for idx, pow_mon_sensor in power_monitors_sensors.items():
             pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
             if pow_mon_avail:
                 pow_mon_oid = pow_mon_sensor.get(0, None)
@@ -374,7 +374,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("powerOnlyTable")
     def _get_power_only_params(self, power_only_sensors):
         sensors = []
-        for idx, power_sensor in power_only_sensors:
+        for idx, power_sensor in power_only_sensors.items():
             power_sensor_avail = power_sensor.get('powerAvail', None)
             if power_sensor_avail:
                 power_sensor_oid = power_sensor.get(0, None)
@@ -400,7 +400,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("power3ChTable")
     def _get_power3_ch_params(self, power3_ch_sensors):
         sensors = []
-        for idx, pow3_ch_sensor in power3_ch_sensors:
+        for idx, pow3_ch_sensor in power3_ch_sensors.items():
             pow3_ch_avail = pow3_ch_sensor.get('pow3ChAvail', None)
             if pow3_ch_avail:
                 pow3_ch_sensor_oid = pow3_ch_sensor.get(0, None)
@@ -492,7 +492,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("outletTable")
     def _get_outlet_params(self, outlet_sensors):
         sensors = []
-        for idx, outlet_sensor in outlet_sensors:
+        for idx, outlet_sensor in outlet_sensors.items():
             outlet_avail = outlet_sensor.get('outletAvail', None)
             if outlet_avail:
                 outlet_oid = outlet_sensor.get(0, None)
@@ -509,7 +509,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("vsfcTable")
     def _get_vsfc_params(self, vsfc_sensors):
         sensors = []
-        for idx, vsfc_sensor in vsfc_sensors:
+        for idx, vsfc_sensor in vsfc_sensors.items():
             vsfc_avail = vsfc_sensor.get('vsfcAvail', None)
             if vsfc_avail:
                 vsfc_oid = vsfc_sensor.get(0, None)
@@ -541,7 +541,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("ctrl3ChTable")
     def _get_ctrl3_ch_params(self, ctrl3_ch_sensors):
         sensors = []
-        for idx, ctrl3_ch_sensor in ctrl3_ch_sensors:
+        for idx, ctrl3_ch_sensor in ctrl3_ch_sensors.items():
             ctrl3_ch_avail = ctrl3_ch_sensor.get('ctrl3ChAvail', None)
             if ctrl3_ch_avail:
                 ctrl3_ch_oid = ctrl3_ch_sensor.get(0, None)
@@ -615,7 +615,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("ctrlGrpAmpsTable")
     def _get_ctrl_grp_amps_params(self, ctrl_grp_amps_sensors):
         sensors = []
-        for idx, c_grp_amps_sensor in ctrl_grp_amps_sensors:
+        for idx, c_grp_amps_sensor in ctrl_grp_amps_sensors.items():
             c_grp_amp_avail = c_grp_amps_sensor.get('ctrlGrpAmpsAvail', None)
             if c_grp_amp_avail:
                 c_grp_amp_oid = c_grp_amps_sensor.get(0, None)
@@ -644,7 +644,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("ctrlOutletTable")
     def _get_ctrl_outlet_params(self, ctrl_outlet_sensors):
         sensors = []
-        for idx, c_outlet_sensor in ctrl_outlet_sensors:
+        for idx, c_outlet_sensor in ctrl_outlet_sensors.items():
             c_outlet_oid = c_outlet_sensor.get(0, None)
             serial = c_outlet_sensor.get('ctrlOutletGroup', None)
             name = c_outlet_sensor.get('ctrlOutletName', None)
@@ -674,7 +674,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     @for_table("dstsTable")
     def _get_dsts_params(self, dsts_sensors):
         sensors = []
-        for idx, dsts_sensor in dsts_sensors:
+        for idx, dsts_sensor in dsts_sensors.items():
             dsts_avail = dsts_sensor.get('dstsAvail', None)
             if dsts_avail:
                 dsts_oid = dsts_sensor.get(0, None)
